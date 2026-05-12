@@ -64,6 +64,9 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
     @Value("${management.mongodb.prefix:}")
     private String collectionPrefix;
 
+    @Value("${management.mongodb.maxQueryTime:30000}")
+    private long maxQueryTimeMs;
+
     @PostConstruct
     void setup() {
         backupCollection = collectionPrefix + BACKUP_COLLECTION;
@@ -77,6 +80,8 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
 
         // set sort by updated at
         query.with(Sort.by(Sort.Direction.DESC, UPDATED_AT_FIELD, "_id"));
+
+        query.maxTimeMsec(maxQueryTimeMs);
 
         long total = mongoTemplate.count(query, EventMongo.class);
 

@@ -21,16 +21,19 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.mongodb.management.internal.model.EventLatestMongo;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
+import org.springframework.data.mongodb.core.aggregation.AggregationOptions;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 
@@ -42,6 +45,9 @@ public class EventLatestMongoRepositoryImpl implements EventLatestMongoRepositor
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Value("${management.mongodb.maxQueryTime:30000}")
+    private long maxQueryTimeMs;
 
     public List<EventLatestMongo> search(EventCriteria criteria, Event.EventProperties group, Long page, Long size) {
         final String collectionName = mongoTemplate.getCollectionName(EventLatestMongo.class);
@@ -78,7 +84,9 @@ public class EventLatestMongoRepositoryImpl implements EventLatestMongoRepositor
         aggregationOperations.add(Aggregation.unwind("lookup_events"));
         aggregationOperations.add(Aggregation.replaceRoot("lookup_events"));
 
-        aggregation = Aggregation.newAggregation(aggregationOperations);
+        aggregation = Aggregation.newAggregation(aggregationOperations).withOptions(
+            AggregationOptions.builder().maxTime(Duration.ofMillis(maxQueryTimeMs)).build()
+        );
 
         final AggregationResults<EventLatestMongo> events = mongoTemplate.aggregate(aggregation, collectionName, EventLatestMongo.class);
 
