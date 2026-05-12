@@ -298,11 +298,15 @@ paths:
                 Partially update a V4 HTTP Proxy API using JSON Patch (RFC 6902) or JSON Merge Patch (RFC 7396).
 
                 Only the following fields are patchable: name, description, apiVersion, visibility, labels, tags,
-                lifecycleState, categories, analytics, failover, flowExecution, flows, services, allowedInApiProducts,
-                allowMultiJwtOauth2Subscriptions, disableMembershipNotifications, groups, properties,
-                responseTemplates.
+                lifecycleState, categories, analytics, failover, flowExecution, flows, services, resources,
+                allowedInApiProducts, allowMultiJwtOauth2Subscriptions, disableMembershipNotifications,
+                properties, responseTemplates.
 
-                Use dryRun=true to preview the result without persisting.
+                JSON Patch operations targeting /resources/N/configuration/... (any depth under configuration) are
+                rejected with 400. Replace the full configuration object at /resources/N/configuration instead.
+
+                Use dryRun=true to preview the result without persisting. The response body reflects
+                validator-sanitised values, including plugin-default-injected resource configuration.
 
                 User must have API_DEFINITION[UPDATE] or API_GATEWAY_DEFINITION[UPDATE] permissions.
             operationId: patchApi

@@ -87,6 +87,7 @@ public class UpdateApiDomainServiceImpl implements UpdateApiDomainService {
             .services(coalesce(sanitized.getServices(), originalDefinition.getServices()))
             .allowedInApiProducts(coalesce(sanitized.getAllowedInApiProducts(), originalDefinition.getAllowedInApiProducts()))
             .responseTemplates(coalesce(sanitized.getResponseTemplates(), originalDefinition.getResponseTemplates()))
+            .resources(coalesce(sanitized.getResources(), originalDefinition.getResources()))
             .build();
         return original
             .toBuilder()

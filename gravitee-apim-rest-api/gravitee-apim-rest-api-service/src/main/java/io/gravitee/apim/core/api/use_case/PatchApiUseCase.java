@@ -48,12 +48,14 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.property.Property;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
@@ -83,8 +85,13 @@ public class PatchApiUseCase {
     private static final String FIELD_PROPERTIES = "properties";
     private static final String FIELD_RESPONSE_TEMPLATES = "responseTemplates";
     private static final String FIELD_FLOWS = "flows";
+    private static final String FIELD_RESOURCES = "resources";
 
     private static final String JSON_PATCH_PATH_PREFIX = "/";
+
+    private static final Pattern RESOURCE_CONFIGURATION_DEEP_PATH = Pattern.compile("/resources/(\\d+|-)/configuration/.+");
+    private static final String RESOURCE_CONFIGURATION_DEEP_PATH_MESSAGE =
+        "operations under /resources/N/configuration/... are not supported; replace the full configuration object at /resources/N/configuration";
 
     private static final Set<String> ALLOWED_FIELDS = Set.of(
         FIELD_NAME,
@@ -104,13 +111,14 @@ public class PatchApiUseCase {
         FIELD_DISABLE_MEMBERSHIP_NOTIFICATIONS,
         FIELD_PROPERTIES,
         FIELD_RESPONSE_TEMPLATES,
-        FIELD_FLOWS
+        FIELD_FLOWS,
+        FIELD_RESOURCES
     );
 
     private static final int MAX_PATCH_OPS = 200;
 
     private static final Set<String> BLOCKED_WITH_HINT = Set.of("state");
-    private static final Set<String> BLOCKED_WITHOUT_HINT = Set.of("endpointGroups", "listeners", "resources");
+    private static final Set<String> BLOCKED_WITHOUT_HINT = Set.of("endpointGroups", "listeners");
 
     private static final String NULL_NOT_ALLOWED_MESSAGE_FORMAT =
         "'%s' cannot be null; omit the field to leave it unchanged, or send an explicit value";
@@ -198,7 +206,11 @@ public class PatchApiUseCase {
             if (pathNode.isMissingNode() || !pathNode.isTextual()) {
                 throw new ValidationDomainException("JSON Patch operation at index " + index + " is missing required 'path' field");
             }
-            validateJsonPatchField(index, "path", pathNode.asText());
+            var rawPath = pathNode.asText();
+            validateJsonPatchField(index, "path", rawPath);
+            if (isResourceConfigurationDeepPath(rawPath)) {
+                throw new ApiPatchNotAllowedException(rawPath, RESOURCE_CONFIGURATION_DEEP_PATH_MESSAGE);
+            }
             var opType = op.path("op").asText();
             if ("move".equals(opType) || "copy".equals(opType)) {
                 var fromNode = op.path("from");
@@ -210,10 +222,18 @@ public class PatchApiUseCase {
                         "JSON Patch operation at index " + index + " has invalid 'from' field: must be a string"
                     );
                 }
-                validateJsonPatchField(index, "from", fromNode.asText());
+                var rawFrom = fromNode.asText();
+                validateJsonPatchField(index, "from", rawFrom);
+                if (isResourceConfigurationDeepPath(rawFrom)) {
+                    throw new ApiPatchNotAllowedException(rawFrom, RESOURCE_CONFIGURATION_DEEP_PATH_MESSAGE);
+                }
             }
             index++;
         }
+    }
+
+    private static boolean isResourceConfigurationDeepPath(String path) {
+        return path != null && RESOURCE_CONFIGURATION_DEEP_PATH.matcher(path).matches();
     }
 
     private void validateJsonPatchField(int opIndex, String pointerName, String pointer) {
@@ -351,6 +371,7 @@ public class PatchApiUseCase {
         );
         var responseTemplates = resolveResponseTemplates(patchType, rawPatchNode, patchedNode, httpV4.getResponseTemplates());
         var flows = resolvePatchableList(patchType, rawPatchNode, patchedNode, FIELD_FLOWS, Flow.class, httpV4.getFlows());
+        var resources = resolvePatchableList(patchType, rawPatchNode, patchedNode, FIELD_RESOURCES, Resource.class, httpV4.getResources());
 
         var updatedDefinition = httpV4
             .toBuilder()
@@ -365,6 +386,7 @@ public class PatchApiUseCase {
             .properties(properties)
             .responseTemplates(responseTemplates)
             .flows(flows)
+            .resources(resources)
             .build();
 
         return existingApi
@@ -767,7 +789,8 @@ public class PatchApiUseCase {
         boolean disableMembershipNotifications,
         List<Property> properties,
         Map<String, Map<String, PatchableResponseTemplate>> responseTemplates,
-        List<Flow> flows
+        List<Flow> flows,
+        List<Resource> resources
     ) {
         static PatchableView from(Api api, io.gravitee.definition.model.v4.Api httpV4) {
             return new PatchableView(
@@ -788,7 +811,8 @@ public class PatchApiUseCase {
                 api.isDisableMembershipNotifications(),
                 httpV4.getProperties(),
                 toPatchableResponseTemplates(httpV4.getResponseTemplates()),
-                httpV4.getFlows()
+                httpV4.getFlows(),
+                httpV4.getResources()
             );
         }
 

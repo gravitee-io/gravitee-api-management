@@ -33,6 +33,7 @@ import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.v4.ApiService;
@@ -249,6 +250,33 @@ class UpdateApiDomainServiceImplTest {
 
         assertThat(result.getApiDefinitionHttpV4().getFlows()).isNull();
         verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
+    }
+
+    @Test
+    void should_return_sanitized_resources_from_mutated_update_api_entity() {
+        var api = ApiFixtures.aProxyApiV4();
+        var sanitizedResources = List.of(Resource.builder().name("r1").type("cache").configuration("{\"ttl\":300}").enabled(true).build());
+        stubValidate(entity -> entity.setResources(sanitizedResources));
+
+        var result = cut.validateV4(api, auditInfo);
+
+        assertThat(result.getApiDefinitionHttpV4().getResources()).isEqualTo(sanitizedResources);
+    }
+
+    @Test
+    void should_preserve_original_resources_when_validator_returns_null() {
+        var existingResource = Resource.builder().name("r1").type("cache").configuration("{}").enabled(true).build();
+        var originalDefinition = ApiFixtures.aProxyApiV4()
+            .getApiDefinitionHttpV4()
+            .toBuilder()
+            .resources(List.of(existingResource))
+            .build();
+        var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(originalDefinition).build();
+        stubValidate(entity -> entity.setResources(null));
+
+        var result = cut.validateV4(api, auditInfo);
+
+        assertThat(result.getApiDefinitionHttpV4().getResources()).containsExactly(existingResource);
     }
 
     @Test
