@@ -34,7 +34,6 @@
 
     <properties>
         <skip.ui.build>false</skip.ui.build>
-        <exec-maven-plugin.version>3.6.3</exec-maven-plugin.version>
     </properties>
 
     <dependencyManagement>
@@ -105,21 +104,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>${exec-maven-plugin.version}</version>
                 <executions>
-                    <execution>
-                        <id>npm-install</id>
-                        <phase>generate-resources</phase>
-                        <goals><goal>exec</goal></goals>
-                        <configuration>
-                            <executable>yarn</executable>
-                            <workingDirectory>${project.basedir}/../..</workingDirectory>
-                            <arguments>
-                                <argument>install</argument>
-                            </arguments>
-                            <skip>${skip.ui.build}</skip>
-                        </configuration>
-                    </execution>
                     <execution>
                         <id>nx-build</id>
                         <phase>generate-resources</phase>
