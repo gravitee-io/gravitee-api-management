@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -53,12 +54,14 @@ import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.alert.AlertEventProducer;
 import io.gravitee.reporter.api.health.EndpointStatus;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
 import io.vertx.rxjava3.core.Vertx;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -149,6 +152,7 @@ public class HttpHealthCheckServiceTest {
             when(deploymentContext.getComponent(Node.class)).thenReturn(node);
             when(deploymentContext.getComponent(ReporterService.class)).thenReturn(reporterService);
             when(deploymentContext.getComponent(AlertEventProducer.class)).thenReturn(alertEventProducer);
+            lenient().when(deploymentContext.getComponent(Configuration.class)).thenReturn(null);
 
             hcConfig.setSchedule("* * * * * *");
             hcConfig.setTarget("/health");
@@ -310,6 +314,121 @@ public class HttpHealthCheckServiceTest {
         }
 
         @Test
+        public void should_report_failure_when_response_body_never_terminates() throws Exception {
+            final Configuration configuration = mock(Configuration.class);
+            when(deploymentContext.getComponent(Configuration.class)).thenReturn(configuration);
+            when(
+                configuration.getProperty(
+                    HttpHealthCheckService.BODY_READ_TIMEOUT_PROPERTY,
+                    Long.class,
+                    HttpHealthCheckService.DEFAULT_BODY_READ_TIMEOUT_MS
+                )
+            ).thenReturn(200L);
+
+            final Service healthCheck = new Service();
+            healthCheck.setEnabled(true);
+            healthCheck.setOverrideConfiguration(true);
+            healthCheck.setType(HTTP_HEALTH_CHECK_TYPE);
+            services.setHealthCheck(healthCheck);
+
+            when(managedEndpointGroup.getDefinition()).thenReturn(new EndpointGroup());
+
+            CountDownLatch countDownLatch = new CountDownLatch(hcConfig.getFailureThreshold());
+
+            doAnswer(invoker -> {
+                countDownLatch.countDown();
+                return null;
+            })
+                .when(reporterService)
+                .report(any());
+
+            when(endpointConnector.connect(any())).thenAnswer(invokable -> {
+                ExecutionContext ctx = invokable.getArgument(0);
+                ctx.response().status(401);
+                ctx.response().chunks(Flowable.never());
+                ctx.metrics().setEndpoint(hcConfig.getTarget());
+                return Completable.complete();
+            });
+
+            final var cut = new HttpHealthCheckService(api, deploymentContext, gatewayConfig);
+            cut.start();
+
+            Assertions.assertThat(cut.getJobs()).isNotNull().hasSize(1);
+            Assertions.assertThat(countDownLatch.await(10, TimeUnit.SECONDS)).isTrue();
+            cut.stop();
+
+            verify(reporterService, times(hcConfig.getFailureThreshold())).report(
+                argThat((EndpointStatus reportable) -> reportable.getEndpoint().equals(ENDPOINT_NAME) && !reportable.isSuccess())
+            );
+        }
+
+        @Test
+        public void should_report_failure_on_request_timeout() throws Exception {
+            final Service healthCheck = new Service();
+            healthCheck.setEnabled(true);
+            healthCheck.setOverrideConfiguration(true);
+            healthCheck.setType(HTTP_HEALTH_CHECK_TYPE);
+            services.setHealthCheck(healthCheck);
+
+            when(managedEndpointGroup.getDefinition()).thenReturn(new EndpointGroup());
+
+            CountDownLatch countDownLatch = new CountDownLatch(hcConfig.getFailureThreshold());
+
+            doAnswer(invoker -> {
+                countDownLatch.countDown();
+                return null;
+            })
+                .when(reporterService)
+                .report(any());
+
+            when(endpointConnector.connect(any())).thenAnswer(invokable -> Completable.error(new TimeoutException("read timeout")));
+
+            final var cut = new HttpHealthCheckService(api, deploymentContext, gatewayConfig);
+            cut.start();
+
+            Assertions.assertThat(cut.getJobs()).isNotNull().hasSize(1);
+            Assertions.assertThat(countDownLatch.await(10, TimeUnit.SECONDS)).isTrue();
+            cut.stop();
+
+            verify(reporterService, times(hcConfig.getFailureThreshold())).report(
+                argThat((EndpointStatus reportable) -> reportable.getEndpoint().equals(ENDPOINT_NAME) && !reportable.isSuccess())
+            );
+        }
+
+        @Test
+        public void should_report_failure_on_unexpected_connector_error() throws Exception {
+            final Service healthCheck = new Service();
+            healthCheck.setEnabled(true);
+            healthCheck.setOverrideConfiguration(true);
+            healthCheck.setType(HTTP_HEALTH_CHECK_TYPE);
+            services.setHealthCheck(healthCheck);
+
+            when(managedEndpointGroup.getDefinition()).thenReturn(new EndpointGroup());
+
+            CountDownLatch countDownLatch = new CountDownLatch(hcConfig.getFailureThreshold());
+
+            doAnswer(invoker -> {
+                countDownLatch.countDown();
+                return null;
+            })
+                .when(reporterService)
+                .report(any());
+
+            when(endpointConnector.connect(any())).thenAnswer(invokable -> Completable.error(new RuntimeException("boom")));
+
+            final var cut = new HttpHealthCheckService(api, deploymentContext, gatewayConfig);
+            cut.start();
+
+            Assertions.assertThat(cut.getJobs()).isNotNull().hasSize(1);
+            Assertions.assertThat(countDownLatch.await(10, TimeUnit.SECONDS)).isTrue();
+            cut.stop();
+
+            verify(reporterService, times(hcConfig.getFailureThreshold())).report(
+                argThat((EndpointStatus reportable) -> reportable.getEndpoint().equals(ENDPOINT_NAME) && !reportable.isSuccess())
+            );
+        }
+
+        @Test
         public void should_have_state_transition_on_connection_error() throws Exception {
             when(alertEventProducer.isEmpty()).thenReturn(false);
 
@@ -459,6 +578,13 @@ public class HttpHealthCheckServiceTest {
             when(deploymentContext.getComponent(AlertEventProducer.class)).thenReturn(alertEventProducer);
             when(deploymentContext.getComponent(Vertx.class)).thenReturn(Vertx.vertx());
             when(deploymentContext.getComponent(Configuration.class)).thenReturn(configuration);
+            when(
+                configuration.getProperty(
+                    HttpHealthCheckService.BODY_READ_TIMEOUT_PROPERTY,
+                    Long.class,
+                    HttpHealthCheckService.DEFAULT_BODY_READ_TIMEOUT_MS
+                )
+            ).thenReturn(HttpHealthCheckService.DEFAULT_BODY_READ_TIMEOUT_MS);
 
             wiremock.stubFor(get("/health").willReturn(ok()));
 
@@ -524,6 +650,13 @@ public class HttpHealthCheckServiceTest {
             when(deploymentContext.getComponent(AlertEventProducer.class)).thenReturn(alertEventProducer);
             when(deploymentContext.getComponent(Vertx.class)).thenReturn(Vertx.vertx());
             when(deploymentContext.getComponent(Configuration.class)).thenReturn(configuration);
+            when(
+                configuration.getProperty(
+                    HttpHealthCheckService.BODY_READ_TIMEOUT_PROPERTY,
+                    Long.class,
+                    HttpHealthCheckService.DEFAULT_BODY_READ_TIMEOUT_MS
+                )
+            ).thenReturn(HttpHealthCheckService.DEFAULT_BODY_READ_TIMEOUT_MS);
 
             hcConfig.setTarget("http://localhost:" + wiremock.getPort() + "/health");
             hcConfig.setSchedule("* * * * * *");
