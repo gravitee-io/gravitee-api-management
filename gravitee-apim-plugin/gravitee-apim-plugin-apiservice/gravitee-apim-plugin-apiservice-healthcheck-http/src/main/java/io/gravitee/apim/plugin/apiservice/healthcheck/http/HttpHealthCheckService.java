@@ -22,6 +22,7 @@ import com.google.common.base.Strings;
 import io.gravitee.apim.plugin.apiservice.healthcheck.http.context.HttpHealthCheckExecutionContext;
 import io.gravitee.apim.plugin.apiservice.healthcheck.http.helper.HttpHealthCheckHelper;
 import io.gravitee.common.cron.CronTrigger;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.URIUtils;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
@@ -37,6 +38,7 @@ import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.api.exception.PluginConfigurationException;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
+import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
@@ -47,9 +49,11 @@ import io.gravitee.node.vertx.client.http.VertxHttpClientFactory;
 import io.gravitee.plugin.alert.AlertEventProducer;
 import io.gravitee.plugin.apiservice.healthcheck.common.HealthCheckManagedEndpoint;
 import io.gravitee.reporter.api.health.EndpointStatus;
+import io.netty.channel.ConnectTimeoutException;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableSource;
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
@@ -65,6 +69,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.Getter;
@@ -84,6 +89,8 @@ public class HttpHealthCheckService implements ApiService {
     public static final String DEFAULT_STEP = "default-step";
     public static final int LOG_ERROR_COUNT = 10;
     public static final int UNREACHABLE_SERVICE = -1;
+    static final String BODY_READ_TIMEOUT_PROPERTY = "services.healthcheck.bodyReadTimeoutMs";
+    static final long DEFAULT_BODY_READ_TIMEOUT_MS = 5_000L;
 
     private final Api api;
     private final DeploymentContext deploymentContext;
@@ -94,6 +101,7 @@ public class HttpHealthCheckService implements ApiService {
     private HttpClient httpClient;
     private EndpointManager endpointManager;
     private PluginConfigurationHelper pluginConfigurationHelper;
+    private volatile long bodyReadTimeoutMs = DEFAULT_BODY_READ_TIMEOUT_MS;
     private final Map<ManagedEndpoint, Disposable> jobs = new ConcurrentHashMap<>(1);
 
     @Override
@@ -110,6 +118,11 @@ public class HttpHealthCheckService implements ApiService {
     public Completable start() {
         endpointManager = deploymentContext.getComponent(EndpointManager.class);
         pluginConfigurationHelper = deploymentContext.getComponent(PluginConfigurationHelper.class);
+
+        final Configuration configuration = deploymentContext.getComponent(Configuration.class);
+        if (configuration != null) {
+            bodyReadTimeoutMs = configuration.getProperty(BODY_READ_TIMEOUT_PROPERTY, Long.class, DEFAULT_BODY_READ_TIMEOUT_MS);
+        }
 
         // Make sure to listen to any endpoint event (add, remove, disable, ...), so we don't miss endpoint that could be added during the service startup.
         listenerId = endpointManager.addListener(this::processEvent);
@@ -218,10 +231,11 @@ public class HttpHealthCheckService implements ApiService {
         HttpHealthCheckExecutionContext ctx
     ) {
         // The endpoint is a http one. Reuse it for efficiency.
+        final String endpointName = hcManagedEndpoint.getDefinition().getName();
         return hcManagedEndpoint
             .<BaseEndpointConnector>getConnector()
             .connect(ctx)
-            .onErrorResumeNext(error -> this.ignoreConnectionError(ctx, error))
+            .onErrorResumeNext(error -> this.handleConnectError(ctx, endpointName, error))
             .andThen(evaluateAndReport(hcManagedEndpoint, ctx, hcConfiguration));
     }
 
@@ -240,6 +254,7 @@ public class HttpHealthCheckService implements ApiService {
 
         final Response response = ctx.response();
         final RequestOptions requestOptions = buildRequestOptions(ctx, hcConfiguration);
+        final String endpointName = hcManagedEndpoint.getDefinition().getName();
 
         return getOrBuildHttpClient(hcConfiguration)
             .rxRequest(requestOptions)
@@ -252,21 +267,51 @@ public class HttpHealthCheckService implements ApiService {
                 endpointResponse.headers().forEach(header -> response.headers().add(header.getKey(), header.getValue()));
             })
             .ignoreElement()
-            .onErrorResumeNext(error -> this.ignoreConnectionError(ctx, error))
+            .onErrorResumeNext(error -> this.handleConnectError(ctx, endpointName, error))
             .andThen(evaluateAndReport(hcManagedEndpoint, ctx, hcConfiguration));
     }
 
-    private CompletableSource ignoreConnectionError(HttpHealthCheckExecutionContext ctx, Throwable err) {
-        if (err instanceof UnknownHostException || err instanceof SocketException) {
-            log.debug("HealthCheck failed for API {}, unable to connect to the Service", api.getId(), err);
-            final Response response = ctx.response();
-            response.status(UNREACHABLE_SERVICE);
-            if (!Strings.isNullOrEmpty(err.getMessage())) {
-                response.body(Buffer.buffer(err.getMessage()));
-            }
-            return Completable.complete();
+    /**
+     * Translate any error raised while connecting/sending/receiving headers into a synthetic response
+     * so the assertion can still be evaluated and the failure reported. Never propagate the error:
+     * if we did, {@link #continueOnError(ManagedEndpoint, AtomicLong, Throwable)} would swallow it and
+     * the endpoint would stay in its last known state (typically UP after deployment), even though the
+     * backend is unreachable.
+     */
+    private CompletableSource handleConnectError(HttpHealthCheckExecutionContext ctx, String endpointName, Throwable err) {
+        final Response response = ctx.response();
+        final int statusCode;
+
+        // Order matters: ConnectTimeoutException extends SocketException, so we check timeouts first.
+        // Netty's read/write timeouts share a single io.netty.handler.timeout.TimeoutException superclass.
+        if (
+            err instanceof TimeoutException ||
+            err instanceof ConnectTimeoutException ||
+            err instanceof io.netty.handler.timeout.TimeoutException
+        ) {
+            log.debug("HealthCheck failed for API [{}] endpoint [{}], request timed out", api.getId(), endpointName, err);
+            statusCode = HttpStatusCode.GATEWAY_TIMEOUT_504;
+        } else if (err instanceof UnknownHostException || err instanceof SocketException) {
+            log.debug("HealthCheck failed for API [{}] endpoint [{}], unable to connect to the service", api.getId(), endpointName, err);
+            statusCode = UNREACHABLE_SERVICE;
+        } else if (err instanceof InterruptionFailureException ife && ife.getExecutionFailure() != null) {
+            log.debug(
+                "HealthCheck failed for API [{}] endpoint [{}], connector raised an execution failure",
+                api.getId(),
+                endpointName,
+                err
+            );
+            statusCode = ife.getExecutionFailure().statusCode();
+        } else {
+            log.debug("HealthCheck failed for API [{}] endpoint [{}], unexpected error", api.getId(), endpointName, err);
+            statusCode = HttpStatusCode.BAD_GATEWAY_502;
         }
-        return Completable.error(err);
+
+        response.status(statusCode);
+        if (!Strings.isNullOrEmpty(err.getMessage())) {
+            response.body(Buffer.buffer(err.getMessage()));
+        }
+        return Completable.complete();
     }
 
     private Completable continueOnError(ManagedEndpoint endpoint, AtomicLong errorCount, Throwable throwable) {
@@ -386,12 +431,14 @@ public class HttpHealthCheckService implements ApiService {
 
                         return response
                             .bodyOrEmpty()
-                            .doOnSuccess(body -> {
-                                reportResponse.setBody(body.toString());
+                            .timeout(bodyReadTimeoutMs, TimeUnit.MILLISECONDS, Single.just(Buffer.buffer()))
+                            .onErrorReturnItem(Buffer.buffer())
+                            .doOnSuccess(body -> reportResponse.setBody(body.toString()))
+                            .ignoreElement()
+                            .doOnComplete(() -> {
                                 statusBuilder.step(stepBuilder.fail("Assertion not validated: " + hcConfiguration.getAssertion()).build());
                                 hcEndpoint.reportStatus(false, statusBuilder.build());
-                            })
-                            .ignoreElement();
+                            });
                     }
                 });
         });
