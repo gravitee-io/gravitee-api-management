@@ -22,6 +22,7 @@ import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
+import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.infra.domain_service.observability.YAMLDefinitionLoader;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -54,17 +55,12 @@ public class AnalyticsDefinitionYAMLQueryService implements AnalyticsDefinitionQ
         var enrichedFilters = rawSpec
             .filters()
             .stream()
-            .map(f ->
-                new FilterSpec(
-                    f.name(),
-                    f.label(),
-                    f.type(),
-                    f.enumValues(),
-                    f.range(),
-                    f.operators(),
-                    List.copyOf(apisByFilter.getOrDefault(f.name(), Set.of()))
-                )
-            )
+            .map(f -> {
+                var apis = CollectionUtils.isNotEmpty(f.apis())
+                    ? List.copyOf(f.apis())
+                    : List.copyOf(apisByFilter.getOrDefault(f.name(), Set.of()));
+                return new FilterSpec(f.name(), f.label(), f.type(), f.enumValues(), f.range(), f.operators(), apis);
+            })
             .toList();
 
         return new AnalyticsDefinitionSpec(rawSpec.apis(), rawSpec.metrics(), enrichedFilters, rawSpec.facets());

@@ -121,11 +121,7 @@ public class GetFilterValuesUseCase {
         boolean hasQuery = input.query() != null && !input.query().isBlank();
 
         if (isIdBased) {
-            // API_PRODUCT IDs are not indexed in the analytics log records; always
-            // query the database so the browse-all path (no query) behaves identically
-            // to the with-query path. Other ID-based filters fall back to Elasticsearch
-            // when no query is present so callers see only values active in the log window.
-            if (filterSpecName == FilterSpec.Name.API_PRODUCT || hasQuery) {
+            if (hasQuery) {
                 return handleIdBasedSearch(input, filterSpecName, analyticsContext);
             }
             return handleIdBasedNoSearch(input, filterSpecName, analyticsContext);
