@@ -628,7 +628,6 @@ describe('ApiProductMembersComponent', () => {
       fixture.detectChanges();
 
       await harness.toggleMembersNotification();
-      fixture.detectChanges();
 
       await harness.clickSave();
       tick();
