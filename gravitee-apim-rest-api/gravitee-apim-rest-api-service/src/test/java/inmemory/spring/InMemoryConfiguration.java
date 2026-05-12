@@ -337,6 +337,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public FetchApiDefinitionFromUrlDomainServiceInMemory fetchApiDefinitionFromUrlDomainService() {
+        return new FetchApiDefinitionFromUrlDomainServiceInMemory();
+    }
+
+    @Bean
     public ApplicationMetadataQueryServiceInMemory applicationMetadataQueryService() {
         return new ApplicationMetadataQueryServiceInMemory();
     }

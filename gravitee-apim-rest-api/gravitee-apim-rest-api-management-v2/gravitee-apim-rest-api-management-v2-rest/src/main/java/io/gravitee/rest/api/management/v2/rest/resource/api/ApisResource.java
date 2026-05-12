@@ -27,6 +27,8 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TYPE_VALUE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_VISIBILITY;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
@@ -34,6 +36,7 @@ import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.api.use_case.CreateHttpApiUseCase;
 import io.gravitee.apim.core.api.use_case.CreateNativeApiUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiCRDUseCase;
+import io.gravitee.apim.core.api.use_case.ImportApiDefinitionFromUrlUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.OAIToImportApiUseCase;
 import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
@@ -75,10 +78,15 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
+import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.gravitee.rest.api.service.v4.exception.InvalidPathException;
 import jakarta.inject.Inject;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.BeanParam;
@@ -149,7 +157,18 @@ public class ApisResource extends AbstractResource {
     private ImportApiDefinitionUseCase importApiDefinitionUseCase;
 
     @Inject
+    private ImportApiDefinitionFromUrlUseCase importApiDefinitionFromUrlUseCase;
+
+    @Inject
     private OAIToImportApiUseCase oaiToImportApiUseCase;
+
+    @Inject
+    private ImportConfiguration importConfiguration;
+
+    @Inject
+    private ObjectMapper objectMapper;
+
+    private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -271,6 +290,36 @@ public class ApisResource extends AbstractResource {
                 .build();
         } catch (InvalidPathsException e) {
             throw new InvalidPathException("Cannot import API with invalid paths", e);
+        }
+    }
+
+    @POST
+    @Path("/_import/definition-url")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.TEXT_PLAIN)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
+    public Response createApiWithDefinitionFromUrl(@NotNull String apiDefinitionUrl) {
+        var input = new ImportApiDefinitionFromUrlUseCase.Input(
+            apiDefinitionUrl,
+            importConfiguration.getImportWhitelist(),
+            importConfiguration.isAllowImportFromPrivate()
+        );
+        var output = importApiDefinitionFromUrlUseCase.execute(input);
+
+        ExportApiV4 apiToImport = parseApiDefinition(output.apiDefinitionContent());
+        Set<ConstraintViolation<ExportApiV4>> violations = VALIDATOR.validate(apiToImport);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
+        return createApiWithDefinition(apiToImport);
+    }
+
+    private ExportApiV4 parseApiDefinition(String apiDefinitionContent) {
+        try {
+            return objectMapper.readValue(apiDefinitionContent, ExportApiV4.class);
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to parse API definition fetched from URL", e);
+            throw new BadRequestException("Invalid API definition format");
         }
     }
 

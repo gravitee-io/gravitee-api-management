@@ -64,6 +64,7 @@ import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.FetchApiDefinitionFromUrlDomainService;
 import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;
@@ -74,6 +75,8 @@ import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
+import io.gravitee.apim.core.api.use_case.ImportApiDefinitionFromUrlUseCase;
+import io.gravitee.apim.core.api.use_case.ImportApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.OAIToUpdateApiUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateApiDefinitionFromImportUseCase;
@@ -228,6 +231,7 @@ import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
 import io.gravitee.apim.infra.domain_service.analytics_engine.processors.UnitEnrichmentPostProcessorImpl;
+import io.gravitee.apim.infra.domain_service.api.FetchApiDefinitionFromUrlDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.group.ValidateGroupCRDDomainServiceImpl;
@@ -260,6 +264,7 @@ import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GenericNotificationConfigService;
 import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.MembershipService;
@@ -274,6 +279,7 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.impl.configuration.application.ApplicationTypeServiceImpl;
+import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.v4.ApiDuplicateService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.ApiWorkflowStateService;
@@ -1485,5 +1491,33 @@ public class ResourceContextConfiguration {
     @Bean
     public DictionaryAutomationDomainService dictionaryAutomationDomainService() {
         return mock(DictionaryAutomationDomainService.class);
+    }
+
+    @Bean
+    public HttpClientService httpClientService() {
+        return mock(HttpClientService.class);
+    }
+
+    @Bean
+    public ImportConfiguration importConfiguration() {
+        return mock(ImportConfiguration.class);
+    }
+
+    @Bean
+    @Primary
+    public FetchApiDefinitionFromUrlDomainService fetchApiDefinitionFromUrlDomainService(HttpClientService httpClientService) {
+        return new FetchApiDefinitionFromUrlDomainServiceImpl(httpClientService);
+    }
+
+    @Bean
+    public ImportApiDefinitionFromUrlUseCase importApiDefinitionFromUrlUseCase(
+        FetchApiDefinitionFromUrlDomainService fetchApiDefinitionFromUrlDomainService
+    ) {
+        return new ImportApiDefinitionFromUrlUseCase(fetchApiDefinitionFromUrlDomainService);
+    }
+
+    @Bean
+    public ImportApiDefinitionUseCase importApiDefinitionUseCase() {
+        return mock(ImportApiDefinitionUseCase.class);
     }
 }
