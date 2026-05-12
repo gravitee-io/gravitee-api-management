@@ -15,10 +15,12 @@
  */
 package inmemory;
 
+import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -65,6 +67,15 @@ public class ApiProductQueryServiceInMemory extends AbstractQueryServiceInMemory
             .stream()
             .filter(apiProduct -> apiProduct.getId().equals(apiProductId))
             .findFirst();
+    }
+
+    @Override
+    public ApiProduct findById(ExecutionContext executionContext, String apiProductId) {
+        Optional<ApiProduct> apiProduct = findById(apiProductId);
+        if (executionContext.hasEnvironmentId()) {
+            apiProduct = apiProduct.filter(ap -> executionContext.getEnvironmentId().equals(ap.getEnvironmentId()));
+        }
+        return apiProduct.orElseThrow(() -> new ApiProductNotFoundException(apiProductId));
     }
 
     @Override

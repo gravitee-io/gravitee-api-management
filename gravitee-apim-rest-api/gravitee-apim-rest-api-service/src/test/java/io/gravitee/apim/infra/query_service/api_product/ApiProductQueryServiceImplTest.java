@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
@@ -29,6 +30,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Date;
@@ -212,6 +214,68 @@ class ApiProductQueryServiceImplTest {
             when(apiProductRepository.findById(API_PRODUCT_ID)).thenThrow(new TechnicalException("Database error"));
             var throwable = catchThrowable(() -> service.findById(API_PRODUCT_ID));
             assertThat(throwable).isInstanceOf(TechnicalDomainException.class);
+        }
+    }
+
+    @Nested
+    class FindByIdWithExecutionContext {
+
+        private final ExecutionContext executionContext = new ExecutionContext(ORG_ID, ENV_ID);
+
+        @Test
+        void should_return_api_product_when_found_in_correct_environment() throws TechnicalException {
+            var repoApiProduct = buildRepositoryApiProduct();
+            when(apiProductRepository.findById(API_PRODUCT_ID)).thenReturn(Optional.of(repoApiProduct));
+
+            var result = service.findById(executionContext, API_PRODUCT_ID);
+
+            assertAll(
+                () -> assertThat(result.getId()).isEqualTo(API_PRODUCT_ID),
+                () -> assertThat(result.getName()).isEqualTo(API_PRODUCT_NAME),
+                () -> assertThat(result.getEnvironmentId()).isEqualTo(ENV_ID)
+            );
+        }
+
+        @Test
+        void should_throw_not_found_when_product_does_not_exist() throws TechnicalException {
+            when(apiProductRepository.findById(API_PRODUCT_ID)).thenReturn(Optional.empty());
+
+            var throwable = catchThrowable(() -> service.findById(executionContext, API_PRODUCT_ID));
+            assertThat(throwable).isInstanceOf(ApiProductNotFoundException.class);
+        }
+
+        @Test
+        void should_throw_not_found_when_product_belongs_to_another_environment() throws TechnicalException {
+            var repoApiProduct = io.gravitee.repository.management.model.ApiProduct.builder()
+                .id(API_PRODUCT_ID)
+                .environmentId("other-env")
+                .name(API_PRODUCT_NAME)
+                .version("1.0.0")
+                .createdAt(new Date())
+                .updatedAt(new Date())
+                .build();
+            when(apiProductRepository.findById(API_PRODUCT_ID)).thenReturn(Optional.of(repoApiProduct));
+
+            var throwable = catchThrowable(() -> service.findById(executionContext, API_PRODUCT_ID));
+            assertThat(throwable).isInstanceOf(ApiProductNotFoundException.class);
+        }
+
+        @Test
+        void should_return_api_product_when_no_environment_in_execution_context() throws TechnicalException {
+            var repoApiProduct = buildRepositoryApiProduct();
+            when(apiProductRepository.findById(API_PRODUCT_ID)).thenReturn(Optional.of(repoApiProduct));
+
+            var result = service.findById(new ExecutionContext(ORG_ID), API_PRODUCT_ID);
+
+            assertThat(result.getId()).isEqualTo(API_PRODUCT_ID);
+        }
+
+        @Test
+        void should_throw_technical_exception_when_repository_fails() throws TechnicalException {
+            when(apiProductRepository.findById(API_PRODUCT_ID)).thenThrow(new TechnicalException("Database error"));
+
+            var throwable = catchThrowable(() -> service.findById(executionContext, API_PRODUCT_ID));
+            assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
         }
     }
 

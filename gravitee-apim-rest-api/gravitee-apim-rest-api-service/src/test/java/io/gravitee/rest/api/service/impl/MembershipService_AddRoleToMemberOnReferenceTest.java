@@ -28,7 +28,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.node.api.Node;
+import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
@@ -55,6 +58,7 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.NotAuthorizedMembershipException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
+import io.gravitee.rest.api.service.v4.ApiProductGroupService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.Collections;
 import java.util.Optional;
@@ -113,6 +117,15 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
     @Mock
     private ApiRepository apiRepository;
 
+    @Mock
+    private ApiProductsRepository apiProductsRepository;
+
+    @Mock
+    private ApiProductQueryService apiProductQueryService;
+
+    @Mock
+    private ApiProductGroupService apiProductGroupService;
+
     @BeforeEach
     public void setUp() throws Exception {
         membershipService = new MembershipServiceImpl(
@@ -129,7 +142,8 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
             apiSearchService,
             null,
             apiRepository,
-            null,
+            apiProductsRepository,
+            apiProductQueryService,
             groupService,
             auditService,
             parameterService,
@@ -139,7 +153,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
             commandRepository,
             null,
             null,
-            null
+            apiProductGroupService
         );
     }
 
@@ -497,6 +511,70 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
                 new MembershipService.MembershipRole(RoleScope.APPLICATION, "PRIMARY_OWNER")
             )
         ).isInstanceOf(NotAuthorizedMembershipException.class);
+    }
+
+    @Test
+    public void shouldNotSendEmailNotificationWhenApiProductMembershipNotificationsAreDisabled() throws Exception {
+        String apiProductId = "api-product-id-1";
+        RoleEntity role = RoleEntity.builder().id("API_PRODUCT_OWNER").scope(RoleScope.API_PRODUCT).build();
+        when(roleService.findByScopeAndName(RoleScope.API_PRODUCT, "OWNER", GraviteeContext.getCurrentOrganization())).thenReturn(
+            Optional.of(role)
+        );
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId("user-id");
+        userEntity.setEmail("user@mail.com");
+        when(userService.findById(GraviteeContext.getExecutionContext(), userEntity.getId())).thenReturn(userEntity);
+
+        Membership newMembership = new Membership();
+        newMembership.setReferenceType(io.gravitee.repository.management.model.MembershipReferenceType.API_PRODUCT);
+        newMembership.setRoleId("API_PRODUCT_OWNER");
+        newMembership.setReferenceId(apiProductId);
+        newMembership.setMemberId(userEntity.getId());
+        newMembership.setMemberType(io.gravitee.repository.management.model.MembershipMemberType.USER);
+
+        ApiProduct coreApiProduct = ApiProduct.builder()
+            .id(apiProductId)
+            .environmentId(GraviteeContext.getDefaultEnvironment())
+            .disableMembershipNotifications(true)
+            .build();
+        when(apiProductQueryService.findById(any(), eq(apiProductId))).thenReturn(coreApiProduct);
+        when(apiProductsRepository.findById(apiProductId)).thenReturn(
+            Optional.of(
+                io.gravitee.repository.management.model.ApiProduct.builder()
+                    .id(apiProductId)
+                    .environmentId(GraviteeContext.getDefaultEnvironment())
+                    .build()
+            )
+        );
+        when(
+            membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
+                userEntity.getId(),
+                io.gravitee.repository.management.model.MembershipMemberType.USER,
+                io.gravitee.repository.management.model.MembershipReferenceType.API_PRODUCT,
+                apiProductId,
+                "API_PRODUCT_OWNER"
+            )
+        ).thenReturn(Collections.emptySet());
+        when(
+            membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                userEntity.getId(),
+                io.gravitee.repository.management.model.MembershipMemberType.USER,
+                io.gravitee.repository.management.model.MembershipReferenceType.API_PRODUCT,
+                apiProductId
+            )
+        ).thenReturn(Set.of(newMembership), Collections.emptySet());
+        when(membershipRepository.create(any())).thenReturn(newMembership);
+
+        membershipService.addRoleToMemberOnReference(
+            GraviteeContext.getExecutionContext(),
+            new MembershipService.MembershipReference(MembershipReferenceType.API_PRODUCT, apiProductId),
+            new MembershipService.MembershipMember(userEntity.getId(), null, MembershipMemberType.USER),
+            new MembershipService.MembershipRole(RoleScope.API_PRODUCT, "OWNER")
+        );
+
+        verify(apiProductQueryService).findById(any(), eq(apiProductId));
+        verify(emailService, never()).sendAsyncEmailNotification(any(), any());
     }
 
     @Test

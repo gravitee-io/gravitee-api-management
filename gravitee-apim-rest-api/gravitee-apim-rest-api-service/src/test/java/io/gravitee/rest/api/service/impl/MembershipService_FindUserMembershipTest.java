@@ -100,6 +100,7 @@ public class MembershipService_FindUserMembershipTest {
             null,
             mockApiRepository,
             null,
+            null,
             mockGroupService,
             null,
             null,

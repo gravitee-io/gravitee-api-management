@@ -77,6 +77,7 @@ public class MembershipService_GetUserMemberPermissionsTest {
             null,
             null,
             null,
+            null,
             node,
             objectMapper,
             commandRepository,

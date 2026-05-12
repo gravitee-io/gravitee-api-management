@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.12.0_08_add_disable_membership_notifications_to_api_products
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}api_products
+            columns:
+              - column:
+                  name: disable_membership_notifications
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false

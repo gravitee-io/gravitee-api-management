@@ -110,6 +110,7 @@ public class MembershipService_UpdateMembershipForApiTest {
             apiRepository,
             null,
             null,
+            null,
             auditService,
             null,
             null,

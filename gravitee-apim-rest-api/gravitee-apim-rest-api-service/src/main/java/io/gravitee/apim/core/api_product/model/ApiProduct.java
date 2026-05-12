@@ -47,6 +47,7 @@ public class ApiProduct {
     private ZonedDateTime updatedAt;
     private PrimaryOwnerEntity primaryOwner;
     private DeploymentState deploymentState;
+    private boolean disableMembershipNotifications;
 
     public void update(UpdateApiProduct updateApiProduct) {
         this.updatedAt = ZonedDateTime.now(TimeProvider.clock());
@@ -64,6 +65,9 @@ public class ApiProduct {
         }
         if (updateApiProduct.getGroups() != null) {
             this.groups = updateApiProduct.getGroups();
+        }
+        if (updateApiProduct.getDisableMembershipNotifications() != null) {
+            this.disableMembershipNotifications = updateApiProduct.getDisableMembershipNotifications();
         }
     }
 

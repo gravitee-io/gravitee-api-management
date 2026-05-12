@@ -150,6 +150,7 @@ public class MembershipService_TransferOwnershipTest {
             apiGroupService,
             apiRepository,
             apiProductsRepository,
+            null,
             groupService,
             auditService,
             null,
