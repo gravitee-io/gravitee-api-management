@@ -24,6 +24,7 @@ import { MatOption, MatSelect } from '@angular/material/select';
 import { OWL_DATE_TIME_FORMATS, OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
 import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
 import moment, { Moment } from 'moment';
+import { filter } from 'rxjs';
 
 import { dateRangeGroupValidator } from './utils/date-range.validator';
 import { DATE_TIME_FORMATS } from './utils/timeframe-ranges';
@@ -88,9 +89,14 @@ export class TimeframeSelectorComponent implements ControlValueAccessor {
       { validators: dateRangeGroupValidator() },
     );
 
-    this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(value => {
-      this.onChange({ period: value.period ?? '', from: value.from ?? null, to: value.to ?? null });
-    });
+    this.form.valueChanges
+      .pipe(
+        filter(() => this.form.controls.period.value !== this.customPeriod() || this.form.valid),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(value => {
+        this.onChange({ period: value.period ?? '', from: value.from ?? null, to: value.to ?? null });
+      });
 
     this.form.controls.from.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(from => {
       this.minDate = from ?? null;
