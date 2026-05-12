@@ -124,6 +124,7 @@ public class MembershipService_CreateNewMembershipForApiTest {
             apiRepository,
             null,
             null,
+            null,
             auditService,
             null,
             null,

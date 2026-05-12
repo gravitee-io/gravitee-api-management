@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.query_service.api_product;
 
+import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
@@ -26,6 +27,7 @@ import io.gravitee.repository.management.api.search.ApiProductCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import java.util.HashMap;
@@ -112,6 +114,19 @@ public class ApiProductQueryServiceImpl extends AbstractService implements ApiPr
         } catch (TechnicalException ex) {
             String errorMessage = String.format("An error occurred while finding API Product by apiProductId: %s", apiProductId);
             throw new TechnicalDomainException(errorMessage, ex);
+        }
+    }
+
+    @Override
+    public ApiProduct findById(ExecutionContext executionContext, String apiProductId) {
+        try {
+            Optional<io.gravitee.repository.management.model.ApiProduct> optApiProduct = apiProductRepository.findById(apiProductId);
+            if (executionContext.hasEnvironmentId()) {
+                optApiProduct = optApiProduct.filter(result -> result.getEnvironmentId().equals(executionContext.getEnvironmentId()));
+            }
+            return optApiProduct.map(ApiProductAdapter.INSTANCE::toModel).orElseThrow(() -> new ApiProductNotFoundException(apiProductId));
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("An error occurs while trying to find an API Product using its ID: " + apiProductId, ex);
         }
     }
 

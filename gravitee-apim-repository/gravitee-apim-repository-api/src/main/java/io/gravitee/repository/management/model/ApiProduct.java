@@ -44,6 +44,7 @@ public class ApiProduct {
     private Set<String> groups;
     private Date createdAt;
     private Date updatedAt;
+    private boolean disableMembershipNotifications;
 
     public boolean addGroup(String groupId) {
         if (groups == null) {

@@ -29,6 +29,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.utils.UUID;
@@ -175,6 +177,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
     private final ApiProductsRepository apiProductsRepository;
 
+    private final ApiProductQueryService apiProductQueryService;
+
     private final ApplicationRepository applicationRepository;
 
     private final EventManager eventManager;
@@ -207,6 +211,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         @Autowired @Lazy ApiGroupService apiGroupService,
         @Autowired @Lazy ApiRepository apiRepository,
         @Autowired @Lazy ApiProductsRepository apiProductsRepository,
+        @Autowired @Lazy ApiProductQueryService apiProductQueryService,
         @Autowired @Lazy GroupService groupService,
         @Autowired AuditService auditService,
         @Autowired ParameterService parameterService,
@@ -232,6 +237,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         this.apiGroupService = apiGroupService;
         this.apiRepository = apiRepository;
         this.apiProductsRepository = apiProductsRepository;
+        this.apiProductQueryService = apiProductQueryService;
         this.groupService = groupService;
         this.auditService = auditService;
         this.parameterService = parameterService;
@@ -383,6 +389,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     } else if (MembershipReferenceType.APPLICATION.equals(reference.getType())) {
                         final ApplicationEntity application = applicationService.findById(executionContext, reference.getId());
                         shouldNotify = !application.isDisableMembershipNotifications();
+                    } else if (MembershipReferenceType.API_PRODUCT.equals(reference.getType())) {
+                        final ApiProduct apiProduct = apiProductQueryService.findById(executionContext, reference.getId());
+                        shouldNotify = !apiProduct.isDisableMembershipNotifications();
                     }
                 }
 

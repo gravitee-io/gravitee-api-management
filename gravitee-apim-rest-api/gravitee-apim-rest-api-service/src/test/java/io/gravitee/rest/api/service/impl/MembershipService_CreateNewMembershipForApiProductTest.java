@@ -30,11 +30,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.node.api.Node;
 import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
-import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
@@ -50,6 +51,7 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.MembershipAlreadyExistsException;
+import io.gravitee.rest.api.service.v4.ApiProductGroupService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.util.Collections;
@@ -103,6 +105,12 @@ class MembershipService_CreateNewMembershipForApiProductTest {
     @Mock
     private ApiProductsRepository apiProductsRepository;
 
+    @Mock
+    private ApiProductQueryService apiProductQueryService;
+
+    @Mock
+    private ApiProductGroupService apiProductGroupService;
+
     @BeforeEach
     void setUp() {
         reset(membershipRepository, apiSearchService, userService, auditService, roleService, identityService);
@@ -122,6 +130,7 @@ class MembershipService_CreateNewMembershipForApiProductTest {
             null,
             null,
             apiProductsRepository,
+            apiProductQueryService,
             null,
             auditService,
             null,
@@ -131,7 +140,7 @@ class MembershipService_CreateNewMembershipForApiProductTest {
             commandRepository,
             null,
             null,
-            null
+            apiProductGroupService
         );
 
         mockRole();
@@ -140,12 +149,18 @@ class MembershipService_CreateNewMembershipForApiProductTest {
 
     private void mockApiProductLookup() {
         try {
-            ApiProduct apiProduct = new ApiProduct();
-            apiProduct.setId(API_PRODUCT_ID);
-            lenient().when(apiProductsRepository.findById(API_PRODUCT_ID)).thenReturn(Optional.of(apiProduct));
+            io.gravitee.repository.management.model.ApiProduct repoApiProduct = new io.gravitee.repository.management.model.ApiProduct();
+            repoApiProduct.setId(API_PRODUCT_ID);
+            lenient().when(apiProductsRepository.findById(API_PRODUCT_ID)).thenReturn(Optional.of(repoApiProduct));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        ApiProduct coreApiProduct = ApiProduct.builder()
+            .id(API_PRODUCT_ID)
+            .environmentId(GraviteeContext.getDefaultEnvironment())
+            .disableMembershipNotifications(false)
+            .build();
+        lenient().when(apiProductQueryService.findById(any(), eq(API_PRODUCT_ID))).thenReturn(coreApiProduct);
     }
 
     @Test

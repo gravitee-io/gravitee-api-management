@@ -49,4 +49,5 @@ public class ApiProductMongo {
     private List<String> groups;
     private Date createdAt;
     private Date updatedAt;
+    private boolean disableMembershipNotifications;
 }

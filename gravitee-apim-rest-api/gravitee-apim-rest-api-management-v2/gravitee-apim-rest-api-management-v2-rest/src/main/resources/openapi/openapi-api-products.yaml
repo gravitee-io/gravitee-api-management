@@ -2030,6 +2030,10 @@ components:
             type: string
           example:
             - "group-uuid-1"
+        disableMembershipNotifications:
+          type: boolean
+          description: Disable membership notifications.
+          default: false
       required:
         - name
         - version
@@ -2088,6 +2092,10 @@ components:
           $ref: '#/components/schemas/PrimaryOwner'
         deploymentState:
           $ref: '#/components/schemas/ApiProductDeploymentState'
+        disableMembershipNotifications:
+          type: boolean
+          description: Disable membership notifications.
+          default: false
 
     ApiProductDeploymentState:
       type: string

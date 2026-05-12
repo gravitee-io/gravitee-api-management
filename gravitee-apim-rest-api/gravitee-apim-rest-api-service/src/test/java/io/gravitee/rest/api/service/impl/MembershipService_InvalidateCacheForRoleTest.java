@@ -74,6 +74,7 @@ public class MembershipService_InvalidateCacheForRoleTest {
             null,
             null,
             null,
+            null,
             null
         );
     }

@@ -35,4 +35,5 @@ public class UpdateApiProduct {
     private Set<String> apiIds;
     private Set<String> groups;
     private ZonedDateTime updatedAt;
+    private Boolean disableMembershipNotifications;
 }
