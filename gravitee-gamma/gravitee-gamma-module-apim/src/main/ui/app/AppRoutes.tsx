@@ -24,6 +24,7 @@ import { AnalyticsPage } from '../pages/AnalyticsPage';
 import { ApiProductsPage } from '../pages/ApiProductsPage';
 import { ApisPage } from '../pages/ApisPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
+import { CreateApiProxyPage } from '../pages/CreateApiProxyPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { SettingsPage } from '../pages/SettingsPage';
 
@@ -54,7 +55,10 @@ export function AppRoutes() {
             <Route element={<ModuleLayout />}>
                 <Route index element={<DashboardPage />} />
                 <Route path="dashboard" element={<DashboardPage />} />
-                <Route path="apis" element={<ApisPage />} />
+                <Route path="apis">
+                    <Route index element={<ApisPage />} />
+                    <Route path="new" element={<CreateApiProxyPage />} />
+                </Route>
                 <Route path="api-products" element={<ApiProductsPage />} />
                 <Route path="applications" element={<ApplicationsPage />} />
                 <Route path="analytics" element={<AnalyticsPage />} />

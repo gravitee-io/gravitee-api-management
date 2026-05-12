@@ -13,14 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { useNavigate } from 'react-router-dom';
-
-import { ApisEmptyLanding } from '../features/apis/components';
-
-export function ApisPage() {
-    const navigate = useNavigate();
-    const canCreate = useHasPermission({ anyOf: ['environment-api-c'] });
-
-    return <ApisEmptyLanding onCreateProxy={() => navigate('new')} canCreate={canCreate} />;
-}
+export { FeatureTile } from './FeatureTile';

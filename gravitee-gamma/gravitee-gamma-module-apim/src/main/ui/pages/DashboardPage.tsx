@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Card } from '@gravitee/graphene-core';
+import { useNavigate } from 'react-router-dom';
+
+import { DashboardEmptyLanding } from '../features/dashboard/components';
 
 export function DashboardPage() {
-    return (
-        <div className="space-y-4">
-            <h1>Dashboard</h1>
-            <Card className="p-4">
-                <p className="text-muted-foreground">API Management overview dashboard.</p>
-            </Card>
-        </div>
-    );
+    const navigate = useNavigate();
+
+    return <DashboardEmptyLanding onCreateProxy={() => navigate('apis/new')} />;
 }
