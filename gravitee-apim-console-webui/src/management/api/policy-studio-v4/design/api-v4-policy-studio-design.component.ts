@@ -90,7 +90,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
         .list(
           this.activatedRoute.snapshot.params.apiId,
           undefined,
-          ['PUBLISHED'],
+          ['PUBLISHED', 'DEPRECATED'],
           undefined,
           1,
           // No pagination here. Policy Studio doesn't support it for now.

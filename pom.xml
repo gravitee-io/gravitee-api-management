@@ -36,7 +36,7 @@
 
     <properties>
         <!-- Version properties -->
-        <revision>4.8.26</revision>
+        <revision>4.8.27</revision>
         <sha1/>
         <changelist>-SNAPSHOT</changelist>
 
