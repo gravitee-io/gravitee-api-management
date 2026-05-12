@@ -293,6 +293,24 @@ class ApiExportDomainServiceImplTest {
     }
 
     @Test
+    void should_default_allowedInApiProducts_to_false_when_exporting_legacy_v4_proxy_api() {
+        String apiId = UUID.randomUUID().toString();
+        var definition = new io.gravitee.definition.model.v4.Api();
+        definition.setType(ApiType.PROXY);
+        Api api = Api.builder()
+            .id(apiId)
+            .type(ApiType.PROXY)
+            .definitionVersion(DefinitionVersion.V4)
+            .apiDefinitionHttpV4(definition)
+            .build();
+        when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
+
+        GraviteeDefinition export = sut.export(apiId, getAuditInfo(), EnumSet.noneOf(Excludable.class));
+
+        assertThat(((GraviteeDefinition.V4) export).api().allowedInApiProducts()).isFalse();
+    }
+
+    @Test
     void should_export_v4_native_api_categories_as_keys_not_ids() {
         // Given
         String apiId = UUID.randomUUID().toString();

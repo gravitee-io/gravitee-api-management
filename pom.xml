@@ -36,7 +36,7 @@
 
     <properties>
         <!-- Version properties -->
-        <revision>4.11.6</revision>
+        <revision>4.11.7</revision>
         <sha1/>
         <changelist>-SNAPSHOT</changelist>
 
@@ -285,7 +285,7 @@
         <gravitee-inference-service.version>1.4.1</gravitee-inference-service.version>
         <gravitee-secretprovider-kubernetes.version>2.0.0</gravitee-secretprovider-kubernetes.version>
         <gravitee-policy-ai-prompt-token-tracking.version>2.0.0</gravitee-policy-ai-prompt-token-tracking.version>
-        <gravitee-policy-ai-prompt-guard-rails.version>3.2.2</gravitee-policy-ai-prompt-guard-rails.version>
+        <gravitee-policy-ai-prompt-guard-rails.version>3.2.3</gravitee-policy-ai-prompt-guard-rails.version>
 
         <!-- Enterprise plugins -->
         <gravitee-entrypoint-http-get.version>3.0.0</gravitee-entrypoint-http-get.version>
@@ -305,7 +305,7 @@
         <gravitee-policy-graphql-rate-limit.version>1.0.2</gravitee-policy-graphql-rate-limit.version>
         <gravitee-resource-schema-registry-confluent.version>4.0.0</gravitee-resource-schema-registry-confluent.version>
         <gravitee-resource-storage-azure-blob.version>1.1.0</gravitee-resource-storage-azure-blob.version>
-        <gravitee-reactor-message.version>10.0.0</gravitee-reactor-message.version>
+        <gravitee-reactor-message.version>10.0.1</gravitee-reactor-message.version>
         <gravitee-reactor-native-kafka.version>6.0.1</gravitee-reactor-native-kafka.version>
         <gravitee-reactor-mcp-proxy.version>1.1.2</gravitee-reactor-mcp-proxy.version>
         <gravitee-reactor-llm-proxy.version>2.8.1</gravitee-reactor-llm-proxy.version>
