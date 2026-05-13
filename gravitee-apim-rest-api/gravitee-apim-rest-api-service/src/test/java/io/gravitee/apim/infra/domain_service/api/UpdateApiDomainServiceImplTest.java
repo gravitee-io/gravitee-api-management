@@ -33,9 +33,11 @@ import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.v4.api.properties.PropertyEntity;
 import io.gravitee.rest.api.service.v4.ApiService;
 import java.util.HashSet;
 import java.util.List;
@@ -288,5 +290,83 @@ class UpdateApiDomainServiceImplTest {
         var result = cut.validateV4(api, auditInfo);
 
         assertThat(result.getApiDefinitionHttpV4().getAllowedInApiProducts()).isTrue();
+    }
+
+    @Test
+    void should_return_sanitized_properties_from_mutated_update_api_entity() {
+        var api = ApiFixtures.aProxyApiV4();
+        var sanitizedProperties = List.of(new PropertyEntity("k1", "v1"));
+        stubValidate(entity -> entity.setProperties(sanitizedProperties));
+
+        var result = cut.validateV4(api, auditInfo);
+
+        assertThat(result.getApiDefinitionHttpV4().getProperties())
+            .hasSize(1)
+            .first()
+            .satisfies(p -> {
+                assertThat(p.getKey()).isEqualTo("k1");
+                assertThat(p.getValue()).isEqualTo("v1");
+            });
+        verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
+    }
+
+    @Test
+    void should_preserve_original_properties_when_validator_returns_null() {
+        var existingProperty = new Property();
+        existingProperty.setKey("k1");
+        existingProperty.setValue("v1");
+        var originalDefinition = ApiFixtures.aProxyApiV4()
+            .getApiDefinitionHttpV4()
+            .toBuilder()
+            .properties(List.of(existingProperty))
+            .build();
+        var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(originalDefinition).build();
+        var originalProperties = api.getApiDefinitionHttpV4().getProperties();
+        stubValidate(entity -> entity.setProperties(null));
+
+        var result = cut.validateV4(api, auditInfo);
+
+        assertThat(result.getApiDefinitionHttpV4().getProperties()).isEqualTo(originalProperties);
+        verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
+    }
+
+    @Test
+    void should_return_null_properties_when_erased_definition_has_null_properties() {
+        var erasedDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder().properties(null).build();
+        var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(erasedDefinition).build();
+        stubValidate(entity -> entity.setProperties(null));
+
+        var result = cut.validateV4(api, auditInfo);
+
+        assertThat(result.getApiDefinitionHttpV4().getProperties()).isNull();
+        verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
+    }
+
+    @Test
+    void should_preserve_encrypted_and_dynamic_flags_from_mutated_update_api_entity() {
+        var api = ApiFixtures.aProxyApiV4();
+        stubValidate(entity -> entity.setProperties(List.of(new PropertyEntity("k", "v", false, true, true))));
+
+        var result = cut.validateV4(api, auditInfo);
+
+        assertThat(result.getApiDefinitionHttpV4().getProperties())
+            .hasSize(1)
+            .first()
+            .satisfies(p -> {
+                assertThat(p.isEncrypted()).isTrue();
+                assertThat(p.isDynamic()).isTrue();
+            });
+        verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
+    }
+
+    @Test
+    void should_map_sanitized_properties_to_plain_Property_not_PropertyEntity() {
+        var api = ApiFixtures.aProxyApiV4();
+        stubValidate(entity -> entity.setProperties(List.of(new PropertyEntity("k", "v", true, false, false))));
+
+        var result = cut.validateV4(api, auditInfo);
+
+        assertThat(result.getApiDefinitionHttpV4().getProperties()).hasSize(1).first().isNotInstanceOf(PropertyEntity.class);
+        verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
     }
 }

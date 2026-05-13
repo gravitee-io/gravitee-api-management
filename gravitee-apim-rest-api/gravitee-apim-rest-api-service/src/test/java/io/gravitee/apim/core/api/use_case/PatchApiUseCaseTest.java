@@ -17,6 +17,7 @@ package io.gravitee.apim.core.api.use_case;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -28,6 +29,7 @@ import fixtures.core.model.AuditInfoFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.WorkflowQueryServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
 import io.gravitee.apim.core.api.exception.ApiPatchNotAllowedException;
@@ -41,6 +43,7 @@ import io.gravitee.apim.infra.domain_service.json_patch.JsonMergePatchServiceImp
 import io.gravitee.apim.infra.domain_service.json_patch.JsonPatchServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JsonMapperFactory;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.flow.Operator;
@@ -92,18 +95,22 @@ class PatchApiUseCaseTest {
     WorkflowQueryServiceInMemory workflowQueryService = new WorkflowQueryServiceInMemory();
     ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService = mock(ApiPrimaryOwnerDomainService.class);
     UpdateApiDomainService updateApiDomainService = mock(UpdateApiDomainService.class);
+    DataEncryptor dataEncryptor = mock(DataEncryptor.class);
+    PropertyDomainService propertyDomainService = new PropertyDomainService(dataEncryptor);
 
     PatchApiUseCase cut;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
+        when(dataEncryptor.encrypt(anyString())).thenAnswer(inv -> "enc(" + inv.getArgument(0) + ")");
         cut = new PatchApiUseCase(
             apiCrudService,
             apiPrimaryOwnerDomainService,
             updateApiDomainService,
             new JsonPatchDomainService(new JsonMergePatchServiceImpl(), new JsonPatchServiceImpl()),
             workflowQueryService,
-            OBJECT_MAPPER
+            OBJECT_MAPPER,
+            propertyDomainService
         );
 
         var primaryOwner = PrimaryOwnerEntity.builder().id(USER_ID).type(PrimaryOwnerEntity.Type.USER).build();
@@ -1113,6 +1120,129 @@ class PatchApiUseCaseTest {
         @Test
         void from_returns_null_when_domain_is_null() {
             assertThat(PatchApiUseCase.PatchableResponseTemplate.from(null)).isNull();
+        }
+    }
+
+    @Nested
+    class PatchablePropertyFactory {
+
+        @Test
+        void from_returns_null_when_property_is_null() {
+            assertThat(PatchApiUseCase.PatchableProperty.from(null)).isNull();
+        }
+
+        @Test
+        void fromList_returns_null_when_list_is_null() {
+            assertThat(PatchApiUseCase.PatchableProperty.fromList(null)).isNull();
+        }
+    }
+
+    @Nested
+    class PropertiesEncryption {
+
+        @Test
+        void merge_patch_adding_plaintext_property_returns_it_in_real_update_response() {
+            var body = mergePatch("properties", List.of(Map.of("key", "k1", "value", "v1")));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, body, false);
+
+            var properties = httpV4Def(output.api()).getProperties();
+            assertThat(properties).hasSize(1);
+            assertThat(properties.getFirst().getKey()).isEqualTo("k1");
+            assertThat(properties.getFirst().getValue()).isEqualTo("v1");
+        }
+
+        @Test
+        void merge_patch_null_clears_existing_properties_in_real_update_response() {
+            var existing = new Property();
+            existing.setKey("old");
+            existing.setValue("secret");
+            existing.setEncrypted(true);
+            givenExistingApi(apiWithProperties(List.of(existing)));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("properties", null), false);
+
+            assertThat(httpV4Def(output.api()).getProperties()).isNull();
+        }
+
+        @Test
+        void encryptable_property_is_returned_encrypted_on_dry_run() {
+            stubValidateV4ReturnsArgument();
+            var body = mergePatch("properties", List.of(Map.of("key", "secret-key", "value", "plaintext", "encryptable", true)));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, body, true);
+
+            var properties = httpV4Def(output.api()).getProperties();
+            assertThat(properties).hasSize(1);
+            assertThat(properties.getFirst().getKey()).isEqualTo("secret-key");
+            assertThat(properties.getFirst().isEncrypted()).isTrue();
+            assertThat(properties.getFirst().getValue()).isEqualTo("enc(plaintext)");
+        }
+
+        @Test
+        void encryptable_property_is_returned_encrypted_on_real_update() {
+            var body = mergePatch("properties", List.of(Map.of("key", "secret-key", "value", "plaintext", "encryptable", true)));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, body, false);
+
+            var properties = httpV4Def(output.api()).getProperties();
+            assertThat(properties).hasSize(1);
+            assertThat(properties.getFirst().getKey()).isEqualTo("secret-key");
+            assertThat(properties.getFirst().isEncrypted()).isTrue();
+            assertThat(properties.getFirst().getValue()).isEqualTo("enc(plaintext)");
+        }
+
+        @Test
+        void merge_patch_adding_plaintext_property_returns_it_in_dry_run_response() {
+            stubValidateV4ReturnsArgument();
+            var body = mergePatch("properties", List.of(Map.of("key", "k1", "value", "v1")));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, body, true);
+
+            var properties = httpV4Def(output.api()).getProperties();
+            assertThat(properties).hasSize(1);
+            assertThat(properties.getFirst().getKey()).isEqualTo("k1");
+            assertThat(properties.getFirst().getValue()).isEqualTo("v1");
+        }
+
+        @Test
+        void merge_patch_null_clears_existing_properties_in_dry_run_response() {
+            stubValidateV4ReturnsArgument();
+            var existing = new Property();
+            existing.setKey("old");
+            existing.setValue("secret");
+            existing.setEncrypted(true);
+            givenExistingApi(apiWithProperties(List.of(existing)));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("properties", null), true);
+
+            assertThat(httpV4Def(output.api()).getProperties()).isNull();
+        }
+
+        @Test
+        void patching_unrelated_field_does_not_re_encrypt_already_encrypted_property() throws Exception {
+            var encrypted = new Property();
+            encrypted.setKey("secret-key");
+            encrypted.setValue("already-encrypted-value");
+            encrypted.setEncrypted(true);
+            givenExistingApi(apiWithProperties(List.of(encrypted)));
+
+            execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("name", "new-name"), false);
+
+            verify(dataEncryptor, never()).encrypt(any());
+        }
+
+        @Test
+        void json_patch_add_op_with_encryptable_property_encrypts_value() {
+            var body = patch("add", "/properties", List.of(Map.of("key", "secret-key", "value", "plaintext", "encryptable", true)));
+
+            var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, body, false);
+
+            var properties = httpV4Def(output.api()).getProperties();
+            assertThat(properties).hasSize(1);
+            assertThat(properties.getFirst().getKey()).isEqualTo("secret-key");
+            assertThat(properties.getFirst().isEncrypted()).isTrue();
+            assertThat(properties.getFirst().getValue()).isEqualTo("enc(plaintext)");
         }
     }
 

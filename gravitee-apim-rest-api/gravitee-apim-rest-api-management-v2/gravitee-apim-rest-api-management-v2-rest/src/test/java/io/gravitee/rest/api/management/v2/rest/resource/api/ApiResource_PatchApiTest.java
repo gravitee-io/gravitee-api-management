@@ -755,6 +755,26 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
         );
     }
 
+    @Test
+    void should_return_encrypted_value_when_property_marked_encryptable() {
+        var body = "{\"properties\":[{\"key\":\"k1\",\"value\":\"v1\",\"encryptable\":true}]}";
+
+        var response = rootTarget(API).request().method("PATCH", Entity.entity(body, MERGE_PATCH_TYPE));
+
+        assertThat(response)
+            .hasStatus(OK_200)
+            .asEntity(ApiV4.class)
+            .extracting(ApiV4::getProperties)
+            .asList()
+            .hasSize(1)
+            .first()
+            .satisfies(p -> {
+                var prop = (Property) p;
+                Assertions.assertThat(prop.getKey()).isEqualTo("k1");
+                Assertions.assertThat(prop.getEncrypted()).isTrue();
+            });
+    }
+
     @ParameterizedTest
     @MethodSource("responseTemplatesUpdateVariants")
     void should_update_response_templates(String body, String contentType) {

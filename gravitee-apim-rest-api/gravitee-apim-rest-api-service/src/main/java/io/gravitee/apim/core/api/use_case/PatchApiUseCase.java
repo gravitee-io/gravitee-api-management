@@ -25,10 +25,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
 import io.gravitee.apim.core.api.exception.ApiPatchNotAllowedException;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.property.EncryptableProperty;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.json_patch.domain_service.JsonPatchDomainService;
@@ -129,6 +131,7 @@ public class PatchApiUseCase {
     private final JsonPatchDomainService jsonPatchDomainService;
     private final WorkflowQueryService workflowQueryService;
     private final ObjectMapper objectMapper;
+    private final PropertyDomainService propertyDomainService;
 
     public Output execute(Input input) {
         var existingApi = apiCrudService.get(input.apiId());
@@ -363,14 +366,15 @@ public class PatchApiUseCase {
             existingApi.isDisableMembershipNotifications()
         );
 
-        var properties = resolvePatchableList(
+        var patchableProperties = resolvePatchableList(
             patchType,
             rawPatchNode,
             patchedNode,
             FIELD_PROPERTIES,
-            Property.class,
-            httpV4.getProperties()
+            PatchableProperty.class,
+            PatchableProperty.fromList(httpV4.getProperties())
         );
+        var properties = encryptProperties(patchableProperties);
         var responseTemplates = resolveResponseTemplates(patchType, rawPatchNode, patchedNode, httpV4.getResponseTemplates());
         var flows = resolvePatchableList(patchType, rawPatchNode, patchedNode, FIELD_FLOWS, Flow.class, httpV4.getFlows());
         var resources = resolvePatchableList(patchType, rawPatchNode, patchedNode, FIELD_RESOURCES, Resource.class, httpV4.getResources());
@@ -698,6 +702,39 @@ public class PatchApiUseCase {
         return "/" + field;
     }
 
+    private List<Property> encryptProperties(List<PatchableProperty> patchableProperties) {
+        if (patchableProperties == null) {
+            return null;
+        }
+        return propertyDomainService.encryptProperties(patchableProperties.stream().map(PatchableProperty::toEncryptable).toList());
+    }
+
+    record PatchableProperty(String key, String value, boolean encrypted, boolean dynamic, boolean encryptable) {
+        static PatchableProperty from(Property p) {
+            if (p == null) {
+                return null;
+            }
+            return new PatchableProperty(p.getKey(), p.getValue(), p.isEncrypted(), p.isDynamic(), false);
+        }
+
+        static List<PatchableProperty> fromList(List<Property> properties) {
+            if (properties == null) {
+                return null;
+            }
+            return properties.stream().map(PatchableProperty::from).toList();
+        }
+
+        EncryptableProperty toEncryptable() {
+            return EncryptableProperty.builder()
+                .key(key)
+                .value(value)
+                .encrypted(encrypted)
+                .dynamic(dynamic)
+                .encryptable(encryptable)
+                .build();
+        }
+    }
+
     public enum PatchType {
         JSON_PATCH,
         MERGE_PATCH,
@@ -789,7 +826,7 @@ public class PatchApiUseCase {
         Boolean allowedInApiProducts,
         boolean allowMultiJwtOauth2Subscriptions,
         boolean disableMembershipNotifications,
-        List<Property> properties,
+        List<PatchableProperty> properties,
         Map<String, Map<String, PatchableResponseTemplate>> responseTemplates,
         List<Flow> flows,
         List<Resource> resources
@@ -811,7 +848,7 @@ public class PatchApiUseCase {
                 httpV4.getAllowedInApiProducts(),
                 api.isAllowMultiJwtOauth2Subscriptions(),
                 api.isDisableMembershipNotifications(),
-                httpV4.getProperties(),
+                PatchableProperty.fromList(httpV4.getProperties()),
                 toPatchableResponseTemplates(httpV4.getResponseTemplates()),
                 httpV4.getFlows(),
                 httpV4.getResources()

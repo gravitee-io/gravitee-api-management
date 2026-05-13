@@ -21,8 +21,11 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
+import io.gravitee.definition.model.v4.property.Property;
+import io.gravitee.rest.api.model.v4.api.properties.PropertyEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.ApiService;
+import java.util.List;
 import org.springframework.stereotype.Service;
 
 /**
@@ -88,6 +91,7 @@ public class UpdateApiDomainServiceImpl implements UpdateApiDomainService {
             .allowedInApiProducts(coalesce(sanitized.getAllowedInApiProducts(), originalDefinition.getAllowedInApiProducts()))
             .responseTemplates(coalesce(sanitized.getResponseTemplates(), originalDefinition.getResponseTemplates()))
             .resources(coalesce(sanitized.getResources(), originalDefinition.getResources()))
+            .properties(coalesce(toProperties(sanitized.getProperties()), originalDefinition.getProperties()))
             .build();
         return original
             .toBuilder()
@@ -107,5 +111,15 @@ public class UpdateApiDomainServiceImpl implements UpdateApiDomainService {
 
     private static <T> T coalesce(T sanitized, T original) {
         return sanitized != null ? sanitized : original;
+    }
+
+    private static List<Property> toProperties(List<PropertyEntity> properties) {
+        if (properties == null) {
+            return null;
+        }
+        return properties
+            .stream()
+            .map(pe -> new Property(pe.getKey(), pe.getValue(), pe.isEncrypted(), pe.isDynamic()))
+            .toList();
     }
 }
