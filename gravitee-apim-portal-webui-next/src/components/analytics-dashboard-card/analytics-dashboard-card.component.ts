@@ -23,17 +23,15 @@ import { MatTooltip } from '@angular/material/tooltip';
 
 import { Dashboard } from '@gravitee/gravitee-dashboard';
 
-import { BadgeComponent } from '../badge/badge.component';
+import { OverflowLabelsComponent } from '../overflow-labels/overflow-labels.component';
 
 @Component({
   selector: 'app-analytics-dashboard-card',
-  imports: [MatCardModule, MatTooltip, DatePipe, BadgeComponent, MatIconButton, MatIcon],
+  imports: [MatCardModule, MatTooltip, DatePipe, MatIconButton, MatIcon, OverflowLabelsComponent],
   templateUrl: './analytics-dashboard-card.component.html',
   styleUrl: './analytics-dashboard-card.component.scss',
 })
 export class AnalyticsDashboardCardComponent {
-  private static readonly MAX_VISIBLE_LABELS = 2;
-
   readonly dashboard = input.required<Dashboard>();
   readonly isPinned = input<boolean>(false);
   readonly canPin = input<boolean>(true);
@@ -51,25 +49,7 @@ export class AnalyticsDashboardCardComponent {
   protected readonly unpinLabel = $localize`:@@analyticsDashboardUnpin:Unpin dashboard`;
   protected readonly maxPinnedTooltip = $localize`:@@analyticsDashboardMaxPinned:Pin limit reached`;
   protected readonly isPinDisabled = computed(() => !this.isPinned() && !this.canPin());
-
-  private readonly labelEntries = computed(() => Object.entries(this.dashboard().labels ?? {}));
-
-  protected readonly visibleLabels = computed(() =>
-    this.labelEntries()
-      .slice(0, AnalyticsDashboardCardComponent.MAX_VISIBLE_LABELS)
-      .map(([k, v]) => `${k}:${v}`),
-  );
-
-  protected readonly hiddenLabelsCount = computed(() =>
-    Math.max(0, this.labelEntries().length - AnalyticsDashboardCardComponent.MAX_VISIBLE_LABELS),
-  );
-
-  protected readonly hiddenLabelsTooltip = computed(() =>
-    this.labelEntries()
-      .slice(AnalyticsDashboardCardComponent.MAX_VISIBLE_LABELS)
-      .map(([k, v]) => `${k}:${v}`)
-      .join(', '),
-  );
+  protected readonly labels = computed(() => Object.entries(this.dashboard().labels ?? {}).map(([k, v]) => `${k}:${v}`));
 
   onPinClick(event: Event): void {
     event.stopPropagation();

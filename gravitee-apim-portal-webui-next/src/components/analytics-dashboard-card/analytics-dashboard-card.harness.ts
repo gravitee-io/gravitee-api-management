@@ -17,14 +17,15 @@ import { BaseHarnessFilters, ContentContainerComponentHarness, HarnessPredicate 
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
+import { OverflowLabelsHarness } from '../overflow-labels/overflow-labels.harness';
+
 export class AnalyticsDashboardCardHarness extends ContentContainerComponentHarness {
   public static hostSelector = 'app-analytics-dashboard-card';
 
   private readonly locateTitle = this.locatorFor('.dashboard-card__title');
   private readonly locateWidgetCount = this.locatorForOptional('[data-testid="widget-count"]');
   private readonly locateLastModified = this.locatorForOptional('[data-testid="last-modified"]');
-  private readonly locateLabels = this.locatorForAll('app-badge');
-  private readonly locateOverflowCounter = this.locatorForOptional('[data-testid="hidden-labels-count"]');
+  private readonly locateOverflowLabels = this.locatorForOptional(OverflowLabelsHarness);
   private readonly locatePinButton = this.locatorForOptional(MatButtonHarness.with({ selector: '.dashboard-card__pin-button' }));
   private readonly locatePinButtonElement = this.locatorForOptional('.dashboard-card__pin-button');
 
@@ -46,13 +47,12 @@ export class AnalyticsDashboardCardHarness extends ContentContainerComponentHarn
     return element ? element.text() : null;
   }
 
-  public async getLabelCount(): Promise<number> {
-    return (await this.locateLabels()).length;
+  public async hasOverflowLabels(): Promise<boolean> {
+    return (await this.locateOverflowLabels()) !== null;
   }
 
-  public async getOverflowCounter(): Promise<string | null> {
-    const element = await this.locateOverflowCounter();
-    return element ? element.text() : null;
+  public async getOverflowLabelsHarness(): Promise<OverflowLabelsHarness | null> {
+    return this.locateOverflowLabels();
   }
 
   public async getPinButton(): Promise<MatButtonHarness | null> {
