@@ -33,7 +33,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = { CorsMapper.class, EndpointMapper.class, EntrypointMapper.class })
+@Mapper(uses = { CorsMapper.class, RequestValidationMapper.class, EndpointMapper.class, EntrypointMapper.class })
 public interface ListenerMapper {
     ListenerMapper INSTANCE = Mappers.getMapper(ListenerMapper.class);
 
