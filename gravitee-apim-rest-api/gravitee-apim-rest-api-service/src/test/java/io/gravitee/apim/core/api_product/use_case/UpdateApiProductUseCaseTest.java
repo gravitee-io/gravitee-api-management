@@ -36,6 +36,7 @@ import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
+import inmemory.TriggerNotificationDomainServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
@@ -50,6 +51,7 @@ import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
+import io.gravitee.apim.core.notification.model.hook.ApiProductUpdatedHookContext;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -76,12 +78,15 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     private final ApiStateDomainService apiStateDomainService = mock(ApiStateDomainService.class);
     private final ApiProductIndexerDomainService apiProductIndexerDomainService = mock(ApiProductIndexerDomainService.class);
     private final ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService = mock(ApiProductPrimaryOwnerDomainService.class);
+    private final TriggerNotificationDomainServiceInMemory triggerNotificationDomainService =
+        new TriggerNotificationDomainServiceInMemory();
 
     private UpdateApiProductUseCase updateApiProductUseCase;
 
     @BeforeEach
     void setUp() {
         planQueryService.reset();
+        triggerNotificationDomainService.reset();
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         var validateApiProductService = new ValidateApiProductService(
             apiQueryService,
@@ -99,7 +104,8 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
             new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
             apiProductIndexerDomainService,
             apiProductPrimaryOwnerDomainService,
-            new DeployApiProductDomainService(planQueryService, eventCrudService, eventLatestCrudService)
+            new DeployApiProductDomainService(planQueryService, eventCrudService, eventLatestCrudService),
+            triggerNotificationDomainService
         );
     }
 
@@ -137,6 +143,56 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         verify(eventCrudService).createEvent(eq(ORG_ID), eq(ENV_ID), any(), any(), any(), any());
         verify(eventLatestCrudService).createOrPatchLatestEvent(eq(ORG_ID), eq("api-product-id"), any());
         verify(apiProductIndexerDomainService).index(any(), eq(output.apiProduct()), any());
+    }
+
+    @Test
+    void should_trigger_api_product_updated_notification_after_successful_update() {
+        givenPublishedApiProductPlan();
+        ApiProduct existing = ApiProduct.builder()
+            .id("api-product-id")
+            .name("Old Name")
+            .version("1.0.0")
+            .description("desc")
+            .apiIds(Set.of("api-1"))
+            .environmentId(ENV_ID)
+            .build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+
+        Api api2 = createV4ProxyApi("api-2", true);
+        apiCrudService.initWith(List.of(api2));
+
+        var toUpdate = UpdateApiProduct.builder().name("New Name").version("2.0.0").description("new desc").apiIds(Set.of("api-2")).build();
+
+        var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
+        var output = updateApiProductUseCase.execute(input);
+
+        assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
+            new ApiProductUpdatedHookContext(output.apiProduct().getId(), USER_ID)
+        );
+    }
+
+    @Test
+    void should_not_trigger_api_product_updated_notification_when_validation_fails_before_persist() {
+        ApiProduct existing = ApiProduct.builder()
+            .id("api-product-id")
+            .name("API Product")
+            .version("1.0.0")
+            .apiIds(Set.of("api-1"))
+            .environmentId(ENV_ID)
+            .build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+
+        Api allowedApi = createV4ProxyApi("api-allowed", true);
+        Api notAllowedApi = createV4ProxyApi("api-not-allowed", false);
+        apiCrudService.initWith(List.of(allowedApi, notAllowedApi));
+
+        var toUpdate = UpdateApiProduct.builder().apiIds(Set.of("api-allowed", "api-not-allowed")).build();
+        var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
+
+        Assertions.assertThatThrownBy(() -> updateApiProductUseCase.execute(input)).isInstanceOf(ValidationDomainException.class);
+        assertThat(triggerNotificationDomainService.getHookNotifications()).isEmpty();
     }
 
     @Test

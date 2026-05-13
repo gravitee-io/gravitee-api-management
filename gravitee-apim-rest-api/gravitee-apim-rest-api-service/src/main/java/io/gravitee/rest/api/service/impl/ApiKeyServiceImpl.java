@@ -65,6 +65,7 @@ import io.gravitee.rest.api.service.exceptions.SubscriptionClosedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotActiveException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.notification.ApiProductHook;
 import io.gravitee.rest.api.service.notification.ApiProductTemplateModel;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
@@ -176,6 +177,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             triggerNotifierService(
                 executionContext,
                 ApiHook.APIKEY_RENEWED,
+                ApiProductHook.APIKEY_RENEWED,
                 newApiKey,
                 newApiKeyEntity.getApplication(),
                 newApiKeyEntity.getSubscriptions()
@@ -216,6 +218,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             triggerNotifierService(
                 executionContext,
                 ApiHook.APIKEY_RENEWED,
+                ApiProductHook.APIKEY_RENEWED,
                 newApiKey,
                 newApiKeyEntity.getApplication(),
                 newApiKeyEntity.getSubscriptions()
@@ -659,7 +662,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             if (key.getExpireAt() != null && now.before(key.getExpireAt())) {
                 paramsBuilder.expirationDate(key.getExpireAt());
             }
-            triggerNotifierService(executionContext, ApiHook.APIKEY_EXPIRED, key, paramsBuilder);
+            triggerNotifierService(executionContext, ApiHook.APIKEY_EXPIRED, ApiProductHook.APIKEY_EXPIRED, key, paramsBuilder);
         }
     }
 
@@ -745,27 +748,30 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     private void triggerNotifierService(
         ExecutionContext executionContext,
         ApiHook apiHook,
+        ApiProductHook apiProductHook,
         ApiKey key,
         NotificationParamsBuilder paramsBuilder
     ) {
         ApplicationEntity application = applicationService.findById(executionContext, key.getApplication());
         Set<SubscriptionEntity> subscriptions = subscriptionService.findByIdIn(key.getSubscriptions());
-        triggerNotifierService(executionContext, apiHook, key, application, subscriptions, paramsBuilder);
+        triggerNotifierService(executionContext, apiHook, apiProductHook, key, application, subscriptions, paramsBuilder);
     }
 
     private void triggerNotifierService(
         ExecutionContext executionContext,
         ApiHook apiHook,
+        ApiProductHook apiProductHook,
         ApiKey key,
         ApplicationEntity application,
         Set<SubscriptionEntity> subscriptions
     ) {
-        triggerNotifierService(executionContext, apiHook, key, application, subscriptions, new NotificationParamsBuilder());
+        triggerNotifierService(executionContext, apiHook, apiProductHook, key, application, subscriptions, new NotificationParamsBuilder());
     }
 
     private void triggerNotifierService(
         ExecutionContext executionContext,
         ApiHook apiHook,
+        ApiProductHook apiProductHook,
         ApiKey key,
         ApplicationEntity application,
         Set<SubscriptionEntity> subscriptions,
@@ -773,7 +779,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     ) {
         subscriptions.forEach(subscription -> {
             if (isApiProductSubscription(subscription)) {
-                triggerNotifierServiceForApiProductSubscription(executionContext, apiHook, key, application, subscription);
+                triggerNotifierServiceForApiProductSubscription(executionContext, apiProductHook, key, application, subscription);
                 return;
             }
             GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
@@ -792,7 +798,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
     private void triggerNotifierServiceForApiProductSubscription(
         ExecutionContext executionContext,
-        ApiHook apiHook,
+        ApiProductHook apiProductHook,
         ApiKey key,
         ApplicationEntity application,
         SubscriptionEntity subscription
@@ -827,7 +833,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             if (key.getExpireAt() != null && now.before(key.getExpireAt())) {
                 freshBuilder.expirationDate(key.getExpireAt());
             }
-            notifierService.trigger(executionContext, apiHook, NotificationReferenceType.API_PRODUCT, apiProductId, freshBuilder.build());
+            notifierService.trigger(executionContext, apiProductHook, apiProductId, freshBuilder.build());
         } catch (TechnicalException e) {
             log.error("Error triggering API key notification for API Product subscription {}", subscription.getId(), e);
         }

@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.core.notification.model.hook;
 
-import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,27 +29,16 @@ public abstract class ApiHookContext extends AbstractHookContext {
 
     private final ApiHook hook;
 
-    /** Id of the API or API Product this hook refers to (see {@link #referenceType}). */
     private final String referenceId;
 
-    private final SubscriptionReferenceType referenceType;
-
     public ApiHookContext(ApiHook hook, String referenceId) {
-        this(hook, referenceId, null);
-    }
-
-    public ApiHookContext(ApiHook hook, String referenceId, SubscriptionReferenceType referenceType) {
         this.hook = hook;
         this.referenceId = referenceId;
-        this.referenceType = referenceType;
     }
 
     public Map<HookContextEntry, String> getProperties() {
         var props = new HashMap<>(getChildProperties());
-        var referenceKey = referenceType == SubscriptionReferenceType.API_PRODUCT
-            ? HookContextEntry.API_PRODUCT_ID
-            : HookContextEntry.API_ID;
-        props.put(referenceKey, referenceId);
+        props.put(HookContextEntry.API_ID, referenceId);
         return props;
     }
 }

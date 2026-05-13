@@ -25,6 +25,63 @@ import { fakeNotificationTemplate } from '../../../entities/notification/notific
 import { NotificationTemplate } from '../../../entities/notification/notificationTemplate';
 import { Constants } from '../../../entities/Constants';
 
+const API_PRODUCT_HOOK_REPRESENTATIVES: ReadonlyArray<{
+  readonly hook: string;
+  readonly name: string;
+  readonly description: string;
+}> = [
+  { hook: 'APIKEY_EXPIRED', name: 'API-Key Expired', description: 'Triggered when an API Key is expired.' },
+  { hook: 'APIKEY_RENEWED', name: 'API-Key Renewed', description: 'Triggered when an API Key is renewed.' },
+  { hook: 'APIKEY_REVOKED', name: 'API-Key Revoked', description: 'Triggered when an API Key is revoked.' },
+  { hook: 'SUBSCRIPTION_NEW', name: 'New Subscription', description: 'Triggered when a Subscription is created.' },
+  { hook: 'SUBSCRIPTION_ACCEPTED', name: 'Subscription Accepted', description: 'Triggered when a Subscription is accepted.' },
+  { hook: 'SUBSCRIPTION_CLOSED', name: 'Subscription Closed', description: 'Triggered when a Subscription is closed.' },
+  { hook: 'SUBSCRIPTION_PAUSED', name: 'Subscription Paused', description: 'Triggered when a Subscription is paused.' },
+  { hook: 'SUBSCRIPTION_RESUMED', name: 'Subscription Resumed', description: 'Triggered when a Subscription is resumed.' },
+  { hook: 'SUBSCRIPTION_REJECTED', name: 'Subscription Rejected', description: 'Triggered when a Subscription is rejected.' },
+  { hook: 'SUBSCRIPTION_TRANSFERRED', name: 'Subscription Transferred', description: 'Triggered when a Subscription is transferred.' },
+  { hook: 'SUBSCRIPTION_FAILED', name: 'Subscription Failed', description: 'Triggered when a Subscription fails.' },
+  { hook: 'API_PRODUCT_DEPLOYED', name: 'API Product Deployed', description: 'Triggered when an API Product is deployed.' },
+  { hook: 'API_PRODUCT_UPDATED', name: 'API Product Updated', description: 'Triggered when an API Product is updated.' },
+];
+
+function apiProductHookNotificationTemplates(): NotificationTemplate[] {
+  return API_PRODUCT_HOOK_REPRESENTATIVES.map(row =>
+    fakeNotificationTemplate({
+      description: row.description,
+      hook: row.hook,
+      name: row.name,
+      scope: 'API_PRODUCT',
+      title: row.name,
+      type: 'EMAIL',
+      enabled: false,
+    }),
+  );
+}
+
+function expectedApiProductScopeRows(): Array<{
+  scope: string;
+  humanReadableScope: string;
+  name: string;
+  hook: string;
+  description: string;
+  overridden: boolean;
+  icon: string;
+}> {
+  const icon = 'widgets';
+  return [...API_PRODUCT_HOOK_REPRESENTATIVES]
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(row => ({
+      scope: 'API_PRODUCT',
+      humanReadableScope: 'API Product',
+      name: row.name,
+      hook: row.hook,
+      description: row.description,
+      overridden: false,
+      icon,
+    }));
+}
+
 describe('OrgSettingsNotificationTemplatesComponent', () => {
   let fixture: ComponentFixture<OrgSettingsNotificationTemplatesComponent>;
   let component: OrgSettingsNotificationTemplatesComponent;
@@ -55,7 +112,12 @@ describe('OrgSettingsNotificationTemplatesComponent', () => {
         .flush(getNotificationTemplates());
     });
 
-    it('should setup notificationTemplatesByScope ', async () => {
+    it('should use a distinct scope icon for API product templates', () => {
+      expect(component.getScopeIcon('API_PRODUCT')).toBe('widgets');
+      expect(component.getScopeIcon('API')).toBe('dashboard');
+    });
+
+    it('should setup notificationTemplatesByScope ', () => {
       expect(component.groupNotificationTemplatesVMByScope(getNotificationTemplates())).toStrictEqual({
         API: [
           {
@@ -86,17 +148,7 @@ describe('OrgSettingsNotificationTemplatesComponent', () => {
             icon: 'dashboard',
           },
         ],
-        'API Product': [
-          {
-            scope: 'API_PRODUCT',
-            humanReadableScope: 'API Product',
-            name: 'API Product Updated',
-            hook: 'API_PRODUCT_UPDATED',
-            description: 'Triggered when an API Product is updated.',
-            overridden: false,
-            icon: 'dashboard',
-          },
-        ],
+        'API Product': expectedApiProductScopeRows(),
         Application: [
           {
             scope: 'APPLICATION',
@@ -146,7 +198,7 @@ describe('OrgSettingsNotificationTemplatesComponent', () => {
         .flush(getNotificationTemplates());
     });
 
-    it('should setup notificationTemplatesByScope ', async () => {
+    it('should setup notificationTemplatesByScope ', () => {
       expect(component.groupNotificationTemplatesVMByScope(getNotificationTemplates())).toStrictEqual({
         API: [
           {
@@ -177,17 +229,7 @@ describe('OrgSettingsNotificationTemplatesComponent', () => {
             icon: 'dashboard',
           },
         ],
-        'API Product': [
-          {
-            scope: 'API_PRODUCT',
-            humanReadableScope: 'API Product',
-            name: 'API Product Updated',
-            hook: 'API_PRODUCT_UPDATED',
-            description: 'Triggered when an API Product is updated.',
-            overridden: false,
-            icon: 'dashboard',
-          },
-        ],
+        'API Product': expectedApiProductScopeRows(),
         Application: [
           {
             scope: 'APPLICATION',
@@ -234,15 +276,7 @@ describe('OrgSettingsNotificationTemplatesComponent', () => {
         type: 'EMAIL',
         enabled: true,
       }),
-      fakeNotificationTemplate({
-        description: 'Triggered when an API Product is updated.',
-        hook: 'API_PRODUCT_UPDATED',
-        name: 'API Product Updated',
-        scope: 'API_PRODUCT',
-        title: 'API Product updated',
-        type: 'EMAIL',
-        enabled: false,
-      }),
+      ...apiProductHookNotificationTemplates(),
       fakeNotificationTemplate({
         description: 'Triggered when a Subscription is accepted.',
         hook: 'SUBSCRIPTION_ACCEPTED',

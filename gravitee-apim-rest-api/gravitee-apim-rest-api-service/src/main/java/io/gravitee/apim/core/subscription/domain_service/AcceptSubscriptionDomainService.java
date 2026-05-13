@@ -37,6 +37,7 @@ import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApiHookContext;
+import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApiProductHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApplicationHookContext;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
@@ -319,21 +320,32 @@ public class AcceptSubscriptionDomainService {
 
         String referenceId = acceptedSubscription.getReferenceId();
         var referenceType = acceptedSubscription.getReferenceType();
-        var apiContext = new SubscriptionAcceptedApiHookContext(
-            referenceType,
-            referenceId,
-            acceptedSubscription.getApplicationId(),
-            acceptedSubscription.getPlanId(),
-            acceptedSubscription.getId(),
-            applicationPrimaryOwner.id()
-        );
-        triggerNotificationDomainService.triggerSubscriptionReferenceNotification(
-            organizationId,
-            environmentId,
-            referenceType,
-            referenceId,
-            apiContext
-        );
+        if (SubscriptionReferenceType.API_PRODUCT == referenceType) {
+            triggerNotificationDomainService.triggerApiProductNotification(
+                organizationId,
+                environmentId,
+                new SubscriptionAcceptedApiProductHookContext(
+                    referenceId,
+                    acceptedSubscription.getApplicationId(),
+                    acceptedSubscription.getPlanId(),
+                    acceptedSubscription.getId(),
+                    applicationPrimaryOwner.id()
+                )
+            );
+        } else {
+            triggerNotificationDomainService.triggerApiSubscriptionNotification(
+                organizationId,
+                environmentId,
+                referenceId,
+                new SubscriptionAcceptedApiHookContext(
+                    referenceId,
+                    acceptedSubscription.getApplicationId(),
+                    acceptedSubscription.getPlanId(),
+                    acceptedSubscription.getId(),
+                    applicationPrimaryOwner.id()
+                )
+            );
+        }
         triggerNotificationDomainService.triggerApplicationNotification(
             organizationId,
             environmentId,

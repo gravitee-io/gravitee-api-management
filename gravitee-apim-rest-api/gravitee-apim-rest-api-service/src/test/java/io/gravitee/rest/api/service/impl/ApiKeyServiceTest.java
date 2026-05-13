@@ -67,6 +67,7 @@ import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeExcep
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotActiveException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.notification.ApiProductHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
@@ -1274,8 +1275,7 @@ public class ApiKeyServiceTest {
         ArgumentCaptor<Map> paramsCaptor = ArgumentCaptor.forClass(Map.class);
         verify(notifierService).trigger(
             eq(GraviteeContext.getExecutionContext()),
-            eq(ApiHook.APIKEY_EXPIRED),
-            eq(NotificationReferenceType.API_PRODUCT),
+            eq(ApiProductHook.APIKEY_EXPIRED),
             eq(apiProductId),
             paramsCaptor.capture()
         );
@@ -1330,8 +1330,7 @@ public class ApiKeyServiceTest {
         ArgumentCaptor<Map> paramsCaptor = ArgumentCaptor.forClass(Map.class);
         verify(notifierService).trigger(
             eq(GraviteeContext.getExecutionContext()),
-            eq(ApiHook.APIKEY_EXPIRED),
-            eq(NotificationReferenceType.API_PRODUCT),
+            eq(ApiProductHook.APIKEY_EXPIRED),
             eq(apiProductId),
             paramsCaptor.capture()
         );
@@ -1380,8 +1379,7 @@ public class ApiKeyServiceTest {
 
         verify(notifierService, never()).trigger(
             eq(GraviteeContext.getExecutionContext()),
-            eq(ApiHook.APIKEY_EXPIRED),
-            eq(NotificationReferenceType.API_PRODUCT),
+            eq(ApiProductHook.APIKEY_EXPIRED),
             eq(apiProductId),
             any()
         );

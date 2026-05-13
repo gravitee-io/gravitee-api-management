@@ -31,6 +31,7 @@ import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
+import inmemory.TriggerNotificationDomainServiceInMemory;
 import io.gravitee.apim.core.api_product.domain_service.DeployApiProductDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
@@ -40,6 +41,7 @@ import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
+import io.gravitee.apim.core.notification.model.hook.ApiProductDeployedHookContext;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
@@ -56,6 +58,8 @@ class DeployApiProductUseCaseTest extends AbstractUseCaseTest {
     private final EventCrudService eventCrudService = mock(EventCrudService.class);
     private final EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
     private final LicenseManager licenseManager = mock(LicenseManager.class);
+    private final TriggerNotificationDomainServiceInMemory triggerNotificationDomainService =
+        new TriggerNotificationDomainServiceInMemory();
     private DeployApiProductUseCase deployApiProductUseCase;
 
     @BeforeEach
@@ -71,7 +75,8 @@ class DeployApiProductUseCaseTest extends AbstractUseCaseTest {
             apiProductQueryService,
             new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
             validateApiProductService,
-            new DeployApiProductDomainService(planQueryService, eventCrudService, eventLatestCrudService)
+            new DeployApiProductDomainService(planQueryService, eventCrudService, eventLatestCrudService),
+            triggerNotificationDomainService
         );
     }
 
@@ -91,6 +96,9 @@ class DeployApiProductUseCaseTest extends AbstractUseCaseTest {
 
         verify(eventCrudService).createEvent(eq(ORG_ID), eq(ENV_ID), any(), any(), any(), any());
         verify(eventLatestCrudService).createOrPatchLatestEvent(eq(ORG_ID), eq(productId), any());
+        assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
+            new ApiProductDeployedHookContext(productId, USER_ID)
+        );
     }
 
     @Test

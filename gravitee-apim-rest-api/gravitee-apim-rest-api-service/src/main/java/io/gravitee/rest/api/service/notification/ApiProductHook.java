@@ -23,6 +23,18 @@ package io.gravitee.rest.api.service.notification;
  * @author GraviteeSource Team
  */
 public enum ApiProductHook implements Hook {
+    APIKEY_EXPIRED("API-Key Expired", "Triggered when an API Key is expired.", "API KEY"),
+    APIKEY_RENEWED("API-Key Renewed", "Triggered when an API Key is renewed.", "API KEY"),
+    APIKEY_REVOKED("API-Key Revoked", "Triggered when an API Key is revoked.", "API KEY"),
+    SUBSCRIPTION_NEW("New Subscription", "Triggered when a Subscription is created.", "SUBSCRIPTION"),
+    SUBSCRIPTION_ACCEPTED("Subscription Accepted", "Triggered when a Subscription is accepted.", "SUBSCRIPTION"),
+    SUBSCRIPTION_CLOSED("Subscription Closed", "Triggered when a Subscription is closed.", "SUBSCRIPTION"),
+    SUBSCRIPTION_PAUSED("Subscription Paused", "Triggered when a Subscription is paused.", "SUBSCRIPTION"),
+    SUBSCRIPTION_RESUMED("Subscription Resumed", "Triggered when a Subscription is resumed.", "SUBSCRIPTION"),
+    SUBSCRIPTION_REJECTED("Subscription Rejected", "Triggered when a Subscription is rejected.", "SUBSCRIPTION"),
+    SUBSCRIPTION_TRANSFERRED("Subscription Transferred", "Triggered when a Subscription is transferred.", "SUBSCRIPTION"),
+    SUBSCRIPTION_FAILED("Subscription Failed", "Triggered when a Subscription fails.", "SUBSCRIPTION"),
+    API_PRODUCT_DEPLOYED("API Product Deployed", "Triggered when an API Product is deployed.", "LIFECYCLE"),
     API_PRODUCT_UPDATED("API Product Updated", "Triggered when an API Product is updated.", "LIFECYCLE");
 
     private final String label;

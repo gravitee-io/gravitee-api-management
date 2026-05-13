@@ -391,7 +391,7 @@ class UpdateNativeApiDomainServiceTest {
             oneShotIndexation(auditInfo)
         );
 
-        assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
+        assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
             new ApiUpdatedApiHookContext(apiToUpdate.getId())
         );
     }
@@ -444,7 +444,7 @@ class UpdateNativeApiDomainServiceTest {
             oneShotIndexation(auditInfo)
         );
 
-        assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
+        assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
             new ApiDeprecatedApiHookContext(apiToUpdate.getId()),
             new ApiUpdatedApiHookContext(apiToUpdate.getId())
         );

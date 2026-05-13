@@ -18,9 +18,10 @@ package inmemory;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.ApiHookContext;
+import io.gravitee.apim.core.notification.model.hook.ApiProductHookContext;
 import io.gravitee.apim.core.notification.model.hook.ApplicationHookContext;
+import io.gravitee.apim.core.notification.model.hook.HookContext;
 import io.gravitee.apim.core.notification.model.hook.portal.PortalHookContext;
-import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,24 +34,28 @@ public class TriggerNotificationDomainServiceInMemory implements TriggerNotifica
         }
     }
 
-    private final List<ApiHookContext> apiNotifications = new ArrayList<>();
+    private final List<HookContext> hookNotifications = new ArrayList<>();
     private final List<ApplicationNotification> applicationNotifications = new ArrayList<>();
     private final List<PortalHookContext> portalNotifications = new ArrayList<>();
 
     @Override
     public void triggerApiNotification(String organizationId, String environmentId, ApiHookContext hookContext) {
-        apiNotifications.add(hookContext);
+        hookNotifications.add(hookContext);
     }
 
     @Override
-    public void triggerSubscriptionReferenceNotification(
+    public void triggerApiSubscriptionNotification(
         String organizationId,
         String environmentId,
-        SubscriptionReferenceType referenceType,
         String referenceId,
         ApiHookContext context
     ) {
-        apiNotifications.add(context);
+        hookNotifications.add(context);
+    }
+
+    @Override
+    public void triggerApiProductNotification(String organizationId, String environmentId, ApiProductHookContext context) {
+        hookNotifications.add(context);
     }
 
     @Override
@@ -74,8 +79,8 @@ public class TriggerNotificationDomainServiceInMemory implements TriggerNotifica
         portalNotifications.add(hookContext);
     }
 
-    public List<ApiHookContext> getApiNotifications() {
-        return Collections.unmodifiableList(apiNotifications);
+    public List<HookContext> getHookNotifications() {
+        return Collections.unmodifiableList(hookNotifications);
     }
 
     public List<ApplicationNotification> getApplicationNotifications() {
@@ -87,7 +92,7 @@ public class TriggerNotificationDomainServiceInMemory implements TriggerNotifica
     }
 
     public void reset() {
-        apiNotifications.clear();
+        hookNotifications.clear();
         applicationNotifications.clear();
         portalNotifications.clear();
     }

@@ -93,6 +93,7 @@ import io.gravitee.rest.api.service.exceptions.StillApiProductPrimaryOwnerExcept
 import io.gravitee.rest.api.service.exceptions.StillPrimaryOwnerException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.notification.ApiProductHook;
 import io.gravitee.rest.api.service.notification.ApiProductTemplateModel;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.search.SearchEngineService;
@@ -1443,8 +1444,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             .build();
         notifierService.trigger(
             executionContext,
-            ApiHook.API_UPDATED,
-            NotificationReferenceType.API_PRODUCT,
+            ApiProductHook.API_PRODUCT_UPDATED,
             apiProduct.getId(),
             new NotificationParamsBuilder()
                 .apiProduct(model)

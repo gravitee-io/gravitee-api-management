@@ -30,6 +30,7 @@ import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionClosedApiHookContext;
+import io.gravitee.apim.core.notification.model.hook.SubscriptionClosedApiProductHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionClosedApplicationHookContext;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
@@ -147,19 +148,28 @@ public class CloseSubscriptionDomainService {
     private void triggerNotifications(SubscriptionEntity closedSubscriptionEntity, AuditInfo auditInfo) {
         String referenceId = closedSubscriptionEntity.getReferenceId();
         var referenceType = closedSubscriptionEntity.getReferenceType();
-        var apiContext = new SubscriptionClosedApiHookContext(
-            referenceType,
-            referenceId,
-            closedSubscriptionEntity.getApplicationId(),
-            closedSubscriptionEntity.getPlanId()
-        );
-        triggerNotificationDomainService.triggerSubscriptionReferenceNotification(
-            auditInfo.organizationId(),
-            auditInfo.environmentId(),
-            referenceType,
-            referenceId,
-            apiContext
-        );
+        if (SubscriptionReferenceType.API_PRODUCT == referenceType) {
+            triggerNotificationDomainService.triggerApiProductNotification(
+                auditInfo.organizationId(),
+                auditInfo.environmentId(),
+                new SubscriptionClosedApiProductHookContext(
+                    referenceId,
+                    closedSubscriptionEntity.getApplicationId(),
+                    closedSubscriptionEntity.getPlanId()
+                )
+            );
+        } else {
+            triggerNotificationDomainService.triggerApiSubscriptionNotification(
+                auditInfo.organizationId(),
+                auditInfo.environmentId(),
+                referenceId,
+                new SubscriptionClosedApiHookContext(
+                    referenceId,
+                    closedSubscriptionEntity.getApplicationId(),
+                    closedSubscriptionEntity.getPlanId()
+                )
+            );
+        }
         triggerNotificationDomainService.triggerApplicationNotification(
             auditInfo.organizationId(),
             auditInfo.environmentId(),

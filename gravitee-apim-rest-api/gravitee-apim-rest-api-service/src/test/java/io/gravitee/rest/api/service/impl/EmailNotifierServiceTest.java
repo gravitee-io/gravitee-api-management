@@ -25,6 +25,7 @@ import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.notification.ApiProductHook;
 import io.gravitee.rest.api.service.notifiers.impl.EmailNotifierServiceImpl;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +73,26 @@ public class EmailNotifierServiceTest {
                     new EmailNotificationBuilder()
                         .to(recipientEmail)
                         .template(EmailNotificationBuilder.EmailTemplate.API_API_STARTED)
+                        .params(templateData)
+                        .build()
+                )
+            );
+        }
+
+        @Test
+        void should_send_email_based_on_api_product_hook() {
+            var executionContext = new ExecutionContext(null, null);
+            var templateData = Map.<String, Object>of();
+            var recipientEmail = "recipient1@gravitee.io";
+
+            service.trigger(executionContext, ApiProductHook.API_PRODUCT_UPDATED, templateData, List.of(recipientEmail));
+
+            verify(mockEmailService).sendAsyncEmailNotification(
+                same(executionContext),
+                eq(
+                    new EmailNotificationBuilder()
+                        .to(recipientEmail)
+                        .template(EmailNotificationBuilder.EmailTemplate.API_PRODUCT_UPDATED)
                         .params(templateData)
                         .build()
                 )

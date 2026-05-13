@@ -39,7 +39,6 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiKeyAuditEvent;
 import io.gravitee.apim.core.notification.model.hook.ApiKeyRevokedApiHookContext;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
-import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
@@ -249,9 +248,9 @@ class RevokeApplicationApiKeyUseCaseTest {
         usecase.execute(new Input(API_KEY_ID, APPLICATION_ID, AUDIT_INFO));
 
         // Then
-        assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
-            new ApiKeyRevokedApiHookContext(SubscriptionReferenceType.API, API_1, APPLICATION_ID, PLAN_1, apiKey.getKey()),
-            new ApiKeyRevokedApiHookContext(SubscriptionReferenceType.API, API_2, APPLICATION_ID, PLAN_2, apiKey.getKey())
+        assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
+            new ApiKeyRevokedApiHookContext(API_1, APPLICATION_ID, PLAN_1, apiKey.getKey()),
+            new ApiKeyRevokedApiHookContext(API_2, APPLICATION_ID, PLAN_2, apiKey.getKey())
         );
     }
 

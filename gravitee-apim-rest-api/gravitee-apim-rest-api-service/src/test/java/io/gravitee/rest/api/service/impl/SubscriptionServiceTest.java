@@ -134,6 +134,7 @@ import io.gravitee.rest.api.service.exceptions.SubscriptionNotUpdatableException
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TransferNotAllowedException;
 import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.notification.ApiProductHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.v4.ApiEntrypointService;
@@ -596,6 +597,10 @@ public class SubscriptionServiceTest {
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntityV4);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
         when(subscriptionRepository.create(any())).thenAnswer(returnsFirstArg());
+        ApiProduct apiProduct = new ApiProduct();
+        apiProduct.setId(apiProductId);
+        apiProduct.setName("API Product");
+        when(apiProductsRepository.findById(apiProductId)).thenReturn(Optional.of(apiProduct));
 
         SecurityContextHolder.setContext(generateSecurityContext());
 
@@ -615,9 +620,18 @@ public class SubscriptionServiceTest {
         verify(subscriptionValidationService, times(1)).validateAndSanitize(any(), eq(newSubscriptionEntity));
         // Verify apiTemplateService is NOT called for API Product subscriptions
         verify(apiTemplateService, never()).findByIdForTemplates(any(), anyString());
-        // Verify notifications are NOT triggered for API Product subscriptions
-        verify(notifierService, never()).trigger(any(), any(ApiHook.class), anyString(), anyMap());
-        verify(notifierService, never()).trigger(any(), any(ApplicationHook.class), anyString(), anyMap());
+        verify(notifierService).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ApiProductHook.SUBSCRIPTION_NEW),
+            eq(apiProductId),
+            anyMap()
+        );
+        verify(notifierService).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ApplicationHook.SUBSCRIPTION_NEW),
+            eq(APPLICATION_ID),
+            anyMap()
+        );
         assertNotNull(subscriptionEntity.getId());
         assertNotNull(subscriptionEntity.getApplication());
         assertNotNull(subscriptionEntity.getCreatedAt());
@@ -654,15 +668,28 @@ public class SubscriptionServiceTest {
         when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID)).thenReturn(singletonList(apiKey));
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntityV4);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        ApiProduct apiProduct = new ApiProduct();
+        apiProduct.setId(apiProductId);
+        apiProduct.setName("API Product");
+        when(apiProductsRepository.findById(apiProductId)).thenReturn(Optional.of(apiProduct));
         application.setPrimaryOwner(new PrimaryOwnerEntity());
 
         subscriptionService.pause(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
 
         verify(apiKeyService).update(GraviteeContext.getExecutionContext(), apiKey);
-        // Verify notifications are NOT triggered for API Product subscriptions
         verify(apiTemplateService, never()).findByIdForTemplates(any(), anyString());
-        verify(notifierService, never()).trigger(any(), any(ApiHook.class), anyString(), anyMap());
-        verify(notifierService, never()).trigger(any(), any(ApplicationHook.class), anyString(), anyMap());
+        verify(notifierService).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ApiProductHook.SUBSCRIPTION_PAUSED),
+            eq(apiProductId),
+            anyMap()
+        );
+        verify(notifierService).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ApplicationHook.SUBSCRIPTION_PAUSED),
+            eq(APPLICATION_ID),
+            anyMap()
+        );
     }
 
     @Test
@@ -690,15 +717,28 @@ public class SubscriptionServiceTest {
         when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID)).thenReturn(singletonList(apiKey));
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntityV4);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        ApiProduct apiProduct = new ApiProduct();
+        apiProduct.setId(apiProductId);
+        apiProduct.setName("API Product");
+        when(apiProductsRepository.findById(apiProductId)).thenReturn(Optional.of(apiProduct));
         application.setPrimaryOwner(new PrimaryOwnerEntity());
 
         subscriptionService.resume(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
 
         verify(apiKeyService).update(GraviteeContext.getExecutionContext(), apiKey);
-        // Verify notifications are NOT triggered for API Product subscriptions
         verify(apiTemplateService, never()).findByIdForTemplates(any(), anyString());
-        verify(notifierService, never()).trigger(any(), any(ApiHook.class), anyString(), anyMap());
-        verify(notifierService, never()).trigger(any(), any(ApplicationHook.class), anyString(), anyMap());
+        verify(notifierService).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ApiProductHook.SUBSCRIPTION_RESUMED),
+            eq(apiProductId),
+            anyMap()
+        );
+        verify(notifierService).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ApplicationHook.SUBSCRIPTION_RESUMED),
+            eq(APPLICATION_ID),
+            anyMap()
+        );
     }
 
     @Test
@@ -765,6 +805,11 @@ public class SubscriptionServiceTest {
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntityV4);
         when(applicationService.findById(any(), any())).thenReturn(applicationEntity);
         when(applicationEntity.getPrimaryOwner()).thenReturn(primaryOwnerEntity);
+        when(applicationEntity.getId()).thenReturn(APPLICATION_ID);
+        ApiProduct apiProduct = new ApiProduct();
+        apiProduct.setId(apiProductId);
+        apiProduct.setName("API Product");
+        when(apiProductsRepository.findById(apiProductId)).thenReturn(Optional.of(apiProduct));
 
         final String failureCause = "💥 Endpoint not available";
         subscriptionService.fail(SUBSCRIPTION_ID, failureCause);
@@ -778,10 +823,19 @@ public class SubscriptionServiceTest {
         assertThat(subscriptionCaptured.getConsumerStatus()).isEqualTo(Subscription.ConsumerStatus.FAILURE);
         assertThat(subscriptionCaptured.getFailureCause()).isEqualTo(failureCause);
         assertThat(subscriptionCaptured.getUpdatedAt()).isAfter(initialUpdateDate);
-        // Verify notifications are NOT triggered for API Product subscriptions
         verify(apiTemplateService, never()).findByIdForTemplates(any(), anyString());
-        verify(notifierService, never()).trigger(any(), any(ApiHook.class), anyString(), anyMap());
-        verify(notifierService, never()).trigger(any(), any(ApplicationHook.class), anyString(), anyMap());
+        verify(notifierService).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ApiProductHook.SUBSCRIPTION_FAILED),
+            eq(apiProductId),
+            anyMap()
+        );
+        verify(notifierService).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ApplicationHook.SUBSCRIPTION_FAILED),
+            eq(APPLICATION_ID),
+            anyMap()
+        );
     }
 
     @Test

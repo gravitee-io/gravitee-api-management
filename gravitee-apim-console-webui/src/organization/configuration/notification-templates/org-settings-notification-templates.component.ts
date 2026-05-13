@@ -115,8 +115,9 @@ export class OrgSettingsNotificationTemplatesComponent implements OnInit {
   getScopeIcon(scope: string): string {
     switch (scope) {
       case 'API':
-      case 'API_PRODUCT':
         return 'dashboard';
+      case 'API_PRODUCT':
+        return 'widgets';
       case 'APPLICATION':
         return 'list';
       case 'PORTAL':

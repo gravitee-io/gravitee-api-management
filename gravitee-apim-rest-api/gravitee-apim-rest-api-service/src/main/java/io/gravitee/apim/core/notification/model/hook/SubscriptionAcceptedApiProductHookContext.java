@@ -15,24 +15,30 @@
  */
 package io.gravitee.apim.core.notification.model.hook;
 
-import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.notification.ApiProductHook;
 import java.util.Map;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
-public class SubscriptionAcceptedApiHookContext extends ApiHookContext {
+@Getter
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class SubscriptionAcceptedApiProductHookContext extends ApiProductHookContext {
 
     private final String applicationId;
     private final String planId;
     private final String subscriptionId;
     private final String applicationPrimaryOwner;
 
-    public SubscriptionAcceptedApiHookContext(
-        String referenceId,
+    public SubscriptionAcceptedApiProductHookContext(
+        String apiProductId,
         String applicationId,
         String planId,
         String subscriptionId,
         String applicationPrimaryOwner
     ) {
-        super(ApiHook.SUBSCRIPTION_ACCEPTED, referenceId);
+        super(ApiProductHook.SUBSCRIPTION_ACCEPTED, apiProductId);
         this.applicationId = applicationId;
         this.planId = planId;
         this.subscriptionId = subscriptionId;

@@ -31,4 +31,5 @@ public interface UserAdapter {
 
     BaseUserEntity fromUser(User user);
     BaseUserEntity fromUser(UserEntity user);
+    UserEntity toUserEntity(BaseUserEntity base);
 }

@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.v4.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -67,7 +68,10 @@ class ApiProductGroupServiceImplTest {
 
         assertThat(apiProduct.getGroups()).contains("group-1");
         verify(apiProductsRepository).update(apiProduct);
-        verify(apiProductNotificationService).triggerUpdateNotification(EXECUTION_CONTEXT, apiProduct);
+        verify(apiProductNotificationService).triggerUpdateNotification(
+            same(EXECUTION_CONTEXT),
+            argThat(product -> product != null && "api-product-1".equals(product.getId()) && product.getGroups().contains("group-1"))
+        );
     }
 
     @Test
@@ -83,7 +87,16 @@ class ApiProductGroupServiceImplTest {
 
         assertThat(apiProduct.getGroups()).containsExactlyInAnyOrder("existing-group", "group-1");
         verify(apiProductsRepository).update(apiProduct);
-        verify(apiProductNotificationService).triggerUpdateNotification(EXECUTION_CONTEXT, apiProduct);
+        verify(apiProductNotificationService).triggerUpdateNotification(
+            same(EXECUTION_CONTEXT),
+            argThat(
+                product ->
+                    product != null &&
+                    "api-product-1".equals(product.getId()) &&
+                    product.getGroups().contains("existing-group") &&
+                    product.getGroups().contains("group-1")
+            )
+        );
     }
 
     @Test
@@ -114,7 +127,10 @@ class ApiProductGroupServiceImplTest {
 
         assertThat(apiProduct.getGroups()).containsExactly("group-2");
         verify(apiProductsRepository).update(apiProduct);
-        verify(apiProductNotificationService).triggerUpdateNotification(EXECUTION_CONTEXT, apiProduct);
+        verify(apiProductNotificationService).triggerUpdateNotification(
+            same(EXECUTION_CONTEXT),
+            argThat(product -> product != null && "api-product-1".equals(product.getId()) && product.getGroups().contains("group-2"))
+        );
     }
 
     @Test

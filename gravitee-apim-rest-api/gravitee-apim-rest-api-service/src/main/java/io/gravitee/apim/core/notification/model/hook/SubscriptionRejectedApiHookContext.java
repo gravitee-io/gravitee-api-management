@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.core.notification.model.hook;
 
-import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import java.util.Map;
 
@@ -27,14 +26,13 @@ public class SubscriptionRejectedApiHookContext extends ApiHookContext {
     private final String applicationPrimaryOwner;
 
     public SubscriptionRejectedApiHookContext(
-        SubscriptionReferenceType referenceType,
         String referenceId,
         String applicationId,
         String planId,
         String subscriptionId,
         String applicationPrimaryOwner
     ) {
-        super(ApiHook.SUBSCRIPTION_REJECTED, referenceId, referenceType);
+        super(ApiHook.SUBSCRIPTION_REJECTED, referenceId);
         this.applicationId = applicationId;
         this.planId = planId;
         this.subscriptionId = subscriptionId;

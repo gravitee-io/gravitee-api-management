@@ -6,7 +6,13 @@
 		<div style="margin-top: 50px; color: #424e5a;">
 			<h3>Hi,</h3>
 			<p>
-				The API <b><code>${api.name}</code></b> was updated by ${user.displayName}.
+				<#if api??>
+					The API <b><code>${api.name}</code></b> was updated by ${user.displayName}.
+				<#elseif apiProduct??>
+					The API Product <b><code>${apiProduct.name}</code></b> was updated by ${user.displayName}.
+				<#else>
+					A resource was updated by ${user.displayName}.
+				</#if>
 			</p>
 		</div>
 	</body>

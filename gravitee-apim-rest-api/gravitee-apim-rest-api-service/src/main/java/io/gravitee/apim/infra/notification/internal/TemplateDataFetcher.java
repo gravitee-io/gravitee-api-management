@@ -36,6 +36,8 @@ import io.gravitee.apim.core.notification.model.SubscriptionNotificationTemplate
 import io.gravitee.apim.core.notification.model.hook.HookContext;
 import io.gravitee.apim.core.notification.model.hook.HookContextEntry;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.infra.adapter.UserAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -45,6 +47,7 @@ import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.model.ApiProduct;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiProductTemplateModel;
 import java.util.List;
@@ -136,6 +139,7 @@ public class TemplateDataFetcher {
             case OWNER -> buildOwnerNotificationTemplateData(hookName, entry.getValue()).map(templateData ->
                 Map.entry("owner", (Object) templateData)
             );
+            case USER_ID -> buildUserNotificationTemplateData(entry.getValue());
         };
     }
 
@@ -171,6 +175,16 @@ public class TemplateDataFetcher {
             .name(apiProduct.getName())
             .version(apiProduct.getVersion() != null ? apiProduct.getVersion() : "")
             .build();
+    }
+
+    private Optional<Map.Entry<String, Object>> buildUserNotificationTemplateData(String userId) {
+        if (userId == null || userId.isEmpty()) {
+            return Optional.empty();
+        }
+        return userCrudService
+            .findBaseUserById(userId)
+            .map(UserAdapter.INSTANCE::toUserEntity)
+            .map(user -> Map.entry("user", user));
     }
 
     private Optional<PrimaryOwnerNotificationTemplateData> buildOwnerNotificationTemplateData(String hook, String userId) {

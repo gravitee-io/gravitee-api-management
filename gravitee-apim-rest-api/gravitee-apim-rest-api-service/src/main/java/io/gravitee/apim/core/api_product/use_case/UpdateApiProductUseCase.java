@@ -37,6 +37,8 @@ import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.exception.ApiProductPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
+import io.gravitee.apim.core.notification.model.hook.ApiProductUpdatedHookContext;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import java.util.HashSet;
@@ -60,6 +62,7 @@ public class UpdateApiProductUseCase {
     private final ApiProductIndexerDomainService apiProductIndexerDomainService;
     private final ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService;
     private final DeployApiProductDomainService deployApiProductDomainService;
+    private final TriggerNotificationDomainService triggerNotificationDomainService;
 
     public Output execute(Input input) {
         if (!licenseDomainService.isApiProductDeploymentAllowed(input.auditInfo().organizationId())) {
@@ -120,6 +123,14 @@ public class UpdateApiProductUseCase {
             log.warn("API Product [{}] was updated but not deployed to the gateway. {}", updated.getId(), e.getMessage());
         }
         createAuditLog(beforeUpdate, updated, input.auditInfo());
+        // The notification fires regardless of whether the subsequent re-deploy succeeded: the
+        // data update (name, description, API list, …) always completes before the deploy attempt,
+        // so "API Product Updated" accurately reflects that the stored record changed.
+        triggerNotificationDomainService.triggerApiProductNotification(
+            input.auditInfo().organizationId(),
+            input.auditInfo().environmentId(),
+            new ApiProductUpdatedHookContext(updated.getId(), input.auditInfo().actor().userId())
+        );
         return new Output(updated);
     }
 

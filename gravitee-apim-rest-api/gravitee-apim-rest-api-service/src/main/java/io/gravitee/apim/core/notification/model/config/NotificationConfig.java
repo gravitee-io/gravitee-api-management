@@ -18,6 +18,7 @@ package io.gravitee.apim.core.notification.model.config;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.notification.ApiProductHook;
 import io.gravitee.rest.api.service.notification.HookScope;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -52,10 +53,29 @@ public class NotificationConfig {
     }
 
     public static NotificationConfig defaultMailNotificationConfigForApiProduct(String apiProductId) {
-        return defaultMailNotificationConfigFor(HookScope.API_PRODUCT.name(), apiProductId, "${(apiProduct.primaryOwner.email)!''}");
+        return defaultMailNotificationConfigFor(
+            HookScope.API_PRODUCT.name(),
+            apiProductId,
+            "${(apiProduct.primaryOwner.email)!''}",
+            Arrays.stream(ApiProductHook.values()).map(Enum::name).sorted().toList()
+        );
     }
 
     private static NotificationConfig defaultMailNotificationConfigFor(String referenceType, String referenceId, String recipientConfig) {
+        return defaultMailNotificationConfigFor(
+            referenceType,
+            referenceId,
+            recipientConfig,
+            Arrays.stream(ApiHook.values()).map(Enum::name).sorted().toList()
+        );
+    }
+
+    private static NotificationConfig defaultMailNotificationConfigFor(
+        String referenceType,
+        String referenceId,
+        String recipientConfig,
+        List<String> hooks
+    ) {
         var now = TimeProvider.now();
         return NotificationConfig.builder()
             .type(Type.GENERIC)
@@ -65,7 +85,7 @@ public class NotificationConfig {
             .referenceId(referenceId)
             .notifier("default-email")
             .config(recipientConfig)
-            .hooks(Arrays.stream(ApiHook.values()).map(Enum::name).sorted().toList())
+            .hooks(hooks)
             .createdAt(now)
             .updatedAt(now)
             .build();

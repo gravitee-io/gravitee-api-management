@@ -27,6 +27,7 @@ import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiKeyAuditEvent;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.notification.model.hook.ApiKeyRevokedApiHookContext;
+import io.gravitee.apim.core.notification.model.hook.ApiKeyRevokedApiProductHookContext;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
@@ -77,20 +78,30 @@ public class RevokeApiKeyDomainService {
                 String referenceId = subscription.getReferenceId();
                 if (referenceId != null) {
                     var referenceType = subscription.getReferenceType();
-                    var context = new ApiKeyRevokedApiHookContext(
-                        referenceType,
-                        referenceId,
-                        subscription.getApplicationId(),
-                        subscription.getPlanId(),
-                        apiKey.getKey()
-                    );
-                    triggerNotificationDomainService.triggerSubscriptionReferenceNotification(
-                        auditInfo.organizationId(),
-                        auditInfo.environmentId(),
-                        referenceType,
-                        referenceId,
-                        context
-                    );
+                    if (SubscriptionReferenceType.API_PRODUCT.equals(referenceType)) {
+                        triggerNotificationDomainService.triggerApiProductNotification(
+                            auditInfo.organizationId(),
+                            auditInfo.environmentId(),
+                            new ApiKeyRevokedApiProductHookContext(
+                                referenceId,
+                                subscription.getApplicationId(),
+                                subscription.getPlanId(),
+                                apiKey.getKey()
+                            )
+                        );
+                    } else {
+                        triggerNotificationDomainService.triggerApiSubscriptionNotification(
+                            auditInfo.organizationId(),
+                            auditInfo.environmentId(),
+                            referenceId,
+                            new ApiKeyRevokedApiHookContext(
+                                referenceId,
+                                subscription.getApplicationId(),
+                                subscription.getPlanId(),
+                                apiKey.getKey()
+                            )
+                        );
+                    }
                 }
             });
 
