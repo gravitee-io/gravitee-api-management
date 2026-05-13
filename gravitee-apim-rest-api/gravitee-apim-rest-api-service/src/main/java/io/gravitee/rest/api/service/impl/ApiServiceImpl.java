@@ -61,6 +61,7 @@ import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.definition.model.Origin;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.RequestValidation;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.flow.Flow;
@@ -520,6 +521,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         Proxy proxy = new Proxy();
         proxy.setVirtualHosts(singletonList(new VirtualHost(newApiEntity.getContextPath())));
+        proxy.setRequestValidation(RequestValidation.builder().rejectNullByte(true).build());
         EndpointGroup group = new EndpointGroup();
         group.setName("default-group");
 

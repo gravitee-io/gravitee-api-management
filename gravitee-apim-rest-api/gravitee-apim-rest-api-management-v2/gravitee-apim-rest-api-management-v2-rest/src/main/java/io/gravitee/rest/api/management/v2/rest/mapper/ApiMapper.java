@@ -100,6 +100,7 @@ import org.slf4j.Logger;
         RuleMapper.class,
         ServiceMapper.class,
         CorsMapper.class,
+        RequestValidationMapper.class,
         ConfigurationSerializationMapper.class,
     }
 )

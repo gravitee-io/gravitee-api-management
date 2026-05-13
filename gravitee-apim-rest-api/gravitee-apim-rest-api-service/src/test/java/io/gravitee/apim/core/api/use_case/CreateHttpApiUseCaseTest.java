@@ -71,10 +71,12 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.RequestValidation;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -247,6 +249,16 @@ class CreateHttpApiUseCaseTest {
         var output = useCase.execute(new Input(newApi, AUDIT_INFO));
 
         // Then
+        var listenersWithRequestValidationDefaults = newApi
+            .getListeners()
+            .stream()
+            .map(listener -> {
+                if (listener instanceof HttpListener httpListener && httpListener.getRequestValidation() == null) {
+                    return httpListener.toBuilder().requestValidation(RequestValidation.builder().rejectNullByte(true).build()).build();
+                }
+                return listener;
+            })
+            .toList();
         var expectedApi = newApi
             .toApiBuilder()
             .id("generated-id")
@@ -256,7 +268,9 @@ class CreateHttpApiUseCaseTest {
             .apiLifecycleState(Api.ApiLifecycleState.CREATED)
             .lifecycleState(Api.LifecycleState.STOPPED)
             .visibility(Api.Visibility.PRIVATE)
-            .apiDefinitionHttpV4(newApi.toApiDefinitionBuilder().id("generated-id").build())
+            .apiDefinitionHttpV4(
+                newApi.toApiDefinitionBuilder().id("generated-id").listeners(listenersWithRequestValidationDefaults).build()
+            )
             .build();
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(output.api()).isEqualTo(new ApiWithFlows(expectedApi, newApi.getFlows()));
@@ -283,6 +297,16 @@ class CreateHttpApiUseCaseTest {
         var output = useCase.execute(new Input(newApi, AUDIT_INFO));
 
         // Then
+        var listenersWithRequestValidationDefaults = newApi
+            .getListeners()
+            .stream()
+            .map(listener -> {
+                if (listener instanceof HttpListener httpListener && httpListener.getRequestValidation() == null) {
+                    return httpListener.toBuilder().requestValidation(RequestValidation.builder().rejectNullByte(true).build()).build();
+                }
+                return listener;
+            })
+            .toList();
         var expectedApi = newApi
             .toApiBuilder()
             .id("generated-id")
@@ -292,7 +316,9 @@ class CreateHttpApiUseCaseTest {
             .apiLifecycleState(Api.ApiLifecycleState.CREATED)
             .lifecycleState(Api.LifecycleState.STOPPED)
             .visibility(Api.Visibility.PRIVATE)
-            .apiDefinitionValue(newApi.toApiDefinitionBuilder().id("generated-id").build())
+            .apiDefinitionValue(
+                newApi.toApiDefinitionBuilder().id("generated-id").listeners(listenersWithRequestValidationDefaults).build()
+            )
             .build();
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(output.api()).isEqualTo(new ApiWithFlows(expectedApi, newApi.getFlows()));
@@ -335,6 +361,16 @@ class CreateHttpApiUseCaseTest {
                 List.of(HttpSelector.builder().pathOperator(Operator.EQUALS).path("/embeddings").methods(Set.of(HttpMethod.POST)).build())
             )
         );
+        var listenersWithRequestValidationDefaults = newApi
+            .getListeners()
+            .stream()
+            .map(listener -> {
+                if (listener instanceof HttpListener httpListener && httpListener.getRequestValidation() == null) {
+                    return httpListener.toBuilder().requestValidation(RequestValidation.builder().rejectNullByte(true).build()).build();
+                }
+                return listener;
+            })
+            .toList();
         var expectedApi = newApi
             .toApiBuilder()
             .id("generated-id")
@@ -344,7 +380,14 @@ class CreateHttpApiUseCaseTest {
             .apiLifecycleState(Api.ApiLifecycleState.CREATED)
             .lifecycleState(Api.LifecycleState.STOPPED)
             .visibility(Api.Visibility.PRIVATE)
-            .apiDefinitionValue(newApi.toApiDefinitionBuilder().id("generated-id").flows(expectedFlows).build())
+            .apiDefinitionValue(
+                newApi
+                    .toApiDefinitionBuilder()
+                    .id("generated-id")
+                    .flows(expectedFlows)
+                    .listeners(listenersWithRequestValidationDefaults)
+                    .build()
+            )
             .build();
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(output.api()).isEqualTo(new ApiWithFlows(expectedApi, expectedFlows));
