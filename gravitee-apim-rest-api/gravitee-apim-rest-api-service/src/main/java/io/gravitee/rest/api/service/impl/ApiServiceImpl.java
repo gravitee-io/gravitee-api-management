@@ -406,6 +406,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         Proxy proxy = new Proxy();
         proxy.setVirtualHosts(singletonList(new VirtualHost(newApiEntity.getContextPath())));
+        proxy.setRequestValidation(RequestValidation.builder().rejectNullByte(true).build());
         EndpointGroup group = new EndpointGroup();
         group.setName("default-group");
 

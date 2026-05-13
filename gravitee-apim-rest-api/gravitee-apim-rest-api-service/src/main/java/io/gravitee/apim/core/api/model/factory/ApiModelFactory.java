@@ -26,7 +26,10 @@ import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.RequestValidation;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
@@ -49,9 +52,26 @@ public class ApiModelFactory {
             .environmentId(environmentId)
             .createdAt(now)
             .updatedAt(now)
-            .apiDefinitionHttpV4(newHttpApi.toApiDefinitionBuilder().id(id).build())
+            .apiDefinitionHttpV4(
+                newHttpApi.toApiDefinitionBuilder().id(id).listeners(withRequestValidationDefaults(newHttpApi.getListeners())).build()
+            )
             .lifecycleState(Api.LifecycleState.STOPPED)
             .build();
+    }
+
+    private static List<Listener> withRequestValidationDefaults(List<Listener> listeners) {
+        if (listeners == null) {
+            return null;
+        }
+        return listeners
+            .stream()
+            .map(listener -> {
+                if (listener instanceof HttpListener httpListener && httpListener.getRequestValidation() == null) {
+                    return httpListener.toBuilder().requestValidation(RequestValidation.builder().rejectNullByte(true).build()).build();
+                }
+                return listener;
+            })
+            .collect(Collectors.toList());
     }
 
     public static Api fromNewNativeApi(NewNativeApi newNativeApi, String environmentId) {

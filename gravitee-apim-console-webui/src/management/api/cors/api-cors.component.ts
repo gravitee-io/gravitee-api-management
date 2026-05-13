@@ -25,7 +25,7 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { CorsUtil } from '../../../shared/utils';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
-import { ApiV4, Cors, HttpListener } from '../../../entities/management-api-v2';
+import { ApiV4, Cors, HttpListener, RequestValidation } from '../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../services-ngx/connector-plugins-v2.service';
 
 @Component({
@@ -60,11 +60,13 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
       .pipe(
         tap(([api, entrypoints]) => {
           let cors: Cors;
+          let requestValidation: RequestValidation;
           if (api.definitionVersion === 'V4') {
-            cors = api.listeners
+            const httpListener: HttpListener | undefined = api.listeners
               .filter((listener) => listener.type === 'HTTP')
-              .map((listener) => listener as HttpListener)
-              .map((httpListener) => httpListener.cors)[0] ?? { enabled: false };
+              .map((listener) => listener as HttpListener)[0];
+            cors = httpListener?.cors ?? { enabled: false };
+            requestValidation = httpListener?.requestValidation ?? { rejectNullByte: false };
 
             const entrypointsSupportingCors = entrypoints.filter(
               (entrypoint) => entrypoint.availableFeatures.find((feature) => feature === 'CORS') != null,
@@ -81,6 +83,7 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
             cors = api.proxy?.cors ?? {
               enabled: false,
             };
+            requestValidation = api.proxy?.requestValidation ?? { rejectNullByte: false };
           }
           const isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
           const hasUpdatePermission =
@@ -130,6 +133,10 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
             runPolicies: new UntypedFormControl({
               value: cors.runPolicies ?? false,
               disabled: isCorsDisabled,
+            }),
+            rejectNullByte: new UntypedFormControl({
+              value: requestValidation?.rejectNullByte ?? false,
+              disabled: isReadOnly,
             }),
           });
           this.initialCorsFormValue = this.corsForm.getRawValue();
@@ -194,6 +201,7 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
 
   onSubmit() {
     const corsFormValue = this.corsForm.getRawValue();
+    const rejectNullByteDirty = this.corsForm.get('rejectNullByte').dirty;
 
     return this.apiService
       .get(this.activatedRoute.snapshot.params.apiId)
@@ -203,33 +211,41 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
           if (api.definitionVersion === 'V1') {
             this.snackBarService.error('API V1 are deprecated. Please upgrade your API to V2.');
           } else if (api.definitionVersion === 'V2') {
+            const proxy = {
+              ...api.proxy,
+              cors: {
+                ...api.proxy.cors,
+
+                enabled: corsFormValue.enabled,
+                allowOrigin: corsFormValue.allowOrigin,
+                allowMethods: corsFormValue.allowMethods,
+                allowHeaders: corsFormValue.allowHeaders,
+                allowCredentials: corsFormValue.allowCredentials,
+                maxAge: corsFormValue.maxAge,
+                exposeHeaders: corsFormValue.exposeHeaders,
+                allowPrivateNetwork: corsFormValue.allowPrivateNetwork,
+                runPolicies: corsFormValue.runPolicies,
+              },
+            };
+            if (api.proxy?.requestValidation !== undefined || rejectNullByteDirty) {
+              proxy.requestValidation = {
+                ...api.proxy?.requestValidation,
+                rejectNullByte: corsFormValue.rejectNullByte,
+              };
+            }
             apiToUpdate = {
               ...api,
               definitionVersion: 'V2',
-              proxy: {
-                ...api.proxy,
-                cors: {
-                  ...api.proxy.cors,
-
-                  enabled: corsFormValue.enabled,
-                  allowOrigin: corsFormValue.allowOrigin,
-                  allowMethods: corsFormValue.allowMethods,
-                  allowHeaders: corsFormValue.allowHeaders,
-                  allowCredentials: corsFormValue.allowCredentials,
-                  maxAge: corsFormValue.maxAge,
-                  exposeHeaders: corsFormValue.exposeHeaders,
-                  allowPrivateNetwork: corsFormValue.allowPrivateNetwork,
-                  runPolicies: corsFormValue.runPolicies,
-                },
-              },
+              proxy,
             };
           } else {
             apiToUpdate = api;
             apiToUpdate.listeners
               .filter((listener) => listener.type === 'HTTP')
               .forEach((listener) => {
-                listener.cors = {
-                  ...(listener as HttpListener).cors,
+                const httpListener = listener as HttpListener;
+                httpListener.cors = {
+                  ...httpListener.cors,
                   enabled: corsFormValue.enabled,
                   allowOrigin: corsFormValue.allowOrigin,
                   allowMethods: corsFormValue.allowMethods,
@@ -240,6 +256,12 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
                   allowPrivateNetwork: corsFormValue.allowPrivateNetwork,
                   runPolicies: corsFormValue.runPolicies,
                 };
+                if (httpListener.requestValidation !== undefined || rejectNullByteDirty) {
+                  httpListener.requestValidation = {
+                    ...httpListener.requestValidation,
+                    rejectNullByte: corsFormValue.rejectNullByte,
+                  };
+                }
               });
           }
           return this.apiService.update(api.id, apiToUpdate);
