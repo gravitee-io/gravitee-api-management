@@ -58,6 +58,7 @@ import org.mapstruct.factory.Mappers;
         RuleMapper.class,
         ServiceMapper.class,
         CorsMapper.class,
+        RequestValidationMapper.class,
     }
 )
 public interface ApiCRDMapper {
