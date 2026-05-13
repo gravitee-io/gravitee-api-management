@@ -35,6 +35,7 @@ import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApiHookContext;
+import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApiProductHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApplicationHookContext;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
@@ -94,6 +95,7 @@ class AcceptSubscriptionDomainServiceTest {
     private static final String REASON = "Subscription accepted";
 
     private static final String APPLICATION_ID = "application-id";
+    private static final String API_PRODUCT_ID = "api-product-id";
 
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
@@ -343,15 +345,8 @@ class AcceptSubscriptionDomainServiceTest {
         accept(subscription, PLAN_PUBLISHED);
 
         // Then
-        assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
-            new SubscriptionAcceptedApiHookContext(
-                SubscriptionReferenceType.API,
-                "api-id",
-                "application-id",
-                "plan-published",
-                "subscription-id",
-                USER_ID
-            )
+        assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
+            new SubscriptionAcceptedApiHookContext("api-id", "application-id", "plan-published", "subscription-id", USER_ID)
         );
 
         assertThat(triggerNotificationDomainService.getApplicationNotifications()).containsExactly(
@@ -366,6 +361,74 @@ class AcceptSubscriptionDomainServiceTest {
                 )
             )
         );
+    }
+
+    @Test
+    void should_trigger_api_product_hooks_and_audits_when_accepting_subscription_on_api_product() {
+        SubscriptionEntity subscription = givenExistingSubscription(
+            SubscriptionFixtures.aSubscription()
+                .toBuilder()
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                .subscribedBy("subscriber")
+                .planId(PLAN_PUBLISHED.getId())
+                .applicationId(APPLICATION_ID)
+                .status(SubscriptionEntity.Status.PENDING)
+                .build()
+        );
+
+        accept(subscription, PLAN_PUBLISHED);
+
+        assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
+            new SubscriptionAcceptedApiProductHookContext(
+                API_PRODUCT_ID,
+                APPLICATION_ID,
+                PLAN_PUBLISHED.getId(),
+                "subscription-id",
+                USER_ID
+            )
+        );
+        assertThat(triggerNotificationDomainService.getApplicationNotifications()).containsExactly(
+            new TriggerNotificationDomainServiceInMemory.ApplicationNotification(
+                new SubscriptionAcceptedApplicationHookContext(
+                    APPLICATION_ID,
+                    SubscriptionReferenceType.API_PRODUCT,
+                    API_PRODUCT_ID,
+                    PLAN_PUBLISHED.getId(),
+                    "subscription-id",
+                    USER_ID
+                )
+            )
+        );
+
+        assertThat(auditCrudServiceInMemory.storage())
+            .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
+            .contains(
+                new AuditEntity(
+                    "generated-id",
+                    ORGANIZATION_ID,
+                    ENVIRONMENT_ID,
+                    AuditEntity.AuditReferenceType.API_PRODUCT,
+                    API_PRODUCT_ID,
+                    USER_ID,
+                    Map.of("APPLICATION", "application-id"),
+                    SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
+                    ZonedDateTime.now(),
+                    ""
+                ),
+                new AuditEntity(
+                    "generated-id",
+                    ORGANIZATION_ID,
+                    ENVIRONMENT_ID,
+                    AuditEntity.AuditReferenceType.APPLICATION,
+                    "application-id",
+                    USER_ID,
+                    Map.of("API_PRODUCT", API_PRODUCT_ID),
+                    SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
+                    ZonedDateTime.now(),
+                    ""
+                )
+            );
     }
 
     @Test

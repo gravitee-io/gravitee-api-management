@@ -53,7 +53,6 @@ import io.gravitee.apim.core.notification.model.hook.ApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.ApplicationHookContext;
 import io.gravitee.apim.core.notification.model.hook.HookContextEntry;
 import io.gravitee.apim.core.notification.model.hook.portal.PortalHookContext;
-import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.notification.internal.TemplateDataFetcher;
@@ -72,7 +71,6 @@ import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.Integration;
-import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.service.NotifierService;
@@ -532,62 +530,15 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         }
 
         @Test
-        public void should_call_notifier_with_4_args_when_context_has_no_reference_type_api() {
-            // Given - context without referenceType (e.g. API_UPDATED, API_DEPRECATED) → facade uses 4-arg overload
+        public void should_call_notifier_with_4_args_for_api_hook_context() {
             final SimpleApiHookContextForTest apiHookContext = new SimpleApiHookContextForTest(API_ID);
             givenExistingApi(anApi().withId(API_ID), PrimaryOwnerEntity.builder().id(USER_ID).build());
 
-            // When
             service.triggerApiNotification(ORGANIZATION_ID, ENVIRONMENT_ID, apiHookContext);
 
-            // Then - 4-arg overload: trigger(execContext, hook, referenceId, params); notifier defaults to API
             verify(notifierService).trigger(
                 eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
                 eq(ApiHook.SUBSCRIPTION_CLOSED),
-                eq(API_ID),
-                paramsCaptor.capture()
-            );
-        }
-
-        @Test
-        public void should_call_notifier_with_5_args_and_api_product_type_when_context_has_reference_type_api_product() {
-            // Given - context with referenceType API_PRODUCT (e.g. APIKEY_REVOKED for API Product subscription)
-            givenExistingApiProduct(
-                ApiProduct.builder().id(API_PRODUCT_ID).name("product-name").version("1.0").environmentId(ENVIRONMENT_ID).build()
-            );
-            final SimpleApiHookContextForTest apiHookContext = new SimpleApiHookContextForTest(
-                API_PRODUCT_ID,
-                SubscriptionReferenceType.API_PRODUCT
-            );
-
-            // When
-            service.triggerApiNotification(ORGANIZATION_ID, ENVIRONMENT_ID, apiHookContext);
-
-            // Then - 5-arg overload with NotificationReferenceType.API_PRODUCT
-            verify(notifierService).trigger(
-                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-                eq(ApiHook.SUBSCRIPTION_CLOSED),
-                eq(NotificationReferenceType.API_PRODUCT),
-                eq(API_PRODUCT_ID),
-                paramsCaptor.capture()
-            );
-            assertThat(paramsCaptor.getValue()).containsKey("apiProduct");
-        }
-
-        @Test
-        public void should_call_notifier_with_5_args_and_api_type_when_context_has_reference_type_api() {
-            // Given - context with explicit referenceType API
-            givenExistingApi(anApi().withId(API_ID), PrimaryOwnerEntity.builder().id(USER_ID).build());
-            final SimpleApiHookContextForTest apiHookContext = new SimpleApiHookContextForTest(API_ID, SubscriptionReferenceType.API);
-
-            // When
-            service.triggerApiNotification(ORGANIZATION_ID, ENVIRONMENT_ID, apiHookContext);
-
-            // Then - 5-arg overload with NotificationReferenceType.API
-            verify(notifierService).trigger(
-                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-                eq(ApiHook.SUBSCRIPTION_CLOSED),
-                eq(NotificationReferenceType.API),
                 eq(API_ID),
                 paramsCaptor.capture()
             );
@@ -606,11 +557,6 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 this.properties = properties;
             }
 
-            public SimpleApiHookContextForTest(String referenceId, SubscriptionReferenceType referenceType) {
-                super(ApiHook.SUBSCRIPTION_CLOSED, referenceId, referenceType);
-                this.properties = new HashMap<>();
-            }
-
             public SimpleApiHookContextForTest(String referenceId, Map<HookContextEntry, String> properties, ApiHook hook) {
                 super(hook, referenceId);
                 this.properties = properties;
@@ -627,47 +573,16 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
     class TriggerSubscriptionReferenceNotification {
 
         @Test
-        public void should_call_notifier_with_api_reference_type_for_api_subscription() {
+        public void should_call_notifier_with_4_args_for_api_subscription_notification() {
             givenExistingApi(anApi().withId(API_ID), PrimaryOwnerEntity.builder().id(USER_ID).build());
             var context = new TriggerApiNotification.SimpleApiHookContextForTest(API_ID);
 
-            service.triggerSubscriptionReferenceNotification(
-                ORGANIZATION_ID,
-                ENVIRONMENT_ID,
-                SubscriptionReferenceType.API,
-                API_ID,
-                context
-            );
+            service.triggerApiSubscriptionNotification(ORGANIZATION_ID, ENVIRONMENT_ID, API_ID, context);
 
             verify(notifierService).trigger(
                 eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
                 eq(ApiHook.SUBSCRIPTION_CLOSED),
-                eq(NotificationReferenceType.API),
                 eq(API_ID),
-                any()
-            );
-        }
-
-        @Test
-        public void should_call_notifier_with_api_product_reference_type_for_api_product_subscription() {
-            givenExistingApiProduct(
-                ApiProduct.builder().id(API_PRODUCT_ID).name("product-name").version("1.0").environmentId(ENVIRONMENT_ID).build()
-            );
-            var context = new TriggerApiNotification.SimpleApiHookContextForTest(API_PRODUCT_ID, SubscriptionReferenceType.API_PRODUCT);
-
-            service.triggerSubscriptionReferenceNotification(
-                ORGANIZATION_ID,
-                ENVIRONMENT_ID,
-                SubscriptionReferenceType.API_PRODUCT,
-                API_PRODUCT_ID,
-                context
-            );
-
-            verify(notifierService).trigger(
-                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
-                eq(ApiHook.SUBSCRIPTION_CLOSED),
-                eq(NotificationReferenceType.API_PRODUCT),
-                eq(API_PRODUCT_ID),
                 any()
             );
         }

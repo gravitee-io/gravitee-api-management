@@ -359,7 +359,7 @@ public class UpdateNativeApiUseCaseTest {
         assertThat(flowCrudService.storage()).containsExactly(NativeFlow.builder().id("new").build());
         verify(categoryDomainService, times(1)).updateOrderCategoriesOfApi(eq(existingApi.getId()), eq(Set.of("new")));
         assertThat(auditCrudService.storage()).hasSize(1);
-        assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
+        assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
             new ApiUpdatedApiHookContext(existingApi.getId())
         );
         verify(categoryDomainService, times(1)).toCategoryKey(eq(apiToUpdate), eq(ENVIRONMENT_ID));

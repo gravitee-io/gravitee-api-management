@@ -39,6 +39,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.management.v2.rest.model.ApiProductSearchQuery;
 import io.gravitee.rest.api.management.v2.rest.model.CreateApiProduct;
+import io.gravitee.rest.api.management.v2.rest.model.Hook;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiProduct;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiProductResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -46,9 +47,12 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.notification.ApiProductHook;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -164,6 +168,30 @@ class ApiProductsResourceTest extends AbstractResourceTest {
                 .asError()
                 .hasHttpStatus(FORBIDDEN_403)
                 .hasMessage("You do not have sufficient rights to access this resource");
+        }
+    }
+
+    @Nested
+    class GetApiProductHooksTest {
+
+        @Test
+        void should_get_api_product_hooks() {
+            final Response response = rootTarget().path("hooks").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var hooks = response.readEntity(new GenericType<List<Hook>>() {});
+            var expectedIds = Arrays.stream(ApiProductHook.values())
+                .filter(hook -> !hook.isHidden())
+                .map(Enum::name)
+                .toList();
+            assertThat(hooks).extracting(Hook::getId).containsExactlyInAnyOrderElementsOf(expectedIds);
+        }
+
+        @Test
+        public void should_return_403_if_incorrect_permissions() {
+            shouldReturn403(RolePermission.ENVIRONMENT_API_PRODUCT, ENV_ID, RolePermissionAction.READ, () ->
+                rootTarget().path("hooks").request().get()
+            );
         }
     }
 

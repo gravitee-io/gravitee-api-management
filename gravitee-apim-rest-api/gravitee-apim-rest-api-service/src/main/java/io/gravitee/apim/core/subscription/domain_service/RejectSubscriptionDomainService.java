@@ -27,6 +27,7 @@ import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDo
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionRejectedApiHookContext;
+import io.gravitee.apim.core.notification.model.hook.SubscriptionRejectedApiProductHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionRejectedApplicationHookContext;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
@@ -85,21 +86,32 @@ public class RejectSubscriptionDomainService {
 
         String referenceId = rejectedSubscriptionEntity.getReferenceId();
         var referenceType = rejectedSubscriptionEntity.getReferenceType();
-        var apiContext = new SubscriptionRejectedApiHookContext(
-            referenceType,
-            referenceId,
-            rejectedSubscriptionEntity.getApplicationId(),
-            rejectedSubscriptionEntity.getPlanId(),
-            rejectedSubscriptionEntity.getId(),
-            applicationPrimaryOwner.id()
-        );
-        triggerNotificationDomainService.triggerSubscriptionReferenceNotification(
-            organizationId,
-            environmentId,
-            referenceType,
-            referenceId,
-            apiContext
-        );
+        if (SubscriptionReferenceType.API_PRODUCT == referenceType) {
+            triggerNotificationDomainService.triggerApiProductNotification(
+                organizationId,
+                environmentId,
+                new SubscriptionRejectedApiProductHookContext(
+                    referenceId,
+                    rejectedSubscriptionEntity.getApplicationId(),
+                    rejectedSubscriptionEntity.getPlanId(),
+                    rejectedSubscriptionEntity.getId(),
+                    applicationPrimaryOwner.id()
+                )
+            );
+        } else {
+            triggerNotificationDomainService.triggerApiSubscriptionNotification(
+                organizationId,
+                environmentId,
+                referenceId,
+                new SubscriptionRejectedApiHookContext(
+                    referenceId,
+                    rejectedSubscriptionEntity.getApplicationId(),
+                    rejectedSubscriptionEntity.getPlanId(),
+                    rejectedSubscriptionEntity.getId(),
+                    applicationPrimaryOwner.id()
+                )
+            );
+        }
         triggerNotificationDomainService.triggerApplicationNotification(
             organizationId,
             environmentId,

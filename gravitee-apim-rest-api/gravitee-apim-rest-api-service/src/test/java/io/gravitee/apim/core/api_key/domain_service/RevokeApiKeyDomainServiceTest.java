@@ -33,6 +33,7 @@ import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiKeyAuditEvent;
 import io.gravitee.apim.core.notification.model.hook.ApiKeyRevokedApiHookContext;
+import io.gravitee.apim.core.notification.model.hook.ApiKeyRevokedApiProductHookContext;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
@@ -339,14 +340,14 @@ class RevokeApiKeyDomainServiceTest {
             service.revoke(apiKey, AUDIT_INFO);
 
             // Then
-            assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
-                new ApiKeyRevokedApiHookContext(SubscriptionReferenceType.API, API_ID_1, APPLICATION_ID_1, PLAN_ID_1, apiKey.getKey()),
-                new ApiKeyRevokedApiHookContext(SubscriptionReferenceType.API, API_ID_2, APPLICATION_ID_2, PLAN_ID_2, apiKey.getKey())
+            assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
+                new ApiKeyRevokedApiHookContext(API_ID_1, APPLICATION_ID_1, PLAN_ID_1, apiKey.getKey()),
+                new ApiKeyRevokedApiHookContext(API_ID_2, APPLICATION_ID_2, PLAN_ID_2, apiKey.getKey())
             );
         }
 
         @Test
-        void should_trigger_api_notification_with_api_product_reference_type_for_api_product_subscription() {
+        void should_trigger_api_product_notification_for_api_product_subscription() {
             // Given - subscription for API Product
             var subscription = SubscriptionFixtures.aSubscription()
                 .toBuilder()
@@ -363,14 +364,8 @@ class RevokeApiKeyDomainServiceTest {
             service.revoke(apiKey, AUDIT_INFO);
 
             // Then - context uses API_PRODUCT and API_PRODUCT_ID
-            assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
-                new ApiKeyRevokedApiHookContext(
-                    SubscriptionReferenceType.API_PRODUCT,
-                    API_PRODUCT_ID,
-                    APPLICATION_ID_1,
-                    PLAN_ID_1,
-                    apiKey.getKey()
-                )
+            assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
+                new ApiKeyRevokedApiProductHookContext(API_PRODUCT_ID, APPLICATION_ID_1, PLAN_ID_1, apiKey.getKey())
             );
         }
     }

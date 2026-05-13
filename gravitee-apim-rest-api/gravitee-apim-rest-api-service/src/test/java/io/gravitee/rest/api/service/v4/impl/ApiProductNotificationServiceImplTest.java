@@ -76,6 +76,9 @@ class ApiProductNotificationServiceImplTest {
         assertThat(ApiProductHook.API_PRODUCT_UPDATED.getScope()).isEqualTo(HookScope.API_PRODUCT);
         assertThat(ApiProductHook.API_PRODUCT_UPDATED.getLabel()).isEqualTo("API Product Updated");
         assertThat(ApiProductHook.API_PRODUCT_UPDATED.getCategory()).isEqualTo("LIFECYCLE");
+        assertThat(ApiProductHook.API_PRODUCT_DEPLOYED.getScope()).isEqualTo(HookScope.API_PRODUCT);
+        assertThat(ApiProductHook.API_PRODUCT_DEPLOYED.getLabel()).isEqualTo("API Product Deployed");
+        assertThat(ApiProductHook.API_PRODUCT_DEPLOYED.getCategory()).isEqualTo("LIFECYCLE");
     }
 
     @Test
@@ -176,5 +179,33 @@ class ApiProductNotificationServiceImplTest {
         ArgumentCaptor<Map<String, Object>> paramsCaptor = ArgumentCaptor.forClass(Map.class);
         verify(notifierService).trigger(eq(CTX), eq(ApiProductHook.API_PRODUCT_UPDATED), eq("ap-x"), paramsCaptor.capture());
         assertThat(((ApiProductTemplateModel) paramsCaptor.getValue().get(PARAM_API_PRODUCT)).getPrimaryOwner()).isNull();
+    }
+
+    @Test
+    void should_trigger_deploy_notification_when_authenticated() {
+        buildService();
+
+        UserEntity actor = new UserEntity();
+        actor.setId("actor-1");
+        actor.setEmail("actor@example.com");
+        authenticateAs(actor);
+        when(userService.findById(CTX, "actor-1")).thenReturn(actor);
+        when(membershipService.getPrimaryOwnerUserId("org-1", MembershipReferenceType.API_PRODUCT, "ap-deploy")).thenReturn(null);
+
+        ApiProduct apiProduct = new ApiProduct();
+        apiProduct.setId("ap-deploy");
+        apiProduct.setName("Deploy Product");
+        apiProduct.setVersion("3.0");
+
+        service.triggerDeployNotification(CTX, apiProduct);
+
+        ArgumentCaptor<Map<String, Object>> paramsCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(notifierService).trigger(eq(CTX), eq(ApiProductHook.API_PRODUCT_DEPLOYED), eq("ap-deploy"), paramsCaptor.capture());
+        ApiProductTemplateModel model = (ApiProductTemplateModel) paramsCaptor.getValue().get(PARAM_API_PRODUCT);
+        assertThat(model.getId()).isEqualTo("ap-deploy");
+        assertThat(model.getName()).isEqualTo("Deploy Product");
+        assertThat(model.getVersion()).isEqualTo("3.0");
+        assertThat(model.getPrimaryOwner()).isNull();
+        assertThat(paramsCaptor.getValue().get(NotificationParamsBuilder.PARAM_USER)).isSameAs(actor);
     }
 }

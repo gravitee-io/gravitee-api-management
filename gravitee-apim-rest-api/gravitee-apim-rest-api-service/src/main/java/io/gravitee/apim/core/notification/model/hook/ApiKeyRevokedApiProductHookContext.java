@@ -15,41 +15,30 @@
  */
 package io.gravitee.apim.core.notification.model.hook;
 
-import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.notification.ApiProductHook;
 import java.util.Map;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
-public class SubscriptionAcceptedApiHookContext extends ApiHookContext {
+@EqualsAndHashCode(callSuper = true)
+@Getter
+@ToString(callSuper = true)
+public class ApiKeyRevokedApiProductHookContext extends ApiProductHookContext {
 
     private final String applicationId;
     private final String planId;
-    private final String subscriptionId;
-    private final String applicationPrimaryOwner;
+    private final String apiKey;
 
-    public SubscriptionAcceptedApiHookContext(
-        String referenceId,
-        String applicationId,
-        String planId,
-        String subscriptionId,
-        String applicationPrimaryOwner
-    ) {
-        super(ApiHook.SUBSCRIPTION_ACCEPTED, referenceId);
+    public ApiKeyRevokedApiProductHookContext(String apiProductId, String applicationId, String planId, String apiKey) {
+        super(ApiProductHook.APIKEY_REVOKED, apiProductId);
         this.applicationId = applicationId;
         this.planId = planId;
-        this.subscriptionId = subscriptionId;
-        this.applicationPrimaryOwner = applicationPrimaryOwner;
+        this.apiKey = apiKey;
     }
 
     @Override
     protected Map<HookContextEntry, String> getChildProperties() {
-        return Map.of(
-            HookContextEntry.APPLICATION_ID,
-            applicationId,
-            HookContextEntry.PLAN_ID,
-            planId,
-            HookContextEntry.SUBSCRIPTION_ID,
-            subscriptionId,
-            HookContextEntry.OWNER,
-            applicationPrimaryOwner
-        );
+        return Map.of(HookContextEntry.APPLICATION_ID, applicationId, HookContextEntry.PLAN_ID, planId, HookContextEntry.API_KEY, apiKey);
     }
 }

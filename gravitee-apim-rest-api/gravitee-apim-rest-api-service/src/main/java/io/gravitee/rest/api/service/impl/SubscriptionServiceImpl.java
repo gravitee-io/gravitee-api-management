@@ -134,6 +134,7 @@ import io.gravitee.rest.api.service.exceptions.SubscriptionNotUpdatableException
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TransferNotAllowedException;
 import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.notification.ApiProductHook;
 import io.gravitee.rest.api.service.notification.ApiProductTemplateModel;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
@@ -817,7 +818,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                         paramSubscription,
                         Optional.of(subscriptionsUrl),
                         true,
-                        ApiHook.SUBSCRIPTION_NEW
+                        ApiProductHook.SUBSCRIPTION_NEW
                     );
                 } else {
                     triggerSubscriptionNotificationsForApi(
@@ -866,21 +867,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         }
     }
 
-    /**
-     * Triggers subscription notifications for both API and API Product. Caller builds params with either "api" or "api-product".
-     */
-    private void triggerSubscriptionNotifications(
-        ExecutionContext executionContext,
-        NotificationReferenceType referenceType,
-        String referenceId,
-        String applicationId,
-        Map<String, Object> params,
-        ApiHook hook
-    ) {
-        notifierService.trigger(executionContext, hook, referenceType, referenceId, params);
-        notifierService.trigger(executionContext, ApplicationHook.valueOf(hook.name()), applicationId, params);
-    }
-
     private void triggerSubscriptionNotificationsForApi(
         ExecutionContext executionContext,
         String apiId,
@@ -918,14 +904,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         if (subscriptionsUrl != null) {
             paramsBuilder.subscriptionsUrl(subscriptionsUrl);
         }
-        triggerSubscriptionNotifications(
-            executionContext,
-            NotificationReferenceType.API,
-            apiId,
-            applicationId,
-            paramsBuilder.build(),
-            hook
-        );
+        triggerSubscriptionNotificationsForApi(executionContext, apiId, applicationId, paramsBuilder.build(), hook);
     }
 
     private Map<String, Object> buildSubscriptionNotificationParamsForApiProduct(
@@ -984,6 +963,17 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         return paramsBuilder.build();
     }
 
+    private void triggerSubscriptionNotificationsForApi(
+        ExecutionContext executionContext,
+        String apiId,
+        String applicationId,
+        Map<String, Object> params,
+        ApiHook hook
+    ) {
+        notifierService.trigger(executionContext, hook, NotificationReferenceType.API, apiId, params);
+        notifierService.trigger(executionContext, ApplicationHook.valueOf(hook.name()), applicationId, params);
+    }
+
     private void triggerSubscriptionNotificationsForApiProduct(
         ExecutionContext executionContext,
         String apiProductId,
@@ -993,7 +983,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         SubscriptionEntity subscriptionEntity,
         Optional<String> subscriptionsUrl,
         boolean includeSubscribedByUser,
-        ApiHook hook
+        ApiProductHook hook
     ) throws TechnicalException {
         Map<String, Object> params = buildSubscriptionNotificationParamsForApiProduct(
             executionContext,
@@ -1005,14 +995,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             includeSubscribedByUser
         );
         if (!params.isEmpty()) {
-            triggerSubscriptionNotifications(
-                executionContext,
-                NotificationReferenceType.API_PRODUCT,
-                apiProductId,
-                applicationId,
-                params,
-                hook
-            );
+            notifierService.trigger(executionContext, hook, apiProductId, params);
+            notifierService.trigger(executionContext, ApplicationHook.valueOf(hook.name()), applicationId, params);
         }
     }
 
@@ -1313,7 +1297,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     result,
                     Optional.empty(),
                     false,
-                    ApiHook.SUBSCRIPTION_FAILED
+                    ApiProductHook.SUBSCRIPTION_FAILED
                 );
             } else if (owner != null) {
                 triggerSubscriptionNotificationsForApi(
@@ -1374,7 +1358,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     result,
                     Optional.empty(),
                     false,
-                    ApiHook.SUBSCRIPTION_FAILED
+                    ApiProductHook.SUBSCRIPTION_FAILED
                 );
             } else if (owner != null) {
                 triggerSubscriptionNotificationsForApi(
@@ -1504,7 +1488,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                         convert(subscription),
                         Optional.empty(),
                         false,
-                        ApiHook.SUBSCRIPTION_PAUSED
+                        ApiProductHook.SUBSCRIPTION_PAUSED
                     );
                 } else if (owner != null) {
                     triggerSubscriptionNotificationsForApi(
@@ -1716,7 +1700,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                         convert(subscription),
                         Optional.empty(),
                         false,
-                        ApiHook.SUBSCRIPTION_RESUMED
+                        ApiProductHook.SUBSCRIPTION_RESUMED
                     );
                 } else if (owner != null) {
                     triggerSubscriptionNotificationsForApi(
@@ -2103,7 +2087,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     subscriptionEntity,
                     Optional.empty(),
                     false,
-                    ApiHook.SUBSCRIPTION_TRANSFERRED
+                    ApiProductHook.SUBSCRIPTION_TRANSFERRED
                 );
             } else if (owner != null) {
                 triggerSubscriptionNotificationsForApi(

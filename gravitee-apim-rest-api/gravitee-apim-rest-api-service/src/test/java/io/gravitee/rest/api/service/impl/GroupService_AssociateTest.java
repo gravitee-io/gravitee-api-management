@@ -41,6 +41,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.notification.ApiProductHook;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import java.util.Optional;
 import java.util.Set;
@@ -172,8 +173,7 @@ public class GroupService_AssociateTest extends TestCase {
         verify(apiProductsRepository, never()).update(product2);
         verify(notifierService, times(1)).trigger(
             eq(executionContext),
-            eq(ApiHook.API_UPDATED),
-            eq(io.gravitee.repository.management.model.NotificationReferenceType.API_PRODUCT),
+            eq(ApiProductHook.API_PRODUCT_UPDATED),
             eq(product1.getId()),
             any()
         );

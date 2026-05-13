@@ -7,7 +7,7 @@
 	<h3>Hi,</h3>
 	<p>The subscription to plan <b>${plan.name}</b> for <#if api??>API <b>${api.name}</b><#elseif apiProduct??>API Product <b>${apiProduct.name}</b><#else>API/API Product</#if> and application <b>${application.name}</b> has been paused by the API team.</p>
 	<#if (plan.security)?? && (plan.security == "API_KEY")>
-		<p>API Keys have been paused and cannot be used anymore to consume this API.</p>
+		<p>API Keys have been paused and cannot be used anymore to consume <#if api??>this API<#elseif apiProduct??>this API Product<#else>this API or API Product</#if>.</p>
 	</#if>
 </div>
 </body>

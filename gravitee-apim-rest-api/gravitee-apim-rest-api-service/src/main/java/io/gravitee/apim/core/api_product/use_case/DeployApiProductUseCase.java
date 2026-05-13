@@ -23,12 +23,14 @@ import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
+import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
+import io.gravitee.apim.core.notification.model.hook.ApiProductDeployedHookContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Publishes DEPLOY_API_PRODUCT event to trigger gateway sync.
+ * Publishes DEPLOY_API_PRODUCT event to trigger gateway sync and emits deploy notifications.
  * Use when an API Product needs to be deployed or redeployed without updating its definition.
  */
 @UseCase
@@ -39,6 +41,7 @@ public class DeployApiProductUseCase {
     private final LicenseDomainService licenseDomainService;
     private final ValidateApiProductService validateApiProductService;
     private final DeployApiProductDomainService deployApiProductDomainService;
+    private final TriggerNotificationDomainService triggerNotificationDomainService;
 
     public Output execute(Input input) {
         if (!licenseDomainService.isApiProductDeploymentAllowed(input.auditInfo().organizationId())) {
@@ -54,6 +57,11 @@ public class DeployApiProductUseCase {
         }
         validateApiProductService.validateForDeploy(apiProduct);
         deployApiProductDomainService.deploy(input.auditInfo(), apiProduct);
+        triggerNotificationDomainService.triggerApiProductNotification(
+            input.auditInfo().organizationId(),
+            input.auditInfo().environmentId(),
+            new ApiProductDeployedHookContext(apiProduct.getId(), input.auditInfo().actor().userId())
+        );
         return new Output(apiProduct);
     }
 

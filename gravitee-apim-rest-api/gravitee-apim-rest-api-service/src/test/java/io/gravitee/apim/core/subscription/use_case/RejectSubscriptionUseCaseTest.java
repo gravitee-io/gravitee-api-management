@@ -251,15 +251,8 @@ class RejectSubscriptionUseCaseTest {
         reject(subscription.getId());
 
         // Then
-        assertThat(triggerNotificationService.getApiNotifications()).containsExactly(
-            new SubscriptionRejectedApiHookContext(
-                SubscriptionReferenceType.API,
-                "api-id",
-                "application-id",
-                "plan-published",
-                "subscription-id",
-                USER_ID
-            )
+        assertThat(triggerNotificationService.getHookNotifications()).containsExactly(
+            new SubscriptionRejectedApiHookContext("api-id", "application-id", "plan-published", "subscription-id", USER_ID)
         );
 
         assertThat(triggerNotificationService.getApplicationNotifications()).containsExactly(

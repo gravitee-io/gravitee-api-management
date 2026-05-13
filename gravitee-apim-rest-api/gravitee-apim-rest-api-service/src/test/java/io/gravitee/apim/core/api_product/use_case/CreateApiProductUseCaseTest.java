@@ -62,6 +62,8 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import io.gravitee.rest.api.service.notification.ApiProductHook;
+import java.util.Arrays;
 import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -196,6 +198,15 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
         verify(eventCrudService).createEvent(eq(ORG_ID), eq(ENV_ID), any(), any(), any(), any());
         verify(eventLatestCrudService).createOrPatchLatestEvent(eq(ORG_ID), eq(GENERATED_UUID), any());
         verify(apiProductIndexerDomainService).index(any(), eq(output.apiProduct()), any());
+        assertThat(notificationConfigCrudService.storage())
+            .singleElement()
+            .satisfies(config -> {
+                assertThat(config.getReferenceType()).isEqualTo("API_PRODUCT");
+                assertThat(config.getReferenceId()).isEqualTo(GENERATED_UUID);
+                assertThat(config.getHooks()).containsExactlyInAnyOrderElementsOf(
+                    Arrays.stream(ApiProductHook.values()).map(Enum::name).toList()
+                );
+            });
     }
 
     @Test

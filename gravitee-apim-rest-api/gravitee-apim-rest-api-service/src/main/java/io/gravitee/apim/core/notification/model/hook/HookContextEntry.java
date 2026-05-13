@@ -24,4 +24,5 @@ public enum HookContextEntry {
     API_KEY,
     OWNER,
     INTEGRATION_ID,
+    USER_ID,
 }

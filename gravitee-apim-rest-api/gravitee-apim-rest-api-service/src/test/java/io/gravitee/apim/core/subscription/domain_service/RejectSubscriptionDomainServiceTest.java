@@ -42,6 +42,7 @@ import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionRejectedApiHookContext;
+import io.gravitee.apim.core.notification.model.hook.SubscriptionRejectedApiProductHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionRejectedApplicationHookContext;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
@@ -181,15 +182,8 @@ public class RejectSubscriptionDomainServiceTest {
                 softly.assertThat(result.getStatus()).isEqualTo(SubscriptionEntity.Status.REJECTED);
             });
 
-            assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
-                new SubscriptionRejectedApiHookContext(
-                    SubscriptionReferenceType.API,
-                    "api-id",
-                    "application-id",
-                    "plan-published",
-                    "subscription-id",
-                    USER_ID
-                )
+            assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
+                new SubscriptionRejectedApiHookContext("api-id", "application-id", "plan-published", "subscription-id", USER_ID)
             );
 
             if (shouldTriggerEmailNotification) {
@@ -298,15 +292,8 @@ public class RejectSubscriptionDomainServiceTest {
                 softly.assertThat(result.getStatus()).isEqualTo(SubscriptionEntity.Status.REJECTED);
             });
 
-            assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
-                new SubscriptionRejectedApiHookContext(
-                    SubscriptionReferenceType.API,
-                    "api-id",
-                    "application-id",
-                    "plan-published",
-                    "subscription-id",
-                    USER_ID
-                )
+            assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
+                new SubscriptionRejectedApiHookContext("api-id", "application-id", "plan-published", "subscription-id", USER_ID)
             );
 
             if (shouldTriggerEmailNotification) {
@@ -371,6 +358,74 @@ public class RejectSubscriptionDomainServiceTest {
                         "application-id",
                         USER_ID,
                         Map.of("API", "api-id"),
+                        SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
+                        ZonedDateTime.now(),
+                        ""
+                    )
+                );
+        }
+    }
+
+    @Nested
+    class When_subscription_targets_an_api_product {
+
+        private static final String API_PRODUCT_ID = "api-product-id";
+
+        @Test
+        void should_route_reject_notifications_and_audits_to_api_product_scope() {
+            SubscriptionEntity subscription = SubscriptionFixtures.aSubscription()
+                .toBuilder()
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(SubscriptionReferenceType.API_PRODUCT)
+                .subscribedBy("subscriber")
+                .planId(PLAN_PUBLISHED)
+                .status(SubscriptionEntity.Status.PENDING)
+                .build();
+            givenExistingSubscription(subscription);
+
+            SubscriptionEntity result = reject(subscription);
+
+            assertThat(result.getStatus()).isEqualTo(SubscriptionEntity.Status.REJECTED);
+
+            assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
+                new SubscriptionRejectedApiProductHookContext(API_PRODUCT_ID, APPLICATION_ID, PLAN_PUBLISHED, "subscription-id", USER_ID)
+            );
+            assertThat(triggerNotificationDomainService.getApplicationNotifications()).containsExactly(
+                new ApplicationNotification(
+                    new SubscriptionRejectedApplicationHookContext(
+                        APPLICATION_ID,
+                        SubscriptionReferenceType.API_PRODUCT,
+                        API_PRODUCT_ID,
+                        PLAN_PUBLISHED,
+                        "subscription-id",
+                        USER_ID
+                    )
+                )
+            );
+
+            assertThat(auditCrudServiceInMemory.storage())
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
+                .containsExactly(
+                    new AuditEntity(
+                        "audit-id",
+                        ORGANIZATION_ID,
+                        ENVIRONMENT_ID,
+                        AuditEntity.AuditReferenceType.API_PRODUCT,
+                        API_PRODUCT_ID,
+                        USER_ID,
+                        Map.of("APPLICATION", "application-id"),
+                        SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
+                        ZonedDateTime.now(),
+                        ""
+                    ),
+                    new AuditEntity(
+                        "audit-id",
+                        ORGANIZATION_ID,
+                        ENVIRONMENT_ID,
+                        AuditEntity.AuditReferenceType.APPLICATION,
+                        APPLICATION_ID,
+                        USER_ID,
+                        Map.of("API_PRODUCT", API_PRODUCT_ID),
                         SubscriptionAuditEvent.SUBSCRIPTION_UPDATED.name(),
                         ZonedDateTime.now(),
                         ""

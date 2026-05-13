@@ -120,6 +120,47 @@ public class EmailNotificationBuilder {
         API_REVIEW_OK(ApiHook.REVIEW_OK, "reviewOk.html", "API review accepted"),
         API_API_DEPRECATED(ApiHook.API_DEPRECATED, "apiDeprecated.html", "API deprecated"),
         API_PLANS_DATA_FIXED(ApiHook.MESSAGE, "apiPlansDataFixed.html", "API plans data have been fixed"),
+        API_PRODUCT_APIKEY_REVOKED(
+            ApiProductHook.APIKEY_REVOKED,
+            "apiKeyRevoked.html",
+            "API Key revoked for ${(api.name)!(apiProduct.name)!''}"
+        ),
+        API_PRODUCT_APIKEY_RENEWED(
+            ApiProductHook.APIKEY_RENEWED,
+            "apiKeyRenewed.html",
+            "API Key renewed for ${(api.name)!(apiProduct.name)!''}"
+        ),
+        API_PRODUCT_APIKEY_EXPIRED(
+            ApiProductHook.APIKEY_EXPIRED,
+            "apiKeyExpired.html",
+            "API Key expiration for ${(api.name)!(apiProduct.name)!''}"
+        ),
+        API_PRODUCT_SUBSCRIPTION_NEW(
+            ApiProductHook.SUBSCRIPTION_NEW,
+            "subscriptionReceived.html",
+            "New subscription for ${(api.name)!(apiProduct.name)!''} with plan ${plan.name}"
+        ),
+        API_PRODUCT_SUBSCRIPTION_ACCEPTED(ApiProductHook.SUBSCRIPTION_ACCEPTED, "subscriptionApproved.html", "Subscription approved"),
+        API_PRODUCT_SUBSCRIPTION_CLOSED(ApiProductHook.SUBSCRIPTION_CLOSED, "subscriptionClosed.html", "Subscription closed"),
+        API_PRODUCT_SUBSCRIPTION_PAUSED(
+            ApiProductHook.SUBSCRIPTION_PAUSED,
+            "subscriptionPaused.html",
+            "Subscription for ${(api.name)!(apiProduct.name)!''} with plan ${plan.name} has been paused"
+        ),
+        API_PRODUCT_SUBSCRIPTION_RESUMED(
+            ApiProductHook.SUBSCRIPTION_RESUMED,
+            "subscriptionResumed.html",
+            "Subscription for ${(api.name)!(apiProduct.name)!''} with plan ${plan.name} has been resumed"
+        ),
+        API_PRODUCT_SUBSCRIPTION_REJECTED(ApiProductHook.SUBSCRIPTION_REJECTED, "subscriptionRejected.html", "Subscription rejected"),
+        API_PRODUCT_SUBSCRIPTION_FAILED(ApiProductHook.SUBSCRIPTION_FAILED, "subscriptionFailed.html", "Subscription failed"),
+        API_PRODUCT_SUBSCRIPTION_TRANSFERRED(
+            ApiProductHook.SUBSCRIPTION_TRANSFERRED,
+            "subscriptionTransferred.html",
+            "Subscription for ${(api.name)!(apiProduct.name)!''} with plan ${plan.name} has been transferred"
+        ),
+        API_PRODUCT_DEPLOYED(ApiProductHook.API_PRODUCT_DEPLOYED, "apiDeployed.html", "API Product Deployed"),
+        API_PRODUCT_UPDATED(ApiProductHook.API_PRODUCT_UPDATED, "apiUpdated.html", "API Product Updated"),
         APPLICATION_SUBSCRIPTION_NEW(
             ApplicationHook.SUBSCRIPTION_NEW,
             "subscriptionCreated.html",

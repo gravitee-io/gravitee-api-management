@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.core.notification.model.hook;
 
-import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import java.util.Map;
 import lombok.EqualsAndHashCode;
@@ -27,18 +26,12 @@ import lombok.ToString;
 @ToString(callSuper = true)
 public class ApiKeyRevokedApiHookContext extends ApiHookContext {
 
-    String applicationId;
-    String planId;
-    String apiKey;
+    private String applicationId;
+    private String planId;
+    private String apiKey;
 
-    public ApiKeyRevokedApiHookContext(
-        SubscriptionReferenceType referenceType,
-        String referenceId,
-        String applicationId,
-        String planId,
-        String apiKey
-    ) {
-        super(ApiHook.APIKEY_REVOKED, referenceId, referenceType);
+    public ApiKeyRevokedApiHookContext(String referenceId, String applicationId, String planId, String apiKey) {
+        super(ApiHook.APIKEY_REVOKED, referenceId);
         this.applicationId = applicationId;
         this.planId = planId;
         this.apiKey = apiKey;

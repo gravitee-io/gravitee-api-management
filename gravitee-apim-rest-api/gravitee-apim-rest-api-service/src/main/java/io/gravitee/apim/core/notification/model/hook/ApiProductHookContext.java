@@ -15,26 +15,31 @@
  */
 package io.gravitee.apim.core.notification.model.hook;
 
-import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.notification.ApiProductHook;
+import java.util.HashMap;
 import java.util.Map;
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
-@EqualsAndHashCode(callSuper = true)
 @Getter
+@EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class SubscriptionClosedApiHookContext extends ApiHookContext {
+public abstract class ApiProductHookContext extends AbstractHookContext {
 
-    private String applicationId;
-    private String planId;
+    private final ApiProductHook hook;
 
-    public SubscriptionClosedApiHookContext(String referenceId, String applicationId, String planId) {
-        super(ApiHook.SUBSCRIPTION_CLOSED, referenceId);
-        this.applicationId = applicationId;
-        this.planId = planId;
+    private final String apiProductId;
+
+    protected ApiProductHookContext(ApiProductHook hook, String apiProductId) {
+        this.hook = hook;
+        this.apiProductId = apiProductId;
     }
 
     @Override
-    protected Map<HookContextEntry, String> getChildProperties() {
-        return Map.of(HookContextEntry.APPLICATION_ID, applicationId, HookContextEntry.PLAN_ID, planId);
+    public Map<HookContextEntry, String> getProperties() {
+        var childProperties = new HashMap<>(getChildProperties());
+        childProperties.put(HookContextEntry.API_PRODUCT_ID, apiProductId);
+        return childProperties;
     }
 }

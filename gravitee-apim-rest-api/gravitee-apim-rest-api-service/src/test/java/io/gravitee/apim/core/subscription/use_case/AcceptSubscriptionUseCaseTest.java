@@ -464,15 +464,8 @@ class AcceptSubscriptionUseCaseTest {
         accept(subscription.getId());
 
         // Then
-        assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
-            new SubscriptionAcceptedApiHookContext(
-                SubscriptionReferenceType.API,
-                "api-id",
-                application.getId(),
-                plan.getId(),
-                subscription.getId(),
-                null
-            )
+        assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
+            new SubscriptionAcceptedApiHookContext("api-id", application.getId(), plan.getId(), subscription.getId(), null)
         );
 
         assertThat(triggerNotificationDomainService.getApplicationNotifications()).containsExactly(

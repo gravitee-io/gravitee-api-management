@@ -53,6 +53,7 @@ import io.gravitee.rest.api.service.exceptions.TemplateProcessingException;
 import io.gravitee.rest.api.service.notification.ActionHook;
 import io.gravitee.rest.api.service.notification.AlertHook;
 import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.notification.ApiProductHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notification.HookScope;
@@ -134,6 +135,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
         List<Hook> allHooks = new ArrayList<>();
         Collections.addAll(allHooks, PortalHook.values());
         Collections.addAll(allHooks, ApiHook.values());
+        Collections.addAll(allHooks, ApiProductHook.values());
         Collections.addAll(allHooks, ApplicationHook.values());
         Collections.addAll(allHooks, ActionHook.values());
         Collections.addAll(allHooks, AlertHook.values());

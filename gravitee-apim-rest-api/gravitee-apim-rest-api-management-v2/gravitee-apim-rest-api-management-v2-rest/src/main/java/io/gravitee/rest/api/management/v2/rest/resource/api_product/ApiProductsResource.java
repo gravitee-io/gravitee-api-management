@@ -26,6 +26,7 @@ import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiProductMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiProductSearchQuery;
+import io.gravitee.rest.api.management.v2.rest.model.Hook;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiProduct;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiProductResponse;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
@@ -37,6 +38,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.notification.ApiProductHook;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -50,6 +52,7 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -216,5 +219,26 @@ public class ApiProductsResource extends AbstractResource {
                 )
             )
             .build();
+    }
+
+    @GET
+    @Path("hooks")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_PRODUCT, acls = { RolePermissionAction.READ }) })
+    public List<Hook> getApiProductHooks() {
+        return Arrays.stream(ApiProductHook.values())
+            .filter(hook -> !hook.isHidden())
+            .map(ApiProductsResource::toHook)
+            .toList();
+    }
+
+    private static Hook toHook(ApiProductHook hook) {
+        var dto = new Hook();
+        dto.setId(hook.name());
+        dto.setLabel(hook.getLabel());
+        dto.setDescription(hook.getDescription());
+        dto.setCategory(hook.getCategory());
+        dto.setScope(hook.getScope().name());
+        return dto;
     }
 }

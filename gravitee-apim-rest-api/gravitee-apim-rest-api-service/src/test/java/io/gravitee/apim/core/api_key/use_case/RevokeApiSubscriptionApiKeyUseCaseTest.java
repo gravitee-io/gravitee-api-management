@@ -282,8 +282,8 @@ class RevokeApiSubscriptionApiKeyUseCaseTest {
         usecase.execute(new Input(API_KEY_ID, API_ID, SubscriptionReferenceType.API.name(), SUBSCRIPTION_ID, AUDIT_INFO));
 
         // Then
-        assertThat(triggerNotificationDomainService.getApiNotifications()).containsExactly(
-            new ApiKeyRevokedApiHookContext(SubscriptionReferenceType.API, API_ID, APPLICATION_ID, PLAN_1, apiKey.getKey())
+        assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
+            new ApiKeyRevokedApiHookContext(API_ID, APPLICATION_ID, PLAN_1, apiKey.getKey())
         );
     }
 

@@ -71,6 +71,33 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  /environments/{envId}/api-products/hooks:
+    parameters:
+      - $ref: "#/components/parameters/envIdParam"
+    get:
+      tags:
+        - API Product
+      summary: List available API Product notification hooks
+      description: |-
+        Returns the list of notification hooks available for API Products.
+        Use the hook IDs when configuring notification settings for an API Product.
+      operationId: getApiProductHooks
+      responses:
+        '200':
+          description: List of API Product notification hooks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Hook'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /environments/{envId}/api-products:
     parameters:
       - $ref: "#/components/parameters/envIdParam"
@@ -1910,6 +1937,32 @@ components:
         default: 10
 
   schemas:
+    Hook:
+      type: object
+      title: "Hook"
+      description: A notification hook available for subscription in notification settings
+      properties:
+        id:
+          type: string
+          description: Unique hook identifier (enum name)
+          example: "API_PRODUCT_UPDATED"
+        label:
+          type: string
+          description: Human-readable label for the hook
+          example: "API Product Updated"
+        description:
+          type: string
+          description: Description of when this hook fires
+          example: "Triggered when an API Product is updated."
+        category:
+          type: string
+          description: Category grouping for the hook
+          example: "LIFECYCLE"
+        scope:
+          type: string
+          description: The scope this hook belongs to
+          example: "API_PRODUCT"
+
     VerifyApiProduct:
       type: object
       title: "VerifyApiProduct"

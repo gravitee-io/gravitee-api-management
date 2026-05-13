@@ -63,10 +63,16 @@ public class ApiProductNotificationServiceImpl extends AbstractService implement
     @Override
     @Async("asyncNotificationThreadPoolTaskExecutor")
     public void triggerUpdateNotification(final ExecutionContext executionContext, final ApiProduct apiProduct) {
-        triggerNotification(executionContext, apiProduct);
+        triggerNotification(executionContext, ApiProductHook.API_PRODUCT_UPDATED, apiProduct);
     }
 
-    private void triggerNotification(final ExecutionContext executionContext, final ApiProduct apiProduct) {
+    @Override
+    @Async("asyncNotificationThreadPoolTaskExecutor")
+    public void triggerDeployNotification(final ExecutionContext executionContext, final ApiProduct apiProduct) {
+        triggerNotification(executionContext, ApiProductHook.API_PRODUCT_DEPLOYED, apiProduct);
+    }
+
+    private void triggerNotification(final ExecutionContext executionContext, final ApiProductHook hook, final ApiProduct apiProduct) {
         UserDetails auth = getAuthenticatedUser();
         if (auth != null && !auth.isSystem()) {
             UserEntity userEntity = userService.findById(executionContext, auth.getUsername());
@@ -79,7 +85,7 @@ public class ApiProductNotificationServiceImpl extends AbstractService implement
                 .build();
             notifierService.trigger(
                 executionContext,
-                ApiProductHook.API_PRODUCT_UPDATED,
+                hook,
                 apiProduct.getId(),
                 new NotificationParamsBuilder().apiProduct(model).user(userEntity).build()
             );
