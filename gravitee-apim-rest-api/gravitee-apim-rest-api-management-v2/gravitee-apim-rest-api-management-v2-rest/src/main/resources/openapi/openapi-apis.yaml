@@ -4473,6 +4473,13 @@ components:
                               type: string
                       cors:
                           $ref: "#/components/schemas/Cors"
+                      requestValidation:
+                          $ref: "#/components/schemas/RequestValidation"
+        RequestValidation:
+            type: object
+            properties:
+                rejectNullByte:
+                    type: boolean
         HttpMethod:
             type: string
             description: The method of the selector
@@ -6711,6 +6718,8 @@ components:
                     $ref: "#/components/schemas/Failover"
                 cors:
                     $ref: "#/components/schemas/Cors"
+                requestValidation:
+                    $ref: "#/components/schemas/RequestValidation"
                 logging:
                     $ref: "#/components/schemas/LoggingV2"
                 stripContextPath:
