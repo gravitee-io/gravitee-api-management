@@ -81,6 +81,7 @@ describe('API - Imports OpenAPI specification', () => {
         type: 'HTTP',
         servers: [],
         cors: undefined,
+        requestValidation: undefined,
         pathMappings: [],
         entrypoints: [
           {

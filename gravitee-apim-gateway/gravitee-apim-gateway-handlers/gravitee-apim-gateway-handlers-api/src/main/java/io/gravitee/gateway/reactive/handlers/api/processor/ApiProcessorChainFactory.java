@@ -19,6 +19,7 @@ import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.HANDLERS
 import static io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor.DEFAULT_CLIENT_IDENTIFIER_HEADER;
 
 import io.gravitee.definition.model.Cors;
+import io.gravitee.definition.model.RequestValidation;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParametersExtractor;
@@ -38,6 +39,7 @@ import io.gravitee.gateway.reactive.handlers.api.processor.shutdown.ShutdownProc
 import io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.transaction.TransactionPostProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.transaction.TransactionPostProcessorConfiguration;
+import io.gravitee.gateway.reactive.handlers.api.processor.validation.NullByteRequestProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogInitProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogRequestProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogResponseProcessor;
@@ -99,6 +101,11 @@ public class ApiProcessorChainFactory {
      */
     public ProcessorChain beforeSecurityChain(final Api api, final TracingContext tracingContext) {
         List<Processor> preProcessorList = new ArrayList<>();
+
+        RequestValidation requestValidation = api.getDefinition().getProxy().getRequestValidation();
+        if (requestValidation != null && requestValidation.isRejectNullByte()) {
+            preProcessorList.add(NullByteRequestProcessor.instance());
+        }
 
         Cors cors = api.getDefinition().getProxy().getCors();
         if (cors != null && cors.isEnabled()) {

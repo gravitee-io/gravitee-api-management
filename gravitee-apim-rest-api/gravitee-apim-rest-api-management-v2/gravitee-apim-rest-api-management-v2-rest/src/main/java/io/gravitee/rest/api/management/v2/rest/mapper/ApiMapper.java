@@ -102,6 +102,7 @@ import org.slf4j.Logger;
         ResponseTemplateMapper.class,
         ServiceMapper.class,
         CorsMapper.class,
+        RequestValidationMapper.class,
         ConfigurationSerializationMapper.class,
         CollectionFactory.class,
     }
