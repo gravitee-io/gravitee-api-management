@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.handlers.api.v4.processor;
 import static io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor.DEFAULT_CLIENT_IDENTIFIER_HEADER;
 
 import io.gravitee.definition.model.Cors;
+import io.gravitee.definition.model.RequestValidation;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -38,6 +39,7 @@ import io.gravitee.gateway.reactive.handlers.api.processor.shutdown.ShutdownProc
 import io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.transaction.TransactionPostProcessor;
 import io.gravitee.gateway.reactive.handlers.api.processor.transaction.TransactionPostProcessorConfiguration;
+import io.gravitee.gateway.reactive.handlers.api.processor.validation.NullByteRequestProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogInitProcessor;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.logging.LogRequestProcessor;
@@ -109,8 +111,12 @@ public class ApiProcessorChainFactory {
         final List<Processor> processors = new ArrayList<>();
 
         getHttpListener(api).ifPresent(httpListener -> {
-            final Cors cors = httpListener.getCors();
+            final RequestValidation requestValidation = httpListener.getRequestValidation();
+            if (requestValidation != null && requestValidation.isRejectNullByte()) {
+                processors.add(NullByteRequestProcessor.instance());
+            }
 
+            final Cors cors = httpListener.getCors();
             if (cors != null && cors.isEnabled()) {
                 processors.add(CorsPreflightRequestProcessor.instance());
             }

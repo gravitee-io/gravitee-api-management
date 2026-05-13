@@ -67,6 +67,7 @@ import io.gravitee.rest.api.management.v2.rest.model.ListenerType;
 import io.gravitee.rest.api.management.v2.rest.model.Operator;
 import io.gravitee.rest.api.management.v2.rest.model.PathV4;
 import io.gravitee.rest.api.management.v2.rest.model.Qos;
+import io.gravitee.rest.api.management.v2.rest.model.RequestValidation;
 import io.gravitee.rest.api.management.v2.rest.model.Selector;
 import io.gravitee.rest.api.management.v2.rest.model.StepV4;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiHosts;
@@ -484,20 +485,15 @@ class ApisResourceTest extends AbstractResourceTest {
         }
 
         private static CreateApiV4 aValidV4Api() {
+            HttpListener httpListener = new HttpListener().paths(List.of(new PathV4().path("/path").overrideAccess(false)));
+            httpListener.setType(ListenerType.HTTP);
+            httpListener.setEntrypoints(List.of(new Entrypoint().type("sse").qos(Qos.AUTO)));
+            httpListener.requestValidation(new RequestValidation().rejectNullByte(true));
             return (CreateApiV4) new CreateApiV4()
                 .analytics(new Analytics().enabled(true))
                 .type(ApiType.PROXY)
                 .tags(Set.of("tag1"))
-                .listeners(
-                    List.of(
-                        new Listener(
-                            (HttpListener) new HttpListener()
-                                .paths(List.of(new PathV4().path("/path").overrideAccess(false)))
-                                .type(ListenerType.HTTP)
-                                .entrypoints(List.of(new Entrypoint().type("sse").qos(Qos.AUTO)))
-                        )
-                    )
-                )
+                .listeners(List.of(new Listener(httpListener)))
                 .endpointGroups(
                     List.of(
                         new EndpointGroupV4()

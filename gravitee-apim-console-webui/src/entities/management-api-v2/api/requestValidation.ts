@@ -14,22 +14,6 @@
  * limitations under the License.
  */
 
-import { EndpointGroupV2 } from './endpointGroupV2';
-import { Failover } from './failover';
-import { LoggingV2 } from './loggingV2';
-import { VirtualHost } from './virtualHost';
-
-import { Cors } from '../cors';
-import { RequestValidation } from '../requestValidation';
-
-export interface Proxy {
-  virtualHosts?: VirtualHost[];
-  groups?: EndpointGroupV2[];
-  failover?: Failover;
-  cors?: Cors;
-  requestValidation?: RequestValidation;
-  logging?: LoggingV2;
-  stripContextPath?: boolean;
-  preserveHost?: boolean;
-  servers?: string[];
+export interface RequestValidation {
+  rejectNullByte?: boolean;
 }

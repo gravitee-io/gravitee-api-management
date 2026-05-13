@@ -54,6 +54,7 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.RequestValidation;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
@@ -251,6 +252,7 @@ public class V4ApiServiceCockpitTest {
                                 HttpListener.builder()
                                     .entrypoints(List.of(Entrypoint.builder().type("http-proxy").qos(Qos.AUTO).build()))
                                     .paths(List.of(Path.builder().path("/original/http-proxy/").build()))
+                                    .requestValidation(RequestValidation.builder().rejectNullByte(true).build())
                                     .build()
                             )
                         )
