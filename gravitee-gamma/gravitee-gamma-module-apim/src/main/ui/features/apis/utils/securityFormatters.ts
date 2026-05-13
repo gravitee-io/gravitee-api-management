@@ -17,7 +17,21 @@ import { KeyIcon, KeyRoundIcon, LockIcon, ShieldCheckIcon, ShieldIcon } from '@g
 import type { LucideIcon } from '@gravitee/graphene-core/icons';
 import type { CSSProperties } from 'react';
 
-import type { AuthType } from '../types/wizard';
+import type { AuthType } from '../types/apiCreation';
+
+export const AUTH_ICON_COLORS = {
+    blue: '#3b82f6',
+    violet: '#8b5cf6',
+    amber: '#d97706',
+    rose: '#e11d48',
+} as const;
+
+export const TEMPLATE_CARD_BG = {
+    blue: 'rgba(59,130,246,0.1)',
+    violet: 'rgba(139,92,246,0.1)',
+    amber: 'rgba(245,158,11,0.1)',
+    rose: 'rgba(244,63,94,0.1)',
+} as const;
 
 export const AUTH_LABEL: Record<AuthType, string> = {
     keyless: 'Keyless (Open)',
@@ -55,21 +69,21 @@ export const AUTH_OPTIONS: AuthOption[] = [
         label: 'JWT',
         description: 'Validate JSON Web Tokens from your identity provider.',
         Icon: ShieldCheckIcon,
-        iconStyle: { color: '#8b5cf6' },
+        iconStyle: { color: AUTH_ICON_COLORS.violet },
     },
     {
         id: 'oauth2',
         label: 'OAuth 2.0',
         description: 'Enforce OAuth 2.0 access tokens for enterprise security.',
         Icon: LockIcon,
-        iconStyle: { color: '#d97706' },
+        iconStyle: { color: AUTH_ICON_COLORS.amber },
     },
     {
         id: 'mtls',
         label: 'mTLS',
         description: 'Mutual TLS based on the client X.509 certificate.',
         Icon: ShieldIcon,
-        iconStyle: { color: '#e11d48' },
+        iconStyle: { color: AUTH_ICON_COLORS.rose },
     },
 ];
 

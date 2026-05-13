@@ -16,7 +16,8 @@
 import { KeyIcon, LockIcon, KeyRoundIcon, ShieldCheckIcon } from '@gravitee/graphene-core/icons';
 import type { CSSProperties } from 'react';
 
-import type { ProxyTemplate } from '../types/wizard';
+import type { ProxyTemplate, TemplateColor } from '../types/apiCreation';
+import { AUTH_ICON_COLORS, TEMPLATE_CARD_BG } from '../utils/securityFormatters';
 
 export const PROXY_TEMPLATES: ProxyTemplate[] = [
     {
@@ -77,26 +78,25 @@ export const PROXY_TEMPLATES: ProxyTemplate[] = [
             'For demos, workshops, and local testing only. The API is publicly reachable without subscriptions or API keys. Do not use for production or sensitive data.',
         defaults: {
             authType: 'keyless',
-            descriptionHint: 'Keyless demo API — open access for evaluation environments only. Not for production.',
         },
     },
 ];
 
-export const TEMPLATE_COLOR_STYLES: Record<string, { iconBg: CSSProperties; iconColor: CSSProperties }> = {
+export const TEMPLATE_COLOR_STYLES: Record<TemplateColor, { iconBg: CSSProperties; iconColor: CSSProperties }> = {
     blue: {
-        iconBg: { backgroundColor: 'rgba(59,130,246,0.1)' },
-        iconColor: { color: '#3b82f6' },
+        iconBg: { backgroundColor: TEMPLATE_CARD_BG.blue },
+        iconColor: { color: AUTH_ICON_COLORS.blue },
     },
     violet: {
-        iconBg: { backgroundColor: 'rgba(139,92,246,0.1)' },
-        iconColor: { color: '#8b5cf6' },
+        iconBg: { backgroundColor: TEMPLATE_CARD_BG.violet },
+        iconColor: { color: AUTH_ICON_COLORS.violet },
     },
     amber: {
-        iconBg: { backgroundColor: 'rgba(245,158,11,0.1)' },
-        iconColor: { color: '#d97706' },
+        iconBg: { backgroundColor: TEMPLATE_CARD_BG.amber },
+        iconColor: { color: AUTH_ICON_COLORS.amber },
     },
     rose: {
-        iconBg: { backgroundColor: 'rgba(244,63,94,0.1)' },
-        iconColor: { color: '#e11d48' },
+        iconBg: { backgroundColor: TEMPLATE_CARD_BG.rose },
+        iconColor: { color: AUTH_ICON_COLORS.rose },
     },
 };

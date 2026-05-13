@@ -16,17 +16,24 @@
 import { createContext, useContext, useReducer } from 'react';
 import type { ReactNode } from 'react';
 
-import type { AuthType, ProxyTemplate, VirtualHostEntry, WizardFormState, WizardMode, WizardState } from '../types/wizard';
+import type {
+    ApiCreationMode,
+    ApiCreationState,
+    ApiProxyDraft,
+    ProxyTemplate,
+    ValidationErrors,
+    VirtualHostEntry,
+} from '../types/apiCreation';
 
 // ─── Initial state ────────────────────────────────────────────────────────────
 
-const INITIAL_FORM: WizardFormState = {
+const INITIAL_FORM: ApiProxyDraft = {
     apiName: '',
     apiVersion: '1.0.0',
     apiDescription: '',
     contextPath: '',
     virtualHostsEnabled: false,
-    virtualHosts: [{ host: '', path: '/', overrideAccess: false }],
+    virtualHosts: [{ id: crypto.randomUUID(), host: '', path: '/', overrideAccess: false }],
     targetUrl: '',
     authType: 'keyless',
     apiKeyPlanName: 'Default API Key plan',
@@ -40,33 +47,39 @@ const INITIAL_FORM: WizardFormState = {
     deployImmediately: true,
 };
 
-const INITIAL_STATE: WizardState = {
-    wizardMode: 'picker',
+const INITIAL_STATE: ApiCreationState = {
+    creationMode: 'picker',
     templatesOpen: false,
     selectedTemplate: null,
     step: 0,
     form: INITIAL_FORM,
+    validationErrors: {},
+    isPathVerifying: false,
 };
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
 
-type WizardAction =
-    | { type: 'SET_MODE'; mode: WizardMode }
+type ApiCreationAction =
+    | { type: 'SET_MODE'; mode: ApiCreationMode }
     | { type: 'SET_STEP'; step: number }
     | { type: 'SET_TEMPLATES_OPEN'; open: boolean }
     | { type: 'SELECT_TEMPLATE'; template: ProxyTemplate }
     | { type: 'SELECT_SCRATCH' }
-    | { type: 'UPDATE_FORM'; patch: Partial<WizardFormState> }
+    | { type: 'UPDATE_FORM'; patch: Partial<ApiProxyDraft> }
     | { type: 'ADD_VIRTUAL_HOST' }
     | { type: 'REMOVE_VIRTUAL_HOST'; index: number }
-    | { type: 'UPDATE_VIRTUAL_HOST'; index: number; patch: Partial<VirtualHostEntry> };
+    | { type: 'UPDATE_VIRTUAL_HOST'; index: number; patch: Omit<Partial<VirtualHostEntry>, 'id'> }
+    | { type: 'SET_VALIDATION_ERRORS'; errors: ValidationErrors }
+    | { type: 'CLEAR_VALIDATION_ERRORS' }
+    | { type: 'SET_PATH_VERIFYING'; value: boolean }
+    | { type: 'SET_FIELD_ERROR'; field: string; message: string };
 
 // ─── Reducer ──────────────────────────────────────────────────────────────────
 
-function wizardReducer(state: WizardState, action: WizardAction): WizardState {
+function apiCreationReducer(state: ApiCreationState, action: ApiCreationAction): ApiCreationState {
     switch (action.type) {
         case 'SET_MODE':
-            return { ...state, wizardMode: action.mode, step: 0 };
+            return { ...state, creationMode: action.mode, step: 0 };
 
         case 'SET_STEP':
             return { ...state, step: action.step };
@@ -78,12 +91,12 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
             const d = action.template.defaults;
             return {
                 ...state,
-                wizardMode: 'template',
+                creationMode: 'template',
                 selectedTemplate: action.template,
                 step: 0,
                 form: {
                     ...state.form,
-                    authType: d.authType as AuthType,
+                    authType: d.authType,
                     ...(d.apiKeyPlanName !== undefined && { apiKeyPlanName: d.apiKeyPlanName }),
                     ...(d.jwtPlanName !== undefined && { jwtPlanName: d.jwtPlanName }),
                     ...(d.jwtSignature !== undefined && { jwtSignature: d.jwtSignature }),
@@ -92,24 +105,36 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
                     ...(d.oauth2PlanName !== undefined && { oauth2PlanName: d.oauth2PlanName }),
                     ...(d.oauth2Resource !== undefined && { oauth2Resource: d.oauth2Resource }),
                     ...(d.mtlsPlanName !== undefined && { mtlsPlanName: d.mtlsPlanName }),
-                    ...(d.descriptionHint !== undefined && { apiDescription: d.descriptionHint }),
                     virtualHostsEnabled: false,
                 },
             };
         }
 
         case 'SELECT_SCRATCH':
-            return { ...state, wizardMode: 'scratch', selectedTemplate: null, step: 0 };
+            return { ...state, creationMode: 'scratch', selectedTemplate: null, step: 0 };
 
-        case 'UPDATE_FORM':
-            return { ...state, form: { ...state.form, ...action.patch } };
+        case 'UPDATE_FORM': {
+            const remaining = { ...state.validationErrors };
+            Object.keys(action.patch).forEach(k => delete remaining[k]);
+            if ('virtualHostsEnabled' in action.patch) {
+                delete remaining['virtualHosts'];
+                delete remaining['contextPath'];
+            }
+            if ('authType' in action.patch) {
+                delete remaining['apiKeyPlanName'];
+                delete remaining['jwtPlanName'];
+                delete remaining['oauth2PlanName'];
+                delete remaining['mtlsPlanName'];
+            }
+            return { ...state, form: { ...state.form, ...action.patch }, validationErrors: remaining };
+        }
 
         case 'ADD_VIRTUAL_HOST':
             return {
                 ...state,
                 form: {
                     ...state.form,
-                    virtualHosts: [...state.form.virtualHosts, { host: '', path: '/', overrideAccess: false }],
+                    virtualHosts: [...state.form.virtualHosts, { id: crypto.randomUUID(), host: '', path: '/', overrideAccess: false }],
                 },
             };
 
@@ -134,6 +159,18 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
                 },
             };
 
+        case 'SET_VALIDATION_ERRORS':
+            return { ...state, validationErrors: action.errors };
+
+        case 'CLEAR_VALIDATION_ERRORS':
+            return { ...state, validationErrors: {} };
+
+        case 'SET_PATH_VERIFYING':
+            return { ...state, isPathVerifying: action.value };
+
+        case 'SET_FIELD_ERROR':
+            return { ...state, validationErrors: { ...state.validationErrors, [action.field]: action.message } };
+
         default:
             return state;
     }
@@ -141,32 +178,34 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
 
 // ─── Context ──────────────────────────────────────────────────────────────────
 
-interface WizardContextValue {
-    state: WizardState;
-    dispatch: React.Dispatch<WizardAction>;
+interface ApiCreationContextValue {
+    state: ApiCreationState;
+    dispatch: React.Dispatch<ApiCreationAction>;
 }
 
-const WizardContext = createContext<WizardContextValue | null>(null);
+const ApiCreationContext = createContext<ApiCreationContextValue | null>(null);
 
-export function WizardProvider({ children }: { children: ReactNode }) {
-    const [state, dispatch] = useReducer(wizardReducer, INITIAL_STATE);
-    return <WizardContext.Provider value={{ state, dispatch }}>{children}</WizardContext.Provider>;
+interface ApiCreationProviderProps {
+    children: ReactNode;
+    initialTemplate?: ProxyTemplate;
+    initialMode?: ApiCreationMode;
 }
 
-export function useWizard(): WizardContextValue {
-    const ctx = useContext(WizardContext);
-    if (!ctx) throw new Error('useWizard must be used inside WizardProvider');
+export function ApiCreationProvider({ children, initialTemplate, initialMode }: ApiCreationProviderProps) {
+    const [state, dispatch] = useReducer(
+        apiCreationReducer,
+        { initialTemplate, initialMode },
+        ({ initialTemplate: tmpl, initialMode: mode }) => {
+            if (tmpl) return apiCreationReducer(INITIAL_STATE, { type: 'SELECT_TEMPLATE', template: tmpl });
+            if (mode) return { ...INITIAL_STATE, creationMode: mode };
+            return INITIAL_STATE;
+        },
+    );
+    return <ApiCreationContext.Provider value={{ state, dispatch }}>{children}</ApiCreationContext.Provider>;
+}
+
+export function useApiCreation(): ApiCreationContextValue {
+    const ctx = useContext(ApiCreationContext);
+    if (!ctx) throw new Error('useApiCreation must be used inside ApiCreationProvider');
     return ctx;
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-export function slugify(name: string): string {
-    return name
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '');
 }

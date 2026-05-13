@@ -15,8 +15,11 @@
  */
 import { useModuleRouting } from '@gravitee/gamma-modules-sdk/routing';
 import { buildLinearBreadcrumbs, SidebarNavigation, useLayoutConfig } from '@gravitee/graphene-core';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { Outlet, Route, Routes, useNavigate } from 'react-router-dom';
+
+const queryClient = new QueryClient();
 
 import { NAV_GROUPS } from '../config/navigation';
 import { APIM_ROUTE_CONFIG } from '../config/routes';
@@ -26,7 +29,9 @@ import { ApisPage } from '../pages/ApisPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
 import { CreateApiProxyPage } from '../pages/CreateApiProxyPage';
 import { DashboardPage } from '../pages/DashboardPage';
+import { ScratchWizardPage } from '../pages/ScratchWizardPage';
 import { SettingsPage } from '../pages/SettingsPage';
+import { TemplateWizardPage } from '../pages/TemplateWizardPage';
 
 function ModuleLayout() {
     const navigate = useNavigate();
@@ -51,19 +56,25 @@ function ModuleLayout() {
 /** Route tree for this module: mounted under the host router when federated, or under the local dev root for standalone. */
 export function AppRoutes() {
     return (
-        <Routes>
-            <Route element={<ModuleLayout />}>
-                <Route index element={<DashboardPage />} />
-                <Route path="dashboard" element={<DashboardPage />} />
-                <Route path="apis">
-                    <Route index element={<ApisPage />} />
-                    <Route path="new" element={<CreateApiProxyPage />} />
+        <QueryClientProvider client={queryClient}>
+            <Routes>
+                <Route element={<ModuleLayout />}>
+                    <Route index element={<DashboardPage />} />
+                    <Route path="dashboard" element={<DashboardPage />} />
+                    <Route path="apis">
+                        <Route index element={<ApisPage />} />
+                        <Route path="new">
+                            <Route index element={<CreateApiProxyPage />} />
+                            <Route path="scratch" element={<ScratchWizardPage />} />
+                            <Route path="template/:id" element={<TemplateWizardPage />} />
+                        </Route>
+                    </Route>
+                    <Route path="api-products" element={<ApiProductsPage />} />
+                    <Route path="applications" element={<ApplicationsPage />} />
+                    <Route path="analytics" element={<AnalyticsPage />} />
+                    <Route path="settings" element={<SettingsPage />} />
                 </Route>
-                <Route path="api-products" element={<ApiProductsPage />} />
-                <Route path="applications" element={<ApplicationsPage />} />
-                <Route path="analytics" element={<AnalyticsPage />} />
-                <Route path="settings" element={<SettingsPage />} />
-            </Route>
-        </Routes>
+            </Routes>
+        </QueryClientProvider>
     );
 }

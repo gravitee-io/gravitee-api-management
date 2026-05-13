@@ -16,8 +16,8 @@
 import { cn, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@gravitee/graphene-core';
 import { SparklesIcon, CircleCheckIcon } from '@gravitee/graphene-core/icons';
 
-import { useWizard } from '../../store/wizardStore';
-import type { AuthType, WizardFormState } from '../../types/wizard';
+import { useApiCreation } from '../../store/apiCreationStore';
+import type { ApiProxyDraft } from '../../types/apiCreation';
 import { AUTH_OPTIONS, JWKS_RESOLVERS, JWT_SIGNATURES, OAUTH2_RESOURCES } from '../../utils/securityFormatters';
 
 interface SecurityPlanFieldsProps {
@@ -25,10 +25,11 @@ interface SecurityPlanFieldsProps {
 }
 
 export function SecurityPlanFields({ showAuthSelector = true }: SecurityPlanFieldsProps) {
-    const { state, dispatch } = useWizard();
+    const { state, dispatch } = useApiCreation();
     const { authType } = state.form;
+    const errors = state.validationErrors;
 
-    function update(patch: Partial<WizardFormState>) {
+    function update(patch: Partial<ApiProxyDraft>) {
         dispatch({ type: 'UPDATE_FORM', patch });
     }
 
@@ -43,7 +44,7 @@ export function SecurityPlanFields({ showAuthSelector = true }: SecurityPlanFiel
                             <button
                                 key={opt.id}
                                 type="button"
-                                onClick={() => update({ authType: opt.id as AuthType })}
+                                onClick={() => update({ authType: opt.id })}
                                 className={cn(
                                     'flex items-start gap-3 rounded-xl border-2 p-4 text-left transition-all',
                                     selected ? 'border-primary bg-primary/5' : 'border-border hover:border-foreground/20',
@@ -52,7 +53,7 @@ export function SecurityPlanFields({ showAuthSelector = true }: SecurityPlanFiel
                                 <div
                                     className={cn(
                                         'size-10 rounded-lg flex items-center justify-center shrink-0',
-                                        selected ? 'bg-primary/15' : 'bg-muted',
+                                        selected ? 'bg-primary/10' : 'bg-muted',
                                     )}
                                 >
                                     <Icon className="size-5" style={selected ? undefined : opt.iconStyle} aria-hidden />
@@ -83,25 +84,30 @@ export function SecurityPlanFields({ showAuthSelector = true }: SecurityPlanFiel
             )}
 
             {authType === 'api-key' && (
-                <div className="rounded-lg border bg-muted/20 p-4 space-y-4">
+                <div className="rounded-lg border bg-muted/30 p-4 space-y-4">
                     <p className="text-sm font-medium">API Key Plan</p>
                     <div className="space-y-2">
                         <Label htmlFor="apikey-plan-name">
-                            API Key Name <span className="text-destructive">*</span>
+                            API Key Plan Name <span className="text-destructive">*</span>
                         </Label>
                         <Input
                             id="apikey-plan-name"
                             placeholder="e.g. Default API Key plan"
                             value={state.form.apiKeyPlanName}
                             onChange={e => update({ apiKeyPlanName: e.target.value })}
+                            aria-invalid={Boolean(errors['apiKeyPlanName'])}
                         />
-                        <p className="text-xs text-muted-foreground">Name shown to consumers when they subscribe to the plan.</p>
+                        {errors['apiKeyPlanName'] ? (
+                            <p className="text-xs text-destructive">{errors['apiKeyPlanName']}</p>
+                        ) : (
+                            <p className="text-xs text-muted-foreground">Name shown to consumers when they subscribe to the plan.</p>
+                        )}
                     </div>
                 </div>
             )}
 
             {authType === 'jwt' && (
-                <div className="rounded-lg border bg-muted/20 p-4 space-y-4">
+                <div className="rounded-lg border bg-muted/30 p-4 space-y-4">
                     <p className="text-sm font-medium">JWT Plan</p>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
@@ -113,14 +119,16 @@ export function SecurityPlanFields({ showAuthSelector = true }: SecurityPlanFiel
                                 placeholder="e.g. Default JWT plan"
                                 value={state.form.jwtPlanName}
                                 onChange={e => update({ jwtPlanName: e.target.value })}
+                                aria-invalid={Boolean(errors['jwtPlanName'])}
                             />
+                            {errors['jwtPlanName'] && <p className="text-xs text-destructive">{errors['jwtPlanName']}</p>}
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="jwt-signature">
                                 Signature <span className="text-destructive">*</span>
                             </Label>
                             <Select value={state.form.jwtSignature} onValueChange={v => update({ jwtSignature: v })}>
-                                <SelectTrigger id="jwt-signature">
+                                <SelectTrigger id="jwt-signature" className="w-full">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -137,7 +145,7 @@ export function SecurityPlanFields({ showAuthSelector = true }: SecurityPlanFiel
                                 JWKS Resolver <span className="text-destructive">*</span>
                             </Label>
                             <Select value={state.form.jwtJwksResolver} onValueChange={v => update({ jwtJwksResolver: v })}>
-                                <SelectTrigger id="jwt-jwks-resolver">
+                                <SelectTrigger id="jwt-jwks-resolver" className="w-full">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -170,7 +178,7 @@ export function SecurityPlanFields({ showAuthSelector = true }: SecurityPlanFiel
             )}
 
             {authType === 'oauth2' && (
-                <div className="rounded-lg border bg-muted/20 p-4 space-y-4">
+                <div className="rounded-lg border bg-muted/30 p-4 space-y-4">
                     <p className="text-sm font-medium">OAuth 2.0 Plan</p>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
@@ -182,14 +190,16 @@ export function SecurityPlanFields({ showAuthSelector = true }: SecurityPlanFiel
                                 placeholder="e.g. Default OAuth2 plan"
                                 value={state.form.oauth2PlanName}
                                 onChange={e => update({ oauth2PlanName: e.target.value })}
+                                aria-invalid={Boolean(errors['oauth2PlanName'])}
                             />
+                            {errors['oauth2PlanName'] && <p className="text-xs text-destructive">{errors['oauth2PlanName']}</p>}
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="oauth2-resource">
                                 OAuth2 Resource <span className="text-destructive">*</span>
                             </Label>
                             <Select value={state.form.oauth2Resource} onValueChange={v => update({ oauth2Resource: v })}>
-                                <SelectTrigger id="oauth2-resource">
+                                <SelectTrigger id="oauth2-resource" className="w-full">
                                     <SelectValue placeholder="Select an OAuth2 resource" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -207,21 +217,26 @@ export function SecurityPlanFields({ showAuthSelector = true }: SecurityPlanFiel
             )}
 
             {authType === 'mtls' && (
-                <div className="rounded-lg border bg-muted/20 p-4 space-y-4">
+                <div className="rounded-lg border bg-muted/30 p-4 space-y-4">
                     <p className="text-sm font-medium">Mutual TLS Plan</p>
                     <div className="space-y-2">
                         <Label htmlFor="mtls-plan-name">
-                            MTLS Plan Name <span className="text-destructive">*</span>
+                            mTLS Plan Name <span className="text-destructive">*</span>
                         </Label>
                         <Input
                             id="mtls-plan-name"
                             placeholder="e.g. Default mTLS plan"
                             value={state.form.mtlsPlanName}
                             onChange={e => update({ mtlsPlanName: e.target.value })}
+                            aria-invalid={Boolean(errors['mtlsPlanName'])}
                         />
-                        <p className="text-xs text-muted-foreground">
-                            Consumers are identified by the X.509 certificate presented during the TLS handshake.
-                        </p>
+                        {errors['mtlsPlanName'] ? (
+                            <p className="text-xs text-destructive">{errors['mtlsPlanName']}</p>
+                        ) : (
+                            <p className="text-xs text-muted-foreground">
+                                Consumers are identified by the X.509 certificate presented during the TLS handshake.
+                            </p>
+                        )}
                     </div>
                 </div>
             )}
