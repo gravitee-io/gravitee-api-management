@@ -83,6 +83,7 @@ public class UpdateApiDomainServiceImpl implements UpdateApiDomainService {
         var sanitizedDefinition = originalDefinition
             .toBuilder()
             .tags(coalesce(sanitized.getTags(), originalDefinition.getTags()))
+            .endpointGroups(coalesce(sanitized.getEndpointGroups(), originalDefinition.getEndpointGroups()))
             .flows(coalesce(sanitized.getFlows(), originalDefinition.getFlows()))
             .analytics(coalesce(sanitized.getAnalytics(), originalDefinition.getAnalytics()))
             .failover(coalesce(sanitized.getFailover(), originalDefinition.getFailover()))

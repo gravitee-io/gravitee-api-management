@@ -49,6 +49,11 @@ import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.sampling.SamplingType;
+import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancer;
+import io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerType;
+import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
@@ -62,6 +67,7 @@ import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
+import io.gravitee.definition.model.v4.service.Service;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -306,6 +312,11 @@ class PatchApiUseCaseTest {
         return Map.of("name", name, "type", type, "configuration", Map.of(), "enabled", true);
     }
 
+    static Api apiWithEndpointGroups(List<EndpointGroup> groups) {
+        var base = ApiFixtures.aProxyApiV4();
+        return base.toBuilder().apiDefinitionValue(httpV4Def(base).toBuilder().endpointGroups(groups).build()).build();
+    }
+
     private static io.gravitee.definition.model.v4.Api httpV4Def(Api api) {
         return (io.gravitee.definition.model.v4.Api) api.getApiDefinitionValue();
     }
@@ -349,6 +360,7 @@ class PatchApiUseCaseTest {
         assertThat(httpV4.getProperties()).isEqualTo(originalHttpV4.getProperties());
         assertThat(httpV4.getResponseTemplates()).isEqualTo(originalHttpV4.getResponseTemplates());
         assertThat(httpV4.getFlows()).isEqualTo(originalHttpV4.getFlows());
+        assertThat(httpV4.getEndpointGroups()).isEqualTo(originalHttpV4.getEndpointGroups());
     }
 
     @Nested
@@ -500,14 +512,6 @@ class PatchApiUseCaseTest {
                 .isInstanceOf(ApiPatchNotAllowedException.class)
                 .hasMessageContaining("state")
                 .hasMessageContaining("_start");
-        }
-
-        @ParameterizedTest
-        @EnumSource(PatchApiUseCase.PatchType.class)
-        void endpointGroups_field_is_rejected(PatchApiUseCase.PatchType type) {
-            assertThatThrownBy(() -> execute(type, setField(type, "endpointGroups", List.of()), false))
-                .isInstanceOf(ApiPatchNotAllowedException.class)
-                .hasMessageContaining("endpointGroups");
         }
 
         @ParameterizedTest
@@ -833,37 +837,37 @@ class PatchApiUseCaseTest {
 
         @Test
         void move_op_with_disallowed_from_field_is_rejected() {
-            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, movePatch("/endpointGroups/0", "/name"), false))
+            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, movePatch("/state", "/name"), false))
                 .isInstanceOf(ApiPatchNotAllowedException.class)
-                .hasMessageContaining("endpointGroups");
+                .hasMessageContaining("state");
         }
 
         @Test
         void copy_op_with_disallowed_from_field_is_rejected() {
-            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, copyPatch("/endpointGroups/0", "/name"), false))
+            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, copyPatch("/state", "/name"), false))
                 .isInstanceOf(ApiPatchNotAllowedException.class)
-                .hasMessageContaining("endpointGroups");
+                .hasMessageContaining("state");
         }
 
         @Test
         void move_op_with_disallowed_destination_path_is_rejected() {
-            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, movePatch("/name", "/endpointGroups/0"), false))
+            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, movePatch("/name", "/state"), false))
                 .isInstanceOf(ApiPatchNotAllowedException.class)
-                .hasMessageContaining("endpointGroups");
+                .hasMessageContaining("state");
         }
 
         @Test
         void copy_op_with_disallowed_destination_path_is_rejected() {
-            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, copyPatch("/name", "/endpointGroups"), false))
+            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, copyPatch("/name", "/state"), false))
                 .isInstanceOf(ApiPatchNotAllowedException.class)
-                .hasMessageContaining("endpointGroups");
+                .hasMessageContaining("state");
         }
 
         @Test
         void disallowed_field_via_path_segment_is_rejected() {
-            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("replace", "/endpointGroups/0/name", "x"), false))
+            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("replace", "/state/running", "x"), false))
                 .isInstanceOf(ApiPatchNotAllowedException.class)
-                .hasMessageContaining("endpointGroups");
+                .hasMessageContaining("state");
         }
 
         @Test
@@ -925,16 +929,9 @@ class PatchApiUseCaseTest {
 
         @Test
         void add_op_on_blocked_path_is_rejected() {
-            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("add", "/endpointGroups/0", Map.of()), false))
+            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("add", "/state", "STARTED"), false))
                 .isInstanceOf(ApiPatchNotAllowedException.class)
-                .hasMessageContaining("endpointGroups");
-        }
-
-        @Test
-        void remove_op_on_endpointGroups_is_rejected() {
-            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("remove", "/endpointGroups"), false))
-                .isInstanceOf(ApiPatchNotAllowedException.class)
-                .hasMessageContaining("endpointGroups");
+                .hasMessageContaining("state");
         }
 
         @Test
@@ -1095,6 +1092,77 @@ class PatchApiUseCaseTest {
         @ParameterizedTest
         @MethodSource("deepPathUnderResourceConfigurationCases")
         void deep_path_under_resource_configuration_is_rejected(String patchJson, String expectedPath) {
+            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, patchJson, false))
+                .isInstanceOf(ApiPatchNotAllowedException.class)
+                .hasMessageContaining(expectedPath);
+        }
+
+        static Stream<Arguments> deepPathUnderEndpointGroupsConfigurationCases() {
+            return Stream.of(
+                Arguments.of(
+                    patch("replace", "/endpointGroups/0/endpoints/0/configuration/someField", "value"),
+                    "/endpointGroups/0/endpoints/0/configuration/someField"
+                ),
+                Arguments.of(
+                    patch("replace", "/endpointGroups/0/endpoints/0/configuration/a/b", "value"),
+                    "/endpointGroups/0/endpoints/0/configuration/a/b"
+                ),
+                Arguments.of(
+                    patch("remove", "/endpointGroups/0/endpoints/0/configuration/someField"),
+                    "/endpointGroups/0/endpoints/0/configuration/someField"
+                ),
+                Arguments.of(
+                    movePatch("/endpointGroups/0/endpoints/0/configuration/key", "/name"),
+                    "/endpointGroups/0/endpoints/0/configuration/key"
+                ),
+                Arguments.of(
+                    copyPatch("/endpointGroups/0/endpoints/0/configuration/key", "/name"),
+                    "/endpointGroups/0/endpoints/0/configuration/key"
+                ),
+                Arguments.of(
+                    patch("add", "/endpointGroups/-/endpoints/-/configuration/someKey", "value"),
+                    "/endpointGroups/-/endpoints/-/configuration/someKey"
+                ),
+                Arguments.of(
+                    patch("replace", "/endpointGroups/0/endpoints/0/sharedConfigurationOverride/someField", "value"),
+                    "/endpointGroups/0/endpoints/0/sharedConfigurationOverride/someField"
+                ),
+                Arguments.of(
+                    patch("remove", "/endpointGroups/0/endpoints/0/sharedConfigurationOverride/someField"),
+                    "/endpointGroups/0/endpoints/0/sharedConfigurationOverride/someField"
+                ),
+                Arguments.of(
+                    movePatch("/endpointGroups/0/endpoints/0/sharedConfigurationOverride/key", "/name"),
+                    "/endpointGroups/0/endpoints/0/sharedConfigurationOverride/key"
+                ),
+                Arguments.of(
+                    copyPatch("/endpointGroups/0/endpoints/0/sharedConfigurationOverride/key", "/name"),
+                    "/endpointGroups/0/endpoints/0/sharedConfigurationOverride/key"
+                ),
+                Arguments.of(
+                    patch("replace", "/endpointGroups/0/sharedConfiguration/someField", "value"),
+                    "/endpointGroups/0/sharedConfiguration/someField"
+                ),
+                Arguments.of(
+                    patch("remove", "/endpointGroups/0/sharedConfiguration/someField"),
+                    "/endpointGroups/0/sharedConfiguration/someField"
+                ),
+                Arguments.of(movePatch("/endpointGroups/0/sharedConfiguration/key", "/name"), "/endpointGroups/0/sharedConfiguration/key"),
+                Arguments.of(copyPatch("/endpointGroups/0/sharedConfiguration/key", "/name"), "/endpointGroups/0/sharedConfiguration/key"),
+                Arguments.of(
+                    patch("replace", "/endpointGroups/0/services/healthCheck/configuration/timeout", "5000"),
+                    "/endpointGroups/0/services/healthCheck/configuration/timeout"
+                ),
+                Arguments.of(
+                    patch("replace", "/endpointGroups/0/endpoints/0/services/healthCheck/configuration/timeout", "5000"),
+                    "/endpointGroups/0/endpoints/0/services/healthCheck/configuration/timeout"
+                )
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("deepPathUnderEndpointGroupsConfigurationCases")
+        void deep_path_under_endpoint_groups_configuration_is_rejected(String patchJson, String expectedPath) {
             assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, patchJson, false))
                 .isInstanceOf(ApiPatchNotAllowedException.class)
                 .hasMessageContaining(expectedPath);
@@ -1343,11 +1411,11 @@ class PatchApiUseCaseTest {
         void blocked_field_combined_with_allowed_flows_patch_is_still_rejected() {
             var body = OBJECT_MAPPER.createObjectNode();
             body.set("flows", OBJECT_MAPPER.valueToTree(List.of(flowMap("f", List.of()))));
-            body.set("endpointGroups", OBJECT_MAPPER.valueToTree(List.of()));
+            body.set("state", OBJECT_MAPPER.valueToTree("STARTED"));
 
             assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.MERGE_PATCH, body.toString(), false))
                 .isInstanceOf(ApiPatchNotAllowedException.class)
-                .hasMessageContaining("endpointGroups");
+                .hasMessageContaining("state");
         }
 
         @Test
@@ -2244,6 +2312,573 @@ class PatchApiUseCaseTest {
 
             var stored = apiCrudService.storage().getFirst();
             assertThat(((HttpListener) httpV4Def(stored).getListeners().getFirst()).getPaths().getFirst().getPath()).isEqualTo("/original");
+        }
+    }
+
+    @Nested
+    class EndpointGroupsResolution {
+
+        static EndpointGroup aGroup(String name) {
+            return EndpointGroup.builder()
+                .name(name)
+                .type("http-proxy")
+                .sharedConfiguration("{}")
+                .endpoints(
+                    List.of(
+                        Endpoint.builder()
+                            .name("default-endpoint")
+                            .type("http-proxy")
+                            .weight(1)
+                            .inheritConfiguration(true)
+                            .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
+                            .build()
+                    )
+                )
+                .build();
+        }
+
+        static Map<String, Object> groupMap(String name) {
+            return Map.of(
+                "name",
+                name,
+                "type",
+                "http-proxy",
+                "sharedConfiguration",
+                "{}",
+                "endpoints",
+                List.of(
+                    Map.of(
+                        "name",
+                        "default-endpoint",
+                        "type",
+                        "http-proxy",
+                        "weight",
+                        1,
+                        "inheritConfiguration",
+                        true,
+                        "configuration",
+                        "{\"target\":\"https://api.gravitee.io/echo\"}"
+                    )
+                )
+            );
+        }
+
+        @Test
+        void merge_patch_appending_endpoint_group_grows_list_by_one() {
+            var existing = aGroup("group-a");
+            givenExistingApi(apiWithEndpointGroups(List.of(existing)));
+
+            var newGroups = List.of(groupMap("group-a"), groupMap("group-b"));
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("endpointGroups", newGroups), false);
+
+            assertThat(httpV4Def(output.api()).getEndpointGroups()).hasSize(2);
+            assertThat(httpV4Def(output.api()).getEndpointGroups().get(1).getName()).isEqualTo("group-b");
+        }
+
+        @Test
+        void json_patch_add_at_minus_one_appends_endpoint_group() {
+            givenExistingApi(apiWithEndpointGroups(List.of(aGroup("group-a"))));
+
+            var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("add", "/endpointGroups/-", groupMap("group-b")), false);
+
+            assertThat(httpV4Def(output.api()).getEndpointGroups()).hasSize(2);
+            assertThat(httpV4Def(output.api()).getEndpointGroups().get(1).getName()).isEqualTo("group-b");
+        }
+
+        @Test
+        void merge_patch_with_one_group_removed_persists_shorter_list() {
+            givenExistingApi(apiWithEndpointGroups(List.of(aGroup("group-a"), aGroup("group-b"))));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("endpointGroups", List.of(groupMap("group-a"))), false);
+
+            assertThat(httpV4Def(output.api()).getEndpointGroups()).hasSize(1);
+            assertThat(httpV4Def(output.api()).getEndpointGroups().getFirst().getName()).isEqualTo("group-a");
+        }
+
+        @Test
+        void json_patch_remove_endpoint_group_at_index_persists_shorter_list() {
+            givenExistingApi(apiWithEndpointGroups(List.of(aGroup("group-a"), aGroup("group-b"))));
+
+            var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("remove", "/endpointGroups/1"), false);
+
+            assertThat(httpV4Def(output.api()).getEndpointGroups()).hasSize(1);
+            assertThat(httpV4Def(output.api()).getEndpointGroups().getFirst().getName()).isEqualTo("group-a");
+        }
+
+        static Stream<Arguments> reorderEndpointGroupsVariants() {
+            var reordered = List.of(groupMap("group-b"), groupMap("group-a"));
+            return Stream.of(
+                Arguments.of(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("endpointGroups", reordered)),
+                Arguments.of(PatchApiUseCase.PatchType.JSON_PATCH, patch("replace", "/endpointGroups", reordered))
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("reorderEndpointGroupsVariants")
+        void reordering_endpoint_groups_reflects_new_order(PatchApiUseCase.PatchType type, String body) {
+            givenExistingApi(apiWithEndpointGroups(List.of(aGroup("group-a"), aGroup("group-b"))));
+
+            var output = execute(type, body, false);
+
+            assertThat(httpV4Def(output.api()).getEndpointGroups())
+                .extracting(EndpointGroup::getName)
+                .containsExactly("group-b", "group-a");
+        }
+
+        @ParameterizedTest
+        @EnumSource(PatchApiUseCase.PatchType.class)
+        void modifying_endpoint_weight_persists_only_that_field(PatchApiUseCase.PatchType type) {
+            givenExistingApi(apiWithEndpointGroups(List.of(aGroup("group-a"))));
+
+            var body = type == PatchApiUseCase.PatchType.JSON_PATCH
+                ? patch("replace", "/endpointGroups/0/endpoints/0/weight", 5)
+                : mergePatch(
+                    "endpointGroups",
+                    List.of(
+                        Map.of(
+                            "name",
+                            "group-a",
+                            "type",
+                            "http-proxy",
+                            "sharedConfiguration",
+                            "{}",
+                            "endpoints",
+                            List.of(
+                                Map.of(
+                                    "name",
+                                    "default-endpoint",
+                                    "type",
+                                    "http-proxy",
+                                    "weight",
+                                    5,
+                                    "inheritConfiguration",
+                                    true,
+                                    "configuration",
+                                    "{\"target\":\"https://api.gravitee.io/echo\"}"
+                                )
+                            )
+                        )
+                    )
+                );
+
+            var output = execute(type, body, false);
+
+            assertThat(httpV4Def(output.api()).getEndpointGroups().getFirst().getEndpoints().getFirst().getWeight()).isEqualTo(5);
+            assertThat(httpV4Def(output.api()).getEndpointGroups().getFirst().getEndpoints().getFirst().getName()).isEqualTo(
+                "default-endpoint"
+            );
+        }
+
+        @ParameterizedTest
+        @EnumSource(PatchApiUseCase.PatchType.class)
+        void modifying_endpoint_secondary_flag_persists_only_that_field(PatchApiUseCase.PatchType type) {
+            givenExistingApi(apiWithEndpointGroups(List.of(aGroup("group-a"))));
+
+            var body = type == PatchApiUseCase.PatchType.JSON_PATCH
+                ? patch("replace", "/endpointGroups/0/endpoints/0/secondary", true)
+                : mergePatch(
+                    "endpointGroups",
+                    List.of(
+                        Map.of(
+                            "name",
+                            "group-a",
+                            "type",
+                            "http-proxy",
+                            "sharedConfiguration",
+                            "{}",
+                            "endpoints",
+                            List.of(
+                                Map.of(
+                                    "name",
+                                    "default-endpoint",
+                                    "type",
+                                    "http-proxy",
+                                    "weight",
+                                    1,
+                                    "inheritConfiguration",
+                                    true,
+                                    "secondary",
+                                    true,
+                                    "configuration",
+                                    "{\"target\":\"https://api.gravitee.io/echo\"}"
+                                )
+                            )
+                        )
+                    )
+                );
+
+            var output = execute(type, body, false);
+
+            assertThat(httpV4Def(output.api()).getEndpointGroups().getFirst().getEndpoints().getFirst().isSecondary()).isTrue();
+        }
+
+        @ParameterizedTest
+        @EnumSource(PatchApiUseCase.PatchType.class)
+        void modifying_health_check_config_persists_changes(PatchApiUseCase.PatchType type) {
+            var hcService = new Service();
+            hcService.setEnabled(false);
+            var existingServices = EndpointGroupServices.builder().healthCheck(hcService).build();
+            var groupWithHc = aGroup("group-a").toBuilder().services(existingServices).build();
+            givenExistingApi(apiWithEndpointGroups(List.of(groupWithHc)));
+
+            var enabledHc = Map.of("enabled", true, "type", "http-health-check");
+            var body = type == PatchApiUseCase.PatchType.JSON_PATCH
+                ? patch("replace", "/endpointGroups/0/services/healthCheck", enabledHc)
+                : mergePatch(
+                    "endpointGroups",
+                    List.of(
+                        Map.of(
+                            "name",
+                            "group-a",
+                            "type",
+                            "http-proxy",
+                            "sharedConfiguration",
+                            "{}",
+                            "services",
+                            Map.of("healthCheck", enabledHc),
+                            "endpoints",
+                            List.of(
+                                Map.of(
+                                    "name",
+                                    "default-endpoint",
+                                    "type",
+                                    "http-proxy",
+                                    "weight",
+                                    1,
+                                    "inheritConfiguration",
+                                    true,
+                                    "configuration",
+                                    "{\"target\":\"https://api.gravitee.io/echo\"}"
+                                )
+                            )
+                        )
+                    )
+                );
+
+            var output = execute(type, body, false);
+
+            assertThat(httpV4Def(output.api()).getEndpointGroups().getFirst().getServices().getHealthCheck().isEnabled()).isTrue();
+        }
+
+        @Test
+        void merge_patch_with_empty_endpointGroups_array_propagates_empty_to_definition() {
+            givenExistingApi(apiWithEndpointGroups(List.of(aGroup("group-a"))));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("endpointGroups", List.of()), false);
+
+            assertThat(httpV4Def(output.api()).getEndpointGroups()).isEmpty();
+        }
+
+        @Test
+        void domain_service_rejection_of_empty_endpointGroups_propagates_to_caller() {
+            givenExistingApi(apiWithEndpointGroups(List.of(aGroup("group-a"))));
+            doThrow(
+                new ValidationDomainException("endpointGroups must not be empty", Map.of("location", "/endpointGroups"), "invalidValue")
+            )
+                .when(updateApiDomainService)
+                .updateV4(any(), any());
+
+            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("endpointGroups", List.of()), false))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("endpointGroups");
+        }
+
+        @ParameterizedTest
+        @EnumSource(PatchApiUseCase.PatchType.class)
+        void dry_run_with_endpointGroups_invokes_validate_not_update(PatchApiUseCase.PatchType type) {
+            stubValidateV4ReturnsArgument();
+            givenExistingApi(apiWithEndpointGroups(List.of(aGroup("group-a"))));
+
+            var output = execute(type, setField(type, "endpointGroups", List.of(groupMap("group-b"))), true);
+
+            assertThat(httpV4Def(output.api()).getEndpointGroups().getFirst().getName()).isEqualTo("group-b");
+            verify(updateApiDomainService).validateV4(any(), any());
+            verify(updateApiDomainService, never()).updateV4(any(), any());
+        }
+
+        @Test
+        void merge_patch_with_endpointGroups_null_clears_endpointGroups_on_rebuilt_definition() {
+            givenExistingApi(apiWithEndpointGroups(List.of(aGroup("group-a"))));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("endpointGroups", null), false);
+
+            assertThat(httpV4Def(output.api()).getEndpointGroups()).isNull();
+        }
+
+        @Test
+        void domain_service_rejection_of_null_endpointGroups_propagates_to_caller() {
+            givenExistingApi(apiWithEndpointGroups(List.of(aGroup("group-a"))));
+            doThrow(new ValidationDomainException("endpointGroups must not be null", Map.of("location", "/endpointGroups"), "invalidValue"))
+                .when(updateApiDomainService)
+                .updateV4(any(), any());
+
+            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("endpointGroups", null), false))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("endpointGroups");
+        }
+
+        @Test
+        void json_patch_remove_endpointGroups_clears_endpointGroups_on_rebuilt_definition() {
+            givenExistingApi(apiWithEndpointGroups(List.of(aGroup("group-a"))));
+
+            var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("remove", "/endpointGroups"), false);
+
+            assertThat(httpV4Def(output.api()).getEndpointGroups()).isNull();
+        }
+
+        @ParameterizedTest
+        @EnumSource(PatchApiUseCase.PatchType.class)
+        void modifying_endpoint_inheritConfiguration_persists_only_that_field(PatchApiUseCase.PatchType type) {
+            var group = EndpointGroup.builder()
+                .name("group-a")
+                .type("http-proxy")
+                .sharedConfiguration("{}")
+                .endpoints(
+                    List.of(
+                        Endpoint.builder()
+                            .name("default-endpoint")
+                            .type("http-proxy")
+                            .weight(1)
+                            .inheritConfiguration(false)
+                            .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
+                            .build()
+                    )
+                )
+                .build();
+            givenExistingApi(apiWithEndpointGroups(List.of(group)));
+
+            var body = type == PatchApiUseCase.PatchType.JSON_PATCH
+                ? patch("replace", "/endpointGroups/0/endpoints/0/inheritConfiguration", true)
+                : mergePatch(
+                    "endpointGroups",
+                    List.of(
+                        Map.of(
+                            "name",
+                            "group-a",
+                            "type",
+                            "http-proxy",
+                            "sharedConfiguration",
+                            "{}",
+                            "endpoints",
+                            List.of(
+                                Map.of(
+                                    "name",
+                                    "default-endpoint",
+                                    "type",
+                                    "http-proxy",
+                                    "weight",
+                                    1,
+                                    "inheritConfiguration",
+                                    true,
+                                    "configuration",
+                                    "{\"target\":\"https://api.gravitee.io/echo\"}"
+                                )
+                            )
+                        )
+                    )
+                );
+
+            var output = execute(type, body, false);
+
+            var endpoint = httpV4Def(output.api()).getEndpointGroups().getFirst().getEndpoints().getFirst();
+            assertThat(endpoint.isInheritConfiguration()).isTrue();
+            assertThat(endpoint.getName()).isEqualTo("default-endpoint");
+            assertThat(endpoint.getType()).isEqualTo("http-proxy");
+            assertThat(endpoint.getWeight()).isEqualTo(1);
+        }
+
+        @ParameterizedTest
+        @EnumSource(PatchApiUseCase.PatchType.class)
+        void modifying_group_name_persists_only_that_field(PatchApiUseCase.PatchType type) {
+            givenExistingApi(apiWithEndpointGroups(List.of(aGroup("group-a"))));
+
+            var body = type == PatchApiUseCase.PatchType.JSON_PATCH
+                ? patch("replace", "/endpointGroups/0/name", "group-renamed")
+                : mergePatch("endpointGroups", List.of(groupMap("group-renamed")));
+
+            var output = execute(type, body, false);
+
+            var groups = httpV4Def(output.api()).getEndpointGroups();
+            assertThat(groups).hasSize(1);
+            assertThat(groups.getFirst().getName()).isEqualTo("group-renamed");
+            assertThat(groups.getFirst().getType()).isEqualTo("http-proxy");
+        }
+
+        @ParameterizedTest
+        @EnumSource(PatchApiUseCase.PatchType.class)
+        void modifying_loadBalancer_type_persists_only_that_field(PatchApiUseCase.PatchType type) {
+            var loadBalancer = new LoadBalancer();
+            loadBalancer.setType(LoadBalancerType.ROUND_ROBIN);
+            var group = aGroup("group-a").toBuilder().loadBalancer(loadBalancer).build();
+            givenExistingApi(apiWithEndpointGroups(List.of(group)));
+
+            var body = type == PatchApiUseCase.PatchType.JSON_PATCH
+                ? patch("replace", "/endpointGroups/0/loadBalancer/type", "RANDOM")
+                : mergePatch(
+                    "endpointGroups",
+                    List.of(
+                        Map.of(
+                            "name",
+                            "group-a",
+                            "type",
+                            "http-proxy",
+                            "sharedConfiguration",
+                            "{}",
+                            "loadBalancer",
+                            Map.of("type", "RANDOM"),
+                            "endpoints",
+                            List.of(
+                                Map.of(
+                                    "name",
+                                    "default-endpoint",
+                                    "type",
+                                    "http-proxy",
+                                    "weight",
+                                    1,
+                                    "inheritConfiguration",
+                                    true,
+                                    "configuration",
+                                    "{\"target\":\"https://api.gravitee.io/echo\"}"
+                                )
+                            )
+                        )
+                    )
+                );
+
+            var output = execute(type, body, false);
+
+            assertThat(httpV4Def(output.api()).getEndpointGroups().getFirst().getLoadBalancer().getType()).isEqualTo(
+                LoadBalancerType.RANDOM
+            );
+        }
+
+        @ParameterizedTest
+        @EnumSource(PatchApiUseCase.PatchType.class)
+        void modifying_endpoint_configuration_blob_persists_only_that_field(PatchApiUseCase.PatchType type) {
+            var group = EndpointGroup.builder()
+                .name("group-a")
+                .type("http-proxy")
+                .sharedConfiguration("{}")
+                .endpoints(
+                    List.of(
+                        Endpoint.builder()
+                            .name("default-endpoint")
+                            .type("http-proxy")
+                            .weight(1)
+                            .inheritConfiguration(true)
+                            .configuration("{\"target\":\"https://original.io\"}")
+                            .build()
+                    )
+                )
+                .build();
+            givenExistingApi(apiWithEndpointGroups(List.of(group)));
+
+            var newConfig = Map.of("target", "https://updated.io");
+            var body = type == PatchApiUseCase.PatchType.JSON_PATCH
+                ? patch("replace", "/endpointGroups/0/endpoints/0/configuration", newConfig)
+                : mergePatch(
+                    "endpointGroups",
+                    List.of(
+                        Map.of(
+                            "name",
+                            "group-a",
+                            "type",
+                            "http-proxy",
+                            "sharedConfiguration",
+                            "{}",
+                            "endpoints",
+                            List.of(
+                                Map.of(
+                                    "name",
+                                    "default-endpoint",
+                                    "type",
+                                    "http-proxy",
+                                    "weight",
+                                    1,
+                                    "inheritConfiguration",
+                                    true,
+                                    "configuration",
+                                    newConfig
+                                )
+                            )
+                        )
+                    )
+                );
+
+            var output = execute(type, body, false);
+
+            var endpoint = httpV4Def(output.api()).getEndpointGroups().getFirst().getEndpoints().getFirst();
+            assertThat(endpoint.getConfiguration()).contains("\"target\":\"https://updated.io\"");
+            assertThat(endpoint.getName()).isEqualTo("default-endpoint");
+            assertThat(endpoint.getType()).isEqualTo("http-proxy");
+            assertThat(endpoint.getWeight()).isEqualTo(1);
+        }
+
+        @ParameterizedTest
+        @EnumSource(PatchApiUseCase.PatchType.class)
+        void patch_not_addressing_endpointGroups_leaves_existing_list_intact(PatchApiUseCase.PatchType type) {
+            var existing = List.of(aGroup("group-a"), aGroup("group-b"));
+            givenExistingApi(apiWithEndpointGroups(existing));
+
+            var output = execute(type, setField(type, "name", "renamed"), false);
+
+            assertThat(httpV4Def(output.api()).getEndpointGroups()).isEqualTo(existing);
+        }
+
+        @Test
+        void successful_endpointGroups_only_patch_delegates_to_audited_update_with_old_and_new_state() {
+            givenExistingApi(apiWithEndpointGroups(List.of(aGroup("group-a"))));
+            var preGroups = httpV4Def(apiCrudService.storage().getFirst()).getEndpointGroups();
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("endpointGroups", List.of(groupMap("group-b"))), false);
+
+            assertThat(httpV4Def(output.api()).getEndpointGroups()).extracting(EndpointGroup::getName).containsExactly("group-b");
+            var captor = ArgumentCaptor.forClass(Api.class);
+            verify(updateApiDomainService).updateV4(captor.capture(), any());
+            assertThat(httpV4Def(captor.getValue()).getEndpointGroups()).extracting(EndpointGroup::getName).containsExactly("group-b");
+            assertThat(httpV4Def(captor.getValue()).getEndpointGroups()).isNotEqualTo(preGroups);
+        }
+
+        @ParameterizedTest
+        @EnumSource(PatchApiUseCase.PatchType.class)
+        void malformed_endpointGroups_element_triggers_validation_exception_with_location_pointer(PatchApiUseCase.PatchType type) {
+            givenExistingApi(apiWithEndpointGroups(List.of(aGroup("group-a"))));
+
+            var malformedGroup = Map.of(
+                "name",
+                "group-a",
+                "type",
+                "http-proxy",
+                "sharedConfiguration",
+                "{}",
+                "endpoints",
+                List.of(
+                    Map.of(
+                        "name",
+                        "default-endpoint",
+                        "type",
+                        "http-proxy",
+                        "weight",
+                        Map.of("not", "an-int"),
+                        "inheritConfiguration",
+                        true,
+                        "configuration",
+                        "{}"
+                    )
+                )
+            );
+            var body = type == PatchApiUseCase.PatchType.JSON_PATCH
+                ? patch("replace", "/endpointGroups", List.of(malformedGroup))
+                : mergePatch("endpointGroups", List.of(malformedGroup));
+
+            assertThatThrownBy(() -> execute(type, body, false))
+                .isInstanceOf(ValidationDomainException.class)
+                .asInstanceOf(org.assertj.core.api.InstanceOfAssertFactories.type(ValidationDomainException.class))
+                .satisfies(ex -> {
+                    assertThat(ex.getTechnicalCode()).isEqualTo("invalidValue");
+                    assertThat(ex.getParameters()).containsKey("location");
+                    assertThat(ex.getParameters().get("location")).startsWith("/endpointGroups/0");
+                });
         }
     }
 }
