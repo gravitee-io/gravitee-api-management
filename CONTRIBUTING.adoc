@@ -16,7 +16,7 @@ You will need the following tools installed on your computer:
 
 * Java (JDK >= 17)
 * Maven
-* Docker
+* Docker (the daemon must be running before the default build — see build notes below)
 * Node.js 22.12.x
 * Yarn 4.1.1 (preferably with NVM)
 
@@ -37,6 +37,14 @@ The default build command is:
 ----
 mvn clean install -T 2C
 ----
+
+[IMPORTANT]
+====
+The default build runs repository tests that use https://java.testcontainers.org/[Testcontainers] to start Elasticsearch / MongoDB / etc.
+**Docker must be running** before you invoke it; otherwise those tests fail with `Could not find a valid Docker environment`.
+
+If you don't want to start Docker, skip tests with the command shown below.
+====
 
 If you want to skip license validation, prettier checks, and tests, you can use:
 [source, bash]
