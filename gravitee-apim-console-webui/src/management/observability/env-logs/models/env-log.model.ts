@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+/** Sentinel value sent by the backend in `apiProductName` when the API is not part of any API Product. */
+export const STANDALONE_API_PRODUCT_NAME = 'Standalone API';
+
 export type ApiLogRequestContent = {
   method: string;
   uri: string;

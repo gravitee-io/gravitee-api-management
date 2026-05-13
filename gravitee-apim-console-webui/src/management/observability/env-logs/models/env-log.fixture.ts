@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { EnvLog } from './env-log.model';
+import { EnvLog, STANDALONE_API_PRODUCT_NAME } from './env-log.model';
 
 const DEFAULT_REQUEST_HEADERS = {
   'sec-fetch-site': ['none'],
@@ -177,7 +177,7 @@ export const fakeEnvLogs = (): EnvLog[] => {
       timestamp: '15/06/2025 12:00:00',
       api: 'Pokémon API',
       apiId: 'api-pokemon',
-      apiProductName: 'Standalone API',
+      apiProductName: STANDALONE_API_PRODUCT_NAME,
       path: '/api/v1/event-types',
       method: 'PATCH',
       status: 200,

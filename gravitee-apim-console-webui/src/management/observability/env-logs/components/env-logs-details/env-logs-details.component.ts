@@ -28,7 +28,7 @@ import { GioBannerModule, GioClipboardModule, GioMonacoEditorModule } from '@gra
 import { forkJoin, Observable, of } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
 
-import { EnvLog } from '../../models/env-log.model';
+import { EnvLog, STANDALONE_API_PRODUCT_NAME } from '../../models/env-log.model';
 import { EnvLogsDetailsRowComponent } from '../env-logs-details-row/env-logs-details-row.component';
 import { GioHeaderComponent } from '../../../../../shared/components/gio-header/gio-header.component';
 import { EnvironmentLogsService } from '../../../../../services-ngx/environment-logs.service';
@@ -86,6 +86,10 @@ export class EnvLogsDetailsComponent {
   hasDetailData = computed(() => {
     const log = this.log();
     return !!log?.entrypointRequest || !!log?.endpointRequest || !!log?.entrypointResponse || !!log?.endpointResponse;
+  });
+  isInApiProduct = computed(() => {
+    const apiProductName = this.log()?.apiProductName;
+    return !!apiProductName && apiProductName !== STANDALONE_API_PRODUCT_NAME;
   });
 
   readonly monacoEditorOptions: editor.IStandaloneEditorConstructionOptions = {
