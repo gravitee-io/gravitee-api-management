@@ -16,9 +16,10 @@
 import type { LucideIcon } from '@gravitee/graphene-core/icons';
 
 export type AuthType = 'keyless' | 'api-key' | 'jwt' | 'oauth2' | 'mtls';
-export type WizardMode = 'picker' | 'template' | 'scratch';
+export type ApiCreationMode = 'picker' | 'template' | 'scratch';
 
 export interface VirtualHostEntry {
+    id: string;
     host: string;
     path: string;
     overrideAccess: boolean;
@@ -34,7 +35,6 @@ export interface ProxyTemplateDefaults {
     oauth2PlanName?: string;
     oauth2Resource?: string;
     mtlsPlanName?: string;
-    descriptionHint?: string;
 }
 
 export type TemplateColor = 'blue' | 'violet' | 'amber' | 'rose';
@@ -52,7 +52,7 @@ export interface ProxyTemplate {
     warningMessage?: string;
 }
 
-export interface WizardFormState {
+export interface ApiProxyDraft {
     apiName: string;
     apiVersion: string;
     apiDescription: string;
@@ -72,10 +72,14 @@ export interface WizardFormState {
     deployImmediately: boolean;
 }
 
-export interface WizardState {
-    wizardMode: WizardMode;
+export type ValidationErrors = Record<string, string>;
+
+export interface ApiCreationState {
+    creationMode: ApiCreationMode;
     templatesOpen: boolean;
     selectedTemplate: ProxyTemplate | null;
     step: number;
-    form: WizardFormState;
+    form: ApiProxyDraft;
+    validationErrors: ValidationErrors;
+    isPathVerifying: boolean;
 }

@@ -83,7 +83,7 @@ function FlowLabel({ children }: { children: React.ReactNode }) {
 
 function ApiKeyFlow() {
     return (
-        <div className="rounded-lg border bg-muted/20 p-3 space-y-2">
+        <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
             <FlowLabel>Request flow</FlowLabel>
             <div style={FLOW_GRID}>
                 <div className="flex justify-center">
@@ -110,7 +110,7 @@ function ApiKeyFlow() {
 
 function JwtFlow() {
     return (
-        <div className="rounded-lg border bg-muted/20 p-3 space-y-2">
+        <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
             <FlowLabel>Request flow</FlowLabel>
             <div style={FLOW_GRID}>
                 <div className="flex justify-center">
@@ -136,7 +136,7 @@ function JwtFlow() {
 
 function OAuthFlow() {
     return (
-        <div className="rounded-lg border bg-muted/20 p-3 space-y-2">
+        <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
             <FlowLabel>Request flow</FlowLabel>
             <div style={FLOW_GRID}>
                 <div className="flex justify-center">
@@ -162,7 +162,7 @@ function OAuthFlow() {
 
 function KeylessFlow() {
     return (
-        <div className="rounded-lg border bg-muted/20 p-3 space-y-2">
+        <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
             <FlowLabel>Request flow</FlowLabel>
             <div style={FLOW_GRID}>
                 <div className="flex justify-center">
@@ -189,7 +189,7 @@ function KeylessFlow() {
 
 // ─── Flow component map ───────────────────────────────────────────────────────
 
-const FLOW_COMPONENTS: Record<string, ReactNode> = {
+const FLOW_COMPONENTS: Partial<Record<string, ReactNode>> = {
     'rest-api-key': <ApiKeyFlow />,
     'rest-jwt': <JwtFlow />,
     'rest-oauth2': <OAuthFlow />,
@@ -201,6 +201,7 @@ const FLOW_COMPONENTS: Record<string, ReactNode> = {
 export function CreateApiProxyPage() {
     const navigate = useNavigate();
     const [templatesOpen, setTemplatesOpen] = useState(false);
+    const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
 
     return (
         <div className="space-y-6">
@@ -216,11 +217,11 @@ export function CreateApiProxyPage() {
                 <button
                     type="button"
                     onClick={() => navigate('scratch')}
-                    className="group flex flex-col gap-4 rounded-xl border-2 border-primary/30 bg-primary/5 p-6 text-left transition-all hover:border-primary/55 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                    className="group flex flex-col gap-4 rounded-xl border-2 border-primary/30 bg-primary/5 p-6 text-left transition-all hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                     style={{ minHeight: '11rem', borderRadius: '0.75rem', boxShadow: '0 1px 4px 0 rgba(0,0,0,0.07)' }}
                 >
                     <div className="flex items-start gap-4">
-                        <div className="rounded-lg bg-primary/15 p-3 shrink-0">
+                        <div className="rounded-lg bg-primary/10 p-3 shrink-0">
                             <PencilIcon className="size-6 text-primary" aria-hidden />
                         </div>
                         <div className="min-w-0 flex-1 space-y-1">
@@ -243,7 +244,7 @@ export function CreateApiProxyPage() {
                     onClick={() => setTemplatesOpen(o => !o)}
                     className={cn(
                         'group flex flex-col gap-4 rounded-xl border-2 bg-card p-6 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
-                        templatesOpen ? 'border-primary/50 bg-primary/5' : 'border-foreground/15 hover:border-primary/35 hover:bg-muted/30',
+                        templatesOpen ? 'border-primary/50 bg-primary/5' : 'border-border hover:border-primary hover:bg-muted',
                     )}
                     style={{ minHeight: '11rem', borderRadius: '0.75rem', boxShadow: '0 1px 4px 0 rgba(0,0,0,0.07)' }}
                 >
@@ -271,7 +272,7 @@ export function CreateApiProxyPage() {
             {/* Collapsible template cards */}
             <Collapsible open={templatesOpen} onOpenChange={setTemplatesOpen}>
                 <CollapsibleContent>
-                    <div className="space-y-4 rounded-xl border border-dashed bg-muted/20 p-5" style={{ borderRadius: '0.75rem' }}>
+                    <div className="space-y-4 rounded-xl border border-dashed bg-muted/30 p-5" style={{ borderRadius: '0.75rem' }}>
                         <p className="text-sm text-muted-foreground">
                             Pick a template to open essentials with the right auth pattern pre-selected.
                         </p>
@@ -284,10 +285,18 @@ export function CreateApiProxyPage() {
                                         type="button"
                                         onClick={() => navigate(`template/${tpl.id}`)}
                                         className={cn(
-                                            'flex flex-col gap-3 rounded-xl border bg-card p-5 text-left transition-all hover:border-primary/50 hover:bg-primary/5',
-                                            tpl.notRecommended ? 'border-amber-500/25 hover:border-amber-500/40' : 'border-foreground/15',
+                                            'flex flex-col gap-3 rounded-xl border bg-card p-5 text-left transition-all',
+                                            tpl.notRecommended ? undefined : 'border-border hover:border-primary',
                                         )}
-                                        style={{ borderRadius: '0.75rem', boxShadow: '0 1px 3px 0 rgba(0,0,0,0.06)' }}
+                                        style={{
+                                            borderRadius: '0.75rem',
+                                            boxShadow: '0 1px 3px 0 rgba(0,0,0,0.06)',
+                                            ...(tpl.notRecommended && {
+                                                borderColor: hoveredCardId === tpl.id ? 'rgba(245,158,11,0.4)' : 'rgba(245,158,11,0.25)',
+                                            }),
+                                        }}
+                                        onMouseEnter={() => setHoveredCardId(tpl.id)}
+                                        onMouseLeave={() => setHoveredCardId(null)}
                                     >
                                         {/* Card header */}
                                         <div className="flex items-start gap-3">
@@ -300,8 +309,12 @@ export function CreateApiProxyPage() {
                                                     {tpl.notRecommended && (
                                                         <Badge
                                                             variant="outline"
-                                                            className="border-amber-500/50 bg-amber-500/10"
-                                                            style={{ fontSize: '10px', color: '#92400e' }}
+                                                            style={{
+                                                                fontSize: '10px',
+                                                                color: '#92400e',
+                                                                borderColor: 'rgba(245,158,11,0.5)',
+                                                                backgroundColor: 'rgba(245,158,11,0.1)',
+                                                            }}
                                                         >
                                                             Not recommended
                                                         </Badge>
@@ -316,7 +329,10 @@ export function CreateApiProxyPage() {
 
                                         {/* Warning for keyless */}
                                         {tpl.notRecommended && tpl.warningMessage && (
-                                            <Alert className="border-amber-500/40 bg-amber-500/5 py-2">
+                                            <Alert
+                                                className="py-2"
+                                                style={{ borderColor: 'rgba(245,158,11,0.4)', backgroundColor: 'rgba(245,158,11,0.05)' }}
+                                            >
                                                 <TriangleAlertIcon className="size-4" style={{ color: '#d97706' }} aria-hidden />
                                                 <AlertTitle className="text-xs font-semibold" style={{ color: '#92400e' }}>
                                                     Demo and testing only
@@ -331,7 +347,7 @@ export function CreateApiProxyPage() {
                                         )}
 
                                         {/* Request flow diagram */}
-                                        {FLOW_COMPONENTS[tpl.id]}
+                                        {FLOW_COMPONENTS[tpl.id] ?? null}
 
                                         {/* Tags */}
                                         <div className="flex flex-wrap gap-1.5">
