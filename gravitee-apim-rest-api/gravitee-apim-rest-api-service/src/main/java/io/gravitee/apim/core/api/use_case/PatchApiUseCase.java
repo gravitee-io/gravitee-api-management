@@ -213,22 +213,24 @@ public class PatchApiUseCase {
             }
             var opType = op.path("op").asText();
             if ("move".equals(opType) || "copy".equals(opType)) {
-                var fromNode = op.path("from");
-                if (fromNode.isMissingNode()) {
-                    throw new ValidationDomainException("JSON Patch operation at index " + index + " is missing required 'from' field");
-                }
-                if (!fromNode.isTextual()) {
-                    throw new ValidationDomainException(
-                        "JSON Patch operation at index " + index + " has invalid 'from' field: must be a string"
-                    );
-                }
-                var rawFrom = fromNode.asText();
-                validateJsonPatchField(index, "from", rawFrom);
-                if (isResourceConfigurationDeepPath(rawFrom)) {
-                    throw new ApiPatchNotAllowedException(rawFrom, RESOURCE_CONFIGURATION_DEEP_PATH_MESSAGE);
-                }
+                validateMoveOrCopyFromField(index, op);
             }
             index++;
+        }
+    }
+
+    private void validateMoveOrCopyFromField(int opIndex, JsonNode op) {
+        var fromNode = op.path("from");
+        if (fromNode.isMissingNode()) {
+            throw new ValidationDomainException("JSON Patch operation at index " + opIndex + " is missing required 'from' field");
+        }
+        if (!fromNode.isTextual()) {
+            throw new ValidationDomainException("JSON Patch operation at index " + opIndex + " has invalid 'from' field: must be a string");
+        }
+        var rawFrom = fromNode.asText();
+        validateJsonPatchField(opIndex, "from", rawFrom);
+        if (isResourceConfigurationDeepPath(rawFrom)) {
+            throw new ApiPatchNotAllowedException(rawFrom, RESOURCE_CONFIGURATION_DEEP_PATH_MESSAGE);
         }
     }
 
