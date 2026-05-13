@@ -1841,6 +1841,17 @@ class PatchApiUseCaseTest {
         }
 
         @Test
+        void dry_run_with_null_erases_resources() {
+            var existing = Resource.builder().name("r1").type("cache").configuration("{}").enabled(true).build();
+            givenExistingApi(apiWithResources(List.of(existing)));
+            stubValidateV4ReturnsArgument();
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("resources", null), true);
+
+            assertThat(httpV4Def(output.api()).getResources()).isNull();
+        }
+
+        @Test
         void dry_run_returns_sanitised_resources() {
             var sanitisedResources = List.of(
                 Resource.builder().name("r1").type("cache").configuration("{\"timeToLiveSeconds\":0}").enabled(true).build()
