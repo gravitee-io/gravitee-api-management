@@ -281,7 +281,7 @@ The format is `<moduleId>=<manifest-url>`. To override multiple modules, separat
 
 [source,shell]
 ----
-DEV_MODULE_ENTRIES="apim=http://localhost:3001/mf-manifest.json,billing=http://localhost:3003/mf-manifest.json" yarn nx serve gravitee-gamma-control-plane-webui
+DEV_MODULE_ENTRIES="apim=http://localhost:3001/mf-manifest.json,platform=http://localhost:3002/mf-manifest.json,billing=http://localhost:3003/mf-manifest.json" yarn nx serve gravitee-gamma-control-plane-webui
 ----
 
 NOTE: The backend must still be running to serve the `/modules` listing endpoint and other APIs. Only the module **assets** are loaded from the local dev server.
