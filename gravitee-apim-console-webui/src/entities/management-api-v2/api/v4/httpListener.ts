@@ -18,9 +18,11 @@ import { BaseListener } from './baseListener';
 import { PathV4 } from './pathV4';
 
 import { Cors } from '../cors';
+import { RequestValidation } from '../requestValidation';
 
 export interface HttpListener extends BaseListener {
   paths?: PathV4[];
   pathMappings?: string[];
   cors?: Cors;
+  requestValidation?: RequestValidation;
 }
