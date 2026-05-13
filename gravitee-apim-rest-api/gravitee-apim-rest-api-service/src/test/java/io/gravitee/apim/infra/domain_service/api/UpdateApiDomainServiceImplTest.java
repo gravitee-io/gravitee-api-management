@@ -240,6 +240,18 @@ class UpdateApiDomainServiceImplTest {
     }
 
     @Test
+    void should_return_null_flows_when_erased_definition_has_null_flows() {
+        var erasedDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder().flows(null).build();
+        var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(erasedDefinition).build();
+        stubValidate(entity -> entity.setFlows(null));
+
+        var result = cut.validateV4(api, auditInfo);
+
+        assertThat(result.getApiDefinitionHttpV4().getFlows()).isNull();
+        verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
+    }
+
+    @Test
     void should_preserve_original_allowed_in_api_products_when_validator_returns_null() {
         var originalDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder().allowedInApiProducts(true).build();
         var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(originalDefinition).build();
