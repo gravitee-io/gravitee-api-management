@@ -38,10 +38,9 @@ export function useVerifyContextPath() {
     useEffect(() => {
         if (timerRef.current) clearTimeout(timerRef.current);
 
-        // Clear any previous path error immediately when input changes.
         dispatch({ type: 'SET_PATH_VERIFYING', value: false });
 
-        if (virtualHostsEnabled || validateContextPath(contextPath) !== null || !env?.id) return;
+        if (!env || virtualHostsEnabled || validateContextPath(contextPath) !== null) return;
 
         dispatch({ type: 'SET_PATH_VERIFYING', value: true });
 
@@ -55,7 +54,6 @@ export function useVerifyContextPath() {
                         message: result.reason ?? 'This context path is already in use by another API.',
                     });
                 } else {
-                    // Patching contextPath with the same value clears any stale uniqueness error via UPDATE_FORM's error-clearing logic.
                     dispatch({ type: 'UPDATE_FORM', patch: { contextPath } });
                 }
             } catch {

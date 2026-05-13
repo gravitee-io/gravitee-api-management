@@ -13,19 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import '@testing-library/jest-dom';
-import { server } from './testing/server';
+import { useParams } from 'react-router-dom';
 
-// jest-fixed-jsdom does not polyfill crypto.randomUUID
-if (typeof globalThis.crypto.randomUUID !== 'function') {
-    globalThis.crypto.randomUUID = () => {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-            const r = (Math.random() * 16) | 0;
-            return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
-        }) as ReturnType<typeof crypto.randomUUID>;
-    };
+export function ApiDetailOverviewPage() {
+    const { apiId } = useParams<{ apiId: string }>();
+
+    return (
+        <div className="space-y-2 p-6">
+            <h1 className="text-2xl font-semibold tracking-tight">Overview</h1>
+            <p className="text-sm text-muted-foreground font-mono">{apiId}</p>
+        </div>
+    );
 }
-
-beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }));
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());

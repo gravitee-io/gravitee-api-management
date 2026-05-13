@@ -50,9 +50,9 @@ export async function createApiPlan(environmentId: string, apiId: string, plan: 
 }
 
 export async function publishApiPlan(environmentId: string, apiId: string, planId: string): Promise<void> {
-    return apimFetchJsonV2<void>(environmentId, `/apis/${apiId}/plans/${planId}/_publish`, { method: 'POST' });
+    return apimFetchJsonV2(environmentId, `/apis/${apiId}/plans/${planId}/_publish`, { method: 'POST' });
 }
 
 export async function startApiProxy(environmentId: string, apiId: string): Promise<void> {
-    return apimFetchJsonV2<void>(environmentId, `/apis/${apiId}/_start`, { method: 'POST' });
+    return apimFetchJsonV2(environmentId, `/apis/${apiId}/_start`, { method: 'POST' });
 }

@@ -14,18 +14,28 @@
  * limitations under the License.
  */
 
-let _managementBaseUrl: string | undefined;
-let _bootstrapPromise: Promise<string> | undefined;
+interface BootstrapCache {
+    managementBaseURL: string;
+    organizationId: string;
+}
 
-async function resolveManagementBaseUrl(): Promise<string> {
-    if (_managementBaseUrl) return _managementBaseUrl;
+let _cache: BootstrapCache | undefined;
+let _bootstrapPromise: Promise<BootstrapCache> | undefined;
+
+async function resolveBootstrap(): Promise<BootstrapCache> {
+    if (_cache) return _cache;
     _bootstrapPromise ??= (async () => {
         try {
             const constants = await fetch('/constants.json').then(r => r.json() as Promise<{ gammaBaseURL: string }>);
             const gammaBase = constants.gammaBaseURL.replace(/\/$/, '');
-            const bootstrap = await fetch(`${gammaBase}/ui/bootstrap`).then(r => r.json() as Promise<{ managementBaseURL: string }>);
-            _managementBaseUrl = bootstrap.managementBaseURL.replace(/\/$/, '');
-            return _managementBaseUrl;
+            const bootstrap = await fetch(`${gammaBase}/ui/bootstrap`).then(
+                r => r.json() as Promise<{ managementBaseURL: string; organizationId: string }>,
+            );
+            _cache = {
+                managementBaseURL: bootstrap.managementBaseURL.replace(/\/$/, ''),
+                organizationId: bootstrap.organizationId,
+            };
+            return _cache;
         } catch (err) {
             _bootstrapPromise = undefined;
             throw err;
@@ -72,12 +82,26 @@ async function doFetch<T>(url: string, path: string, init?: RequestInit): Promis
     return text ? (JSON.parse(text) as T) : (undefined as T);
 }
 
+/** Org-scoped v1: `/organizations/{orgId}{path}` */
 export async function apimFetchJson<T>(organizationId: string, path: string, init?: RequestInit): Promise<T> {
-    const base = await resolveManagementBaseUrl();
-    return doFetch<T>(`${base}/organizations/${organizationId}${path}`, path, init);
+    const { managementBaseURL } = await resolveBootstrap();
+    return doFetch<T>(`${managementBaseURL}/organizations/${organizationId}${path}`, path, init);
 }
 
+/** v2 env-scoped: `/v2/environments/{envId}{path}` */
 export async function apimFetchJsonV2<T>(environmentId: string, path: string, init?: RequestInit): Promise<T> {
-    const base = await resolveManagementBaseUrl();
-    return doFetch<T>(`${base}/v2/environments/${environmentId}${path}`, path, init);
+    const { managementBaseURL } = await resolveBootstrap();
+    return doFetch<T>(`${managementBaseURL}/v2/environments/${environmentId}${path}`, path, init);
+}
+
+/** v1 env-scoped (auto-resolves orgId): `/organizations/{orgId}/environments/{envId}{path}` */
+export async function apimFetchJsonV1Env<T>(environmentId: string, path: string, init?: RequestInit): Promise<T> {
+    const { managementBaseURL, organizationId } = await resolveBootstrap();
+    return doFetch<T>(`${managementBaseURL}/organizations/${organizationId}/environments/${environmentId}${path}`, path, init);
+}
+
+/** Org-scoped v1 (auto-resolves orgId): `/organizations/{orgId}{path}` */
+export async function apimFetchJsonOrg<T>(path: string, init?: RequestInit): Promise<T> {
+    const { managementBaseURL, organizationId } = await resolveBootstrap();
+    return doFetch<T>(`${managementBaseURL}/organizations/${organizationId}${path}`, path, init);
 }

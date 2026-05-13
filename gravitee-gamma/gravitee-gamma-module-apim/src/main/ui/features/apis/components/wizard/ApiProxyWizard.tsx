@@ -86,7 +86,7 @@ interface ApiProxyWizardProps {
 export function ApiProxyWizard({ mode }: ApiProxyWizardProps) {
     const navigate = useNavigate();
     const { state, dispatch } = useApiCreation();
-    const { mutate, isPending, error: createError, isSuccess } = useCreateApiProxy();
+    const { mutate, isPending, error: createError, isSuccess, data } = useCreateApiProxy();
 
     const steps = mode === 'scratch' ? SCRATCH_STEPS : TEMPLATE_STEPS;
     const contentMap = mode === 'scratch' ? SCRATCH_CONTENT : TEMPLATE_CONTENT;
@@ -97,8 +97,8 @@ export function ApiProxyWizard({ mode }: ApiProxyWizardProps) {
     const StepContent = contentMap[activeStep];
 
     useEffect(() => {
-        if (isSuccess) navigate('../..');
-    }, [isSuccess, navigate]);
+        if (isSuccess && data) navigate(`../../${data.id}/overview`);
+    }, [isSuccess, data, navigate]);
 
     function handleNext() {
         const validator = validatorMap[activeStep];

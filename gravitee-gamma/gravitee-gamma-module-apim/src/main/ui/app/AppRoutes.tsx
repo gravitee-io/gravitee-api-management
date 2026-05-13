@@ -17,22 +17,29 @@ import { useModuleRouting } from '@gravitee/gamma-modules-sdk/routing';
 import { buildLinearBreadcrumbs, SidebarNavigation, useLayoutConfig } from '@gravitee/graphene-core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { Outlet, Route, Routes, useNavigate } from 'react-router-dom';
-
-const queryClient = new QueryClient();
+import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 
 import { NAV_GROUPS } from '../config/navigation';
 import { APIM_ROUTE_CONFIG } from '../config/routes';
+import { ApiDetailIndexRedirect, ApiDetailLayout } from '../features/apis/components/detail/ApiDetailLayout';
 import { AnalyticsPage } from '../pages/AnalyticsPage';
+import { ApiAlertsPage } from '../pages/ApiAlertsPage';
+import { ApiDetailOverviewPage } from '../pages/ApiDetailOverviewPage';
 import { ApiDetailPlaceholderPage } from '../pages/ApiDetailPlaceholderPage';
 import { ApiProductsPage } from '../pages/ApiProductsPage';
 import { ApisPage } from '../pages/ApisPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
+import { AuditLogsPage } from '../pages/AuditLogsPage';
 import { CreateApiProxyPage } from '../pages/CreateApiProxyPage';
 import { DashboardPage } from '../pages/DashboardPage';
+import { DeploymentConfigurationPage } from '../pages/DeploymentConfigurationPage';
+import { DeploymentHistoryPage } from '../pages/DeploymentHistoryPage';
 import { ScratchWizardPage } from '../pages/ScratchWizardPage';
 import { SettingsPage } from '../pages/SettingsPage';
 import { TemplateWizardPage } from '../pages/TemplateWizardPage';
+import { UserPermissionsPage } from '../pages/UserPermissionsPage';
+
+const queryClient = new QueryClient();
 
 function ModuleLayout() {
     const navigate = useNavigate();
@@ -69,12 +76,42 @@ export function AppRoutes() {
                             <Route path="scratch" element={<ScratchWizardPage />} />
                             <Route path="template/:id" element={<TemplateWizardPage />} />
                         </Route>
-                        <Route path=":apiId">
-                            <Route index element={<ApiDetailPlaceholderPage title="Overview" />} />
-                            <Route path="overview" element={<ApiDetailPlaceholderPage title="Overview" />} />
+                        <Route path=":apiId" element={<ApiDetailLayout />}>
+                            <Route index element={<ApiDetailIndexRedirect />} />
+                            <Route path="overview" element={<ApiDetailOverviewPage />} />
                             <Route path="general" element={<ApiDetailPlaceholderPage title="General" />} />
-                            <Route path="analytics" element={<ApiDetailPlaceholderPage title="Analytics" />} />
-                            <Route path="*" element={<ApiDetailPlaceholderPage title="Coming soon" />} />
+                            <Route path="properties" element={<ApiDetailPlaceholderPage title="API Properties" />} />
+                            <Route path="resources" element={<ApiDetailPlaceholderPage title="Resources" />} />
+                            <Route path="notifications" element={<ApiDetailPlaceholderPage title="Notifications" />} />
+                            <Route path="api-score" element={<ApiDetailPlaceholderPage title="API Score" />} />
+                            <Route path="response-templates" element={<ApiDetailPlaceholderPage title="Response Templates" />} />
+                            <Route path="cors" element={<ApiDetailPlaceholderPage title="CORS" />} />
+                            <Route path="entrypoints" element={<ApiDetailPlaceholderPage title="Entrypoints" />} />
+                            <Route path="endpoints">
+                                <Route index element={<Navigate to="list" replace />} />
+                                <Route path="list" element={<ApiDetailPlaceholderPage title="Endpoints" />} />
+                                <Route path="failover" element={<ApiDetailPlaceholderPage title="Failover" />} />
+                                <Route
+                                    path="health-check-dashboard"
+                                    element={<ApiDetailPlaceholderPage title="Health Check Dashboard" />}
+                                />
+                            </Route>
+                            <Route path="reporter-settings" element={<ApiDetailPlaceholderPage title="Reporter Settings" />} />
+                            <Route path="policy-studio" element={<ApiDetailPlaceholderPage title="Policy Studio" />} />
+                            <Route path="documentation" element={<ApiDetailPlaceholderPage title="Documentation" />} />
+                            <Route path="plans" element={<ApiDetailPlaceholderPage title="Plans" />} />
+                            <Route path="consumers" element={<ApiDetailPlaceholderPage title="Consumers" />} />
+                            <Route path="broadcasts" element={<ApiDetailPlaceholderPage title="Broadcasts" />} />
+                            <Route path="authorization" element={<ApiDetailPlaceholderPage title="Authorization" />} />
+                            <Route path="user-permissions" element={<UserPermissionsPage />} />
+                            <Route path="alerts" element={<ApiAlertsPage />} />
+                            <Route path="audit-logs" element={<AuditLogsPage />} />
+                            <Route path="deployment">
+                                <Route index element={<Navigate to="configuration" replace />} />
+                                <Route path="configuration" element={<DeploymentConfigurationPage />} />
+                                <Route path="history" element={<DeploymentHistoryPage />} />
+                            </Route>
+                            <Route path="*" element={<Navigate to="overview" replace />} />
                         </Route>
                     </Route>
                     <Route path="api-products" element={<ApiProductsPage />} />

@@ -24,11 +24,9 @@
  */
 import type { ReactNode } from 'react';
 
-export const useEnvironment = (): undefined => undefined;
-
 // ─── Permissions ──────────────────────────────────────────────────────────────
 
-export const useHasPermission = (_check?: { anyOf?: string[]; allOf?: string[] }): boolean => true;
+export const useHasPermission = (): boolean => true;
 
 export const permissionService = {
     load: (_scope: string, _permissions: string[]): void => {},

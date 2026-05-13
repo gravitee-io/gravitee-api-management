@@ -13,19 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import '@testing-library/jest-dom';
-import { server } from './testing/server';
 
-// jest-fixed-jsdom does not polyfill crypto.randomUUID
-if (typeof globalThis.crypto.randomUUID !== 'function') {
-    globalThis.crypto.randomUUID = () => {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-            const r = (Math.random() * 16) | 0;
-            return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
-        }) as ReturnType<typeof crypto.randomUUID>;
+export interface Audit {
+    id: string;
+    createdAt: string;
+    user: { id: string; displayName: string };
+    event: string;
+    properties: Array<{ key: string; value: string; name: string }>;
+    patch: string;
+}
+
+export interface AuditPage {
+    data: Audit[];
+    pagination: {
+        page: number;
+        perPage: number;
+        pageCount: number;
+        pageItemsCount: number;
+        totalCount: number;
     };
 }
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }));
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+export interface AuditSearchParams {
+    page: number;
+    perPage: number;
+    events?: string;
+    from?: number;
+    to?: number;
+}

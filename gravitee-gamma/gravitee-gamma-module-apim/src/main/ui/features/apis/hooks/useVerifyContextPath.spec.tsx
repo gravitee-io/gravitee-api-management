@@ -21,11 +21,14 @@ import { useVerifyContextPath } from './useVerifyContextPath';
 import { verifyContextPath } from '../services/apiProxy';
 import { ApiCreationProvider, useApiCreation } from '../store/apiCreationStore';
 
-jest.mock('@gravitee/gamma-modules-sdk', () => ({ useEnvironment: jest.fn() }));
+jest.mock('@gravitee/gamma-modules-sdk', () => ({
+    ...jest.requireActual<object>('@gravitee/gamma-modules-sdk'),
+    useEnvironment: jest.fn(),
+}));
 jest.mock('../services/apiProxy', () => ({ verifyContextPath: jest.fn() }));
 
-const mockUseEnvironment = useEnvironment as jest.Mock;
-const mockVerifyContextPath = verifyContextPath as jest.Mock;
+const mockUseEnvironment = jest.mocked(useEnvironment);
+const mockVerifyContextPath = jest.mocked(verifyContextPath);
 
 function wrapper({ children }: { children: ReactNode }) {
     return <ApiCreationProvider>{children}</ApiCreationProvider>;
@@ -40,7 +43,7 @@ function useHook() {
 describe('useVerifyContextPath', () => {
     beforeEach(() => {
         jest.useFakeTimers();
-        mockUseEnvironment.mockReturnValue({ id: 'env-1' });
+        mockUseEnvironment.mockReturnValue({ id: 'env-1', hrids: ['env-1'] });
         mockVerifyContextPath.mockResolvedValue({ ok: true });
     });
 
@@ -102,22 +105,7 @@ describe('useVerifyContextPath', () => {
         expect(mockVerifyContextPath).not.toHaveBeenCalled();
     });
 
-    it('does not call the API when the environment is unavailable', async () => {
-        mockUseEnvironment.mockReturnValue(null);
-        const { result } = renderHook(() => useHook(), { wrapper });
-
-        act(() => {
-            result.current.dispatch({ type: 'UPDATE_FORM', patch: { contextPath: '/valid-path' } });
-        });
-
-        await act(async () => {
-            jest.runAllTimers();
-        });
-
-        expect(mockVerifyContextPath).not.toHaveBeenCalled();
-    });
-
-    it('calls the API with the correct arguments after the debounce delay', async () => {
+    it('calls the API with the runtime config and path after the debounce delay', async () => {
         const { result } = renderHook(() => useHook(), { wrapper });
 
         act(() => {

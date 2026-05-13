@@ -147,7 +147,40 @@ export interface ApiDetailDto {
     id: string;
     name: string;
     description?: string;
-    apiVersion: string;
     state?: ApiState;
     type?: ApiType;
+    apiVersion?: string;
+    definitionVersion?: 'V4' | 'V4_NATIVE';
+    tags?: string[];
+    groups?: string[];
+    disableMembershipNotifications?: boolean;
+}
+
+export interface ApiEvent {
+    id: string;
+    createdAt: string;
+    payload: string;
+    initiator: { id: string; displayName: string };
+    properties: {
+        DEPLOYMENT_NUMBER?: string;
+        DEPLOYMENT_LABEL?: string;
+        API_ID?: string;
+    };
+}
+
+export interface ApiEventsPage {
+    data: ApiEvent[];
+    pagination: {
+        page: number;
+        perPage: number;
+        totalCount: number;
+        pageCount: number;
+        pageItemsCount: number;
+    };
+}
+
+export interface OrgShardingTag {
+    id: string;
+    name: string;
+    description?: string;
 }
