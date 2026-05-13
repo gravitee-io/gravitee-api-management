@@ -30,6 +30,8 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
@@ -283,6 +285,57 @@ class UpdateApiDomainServiceImplTest {
         var result = cut.validateV4(api, auditInfo);
 
         assertThat(result.getApiDefinitionHttpV4().getResources()).containsExactly(existingResource);
+    }
+
+    @Test
+    void should_return_sanitized_endpoint_groups_from_mutated_update_api_entity() {
+        var api = ApiFixtures.aProxyApiV4();
+        var sanitizedGroups = List.of(
+            EndpointGroup.builder()
+                .name("sanitized-group")
+                .type("http-proxy")
+                .sharedConfiguration("{}")
+                .endpoints(List.of(Endpoint.builder().name("ep").type("http-proxy").weight(1).build()))
+                .build()
+        );
+        stubValidate(entity -> entity.setEndpointGroups(sanitizedGroups));
+
+        var result = cut.validateV4(api, auditInfo);
+
+        assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).isEqualTo(sanitizedGroups);
+        verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
+    }
+
+    @Test
+    void should_preserve_original_endpoint_groups_when_validator_returns_null() {
+        var originalGroups = List.of(
+            EndpointGroup.builder()
+                .name("original-group")
+                .type("http-proxy")
+                .sharedConfiguration("{}")
+                .endpoints(List.of(Endpoint.builder().name("ep").type("http-proxy").weight(1).build()))
+                .build()
+        );
+        var originalDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder().endpointGroups(originalGroups).build();
+        var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(originalDefinition).build();
+        stubValidate(entity -> entity.setEndpointGroups(null));
+
+        var result = cut.validateV4(api, auditInfo);
+
+        assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).isEqualTo(originalGroups);
+        verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
+    }
+
+    @Test
+    void should_return_null_endpoint_groups_when_erased_definition_has_null_endpoint_groups() {
+        var erasedDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder().endpointGroups(null).build();
+        var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(erasedDefinition).build();
+        stubValidate(entity -> entity.setEndpointGroups(null));
+
+        var result = cut.validateV4(api, auditInfo);
+
+        assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).isNull();
+        verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
     }
 
     @Test

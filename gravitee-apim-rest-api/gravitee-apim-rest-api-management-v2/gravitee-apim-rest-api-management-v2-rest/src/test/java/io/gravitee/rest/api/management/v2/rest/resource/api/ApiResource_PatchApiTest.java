@@ -295,9 +295,7 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
     static Stream<Arguments> disallowedFieldCases() {
         return Stream.of(
             Arguments.of("{\"state\":\"STARTED\"}", MERGE_PATCH_TYPE, "state"),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/state\",\"value\":\"STARTED\"}]", JSON_PATCH_TYPE, "state"),
-            Arguments.of("{\"endpointGroups\":[]}", MERGE_PATCH_TYPE, "endpointGroups"),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/endpointGroups\",\"value\":[]}]", JSON_PATCH_TYPE, "endpointGroups")
+            Arguments.of("[{\"op\":\"replace\",\"path\":\"/state\",\"value\":\"STARTED\"}]", JSON_PATCH_TYPE, "state")
         );
     }
 

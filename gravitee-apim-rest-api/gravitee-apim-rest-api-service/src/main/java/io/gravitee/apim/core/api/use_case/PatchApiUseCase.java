@@ -45,6 +45,7 @@ import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.analytics.sampling.Sampling;
 import io.gravitee.definition.model.v4.analytics.tracing.Tracing;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
@@ -90,12 +91,29 @@ public class PatchApiUseCase {
     private static final String FIELD_FLOWS = "flows";
     private static final String FIELD_RESOURCES = "resources";
     private static final String FIELD_LISTENERS = "listeners";
+    private static final String FIELD_ENDPOINT_GROUPS = "endpointGroups";
 
     private static final String JSON_PATCH_PATH_PREFIX = "/";
 
     private static final Pattern RESOURCE_CONFIGURATION_DEEP_PATH = Pattern.compile("/resources/(\\d+|-)/configuration/.+");
     private static final String RESOURCE_CONFIGURATION_DEEP_PATH_MESSAGE =
         "operations under /resources/N/configuration/... are not supported; replace the full configuration object at /resources/N/configuration";
+
+    private static final Pattern ENDPOINT_CONFIGURATION_DEEP_PATH = Pattern.compile(
+        "/endpointGroups/[^/]+/endpoints/[^/]+/configuration/.+"
+    );
+    private static final Pattern ENDPOINT_SHARED_CONFIG_OVERRIDE_DEEP_PATH = Pattern.compile(
+        "/endpointGroups/[^/]+/endpoints/[^/]+/sharedConfigurationOverride/.+"
+    );
+    private static final Pattern ENDPOINT_GROUP_SHARED_CONFIG_DEEP_PATH = Pattern.compile("/endpointGroups/[^/]+/sharedConfiguration/.+");
+    private static final Pattern ENDPOINT_GROUP_SERVICE_CONFIG_DEEP_PATH = Pattern.compile(
+        "/endpointGroups/[^/]+/services/[^/]+/configuration/.+"
+    );
+    private static final Pattern ENDPOINT_SERVICE_CONFIG_DEEP_PATH = Pattern.compile(
+        "/endpointGroups/[^/]+/endpoints/[^/]+/services/[^/]+/configuration/.+"
+    );
+    private static final String ENDPOINT_GROUP_OPAQUE_DEEP_PATH_MESSAGE =
+        "operations under /endpointGroups/N/endpoints/N/configuration/..., /endpointGroups/N/endpoints/N/sharedConfigurationOverride/..., /endpointGroups/N/sharedConfiguration/..., /endpointGroups/N/services/S/configuration/..., or /endpointGroups/N/endpoints/N/services/S/configuration/... are not supported; replace the full configuration object";
 
     private static final Set<String> ALLOWED_FIELDS = Set.of(
         FIELD_NAME,
@@ -117,13 +135,13 @@ public class PatchApiUseCase {
         FIELD_RESPONSE_TEMPLATES,
         FIELD_FLOWS,
         FIELD_RESOURCES,
-        FIELD_LISTENERS
+        FIELD_LISTENERS,
+        FIELD_ENDPOINT_GROUPS
     );
 
     private static final int MAX_PATCH_OPS = 200;
 
     private static final Set<String> BLOCKED_WITH_HINT = Set.of("state");
-    private static final Set<String> BLOCKED_WITHOUT_HINT = Set.of("endpointGroups");
 
     private static final String NULL_NOT_ALLOWED_MESSAGE_FORMAT =
         "'%s' cannot be null; omit the field to leave it unchanged, or send an explicit value";
@@ -156,7 +174,7 @@ public class PatchApiUseCase {
         var primaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(input.auditInfo().organizationId(), input.apiId());
 
         var workflows = workflowQueryService.findAllByApiIdAndType(input.apiId(), Workflow.Type.REVIEW);
-        var workflowState = workflows.isEmpty() ? null : workflows.get(0).getState();
+        var workflowState = workflows.isEmpty() ? null : workflows.getFirst().getState();
 
         var updatedApi = applyPatchedValues(existingApi, patchedNode, input.patchType(), patchNode);
 
@@ -217,6 +235,9 @@ public class PatchApiUseCase {
             if (isResourceConfigurationDeepPath(rawPath)) {
                 throw new ApiPatchNotAllowedException(rawPath, RESOURCE_CONFIGURATION_DEEP_PATH_MESSAGE);
             }
+            if (isEndpointGroupOpaqueDeepPath(rawPath)) {
+                throw new ApiPatchNotAllowedException(rawPath, ENDPOINT_GROUP_OPAQUE_DEEP_PATH_MESSAGE);
+            }
             var opType = op.path("op").asText();
             if ("move".equals(opType) || "copy".equals(opType)) {
                 validateMoveOrCopyFromField(index, op);
@@ -238,10 +259,24 @@ public class PatchApiUseCase {
         if (isResourceConfigurationDeepPath(rawFrom)) {
             throw new ApiPatchNotAllowedException(rawFrom, RESOURCE_CONFIGURATION_DEEP_PATH_MESSAGE);
         }
+        if (isEndpointGroupOpaqueDeepPath(rawFrom)) {
+            throw new ApiPatchNotAllowedException(rawFrom, ENDPOINT_GROUP_OPAQUE_DEEP_PATH_MESSAGE);
+        }
     }
 
     private static boolean isResourceConfigurationDeepPath(String path) {
         return path != null && RESOURCE_CONFIGURATION_DEEP_PATH.matcher(path).matches();
+    }
+
+    private static boolean isEndpointGroupOpaqueDeepPath(String path) {
+        return (
+            path != null &&
+            (ENDPOINT_CONFIGURATION_DEEP_PATH.matcher(path).matches() ||
+                ENDPOINT_SHARED_CONFIG_OVERRIDE_DEEP_PATH.matcher(path).matches() ||
+                ENDPOINT_GROUP_SHARED_CONFIG_DEEP_PATH.matcher(path).matches() ||
+                ENDPOINT_GROUP_SERVICE_CONFIG_DEEP_PATH.matcher(path).matches() ||
+                ENDPOINT_SERVICE_CONFIG_DEEP_PATH.matcher(path).matches())
+        );
     }
 
     private void validateJsonPatchField(int opIndex, String pointerName, String pointer) {
@@ -293,9 +328,6 @@ public class PatchApiUseCase {
     private void validateField(String field) {
         if (BLOCKED_WITH_HINT.contains(field)) {
             throw new ApiPatchNotAllowedException(field, "use /_start or /_stop endpoints to change runtime state");
-        }
-        if (BLOCKED_WITHOUT_HINT.contains(field)) {
-            throw new ApiPatchNotAllowedException(field, "use PUT to update structural fields");
         }
         if (!ALLOWED_FIELDS.contains(field)) {
             throw new ApiPatchNotAllowedException(field, "field is not patchable");
@@ -382,6 +414,14 @@ public class PatchApiUseCase {
         var flows = resolvePatchableList(patchType, rawPatchNode, patchedNode, FIELD_FLOWS, Flow.class, httpV4.getFlows());
         var resources = resolvePatchableList(patchType, rawPatchNode, patchedNode, FIELD_RESOURCES, Resource.class, httpV4.getResources());
         var listeners = resolvePatchableList(patchType, rawPatchNode, patchedNode, FIELD_LISTENERS, Listener.class, httpV4.getListeners());
+        var endpointGroups = resolvePatchableList(
+            patchType,
+            rawPatchNode,
+            patchedNode,
+            FIELD_ENDPOINT_GROUPS,
+            EndpointGroup.class,
+            httpV4.getEndpointGroups()
+        );
 
         var updatedDefinition = httpV4
             .toBuilder()
@@ -398,6 +438,7 @@ public class PatchApiUseCase {
             .flows(flows)
             .resources(resources)
             .listeners(listeners)
+            .endpointGroups(endpointGroups)
             .build();
 
         return existingApi
@@ -679,7 +720,7 @@ public class PatchApiUseCase {
         }
         try {
             return objectMapper
-                .<List<T>>readerFor(objectMapper.getTypeFactory().constructCollectionType(List.class, elementType))
+                .readerFor(objectMapper.getTypeFactory().constructCollectionType(List.class, elementType))
                 .with(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE)
                 .readValue(fieldNode);
         } catch (Exception e) {
@@ -835,7 +876,8 @@ public class PatchApiUseCase {
         Map<String, Map<String, PatchableResponseTemplate>> responseTemplates,
         List<Flow> flows,
         List<Resource> resources,
-        List<Listener> listeners
+        List<Listener> listeners,
+        List<EndpointGroup> endpointGroups
     ) {
         static PatchableView from(Api api, io.gravitee.definition.model.v4.Api httpV4) {
             return new PatchableView(
@@ -858,7 +900,8 @@ public class PatchApiUseCase {
                 toPatchableResponseTemplates(httpV4.getResponseTemplates()),
                 httpV4.getFlows(),
                 httpV4.getResources(),
-                httpV4.getListeners()
+                httpV4.getListeners(),
+                httpV4.getEndpointGroups()
             );
         }
 
