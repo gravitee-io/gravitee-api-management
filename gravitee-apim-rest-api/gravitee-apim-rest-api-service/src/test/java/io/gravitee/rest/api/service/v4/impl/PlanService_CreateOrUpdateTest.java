@@ -63,6 +63,7 @@ import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -209,6 +210,40 @@ public class PlanService_CreateOrUpdateTest {
 
         assertThat(actual.getId()).isEqualTo(expected.getId());
         verify(flowValidationDomainService, never()).validatePathParameters(any(), any(), any());
+    }
+
+    @Test
+    public void shouldPreserveEnvironmentIdOnUpdate() throws TechnicalException {
+        final String ENV_ID = "my-env";
+        final PlanEntity expected = initPlanEntity("updated");
+
+        when(planEntity.getId()).thenReturn(PLAN_ID);
+        when(planEntity.getSecurity()).thenReturn(new PlanSecurity("api_key", "{}"));
+        when(planEntity.getValidation()).thenReturn(PlanValidationType.AUTO);
+
+        doReturn(new PlanEntity()).when(planSearchService).findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+
+        Plan oldPlan = mock(Plan.class);
+        when(oldPlan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
+        when(oldPlan.getSecurity()).thenReturn(Plan.PlanSecurityType.API_KEY);
+        when(oldPlan.getReferenceId()).thenReturn(API_ID);
+        when(oldPlan.getId()).thenReturn(PLAN_ID);
+        when(oldPlan.getReferenceType()).thenReturn(Plan.PlanReferenceType.API);
+        when(oldPlan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        when(oldPlan.getMode()).thenReturn(Plan.PlanMode.STANDARD);
+        when(oldPlan.getEnvironmentId()).thenReturn(ENV_ID);
+
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(oldPlan));
+        when(
+            parameterService.findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT))
+        ).thenReturn(true);
+        when(planRepository.update(any())).thenAnswer(returnsFirstArg());
+
+        planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), planEntity);
+
+        ArgumentCaptor<Plan> planCaptor = ArgumentCaptor.forClass(Plan.class);
+        verify(planRepository).update(planCaptor.capture());
+        assertThat(planCaptor.getValue().getEnvironmentId()).isEqualTo(ENV_ID);
     }
 
     private void mockPrivateUpdate(PlanEntity expected) throws TechnicalException {
