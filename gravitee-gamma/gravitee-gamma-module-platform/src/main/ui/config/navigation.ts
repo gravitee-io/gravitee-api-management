@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type { NavGroup } from '@gravitee/graphene-core';
-import { LayoutGridIcon } from '@gravitee/graphene-core/icons';
+import { AppWindowIcon, LayoutDashboardIcon } from '@gravitee/graphene-core/icons';
 
 import { ROUTES } from './routes';
 
@@ -22,8 +22,8 @@ export const NAV_GROUPS: NavGroup[] = [
     {
         label: 'Overview',
         items: [
-            { key: 'dashboard', title: ROUTES.dashboard.label, icon: LayoutGridIcon },
-            { key: 'applications', title: ROUTES.applications.label, icon: LayoutGridIcon },
+            { key: 'dashboard', title: ROUTES.dashboard.label, icon: LayoutDashboardIcon },
+            { key: 'applications', title: ROUTES.applications.label, icon: AppWindowIcon },
         ],
     },
 ];
