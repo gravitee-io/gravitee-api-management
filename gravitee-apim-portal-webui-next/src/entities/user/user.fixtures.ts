@@ -15,7 +15,7 @@
  */
 import { isFunction } from 'rxjs/internal/util/isFunction';
 
-import { User } from './user';
+import { User, UsersResponse } from './user';
 
 export function fakeUser(modifier?: Partial<User> | ((baseApi: User) => User)): User {
   const base: User = {
@@ -32,6 +32,29 @@ export function fakeUser(modifier?: Partial<User> | ((baseApi: User) => User)): 
     customFields: {},
     display_name: 'admin',
     editable_profile: false,
+  };
+
+  if (isFunction(modifier)) {
+    return modifier(base);
+  }
+
+  return {
+    ...base,
+    ...modifier,
+  };
+}
+
+export function fakeUsersResponse(modifier?: Partial<UsersResponse> | ((base: UsersResponse) => UsersResponse)): UsersResponse {
+  const base: UsersResponse = {
+    data: [fakeUser({ id: 'user-1' })],
+    metadata: {
+      data: {
+        total: 1,
+      },
+      applicationMembership: {
+        'user-1': false,
+      },
+    },
   };
 
   if (isFunction(modifier)) {

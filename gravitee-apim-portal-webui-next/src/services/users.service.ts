@@ -19,7 +19,7 @@ import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
 import { CustomUserField } from '../entities/user/custom-user-field';
-import { User } from '../entities/user/user';
+import { User, UsersResponse, UsersSearchInput } from '../entities/user/user';
 
 export interface RegisterUserInput {
   /**
@@ -82,5 +82,20 @@ export class UsersService {
 
   finalizeRegistration(finalizeInput: FinalizeRegistrationInput) {
     return this.http.post<User>(`${this.configService.baseURL}/users/registration/_finalize`, finalizeInput);
+  }
+
+  searchUsersForApplicationMembership(applicationId: string, query: string, page = 1, size = 20): Observable<UsersResponse> {
+    const input: UsersSearchInput = {
+      filters: {
+        query,
+      },
+      includes: {
+        applicationMembership: applicationId,
+      },
+    };
+
+    return this.http.post<UsersResponse>(`${this.configService.baseURL}/users/_search`, input, {
+      params: { page, size },
+    });
   }
 }

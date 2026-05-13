@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Links } from '../pagination/links';
 import { UserEnvironmentPermissions } from '../permission/permission';
 
 export interface UserConfig {
@@ -52,4 +53,30 @@ export interface User {
   customFields?: { [key: string]: object };
   config?: UserConfig;
   _links?: UserLinks;
+}
+
+export interface UsersSearchFilters {
+  query?: string;
+}
+
+export interface UsersSearchIncludes {
+  applicationMembership?: string;
+}
+
+export interface UsersSearchInput {
+  filters?: UsersSearchFilters;
+  includes?: UsersSearchIncludes;
+}
+
+export interface UsersResponseMetadata {
+  applicationMembership?: Record<string, boolean>;
+  data?: {
+    total?: number;
+  };
+}
+
+export interface UsersResponse {
+  data?: Array<User>;
+  metadata?: UsersResponseMetadata;
+  links?: Links;
 }
