@@ -26,6 +26,7 @@ import { GioTestingModule } from '../../../../../shared/testing/gio-testing.modu
 import { fakeConnectionLogDetail } from '../../../../../entities/management-api-v2/log/connectionLog.fixture';
 import { fakeApiMetricResponse } from '../../../../../entities/management-api-v2/analytics/apiMetricsDetailResponse.fixture';
 import { SearchLogsResponse } from '../../../../../services-ngx/environment-logs.service';
+import { STANDALONE_API_PRODUCT_NAME } from '../../models/env-log.model';
 
 describe('EnvLogsDetailsComponent', () => {
   const logId = 'req-abc-123';
@@ -321,7 +322,7 @@ describe('EnvLogsDetailsComponent', () => {
     expect(await harness.getApiProductName()).toBe('My API Product');
   });
 
-  it('should show a dash in the API Product row in the More Details panel when absent', async () => {
+  it('should hide the API Product row in the More Details panel when apiProductName is absent', async () => {
     const { fixture: f, harness } = await createComponent();
 
     flushRequests();
@@ -330,7 +331,26 @@ describe('EnvLogsDetailsComponent', () => {
     await harness.expandMoreDetails();
     f.detectChanges();
 
-    expect(await harness.getApiProductName()).toBe('—');
+    expect(await harness.getApiProductName()).toBeNull();
+  });
+
+  it('should hide the API Product row in the More Details panel when the API is standalone', async () => {
+    const { fixture: f, harness } = await createComponent();
+
+    const standaloneResponse: SearchLogsResponse = {
+      ...MOCK_SEARCH_RESPONSE,
+      data: [{ ...MOCK_SEARCH_RESPONSE.data[0], apiProductName: STANDALONE_API_PRODUCT_NAME }],
+    };
+
+    expectSearchRequest().flush(standaloneResponse);
+    expectDetailRequest().flush(MOCK_DETAIL);
+    expectMetricsRequest().flush(MOCK_METRICS);
+    f.detectChanges();
+
+    await harness.expandMoreDetails();
+    f.detectChanges();
+
+    expect(await harness.getApiProductName()).toBeNull();
   });
 
   it('should resolve api display name from apiName when present', async () => {

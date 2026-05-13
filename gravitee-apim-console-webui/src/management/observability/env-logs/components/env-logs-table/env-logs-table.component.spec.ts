@@ -23,6 +23,7 @@ import { EnvLogsTableComponent } from './env-logs-table.component';
 import { EnvLogsTableHarness } from './env-logs-table.harness';
 
 import { fakeEnvLog, fakeEnvLogs } from '../../models/env-log.fixture';
+import { STANDALONE_API_PRODUCT_NAME } from '../../models/env-log.model';
 import { Constants } from '../../../../../entities/Constants';
 import { CONSTANTS_TESTING } from '../../../../../shared/testing';
 
@@ -134,7 +135,7 @@ describe('EnvLogsTableComponent', () => {
 
   it('should display "Standalone API" as subtitle when backend sends it explicitly (log-1)', async () => {
     const subtitle = await logsTableHarness.getApiProductSubtitle(0);
-    expect(subtitle).toEqual('Standalone API');
+    expect(subtitle).toEqual(STANDALONE_API_PRODUCT_NAME);
   });
 
   it('should display nothing as subtitle when api product name is absent (orphaned product, log-2)', async () => {
