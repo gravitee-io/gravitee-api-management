@@ -47,15 +47,8 @@
       <span aria-hidden="true">·</span>
       <span data-testid="last-modified">{{ lastModified() | date: 'medium' }}</span>
     </div>
-    @if (visibleLabels().length > 0) {
-      <div class="dashboard-card__labels">
-        @for (label of visibleLabels(); track label) {
-          <app-badge [label]="label" />
-        }
-        @if (hiddenLabelsCount() > 0) {
-          <app-badge data-testid="hidden-labels-count" [matTooltip]="hiddenLabelsTooltip()" [label]="'+' + hiddenLabelsCount()" />
-        }
-      </div>
+    @if (labels().length > 0) {
+      <app-overflow-labels class="dashboard-card__labels" [labels]="labels()" />
     }
   </mat-card-content>
 </mat-card>

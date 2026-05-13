@@ -50,21 +50,11 @@ describe('AnalyticsDashboardCardComponent', () => {
     expect(await harness.getTitle()).toContain('HTTP Overview');
   });
 
-  it('should_render_all_labels_when_count_is_within_visible_limit', async () => {
-    expect(await harness.getLabelCount()).toBe(2);
-    expect(await harness.getOverflowCounter()).toBeNull();
-  });
-
-  it('should_render_overflow_counter_when_labels_exceed_visible_limit', async () => {
-    fixture.componentRef.setInput(
-      'dashboard',
-      fakeDashboard({
-        labels: { type: 'http', scope: 'proxy', env: 'dev', team: 'core' },
-      }),
-    );
-    fixture.detectChanges();
-    expect(await harness.getLabelCount()).toBe(3);
-    expect(await harness.getOverflowCounter()).toContain('+2');
+  it('should_pass_dashboard_labels_to_overflow_labels', async () => {
+    const overflowLabels = await harness.getOverflowLabelsHarness();
+    expect(overflowLabels).not.toBeNull();
+    // In JSDOM container width is 0 → all 2 labels go behind the counter.
+    expect(await overflowLabels!.getOverflowCounterText()).toContain('+2');
   });
 
   it('should_render_widget_count', async () => {
@@ -75,10 +65,10 @@ describe('AnalyticsDashboardCardComponent', () => {
     expect(await harness.getLastModified()).toBeTruthy();
   });
 
-  it('should_not_render_labels_when_empty', async () => {
+  it('should_not_render_overflow_labels_when_empty', async () => {
     fixture.componentRef.setInput('dashboard', fakeDashboard({ labels: {} }));
     fixture.detectChanges();
-    expect(await harness.getLabelCount()).toBe(0);
+    expect(await harness.hasOverflowLabels()).toBe(false);
   });
 
   it('should_emit_card_select_on_click', async () => {
