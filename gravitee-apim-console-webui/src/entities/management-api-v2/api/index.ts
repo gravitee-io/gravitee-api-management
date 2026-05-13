@@ -28,6 +28,7 @@ export * from './baseApi';
 export * from './cors';
 export * from './definitionContext';
 export * from './definitionVersion';
+export * from './requestValidation';
 export * from './duplicateApiOptions';
 export * from './flowMode';
 export * from './httpMethod';

@@ -44,6 +44,9 @@ public class Proxy implements Serializable {
     @JsonProperty("cors")
     private Cors cors;
 
+    @JsonProperty("request_validation")
+    private RequestValidation requestValidation;
+
     @JsonProperty("logging")
     private Logging logging;
 
@@ -92,6 +95,14 @@ public class Proxy implements Serializable {
 
     public void setCors(Cors cors) {
         this.cors = cors;
+    }
+
+    public RequestValidation getRequestValidation() {
+        return requestValidation;
+    }
+
+    public void setRequestValidation(RequestValidation requestValidation) {
+        this.requestValidation = requestValidation;
     }
 
     public Set<EndpointGroup> getGroups() {
