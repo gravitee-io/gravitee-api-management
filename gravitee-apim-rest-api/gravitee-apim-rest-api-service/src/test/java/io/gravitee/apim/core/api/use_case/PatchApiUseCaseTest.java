@@ -1809,7 +1809,7 @@ class PatchApiUseCaseTest {
 
         @Test
         void json_patch_replace_resource_configuration_atomically() {
-            var existing = Resource.builder().name("r1").type("cache").configuration("{}").enabled(true).build();
+            var existing = Resource.builder().name("r1").type("cache").configuration("{\"oldKey\":\"oldValue\"}").enabled(true).build();
             givenExistingApi(apiWithResources(List.of(existing)));
 
             var output = execute(
@@ -1818,8 +1818,10 @@ class PatchApiUseCaseTest {
                 false
             );
 
+            var config = httpV4Def(output.api()).getResources().getFirst().getConfiguration();
             assertThat(httpV4Def(output.api()).getResources()).hasSize(1);
-            assertThat(httpV4Def(output.api()).getResources().getFirst().getConfiguration()).contains("\"ttl\"");
+            assertThat(config).contains("\"ttl\"");
+            assertThat(config).doesNotContain("oldKey");
         }
 
         @Test
