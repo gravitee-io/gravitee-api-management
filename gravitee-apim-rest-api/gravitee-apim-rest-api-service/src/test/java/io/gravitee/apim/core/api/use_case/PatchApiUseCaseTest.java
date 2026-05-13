@@ -1749,6 +1749,7 @@ class PatchApiUseCaseTest {
         @ParameterizedTest
         @ValueSource(strings = { "SOME_UNKNOWN_TYPE", "CACHE" })
         void merge_patch_accepts_resource_type_verbatim(String type) {
+            stubValidateV4ReturnsArgument();
             givenExistingApi(apiWithResources(null));
 
             var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("resources", List.of(resourceMap("r1", type))), false);
