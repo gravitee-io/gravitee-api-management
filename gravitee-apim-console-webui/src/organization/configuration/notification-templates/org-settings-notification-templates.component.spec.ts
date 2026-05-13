@@ -86,6 +86,17 @@ describe('OrgSettingsNotificationTemplatesComponent', () => {
             icon: 'dashboard',
           },
         ],
+        'API Product': [
+          {
+            scope: 'API_PRODUCT',
+            humanReadableScope: 'API Product',
+            name: 'API Product Updated',
+            hook: 'API_PRODUCT_UPDATED',
+            description: 'Triggered when an API Product is updated.',
+            overridden: false,
+            icon: 'dashboard',
+          },
+        ],
         Application: [
           {
             scope: 'APPLICATION',
@@ -166,6 +177,17 @@ describe('OrgSettingsNotificationTemplatesComponent', () => {
             icon: 'dashboard',
           },
         ],
+        'API Product': [
+          {
+            scope: 'API_PRODUCT',
+            humanReadableScope: 'API Product',
+            name: 'API Product Updated',
+            hook: 'API_PRODUCT_UPDATED',
+            description: 'Triggered when an API Product is updated.',
+            overridden: false,
+            icon: 'dashboard',
+          },
+        ],
         Application: [
           {
             scope: 'APPLICATION',
@@ -211,6 +233,15 @@ describe('OrgSettingsNotificationTemplatesComponent', () => {
         title: 'API stopped',
         type: 'EMAIL',
         enabled: true,
+      }),
+      fakeNotificationTemplate({
+        description: 'Triggered when an API Product is updated.',
+        hook: 'API_PRODUCT_UPDATED',
+        name: 'API Product Updated',
+        scope: 'API_PRODUCT',
+        title: 'API Product updated',
+        type: 'EMAIL',
+        enabled: false,
       }),
       fakeNotificationTemplate({
         description: 'Triggered when a Subscription is accepted.',

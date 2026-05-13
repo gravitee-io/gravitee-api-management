@@ -105,12 +105,17 @@ export class OrgSettingsNotificationTemplatesComponent implements OnInit {
       return 'API';
     }
 
+    if (scope === 'API_PRODUCT') {
+      return 'API Product';
+    }
+
     return capitalize(scope.split('_').join(' '));
   }
 
   getScopeIcon(scope: string): string {
     switch (scope) {
       case 'API':
+      case 'API_PRODUCT':
         return 'dashboard';
       case 'APPLICATION':
         return 'list';
