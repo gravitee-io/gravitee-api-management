@@ -176,5 +176,24 @@
     </mat-card-content>
   </mat-card>
 
+  <mat-card class="request-validation-card">
+    <mat-card-header>
+      <mat-card-title>Request validation</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <gio-form-slide-toggle>
+        <gio-form-label>Reject requests containing null bytes</gio-form-label>
+        When enabled, the gateway returns HTTP 400 if any query parameter, header, or path parameter contains a null character
+        (<code>\u0000</code>).
+        <mat-slide-toggle
+          gioFormSlideToggle
+          formControlName="rejectNullByte"
+          aria-label="Reject requests containing null bytes toggle"
+          name="rejectNullByte"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
+    </mat-card-content>
+  </mat-card>
+
   <gio-save-bar [form]="corsForm" [formInitialValues]="initialCorsFormValue" (submitted)="onSubmit()"></gio-save-bar>
 </form>

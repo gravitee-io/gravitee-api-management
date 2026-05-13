@@ -60,6 +60,7 @@ import org.mapstruct.factory.Mappers;
         ResponseTemplateMapper.class,
         ServiceMapper.class,
         CorsMapper.class,
+        RequestValidationMapper.class,
     }
 )
 public interface ApiCRDMapper {

@@ -20,6 +20,7 @@ import static java.util.stream.Collectors.toMap;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.definition.model.Cors;
 import io.gravitee.definition.model.PathMapping;
+import io.gravitee.definition.model.RequestValidation;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -59,6 +60,8 @@ public class HttpListener extends Listener {
 
     private Cors cors;
 
+    private RequestValidation requestValidation;
+
     public HttpListener() {
         super(ListenerType.HTTP);
     }
@@ -69,6 +72,7 @@ public class HttpListener extends Listener {
         this.pathMappings = b.pathMappings;
         this.pathMappingsPattern = b.pathMappingsPattern;
         this.cors = b.cors;
+        this.requestValidation = b.requestValidation;
     }
 
     public void setPathMappings(final Set<String> pathMappings) {
