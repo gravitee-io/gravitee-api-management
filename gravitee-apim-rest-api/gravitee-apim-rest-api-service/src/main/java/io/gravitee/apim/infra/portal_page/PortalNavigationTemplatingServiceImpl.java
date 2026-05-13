@@ -18,13 +18,12 @@ package io.gravitee.apim.infra.portal_page;
 import freemarker.template.TemplateException;
 import io.gravitee.apim.core.portal_page.exception.PortalPageContentTemplateException;
 import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
+import io.gravitee.apim.core.portal_page.service_provider.RenderedPageContent;
 import io.gravitee.apim.core.template.TemplateProcessor;
 import io.gravitee.apim.core.template.TemplateProcessorException;
 import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.rest.api.model.MetadataEntity;
 import io.gravitee.rest.api.service.MetadataService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,21 +35,16 @@ import org.springframework.stereotype.Service;
 public class PortalNavigationTemplatingServiceImpl implements PortalNavigationTemplatingService {
 
     private final TemplateProcessor templateProcessor;
-    private final ApiTemplateService apiTemplateService;
     private final MetadataService metadataService;
 
     @Override
-    public String renderGraviteeMarkdown(RenderPortalNavigationMarkdownInput input) {
-        final var executionContext = new ExecutionContext(input.organizationId(), input.environmentId());
+    public RenderedPageContent renderGraviteeMarkdown(RenderPortalNavigationMarkdownInput input) {
         final Map<String, Object> templateParams = new HashMap<>();
 
         input
-            .enclosingApiId()
+            .apiModel()
             .ifPresentOrElse(
-                apiId -> {
-                    final var genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId, true);
-                    templateParams.put("api", genericApiModel);
-                },
+                apiModel -> templateParams.put("api", apiModel),
                 () -> {
                     final List<MetadataEntity> metadataList = metadataService.findByReferenceTypeAndReferenceId(
                         MetadataReferenceType.ENVIRONMENT,
@@ -65,7 +59,9 @@ public class PortalNavigationTemplatingServiceImpl implements PortalNavigationTe
             );
 
         try {
-            return templateProcessor.processInlineTemplate(input.templateKey(), input.rawMarkdown(), templateParams);
+            return RenderedPageContent.of(
+                templateProcessor.processInlineTemplate(input.templateKey(), input.rawMarkdown().value(), templateParams)
+            );
         } catch (TemplateProcessorException e) {
             // Evaluation failures wrap a freemarker.template.TemplateException; parse failures wrap an IOException
             // (FreeMarker's ParseException extends IOException, not TemplateException).
