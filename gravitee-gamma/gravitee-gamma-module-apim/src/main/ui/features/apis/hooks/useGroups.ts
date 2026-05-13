@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import '@testing-library/jest-dom';
-import { server } from './testing/server';
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
+import { useQuery } from '@tanstack/react-query';
 
-// jest-fixed-jsdom does not polyfill crypto.randomUUID
-if (typeof globalThis.crypto.randomUUID !== 'function') {
-    globalThis.crypto.randomUUID = () => {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-            const r = (Math.random() * 16) | 0;
-            return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
-        }) as ReturnType<typeof crypto.randomUUID>;
-    };
+import { getGroups } from '../services/members';
+import { groupKeys } from '../utils/queryKeys';
+
+export function useGroups() {
+    const env = useEnvironment();
+    return useQuery({
+        queryKey: groupKeys.list(env?.id ?? ''),
+        queryFn: () => getGroups(env!.id),
+        enabled: Boolean(env),
+        staleTime: 5 * 60_000,
+    });
 }
-
-beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }));
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());

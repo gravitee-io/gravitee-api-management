@@ -25,3 +25,45 @@ export const apiListKeys = {
         [...apiListKeys.all, 'search', envId, query, page, perPage] as const,
     count: (envId: string, filter: object) => [...apiListKeys.all, 'count', envId, JSON.stringify(filter)] as const,
 } as const;
+
+export const apiDetailKeys = {
+    all: ['api-detail'] as const,
+    detail: (envId: string, apiId: string) => [...apiDetailKeys.all, envId, apiId] as const,
+};
+
+export const apiEventsKeys = {
+    all: ['api-events'] as const,
+    list: (envId: string, apiId: string, page: number, perPage: number) => [...apiEventsKeys.all, envId, apiId, page, perPage] as const,
+};
+
+export const apiAuditKeys = {
+    all: ['api-audits'] as const,
+    list: (envId: string, apiId: string, params: object) => [...apiAuditKeys.all, envId, apiId, params] as const,
+    events: (envId: string, apiId: string) => [...apiAuditKeys.all, 'events', envId, apiId] as const,
+};
+
+export const apiMemberKeys = {
+    all: ['api-members'] as const,
+    list: (envId: string, apiId: string) => [...apiMemberKeys.all, envId, apiId] as const,
+    groups: (envId: string, apiId: string) => [...apiMemberKeys.all, 'groups', envId, apiId] as const,
+};
+
+export const apiRoleKeys = {
+    all: ['api-roles'] as const,
+    list: () => [...apiRoleKeys.all, 'list'] as const,
+};
+
+export const groupKeys = {
+    all: ['groups'] as const,
+    list: (envId: string) => [...groupKeys.all, envId] as const,
+};
+
+export const orgTagKeys = {
+    all: ['org-tags'] as const,
+    list: () => [...orgTagKeys.all, 'list'] as const,
+};
+
+export const apiPermissionKeys = {
+    all: ['api-permissions'] as const,
+    detail: (envId: string, apiId: string) => [...apiPermissionKeys.all, envId, apiId] as const,
+};

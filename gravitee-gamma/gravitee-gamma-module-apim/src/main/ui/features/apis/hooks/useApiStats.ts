@@ -31,26 +31,26 @@ export interface ApiStats {
 
 export function useApiStats(query?: string): ApiStats {
     const env = useEnvironment();
-    const enabled = Boolean(env);
+    const envId = env?.id ?? '';
 
     const totalQuery = useQuery({
-        queryKey: apiListKeys.count(env?.id ?? '', { query }),
-        queryFn: () => searchApis(env!.id, { query }, STATS_PAGE, STATS_PER_PAGE),
-        enabled,
+        queryKey: apiListKeys.count(envId, { query }),
+        queryFn: () => searchApis(envId, { query }, STATS_PAGE, STATS_PER_PAGE),
+        enabled: Boolean(env),
         staleTime: 60_000,
     });
 
     const privateQuery = useQuery({
-        queryKey: apiListKeys.count(env?.id ?? '', { query, visibilities: ['PRIVATE'] }),
-        queryFn: () => searchApis(env!.id, { query, visibilities: ['PRIVATE'] }, STATS_PAGE, STATS_PER_PAGE),
-        enabled,
+        queryKey: apiListKeys.count(envId, { query, visibilities: ['PRIVATE'] }),
+        queryFn: () => searchApis(envId, { query, visibilities: ['PRIVATE'] }, STATS_PAGE, STATS_PER_PAGE),
+        enabled: Boolean(env),
         staleTime: 60_000,
     });
 
     const publishedQuery = useQuery({
-        queryKey: apiListKeys.count(env?.id ?? '', { query, published: ['PUBLISHED'] }),
-        queryFn: () => searchApis(env!.id, { query, published: ['PUBLISHED'] }, STATS_PAGE, STATS_PER_PAGE),
-        enabled,
+        queryKey: apiListKeys.count(envId, { query, published: ['PUBLISHED'] }),
+        queryFn: () => searchApis(envId, { query, published: ['PUBLISHED'] }, STATS_PAGE, STATS_PER_PAGE),
+        enabled: Boolean(env),
         staleTime: 60_000,
     });
 

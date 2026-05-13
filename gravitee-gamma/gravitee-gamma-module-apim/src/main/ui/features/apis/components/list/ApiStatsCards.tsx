@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { Card, CardContent, Skeleton } from '@gravitee/graphene-core';
-import { useRef } from 'react';
 
 import { useApiStats } from '../../hooks/useApiStats';
 
@@ -25,20 +24,15 @@ const STAT_CARDS = [
 ] as const;
 
 function StatCard({ label, value, isLoading }: { label: string; value: number | null; isLoading: boolean }) {
-    const lastKnown = useRef<number | null>(null);
-    if (value !== null) {
-        lastKnown.current = value;
-    }
-
     return (
         <Card style={{ flex: 1 }}>
             <CardContent className="pt-5 pb-4">
                 <p className="text-sm font-medium text-muted-foreground">{label}</p>
-                {lastKnown.current === null ? (
+                {value === null ? (
                     <Skeleton className="mt-1.5 h-7 w-10 rounded" />
                 ) : (
                     <p className={`text-2xl font-semibold mt-0.5 transition-opacity duration-200${isLoading ? ' opacity-50' : ''}`}>
-                        {lastKnown.current}
+                        {value}
                     </p>
                 )}
             </CardContent>

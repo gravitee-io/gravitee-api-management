@@ -21,11 +21,16 @@ import type { ReactNode } from 'react';
 import { useApiList } from './useApiList';
 import { searchApis } from '../services/apiList';
 
-jest.mock('@gravitee/gamma-modules-sdk', () => ({ useEnvironment: jest.fn() }));
+jest.mock('@gravitee/gamma-modules-sdk', () => ({
+    ...jest.requireActual<object>('@gravitee/gamma-modules-sdk'),
+    useEnvironment: jest.fn(),
+}));
 jest.mock('../services/apiList', () => ({ searchApis: jest.fn() }));
 
-const mockUseEnvironment = useEnvironment as jest.Mock;
-const mockSearchApis = searchApis as jest.Mock;
+const mockUseEnvironment = jest.mocked(useEnvironment);
+const mockSearchApis = jest.mocked(searchApis);
+
+const MOCK_ENV = { id: 'env-1', hrids: ['env-1'] };
 
 const MOCK_RESPONSE = {
     data: [],
@@ -41,21 +46,13 @@ function createWrapper() {
 
 describe('useApiList', () => {
     beforeEach(() => {
-        mockUseEnvironment.mockReturnValue({ id: 'env-1' });
+        mockUseEnvironment.mockReturnValue(MOCK_ENV);
         mockSearchApis.mockResolvedValue(MOCK_RESPONSE);
     });
 
     afterEach(() => jest.clearAllMocks());
 
-    it('does not call the API when the environment is unavailable', () => {
-        mockUseEnvironment.mockReturnValue(null);
-
-        renderHook(() => useApiList({ query: '', page: 1, perPage: 10 }), { wrapper: createWrapper() });
-
-        expect(mockSearchApis).not.toHaveBeenCalled();
-    });
-
-    it('calls searchApis with the env id, page, and perPage — sorts by name when no query', async () => {
+    it('calls searchApis with envId, page, and perPage — sorts by name when no query', async () => {
         renderHook(() => useApiList({ query: '', page: 2, perPage: 25 }), { wrapper: createWrapper() });
 
         await waitFor(() => expect(mockSearchApis).toHaveBeenCalledTimes(1));
@@ -76,5 +73,11 @@ describe('useApiList', () => {
         const [, queryArg, , , sortByArg] = mockSearchApis.mock.calls[0];
         expect(queryArg.query).toBeUndefined();
         expect(sortByArg).toBe('name');
+    });
+
+    it('does not fire when environment is not yet ready', () => {
+        mockUseEnvironment.mockReturnValue(null);
+        renderHook(() => useApiList({ query: '', page: 1, perPage: 10 }), { wrapper: createWrapper() });
+        expect(mockSearchApis).not.toHaveBeenCalled();
     });
 });

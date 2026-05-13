@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import '@testing-library/jest-dom';
-import { server } from './testing/server';
 
-// jest-fixed-jsdom does not polyfill crypto.randomUUID
-if (typeof globalThis.crypto.randomUUID !== 'function') {
-    globalThis.crypto.randomUUID = () => {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-            const r = (Math.random() * 16) | 0;
-            return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
-        }) as ReturnType<typeof crypto.randomUUID>;
-    };
+export function MemberAvatar({ name }: Readonly<{ name: string }>) {
+    const initials = name
+        .split(' ')
+        .map(part => part[0] ?? '')
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+    return (
+        <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+            <span className="text-xs font-semibold text-primary">{initials || '?'}</span>
+        </div>
+    );
 }
-
-beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }));
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
