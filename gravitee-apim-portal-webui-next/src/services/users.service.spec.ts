@@ -18,7 +18,8 @@ import { TestBed } from '@angular/core/testing';
 
 import { FinalizeRegistrationInput, RegisterUserInput, UsersService } from './users.service';
 import { CustomUserField } from '../entities/user/custom-user-field';
-import { User } from '../entities/user/user';
+import { User, UsersResponse } from '../entities/user/user';
+import { fakeUser, fakeUsersResponse } from '../entities/user/user.fixtures';
 import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
 
 describe('UsersService', () => {
@@ -94,6 +95,41 @@ describe('UsersService', () => {
     const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/users/registration/_finalize`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(input);
+
+    req.flush(apiResponse);
+  });
+
+  it('should search users for application membership with default request parameters', done => {
+    const applicationId = 'app-1';
+    const user = fakeUser({ id: 'user-1', email: 'ada@example.com', display_name: 'Ada Lovelace' });
+    const apiResponse: UsersResponse = fakeUsersResponse({
+      data: [user],
+      metadata: {
+        data: { total: 1 },
+        applicationMembership: { 'user-1': true },
+      },
+    });
+
+    service.searchUsersForApplicationMembership(applicationId, 'Ada').subscribe(res => {
+      expect(res).toEqual(apiResponse);
+      done();
+    });
+
+    const req = httpTestingController.expectOne(
+      r =>
+        r.url === `${TESTING_BASE_URL}/users/_search` &&
+        r.method === 'POST' &&
+        r.params.get('page') === '1' &&
+        r.params.get('size') === '20',
+    );
+    expect(req.request.body).toEqual({
+      filters: {
+        query: 'Ada',
+      },
+      includes: {
+        applicationMembership: applicationId,
+      },
+    });
 
     req.flush(apiResponse);
   });
