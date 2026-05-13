@@ -1709,7 +1709,7 @@ class PatchApiUseCaseTest {
 
             var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("resources", null), false);
 
-            assertThat(httpV4Def(output.api()).getResources()).isNullOrEmpty();
+            assertThat(httpV4Def(output.api()).getResources()).isNull();
         }
 
         @Test
