@@ -26,7 +26,7 @@ import org.springframework.stereotype.Service;
 /**
  * @author GraviteeSource Team
  */
-@Service
+@Service("jsonPatchDomainServiceImpl")
 public class JsonPatchServiceImpl implements JsonPatchService {
 
     @Override
