@@ -97,6 +97,12 @@ export type ApiState = 'CLOSED' | 'INITIALIZED' | 'STARTED' | 'STOPPED' | 'STOPP
 export type ApiDeploymentState = 'NEED_REDEPLOY' | 'DEPLOYED';
 export type ApiLifecycleState = 'ARCHIVED' | 'CREATED' | 'DEPRECATED' | 'PUBLISHED' | 'UNPUBLISHED';
 export type ApiVisibility = 'PUBLIC' | 'PRIVATE';
+
+export interface DuplicateApiOptions {
+    contextPath?: string;
+    version: string;
+    filteredFields?: ('GROUPS' | 'MEMBERS' | 'PAGES' | 'PLANS')[];
+}
 export type ApiType = 'PROXY' | 'MESSAGE' | 'NATIVE';
 
 export interface ApiListListener {
@@ -151,9 +157,27 @@ export interface ApiDetailDto {
     type?: ApiType;
     apiVersion?: string;
     definitionVersion?: 'V4' | 'V4_NATIVE';
+    lifecycleState?: ApiLifecycleState;
+    visibility?: ApiVisibility;
     tags?: string[];
+    labels?: string[];
+    categories?: string[];
     groups?: string[];
+    allowedInApiProducts?: boolean;
     disableMembershipNotifications?: boolean;
+    primaryOwner?: { id?: string; displayName?: string; email?: string };
+    createdAt?: string;
+    updatedAt?: string;
+    picture?: string;
+    background?: string;
+    properties?: Property[];
+    services?: { dynamicProperty?: DynamicPropertyConfig };
+    listeners?: HttpListener[];
+    /** Populated for APIs synced from an external source (e.g. Kubernetes operator). */
+    definitionContext?: {
+        origin?: 'MANAGEMENT' | 'KUBERNETES';
+        syncFrom?: string;
+    };
 }
 
 export interface ApiEvent {
@@ -183,4 +207,29 @@ export interface OrgShardingTag {
     id: string;
     name: string;
     description?: string;
+}
+
+// ─── Properties types ─────────────────────────────────────────────────────────
+
+export interface Property {
+    key: string;
+    value: string;
+    encrypted?: boolean;
+    encryptable?: boolean;
+    dynamic?: boolean;
+}
+
+export type DynamicPropertyProvider = 'HTTP' | 'CUSTOM';
+
+export interface DynamicPropertyConfig {
+    enabled: boolean;
+    schedule?: string;
+    provider?: DynamicPropertyProvider;
+    configuration?: Record<string, unknown>;
+}
+
+// ─── Entrypoints types ───────────────────────────────────────────────────────
+
+export interface ExposedEntrypoint {
+    value: string;
 }

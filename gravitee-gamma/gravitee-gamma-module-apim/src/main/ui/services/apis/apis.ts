@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ApiDetailDto, ApiEventsPage } from '../../features/apis/types/api';
+import type { ApiDetailDto, ApiEventsPage, DuplicateApiOptions } from '../../features/apis/types/api';
 import { apimFetchJsonV2 } from '../../shared/api/apimClient';
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
@@ -48,5 +48,87 @@ export async function rollbackApi(environmentId: string, apiId: string, eventId:
         method: 'POST',
         headers: JSON_HEADERS,
         body: JSON.stringify({ eventId }),
+    });
+}
+
+export async function updateApiGeneral(
+    environmentId: string,
+    apiId: string,
+    current: ApiDetailDto,
+    patch: Partial<ApiDetailDto>,
+): Promise<ApiDetailDto> {
+    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/${encodeURIComponent(apiId)}`, {
+        method: 'PUT',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ ...current, ...patch }),
+    });
+}
+
+export async function startApi(environmentId: string, apiId: string): Promise<void> {
+    await apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}/_start`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+    });
+}
+
+export async function stopApi(environmentId: string, apiId: string): Promise<void> {
+    await apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}/_stop`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+    });
+}
+
+export async function deleteApi(environmentId: string, apiId: string): Promise<void> {
+    await apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}`, {
+        method: 'DELETE',
+    });
+}
+
+export async function duplicateApi(environmentId: string, apiId: string, options: DuplicateApiOptions): Promise<ApiDetailDto> {
+    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/${encodeURIComponent(apiId)}/_duplicate`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify(options),
+    });
+}
+
+export async function exportApiDefinition(environmentId: string, apiId: string): Promise<Blob> {
+    const definition = await apimFetchJsonV2<unknown>(environmentId, `/apis/${encodeURIComponent(apiId)}`);
+    return new Blob([JSON.stringify(definition, null, 2)], { type: 'application/json' });
+}
+
+export async function updateApiFromDefinition(environmentId: string, apiId: string, definition: unknown): Promise<ApiDetailDto> {
+    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/${encodeURIComponent(apiId)}/definition`, {
+        method: 'PUT',
+        headers: JSON_HEADERS,
+        body: JSON.stringify(definition),
+    });
+}
+
+export async function updateApiPicture(environmentId: string, apiId: string, base64: string): Promise<void> {
+    await apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}/picture`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'text/plain' },
+        body: base64,
+    });
+}
+
+export async function deleteApiPicture(environmentId: string, apiId: string): Promise<void> {
+    await apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}/picture`, {
+        method: 'DELETE',
+    });
+}
+
+export async function updateApiBackground(environmentId: string, apiId: string, base64: string): Promise<void> {
+    await apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}/background`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'text/plain' },
+        body: base64,
+    });
+}
+
+export async function deleteApiBackground(environmentId: string, apiId: string): Promise<void> {
+    await apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}/background`, {
+        method: 'DELETE',
     });
 }

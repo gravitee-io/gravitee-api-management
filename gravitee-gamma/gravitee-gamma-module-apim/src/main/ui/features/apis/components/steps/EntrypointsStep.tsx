@@ -16,14 +16,15 @@
 import { Button, Input, Label, Switch } from '@gravitee/graphene-core';
 import { PlusIcon, ServerIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 
+import { useGatewayPrefix } from '../../hooks/useGatewayPrefix';
 import { useVerifyContextPath } from '../../hooks/useVerifyContextPath';
 import { useApiCreation } from '../../store/apiCreationStore';
 import type { VirtualHostEntry } from '../../types/apiCreation';
-import { GATEWAY_URL_PLACEHOLDER } from '../../utils/apiProxyMapper';
 
 export function EntrypointsStep() {
     const { state, dispatch } = useApiCreation();
     const { form, validationErrors: errors } = state;
+    const gatewayPrefix = useGatewayPrefix();
     useVerifyContextPath();
 
     function update(patch: Partial<typeof form>) {
@@ -120,7 +121,7 @@ export function EntrypointsStep() {
                                     className="flex items-center px-3 text-sm font-mono text-muted-foreground whitespace-nowrap border-r bg-muted/30 select-none"
                                     aria-hidden
                                 >
-                                    {GATEWAY_URL_PLACEHOLDER}
+                                    {gatewayPrefix}
                                 </span>
                                 <Input
                                     id="context-path"

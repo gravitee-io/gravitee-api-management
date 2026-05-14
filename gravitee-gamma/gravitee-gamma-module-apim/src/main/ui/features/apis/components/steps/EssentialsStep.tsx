@@ -18,14 +18,15 @@ import { ServerIcon, ShieldIcon } from '@gravitee/graphene-core/icons';
 import type { CSSProperties } from 'react';
 
 import { SecurityPlanFields } from './SecurityPlanFields';
+import { useGatewayPrefix } from '../../hooks/useGatewayPrefix';
 import { useVerifyContextPath } from '../../hooks/useVerifyContextPath';
 import { useApiCreation } from '../../store/apiCreationStore';
-import { GATEWAY_URL_PLACEHOLDER } from '../../utils/apiProxyMapper';
 import { AUTH_LABEL } from '../../utils/securityFormatters';
 
 export function EssentialsStep() {
     const { state, dispatch } = useApiCreation();
     const { form, validationErrors: errors } = state;
+    const gatewayPrefix = useGatewayPrefix();
     useVerifyContextPath();
 
     function update(patch: Partial<typeof form>) {
@@ -88,6 +89,34 @@ export function EssentialsStep() {
                     <p className="text-xs text-muted-foreground text-right">{form.apiDescription.length}/250</p>
                 </div>
 
+                {/* Context Path with gateway prefix */}
+                <div className="space-y-2">
+                    <Label htmlFor="essentials-context-path">
+                        Context path <span className="text-destructive">*</span>
+                    </Label>
+                    <div
+                        className="flex items-stretch rounded-md border overflow-hidden"
+                        style={errors['contextPath'] ? { borderColor: 'var(--color-destructive)' } : undefined}
+                    >
+                        <span
+                            className="flex items-center px-3 text-sm font-mono text-muted-foreground whitespace-nowrap border-r bg-muted/30 select-none"
+                            aria-hidden
+                        >
+                            {gatewayPrefix}
+                        </span>
+                        <Input
+                            id="essentials-context-path"
+                            placeholder="/my-api"
+                            value={form.contextPath}
+                            onChange={e => update({ contextPath: e.target.value })}
+                            aria-invalid={Boolean(errors['contextPath'])}
+                            style={{ border: 'none', borderRadius: 0, boxShadow: 'none', flex: 1, fontFamily: 'monospace' }}
+                        />
+                    </div>
+                    {errors['contextPath'] && <p className="text-xs text-destructive">{errors['contextPath']}</p>}
+                    <p className="text-xs text-muted-foreground">Path prefix clients use to reach this API on the gateway.</p>
+                </div>
+
                 {/* Target URL */}
                 <div className="space-y-2">
                     <Label htmlFor="essentials-target-url">
@@ -109,34 +138,6 @@ export function EssentialsStep() {
                     </div>
                     {errors['targetUrl'] && <p className="text-xs text-destructive">{errors['targetUrl']}</p>}
                     <p className="text-xs text-muted-foreground">The upstream backend the gateway will forward requests to.</p>
-                </div>
-
-                {/* Context Path with gateway prefix */}
-                <div className="space-y-2">
-                    <Label htmlFor="essentials-context-path">
-                        Context path <span className="text-destructive">*</span>
-                    </Label>
-                    <div
-                        className="flex items-stretch rounded-md border overflow-hidden"
-                        style={errors['contextPath'] ? { borderColor: 'var(--color-destructive)' } : undefined}
-                    >
-                        <span
-                            className="flex items-center px-3 text-sm font-mono text-muted-foreground whitespace-nowrap border-r bg-muted/30 select-none"
-                            aria-hidden
-                        >
-                            {GATEWAY_URL_PLACEHOLDER}
-                        </span>
-                        <Input
-                            id="essentials-context-path"
-                            placeholder="/my-api"
-                            value={form.contextPath}
-                            onChange={e => update({ contextPath: e.target.value })}
-                            aria-invalid={Boolean(errors['contextPath'])}
-                            style={{ border: 'none', borderRadius: 0, boxShadow: 'none', flex: 1, fontFamily: 'monospace' }}
-                        />
-                    </div>
-                    {errors['contextPath'] && <p className="text-xs text-destructive">{errors['contextPath']}</p>}
-                    <p className="text-xs text-muted-foreground">Path prefix clients use to reach this API on the gateway.</p>
                 </div>
 
                 {/* Security — pre-configured from template */}

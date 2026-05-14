@@ -18,15 +18,15 @@ import type { ApiProxyDraft } from '../types/apiCreation';
 
 export const GATEWAY_URL_PLACEHOLDER = 'https://gateway.company.com';
 
-export function buildPreviewGatewayUrl(form: ApiProxyDraft): string {
+export function buildPreviewGatewayUrl(form: ApiProxyDraft, gatewayPrefix = GATEWAY_URL_PLACEHOLDER): string {
     if (form.virtualHostsEnabled && form.virtualHosts.length > 0) {
         const first = form.virtualHosts[0];
-        const host = first.host || GATEWAY_URL_PLACEHOLDER;
+        const host = first.host || gatewayPrefix;
         const path = first.path || '/';
         return `${host}${path}`;
     }
     const path = form.contextPath || '/your-api';
-    return `${GATEWAY_URL_PLACEHOLDER}${path}`;
+    return `${gatewayPrefix}${path}`;
 }
 
 function buildListener(form: ApiProxyDraft): HttpListener {
