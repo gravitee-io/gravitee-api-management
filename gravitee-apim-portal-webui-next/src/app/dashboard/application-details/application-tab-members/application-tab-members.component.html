@@ -16,7 +16,22 @@
 
 -->
 @if (canRead()) {
-  <app-search-bar (searchTerm)="onSearchTermChange($event)" />
+  <div class="members__toolbar">
+    <app-search-bar (searchTerm)="onSearchTermChange($event)" />
+    @if (canCreate()) {
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        data-testid="members-add-button"
+        (click)="openAddMembersDialog()"
+        i18n="@@applicationMembersAddButton"
+      >
+        <mat-icon aria-hidden="true">person_add</mat-icon>
+        Add Members
+      </button>
+    }
+  </div>
   <h4 class="next-gen-h4 members__title" data-testid="members-section-title" i18n="@@applicationMembersTitle">
     Members ({{ totalElements() }})
   </h4>

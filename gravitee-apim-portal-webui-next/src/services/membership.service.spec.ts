@@ -89,4 +89,19 @@ describe('MembershipService', () => {
     );
     req.flush(null, { status: 204, statusText: 'No Content' });
   });
+
+  it('should add an application member', done => {
+    const member: Member = { id: 'member-1', role: 'USER' };
+
+    service.addApplicationMember(applicationId, { user: 'user-1', role: 'USER' }).subscribe(res => {
+      expect(res).toEqual(member);
+      done();
+    });
+
+    const req = httpTestingController.expectOne(
+      r => r.url === `${TESTING_BASE_URL}/applications/${applicationId}/members` && r.method === 'POST',
+    );
+    expect(req.request.body).toEqual({ user: 'user-1', role: 'USER' });
+    req.flush(member);
+  });
 });
