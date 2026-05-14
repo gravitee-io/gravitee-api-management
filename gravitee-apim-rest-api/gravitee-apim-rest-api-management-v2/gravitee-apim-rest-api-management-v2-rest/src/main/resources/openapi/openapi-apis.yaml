@@ -300,7 +300,7 @@ paths:
                 Only the following fields are patchable: name, description, apiVersion, visibility, labels, tags,
                 lifecycleState, categories, analytics, failover, flowExecution, flows, services, resources,
                 allowedInApiProducts, allowMultiJwtOauth2Subscriptions, disableMembershipNotifications,
-                properties, responseTemplates.
+                properties, responseTemplates, listeners.
 
                 JSON Patch operations targeting /resources/N/configuration/... (any depth under configuration) are
                 rejected with 400. Replace the full configuration object at /resources/N/configuration instead.

@@ -49,6 +49,7 @@ import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
+import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
@@ -88,6 +89,7 @@ public class PatchApiUseCase {
     private static final String FIELD_RESPONSE_TEMPLATES = "responseTemplates";
     private static final String FIELD_FLOWS = "flows";
     private static final String FIELD_RESOURCES = "resources";
+    private static final String FIELD_LISTENERS = "listeners";
 
     private static final String JSON_PATCH_PATH_PREFIX = "/";
 
@@ -114,13 +116,14 @@ public class PatchApiUseCase {
         FIELD_PROPERTIES,
         FIELD_RESPONSE_TEMPLATES,
         FIELD_FLOWS,
-        FIELD_RESOURCES
+        FIELD_RESOURCES,
+        FIELD_LISTENERS
     );
 
     private static final int MAX_PATCH_OPS = 200;
 
     private static final Set<String> BLOCKED_WITH_HINT = Set.of("state");
-    private static final Set<String> BLOCKED_WITHOUT_HINT = Set.of("endpointGroups", "listeners");
+    private static final Set<String> BLOCKED_WITHOUT_HINT = Set.of("endpointGroups");
 
     private static final String NULL_NOT_ALLOWED_MESSAGE_FORMAT =
         "'%s' cannot be null; omit the field to leave it unchanged, or send an explicit value";
@@ -378,6 +381,7 @@ public class PatchApiUseCase {
         var responseTemplates = resolveResponseTemplates(patchType, rawPatchNode, patchedNode, httpV4.getResponseTemplates());
         var flows = resolvePatchableList(patchType, rawPatchNode, patchedNode, FIELD_FLOWS, Flow.class, httpV4.getFlows());
         var resources = resolvePatchableList(patchType, rawPatchNode, patchedNode, FIELD_RESOURCES, Resource.class, httpV4.getResources());
+        var listeners = resolvePatchableList(patchType, rawPatchNode, patchedNode, FIELD_LISTENERS, Listener.class, httpV4.getListeners());
 
         var updatedDefinition = httpV4
             .toBuilder()
@@ -393,6 +397,7 @@ public class PatchApiUseCase {
             .responseTemplates(responseTemplates)
             .flows(flows)
             .resources(resources)
+            .listeners(listeners)
             .build();
 
         return existingApi
@@ -829,7 +834,8 @@ public class PatchApiUseCase {
         List<PatchableProperty> properties,
         Map<String, Map<String, PatchableResponseTemplate>> responseTemplates,
         List<Flow> flows,
-        List<Resource> resources
+        List<Resource> resources,
+        List<Listener> listeners
     ) {
         static PatchableView from(Api api, io.gravitee.definition.model.v4.Api httpV4) {
             return new PatchableView(
@@ -851,7 +857,8 @@ public class PatchApiUseCase {
                 PatchableProperty.fromList(httpV4.getProperties()),
                 toPatchableResponseTemplates(httpV4.getResponseTemplates()),
                 httpV4.getFlows(),
-                httpV4.getResources()
+                httpV4.getResources(),
+                httpV4.getListeners()
             );
         }
 

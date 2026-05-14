@@ -37,6 +37,9 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.rest.api.management.v2.rest.model.ApiServices;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.FlowExecution;
@@ -293,8 +296,8 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
         return Stream.of(
             Arguments.of("{\"state\":\"STARTED\"}", MERGE_PATCH_TYPE, "state"),
             Arguments.of("[{\"op\":\"replace\",\"path\":\"/state\",\"value\":\"STARTED\"}]", JSON_PATCH_TYPE, "state"),
-            Arguments.of("{\"listeners\":[]}", MERGE_PATCH_TYPE, "listeners"),
-            Arguments.of("[{\"op\":\"replace\",\"path\":\"/listeners\",\"value\":[]}]", JSON_PATCH_TYPE, "listeners")
+            Arguments.of("{\"endpointGroups\":[]}", MERGE_PATCH_TYPE, "endpointGroups"),
+            Arguments.of("[{\"op\":\"replace\",\"path\":\"/endpointGroups\",\"value\":[]}]", JSON_PATCH_TYPE, "endpointGroups")
         );
     }
 
@@ -407,6 +410,37 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
                 Arguments.of("{\"tags\":[\"forbidden\"]}", MERGE_PATCH_TYPE),
                 Arguments.of("[{\"op\":\"replace\",\"path\":\"/tags\",\"value\":[\"forbidden\"]}]", JSON_PATCH_TYPE)
             );
+        }
+
+        @Test
+        void should_return_200_with_sanitized_listeners() {
+            doAnswer(inv -> {
+                Api api = inv.getArgument(0);
+                var sanitizedListener = HttpListener.builder()
+                    .paths(List.of(Path.builder().path("/sanitized").build()))
+                    .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
+                    .build();
+                var sanitizedDef = api.getApiDefinitionHttpV4().toBuilder().listeners(List.of(sanitizedListener)).build();
+                return api.toBuilder().apiDefinitionValue(sanitizedDef).build();
+            })
+                .when(updateApiDomainService)
+                .validateV4(any(), any());
+
+            var response = rootTarget(API)
+                .queryParam("dryRun", "true")
+                .request()
+                .method("PATCH", Entity.entity("{\"listeners\":[" + listenerJson("/requested") + "]}", MERGE_PATCH_TYPE));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiV4.class)
+                .satisfies(apiV4 -> {
+                    var listeners = apiV4.getListeners();
+                    Assertions.assertThat(listeners).hasSize(1);
+                    Assertions.assertThat(listeners.getFirst().getHttpListener().getPaths().getFirst().getPath()).isEqualTo("/sanitized");
+                });
+            verify(updateApiDomainService).validateV4(any(), any());
+            verify(updateApiDomainService, never()).updateV4(any(), any());
         }
     }
 
@@ -804,6 +838,37 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
                 "[{\"op\":\"replace\",\"path\":\"/responseTemplates\",\"value\":{\"FOO_KEY\":{\"application/json\":{\"statusCode\":400,\"body\":\"{}\"}}}}]",
                 JSON_PATCH_TYPE
             )
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("listenersUpdateVariants")
+    void should_update_listeners(String body, String contentType) {
+        var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
+
+        assertThat(response)
+            .hasStatus(OK_200)
+            .asEntity(ApiV4.class)
+            .satisfies(apiV4 -> {
+                var listeners = apiV4.getListeners();
+                Assertions.assertThat(listeners).hasSize(1);
+                Assertions.assertThat(listeners.getFirst().getHttpListener().getPaths().getFirst().getPath()).isEqualTo("/patched");
+            });
+    }
+
+    static Stream<Arguments> listenersUpdateVariants() {
+        var listenerJson = listenerJson("/patched");
+        return Stream.of(
+            Arguments.of("{\"listeners\":[" + listenerJson + "]}", MERGE_PATCH_TYPE),
+            Arguments.of("[{\"op\":\"replace\",\"path\":\"/listeners\",\"value\":[" + listenerJson + "]}]", JSON_PATCH_TYPE)
+        );
+    }
+
+    private static String listenerJson(String path) {
+        return (
+            "{\"type\":\"http\",\"paths\":[{\"path\":\"" +
+            path +
+            "\"}],\"entrypoints\":[{\"type\":\"http-proxy\",\"configuration\":\"{}\"}]}"
         );
     }
 }
