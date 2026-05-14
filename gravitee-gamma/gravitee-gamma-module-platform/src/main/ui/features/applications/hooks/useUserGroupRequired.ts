@@ -13,5 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { isUserGroupRequired, useConsoleSettings } from '../../../shared/console-settings';
 
-export * from '../../../../../../gamma-ui-shared/src/api/apimClient';
+/**
+ * Reads org console settings from {@link ConsoleSettingsProvider}.
+ * Only call under routes wrapped by that provider (settings are ready when children render).
+ */
+export function useUserGroupRequired(): { requireUserGroups: boolean; isLoading: boolean } {
+    const settings = useConsoleSettings();
+
+    return {
+        requireUserGroups: isUserGroupRequired(settings),
+        isLoading: false,
+    };
+}

@@ -13,5 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { apimFetchJsonOrg } from '../api/apimClient';
+import type { ConsoleSettings } from '../console-settings';
 
-export * from '../../../../../../gamma-ui-shared/src/api/apimClient';
+/** GET /organizations/{orgId}/console (Angular `constants.org.settings`). */
+export async function fetchOrgConsoleSettings(): Promise<ConsoleSettings> {
+    return apimFetchJsonOrg<ConsoleSettings>('/console');
+}

@@ -14,4 +14,6 @@
  * limitations under the License.
  */
 
-export * from '../../../../../../gamma-ui-shared/src/api/apimClient';
+export interface ApplicationsListLocationState {
+    successMessage?: string;
+}
