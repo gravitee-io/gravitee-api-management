@@ -11,6 +11,13 @@
                 "lintFilePatterns": ["{projectRoot}/**/*.ts", "{projectRoot}/**/*.tsx"]
             }
         },
-        "lint-license": {}
+        "lint-license": {},
+        "test": {
+            "executor": "@nx/jest:jest",
+            "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+            "options": {
+                "jestConfig": "gravitee-gamma/gravitee-gamma-module-platform/jest.config.ts"
+            }
+        }
     }
 }

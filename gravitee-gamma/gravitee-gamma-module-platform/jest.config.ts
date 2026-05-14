@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 export default {
-    displayName: 'gravitee-gamma-module-apim',
+    displayName: 'gravitee-gamma-module-platform',
     testEnvironment: 'jest-fixed-jsdom',
-    setupFilesAfterEnv: ['<rootDir>/src/main/ui/test-setup.ts'],
     transformIgnorePatterns: ['/node_modules/(?!(until-async|@gravitee/graphene-core)/)'],
     moduleNameMapper: {
         '^react$': '<rootDir>/../../node_modules/react/index.js',
@@ -29,6 +28,7 @@ export default {
         '^@gravitee/graphene-core$': '<rootDir>/../../node_modules/@gravitee/graphene-core/dist/index.js',
         '^@gravitee/graphene-core/(.*)$': '<rootDir>/../../node_modules/@gravitee/graphene-core/dist/$1',
         '^@gravitee/gamma-modules-sdk$': '<rootDir>/src/main/ui/shared/gamma-modules-sdk.ts',
+        '^@gravitee/gamma-modules-sdk/routing$': '<rootDir>/../../node_modules/@gravitee/gamma-modules-sdk/dist/routing.js',
         '^@gravitee/gamma-ui-shared/api$': '<rootDir>/../gamma-ui-shared/src/api/apimClient.ts',
     },
     transform: {

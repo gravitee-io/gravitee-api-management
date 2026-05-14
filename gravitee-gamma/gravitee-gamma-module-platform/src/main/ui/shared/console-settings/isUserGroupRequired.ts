@@ -13,5 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { ConsoleSettings } from './types';
 
-export * from '../../../../../../gamma-ui-shared/src/api/apimClient';
+export function isUserGroupRequired(config: ConsoleSettings | null | undefined): boolean {
+    return Boolean(config?.userGroup?.required?.enabled);
+}

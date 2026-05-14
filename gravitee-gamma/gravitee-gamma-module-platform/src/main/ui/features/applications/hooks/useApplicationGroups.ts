@@ -13,5 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
+import { useQuery } from '@tanstack/react-query';
 
-export * from '../../../../../../gamma-ui-shared/src/api/apimClient';
+import { listApplicationGroups } from '../services/applicationConfiguration';
+import type { ApplicationGroup } from '../types/applicationCreate';
+import { applicationListKeys } from '../utils/queryKeys';
+
+export function useApplicationGroups() {
+    const env = useEnvironment();
+    return useQuery<ApplicationGroup[]>({
+        queryKey: applicationListKeys.groups(env?.id ?? ''),
+        queryFn: () => listApplicationGroups(env!.id),
+        enabled: Boolean(env),
+        staleTime: 60_000,
+    });
+}

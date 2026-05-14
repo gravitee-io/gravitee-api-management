@@ -57,7 +57,6 @@ import { ApiPropertiesPage } from '../features/apis/pages/detail/properties/ApiP
 import { UserPermissionsPage } from '../features/apis/pages/detail/user-permissions/UserPermissionsPage';
 import { ScratchWizardPage } from '../features/apis/pages/ScratchWizardPage';
 import { TemplateWizardPage } from '../features/apis/pages/TemplateWizardPage';
-import { ApplicationsPage } from '../features/applications/pages/ApplicationsPage';
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage';
 import { SettingsPage } from '../features/settings/pages/SettingsPage';
 
@@ -168,7 +167,6 @@ export function AppRoutes() {
                             <Route path="*" element={<Navigate to="overview" replace />} />
                         </Route>
                     </Route>
-                    <Route path="applications" element={<ApplicationsPage />} />
                     <Route path="analytics" element={<AnalyticsPage />} />
                     <Route path="settings" element={<SettingsPage />} />
                 </Route>

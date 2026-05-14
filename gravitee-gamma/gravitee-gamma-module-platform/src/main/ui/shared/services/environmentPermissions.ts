@@ -13,5 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { normalizeCrudMapRecord } from '@gravitee/gamma-modules-sdk';
 
-export * from '../../../../../../gamma-ui-shared/src/api/apimClient';
+import { apimFetchJsonV1Env } from '../api/apimClient';
+
+/**
+ * Fetches the current user's environment-scoped permissions and returns
+ * normalized flat strings ready for `permissionService.load('environment', ...)`.
+ */
+export async function getEnvironmentPermissions(environmentId: string): Promise<string[]> {
+    const raw = await apimFetchJsonV1Env<Record<string, string[] | string>>(environmentId, '/permissions');
+    return normalizeCrudMapRecord('environment', raw);
+}
