@@ -114,6 +114,7 @@
   "resolutions": {
     "fast-xml-parser": "4.5.4",
     "form-data": "4.0.4",
+    "handlebars": "4.7.9",
     "sha.js": "2.4.12"
   },
   "scarfSettings": {
