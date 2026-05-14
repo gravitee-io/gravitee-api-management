@@ -21,8 +21,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
@@ -32,14 +30,8 @@ import io.gravitee.apim.core.portal_page.service_provider.RenderedPageContent;
 import io.gravitee.apim.core.template.TemplateProcessor;
 import io.gravitee.apim.core.template.TemplateProcessorException;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
-import io.gravitee.repository.management.model.MetadataReferenceType;
-import io.gravitee.rest.api.model.MetadataEntity;
-import io.gravitee.rest.api.model.v4.api.GenericApiModel;
-import io.gravitee.rest.api.service.MetadataService;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -52,115 +44,42 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class PortalNavigationTemplatingServiceImplTest {
 
-    private static final String ORG = "org-id";
-    private static final String ENV = "env-id";
-
     @Mock
     private TemplateProcessor templateProcessor;
-
-    @Mock
-    private MetadataService metadataService;
 
     private PortalNavigationTemplatingServiceImpl cut;
 
     @BeforeEach
     void setUp() {
-        cut = new PortalNavigationTemplatingServiceImpl(templateProcessor, metadataService);
+        cut = new PortalNavigationTemplatingServiceImpl(templateProcessor);
     }
 
     @Test
-    void should_put_api_in_model_when_api_model_is_present() throws TemplateProcessorException {
-        var apiModel = org.mockito.Mockito.mock(GenericApiModel.class);
-        when(templateProcessor.processInlineTemplate(eq("page-key"), eq("${api}"), argThat(m -> m.get("api") == apiModel))).thenReturn(
-            "ok"
-        );
+    void should_render_template_with_provided_model() throws TemplateProcessorException {
+        var model = Map.<String, Object>of("api", "my-api");
+        when(templateProcessor.processInlineTemplate(eq("${api}"), argThat(m -> "my-api".equals(m.get("api"))))).thenReturn("my-api");
 
-        var input = new PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput(
-            GraviteeMarkdown.of("${api}"),
-            "page-key",
-            ORG,
-            ENV,
-            Optional.of(apiModel)
-        );
+        var input = new PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput(GraviteeMarkdown.of("${api}"), model);
 
-        assertThat(cut.renderGraviteeMarkdown(input)).isEqualTo(RenderedPageContent.of("ok"));
-        verify(metadataService, never()).findByReferenceTypeAndReferenceId(any(), anyString());
+        assertThat(cut.renderGraviteeMarkdown(input)).isEqualTo(RenderedPageContent.of("my-api"));
     }
 
     @Test
-    void should_put_environment_metadata_in_model_when_no_api_model() throws TemplateProcessorException {
-        var m = new MetadataEntity();
-        m.setKey("k");
-        m.setName("n");
-        m.setValue("v");
-        when(metadataService.findByReferenceTypeAndReferenceId(MetadataReferenceType.ENVIRONMENT, ENV)).thenReturn(List.of(m));
-        when(
-            templateProcessor.processInlineTemplate(
-                eq("page-key"),
-                eq("${metadata.k}"),
-                argThat(model -> "v".equals(((Map<?, ?>) model.get("metadata")).get("k")))
-            )
-        ).thenReturn("rendered");
+    void should_render_template_with_empty_model() throws TemplateProcessorException {
+        when(templateProcessor.processInlineTemplate(eq("plain"), argThat(Map::isEmpty))).thenReturn("plain");
 
-        var input = new PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput(
-            GraviteeMarkdown.of("${metadata.k}"),
-            "page-key",
-            ORG,
-            ENV,
-            Optional.empty()
-        );
+        var input = new PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput(GraviteeMarkdown.of("plain"), Map.of());
 
-        assertThat(cut.renderGraviteeMarkdown(input)).isEqualTo(RenderedPageContent.of("rendered"));
-    }
-
-    @Test
-    void should_not_query_metadata_when_api_model_is_present() throws TemplateProcessorException {
-        var apiModel = org.mockito.Mockito.mock(GenericApiModel.class);
-        when(templateProcessor.processInlineTemplate(anyString(), anyString(), any())).thenReturn("x");
-
-        cut.renderGraviteeMarkdown(
-            new PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput(
-                GraviteeMarkdown.of("md"),
-                "key",
-                ORG,
-                ENV,
-                Optional.of(apiModel)
-            )
-        );
-
-        verify(metadataService, never()).findByReferenceTypeAndReferenceId(any(), anyString());
-    }
-
-    @Test
-    void should_omit_metadata_when_metadata_list_is_null() throws TemplateProcessorException {
-        when(metadataService.findByReferenceTypeAndReferenceId(MetadataReferenceType.ENVIRONMENT, ENV)).thenReturn(null);
-        when(templateProcessor.processInlineTemplate(eq("key"), eq("plain"), argThat(Map::isEmpty))).thenReturn("plain");
-
-        assertThat(
-            cut.renderGraviteeMarkdown(
-                new PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput(
-                    GraviteeMarkdown.of("plain"),
-                    "key",
-                    ORG,
-                    ENV,
-                    Optional.empty()
-                )
-            )
-        ).isEqualTo(RenderedPageContent.of("plain"));
+        assertThat(cut.renderGraviteeMarkdown(input)).isEqualTo(RenderedPageContent.of("plain"));
     }
 
     @Test
     void should_wrap_freemarker_template_exception_with_blamed_expression_message() {
-        var freemarkerProcessor = new FreemarkerTemplateProcessor();
-        var impl = new PortalNavigationTemplatingServiceImpl(freemarkerProcessor, metadataService);
-        when(metadataService.findByReferenceTypeAndReferenceId(MetadataReferenceType.ENVIRONMENT, ENV)).thenReturn(null);
+        var impl = new PortalNavigationTemplatingServiceImpl(new FreemarkerTemplateProcessor());
 
         var input = new PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput(
             GraviteeMarkdown.of("${thisVariableIsMissing}"),
-            "key",
-            ORG,
-            ENV,
-            Optional.empty()
+            Map.of()
         );
 
         assertThatThrownBy(() -> impl.renderGraviteeMarkdown(input))
@@ -170,17 +89,11 @@ class PortalNavigationTemplatingServiceImplTest {
 
     @Test
     void should_wrap_non_template_exception_failure_as_invalid_template() throws TemplateProcessorException {
-        when(templateProcessor.processInlineTemplate(anyString(), anyString(), any())).thenThrow(
+        when(templateProcessor.processInlineTemplate(anyString(), any())).thenThrow(
             new TemplateProcessorException("tmpl", new IOException("parse failure"))
         );
 
-        var input = new PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput(
-            GraviteeMarkdown.of("${broken!"),
-            "key",
-            ORG,
-            ENV,
-            Optional.empty()
-        );
+        var input = new PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput(GraviteeMarkdown.of("${broken!"), Map.of());
 
         assertThatThrownBy(() -> cut.renderGraviteeMarkdown(input))
             .isInstanceOf(PortalPageContentTemplateException.class)

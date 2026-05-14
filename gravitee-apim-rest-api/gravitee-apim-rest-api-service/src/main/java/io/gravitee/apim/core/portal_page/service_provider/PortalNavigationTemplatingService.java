@@ -16,23 +16,15 @@
 package io.gravitee.apim.core.portal_page.service_provider;
 
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
-import io.gravitee.rest.api.model.v4.api.GenericApiModel;
-import java.util.Optional;
+import java.util.Map;
 
 public interface PortalNavigationTemplatingService {
     /**
-     * Renders Gravitee Markdown documentation using the same FreeMarker model as legacy API pages:
-     * {@code api} when {@code apiModel} is present, otherwise environment {@code metadata} only.
+     * Renders Gravitee Markdown documentation using the provided FreeMarker {@code model}.
      *
      * @throws io.gravitee.apim.core.portal_page.exception.PortalPageContentTemplateException on invalid template or missing properties (navigation has no page "messages")
      */
     RenderedPageContent renderGraviteeMarkdown(RenderPortalNavigationMarkdownInput input);
 
-    record RenderPortalNavigationMarkdownInput(
-        GraviteeMarkdown rawMarkdown,
-        String templateKey,
-        String organizationId,
-        String environmentId,
-        Optional<GenericApiModel> apiModel
-    ) {}
+    record RenderPortalNavigationMarkdownInput(GraviteeMarkdown rawMarkdown, Map<String, Object> model) {}
 }

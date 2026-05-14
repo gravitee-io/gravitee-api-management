@@ -21,12 +21,6 @@ import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTempla
 import io.gravitee.apim.core.portal_page.service_provider.RenderedPageContent;
 import io.gravitee.apim.core.template.TemplateProcessor;
 import io.gravitee.apim.core.template.TemplateProcessorException;
-import io.gravitee.repository.management.model.MetadataReferenceType;
-import io.gravitee.rest.api.model.MetadataEntity;
-import io.gravitee.rest.api.service.MetadataService;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -35,33 +29,11 @@ import org.springframework.stereotype.Service;
 public class PortalNavigationTemplatingServiceImpl implements PortalNavigationTemplatingService {
 
     private final TemplateProcessor templateProcessor;
-    private final MetadataService metadataService;
 
     @Override
     public RenderedPageContent renderGraviteeMarkdown(RenderPortalNavigationMarkdownInput input) {
-        final Map<String, Object> templateParams = new HashMap<>();
-
-        input
-            .apiModel()
-            .ifPresentOrElse(
-                apiModel -> templateParams.put("api", apiModel),
-                () -> {
-                    final List<MetadataEntity> metadataList = metadataService.findByReferenceTypeAndReferenceId(
-                        MetadataReferenceType.ENVIRONMENT,
-                        input.environmentId()
-                    );
-                    if (metadataList != null) {
-                        final Map<String, String> mapMetadata = new HashMap<>(metadataList.size());
-                        metadataList.forEach(metadata -> mapMetadata.put(metadata.getKey(), metadata.getValue()));
-                        templateParams.put("metadata", mapMetadata);
-                    }
-                }
-            );
-
         try {
-            return RenderedPageContent.of(
-                templateProcessor.processInlineTemplate(input.templateKey(), input.rawMarkdown().value(), templateParams)
-            );
+            return RenderedPageContent.of(templateProcessor.processInlineTemplate(input.rawMarkdown().value(), input.model()));
         } catch (TemplateProcessorException e) {
             // Evaluation failures wrap a freemarker.template.TemplateException; parse failures wrap an IOException
             // (FreeMarker's ParseException extends IOException, not TemplateException).
