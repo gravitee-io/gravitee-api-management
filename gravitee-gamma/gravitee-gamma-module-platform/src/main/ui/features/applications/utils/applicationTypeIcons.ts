@@ -13,5 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { AppWindowIcon, GlobeIcon, MonitorIcon, ServerIcon, ThumbsUpIcon } from '@gravitee/graphene-core/icons';
+import type { LucideIcon } from '@gravitee/graphene-core/icons';
 
-export * from '../../../../../../gamma-ui-shared/src/api/apimClient';
+const TYPE_ICONS: Record<string, LucideIcon> = {
+    simple: ThumbsUpIcon,
+    browser: MonitorIcon,
+    web: GlobeIcon,
+    native: AppWindowIcon,
+    backend_to_backend: ServerIcon,
+};
+
+export function applicationTypeIcon(typeId: string): LucideIcon {
+    return TYPE_ICONS[typeId.toLowerCase()] ?? AppWindowIcon;
+}

@@ -15,6 +15,7 @@
  */
 import { useModuleRouting } from '@gravitee/gamma-modules-sdk/routing';
 import { buildLinearBreadcrumbs, SidebarNavigation, useLayoutConfig } from '@gravitee/graphene-core';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 
@@ -22,8 +23,15 @@ import { NAV_GROUPS } from '../config/navigation';
 import { PLATFORM_ROUTE_CONFIG } from '../config/routes';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
 import { DashboardPage } from '../pages/DashboardPage';
+import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
+import { ConsoleSettingsProvider } from '../shared/console-settings';
+import { useEnvironmentPermissions } from '../shared/hooks/useEnvironmentPermissions';
+
+const queryClient = new QueryClient();
 
 function ModuleLayout() {
+    useEnvironmentPermissions();
+
     const navigate = useNavigate();
     const { activeNavKey, navigateToKey, rootPath } = useModuleRouting(PLATFORM_ROUTE_CONFIG);
 
@@ -50,12 +58,19 @@ function ModuleLayout() {
 /** Route tree for this module: mounted under the host router when federated, or under the local dev root for standalone. */
 export function AppRoutes() {
     return (
-        <Routes>
-            <Route element={<ModuleLayout />}>
-                <Route index element={<DashboardPage />} />
-                <Route path="dashboard" element={<DashboardPage />} />
-                <Route path="applications" element={<ApplicationsPage />} />
-            </Route>
-        </Routes>
+        <QueryClientProvider client={queryClient}>
+            <ConsoleSettingsProvider>
+                <Routes>
+                    <Route element={<ModuleLayout />}>
+                        <Route index element={<DashboardPage />} />
+                        <Route path="dashboard" element={<DashboardPage />} />
+                        <Route path="applications">
+                            <Route index element={<ApplicationsPage />} />
+                            <Route path="new" element={<RegisterApplicationPage />} />
+                        </Route>
+                    </Route>
+                </Routes>
+            </ConsoleSettingsProvider>
+        </QueryClientProvider>
     );
 }

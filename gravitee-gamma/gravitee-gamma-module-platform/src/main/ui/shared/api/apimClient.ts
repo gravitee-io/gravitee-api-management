@@ -13,11 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export function ApplicationsPage() {
-    return (
-        <div>
-            <h1>Applications</h1>
-            <p>Manage applications for consumers of your APIs.</p>
-        </div>
-    );
-}
+
+export * from '../../../../../../gamma-ui-shared/src/api/apimClient';

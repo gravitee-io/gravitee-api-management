@@ -13,5 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { formatApplicationTypeLabel } from './applicationFormatters';
 
-export * from '../../../../../../gamma-ui-shared/src/api/apimClient';
+describe('applicationFormatters', () => {
+    it('maps known application types to display labels', () => {
+        expect(formatApplicationTypeLabel({ type: 'SIMPLE' })).toBe('Service');
+        expect(formatApplicationTypeLabel({ type: 'BROWSER' })).toBe('SPA');
+        expect(formatApplicationTypeLabel({ type: 'BACKEND_TO_BACKEND' })).toBe('Backend');
+    });
+});

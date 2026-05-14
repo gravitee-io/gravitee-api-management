@@ -49,7 +49,6 @@ import { ApiProductsPage } from '../pages/ApiProductsPage';
 import { ApiProductUserPermissionsPage } from '../pages/ApiProductUserPermissionsPage';
 import { ApiPropertiesPage } from '../pages/ApiPropertiesPage';
 import { ApisPage } from '../pages/ApisPage';
-import { ApplicationsPage } from '../pages/ApplicationsPage';
 import { AuditLogsPage } from '../pages/AuditLogsPage';
 import { CreateApiProductPage } from '../pages/CreateApiProductPage';
 import { CreateApiProxyPage } from '../pages/CreateApiProxyPage';
@@ -168,7 +167,6 @@ export function AppRoutes() {
                             <Route path="*" element={<Navigate to="overview" replace />} />
                         </Route>
                     </Route>
-                    <Route path="applications" element={<ApplicationsPage />} />
                     <Route path="analytics" element={<AnalyticsPage />} />
                     <Route path="settings" element={<SettingsPage />} />
                 </Route>

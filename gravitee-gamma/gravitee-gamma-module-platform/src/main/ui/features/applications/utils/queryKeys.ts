@@ -14,4 +14,11 @@
  * limitations under the License.
  */
 
-export * from '../../../../../../gamma-ui-shared/src/api/apimClient';
+export const applicationListKeys = {
+    all: ['application-list'] as const,
+    search: (envId: string, query: string, status: string, page: number, perPage: number) =>
+        [...applicationListKeys.all, 'search', envId, query, status, page, perPage] as const,
+    count: (envId: string, filter: object) => [...applicationListKeys.all, 'count', envId, filter] as const,
+    types: (envId: string) => [...applicationListKeys.all, 'types', envId] as const,
+    groups: (envId: string) => [...applicationListKeys.all, 'groups', envId] as const,
+} as const;
