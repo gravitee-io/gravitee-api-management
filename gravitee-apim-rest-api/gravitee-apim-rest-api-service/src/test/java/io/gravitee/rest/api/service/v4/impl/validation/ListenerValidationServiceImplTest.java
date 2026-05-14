@@ -112,7 +112,12 @@ class ListenerValidationServiceImplTest {
             .when(entrypointService.validateConnectorConfiguration(any(String.class), any()))
             .thenAnswer(invocation -> invocation.getArgument(1));
         listenerValidationService = new ListenerValidationServiceImpl(
-            new VerifyApiPathDomainService(apiQueryService, installationAccessQueryService, apiHostValidatorDomainService),
+            new VerifyApiPathDomainService(
+                apiQueryService,
+                installationAccessQueryService,
+                apiHostValidatorDomainService,
+                new io.gravitee.apim.core.api.domain_service.ApiPathIndex()
+            ),
             entrypointService,
             endpointService,
             corsValidationService,
