@@ -13,7 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ApiDetailDto, ApiEventsPage, DuplicateApiOptions } from '../../features/apis/types/api';
+import type {
+    ApiDetailDto,
+    ApiEventsPage,
+    DuplicateApiOptions,
+    Cors,
+    DynamicPropertyConfig,
+    Property,
+} from '../../features/apis/types/api';
 import { apimFetchJsonV2 } from '../../shared/api/apimClient';
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
@@ -130,5 +137,35 @@ export async function updateApiBackground(environmentId: string, apiId: string, 
 export async function deleteApiBackground(environmentId: string, apiId: string): Promise<void> {
     await apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}/background`, {
         method: 'DELETE',
+    });
+}
+
+export async function updateApiProperties(environmentId: string, apiId: string, properties: Property[]): Promise<void> {
+    const current = await apimFetchJsonV2<Record<string, unknown>>(environmentId, `/apis/${encodeURIComponent(apiId)}`);
+    await apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}`, {
+        method: 'PUT',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ ...current, properties }),
+    });
+}
+
+export async function updateApiCors(environmentId: string, apiId: string, cors: Cors): Promise<void> {
+    const current = await apimFetchJsonV2<Record<string, unknown>>(environmentId, `/apis/${encodeURIComponent(apiId)}`);
+    const listeners = (current.listeners as Record<string, unknown>[]) ?? [];
+    const updatedListeners = listeners.map(l => (l['type'] === 'HTTP' ? { ...l, cors } : l));
+    await apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}`, {
+        method: 'PUT',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ ...current, listeners: updatedListeners.length > 0 ? updatedListeners : current.listeners }),
+    });
+}
+
+export async function updateDynamicProperties(environmentId: string, apiId: string, config: DynamicPropertyConfig): Promise<void> {
+    const current = await apimFetchJsonV2<Record<string, unknown>>(environmentId, `/apis/${encodeURIComponent(apiId)}`);
+    const services = (current.services as Record<string, unknown>) ?? {};
+    await apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}`, {
+        method: 'PUT',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ ...current, services: { ...services, dynamicProperty: config } }),
     });
 }

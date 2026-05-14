@@ -15,7 +15,6 @@
  */
 import { Badge, Skeleton } from '@gravitee/graphene-core';
 import { CircleCheckIcon, CircleStopIcon, CircleXIcon } from '@gravitee/graphene-core/icons';
-import type * as React from 'react';
 import { Navigate, Outlet, useLocation, useParams } from 'react-router-dom';
 
 import { API_PROXY_NAV_GROUPS, ApiDetailSidebarNav } from './ApiDetailSidebarNav';
@@ -84,11 +83,7 @@ function ApiInfoHeader({ api, isLoading }: { api: ApiDetailDto | null; isLoading
     return (
         <div className="px-3 pt-4 pb-4 border-b space-y-2.5">
             <div className="space-y-1">
-                <p
-                    className="text-sm font-semibold text-foreground leading-snug"
-                    style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                    title={api.name}
-                >
+                <p className="text-sm font-semibold text-foreground leading-snug truncate" title={api.name}>
                     {api.name}
                 </p>
                 {api.state ? <StateIndicator state={api.state} /> : null}
@@ -96,20 +91,7 @@ function ApiInfoHeader({ api, isLoading }: { api: ApiDetailDto | null; isLoading
 
             {/* Description */}
             {api.description ? (
-                <p
-                    className="text-xs text-muted-foreground leading-relaxed"
-                    style={
-                        {
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            wordBreak: 'break-word',
-                        } as React.CSSProperties
-                    }
-                >
-                    {api.description}
-                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 break-words">{api.description}</p>
             ) : null}
 
             {/* Tech chips */}
@@ -146,17 +128,7 @@ export function ApiDetailLayout() {
     return (
         <ApiDetailContext.Provider value={{ api: api ?? null, isLoading, permissionsReady }}>
             <div className="flex gap-6">
-                <aside
-                    className="shrink-0 overflow-y-auto pb-4"
-                    style={{
-                        position: 'sticky',
-                        top: 0,
-                        maxHeight: '100dvh',
-                        alignSelf: 'flex-start',
-                        width: '14rem',
-                        overflowX: 'hidden',
-                    }}
-                >
+                <aside className="sticky top-0 max-h-dvh self-start w-56 shrink-0 overflow-y-auto overflow-x-hidden pb-4">
                     <ApiInfoHeader api={api ?? null} isLoading={isLoading} />
                     <ApiDetailSidebarNav groups={API_PROXY_NAV_GROUPS} basePath={basePath} permissionsReady={permissionsReady} />
                 </aside>
