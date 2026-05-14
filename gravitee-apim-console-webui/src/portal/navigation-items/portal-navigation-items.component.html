@@ -51,7 +51,7 @@
     </header>
 
     @if (menuLinks$ | async; as menuLinks) {
-      <mat-card appearance="outlined" class="sections-panel__tree__container">
+      <mat-card appearance="outlined" class="sections-panel__tree__container" cdkScrollable>
         <portal-flat-tree-component
           [links]="menuLinks"
           [selectedId]="navId()"
