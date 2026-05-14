@@ -26,6 +26,8 @@ import { AnalyticsPage } from '../pages/AnalyticsPage';
 import { ApiAlertsPage } from '../pages/ApiAlertsPage';
 import { ApiDetailOverviewPage } from '../pages/ApiDetailOverviewPage';
 import { ApiDetailPlaceholderPage } from '../pages/ApiDetailPlaceholderPage';
+import { ApiEntrypointsPage } from '../pages/ApiEntrypointsPage';
+import { ApiGeneralPage } from '../pages/ApiGeneralPage';
 import { ApiProductsPage } from '../pages/ApiProductsPage';
 import { ApisPage } from '../pages/ApisPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
@@ -79,14 +81,14 @@ export function AppRoutes() {
                         <Route path=":apiId" element={<ApiDetailLayout />}>
                             <Route index element={<ApiDetailIndexRedirect />} />
                             <Route path="overview" element={<ApiDetailOverviewPage />} />
-                            <Route path="general" element={<ApiDetailPlaceholderPage title="General" />} />
+                            <Route path="general" element={<ApiGeneralPage />} />
                             <Route path="properties" element={<ApiDetailPlaceholderPage title="API Properties" />} />
                             <Route path="resources" element={<ApiDetailPlaceholderPage title="Resources" />} />
                             <Route path="notifications" element={<ApiDetailPlaceholderPage title="Notifications" />} />
                             <Route path="api-score" element={<ApiDetailPlaceholderPage title="API Score" />} />
                             <Route path="response-templates" element={<ApiDetailPlaceholderPage title="Response Templates" />} />
                             <Route path="cors" element={<ApiDetailPlaceholderPage title="CORS" />} />
-                            <Route path="entrypoints" element={<ApiDetailPlaceholderPage title="Entrypoints" />} />
+                            <Route path="entrypoints" element={<ApiEntrypointsPage />} />
                             <Route path="endpoints">
                                 <Route index element={<Navigate to="list" replace />} />
                                 <Route path="list" element={<ApiDetailPlaceholderPage title="Endpoints" />} />

@@ -19,6 +19,7 @@ import type { ReactNode } from 'react';
 import { useState } from 'react';
 
 import { SecurityPlanFields } from './SecurityPlanFields';
+import { useGatewayPrefix } from '../../hooks/useGatewayPrefix';
 import { useApiCreation } from '../../store/apiCreationStore';
 import { buildPlanName, buildPreviewGatewayUrl } from '../../utils/apiProxyMapper';
 import { AUTH_LABEL } from '../../utils/securityFormatters';
@@ -91,7 +92,8 @@ export function ReviewDeployStep() {
         dispatch({ type: 'SET_STEP', step });
     }
 
-    const gatewayUrl = buildPreviewGatewayUrl(form);
+    const gatewayPrefix = useGatewayPrefix();
+    const gatewayUrl = buildPreviewGatewayUrl(form, gatewayPrefix);
     const planName = buildPlanName(form);
 
     // template: step 0 = Essentials (covers details + proxy + security)

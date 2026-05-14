@@ -67,3 +67,13 @@ export const apiPermissionKeys = {
     all: ['api-permissions'] as const,
     detail: (envId: string, apiId: string) => [...apiPermissionKeys.all, envId, apiId] as const,
 };
+
+export const apiEntrypointKeys = {
+    all: ['api-entrypoints'] as const,
+    exposed: (envId: string, apiId: string) => [...apiEntrypointKeys.all, 'exposed', envId, apiId] as const,
+};
+
+export const portalSettingsKeys = {
+    all: ['portal-settings'] as const,
+    env: (envId: string) => [...portalSettingsKeys.all, envId] as const,
+};

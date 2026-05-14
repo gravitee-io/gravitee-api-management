@@ -31,7 +31,7 @@ const INITIAL_FORM: ApiProxyDraft = {
     apiName: '',
     apiVersion: '1.0.0',
     apiDescription: '',
-    contextPath: '',
+    contextPath: '/',
     virtualHostsEnabled: false,
     virtualHosts: [{ id: crypto.randomUUID(), host: '', path: '/', overrideAccess: false }],
     targetUrl: '',
