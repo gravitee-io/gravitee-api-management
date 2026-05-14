@@ -592,7 +592,12 @@ public class ResourceContextConfiguration {
         ApiQueryService apiQueryService,
         InstallationAccessQueryService installationAccessQueryService
     ) {
-        return new VerifyApiPathDomainService(apiQueryService, installationAccessQueryService, new ApiHostValidatorDomainServiceImpl());
+        return new VerifyApiPathDomainService(
+            apiQueryService,
+            installationAccessQueryService,
+            new ApiHostValidatorDomainServiceImpl(),
+            new io.gravitee.apim.core.api.domain_service.ApiPathIndex()
+        );
     }
 
     @Bean
