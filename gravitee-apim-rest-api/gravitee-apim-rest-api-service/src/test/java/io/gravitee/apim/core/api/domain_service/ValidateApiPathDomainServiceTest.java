@@ -22,6 +22,7 @@ import static org.mockito.Mockito.lenient;
 
 import fixtures.definition.ApiDefinitionFixtures;
 import inmemory.ApiHostValidatorDomainServiceGoogleImpl;
+import io.gravitee.apim.core.api.domain_service.ApiPathIndex;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
@@ -91,7 +92,8 @@ class VerifyApiPathDomainServiceTest {
         service = new VerifyApiPathDomainService(
             apiSearchService,
             installationAccessQueryService,
-            new ApiHostValidatorDomainServiceGoogleImpl()
+            new ApiHostValidatorDomainServiceGoogleImpl(),
+            new ApiPathIndex()
         );
     }
 
