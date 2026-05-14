@@ -22,13 +22,16 @@ import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 import { NAV_GROUPS } from '../config/navigation';
 import { APIM_ROUTE_CONFIG } from '../config/routes';
 import { ApiDetailIndexRedirect, ApiDetailLayout } from '../features/apis/components/detail/ApiDetailLayout';
+import { AlertFormPage } from '../pages/AlertFormPage';
 import { AnalyticsPage } from '../pages/AnalyticsPage';
 import { ApiAlertsPage } from '../pages/ApiAlertsPage';
+import { ApiCorsPage } from '../pages/ApiCorsPage';
 import { ApiDetailOverviewPage } from '../pages/ApiDetailOverviewPage';
 import { ApiDetailPlaceholderPage } from '../pages/ApiDetailPlaceholderPage';
 import { ApiEntrypointsPage } from '../pages/ApiEntrypointsPage';
 import { ApiGeneralPage } from '../pages/ApiGeneralPage';
 import { ApiProductsPage } from '../pages/ApiProductsPage';
+import { ApiPropertiesPage } from '../pages/ApiPropertiesPage';
 import { ApisPage } from '../pages/ApisPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
 import { AuditLogsPage } from '../pages/AuditLogsPage';
@@ -82,13 +85,13 @@ export function AppRoutes() {
                             <Route index element={<ApiDetailIndexRedirect />} />
                             <Route path="overview" element={<ApiDetailOverviewPage />} />
                             <Route path="general" element={<ApiGeneralPage />} />
-                            <Route path="properties" element={<ApiDetailPlaceholderPage title="API Properties" />} />
+                            <Route path="properties" element={<ApiPropertiesPage />} />
                             <Route path="resources" element={<ApiDetailPlaceholderPage title="Resources" />} />
                             <Route path="notifications" element={<ApiDetailPlaceholderPage title="Notifications" />} />
                             <Route path="api-score" element={<ApiDetailPlaceholderPage title="API Score" />} />
                             <Route path="response-templates" element={<ApiDetailPlaceholderPage title="Response Templates" />} />
-                            <Route path="cors" element={<ApiDetailPlaceholderPage title="CORS" />} />
                             <Route path="entrypoints" element={<ApiEntrypointsPage />} />
+                            <Route path="cors" element={<ApiCorsPage />} />
                             <Route path="endpoints">
                                 <Route index element={<Navigate to="list" replace />} />
                                 <Route path="list" element={<ApiDetailPlaceholderPage title="Endpoints" />} />
@@ -106,7 +109,11 @@ export function AppRoutes() {
                             <Route path="broadcasts" element={<ApiDetailPlaceholderPage title="Broadcasts" />} />
                             <Route path="authorization" element={<ApiDetailPlaceholderPage title="Authorization" />} />
                             <Route path="user-permissions" element={<UserPermissionsPage />} />
-                            <Route path="alerts" element={<ApiAlertsPage />} />
+                            <Route path="alerts">
+                                <Route index element={<ApiAlertsPage />} />
+                                <Route path="new" element={<AlertFormPage />} />
+                                <Route path=":alertId" element={<AlertFormPage />} />
+                            </Route>
                             <Route path="audit-logs" element={<AuditLogsPage />} />
                             <Route path="deployment">
                                 <Route index element={<Navigate to="configuration" replace />} />

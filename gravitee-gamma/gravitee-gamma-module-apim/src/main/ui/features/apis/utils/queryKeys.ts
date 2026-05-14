@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 export const apiProxyKeys = {
     all: ['apiProxy'] as const,
     create: () => [...apiProxyKeys.all, 'create'] as const,
@@ -76,4 +75,10 @@ export const apiEntrypointKeys = {
 export const portalSettingsKeys = {
     all: ['portal-settings'] as const,
     env: (envId: string) => [...portalSettingsKeys.all, envId] as const,
+};
+
+export const apiAlertKeys = {
+    all: ['api-alerts'] as const,
+    list: (envId: string, apiId: string) => [...apiAlertKeys.all, envId, apiId] as const,
+    history: (envId: string, apiId: string, alertId: string) => [...apiAlertKeys.all, 'history', envId, apiId, alertId] as const,
 };

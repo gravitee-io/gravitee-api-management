@@ -36,7 +36,17 @@ jest.mock('@gravitee/gamma-modules-sdk', () => ({
 
 jest.mock('@gravitee/graphene-core', () => ({
     Badge: ({ children, className }: { children?: ReactNode; className?: string }) => <span className={className}>{children}</span>,
-    Button: ({ children, onClick, disabled, type }: { children?: ReactNode; onClick?: () => void; disabled?: boolean; type?: string }) => (
+    Button: ({
+        children,
+        onClick,
+        disabled,
+        type,
+    }: {
+        children?: ReactNode;
+        onClick?: () => void;
+        disabled?: boolean;
+        type?: 'button' | 'submit' | 'reset';
+    }) => (
         <button type={type ?? 'button'} onClick={onClick} disabled={disabled}>
             {children}
         </button>
@@ -267,14 +277,14 @@ describe('ApiGeneralPage', () => {
 
     it('opens delete dialog when Delete button is clicked', () => {
         renderPage();
-        fireEvent.click(screen.getByRole('button', { name: /^delete$/i }));
+        fireEvent.click(screen.getByRole('button', { name: /delete this api/i }));
         expect(screen.getByRole('dialog')).toBeInTheDocument();
         expect(screen.getByText(/delete api permanently/i)).toBeInTheDocument();
     });
 
     it('keeps delete confirm button disabled until exact API name is typed', () => {
         renderPage();
-        fireEvent.click(screen.getByRole('button', { name: /^delete$/i }));
+        fireEvent.click(screen.getByRole('button', { name: /delete this api/i }));
         const confirmBtn = screen.getByRole('button', { name: /delete permanently/i });
         expect(confirmBtn).toBeDisabled();
         fireEvent.change(screen.getByPlaceholderText('My Test API'), { target: { value: 'My Test API' } });
@@ -283,7 +293,7 @@ describe('ApiGeneralPage', () => {
 
     it('calls deleteApi and closes dialog on confirmed delete', async () => {
         renderPage();
-        fireEvent.click(screen.getByRole('button', { name: /^delete$/i }));
+        fireEvent.click(screen.getByRole('button', { name: /delete this api/i }));
         fireEvent.change(screen.getByPlaceholderText('My Test API'), { target: { value: 'My Test API' } });
         fireEvent.click(screen.getByRole('button', { name: /delete permanently/i }));
         await waitFor(() => expect(mockDeleteApi).toHaveBeenCalledWith('DEFAULT', 'api-1'));
@@ -297,7 +307,7 @@ describe('ApiGeneralPage', () => {
             permissionsReady: true,
         });
         renderPage();
-        expect(screen.getByRole('button', { name: /^delete$/i })).toBeDisabled();
+        expect(screen.getByRole('button', { name: /delete this api/i })).toBeDisabled();
     });
 
     it('disables Delete button when API is published', () => {
@@ -307,7 +317,7 @@ describe('ApiGeneralPage', () => {
             permissionsReady: true,
         });
         renderPage();
-        expect(screen.getByRole('button', { name: /^delete$/i })).toBeDisabled();
+        expect(screen.getByRole('button', { name: /delete this api/i })).toBeDisabled();
     });
 
     // ── Actions strip ────────────────────────────────────────────────────────
