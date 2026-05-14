@@ -14,4 +14,7 @@
  * limitations under the License.
  */
 
-export * from '../../../../../../gamma-ui-shared/src/api/apimClient';
+export const environmentPermissionKeys = {
+    all: ['environment-permissions'] as const,
+    detail: (envId: string) => [...environmentPermissionKeys.all, envId] as const,
+} as const;

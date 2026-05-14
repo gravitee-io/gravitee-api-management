@@ -14,4 +14,14 @@
  * limitations under the License.
  */
 
-export * from '../../../../../../gamma-ui-shared/src/api/apimClient';
+/**
+ * Subset of GET /organizations/{orgId}/console (ConsoleConfigEntity; Angular `entities/consoleSettings`).
+ * Extend here when platform features need more org settings fields.
+ */
+export interface ConsoleSettings {
+    userGroup?: {
+        required?: {
+            enabled?: boolean;
+        };
+    };
+}

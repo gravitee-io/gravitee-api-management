@@ -13,5 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { LucideIcon } from '@gravitee/graphene-core/icons';
 
-export * from '../../../../../../gamma-ui-shared/src/api/apimClient';
+export function FeatureTile({
+    Icon,
+    title,
+    description,
+}: {
+    readonly Icon: LucideIcon;
+    readonly title: string;
+    readonly description: string;
+}) {
+    return (
+        <div className="space-y-2">
+            <div className="rounded-lg bg-muted p-2 w-fit">
+                <Icon className="size-4 text-muted-foreground" aria-hidden />
+            </div>
+            <p className="text-sm font-medium">{title}</p>
+            <p className="text-xs text-muted-foreground">{description}</p>
+        </div>
+    );
+}
