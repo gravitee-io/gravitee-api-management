@@ -34,6 +34,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.property.EncryptableProperty;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.json_patch.domain_service.JsonPatchDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
@@ -157,6 +158,7 @@ public class PatchApiUseCase {
     private final PropertyDomainService propertyDomainService;
     private final FlowListDeserializer flowListDeserializer;
     private final FlowListSerializer flowListSerializer;
+    private final FlowCrudService flowCrudService;
 
     public Output execute(Input input) {
         var existingApi = apiCrudService.get(input.apiId());
@@ -184,11 +186,61 @@ public class PatchApiUseCase {
 
         if (input.dryRun()) {
             var validated = updateApiDomainService.validateV4(updatedApi, input.auditInfo());
-            return new Output(validated, primaryOwner, workflowState);
+            return new Output(stripFlowIds(validated), primaryOwner, workflowState);
         }
 
-        var persisted = updateApiDomainService.updateV4(updatedApi, input.auditInfo());
+        var apiToUpdate = flowsWerePatched(input.patchType(), patchNode) ? stripFlowIds(updatedApi) : updatedApi;
+        var persisted = updateApiDomainService.updateV4(apiToUpdate, input.auditInfo());
+        var httpV4 = persisted.getApiDefinitionHttpV4();
+        if (httpV4 != null && httpV4.getFlows() != null) {
+            var flows = flowCrudService.getApiV4Flows(persisted.getId());
+            return new Output(
+                persisted.toBuilder().apiDefinitionValue(httpV4.toBuilder().flows(flows).build()).build(),
+                primaryOwner,
+                workflowState
+            );
+        }
         return new Output(persisted, primaryOwner, workflowState);
+    }
+
+    private boolean flowsWerePatched(PatchType patchType, JsonNode rawPatchNode) {
+        if (patchType == PatchType.MERGE_PATCH) {
+            return rawPatchNode.has(FIELD_FLOWS);
+        }
+        if (!rawPatchNode.isArray()) {
+            return false;
+        }
+        for (JsonNode op : rawPatchNode) {
+            var opType = op.path("op").asText("");
+            if ("test".equals(opType)) {
+                continue;
+            }
+            var path = op.path("path").asText("");
+            if (referencesFlows(path)) {
+                return true;
+            }
+            if (("move".equals(opType) || "copy".equals(opType)) && referencesFlows(op.path("from").asText(""))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean referencesFlows(String pointer) {
+        return pointer.equals(JSON_PATCH_PATH_PREFIX + FIELD_FLOWS) || pointer.startsWith(JSON_PATCH_PATH_PREFIX + FIELD_FLOWS + "/");
+    }
+
+    private Api stripFlowIds(Api api) {
+        var httpV4 = asHttpV4(api);
+        if (httpV4 == null || httpV4.getFlows() == null) {
+            return api;
+        }
+        var stripped = httpV4
+            .getFlows()
+            .stream()
+            .map(f -> f == null ? null : (Flow) f.toBuilder().id(null).build())
+            .toList();
+        return api.toBuilder().apiDefinitionValue(httpV4.toBuilder().flows(stripped).build()).build();
     }
 
     private JsonNode toJsonNode(Api api) {
@@ -198,8 +250,13 @@ public class PatchApiUseCase {
         return node;
     }
 
+    private static io.gravitee.definition.model.v4.Api asHttpV4(Api api) {
+        return api != null && api.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api httpV4 ? httpV4 : null;
+    }
+
     private static io.gravitee.definition.model.v4.Api requireHttpV4(Api api) {
-        if (api.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api httpV4) {
+        var httpV4 = asHttpV4(api);
+        if (httpV4 != null) {
             return httpV4;
         }
         throw new IllegalStateException("API definition is not an HTTP v4 definition");
