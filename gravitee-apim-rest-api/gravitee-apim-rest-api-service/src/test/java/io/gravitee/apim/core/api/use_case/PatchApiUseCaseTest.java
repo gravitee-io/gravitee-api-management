@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fixtures.core.model.ApiFixtures;
@@ -101,6 +102,11 @@ class PatchApiUseCaseTest {
 
     static final ObjectMapper OBJECT_MAPPER = new GraviteeMapper(false);
 
+    private static final PatchApiUseCase.FlowListDeserializer FLOW_DESERIALIZER = node ->
+        OBJECT_MAPPER.<List<Flow>>readerFor(OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, Flow.class))
+            .with(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE)
+            .readValue(node);
+
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     WorkflowQueryServiceInMemory workflowQueryService = new WorkflowQueryServiceInMemory();
     ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService = mock(ApiPrimaryOwnerDomainService.class);
@@ -120,7 +126,8 @@ class PatchApiUseCaseTest {
             new JsonPatchDomainService(new JsonMergePatchServiceImpl(), new JsonPatchServiceImpl()),
             workflowQueryService,
             OBJECT_MAPPER,
-            propertyDomainService
+            propertyDomainService,
+            FLOW_DESERIALIZER
         );
 
         var primaryOwner = PrimaryOwnerEntity.builder().id(USER_ID).type(PrimaryOwnerEntity.Type.USER).build();
@@ -1898,6 +1905,36 @@ class PatchApiUseCaseTest {
             );
 
             assertThat(httpV4Def(output.api()).getFlowExecution()).isEqualTo(flowExecution);
+        }
+
+        @Test
+        void json_patch_not_touching_flows_preserves_null_flows_without_calling_deserializer() {
+            var sentinel = List.of(aFlow("sentinel", List.of()));
+            var includeNullsMapper = new GraviteeMapper(false);
+            includeNullsMapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
+            var localCut = new PatchApiUseCase(
+                apiCrudService,
+                apiPrimaryOwnerDomainService,
+                updateApiDomainService,
+                new JsonPatchDomainService(new JsonMergePatchServiceImpl(), new JsonPatchServiceImpl()),
+                workflowQueryService,
+                includeNullsMapper,
+                propertyDomainService,
+                node -> sentinel
+            );
+            givenExistingApi(apiWithFlows(null));
+
+            var output = localCut.execute(
+                PatchApiUseCase.Input.builder()
+                    .apiId(API_ID)
+                    .patchType(PatchApiUseCase.PatchType.JSON_PATCH)
+                    .patchBody(patch("replace", "/name", "patched-name"))
+                    .dryRun(false)
+                    .auditInfo(AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID))
+                    .build()
+            );
+
+            assertThat(httpV4Def(output.api()).getFlows()).isNull();
         }
     }
 

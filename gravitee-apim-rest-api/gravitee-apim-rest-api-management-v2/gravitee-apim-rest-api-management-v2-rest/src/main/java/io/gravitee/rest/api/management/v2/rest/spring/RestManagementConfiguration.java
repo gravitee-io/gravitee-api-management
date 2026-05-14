@@ -15,11 +15,14 @@
  */
 package io.gravitee.rest.api.management.v2.rest.spring;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
+import io.gravitee.apim.core.api.use_case.PatchApiUseCase.FlowListDeserializer;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.infra.domain_service.analytics_engine.ManagementContextLoader;
 import io.gravitee.apim.infra.domain_service.analytics_engine.processors.ApiTypeFilterTransformer;
@@ -30,12 +33,15 @@ import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.kafkaexplorer.spring.KafkaExplorerSpringConfiguration;
+import io.gravitee.rest.api.management.v2.rest.mapper.FlowMapper;
+import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.utils.SubscriptionExpandHelper;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -50,6 +56,11 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @Import({ ServiceConfiguration.class, UsecaseSpringConfiguration.class, KafkaExplorerSpringConfiguration.class })
 @EnableAsync
 public class RestManagementConfiguration {
+
+    @Bean
+    public FlowListDeserializer flowListDeserializer(ObjectMapper objectMapper) {
+        return node -> FlowMapper.INSTANCE.mapToHttpV4(objectMapper.treeToValue(node, new TypeReference<List<FlowV4>>() {}));
+    }
 
     @Bean
     public ExpressionLanguageInitializer expressionLanguageInitializer() {

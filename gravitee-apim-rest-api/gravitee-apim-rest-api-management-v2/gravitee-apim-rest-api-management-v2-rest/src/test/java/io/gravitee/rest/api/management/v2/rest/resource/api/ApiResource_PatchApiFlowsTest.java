@@ -231,6 +231,22 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
             return bothFlowsReplaceVariants(flows);
         }
 
+        static Stream<Arguments> lowercaseSelectorTypeVariants() {
+            var flows = List.of(
+                Map.of(
+                    "name",
+                    "f1",
+                    "enabled",
+                    true,
+                    "selectors",
+                    List.of(Map.of("type", "http", "path", "/api", "pathOperator", "EQUALS")),
+                    "request",
+                    List.of(stepMap("s1", "p1"))
+                )
+            );
+            return bothFlowsReplaceVariants(flows);
+        }
+
         static Stream<Arguments> uppercaseSelectorTypeVariants() {
             var flows = List.of(
                 Map.of(
@@ -274,8 +290,8 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
         }
 
         @ParameterizedTest
-        @MethodSource("uppercaseSelectorTypeVariants")
-        void patch_with_uppercase_http_selector_type_returns_400_with_invalidValue_envelope(String body, String contentType) {
+        @MethodSource("lowercaseSelectorTypeVariants")
+        void patch_with_lowercase_http_selector_type_returns_400_with_invalidValue_envelope(String body, String contentType) {
             givenApiWithFlows(List.of(flow("f1", List.of(step("s1", "p1")))));
 
             var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
@@ -284,6 +300,16 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
             Assertions.assertThat(error.getTechnicalCode()).isEqualTo("invalidValue");
             Assertions.assertThat(error.getParameters()).containsKey("location");
             Assertions.assertThat(error.getParameters().get("location")).startsWith("/flows");
+        }
+
+        @ParameterizedTest
+        @MethodSource("uppercaseSelectorTypeVariants")
+        void patch_with_uppercase_http_selector_type_succeeds(String body, String contentType) {
+            givenApiWithFlows(List.of(flow("f1", List.of(step("s1", "p1")))));
+
+            var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
+
+            assertThat(response).hasStatus(OK_200);
         }
 
         @ParameterizedTest

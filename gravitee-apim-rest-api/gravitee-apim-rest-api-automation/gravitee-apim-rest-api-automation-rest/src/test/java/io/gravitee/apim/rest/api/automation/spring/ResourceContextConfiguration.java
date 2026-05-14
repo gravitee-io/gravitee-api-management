@@ -18,6 +18,7 @@ package io.gravitee.apim.rest.api.automation.spring;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fakes.spring.FakeConfiguration;
 import inmemory.ApiCRDExportDomainServiceInMemory;
@@ -69,6 +70,7 @@ import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiCRDUseCase;
+import io.gravitee.apim.core.api.use_case.PatchApiUseCase.FlowListDeserializer;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api_key.domain_service.ReconcileApiKeysDomainService;
 import io.gravitee.apim.core.apim.service_provider.ApimProductInfo;
@@ -199,6 +201,7 @@ import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.common.util.DataEncryptor;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
@@ -232,6 +235,7 @@ import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import io.vertx.rxjava3.core.Vertx;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -245,6 +249,11 @@ import org.springframework.mock.env.MockEnvironment;
 @Configuration
 @Import({ UsecaseSpringConfiguration.class, JacksonSpringConfiguration.class, InMemoryConfiguration.class, FakeConfiguration.class })
 public class ResourceContextConfiguration {
+
+    @Bean
+    public FlowListDeserializer flowListDeserializer(ObjectMapper objectMapper) {
+        return node -> objectMapper.treeToValue(node, new TypeReference<List<Flow>>() {});
+    }
 
     @Bean
     public ApiRepository apiRepository() {
