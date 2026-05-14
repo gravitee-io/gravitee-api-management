@@ -54,6 +54,7 @@ import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -153,6 +154,7 @@ public class PatchApiUseCase {
     private final WorkflowQueryService workflowQueryService;
     private final ObjectMapper objectMapper;
     private final PropertyDomainService propertyDomainService;
+    private final FlowListDeserializer flowListDeserializer;
 
     public Output execute(Input input) {
         var existingApi = apiCrudService.get(input.apiId());
@@ -411,7 +413,7 @@ public class PatchApiUseCase {
         );
         var properties = encryptProperties(patchableProperties);
         var responseTemplates = resolveResponseTemplates(patchType, rawPatchNode, patchedNode, httpV4.getResponseTemplates());
-        var flows = resolvePatchableList(patchType, rawPatchNode, patchedNode, FIELD_FLOWS, Flow.class, httpV4.getFlows());
+        var flows = resolveFlows(patchType, rawPatchNode, patchedNode, httpV4.getFlows());
         var resources = resolvePatchableList(patchType, rawPatchNode, patchedNode, FIELD_RESOURCES, Resource.class, httpV4.getResources());
         var listeners = resolvePatchableList(patchType, rawPatchNode, patchedNode, FIELD_LISTENERS, Listener.class, httpV4.getListeners());
         var endpointGroups = resolvePatchableList(
@@ -509,6 +511,44 @@ public class PatchApiUseCase {
             }
         }
         return existing;
+    }
+
+    private List<Flow> resolveFlows(PatchType patchType, JsonNode rawPatchNode, JsonNode patchedNode, List<Flow> existing) {
+        if (patchType == PatchType.MERGE_PATCH && rawPatchNode.has(FIELD_FLOWS)) {
+            if (rawPatchNode.get(FIELD_FLOWS).isNull()) {
+                return null;
+            }
+            return deserializeFlows(patchedNode.get(FIELD_FLOWS));
+        }
+        if (patchType == PatchType.JSON_PATCH) {
+            return resolveFlowsForJsonPatch(rawPatchNode, patchedNode, existing);
+        }
+        return existing;
+    }
+
+    private List<Flow> resolveFlowsForJsonPatch(JsonNode rawPatchNode, JsonNode patchedNode, List<Flow> existing) {
+        if (patchedNode.get(FIELD_FLOWS) == null && isNullifiedByJsonPatch(rawPatchNode, FIELD_FLOWS)) {
+            return null;
+        }
+        if (!patchedNode.has(FIELD_FLOWS)) {
+            return existing;
+        }
+        if (patchedNode.get(FIELD_FLOWS).isNull()) {
+            return isNullifiedByJsonPatch(rawPatchNode, FIELD_FLOWS) ? null : existing;
+        }
+        return deserializeFlows(patchedNode.get(FIELD_FLOWS));
+    }
+
+    private List<Flow> deserializeFlows(JsonNode flowsArrayNode) {
+        try {
+            return flowListDeserializer.deserialize(flowsArrayNode);
+        } catch (IOException e) {
+            throw new ValidationDomainException(
+                "Invalid value for field '" + FIELD_FLOWS + "': " + e.getMessage(),
+                Map.of("location", deserializationLocation(FIELD_FLOWS, e)),
+                "invalidValue"
+            );
+        }
     }
 
     private Map<String, Map<String, ResponseTemplate>> parseResponseTemplates(JsonNode patchedNode) {
@@ -779,6 +819,11 @@ public class PatchApiUseCase {
                 .encryptable(encryptable)
                 .build();
         }
+    }
+
+    @FunctionalInterface
+    public interface FlowListDeserializer {
+        List<Flow> deserialize(JsonNode flowsArrayNode) throws IOException;
     }
 
     public enum PatchType {

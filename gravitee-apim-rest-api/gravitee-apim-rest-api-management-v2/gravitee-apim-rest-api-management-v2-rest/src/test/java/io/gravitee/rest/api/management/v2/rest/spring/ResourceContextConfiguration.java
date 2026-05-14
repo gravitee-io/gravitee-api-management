@@ -20,6 +20,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fakes.spring.FakeConfiguration;
 import fixtures.core.model.LicenseFixtures;
@@ -79,6 +80,7 @@ import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiDefinitionFromUrlUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.OAIToUpdateApiUseCase;
+import io.gravitee.apim.core.api.use_case.PatchApiUseCase.FlowListDeserializer;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateApiDefinitionFromImportUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateApiGroupsUseCase;
@@ -259,6 +261,8 @@ import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.CustomDashboardRepository;
+import io.gravitee.rest.api.management.v2.rest.mapper.FlowMapper;
+import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.utils.SubscriptionExpandHelper;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiKeyService;
@@ -311,6 +315,11 @@ public class ResourceContextConfiguration {
     @Primary
     public ObjectMapper objectMapper() {
         return new GraviteeMapper();
+    }
+
+    @Bean
+    public FlowListDeserializer flowListDeserializer(ObjectMapper objectMapper) {
+        return node -> FlowMapper.INSTANCE.mapToHttpV4(objectMapper.treeToValue(node, new TypeReference<List<FlowV4>>() {}));
     }
 
     @Bean

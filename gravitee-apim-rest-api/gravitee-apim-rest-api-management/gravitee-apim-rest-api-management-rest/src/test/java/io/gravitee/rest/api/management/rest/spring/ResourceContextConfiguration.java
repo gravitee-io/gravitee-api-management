@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.rest.spring;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fakes.spring.FakeConfiguration;
 import inmemory.ApiCrudServiceInMemory;
@@ -62,6 +63,7 @@ import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.service_provider.ApiTemplateModelProvider;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
+import io.gravitee.apim.core.api.use_case.PatchApiUseCase.FlowListDeserializer;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api_key.domain_service.ReconcileApiKeysDomainService;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
@@ -191,6 +193,7 @@ import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.GroupRepository;
@@ -264,6 +267,7 @@ import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.vertx.rxjava3.core.Vertx;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -672,6 +676,11 @@ public class ResourceContextConfiguration {
     @Bean
     public ObjectMapper objectMapper() {
         return mock(GraviteeMapper.class);
+    }
+
+    @Bean
+    public FlowListDeserializer flowListDeserializer(ObjectMapper objectMapper) {
+        return node -> objectMapper.treeToValue(node, new TypeReference<List<Flow>>() {});
     }
 
     @Bean
