@@ -36,6 +36,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { BehaviorSubject, EMPTY, Observable, of } from 'rxjs';
 import { AsyncPipe, NgTemplateOutlet, TitleCasePipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
+import { CdkScrollable } from '@angular/cdk/scrolling';
 
 import {
   SectionEditorDialogComponent,
@@ -97,6 +98,7 @@ import { OpenApiEditorComponent } from '../components/openapi-editor/openapi-edi
     NgTemplateOutlet,
     TitleCasePipe,
     PortalNavigationItemIconPipe,
+    CdkScrollable,
   ],
 })
 export class PortalNavigationItemsComponent implements HasUnsavedChanges {
