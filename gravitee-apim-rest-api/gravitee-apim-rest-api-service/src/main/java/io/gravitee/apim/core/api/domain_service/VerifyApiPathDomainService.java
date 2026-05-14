@@ -17,7 +17,6 @@ package io.gravitee.apim.core.api.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
-import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.model.Path;
@@ -25,18 +24,13 @@ import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.installation.model.RestrictedDomain;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.utils.CollectionUtils;
-import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.CustomLog;
 
 /**
@@ -52,15 +46,18 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
     private final ApiQueryService apiSearchService;
     private final InstallationAccessQueryService installationAccessQueryService;
     private final ApiHostValidatorDomainService apiHostValidatorDomainService;
+    private final ApiPathIndex apiPathIndex;
 
     public VerifyApiPathDomainService(
         ApiQueryService apiSearchService,
         InstallationAccessQueryService installationAccessQueryService,
-        ApiHostValidatorDomainService apiHostValidatorDomainService
+        ApiHostValidatorDomainService apiHostValidatorDomainService,
+        ApiPathIndex apiPathIndex
     ) {
         this.apiSearchService = apiSearchService;
         this.installationAccessQueryService = installationAccessQueryService;
         this.apiHostValidatorDomainService = apiHostValidatorDomainService;
+        this.apiPathIndex = apiPathIndex;
     }
 
     @Override
@@ -128,10 +125,9 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
     }
 
     private List<Error> unavailablePathErrors(Input input, List<Path.PathBuilder> sanitizedBuilder) {
-        var errors = new ArrayList<Error>();
-
-        apiSearchService
-            .search(
+        var candidatePaths = sanitizedBuilder.stream().map(Path.PathBuilder::build).toList();
+        return apiPathIndex.findConflicts(input.environmentId, input.apiId, candidatePaths, () ->
+            apiSearchService.search(
                 ApiSearchCriteria.builder()
                     .environmentId(input.environmentId)
                     .definitionVersion(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
@@ -139,35 +135,7 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
                 null,
                 ApiFieldFilter.builder().pictureExcluded(true).build()
             )
-            .filter(api -> !api.getId().equals(input.apiId))
-            .map(VerifyApiPathDomainService::extractPaths)
-            .filter(CollectionUtils::isNotEmpty)
-            .forEach(existingPaths -> {
-                var paths = sanitizedBuilder.stream().map(Path.PathBuilder::build).toList();
-                var pathsWithHost = getPathsWithHost(paths);
-                var existingPathsWithHost = getPathsWithHost(existingPaths);
-
-                pathsWithHost.forEach((host, hostPaths) ->
-                    hostPaths.forEach(hostPath -> {
-                        var existingHostPaths = existingPathsWithHost.getOrDefault(host, List.of());
-                        findConflictingPathError(hostPath, existingHostPaths).ifPresent(errors::add);
-                    })
-                );
-
-                var pathsWithoutHosts = getPathsWithoutHost(paths);
-                var existingPathsWithoutHost = getPathsWithoutHost(existingPaths);
-                pathsWithoutHosts.forEach(path -> findConflictingPathError(path, existingPathsWithoutHost).ifPresent(errors::add));
-            });
-
-        return errors;
-    }
-
-    private Optional<Error> findConflictingPathError(String path, List<String> existingPaths) {
-        return existingPaths
-            .stream()
-            .filter(existingPath -> existingPath.startsWith(path) || path.startsWith(existingPath))
-            .findFirst()
-            .map(conflictingPath -> Error.severe("Path [%s] already exists", conflictingPath));
+        );
     }
 
     private List<Error> invalidPathErrors(List<Path.PathBuilder> sanitizedBuilder) {
@@ -193,61 +161,6 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
             .map(Path.PathBuilder::build)
             .filter(path -> !seen.add(path))
             .map(duplicate -> Error.severe("Path [%s] is duplicated", duplicate.getPath()))
-            .toList();
-    }
-
-    private static Map<String, List<String>> getPathsWithHost(List<Path> paths) {
-        return paths
-            .stream()
-            .filter(path -> StringUtils.isNotEmpty(path.getHost()))
-            .collect(Collectors.groupingBy(Path::getHost, Collectors.mapping(Path::getPath, Collectors.toList())));
-    }
-
-    private static List<String> getPathsWithoutHost(List<Path> paths) {
-        return paths
-            .stream()
-            .filter(path -> StringUtils.isEmpty(path.getHost()))
-            .map(Path::getPath)
-            .toList();
-    }
-
-    private static List<Path> extractPaths(Api api) {
-        return switch (api.getApiDefinitionValue()) {
-            case io.gravitee.definition.model.v4.Api v4Api -> getHttpV4Paths(v4Api);
-            case io.gravitee.definition.model.Api v2Api -> getV2Paths(v2Api);
-            case null, default -> new ArrayList<>();
-        };
-    }
-
-    private static List<Path> getHttpV4Paths(io.gravitee.definition.model.v4.Api v4Api) {
-        return v4Api
-            .getListeners()
-            .stream()
-            .flatMap(listener -> listener instanceof HttpListener httpListener ? Stream.of(httpListener) : Stream.of())
-            .flatMap(httpListener ->
-                httpListener
-                    .getPaths()
-                    .stream()
-                    .map(path ->
-                        Path.builder().host(path.getHost()).path(path.getPath()).overrideAccess(path.isOverrideAccess()).build().sanitize()
-                    )
-            )
-            .toList();
-    }
-
-    private static List<Path> getV2Paths(io.gravitee.definition.model.Api apiDefinition) {
-        return apiDefinition
-            .getProxy()
-            .getVirtualHosts()
-            .stream()
-            .map(virtualHost ->
-                Path.builder()
-                    .host(virtualHost.getHost())
-                    .path(virtualHost.getPath())
-                    .overrideAccess(virtualHost.isOverrideEntrypoint())
-                    .build()
-                    .sanitize()
-            )
             .toList();
     }
 

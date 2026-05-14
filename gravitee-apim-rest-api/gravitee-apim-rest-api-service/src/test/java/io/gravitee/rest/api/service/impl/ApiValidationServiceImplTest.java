@@ -91,7 +91,8 @@ public class ApiValidationServiceImplTest {
     private VerifyApiPathDomainService pathValidator = new VerifyApiPathDomainService(
         apiQueryService,
         installationAccessQueryService,
-        apiHostValidatorDomainService
+        apiHostValidatorDomainService,
+        new io.gravitee.apim.core.api.domain_service.ApiPathIndex()
     );
 
     @Spy
