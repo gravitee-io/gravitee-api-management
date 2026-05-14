@@ -23,6 +23,7 @@ import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.exception.NotFoundDomainException;
+import io.gravitee.apim.core.search.IndexationObserver;
 import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.apim.core.search.model.IndexableApiProduct;
@@ -123,6 +124,9 @@ public class SearchEngineServiceImpl implements SearchEngineService {
     @Autowired
     private ApiProductCrudService apiProductCrudService;
 
+    @Autowired(required = false)
+    private Collection<IndexationObserver> indexationObservers = Collections.emptyList();
+
     @Async("indexerThreadPoolTaskExecutor")
     @Override
     public void index(ExecutionContext executionContext, Indexable source, boolean locally) {
@@ -153,9 +157,22 @@ public class SearchEngineServiceImpl implements SearchEngineService {
     @Async("indexerThreadPoolTaskExecutor")
     @Override
     public void delete(ExecutionContext executionContext, Indexable source, boolean locally) {
+        // Asymmetric with index() for the Lucene write: when locally=false the originating node SKIPS its own
+        // local Lucene remove. The node's ScheduledSearchIndexerService cron poller will pick up its own broadcast
+        // and run deleteLocally exactly once, avoiding the duplicated Lucene work. See commit 6ce444f (Antoine
+        // Cordier, Dec 2021): 'refactor: avoid duplicated deletion'.
+        //
+        // IndexationObservers, however, MUST fire on the originator immediately so downstream caches (notably
+        // ApiPathIndex used for collision detection) reflect the delete without waiting for the cron tick — tests
+        // and clients that delete-then-recreate within ms would otherwise hit a stale "Path already exists" error.
+        // The cron-driven deleteLocally later in process() will invoke onDelete a second time with an id-only
+        // Indexable rebuilt via reflection; observer effects on delete must therefore be idempotent (e.g.
+        // ApiPathIndex.removeForApi, where the second call is a no-op on the already-removed entry).
         if (locally) {
             deleteLocally(source);
         } else {
+            notifyObservers(source, false);
+
             CommandSearchIndexerEntity content = new CommandSearchIndexerEntity();
             content.setAction(ACTION_DELETE);
             content.setId(source.getId());
@@ -241,6 +258,10 @@ public class SearchEngineServiceImpl implements SearchEngineService {
     }
 
     private void indexLocally(Indexable source, boolean commit) {
+        // Observers fire BEFORE the Lucene write so downstream state (notably the path index used for collision
+        // detection) is updated even when Lucene degrades. Observer failures are caught per-observer so they cannot
+        // block the Lucene write.
+        notifyObservers(source, true);
         transformers
             .stream()
             .filter(transformer -> transformer.handle(source.getClass()))
@@ -258,6 +279,7 @@ public class SearchEngineServiceImpl implements SearchEngineService {
     }
 
     private void deleteLocally(Indexable source) {
+        notifyObservers(source, false);
         transformers
             .stream()
             .filter(transformer -> transformer.handle(source.getClass()))
@@ -276,6 +298,20 @@ public class SearchEngineServiceImpl implements SearchEngineService {
                         source.getClass().getName()
                     )
             );
+    }
+
+    private void notifyObservers(Indexable source, boolean indexing) {
+        for (IndexationObserver observer : indexationObservers) {
+            try {
+                if (indexing) {
+                    observer.onIndex(source);
+                } else {
+                    observer.onDelete(source);
+                }
+            } catch (RuntimeException e) {
+                log.error("Indexation observer [{}] failed for [{}]", observer.getClass().getSimpleName(), source.getClass().getName(), e);
+            }
+        }
     }
 
     private Indexable createInstance(String className) throws Exception {
