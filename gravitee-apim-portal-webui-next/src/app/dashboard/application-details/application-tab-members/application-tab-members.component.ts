@@ -15,8 +15,10 @@
  */
 import { Component, computed, DestroyRef, inject, input, signal } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { EMPTY, of, switchMap, tap } from 'rxjs';
+import { MatIconModule } from '@angular/material/icon';
+import { EMPTY, filter, of, switchMap, tap } from 'rxjs';
 
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../../../components/confirm-dialog/confirm-dialog.component';
 import { LoaderComponent } from '../../../../components/loader/loader.component';
@@ -24,10 +26,15 @@ import { PaginatedTableComponent, TableAction, TableColumn } from '../../../../c
 import { TableCellDirective } from '../../../../components/paginated-table/table-cell.directive';
 import { SearchBarComponent } from '../../../../components/search-bar/search-bar.component';
 import { UserCellComponent, UserCellVM } from '../../../../components/user-cell/user-cell.component';
+import { APPLICATION_PRIMARY_OWNER_ROLE_NAME } from '../../../../entities/application/application';
 import { Member, MemberSearchFilters, MembersResponse } from '../../../../entities/member/member';
 import { UserApplicationPermissions } from '../../../../entities/permission/permission';
 import { CurrentUserService } from '../../../../services/current-user.service';
 import { MembershipService } from '../../../../services/membership.service';
+import {
+  ApplicationMembersAddDialogComponent,
+  ApplicationMembersAddDialogData,
+} from '../application-members-add-dialog/application-members-add-dialog.component';
 
 interface MemberTableRow {
   id: string;
@@ -47,7 +54,16 @@ interface MembersRequestParams {
 @Component({
   selector: 'app-application-tab-members',
   standalone: true,
-  imports: [LoaderComponent, MatDialogModule, PaginatedTableComponent, SearchBarComponent, TableCellDirective, UserCellComponent],
+  imports: [
+    LoaderComponent,
+    MatButtonModule,
+    MatDialogModule,
+    MatIconModule,
+    PaginatedTableComponent,
+    SearchBarComponent,
+    TableCellDirective,
+    UserCellComponent,
+  ],
   templateUrl: './application-tab-members.component.html',
   styleUrl: './application-tab-members.component.scss',
 })
@@ -71,6 +87,7 @@ export class ApplicationTabMembersComponent {
   ];
 
   readonly canRead = computed(() => this.userApplicationPermissions().MEMBER?.includes('R') ?? false);
+  readonly canCreate = computed(() => this.userApplicationPermissions().MEMBER?.includes('C') ?? false);
   readonly canDelete = computed(() => this.userApplicationPermissions().MEMBER?.includes('D') ?? false);
 
   readonly actions = computed<TableAction<MemberTableRow>[]>(() =>
@@ -138,6 +155,22 @@ export class ApplicationTabMembersComponent {
     }
   }
 
+  openAddMembersDialog(): void {
+    this.error.set(null);
+    this.matDialog
+      .open<ApplicationMembersAddDialogComponent, ApplicationMembersAddDialogData, boolean>(ApplicationMembersAddDialogComponent, {
+        data: { applicationId: this.applicationId() },
+        disableClose: true,
+      })
+      .afterClosed()
+      .pipe(
+        filter((membersAdded): membersAdded is true => membersAdded === true),
+        tap(() => this.membersResource.reload()),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
   private openDeleteConfirmation(member: MemberTableRow): void {
     this.error.set(null);
     this.matDialog
@@ -176,7 +209,7 @@ export class ApplicationTabMembersComponent {
       },
       isCurrentUser: !!user?.id && user.id === this.currentUserService.user()?.id,
       role: member.role ?? '',
-      isPrimaryOwner: member.role === 'PRIMARY_OWNER',
+      isPrimaryOwner: member.role === APPLICATION_PRIMARY_OWNER_ROLE_NAME,
     };
   }
 

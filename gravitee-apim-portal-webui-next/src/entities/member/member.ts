@@ -23,6 +23,12 @@ export interface Member {
   role?: string;
 }
 
+export interface MemberInput {
+  user?: string;
+  reference?: string;
+  role: string;
+}
+
 export interface MembersResponse {
   data?: Member[];
   metadata?: {

@@ -19,22 +19,29 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 
 import { ApplicationTabMembersComponent } from './application-tab-members.component';
 import { ApplicationTabMembersComponentHarness } from './application-tab-members.component.harness';
 import { ConfirmDialogComponent } from '../../../../components/confirm-dialog/confirm-dialog.component';
 import { ConfirmDialogHarness } from '../../../../components/confirm-dialog/confirm-dialog.harness';
+import { APPLICATION_PRIMARY_OWNER_ROLE_NAME, ApplicationRole } from '../../../../entities/application/application';
 import { MembersResponse } from '../../../../entities/member/member';
 import { fakeMember, fakeMembersResponse } from '../../../../entities/member/member.fixtures';
 import { fakeUserApplicationPermissions } from '../../../../entities/permission/permission.fixtures';
+import { ApplicationService } from '../../../../services/application.service';
 import { ConfigService } from '../../../../services/config.service';
 import { CurrentUserService } from '../../../../services/current-user.service';
 import { TESTING_BASE_URL } from '../../../../testing/app-testing.module';
 
 const CURRENT_USER_ID = 'current-user-id';
+const APPLICATION_ROLES: ApplicationRole[] = [
+  { id: APPLICATION_PRIMARY_OWNER_ROLE_NAME, name: APPLICATION_PRIMARY_OWNER_ROLE_NAME, default: false, system: true },
+  { id: 'USER', name: 'USER', default: true, system: false },
+];
 
 describe('ApplicationTabMembersComponent', () => {
   let fixture: ComponentFixture<ApplicationTabMembersComponent>;
@@ -52,9 +59,10 @@ describe('ApplicationTabMembersComponent', () => {
         provideRouter([]),
         { provide: ConfigService, useValue: { baseURL: TESTING_BASE_URL } },
         { provide: CurrentUserService, useValue: { user: () => ({ id: CURRENT_USER_ID }) } },
+        { provide: ApplicationService, useValue: { getApplicationRoles: () => of(APPLICATION_ROLES) } },
       ],
     })
-      .overrideProvider(InteractivityChecker, { useValue: { isFocusable: () => true } })
+      .overrideProvider(InteractivityChecker, { useValue: { isFocusable: () => true, isTabbable: () => true } })
       .compileComponents();
 
     fixture = TestBed.createComponent(ApplicationTabMembersComponent);
@@ -147,7 +155,9 @@ describe('ApplicationTabMembersComponent', () => {
   });
 
   it('should not show delete button when user lacks MEMBER[D] permission', async () => {
-    const harness = await flush(fakeMembersResponse([fakeMember(), fakeMember({ id: 'member-2', role: 'PRIMARY_OWNER' })]));
+    const harness = await flush(
+      fakeMembersResponse([fakeMember(), fakeMember({ id: 'member-2', role: APPLICATION_PRIMARY_OWNER_ROLE_NAME })]),
+    );
     const table = await harness.getPaginatedTable();
     const actions = await table!.getActionButtons();
     expect(actions.length).toBe(0);
@@ -309,12 +319,12 @@ describe('ApplicationTabMembersComponent', () => {
   });
 
   describe('role cell', () => {
-    it('should mark PRIMARY_OWNER via data-testid', async () => {
-      const harness = await flush(fakeMembersResponse([fakeMember({ role: 'PRIMARY_OWNER' })]));
+    it('should mark primary owner via data-testid', async () => {
+      const harness = await flush(fakeMembersResponse([fakeMember({ role: APPLICATION_PRIMARY_OWNER_ROLE_NAME })]));
       expect(await harness.isPrimaryOwnerRoleVisible()).toBe(true);
     });
 
-    it('should not mark other roles as PRIMARY_OWNER', async () => {
+    it('should not mark other roles as primary owner', async () => {
       const harness = await flush(fakeMembersResponse([fakeMember({ role: 'USER' })]));
       expect(await harness.isPrimaryOwnerRoleVisible()).toBe(false);
     });
@@ -332,8 +342,8 @@ describe('ApplicationTabMembersComponent', () => {
       expect(deleteButton).not.toBeNull();
     });
 
-    it('should hide delete button for PRIMARY_OWNER', async () => {
-      const harness = await flush(fakeMembersResponse([fakeMember({ role: 'PRIMARY_OWNER' })]));
+    it('should hide delete button for primary owner', async () => {
+      const harness = await flush(fakeMembersResponse([fakeMember({ role: APPLICATION_PRIMARY_OWNER_ROLE_NAME })]));
       const table = await harness.getPaginatedTable();
       const deleteButton = await table!.getActionButton('delete');
       expect(deleteButton).toBeNull();
@@ -395,6 +405,50 @@ describe('ApplicationTabMembersComponent', () => {
       fixture.detectChanges();
 
       httpTestingController.expectNone(r => r.method === 'DELETE');
+    });
+  });
+
+  describe('add action', () => {
+    it('should not show add members button when user lacks MEMBER[C] permission', async () => {
+      const harness = await flush(fakeMembersResponse([fakeMember()]));
+
+      expect(await harness.getAddMembersButton()).toBeNull();
+    });
+
+    it('should show add members button when user has MEMBER[C] permission', async () => {
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'C'] }));
+      const harness = await flush(fakeMembersResponse([fakeMember()]));
+
+      expect(await harness.getAddMembersButton()).not.toBeNull();
+    });
+
+    it('should open add members dialog', async () => {
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'C'] }));
+      const harness = await flush(fakeMembersResponse([fakeMember()]));
+      expect(await harness.getAddMembersButton()).not.toBeNull();
+
+      await harness.clickAddMembersButton();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(TestBed.inject(MatDialog).openDialogs).toHaveLength(1);
+    });
+
+    it('should reload members list after add members dialog closes with members added', async () => {
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'C'] }));
+      const harness = await flush(fakeMembersResponse([fakeMember()]));
+      expect(await harness.getAddMembersButton()).not.toBeNull();
+      await harness.clickAddMembersButton();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      TestBed.inject(MatDialog).openDialogs[0].close(true);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      httpTestingController.expectOne(r => r.url.includes('members/_search')).flush(fakeMembersResponse([fakeMember({ id: 'member-2' })]));
+      await fixture.whenStable();
     });
   });
 });

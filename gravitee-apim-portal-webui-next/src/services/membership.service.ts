@@ -18,7 +18,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
-import { MemberSearchFilters, MembersResponse } from '../entities/member/member';
+import { Member, MemberInput, MemberSearchFilters, MembersResponse } from '../entities/member/member';
 
 @Injectable({
   providedIn: 'root',
@@ -37,5 +37,9 @@ export class MembershipService {
 
   deleteApplicationMember(applicationId: string, memberId: string): Observable<void> {
     return this.http.delete<void>(`${this.configService.baseURL}/applications/${applicationId}/members/${memberId}`);
+  }
+
+  addApplicationMember(applicationId: string, memberInput: MemberInput): Observable<Member> {
+    return this.http.post<Member>(`${this.configService.baseURL}/applications/${applicationId}/members`, memberInput);
   }
 }

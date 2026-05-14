@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { ComponentHarness, TestElement } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { LoaderHarness } from '../../../../components/loader/loader.harness';
 import { PaginatedTableHarness } from '../../../../components/paginated-table/paginated-table.harness';
@@ -29,6 +30,9 @@ export class ApplicationTabMembersComponentHarness extends ComponentHarness {
   private readonly locatePaginatedTable = this.locatorForOptional(PaginatedTableHarness);
   private readonly locateUserCells = this.locatorForAll(UserCellHarness);
   private readonly locatePrimaryOwnerRoleCell = this.locatorForOptional('[data-testid="members-role-primary-owner"]');
+  private readonly locateAddMembersButton = this.locatorForOptional(
+    MatButtonHarness.with({ selector: '[data-testid="members-add-button"]' }),
+  );
 
   public async getLoader(): Promise<LoaderHarness | null> {
     return this.locateLoader();
@@ -48,6 +52,14 @@ export class ApplicationTabMembersComponentHarness extends ComponentHarness {
 
   public async getPaginatedTable(): Promise<PaginatedTableHarness | null> {
     return this.locatePaginatedTable();
+  }
+
+  public async getAddMembersButton(): Promise<MatButtonHarness | null> {
+    return this.locateAddMembersButton();
+  }
+
+  public async clickAddMembersButton(): Promise<void> {
+    return (await this.locateAddMembersButton())!.click();
   }
 
   public async getUserCells(): Promise<UserCellHarness[]> {

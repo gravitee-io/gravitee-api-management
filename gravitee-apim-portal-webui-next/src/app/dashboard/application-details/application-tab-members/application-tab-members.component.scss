@@ -17,11 +17,18 @@
 
 app-search-bar {
   display: block;
-  margin-bottom: 24px;
   max-width: 400px;
 }
 
 .members {
+  &__toolbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
   &__title {
     margin: 0 0 16px;
   }

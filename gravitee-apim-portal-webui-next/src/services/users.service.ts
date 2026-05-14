@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
@@ -67,10 +67,8 @@ export interface FinalizeRegistrationInput {
   providedIn: 'root',
 })
 export class UsersService {
-  constructor(
-    private readonly http: HttpClient,
-    private readonly configService: ConfigService,
-  ) {}
+  private readonly http = inject(HttpClient);
+  private readonly configService = inject(ConfigService);
 
   listCustomUserFields(): Observable<Array<CustomUserField>> {
     return this.http.get<Array<CustomUserField>>(`${this.configService.baseURL}/configuration/users/custom-fields`);

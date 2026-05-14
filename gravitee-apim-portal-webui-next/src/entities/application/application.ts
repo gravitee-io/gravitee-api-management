@@ -115,6 +115,19 @@ export interface ApplicationsMetadataSubscriptions {
   [applicationId: string]: Subscription[];
 }
 
+export interface ApplicationRole {
+  id?: string;
+  name: string;
+  default?: boolean;
+  system?: boolean;
+}
+
+export const APPLICATION_PRIMARY_OWNER_ROLE_NAME = 'PRIMARY_OWNER';
+
+export interface ConfigurationApplicationRolesResponse {
+  data?: ApplicationRole[];
+}
+
 export interface ApplicationType {
   id?: string;
   name: string;

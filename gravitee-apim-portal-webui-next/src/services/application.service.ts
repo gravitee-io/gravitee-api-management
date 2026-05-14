@@ -14,20 +14,25 @@
  * limitations under the License.
  */
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
 import { ConfigService } from './config.service';
-import { Application, ApplicationInput, ApplicationsResponse, ApplicationType } from '../entities/application/application';
+import {
+  Application,
+  ApplicationInput,
+  ApplicationRole,
+  ApplicationsResponse,
+  ApplicationType,
+  ConfigurationApplicationRolesResponse,
+} from '../entities/application/application';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApplicationService {
-  constructor(
-    private readonly http: HttpClient,
-    private configService: ConfigService,
-  ) {}
+  private readonly http = inject(HttpClient);
+  private readonly configService = inject(ConfigService);
 
   get(applicationId: string): Observable<Application> {
     return this.http.get<Application>(`${this.configService.baseURL}/applications/${applicationId}`);
@@ -40,6 +45,12 @@ export class ApplicationService {
   getEnabledApplicationTypes(): Observable<ApplicationType[]> {
     return this.http
       .get<{ data: ApplicationType[] }>(`${this.configService.baseURL}/configuration/applications/types`)
+      .pipe(map(response => response.data ?? []));
+  }
+
+  getApplicationRoles(): Observable<ApplicationRole[]> {
+    return this.http
+      .get<ConfigurationApplicationRolesResponse>(`${this.configService.baseURL}/configuration/applications/roles`)
       .pipe(map(response => response.data ?? []));
   }
 

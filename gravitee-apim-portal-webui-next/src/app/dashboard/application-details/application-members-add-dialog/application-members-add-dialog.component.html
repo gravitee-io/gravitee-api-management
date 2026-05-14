@@ -1,0 +1,173 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<h2 mat-dialog-title i18n="@@addApplicationMembersDialogTitle">Add members</h2>
+
+<mat-dialog-content class="application-members-add-dialog">
+  <section class="application-members-add-dialog__section">
+    <mat-form-field appearance="outline" class="application-members-add-dialog__field">
+      <mat-label i18n="@@addApplicationMembersRoleLabel">Member Role</mat-label>
+      <mat-select
+        [formControl]="roleControl"
+        data-testid="add-members-role-select"
+        aria-label="Member role"
+        i18n-aria-label="@@addApplicationMembersRoleAriaLabel"
+      >
+        @for (role of assignableRoles(); track role.name) {
+          <mat-option [value]="role.name">{{ role.name }}</mat-option>
+        }
+      </mat-select>
+      @if (roleControl.hasError('required') && roleControl.touched) {
+        <mat-error i18n="@@addApplicationMembersRoleRequired">Application role is required.</mat-error>
+      }
+    </mat-form-field>
+
+    @if (rolesResource.isLoading()) {
+      <div class="application-members-add-dialog__loading" aria-live="polite" data-testid="add-members-roles-loading">
+        <mat-progress-spinner diameter="20" mode="indeterminate" />
+        <span class="next-gen-small" i18n="@@addApplicationMembersRolesLoading">Loading roles...</span>
+      </div>
+    } @else if (rolesResource.error()) {
+      <p class="application-members-add-dialog__error next-gen-small" role="alert" data-testid="add-members-roles-error" i18n>
+        An error occurred while loading application roles. Please try again.
+      </p>
+    } @else if (assignableRoles().length === 0) {
+      <p class="application-members-add-dialog__error next-gen-small" role="alert" data-testid="add-members-no-roles" i18n>
+        No assignable application roles are available.
+      </p>
+    }
+  </section>
+
+  <section class="application-members-add-dialog__section">
+    <mat-form-field appearance="outline" class="application-members-add-dialog__field">
+      <mat-label i18n="@@addApplicationMemberSearchLabel">Search user</mat-label>
+      <input
+        matInput
+        type="search"
+        [formControl]="userControl"
+        [matAutocomplete]="userAutocomplete"
+        data-testid="add-members-search-input"
+        aria-label="Search user"
+        i18n-aria-label="@@addApplicationMemberSearchAriaLabel"
+        placeholder="Name or email..."
+        i18n-placeholder="@@addApplicationMemberSearchPlaceholder"
+      />
+      <mat-autocomplete #userAutocomplete="matAutocomplete">
+        @if (usersResource.isLoading()) {
+          <mat-option disabled data-testid="add-members-search-loading">
+            <div class="application-members-add-dialog__option">
+              <mat-progress-spinner diameter="20" mode="indeterminate" />
+              <span class="next-gen-small" i18n="@@addApplicationMemberSearchLoading">Searching users...</span>
+            </div>
+          </mat-option>
+        }
+        @for (option of userOptions(); track option.id) {
+          <mat-option
+            [value]="searchQuery()"
+            [disabled]="option.isDisabled"
+            (onSelectionChange)="$event.isUserInput && onUserSelected(option.user)"
+          >
+            <div class="application-members-add-dialog__option">
+              <app-user-cell [user]="option.vm" />
+              @if (option.isAlreadyMember) {
+                <span
+                  class="application-members-add-dialog__already-added next-gen-small"
+                  data-testid="add-members-user-already-added"
+                  i18n
+                >
+                  Already added
+                </span>
+              } @else if (option.isSelected) {
+                <span
+                  class="application-members-add-dialog__already-added next-gen-small"
+                  data-testid="add-members-user-already-selected"
+                  i18n
+                >
+                  Already selected
+                </span>
+              }
+            </div>
+          </mat-option>
+        }
+        @if (noUsersFound()) {
+          <mat-option disabled data-testid="add-members-search-no-match">
+            <span i18n="@@addApplicationMemberNoUsersFound">No users found</span>
+          </mat-option>
+        }
+      </mat-autocomplete>
+      <mat-hint i18n="@@addApplicationMemberSearchHint">Search by name or email.</mat-hint>
+      @if (selectedUsers().length === 0 && userControl.touched) {
+        <mat-error i18n="@@addApplicationMemberUserRequired">Please select a user.</mat-error>
+      }
+    </mat-form-field>
+
+    @if (selectedUsers().length > 0) {
+      <div class="application-members-add-dialog__selected-users" data-testid="add-members-selected-users">
+        <mat-chip-set aria-label="Selected members" i18n-aria-label="@@addApplicationMembersSelectedMembersAriaLabel">
+          @for (selectedUser of selectedUsers(); track selectedUser.id) {
+            <mat-chip
+              data-testid="add-members-selected-user-chip"
+              [removable]="!isSubmitting()"
+              (removed)="removeSelectedUser(selectedUser.id)"
+            >
+              <span>{{ selectedUser.displayName }}</span>
+              @if (selectedUser.email) {
+                <span class="application-members-add-dialog__selected-user-email next-gen-small">{{ selectedUser.email }}</span>
+              }
+              <button matChipRemove type="button" [disabled]="isSubmitting()" [attr.aria-label]="selectedUser.removeLabel">
+                <mat-icon aria-hidden="true">cancel</mat-icon>
+              </button>
+            </mat-chip>
+          }
+        </mat-chip-set>
+      </div>
+    }
+
+    @if (usersResource.error()) {
+      <p class="application-members-add-dialog__error next-gen-small" data-testid="add-members-search-error" role="alert" i18n>
+        An error occurred while searching users. Please try again.
+      </p>
+    }
+    @for (error of userSubmitErrors(); track error) {
+      <p class="application-members-add-dialog__error next-gen-small" role="alert" data-testid="add-members-user-error">
+        {{ error }}
+      </p>
+    }
+  </section>
+
+  @if (submitError(); as error) {
+    <p class="application-members-add-dialog__error next-gen-small" data-testid="add-members-submit-error" role="alert">
+      {{ error }}
+    </p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="onCancel()" data-testid="add-members-cancel-button" i18n>Cancel</button>
+  <button
+    mat-flat-button
+    color="primary"
+    type="button"
+    [disabled]="!canSubmit()"
+    (click)="onSubmit()"
+    data-testid="add-members-submit-button"
+  >
+    <span i18n="@@addApplicationMembersSubmitButton">
+      {selectedUsers().length, plural, =0 {Add member} =1 {Add member} other {Add {{ selectedUsers().length }} members}}
+    </span>
+  </button>
+</mat-dialog-actions>

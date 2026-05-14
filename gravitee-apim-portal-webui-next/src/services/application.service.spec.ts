@@ -17,7 +17,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { ApplicationService } from './application.service';
-import { Application, ApplicationsResponse, ApplicationType } from '../entities/application/application';
+import { Application, ApplicationRole, ApplicationsResponse, ApplicationType } from '../entities/application/application';
 import { fakeApplication, fakeApplicationsResponse, fakeSimpleApplicationType } from '../entities/application/application.fixture';
 import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
 
@@ -75,6 +75,23 @@ describe('ApplicationService', () => {
     expect(req.request.method).toEqual('GET');
 
     req.flush(applicationType);
+  });
+
+  it('should return application roles', done => {
+    const applicationRoles: ApplicationRole[] = [
+      { id: 'USER', name: 'USER', default: true, system: false },
+      { id: 'OWNER', name: 'OWNER', default: false, system: false },
+    ];
+
+    service.getApplicationRoles().subscribe(response => {
+      expect(response).toEqual(applicationRoles);
+      done();
+    });
+
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/configuration/applications/roles`);
+    expect(req.request.method).toEqual('GET');
+
+    req.flush({ data: applicationRoles });
   });
 
   it('should save application', done => {
