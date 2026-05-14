@@ -33,6 +33,10 @@ import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
@@ -367,6 +371,42 @@ class UpdateApiDomainServiceImplTest {
         var result = cut.validateV4(api, auditInfo);
 
         assertThat(result.getApiDefinitionHttpV4().getProperties()).hasSize(1).first().isNotInstanceOf(PropertyEntity.class);
+        verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
+    }
+
+    @Test
+    void should_preserve_original_listeners_when_validator_returns_null() {
+        var existingListener = HttpListener.builder()
+            .paths(List.of(Path.builder().path("/original").build()))
+            .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
+            .build();
+        var originalDefinition = ApiFixtures.aProxyApiV4()
+            .getApiDefinitionHttpV4()
+            .toBuilder()
+            .listeners(List.of(existingListener))
+            .build();
+        var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(originalDefinition).build();
+        stubValidate(entity -> entity.setListeners(null));
+
+        var result = cut.validateV4(api, auditInfo);
+
+        assertThat(result.getApiDefinitionHttpV4().getListeners()).containsExactly(existingListener);
+    }
+
+    @Test
+    void should_return_sanitized_listeners_from_mutated_update_api_entity() {
+        var api = ApiFixtures.aProxyApiV4();
+        List<Listener> sanitizedListeners = List.of(
+            HttpListener.builder()
+                .paths(List.of(Path.builder().path("/sanitized").build()))
+                .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
+                .build()
+        );
+        stubValidate(entity -> entity.setListeners(sanitizedListeners));
+
+        var result = cut.validateV4(api, auditInfo);
+
+        assertThat(result.getApiDefinitionHttpV4().getListeners()).isEqualTo(sanitizedListeners);
         verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
     }
 }

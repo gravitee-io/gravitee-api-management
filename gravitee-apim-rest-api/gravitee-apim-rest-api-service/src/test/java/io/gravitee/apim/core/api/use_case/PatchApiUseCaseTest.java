@@ -55,6 +55,10 @@ import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
@@ -270,6 +274,29 @@ class PatchApiUseCaseTest {
         return base.toBuilder().apiDefinitionValue(httpV4Def(base).toBuilder().flows(flows).build()).build();
     }
 
+    static Api apiWithListeners(List<Listener> listeners) {
+        var base = ApiFixtures.aProxyApiV4();
+        return base.toBuilder().apiDefinitionValue(httpV4Def(base).toBuilder().listeners(listeners).build()).build();
+    }
+
+    static HttpListener anHttpListener(String path) {
+        return HttpListener.builder()
+            .paths(List.of(Path.builder().path(path).build()))
+            .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
+            .build();
+    }
+
+    static Map<String, Object> listenerMap(String path) {
+        return Map.of(
+            "type",
+            "http",
+            "paths",
+            List.of(Map.of("path", path)),
+            "entrypoints",
+            List.of(Map.of("type", "http-proxy", "configuration", "{}"))
+        );
+    }
+
     static Api apiWithResources(List<Resource> resources) {
         var base = ApiFixtures.aProxyApiV4();
         return base.toBuilder().apiDefinitionValue(httpV4Def(base).toBuilder().resources(resources).build()).build();
@@ -473,14 +500,6 @@ class PatchApiUseCaseTest {
                 .isInstanceOf(ApiPatchNotAllowedException.class)
                 .hasMessageContaining("state")
                 .hasMessageContaining("_start");
-        }
-
-        @ParameterizedTest
-        @EnumSource(PatchApiUseCase.PatchType.class)
-        void listeners_field_is_rejected(PatchApiUseCase.PatchType type) {
-            assertThatThrownBy(() -> execute(type, setField(type, "listeners", List.of()), false))
-                .isInstanceOf(ApiPatchNotAllowedException.class)
-                .hasMessageContaining("listeners");
         }
 
         @ParameterizedTest
@@ -814,23 +833,23 @@ class PatchApiUseCaseTest {
 
         @Test
         void move_op_with_disallowed_from_field_is_rejected() {
-            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, movePatch("/listeners/0", "/name"), false))
+            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, movePatch("/endpointGroups/0", "/name"), false))
                 .isInstanceOf(ApiPatchNotAllowedException.class)
-                .hasMessageContaining("listeners");
+                .hasMessageContaining("endpointGroups");
         }
 
         @Test
         void copy_op_with_disallowed_from_field_is_rejected() {
-            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, copyPatch("/listeners/0", "/name"), false))
+            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, copyPatch("/endpointGroups/0", "/name"), false))
                 .isInstanceOf(ApiPatchNotAllowedException.class)
-                .hasMessageContaining("listeners");
+                .hasMessageContaining("endpointGroups");
         }
 
         @Test
         void move_op_with_disallowed_destination_path_is_rejected() {
-            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, movePatch("/name", "/listeners/0"), false))
+            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, movePatch("/name", "/endpointGroups/0"), false))
                 .isInstanceOf(ApiPatchNotAllowedException.class)
-                .hasMessageContaining("listeners");
+                .hasMessageContaining("endpointGroups");
         }
 
         @Test
@@ -842,9 +861,9 @@ class PatchApiUseCaseTest {
 
         @Test
         void disallowed_field_via_path_segment_is_rejected() {
-            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("replace", "/listeners/0/type", "HTTP"), false))
+            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("replace", "/endpointGroups/0/name", "x"), false))
                 .isInstanceOf(ApiPatchNotAllowedException.class)
-                .hasMessageContaining("listeners");
+                .hasMessageContaining("endpointGroups");
         }
 
         @Test
@@ -906,9 +925,9 @@ class PatchApiUseCaseTest {
 
         @Test
         void add_op_on_blocked_path_is_rejected() {
-            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("add", "/listeners/0", Map.of()), false))
+            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("add", "/endpointGroups/0", Map.of()), false))
                 .isInstanceOf(ApiPatchNotAllowedException.class)
-                .hasMessageContaining("listeners");
+                .hasMessageContaining("endpointGroups");
         }
 
         @Test
@@ -2004,6 +2023,227 @@ class PatchApiUseCaseTest {
             );
 
             assertThat(httpV4Def(output.api()).getResources()).isEqualTo(sanitisedResources);
+        }
+    }
+
+    @Nested
+    class ListenersResolution {
+
+        @Test
+        void merge_patch_with_null_listeners_erases_them() {
+            givenExistingApi(apiWithListeners(List.of(anHttpListener("/existing"))));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("listeners", null), false);
+
+            assertThat(httpV4Def(output.api()).getListeners()).isEmpty();
+        }
+
+        @Test
+        void merge_patch_with_empty_array_clears_listeners() {
+            givenExistingApi(apiWithListeners(List.of(anHttpListener("/existing"))));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("listeners", List.of()), false);
+
+            assertThat(httpV4Def(output.api()).getListeners()).isEmpty();
+        }
+
+        @Test
+        void merge_patch_omitting_listeners_leaves_them_unchanged() {
+            var existing = anHttpListener("/existing");
+            givenExistingApi(apiWithListeners(List.of(existing)));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("name", "renamed"), false);
+
+            assertThat(httpV4Def(output.api()).getListeners()).containsExactly(existing);
+        }
+
+        @Test
+        void merge_patch_sets_listeners_when_previously_absent() {
+            givenExistingApi(apiWithListeners(null));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("listeners", List.of(listenerMap("/new"))), false);
+
+            assertThat(httpV4Def(output.api()).getListeners()).hasSize(1);
+            assertThat(((HttpListener) httpV4Def(output.api()).getListeners().getFirst()).getPaths().getFirst().getPath()).isEqualTo(
+                "/new"
+            );
+        }
+
+        @Test
+        void json_patch_add_listener_at_index() {
+            givenExistingApi(apiWithListeners(List.of(anHttpListener("/existing"))));
+
+            var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("add", "/listeners/0", listenerMap("/inserted")), false);
+
+            assertThat(httpV4Def(output.api()).getListeners()).hasSize(2);
+            assertThat(((HttpListener) httpV4Def(output.api()).getListeners().getFirst()).getPaths().getFirst().getPath()).isEqualTo(
+                "/inserted"
+            );
+        }
+
+        @Test
+        void json_patch_append_listener_using_dash() {
+            givenExistingApi(apiWithListeners(List.of(anHttpListener("/existing"))));
+
+            var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("add", "/listeners/-", listenerMap("/appended")), false);
+
+            assertThat(httpV4Def(output.api()).getListeners()).hasSize(2);
+            assertThat(((HttpListener) httpV4Def(output.api()).getListeners().get(1)).getPaths().getFirst().getPath()).isEqualTo(
+                "/appended"
+            );
+        }
+
+        @Test
+        void json_patch_remove_listener_at_index() {
+            givenExistingApi(apiWithListeners(List.of(anHttpListener("/first"), anHttpListener("/second"))));
+
+            var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("remove", "/listeners/0"), false);
+
+            assertThat(httpV4Def(output.api()).getListeners()).hasSize(1);
+            assertThat(((HttpListener) httpV4Def(output.api()).getListeners().getFirst()).getPaths().getFirst().getPath()).isEqualTo(
+                "/second"
+            );
+        }
+
+        @Test
+        void merge_patch_with_new_listener_adds_it_to_existing_list() {
+            givenExistingApi(apiWithListeners(List.of(anHttpListener("/existing"))));
+            var supplied = List.of(listenerMap("/existing"), listenerMap("/new"));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("listeners", supplied), false);
+
+            assertThat(httpV4Def(output.api()).getListeners()).hasSize(2);
+            assertThat(((HttpListener) httpV4Def(output.api()).getListeners().get(1)).getPaths().getFirst().getPath()).isEqualTo("/new");
+        }
+
+        @Test
+        void json_patch_replace_listeners_with_new_entry_replaces_list() {
+            givenExistingApi(apiWithListeners(List.of(anHttpListener("/old"))));
+            var supplied = List.of(listenerMap("/replaced"));
+
+            var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("replace", "/listeners", supplied), false);
+
+            var listeners = httpV4Def(output.api()).getListeners();
+            assertThat(listeners).hasSize(1);
+            assertThat(((HttpListener) listeners.getFirst()).getPaths().getFirst().getPath()).isEqualTo("/replaced");
+        }
+
+        @Test
+        void merge_patch_replaces_existing_listener_in_place() {
+            givenExistingApi(apiWithListeners(List.of(anHttpListener("/original"))));
+            var modified = List.of(listenerMap("/modified"));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("listeners", modified), false);
+
+            assertThat(httpV4Def(output.api()).getListeners()).hasSize(1);
+            assertThat(((HttpListener) httpV4Def(output.api()).getListeners().getFirst()).getPaths().getFirst().getPath()).isEqualTo(
+                "/modified"
+            );
+        }
+
+        @Test
+        void merge_patch_updates_entrypoints_on_existing_listener() {
+            givenExistingApi(apiWithListeners(List.of(anHttpListener("/path"))));
+            var withTwoEntrypoints = Map.of(
+                "type",
+                "http",
+                "paths",
+                List.of(Map.of("path", "/path")),
+                "entrypoints",
+                List.of(Map.of("type", "http-proxy", "configuration", "{}"), Map.of("type", "http-get", "configuration", "{}"))
+            );
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("listeners", List.of(withTwoEntrypoints)), false);
+
+            var listeners = httpV4Def(output.api()).getListeners();
+            assertThat(listeners).hasSize(1);
+            assertThat(((HttpListener) listeners.getFirst()).getEntrypoints()).hasSize(2);
+        }
+
+        @Test
+        void merge_patch_removes_listener_by_sending_shorter_list() {
+            givenExistingApi(apiWithListeners(List.of(anHttpListener("/first"), anHttpListener("/second"))));
+            var withoutSecond = List.of(listenerMap("/first"));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("listeners", withoutSecond), false);
+
+            assertThat(httpV4Def(output.api()).getListeners()).hasSize(1);
+            assertThat(((HttpListener) httpV4Def(output.api()).getListeners().getFirst()).getPaths().getFirst().getPath()).isEqualTo(
+                "/first"
+            );
+        }
+
+        @Test
+        void json_patch_remove_listeners_clears_list() {
+            givenExistingApi(apiWithListeners(List.of(anHttpListener("/first"), anHttpListener("/second"))));
+
+            var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("remove", "/listeners"), false);
+
+            assertThat(httpV4Def(output.api()).getListeners()).isEmpty();
+        }
+
+        static Stream<Arguments> reorderListenersVariants() {
+            var reordered = List.of(listenerMap("/second"), listenerMap("/first"));
+            return Stream.of(
+                Arguments.of(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("listeners", reordered)),
+                Arguments.of(PatchApiUseCase.PatchType.JSON_PATCH, patch("replace", "/listeners", reordered))
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("reorderListenersVariants")
+        void reordering_listeners_reflects_new_order(PatchApiUseCase.PatchType type, String body) {
+            givenExistingApi(apiWithListeners(List.of(anHttpListener("/first"), anHttpListener("/second"))));
+
+            var output = execute(type, body, false);
+
+            var listeners = httpV4Def(output.api()).getListeners();
+            assertThat(listeners).hasSize(2);
+            assertThat(((HttpListener) listeners.getFirst()).getPaths().getFirst().getPath()).isEqualTo("/second");
+            assertThat(((HttpListener) listeners.get(1)).getPaths().getFirst().getPath()).isEqualTo("/first");
+        }
+
+        @Test
+        void validation_failure_on_listeners_surfaces_as_exception() {
+            doThrow(new ValidationDomainException("duplicate listener", Map.of("listeners", "duplicate path")))
+                .when(updateApiDomainService)
+                .updateV4(any(), any());
+            var duplicated = List.of(listenerMap("/dup"), listenerMap("/dup"));
+
+            assertThatThrownBy(() ->
+                execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("listeners", duplicated), false)
+            ).isExactlyInstanceOf(ValidationDomainException.class);
+        }
+
+        @Test
+        void dry_run_returns_sanitised_listeners() {
+            List<Listener> sanitisedListeners = List.of(
+                HttpListener.builder()
+                    .paths(List.of(Path.builder().path("/sanitized").build()))
+                    .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
+                    .build()
+            );
+            when(updateApiDomainService.validateV4(any(), any())).thenAnswer(inv -> {
+                Api api = inv.getArgument(0);
+                var def = api.getApiDefinitionHttpV4();
+                return api.toBuilder().apiDefinitionValue(def.toBuilder().listeners(sanitisedListeners).build()).build();
+            });
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("listeners", List.of(listenerMap("/requested"))), true);
+
+            assertThat(httpV4Def(output.api()).getListeners()).isEqualTo(sanitisedListeners);
+        }
+
+        @Test
+        void dry_run_does_not_persist_listeners_change() {
+            stubValidateV4ReturnsArgument();
+            var original = apiWithListeners(List.of(anHttpListener("/original")));
+            givenExistingApi(original);
+
+            execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("listeners", List.of(listenerMap("/changed"))), true);
+
+            var stored = apiCrudService.storage().getFirst();
+            assertThat(((HttpListener) httpV4Def(stored).getListeners().getFirst()).getPaths().getFirst().getPath()).isEqualTo("/original");
         }
     }
 }
