@@ -90,3 +90,64 @@ export interface CreateApiPlanRequest {
 export interface ApiPlanCreated {
     id: string;
 }
+
+// ─── API list & detail shared types ──────────────────────────────────────────
+
+export type ApiState = 'CLOSED' | 'INITIALIZED' | 'STARTED' | 'STOPPED' | 'STOPPING';
+export type ApiDeploymentState = 'NEED_REDEPLOY' | 'DEPLOYED';
+export type ApiLifecycleState = 'ARCHIVED' | 'CREATED' | 'DEPRECATED' | 'PUBLISHED' | 'UNPUBLISHED';
+export type ApiVisibility = 'PUBLIC' | 'PRIVATE';
+export type ApiType = 'PROXY' | 'MESSAGE' | 'NATIVE';
+
+export interface ApiListListener {
+    type: string;
+    paths?: { path: string; host?: string }[];
+    hosts?: VirtualHost[];
+    host?: string;
+    port?: number;
+}
+
+export interface ApiListItem {
+    id: string;
+    name: string;
+    apiVersion: string;
+    description?: string;
+    type: ApiType;
+    definitionVersion: 'V4' | 'V2';
+    state?: ApiState;
+    deploymentState?: ApiDeploymentState;
+    lifecycleState?: ApiLifecycleState;
+    visibility?: ApiVisibility;
+    listeners?: ApiListListener[];
+    primaryOwner?: { id?: string; displayName?: string; email?: string };
+}
+
+export interface ApiListPagination {
+    page: number;
+    perPage: number;
+    pageCount: number;
+    totalCount: number;
+}
+
+export interface ApiListResponse {
+    data: ApiListItem[];
+    pagination: ApiListPagination;
+}
+
+export interface ApiSearchQuery {
+    query?: string;
+    statuses?: string[];
+    published?: string[];
+    visibilities?: string[];
+    apiTypes?: string[];
+}
+
+/** Lightweight shape used by the API detail view. */
+export interface ApiDetailDto {
+    id: string;
+    name: string;
+    description?: string;
+    apiVersion: string;
+    state?: ApiState;
+    type?: ApiType;
+}

@@ -18,6 +18,50 @@
  * Test stub for `@gravitee/gamma-modules-sdk`.
  * Replaced at runtime by the MF singleton from the host shell.
  * Individual tests mock specific exports via jest.mock().
+ *
+ * Permission stubs default to granted so feature tests render normally.
+ * To test denied states, mock `useHasPermission` or `permissionService` per-test.
  */
+import type { ReactNode } from 'react';
+
 export const useEnvironment = (): undefined => undefined;
-export const useHasPermission = (): boolean => false;
+
+// ─── Permissions ──────────────────────────────────────────────────────────────
+
+export const useHasPermission = (_check?: { anyOf?: string[]; allOf?: string[] }): boolean => true;
+
+export const permissionService = {
+    load: (_scope: string, _permissions: string[]): void => {},
+    clear: (_scope: string): void => {},
+    reset: (): void => {},
+    getAllPermissions: (): string[] => [],
+    hasAnyOf: (): boolean => true,
+    hasAllOf: (): boolean => true,
+    subscribe:
+        (_listener: () => void): (() => void) =>
+        () => {},
+    getSnapshot: (): number => 0,
+};
+
+export function PermissionGate({
+    children,
+    fallback = null,
+}: {
+    children: ReactNode;
+    fallback?: ReactNode;
+    anyOf?: string[];
+    allOf?: string[];
+}): ReactNode {
+    return children ?? fallback;
+}
+
+/**
+ * Normalizes a CRUD permission map from the backend into flat permission strings.
+ * e.g. `normalizeCrudMapRecord('api', { DEFINITION: ['R','U'] })` → `['api-definition-r', 'api-definition-u']`
+ */
+export function normalizeCrudMapRecord(scope: string, record: Record<string, string[] | string>): string[] {
+    return Object.entries(record).flatMap(([resource, ops]) => {
+        const operations = Array.isArray(ops) ? ops : [ops];
+        return operations.map(op => `${scope}-${resource.toLowerCase()}-${op.toLowerCase()}`);
+    });
+}
