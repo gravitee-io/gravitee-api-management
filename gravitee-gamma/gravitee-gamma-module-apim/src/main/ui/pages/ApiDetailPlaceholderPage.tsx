@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-export const apiProxyKeys = {
-    all: ['apiProxy'] as const,
-    create: () => [...apiProxyKeys.all, 'create'] as const,
-} as const;
-
-export const apiListKeys = {
-    all: ['api-list'] as const,
-    search: (envId: string, query: string, page: number, perPage: number) =>
-        [...apiListKeys.all, 'search', envId, query, page, perPage] as const,
-    count: (envId: string, filter: object) => [...apiListKeys.all, 'count', envId, JSON.stringify(filter)] as const,
-} as const;
+export function ApiDetailPlaceholderPage({ title }: { title: string }) {
+    return (
+        <div className="space-y-2 p-6">
+            <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+            <p className="text-sm text-muted-foreground">Coming soon.</p>
+        </div>
+    );
+}

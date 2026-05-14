@@ -24,6 +24,7 @@ const queryClient = new QueryClient();
 import { NAV_GROUPS } from '../config/navigation';
 import { APIM_ROUTE_CONFIG } from '../config/routes';
 import { AnalyticsPage } from '../pages/AnalyticsPage';
+import { ApiDetailPlaceholderPage } from '../pages/ApiDetailPlaceholderPage';
 import { ApiProductsPage } from '../pages/ApiProductsPage';
 import { ApisPage } from '../pages/ApisPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
@@ -67,6 +68,13 @@ export function AppRoutes() {
                             <Route index element={<CreateApiProxyPage />} />
                             <Route path="scratch" element={<ScratchWizardPage />} />
                             <Route path="template/:id" element={<TemplateWizardPage />} />
+                        </Route>
+                        <Route path=":apiId">
+                            <Route index element={<ApiDetailPlaceholderPage title="Overview" />} />
+                            <Route path="overview" element={<ApiDetailPlaceholderPage title="Overview" />} />
+                            <Route path="general" element={<ApiDetailPlaceholderPage title="General" />} />
+                            <Route path="analytics" element={<ApiDetailPlaceholderPage title="Analytics" />} />
+                            <Route path="*" element={<ApiDetailPlaceholderPage title="Coming soon" />} />
                         </Route>
                     </Route>
                     <Route path="api-products" element={<ApiProductsPage />} />
