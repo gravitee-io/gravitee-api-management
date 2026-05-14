@@ -106,7 +106,14 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
             )
         );
 
-        doAnswer(inv -> inv.getArgument(0))
+        doAnswer(inv -> {
+            io.gravitee.apim.core.api.model.Api api = inv.getArgument(0);
+            var httpV4 = api.getApiDefinitionHttpV4();
+            if (httpV4 != null && httpV4.getFlows() != null) {
+                flowCrudService.saveApiFlows(api.getId(), httpV4.getFlows());
+            }
+            return api;
+        })
             .when(updateApiDomainService)
             .updateV4(any(), any());
         doAnswer(inv -> inv.getArgument(0))
@@ -116,7 +123,9 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
 
     @AfterEach
     public void tearDown() {
-        Stream.of(apiCrudService, membershipQueryServiceInMemory, primaryOwnerDomainService).forEach(InMemoryAlternative::reset);
+        Stream.of(apiCrudService, membershipQueryServiceInMemory, primaryOwnerDomainService, flowCrudService).forEach(
+            InMemoryAlternative::reset
+        );
         reset(updateApiDomainService, apiSearchServiceV4);
     }
 

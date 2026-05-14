@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.FlowCrudServiceInMemory;
 import inmemory.WorkflowQueryServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
@@ -110,6 +111,7 @@ class PatchApiUseCaseTest {
     private static final PatchApiUseCase.FlowListSerializer FLOW_SERIALIZER = flows -> OBJECT_MAPPER.valueToTree(flows);
 
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+    FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
     WorkflowQueryServiceInMemory workflowQueryService = new WorkflowQueryServiceInMemory();
     ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService = mock(ApiPrimaryOwnerDomainService.class);
     UpdateApiDomainService updateApiDomainService = mock(UpdateApiDomainService.class);
@@ -130,7 +132,8 @@ class PatchApiUseCaseTest {
             OBJECT_MAPPER,
             propertyDomainService,
             FLOW_DESERIALIZER,
-            FLOW_SERIALIZER
+            FLOW_SERIALIZER,
+            flowCrudService
         );
 
         var primaryOwner = PrimaryOwnerEntity.builder().id(USER_ID).type(PrimaryOwnerEntity.Type.USER).build();
@@ -138,6 +141,7 @@ class PatchApiUseCaseTest {
 
         givenExistingApi(ApiFixtures.aProxyApiV4());
         stubUpdateV4ReturnsArgument();
+        stubValidateV4ReturnsArgument();
     }
 
     void givenExistingApi(Api api) {
@@ -145,7 +149,16 @@ class PatchApiUseCaseTest {
     }
 
     void stubUpdateV4ReturnsArgument() {
-        when(updateApiDomainService.updateV4(any(), any())).thenAnswer(inv -> inv.getArgument(0));
+        when(updateApiDomainService.updateV4(any(), any())).thenAnswer(inv -> {
+            Api api = inv.getArgument(0);
+            if (api != null) {
+                var httpV4 = api.getApiDefinitionHttpV4();
+                if (httpV4 != null && httpV4.getFlows() != null) {
+                    flowCrudService.saveApiFlows(api.getId(), httpV4.getFlows());
+                }
+            }
+            return api;
+        });
     }
 
     void stubValidateV4ReturnsArgument() {
@@ -1924,7 +1937,8 @@ class PatchApiUseCaseTest {
                 includeNullsMapper,
                 propertyDomainService,
                 node -> sentinel,
-                flows -> includeNullsMapper.valueToTree(flows)
+                flows -> includeNullsMapper.valueToTree(flows),
+                flowCrudService
             );
             givenExistingApi(apiWithFlows(null));
 
@@ -1939,6 +1953,67 @@ class PatchApiUseCaseTest {
             );
 
             assertThat(httpV4Def(output.api()).getFlows()).isNull();
+        }
+
+        @ParameterizedTest
+        @EnumSource(PatchApiUseCase.PatchType.class)
+        void caller_supplied_flow_id_is_stripped_on_dry_run_response(PatchApiUseCase.PatchType type) {
+            givenExistingApi(apiWithFlows(List.of(aFlow("f1", List.of(aStep("s1", "policy-a"))))));
+            var supplied = List.of(
+                Map.of("id", "my-custom-id", "name", "f1", "enabled", true, "request", List.of(stepMap("s1", "policy-a")))
+            );
+
+            var output = execute(type, setField(type, "flows", supplied), true);
+
+            assertThat(httpV4Def(output.api()).getFlows()).extracting(Flow::getId).containsOnlyNulls();
+        }
+
+        @ParameterizedTest
+        @EnumSource(PatchApiUseCase.PatchType.class)
+        void real_patch_response_returns_db_generated_flow_id(PatchApiUseCase.PatchType type) {
+            givenExistingApi(apiWithFlows(List.of(aFlow("f1", List.of(aStep("s1", "policy-a"))))));
+            var dbFlow = Flow.builder().id("server-uuid").name("f1").enabled(true).request(List.of(aStep("s1", "policy-a"))).build();
+            when(updateApiDomainService.updateV4(any(), any())).thenAnswer(inv -> {
+                flowCrudService.saveApiFlows(API_ID, List.of(dbFlow));
+                return inv.getArgument(0);
+            });
+            var supplied = List.of(
+                Map.of("id", "my-custom-id", "name", "f1", "enabled", true, "request", List.of(stepMap("s1", "policy-a")))
+            );
+
+            var output = execute(type, setField(type, "flows", supplied), false);
+
+            assertThat(httpV4Def(output.api()).getFlows()).extracting(Flow::getId).containsExactly("server-uuid");
+        }
+
+        @Test
+        void patch_not_touching_flows_returns_db_stored_flow_id_in_response() {
+            var preExisting = Flow.builder()
+                .id("preexisting-id")
+                .name("f1")
+                .enabled(true)
+                .request(List.of(aStep("s1", "policy-a")))
+                .build();
+            givenExistingApi(apiWithFlows(List.of(preExisting)));
+            flowCrudService.saveApiFlows(API_ID, List.of(preExisting));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("name", "renamed"), false);
+
+            assertThat(httpV4Def(output.api()).getFlows()).extracting(Flow::getId).containsExactly("preexisting-id");
+        }
+
+        @Test
+        void caller_supplied_flow_id_is_not_echoed_back_in_real_patch_response() {
+            givenExistingApi(apiWithFlows(List.of()));
+            var serverFlow = Flow.builder().id("server-uuid").name("f1").enabled(true).request(List.of(aStep("s1", "policy-a"))).build();
+            flowCrudService.saveApiFlows(API_ID, List.of(serverFlow));
+            var supplied = List.of(
+                Map.of("id", "caller-supplied-id", "name", "f1", "enabled", true, "request", List.of(stepMap("s1", "policy-a")))
+            );
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("flows", supplied), false);
+
+            assertThat(httpV4Def(output.api()).getFlows().getFirst().getId()).isNotEqualTo("caller-supplied-id");
         }
     }
 
