@@ -24,7 +24,6 @@ export class AnalyticsComponentHarness extends ComponentHarness {
   private readonly locateLoader = this.locatorForOptional(LoaderHarness);
   private readonly locateError = this.locatorForOptional('[data-testid="analytics-list-error"]');
   private readonly locateEmptyState = this.locatorForOptional('.cards-grid__empty-state');
-  private readonly locateCards = this.locatorForAll(AnalyticsDashboardCardHarness);
   private readonly locateGridCards = this.locatorForAll(AnalyticsDashboardCardHarness.with({ ancestor: '.analytics-list__grid' }));
   private readonly locateTitle = this.locatorForOptional('.next-gen-h3');
   private readonly locatePinnedCards = this.locatorForAll(AnalyticsDashboardCardHarness.with({ ancestor: '.analytics-list__pinned-row' }));
@@ -39,10 +38,6 @@ export class AnalyticsComponentHarness extends ComponentHarness {
   }
 
   public async getCards(): Promise<AnalyticsDashboardCardHarness[]> {
-    return this.locateCards();
-  }
-
-  public async getGridCards(): Promise<AnalyticsDashboardCardHarness[]> {
     return this.locateGridCards();
   }
 
