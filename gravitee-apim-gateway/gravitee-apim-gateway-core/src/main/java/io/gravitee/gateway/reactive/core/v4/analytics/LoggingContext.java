@@ -25,6 +25,7 @@ import lombok.CustomLog;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -42,6 +43,14 @@ public class LoggingContext implements ConditionSupplier {
     @Setter
     private LogGuardService logGuardService;
 
+    /**
+     * When {@code true}, payload capture is enabled for OTel verbose tracing even when regular
+     * logging (analytics.logging) is not configured. Set by the reactor when {@code tracing.verbose = true}.
+     */
+    @Getter
+    @Setter
+    private boolean tracingVerbose = false;
+
     private final LoggableContentType loggableContentType;
 
     public LoggingContext(Logging logging) {
@@ -55,11 +64,11 @@ public class LoggingContext implements ConditionSupplier {
     }
 
     public boolean entrypointRequest() {
-        return logging.getMode().isEntrypoint() && logging.getPhase().isRequest();
+        return tracingVerbose || (logging.getMode().isEntrypoint() && logging.getPhase().isRequest());
     }
 
     public boolean entrypointResponse() {
-        return logging.getMode().isEntrypoint() && logging.getPhase().isResponse();
+        return tracingVerbose || (logging.getMode().isEntrypoint() && logging.getPhase().isResponse());
     }
 
     public boolean endpointRequest() {
@@ -75,7 +84,7 @@ public class LoggingContext implements ConditionSupplier {
     }
 
     public boolean entrypointRequestPayload() {
-        return logging.getMode().isEntrypoint() && logging.getPhase().isRequest() && logging.getContent().isPayload();
+        return tracingVerbose || (logging.getMode().isEntrypoint() && logging.getPhase().isRequest() && logging.getContent().isPayload());
     }
 
     public boolean endpointRequestHeaders() {
@@ -91,7 +100,7 @@ public class LoggingContext implements ConditionSupplier {
     }
 
     public boolean entrypointResponsePayload() {
-        return logging.getMode().isEntrypoint() && logging.getPhase().isResponse() && logging.getContent().isPayload();
+        return tracingVerbose || (logging.getMode().isEntrypoint() && logging.getPhase().isResponse() && logging.getContent().isPayload());
     }
 
     public boolean endpointResponseHeaders() {

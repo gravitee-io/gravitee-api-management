@@ -30,13 +30,17 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
+import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.HttpResponseInternal;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
+import io.gravitee.node.api.opentelemetry.Span;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -178,5 +182,109 @@ class LogEntrypointResponseTest {
 
         assertNull(logResponse.getHeaders());
         assertThat(logResponse.getBody()).isEqualTo("BODY NOT CAPTURED");
+    }
+
+    @Nested
+    class PayloadSpanEvent {
+
+        @Mock
+        private Span rootSpan;
+
+        @Test
+        void should_emit_payload_span_event_when_body_captured_and_tracing_enabled() {
+            final Flowable<Buffer> body = Flowable.just(Buffer.buffer(BODY_CONTENT));
+            final HttpHeaders headers = HttpHeaders.create();
+            headers.set(HttpHeaderNames.CONTENT_TYPE, "application/json");
+
+            when(response.chunks()).thenReturn(body);
+            when(response.headers()).thenReturn(headers);
+            when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
+            when(loggingContext.entrypointResponsePayload()).thenReturn(true);
+            when(loggingContext.getMaxSizeLogMessage()).thenReturn(-1);
+            when(loggingContext.isBodyLoggable()).thenReturn(true);
+            when(loggingContext.isContentTypeLoggable(any(), any())).thenReturn(true);
+            when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_ROOT_SPAN)).thenReturn(rootSpan);
+
+            final var logResponse = new LogEntrypointResponse(loggingContext, response);
+            logResponse.capture(ctx);
+            verify(response).chunks(chunksCaptor.capture());
+            chunksCaptor.getValue().test().assertComplete();
+
+            verify(rootSpan).addEvent(
+                eq("payload"),
+                eq(Map.of("payload.body", BODY_CONTENT, "payload.format", "JSON", "payload.phase", "RESPONSE"))
+            );
+        }
+
+        @Test
+        void should_not_emit_payload_span_event_when_no_root_span() {
+            final Flowable<Buffer> body = Flowable.just(Buffer.buffer(BODY_CONTENT));
+
+            when(response.chunks()).thenReturn(body);
+            when(response.headers()).thenReturn(HttpHeaders.create());
+            when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
+            when(loggingContext.entrypointResponsePayload()).thenReturn(true);
+            when(loggingContext.getMaxSizeLogMessage()).thenReturn(-1);
+            when(loggingContext.isBodyLoggable()).thenReturn(true);
+            when(loggingContext.isContentTypeLoggable(any(), any())).thenReturn(true);
+            when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_ROOT_SPAN)).thenReturn(null);
+
+            final var logResponse = new LogEntrypointResponse(loggingContext, response);
+            logResponse.capture(ctx);
+            verify(response).chunks(chunksCaptor.capture());
+            chunksCaptor.getValue().test().assertComplete();
+
+            verify(rootSpan, never()).addEvent(any(), any());
+        }
+
+        @Test
+        void should_resolve_xml_format_from_content_type() {
+            final Flowable<Buffer> body = Flowable.just(Buffer.buffer(BODY_CONTENT));
+            final HttpHeaders headers = HttpHeaders.create();
+            headers.set(HttpHeaderNames.CONTENT_TYPE, "application/xml");
+
+            when(response.chunks()).thenReturn(body);
+            when(response.headers()).thenReturn(headers);
+            when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
+            when(loggingContext.entrypointResponsePayload()).thenReturn(true);
+            when(loggingContext.getMaxSizeLogMessage()).thenReturn(-1);
+            when(loggingContext.isBodyLoggable()).thenReturn(true);
+            when(loggingContext.isContentTypeLoggable(any(), any())).thenReturn(true);
+            when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_ROOT_SPAN)).thenReturn(rootSpan);
+
+            final var logResponse = new LogEntrypointResponse(loggingContext, response);
+            logResponse.capture(ctx);
+            verify(response).chunks(chunksCaptor.capture());
+            chunksCaptor.getValue().test().assertComplete();
+
+            verify(rootSpan).addEvent(
+                eq("payload"),
+                eq(Map.of("payload.body", BODY_CONTENT, "payload.format", "XML", "payload.phase", "RESPONSE"))
+            );
+        }
+
+        @Test
+        void should_use_unknown_format_when_content_type_absent() {
+            final Flowable<Buffer> body = Flowable.just(Buffer.buffer(BODY_CONTENT));
+
+            when(response.chunks()).thenReturn(body);
+            when(response.headers()).thenReturn(HttpHeaders.create());
+            when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
+            when(loggingContext.entrypointResponsePayload()).thenReturn(true);
+            when(loggingContext.getMaxSizeLogMessage()).thenReturn(-1);
+            when(loggingContext.isBodyLoggable()).thenReturn(true);
+            when(loggingContext.isContentTypeLoggable(any(), any())).thenReturn(true);
+            when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_ROOT_SPAN)).thenReturn(rootSpan);
+
+            final var logResponse = new LogEntrypointResponse(loggingContext, response);
+            logResponse.capture(ctx);
+            verify(response).chunks(chunksCaptor.capture());
+            chunksCaptor.getValue().test().assertComplete();
+
+            verify(rootSpan).addEvent(
+                eq("payload"),
+                eq(Map.of("payload.body", BODY_CONTENT, "payload.format", "UNKNOWN", "payload.phase", "RESPONSE"))
+            );
+        }
     }
 }

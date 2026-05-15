@@ -49,7 +49,11 @@ public class LogEndpointResponse extends LogResponse {
                 if (loggingContext.isBodyLoggable()) {
                     chunks = chunks
                         .doOnNext(chunk -> BufferUtils.appendBuffer(buffer, chunk, loggingContext.getMaxSizeLogMessage()))
-                        .doFinally(() -> this.setBody(buffer.toString()));
+                        .doFinally(() -> {
+                            String capturedBody = buffer.toString();
+                            this.setBody(capturedBody);
+                            emitPayloadSpanEvent(ctx, capturedBody);
+                        });
                 } else {
                     this.setBody("BODY NOT CAPTURED");
                 }

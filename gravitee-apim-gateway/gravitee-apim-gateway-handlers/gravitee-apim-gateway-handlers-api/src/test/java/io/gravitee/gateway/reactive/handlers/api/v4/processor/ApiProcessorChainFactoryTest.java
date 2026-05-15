@@ -24,6 +24,7 @@ import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
+import io.gravitee.definition.model.v4.analytics.tracing.Tracing;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -130,6 +131,66 @@ class ApiProcessorChainFactoryTest {
             .assertValueCount(2)
             .assertValueAt(0, processor -> processor instanceof LogInitProcessor)
             .assertValueAt(1, processor -> processor instanceof LogRequestProcessor);
+    }
+
+    @Test
+    void shouldReturnBeforeHandleProcessorChainWithTracingVerbose() {
+        var apiModel = new io.gravitee.definition.model.v4.Api();
+        var analytics = new Analytics();
+        analytics.setEnabled(true);
+        var tracing = new Tracing();
+        tracing.setEnabled(true);
+        tracing.setVerbose(true);
+        analytics.setTracing(tracing);
+        apiModel.setAnalytics(analytics);
+        Api api = new Api(apiModel);
+        ProcessorChain processorChain = apiProcessorChainFactory.beforeHandle(api);
+        assertThat(processorChain.getId()).isEqualTo("before-api-handle");
+        Flowable<Processor> processors = extractProcessorChain(processorChain);
+        processors
+            .test()
+            .assertComplete()
+            .assertValueCount(2)
+            .assertValueAt(0, processor -> processor instanceof LogInitProcessor)
+            .assertValueAt(1, processor -> processor instanceof LogRequestProcessor);
+    }
+
+    @Test
+    void shouldReturnEmptyBeforeHandleProcessorChainWhenTracingEnabledButNotVerbose() {
+        var apiModel = new io.gravitee.definition.model.v4.Api();
+        var analytics = new Analytics();
+        analytics.setEnabled(true);
+        var tracing = new Tracing();
+        tracing.setEnabled(true);
+        tracing.setVerbose(false);
+        analytics.setTracing(tracing);
+        apiModel.setAnalytics(analytics);
+        Api api = new Api(apiModel);
+        ProcessorChain processorChain = apiProcessorChainFactory.beforeHandle(api);
+        assertThat(processorChain.getId()).isEqualTo("before-api-handle");
+        Flowable<Processor> processors = extractProcessorChain(processorChain);
+        processors.test().assertNoValues();
+    }
+
+    @Test
+    void shouldReturnAfterHandleProcessorChainWithTracingVerbose() {
+        var apiModel = new io.gravitee.definition.model.v4.Api();
+        var analytics = new Analytics();
+        analytics.setEnabled(true);
+        var tracing = new Tracing();
+        tracing.setEnabled(true);
+        tracing.setVerbose(true);
+        analytics.setTracing(tracing);
+        apiModel.setAnalytics(analytics);
+        Api api = new Api(apiModel);
+        ProcessorChain processorChain = apiProcessorChainFactory.afterHandle(api);
+        assertThat(processorChain.getId()).isEqualTo("after-api-handle");
+        Flowable<Processor> processors = extractProcessorChain(processorChain);
+        processors
+            .test()
+            .assertComplete()
+            .assertValueCount(1)
+            .assertValueAt(0, processor -> processor instanceof LogResponseProcessor);
     }
 
     @Test

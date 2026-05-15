@@ -20,6 +20,7 @@ import static io.gravitee.gateway.reactive.handlers.api.processor.subscription.S
 import io.gravitee.definition.model.Cors;
 import io.gravitee.definition.model.RequestValidation;
 import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.analytics.tracing.Tracing;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.gateway.opentelemetry.TracingContext;
@@ -91,7 +92,7 @@ public class ApiProcessorChainFactory {
 
         io.gravitee.definition.model.v4.Api apiDefinition = api.getDefinition();
         Analytics analytics = apiDefinition.getAnalytics();
-        if (AnalyticsUtils.isLoggingEnabled(analytics)) {
+        if (AnalyticsUtils.isLoggingEnabled(analytics) || isTracingVerbose(analytics)) {
             processors.add(LogInitProcessor.instance());
             processors.add(LogRequestProcessor.instance());
         }
@@ -219,7 +220,7 @@ public class ApiProcessorChainFactory {
 
         final io.gravitee.definition.model.v4.Api apiDefinition = api.getDefinition();
         final Analytics analytics = apiDefinition.getAnalytics();
-        if (AnalyticsUtils.isLoggingEnabled(analytics)) {
+        if (AnalyticsUtils.isLoggingEnabled(analytics) || isTracingVerbose(analytics)) {
             processors.add(LogResponseProcessor.instance());
         }
         return processors;
@@ -245,5 +246,11 @@ public class ApiProcessorChainFactory {
 
     private <T> Stream<T> stream(Iterable<T> iterable) {
         return iterable == null ? Stream.empty() : StreamSupport.stream(iterable.spliterator(), false);
+    }
+
+    private boolean isTracingVerbose(final Analytics analytics) {
+        if (analytics == null) return false;
+        Tracing tracing = analytics.getTracing();
+        return tracing != null && tracing.isEnabled() && tracing.isVerbose();
     }
 }

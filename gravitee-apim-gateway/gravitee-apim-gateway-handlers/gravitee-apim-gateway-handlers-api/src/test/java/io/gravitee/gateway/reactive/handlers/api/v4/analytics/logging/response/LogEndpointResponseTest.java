@@ -24,24 +24,30 @@ import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
+import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.HttpResponseInternal;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
+import io.gravitee.node.api.opentelemetry.Span;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.FlowableTransformer;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -302,5 +308,49 @@ class LogEndpointResponseTest {
                 headersRef.set(invocation.getArgument(0));
                 return response;
             });
+    }
+
+    @Nested
+    class PayloadSpanEvent {
+
+        @Mock
+        private Span rootSpan;
+
+        @Test
+        void should_emit_payload_span_event_when_body_captured_and_tracing_enabled() {
+            final HttpHeaders headers = HttpHeaders.create();
+            headers.set(HttpHeaderNames.CONTENT_TYPE, "application/json");
+            initializeHeaders(headers);
+            when(loggingContext.endpointResponseHeaders()).thenReturn(false);
+            when(loggingContext.endpointResponsePayload()).thenReturn(true);
+            when(loggingContext.getMaxSizeLogMessage()).thenReturn(-1);
+            when(loggingContext.isBodyLoggable()).thenReturn(true);
+            when(loggingContext.isContentTypeLoggable(any(), any())).thenReturn(true);
+            when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_ROOT_SPAN)).thenReturn(rootSpan);
+
+            cut.setupCapture(ctx);
+            triggerResponseFromBackend(null);
+
+            verify(rootSpan).addEvent(
+                eq("payload"),
+                eq(Map.of("payload.body", BODY_CONTENT, "payload.format", "JSON", "payload.phase", "RESPONSE"))
+            );
+        }
+
+        @Test
+        void should_not_emit_payload_span_event_when_no_root_span() {
+            initializeHeaders(HttpHeaders.create());
+            when(loggingContext.endpointResponseHeaders()).thenReturn(false);
+            when(loggingContext.endpointResponsePayload()).thenReturn(true);
+            when(loggingContext.getMaxSizeLogMessage()).thenReturn(-1);
+            when(loggingContext.isBodyLoggable()).thenReturn(true);
+            when(loggingContext.isContentTypeLoggable(any(), any())).thenReturn(true);
+            when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_ROOT_SPAN)).thenReturn(null);
+
+            cut.setupCapture(ctx);
+            triggerResponseFromBackend(null);
+
+            verify(rootSpan, never()).addEvent(any(), any());
+        }
     }
 }

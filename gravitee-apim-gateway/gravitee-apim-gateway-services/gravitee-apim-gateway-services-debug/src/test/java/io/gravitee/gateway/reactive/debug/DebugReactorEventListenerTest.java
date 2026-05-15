@@ -791,5 +791,50 @@ class DebugReactorEventListenerTest {
             final MultiMap result = debugReactorEventListener.buildHeaders(new DebugApiV2("eventId", debugApiModel), httpRequest);
             assertThat(result.get("host")).isNull();
         }
+
+        @Test
+        void should_enforce_host_from_gateway_access_point_not_kafka_when_v4_api_has_no_virtual_host() {
+            var httpRequest = new HttpRequest("/demo-api/example", "GET", (String) null);
+            var debugApiV4 = new io.gravitee.gateway.debug.definition.DebugApiV4(
+                "1dc3b6b9-0fcd-4d26-83b6-b90fcd2d26ec",
+                aDebugApiV4Definition(httpRequest)
+            );
+
+            when(accessPointManager.getByEnvironmentId(any())).thenReturn(
+                List.of(
+                    ReactableAccessPoint.builder()
+                        .host("{apiHost}.dev-org-softco-poc.{geo}-{provider}-{region}.kafka-gateway.gravitee.io:9092")
+                        .target(ReactableAccessPoint.Target.KAFKA_GATEWAY)
+                        .build(),
+                    ReactableAccessPoint.builder().host("apigw.ipaas.softco.com").target(ReactableAccessPoint.Target.GATEWAY).build()
+                )
+            );
+
+            var result = debugReactorEventListener.buildHeaders(debugApiV4, httpRequest);
+
+            assertThat(result.get("host")).isEqualTo("apigw.ipaas.softco.com");
+        }
+
+        @Test
+        void should_fallback_to_first_access_point_when_no_gateway_target_found() {
+            var httpRequest = new HttpRequest("/demo-api/example", "GET", (String) null);
+            var debugApiV4 = new io.gravitee.gateway.debug.definition.DebugApiV4(
+                "1dc3b6b9-0fcd-4d26-83b6-b90fcd2d26ec",
+                aDebugApiV4Definition(httpRequest)
+            );
+
+            when(accessPointManager.getByEnvironmentId(any())).thenReturn(
+                List.of(
+                    ReactableAccessPoint.builder()
+                        .host("kafka-only.gravitee.io:9092")
+                        .target(ReactableAccessPoint.Target.KAFKA_GATEWAY)
+                        .build()
+                )
+            );
+
+            var result = debugReactorEventListener.buildHeaders(debugApiV4, httpRequest);
+
+            assertThat(result.get("host")).isEqualTo("kafka-only.gravitee.io:9092");
+        }
     }
 }

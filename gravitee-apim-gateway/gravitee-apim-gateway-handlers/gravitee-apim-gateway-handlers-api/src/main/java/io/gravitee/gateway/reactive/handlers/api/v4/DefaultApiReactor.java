@@ -743,6 +743,10 @@ public class DefaultApiReactor extends AbstractApiReactor {
                 context.setMaxSizeLogMessage(loggingMaxSize);
                 context.setExcludedResponseTypes(loggingExcludedResponseType);
                 context.setLogGuardService(logGuardService);
+                var tracing = analytics.getTracing();
+                if (tracing != null && tracing.isEnabled() && tracing.isVerbose()) {
+                    context.setTracingVerbose(true);
+                }
                 return context;
             })
             .orElse(null);

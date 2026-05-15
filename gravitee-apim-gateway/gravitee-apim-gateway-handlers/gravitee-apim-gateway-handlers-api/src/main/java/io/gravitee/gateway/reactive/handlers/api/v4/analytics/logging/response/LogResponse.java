@@ -18,12 +18,16 @@ package io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainResponse;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.HttpResponseInternal;
 import io.gravitee.gateway.reactive.core.v4.analytics.BufferUtils;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LogHeadersCaptor;
+import io.gravitee.node.api.opentelemetry.Span;
+import java.util.Map;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -56,4 +60,29 @@ abstract class LogResponse extends io.gravitee.reporter.api.common.Response {
     protected abstract boolean isLogPayload();
 
     protected abstract boolean isLogHeaders();
+
+    /**
+     * Adds a {@code "payload"} span event to the root OTel span for the current response.
+     * No-op when OTel tracing is disabled or no root span exists in the context.
+     */
+    protected void emitPayloadSpanEvent(HttpExecutionContextInternal ctx, String body) {
+        Span span = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_ROOT_SPAN);
+        if (span == null) {
+            return;
+        }
+        String contentType = response.headers().get(HttpHeaderNames.CONTENT_TYPE);
+        span.addEvent(
+            "payload",
+            Map.of("payload.body", body, "payload.format", resolvePayloadFormat(contentType), "payload.phase", "RESPONSE")
+        );
+    }
+
+    // NOTE: mirrored in LogRequest — both will be replaced by PayloadFormat enum from gravitee-node (APIM-13580)
+    private static String resolvePayloadFormat(String contentType) {
+        if (contentType == null) return "UNKNOWN";
+        String ct = contentType.toLowerCase();
+        if (ct.contains("json")) return "JSON";
+        if (ct.contains("xml")) return "XML";
+        return "UNKNOWN";
+    }
 }

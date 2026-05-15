@@ -18,9 +18,11 @@ package io.gravitee.gateway.reactive.core.v4.analytics;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -44,5 +46,33 @@ class AnalyticsContextTest {
         analytics.setEnabled(true);
         AnalyticsContext analyticsContext = new AnalyticsContext(analytics, null, TracingContext.noop());
         assertThat(analyticsContext.isEnabled()).isTrue();
+    }
+
+    @Nested
+    class TracingVerbose {
+
+        @Test
+        void should_enable_logging_context_when_tracingVerbose_is_true() {
+            var analytics = new Analytics();
+            analytics.setEnabled(true);
+            var loggingContext = new LoggingContext(Logging.builder().build());
+            loggingContext.setTracingVerbose(true);
+
+            var ctx = new AnalyticsContext(analytics, loggingContext, TracingContext.noop());
+
+            assertThat(ctx.isLoggingEnabled()).isTrue();
+        }
+
+        @Test
+        void should_not_enable_logging_context_when_tracingVerbose_is_false_and_no_logging_configured() {
+            var analytics = new Analytics();
+            analytics.setEnabled(true);
+            var loggingContext = new LoggingContext(Logging.builder().build());
+            // tracingVerbose defaults to false, no logging mode set
+
+            var ctx = new AnalyticsContext(analytics, loggingContext, TracingContext.noop());
+
+            assertThat(ctx.isLoggingEnabled()).isFalse();
+        }
     }
 }

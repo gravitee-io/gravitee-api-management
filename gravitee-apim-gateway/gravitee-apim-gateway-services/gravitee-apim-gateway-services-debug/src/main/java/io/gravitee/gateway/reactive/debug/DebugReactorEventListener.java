@@ -268,7 +268,12 @@ public class DebugReactorEventListener extends ReactorEventListener {
         if (host == null) {
             List<ReactableAccessPoint> accessPoints = accessPointManager.getByEnvironmentId(debugApi.getEnvironmentId());
             if (accessPoints != null && !accessPoints.isEmpty()) {
-                host = accessPoints.getFirst().getHost();
+                host = accessPoints
+                    .stream()
+                    .filter(ap -> ap.getTarget() == ReactableAccessPoint.Target.GATEWAY)
+                    .findFirst()
+                    .map(ReactableAccessPoint::getHost)
+                    .orElseGet(() -> accessPoints.getFirst().getHost());
             }
         }
         if (host != null) {

@@ -42,7 +42,11 @@ public class LogEntrypointResponse extends LogResponse {
                     response
                         .chunks()
                         .doOnNext(chunk -> BufferUtils.appendBuffer(buffer, chunk, loggingContext.getMaxSizeLogMessage()))
-                        .doOnComplete(() -> this.setBody(buffer.toString()))
+                        .doOnComplete(() -> {
+                            String capturedBody = buffer.toString();
+                            this.setBody(capturedBody);
+                            emitPayloadSpanEvent(ctx, capturedBody);
+                        })
                 );
             } else {
                 this.setBody("BODY NOT CAPTURED");

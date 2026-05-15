@@ -41,7 +41,7 @@ public class AnalyticsContext {
     }
 
     private void initLoggingContext(final LoggingContext loggingContext) {
-        if (AnalyticsUtils.isLoggingEnabled(analytics)) {
+        if (loggingContext != null && (AnalyticsUtils.isLoggingEnabled(analytics) || loggingContext.isTracingVerbose())) {
             this.loggingContext = loggingContext;
         }
     }
