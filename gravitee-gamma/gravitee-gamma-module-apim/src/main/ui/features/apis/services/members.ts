@@ -16,6 +16,7 @@
 import { apimFetchJsonOrg, apimFetchJsonV1Env, apimFetchJsonV2 } from '../../../shared/api/apimClient';
 import type {
     ApiRole,
+    GroupMember,
     GroupMembersMap,
     GroupsResponse,
     Member,
@@ -89,6 +90,17 @@ export async function getApiRoles(): Promise<ApiRole[]> {
 
 export async function getGroups(environmentId: string): Promise<GroupsResponse> {
     return apimFetchJsonV2<GroupsResponse>(environmentId, `/groups?page=1&perPage=9999`);
+}
+
+export async function getGroupMembers(environmentId: string, groupId: string): Promise<GroupMember[]> {
+    const response = await apimFetchJsonV2<{
+        data?: Array<{ id?: string; displayName?: string; roles?: Array<{ name?: string; scope?: string }> }>;
+    }>(environmentId, `/groups/${encodeURIComponent(groupId)}/members?page=1&perPage=100`);
+    return (response.data ?? []).map(m => ({
+        id: m.id ?? '',
+        displayName: m.displayName ?? '',
+        roles: Object.fromEntries((m.roles ?? []).map(r => [r.scope ?? '', r.name ?? ''])),
+    }));
 }
 
 export async function searchUsers(query: string): Promise<SearchableUser[]> {

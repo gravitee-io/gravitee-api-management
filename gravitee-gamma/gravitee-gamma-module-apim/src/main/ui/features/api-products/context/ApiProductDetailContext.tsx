@@ -13,7 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { ApiProductsEmptyLanding } from './ApiProductsEmptyLanding';
-export { ApiProductListView } from './list/ApiProductListView';
-export { ApiProductDetailLayout, ApiProductIndexRedirect } from './detail/ApiProductDetailLayout';
-export { SyncStatusBadge } from './SyncStatusBadge';
+import { createContext, useContext } from 'react';
+
+import type { ApiProductListItem } from '../types/apiProduct';
+
+export interface ApiProductDetailContextValue {
+    readonly product: ApiProductListItem | null;
+    readonly isLoading: boolean;
+}
+
+export const ApiProductDetailContext = createContext<ApiProductDetailContextValue>({
+    product: null,
+    isLoading: true,
+});
+
+export function useApiProductDetailContext(): ApiProductDetailContextValue {
+    return useContext(ApiProductDetailContext);
+}

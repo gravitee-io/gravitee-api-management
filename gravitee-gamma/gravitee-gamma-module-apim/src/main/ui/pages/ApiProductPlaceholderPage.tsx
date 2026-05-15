@@ -13,7 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { ApiProductsEmptyLanding } from './ApiProductsEmptyLanding';
-export { ApiProductListView } from './list/ApiProductListView';
-export { ApiProductDetailLayout, ApiProductIndexRedirect } from './detail/ApiProductDetailLayout';
-export { SyncStatusBadge } from './SyncStatusBadge';
+
+export function ApiProductPlaceholderPage({ title }: { title: string }) {
+    return (
+        <div className="space-y-2 p-6">
+            <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+            <p className="text-sm text-muted-foreground">This section is coming soon.</p>
+        </div>
+    );
+}

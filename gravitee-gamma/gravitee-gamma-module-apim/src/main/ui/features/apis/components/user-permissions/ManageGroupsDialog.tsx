@@ -96,7 +96,9 @@ export function ManageGroupsDialog({
 
                     <ScrollArea className="max-h-80">
                         {filtered.length === 0 ? (
-                            <p className="p-3 text-sm text-muted-foreground">No groups match your search.</p>
+                            <p className="p-3 text-sm text-muted-foreground">
+                                {search.trim() ? 'No groups match your search.' : 'No groups found in this environment.'}
+                            </p>
                         ) : (
                             <div className="space-y-1">
                                 {filtered.map(group => {

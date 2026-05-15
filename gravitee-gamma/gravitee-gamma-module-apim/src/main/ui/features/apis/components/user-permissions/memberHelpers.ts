@@ -21,6 +21,10 @@ export function getApiRole(member: Member): string {
     return member.roles?.find(role => role.scope === 'API')?.name ?? '';
 }
 
+export function getApiProductRole(member: Member): string {
+    return member.roles?.find(role => role.scope === 'API_PRODUCT')?.name ?? member.roles?.[0]?.name ?? '';
+}
+
 export function isMemberPrimaryOwner(member: Member): boolean {
     return member.roles?.some(role => role.name === 'PRIMARY_OWNER') ?? false;
 }

@@ -55,6 +55,7 @@ export const apiRoleKeys = {
 export const groupKeys = {
     all: ['groups'] as const,
     list: (envId: string) => [...groupKeys.all, envId] as const,
+    members: (envId: string, groupId: string) => [...groupKeys.all, 'members', envId, groupId] as const,
 };
 
 export const orgTagKeys = {
