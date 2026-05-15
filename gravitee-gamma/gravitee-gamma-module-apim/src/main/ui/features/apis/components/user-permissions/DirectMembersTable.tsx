@@ -159,7 +159,7 @@ export function DirectMembersTable({
                                                     <MoreHorizontalIcon className="size-4" />
                                                 </Button>
                                             </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
+                                            <DropdownMenuContent align="end" className="w-auto min-w-[12rem]">
                                                 <DropdownMenuItem onSelect={() => onStartEdit(member)}>
                                                     <PencilIcon className="size-4" />
                                                     Edit role

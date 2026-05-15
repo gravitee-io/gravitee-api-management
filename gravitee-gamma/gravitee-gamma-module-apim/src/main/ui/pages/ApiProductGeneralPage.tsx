@@ -38,6 +38,7 @@ import { SyncStatusBadge } from '../features/api-products/components/SyncStatusB
 import { useApiProductDetailContext } from '../features/api-products/context/ApiProductDetailContext';
 import { useDeleteApiProduct } from '../features/api-products/hooks/useDeleteApiProduct';
 import { useUpdateApiProduct } from '../features/api-products/hooks/useUpdateApiProduct';
+import { useVerifyApiProductName } from '../features/api-products/hooks/useVerifyApiProductName';
 
 function formatDate(iso?: string) {
     if (!iso) return '—';
@@ -54,6 +55,7 @@ export function ApiProductGeneralPage() {
     const [description, setDescription] = useState('');
     const [deleteConfirm, setDeleteConfirm] = useState('');
     const [confirmAction, setConfirmAction] = useState<'remove-apis' | 'delete' | null>(null);
+    const [debouncedName, setDebouncedName] = useState('');
 
     useEffect(() => {
         if (product) {
@@ -61,14 +63,26 @@ export function ApiProductGeneralPage() {
             setVersion(product.version);
             setDescription(product.description ?? '');
             setDeleteConfirm('');
+            setDebouncedName('');
         }
     }, [product]);
 
+    useEffect(() => {
+        if (!product || name === product.name) {
+            setDebouncedName('');
+            return;
+        }
+        const timer = setTimeout(() => setDebouncedName(name.trim()), 400);
+        return () => clearTimeout(timer);
+    }, [name, product]);
+
     const { mutate: updateProduct, isPending: isSaving, error: saveError } = useUpdateApiProduct(productId ?? '');
     const { mutate: deleteProduct, isPending: isDeleting } = useDeleteApiProduct();
+    const { data: verifyResult, isChecking } = useVerifyApiProductName(debouncedName, productId);
+    const nameError = debouncedName && verifyResult && !verifyResult.ok ? (verifyResult.reason ?? 'Name is already taken.') : null;
 
     const isDirty = product && (name !== product.name || version !== product.version || description !== (product.description ?? ''));
-    const canSave = isDirty && name.trim() && version.trim() && !isSaving;
+    const canSave = isDirty && name.trim() && version.trim() && !isSaving && !isChecking && !nameError;
 
     function handleSave(e: React.FormEvent) {
         e.preventDefault();
@@ -130,7 +144,15 @@ export function ApiProductGeneralPage() {
                                             value={name}
                                             onChange={e => setName(e.target.value)}
                                             placeholder="Product name"
+                                            aria-invalid={Boolean(nameError)}
                                         />
+                                        {nameError ? (
+                                            <p className="text-xs text-destructive">{nameError}</p>
+                                        ) : isChecking && debouncedName ? (
+                                            <p className="text-xs text-muted-foreground">Checking availability…</p>
+                                        ) : verifyResult?.ok && debouncedName ? (
+                                            <p className="text-xs text-success">Name is available.</p>
+                                        ) : null}
                                     </div>
                                     <div className="space-y-2 w-32">
                                         <Label htmlFor="gen-version">
@@ -172,7 +194,7 @@ export function ApiProductGeneralPage() {
                                     <div className="flex items-start justify-between gap-2">
                                         <dt className="text-muted-foreground shrink-0">Owner</dt>
                                         <dd className="font-medium text-right truncate max-w-40" title={product?.primaryOwner?.displayName}>
-                                            {product?.primaryOwner?.displayName ?? 'You'}
+                                            {product?.primaryOwner?.displayName ?? '—'}
                                         </dd>
                                     </div>
                                     <div className="flex items-start justify-between gap-2">

@@ -65,7 +65,7 @@ function ProductActionsMenu({ productId, onNavigate }: { productId: string; onNa
                     <MoreHorizontalIcon className="size-4" aria-hidden />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="w-auto min-w-[12rem]">
                 <DropdownMenuItem onSelect={() => onNavigate(`${productId}/overview`)}>View Details</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => onNavigate(`${productId}/general`)}>Edit Configuration</DropdownMenuItem>
             </DropdownMenuContent>
@@ -113,7 +113,10 @@ export function ApiProductListTable({ products, isLoading, skeletonRowCount = 5 
                                 tabIndex={0}
                                 onClick={() => navigate(`${product.id}/overview`)}
                                 onKeyDown={e => {
-                                    if (e.key === 'Enter' || e.key === ' ') navigate(`${product.id}/overview`);
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        navigate(`${product.id}/overview`);
+                                    }
                                 }}
                             >
                                 <TableCell className="font-medium">{product.name}</TableCell>
@@ -130,9 +133,7 @@ export function ApiProductListTable({ products, isLoading, skeletonRowCount = 5 
                                         {product.version}
                                     </Badge>
                                 </TableCell>
-                                <TableCell className="text-sm text-muted-foreground">
-                                    {product.primaryOwner?.displayName ?? 'You'}
-                                </TableCell>
+                                <TableCell className="text-sm text-muted-foreground">{product.primaryOwner?.displayName ?? '—'}</TableCell>
                                 <TableCell className="text-right">
                                     <ProductActionsMenu productId={product.id} onNavigate={navigate} />
                                 </TableCell>

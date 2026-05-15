@@ -36,6 +36,9 @@ jest.mock('../features/api-products/hooks/useUpdateApiProduct', () => ({
 jest.mock('../features/api-products/hooks/useDeleteApiProduct', () => ({
     useDeleteApiProduct: jest.fn(),
 }));
+jest.mock('../features/api-products/hooks/useVerifyApiProductName', () => ({
+    useVerifyApiProductName: jest.fn(() => ({ data: undefined, isChecking: false })),
+}));
 
 const mockNavigate = jest.fn();
 const mockUpdateProduct = jest.fn();

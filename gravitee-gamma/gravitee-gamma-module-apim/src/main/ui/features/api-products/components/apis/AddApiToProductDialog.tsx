@@ -13,18 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-    Badge,
-    Button,
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    Input,
-    ScrollArea,
-    Skeleton,
-} from '@gravitee/graphene-core';
+import { Badge, Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Skeleton } from '@gravitee/graphene-core';
 import { GlobeIcon, InfoIcon, SearchIcon, XIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -53,8 +42,17 @@ function ApiRow({ api, selected, onToggle }: { api: ApiListItem; selected: boole
                 <GlobeIcon className="size-3.5 text-primary" aria-hidden />
             </div>
             <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{api.name}</p>
-                {path ? <p className="text-xs text-muted-foreground truncate font-mono">{path}</p> : null}
+                <p className="text-sm font-medium" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {api.name}
+                </p>
+                {path ? (
+                    <p
+                        className="text-xs text-muted-foreground font-mono"
+                        style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                    >
+                        {path}
+                    </p>
+                ) : null}
             </div>
             <Badge variant="outline" className="text-xs shrink-0">
                 {api.apiVersion}
@@ -158,14 +156,14 @@ export function AddApiToProductDialog({ open, existingApiIds, onClose, onAdd, is
                     </div>
 
                     {/* API list */}
-                    <ScrollArea className="max-h-72">
+                    <div className="overflow-y-auto pr-1" style={{ maxHeight: '18rem' }}>
                         {!hasSearch ? (
                             <div className="flex flex-col items-center gap-2 py-8 text-center">
                                 <SearchIcon className="size-6 text-muted-foreground opacity-50" aria-hidden />
                                 <p className="text-sm text-muted-foreground">Type a name or path to find APIs</p>
                             </div>
                         ) : isLoading ? (
-                            <div className="space-y-1.5 pr-1">
+                            <div className="space-y-1.5">
                                 {Array.from({ length: 4 }).map((_, i) => (
                                     <Skeleton key={i} className="h-12 w-full rounded-lg" />
                                 ))}
@@ -175,23 +173,23 @@ export function AddApiToProductDialog({ open, existingApiIds, onClose, onAdd, is
                                 No APIs found for &ldquo;{debouncedSearch}&rdquo;.
                             </p>
                         ) : (
-                            <div className="space-y-1.5 pr-1">
+                            <div className="space-y-1.5">
                                 {availableApis.map(api => (
                                     <ApiRow key={api.id} api={api} selected={selectedIds.has(api.id)} onToggle={() => toggleApi(api)} />
                                 ))}
                             </div>
                         )}
-                    </ScrollArea>
+                    </div>
 
-                    {/* Selected chips — capped so they never push the dialog off-screen */}
+                    {/* Selected chips */}
                     {selectedIds.size > 0 ? (
-                        <ScrollArea className="max-h-20">
+                        <div className="overflow-y-auto" style={{ maxHeight: '5rem' }}>
                             <div className="flex flex-wrap gap-1.5 pt-1 pr-1">
                                 {[...selectedApis.values()].map(api => (
                                     <SelectedChip key={api.id} name={api.name} onRemove={() => toggleApi(api)} />
                                 ))}
                             </div>
-                        </ScrollArea>
+                        </div>
                     ) : null}
                 </div>
 

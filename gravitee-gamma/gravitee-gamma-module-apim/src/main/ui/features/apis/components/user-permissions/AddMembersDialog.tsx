@@ -23,7 +23,6 @@ import {
     DialogTitle,
     Input,
     Label,
-    ScrollArea,
     Select,
     SelectContent,
     SelectItem,
@@ -109,23 +108,25 @@ export function AddMembersDialog({
 
     return (
         <Dialog open={open} onOpenChange={isOpen => !isOpen && handleClose()}>
-            <DialogContent className="max-w-[480px] overflow-visible">
+            <DialogContent className="max-w-[480px]">
                 <DialogHeader>
                     <DialogTitle>Add Members</DialogTitle>
                     <DialogDescription>Search for users by name or email and add them to this API.</DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-6">
-                    <div className="relative">
-                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-                        <Input
-                            className="pl-10"
-                            placeholder="Search a user by name or email…"
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                        />
+                    <div className="space-y-1">
+                        <div className="relative">
+                            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+                            <Input
+                                className="pl-10"
+                                placeholder="Search a user by name or email…"
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                            />
+                        </div>
                         {search.trim().length >= 2 && (
-                            <div className="absolute z-50 w-full top-full mt-1 rounded-lg border shadow-md overflow-hidden bg-background">
+                            <div className="rounded-lg border shadow-md bg-background overflow-y-auto" style={{ maxHeight: '12rem' }}>
                                 {isFetching || search !== deferredQuery ? (
                                     <div className="p-3 space-y-2">
                                         <Skeleton className="h-10 rounded" />
@@ -134,24 +135,20 @@ export function AddMembersDialog({
                                 ) : filteredResults.length === 0 ? (
                                     <p className="px-3 py-4 text-sm text-center text-muted-foreground">No users found.</p>
                                 ) : (
-                                    <ScrollArea className="max-h-48">
-                                        {filteredResults.map(user => (
-                                            <button
-                                                key={user.reference}
-                                                type="button"
-                                                onClick={() => handleSelectUser(user)}
-                                                className="w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted/50"
-                                            >
-                                                <MemberAvatar name={user.displayName} />
-                                                <div className="min-w-0">
-                                                    <p className="font-medium truncate">{user.displayName}</p>
-                                                    {user.email ? (
-                                                        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                                                    ) : null}
-                                                </div>
-                                            </button>
-                                        ))}
-                                    </ScrollArea>
+                                    filteredResults.map(user => (
+                                        <button
+                                            key={user.reference}
+                                            type="button"
+                                            onClick={() => handleSelectUser(user)}
+                                            className="w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted/50"
+                                        >
+                                            <MemberAvatar name={user.displayName} />
+                                            <div className="min-w-0">
+                                                <p className="font-medium truncate">{user.displayName}</p>
+                                                {user.email ? <p className="text-xs text-muted-foreground truncate">{user.email}</p> : null}
+                                            </div>
+                                        </button>
+                                    ))
                                 )}
                             </div>
                         )}

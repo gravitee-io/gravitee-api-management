@@ -13,12 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@gravitee/graphene-core';
 import { InfoIcon } from '@gravitee/graphene-core/icons';
 
 export function InfoTooltip({ text }: { readonly text: string }) {
     return (
-        <span title={text} className="ml-1 inline-flex items-center align-middle cursor-default">
-            <InfoIcon className="size-3.5 text-muted-foreground" aria-hidden />
-        </span>
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <button
+                        type="button"
+                        className="ml-1 inline-flex items-center align-middle text-muted-foreground hover:text-foreground"
+                    >
+                        <InfoIcon className="size-3.5" aria-hidden />
+                        <span className="sr-only">More information</span>
+                    </button>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-xs">
+                    <p className="text-xs leading-normal">{text}</p>
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
     );
 }
