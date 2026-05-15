@@ -72,8 +72,8 @@ export function ApiProductUserPermissionsPage() {
 
     const members = membersData?.data ?? [];
     const roleNames = useMemo(() => (rolesData ?? []).filter(r => r.name !== 'PRIMARY_OWNER').map(r => r.name), [rolesData]);
-    const allGroups = groupsData?.data ?? [];
-    const currentGroupIds = product?.groups ?? [];
+    const allGroups = useMemo(() => groupsData?.data ?? [], [groupsData]);
+    const currentGroupIds = useMemo(() => product?.groups ?? [], [product]);
     const currentGroups = useMemo(() => allGroups.filter(g => currentGroupIds.includes(g.id)), [allGroups, currentGroupIds]);
 
     const { data: groupMembersMap, isLoading: groupMembersLoading } = useApiProductGroupMembers(productId, currentGroups);

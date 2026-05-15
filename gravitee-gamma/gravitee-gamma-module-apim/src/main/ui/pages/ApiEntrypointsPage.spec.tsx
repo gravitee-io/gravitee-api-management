@@ -121,6 +121,11 @@ jest.mock('@gravitee/graphene-core', () => ({
             aria-label={ariaLabel}
         />
     ),
+    Tooltip: ({ children }: { children?: ReactNode }) => <>{children}</>,
+    TooltipContent: ({ children }: { children?: ReactNode }) => <div role="tooltip">{children}</div>,
+    TooltipProvider: ({ children }: { children?: ReactNode }) => <>{children}</>,
+    TooltipTrigger: ({ children, asChild }: { children?: ReactNode; asChild?: boolean }) =>
+        asChild ? <>{children}</> : <button type="button">{children}</button>,
     cn: (...args: string[]) => args.filter(Boolean).join(' '),
 }));
 

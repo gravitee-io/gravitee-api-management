@@ -13,7 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { FeatureTile } from './FeatureTile';
-export { CircularProgress } from './CircularProgress';
-export { OverviewChecklistCard } from './OverviewChecklistCard';
-export type { OverviewChecklistItem } from './OverviewChecklistCard';
+import { useLocation } from 'react-router-dom';
+
+/**
+ * Returns the base path up to and including `/<segment>/<id>`, slicing off
+ * any child route segments. Used by detail layout components to build sidebar
+ * navigation links that are stable regardless of the active child route.
+ */
+export function useDetailBasePath(segment: string, id: string | undefined): string {
+    const { pathname } = useLocation();
+    if (!id) return pathname;
+    const marker = `/${segment}/${id}`;
+    const idx = pathname.indexOf(marker);
+    return idx >= 0 ? pathname.slice(0, idx + marker.length) : pathname;
+}

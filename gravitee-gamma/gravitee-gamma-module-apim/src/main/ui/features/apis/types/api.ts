@@ -160,6 +160,18 @@ export interface ApiSearchQuery {
     apiTypes?: string[];
 }
 
+export interface ApiHttpEndpoint {
+    name: string;
+    type: string;
+    configuration?: { target?: string };
+}
+
+export interface ApiEndpointGroup {
+    name: string;
+    type: string;
+    endpoints?: ApiHttpEndpoint[];
+}
+
 /** Lightweight shape used by the API detail view. */
 export interface ApiDetailDto {
     id: string;
@@ -185,6 +197,7 @@ export interface ApiDetailDto {
     properties?: Property[];
     services?: { dynamicProperty?: DynamicPropertyConfig };
     listeners?: HttpListener[];
+    endpointGroups?: ApiEndpointGroup[];
     /** Populated for APIs synced from an external source (e.g. Kubernetes operator). */
     definitionContext?: {
         origin?: 'MANAGEMENT' | 'KUBERNETES';

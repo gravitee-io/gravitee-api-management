@@ -83,3 +83,10 @@ export const apiAlertKeys = {
     list: (envId: string, apiId: string) => [...apiAlertKeys.all, envId, apiId] as const,
     history: (envId: string, apiId: string, alertId: string) => [...apiAlertKeys.all, 'history', envId, apiId, alertId] as const,
 };
+
+export const apiAnalyticsKeys = {
+    all: ['api-analytics'] as const,
+    stats: (envId: string, apiId: string, window: string) => [...apiAnalyticsKeys.all, 'stats', envId, apiId, window] as const,
+    statusRanges: (envId: string, apiId: string, window: string) =>
+        [...apiAnalyticsKeys.all, 'status-ranges', envId, apiId, window] as const,
+};

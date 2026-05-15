@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 import { Badge, Button, Skeleton } from '@gravitee/graphene-core';
-import { Navigate, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Navigate, Outlet, useNavigate, useParams } from 'react-router-dom';
 
 import { ApiProductDetailContext } from '../../context/ApiProductDetailContext';
 import { useApiProductDetail } from '../../hooks/useApiProductDetail';
 import type { ApiProductListItem } from '../../types/apiProduct';
 import { SyncStatusBadge } from '../SyncStatusBadge';
 import { ApiProductSidebarNav } from './ApiProductSidebarNav';
-
-function useProductBasePath(productId: string | undefined): string {
-    const { pathname } = useLocation();
-    if (!productId) return pathname;
-    const marker = `/api-products/${productId}`;
-    const idx = pathname.indexOf(marker);
-    return idx >= 0 ? pathname.slice(0, idx + marker.length) : pathname;
-}
+import { useDetailBasePath } from '../../../shared/hooks/useDetailBasePath';
 
 function ProductInfoHeader({ product, isLoading }: { product: ApiProductListItem | null; isLoading: boolean }) {
     if (isLoading) {
@@ -52,14 +45,30 @@ function ProductInfoHeader({ product, isLoading }: { product: ApiProductListItem
     return (
         <div className="px-3 pt-4 pb-4 border-b space-y-2">
             <div className="space-y-1.5">
-                <p className="text-sm font-semibold text-foreground leading-snug truncate" title={product.name}>
+                <p
+                    className="text-sm font-semibold text-foreground leading-snug"
+                    style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                    title={product.name}
+                >
                     {product.name}
                 </p>
                 {product.deploymentState ? <SyncStatusBadge state={product.deploymentState} compact /> : null}
             </div>
 
             {product.description ? (
-                <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 break-words">{product.description}</p>
+                <p
+                    className="text-xs text-muted-foreground"
+                    style={{
+                        lineHeight: '1.625',
+                        wordBreak: 'break-all',
+                        overflow: 'hidden',
+                        display: '-webkit-box',
+                        WebkitBoxOrient: 'vertical',
+                        WebkitLineClamp: 2,
+                    }}
+                >
+                    {product.description}
+                </p>
             ) : null}
 
             <div className="flex flex-wrap items-center gap-1">
@@ -77,7 +86,7 @@ function ProductInfoHeader({ product, isLoading }: { product: ApiProductListItem
 export function ApiProductDetailLayout() {
     const { productId } = useParams<{ productId: string }>();
     const navigate = useNavigate();
-    const basePath = useProductBasePath(productId);
+    const basePath = useDetailBasePath('api-products', productId);
     const { data: product, isLoading, isError } = useApiProductDetail(productId);
 
     if (isError) {
@@ -95,10 +104,10 @@ export function ApiProductDetailLayout() {
 
     return (
         <ApiProductDetailContext.Provider value={{ product: product ?? null, isLoading }}>
-            <div className="flex min-h-screen">
+            <div className="flex" style={{ minHeight: '100vh' }}>
                 <aside
-                    className="shrink-0 overflow-y-auto overflow-x-hidden pb-4 sticky top-0 self-start w-56"
-                    style={{ maxHeight: '100dvh' }}
+                    className="shrink-0 min-w-0 overflow-y-auto overflow-x-hidden pb-4 sticky top-0 self-start w-56"
+                    style={{ maxHeight: '100dvh', maxWidth: '14rem' }}
                 >
                     <ProductInfoHeader product={product ?? null} isLoading={isLoading} />
                     <ApiProductSidebarNav basePath={basePath} />
