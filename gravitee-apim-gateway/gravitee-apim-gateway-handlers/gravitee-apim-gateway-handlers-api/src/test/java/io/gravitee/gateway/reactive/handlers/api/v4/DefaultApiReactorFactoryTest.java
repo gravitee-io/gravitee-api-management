@@ -33,6 +33,10 @@ import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.tracing.MaskingType;
 import io.gravitee.definition.model.v4.analytics.tracing.Tracing;
 import io.gravitee.definition.model.v4.analytics.tracing.TracingMaskingStrategy;
+import io.gravitee.definition.model.v4.analytics.tracing.TracingPayloadFormat;
+import io.gravitee.definition.model.v4.analytics.tracing.TracingPayloadMaskingConfig;
+import io.gravitee.definition.model.v4.analytics.tracing.TracingPayloadMaskingRule;
+import io.gravitee.definition.model.v4.analytics.tracing.TracingPayloadPhase;
 import io.gravitee.definition.model.v4.analytics.tracing.TracingRedactionConfig;
 import io.gravitee.definition.model.v4.analytics.tracing.TracingRedactionRule;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -69,6 +73,8 @@ import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.api.opentelemetry.Tracer;
 import io.gravitee.node.api.opentelemetry.redaction.FullMaskingStrategy;
+import io.gravitee.node.api.opentelemetry.redaction.PartialMaskingStrategy;
+import io.gravitee.node.api.opentelemetry.redaction.PayloadMaskingConfig;
 import io.gravitee.node.api.opentelemetry.redaction.RedactionConfig;
 import io.gravitee.node.container.spring.SpringEnvironmentConfiguration;
 import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
@@ -438,17 +444,81 @@ class DefaultApiReactorFactoryTest {
             when(api.getName()).thenReturn("api-name");
             when(api.getApiVersion()).thenReturn("1.0");
             when(openTelemetryConfiguration.isTracesEnabled()).thenReturn(true);
-            when(openTelemetryFactory.createTracer(any(), any(), any(), any(), any(), any(RedactionConfig.class))).thenReturn(
-                mock(Tracer.class)
-            );
+            when(
+                openTelemetryFactory.createTracer(
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(RedactionConfig.class),
+                    any(PayloadMaskingConfig.class)
+                )
+            ).thenReturn(mock(Tracer.class));
 
             cut.createTracingContext(api, "test-namespace");
 
             ArgumentCaptor<RedactionConfig> captor = ArgumentCaptor.forClass(RedactionConfig.class);
-            verify(openTelemetryFactory).createTracer(any(), any(), any(), any(), any(), captor.capture());
+            verify(openTelemetryFactory).createTracer(any(), any(), any(), any(), any(), captor.capture(), any(PayloadMaskingConfig.class));
             assertThat(captor.getValue().rules()).hasSize(1);
             assertThat(captor.getValue().rules().get(0).attributeNamePattern()).isEqualTo("enduser.id");
             assertThat(captor.getValue().rules().get(0).maskingStrategy()).isInstanceOf(FullMaskingStrategy.class);
+        }
+
+        @Test
+        void should_pass_payload_masking_config_to_createTracer() {
+            var strategy = new TracingMaskingStrategy();
+            strategy.setType(MaskingType.PARTIAL);
+            strategy.setPrefixLength(2);
+            strategy.setSuffixLength(4);
+            strategy.setReplacement("*");
+            var rule = new TracingPayloadMaskingRule();
+            rule.setPath("$.creditCard");
+            rule.setMaskingStrategy(strategy);
+            rule.setPhase(TracingPayloadPhase.REQUEST);
+            rule.setFormat(TracingPayloadFormat.JSON);
+            var maskingConfig = new TracingPayloadMaskingConfig();
+            maskingConfig.setRules(List.of(rule));
+            var tracing = new Tracing();
+            tracing.setEnabled(true);
+            tracing.setPayloadMasking(maskingConfig);
+            var analytics = new Analytics();
+            analytics.setEnabled(true);
+            analytics.setTracing(tracing);
+            var def = new io.gravitee.definition.model.v4.Api();
+            def.setAnalytics(analytics);
+
+            Api api = mock(Api.class);
+            when(api.getDefinition()).thenReturn(def);
+            when(api.getId()).thenReturn("api-id");
+            when(api.getName()).thenReturn("api-name");
+            when(api.getApiVersion()).thenReturn("1.0");
+            when(openTelemetryConfiguration.isTracesEnabled()).thenReturn(true);
+            when(
+                openTelemetryFactory.createTracer(
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(RedactionConfig.class),
+                    any(PayloadMaskingConfig.class)
+                )
+            ).thenReturn(mock(Tracer.class));
+
+            cut.createTracingContext(api, "test-namespace");
+
+            ArgumentCaptor<PayloadMaskingConfig> captor = ArgumentCaptor.forClass(PayloadMaskingConfig.class);
+            verify(openTelemetryFactory).createTracer(any(), any(), any(), any(), any(), any(RedactionConfig.class), captor.capture());
+            assertThat(captor.getValue().rules()).hasSize(1);
+            assertThat(captor.getValue().rules().get(0).path()).isEqualTo("$.creditCard");
+            assertThat(captor.getValue().rules().get(0).maskingStrategy()).isInstanceOf(PartialMaskingStrategy.class);
+            assertThat(captor.getValue().rules().get(0).phase()).isEqualTo(
+                io.gravitee.node.api.opentelemetry.redaction.PayloadPhase.REQUEST
+            );
+            assertThat(captor.getValue().rules().get(0).format()).isEqualTo(
+                io.gravitee.node.api.opentelemetry.redaction.PayloadFormat.JSON
+            );
         }
     }
 

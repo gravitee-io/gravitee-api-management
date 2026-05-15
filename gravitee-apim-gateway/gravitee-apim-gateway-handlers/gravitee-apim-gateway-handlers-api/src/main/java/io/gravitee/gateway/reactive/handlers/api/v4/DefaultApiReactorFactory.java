@@ -428,7 +428,8 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
                 serviceNameSpace,
                 api.getApiVersion(),
                 instrumenterTracerFactories,
-                TracingRedactionMapper.toRedactionConfig(api)
+                TracingRedactionMapper.toRedactionConfig(api),
+                TracingPayloadMaskingMapper.toPayloadMaskingConfig(api)
             );
             return new TracingContext(tracer, true, isApiTracingVerboseEnabled(api));
         }
