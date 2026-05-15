@@ -30,6 +30,7 @@ import { ApiProductMembersComponentHarness } from './api-product-members.compone
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { GioTestingRole, GioTestingRoleProvider } from '../../../shared/components/gio-role/gio-role.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { Member, fakeBaseGroup, fakeGroup } from '../../../entities/management-api-v2';
 import { fakeMember } from '../../../entities/management-api-v2/member/member.fixture';
@@ -50,11 +51,13 @@ describe('ApiProductMembersComponent', () => {
   async function init(
     permissions: string[] = ['api_product-member-r', 'api_product-member-c'],
     initialQueryParams: Record<string, string> = {},
+    roles: GioTestingRole = [],
   ) {
     await TestBed.configureTestingModule({
       imports: [ApiProductMembersComponent, NoopAnimationsModule, GioTestingModule, MatIconTestingModule, MatDialogModule],
       providers: [
         { provide: GioTestingPermissionProvider, useValue: permissions },
+        ...(roles.length > 0 ? [{ provide: GioTestingRoleProvider, useValue: roles }] : []),
         { provide: SnackBarService, useValue: snackBarService },
         {
           provide: InteractivityChecker,
@@ -541,6 +544,7 @@ describe('ApiProductMembersComponent', () => {
     fixture.detectChanges();
 
     expect(await harness.isTransferOwnershipVisible()).toBeTruthy();
+    expect(await harness.isTransferOwnershipDisabled()).toBe(false);
   }));
 
   it('should hide transfer ownership button when user lacks update permission', fakeAsync(async () => {
@@ -551,6 +555,17 @@ describe('ApiProductMembersComponent', () => {
     fixture.detectChanges();
 
     expect(await harness.isTransferOwnershipVisible()).toBeFalsy();
+  }));
+
+  it('should disable transfer ownership button when user is organization admin without member update permission', fakeAsync(async () => {
+    await init(['api_product-member-r'], {}, [{ scope: 'ORGANIZATION', name: 'ADMIN' }]);
+    expectMembersPageRequests([]);
+    expectRolesRequest();
+    tick();
+    fixture.detectChanges();
+
+    expect(await harness.isTransferOwnershipVisible()).toBeTruthy();
+    expect(await harness.isTransferOwnershipDisabled()).toBe(true);
   }));
 
   it('should display inherited group members section when API Product has groups', fakeAsync(async () => {
