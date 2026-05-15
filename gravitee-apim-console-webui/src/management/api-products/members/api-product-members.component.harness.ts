@@ -118,6 +118,14 @@ export class ApiProductMembersComponentHarness extends ComponentHarness {
     return (await this.getTransferOwnershipButton()) != null;
   }
 
+  async isTransferOwnershipDisabled(): Promise<boolean> {
+    const button = await this.getTransferOwnershipButton();
+    if (button == null) {
+      return false;
+    }
+    return button.isDisabled();
+  }
+
   async getDeleteMemberButton(): Promise<MatButtonHarness> {
     return this.locatorFor(MatButtonHarness.with({ selector: '[data-testid="api_product_members_delete_button"]' }))();
   }
