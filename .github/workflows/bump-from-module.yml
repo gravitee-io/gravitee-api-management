@@ -1,0 +1,132 @@
+# Called by Gamma module repos after a release tag is pushed.
+# Creates or updates a version-bump PR in this repo for the released module.
+name: Bump Gamma module version
+
+on:
+    workflow_call:
+        inputs:
+            module:
+                description: 'Maven artifact ID (e.g. gravitee-gamma-module-aim)'
+                required: true
+                type: string
+            version:
+                description: 'New version (e.g. 1.0.0-alpha.26)'
+                required: true
+                type: string
+        secrets:
+            BOT_GITHUB_TOKEN:
+                # Needs Contents + Pull-requests write on this repo.
+                required: true
+
+    # Also runnable manually to catch up after automation gaps.
+    workflow_dispatch:
+        inputs:
+            module:
+                description: 'Maven artifact ID (e.g. gravitee-gamma-module-aim)'
+                required: true
+                type: string
+            version:
+                description: 'New version (e.g. 1.0.0-alpha.26)'
+                required: true
+                type: string
+
+jobs:
+    bump:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            pull-requests: write
+        concurrency:
+            # Hardcoded — github.repository resolves to the caller's repo in workflow_call context.
+            group: gravitee-io/gravitee-api-management-bump-${{ inputs.module }}
+            cancel-in-progress: false
+        steps:
+            - name: Checkout APIM master
+              uses: actions/checkout@v6
+              with:
+                  repository: gravitee-io/gravitee-api-management
+                  token: ${{ secrets.BOT_GITHUB_TOKEN || github.token }}
+                  ref: master
+
+            - name: Update version property in pom.xml
+              env:
+                  MODULE: ${{ inputs.module }}
+                  VERSION: ${{ inputs.version }}
+              run: |
+                  python3 -c "
+                  import re, sys, os
+                  module  = os.environ['MODULE']
+                  version = os.environ['VERSION']
+                  prop    = f'{module}.version'
+                  content = open('pom.xml').read()
+                  pattern = rf'<{re.escape(prop)}>[^<]+</{re.escape(prop)}>'
+                  if not re.search(pattern, content):
+                      print(f'ERROR: <{prop}> not found in pom.xml', file=sys.stderr)
+                      sys.exit(1)
+                  new_content = re.sub(pattern, f'<{prop}>{version}</{prop}>', content)
+                  if new_content != content:
+                      open('pom.xml', 'w').write(new_content)
+                      print(f'Updated <{prop}> to {version}')
+                  else:
+                      print(f'Already at {version}, nothing to update')
+                  "
+
+            - name: Create or update version-bump PR
+              env:
+                  GH_TOKEN: ${{ secrets.BOT_GITHUB_TOKEN || github.token }}
+                  GH_REPO: gravitee-io/gravitee-api-management
+                  MODULE: ${{ inputs.module }}
+                  VERSION: ${{ inputs.version }}
+              run: |
+                  BRANCH="bot/bump-${MODULE}"
+
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+
+                  git checkout -B "$BRANCH"
+                  git add pom.xml
+
+                  if git diff --cached --quiet; then
+                    :
+                  else
+                    git commit -m "chore(deps): bump ${MODULE} to ${VERSION}"
+                  fi
+
+                  git push origin "$BRANCH" --force
+
+                  gh label create "automated-version-bump" \
+                    --color "0075ca" \
+                    --description "Automated version bump" \
+                    2>/dev/null || true
+
+                  PR_BODY_FILE=$(mktemp)
+                  printf '%s\n' \
+                    "## Automated version bump" \
+                    "" \
+                    "**Module:** \`${MODULE}\`" \
+                    "**New version:** \`${VERSION}\`" \
+                    "" \
+                    "Merge when ready." \
+                    > "$PR_BODY_FILE"
+
+                  EXISTING_PR=$(gh pr list \
+                    --state open \
+                    --head "$BRANCH" \
+                    --base master \
+                    --json number \
+                    --jq '.[0].number // empty')
+
+                  if [ -n "$EXISTING_PR" ]; then
+                    gh pr edit "$EXISTING_PR" \
+                      --title "chore(deps): bump ${MODULE} to ${VERSION}" \
+                      --body-file "$PR_BODY_FILE"
+                  else
+                    gh pr create \
+                      --base master \
+                      --head "$BRANCH" \
+                      --title "chore(deps): bump ${MODULE} to ${VERSION}" \
+                      --label "automated-version-bump" \
+                      --body-file "$PR_BODY_FILE"
+                  fi
+
+                  rm -f "$PR_BODY_FILE"
