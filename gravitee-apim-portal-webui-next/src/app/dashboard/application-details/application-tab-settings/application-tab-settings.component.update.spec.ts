@@ -21,6 +21,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { of } from 'rxjs';
 
 import { ApplicationTabSettingsEditHarness } from './application-tab-settings-edit/application-tab-settings-edit.harness';
+import { ApplicationTabSettingsReadHarness } from './application-tab-settings-read/application-tab-settings-read.harness';
 import { ApplicationTabSettingsComponent } from './application-tab-settings.component';
 import { ConfirmDialogComponent } from '../../../../components/confirm-dialog/confirm-dialog.component';
 import { Application, ApplicationType } from '../../../../entities/application/application';
@@ -470,14 +471,77 @@ describe('ApplicationTabSettingsComponent', () => {
     });
 
     it('Should be able to discard changes', async () => {
-      expect(await updateHarness.isDiscardButtonDisabled()).toBeTruthy();
-
       await updateHarness.changeName('New Value');
-      expect(await updateHarness.isDiscardButtonDisabled()).toBeFalsy();
 
-      await updateHarness.discardChanges();
-      expect(await updateHarness.getName()).toEqual('Native application');
-      expect(await updateHarness.isDiscardButtonDisabled()).toBeTruthy();
+      await updateHarness.cancelChanges();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      flushGetRequests(
+        fakeApplication({
+          id: applicationId,
+          name: 'Native application',
+          description: 'Native description',
+          picture: 'data:image/png;base64,xxxxxxxx',
+          applicationType: 'NATIVE',
+          settings: {
+            oauth: {
+              client_id: 'my client id',
+              client_secret: 'my client secret',
+              redirect_uris: ['http://localhost/native'],
+              response_types: ['code'],
+              grant_types: ['authorization_code'],
+              renew_client_secret_supported: false,
+            },
+            app: undefined,
+          },
+        }),
+      );
+      await fixture.whenStable();
+
+      expect(fixture.componentRef.instance.isEditing()).toBe(false);
+      const readHarness = await loader.getHarness(ApplicationTabSettingsReadHarness);
+      expect(await readHarness.getName()).toEqual('Native application');
+    });
+
+    it('should close edit mode after saving changes', async () => {
+      await updateHarness.changeName('Updated native application');
+      await updateHarness.saveApplication();
+
+      const updatedApplication = fakeApplication({
+        id: applicationId,
+        name: 'Updated native application',
+        description: 'Native description',
+        picture: 'data:image/png;base64,xxxxxxxx',
+        applicationType: 'NATIVE',
+        settings: {
+          oauth: {
+            client_id: 'my client id',
+            client_secret: 'my client secret',
+            redirect_uris: ['http://localhost/native'],
+            response_types: ['code'],
+            grant_types: ['authorization_code'],
+            renew_client_secret_supported: false,
+          },
+          app: undefined,
+        },
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${TESTING_BASE_URL}/applications/${applicationId}`,
+        method: 'PUT',
+      });
+      req.flush(updatedApplication);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      flushGetRequests(updatedApplication);
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(fixture.componentRef.instance.isEditing()).toBe(false);
+      const readHarness = await loader.getHarness(ApplicationTabSettingsReadHarness);
+      expect(await readHarness.getName()).toEqual('Updated native application');
     });
   });
 });
