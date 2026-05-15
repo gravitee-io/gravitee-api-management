@@ -38,7 +38,7 @@ export function ExposedEntrypointsCard({ entrypoints, isLoading, virtualHostMode
                 <div>
                     <p className="text-sm font-semibold text-foreground flex items-center">
                         Exposed entrypoints
-                        <InfoTooltip text="Preview of gateway URLs for the paths configured above (plus internal routing where applicable)." />
+                        <InfoTooltip text="URLs derived from your context paths or virtual hosts—the same values consumers see in the Developer Portal." />
                     </p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
                         Preview of gateway URLs for the paths configured above (plus internal routing where applicable).

@@ -128,7 +128,10 @@ export function ApiDetailLayout() {
     return (
         <ApiDetailContext.Provider value={{ api: api ?? null, isLoading, permissionsReady }}>
             <div className="flex gap-6">
-                <aside className="sticky top-0 max-h-dvh self-start w-56 shrink-0 overflow-y-auto overflow-x-hidden pb-4">
+                <aside
+                    className="sticky top-0 self-start w-56 shrink-0 overflow-y-auto overflow-x-hidden pb-4"
+                    style={{ maxHeight: '100dvh' }}
+                >
                     <ApiInfoHeader api={api ?? null} isLoading={isLoading} />
                     <ApiDetailSidebarNav groups={API_PROXY_NAV_GROUPS} basePath={basePath} permissionsReady={permissionsReady} />
                 </aside>

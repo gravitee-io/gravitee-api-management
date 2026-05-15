@@ -24,7 +24,6 @@ import {
     DialogHeader,
     DialogTitle,
     Input,
-    ScrollArea,
 } from '@gravitee/graphene-core';
 import { SearchIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useMemo, useState } from 'react';
@@ -94,7 +93,7 @@ export function ManageGroupsDialog({
                         <Input className="pl-10" placeholder="Search groups…" value={search} onChange={e => setSearch(e.target.value)} />
                     </div>
 
-                    <ScrollArea className="max-h-80">
+                    <div className="overflow-y-auto rounded-md" style={{ maxHeight: '18rem' }}>
                         {filtered.length === 0 ? (
                             <p className="p-3 text-sm text-muted-foreground">
                                 {search.trim() ? 'No groups match your search.' : 'No groups found in this environment.'}
@@ -126,7 +125,7 @@ export function ManageGroupsDialog({
                                 })}
                             </div>
                         )}
-                    </ScrollArea>
+                    </div>
 
                     <p className="text-xs text-muted-foreground">
                         {selected.size} group{selected.size !== 1 ? 's' : ''} selected

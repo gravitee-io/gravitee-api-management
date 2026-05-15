@@ -53,7 +53,7 @@ export function ContextPathsCard({
                     <div>
                         <p className="text-sm font-semibold text-foreground flex items-center">
                             Entrypoint context-paths
-                            <InfoTooltip text="Each row defines a context path that routes requests to this API through the gateway." />
+                            <InfoTooltip text="Context paths define the URL prefix consumers use to reach this API through the gateway. Add more than one path when the API is exposed under several routes." />
                         </p>
                         <p className="mt-0.5 text-xs text-muted-foreground">
                             Each row is served under the shared gateway host. Add or remove context paths as needed.
