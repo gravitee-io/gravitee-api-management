@@ -203,7 +203,7 @@
         <gravitee-policy-js.version>1.0.0-alpha.7</gravitee-policy-js.version>
         <gravitee-policy-json-threat-protection.version>2.1.0</gravitee-policy-json-threat-protection.version>
         <gravitee-policy-json-to-json.version>3.0.1</gravitee-policy-json-to-json.version>
-        <gravitee-policy-json-to-toon.version>1.0.0</gravitee-policy-json-to-toon.version>
+        <gravitee-policy-json-to-toon.version>1.0.0-alpha.4</gravitee-policy-json-to-toon.version>
         <gravitee-policy-json-validation.version>2.1.1</gravitee-policy-json-validation.version>
         <gravitee-policy-json-xml.version>3.0.3</gravitee-policy-json-xml.version>
         <gravitee-policy-jws.version>2.0.0</gravitee-policy-jws.version>
@@ -293,7 +293,7 @@
         <gravitee-entrypoint-sse.version>6.0.0</gravitee-entrypoint-sse.version>
         <gravitee-entrypoint-webhook.version>7.1.2</gravitee-entrypoint-webhook.version>
         <gravitee-entrypoint-websocket.version>3.0.0</gravitee-entrypoint-websocket.version>
-        <gravitee-entrypoint-agent-to-agent.version>2.0.0</gravitee-entrypoint-agent-to-agent.version>
+        <gravitee-entrypoint-agent-to-agent.version>2.0.1</gravitee-entrypoint-agent-to-agent.version>
         <gravitee-entrypoint-mcp-tool-server.version>2.0.1</gravitee-entrypoint-mcp-tool-server.version>
         <gravitee-endpoint-jms.version>2.0.0</gravitee-endpoint-jms.version>
         <gravitee-endpoint-kafka.version>6.0.2</gravitee-endpoint-kafka.version>
@@ -308,7 +308,7 @@
         <gravitee-reactor-message.version>10.0.1</gravitee-reactor-message.version>
         <gravitee-reactor-native-kafka.version>6.0.1</gravitee-reactor-native-kafka.version>
         <gravitee-reactor-mcp-proxy.version>1.1.2</gravitee-reactor-mcp-proxy.version>
-        <gravitee-reactor-llm-proxy.version>2.8.1</gravitee-reactor-llm-proxy.version>
+        <gravitee-reactor-llm-proxy.version>2.9.1</gravitee-reactor-llm-proxy.version>
         <gravitee-reactor-a2a-proxy.version>1.0.0</gravitee-reactor-a2a-proxy.version>
         <gravitee-resource-ai-vector-store-redis.version>1.0.1</gravitee-resource-ai-vector-store-redis.version>
         <gravitee-resource-ai-vector-store-aws-s3.version>1.0.0</gravitee-resource-ai-vector-store-aws-s3.version>
