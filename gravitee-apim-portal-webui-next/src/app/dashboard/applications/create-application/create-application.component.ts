@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, DestroyRef, effect, inject } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormControl, FormGroup, FormRecord, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -130,7 +130,7 @@ export class CreateApplicationComponent {
     }));
   });
 
-  hasApplicationError: boolean = false;
+  hasApplicationError = signal(false);
 
   constructor() {
     this.breadcrumbService.set([
@@ -174,7 +174,7 @@ export class CreateApplicationComponent {
           this.router.navigate(['/dashboard/applications', application.id]);
         },
         error: err => {
-          this.hasApplicationError = true;
+          this.hasApplicationError.set(true);
           console.error('Error creating application:', err);
         },
       });

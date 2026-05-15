@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, inject, input, OnInit } from '@angular/core';
+import { Component, inject, input, OnInit, output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -89,6 +89,8 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
   applicationTypeConfiguration = input.required<ApplicationType>();
   userApplicationPermissions = input.required<UserApplicationPermissions>();
 
+  editClosed = output<void>();
+
   protected get mtlsEnabled(): boolean {
     return this.configService.configuration?.portalNext?.mtls?.enabled === true;
   }
@@ -137,7 +139,7 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
       this.addValidatorsOnForm();
 
       this.initialValues = this.convertToVM(application);
-      this.reset();
+      this.resetForm();
       this.formUnchanged$ = this.applicationSettingsForm.valueChanges.pipe(
         startWith(this.initialValues),
         map(value => isEqual(this.initialValues, value)),
@@ -171,7 +173,11 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
     }
   }
 
-  reset() {
+  cancel(): void {
+    this.editClosed.emit();
+  }
+
+  resetForm(): void {
     this.applicationSettingsForm.patchValue(this.initialValues);
   }
 
@@ -183,7 +189,7 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
       .pipe(
         tap(app => {
           this.initialValues = this.convertToVM(app);
-          this.reset();
+          this.editClosed.emit();
           const url = this.router.url;
           return this.router.navigate([url], { onSameUrlNavigation: 'reload' });
         }),
