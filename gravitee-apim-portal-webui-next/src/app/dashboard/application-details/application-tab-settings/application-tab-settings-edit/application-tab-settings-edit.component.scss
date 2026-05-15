@@ -16,17 +16,21 @@
 @use '../../../../../scss/theme';
 @use '@angular/material' as mat;
 
-.settings-edit {
-  mat-card-content {
-    display: flex;
-    flex-direction: column;
-    padding-top: 8px;
-  }
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
 
+h1 {
+  margin: 5px 0;
+}
+
+.settings-edit {
   &__form {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 28px;
 
     &__general,
     &__security {
