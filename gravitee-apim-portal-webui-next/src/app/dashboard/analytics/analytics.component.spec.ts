@@ -122,7 +122,7 @@ describe('AnalyticsComponent', () => {
     });
 
     async function clickPinButtonForCard(cardIndex: number): Promise<void> {
-      const cards = await harness.getGridCards();
+      const cards = await harness.getCards();
       await cards[cardIndex].clickPinButtonWithoutStabilizing();
     }
 
@@ -162,6 +162,7 @@ describe('AnalyticsComponent', () => {
       fixture.detectChanges();
       const pinned = await harness.getPinnedDashboards();
       expect(pinned).toHaveLength(0);
+      expect(JSON.parse(localStorage.getItem('analytics-pinned-dashboards')!)).toEqual([]);
     });
 
     it('should_show_pinned_dashboards_in_pinned_row', async () => {
@@ -201,6 +202,36 @@ describe('AnalyticsComponent', () => {
       ]);
       const pinned = await harness.getPinnedDashboards();
       expect(pinned).toHaveLength(3);
+    });
+  });
+
+  describe('pinned ids from localStorage', () => {
+    afterEach(() => {
+      localStorage.clear();
+    });
+
+    async function setupWithStoredPinnedIds(
+      storedValue: string,
+      response: AnalyticsDashboardsResponse = fakeAnalyticsDashboardsResponse({
+        data: [fakeDashboard({ id: 'dash-1', name: 'Dashboard 1' })],
+      }),
+    ): Promise<void> {
+      localStorage.setItem('analytics-pinned-dashboards', storedValue);
+      fixture = TestBed.createComponent(AnalyticsComponent);
+      httpTestingController = TestBed.inject(HttpTestingController);
+      await setup(response);
+    }
+
+    it('should_ignore_malformed_pinned_ids_in_local_storage', async () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      await setupWithStoredPinnedIds('not-json');
+      expect(await harness.getPinnedDashboards()).toHaveLength(0);
+      warnSpy.mockRestore();
+    });
+
+    it('should_ignore_non_string_pinned_ids_in_local_storage', async () => {
+      await setupWithStoredPinnedIds(JSON.stringify([1, 2, 3]));
+      expect(await harness.getPinnedDashboards()).toHaveLength(0);
     });
   });
 
