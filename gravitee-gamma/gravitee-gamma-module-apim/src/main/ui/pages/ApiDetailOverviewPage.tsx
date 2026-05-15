@@ -15,13 +15,50 @@
  */
 import { useParams } from 'react-router-dom';
 
+import { ApiOverviewChecklist } from '../features/apis/components/detail/overview/ApiOverviewChecklist';
+import { ApiOverviewGatewayCards } from '../features/apis/components/detail/overview/ApiOverviewGatewayCards';
+import { ApiOverviewTrafficCards } from '../features/apis/components/detail/overview/ApiOverviewTrafficCards';
+import { useApiDetailContext } from '../features/apis/context/ApiDetailContext';
+import { useApiOverviewData } from '../features/apis/hooks/useApiOverviewData';
+
 export function ApiDetailOverviewPage() {
     const { apiId } = useParams<{ apiId: string }>();
+    const { api } = useApiDetailContext();
+
+    const {
+        membersData,
+        alertsData,
+        exposedEntrypoints,
+        analyticsStats,
+        isLoadingTraffic,
+        isLoadingMembers,
+        isLoadingAlerts,
+        isLoadingEntrypoints,
+    } = useApiOverviewData(apiId);
+
+    const gatewayUrl = exposedEntrypoints?.[0]?.value;
+    const upstreamUrl = api?.endpointGroups?.[0]?.endpoints?.[0]?.configuration?.target;
 
     return (
-        <div className="space-y-2 p-6">
-            <h1 className="text-2xl font-semibold tracking-tight">Overview</h1>
-            <p className="text-sm text-muted-foreground font-mono">{apiId}</p>
+        <div className="space-y-6 p-6">
+            <div className="space-y-1">
+                <h1 className="text-2xl font-semibold tracking-tight">Overview</h1>
+                <p className="text-sm text-muted-foreground">
+                    Setup checklist, gateway endpoints, and traffic snapshot for {api?.name ?? '…'}.
+                </p>
+            </div>
+
+            <ApiOverviewChecklist
+                api={api}
+                membersData={membersData}
+                alertsData={alertsData}
+                isLoadingMembers={isLoadingMembers}
+                isLoadingAlerts={isLoadingAlerts}
+            />
+
+            <ApiOverviewGatewayCards gatewayUrl={gatewayUrl} upstreamUrl={upstreamUrl} isLoadingEntrypoints={isLoadingEntrypoints} />
+
+            <ApiOverviewTrafficCards analyticsStats={analyticsStats} isLoadingTraffic={isLoadingTraffic} />
         </div>
     );
 }

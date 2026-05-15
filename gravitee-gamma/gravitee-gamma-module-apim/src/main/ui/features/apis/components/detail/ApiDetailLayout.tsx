@@ -15,21 +15,14 @@
  */
 import { Badge, Skeleton } from '@gravitee/graphene-core';
 import { CircleCheckIcon, CircleStopIcon, CircleXIcon } from '@gravitee/graphene-core/icons';
-import { Navigate, Outlet, useLocation, useParams } from 'react-router-dom';
+import { Navigate, Outlet, useParams } from 'react-router-dom';
 
 import { API_PROXY_NAV_GROUPS, ApiDetailSidebarNav } from './ApiDetailSidebarNav';
+import { useDetailBasePath } from '../../../shared/hooks/useDetailBasePath';
 import { ApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDetail } from '../../hooks/useApiDetail';
 import { useApiPermissions } from '../../hooks/useApiPermissions';
 import type { ApiDetailDto } from '../../types/api';
-
-function useApiBasePath(apiId: string | undefined): string {
-    const { pathname } = useLocation();
-    if (!apiId) return pathname;
-    const marker = `/apis/${apiId}`;
-    const idx = pathname.indexOf(marker);
-    return idx >= 0 ? pathname.slice(0, idx + marker.length) : pathname;
-}
 
 function StateIndicator({ state }: { state: ApiDetailDto['state'] }) {
     switch (state) {
@@ -83,7 +76,11 @@ function ApiInfoHeader({ api, isLoading }: { api: ApiDetailDto | null; isLoading
     return (
         <div className="px-3 pt-4 pb-4 border-b space-y-2.5">
             <div className="space-y-1">
-                <p className="text-sm font-semibold text-foreground leading-snug truncate" title={api.name}>
+                <p
+                    className="text-sm font-semibold text-foreground leading-snug"
+                    style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                    title={api.name}
+                >
                     {api.name}
                 </p>
                 {api.state ? <StateIndicator state={api.state} /> : null}
@@ -91,7 +88,19 @@ function ApiInfoHeader({ api, isLoading }: { api: ApiDetailDto | null; isLoading
 
             {/* Description */}
             {api.description ? (
-                <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 break-words">{api.description}</p>
+                <p
+                    className="text-xs text-muted-foreground"
+                    style={{
+                        lineHeight: '1.625',
+                        wordBreak: 'break-all',
+                        overflow: 'hidden',
+                        display: '-webkit-box',
+                        WebkitBoxOrient: 'vertical',
+                        WebkitLineClamp: 2,
+                    }}
+                >
+                    {api.description}
+                </p>
             ) : null}
 
             {/* Tech chips */}
@@ -113,7 +122,7 @@ function ApiInfoHeader({ api, isLoading }: { api: ApiDetailDto | null; isLoading
 
 export function ApiDetailLayout() {
     const { apiId } = useParams<{ apiId: string }>();
-    const basePath = useApiBasePath(apiId);
+    const basePath = useDetailBasePath('apis', apiId);
     const { data: api, isLoading, isError } = useApiDetail(apiId);
     const { permissionsReady } = useApiPermissions(apiId);
 
@@ -129,8 +138,8 @@ export function ApiDetailLayout() {
         <ApiDetailContext.Provider value={{ api: api ?? null, isLoading, permissionsReady }}>
             <div className="flex gap-6">
                 <aside
-                    className="sticky top-0 self-start w-56 shrink-0 overflow-y-auto overflow-x-hidden pb-4"
-                    style={{ maxHeight: '100dvh' }}
+                    className="sticky top-0 self-start w-56 min-w-0 shrink-0 overflow-y-auto overflow-x-hidden pb-4"
+                    style={{ maxHeight: '100dvh', maxWidth: '14rem' }}
                 >
                     <ApiInfoHeader api={api ?? null} isLoading={isLoading} />
                     <ApiDetailSidebarNav groups={API_PROXY_NAV_GROUPS} basePath={basePath} permissionsReady={permissionsReady} />
