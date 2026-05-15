@@ -19,7 +19,11 @@ import { UsersIcon } from '@gravitee/graphene-core/icons';
 import { MemberAvatar } from './MemberAvatar';
 import type { GroupMember } from '../../types/members.types';
 
-export function GroupMembersSection({ groupName, members }: Readonly<{ groupName: string; members: GroupMember[] }>) {
+export function GroupMembersSection({
+    groupName,
+    members,
+    roleScope = 'API',
+}: Readonly<{ groupName: string; members: GroupMember[]; roleScope?: string }>) {
     const count = members.length;
     return (
         <Card className="overflow-hidden">
@@ -51,7 +55,7 @@ export function GroupMembersSection({ groupName, members }: Readonly<{ groupName
                             </TableCell>
                             <TableCell>
                                 <Badge variant="secondary" className="font-normal">
-                                    {m.roles?.['API'] ?? '—'}
+                                    {m.roles?.[roleScope] ?? '—'}
                                 </Badge>
                             </TableCell>
                         </TableRow>

@@ -66,6 +66,7 @@ export function DirectMembersTable({
     onRemove,
     isSaving,
     isRemoving,
+    getRoleName,
 }: Readonly<{
     members: Member[];
     roles: string[];
@@ -77,6 +78,7 @@ export function DirectMembersTable({
     onRemove: (member: Member) => void;
     isSaving: boolean;
     isRemoving: boolean;
+    getRoleName?: (member: Member) => string;
 }>) {
     return (
         <div className="rounded-lg border overflow-hidden">
@@ -92,7 +94,7 @@ export function DirectMembersTable({
                     {members.map(member => {
                         const isPO = isMemberPrimaryOwner(member);
                         const isEditing = editState?.memberId === member.id;
-                        const currentRole = getApiRole(member);
+                        const currentRole = getRoleName ? getRoleName(member) : getApiRole(member);
 
                         return (
                             <TableRow key={member.id} className={isEditing ? 'bg-muted/30' : undefined}>
@@ -157,31 +159,8 @@ export function DirectMembersTable({
                                                     <MoreHorizontalIcon className="size-4" />
                                                 </Button>
                                             </DropdownMenuTrigger>
-                                            <DropdownMenuContent
-                                                align="end"
-                                                style={{
-                                                    backgroundColor: 'hsl(var(--popover, 0 0% 100%))',
-                                                    color: 'hsl(var(--popover-foreground, 222 84% 5%))',
-                                                    border: '1px solid hsl(var(--border, 214 32% 91%))',
-                                                    borderRadius: '8px',
-                                                    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1)',
-                                                    minWidth: '10rem',
-                                                    padding: '4px',
-                                                    zIndex: 50,
-                                                }}
-                                            >
-                                                <DropdownMenuItem
-                                                    onSelect={() => onStartEdit(member)}
-                                                    style={{
-                                                        padding: '6px 8px',
-                                                        cursor: 'pointer',
-                                                        borderRadius: '4px',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        gap: '8px',
-                                                        fontSize: '14px',
-                                                    }}
-                                                >
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem onSelect={() => onStartEdit(member)}>
                                                     <PencilIcon className="size-4" />
                                                     Edit role
                                                 </DropdownMenuItem>
@@ -189,16 +168,7 @@ export function DirectMembersTable({
                                                 <DropdownMenuItem
                                                     onSelect={() => onRemove(member)}
                                                     disabled={isRemoving}
-                                                    style={{
-                                                        padding: '6px 8px',
-                                                        cursor: 'pointer',
-                                                        borderRadius: '4px',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        gap: '8px',
-                                                        fontSize: '14px',
-                                                        color: 'hsl(var(--destructive, 0 84% 60%))',
-                                                    }}
+                                                    className="text-destructive focus:text-destructive"
                                                 >
                                                     <Trash2Icon className="size-4" />
                                                     Remove member

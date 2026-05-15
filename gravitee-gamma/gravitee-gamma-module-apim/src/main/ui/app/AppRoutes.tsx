@@ -21,6 +21,7 @@ import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 
 import { NAV_GROUPS } from '../config/navigation';
 import { APIM_ROUTE_CONFIG } from '../config/routes';
+import { ApiProductDetailLayout, ApiProductIndexRedirect } from '../features/api-products/components';
 import { ApiDetailIndexRedirect, ApiDetailLayout } from '../features/apis/components/detail/ApiDetailLayout';
 import { AlertFormPage } from '../pages/AlertFormPage';
 import { AnalyticsPage } from '../pages/AnalyticsPage';
@@ -30,11 +31,17 @@ import { ApiDetailOverviewPage } from '../pages/ApiDetailOverviewPage';
 import { ApiDetailPlaceholderPage } from '../pages/ApiDetailPlaceholderPage';
 import { ApiEntrypointsPage } from '../pages/ApiEntrypointsPage';
 import { ApiGeneralPage } from '../pages/ApiGeneralPage';
+import { ApiProductApisPage } from '../pages/ApiProductApisPage';
+import { ApiProductGeneralPage } from '../pages/ApiProductGeneralPage';
+import { ApiProductOverviewPage } from '../pages/ApiProductOverviewPage';
+import { ApiProductPlaceholderPage } from '../pages/ApiProductPlaceholderPage';
 import { ApiProductsPage } from '../pages/ApiProductsPage';
 import { ApiPropertiesPage } from '../pages/ApiPropertiesPage';
+import { ApiProductUserPermissionsPage } from '../pages/ApiProductUserPermissionsPage';
 import { ApisPage } from '../pages/ApisPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
 import { AuditLogsPage } from '../pages/AuditLogsPage';
+import { CreateApiProductPage } from '../pages/CreateApiProductPage';
 import { CreateApiProxyPage } from '../pages/CreateApiProxyPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { DeploymentConfigurationPage } from '../pages/DeploymentConfigurationPage';
@@ -123,7 +130,20 @@ export function AppRoutes() {
                             <Route path="*" element={<Navigate to="overview" replace />} />
                         </Route>
                     </Route>
-                    <Route path="api-products" element={<ApiProductsPage />} />
+                    <Route path="api-products">
+                        <Route index element={<ApiProductsPage />} />
+                        <Route path="new" element={<CreateApiProductPage />} />
+                        <Route path=":productId" element={<ApiProductDetailLayout />}>
+                            <Route index element={<ApiProductIndexRedirect />} />
+                            <Route path="overview" element={<ApiProductOverviewPage />} />
+                            <Route path="general" element={<ApiProductGeneralPage />} />
+                            <Route path="apis" element={<ApiProductApisPage />} />
+                            <Route path="plans" element={<ApiProductPlaceholderPage title="Plans" />} />
+                            <Route path="consumers" element={<ApiProductPlaceholderPage title="Consumers" />} />
+                            <Route path="user-permissions" element={<ApiProductUserPermissionsPage />} />
+                            <Route path="*" element={<Navigate to="overview" replace />} />
+                        </Route>
+                    </Route>
                     <Route path="applications" element={<ApplicationsPage />} />
                     <Route path="analytics" element={<AnalyticsPage />} />
                     <Route path="settings" element={<SettingsPage />} />

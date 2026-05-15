@@ -13,7 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { ApiProductsEmptyLanding } from './ApiProductsEmptyLanding';
-export { ApiProductListView } from './list/ApiProductListView';
-export { ApiProductDetailLayout, ApiProductIndexRedirect } from './detail/ApiProductDetailLayout';
-export { SyncStatusBadge } from './SyncStatusBadge';
+import { useNavigate } from 'react-router-dom';
+
+import { CreateApiProductForm } from '../features/api-products/components/create/CreateApiProductForm';
+
+export function CreateApiProductPage() {
+    const navigate = useNavigate();
+    return <CreateApiProductForm onBack={() => navigate('..')} onCreated={productId => navigate(`../${productId}/overview`)} />;
+}
