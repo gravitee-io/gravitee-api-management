@@ -292,7 +292,7 @@ export function ApiGeneralPage() {
                         {/* ─ Left: form ─ */}
                         <div className="flex-1 min-w-0 space-y-4">
                             <div className="flex gap-4">
-                                <div className="flex-[4] min-w-0 space-y-1">
+                                <div className="flex-1 min-w-0 space-y-1">
                                     <Label htmlFor="api-name">
                                         Name <span className="text-destructive">*</span>
                                     </Label>
@@ -304,7 +304,7 @@ export function ApiGeneralPage() {
                                         disabled={isReadOnly}
                                     />
                                 </div>
-                                <div className="flex-1 space-y-1" style={{ minWidth: '120px' }}>
+                                <div className="space-y-1 w-32">
                                     <Label htmlFor="api-version">
                                         Version <span className="text-destructive">*</span>
                                     </Label>

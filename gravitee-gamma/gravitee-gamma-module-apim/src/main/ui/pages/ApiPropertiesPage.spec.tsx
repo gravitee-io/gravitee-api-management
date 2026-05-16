@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor, within, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
@@ -130,8 +130,8 @@ it('adds a plain-text property and calls updateApiProperties with the new key/va
     await user.click(screen.getByRole('button', { name: /add property/i }));
 
     const dialog = screen.getByRole('dialog');
-    await user.type(within(dialog).getByLabelText(/key/i), 'my.key');
-    await user.type(within(dialog).getByLabelText(/value/i), 'my-value');
+    fireEvent.change(within(dialog).getByLabelText(/key/i), { target: { value: 'my.key' } });
+    fireEvent.change(within(dialog).getByLabelText(/value/i), { target: { value: 'my-value' } });
     await user.click(within(dialog).getByRole('button', { name: /add property/i }));
 
     await waitFor(() => expect(mockUpdateApiProperties).toHaveBeenCalledTimes(1));

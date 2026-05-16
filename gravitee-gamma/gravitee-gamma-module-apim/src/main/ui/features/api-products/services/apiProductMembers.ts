@@ -73,3 +73,11 @@ export async function transferApiProductOwnership(
 export async function getApiProductRoles(): Promise<ApiRole[]> {
     return apimFetchJsonOrg<ApiRole[]>(`/configuration/rolescopes/API_PRODUCT/roles`);
 }
+
+export async function getApiProductPermissions(environmentId: string, productId: string): Promise<string[]> {
+    const raw = await apimFetchJsonV2<Record<string, string | string[]>>(environmentId, `/api-products/${productId}/members/permissions`);
+    return Object.entries(raw).flatMap(([resource, ops]) => {
+        const letters = Array.isArray(ops) ? ops : ops.split('');
+        return letters.map(op => `api_product-${resource.toLowerCase()}-${op.toLowerCase()}`);
+    });
+}

@@ -136,15 +136,13 @@ export function ApiDetailLayout() {
 
     return (
         <ApiDetailContext.Provider value={{ api: api ?? null, isLoading, permissionsReady }}>
-            <div className="flex gap-6">
-                <aside
-                    className="sticky top-0 self-start w-56 min-w-0 shrink-0 overflow-y-auto overflow-x-hidden pb-4"
-                    style={{ maxHeight: '100dvh', maxWidth: '14rem' }}
-                >
+            <div className="flex" style={{ height: 'calc(100dvh - 5rem)' }}>
+                <aside className="w-56 min-w-0 shrink-0 overflow-y-auto overflow-x-hidden pb-4" style={{ maxWidth: '14rem' }}>
                     <ApiInfoHeader api={api ?? null} isLoading={isLoading} />
                     <ApiDetailSidebarNav groups={API_PROXY_NAV_GROUPS} basePath={basePath} permissionsReady={permissionsReady} />
                 </aside>
-                <main className="min-w-0 flex-1">
+                <div className="w-px bg-border shrink-0" />
+                <main className="min-w-0 flex-1 overflow-y-auto">
                     <Outlet />
                 </main>
             </div>

@@ -29,6 +29,7 @@ interface NavItem {
     path: string;
     label: string;
     icon: ComponentType<{ className?: string }>;
+    end?: boolean;
 }
 
 interface NavGroup {
@@ -49,7 +50,7 @@ const API_PRODUCT_NAV_GROUPS: NavGroup[] = [
         label: 'Consumer Access',
         items: [
             { path: 'plans', label: 'Plans', icon: ShieldIcon },
-            { path: 'consumers', label: 'Consumers', icon: UsersRoundIcon },
+            { path: 'consumers', label: 'Consumers', icon: UsersRoundIcon, end: false },
         ],
     },
     {
@@ -72,7 +73,7 @@ export function ApiProductSidebarNav({ basePath }: ApiProductSidebarNavProps) {
                         const Icon = item.icon;
                         return (
                             <NavLink
-                                end
+                                end={item.end ?? true}
                                 key={item.path}
                                 to={`${basePath}/${item.path}`}
                                 className={({ isActive }) =>

@@ -58,6 +58,9 @@ export class ApimApiError extends Error {
 async function doFetch<T>(url: string, path: string, init?: RequestInit): Promise<T> {
     const headers = new Headers(init?.headers);
     headers.set('X-Requested-With', 'XMLHttpRequest');
+    if (init?.body !== undefined && init.body !== null) {
+        headers.set('Content-Type', 'application/json');
+    }
     const csrf = localStorage.getItem('XSRF-TOKEN');
     if (csrf) headers.set('X-Xsrf-Token', csrf);
 

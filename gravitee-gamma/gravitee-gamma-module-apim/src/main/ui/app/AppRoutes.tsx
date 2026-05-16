@@ -26,12 +26,18 @@ import { ApiDetailIndexRedirect, ApiDetailLayout } from '../features/apis/compon
 import { AlertFormPage } from '../pages/AlertFormPage';
 import { AnalyticsPage } from '../pages/AnalyticsPage';
 import { ApiAlertsPage } from '../pages/ApiAlertsPage';
+import { ApiBroadcastsPage } from '../pages/ApiBroadcastsPage';
+import { ApiConsumerDetailPage } from '../pages/ApiConsumerDetailPage';
+import { ApiConsumersPage } from '../pages/ApiConsumersPage';
 import { ApiCorsPage } from '../pages/ApiCorsPage';
 import { ApiDetailOverviewPage } from '../pages/ApiDetailOverviewPage';
 import { ApiDetailPlaceholderPage } from '../pages/ApiDetailPlaceholderPage';
 import { ApiEntrypointsPage } from '../pages/ApiEntrypointsPage';
 import { ApiGeneralPage } from '../pages/ApiGeneralPage';
+import { ApiNotificationsPage } from '../pages/ApiNotificationsPage';
 import { ApiProductApisPage } from '../pages/ApiProductApisPage';
+import { ApiProductConsumerDetailPage } from '../pages/ApiProductConsumerDetailPage';
+import { ApiProductConsumersPage } from '../pages/ApiProductConsumersPage';
 import { ApiProductGeneralPage } from '../pages/ApiProductGeneralPage';
 import { ApiProductOverviewPage } from '../pages/ApiProductOverviewPage';
 import { ApiProductPlaceholderPage } from '../pages/ApiProductPlaceholderPage';
@@ -94,7 +100,7 @@ export function AppRoutes() {
                             <Route path="general" element={<ApiGeneralPage />} />
                             <Route path="properties" element={<ApiPropertiesPage />} />
                             <Route path="resources" element={<ApiDetailPlaceholderPage title="Resources" />} />
-                            <Route path="notifications" element={<ApiDetailPlaceholderPage title="Notifications" />} />
+                            <Route path="notifications" element={<ApiNotificationsPage />} />
                             <Route path="api-score" element={<ApiDetailPlaceholderPage title="API Score" />} />
                             <Route path="response-templates" element={<ApiDetailPlaceholderPage title="Response Templates" />} />
                             <Route path="entrypoints" element={<ApiEntrypointsPage />} />
@@ -112,8 +118,11 @@ export function AppRoutes() {
                             <Route path="policy-studio" element={<ApiDetailPlaceholderPage title="Policy Studio" />} />
                             <Route path="documentation" element={<ApiDetailPlaceholderPage title="Documentation" />} />
                             <Route path="plans" element={<ApiDetailPlaceholderPage title="Plans" />} />
-                            <Route path="consumers" element={<ApiDetailPlaceholderPage title="Consumers" />} />
-                            <Route path="broadcasts" element={<ApiDetailPlaceholderPage title="Broadcasts" />} />
+                            <Route path="consumers">
+                                <Route index element={<ApiConsumersPage />} />
+                                <Route path=":subscriptionId" element={<ApiConsumerDetailPage />} />
+                            </Route>
+                            <Route path="broadcasts" element={<ApiBroadcastsPage />} />
                             <Route path="authorization" element={<ApiDetailPlaceholderPage title="Authorization" />} />
                             <Route path="user-permissions" element={<UserPermissionsPage />} />
                             <Route path="alerts">
@@ -139,7 +148,10 @@ export function AppRoutes() {
                             <Route path="general" element={<ApiProductGeneralPage />} />
                             <Route path="apis" element={<ApiProductApisPage />} />
                             <Route path="plans" element={<ApiProductPlaceholderPage title="Plans" />} />
-                            <Route path="consumers" element={<ApiProductPlaceholderPage title="Consumers" />} />
+                            <Route path="consumers">
+                                <Route index element={<ApiProductConsumersPage />} />
+                                <Route path=":subscriptionId" element={<ApiProductConsumerDetailPage />} />
+                            </Route>
                             <Route path="user-permissions" element={<ApiProductUserPermissionsPage />} />
                             <Route path="*" element={<Navigate to="overview" replace />} />
                         </Route>

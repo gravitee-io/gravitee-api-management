@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { createContext, useContext } from 'react';
+import { MailIcon, MessageSquareIcon, WebhookIcon } from '@gravitee/graphene-core/icons';
+import type { ComponentType } from 'react';
 
-import type { ApiProductListItem } from '../types/apiProduct';
+import type { NotificationChannel } from '../types/notification';
 
-export interface ApiProductDetailContextValue {
-    readonly product: ApiProductListItem | null;
-    readonly isLoading: boolean;
-    readonly permissionsReady: boolean;
-}
+export const CHANNEL_ICON: Record<NotificationChannel, ComponentType<{ className?: string }>> = {
+    CONSOLE: MessageSquareIcon,
+    EMAIL: MailIcon,
+    WEBHOOK: WebhookIcon,
+};
 
-export const ApiProductDetailContext = createContext<ApiProductDetailContextValue>({
-    product: null,
-    isLoading: true,
-    permissionsReady: false,
-});
-
-export function useApiProductDetailContext(): ApiProductDetailContextValue {
-    return useContext(ApiProductDetailContext);
-}
+export const CHANNEL_LABEL: Record<NotificationChannel, string> = {
+    CONSOLE: 'Console',
+    EMAIL: 'Email',
+    WEBHOOK: 'Webhook',
+};

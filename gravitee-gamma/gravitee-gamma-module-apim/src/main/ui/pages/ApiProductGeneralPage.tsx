@@ -163,7 +163,7 @@ export function ApiProductGeneralPage() {
                                             value={version}
                                             onChange={e => setVersion(e.target.value)}
                                             placeholder="1.0.0"
-                                            maxLength={32}
+                                            maxLength={64}
                                         />
                                     </div>
                                 </div>

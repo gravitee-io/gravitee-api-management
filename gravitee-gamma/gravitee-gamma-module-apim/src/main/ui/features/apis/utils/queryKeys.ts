@@ -90,3 +90,29 @@ export const apiAnalyticsKeys = {
     statusRanges: (envId: string, apiId: string, window: string) =>
         [...apiAnalyticsKeys.all, 'status-ranges', envId, apiId, window] as const,
 };
+
+export const apiBroadcastKeys = {
+    all: ['api-broadcasts'] as const,
+    applicationRoles: () => [...apiBroadcastKeys.all, 'application-roles'] as const,
+};
+
+export const apiNotificationKeys = {
+    all: ['api-notifications'] as const,
+    list: (envId: string, apiId: string) => [...apiNotificationKeys.all, 'list', envId, apiId] as const,
+    notifiers: (envId: string, apiId: string) => [...apiNotificationKeys.all, 'notifiers', envId, apiId] as const,
+    hooks: (envId: string) => [...apiNotificationKeys.all, 'hooks', envId] as const,
+};
+
+import type { SubscriptionContext } from '../types/subscription';
+
+export const apiSubscriptionKeys = {
+    all: ['api-subscriptions'] as const,
+    list: (envId: string, ctx: SubscriptionContext, filters: object) =>
+        [...apiSubscriptionKeys.all, ctx.type, ctx.entityId, 'list', envId, filters] as const,
+    detail: (envId: string, ctx: SubscriptionContext, subscriptionId: string) =>
+        [...apiSubscriptionKeys.all, ctx.type, ctx.entityId, 'detail', envId, subscriptionId] as const,
+    apiKeys: (envId: string, ctx: SubscriptionContext, subscriptionId: string, page: number) =>
+        [...apiSubscriptionKeys.all, ctx.type, ctx.entityId, 'api-keys', envId, subscriptionId, page] as const,
+    plans: (envId: string, ctx: SubscriptionContext) => [...apiSubscriptionKeys.all, ctx.type, ctx.entityId, 'plans', envId] as const,
+    applications: (envId: string, query: string) => [...apiSubscriptionKeys.all, 'applications', envId, query] as const,
+};
