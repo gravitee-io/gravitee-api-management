@@ -29,4 +29,5 @@ export const apiProductKeys = {
     groupMembers: (envId: string, productId: string, groupId: string) =>
         [...apiProductKeys.all, 'group-members', envId, productId, groupId] as const,
     roles: () => [...apiProductKeys.all, 'roles'] as const,
+    permissions: (envId: string, productId: string) => [...apiProductKeys.all, 'permissions', envId, productId] as const,
 } as const;

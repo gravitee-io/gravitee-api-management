@@ -13,22 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { createContext, useContext } from 'react';
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
-import type { ApiProductListItem } from '../types/apiProduct';
-
-export interface ApiProductDetailContextValue {
-    readonly product: ApiProductListItem | null;
-    readonly isLoading: boolean;
-    readonly permissionsReady: boolean;
-}
-
-export const ApiProductDetailContext = createContext<ApiProductDetailContextValue>({
-    product: null,
-    isLoading: true,
-    permissionsReady: false,
-});
-
-export function useApiProductDetailContext(): ApiProductDetailContextValue {
-    return useContext(ApiProductDetailContext);
+export function useEnv() {
+    const env = useEnvironment();
+    return env?.id ?? '';
 }

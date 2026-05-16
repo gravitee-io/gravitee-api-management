@@ -53,6 +53,8 @@ export interface DetailNavItem {
     path: string;
     label: string;
     icon: ComponentType<{ className?: string }>;
+    /** When false, matches any sub-path (prefix match). Defaults to true (exact match). */
+    end?: boolean;
     children?: DetailNavChild[];
 }
 
@@ -105,7 +107,7 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
         label: 'Consumer Access',
         items: [
             { path: 'plans', label: 'Plans', icon: ShieldIcon },
-            { path: 'consumers', label: 'Consumers', icon: UsersRoundIcon },
+            { path: 'consumers', label: 'Consumers', icon: UsersRoundIcon, end: false },
             { path: 'broadcasts', label: 'Broadcasts', icon: MessageSquareIcon },
         ],
     },
@@ -240,7 +242,7 @@ export function ApiDetailSidebarNav({ groups, basePath, permissionsReady = true 
                         const Icon = item.icon;
                         return (
                             <NavLink
-                                end
+                                end={item.end !== false}
                                 key={item.path}
                                 to={`${basePath}/${item.path}`}
                                 className={({ isActive }) =>

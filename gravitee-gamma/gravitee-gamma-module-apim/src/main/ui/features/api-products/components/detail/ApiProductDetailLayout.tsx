@@ -18,6 +18,7 @@ import { Navigate, Outlet, useNavigate, useParams } from 'react-router-dom';
 
 import { ApiProductDetailContext } from '../../context/ApiProductDetailContext';
 import { useApiProductDetail } from '../../hooks/useApiProductDetail';
+import { useApiProductPermissions } from '../../hooks/useApiProductPermissions';
 import type { ApiProductListItem } from '../../types/apiProduct';
 import { SyncStatusBadge } from '../SyncStatusBadge';
 import { ApiProductSidebarNav } from './ApiProductSidebarNav';
@@ -88,6 +89,7 @@ export function ApiProductDetailLayout() {
     const navigate = useNavigate();
     const basePath = useDetailBasePath('api-products', productId);
     const { data: product, isLoading, isError } = useApiProductDetail(productId);
+    const { permissionsReady } = useApiProductPermissions(productId);
 
     if (isError) {
         return (
@@ -103,17 +105,14 @@ export function ApiProductDetailLayout() {
     }
 
     return (
-        <ApiProductDetailContext.Provider value={{ product: product ?? null, isLoading }}>
-            <div className="flex" style={{ minHeight: '100vh' }}>
-                <aside
-                    className="shrink-0 min-w-0 overflow-y-auto overflow-x-hidden pb-4 sticky top-0 self-start w-56"
-                    style={{ maxHeight: '100dvh', maxWidth: '14rem' }}
-                >
+        <ApiProductDetailContext.Provider value={{ product: product ?? null, isLoading, permissionsReady }}>
+            <div className="flex" style={{ height: 'calc(100dvh - 5rem)' }}>
+                <aside className="shrink-0 min-w-0 w-56 overflow-y-auto overflow-x-hidden pb-4" style={{ maxWidth: '14rem' }}>
                     <ProductInfoHeader product={product ?? null} isLoading={isLoading} />
                     <ApiProductSidebarNav basePath={basePath} />
                 </aside>
-                <div className="w-px bg-border shrink-0 self-stretch" />
-                <main className="min-w-0 flex-1 pl-6">
+                <div className="w-px bg-border shrink-0" />
+                <main className="min-w-0 flex-1 pl-6 overflow-y-auto">
                     <Outlet />
                 </main>
             </div>
