@@ -17,7 +17,7 @@ package io.gravitee.rest.api.portal.rest.spring;
 
 import static org.mockito.Mockito.mock;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fakes.spring.FakeConfiguration;
 import inmemory.ApiCrudServiceInMemory;
@@ -62,13 +62,14 @@ import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.domain_service.WsdlParserDomainService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.service_provider.ApiTemplateModelProvider;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
-import io.gravitee.apim.core.api.use_case.PatchApiUseCase.FlowListDeserializer;
-import io.gravitee.apim.core.api.use_case.PatchApiUseCase.FlowListSerializer;
+import io.gravitee.apim.core.api.use_case.PatchApiUseCase.ApiV4Deserializer;
+import io.gravitee.apim.core.api.use_case.PatchApiUseCase.ApiV4Fields;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.WsdlToImportApiUseCase;
 import io.gravitee.apim.core.api_key.domain_service.ReconcileApiKeysDomainService;
@@ -204,7 +205,6 @@ import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.rest.api.portal.rest.mapper.AnalyticsMapper;
@@ -278,7 +278,6 @@ import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.vertx.rxjava3.core.Vertx;
-import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -682,13 +681,8 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public FlowListDeserializer flowListDeserializer(ObjectMapper objectMapper) {
-        return node -> objectMapper.treeToValue(node, new TypeReference<List<Flow>>() {});
-    }
-
-    @Bean
-    public FlowListSerializer flowListSerializer(ObjectMapper objectMapper) {
-        return flows -> objectMapper.valueToTree(flows);
+    public ApiV4Deserializer apiV4Deserializer() {
+        return new V4PatchNotSupportedDeserializer();
     }
 
     @Bean
@@ -1473,5 +1467,20 @@ public class ResourceContextConfiguration {
     @Bean
     public io.gravitee.apim.core.log.crud_service.NativeApiLogCrudService nativeApiLogCrudService() {
         return mock(io.gravitee.apim.core.log.crud_service.NativeApiLogCrudService.class);
+    }
+
+    private static class V4PatchNotSupportedDeserializer implements ApiV4Deserializer {
+
+        private static final String MESSAGE = "v4 PATCH is served only by management-v2 REST API";
+
+        @Override
+        public JsonNode toCurrentStateNode(Api api) {
+            throw new UnsupportedOperationException(MESSAGE);
+        }
+
+        @Override
+        public ApiV4Fields fromPatchedNode(JsonNode patchedNode) {
+            throw new UnsupportedOperationException(MESSAGE);
+        }
     }
 }

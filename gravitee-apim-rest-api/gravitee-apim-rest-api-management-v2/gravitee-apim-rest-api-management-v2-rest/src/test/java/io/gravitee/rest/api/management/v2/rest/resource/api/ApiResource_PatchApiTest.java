@@ -864,7 +864,7 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
 
     private static String listenerJson(String path) {
         return (
-            "{\"type\":\"http\",\"paths\":[{\"path\":\"" +
+            "{\"type\":\"HTTP\",\"paths\":[{\"path\":\"" +
             path +
             "\"}],\"entrypoints\":[{\"type\":\"http-proxy\",\"configuration\":\"{}\"}]}"
         );
