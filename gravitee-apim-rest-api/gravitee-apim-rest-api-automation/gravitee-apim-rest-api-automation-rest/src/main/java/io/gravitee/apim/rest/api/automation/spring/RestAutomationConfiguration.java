@@ -15,15 +15,12 @@
  */
 package io.gravitee.apim.rest.api.automation.spring;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.apim.core.api.use_case.PatchApiUseCase.FlowListDeserializer;
-import io.gravitee.apim.core.api.use_case.PatchApiUseCase.FlowListSerializer;
+import io.gravitee.apim.core.api.use_case.PatchApiUseCase.ApiV4Deserializer;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
-import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.el.ExpressionLanguageInitializer;
+import io.gravitee.rest.api.management.v2.rest.adapter.PatchApiV4Deserializer;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
-import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -39,13 +36,8 @@ import org.springframework.scheduling.annotation.EnableAsync;
 public class RestAutomationConfiguration {
 
     @Bean
-    public FlowListDeserializer flowListDeserializer(ObjectMapper objectMapper) {
-        return node -> objectMapper.treeToValue(node, new TypeReference<List<Flow>>() {});
-    }
-
-    @Bean
-    public FlowListSerializer flowListSerializer(ObjectMapper objectMapper) {
-        return flows -> objectMapper.valueToTree(flows);
+    public ApiV4Deserializer apiV4Deserializer(ObjectMapper objectMapper) {
+        return new PatchApiV4Deserializer(objectMapper);
     }
 
     @Bean

@@ -103,12 +103,36 @@ class PatchApiUseCaseTest {
 
     static final ObjectMapper OBJECT_MAPPER = new GraviteeMapper(false);
 
-    private static final PatchApiUseCase.FlowListDeserializer FLOW_DESERIALIZER = node ->
-        OBJECT_MAPPER.<List<Flow>>readerFor(OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, Flow.class))
-            .with(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE)
-            .readValue(node);
+    private static final PatchApiUseCase.ApiV4Deserializer API_V4_DESERIALIZER = new PatchApiUseCase.ApiV4Deserializer() {
+        @Override
+        public com.fasterxml.jackson.databind.JsonNode toCurrentStateNode(io.gravitee.apim.core.api.model.Api api) {
+            return OBJECT_MAPPER.valueToTree(PatchApiUseCase.PatchableView.from(api));
+        }
 
-    private static final PatchApiUseCase.FlowListSerializer FLOW_SERIALIZER = flows -> OBJECT_MAPPER.valueToTree(flows);
+        @Override
+        public PatchApiUseCase.ApiV4Fields fromPatchedNode(com.fasterxml.jackson.databind.JsonNode patchedNode) throws java.io.IOException {
+            List<Listener> listeners = readField(patchedNode, "listeners", Listener.class);
+            List<EndpointGroup> endpointGroups = readField(patchedNode, "endpointGroups", EndpointGroup.class);
+            List<Flow> flows = readField(patchedNode, "flows", Flow.class);
+            List<Resource> resources = readField(patchedNode, "resources", Resource.class);
+            return new PatchApiUseCase.ApiV4Fields(listeners, endpointGroups, flows, resources);
+        }
+
+        private <T> List<T> readField(com.fasterxml.jackson.databind.JsonNode node, String field, Class<T> elementType)
+            throws java.io.IOException {
+            var fieldNode = node.get(field);
+            if (fieldNode == null || fieldNode.isNull()) {
+                return null;
+            }
+            try {
+                return OBJECT_MAPPER.readerFor(OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, elementType))
+                    .with(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE)
+                    .readValue(fieldNode);
+            } catch (com.fasterxml.jackson.databind.JsonMappingException jme) {
+                throw com.fasterxml.jackson.databind.JsonMappingException.wrapWithPath(jme, this, field);
+            }
+        }
+    };
 
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
@@ -131,8 +155,7 @@ class PatchApiUseCaseTest {
             workflowQueryService,
             OBJECT_MAPPER,
             propertyDomainService,
-            FLOW_DESERIALIZER,
-            FLOW_SERIALIZER,
+            API_V4_DESERIALIZER,
             flowCrudService
         );
 
@@ -522,6 +545,55 @@ class PatchApiUseCaseTest {
             var output = execute(type, setField(type, "name", "only-name-changed"), false);
 
             assertNonPatchedFieldsPreserved(output.api(), existing, "only-name-changed");
+        }
+
+        @ParameterizedTest
+        @EnumSource(PatchApiUseCase.PatchType.class)
+        void codec_top_level_mapping_error_produces_location_at_root(PatchApiUseCase.PatchType type) {
+            PatchApiUseCase.ApiV4Deserializer throwingCodec = new PatchApiUseCase.ApiV4Deserializer() {
+                @Override
+                public com.fasterxml.jackson.databind.JsonNode toCurrentStateNode(Api api) {
+                    return OBJECT_MAPPER.valueToTree(PatchApiUseCase.PatchableView.from(api));
+                }
+
+                @Override
+                public PatchApiUseCase.ApiV4Fields fromPatchedNode(com.fasterxml.jackson.databind.JsonNode node)
+                    throws java.io.IOException {
+                    throw new java.io.IOException("top-level mapping failure");
+                }
+            };
+            var localCut = new PatchApiUseCase(
+                apiCrudService,
+                apiPrimaryOwnerDomainService,
+                updateApiDomainService,
+                new io.gravitee.apim.core.json_patch.domain_service.JsonPatchDomainService(
+                    new io.gravitee.apim.infra.domain_service.json_patch.JsonMergePatchServiceImpl(),
+                    new io.gravitee.apim.infra.domain_service.json_patch.JsonPatchServiceImpl()
+                ),
+                workflowQueryService,
+                OBJECT_MAPPER,
+                propertyDomainService,
+                throwingCodec,
+                flowCrudService
+            );
+
+            assertThatThrownBy(() ->
+                localCut.execute(
+                    PatchApiUseCase.Input.builder()
+                        .apiId(API_ID)
+                        .patchType(type)
+                        .patchBody(setField(type, "name", "x"))
+                        .dryRun(false)
+                        .auditInfo(AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID))
+                        .build()
+                )
+            )
+                .isInstanceOf(ValidationDomainException.class)
+                .asInstanceOf(org.assertj.core.api.InstanceOfAssertFactories.type(ValidationDomainException.class))
+                .satisfies(ex -> {
+                    assertThat(ex.getParameters().get("location")).isEqualTo("/");
+                    assertThat(ex.getParameters().get("location")).doesNotContain("apiDefinition");
+                });
         }
     }
 
@@ -1924,33 +1996,10 @@ class PatchApiUseCaseTest {
         }
 
         @Test
-        void json_patch_not_touching_flows_preserves_null_flows_without_calling_deserializer() {
-            var sentinel = List.of(aFlow("sentinel", List.of()));
-            var includeNullsMapper = new GraviteeMapper(false);
-            includeNullsMapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
-            var localCut = new PatchApiUseCase(
-                apiCrudService,
-                apiPrimaryOwnerDomainService,
-                updateApiDomainService,
-                new JsonPatchDomainService(new JsonMergePatchServiceImpl(), new JsonPatchServiceImpl()),
-                workflowQueryService,
-                includeNullsMapper,
-                propertyDomainService,
-                node -> sentinel,
-                flows -> includeNullsMapper.valueToTree(flows),
-                flowCrudService
-            );
+        void json_patch_not_touching_flows_preserves_null_flows() {
             givenExistingApi(apiWithFlows(null));
 
-            var output = localCut.execute(
-                PatchApiUseCase.Input.builder()
-                    .apiId(API_ID)
-                    .patchType(PatchApiUseCase.PatchType.JSON_PATCH)
-                    .patchBody(patch("replace", "/name", "patched-name"))
-                    .dryRun(false)
-                    .auditInfo(AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID))
-                    .build()
-            );
+            var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("replace", "/name", "patched-name"), false);
 
             assertThat(httpV4Def(output.api()).getFlows()).isNull();
         }

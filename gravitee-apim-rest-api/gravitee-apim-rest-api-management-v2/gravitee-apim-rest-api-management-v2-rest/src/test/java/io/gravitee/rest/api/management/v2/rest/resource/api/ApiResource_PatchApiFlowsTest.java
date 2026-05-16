@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.core.model.ApiFixtures;
 import inmemory.InMemoryAlternative;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
@@ -38,6 +39,8 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.flow.selector.Selector;
+import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -61,6 +64,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
@@ -179,6 +184,12 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
         return assertThat(response).hasStatus(OK_200).asEntity(ApiV4.class).actual();
     }
 
+    private List<Flow> capturePersistedFlows() {
+        var captor = ArgumentCaptor.forClass(Api.class);
+        Mockito.verify(updateApiDomainService).updateV4(captor.capture(), any());
+        return captor.getValue().getApiDefinitionHttpV4().getFlows();
+    }
+
     static Stream<Arguments> addFlowVariants() {
         return bothFlowsReplaceVariants(List.of(flowMap("added", List.of(stepMap("s1", "policy-a")))));
     }
@@ -270,6 +281,83 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
             return bothFlowsReplaceVariants(flows);
         }
 
+        static Stream<Arguments> uppercaseConditionSelectorTypeVariants() {
+            var flows = List.of(
+                Map.of(
+                    "name",
+                    "f1",
+                    "enabled",
+                    true,
+                    "selectors",
+                    List.of(Map.of("type", "CONDITION", "condition", "{#request.headers['X-Custom'] != null}")),
+                    "request",
+                    List.of(stepMap("s1", "p1"))
+                )
+            );
+            return bothFlowsReplaceVariants(flows);
+        }
+
+        static Stream<Arguments> uppercaseChannelSelectorTypeVariants() {
+            var flows = List.of(
+                Map.of(
+                    "name",
+                    "f1",
+                    "enabled",
+                    true,
+                    "selectors",
+                    List.of(Map.of("type", "CHANNEL", "channel", "/", "channelOperator", "STARTS_WITH")),
+                    "request",
+                    List.of(stepMap("s1", "p1"))
+                )
+            );
+            return bothFlowsReplaceVariants(flows);
+        }
+
+        static Stream<Arguments> uppercaseMcpSelectorTypeVariants() {
+            var flows = List.of(
+                Map.of("name", "f1", "enabled", true, "selectors", List.of(Map.of("type", "MCP")), "request", List.of(stepMap("s1", "p1")))
+            );
+            return bothFlowsReplaceVariants(flows);
+        }
+
+        @ParameterizedTest
+        @MethodSource("uppercaseConditionSelectorTypeVariants")
+        void patch_selector_type_CONDITION_returns_200_and_persists(String body, String contentType) {
+            givenApiWithFlows(List.of(flow("f1", List.of(step("s1", "p1")))));
+
+            var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
+
+            assertThat(response).hasStatus(OK_200);
+
+            var persistedFlows = capturePersistedFlows();
+            Assertions.assertThat(persistedFlows).hasSize(1);
+            Assertions.assertThat(persistedFlows.getFirst().getSelectors()).extracting(Selector::getType).contains(SelectorType.CONDITION);
+        }
+
+        @ParameterizedTest
+        @MethodSource("uppercaseChannelSelectorTypeVariants")
+        void patch_selector_type_CHANNEL_returns_200_and_persists(String body, String contentType) {
+            givenApiWithFlows(List.of(flow("f1", List.of(step("s1", "p1")))));
+
+            patchAndAssertOk(body, contentType);
+
+            var persistedFlows = capturePersistedFlows();
+            Assertions.assertThat(persistedFlows).hasSize(1);
+            Assertions.assertThat(persistedFlows.getFirst().getSelectors()).extracting(Selector::getType).contains(SelectorType.CHANNEL);
+        }
+
+        @ParameterizedTest
+        @MethodSource("uppercaseMcpSelectorTypeVariants")
+        void patch_selector_type_MCP_returns_200_and_persists(String body, String contentType) {
+            givenApiWithFlows(List.of(flow("f1", List.of(step("s1", "p1")))));
+
+            patchAndAssertOk(body, contentType);
+
+            var persistedFlows = capturePersistedFlows();
+            Assertions.assertThat(persistedFlows).hasSize(1);
+            Assertions.assertThat(persistedFlows.getFirst().getSelectors()).extracting(Selector::getType).contains(SelectorType.MCP);
+        }
+
         static Stream<Arguments> validatorRejectionCases() {
             return Stream.of(
                 Map.entry("unknown policy id", "/flows/0/request/0/policy"),
@@ -317,6 +405,10 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
             var response = rootTarget(API).request().method("PATCH", Entity.entity(body, contentType));
 
             assertThat(response).hasStatus(OK_200);
+
+            var persistedFlows = capturePersistedFlows();
+            Assertions.assertThat(persistedFlows).hasSize(1);
+            Assertions.assertThat(persistedFlows.getFirst().getSelectors()).extracting(Selector::getType).contains(SelectorType.HTTP);
         }
 
         @ParameterizedTest

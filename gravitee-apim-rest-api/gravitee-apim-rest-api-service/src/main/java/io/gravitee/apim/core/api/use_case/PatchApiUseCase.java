@@ -18,7 +18,6 @@ package io.gravitee.apim.core.api.use_case;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -62,6 +61,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.Builder;
@@ -156,8 +156,7 @@ public class PatchApiUseCase {
     private final WorkflowQueryService workflowQueryService;
     private final ObjectMapper objectMapper;
     private final PropertyDomainService propertyDomainService;
-    private final FlowListDeserializer flowListDeserializer;
-    private final FlowListSerializer flowListSerializer;
+    private final ApiV4Deserializer apiV4Deserializer;
     private final FlowCrudService flowCrudService;
 
     public Output execute(Input input) {
@@ -170,7 +169,7 @@ public class PatchApiUseCase {
             throw new ApiInvalidTypeException(input.apiId(), ApiType.PROXY);
         }
 
-        var currentNode = toJsonNode(existingApi);
+        var currentNode = apiV4Deserializer.toCurrentStateNode(existingApi);
         var patchNode = parseBody(input.patchBody());
 
         enforceAllowList(input.patchType(), patchNode);
@@ -230,13 +229,6 @@ public class PatchApiUseCase {
             }
         }
         return false;
-    }
-
-    private JsonNode toJsonNode(Api api) {
-        var httpV4 = requireHttpV4(api);
-        var node = (ObjectNode) objectMapper.valueToTree(PatchableView.from(api, httpV4));
-        node.set(FIELD_FLOWS, flowListSerializer.serialize(httpV4.getFlows()));
-        return node;
     }
 
     private static io.gravitee.definition.model.v4.Api asHttpV4(Api api) {
@@ -464,17 +456,8 @@ public class PatchApiUseCase {
         );
         var properties = encryptProperties(patchableProperties);
         var responseTemplates = resolveResponseTemplates(patchType, rawPatchNode, patchedNode, httpV4.getResponseTemplates());
-        var flows = resolveFlows(patchType, rawPatchNode, patchedNode, httpV4.getFlows());
-        var resources = resolvePatchableList(patchType, rawPatchNode, patchedNode, FIELD_RESOURCES, Resource.class, httpV4.getResources());
-        var listeners = resolvePatchableList(patchType, rawPatchNode, patchedNode, FIELD_LISTENERS, Listener.class, httpV4.getListeners());
-        var endpointGroups = resolvePatchableList(
-            patchType,
-            rawPatchNode,
-            patchedNode,
-            FIELD_ENDPOINT_GROUPS,
-            EndpointGroup.class,
-            httpV4.getEndpointGroups()
-        );
+
+        var apiV4Fields = resolveApiV4Fields(patchType, rawPatchNode, patchedNode, httpV4);
 
         var updatedDefinition = httpV4
             .toBuilder()
@@ -488,10 +471,10 @@ public class PatchApiUseCase {
             .allowedInApiProducts(allowedInApiProducts)
             .properties(properties)
             .responseTemplates(responseTemplates)
-            .flows(flows)
-            .resources(resources)
-            .listeners(listeners)
-            .endpointGroups(endpointGroups)
+            .flows(apiV4Fields.flows())
+            .resources(apiV4Fields.resources())
+            .listeners(apiV4Fields.listeners())
+            .endpointGroups(apiV4Fields.endpointGroups())
             .build();
 
         return existingApi
@@ -510,19 +493,48 @@ public class PatchApiUseCase {
             .build();
     }
 
-    private <T> List<T> resolvePatchableList(
+    private ApiV4Fields resolveApiV4Fields(
+        PatchType patchType,
+        JsonNode rawPatchNode,
+        JsonNode patchedNode,
+        io.gravitee.definition.model.v4.Api httpV4
+    ) {
+        ApiV4Fields deserialized;
+        try {
+            deserialized = apiV4Deserializer.fromPatchedNode(patchedNode);
+        } catch (IOException e) {
+            var field = extractFailedField(e);
+            var message = field.isEmpty()
+                ? "Invalid patch: " + e.getMessage()
+                : "Invalid value for field '" + field + "': " + e.getMessage();
+            throw new ValidationDomainException(message, Map.of("location", deserializationLocation(field, e)), "invalidValue");
+        }
+
+        var listeners = resolveField(patchType, rawPatchNode, patchedNode, FIELD_LISTENERS, deserialized::listeners, httpV4.getListeners());
+        var endpointGroups = resolveField(
+            patchType,
+            rawPatchNode,
+            patchedNode,
+            FIELD_ENDPOINT_GROUPS,
+            deserialized::endpointGroups,
+            httpV4.getEndpointGroups()
+        );
+        var flows = resolveField(patchType, rawPatchNode, patchedNode, FIELD_FLOWS, deserialized::flows, httpV4.getFlows());
+        var resources = resolveField(patchType, rawPatchNode, patchedNode, FIELD_RESOURCES, deserialized::resources, httpV4.getResources());
+
+        return new ApiV4Fields(listeners, endpointGroups, flows, resources);
+    }
+
+    private <R> R resolveField(
         PatchType patchType,
         JsonNode rawPatchNode,
         JsonNode patchedNode,
         String field,
-        Class<T> elementType,
-        List<T> existing
+        Supplier<R> patched,
+        R existing
     ) {
         if (patchType == PatchType.MERGE_PATCH && rawPatchNode.has(field)) {
-            if (rawPatchNode.get(field).isNull()) {
-                return null;
-            }
-            return readList(patchedNode, field, elementType, existing);
+            return rawPatchNode.get(field).isNull() ? null : patched.get();
         }
         if (patchType == PatchType.JSON_PATCH) {
             if (patchedNode.get(field) == null && isNullifiedByJsonPatch(rawPatchNode, field)) {
@@ -532,10 +544,38 @@ public class PatchApiUseCase {
                 if (patchedNode.get(field).isNull() && isNullifiedByJsonPatch(rawPatchNode, field)) {
                     return null;
                 }
-                return readList(patchedNode, field, elementType, existing);
+                return patched.get();
             }
         }
         return existing;
+    }
+
+    private static String extractFailedField(IOException e) {
+        if (e instanceof JsonMappingException jme && jme.getPath() != null && !jme.getPath().isEmpty()) {
+            var first = jme.getPath().getFirst();
+            if (first.getFieldName() != null) {
+                return first.getFieldName();
+            }
+        }
+        return "";
+    }
+
+    private <T> List<T> resolvePatchableList(
+        PatchType patchType,
+        JsonNode rawPatchNode,
+        JsonNode patchedNode,
+        String field,
+        Class<T> elementType,
+        List<T> existing
+    ) {
+        return resolveField(
+            patchType,
+            rawPatchNode,
+            patchedNode,
+            field,
+            () -> readList(patchedNode, field, elementType, existing),
+            existing
+        );
     }
 
     private Map<String, Map<String, ResponseTemplate>> resolveResponseTemplates(
@@ -544,62 +584,14 @@ public class PatchApiUseCase {
         JsonNode patchedNode,
         Map<String, Map<String, ResponseTemplate>> existing
     ) {
-        if (patchType == PatchType.MERGE_PATCH && rawPatchNode.has(FIELD_RESPONSE_TEMPLATES)) {
-            if (rawPatchNode.get(FIELD_RESPONSE_TEMPLATES).isNull()) {
-                return null;
-            }
-            return parseResponseTemplates(patchedNode);
-        }
-        if (patchType == PatchType.JSON_PATCH) {
-            if (patchedNode.get(FIELD_RESPONSE_TEMPLATES) == null && isNullifiedByJsonPatch(rawPatchNode, FIELD_RESPONSE_TEMPLATES)) {
-                return null;
-            }
-            if (patchedNode.has(FIELD_RESPONSE_TEMPLATES)) {
-                if (patchedNode.get(FIELD_RESPONSE_TEMPLATES).isNull() && isNullifiedByJsonPatch(rawPatchNode, FIELD_RESPONSE_TEMPLATES)) {
-                    return null;
-                }
-                return parseResponseTemplates(patchedNode);
-            }
-        }
-        return existing;
-    }
-
-    private List<Flow> resolveFlows(PatchType patchType, JsonNode rawPatchNode, JsonNode patchedNode, List<Flow> existing) {
-        if (patchType == PatchType.MERGE_PATCH && rawPatchNode.has(FIELD_FLOWS)) {
-            if (rawPatchNode.get(FIELD_FLOWS).isNull()) {
-                return null;
-            }
-            return deserializeFlows(patchedNode.get(FIELD_FLOWS));
-        }
-        if (patchType == PatchType.JSON_PATCH) {
-            return resolveFlowsForJsonPatch(rawPatchNode, patchedNode, existing);
-        }
-        return existing;
-    }
-
-    private List<Flow> resolveFlowsForJsonPatch(JsonNode rawPatchNode, JsonNode patchedNode, List<Flow> existing) {
-        if (patchedNode.get(FIELD_FLOWS) == null && isNullifiedByJsonPatch(rawPatchNode, FIELD_FLOWS)) {
-            return null;
-        }
-        if (!patchedNode.has(FIELD_FLOWS)) {
-            return existing;
-        }
-        if (patchedNode.get(FIELD_FLOWS).isNull()) {
-            return isNullifiedByJsonPatch(rawPatchNode, FIELD_FLOWS) ? null : existing;
-        }
-        return deserializeFlows(patchedNode.get(FIELD_FLOWS));
-    }
-
-    private List<Flow> deserializeFlows(JsonNode flowsArrayNode) {
-        try {
-            return flowListDeserializer.deserialize(flowsArrayNode);
-        } catch (IOException e) {
-            throw new ValidationDomainException(
-                "Invalid value for field '" + FIELD_FLOWS + "': " + e.getMessage(),
-                Map.of("location", deserializationLocation(FIELD_FLOWS, e)),
-                "invalidValue"
-            );
-        }
+        return resolveField(
+            patchType,
+            rawPatchNode,
+            patchedNode,
+            FIELD_RESPONSE_TEMPLATES,
+            () -> parseResponseTemplates(patchedNode),
+            existing
+        );
     }
 
     private Map<String, Map<String, ResponseTemplate>> parseResponseTemplates(JsonNode patchedNode) {
@@ -812,7 +804,6 @@ public class PatchApiUseCase {
         try {
             return objectMapper
                 .readerFor(objectMapper.getTypeFactory().constructCollectionType(List.class, elementType))
-                .with(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE)
                 .readValue(fieldNode);
         } catch (Exception e) {
             throw new ValidationDomainException(
@@ -826,8 +817,11 @@ public class PatchApiUseCase {
     private String deserializationLocation(String field, Throwable e) {
         var cause = e instanceof IllegalArgumentException && e.getCause() != null ? e.getCause() : e;
         if (cause instanceof JsonMappingException jme && jme.getPath() != null && !jme.getPath().isEmpty()) {
+            var refs = jme.getPath();
             var sb = new StringBuilder("/").append(field);
-            for (var ref : jme.getPath()) {
+            int start = (!refs.isEmpty() && field.equals(refs.getFirst().getFieldName())) ? 1 : 0;
+            for (int i = start; i < refs.size(); i++) {
+                var ref = refs.get(i);
                 if (ref.getFieldName() != null) {
                     sb.append("/").append(ref.getFieldName());
                 } else if (ref.getIndex() >= 0) {
@@ -872,15 +866,12 @@ public class PatchApiUseCase {
         }
     }
 
-    @FunctionalInterface
-    public interface FlowListDeserializer {
-        List<Flow> deserialize(JsonNode flowsArrayNode) throws IOException;
+    public interface ApiV4Deserializer {
+        JsonNode toCurrentStateNode(Api api);
+        ApiV4Fields fromPatchedNode(JsonNode patchedNode) throws IOException;
     }
 
-    @FunctionalInterface
-    public interface FlowListSerializer {
-        JsonNode serialize(List<Flow> flows);
-    }
+    public record ApiV4Fields(List<Listener> listeners, List<EndpointGroup> endpointGroups, List<Flow> flows, List<Resource> resources) {}
 
     public enum PatchType {
         JSON_PATCH,
@@ -933,31 +924,8 @@ public class PatchApiUseCase {
         }
     }
 
-    record PatchableResponseTemplate(Integer statusCode, Map<String, String> headers, String body, Boolean propagateErrorKeyToLogs) {
-        static PatchableResponseTemplate from(ResponseTemplate domain) {
-            if (domain == null) {
-                return null;
-            }
-            return new PatchableResponseTemplate(
-                domain.getStatusCode(),
-                domain.getHeaders(),
-                domain.getBody(),
-                domain.isPropagateErrorKeyToLogs()
-            );
-        }
-
-        ResponseTemplate toDomain() {
-            return ResponseTemplate.builder()
-                .statusCode(statusCode != null ? statusCode : 0)
-                .headers(headers)
-                .body(body)
-                .propagateErrorKeyToLogs(propagateErrorKeyToLogs != null && propagateErrorKeyToLogs)
-                .build();
-        }
-    }
-
     @JsonInclude(JsonInclude.Include.ALWAYS)
-    record PatchableView(
+    public record PatchableView(
         String name,
         String description,
         String apiVersion,
@@ -980,7 +948,8 @@ public class PatchApiUseCase {
         List<Listener> listeners,
         List<EndpointGroup> endpointGroups
     ) {
-        static PatchableView from(Api api, io.gravitee.definition.model.v4.Api httpV4) {
+        public static PatchableView from(Api api) {
+            var httpV4 = requireHttpV4(api);
             return new PatchableView(
                 api.getName(),
                 api.getDescription(),
@@ -1023,6 +992,29 @@ public class PatchApiUseCase {
                             .collect(Collectors.toMap(Map.Entry::getKey, inner -> PatchableResponseTemplate.from(inner.getValue())))
                     )
                 );
+        }
+    }
+
+    record PatchableResponseTemplate(Integer statusCode, Map<String, String> headers, String body, Boolean propagateErrorKeyToLogs) {
+        static PatchableResponseTemplate from(ResponseTemplate domain) {
+            if (domain == null) {
+                return null;
+            }
+            return new PatchableResponseTemplate(
+                domain.getStatusCode(),
+                domain.getHeaders(),
+                domain.getBody(),
+                domain.isPropagateErrorKeyToLogs()
+            );
+        }
+
+        ResponseTemplate toDomain() {
+            return ResponseTemplate.builder()
+                .statusCode(statusCode != null ? statusCode : 0)
+                .headers(headers)
+                .body(body)
+                .propagateErrorKeyToLogs(propagateErrorKeyToLogs != null && propagateErrorKeyToLogs)
+                .build();
         }
     }
 }

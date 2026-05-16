@@ -22,16 +22,21 @@ import io.gravitee.apim.core.api.model.NewNativeApi;
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
+import io.gravitee.apim.core.api.use_case.PatchApiUseCase;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpoint;
 import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
+import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeAnalytics;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.AbstractApiServices;
 import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.management.v2.rest.model.Analytics;
@@ -411,6 +416,9 @@ public interface ApiMapper {
 
     @Named("computeCoreApiLinks")
     default ApiLinks computeCoreApiLinks(io.gravitee.apim.core.api.model.Api api, UriInfo uriInfo) {
+        if (uriInfo == null) {
+            return null;
+        }
         return new ApiLinks()
             .pictureUrl(ManagementApiLinkHelper.apiPictureURL(uriInfo.getBaseUriBuilder(), api))
             .backgroundUrl(ManagementApiLinkHelper.apiBackgroundURL(uriInfo.getBaseUriBuilder(), api));
@@ -517,6 +525,22 @@ public interface ApiMapper {
         } else {
             return ServiceMapper.INSTANCE.mapToApiServices(apiV4.getServices());
         }
+    }
+
+    default PatchApiUseCase.ApiV4Fields mapToCoreApi(ApiV4 apiV4) {
+        List<Listener> listeners = apiV4.getListeners() == null
+            ? null
+            : ListenerMapper.INSTANCE.mapToListenerEntityV4List(apiV4.getListeners()).stream().filter(Objects::nonNull).toList();
+        List<EndpointGroup> endpointGroups = apiV4.getEndpointGroups() == null
+            ? null
+            : EndpointMapper.INSTANCE.mapEndpointGroupsHttpV4(apiV4.getEndpointGroups()).stream().filter(Objects::nonNull).toList();
+        List<Flow> flows = apiV4.getFlows() == null
+            ? null
+            : FlowMapper.INSTANCE.mapToHttpV4(apiV4.getFlows()).stream().filter(Objects::nonNull).toList();
+        List<Resource> resources = apiV4.getResources() == null
+            ? null
+            : apiV4.getResources().stream().map(ResourceMapper.INSTANCE::mapToV4).filter(Objects::nonNull).toList();
+        return new PatchApiUseCase.ApiV4Fields(listeners, endpointGroups, flows, resources);
     }
 
     @Named("computeOriginContext")

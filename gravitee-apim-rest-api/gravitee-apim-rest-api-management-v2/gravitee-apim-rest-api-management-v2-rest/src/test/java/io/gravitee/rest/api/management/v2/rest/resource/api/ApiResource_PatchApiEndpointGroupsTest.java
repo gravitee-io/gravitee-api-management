@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.core.model.ApiFixtures;
 import inmemory.InMemoryAlternative;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
@@ -54,6 +55,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class ApiResource_PatchApiEndpointGroupsTest extends ApiResourceTest {
@@ -178,6 +181,29 @@ public class ApiResource_PatchApiEndpointGroupsTest extends ApiResourceTest {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Test
+    void patch_endpoint_group_type_http_proxy_returns_200_and_persists() {
+        givenApiWithEndpointGroups(List.of(defaultGroup("group-a")));
+
+        var groups = List.of(groupMap("group-a"));
+        var body = "{\"endpointGroups\":" + toJson(groups) + "}";
+        var response = rootTarget(API).request().method("PATCH", Entity.entity(body, MERGE_PATCH_TYPE));
+
+        var apiV4 = assertThat(response).hasStatus(OK_200).asEntity(ApiV4.class).actual();
+        Assertions.assertThat(apiV4.getEndpointGroups()).isNotEmpty();
+        Assertions.assertThat(apiV4.getEndpointGroups().getFirst().getName()).isEqualTo("group-a");
+
+        var persistedGroups = capturePersistedEndpointGroups();
+        Assertions.assertThat(persistedGroups).hasSize(1);
+        Assertions.assertThat(persistedGroups.getFirst().getType()).isEqualTo("http-proxy");
+    }
+
+    private List<EndpointGroup> capturePersistedEndpointGroups() {
+        var captor = ArgumentCaptor.forClass(Api.class);
+        Mockito.verify(updateApiDomainService).updateV4(captor.capture(), any());
+        return captor.getValue().getApiDefinitionHttpV4().getEndpointGroups();
     }
 
     @Test
