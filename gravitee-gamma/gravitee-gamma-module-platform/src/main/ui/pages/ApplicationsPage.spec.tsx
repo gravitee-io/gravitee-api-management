@@ -21,16 +21,22 @@ import { MemoryRouter } from 'react-router-dom';
 import { ApplicationsPage } from './ApplicationsPage';
 import { useApplicationList } from '../features/applications/hooks/useApplicationList';
 import { useApplicationStats } from '../features/applications/hooks/useApplicationStats';
+import { useOrganizationAdmin } from '../features/applications/hooks/useOrganizationAdmin';
+import { useRestoreApplication } from '../features/applications/hooks/useRestoreApplication';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     useHasPermission: jest.fn(),
 }));
 jest.mock('../features/applications/hooks/useApplicationList');
 jest.mock('../features/applications/hooks/useApplicationStats');
+jest.mock('../features/applications/hooks/useOrganizationAdmin');
+jest.mock('../features/applications/hooks/useRestoreApplication');
 
 const mockUseHasPermission = jest.mocked(useHasPermission);
 const mockUseApplicationList = jest.mocked(useApplicationList);
 const mockUseApplicationStats = jest.mocked(useApplicationStats);
+const mockUseOrganizationAdmin = jest.mocked(useOrganizationAdmin);
+const mockUseRestoreApplication = jest.mocked(useRestoreApplication);
 
 const STUB_STATS = {
     active: 0,
@@ -78,7 +84,12 @@ function renderPage() {
 describe('ApplicationsPage', () => {
     beforeEach(() => {
         mockUseHasPermission.mockReturnValue(true);
+        mockUseOrganizationAdmin.mockReturnValue({ isAdmin: true, isLoading: false });
         mockUseApplicationStats.mockReturnValue(STUB_STATS);
+        mockUseRestoreApplication.mockReturnValue({
+            mutate: jest.fn(),
+            isPending: false,
+        } as ReturnType<typeof useRestoreApplication>);
     });
 
     afterEach(() => {

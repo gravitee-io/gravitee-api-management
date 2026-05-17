@@ -19,8 +19,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 
+import { APPLICATION_NAV_GROUPS, flattenApplicationDetailNavItems } from '../config/applicationDetailNavigation';
+import { applicationDetailTabElement } from '../config/applicationDetailPages';
 import { NAV_GROUPS } from '../config/navigation';
 import { PLATFORM_ROUTE_CONFIG } from '../config/routes';
+import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../features/applications/components/detail';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
@@ -28,6 +31,8 @@ import { ConsoleSettingsProvider } from '../shared/console-settings';
 import { useEnvironmentPermissions } from '../shared/hooks/useEnvironmentPermissions';
 
 const queryClient = new QueryClient();
+
+const APPLICATION_DETAIL_TABS = flattenApplicationDetailNavItems(APPLICATION_NAV_GROUPS);
 
 function ModuleLayout() {
     useEnvironmentPermissions();
@@ -67,6 +72,13 @@ export function AppRoutes() {
                         <Route path="applications">
                             <Route index element={<ApplicationsPage />} />
                             <Route path="new" element={<RegisterApplicationPage />} />
+                            <Route path=":applicationId" element={<ApplicationDetailLayout />}>
+                                <Route index element={<ApplicationDetailIndexRedirect />} />
+                                {APPLICATION_DETAIL_TABS.map(tab => (
+                                    <Route key={tab.path} path={tab.path} element={applicationDetailTabElement(tab.path, tab.label)} />
+                                ))}
+                                <Route path="*" element={<ApplicationDetailIndexRedirect />} />
+                            </Route>
                         </Route>
                     </Route>
                 </Routes>
