@@ -15,12 +15,14 @@
  */
 import { DataTablePagination, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@gravitee/graphene-core';
 import { SearchIcon } from '@gravitee/graphene-core/icons';
-import { useId } from 'react';
+import { useId, useState } from 'react';
 
 import { ApplicationsPageHeader } from '../ApplicationsPageHeader';
 import { ApplicationListTable } from './ApplicationListTable';
+import { ApplicationRestoreDialog } from './ApplicationRestoreDialog';
 import { ApplicationStatsCards } from './ApplicationStatsCards';
 import type { ApplicationStats } from '../../hooks/useApplicationStats';
+import { useRestoreApplication } from '../../hooks/useRestoreApplication';
 import type { ApplicationListItem, ApplicationStatus } from '../../types/application';
 
 const STATUS_OPTIONS: { value: ApplicationStatus; label: string }[] = [
@@ -44,6 +46,8 @@ interface ApplicationsListViewProps {
     readonly onPerPageChange: (perPage: number) => void;
     readonly onRegisterApplication: () => void;
     readonly canCreate: boolean;
+    readonly canManageArchived: boolean;
+    readonly canRestore: boolean;
 }
 
 export function ApplicationsListView({
@@ -61,12 +65,30 @@ export function ApplicationsListView({
     onPerPageChange,
     onRegisterApplication,
     canCreate,
+    canManageArchived,
+    canRestore,
 }: ApplicationsListViewProps) {
     const searchInputId = useId();
+    const [restoreTarget, setRestoreTarget] = useState<ApplicationListItem | null>(null);
+    const [restoreError, setRestoreError] = useState<string | null>(null);
+    const restoreMutation = useRestoreApplication();
+
+    const handleRestore = () => {
+        if (!restoreTarget) return;
+        setRestoreError(null);
+        restoreMutation.mutate(restoreTarget.id, {
+            onSuccess: () => setRestoreTarget(null),
+            onError: (e: unknown) => setRestoreError(e instanceof Error ? e.message : 'Failed to restore application.'),
+        });
+    };
 
     return (
         <div className="space-y-6">
-            <ApplicationsPageHeader canCreate={canCreate} onRegisterApplication={onRegisterApplication} showInfoTooltip />
+            <ApplicationsPageHeader
+                canCreate={canCreate && status === 'ACTIVE'}
+                onRegisterApplication={onRegisterApplication}
+                showInfoTooltip
+            />
 
             <ApplicationStatsCards stats={stats} />
 
@@ -89,18 +111,20 @@ export function ApplicationsListView({
                         />
                     </div>
 
-                    <Select value={status} onValueChange={value => onStatusChange(value as ApplicationStatus)}>
-                        <SelectTrigger className="h-9 w-36 shrink-0" aria-label="Filter by status">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {STATUS_OPTIONS.map(option => (
-                                <SelectItem key={option.value} value={option.value}>
-                                    {option.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    {canManageArchived ? (
+                        <Select value={status} onValueChange={value => onStatusChange(value as ApplicationStatus)}>
+                            <SelectTrigger className="h-9 w-36 shrink-0" aria-label="Filter by status">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {STATUS_OPTIONS.map(option => (
+                                    <SelectItem key={option.value} value={option.value}>
+                                        {option.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    ) : null}
                 </div>
 
                 <DataTablePagination
@@ -113,7 +137,32 @@ export function ApplicationsListView({
                 />
             </div>
 
-            <ApplicationListTable applications={applications} isLoading={isLoading} skeletonRowCount={perPage} />
+            <ApplicationListTable
+                applications={applications}
+                isLoading={isLoading}
+                status={status}
+                skeletonRowCount={perPage}
+                canRestore={canRestore}
+                onRestore={
+                    canRestore
+                        ? application => {
+                              setRestoreError(null);
+                              setRestoreTarget(application);
+                          }
+                        : undefined
+                }
+            />
+
+            <ApplicationRestoreDialog
+                application={restoreTarget}
+                onClose={() => {
+                    setRestoreTarget(null);
+                    setRestoreError(null);
+                }}
+                onConfirm={handleRestore}
+                isLoading={restoreMutation.isPending}
+                error={restoreError}
+            />
 
             <div className="flex justify-end">
                 <DataTablePagination

@@ -21,6 +21,7 @@ import { ApplicationsEmptyLanding } from '../features/applications/components';
 import { ApplicationsListView } from '../features/applications/components/list';
 import { useApplicationList } from '../features/applications/hooks/useApplicationList';
 import { useApplicationStats } from '../features/applications/hooks/useApplicationStats';
+import { useOrganizationAdmin } from '../features/applications/hooks/useOrganizationAdmin';
 import type { ApplicationStatus } from '../features/applications/types/application';
 import type { ApplicationsListLocationState } from '../features/applications/types/navigation';
 import { SuccessBanner } from '../features/shared/components';
@@ -34,6 +35,7 @@ export function ApplicationsPage() {
     const navigate = useNavigate();
     const location = useLocation();
     const canCreate = useHasPermission({ anyOf: ['environment-application-c'] });
+    const { isAdmin: canManageArchived, isLoading: isAdminLoading } = useOrganizationAdmin();
 
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [search, setSearch] = useState('');
@@ -46,6 +48,13 @@ export function ApplicationsPage() {
         const timer = setTimeout(() => setDebouncedSearch(search), SEARCH_DEBOUNCE_MS);
         return () => clearTimeout(timer);
     }, [search]);
+
+    useEffect(() => {
+        if (!isAdminLoading && !canManageArchived && status === 'ARCHIVED') {
+            setStatus(DEFAULT_STATUS);
+            setPage(DEFAULT_PAGE);
+        }
+    }, [canManageArchived, isAdminLoading, status]);
 
     useEffect(() => {
         const state = location.state as ApplicationsListLocationState | null;
@@ -125,6 +134,8 @@ export function ApplicationsPage() {
                 onPerPageChange={handlePerPageChange}
                 onRegisterApplication={handleRegisterApplication}
                 canCreate={canCreate}
+                canManageArchived={canManageArchived}
+                canRestore={canManageArchived}
             />
         </div>
     );

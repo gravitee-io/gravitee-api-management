@@ -13,12 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { formatApplicationTypeLabel } from './applicationFormatters';
+import { formatApplicationOwnerLabel, formatApplicationSecurityTypeLabel, formatApplicationTypeLabel } from './applicationFormatters';
 
 describe('applicationFormatters', () => {
     it('maps known application types to display labels', () => {
         expect(formatApplicationTypeLabel({ type: 'SIMPLE' })).toBe('Service');
         expect(formatApplicationTypeLabel({ type: 'BROWSER' })).toBe('SPA');
         expect(formatApplicationTypeLabel({ type: 'BACKEND_TO_BACKEND' })).toBe('Backend');
+    });
+
+    it('maps security types for application detail header', () => {
+        expect(formatApplicationSecurityTypeLabel({ type: 'SIMPLE' })).toBe('Simple');
+        expect(formatApplicationSecurityTypeLabel({ type: 'BROWSER' })).toBe('SPA');
+        expect(formatApplicationSecurityTypeLabel({ type: 'BACKEND_TO_BACKEND' })).toBe('Backend to backend');
+    });
+
+    it('formats owner with role label', () => {
+        expect(formatApplicationOwnerLabel({ id: '1', displayName: 'Alice Chen', type: 'USER' })).toBe('Alice Chen (User)');
+        expect(formatApplicationOwnerLabel(undefined)).toBeNull();
     });
 });
