@@ -13,16 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
+import { Skeleton } from '@gravitee/graphene-core';
 import { useParams } from 'react-router-dom';
 
 import { ConsumerDetailPage } from './api-consumers/ConsumerDetailPage';
+import { useApiProductResourcePermissions } from '../features/api-products/hooks/useApiProductPermissions';
 import type { SubscriptionContext } from '../features/apis/types/subscription';
 
 export function ApiProductConsumerDetailPage() {
     const { productId, subscriptionId } = useParams<{ productId: string; subscriptionId: string }>();
     const ctx: SubscriptionContext = { type: 'api-product', entityId: productId ?? '' };
-    const canUpdate = useHasPermission({ anyOf: ['api_product-subscription-u'] });
-    const canDelete = useHasPermission({ anyOf: ['api_product-subscription-d'] });
+    const { canUpdate, canDelete, isLoading } = useApiProductResourcePermissions(productId, 'subscription');
+
+    if (isLoading) {
+        return (
+            <div className="space-y-3 p-6">
+                <Skeleton className="h-24 w-full rounded-lg" />
+                <Skeleton className="h-64 w-full rounded-lg" />
+            </div>
+        );
+    }
+
     return <ConsumerDetailPage ctx={ctx} subscriptionId={subscriptionId} canUpdate={canUpdate} canDelete={canDelete} />;
 }

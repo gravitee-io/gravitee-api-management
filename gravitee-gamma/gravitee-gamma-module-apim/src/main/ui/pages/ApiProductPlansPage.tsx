@@ -16,14 +16,14 @@
 import { Skeleton } from '@gravitee/graphene-core';
 import { useParams } from 'react-router-dom';
 
-import { ConsumersPage } from './api-consumers/ConsumersPage';
+import { PlansPage } from './api-plans/PlansPage';
 import { useApiProductResourcePermissions } from '../features/api-products/hooks/useApiProductPermissions';
-import type { SubscriptionContext } from '../features/apis/types/subscription';
+import type { PlanContext } from '../features/apis/types/plan';
 
-export function ApiProductConsumersPage() {
+export function ApiProductPlansPage() {
     const { productId } = useParams<{ productId: string }>();
-    const ctx: SubscriptionContext = { type: 'api-product', entityId: productId ?? '' };
-    const { canRead, canCreate, isLoading } = useApiProductResourcePermissions(productId, 'subscription');
+    const ctx: PlanContext = { type: 'api-product', entityId: productId ?? '' };
+    const { canRead, canCreate, canUpdate, canDelete, isLoading } = useApiProductResourcePermissions(productId, 'PLAN');
 
     if (isLoading) {
         return (
@@ -34,5 +34,5 @@ export function ApiProductConsumersPage() {
         );
     }
 
-    return <ConsumersPage ctx={ctx} canCreate={canCreate} canRead={canRead} />;
+    return <PlansPage ctx={ctx} canRead={canRead} canCreate={canCreate} canUpdate={canUpdate} canDelete={canDelete} />;
 }

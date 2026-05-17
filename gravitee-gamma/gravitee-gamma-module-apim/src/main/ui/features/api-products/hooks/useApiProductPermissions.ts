@@ -46,3 +46,40 @@ export function useApiProductPermissions(productId: string | undefined): { permi
 
     return { permissionsReady: isSuccess };
 }
+
+export interface ApiProductCrudPermissions {
+    canRead: boolean;
+    canCreate: boolean;
+    canUpdate: boolean;
+    canDelete: boolean;
+    isLoading: boolean;
+}
+
+/**
+ * Checks CRUD permissions for a specific API product resource (e.g. 'plan', 'definition').
+ * Uses the same query as `useApiProductPermissions` (React Query deduplicates the fetch).
+ * Checks for strings in the format `api_product-{resource}-{op}` produced by the service.
+ */
+export function useApiProductResourcePermissions(productId: string | undefined, resource: string): ApiProductCrudPermissions {
+    const env = useEnvironment();
+
+    const { data: permissions, isLoading } = useQuery({
+        queryKey: apiProductKeys.permissions(env?.id ?? '', productId ?? ''),
+        queryFn: () => getApiProductPermissions(env!.id, productId!),
+        enabled: Boolean(env && productId),
+        staleTime: 60_000,
+    });
+
+    if (isLoading || !permissions) {
+        return { canRead: false, canCreate: false, canUpdate: false, canDelete: false, isLoading };
+    }
+
+    const prefix = `api_product-${resource.toLowerCase()}-`;
+    return {
+        isLoading: false,
+        canRead: permissions.includes(`${prefix}r`),
+        canCreate: permissions.includes(`${prefix}c`),
+        canUpdate: permissions.includes(`${prefix}u`),
+        canDelete: permissions.includes(`${prefix}d`),
+    };
+}

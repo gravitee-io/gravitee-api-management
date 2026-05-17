@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { EntityContext } from '../../shared/types/entityContext';
 
+// TODO: Subscription types — prep for subscriptions feature (no services/hooks/pages yet)
 export type SubscriptionStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CLOSED' | 'PAUSED' | 'RESUMED';
 export type SubscriptionSecurityType = 'API_KEY' | 'OAUTH2' | 'JWT' | 'KEY_LESS' | 'MTLS';
 export type ApiKeyMode = 'SHARED' | 'EXCLUSIVE' | 'UNSPECIFIED';
@@ -118,4 +120,11 @@ export interface CreateSubscriptionPayload {
     customApiKey?: string;
 }
 
-export type SubscriptionContext = { type: 'api'; entityId: string } | { type: 'api-product'; entityId: string };
+export interface ApproveSubscriptionPayload {
+    customApiKey?: string;
+    reason?: string;
+    startingAt?: string;
+    endingAt?: string;
+}
+
+export type SubscriptionContext = EntityContext;
