@@ -91,7 +91,7 @@ export function OAuthSecurityFields({
                                 {isActive && <CircleCheckIcon className="size-3.5" aria-hidden />}
                                 {grantType.name}
                                 {isMandatory && (
-                                    <Badge variant="secondary" className="ml-1 text-[10px]">
+                                    <Badge variant="secondary" className="ml-1 text-xs">
                                         Mandatory
                                     </Badge>
                                 )}

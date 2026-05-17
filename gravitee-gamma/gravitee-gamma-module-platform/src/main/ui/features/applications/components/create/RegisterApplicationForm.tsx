@@ -116,9 +116,9 @@ export function RegisterApplicationForm() {
         createApplication.mutate(
             { draft, selectedType },
             {
-                onSuccess: application =>
-                    navigate('..', {
-                        state: { successMessage: `Application "${application.name}" created.` },
+                onSuccess: created =>
+                    navigate(`../${created.id}/general`, {
+                        state: { created: true, applicationName: created.name },
                     }),
             },
         );

@@ -14,6 +14,18 @@
  * limitations under the License.
  */
 
+export const applicationDetailKeys = {
+    all: ['application-detail'] as const,
+    detail: (envId: string, applicationId: string) => [...applicationDetailKeys.all, envId, applicationId] as const,
+    typeConfig: (envId: string, applicationId: string) => [...applicationDetailKeys.all, 'type-config', envId, applicationId] as const,
+    certificates: (envId: string, applicationId: string) => [...applicationDetailKeys.all, 'certificates', envId, applicationId] as const,
+} as const;
+
+export const applicationPermissionKeys = {
+    all: ['application-permissions'] as const,
+    detail: (envId: string, applicationId: string) => [...applicationPermissionKeys.all, envId, applicationId] as const,
+} as const;
+
 export const applicationListKeys = {
     all: ['application-list'] as const,
     search: (envId: string, query: string, status: string, page: number, perPage: number) =>

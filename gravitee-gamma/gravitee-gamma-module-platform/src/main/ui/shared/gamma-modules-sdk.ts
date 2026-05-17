@@ -34,8 +34,8 @@ export const permissionService = {
     clear: (_scope: string): void => {},
     reset: (): void => {},
     getAllPermissions: (): string[] => [],
-    hasAnyOf: (): boolean => true,
-    hasAllOf: (): boolean => true,
+    hasAnyOf: (_required?: string[]): boolean => true,
+    hasAllOf: (_required?: string[]): boolean => true,
     subscribe:
         (_listener: () => void): (() => void) =>
         () => {},
@@ -59,9 +59,12 @@ export function PermissionGate({
  * e.g. `normalizeCrudMapRecord('api', { DEFINITION: ['R','U'] })` → `['api-definition-r', 'api-definition-u']`
  */
 export function normalizeCrudMapRecord(scope: string, record: Record<string, string[] | string>): string[] {
-    return Object.entries(record).flatMap(([resource, ops]) => {
-        const operations = Array.isArray(ops) ? ops : [ops];
-        return operations.map(op => `${scope}-${resource.toLowerCase()}-${op.toLowerCase()}`);
+    return Object.entries(record).flatMap(([key, crudValues]) => {
+        const keyPart = key.toLowerCase();
+        if (Array.isArray(crudValues)) {
+            return crudValues.map(letter => `${scope}-${keyPart}-${letter.toLowerCase()}`);
+        }
+        return crudValues.split('').map(letter => `${scope}-${keyPart}-${letter.toLowerCase()}`);
     });
 }
 
