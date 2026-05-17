@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { apimFetchJsonV1Env } from '../../../shared/api/apimClient';
-import type { ApplicationListResponse, ApplicationStatus } from '../types/application';
+import type { ApplicationListItem, ApplicationListResponse, ApplicationStatus } from '../types/application';
 
 export async function listApplications(
     environmentId: string,
@@ -39,4 +39,10 @@ export async function listApplications(
         params.set('query', query);
     }
     return apimFetchJsonV1Env<ApplicationListResponse>(environmentId, `/applications/_paged?${params}`);
+}
+
+export async function restoreApplication(environmentId: string, applicationId: string): Promise<ApplicationListItem> {
+    return apimFetchJsonV1Env<ApplicationListItem>(environmentId, `/applications/${applicationId}/_restore`, {
+        method: 'POST',
+    });
 }

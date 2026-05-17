@@ -118,9 +118,9 @@ export function RegisterApplicationForm() {
         createApplication.mutate(
             { draft, selectedType },
             {
-                onSuccess: application =>
-                    navigate('..', {
-                        state: { successMessage: `Application "${application.name}" created.` },
+                onSuccess: created =>
+                    navigate(`../${created.id}/general`, {
+                        state: { created: true, applicationName: created.name, successMessage: `Application "${created.name}" created.` },
                     }),
             },
         );
@@ -136,7 +136,7 @@ export function RegisterApplicationForm() {
     }
 
     return (
-        <form className="space-y-6" onSubmit={handleSubmit} noValidate>
+        <form className="space-y-6" onSubmit={handleSubmit} noValidate={false}>
             {createApplication.isError && (
                 <Alert variant="destructive">
                     <AlertDescription>{createApplication.error.message}</AlertDescription>
