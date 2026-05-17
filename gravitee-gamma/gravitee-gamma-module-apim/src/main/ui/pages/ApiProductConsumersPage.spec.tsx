@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { ApiProductConsumersPage } from './ApiProductConsumersPage';
+import { useApiProductResourcePermissions } from '../features/api-products/hooks/useApiProductPermissions';
 import { useCreateSubscription } from '../features/apis/hooks/useSubscriptionActions';
 import { useApiPlans, useSubscriptionList } from '../features/apis/hooks/useSubscriptions';
 import type { SubscriptionPage } from '../features/apis/types/subscription';
@@ -28,12 +28,15 @@ import type { SubscriptionPage } from '../features/apis/types/subscription';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     useEnvironment: jest.fn(() => ({ id: 'DEFAULT' })),
-    useHasPermission: jest.fn(() => true),
 }));
 
 jest.mock('@gravitee/graphene-core/icons', () => new Proxy({}, { get: () => () => null }));
 
 // ─── Hook mocks ───────────────────────────────────────────────────────────────
+
+jest.mock('../features/api-products/hooks/useApiProductPermissions', () => ({
+    useApiProductResourcePermissions: jest.fn(),
+}));
 
 jest.mock('../features/apis/hooks/useSubscriptionActions', () => ({
     useCreateSubscription: jest.fn(),
@@ -136,12 +139,19 @@ const SUBSCRIPTION_PAGE: SubscriptionPage = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const mockUseHasPermission = useHasPermission as jest.Mock;
+const mockUseApiProductResourcePermissions = useApiProductResourcePermissions as jest.Mock;
 const mockUseSubscriptionList = useSubscriptionList as jest.Mock;
 const mockUseApiPlans = useApiPlans as jest.Mock;
 const mockUseCreateSubscription = useCreateSubscription as jest.Mock;
 
 function setupDefaults() {
+    mockUseApiProductResourcePermissions.mockReturnValue({
+        canRead: true,
+        canCreate: true,
+        canUpdate: true,
+        canDelete: true,
+        isLoading: false,
+    });
     mockUseSubscriptionList.mockReturnValue({ data: EMPTY_PAGE, isLoading: false });
     mockUseApiPlans.mockReturnValue({ data: [], isLoading: false });
     mockUseCreateSubscription.mockReturnValue({ mutate: jest.fn(), isPending: false, error: null, reset: jest.fn() });
@@ -161,36 +171,60 @@ function renderPage() {
 
 beforeEach(() => {
     jest.clearAllMocks();
-    mockUseHasPermission.mockReturnValue(true);
 });
 
-// ─── 1. Permission gating ─────────────────────────────────────────────────────
+// ─── 1. Permission loading skeleton ──────────────────────────────────────────
 
-it('shows permission denied message when user lacks api_product-subscription-r', () => {
+it('renders skeleton while permissions are loading', () => {
+    mockUseApiProductResourcePermissions.mockReturnValue({
+        canRead: false,
+        canCreate: false,
+        canUpdate: false,
+        canDelete: false,
+        isLoading: true,
+    });
+    mockUseSubscriptionList.mockReturnValue({ data: EMPTY_PAGE, isLoading: false });
+    mockUseApiPlans.mockReturnValue({ data: [], isLoading: false });
+    mockUseCreateSubscription.mockReturnValue({ mutate: jest.fn(), isPending: false, error: null, reset: jest.fn() });
+    renderPage();
+    expect(screen.getAllByRole('generic').some(el => el.getAttribute('aria-busy') === 'true')).toBe(true);
+});
+
+// ─── 2. Permission gating ─────────────────────────────────────────────────────
+
+it('shows permission denied message when user lacks canRead', () => {
     setupDefaults();
-    mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => {
-        return !anyOf.includes('api_product-subscription-r');
+    mockUseApiProductResourcePermissions.mockReturnValue({
+        canRead: false,
+        canCreate: false,
+        canUpdate: false,
+        canDelete: false,
+        isLoading: false,
     });
     renderPage();
     expect(screen.getByText(/you don't have permission to view subscriptions/i)).not.toBeNull();
 });
 
-it('hides Create subscription button when user lacks api_product-subscription-c', () => {
+it('hides Create subscription button when user lacks canCreate', () => {
     setupDefaults();
-    mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => {
-        return !anyOf.includes('api_product-subscription-c');
+    mockUseApiProductResourcePermissions.mockReturnValue({
+        canRead: true,
+        canCreate: false,
+        canUpdate: false,
+        canDelete: false,
+        isLoading: false,
     });
     renderPage();
     expect(screen.queryByRole('button', { name: /create subscription/i })).toBeNull();
 });
 
-it('shows Create subscription button when user has api_product-subscription-c', () => {
+it('shows Create subscription button when user has canCreate', () => {
     setupDefaults();
     renderPage();
     expect(screen.getByRole('button', { name: /create subscription/i })).not.toBeNull();
 });
 
-// ─── 2. Empty state ──────────────────────────────────────────────────────────
+// ─── 3. Empty state ──────────────────────────────────────────────────────────
 
 it('renders empty state when there are no subscriptions', () => {
     setupDefaults();
@@ -198,7 +232,7 @@ it('renders empty state when there are no subscriptions', () => {
     expect(screen.queryByRole('table')).toBeNull();
 });
 
-// ─── 3. Subscription list ─────────────────────────────────────────────────────
+// ─── 4. Subscription list ─────────────────────────────────────────────────────
 
 it('renders subscriptions table when data is present', () => {
     setupDefaults();
@@ -208,16 +242,16 @@ it('renders subscriptions table when data is present', () => {
     expect(screen.getByText('Default Plan')).not.toBeNull();
 });
 
-// ─── 4. Loading state ─────────────────────────────────────────────────────────
+// ─── 5. Loading state ─────────────────────────────────────────────────────────
 
-it('renders skeletons while loading', () => {
+it('renders skeletons while loading subscription list', () => {
     setupDefaults();
     mockUseSubscriptionList.mockReturnValue({ data: undefined, isLoading: true });
     renderPage();
     expect(screen.getAllByRole('cell').some(el => el.querySelector('[aria-busy="true"]') !== null)).toBe(true);
 });
 
-// ─── 5. Context isolation — ctx.type is api-product ──────────────────────────
+// ─── 6. Context isolation — ctx.type is api-product ──────────────────────────
 
 it('calls useSubscriptionList with api-product context for the resolved productId', () => {
     setupDefaults();
@@ -240,7 +274,13 @@ it('calls useCreateSubscription with api-product context', () => {
     expect(ctx).toEqual({ type: 'api-product', entityId: 'product-1' });
 });
 
-// ─── 6. Create dialog opens ───────────────────────────────────────────────────
+it('calls useApiProductResourcePermissions with productId and subscription resource', () => {
+    setupDefaults();
+    renderPage();
+    expect(mockUseApiProductResourcePermissions).toHaveBeenCalledWith('product-1', 'subscription');
+});
+
+// ─── 7. Create dialog opens ───────────────────────────────────────────────────
 
 it('opens the create subscription dialog when the button is clicked', async () => {
     setupDefaults();

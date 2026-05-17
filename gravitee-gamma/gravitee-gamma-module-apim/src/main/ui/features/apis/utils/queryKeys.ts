@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { PlanContext, PlanStatus } from '../types/plan';
+import type { SubscriptionContext } from '../types/subscription';
+
 export const apiProxyKeys = {
     all: ['apiProxy'] as const,
     create: () => [...apiProxyKeys.all, 'create'] as const,
@@ -103,8 +106,17 @@ export const apiNotificationKeys = {
     hooks: (envId: string) => [...apiNotificationKeys.all, 'hooks', envId] as const,
 };
 
-import type { SubscriptionContext } from '../types/subscription';
+export const apiPlanKeys = {
+    all: ['api-plans'] as const,
+    list: (envId: string, ctx: PlanContext, statuses: PlanStatus[], page: number, perPage: number) =>
+        [...apiPlanKeys.all, ctx.type, ctx.entityId, 'list', envId, statuses, page, perPage] as const,
+    detail: (envId: string, ctx: PlanContext, planId: string) =>
+        [...apiPlanKeys.all, ctx.type, ctx.entityId, 'detail', envId, planId] as const,
+    count: (envId: string, ctx: PlanContext, status: PlanStatus) =>
+        [...apiPlanKeys.all, ctx.type, ctx.entityId, 'count', envId, status] as const,
+};
 
+// TODO: Subscription query keys — prep for subscriptions feature (no hooks/pages yet)
 export const apiSubscriptionKeys = {
     all: ['api-subscriptions'] as const,
     list: (envId: string, ctx: SubscriptionContext, filters: object) =>

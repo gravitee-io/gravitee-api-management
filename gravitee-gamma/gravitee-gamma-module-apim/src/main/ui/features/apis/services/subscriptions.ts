@@ -19,6 +19,7 @@ import type {
     ApiKeyPage,
     Application,
     ApplicationPage,
+    ApproveSubscriptionPayload,
     CreateSubscriptionPayload,
     PlanPage,
     Subscription,
@@ -142,6 +143,37 @@ export async function expireApiKey(
     return apimFetchJsonV2<ApiKey>(envId, `${sub(ctx, subscriptionId)}/api-keys/${encodeURIComponent(apiKeyId)}`, {
         method: 'PUT',
         body: JSON.stringify({ expireAt }),
+    });
+}
+
+export async function approveSubscription(
+    envId: string,
+    ctx: SubscriptionContext,
+    subscriptionId: string,
+    payload: ApproveSubscriptionPayload,
+): Promise<Subscription> {
+    return apimFetchJsonV2<Subscription>(envId, `${sub(ctx, subscriptionId)}/_accept`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+    });
+}
+
+export async function rejectSubscription(
+    envId: string,
+    ctx: SubscriptionContext,
+    subscriptionId: string,
+    reason: string,
+): Promise<Subscription> {
+    return apimFetchJsonV2<Subscription>(envId, `${sub(ctx, subscriptionId)}/_reject`, {
+        method: 'POST',
+        body: JSON.stringify({ reason }),
+    });
+}
+
+export async function resumeFailedSubscription(envId: string, ctx: SubscriptionContext, subscriptionId: string): Promise<Subscription> {
+    return apimFetchJsonV2<Subscription>(envId, `${sub(ctx, subscriptionId)}/_resumeFailure`, {
+        method: 'POST',
+        body: JSON.stringify({}),
     });
 }
 

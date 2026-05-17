@@ -35,12 +35,15 @@ import { ApiDetailPlaceholderPage } from '../pages/ApiDetailPlaceholderPage';
 import { ApiEntrypointsPage } from '../pages/ApiEntrypointsPage';
 import { ApiGeneralPage } from '../pages/ApiGeneralPage';
 import { ApiNotificationsPage } from '../pages/ApiNotificationsPage';
+import { ApiPlanFormPage } from '../pages/ApiPlanFormPage';
+import { ApiPlansPage } from '../pages/ApiPlansPage';
 import { ApiProductApisPage } from '../pages/ApiProductApisPage';
 import { ApiProductConsumerDetailPage } from '../pages/ApiProductConsumerDetailPage';
 import { ApiProductConsumersPage } from '../pages/ApiProductConsumersPage';
 import { ApiProductGeneralPage } from '../pages/ApiProductGeneralPage';
 import { ApiProductOverviewPage } from '../pages/ApiProductOverviewPage';
-import { ApiProductPlaceholderPage } from '../pages/ApiProductPlaceholderPage';
+import { ApiProductPlanFormPage } from '../pages/ApiProductPlanFormPage';
+import { ApiProductPlansPage } from '../pages/ApiProductPlansPage';
 import { ApiProductsPage } from '../pages/ApiProductsPage';
 import { ApiProductUserPermissionsPage } from '../pages/ApiProductUserPermissionsPage';
 import { ApiPropertiesPage } from '../pages/ApiPropertiesPage';
@@ -117,7 +120,11 @@ export function AppRoutes() {
                             <Route path="reporter-settings" element={<ApiDetailPlaceholderPage title="Reporter Settings" />} />
                             <Route path="policy-studio" element={<ApiDetailPlaceholderPage title="Policy Studio" />} />
                             <Route path="documentation" element={<ApiDetailPlaceholderPage title="Documentation" />} />
-                            <Route path="plans" element={<ApiDetailPlaceholderPage title="Plans" />} />
+                            <Route path="plans">
+                                <Route index element={<ApiPlansPage />} />
+                                <Route path="new/:securityType" element={<ApiPlanFormPage />} />
+                                <Route path=":planId" element={<ApiPlanFormPage />} />
+                            </Route>
                             <Route path="consumers">
                                 <Route index element={<ApiConsumersPage />} />
                                 <Route path=":subscriptionId" element={<ApiConsumerDetailPage />} />
@@ -147,7 +154,11 @@ export function AppRoutes() {
                             <Route path="overview" element={<ApiProductOverviewPage />} />
                             <Route path="general" element={<ApiProductGeneralPage />} />
                             <Route path="apis" element={<ApiProductApisPage />} />
-                            <Route path="plans" element={<ApiProductPlaceholderPage title="Plans" />} />
+                            <Route path="plans">
+                                <Route index element={<ApiProductPlansPage />} />
+                                <Route path="new/:securityType" element={<ApiProductPlanFormPage />} />
+                                <Route path=":planId" element={<ApiProductPlanFormPage />} />
+                            </Route>
                             <Route path="consumers">
                                 <Route index element={<ApiProductConsumersPage />} />
                                 <Route path=":subscriptionId" element={<ApiProductConsumerDetailPage />} />
