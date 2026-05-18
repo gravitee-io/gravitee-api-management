@@ -11,7 +11,9 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.concurrent.Callable;
+import lombok.CustomLog;
 
+@CustomLog
 public final class ResponseErrors {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -35,7 +37,8 @@ public final class ResponseErrors {
         } catch (WebApplicationException e) {
             throw e;
         } catch (Exception e) {
-            throw new WebApplicationException(e);
+            log.warn("Unhandled error in SCIM REST handler", e);
+            return jsonResponse(Response.Status.INTERNAL_SERVER_ERROR, new ErrorBody("Internal error", 500));
         }
     }
 
