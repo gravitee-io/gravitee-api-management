@@ -114,9 +114,11 @@ class ListenerValidationServiceImplTest {
         listenerValidationService = new ListenerValidationServiceImpl(
             new VerifyApiPathDomainService(
                 apiQueryService,
+                new inmemory.ApiCrudServiceInMemory(),
                 installationAccessQueryService,
                 apiHostValidatorDomainService,
-                new io.gravitee.apim.core.api.domain_service.ApiPathIndex()
+                new io.gravitee.apim.core.api.domain_service.ApiPathIndex(),
+                java.time.Duration.ofSeconds(10)
             ),
             entrypointService,
             endpointService,

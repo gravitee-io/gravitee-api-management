@@ -29,6 +29,8 @@ import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -38,13 +40,18 @@ class ApiPathIndexationObserverTest {
     private final ApiPathIndexationObserver observer = new ApiPathIndexationObserver(apiPathIndex);
 
     @Test
-    void onIndex_extracts_paths_from_IndexableApi_and_forwards() {
+    void onIndex_extracts_paths_and_updatedAt_from_IndexableApi_and_forwards() {
         var api = ApiFixtures.aProxyApiV4();
         var indexable = IndexableApi.builder().api(api).build();
 
         observer.onIndex(indexable);
 
-        verify(apiPathIndex).index(api.getEnvironmentId(), api.getId(), List.of(Path.builder().path("/http_proxy/").build()));
+        verify(apiPathIndex).index(
+            api.getEnvironmentId(),
+            api.getId(),
+            List.of(Path.builder().path("/http_proxy/").build()),
+            api.getUpdatedAt().toInstant()
+        );
     }
 
     @Test
@@ -81,21 +88,23 @@ class ApiPathIndexationObserverTest {
     }
 
     @Test
-    void onIndex_extracts_paths_from_legacy_V3_ApiEntity() {
+    void onIndex_extracts_paths_and_updatedAt_from_legacy_V3_ApiEntity() {
         var v3 = new io.gravitee.rest.api.model.api.ApiEntity();
         v3.setId("v3-api");
         v3.setReferenceId("env-1");
         var proxy = new Proxy();
         proxy.setVirtualHosts(List.of(new VirtualHost("/v3-path")));
         v3.setProxy(proxy);
+        var t = Date.from(Instant.parse("2026-01-01T00:00:00Z"));
+        v3.setUpdatedAt(t);
 
         observer.onIndex(v3);
 
-        verify(apiPathIndex).index("env-1", "v3-api", List.of(Path.builder().path("/v3-path/").build()));
+        verify(apiPathIndex).index("env-1", "v3-api", List.of(Path.builder().path("/v3-path/").build()), t.toInstant());
     }
 
     @Test
-    void onIndex_extracts_paths_from_legacy_V4_ApiEntity() {
+    void onIndex_extracts_paths_and_updatedAt_from_legacy_V4_ApiEntity() {
         var v4 = new ApiEntity();
         v4.setId("v4-api");
         v4.setReferenceId("env-2");
@@ -106,10 +115,12 @@ class ApiPathIndexationObserverTest {
                     .build()
             )
         );
+        var t = Date.from(Instant.parse("2026-01-02T00:00:00Z"));
+        v4.setUpdatedAt(t);
 
         observer.onIndex(v4);
 
-        verify(apiPathIndex).index("env-2", "v4-api", List.of(Path.builder().path("/v4-path/").build()));
+        verify(apiPathIndex).index("env-2", "v4-api", List.of(Path.builder().path("/v4-path/").build()), t.toInstant());
     }
 
     @Test
@@ -119,7 +130,26 @@ class ApiPathIndexationObserverTest {
 
         observer.onIndex(indexable);
 
-        verify(apiPathIndex).remove(federated.getEnvironmentId(), federated.getId());
+        verify(apiPathIndex).remove(federated.getEnvironmentId(), federated.getId(), federated.getUpdatedAt().toInstant());
+    }
+
+    @Test
+    void onIndex_passes_null_updatedAt_when_entity_has_none() {
+        var v4 = new ApiEntity();
+        v4.setId("v4-api-no-updated-at");
+        v4.setReferenceId("env-3");
+        v4.setListeners(
+            List.<Listener>of(
+                HttpListener.builder()
+                    .paths(List.of(io.gravitee.definition.model.v4.listener.http.Path.builder().path("/no-time").build()))
+                    .build()
+            )
+        );
+        // updatedAt left null
+
+        observer.onIndex(v4);
+
+        verify(apiPathIndex).index("env-3", "v4-api-no-updated-at", List.of(Path.builder().path("/no-time/").build()), null);
     }
 
     @Test
@@ -128,7 +158,12 @@ class ApiPathIndexationObserverTest {
         var indexable = IndexableApi.builder().api(api).build();
         org.mockito.Mockito.doThrow(new IllegalStateException("boom"))
             .when(apiPathIndex)
-            .index(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+            .index(
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any()
+            );
 
         org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class, () -> observer.onIndex(indexable));
 
