@@ -326,7 +326,8 @@ databaseChangeLog:
     - include:
         - file: liquibase/changelogs/v4_11_1/00_add_validation_constraints_to_subscription_forms.yml
     - include:
-<<<<<<< HEAD
+        - file: liquibase/changelogs/v4_11_1/01_add_apis_environment_id_updated_at_index.yml
+    - include:
         - file: liquibase/changelogs/v4_12_0/00_add_tags_key_column.yml
     - include:
         - file: liquibase/changelogs/v4_12_0/01_add_tenants_key_column.yml
@@ -346,6 +347,3 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_12_0/07_add_api_product_primary_owner_to_groups.yml
     - include:
         - file: liquibase/changelogs/v4_12_0/08_add_disable_membership_notifications_to_api_products.yml
-=======
-        - file: liquibase/changelogs/v4_11_1/01_add_apis_environment_id_updated_at_index.yml
->>>>>>> 45bed588dc (fix(api): close cross-pod path-index race window (APIM-14052))
