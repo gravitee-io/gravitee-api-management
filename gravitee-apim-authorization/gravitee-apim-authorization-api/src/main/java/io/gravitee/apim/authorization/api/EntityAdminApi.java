@@ -19,6 +19,8 @@ import io.gravitee.apim.authorization.domain.Entity;
 import io.gravitee.apim.authorization.service.CascadeResult;
 import io.gravitee.apim.authorization.service.CreateOrReplaceEntityCommand;
 import io.gravitee.apim.authorization.service.EntityFilter;
+import io.gravitee.apim.authorization.service.Pageable;
+import io.gravitee.apim.authorization.service.PagedResult;
 import io.gravitee.apim.authorization.service.UpdateEntityCommand;
 import io.gravitee.apim.authorization.service.UpsertResult;
 import java.util.List;
@@ -32,7 +34,19 @@ public interface EntityAdminApi {
 
     Optional<Entity> findByEntityId(String environmentId, String entityId);
 
+    /**
+     * Unpaged lookup. Kept for callers that genuinely need every row in
+     * one pass — SCIM reconcile is the main one, where the alternative is
+     * treating page-2+ entities as orphans on the next sync.
+     */
     List<Entity> find(String environmentId, EntityFilter filter);
+
+    /**
+     * Paginated lookup of entities matching {@code filter}. Use this for
+     * any UI-driven listing; the unpaged {@link #find(String, EntityFilter)}
+     * is for whole-env scans.
+     */
+    PagedResult<Entity> findPage(String environmentId, EntityFilter filter, Pageable pageable);
 
     Set<String> findApiAliases(String environmentId, String apiId);
 

@@ -225,20 +225,34 @@ public class EntityServiceImpl implements EntityAdminApi {
     @Override
     public List<Entity> find(String environmentId, EntityFilter filter) {
         requireNonBlank(environmentId, "environmentId");
-        EntityFilter f = filter == null ? EntityFilter.none() : filter;
+        validateFilter(filter);
+        return findInMemory(environmentId, filter);
+    }
 
-        if (f.entityIdPrefix() != null) {
-            if (f.entityIdPrefix().length() > EntityIdValidator.MAX_ENTITY_ID_LENGTH) {
-                throw new IllegalArgumentException(
-                    "entityIdPrefix must be at most " + EntityIdValidator.MAX_ENTITY_ID_LENGTH + " characters"
-                );
-            }
+    @Override
+    public PagedResult<Entity> findPage(String environmentId, EntityFilter filter, Pageable pageable) {
+        requireNonBlank(environmentId, "environmentId");
+        Objects.requireNonNull(pageable, "pageable must not be null");
+        validateFilter(filter);
+        // Delegated to the repo so production stores can short-circuit with a
+        // native skip/limit + count plan; the default repo impl falls back to
+        // in-memory paging which is identical to find() above. Both paths
+        // therefore stay consistent for adapters that don't override.
+        return entityRepository.findPage(environmentId, filter == null ? EntityFilter.none() : filter, pageable);
+    }
+
+    private void validateFilter(EntityFilter filter) {
+        if (filter == null) return;
+        if (filter.entityIdPrefix() != null && filter.entityIdPrefix().length() > EntityIdValidator.MAX_ENTITY_ID_LENGTH) {
+            throw new IllegalArgumentException("entityIdPrefix must be at most " + EntityIdValidator.MAX_ENTITY_ID_LENGTH + " characters");
         }
+    }
 
+    private List<Entity> findInMemory(String environmentId, EntityFilter filter) {
+        EntityFilter f = filter == null ? EntityFilter.none() : filter;
         List<Entity> base = f.entityIdPrefix() != null
             ? entityRepository.findByEntityIdPrefix(environmentId, f.entityIdPrefix())
             : entityRepository.findAll(environmentId);
-
         return base
             .stream()
             .filter(e -> f.kind() == null || e.kind() == f.kind())

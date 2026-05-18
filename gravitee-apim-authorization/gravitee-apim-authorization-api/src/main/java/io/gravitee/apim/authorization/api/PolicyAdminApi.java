@@ -18,6 +18,9 @@ package io.gravitee.apim.authorization.api;
 import io.gravitee.apim.authorization.domain.Policy;
 import io.gravitee.apim.authorization.domain.PolicyKind;
 import io.gravitee.apim.authorization.service.CreatePolicyCommand;
+import io.gravitee.apim.authorization.service.Pageable;
+import io.gravitee.apim.authorization.service.PagedResult;
+import io.gravitee.apim.authorization.service.PolicyFilter;
 import io.gravitee.apim.authorization.service.UpdatePolicyCommand;
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +41,13 @@ public interface PolicyAdminApi {
     List<Policy> findByKind(String environmentId, PolicyKind kind);
 
     List<Policy> findByEntityId(String environmentId, String entityId);
+
+    /**
+     * Paginated lookup of policies matching {@code filter}. Use this for
+     * any UI-driven listing; the unpaged finders above stay for whole-env
+     * iteration (gateway sync warm-up, schema invalidation, etc).
+     */
+    PagedResult<Policy> findPage(String environmentId, PolicyFilter filter, Pageable pageable);
 
     boolean delete(AuthzCallerContext caller, String id);
 }

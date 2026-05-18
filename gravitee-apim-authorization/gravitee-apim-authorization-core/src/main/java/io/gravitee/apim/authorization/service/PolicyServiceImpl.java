@@ -225,6 +225,16 @@ public class PolicyServiceImpl implements PolicyAdminApi {
     }
 
     @Override
+    public PagedResult<Policy> findPage(String environmentId, PolicyFilter filter, Pageable pageable) {
+        requireNonBlank(environmentId, "environmentId");
+        Objects.requireNonNull(pageable, "pageable must not be null");
+        // Delegated to the repo so production stores can short-circuit with a
+        // native skip/limit + count plan; the default repo impl falls back
+        // to in-memory paging which matches the unpaged finders above.
+        return repository.findPage(environmentId, filter == null ? PolicyFilter.none() : filter, pageable);
+    }
+
+    @Override
     @Transactional
     public boolean delete(AuthzCallerContext caller, String id) {
         Objects.requireNonNull(caller, "caller must not be null");

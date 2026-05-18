@@ -17,6 +17,9 @@ package io.gravitee.apim.authorization.api;
 
 import io.gravitee.apim.authorization.domain.Policy;
 import io.gravitee.apim.authorization.domain.PolicyKind;
+import io.gravitee.apim.authorization.service.Pageable;
+import io.gravitee.apim.authorization.service.PagedResult;
+import io.gravitee.apim.authorization.service.PolicyFilter;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,4 +35,30 @@ public interface PolicyRepository {
     List<Policy> findByEntityId(String environmentId, String entityId);
 
     boolean deleteById(String environmentId, String id);
+
+    /**
+     * Paginated lookup of policies matching {@code filter}.
+     *
+     * <p>Default implementation loads via the existing {@code findAll}
+     * / {@code findByKind} / {@code findByEntityId} methods, applies the
+     * remaining filter fields in-memory, then slices the page. Mongo
+     * adapter overrides with native {@code skip/limit + count}.
+     */
+    default PagedResult<Policy> findPage(String environmentId, PolicyFilter filter, Pageable pageable) {
+        PolicyFilter f = filter == null ? PolicyFilter.none() : filter;
+        List<Policy> base;
+        if (f.entityId() != null) {
+            base = findByEntityId(environmentId, f.entityId());
+        } else if (f.kind() != null) {
+            base = findByKind(environmentId, f.kind());
+        } else {
+            base = findAll(environmentId);
+        }
+        List<Policy> matching = base
+            .stream()
+            .filter(p -> f.kind() == null || p.kind() == f.kind())
+            .filter(p -> f.status() == null || p.status() == f.status())
+            .toList();
+        return PagedResult.of(matching, pageable);
+    }
 }
