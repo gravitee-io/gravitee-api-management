@@ -207,6 +207,37 @@ class ApiPathIndexTest {
     }
 
     @Test
+    void drop_on_unseeded_env_is_recovered_by_next_findConflicts_via_seeder() {
+        // Documents the invariant: index() called before any seed is dropped, BUT the dropped write is still safely
+        // recovered the very next time findConflicts triggers the seeder, because in production the API service
+        // commits the Mongo row before firing the observer chain. We simulate that by having the seeder include the
+        // dropped api.
+        var index = new ApiPathIndex();
+        index.index(ENV, "new-api", List.of(Path.builder().path("/foo/").build()), T0);
+
+        var seededVersion = apiWithPaths("new-api", "/foo", T0);
+        var result = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), () -> Stream.of(seededVersion));
+
+        assertThat(result.errors()).hasSize(1);
+        assertThat(result.conflicts().get(0).apiId()).isEqualTo("new-api");
+    }
+
+    @Test
+    void seed_skips_rows_that_throw_during_extraction_and_keeps_indexing_the_rest() {
+        // A single malformed row must not abort the whole seed and leave the env permanently un-installed.
+        var goodApi = apiWithPaths("good", "/foo", T0);
+        var badApi = org.mockito.Mockito.mock(io.gravitee.apim.core.api.model.Api.class);
+        org.mockito.Mockito.when(badApi.getId()).thenReturn("bad");
+        org.mockito.Mockito.when(badApi.getApiDefinitionValue()).thenThrow(new IllegalStateException("boom"));
+
+        var index = new ApiPathIndex();
+        var result = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), () -> Stream.of(badApi, goodApi));
+
+        assertThat(result.conflicts()).hasSize(1);
+        assertThat(result.conflicts().get(0).apiId()).isEqualTo("good");
+    }
+
+    @Test
     void index_on_ready_env_makes_paths_visible_to_next_findConflicts() {
         var index = new ApiPathIndex();
         index.findConflicts(ENV, "seed-api", List.of(), Stream::empty);
