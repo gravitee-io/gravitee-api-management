@@ -179,4 +179,32 @@ class EventGroupKeyHelperTest {
         assertThat(result.type()).isEqualTo("PUBLISH_API");
         assertThat(result.referenceId()).isEqualTo("api-123");
     }
+
+    @Test
+    void should_group_authz_policy_events_by_authz_policy_id() {
+        EventType[] policyEventTypes = { EventType.PUBLISH_AUTHZ_POLICY, EventType.UNPUBLISH_AUTHZ_POLICY };
+        Map<String, String> properties = new HashMap<>();
+        properties.put(Event.EventProperties.AUTHZ_POLICY_ID.getValue(), "policy-1");
+
+        for (EventType eventType : policyEventTypes) {
+            EventRepository.EventToCleanGroup result = EventRepository.EventGroupKeyHelper.determineGroup(eventType, properties);
+            assertThat(result).as("non-null group for %s", eventType).isNotNull();
+            assertThat(result.type()).isEqualTo(eventType.name());
+            assertThat(result.referenceId()).isEqualTo("policy-1");
+        }
+    }
+
+    @Test
+    void should_group_authz_entity_events_by_authz_entity_id() {
+        EventType[] entityEventTypes = { EventType.PUBLISH_AUTHZ_ENTITY, EventType.UNPUBLISH_AUTHZ_ENTITY };
+        Map<String, String> properties = new HashMap<>();
+        properties.put(Event.EventProperties.AUTHZ_ENTITY_ID.getValue(), "api.bookings");
+
+        for (EventType eventType : entityEventTypes) {
+            EventRepository.EventToCleanGroup result = EventRepository.EventGroupKeyHelper.determineGroup(eventType, properties);
+            assertThat(result).as("non-null group for %s", eventType).isNotNull();
+            assertThat(result.type()).isEqualTo(eventType.name());
+            assertThat(result.referenceId()).isEqualTo("api.bookings");
+        }
+    }
 }
