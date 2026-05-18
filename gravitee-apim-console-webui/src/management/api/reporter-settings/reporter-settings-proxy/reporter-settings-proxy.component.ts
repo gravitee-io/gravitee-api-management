@@ -30,9 +30,10 @@ import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ApiRedactionRulesComponent } from './api-redaction-rules/api-redaction-rules.component';
+import { ApiPayloadMaskingRulesComponent } from './api-payload-masking-rules/api-payload-masking-rules.component';
 
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { ApiV4, RedactionRule } from '../../../../entities/management-api-v2';
+import { ApiV4, PayloadMaskingRule, RedactionRule } from '../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 type DefaultConfiguration = {
@@ -68,6 +69,7 @@ type DefaultConfiguration = {
     GioFormSlideToggleModule,
     MatSlideToggle,
     ApiRedactionRulesComponent,
+    ApiPayloadMaskingRulesComponent,
   ],
 })
 export class ReporterSettingsProxyComponent implements OnInit {
@@ -77,6 +79,7 @@ export class ReporterSettingsProxyComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
 
   protected pendingRedactionRules = signal<RedactionRule[] | null>(null);
+  protected pendingPayloadMaskingRules = signal<PayloadMaskingRule[] | null>(null);
   protected resetTriggerCounter = signal(0);
   protected savedApiState = signal<ApiV4 | null>(null);
   protected effectiveApi = computed(() => this.savedApiState() ?? this.api());
@@ -93,6 +96,7 @@ export class ReporterSettingsProxyComponent implements OnInit {
 
   submit() {
     const pendingRules = this.pendingRedactionRules();
+    const pendingPayloadRules = this.pendingPayloadMaskingRules();
     this.apiService
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
@@ -131,6 +135,14 @@ export class ReporterSettingsProxyComponent implements OnInit {
                       },
                     }
                   : {}),
+                ...(configurationValues.tracingEnabled && (pendingPayloadRules !== null || existingTracing?.payloadMasking != null)
+                  ? {
+                      payloadMasking: {
+                        defaultReplacement: existingTracing?.payloadMasking?.defaultReplacement,
+                        rules: pendingPayloadRules ?? existingTracing?.payloadMasking?.rules ?? [],
+                      },
+                    }
+                  : {}),
               },
             },
           };
@@ -140,6 +152,7 @@ export class ReporterSettingsProxyComponent implements OnInit {
         tap((savedApi: ApiV4) => {
           this.snackBarService.success('Configuration successfully saved!');
           this.pendingRedactionRules.set(null);
+          this.pendingPayloadMaskingRules.set(null);
           this.savedApiState.set(savedApi);
         }),
         catchError(({ error }) => {
@@ -162,7 +175,13 @@ export class ReporterSettingsProxyComponent implements OnInit {
 
   onDiscardRedactionRules(): void {
     this.pendingRedactionRules.set(null);
+    this.pendingPayloadMaskingRules.set(null);
     this.resetTriggerCounter.update(counter => counter + 1);
+  }
+
+  onPayloadMaskingRulesChange(rules: PayloadMaskingRule[]): void {
+    this.pendingPayloadMaskingRules.set(rules);
+    this.form.markAsDirty();
   }
 
   private initForm(api: ApiV4) {

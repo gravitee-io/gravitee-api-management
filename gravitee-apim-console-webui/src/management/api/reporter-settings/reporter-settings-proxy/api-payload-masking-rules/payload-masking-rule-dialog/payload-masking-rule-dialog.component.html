@@ -1,0 +1,93 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="title">
+  <h2 mat-dialog-title>{{ isEdit ? 'Edit payload masking rule' : 'New payload masking rule' }}</h2>
+  <button mat-icon-button (click)="onCancel()" aria-label="Close dialog">
+    <mat-icon svgIcon="gio:cancel"></mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content [formGroup]="form">
+  <mat-form-field class="field">
+    <mat-label>Path<span aria-hidden="true"> *</span></mat-label>
+    <input matInput formControlName="path" placeholder="e.g. $.password or //CreditCard/Number" />
+    <mat-hint>JSONPath (e.g. <code>$.creditCard.number</code>) or XPath (e.g. <code>//password</code>)</mat-hint>
+  </mat-form-field>
+
+  <mat-form-field class="field">
+    <mat-label>Format</mat-label>
+    <mat-select formControlName="format">
+      <mat-option value="AUTO">AUTO — detect from Content-Type and body</mat-option>
+      <mat-option value="JSON">JSON</mat-option>
+      <mat-option value="XML">XML</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field class="field">
+    <mat-label>Phase</mat-label>
+    <mat-select formControlName="phase">
+      <mat-option value="BOTH">BOTH — request and response</mat-option>
+      <mat-option value="REQUEST">REQUEST only</mat-option>
+      <mat-option value="RESPONSE">RESPONSE only</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field class="field">
+    <mat-label>Masking Type</mat-label>
+    <mat-select formControlName="maskingType">
+      <mat-option value="FULL">Full Mask — replace entire value</mat-option>
+      <mat-option value="PARTIAL">Partial Mask — keep prefix / suffix visible</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  @if (!isPartial()) {
+    <mat-form-field class="field">
+      <mat-label>Replacement Text</mat-label>
+      <input matInput formControlName="fullReplacement" placeholder="[REDACTED]" />
+      <mat-hint>Leave blank to use the default: [REDACTED]</mat-hint>
+    </mat-form-field>
+  }
+
+  @if (isPartial()) {
+    <div class="partialMask">
+      <mat-form-field class="partialMask__field">
+        <mat-label>Visible Prefix (chars)</mat-label>
+        <input matInput type="number" min="0" formControlName="prefixLength" />
+      </mat-form-field>
+      <mat-form-field class="partialMask__field">
+        <mat-label>Visible Suffix (chars)</mat-label>
+        <input matInput type="number" min="0" formControlName="suffixLength" />
+      </mat-form-field>
+      <mat-form-field class="partialMask__field">
+        <mat-label>Mask Character</mat-label>
+        <input matInput formControlName="maskChar" maxlength="1" placeholder="*" />
+        <mat-hint>Single character</mat-hint>
+      </mat-form-field>
+    </div>
+    <div class="partialMask__preview">
+      Preview: <code class="payloadMaskingRules__code">{{ partialPreview() }}</code>
+    </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-flat-button color="primary" [disabled]="form.invalid" (click)="onSave()">
+    {{ isEdit ? 'Save' : 'Add' }}
+  </button>
+</mat-dialog-actions>

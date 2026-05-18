@@ -4951,6 +4951,45 @@ components:
                     description: Enable technical tracing to get more details on request execution. Be careful this settings would generate more noise and would impact performance.
                 redaction:
                     $ref: "#/components/schemas/TracingRedactionConfig"
+                payloadMasking:
+                    $ref: "#/components/schemas/TracingPayloadMaskingConfig"
+        TracingPayloadMaskingConfig:
+            type: object
+            properties:
+                defaultReplacement:
+                    type: string
+                    description: >
+                        Fallback replacement text for FULL masking rules with no per-rule
+                        replacement. Defaults to [REDACTED].
+                    example: "[REDACTED]"
+                rules:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/TracingPayloadMaskingRule"
+        TracingPayloadMaskingRule:
+            type: object
+            required:
+                - path
+            properties:
+                path:
+                    type: string
+                    description: >
+                        JSONPath expression (e.g. $.creditCard.number) or XPath expression
+                        (e.g. //CreditCard/Number) identifying the field to mask.
+                    example: "$.password"
+                maskingStrategy:
+                    $ref: "#/components/schemas/TracingMaskingStrategy"
+                phase:
+                    type: string
+                    enum: [REQUEST, RESPONSE, BOTH]
+                    default: BOTH
+                    description: Which traffic direction(s) this rule applies to.
+                format:
+                    type: string
+                    enum: [JSON, XML, AUTO]
+                    default: AUTO
+                    description: >
+                        Body format. AUTO detects from Content-Type header and body heuristics.
         TracingRedactionConfig:
             type: object
             properties:

@@ -50,5 +50,6 @@ export * from './stepV4';
 export * from './subscriptionListener';
 export * from './tcpListener';
 export * from './McpSelector';
+export * from './payloadMaskingV4';
 export * from './redactionV4';
 export * from './tracingV4';

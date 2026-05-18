@@ -24,6 +24,7 @@ import { By } from '@angular/platform-browser';
 
 import { ReporterSettingsProxyHarness } from './reporter-settings-proxy.harness';
 import { ReporterSettingsProxyComponent } from './reporter-settings-proxy.component';
+import { ApiPayloadMaskingRulesComponent } from './api-payload-masking-rules/api-payload-masking-rules.component';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiV4, fakeProxyApiV4 } from '../../../../entities/management-api-v2';
@@ -559,6 +560,99 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
 
       expect((proxyInstance as any).pendingRedactionRules()).toBeNull();
       expect((proxyInstance as any).resetTriggerCounter()).toBe(counterBefore + 1);
+    });
+
+    it('should include pending payload masking rules when saving', async () => {
+      const apiWithPayloadMasking = fakeProxyApiV4({
+        id: API_ID,
+        analytics: {
+          enabled: true,
+          tracing: {
+            enabled: true,
+            verbose: false,
+            payloadMasking: {
+              rules: [{ path: '$.password', maskingStrategy: { type: 'FULL' }, phase: 'BOTH', format: 'JSON' }],
+            },
+          },
+        },
+      });
+      await initComponent(apiWithPayloadMasking);
+
+      const proxyInstance = fixture.debugElement.query(By.directive(ReporterSettingsProxyComponent))
+        .componentInstance as ReporterSettingsProxyComponent;
+      proxyInstance.onPayloadMaskingRulesChange([
+        { path: '$.password', maskingStrategy: { type: 'FULL' }, phase: 'BOTH', format: 'JSON' },
+        { path: '$.token', maskingStrategy: { type: 'FULL' }, phase: 'REQUEST', format: 'AUTO' },
+      ]);
+      fixture.detectChanges();
+
+      await componentHarness.clickOnSaveButton();
+
+      expectApiGetRequest(apiWithPayloadMasking);
+      expectApiPutRequest({
+        ...apiWithPayloadMasking,
+        analytics: {
+          ...apiWithPayloadMasking.analytics,
+          logging: {
+            condition: undefined,
+            mode: { entrypoint: undefined, endpoint: undefined },
+            phase: { request: undefined, response: undefined },
+            content: { headers: undefined, payload: undefined },
+          },
+          tracing: {
+            enabled: true,
+            verbose: false,
+            payloadMasking: {
+              defaultReplacement: undefined,
+              rules: [
+                { path: '$.password', maskingStrategy: { type: 'FULL' }, phase: 'BOTH', format: 'JSON' },
+                { path: '$.token', maskingStrategy: { type: 'FULL' }, phase: 'REQUEST', format: 'AUTO' },
+              ],
+            },
+          },
+        },
+      });
+    });
+
+    it('should clear pending payload masking rules on discard', async () => {
+      const proxyInstance = fixture.debugElement.query(By.directive(ReporterSettingsProxyComponent))
+        .componentInstance as ReporterSettingsProxyComponent;
+
+      proxyInstance.onPayloadMaskingRulesChange([{ path: '$.password', maskingStrategy: { type: 'FULL' }, phase: 'BOTH', format: 'JSON' }]);
+      fixture.detectChanges();
+
+      expect((proxyInstance as any).pendingPayloadMaskingRules()).toHaveLength(1);
+
+      await componentHarness.clickOnResetButton();
+
+      expect((proxyInstance as any).pendingPayloadMaskingRules()).toBeNull();
+    });
+
+    describe('Payload Masking section visibility', () => {
+      it('should show payload masking section when tracing is enabled (regardless of verbose)', async () => {
+        await initComponent(apiWithTracingEnabledAndVerboseFalse);
+        expect(fixture.debugElement.query(By.directive(ApiPayloadMaskingRulesComponent))).not.toBeNull();
+      });
+
+      it('should show payload masking section when tracing and verbose are both enabled', async () => {
+        await initComponent(apiWithTracingEnabled);
+        expect(fixture.debugElement.query(By.directive(ApiPayloadMaskingRulesComponent))).not.toBeNull();
+      });
+
+      it('should hide payload masking section when tracing is disabled', async () => {
+        await initComponent(apiWithTracingDisabled);
+        expect(fixture.debugElement.query(By.directive(ApiPayloadMaskingRulesComponent))).toBeNull();
+      });
+
+      it('should hide payload masking section after toggling tracing off', async () => {
+        await initComponent(apiWithTracingEnabled);
+        expect(fixture.debugElement.query(By.directive(ApiPayloadMaskingRulesComponent))).not.toBeNull();
+
+        await componentHarness.toggleTracingEnabled();
+        fixture.detectChanges();
+
+        expect(fixture.debugElement.query(By.directive(ApiPayloadMaskingRulesComponent))).toBeNull();
+      });
     });
   });
 });

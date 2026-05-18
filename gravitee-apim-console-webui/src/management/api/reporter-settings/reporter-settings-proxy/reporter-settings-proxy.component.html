@@ -116,6 +116,14 @@
         (rulesChange)="onRedactionRulesChange($event)"
       ></api-redaction-rules>
     }
+
+    @if (form.get('tracingEnabled').value && form.get('tracingVerbose').value) {
+      <api-payload-masking-rules
+        [api]="effectiveApi()"
+        [resetTrigger]="resetTriggerCounter()"
+        (rulesChange)="onPayloadMaskingRulesChange($event)"
+      ></api-payload-masking-rules>
+    }
   </mat-card>
   <gio-save-bar
     [form]="form"

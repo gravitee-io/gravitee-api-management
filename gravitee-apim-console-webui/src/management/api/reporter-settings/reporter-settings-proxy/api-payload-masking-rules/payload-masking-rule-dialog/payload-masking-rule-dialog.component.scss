@@ -14,12 +14,36 @@
  * limitations under the License.
  */
 
-import { RedactionConfig } from './redactionV4';
-import { PayloadMaskingConfig } from './payloadMaskingV4';
+.title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-export interface TracingV4 {
-  enabled: boolean;
-  verbose: boolean;
-  redaction?: RedactionConfig;
-  payloadMasking?: PayloadMaskingConfig;
+.field {
+  display: block;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.partialMask {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+
+  &__field {
+    flex: 1;
+  }
+
+  &__preview {
+    margin-bottom: 12px;
+    font-size: 0.85em;
+  }
+}
+
+.payloadMaskingRules__code {
+  background: #f5f5f5;
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-family: monospace;
 }
