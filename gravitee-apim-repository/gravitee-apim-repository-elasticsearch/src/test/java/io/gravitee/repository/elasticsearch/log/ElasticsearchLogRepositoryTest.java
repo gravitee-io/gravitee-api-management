@@ -19,6 +19,7 @@ import static io.gravitee.repository.analytics.query.DateRangeBuilder.lastDays;
 import static io.gravitee.repository.analytics.query.IntervalBuilder.hours;
 import static io.gravitee.repository.analytics.query.QueryBuilders.tabular;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 import io.gravitee.repository.analytics.query.tabular.TabularResponse;
 import io.gravitee.repository.common.query.QueryContext;
@@ -350,5 +351,23 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
 
         assertThat(response).isNotNull();
         assertThat(response.getLogs()).hasSizeLessThanOrEqualTo((int) response.getSize());
+    }
+
+    @Test
+    public void testTabular_filterWithBackslashEscapedQuotes_doesNotError() {
+        // APIM-13402: the legacy developer portal emits api:(\"uuid\") with literal \" pairs.
+        // Pre-fix, escapeForJsonLucene quadrupled the backslashes, corrupted the rendered JSON
+        // and Elasticsearch rejected it with a 400 — surfaced to the portal as a 500.
+        assertThatCode(() ->
+            logRepository.query(
+                queryContext,
+                tabular()
+                    .timeRange(lastDays(60), hours(1))
+                    .query("api:(\\\"be0aa9c9-ca1c-4d0a-8aa9-c9ca1c5d0aab\\\")")
+                    .page(1)
+                    .size(20)
+                    .build()
+            )
+        ).doesNotThrowAnyException();
     }
 }
