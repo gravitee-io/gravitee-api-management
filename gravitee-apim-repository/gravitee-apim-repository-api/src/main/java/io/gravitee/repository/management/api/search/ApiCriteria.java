@@ -23,6 +23,7 @@ import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -48,6 +49,7 @@ public class ApiCriteria {
     private List<DefinitionVersion> definitionVersion;
     private String integrationId;
     private List<ApiType> apiTypes;
+    private Date updatedAtFrom;
 
     ApiCriteria(ApiCriteria.Builder builder) {
         this.ids = builder.ids;
@@ -65,6 +67,7 @@ public class ApiCriteria {
         this.definitionVersion = builder.definitionVersion;
         this.integrationId = builder.integrationId;
         this.apiTypes = builder.apiTypes;
+        this.updatedAtFrom = builder.updatedAtFrom;
     }
 
     public Collection<String> getIds() {
@@ -139,6 +142,10 @@ public class ApiCriteria {
         return apiTypes;
     }
 
+    public Date getUpdatedAtFrom() {
+        return updatedAtFrom;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -159,7 +166,8 @@ public class ApiCriteria {
             Objects.equals(crossId, that.crossId) &&
             Objects.equals(definitionVersion, that.definitionVersion) &&
             Objects.equals(integrationId, that.integrationId) &&
-            Objects.equals(apiTypes, that.apiTypes)
+            Objects.equals(apiTypes, that.apiTypes) &&
+            Objects.equals(updatedAtFrom, that.updatedAtFrom)
         );
     }
 
@@ -180,7 +188,8 @@ public class ApiCriteria {
             crossId,
             definitionVersion,
             integrationId,
-            apiTypes
+            apiTypes,
+            updatedAtFrom
         );
     }
 
@@ -201,6 +210,7 @@ public class ApiCriteria {
         private List<DefinitionVersion> definitionVersion;
         private String integrationId;
         private List<ApiType> apiTypes;
+        private Date updatedAtFrom;
 
         public ApiCriteria.Builder ids(final String... id) {
             this.ids = Set.of(id);
@@ -284,6 +294,11 @@ public class ApiCriteria {
 
         public ApiCriteria.Builder apiTypes(final List<ApiType> apiTypes) {
             this.apiTypes = apiTypes;
+            return this;
+        }
+
+        public ApiCriteria.Builder updatedAtFrom(final Date updatedAtFrom) {
+            this.updatedAtFrom = updatedAtFrom;
             return this;
         }
 

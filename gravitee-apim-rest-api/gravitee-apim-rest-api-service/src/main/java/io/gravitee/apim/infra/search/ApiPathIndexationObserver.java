@@ -22,6 +22,7 @@ import io.gravitee.apim.core.search.IndexationObserver;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import lombok.CustomLog;
@@ -45,9 +46,9 @@ public class ApiPathIndexationObserver implements IndexationObserver {
         }
         try {
             if (snapshot.paths().isEmpty()) {
-                apiPathIndex.remove(snapshot.environmentId(), snapshot.apiId());
+                apiPathIndex.remove(snapshot.environmentId(), snapshot.apiId(), snapshot.updatedAt());
             } else {
-                apiPathIndex.index(snapshot.environmentId(), snapshot.apiId(), snapshot.paths());
+                apiPathIndex.index(snapshot.environmentId(), snapshot.apiId(), snapshot.paths(), snapshot.updatedAt());
             }
         } catch (RuntimeException e) {
             apiPathIndex.invalidate(snapshot.environmentId());
@@ -81,17 +82,30 @@ public class ApiPathIndexationObserver implements IndexationObserver {
         return switch (source) {
             case IndexableApi indexable -> {
                 var api = indexable.getApi();
-                yield Optional.of(new ApiPathSnapshot(api.getEnvironmentId(), api.getId(), ApiPathExtractor.extractPaths(api)));
+                yield Optional.of(
+                    new ApiPathSnapshot(
+                        api.getEnvironmentId(),
+                        api.getId(),
+                        ApiPathExtractor.extractPaths(api),
+                        api.getUpdatedAt() == null ? null : api.getUpdatedAt().toInstant()
+                    )
+                );
             }
             case io.gravitee.rest.api.model.api.ApiEntity v3 -> Optional.of(
                 new ApiPathSnapshot(
                     v3.getReferenceId(),
                     v3.getId(),
-                    v3.getProxy() == null ? List.of() : ApiPathExtractor.extractPathsFromVirtualHosts(v3.getProxy().getVirtualHosts())
+                    v3.getProxy() == null ? List.of() : ApiPathExtractor.extractPathsFromVirtualHosts(v3.getProxy().getVirtualHosts()),
+                    v3.getUpdatedAt() == null ? null : v3.getUpdatedAt().toInstant()
                 )
             );
             case ApiEntity v4 -> Optional.of(
-                new ApiPathSnapshot(v4.getReferenceId(), v4.getId(), ApiPathExtractor.extractPathsFromV4Listeners(v4.getListeners()))
+                new ApiPathSnapshot(
+                    v4.getReferenceId(),
+                    v4.getId(),
+                    ApiPathExtractor.extractPathsFromV4Listeners(v4.getListeners()),
+                    v4.getUpdatedAt() == null ? null : v4.getUpdatedAt().toInstant()
+                )
             );
             default -> {
                 log.debug("onIndex ignoring non-API Indexable class=[{}]", source.getClass().getName());
@@ -100,5 +114,5 @@ public class ApiPathIndexationObserver implements IndexationObserver {
         };
     }
 
-    private record ApiPathSnapshot(String environmentId, String apiId, List<Path> paths) {}
+    private record ApiPathSnapshot(String environmentId, String apiId, List<Path> paths, Instant updatedAt) {}
 }
