@@ -20,13 +20,21 @@ import io.gravitee.gamma.repository.authorization.model.AuthorizationEntity;
 import io.gravitee.gamma.repository.authorization.model.AuthorizationEntityKind;
 import io.gravitee.gamma.repository.exceptions.TechnicalException;
 import io.gravitee.gamma.repository.mongodb.internal.authorization.AuthorizationEntityMongoRepository;
+import io.gravitee.gamma.repository.mongodb.internal.model.AuthorizationEntityMongo;
 import io.gravitee.gamma.repository.mongodb.mapper.AuthorizationMapper;
+import io.gravitee.gamma.repository.paging.Pageable;
+import io.gravitee.gamma.repository.paging.PagedResult;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 
 @CustomLog
@@ -38,6 +46,10 @@ public class MongoAuthorizationEntityRepository implements AuthorizationEntityRe
 
     @Autowired
     private AuthorizationMapper mapper;
+
+    @Autowired
+    @Qualifier("managementMongoTemplate")
+    private MongoOperations mongoOperations;
 
     @Override
     public Optional<AuthorizationEntity> findById(String id) throws TechnicalException {
@@ -114,5 +126,29 @@ public class MongoAuthorizationEntityRepository implements AuthorizationEntityRe
     @Override
     public long deleteByEnvironmentIdAndEntityId(String environmentId, String entityId) throws TechnicalException {
         return internalRepository.deleteByEnvironmentIdAndEntityId(environmentId, entityId);
+    }
+
+    @Override
+    public PagedResult<AuthorizationEntity> findPage(
+        String environmentId,
+        AuthorizationEntityKind kind,
+        String source,
+        String entityIdPrefix,
+        Pageable pageable
+    ) throws TechnicalException {
+        Query query = new Query(Criteria.where("environmentId").is(environmentId));
+        if (kind != null) {
+            query.addCriteria(Criteria.where("kind").is(kind));
+        }
+        if (source != null) {
+            query.addCriteria(Criteria.where("source").is(source));
+        }
+        if (entityIdPrefix != null) {
+            query.addCriteria(Criteria.where("entityId").regex("^" + Pattern.quote(entityIdPrefix)));
+        }
+        long total = mongoOperations.count(query, AuthorizationEntityMongo.class);
+        query.skip(pageable.skip()).limit(pageable.perPage());
+        List<AuthorizationEntity> data = mongoOperations.find(query, AuthorizationEntityMongo.class).stream().map(mapper::map).toList();
+        return new PagedResult<>(data, total, pageable.page(), pageable.perPage());
     }
 }

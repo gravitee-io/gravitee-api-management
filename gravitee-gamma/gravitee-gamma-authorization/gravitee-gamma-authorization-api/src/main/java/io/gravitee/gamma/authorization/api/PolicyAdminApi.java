@@ -16,12 +16,12 @@
 package io.gravitee.gamma.authorization.api;
 
 import io.gravitee.gamma.authorization.service.CreatePolicyCommand;
-import io.gravitee.gamma.authorization.service.Pageable;
-import io.gravitee.gamma.authorization.service.PagedResult;
 import io.gravitee.gamma.authorization.service.PolicyFilter;
 import io.gravitee.gamma.authorization.service.UpdatePolicyCommand;
 import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicy;
 import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicyKind;
+import io.gravitee.gamma.repository.paging.Pageable;
+import io.gravitee.gamma.repository.paging.PagedResult;
 import java.util.List;
 import java.util.Optional;
 

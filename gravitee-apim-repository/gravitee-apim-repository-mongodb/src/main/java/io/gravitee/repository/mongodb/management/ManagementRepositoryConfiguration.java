@@ -49,7 +49,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
  */
 @Configuration
 @Import(EncryptionConfiguration.class)
-@ComponentScan
+@ComponentScan(basePackages = { "io.gravitee.repository.mongodb.management", "io.gravitee.gamma.repository.mongodb" })
 @EnableMongoRepositories
 @Profile("!test")
 public class ManagementRepositoryConfiguration extends AbstractRepositoryConfiguration {

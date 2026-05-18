@@ -18,15 +18,23 @@ package io.gravitee.gamma.repository.mongodb.authorization;
 import io.gravitee.gamma.repository.authorization.api.AuthorizationPolicyRepository;
 import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicy;
 import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicyKind;
+import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicyStatus;
 import io.gravitee.gamma.repository.exceptions.TechnicalException;
 import io.gravitee.gamma.repository.mongodb.internal.authorization.AuthorizationPolicyMongoRepository;
+import io.gravitee.gamma.repository.mongodb.internal.model.AuthorizationPolicyMongo;
 import io.gravitee.gamma.repository.mongodb.mapper.AuthorizationMapper;
+import io.gravitee.gamma.repository.paging.Pageable;
+import io.gravitee.gamma.repository.paging.PagedResult;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 
 @CustomLog
@@ -38,6 +46,10 @@ public class MongoAuthorizationPolicyRepository implements AuthorizationPolicyRe
 
     @Autowired
     private AuthorizationMapper mapper;
+
+    @Autowired
+    @Qualifier("managementMongoTemplate")
+    private MongoOperations mongoOperations;
 
     @Override
     public Optional<AuthorizationPolicy> findById(String id) throws TechnicalException {
@@ -99,5 +111,29 @@ public class MongoAuthorizationPolicyRepository implements AuthorizationPolicyRe
     @Override
     public long deleteByEnvironmentIdAndId(String environmentId, String id) throws TechnicalException {
         return internalRepository.deleteByEnvironmentIdAndId(environmentId, id);
+    }
+
+    @Override
+    public PagedResult<AuthorizationPolicy> findPage(
+        String environmentId,
+        AuthorizationPolicyKind kind,
+        String entityId,
+        AuthorizationPolicyStatus status,
+        Pageable pageable
+    ) throws TechnicalException {
+        Query query = new Query(Criteria.where("environmentId").is(environmentId));
+        if (kind != null) {
+            query.addCriteria(Criteria.where("kind").is(kind));
+        }
+        if (entityId != null) {
+            query.addCriteria(Criteria.where("entityId").is(entityId));
+        }
+        if (status != null) {
+            query.addCriteria(Criteria.where("status").is(status));
+        }
+        long total = mongoOperations.count(query, AuthorizationPolicyMongo.class);
+        query.skip(pageable.skip()).limit(pageable.perPage());
+        List<AuthorizationPolicy> data = mongoOperations.find(query, AuthorizationPolicyMongo.class).stream().map(mapper::map).toList();
+        return new PagedResult<>(data, total, pageable.page(), pageable.perPage());
     }
 }

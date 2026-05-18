@@ -30,6 +30,8 @@ import io.gravitee.gamma.repository.authorization.api.AuthorizationPolicyReposit
 import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicy;
 import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicyKind;
 import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicyStatus;
+import io.gravitee.gamma.repository.paging.Pageable;
+import io.gravitee.gamma.repository.paging.PagedResult;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
@@ -228,24 +230,8 @@ public class PolicyServiceImpl implements PolicyAdminApi {
     public PagedResult<AuthorizationPolicy> findPage(String environmentId, PolicyFilter filter, Pageable pageable) {
         requireNonBlank(environmentId, "environmentId");
         Objects.requireNonNull(pageable, "pageable must not be null");
-        return PagedResult.of(findInMemory(environmentId, filter), pageable);
-    }
-
-    private List<AuthorizationPolicy> findInMemory(String environmentId, PolicyFilter filter) {
         PolicyFilter f = filter == null ? PolicyFilter.none() : filter;
-        List<AuthorizationPolicy> base;
-        if (f.entityId() != null) {
-            base = repository.findAllByEnvironmentIdAndEntityId(environmentId, f.entityId());
-        } else if (f.kind() != null) {
-            base = repository.findAllByEnvironmentIdAndKind(environmentId, f.kind());
-        } else {
-            base = repository.findAllByEnvironmentId(environmentId);
-        }
-        return base
-            .stream()
-            .filter(p -> f.kind() == null || p.kind() == f.kind())
-            .filter(p -> f.status() == null || p.status() == f.status())
-            .toList();
+        return repository.findPage(environmentId, f.kind(), f.entityId(), f.status(), pageable);
     }
 
     @Override

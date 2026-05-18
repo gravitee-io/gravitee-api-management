@@ -19,6 +19,8 @@ import io.gravitee.gamma.repository.api.CrudRepository;
 import io.gravitee.gamma.repository.authorization.model.AuthorizationEntity;
 import io.gravitee.gamma.repository.authorization.model.AuthorizationEntityKind;
 import io.gravitee.gamma.repository.exceptions.TechnicalException;
+import io.gravitee.gamma.repository.paging.Pageable;
+import io.gravitee.gamma.repository.paging.PagedResult;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,4 +39,22 @@ public interface AuthorizationEntityRepository extends CrudRepository<Authorizat
     long deleteByEnvironmentIdAndId(String environmentId, String id) throws TechnicalException;
 
     long deleteByEnvironmentIdAndEntityId(String environmentId, String entityId) throws TechnicalException;
+
+    default PagedResult<AuthorizationEntity> findPage(
+        String environmentId,
+        AuthorizationEntityKind kind,
+        String source,
+        String entityIdPrefix,
+        Pageable pageable
+    ) throws TechnicalException {
+        List<AuthorizationEntity> base = entityIdPrefix != null
+            ? findAllByEnvironmentIdAndEntityIdStartingWith(environmentId, entityIdPrefix)
+            : findAllByEnvironmentId(environmentId);
+        List<AuthorizationEntity> matching = base
+            .stream()
+            .filter(e -> kind == null || e.kind() == kind)
+            .filter(e -> source == null || source.equals(e.source()))
+            .toList();
+        return PagedResult.of(matching, pageable);
+    }
 }

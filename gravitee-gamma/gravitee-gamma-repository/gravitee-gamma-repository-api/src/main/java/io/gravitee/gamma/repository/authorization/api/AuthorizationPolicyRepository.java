@@ -18,7 +18,10 @@ package io.gravitee.gamma.repository.authorization.api;
 import io.gravitee.gamma.repository.api.CrudRepository;
 import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicy;
 import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicyKind;
+import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicyStatus;
 import io.gravitee.gamma.repository.exceptions.TechnicalException;
+import io.gravitee.gamma.repository.paging.Pageable;
+import io.gravitee.gamma.repository.paging.PagedResult;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,4 +35,27 @@ public interface AuthorizationPolicyRepository extends CrudRepository<Authorizat
     List<AuthorizationPolicy> findAllByEnvironmentIdAndEntityId(String environmentId, String entityId) throws TechnicalException;
 
     long deleteByEnvironmentIdAndId(String environmentId, String id) throws TechnicalException;
+
+    default PagedResult<AuthorizationPolicy> findPage(
+        String environmentId,
+        AuthorizationPolicyKind kind,
+        String entityId,
+        AuthorizationPolicyStatus status,
+        Pageable pageable
+    ) throws TechnicalException {
+        List<AuthorizationPolicy> base;
+        if (entityId != null) {
+            base = findAllByEnvironmentIdAndEntityId(environmentId, entityId);
+        } else if (kind != null) {
+            base = findAllByEnvironmentIdAndKind(environmentId, kind);
+        } else {
+            base = findAllByEnvironmentId(environmentId);
+        }
+        List<AuthorizationPolicy> matching = base
+            .stream()
+            .filter(p -> kind == null || p.kind() == kind)
+            .filter(p -> status == null || p.status() == status)
+            .toList();
+        return PagedResult.of(matching, pageable);
+    }
 }

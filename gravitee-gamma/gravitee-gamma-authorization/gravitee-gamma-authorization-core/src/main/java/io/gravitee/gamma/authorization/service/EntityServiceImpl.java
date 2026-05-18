@@ -34,6 +34,8 @@ import io.gravitee.gamma.repository.authorization.api.AuthorizationPolicyReposit
 import io.gravitee.gamma.repository.authorization.model.AuthorizationEntity;
 import io.gravitee.gamma.repository.authorization.model.AuthorizationEntityKind;
 import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicy;
+import io.gravitee.gamma.repository.paging.Pageable;
+import io.gravitee.gamma.repository.paging.PagedResult;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -243,11 +245,8 @@ public class EntityServiceImpl implements EntityAdminApi {
         requireNonBlank(environmentId, "environmentId");
         Objects.requireNonNull(pageable, "pageable must not be null");
         validateFilter(filter);
-        // Delegated to the repo so production stores can short-circuit with a
-        // native skip/limit + count plan; the default repo impl falls back to
-        // in-memory paging which is identical to find() above. Both paths
-        // therefore stay consistent for adapters that don't override.
-        return PagedResult.of(findInMemory(environmentId, filter), pageable);
+        EntityFilter f = filter == null ? EntityFilter.none() : filter;
+        return entityRepository.findPage(environmentId, f.kind(), f.source(), f.entityIdPrefix(), pageable);
     }
 
     private void validateFilter(EntityFilter filter) {
