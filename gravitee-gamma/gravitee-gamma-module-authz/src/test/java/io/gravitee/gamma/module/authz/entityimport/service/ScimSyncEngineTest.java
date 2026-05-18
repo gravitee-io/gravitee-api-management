@@ -263,10 +263,11 @@ class ScimSyncEngineTest {
             """
         );
         when(entityApi.find(eq("env-1"), any(EntityFilter.class))).thenReturn(List.of());
-        when(entityApi.upsert(any(AuthzCallerContext.class), any(CreateOrReplaceEntityCommand.class)))
-            .thenAnswer(inv -> upsertResult(inv.<CreateOrReplaceEntityCommand>getArgument(1).entityId(), true));
+        when(entityApi.upsert(any(AuthzCallerContext.class), any(CreateOrReplaceEntityCommand.class))).thenAnswer(inv ->
+            upsertResult(inv.<CreateOrReplaceEntityCommand>getArgument(1).entityId(), true)
+        );
 
-        ScimSyncEngine.SyncResult result = engine.sync(connector(true, true));
+        ScimSyncEngine.SyncResult result = engine.sync(connector(true, true), null);
 
         assertThat(result.error).isNull();
         assertThat(result.warnings).isEmpty();
@@ -281,10 +282,10 @@ class ScimSyncEngineTest {
         // name is the raw SCIM displayName ("engineering"). No separate
         // "displayName" attribute is written — name is the single source
         // of truth for the group label.
-        verify(entityApi)
-            .upsert(
-                argThat(AuthzCallerContext::isSystem),
-                argThat(cmd ->
+        verify(entityApi).upsert(
+            argThat(AuthzCallerContext::isSystem),
+            argThat(
+                cmd ->
                     cmd.entityId().equals("group.okta.engineering") &&
                     cmd.kind() == EntityKind.PRINCIPAL &&
                     cmd.source().equals("scim") &&
@@ -294,17 +295,17 @@ class ScimSyncEngineTest {
                     !cmd.attributes().containsKey("displayName") &&
                     Integer.valueOf(2).equals(cmd.attributes().get("memberCount")) &&
                     cmd.parents().isEmpty()
-                )
-            );
+            )
+        );
         // User upsert: name is the raw SCIM userName ("alice"). The
         // structured `name` object and the SCIM `userName` itself are
         // reserved (we don't pass them through), but every other scalar
         // attribute on the payload — including SCIM `displayName` — is
         // copied verbatim by copyScalarAttributes.
-        verify(entityApi)
-            .upsert(
-                argThat(AuthzCallerContext::isSystem),
-                argThat(cmd ->
+        verify(entityApi).upsert(
+            argThat(AuthzCallerContext::isSystem),
+            argThat(
+                cmd ->
                     cmd.entityId().equals("user.okta.alice") &&
                     cmd.kind() == EntityKind.PRINCIPAL &&
                     "user".equals(cmd.attributes().get("_kind")) &&
@@ -314,8 +315,8 @@ class ScimSyncEngineTest {
                     !cmd.attributes().containsKey("userName") &&
                     Boolean.TRUE.equals(cmd.attributes().get("active")) &&
                     cmd.parents().equals(List.of("group.okta.engineering"))
-                )
-            );
+            )
+        );
     }
 
     @Test
@@ -342,23 +343,24 @@ class ScimSyncEngineTest {
             """
         );
         when(entityApi.find(eq("env-1"), any(EntityFilter.class))).thenReturn(List.of());
-        when(entityApi.upsert(any(AuthzCallerContext.class), any(CreateOrReplaceEntityCommand.class)))
-            .thenAnswer(inv -> upsertResult(inv.<CreateOrReplaceEntityCommand>getArgument(1).entityId(), true));
+        when(entityApi.upsert(any(AuthzCallerContext.class), any(CreateOrReplaceEntityCommand.class))).thenAnswer(inv ->
+            upsertResult(inv.<CreateOrReplaceEntityCommand>getArgument(1).entityId(), true)
+        );
 
-        engine.sync(connector(true, true));
+        engine.sync(connector(true, true), null);
 
-        verify(entityApi)
-            .upsert(
-                any(AuthzCallerContext.class),
-                argThat(cmd ->
+        verify(entityApi).upsert(
+            any(AuthzCallerContext.class),
+            argThat(
+                cmd ->
                     "Staff Engineer".equals(cmd.attributes().get("title")) &&
                     "Employee".equals(cmd.attributes().get("userType")) &&
                     "en-US".equals(cmd.attributes().get("preferredLanguage")) &&
                     "en-US".equals(cmd.attributes().get("locale")) &&
                     "alice@corp.local".equals(cmd.attributes().get("externalId")) &&
                     Integer.valueOf(42).equals(cmd.attributes().get("loginCount"))
-                )
-            );
+            )
+        );
     }
 
     @Test
@@ -386,22 +388,31 @@ class ScimSyncEngineTest {
             """
         );
         when(entityApi.find(eq("env-1"), any(EntityFilter.class))).thenReturn(List.of());
-        when(entityApi.upsert(any(AuthzCallerContext.class), any(CreateOrReplaceEntityCommand.class)))
-            .thenAnswer(inv -> upsertResult(inv.<CreateOrReplaceEntityCommand>getArgument(1).entityId(), true));
+        when(entityApi.upsert(any(AuthzCallerContext.class), any(CreateOrReplaceEntityCommand.class))).thenAnswer(inv ->
+            upsertResult(inv.<CreateOrReplaceEntityCommand>getArgument(1).entityId(), true)
+        );
 
-        engine.sync(connector(true, true));
+        engine.sync(connector(true, true), null);
 
-        verify(entityApi)
-            .upsert(
-                any(AuthzCallerContext.class),
-                argThat(cmd ->
+        verify(entityApi).upsert(
+            any(AuthzCallerContext.class),
+            argThat(
+                cmd ->
                     "Staff Engineer".equals(cmd.attributes().get("title")) &&
                     !cmd.attributes().containsKey("name.formatted") &&
                     !cmd.attributes().containsKey("addresses") &&
-                    cmd.attributes().keySet().stream().noneMatch(k -> k.startsWith("urn:")) &&
-                    cmd.attributes().keySet().stream().noneMatch(k -> k.contains("."))
-                )
-            );
+                    cmd
+                        .attributes()
+                        .keySet()
+                        .stream()
+                        .noneMatch(k -> k.startsWith("urn:")) &&
+                    cmd
+                        .attributes()
+                        .keySet()
+                        .stream()
+                        .noneMatch(k -> k.contains("."))
+            )
+        );
     }
 
     @Test
@@ -422,15 +433,16 @@ class ScimSyncEngineTest {
         );
         responses.put("/Users", "{ \"Resources\": [] }");
         when(entityApi.find(eq("env-1"), any(EntityFilter.class))).thenReturn(List.of());
-        when(entityApi.upsert(any(AuthzCallerContext.class), any(CreateOrReplaceEntityCommand.class)))
-            .thenAnswer(inv -> upsertResult(inv.<CreateOrReplaceEntityCommand>getArgument(1).entityId(), true));
+        when(entityApi.upsert(any(AuthzCallerContext.class), any(CreateOrReplaceEntityCommand.class))).thenAnswer(inv ->
+            upsertResult(inv.<CreateOrReplaceEntityCommand>getArgument(1).entityId(), true)
+        );
 
-        engine.sync(connector(true, true));
+        engine.sync(connector(true, true), null);
 
-        verify(entityApi)
-            .upsert(
-                any(AuthzCallerContext.class),
-                argThat(cmd ->
+        verify(entityApi).upsert(
+            any(AuthzCallerContext.class),
+            argThat(
+                cmd ->
                     cmd.entityId().equals("group.okta.engineering") &&
                     "engineering".equals(cmd.attributes().get("name")) &&
                     "Core engineering team".equals(cmd.attributes().get("description")) &&
@@ -438,8 +450,8 @@ class ScimSyncEngineTest {
                     !cmd.attributes().containsKey("displayName") &&
                     !cmd.attributes().containsKey("members") &&
                     Integer.valueOf(1).equals(cmd.attributes().get("memberCount"))
-                )
-            );
+            )
+        );
     }
 
     @Test
@@ -447,7 +459,7 @@ class ScimSyncEngineTest {
         responses.put("/Users", "{ \"Resources\": [] }");
         when(entityApi.find(eq("env-1"), any(EntityFilter.class))).thenReturn(List.of());
 
-        ScimSyncEngine.SyncResult result = engine.sync(connector(true, false));
+        ScimSyncEngine.SyncResult result = engine.sync(connector(true, false), null);
 
         assertThat(requestedPaths).noneMatch(p -> p.endsWith("/Groups"));
         assertThat(requestedPaths).anyMatch(p -> p.endsWith("/Users"));
@@ -460,7 +472,7 @@ class ScimSyncEngineTest {
         responses.put("/Groups", "{ \"Resources\": [] }");
         when(entityApi.find(eq("env-1"), any(EntityFilter.class))).thenReturn(List.of());
 
-        ScimSyncEngine.SyncResult result = engine.sync(connector(false, true));
+        ScimSyncEngine.SyncResult result = engine.sync(connector(false, true), null);
 
         assertThat(requestedPaths).noneMatch(p -> p.endsWith("/Users"));
         assertThat(requestedPaths).anyMatch(p -> p.endsWith("/Groups"));
@@ -477,10 +489,11 @@ class ScimSyncEngineTest {
         responses.put("/Groups", "{ \"Resources\": [ { \"id\": \"g1\", \"displayName\": \"engineering\" } ]}");
         responses.put("/Users", "{ \"Resources\": [ { \"id\": \"u1\", \"userName\": \"alice\" } ]}");
         when(entityApi.find(eq("env-1"), any(EntityFilter.class))).thenReturn(List.of());
-        when(entityApi.upsert(any(AuthzCallerContext.class), any(CreateOrReplaceEntityCommand.class)))
-            .thenAnswer(inv -> upsertResult(inv.<CreateOrReplaceEntityCommand>getArgument(1).entityId(), false));
+        when(entityApi.upsert(any(AuthzCallerContext.class), any(CreateOrReplaceEntityCommand.class))).thenAnswer(inv ->
+            upsertResult(inv.<CreateOrReplaceEntityCommand>getArgument(1).entityId(), false)
+        );
 
-        ScimSyncEngine.SyncResult result = engine.sync(connector(true, true));
+        ScimSyncEngine.SyncResult result = engine.sync(connector(true, true), null);
 
         assertThat(result.users).isEqualTo(1);
         assertThat(result.groups).isEqualTo(1);
@@ -512,10 +525,11 @@ class ScimSyncEngineTest {
             """
         );
         when(entityApi.find(eq("env-1"), any(EntityFilter.class))).thenReturn(List.of());
-        when(entityApi.upsert(any(AuthzCallerContext.class), any(CreateOrReplaceEntityCommand.class)))
-            .thenAnswer(inv -> upsertResult(inv.<CreateOrReplaceEntityCommand>getArgument(1).entityId(), true));
+        when(entityApi.upsert(any(AuthzCallerContext.class), any(CreateOrReplaceEntityCommand.class))).thenAnswer(inv ->
+            upsertResult(inv.<CreateOrReplaceEntityCommand>getArgument(1).entityId(), true)
+        );
 
-        ScimSyncEngine.SyncResult result = engine.sync(connector(true, true));
+        ScimSyncEngine.SyncResult result = engine.sync(connector(true, true), null);
 
         assertThat(result.groups).isEqualTo(1);
         assertThat(result.users).isEqualTo(1);
@@ -531,10 +545,11 @@ class ScimSyncEngineTest {
         responses.put("/Groups", "{ \"totalResults\": 0, \"Resources\": [] }");
         dynamicResponses.put("/Users", uri -> usersPage(uri, /* total */ 250, /* pageSize */ 100));
         when(entityApi.find(eq("env-1"), any(EntityFilter.class))).thenReturn(List.of());
-        when(entityApi.upsert(any(AuthzCallerContext.class), any(CreateOrReplaceEntityCommand.class)))
-            .thenAnswer(inv -> upsertResult(inv.<CreateOrReplaceEntityCommand>getArgument(1).entityId(), true));
+        when(entityApi.upsert(any(AuthzCallerContext.class), any(CreateOrReplaceEntityCommand.class))).thenAnswer(inv ->
+            upsertResult(inv.<CreateOrReplaceEntityCommand>getArgument(1).entityId(), true)
+        );
 
-        ScimSyncEngine.SyncResult result = engine.sync(connector(true, true));
+        ScimSyncEngine.SyncResult result = engine.sync(connector(true, true), null);
 
         assertThat(result.error).isNull();
         assertThat(result.warnings).isEmpty();
@@ -550,22 +565,20 @@ class ScimSyncEngineTest {
         // treats it as the last page and stops — even if totalResults disagrees
         // (some IdPs are sloppy about totalResults under filtering).
         responses.put("/Groups", "{ \"Resources\": [] }");
-        dynamicResponses.put(
-            "/Users",
-            uri -> {
-                int startIndex = parseStartIndex(uri);
-                if (startIndex == 1) {
-                    // 50 records — fewer than count=100, so last page.
-                    return usersBody(buildUsers(1, 50), /* totalResults */ 9999);
-                }
-                throw new AssertionError("should not request a second page; startIndex=" + startIndex);
+        dynamicResponses.put("/Users", uri -> {
+            int startIndex = parseStartIndex(uri);
+            if (startIndex == 1) {
+                // 50 records — fewer than count=100, so last page.
+                return usersBody(buildUsers(1, 50), /* totalResults */ 9999);
             }
-        );
+            throw new AssertionError("should not request a second page; startIndex=" + startIndex);
+        });
         when(entityApi.find(eq("env-1"), any(EntityFilter.class))).thenReturn(List.of());
-        when(entityApi.upsert(any(AuthzCallerContext.class), any(CreateOrReplaceEntityCommand.class)))
-            .thenAnswer(inv -> upsertResult(inv.<CreateOrReplaceEntityCommand>getArgument(1).entityId(), true));
+        when(entityApi.upsert(any(AuthzCallerContext.class), any(CreateOrReplaceEntityCommand.class))).thenAnswer(inv ->
+            upsertResult(inv.<CreateOrReplaceEntityCommand>getArgument(1).entityId(), true)
+        );
 
-        ScimSyncEngine.SyncResult result = engine.sync(connector(true, true));
+        ScimSyncEngine.SyncResult result = engine.sync(connector(true, true), null);
 
         assertThat(result.users).isEqualTo(50);
         assertThat(userQueries()).containsExactly("startIndex=1&count=100");
@@ -579,10 +592,11 @@ class ScimSyncEngineTest {
         responses.put("/Groups", "{ \"Resources\": [] }");
         dynamicResponses.put("/Users", uri -> usersPage(uri, /* total */ 200, /* pageSize */ 100));
         when(entityApi.find(eq("env-1"), any(EntityFilter.class))).thenReturn(List.of());
-        when(entityApi.upsert(any(AuthzCallerContext.class), any(CreateOrReplaceEntityCommand.class)))
-            .thenAnswer(inv -> upsertResult(inv.<CreateOrReplaceEntityCommand>getArgument(1).entityId(), true));
+        when(entityApi.upsert(any(AuthzCallerContext.class), any(CreateOrReplaceEntityCommand.class))).thenAnswer(inv ->
+            upsertResult(inv.<CreateOrReplaceEntityCommand>getArgument(1).entityId(), true)
+        );
 
-        ScimSyncEngine.SyncResult result = engine.sync(connector(true, true));
+        ScimSyncEngine.SyncResult result = engine.sync(connector(true, true), null);
 
         assertThat(result.users).isEqualTo(200);
         assertThat(userQueries()).containsExactly("startIndex=1&count=100", "startIndex=101&count=100");
@@ -603,10 +617,11 @@ class ScimSyncEngineTest {
         // deleted it; with pagination it must NOT.
         Entity page2Mirror = scimEntity("user.okta.alice-101", "okta");
         when(entityApi.find(eq("env-1"), any(EntityFilter.class))).thenReturn(List.of(page2Mirror));
-        when(entityApi.upsert(any(AuthzCallerContext.class), any(CreateOrReplaceEntityCommand.class)))
-            .thenAnswer(inv -> upsertResult(inv.<CreateOrReplaceEntityCommand>getArgument(1).entityId(), false));
+        when(entityApi.upsert(any(AuthzCallerContext.class), any(CreateOrReplaceEntityCommand.class))).thenAnswer(inv ->
+            upsertResult(inv.<CreateOrReplaceEntityCommand>getArgument(1).entityId(), false)
+        );
 
-        ScimSyncEngine.SyncResult result = engine.sync(connector(true, true));
+        ScimSyncEngine.SyncResult result = engine.sync(connector(true, true), null);
 
         assertThat(result.users).isEqualTo(150);
         assertThat(result.deleted).isZero();
@@ -620,7 +635,7 @@ class ScimSyncEngineTest {
         // because error was set in the groups branch — entityApi.find/delete are
         // never called and we deliberately omit their stubs (strict-mode mocking).
 
-        ScimSyncEngine.SyncResult result = engine.sync(connector(true, true));
+        ScimSyncEngine.SyncResult result = engine.sync(connector(true, true), null);
 
         assertThat(result.error).contains("/Groups");
         assertThat(result.users).isZero();
@@ -647,10 +662,11 @@ class ScimSyncEngineTest {
         Entity bob = scimEntity("user.okta.bob", "okta");
         Entity charlie = scimEntity("user.azure.charlie", "azure");
         when(entityApi.find(eq("env-1"), any(EntityFilter.class))).thenReturn(List.of(alice, bob, charlie));
-        when(entityApi.upsert(any(AuthzCallerContext.class), any(CreateOrReplaceEntityCommand.class)))
-            .thenAnswer(inv -> upsertResult(inv.<CreateOrReplaceEntityCommand>getArgument(1).entityId(), false));
+        when(entityApi.upsert(any(AuthzCallerContext.class), any(CreateOrReplaceEntityCommand.class))).thenAnswer(inv ->
+            upsertResult(inv.<CreateOrReplaceEntityCommand>getArgument(1).entityId(), false)
+        );
 
-        ScimSyncEngine.SyncResult result = engine.sync(connector(true, true));
+        ScimSyncEngine.SyncResult result = engine.sync(connector(true, true), null);
 
         assertThat(result.deleted).isEqualTo(1);
         verify(entityApi).delete(any(AuthzCallerContext.class), eq("user.okta.bob"));

@@ -3,7 +3,9 @@ package io.gravitee.gamma.module.authz.entityimport.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -16,14 +18,17 @@ import io.gravitee.apim.authorization.domain.Entity;
 import io.gravitee.apim.authorization.domain.EntityKind;
 import io.gravitee.apim.authorization.service.CascadeResult;
 import io.gravitee.apim.authorization.service.EntityFilter;
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.gamma.module.authz.entityimport.model.ScimConnectorRequest;
 import io.gravitee.gamma.module.authz.entityimport.model.ScimConnectorResponse;
 import io.gravitee.gamma.module.authz.entityimport.repository.ScimConnectorDocument;
 import io.gravitee.gamma.module.authz.entityimport.repository.ScimConnectorRepository;
+import java.security.GeneralSecurityException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -63,8 +68,24 @@ class ScimConnectorServiceTest {
     @Mock
     private ScimSyncEngine syncEngine;
 
+    @Mock
+    private DataEncryptor dataEncryptor;
+
     @InjectMocks
     private ScimConnectorService service;
+
+    @BeforeEach
+    void stubEncryptor() throws GeneralSecurityException {
+        lenient()
+            .when(dataEncryptor.encrypt(anyString()))
+            .thenAnswer(inv -> "enc:" + inv.getArgument(0));
+        lenient()
+            .when(dataEncryptor.decrypt(anyString()))
+            .thenAnswer(inv -> {
+                String s = inv.getArgument(0);
+                return s.startsWith("enc:") ? s.substring(4) : s;
+            });
+    }
 
     private static ScimConnectorRequest request(String name, String url, String token, Boolean importUsers, Boolean importGroups) {
         return new ScimConnectorRequest(name, url, token, importUsers, importGroups);
@@ -117,7 +138,7 @@ class ScimConnectorServiceTest {
         assertThat(saved.getEnvironmentId()).isEqualTo(ENV);
         assertThat(saved.getName()).isEqualTo("okta");
         assertThat(saved.getUrl()).isEqualTo("https://idp/scim");
-        assertThat(saved.getToken()).isEqualTo("tok");
+        assertThat(saved.getToken()).isEqualTo("enc:tok");
         assertThat(saved.isImportUsers()).isTrue();
         assertThat(saved.isImportGroups()).isTrue();
         assertThat(saved.getCreatedAt()).isNotNull();
@@ -151,6 +172,31 @@ class ScimConnectorServiceTest {
         ArgumentCaptor<ScimConnectorDocument> captor = ArgumentCaptor.forClass(ScimConnectorDocument.class);
         verify(repo).save(captor.capture());
         assertThat(captor.getValue().getToken()).isNull();
+    }
+
+    @Test
+    void create_encryptsTokenBeforePersist() throws GeneralSecurityException {
+        when(repo.findByEnvAndName(ENV, "okta")).thenReturn(Optional.empty());
+        when(repo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        service.create(ENV, request("okta", "https://idp/scim", "plain-tok", true, true));
+
+        verify(dataEncryptor).encrypt("plain-tok");
+        ArgumentCaptor<ScimConnectorDocument> captor = ArgumentCaptor.forClass(ScimConnectorDocument.class);
+        verify(repo).save(captor.capture());
+        assertThat(captor.getValue().getToken()).isNotEqualTo("plain-tok").startsWith("enc:");
+    }
+
+    @Test
+    void create_wrapsEncryptionFailure_asIllegalState() throws GeneralSecurityException {
+        when(repo.findByEnvAndName(ENV, "okta")).thenReturn(Optional.empty());
+        when(dataEncryptor.encrypt("plain-tok")).thenThrow(new GeneralSecurityException("bad key"));
+
+        assertThatThrownBy(() -> service.create(ENV, request("okta", "https://idp/scim", "plain-tok", true, true)))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("encrypt SCIM token");
+
+        verify(repo, never()).save(any());
     }
 
     @Test
@@ -204,8 +250,9 @@ class ScimConnectorServiceTest {
     void update_throwsNotFound_whenIdMissing() {
         when(repo.findById("missing", ENV)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.update(ENV, "missing", request("okta", "u", "t", true, true)))
-            .isInstanceOf(NotFoundException.class);
+        assertThatThrownBy(() -> service.update(ENV, "missing", request("okta", "u", "t", true, true))).isInstanceOf(
+            NotFoundException.class
+        );
 
         verify(repo, never()).save(any());
     }
@@ -220,7 +267,7 @@ class ScimConnectorServiceTest {
         ScimConnectorResponse out = service.update(ENV, "a", request("okta", "https://new", "new-tok", false, true));
 
         assertThat(doc.getUrl()).isEqualTo("https://new");
-        assertThat(doc.getToken()).isEqualTo("new-tok");
+        assertThat(doc.getToken()).isEqualTo("enc:new-tok");
         assertThat(doc.isImportUsers()).isFalse();
         assertThat(doc.isImportGroups()).isTrue();
         assertThat(doc.getUpdatedAt()).isAfter(before);
@@ -285,14 +332,13 @@ class ScimConnectorServiceTest {
     void delete_sweepsScimMirrors_owningConnector_throughEntityAdminApi() {
         when(repo.findById("a", ENV)).thenReturn(Optional.of(existing("a", "okta")));
         when(repo.deleteById("a", ENV)).thenReturn(true);
-        when(entityApi.find(eq(ENV), any(EntityFilter.class)))
-            .thenReturn(
-                List.of(
-                    scimEntity("user.okta.alice", "okta"),
-                    scimEntity("group.okta.eng", "okta"),
-                    scimEntity("user.azure.bob", "azure") // owned by another connector
-                )
-            );
+        when(entityApi.find(eq(ENV), any(EntityFilter.class))).thenReturn(
+            List.of(
+                scimEntity("user.okta.alice", "okta"),
+                scimEntity("group.okta.eng", "okta"),
+                scimEntity("user.azure.bob", "azure") // owned by another connector
+            )
+        );
 
         boolean result = service.delete(ENV, "a");
 
@@ -307,8 +353,7 @@ class ScimConnectorServiceTest {
     @Test
     void delete_usesSystemCaller_forSweep() {
         when(repo.findById("a", ENV)).thenReturn(Optional.of(existing("a", "okta")));
-        when(entityApi.find(eq(ENV), any(EntityFilter.class)))
-            .thenReturn(List.of(scimEntity("user.okta.alice", "okta")));
+        when(entityApi.find(eq(ENV), any(EntityFilter.class))).thenReturn(List.of(scimEntity("user.okta.alice", "okta")));
 
         service.delete(ENV, "a");
 
@@ -334,13 +379,13 @@ class ScimConnectorServiceTest {
     void delete_continuesSweep_whenIndividualEntityDeleteFails() {
         when(repo.findById("a", ENV)).thenReturn(Optional.of(existing("a", "okta")));
         when(repo.deleteById("a", ENV)).thenReturn(true);
-        when(entityApi.find(eq(ENV), any(EntityFilter.class)))
-            .thenReturn(List.of(scimEntity("user.okta.alice", "okta"), scimEntity("group.okta.eng", "okta")));
+        when(entityApi.find(eq(ENV), any(EntityFilter.class))).thenReturn(
+            List.of(scimEntity("user.okta.alice", "okta"), scimEntity("group.okta.eng", "okta"))
+        );
         // First delete throws — sweep must absorb it and keep going.
         // EntityAdminApi.delete returns CascadeResult (non-void) so the 2nd
         // call is stubbed via doReturn rather than doNothing.
-        Mockito
-            .doThrow(new RuntimeException("boom"))
+        Mockito.doThrow(new RuntimeException("boom"))
             .doReturn(new CascadeResult(List.of(), List.of()))
             .when(entityApi)
             .delete(any(AuthzCallerContext.class), any());
@@ -379,6 +424,20 @@ class ScimConnectorServiceTest {
     // ─────────────────────────────────────────────────────────────────────
 
     @Test
+    void syncNow_decryptsTokenBeforePassingToEngine() throws GeneralSecurityException {
+        ScimConnectorDocument doc = existing("a", "okta");
+        doc.setToken("enc:plain-tok");
+        when(repo.findById("a", ENV)).thenReturn(Optional.of(doc));
+        when(repo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(syncEngine.sync(eq(doc), eq("plain-tok"))).thenReturn(new ScimSyncEngine.SyncResult());
+
+        service.syncNow(ENV, "a");
+
+        verify(dataEncryptor).decrypt("enc:plain-tok");
+        verify(syncEngine).sync(eq(doc), eq("plain-tok"));
+    }
+
+    @Test
     void syncNow_persistsStatusOk_whenNoErrorNoWarnings() {
         ScimConnectorDocument doc = existing("a", "okta");
         when(repo.findById("a", ENV)).thenReturn(Optional.of(doc));
@@ -387,7 +446,7 @@ class ScimConnectorServiceTest {
         result.users = 5;
         result.groups = 2;
         result.deleted = 1;
-        when(syncEngine.sync(doc)).thenReturn(result);
+        when(syncEngine.sync(eq(doc), any())).thenReturn(result);
 
         ScimConnectorResponse out = service.syncNow(ENV, "a");
 
@@ -406,7 +465,7 @@ class ScimConnectorServiceTest {
         ScimSyncEngine.SyncResult result = new ScimSyncEngine.SyncResult();
         result.warnings.add("user alice: HTTP 500");
         result.warnings.add("user bob: invalid");
-        when(syncEngine.sync(doc)).thenReturn(result);
+        when(syncEngine.sync(eq(doc), any())).thenReturn(result);
 
         ScimConnectorResponse out = service.syncNow(ENV, "a");
 
@@ -422,7 +481,7 @@ class ScimConnectorServiceTest {
         ScimSyncEngine.SyncResult result = new ScimSyncEngine.SyncResult();
         result.error = "Failed to fetch /Users: connection refused";
         result.warnings.add("group eng: HTTP 503"); // ignored when error is set
-        when(syncEngine.sync(doc)).thenReturn(result);
+        when(syncEngine.sync(eq(doc), any())).thenReturn(result);
 
         ScimConnectorResponse out = service.syncNow(ENV, "a");
 
@@ -434,8 +493,7 @@ class ScimConnectorServiceTest {
     void syncNow_throwsNotFound_whenConnectorMissing() {
         when(repo.findById("missing", ENV)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.syncNow(ENV, "missing"))
-            .isInstanceOf(NotFoundException.class);
+        assertThatThrownBy(() -> service.syncNow(ENV, "missing")).isInstanceOf(NotFoundException.class);
 
         verifyNoInteractions(syncEngine);
     }
@@ -445,7 +503,7 @@ class ScimConnectorServiceTest {
         ScimConnectorDocument doc = existing("a", "okta");
         ScimSyncEngine.SyncResult result = new ScimSyncEngine.SyncResult();
         result.users = 1;
-        when(syncEngine.sync(doc)).thenReturn(result);
+        when(syncEngine.sync(eq(doc), any())).thenReturn(result);
 
         service.runScheduledSync(doc);
 

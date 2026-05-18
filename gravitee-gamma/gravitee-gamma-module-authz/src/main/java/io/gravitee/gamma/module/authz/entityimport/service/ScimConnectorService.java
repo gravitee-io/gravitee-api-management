@@ -1,13 +1,15 @@
 package io.gravitee.gamma.module.authz.entityimport.service;
 
-import io.gravitee.gamma.module.authz.entityimport.model.ScimConnectorRequest;
-import io.gravitee.gamma.module.authz.entityimport.model.ScimConnectorResponse;
-import io.gravitee.gamma.module.authz.entityimport.repository.ScimConnectorDocument;
-import io.gravitee.gamma.module.authz.entityimport.repository.ScimConnectorRepository;
 import io.gravitee.apim.authorization.api.AuthzCallerContext;
 import io.gravitee.apim.authorization.api.EntityAdminApi;
 import io.gravitee.apim.authorization.domain.Entity;
 import io.gravitee.apim.authorization.service.EntityFilter;
+import io.gravitee.common.util.DataEncryptor;
+import io.gravitee.gamma.module.authz.entityimport.model.ScimConnectorRequest;
+import io.gravitee.gamma.module.authz.entityimport.model.ScimConnectorResponse;
+import io.gravitee.gamma.module.authz.entityimport.repository.ScimConnectorDocument;
+import io.gravitee.gamma.module.authz.entityimport.repository.ScimConnectorRepository;
+import java.security.GeneralSecurityException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -21,12 +23,19 @@ public class ScimConnectorService {
     private final ScimConnectorRepository repo;
     private final EntityAdminApi entityApi;
     private final ScimSyncEngine syncEngine;
+    private final DataEncryptor dataEncryptor;
 
     @Autowired
-    public ScimConnectorService(ScimConnectorRepository repo, EntityAdminApi entityApi, ScimSyncEngine syncEngine) {
+    public ScimConnectorService(
+        ScimConnectorRepository repo,
+        EntityAdminApi entityApi,
+        ScimSyncEngine syncEngine,
+        DataEncryptor dataEncryptor
+    ) {
         this.repo = repo;
         this.entityApi = entityApi;
         this.syncEngine = syncEngine;
+        this.dataEncryptor = dataEncryptor;
     }
 
     public ScimConnectorResponse create(String environmentId, ScimConnectorRequest request) {
@@ -96,16 +105,14 @@ public class ScimConnectorService {
 
     /** Run sync now for one connector, persisting status fields on the document. */
     public ScimConnectorResponse syncNow(String environmentId, String id) {
-        ScimConnectorDocument doc = repo
-            .findById(id, environmentId)
-            .orElseThrow(() -> new NotFoundException("Connector not found: " + id));
-        applySyncResult(doc, syncEngine.sync(doc));
+        ScimConnectorDocument doc = repo.findById(id, environmentId).orElseThrow(() -> new NotFoundException("Connector not found: " + id));
+        applySyncResult(doc, syncEngine.sync(doc, decryptToken(doc.getToken())));
         return toResponse(repo.save(doc));
     }
 
     /** Called by the scheduler — runs sync against an already-loaded document. */
     public void runScheduledSync(ScimConnectorDocument doc) {
-        applySyncResult(doc, syncEngine.sync(doc));
+        applySyncResult(doc, syncEngine.sync(doc, decryptToken(doc.getToken())));
         repo.save(doc);
     }
 
@@ -135,10 +142,27 @@ public class ScimConnectorService {
         doc.setName(req.name());
         doc.setUrl(req.url());
         if (req.token() != null && !req.token().isBlank()) {
-            doc.setToken(req.token());
+            doc.setToken(encryptToken(req.token()));
         }
         doc.setImportUsers(req.importUsers() == null || req.importUsers());
         doc.setImportGroups(req.importGroups() == null || req.importGroups());
+    }
+
+    private String encryptToken(String plaintext) {
+        try {
+            return dataEncryptor.encrypt(plaintext);
+        } catch (GeneralSecurityException e) {
+            throw new IllegalStateException("Failed to encrypt SCIM token", e);
+        }
+    }
+
+    private String decryptToken(String ciphertext) {
+        if (ciphertext == null || ciphertext.isBlank()) return null;
+        try {
+            return dataEncryptor.decrypt(ciphertext);
+        } catch (GeneralSecurityException e) {
+            throw new IllegalStateException("Failed to decrypt SCIM token", e);
+        }
     }
 
     private ScimConnectorResponse toResponse(ScimConnectorDocument d) {

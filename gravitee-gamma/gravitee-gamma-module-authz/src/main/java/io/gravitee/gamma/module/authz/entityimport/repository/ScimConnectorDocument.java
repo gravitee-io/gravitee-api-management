@@ -13,19 +13,11 @@ public class ScimConnectorDocument {
 
     @Id
     private String id;
+
     private String environmentId;
     private String name;
     private String url;
 
-    /**
-     * SCIM bearer token used to authenticate against the upstream IdP.
-     *
-     * <p>TODO(authz-scim-token): encrypt at rest. Currently persisted as
-     * plaintext in {@code gamma_scim_connectors.token}. Should be encrypted
-     * via the platform's {@code DataEncryptor} adapter (see how APIM stores
-     * API keys / OAuth client secrets) before save and decrypted on load so
-     * a Mongo dump never exposes live IdP credentials.
-     */
     private String token;
 
     private boolean importUsers;
@@ -38,5 +30,4 @@ public class ScimConnectorDocument {
     private int lastDeleted;
     private Instant createdAt;
     private Instant updatedAt;
-
 }

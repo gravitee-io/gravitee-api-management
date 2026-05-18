@@ -2,7 +2,6 @@ package io.gravitee.gamma.module.authz.entityimport.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.gamma.module.authz.entityimport.repository.ScimConnectorDocument;
 import io.gravitee.apim.authorization.api.AuthzCallerContext;
 import io.gravitee.apim.authorization.api.EntityAdminApi;
 import io.gravitee.apim.authorization.domain.Entity;
@@ -10,6 +9,7 @@ import io.gravitee.apim.authorization.domain.EntityKind;
 import io.gravitee.apim.authorization.service.CreateOrReplaceEntityCommand;
 import io.gravitee.apim.authorization.service.EntityFilter;
 import io.gravitee.apim.authorization.service.UpsertResult;
+import io.gravitee.gamma.module.authz.entityimport.repository.ScimConnectorDocument;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -106,14 +106,14 @@ public class ScimSyncEngine {
         public String error;
     }
 
-    public SyncResult sync(ScimConnectorDocument c) {
+    public SyncResult sync(ScimConnectorDocument c, String token) {
         SyncResult r = new SyncResult();
         String base = stripTrailingSlash(c.getUrl());
         Set<String> expectedEntityIds = new HashSet<>();
 
         if (c.isImportGroups()) {
             try {
-                walkScimPages(base + "/Groups", c.getToken(), "/Groups", r, group -> {
+                walkScimPages(base + "/Groups", token, "/Groups", r, group -> {
                     String display = safeText(group, "displayName");
                     if (display == null || display.isBlank()) return;
                     String entityId = entityIdFor(c.getName(), "group", display);
@@ -133,7 +133,7 @@ public class ScimSyncEngine {
 
         if (c.isImportUsers() && r.error == null) {
             try {
-                walkScimPages(base + "/Users", c.getToken(), "/Users", r, user -> {
+                walkScimPages(base + "/Users", token, "/Users", r, user -> {
                     String userName = safeText(user, "userName");
                     if (userName == null || userName.isBlank()) return;
                     String entityId = entityIdFor(c.getName(), "user", userName);
@@ -201,7 +201,14 @@ public class ScimSyncEngine {
             if (pageSize < PAGE_SIZE) return;
             startIndex += pageSize;
         }
-        r.warnings.add(pathLabel + ": stopped after " + MAX_PAGES + " pages (~" + (MAX_PAGES * PAGE_SIZE) + " records) — upstream may be paginating incorrectly");
+        r.warnings.add(
+            pathLabel +
+                ": stopped after " +
+                MAX_PAGES +
+                " pages (~" +
+                (MAX_PAGES * PAGE_SIZE) +
+                " records) — upstream may be paginating incorrectly"
+        );
     }
 
     /**
