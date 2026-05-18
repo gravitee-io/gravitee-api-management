@@ -152,6 +152,20 @@ export class ApiV2Service {
     });
   }
 
+  /**
+   * Creates a v4 API by asking the backend to fetch a Gravitee export from `definitionUrl` and import it.
+   * Body is the URL string itself (`text/plain`). The backend ignores any `Authorization` header.
+   *
+   * Create only — there is no update-from-URL equivalent yet (planned in APIM-12142).
+   */
+  importFromUrl(definitionUrl: string): Observable<ApiV4> {
+    return this.http.post<ApiV4>(`${this.constants.env.v2BaseURL}/apis/_import/definition-url`, definitionUrl, {
+      headers: {
+        'Content-Type': 'text/plain',
+      },
+    });
+  }
+
   importSwaggerApi(descriptor: ImportSwaggerDescriptor) {
     return this.http.post<ApiV4>(`${this.constants.env.v2BaseURL}/apis/_import/swagger`, descriptor, {
       headers: {

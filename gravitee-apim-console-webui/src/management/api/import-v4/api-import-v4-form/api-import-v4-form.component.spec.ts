@@ -298,10 +298,8 @@ describe('ApiImportV4FormComponent', () => {
     expect(apiV2.importSwaggerApi).not.toHaveBeenCalled();
   });
 
-  it('should GET remote JSON then import for Gravitee remote', async () => {
-    const apiV2 = TestBed.inject(ApiV2Service);
+  it('should POST the remote URL as text/plain to the backend for Gravitee remote', async () => {
     const httpMock = TestBed.inject(HttpTestingController);
-    jest.spyOn(apiV2, 'import').mockReturnValue(of({ id: 'imported' } as ApiV4));
 
     await harness.selectFormat('gravitee');
     fixture.detectChanges();
@@ -314,15 +312,36 @@ describe('ApiImportV4FormComponent', () => {
     expect(await harness.isImportButtonDisabled()).toBe(false);
 
     await harness.clickImport();
-    const remoteReq = httpMock.expectOne(r => r.url === 'https://cdn.example/def.json');
-    expect(remoteReq.request.method).toBe('GET');
-    remoteReq.flush(JSON.stringify({ api: { definitionVersion: 'V4' } }));
-
-    expect(apiV2.import).toHaveBeenCalledWith(JSON.stringify({ api: { definitionVersion: 'V4' } }));
+    const req = httpMock.expectOne(r => r.method === 'POST' && r.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_import/definition-url`);
+    expect(req.request.body).toBe('https://cdn.example/def.json');
+    expect(req.request.headers.get('Content-Type')).toBe('text/plain');
+    req.flush(fakeApiV4({ id: 'imported-remote' }));
     httpMock.verify();
   });
 
-  it('should show actionable message when remote fetch fails with status 0', async () => {
+  it('should not GET the remote URL from the browser when Gravitee remote is selected', async () => {
+    const httpMock = TestBed.inject(HttpTestingController);
+
+    await harness.selectFormat('gravitee');
+    fixture.detectChanges();
+    await harness.clickNext();
+    await harness.selectSource('remote');
+    await harness.setRemoteUrl('https://cdn.example/def.json');
+    fixture.detectChanges();
+    await harness.clickNext();
+    await harness.clickImport();
+
+    httpMock.expectNone(r => r.method === 'GET' && r.url === 'https://cdn.example/def.json');
+    const req = httpMock.expectOne(r => r.method === 'POST' && r.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_import/definition-url`);
+    req.flush(fakeApiV4({ id: 'imported-remote' }));
+    httpMock.verify();
+  });
+
+  it.each([
+    [400, { message: 'Unable to reach the remote URL' }, 'Unable to reach the remote URL'],
+    [403, { message: 'You are not allowed to create APIs in this environment' }, 'You are not allowed to create APIs in this environment'],
+    [500, { message: 'Internal server error' }, 'Internal server error'],
+  ])('should surface backend message in snackbar when import-url endpoint returns %s', async (status, body, expectedMessage) => {
     const snackBarService = TestBed.inject(SnackBarService);
     const snackBarErrorSpy = jest.spyOn(snackBarService, 'error');
     const httpMock = TestBed.inject(HttpTestingController);
@@ -336,13 +355,41 @@ describe('ApiImportV4FormComponent', () => {
     await harness.clickNext();
 
     await harness.clickImport();
-    const remoteReq = httpMock.expectOne(r => r.url === 'https://cdn.example/def.json');
-    remoteReq.error(new ProgressEvent('error'));
+    const req = httpMock.expectOne(r => r.method === 'POST' && r.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_import/definition-url`);
+    req.flush(body, { status, statusText: 'error' });
 
-    expect(snackBarErrorSpy).toHaveBeenCalledWith(
-      'Could not fetch the remote URL. Check that the URL is reachable and allows CORS requests from this Console.',
-    );
+    expect(snackBarErrorSpy).toHaveBeenCalledWith(expectedMessage);
     httpMock.verify();
+  });
+
+  describe('update mode', () => {
+    beforeEach(() => {
+      fixture.componentRef.setInput('updateTargetApiId', 'existing-api');
+      fixture.detectChanges();
+    });
+
+    it('should disable the Remote source card with a tooltip explaining the limitation', () => {
+      // `sources` is a protected signal exposed only to the template; bracket-access keeps the component API clean.
+      const sources = (
+        fixture.componentInstance as unknown as { sources: () => { value: string; disabledReason: string | null }[] }
+      ).sources();
+      const remote = sources.find(s => s.value === 'remote');
+      expect(remote?.disabledReason).toBe('Updating an API from a remote URL is not yet supported');
+      expect(sources.find(s => s.value === 'local')?.disabledReason).toBeNull();
+    });
+
+    it('should not POST to the import-url endpoint when the form is in update mode', async () => {
+      const apiV2 = TestBed.inject(ApiV2Service);
+      const importFromUrlSpy = jest.spyOn(apiV2, 'importFromUrl');
+
+      // The Remote card is disabled in the UI in update mode; assert the service is never called
+      // even if the form's `source` control is forced to 'remote' programmatically.
+      fixture.componentInstance.configureFileSourceForm.controls.source.setValue('remote');
+      fixture.componentInstance.configureFileSourceForm.controls.remoteUrl.setValue('https://cdn.example/def.json');
+      fixture.detectChanges();
+
+      expect(importFromUrlSpy).not.toHaveBeenCalled();
+    });
   });
 });
 

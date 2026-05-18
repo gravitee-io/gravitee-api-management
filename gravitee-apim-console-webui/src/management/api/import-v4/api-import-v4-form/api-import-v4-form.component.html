@@ -116,8 +116,12 @@
               <div class="configure-file-source__col configure-file-source__col--sources">
                 <span class="configure-file-source__col-heading">Source</span>
                 <gio-form-selection-inline formControlName="source" class="configure-file-source__source-selection">
-                  @for (source of sources; track source.value) {
-                    <gio-form-selection-inline-card [value]="source.value">
+                  @for (source of sources(); track source.value) {
+                    <gio-form-selection-inline-card
+                      [value]="source.value"
+                      [disabled]="!!source.disabledReason"
+                      [matTooltip]="source.disabledReason"
+                    >
                       <gio-form-selection-inline-card-content [icon]="source.icon">
                         <gio-card-content-title>{{ source.label }}</gio-card-content-title>
                       </gio-form-selection-inline-card-content>
@@ -167,10 +171,6 @@
                       ) {
                         <mat-error>Use a valid http(s) URL</mat-error>
                       }
-                    </mat-form-field>
-                    <mat-form-field appearance="outline" class="configure-file-source__field" subscriptSizing="dynamic">
-                      <mat-label>Authorization header (optional)</mat-label>
-                      <input matInput formControlName="authorizationHeader" type="text" autocomplete="off" />
                     </mat-form-field>
                   </div>
                 }
@@ -261,11 +261,6 @@
                   <span>URL:</span
                   ><strong class="review-import-step__value">{{ configureFileSourceForm.controls.remoteUrl.value || '—' }}</strong>
                 </div>
-                @if (configureFileSourceForm.controls.authorizationHeader.value) {
-                  <div class="review-import-step__row">
-                    <span>Authorization header:</span><strong class="review-import-step__value">Provided</strong>
-                  </div>
-                }
               }
             </mat-card-content>
           </mat-card>

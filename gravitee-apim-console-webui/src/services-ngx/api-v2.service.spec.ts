@@ -250,6 +250,27 @@ describe('ApiV2Service', () => {
     });
   });
 
+  describe('importFromUrl', () => {
+    it('should POST the URL as text/plain to the definition-url endpoint', done => {
+      const fakeApi = fakeApiV4();
+      const definitionUrl = 'https://cdn.example/def.json';
+
+      apiV2Service.importFromUrl(definitionUrl).subscribe(api => {
+        expect(api).toEqual(fakeApi);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_import/definition-url`,
+        method: 'POST',
+      });
+      expect(req.request.body).toBe(definitionUrl);
+      expect(req.request.headers.get('Content-Type')).toBe('text/plain');
+
+      req.flush(fakeApi);
+    });
+  });
+
   describe('search', () => {
     it('should call the API', done => {
       const fakeApi = fakeApiV4();

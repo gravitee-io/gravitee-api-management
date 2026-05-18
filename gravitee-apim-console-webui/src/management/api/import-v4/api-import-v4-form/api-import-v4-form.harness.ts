@@ -32,9 +32,6 @@ export class ApiImportV4FormHarness extends ComponentHarness {
   private readonly getSourceSelectGroup = this.locatorFor(GioFormSelectionInlineHarness.with({ selector: '[formControlName="source"]' }));
   private readonly getFilePicker = this.locatorFor(GioFormFilePickerInputHarness.with({ ancestor: 'api-import-file-picker' }));
   private readonly getRemoteUrlInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="remoteUrl"]' }));
-  private readonly getAuthorizationHeaderInput = this.locatorFor(
-    MatInputHarness.with({ selector: '[formControlName="authorizationHeader"]' }),
-  );
   private readonly getDocumentationToggle = this.locatorFor(
     MatSlideToggleHarness.with({ selector: '[formControlName="withDocumentation"]' }),
   );
@@ -71,11 +68,6 @@ export class ApiImportV4FormHarness extends ComponentHarness {
   public async setRemoteUrl(url: string): Promise<void> {
     const input = await this.getRemoteUrlInput();
     return input.setValue(url);
-  }
-
-  public async setAuthorizationHeader(value: string): Promise<void> {
-    const input = await this.getAuthorizationHeaderInput();
-    return input.setValue(value);
   }
 
   public async pickFiles(files: File[]): Promise<void> {
