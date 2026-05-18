@@ -83,8 +83,6 @@ public class ApiValidationServiceImplTest {
 
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
 
-    private final inmemory.ApiCrudServiceInMemory apiCrudServiceForPath = new inmemory.ApiCrudServiceInMemory();
-
     private final InstallationAccessQueryService installationAccessQueryService = mock(InstallationAccessQueryService.class);
 
     private final ApiHostValidatorDomainService apiHostValidatorDomainService = mock(ApiHostValidatorDomainService.class);
@@ -92,7 +90,6 @@ public class ApiValidationServiceImplTest {
     @Spy
     private VerifyApiPathDomainService pathValidator = new VerifyApiPathDomainService(
         apiQueryService,
-        apiCrudServiceForPath,
         installationAccessQueryService,
         apiHostValidatorDomainService,
         new io.gravitee.apim.core.api.domain_service.ApiPathIndex(),

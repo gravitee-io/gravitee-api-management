@@ -23,7 +23,6 @@ import static org.mockito.Mockito.lenient;
 
 import fixtures.definition.ApiDefinitionFixtures;
 import inmemory.ApiHostValidatorDomainServiceGoogleImpl;
-import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiPathIndex;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
@@ -41,7 +40,6 @@ import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.Duration;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.Pair;
@@ -64,9 +62,6 @@ class VerifyApiPathDomainServiceTest {
 
     @Mock
     ApiQueryService apiSearchService;
-
-    @Mock
-    ApiCrudService apiCrudService;
 
     @Mock
     InstallationAccessQueryService installationAccessQueryService;
@@ -98,7 +93,6 @@ class VerifyApiPathDomainServiceTest {
     void setup() {
         service = new VerifyApiPathDomainService(
             apiSearchService,
-            apiCrudService,
             installationAccessQueryService,
             new ApiHostValidatorDomainServiceGoogleImpl(),
             new ApiPathIndex(),
@@ -496,7 +490,6 @@ class VerifyApiPathDomainServiceTest {
                 )
             )
             .thenAnswer(invocation -> apiList.stream());
-        apiList.forEach(api -> lenient().when(apiCrudService.findById(api.getId())).thenReturn(Optional.of(api)));
     }
 
     @SneakyThrows
@@ -607,14 +600,14 @@ class VerifyApiPathDomainServiceTest {
         }
 
         @Test
-        void delete_race_dropped_via_recheck_when_findById_returns_empty() {
+        void delete_race_dropped_via_recheck_when_batch_search_returns_empty() {
             // Seeded snapshot has X owning /foo. Supplementary is empty (X was deleted; no row to find).
-            // findById(X) returns Optional.empty(). Recheck drops the conflict — /foo is actually free.
+            // The batch recheck (ids=[X]) returns empty. Recheck drops the conflict — /foo is actually free.
             givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
             var deletedX = buildApiHttpV4WithPaths(ENVIRONMENT_ID, "X", List.of(Pair.of(null, "/foo")));
             stubSeederResponse(ENVIRONMENT_ID, List.of(deletedX));
             stubSupplementaryResponse(ENVIRONMENT_ID, List.of());
-            lenient().when(apiCrudService.findById("X")).thenReturn(Optional.empty());
+            stubRecheckResponse(ENVIRONMENT_ID, List.of());
 
             var errors = service
                 .validateAndSanitize(
@@ -626,14 +619,14 @@ class VerifyApiPathDomainServiceTest {
         }
 
         @Test
-        void real_conflict_survives_recheck_when_findById_confirms_paths() {
-            // Seeded snapshot has X owning /foo. Supplementary empty (X has not been updated). findById confirms X still owns /foo.
-            // Recheck re-scans against current paths and re-confirms the conflict.
+        void real_conflict_survives_recheck_when_batch_search_confirms_paths() {
+            // Seeded snapshot has X owning /foo. Supplementary empty. The batch recheck returns X still owning /foo.
+            // Rescan re-confirms the conflict against the live paths.
             givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
             var realX = buildApiHttpV4WithPaths(ENVIRONMENT_ID, "X", List.of(Pair.of(null, "/foo")));
             stubSeederResponse(ENVIRONMENT_ID, List.of(realX));
             stubSupplementaryResponse(ENVIRONMENT_ID, List.of());
-            lenient().when(apiCrudService.findById("X")).thenReturn(Optional.of(realX));
+            stubRecheckResponse(ENVIRONMENT_ID, List.of(realX));
 
             var errors = service
                 .validateAndSanitize(
@@ -649,13 +642,13 @@ class VerifyApiPathDomainServiceTest {
         void clock_skew_belt_and_suspenders_recheck_drops_conflict_when_paths_have_changed() {
             // Snapshot has X owning /foo (stale due to an update that escaped the watermark window — e.g. extreme
             // clock skew where the update's updatedAt was older than our refreshedAt). Supplementary returns nothing
-            // for X. But findById returns X with new paths (/bar). Recheck drops the conflict against /foo.
+            // for X. But the batch recheck returns X with new paths (/bar). Rescan drops the conflict against /foo.
             givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
             var staleX = buildApiHttpV4WithPaths(ENVIRONMENT_ID, "X", List.of(Pair.of(null, "/foo")));
             var currentX = buildApiHttpV4WithPaths(ENVIRONMENT_ID, "X", List.of(Pair.of(null, "/bar")));
             stubSeederResponse(ENVIRONMENT_ID, List.of(staleX));
             stubSupplementaryResponse(ENVIRONMENT_ID, List.of());
-            lenient().when(apiCrudService.findById("X")).thenReturn(Optional.of(currentX));
+            stubRecheckResponse(ENVIRONMENT_ID, List.of(currentX));
 
             var errors = service
                 .validateAndSanitize(
@@ -666,12 +659,69 @@ class VerifyApiPathDomainServiceTest {
             assertThat(errors).isNotPresent();
         }
 
+        @Test
+        void batch_recheck_fires_a_single_search_for_multiple_conflicting_apiIds() {
+            // Two snapshot entries each conflict with a different candidate path. Both apiIds need recheck.
+            // We expect a single batch search to be issued (covering both ids), not one per id.
+            givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
+            var staleX = buildApiHttpV4WithPaths(ENVIRONMENT_ID, "X", List.of(Pair.of(null, "/foo")));
+            var staleY = buildApiHttpV4WithPaths(ENVIRONMENT_ID, "Y", List.of(Pair.of(null, "/bar")));
+            stubSeederResponse(ENVIRONMENT_ID, List.of(staleX, staleY));
+            stubSupplementaryResponse(ENVIRONMENT_ID, List.of());
+            stubRecheckResponse(ENVIRONMENT_ID, List.of(staleX, staleY));
+
+            var errors = service
+                .validateAndSanitize(
+                    new VerifyApiPathDomainService.Input(
+                        ENVIRONMENT_ID,
+                        API_ID,
+                        List.of(Path.builder().path("/foo").build(), Path.builder().path("/bar").build())
+                    )
+                )
+                .severe();
+
+            assertThat(errors).isPresent();
+            assertThat(errors.get()).hasSize(2);
+            // Verify a single batch call with both ids — not one call per id.
+            org.mockito.Mockito.verify(apiSearchService, org.mockito.Mockito.times(1)).search(
+                argThat(
+                    (ApiSearchCriteria c) ->
+                        c != null && c.getIds() != null && c.getIds().containsAll(java.util.Set.of("X", "Y")) && c.getIds().size() == 2
+                ),
+                eq(null),
+                eq(ApiFieldFilter.builder().pictureExcluded(true).build())
+            );
+        }
+
         private void stubSeederResponse(String environmentId, List<Api> apis) {
             lenient()
                 .when(
                     apiSearchService.search(
                         argThat(
-                            (ApiSearchCriteria c) -> c != null && environmentId.equals(c.getEnvironmentId()) && c.getUpdatedAtFrom() == null
+                            (ApiSearchCriteria c) ->
+                                c != null &&
+                                environmentId.equals(c.getEnvironmentId()) &&
+                                c.getUpdatedAtFrom() == null &&
+                                (c.getIds() == null || c.getIds().isEmpty())
+                        ),
+                        eq(null),
+                        eq(ApiFieldFilter.builder().pictureExcluded(true).build())
+                    )
+                )
+                .thenAnswer(invocation -> apis.stream());
+        }
+
+        private void stubRecheckResponse(String environmentId, List<Api> apis) {
+            lenient()
+                .when(
+                    apiSearchService.search(
+                        argThat(
+                            (ApiSearchCriteria c) ->
+                                c != null &&
+                                environmentId.equals(c.getEnvironmentId()) &&
+                                c.getUpdatedAtFrom() == null &&
+                                c.getIds() != null &&
+                                !c.getIds().isEmpty()
                         ),
                         eq(null),
                         eq(ApiFieldFilter.builder().pictureExcluded(true).build())

@@ -16,7 +16,6 @@
 package io.gravitee.apim.core.api.domain_service;
 
 import io.gravitee.apim.core.DomainService;
-import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
@@ -59,7 +58,6 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
     private static final List<DefinitionVersion> PATH_BEARING_DEFINITIONS = List.of(DefinitionVersion.V2, DefinitionVersion.V4);
 
     private final ApiQueryService apiSearchService;
-    private final ApiCrudService apiCrudService;
     private final InstallationAccessQueryService installationAccessQueryService;
     private final ApiHostValidatorDomainService apiHostValidatorDomainService;
     private final ApiPathIndex apiPathIndex;
@@ -68,7 +66,6 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
     @org.springframework.beans.factory.annotation.Autowired
     public VerifyApiPathDomainService(
         ApiQueryService apiSearchService,
-        ApiCrudService apiCrudService,
         InstallationAccessQueryService installationAccessQueryService,
         ApiHostValidatorDomainService apiHostValidatorDomainService,
         ApiPathIndex apiPathIndex,
@@ -76,7 +73,6 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
     ) {
         this(
             apiSearchService,
-            apiCrudService,
             installationAccessQueryService,
             apiHostValidatorDomainService,
             apiPathIndex,
@@ -86,14 +82,12 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
 
     public VerifyApiPathDomainService(
         ApiQueryService apiSearchService,
-        ApiCrudService apiCrudService,
         InstallationAccessQueryService installationAccessQueryService,
         ApiHostValidatorDomainService apiHostValidatorDomainService,
         ApiPathIndex apiPathIndex,
         Duration safetyMargin
     ) {
         this.apiSearchService = apiSearchService;
-        this.apiCrudService = apiCrudService;
         this.installationAccessQueryService = installationAccessQueryService;
         this.apiHostValidatorDomainService = apiHostValidatorDomainService;
         this.apiPathIndex = apiPathIndex;
@@ -222,16 +216,20 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
             }
         }
 
+        // Single Mongo round-trip for the entire rechecked cohort (typically N <= a handful).
+        // The (env, _id) primary-key index handles the IN-clause efficiently; we keep the same
+        // pictureExcluded field filter as the supplementary query so the definition is loaded
+        // — without it ApiPathExtractor.extractPaths would return [] and we'd drop real conflicts.
         var rechecked = new HashMap<String, List<Path>>();
-        for (var apiId : needsRecheck) {
-            apiCrudService
-                .findById(apiId)
-                .ifPresent(api -> {
+        if (!needsRecheck.isEmpty()) {
+            try (var stream = searchByIds(env, needsRecheck)) {
+                stream.forEach(api -> {
                     var paths = ApiPathExtractor.extractPaths(api);
                     if (!paths.isEmpty()) {
-                        rechecked.put(apiId, paths);
+                        rechecked.put(api.getId(), paths);
                     }
                 });
+            }
         }
         var rescannedConflicts = ApiPathIndex.scanPaths(rechecked, excludeApiId, candidatePaths);
 
@@ -246,6 +244,11 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
             .definitionVersion(PATH_BEARING_DEFINITIONS)
             .updatedAtFrom(updatedAtFrom)
             .build();
+        return apiSearchService.search(criteria, null, ApiFieldFilter.builder().pictureExcluded(true).build());
+    }
+
+    private java.util.stream.Stream<io.gravitee.apim.core.api.model.Api> searchByIds(String envId, List<String> ids) {
+        var criteria = ApiSearchCriteria.builder().environmentId(envId).ids(ids).definitionVersion(PATH_BEARING_DEFINITIONS).build();
         return apiSearchService.search(criteria, null, ApiFieldFilter.builder().pictureExcluded(true).build());
     }
 
