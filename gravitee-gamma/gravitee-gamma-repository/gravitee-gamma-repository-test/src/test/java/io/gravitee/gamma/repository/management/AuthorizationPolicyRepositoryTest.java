@@ -47,7 +47,7 @@ public class AuthorizationPolicyRepositoryTest extends AbstractGammaRepositoryTe
     public void should_find_by_environment_id_and_id() throws TechnicalException {
         Optional<AuthorizationPolicy> found = authorizationPolicyRepository.findByEnvironmentIdAndId("DEFAULT", "policy-1");
         assertThat(found).isPresent();
-        assertThat(found.get().getName()).isEqualTo("Admin policy");
+        assertThat(found.get().name()).isEqualTo("Admin policy");
     }
 
     @Test
@@ -84,21 +84,19 @@ public class AuthorizationPolicyRepositoryTest extends AbstractGammaRepositoryTe
 
         AuthorizationPolicy created = authorizationPolicyRepository.create(policy);
 
-        assertThat(created.getId()).isEqualTo("created-1");
+        assertThat(created.id()).isEqualTo("created-1");
         assertThat(authorizationPolicyRepository.findById("created-1")).isPresent();
     }
 
     @Test
     public void should_update_policy() throws TechnicalException {
         AuthorizationPolicy existing = authorizationPolicyRepository.findById("policy-1").orElseThrow();
-        existing.setStatus(AuthorizationPolicyStatus.DISABLED);
+        existing.status(AuthorizationPolicyStatus.DISABLED);
 
         AuthorizationPolicy updated = authorizationPolicyRepository.update(existing);
 
-        assertThat(updated.getStatus()).isEqualTo(AuthorizationPolicyStatus.DISABLED);
-        assertThat(authorizationPolicyRepository.findById("policy-1").orElseThrow().getStatus()).isEqualTo(
-            AuthorizationPolicyStatus.DISABLED
-        );
+        assertThat(updated.status()).isEqualTo(AuthorizationPolicyStatus.DISABLED);
+        assertThat(authorizationPolicyRepository.findById("policy-1").orElseThrow().status()).isEqualTo(AuthorizationPolicyStatus.DISABLED);
     }
 
     @Test

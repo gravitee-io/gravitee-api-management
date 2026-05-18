@@ -15,7 +15,7 @@
  */
 package io.gravitee.gamma.repository.exceptions;
 
-public class TechnicalException extends Exception {
+public class TechnicalException extends RuntimeException {
 
     private static final long serialVersionUID = -6926167778154953100L;
 

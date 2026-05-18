@@ -45,12 +45,6 @@
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.apim.authorization</groupId>
-            <artifactId>gravitee-apim-authorization-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>io.gravitee.platform</groupId>
             <artifactId>gravitee-platform-repository-api</artifactId>
             <scope>provided</scope>

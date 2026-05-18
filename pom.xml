@@ -514,7 +514,6 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
-                <module>gravitee-apim-authorization</module>
                 <module>gravitee-apim-bom</module>
                 <module>gravitee-apim-common</module>
                 <module>gravitee-apim-definition</module>
