@@ -9,6 +9,7 @@ public record ScimConnectorResponse(
     String url,
     boolean importUsers,
     boolean importGroups,
+    int intervalSeconds,
     Instant lastSyncAt,
     String lastSyncStatus,
     String lastError,

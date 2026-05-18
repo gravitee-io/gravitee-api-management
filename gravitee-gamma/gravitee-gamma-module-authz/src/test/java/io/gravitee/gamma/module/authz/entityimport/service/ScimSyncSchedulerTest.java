@@ -3,13 +3,18 @@ package io.gravitee.gamma.module.authz.entityimport.service;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gamma.module.authz.entityimport.repository.ScimConnectorDocument;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -33,17 +38,34 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ScimSyncSchedulerTest {
 
+    private static final Instant NOW = Instant.parse("2026-05-18T12:00:00Z");
+
     @Mock
     private ScimConnectorService service;
 
+    @Mock
+    private Clock clock;
+
     @InjectMocks
     private ScimSyncScheduler scheduler;
+
+    @BeforeEach
+    void stubClock() {
+        lenient().when(clock.instant()).thenReturn(NOW);
+    }
 
     private static ScimConnectorDocument connector(String id, String name, String envId) {
         ScimConnectorDocument d = new ScimConnectorDocument();
         d.setId(id);
         d.setName(name);
         d.setEnvironmentId(envId);
+        return d;
+    }
+
+    private static ScimConnectorDocument syncedAt(String id, Instant lastSyncAt, Integer intervalSeconds) {
+        ScimConnectorDocument d = connector(id, "okta-" + id, "env-1");
+        d.setLastSyncAt(lastSyncAt);
+        d.setIntervalSeconds(intervalSeconds);
         return d;
     }
 
@@ -106,5 +128,58 @@ class ScimSyncSchedulerTest {
         // Sanity guard: we should not be calling any service method from
         // construction alone (no @PostConstruct sync, no implicit start).
         verifyNoInteractions(service);
+    }
+
+    @Test
+    void syncs_connector_when_lastSyncAt_is_null() {
+        ScimConnectorDocument fresh = syncedAt("a", null, 300);
+        when(service.findAllForScheduler()).thenReturn(List.of(fresh));
+
+        scheduler.syncAll();
+
+        verify(service).runScheduledSync(fresh);
+    }
+
+    @Test
+    void syncs_connector_when_interval_elapsed_since_lastSync() {
+        ScimConnectorDocument due = syncedAt("a", NOW.minusSeconds(301), 300);
+        when(service.findAllForScheduler()).thenReturn(List.of(due));
+
+        scheduler.syncAll();
+
+        verify(service).runScheduledSync(due);
+    }
+
+    @Test
+    void skips_connector_when_interval_not_yet_elapsed() {
+        ScimConnectorDocument recent = syncedAt("a", NOW.minusSeconds(60), 300);
+        when(service.findAllForScheduler()).thenReturn(List.of(recent));
+
+        scheduler.syncAll();
+
+        verify(service, never()).runScheduledSync(any());
+    }
+
+    @Test
+    void applies_default_interval_when_field_is_null_on_doc() {
+        // 301s old > DEFAULT_INTERVAL_SECONDS (300) → due
+        ScimConnectorDocument legacy = syncedAt("a", NOW.minusSeconds(301), null);
+        when(service.findAllForScheduler()).thenReturn(List.of(legacy));
+
+        scheduler.syncAll();
+
+        verify(service).runScheduledSync(legacy);
+    }
+
+    @Test
+    void mixed_due_and_recent_connectors_only_due_ones_sync() {
+        ScimConnectorDocument due = syncedAt("a", NOW.minusSeconds(600), 300);
+        ScimConnectorDocument recent = syncedAt("b", NOW.minusSeconds(60), 300);
+        when(service.findAllForScheduler()).thenReturn(List.of(due, recent));
+
+        scheduler.syncAll();
+
+        verify(service).runScheduledSync(due);
+        verify(service, never()).runScheduledSync(recent);
     }
 }

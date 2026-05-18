@@ -88,7 +88,18 @@ class ScimConnectorServiceTest {
     }
 
     private static ScimConnectorRequest request(String name, String url, String token, Boolean importUsers, Boolean importGroups) {
-        return new ScimConnectorRequest(name, url, token, importUsers, importGroups);
+        return new ScimConnectorRequest(name, url, token, importUsers, importGroups, null);
+    }
+
+    private static ScimConnectorRequest request(
+        String name,
+        String url,
+        String token,
+        Boolean importUsers,
+        Boolean importGroups,
+        Integer intervalSeconds
+    ) {
+        return new ScimConnectorRequest(name, url, token, importUsers, importGroups, intervalSeconds);
     }
 
     private static ScimConnectorDocument existing(String id, String name) {
@@ -197,6 +208,29 @@ class ScimConnectorServiceTest {
             .hasMessageContaining("encrypt SCIM token");
 
         verify(repo, never()).save(any());
+    }
+
+    @Test
+    void create_persistsCustomInterval_whenSetInRequest() {
+        when(repo.findByEnvAndName(ENV, "okta")).thenReturn(Optional.empty());
+        when(repo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        ScimConnectorResponse res = service.create(ENV, request("okta", "https://idp/scim", "tok", true, true, 900));
+
+        ArgumentCaptor<ScimConnectorDocument> captor = ArgumentCaptor.forClass(ScimConnectorDocument.class);
+        verify(repo).save(captor.capture());
+        assertThat(captor.getValue().getIntervalSeconds()).isEqualTo(900);
+        assertThat(res.intervalSeconds()).isEqualTo(900);
+    }
+
+    @Test
+    void create_appliesDefaultInterval_whenNullInRequest() {
+        when(repo.findByEnvAndName(ENV, "okta")).thenReturn(Optional.empty());
+        when(repo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        ScimConnectorResponse res = service.create(ENV, request("okta", "https://idp/scim", "tok", true, true, null));
+
+        assertThat(res.intervalSeconds()).isEqualTo(ScimConnectorService.DEFAULT_INTERVAL_SECONDS);
     }
 
     @Test

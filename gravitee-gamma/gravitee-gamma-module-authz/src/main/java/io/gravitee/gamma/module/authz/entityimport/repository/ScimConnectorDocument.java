@@ -22,6 +22,7 @@ public class ScimConnectorDocument {
 
     private boolean importUsers;
     private boolean importGroups;
+    private Integer intervalSeconds;
     private Instant lastSyncAt;
     private String lastSyncStatus;
     private String lastError;

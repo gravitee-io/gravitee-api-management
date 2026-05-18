@@ -20,10 +20,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class ScimConnectorService {
 
+    public static final int DEFAULT_INTERVAL_SECONDS = 300;
+    public static final int MIN_INTERVAL_SECONDS = 10;
+
     private final ScimConnectorRepository repo;
     private final EntityAdminApi entityApi;
     private final ScimSyncEngine syncEngine;
     private final DataEncryptor dataEncryptor;
+
+    public static int intervalSecondsOf(ScimConnectorDocument doc) {
+        Integer s = doc.getIntervalSeconds();
+        return (s == null || s < MIN_INTERVAL_SECONDS) ? DEFAULT_INTERVAL_SECONDS : s;
+    }
 
     @Autowired
     public ScimConnectorService(
@@ -146,6 +154,7 @@ public class ScimConnectorService {
         }
         doc.setImportUsers(req.importUsers() == null || req.importUsers());
         doc.setImportGroups(req.importGroups() == null || req.importGroups());
+        doc.setIntervalSeconds(req.intervalSeconds() == null ? DEFAULT_INTERVAL_SECONDS : req.intervalSeconds());
     }
 
     private String encryptToken(String plaintext) {
@@ -173,6 +182,7 @@ public class ScimConnectorService {
             d.getUrl(),
             d.isImportUsers(),
             d.isImportGroups(),
+            intervalSecondsOf(d),
             d.getLastSyncAt(),
             d.getLastSyncStatus(),
             d.getLastError(),
