@@ -1,0 +1,202 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.apim.authorization.event;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.authorization.api.AuthzEventPayloadFields;
+import io.gravitee.apim.authorization.api.AuthzEventPublisher;
+import io.gravitee.apim.authorization.domain.Entity;
+import io.gravitee.apim.authorization.domain.Policy;
+import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.common.utils.UUID;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.EventLatestRepository;
+import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.management.model.EventType;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
+public final class EventRepositoryAuthzEventPublisher implements AuthzEventPublisher {
+
+    private static final List<String> SENSITIVE_KEY_SUBSTRINGS = List.of("password", "secret", "token", "credential", "apikey");
+
+    static final String REDACTED = "[REDACTED]";
+
+    private final EventRepository eventRepository;
+    private final EventLatestRepository eventLatestRepository;
+    private final ObjectMapper objectMapper;
+
+    public EventRepositoryAuthzEventPublisher(
+        EventRepository eventRepository,
+        EventLatestRepository eventLatestRepository,
+        ObjectMapper objectMapper
+    ) {
+        this.eventRepository = eventRepository;
+        this.eventLatestRepository = eventLatestRepository;
+        this.objectMapper = objectMapper;
+    }
+
+    @Override
+    public void publishPolicyDeployed(Policy policy) {
+        Objects.requireNonNull(policy, "policy must not be null");
+        requireNonBlank(policy.environmentId(), "policy.environmentId");
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put(AuthzEventPayloadFields.ID, policy.id());
+        payload.put(AuthzEventPayloadFields.NAME, policy.name());
+        payload.put(AuthzEventPayloadFields.KIND, policy.kind().name());
+        payload.put(AuthzEventPayloadFields.ENTITY_ID, policy.entityId());
+        payload.put(AuthzEventPayloadFields.POLICY_TEXT, policy.policyText());
+        payload.put(AuthzEventPayloadFields.ENVIRONMENT_ID, policy.environmentId());
+        payload.put(AuthzEventPayloadFields.UPDATED_AT, policy.updatedAt().toString());
+        emit(
+            policy.environmentId(),
+            EventType.PUBLISH_AUTHZ_POLICY,
+            payload,
+            Map.of(Event.EventProperties.AUTHZ_POLICY_ID.getValue(), policy.id())
+        );
+    }
+
+    @Override
+    public void unpublishPolicy(Policy policy) {
+        Objects.requireNonNull(policy, "policy must not be null");
+        requireNonBlank(policy.environmentId(), "policy.environmentId");
+        requireNonBlank(policy.id(), "policy.id");
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put(AuthzEventPayloadFields.ID, policy.id());
+        payload.put(AuthzEventPayloadFields.KIND, policy.kind().name());
+        payload.put(AuthzEventPayloadFields.ENTITY_ID, policy.entityId());
+        payload.put(AuthzEventPayloadFields.ENVIRONMENT_ID, policy.environmentId());
+        emit(
+            policy.environmentId(),
+            EventType.UNPUBLISH_AUTHZ_POLICY,
+            payload,
+            Map.of(Event.EventProperties.AUTHZ_POLICY_ID.getValue(), policy.id())
+        );
+    }
+
+    @Override
+    public void publishEntityUpserted(Entity entity) {
+        Objects.requireNonNull(entity, "entity must not be null");
+        requireNonBlank(entity.environmentId(), "entity.environmentId");
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put(AuthzEventPayloadFields.ID, entity.id());
+        payload.put(AuthzEventPayloadFields.ENTITY_ID, entity.entityId());
+        payload.put(AuthzEventPayloadFields.KIND, entity.kind().name());
+        payload.put(AuthzEventPayloadFields.ATTRIBUTES, redactSensitive(entity.attributes()));
+        payload.put(AuthzEventPayloadFields.PARENTS, entity.parents());
+        payload.put(AuthzEventPayloadFields.SOURCE, entity.source());
+        payload.put(AuthzEventPayloadFields.ENVIRONMENT_ID, entity.environmentId());
+        payload.put(AuthzEventPayloadFields.UPDATED_AT, entity.updatedAt().toString());
+        emit(
+            entity.environmentId(),
+            EventType.PUBLISH_AUTHZ_ENTITY,
+            payload,
+            Map.of(Event.EventProperties.AUTHZ_ENTITY_ID.getValue(), entity.entityId())
+        );
+    }
+
+    @Override
+    public void unpublishEntity(Entity entity) {
+        Objects.requireNonNull(entity, "entity must not be null");
+        requireNonBlank(entity.environmentId(), "entity.environmentId");
+        requireNonBlank(entity.entityId(), "entity.entityId");
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put(AuthzEventPayloadFields.ENTITY_ID, entity.entityId());
+        payload.put(AuthzEventPayloadFields.KIND, entity.kind().name());
+        payload.put(AuthzEventPayloadFields.ENVIRONMENT_ID, entity.environmentId());
+        emit(
+            entity.environmentId(),
+            EventType.UNPUBLISH_AUTHZ_ENTITY,
+            payload,
+            Map.of(Event.EventProperties.AUTHZ_ENTITY_ID.getValue(), entity.entityId())
+        );
+    }
+
+    /**
+     * Writes the event log first, then refreshes the per-id latest snapshot.
+     * Order matters: if write 2 fails the canonical log still has the entry
+     * and the next emit() for the same id catches up the latest collection
+     * (createOrUpdate is idempotent). Reversed order would leave an entry
+     * permanently missing from the log under partial failure — sync chain
+     * consumers that compute incremental deltas would never see it.
+     */
+    private void emit(String environmentId, EventType type, Map<String, Object> payload, Map<String, String> properties) {
+        Event event = buildEvent(environmentId, type, payload, properties);
+        try {
+            eventRepository.create(event);
+            eventLatestRepository.createOrUpdate(event);
+        } catch (TechnicalException e) {
+            throw new AuthzEventPublishException("Failed to emit authz event " + type + " for env " + environmentId, e);
+        }
+    }
+
+    private Event buildEvent(String environmentId, EventType type, Map<String, Object> payload, Map<String, String> properties) {
+        Event event = new Event();
+        event.setId(UUID.toString(UUID.random()));
+        event.setEnvironments(Set.of(environmentId));
+        event.setType(type);
+        event.setPayload(serialise(payload));
+        event.setProperties(properties);
+        Date now = Date.from(TimeProvider.instantNow());
+        event.setCreatedAt(now);
+        event.setUpdatedAt(now);
+        return event;
+    }
+
+    private String serialise(Map<String, Object> payload) {
+        try {
+            return objectMapper.writeValueAsString(payload);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to serialise authz event payload", e);
+        }
+    }
+
+    private static void requireNonBlank(String value, String name) {
+        Objects.requireNonNull(value, name);
+        if (value.isBlank()) {
+            throw new IllegalArgumentException(name + " must not be blank");
+        }
+    }
+
+    static Map<String, Object> redactSensitive(Map<String, Object> attributes) {
+        if (attributes == null || attributes.isEmpty()) {
+            return attributes;
+        }
+        Map<String, Object> redacted = new LinkedHashMap<>(attributes.size());
+        for (Map.Entry<String, Object> entry : attributes.entrySet()) {
+            redacted.put(entry.getKey(), isSensitiveKey(entry.getKey()) ? REDACTED : entry.getValue());
+        }
+        return redacted;
+    }
+
+    private static boolean isSensitiveKey(String key) {
+        if (key == null) return false;
+        String normalised = key.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
+        for (String marker : SENSITIVE_KEY_SUBSTRINGS) {
+            if (normalised.contains(marker)) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
