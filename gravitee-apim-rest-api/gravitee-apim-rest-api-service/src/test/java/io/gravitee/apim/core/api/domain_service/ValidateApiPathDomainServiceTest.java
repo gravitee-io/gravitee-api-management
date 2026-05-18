@@ -94,8 +94,7 @@ class VerifyApiPathDomainServiceTest {
             apiSearchService,
             installationAccessQueryService,
             new ApiHostValidatorDomainServiceGoogleImpl(),
-            new ApiPathIndex(),
-            (io.gravitee.node.api.configuration.Configuration) null
+            new ApiPathIndex()
         );
     }
 
