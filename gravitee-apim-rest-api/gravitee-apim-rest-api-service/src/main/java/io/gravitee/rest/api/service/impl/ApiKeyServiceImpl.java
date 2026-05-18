@@ -199,7 +199,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         try {
             log.debug("Renew API Key for application {}", application.getId());
 
-            ApiKey newApiKey = generateForApplication(application);
+            ApiKey newApiKey = generateForApplication(application, executionContext.getEnvironmentId());
             newApiKey = apiKeyRepository.create(newApiKey);
 
             // Expire previously generated keys
@@ -315,9 +315,8 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             throw new SubscriptionClosedException(subscription.getId());
         }
 
-        ApiKey apiKey = generateForApplication(subscription.getApplication(), customApiKey);
+        ApiKey apiKey = generateForApplication(subscription.getApplication(), customApiKey, executionContext.getEnvironmentId());
         apiKey.setSubscriptions(List.of(subscription.getId()));
-        apiKey.setEnvironmentId(executionContext.getEnvironmentId());
 
         // By default, the API Key will expire when subscription is closed
         apiKey.setExpireAt(subscription.getEndingAt());
@@ -329,10 +328,11 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
      * Generate an {@link ApiKey} for an application. Generates a new random key value.
      *
      * @param application
+     * @param environmentId
      * @return An API Key
      */
-    private ApiKey generateForApplication(ApplicationEntity application) {
-        return generateForApplication(application.getId(), null);
+    private ApiKey generateForApplication(ApplicationEntity application, String environmentId) {
+        return generateForApplication(application.getId(), null, environmentId);
     }
 
     /**
@@ -340,13 +340,14 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
      *
      * @param application
      * @param customApiKey
+     * @param environmentId
      * @return An API Key
      */
-    private ApiKey generateForApplication(String application, String customApiKey) {
+    private ApiKey generateForApplication(String application, String customApiKey, String environmentId) {
         ApiKey apiKey = new ApiKey();
         apiKey.setId(UuidString.generateRandom());
         apiKey.setApplication(application);
-        apiKey.setEnvironmentId(apiKey.getEnvironmentId());
+        apiKey.setEnvironmentId(environmentId);
         apiKey.setCreatedAt(new Date());
         apiKey.setUpdatedAt(apiKey.getCreatedAt());
         apiKey.setKey(isNotEmpty(customApiKey) ? customApiKey : apiKeyGenerator.generate());
