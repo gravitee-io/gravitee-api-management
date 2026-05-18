@@ -116,8 +116,7 @@ class ListenerValidationServiceImplTest {
                 apiQueryService,
                 installationAccessQueryService,
                 apiHostValidatorDomainService,
-                new io.gravitee.apim.core.api.domain_service.ApiPathIndex(),
-                (io.gravitee.node.api.configuration.Configuration) null
+                new io.gravitee.apim.core.api.domain_service.ApiPathIndex()
             ),
             entrypointService,
             endpointService,
