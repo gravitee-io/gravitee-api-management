@@ -78,6 +78,7 @@
         <module>gravitee-gamma-rest-api</module>
         <module>gravitee-gamma-module-apim</module>
         <module>gravitee-gamma-module-platform</module>
+        <module>gravitee-gamma-authz-rest</module>
         <module>gravitee-gamma-repository</module>
         <module>gravitee-gamma-authorization</module>
     </modules>
