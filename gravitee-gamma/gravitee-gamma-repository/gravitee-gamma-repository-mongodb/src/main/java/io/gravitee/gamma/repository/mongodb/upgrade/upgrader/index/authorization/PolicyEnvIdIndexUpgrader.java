@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.upgrade.upgrader.index.authorization;
+package io.gravitee.gamma.repository.mongodb.upgrade.upgrader.index.authorization;
 
-import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.Index;
-import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
+import io.gravitee.gamma.repository.mongodb.upgrade.upgrader.index.Index;
+import io.gravitee.gamma.repository.mongodb.upgrade.upgrader.index.IndexUpgrader;
 import org.springframework.stereotype.Component;
 
 @Component("AuthzPoliciesEnvIdIndexUpgrader")
@@ -24,11 +24,6 @@ public class PolicyEnvIdIndexUpgrader extends IndexUpgrader {
 
     @Override
     protected Index buildIndex() {
-        return Index.builder()
-            .collection("authz_policies")
-            .name("e1i1")
-            .key("environmentId", ascending())
-            .key("id", ascending())
-            .build();
+        return Index.builder().collection("authz_policies").name("e1i1").key("environmentId", ascending()).key("id", ascending()).build();
     }
 }

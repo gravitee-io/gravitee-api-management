@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.upgrade.upgrader.index.authorization;
+package io.gravitee.gamma.repository.mongodb.upgrade.upgrader.index.authorization;
 
-import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.Index;
-import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
+import io.gravitee.gamma.repository.mongodb.upgrade.upgrader.index.Index;
+import io.gravitee.gamma.repository.mongodb.upgrade.upgrader.index.IndexUpgrader;
 import org.springframework.stereotype.Component;
 
 @Component("AuthzEntitiesEnvEntityIdUniqueIndexUpgrader")
