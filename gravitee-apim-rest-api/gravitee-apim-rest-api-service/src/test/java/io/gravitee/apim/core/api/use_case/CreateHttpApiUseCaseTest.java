@@ -75,6 +75,7 @@ import io.gravitee.definition.model.RequestValidation;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.repository.management.model.Parameter;
@@ -347,20 +348,34 @@ class CreateHttpApiUseCaseTest {
 
         // Then
         var expectedFlows = List.of(
-            new Flow().withSelectors(
-                List.of(
-                    HttpSelector.builder().pathOperator(Operator.EQUALS).path("/chat/completions").methods(Set.of(HttpMethod.POST)).build()
+            Flow.builder()
+                .name("Prompt")
+                .selectors(
+                    List.of(
+                        ConditionSelector.builder()
+                            .condition(
+                                "{#context.attributes['gravitee.attribute.llm.kind'] == 'PROMPT' || #context.attributes['gravitee.attribute.llm.kind'] == 'TOOL_CALL'}"
+                            )
+                            .build()
+                    )
                 )
-            ),
-            new Flow().withSelectors(
-                List.of(HttpSelector.builder().pathOperator(Operator.EQUALS).path("/responses").methods(Set.of(HttpMethod.POST)).build())
-            ),
-            new Flow().withSelectors(
-                List.of(HttpSelector.builder().pathOperator(Operator.EQUALS).path("/models").methods(Set.of(HttpMethod.GET)).build())
-            ),
-            new Flow().withSelectors(
-                List.of(HttpSelector.builder().pathOperator(Operator.EQUALS).path("/embeddings").methods(Set.of(HttpMethod.POST)).build())
-            )
+                .build(),
+            Flow.builder()
+                .name("Embeddings")
+                .selectors(
+                    List.of(
+                        ConditionSelector.builder()
+                            .condition("{#context.attributes['gravitee.attribute.llm.kind'] == 'EMBEDDINGS'}")
+                            .build()
+                    )
+                )
+                .build(),
+            Flow.builder()
+                .name("Models")
+                .selectors(
+                    List.of(HttpSelector.builder().pathOperator(Operator.EQUALS).path("/models").methods(Set.of(HttpMethod.GET)).build())
+                )
+                .build()
         );
         var listenersWithRequestValidationDefaults = newApi
             .getListeners()
