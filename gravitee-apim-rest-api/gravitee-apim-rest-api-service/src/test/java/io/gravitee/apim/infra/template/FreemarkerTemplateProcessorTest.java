@@ -50,6 +50,12 @@ class FreemarkerTemplateProcessorTest {
     }
 
     @Test
+    void should_process_named_inline_template() throws TemplateProcessorException {
+        var result = cut.processInlineTemplate("owner-entity-id", "Hello ${name}!", Map.of("name", "Gravitee"));
+        assertThat(result).isEqualTo("Hello Gravitee!");
+    }
+
+    @Test
     void should_throw_a_TemplateProcessorException_for_an_invalid_template() {
         assertThatExceptionOfType(TemplateProcessorException.class)
             .isThrownBy(() -> cut.processInlineTemplate("Hello ${name!", Map.of()))
