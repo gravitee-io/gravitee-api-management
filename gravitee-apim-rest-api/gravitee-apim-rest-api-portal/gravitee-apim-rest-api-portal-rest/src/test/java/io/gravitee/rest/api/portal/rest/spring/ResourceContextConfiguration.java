@@ -651,14 +651,15 @@ public class ResourceContextConfiguration {
     @Bean
     public VerifyApiPathDomainService verifyApiPathDomainService(
         ApiQueryService apiQueryService,
-        InstallationAccessQueryService installationAccessQueryService
+        InstallationAccessQueryService installationAccessQueryService,
+        io.gravitee.node.api.configuration.Configuration nodeConfiguration
     ) {
         return new VerifyApiPathDomainService(
             apiQueryService,
             installationAccessQueryService,
             new ApiHostValidatorDomainServiceImpl(),
             new io.gravitee.apim.core.api.domain_service.ApiPathIndex(),
-            java.time.Duration.ofSeconds(10)
+            nodeConfiguration
         );
     }
 
