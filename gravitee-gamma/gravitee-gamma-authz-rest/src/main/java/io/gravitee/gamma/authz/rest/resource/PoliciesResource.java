@@ -19,9 +19,14 @@ import io.gravitee.apim.authorization.api.AuthzCallerContext;
 import io.gravitee.apim.authorization.api.PolicyAdminApi;
 import io.gravitee.apim.authorization.domain.Policy;
 import io.gravitee.apim.authorization.domain.PolicyKind;
+import io.gravitee.apim.authorization.domain.PolicyStatus;
 import io.gravitee.apim.authorization.service.CreatePolicyCommand;
+import io.gravitee.apim.authorization.service.Pageable;
+import io.gravitee.apim.authorization.service.PagedResult;
+import io.gravitee.apim.authorization.service.PolicyFilter;
 import io.gravitee.apim.authorization.service.UpdatePolicyCommand;
 import io.gravitee.apim.authorization.service.exception.PolicyNotFoundException;
+import io.gravitee.gamma.authz.rest.dto.PagedResponseDto;
 import io.gravitee.gamma.authz.rest.dto.PolicyRequest;
 import io.gravitee.gamma.authz.rest.dto.PolicyResponse;
 import io.gravitee.gamma.authz.rest.dto.UpdatePolicyRequest;
@@ -74,20 +79,19 @@ public class PoliciesResource {
 
     @GET
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.READ }) })
-    public List<PolicyResponse> list(
+    public PagedResponseDto<PolicyResponse> list(
         @PathParam("environmentId") String environmentId,
         @QueryParam("kind") PolicyKind kind,
-        @QueryParam("entityId") String entityId
+        @QueryParam("entityId") String entityId,
+        @QueryParam("status") PolicyStatus status,
+        @QueryParam("page") Integer page,
+        @QueryParam("perPage") Integer perPage
     ) {
-        List<Policy> policies;
-        if (entityId != null) {
-            policies = service.findByEntityId(environmentId, entityId);
-        } else if (kind != null) {
-            policies = service.findByKind(environmentId, kind);
-        } else {
-            policies = service.findAll(environmentId);
-        }
-        return policies.stream().map(PolicyResponse::from).toList();
+        Pageable pageable = (page == null && perPage == null)
+            ? Pageable.firstPage()
+            : Pageable.of(page == null ? 1 : page, perPage == null ? Pageable.DEFAULT_PER_PAGE : perPage);
+        PagedResult<Policy> result = service.findPage(environmentId, new PolicyFilter(kind, entityId, status), pageable);
+        return PagedResponseDto.from(result, PolicyResponse::from);
     }
 
     @GET

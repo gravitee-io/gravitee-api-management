@@ -21,12 +21,15 @@ import io.gravitee.apim.authorization.domain.Entity;
 import io.gravitee.apim.authorization.domain.EntityKind;
 import io.gravitee.apim.authorization.service.CreateOrReplaceEntityCommand;
 import io.gravitee.apim.authorization.service.EntityFilter;
+import io.gravitee.apim.authorization.service.Pageable;
+import io.gravitee.apim.authorization.service.PagedResult;
 import io.gravitee.apim.authorization.service.UpdateEntityCommand;
 import io.gravitee.apim.authorization.service.UpsertResult;
 import io.gravitee.apim.authorization.service.exception.EntityNotFoundException;
 import io.gravitee.gamma.authz.rest.dto.CascadeResponse;
 import io.gravitee.gamma.authz.rest.dto.EntityRequest;
 import io.gravitee.gamma.authz.rest.dto.EntityResponse;
+import io.gravitee.gamma.authz.rest.dto.PagedResponseDto;
 import io.gravitee.gamma.authz.rest.dto.UpdateEntityRequest;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -92,13 +95,21 @@ public class EntitiesResource {
 
     @GET
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.READ }) })
-    public List<EntityResponse> list(
+    public PagedResponseDto<EntityResponse> list(
         @PathParam("environmentId") String environmentId,
         @QueryParam("kind") EntityKind kind,
         @QueryParam("source") String source,
-        @QueryParam("entityIdPrefix") String entityIdPrefix
+        @QueryParam("entityIdPrefix") String entityIdPrefix,
+        @QueryParam("page") Integer page,
+        @QueryParam("perPage") Integer perPage
     ) {
-        return service.find(environmentId, new EntityFilter(kind, source, entityIdPrefix)).stream().map(EntityResponse::from).toList();
+        // Default to Pageable.firstPage() so callers that omit ?page/?perPage
+        // still get a paged response and don't have to know about defaults.
+        Pageable pageable = (page == null && perPage == null)
+            ? Pageable.firstPage()
+            : Pageable.of(page == null ? 1 : page, perPage == null ? Pageable.DEFAULT_PER_PAGE : perPage);
+        PagedResult<Entity> result = service.findPage(environmentId, new EntityFilter(kind, source, entityIdPrefix), pageable);
+        return PagedResponseDto.from(result, EntityResponse::from);
     }
 
     @GET
