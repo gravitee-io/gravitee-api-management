@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { Component, computed, DestroyRef, effect, inject, input, output, signal, Signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -28,8 +28,8 @@ import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { GioBannerModule, GioFormSelectionInlineModule, GioFormSlideToggleModule, GioIconsModule } from '@gravitee/ui-particles-angular';
-import { combineLatest, defer, EMPTY, merge, Observable, of, throwError } from 'rxjs';
-import { catchError, distinctUntilChanged, finalize, map, startWith, switchMap, tap } from 'rxjs/operators';
+import { combineLatest, defer, EMPTY, merge, Observable, of } from 'rxjs';
+import { catchError, distinctUntilChanged, finalize, map, startWith, tap } from 'rxjs/operators';
 
 import { ApiImportFilePickerComponent } from '../../component/api-import-file-picker/api-import-file-picker.component';
 import { ApiV4, PolicyPlugin } from '../../../../entities/management-api-v2';
@@ -77,7 +77,6 @@ function formValidSignal(form: AbstractControl, initialValue = form.valid): Sign
 })
 export class ApiImportV4FormComponent {
   private readonly apiV2Service = inject(ApiV2Service);
-  private readonly http = inject(HttpClient);
   private readonly snackBarService = inject(SnackBarService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
@@ -109,10 +108,23 @@ export class ApiImportV4FormComponent {
     { value: 'openapi', label: 'OpenAPI specification', icon: 'gio:open-api' },
     { value: 'wsdl', label: 'WSDL', icon: 'gio:language' },
   ];
-  protected readonly sources = [
-    { value: 'local', label: 'Local file', icon: 'gio:laptop', disabled: false },
-    { value: 'remote', label: 'Remote source', icon: 'gio:language', disabled: false },
-  ];
+
+  /**
+   * Remote source is disabled in update mode until APIM-12142 introduces a backend update-from-URL flow;
+   * the current create endpoint would silently create a new API instead of updating the target.
+   */
+  protected readonly sources = computed(() => {
+    const updateOnlySupportsLocal = !!this.updateTargetApiId();
+    return [
+      { value: 'local', label: 'Local file', icon: 'gio:laptop', disabledReason: null as string | null },
+      {
+        value: 'remote',
+        label: 'Remote source',
+        icon: 'gio:language',
+        disabledReason: updateOnlySupportsLocal ? 'Updating an API from a remote URL is not yet supported' : null,
+      },
+    ];
+  });
 
   private readonly importFileContent = signal<string | undefined>(undefined);
 
@@ -126,8 +138,6 @@ export class ApiImportV4FormComponent {
     {
       source: ['local', Validators.required],
       remoteUrl: [''],
-      /** When set, sent as the `Authorization` header on the GET to the user-entered remote URL only — not to the Gravitee Management API. */
-      authorizationHeader: [''],
     },
     { validators: [this.createConfigureFileSourceValidator()] },
   );
@@ -193,7 +203,7 @@ export class ApiImportV4FormComponent {
 
   protected readonly selectedSourceLabel = computed(() => {
     const value = this.importSourceMode();
-    return this.sources.find(s => s.value === value)?.label ?? '-';
+    return this.sources().find(s => s.value === value)?.label ?? '-';
   });
 
   protected readonly showImportOptionsStep = computed(() => {
@@ -336,15 +346,13 @@ export class ApiImportV4FormComponent {
     if (this.configureFileSourceForm.controls.source.value !== 'local') {
       this.configureFileSourceForm.controls.source.setValue('local', { emitEvent: true });
     }
-    this.configureFileSourceForm.patchValue({ remoteUrl: '', authorizationHeader: '' }, { emitEvent: false });
+    this.configureFileSourceForm.patchValue({ remoteUrl: '' }, { emitEvent: false });
     this.configureFileSourceForm.controls.remoteUrl.markAsUntouched();
-    this.configureFileSourceForm.controls.authorizationHeader.markAsUntouched();
     this.configureFileSourceForm.updateValueAndValidity({ emitEvent: true });
   }
 
   private applyFileSourceMode(source: string | null): void {
     const urlCtrl = this.configureFileSourceForm.controls.remoteUrl;
-    const authCtrl = this.configureFileSourceForm.controls.authorizationHeader;
 
     if (source === 'remote') {
       urlCtrl.setValidators([Validators.required, ApiImportV4FormComponent.remoteHttpUrlValidator]);
@@ -353,12 +361,9 @@ export class ApiImportV4FormComponent {
     } else {
       urlCtrl.clearValidators();
       urlCtrl.setValue('', { emitEvent: false });
-      authCtrl.setValue('', { emitEvent: false });
       urlCtrl.markAsUntouched();
-      authCtrl.markAsUntouched();
     }
     urlCtrl.updateValueAndValidity({ emitEvent: true });
-    authCtrl.updateValueAndValidity({ emitEvent: false });
     this.configureFileSourceForm.updateValueAndValidity({ emitEvent: true });
   }
 
@@ -493,7 +498,13 @@ export class ApiImportV4FormComponent {
     const url = this.configureFileSourceForm.controls.remoteUrl.value?.trim() as string;
 
     if (format === 'gravitee') {
-      return this.importGraviteeDefinitionFromRemoteUrl$(url, updateId);
+      // Defense-in-depth: the Remote source card is disabled in update mode (see `sources`), but if the form is
+      // forced to remote programmatically, refuse rather than silently creating a new API via the create endpoint.
+      // APIM-12142 will introduce the backend update-from-URL path.
+      if (updateId) {
+        return null;
+      }
+      return this.apiV2Service.importFromUrl(url);
     }
     if (format === 'wsdl') {
       return updateId
@@ -563,36 +574,6 @@ export class ApiImportV4FormComponent {
     }
   }
 
-  /**
-   * Fetches the Gravitee definition JSON from the URL the user typed (browser-side GET).
-   * Optional `authorizationHeader` from `configureFileSourceForm` is forwarded only on that request, not on subsequent Management API calls.
-   */
-  private importGraviteeDefinitionFromRemoteUrl$(url: string, updateApiId: string | undefined): Observable<ApiV4> {
-    const auth = this.configureFileSourceForm.controls.authorizationHeader.value?.trim();
-    let headers = new HttpHeaders();
-    if (auth) {
-      headers = headers.set('Authorization', auth);
-    }
-    return this.http.get(url, { responseType: 'text', headers }).pipe(
-      switchMap(body => {
-        const trimmed = body.trim();
-        if (!trimmed) {
-          return throwError(() => new HttpErrorResponse({ status: 0, error: 'The URL returned an empty response' }));
-        }
-        let definition: unknown;
-        try {
-          definition = JSON.parse(trimmed);
-        } catch {
-          return throwError(() => new HttpErrorResponse({ status: 0, error: 'The URL must return a Gravitee API definition as JSON' }));
-        }
-        if (updateApiId) {
-          return this.apiV2Service.updateApiFromDefinition(updateApiId, definition);
-        }
-        return this.apiV2Service.import(trimmed);
-      }),
-    );
-  }
-
   private mapImportErrorToEmpty(err: unknown): Observable<never> {
     this.snackBarService.error(this.readImportErrorMessage(err));
     return EMPTY;
@@ -600,11 +581,13 @@ export class ApiImportV4FormComponent {
 
   private readImportErrorMessage(err: unknown): string {
     if (err instanceof HttpErrorResponse) {
+      // status 0 = browser could not reach the Management API (network down, mAPI offline, DNS failure).
+      // The body is a ProgressEvent, not a JSON error, so we surface a deliberate UX message instead.
+      if (err.status === 0) {
+        return 'Unable to reach the Management API. Please check your network connection and try again.';
+      }
       if (typeof err.error === 'string') {
         return err.error;
-      }
-      if (err.status === 0) {
-        return 'Could not fetch the remote URL. Check that the URL is reachable and allows CORS requests from this Console.';
       }
       const fromBody = (err.error as { message?: string } | null | undefined)?.message;
       return fromBody ?? err.message ?? 'An error occurred while importing the API';
