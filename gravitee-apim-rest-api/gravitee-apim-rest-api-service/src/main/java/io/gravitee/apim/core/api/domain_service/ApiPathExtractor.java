@@ -29,10 +29,19 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Pure helpers for extracting the HTTP paths an API exposes and for detecting prefix-style conflicts between them.
+ * Used by both {@link ApiPathIndex} (snapshot scan) and {@code ApiPathIndexationObserver} (per-event extraction);
+ * stateless so it is safe to share across threads.
+ */
 public final class ApiPathExtractor {
 
     private ApiPathExtractor() {}
 
+    /**
+     * Extracts the listener paths for an api regardless of definition version. Returns an empty list for non-HTTP
+     * APIs (federated, native v4) and for v2 APIs with a {@code null} proxy.
+     */
     public static List<Path> extractPaths(Api api) {
         return switch (api.getApiDefinitionValue()) {
             case io.gravitee.definition.model.v4.Api v4Api -> extractPathsFromV4Listeners(v4Api.getListeners());
@@ -43,6 +52,7 @@ public final class ApiPathExtractor {
         };
     }
 
+    /** Sanitises and projects each {@link VirtualHost} as a {@link Path}. Used for v2 APIs and legacy v3 ApiEntity. */
     public static List<Path> extractPathsFromVirtualHosts(List<VirtualHost> virtualHosts) {
         if (virtualHosts == null) {
             return List.of();
@@ -60,6 +70,10 @@ public final class ApiPathExtractor {
             .toList();
     }
 
+    /**
+     * Sanitises and projects each {@link HttpListener} path as a {@link Path}. Non-HTTP listeners in the list (e.g.,
+     * Kafka, TCP) are skipped.
+     */
     public static List<Path> extractPathsFromV4Listeners(List<Listener> listeners) {
         if (listeners == null) {
             return List.of();
@@ -78,6 +92,11 @@ public final class ApiPathExtractor {
             .toList();
     }
 
+    /**
+     * Returns the first conflict between {@code path} and an entry of {@code existingPaths}. A conflict is a
+     * containment relationship (either string starts with the other) — so {@code /foo} conflicts with {@code /foo/bar}
+     * and vice versa. The error message reports the existing path (the one already published).
+     */
     public static Optional<Validator.Error> findConflictingPathError(String path, List<String> existingPaths) {
         return existingPaths
             .stream()
@@ -86,6 +105,7 @@ public final class ApiPathExtractor {
             .map(conflictingPath -> Validator.Error.severe("Path [%s] already exists", conflictingPath));
     }
 
+    /** Groups paths by their {@code host} value, dropping paths without a host. The result is keyed by host. */
     public static Map<String, List<String>> getPathsWithHost(List<Path> paths) {
         return paths
             .stream()
@@ -93,6 +113,7 @@ public final class ApiPathExtractor {
             .collect(Collectors.groupingBy(Path::getHost, Collectors.mapping(Path::getPath, Collectors.toList())));
     }
 
+    /** Returns the path strings whose {@code host} is empty, preserving order. */
     public static List<String> getPathsWithoutHost(List<Path> paths) {
         return paths
             .stream()
