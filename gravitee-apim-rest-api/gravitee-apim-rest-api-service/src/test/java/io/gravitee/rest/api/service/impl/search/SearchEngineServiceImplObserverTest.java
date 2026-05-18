@@ -169,4 +169,43 @@ class SearchEngineServiceImplObserverTest {
         verify(stillCalled, times(1)).onDelete(source);
         verify(luceneIndexer, times(1)).remove(any());
     }
+
+    @Test
+    void observer_fires_before_lucene_indexer_on_index() throws TechnicalException {
+        // The path index depends on this order: if Lucene wrote first and crashed before the observer fired, our
+        // in-memory snapshot would be stale relative to Lucene's view (and validates would still see no conflict).
+        var source = mock(Indexable.class);
+
+        service.index(new ExecutionContext("org", "env"), source, true);
+
+        var inOrder = org.mockito.Mockito.inOrder(observer, luceneIndexer);
+        inOrder.verify(observer).onIndex(source);
+        inOrder.verify(luceneIndexer).index(any(), eq(true));
+    }
+
+    @Test
+    void observer_fires_before_lucene_remove_on_delete_locally_true() throws TechnicalException {
+        var source = mock(Indexable.class);
+
+        service.delete(new ExecutionContext("org", "env"), source, true);
+
+        var inOrder = org.mockito.Mockito.inOrder(observer, luceneIndexer);
+        inOrder.verify(observer).onDelete(source);
+        inOrder.verify(luceneIndexer).remove(any());
+    }
+
+    @Test
+    void observer_fires_before_broadcast_on_delete_locally_false() throws TechnicalException {
+        // delete(locally=false) skips the local Lucene remove and broadcasts, but the observer MUST fire before the
+        // broadcast goes out — otherwise a fast delete-then-create on the originator could see stale path-index state.
+        var commandService = mock(io.gravitee.rest.api.service.CommandService.class);
+        ReflectionTestUtils.setField(service, "commandService", commandService);
+        var source = mock(Indexable.class);
+
+        service.delete(new ExecutionContext("org", "env"), source, false);
+
+        var inOrder = org.mockito.Mockito.inOrder(observer, commandService);
+        inOrder.verify(observer).onDelete(source);
+        inOrder.verify(commandService).send(any(), any());
+    }
 }

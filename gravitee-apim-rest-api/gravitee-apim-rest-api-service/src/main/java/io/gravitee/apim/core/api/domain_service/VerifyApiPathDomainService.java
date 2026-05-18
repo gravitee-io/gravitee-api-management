@@ -57,13 +57,13 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
     private final ApiQueryService apiSearchService;
     private final InstallationAccessQueryService installationAccessQueryService;
     private final ApiHostValidatorDomainService apiHostValidatorDomainService;
-    private final ApiPathIndex apiPathIndex;
+    private final ApiPathIndexReader apiPathIndex;
 
     public VerifyApiPathDomainService(
         ApiQueryService apiSearchService,
         InstallationAccessQueryService installationAccessQueryService,
         ApiHostValidatorDomainService apiHostValidatorDomainService,
-        ApiPathIndex apiPathIndex
+        ApiPathIndexReader apiPathIndex
     ) {
         this.apiSearchService = apiSearchService;
         this.installationAccessQueryService = installationAccessQueryService;
@@ -182,8 +182,9 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
         }
 
         // Single Mongo round-trip for the entire rechecked cohort (typically N <= a handful).
-        // The (env, _id) primary-key index handles the IN-clause efficiently; we keep the same
-        // pictureExcluded field filter as the supplementary query so the definition is loaded
+        // The {_id IN (...)} predicate hits the primary-key index; environmentId is applied as a residual filter
+        // server-side (the existing environmentId index isn't useful here because the IDs already narrow the scan).
+        // We keep the same pictureExcluded field filter as the supplementary query so the definition is loaded
         // — without it ApiPathExtractor.extractPaths would return [] and we'd drop real conflicts.
         var rechecked = new HashMap<String, List<Path>>();
         if (!needsRecheck.isEmpty()) {

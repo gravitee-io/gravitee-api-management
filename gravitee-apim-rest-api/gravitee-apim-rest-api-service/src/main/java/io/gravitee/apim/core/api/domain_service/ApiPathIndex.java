@@ -37,14 +37,18 @@ import lombok.CustomLog;
  * <ul>
  *   <li><b>Lazy per-env seed.</b> A {@code findConflicts} call on an unseeded env triggers the supplied seeder once,
  *       under {@link java.util.concurrent.ConcurrentHashMap#computeIfAbsent}. Concurrent readers on the same env share
- *       a single seed; readers on different envs do not interfere.</li>
+ *       a single seed; readers on different envs do not interfere. First validate per-env is a full env Mongo scan
+ *       (the seeder) — typical cold start cost. Subsequent reads are in-memory.</li>
  *   <li><b>Writes that arrive before a seed are dropped, NOT auto-recovered.</b> {@link #index} and {@link #remove}
- *       no-op when the env has no snapshot installed (the env is still unseeded). The dropped write is not replayed;
- *       recovery relies on the env being still unseeded at that point, so the very next {@link #findConflicts} call
- *       triggers {@code computeIfAbsent} and the seeder reads the latest Mongo state — which already contains the
- *       observed write because observers fire before the Lucene write returns to the caller. Once seeded, observer
- *       updates keep the snapshot fresh; further writes are no longer dropped.</li>
- *   <li><b>Seed failure retries.</b> If the seeder throws, no mapping is installed; the next read retries.</li>
+ *       no-op when the env has no snapshot installed. The dropped write is not replayed. Recovery relies on the
+ *       fact that the API service commits the Mongo write BEFORE invoking {@code SearchEngineService.index(...)}
+ *       (see {@code ApiServiceImpl.create}: {@code apiRepository.create(...)} precedes
+ *       {@code searchEngineService.index(...)}). So by the time the observer fires and we drop the write, the row is
+ *       already in Mongo — the very next {@link #findConflicts} call triggers {@code computeIfAbsent} and the seeder
+ *       reads it. Once seeded, observer updates keep the snapshot fresh; further writes are no longer dropped.</li>
+ *   <li><b>Seed failure retries.</b> If the seeder itself throws, no mapping is installed; the next read retries.
+ *       Per-row extraction failures within the seeder are caught and the offending api is skipped with a warning so
+ *       one malformed row cannot leave the env permanently un-installed.</li>
  *   <li><b>Observer failure recovery.</b> Callers that maintain the snapshot should invoke {@link #invalidate} when
  *       their own update throws so the next read reseeds from the source of truth.</li>
  *   <li><b>No env eviction.</b> Snapshots persist for the lifetime of the JVM; size is bounded by the API count per
@@ -68,11 +72,18 @@ import lombok.CustomLog;
  */
 @CustomLog
 @DomainService
-public class ApiPathIndex {
+public class ApiPathIndex implements ApiPathIndexReader, ApiPathIndexWriter {
 
+    /** A single path collision: the apiId that owns the conflicting path and the user-facing error message. */
     public record Conflict(String apiId, Validator.Error error) {}
 
+    /**
+     * Result of a {@link #findConflicts} call: the conflicts found in the snapshot, plus the snapshot's
+     * {@code refreshedAt} watermark. Callers can use {@code refreshedAt} to bound a supplementary "recently updated"
+     * query when they need cross-replica freshness.
+     */
     public record FindResult(List<Conflict> conflicts, Instant refreshedAt) {
+        /** Convenience: just the error messages, in the order they were found. */
         public List<Validator.Error> errors() {
             return conflicts.stream().map(Conflict::error).toList();
         }
@@ -97,6 +108,18 @@ public class ApiPathIndex {
 
     private final Map<String, EnvSnapshot> snapshotsByEnv = new ConcurrentHashMap<>();
 
+    /**
+     * Applies an indexed/updated API to the env snapshot and bumps the watermark.
+     *
+     * <p>No-op if the env has not been seeded yet (the dropped write is recovered the next time {@link #findConflicts}
+     * triggers the seeder — the API service commits the Mongo write before invoking the observer chain, so the seed
+     * will see the row). Once seeded, this stores a defensive copy of {@code paths} so caller-side mutation cannot
+     * corrupt the snapshot.</p>
+     *
+     * @param updatedAt the {@code Api.updatedAt} value as of this write — used to advance the env watermark. A
+     *                  {@code null} value leaves the watermark unchanged (treat as "unknown freshness").
+     */
+    @Override
     public void index(String envId, String apiId, List<Path> paths, Instant updatedAt) {
         var snapshot = snapshotsByEnv.get(envId);
         if (snapshot != null) {
@@ -105,6 +128,14 @@ public class ApiPathIndex {
         }
     }
 
+    /**
+     * Drops the env's snapshot entry for {@code apiId} and bumps the watermark to {@code updatedAt}. Used by the
+     * observer when an API has been updated to have no HTTP paths (e.g., transitioned to a non-HTTP listener kind),
+     * not for hard deletes — those route through {@link #removeForApi}.
+     *
+     * <p>No-op if the env has not been seeded yet. See {@link #index} for the recovery story.</p>
+     */
+    @Override
     public void remove(String envId, String apiId, Instant updatedAt) {
         var snapshot = snapshotsByEnv.get(envId);
         if (snapshot != null) {
@@ -118,6 +149,7 @@ public class ApiPathIndex {
      * the supplied seeder. Used to recover from observer failures that may have left the in-memory state diverged from
      * Mongo.
      */
+    @Override
     public void invalidate(String envId) {
         snapshotsByEnv.remove(envId);
     }
@@ -129,6 +161,7 @@ public class ApiPathIndex {
      * branch. Does not bump any env's watermark: a deleted row leaves no {@code updatedAt} to compare against, so the
      * validator relies on a per-conflict recheck to catch delete races within one cron interval.
      */
+    @Override
     public void removeForApi(String apiId) {
         snapshotsByEnv.forEach((envId, snapshot) -> {
             try {
@@ -141,9 +174,12 @@ public class ApiPathIndex {
     }
 
     /**
-     * Returns an immutable view of the env's path snapshot plus the watermark up to which observer updates have been
-     * applied. Triggers a lazy seed via {@code seeder} on first access for the env.
+     * Scans the env's in-memory path snapshot for conflicts against {@code candidatePaths}, skipping
+     * {@code excludeApiId}, and returns the conflicts together with the watermark up to which observer updates have
+     * been applied. Triggers a lazy seed via {@code seeder} on first access for the env. The returned watermark is
+     * intended to bound a follow-up "recently updated" Mongo query (see {@code VerifyApiPathDomainService}).
      */
+    @Override
     public FindResult findConflicts(String envId, String excludeApiId, List<Path> candidatePaths, Supplier<Stream<Api>> seeder) {
         var snapshot = snapshotsByEnv.computeIfAbsent(envId, key -> seedFrom(key, seeder));
         var conflicts = scanPaths(snapshot.paths, excludeApiId, candidatePaths);
@@ -151,14 +187,19 @@ public class ApiPathIndex {
     }
 
     /**
-     * Returns the watermark for the env after lazy-seeding if necessary, along with an immutable copy of the snapshot.
-     * Used by the validator to combine the snapshot scan with a "recently updated" Mongo query.
+     * Returns an immutable view of the env's snapshot (apiId -&gt; paths) together with the watermark up to which
+     * observer updates have been applied. Triggers a lazy seed via {@code seeder} on first access for the env.
+     *
+     * <p>The returned map is a defensive copy — caller-side mutation is safe and does not affect the live snapshot,
+     * and concurrent observer updates after the copy are not reflected in this view.</p>
      */
+    @Override
     public Snapshot snapshotOf(String envId, Supplier<Stream<Api>> seeder) {
         var snapshot = snapshotsByEnv.computeIfAbsent(envId, key -> seedFrom(key, seeder));
         return new Snapshot(Map.copyOf(snapshot.paths), snapshot.refreshedAt.get());
     }
 
+    /** Immutable point-in-time view returned by {@link #snapshotOf}. */
     public record Snapshot(Map<String, List<Path>> pathsByApiId, Instant refreshedAt) {}
 
     /**
@@ -197,18 +238,34 @@ public class ApiPathIndex {
 
     private static EnvSnapshot seedFrom(String envId, Supplier<Stream<Api>> seeder) {
         var snapshot = new EnvSnapshot(Instant.EPOCH);
+        var skipped = new java.util.concurrent.atomic.AtomicInteger();
         try (var apis = seeder.get()) {
             apis.forEach(api -> {
-                var paths = ApiPathExtractor.extractPaths(api);
-                if (!paths.isEmpty()) {
-                    snapshot.paths.put(api.getId(), paths);
-                }
-                if (api.getUpdatedAt() != null) {
-                    snapshot.bump(api.getUpdatedAt().toInstant());
+                // One malformed row must not abort the whole seed and leave the env permanently un-installed:
+                // computeIfAbsent's lambda throwing leaks past the lock, so every later findConflicts on this env
+                // would retry the seed indefinitely. Skip-and-warn keeps the index usable; the supplementary query
+                // and per-conflict recheck still pick up rows that didn't make it into the snapshot.
+                try {
+                    var paths = ApiPathExtractor.extractPaths(api);
+                    if (!paths.isEmpty()) {
+                        snapshot.paths.put(api.getId(), paths);
+                    }
+                    if (api.getUpdatedAt() != null) {
+                        snapshot.bump(api.getUpdatedAt().toInstant());
+                    }
+                } catch (RuntimeException e) {
+                    skipped.incrementAndGet();
+                    log.warn("Skipping api=[{}] during seed of env=[{}] due to extraction failure", api.getId(), envId, e);
                 }
             });
         }
-        log.info("Seeded path index env=[{}] apiCount=[{}] watermark=[{}]", envId, snapshot.paths.size(), snapshot.refreshedAt.get());
+        log.info(
+            "Seeded path index env=[{}] apiCount=[{}] skipped=[{}] watermark=[{}]",
+            envId,
+            snapshot.paths.size(),
+            skipped.get(),
+            snapshot.refreshedAt.get()
+        );
         return snapshot;
     }
 }

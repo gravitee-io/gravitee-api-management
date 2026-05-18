@@ -20,7 +20,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 import fixtures.core.model.ApiFixtures;
-import io.gravitee.apim.core.api.domain_service.ApiPathIndex;
+import io.gravitee.apim.core.api.domain_service.ApiPathIndexWriter;
 import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.definition.model.Proxy;
@@ -36,7 +36,7 @@ import org.junit.jupiter.api.Test;
 
 class ApiPathIndexationObserverTest {
 
-    private final ApiPathIndex apiPathIndex = mock(ApiPathIndex.class);
+    private final ApiPathIndexWriter apiPathIndex = mock(ApiPathIndexWriter.class);
     private final ApiPathIndexationObserver observer = new ApiPathIndexationObserver(apiPathIndex);
 
     @Test
