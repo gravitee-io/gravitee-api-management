@@ -162,7 +162,7 @@ public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitat
                 clauses.add("reference_type = ?");
             }
             if (StringUtils.hasText(criteria.email())) {
-                clauses.add("lower(email) like ? escape '\\'");
+                clauses.add("lower(email) like ?");
             }
         }
 
@@ -184,12 +184,8 @@ public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitat
             ps.setString(index++, criteria.referenceType().name());
         }
         if (StringUtils.hasText(criteria.email())) {
-            ps.setString(index, "%" + escapeLike(criteria.email().toLowerCase(Locale.ROOT)) + "%");
+            ps.setString(index, "%" + criteria.email().toLowerCase(Locale.ROOT) + "%");
         }
-    }
-
-    private String escapeLike(String value) {
-        return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 
     private void applySortable(Sortable sortable, StringBuilder query) {
