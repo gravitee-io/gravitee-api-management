@@ -1,0 +1,53 @@
+<?xml version="1.0" ?>
+<assembly>
+	<id>plugin</id>
+	<formats>
+		<format>zip</format>
+	</formats>
+	<includeBaseDirectory>false</includeBaseDirectory>
+
+	<!-- Include the main plugin Jar file -->
+	<files>
+		<file>
+			<source>${project.build.directory}/${project.build.finalName}.jar</source>
+		</file>
+	</files>
+
+	<!-- Bundle runtime deps so the plugin classloader can resolve them (gravitee-authz-engine + transitive). -->
+	<!--
+		TODO: audit dependency:tree once we have a real APIM run-time to compare against,
+		and add explicit <excludes> for any group that is also <provided> by APIM (otherwise
+		we ship duplicate copies and risk classloader split-brain). Suspected duplicates
+		based on current pom.xml <provided> scope:
+			- org.slf4j:slf4j-api
+			- com.fasterxml.jackson.core:jackson-databind  (and its jackson-core/annotations)
+			- org.springframework:spring-context           (and its spring-core/spring-beans)
+			- org.springframework.data:spring-data-mongodb
+			- org.mongodb:mongodb-driver-sync              (and bson)
+			- org.glassfish.jersey.containers:jersey-container-servlet
+		Today these are all <scope>provided</scope> on direct dependencies, so the assembly
+		plugin's <scope>runtime</scope> filter excludes them automatically — but a future
+		direct dependency that pulls them in transitively at compile/runtime scope would
+		silently re-bundle them, hence the audit. Confirm with `mvn dependency:tree` before
+		adding excludes here.
+	-->
+	<dependencySets>
+		<dependencySet>
+			<outputDirectory>lib</outputDirectory>
+			<useProjectArtifact>false</useProjectArtifact>
+			<scope>runtime</scope>
+			<excludes>
+				<!-- Provided by the APIM container; don't re-bundle. -->
+				<exclude>io.gravitee.gamma.plugin.module:*</exclude>
+			</excludes>
+		</dependencySet>
+	</dependencySets>
+
+	<!-- Include UI assets (manifest.json + compiled JS) -->
+	<fileSets>
+		<fileSet>
+			<directory>${project.build.directory}/classes/ui</directory>
+			<outputDirectory>ui</outputDirectory>
+		</fileSet>
+	</fileSets>
+</assembly>

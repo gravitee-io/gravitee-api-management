@@ -1,0 +1,22 @@
+version: '3'
+
+env:
+    MODULE_ID: 'authz'
+    APIM_MAPI_DISTRIBUTION_PATH: '{{.APIM_MAPI_DISTRIBUTION_PATH }}'
+
+tasks:
+    build:
+        desc: 'Build'
+        cmds:
+            - source "$NVM_DIR/nvm.sh" && nvm use
+            - mvn clean install -DskipTests -Dskip.validation
+
+    copy:
+        desc: 'Copy'
+        cmds:
+            - cp target/gravitee-gamma-module-${MODULE_ID}-*.zip ${APIM_MAPI_DISTRIBUTION_PATH}/plugins
+
+    clean:
+        desc: 'Clean'
+        cmds:
+            - rm ${APIM_MAPI_DISTRIBUTION_PATH}/plugins/gravitee-gamma-module-${MODULE_ID}-*.zip

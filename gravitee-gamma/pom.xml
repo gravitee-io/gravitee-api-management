@@ -81,5 +81,6 @@
         <module>gravitee-gamma-authz-rest</module>
         <module>gravitee-gamma-repository</module>
         <module>gravitee-gamma-authorization</module>
+        <module>gravitee-gamma-module-authz</module>
     </modules>
 </project>
