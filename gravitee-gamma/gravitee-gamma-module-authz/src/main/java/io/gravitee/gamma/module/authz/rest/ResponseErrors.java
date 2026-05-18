@@ -22,17 +22,16 @@ public final class ResponseErrors {
         try {
             return c.call();
         } catch (AuthzValidationException e) {
-            return jsonResponse(Response.Status.BAD_REQUEST,
-                ValidationErrorResponse.of(e.getMessage(), e.getErrors()));
+            return jsonResponse(Response.Status.BAD_REQUEST, ValidationErrorResponse.of(e.getMessage(), e.getErrors()));
         } catch (ConstraintViolationException e) {
-            List<String> messages = e.getConstraintViolations().stream()
+            List<String> messages = e
+                .getConstraintViolations()
+                .stream()
                 .map(v -> v.getPropertyPath() + ": " + v.getMessage())
                 .toList();
-            return jsonResponse(Response.Status.BAD_REQUEST,
-                ValidationErrorResponse.of("Validation failed", messages));
+            return jsonResponse(Response.Status.BAD_REQUEST, ValidationErrorResponse.of("Validation failed", messages));
         } catch (NotFoundException e) {
-            return jsonResponse(Response.Status.NOT_FOUND,
-                new ErrorBody(e.getMessage(), 404));
+            return jsonResponse(Response.Status.NOT_FOUND, new ErrorBody(e.getMessage(), 404));
         } catch (WebApplicationException e) {
             throw e;
         } catch (Exception e) {
@@ -42,15 +41,9 @@ public final class ResponseErrors {
 
     private static Response jsonResponse(Response.Status status, Object body) {
         try {
-            return Response.status(status)
-                .type(MediaType.APPLICATION_JSON)
-                .entity(MAPPER.writeValueAsString(body))
-                .build();
+            return Response.status(status).type(MediaType.APPLICATION_JSON).entity(MAPPER.writeValueAsString(body)).build();
         } catch (JsonProcessingException ex) {
-            return Response.status(status)
-                .type(MediaType.APPLICATION_JSON)
-                .entity("{\"message\":\"Error serialization failed\"}")
-                .build();
+            return Response.status(status).type(MediaType.APPLICATION_JSON).entity("{\"message\":\"Error serialization failed\"}").build();
         }
     }
 

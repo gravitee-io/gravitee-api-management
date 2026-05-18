@@ -29,9 +29,11 @@ public class ScimConnectorsResource {
     @GET
     @Path("/{id}")
     public Response get(@PathParam("envId") String envId, @PathParam("id") String id) {
-        return ResponseErrors.call(() -> service.get(envId, id)
-            .map(r -> Response.ok(r).build())
-            .orElseThrow(() -> new NotFoundException("Connector not found: " + id))
+        return ResponseErrors.call(() ->
+            service
+                .get(envId, id)
+                .map(r -> Response.ok(r).build())
+                .orElseThrow(() -> new NotFoundException("Connector not found: " + id))
         );
     }
 
@@ -45,11 +47,7 @@ public class ScimConnectorsResource {
 
     @PUT
     @Path("/{id}")
-    public Response update(
-        @PathParam("envId") String envId,
-        @PathParam("id") String id,
-        @Valid @NotNull ScimConnectorRequest request
-    ) {
+    public Response update(@PathParam("envId") String envId, @PathParam("id") String id, @Valid @NotNull ScimConnectorRequest request) {
         return ResponseErrors.call(() -> Response.ok(service.update(envId, id, request)).build());
     }
 

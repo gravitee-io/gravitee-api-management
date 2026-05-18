@@ -35,8 +35,7 @@ public class ScimConnectorRepository {
     }
 
     public List<ScimConnectorDocument> findByEnvironment(String environmentId) {
-        Query q = Query.query(Criteria.where("environmentId").is(environmentId))
-            .with(Sort.by(Sort.Direction.ASC, "name"));
+        Query q = Query.query(Criteria.where("environmentId").is(environmentId)).with(Sort.by(Sort.Direction.ASC, "name"));
         return mongo.find(q, ScimConnectorDocument.class);
     }
 

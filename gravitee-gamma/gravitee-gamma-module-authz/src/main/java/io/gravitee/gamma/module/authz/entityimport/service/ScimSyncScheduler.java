@@ -28,8 +28,7 @@ public class ScimSyncScheduler {
             try {
                 connectorService.runScheduledSync(c);
             } catch (Exception ex) {
-                log.warn("SCIM sync failed for connector {} (env {}): {}",
-                    c.getName(), c.getEnvironmentId(), ex.getMessage());
+                log.warn("SCIM sync failed for connector {} (env {}): {}", c.getName(), c.getEnvironmentId(), ex.getMessage());
             }
         }
     }
