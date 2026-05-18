@@ -305,4 +305,73 @@ public class EventLatestRepositoryTest extends AbstractManagementRepositoryTest 
             .extracting(Event::getId)
             .containsOnly("api-1", "api-2", "api-3", "dictionary-1", "api-4", "api-5", "api-7", "api-8");
     }
+
+    @Test
+    public void should_round_trip_authz_event_types_and_properties() throws Exception {
+        long now = System.currentTimeMillis();
+
+        Event policyPublish = createOrUpdateAuthzEvent(
+            "authz-policy-1",
+            EventType.PUBLISH_AUTHZ_POLICY,
+            Event.EventProperties.AUTHZ_POLICY_ID.getValue(),
+            "policy-1",
+            now
+        );
+        Event policyUnpublish = createOrUpdateAuthzEvent(
+            "authz-policy-2",
+            EventType.UNPUBLISH_AUTHZ_POLICY,
+            Event.EventProperties.AUTHZ_POLICY_ID.getValue(),
+            "policy-2",
+            now + 1
+        );
+        Event entityPublish = createOrUpdateAuthzEvent(
+            "authz-entity-1",
+            EventType.PUBLISH_AUTHZ_ENTITY,
+            Event.EventProperties.AUTHZ_ENTITY_ID.getValue(),
+            "api.bookings",
+            now + 2
+        );
+        Event entityUnpublish = createOrUpdateAuthzEvent(
+            "authz-entity-2",
+            EventType.UNPUBLISH_AUTHZ_ENTITY,
+            Event.EventProperties.AUTHZ_ENTITY_ID.getValue(),
+            "mcp.bookings.tool-1",
+            now + 3
+        );
+
+        List<Event> policyEvents = eventLatestRepository.search(
+            EventCriteria.builder().types(Set.of(EventType.PUBLISH_AUTHZ_POLICY, EventType.UNPUBLISH_AUTHZ_POLICY)).build(),
+            Event.EventProperties.AUTHZ_POLICY_ID,
+            null,
+            null
+        );
+        assertThat(policyEvents).extracting(Event::getId).containsExactlyInAnyOrder(policyPublish.getId(), policyUnpublish.getId());
+
+        List<Event> entityEvents = eventLatestRepository.search(
+            EventCriteria.builder().types(Set.of(EventType.PUBLISH_AUTHZ_ENTITY, EventType.UNPUBLISH_AUTHZ_ENTITY)).build(),
+            Event.EventProperties.AUTHZ_ENTITY_ID,
+            null,
+            null
+        );
+        assertThat(entityEvents).extracting(Event::getId).containsExactlyInAnyOrder(entityPublish.getId(), entityUnpublish.getId());
+
+        eventLatestRepository.delete(policyPublish.getId());
+        eventLatestRepository.delete(policyUnpublish.getId());
+        eventLatestRepository.delete(entityPublish.getId());
+        eventLatestRepository.delete(entityUnpublish.getId());
+    }
+
+    private Event createOrUpdateAuthzEvent(String id, EventType type, String propertyKey, String propertyValue, long timestamp)
+        throws TechnicalException {
+        Event event = new Event();
+        event.setId(id);
+        event.setEnvironments(singleton("DEFAULT"));
+        event.setOrganizations(singleton("DEFAULT"));
+        event.setType(type);
+        event.setPayload("{}");
+        event.setCreatedAt(new Date(timestamp));
+        event.setUpdatedAt(new Date(timestamp));
+        event.setProperties(Map.of(propertyKey, propertyValue));
+        return eventLatestRepository.createOrUpdate(event);
+    }
 }
