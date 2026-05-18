@@ -562,6 +562,7 @@ workflows:
       - job-validate-workflow-status:
           name: Validate workflow status
           requires:
+            - Build backend
             - Test definition
             - Test gateway
             - Test rest-api
