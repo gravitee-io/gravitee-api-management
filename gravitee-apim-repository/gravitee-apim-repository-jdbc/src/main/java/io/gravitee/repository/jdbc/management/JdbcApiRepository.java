@@ -540,6 +540,9 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             if (!isEmpty(apiCriteria.getApiTypes())) {
                 lastIndex = getOrm().setArguments(ps, apiCriteria.getApiTypes(), lastIndex);
             }
+            if (apiCriteria.getUpdatedAtFrom() != null) {
+                ps.setTimestamp(lastIndex++, new java.sql.Timestamp(apiCriteria.getUpdatedAtFrom().getTime()));
+            }
         }
         return lastIndex;
     }
@@ -608,6 +611,9 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         }
         if (!isEmpty(apiCriteria.getApiTypes())) {
             clauses.add("a.type in (" + getOrm().buildInClause(apiCriteria.getApiTypes()) + ")");
+        }
+        if (apiCriteria.getUpdatedAtFrom() != null) {
+            clauses.add("a.updated_at >= ?");
         }
         if (!clauses.isEmpty()) {
             return String.join(" and ", clauses);

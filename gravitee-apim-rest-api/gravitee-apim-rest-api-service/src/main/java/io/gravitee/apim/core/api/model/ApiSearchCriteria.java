@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api.model;
 
 import io.gravitee.definition.model.DefinitionVersion;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import lombok.Builder;
@@ -39,4 +40,5 @@ public class ApiSearchCriteria {
     private String crossId;
     private Collection<DefinitionVersion> definitionVersion;
     private String integrationId;
+    private Instant updatedAtFrom;
 }

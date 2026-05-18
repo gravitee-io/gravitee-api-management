@@ -25,6 +25,9 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -40,6 +43,7 @@ class ApiPathIndexTest {
 
     private static final String ENV = "env-1";
     private static final String API_ID = "api-1";
+    private static final Instant T0 = Instant.parse("2026-05-18T10:00:00Z");
 
     @Test
     void cold_findConflicts_seeds_via_supplied_seeder_once() {
@@ -50,33 +54,101 @@ class ApiPathIndexTest {
         };
         var index = new ApiPathIndex();
 
-        var errors = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo").build()), seeder);
+        var result = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo").build()), seeder);
 
-        assertThat(errors).isEmpty();
+        assertThat(result.errors()).isEmpty();
         assertThat(calls.get()).isEqualTo(1);
     }
 
     @Test
+    void empty_seed_initializes_watermark_to_EPOCH() {
+        var index = new ApiPathIndex();
+        var result = index.findConflicts(ENV, API_ID, List.of(), Stream::empty);
+
+        assertThat(result.refreshedAt()).isEqualTo(Instant.EPOCH);
+    }
+
+    @Test
+    void seed_initializes_watermark_to_max_updated_at_over_rows() {
+        var older = apiWithPaths("api-older", "/foo", T0);
+        var newer = apiWithPaths("api-newer", "/bar", T0.plusSeconds(60));
+        var index = new ApiPathIndex();
+
+        var result = index.findConflicts(ENV, API_ID, List.of(), () -> Stream.of(older, newer));
+
+        assertThat(result.refreshedAt()).isEqualTo(T0.plusSeconds(60));
+    }
+
+    @Test
+    void index_bumps_watermark() {
+        var index = new ApiPathIndex();
+        index.findConflicts(ENV, "seed-api", List.of(), Stream::empty);
+
+        index.index(ENV, "new-api", List.of(Path.builder().path("/foo").build()), T0);
+
+        var result = index.findConflicts(ENV, API_ID, List.of(), Stream::empty);
+        assertThat(result.refreshedAt()).isEqualTo(T0);
+    }
+
+    @Test
+    void index_does_not_lower_watermark() {
+        var index = new ApiPathIndex();
+        index.findConflicts(ENV, "seed-api", List.of(), Stream::empty);
+        index.index(ENV, "new-api", List.of(Path.builder().path("/foo").build()), T0.plusSeconds(60));
+
+        // Older update arriving later does not lower the watermark
+        index.index(ENV, "other-api", List.of(Path.builder().path("/bar").build()), T0);
+
+        var result = index.findConflicts(ENV, API_ID, List.of(), Stream::empty);
+        assertThat(result.refreshedAt()).isEqualTo(T0.plusSeconds(60));
+    }
+
+    @Test
+    void remove_bumps_watermark() {
+        var index = new ApiPathIndex();
+        index.findConflicts(ENV, "seed-api", List.of(), Stream::empty);
+        index.index(ENV, "victim", List.of(Path.builder().path("/foo").build()), T0);
+
+        index.remove(ENV, "victim", T0.plusSeconds(30));
+
+        var result = index.findConflicts(ENV, API_ID, List.of(), Stream::empty);
+        assertThat(result.refreshedAt()).isEqualTo(T0.plusSeconds(30));
+    }
+
+    @Test
+    void removeForApi_does_not_bump_watermark() {
+        var index = new ApiPathIndex();
+        index.findConflicts(ENV, "seed-api", List.of(), Stream::empty);
+        index.index(ENV, "victim", List.of(Path.builder().path("/foo").build()), T0);
+
+        index.removeForApi("victim");
+
+        var result = index.findConflicts(ENV, API_ID, List.of(), Stream::empty);
+        assertThat(result.refreshedAt()).isEqualTo(T0);
+    }
+
+    @Test
     void findConflicts_ignores_the_api_being_updated() {
-        var self = apiWithPaths(API_ID, "/foo");
+        var self = apiWithPaths(API_ID, "/foo", T0);
         Supplier<Stream<Api>> seeder = () -> Stream.of(self);
         var index = new ApiPathIndex();
 
-        var errors = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), seeder);
+        var result = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), seeder);
 
-        assertThat(errors).isEmpty();
+        assertThat(result.errors()).isEmpty();
     }
 
     @Test
     void findConflicts_reports_collision_against_seeded_api() {
-        var existing = apiWithPaths("other-api", "/foo");
+        var existing = apiWithPaths("other-api", "/foo", T0);
         Supplier<Stream<Api>> seeder = () -> Stream.of(existing);
         var index = new ApiPathIndex();
 
-        var errors = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), seeder);
+        var result = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), seeder);
 
-        assertThat(errors).hasSize(1);
-        assertThat(errors.get(0).getMessage()).isEqualTo("Path [/foo/] already exists");
+        assertThat(result.errors()).hasSize(1);
+        assertThat(result.errors().get(0).getMessage()).isEqualTo("Path [/foo/] already exists");
+        assertThat(result.conflicts().get(0).apiId()).isEqualTo("other-api");
     }
 
     @Test
@@ -86,27 +158,25 @@ class ApiPathIndexTest {
         var mutable = new java.util.ArrayList<Path>();
         mutable.add(Path.builder().path("/safe/").build());
 
-        index.index(ENV, "victim", mutable);
+        index.index(ENV, "victim", mutable, T0);
         mutable.clear();
 
-        var errors = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/safe/bar").build()), Stream::empty);
-        assertThat(errors).hasSize(1);
+        var result = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/safe/bar").build()), Stream::empty);
+        assertThat(result.errors()).hasSize(1);
     }
 
     @Test
     void removeForApi_evicts_entry_from_every_env_snapshot() {
         var index = new ApiPathIndex();
-        // seed two distinct envs (READY)
         index.findConflicts("env-A", "seed", List.of(), Stream::empty);
         index.findConflicts("env-B", "seed", List.of(), Stream::empty);
-        // place the same apiId in both
-        index.index("env-A", "shared-api", List.of(Path.builder().path("/foo/").build()));
-        index.index("env-B", "shared-api", List.of(Path.builder().path("/bar/").build()));
+        index.index("env-A", "shared-api", List.of(Path.builder().path("/foo/").build()), T0);
+        index.index("env-B", "shared-api", List.of(Path.builder().path("/bar/").build()), T0);
 
         index.removeForApi("shared-api");
 
-        assertThat(index.findConflicts("env-A", "x", List.of(Path.builder().path("/foo").build()), Stream::empty)).isEmpty();
-        assertThat(index.findConflicts("env-B", "x", List.of(Path.builder().path("/bar").build()), Stream::empty)).isEmpty();
+        assertThat(index.findConflicts("env-A", "x", List.of(Path.builder().path("/foo").build()), Stream::empty).errors()).isEmpty();
+        assertThat(index.findConflicts("env-B", "x", List.of(Path.builder().path("/bar").build()), Stream::empty).errors()).isEmpty();
     }
 
     @Test
@@ -129,11 +199,11 @@ class ApiPathIndexTest {
     @Test
     void index_on_unseeded_env_is_dropped() {
         var index = new ApiPathIndex();
-        index.index(ENV, "dropped-api", List.of(Path.builder().path("/foo/").build()));
+        index.index(ENV, "dropped-api", List.of(Path.builder().path("/foo/").build()), T0);
 
-        var errors = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), Stream::empty);
+        var result = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), Stream::empty);
 
-        assertThat(errors).isEmpty();
+        assertThat(result.errors()).isEmpty();
     }
 
     @Test
@@ -141,25 +211,25 @@ class ApiPathIndexTest {
         var index = new ApiPathIndex();
         index.findConflicts(ENV, "seed-api", List.of(), Stream::empty);
 
-        index.index(ENV, "new-api", List.of(Path.builder().path("/foo/").build()));
+        index.index(ENV, "new-api", List.of(Path.builder().path("/foo/").build()), T0);
 
-        var errors = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), Stream::empty);
-        assertThat(errors).hasSize(1);
-        assertThat(errors.get(0).getMessage()).isEqualTo("Path [/foo/] already exists");
+        var result = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), Stream::empty);
+        assertThat(result.errors()).hasSize(1);
+        assertThat(result.errors().get(0).getMessage()).isEqualTo("Path [/foo/] already exists");
     }
 
     @Test
     void findConflicts_isolates_paths_by_host_bucket() {
-        var existingHost = apiWithHostPath("other-api", "h1", "/foo");
+        var existingHost = apiWithHostPath("other-api", "h1", "/foo", T0);
         var index = new ApiPathIndex();
 
-        var sameHostErrors = index.findConflicts(ENV, API_ID, List.of(Path.builder().host("h1").path("/foo/bar").build()), () ->
+        var sameHostResult = index.findConflicts(ENV, API_ID, List.of(Path.builder().host("h1").path("/foo/bar").build()), () ->
             Stream.of(existingHost)
         );
-        var otherHostErrors = index.findConflicts(ENV, API_ID, List.of(Path.builder().host("h2").path("/foo/bar").build()), Stream::empty);
+        var otherHostResult = index.findConflicts(ENV, API_ID, List.of(Path.builder().host("h2").path("/foo/bar").build()), Stream::empty);
 
-        assertThat(sameHostErrors).hasSize(1);
-        assertThat(otherHostErrors).isEmpty();
+        assertThat(sameHostResult.errors()).hasSize(1);
+        assertThat(otherHostResult.errors()).isEmpty();
     }
 
     @Test
@@ -210,8 +280,8 @@ class ApiPathIndexTest {
             IllegalStateException.class
         );
 
-        var errors = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo").build()), seeder);
-        assertThat(errors).isEmpty();
+        var result = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo").build()), seeder);
+        assertThat(result.errors()).isEmpty();
         assertThat(attempts.get()).isEqualTo(2);
     }
 
@@ -219,29 +289,50 @@ class ApiPathIndexTest {
     void remove_drops_paths_from_ready_env_snapshot() {
         var index = new ApiPathIndex();
         index.findConflicts(ENV, "seed-api", List.of(), Stream::empty);
-        index.index(ENV, "to-be-removed", List.of(Path.builder().path("/foo/").build()));
+        index.index(ENV, "to-be-removed", List.of(Path.builder().path("/foo/").build()), T0);
 
-        index.remove(ENV, "to-be-removed");
+        index.remove(ENV, "to-be-removed", T0.plusSeconds(1));
 
-        var errors = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), Stream::empty);
-        assertThat(errors).isEmpty();
+        var result = index.findConflicts(ENV, API_ID, List.of(Path.builder().path("/foo/bar").build()), Stream::empty);
+        assertThat(result.errors()).isEmpty();
     }
 
     @Test
     void findConflicts_isolates_envs() {
-        var env1Api = apiWithPaths("other-api", "/foo");
+        var env1Api = apiWithPaths("other-api", "/foo", T0);
         var index = new ApiPathIndex();
         index.findConflicts("env-1", API_ID, List.of(), () -> Stream.of(env1Api));
 
-        var errors = index.findConflicts("env-2", API_ID, List.of(Path.builder().path("/foo/bar").build()), Stream::empty);
+        var result = index.findConflicts("env-2", API_ID, List.of(Path.builder().path("/foo/bar").build()), Stream::empty);
 
-        assertThat(errors).isEmpty();
+        assertThat(result.errors()).isEmpty();
     }
 
-    private static Api apiWithHostPath(String apiId, String host, String path) {
+    @Test
+    void snapshotOf_returns_immutable_view_with_watermark() {
+        var seeded = apiWithPaths("seeded", "/foo", T0);
+        var index = new ApiPathIndex();
+        var snapshot = index.snapshotOf(ENV, () -> Stream.of(seeded));
+
+        assertThat(snapshot.pathsByApiId()).containsOnlyKeys("seeded");
+        assertThat(snapshot.refreshedAt()).isEqualTo(T0);
+    }
+
+    @Test
+    void scanPaths_static_helper_finds_conflicts_against_arbitrary_view() {
+        var paths = java.util.Map.of("foreign", List.of(Path.builder().path("/foo/").build()));
+
+        var conflicts = ApiPathIndex.scanPaths(paths, API_ID, List.of(Path.builder().path("/foo/bar").build()));
+
+        assertThat(conflicts).hasSize(1);
+        assertThat(conflicts.get(0).apiId()).isEqualTo("foreign");
+    }
+
+    private static Api apiWithHostPath(String apiId, String host, String path, Instant updatedAt) {
         return ApiFixtures.aProxyApiV4()
             .toBuilder()
             .id(apiId)
+            .updatedAt(ZonedDateTime.ofInstant(updatedAt, ZoneOffset.UTC))
             .apiDefinitionValue(
                 io.gravitee.definition.model.v4.Api.builder()
                     .id(apiId)
@@ -261,10 +352,11 @@ class ApiPathIndexTest {
             .build();
     }
 
-    private static Api apiWithPaths(String apiId, String path) {
+    private static Api apiWithPaths(String apiId, String path, Instant updatedAt) {
         return ApiFixtures.aProxyApiV4()
             .toBuilder()
             .id(apiId)
+            .updatedAt(ZonedDateTime.ofInstant(updatedAt, ZoneOffset.UTC))
             .apiDefinitionValue(
                 io.gravitee.definition.model.v4.Api.builder()
                     .id(apiId)

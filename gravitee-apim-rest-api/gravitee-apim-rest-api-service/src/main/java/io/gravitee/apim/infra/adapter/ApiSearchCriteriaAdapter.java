@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
+import java.util.Date;
 import java.util.stream.Collectors;
 
 public class ApiSearchCriteriaAdapter {
@@ -69,6 +70,9 @@ public class ApiSearchCriteriaAdapter {
                 .environments(criteria.getEnvironments())
                 .crossId(criteria.getCrossId())
                 .integrationId(criteria.getIntegrationId());
+            if (criteria.getUpdatedAtFrom() != null) {
+                builder.updatedAtFrom(Date.from(criteria.getUpdatedAtFrom()));
+            }
         }
         return builder.build();
     }
