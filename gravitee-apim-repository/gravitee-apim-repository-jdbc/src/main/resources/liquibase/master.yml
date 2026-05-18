@@ -299,3 +299,35 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_9_5/01_change_dictionary_property_value_datatype.yml
     - include:
         - file: liquibase/changelogs/v4_9_17/00_change_flow_selectors_path_length.yml
+<<<<<<< HEAD
+=======
+    - include:
+        - file: liquibase/changelogs/v4_11_0/00_add_api_products_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_11_0/01_add_api_product_apis_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_11_0/02_add_client_certificates_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_11_0/03_add_environment_id_and_definition_version_on_plans.yml
+    - include:
+        - file: liquibase/changelogs/v4_11_0/04_add_reference_fields_to_plans_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_11_0/05_add_api_id_to_portal_navigation_items.yml
+    - include:
+        - file: liquibase/changelogs/v4_11_0/06_create_custom_dashboards_table.yml
+
+    - include:
+        - file: liquibase/changelogs/v4_11_0/06_add_reference_fields_to_subscriptions_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_11_0/08_add_subscription_forms_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_11_0/09_add_root_id_to_portal_navigation_items.yml
+    - include:
+        - file: liquibase/changelogs/v4_11_0/10_make_root_id_not_null_portal_navigation_items.yml
+    - include:
+        - file: liquibase/changelogs/v4_11_0/11_add_allow_multi_jwt_oauth2_subscriptions_to_apis.yml
+    - include:
+        - file: liquibase/changelogs/v4_11_1/00_add_validation_constraints_to_subscription_forms.yml
+    - include:
+        - file: liquibase/changelogs/v4_11_1/01_add_apis_environment_id_updated_at_index.yml
+>>>>>>> 45bed588dc (fix(api): close cross-pod path-index race window (APIM-14052))

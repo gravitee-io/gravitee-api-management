@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
@@ -26,7 +27,9 @@ import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryS
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.DefinitionVersion;
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -37,7 +40,11 @@ import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 =======
 import lombok.CustomLog;
+<<<<<<< HEAD
 >>>>>>> caa802a768 (perf(api): in-memory path index for collision checks (APIM-14052))
+=======
+import org.springframework.beans.factory.annotation.Value;
+>>>>>>> 45bed588dc (fix(api): close cross-pod path-index race window (APIM-14052))
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -49,21 +56,60 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
 
     public record Input(String environmentId, String apiId, List<Path> paths) implements Validator.Input {}
 
+    private static final List<DefinitionVersion> PATH_BEARING_DEFINITIONS = List.of(DefinitionVersion.V2, DefinitionVersion.V4);
+
     private final ApiQueryService apiSearchService;
+    private final ApiCrudService apiCrudService;
     private final InstallationAccessQueryService installationAccessQueryService;
     private final ApiHostValidatorDomainService apiHostValidatorDomainService;
     private final ApiPathIndex apiPathIndex;
+    private final Duration safetyMargin;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public VerifyApiPathDomainService(
+        ApiQueryService apiSearchService,
+        ApiCrudService apiCrudService,
+        InstallationAccessQueryService installationAccessQueryService,
+        ApiHostValidatorDomainService apiHostValidatorDomainService,
+        ApiPathIndex apiPathIndex,
+        @Value("${services.search_indexer.path_index.safety_margin:PT10S}") String safetyMargin
+    ) {
+        this(
+            apiSearchService,
+            apiCrudService,
+            installationAccessQueryService,
+            apiHostValidatorDomainService,
+            apiPathIndex,
+            parseSafetyMargin(safetyMargin)
+        );
+    }
 
     public VerifyApiPathDomainService(
         ApiQueryService apiSearchService,
+        ApiCrudService apiCrudService,
         InstallationAccessQueryService installationAccessQueryService,
         ApiHostValidatorDomainService apiHostValidatorDomainService,
-        ApiPathIndex apiPathIndex
+        ApiPathIndex apiPathIndex,
+        Duration safetyMargin
     ) {
         this.apiSearchService = apiSearchService;
+        this.apiCrudService = apiCrudService;
         this.installationAccessQueryService = installationAccessQueryService;
         this.apiHostValidatorDomainService = apiHostValidatorDomainService;
         this.apiPathIndex = apiPathIndex;
+        this.safetyMargin = safetyMargin == null ? Duration.ofSeconds(10) : safetyMargin;
+    }
+
+    private static Duration parseSafetyMargin(String value) {
+        if (value == null || value.isBlank()) {
+            return Duration.ofSeconds(10);
+        }
+        try {
+            return Duration.parse(value);
+        } catch (java.time.format.DateTimeParseException e) {
+            log.warn("Invalid services.search_indexer.path_index.safety_margin=[{}], using default 10s", value);
+            return Duration.ofSeconds(10);
+        }
     }
 
     @Override
@@ -132,16 +178,75 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
 
     private List<Error> unavailablePathErrors(Input input, List<Path.PathBuilder> sanitizedBuilder) {
         var candidatePaths = sanitizedBuilder.stream().map(Path.PathBuilder::build).toList();
-        return apiPathIndex.findConflicts(input.environmentId, input.apiId, candidatePaths, () ->
-            apiSearchService.search(
-                ApiSearchCriteria.builder()
-                    .environmentId(input.environmentId)
-                    .definitionVersion(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
-                    .build(),
-                null,
-                ApiFieldFilter.builder().pictureExcluded(true).build()
-            )
-        );
+        var env = input.environmentId;
+        var excludeApiId = input.apiId;
+
+        var snapshot = apiPathIndex.snapshotOf(env, () -> searchPathBearing(env, null));
+
+        // Always supplement the snapshot with rows updated since the snapshot's watermark minus a safety margin
+        // (covers inter-pod clock skew + cron batch processing duration). On a fresh seed of a quiet env, this
+        // returns 0 rows. On a busy env or in the first seconds after a remote write lands in Mongo but before our
+        // broadcast cron pulls it, this catches the unseen rows.
+        var since = snapshot.refreshedAt().minus(safetyMargin);
+        var overridePaths = new HashMap<String, List<Path>>();
+        try (var recent = searchPathBearing(env, since)) {
+            recent.forEach(api -> overridePaths.put(api.getId(), ApiPathExtractor.extractPaths(api)));
+        }
+
+        // Merge: supplementary wins. Empty paths means a path-removing update or non-HTTP API — drop from view.
+        var merged = new HashMap<>(snapshot.pathsByApiId());
+        overridePaths.forEach((apiId, paths) -> {
+            if (paths.isEmpty()) {
+                merged.remove(apiId);
+            } else {
+                merged.put(apiId, paths);
+            }
+        });
+
+        var conflicts = ApiPathIndex.scanPaths(merged, excludeApiId, candidatePaths);
+        if (conflicts.isEmpty()) {
+            return List.of();
+        }
+
+        // Partition: conflicts against rows we just read from Mongo (override) are trusted; conflicts against
+        // snapshot-only rows need a per-apiId recheck to catch hard deletes (which leave no row for the
+        // supplementary query to find) and any update that escaped the watermark window.
+        var trustedErrors = new ArrayList<Error>();
+        var needsRecheck = new ArrayList<String>();
+        var seenRecheck = new HashSet<String>();
+        for (var conflict : conflicts) {
+            if (overridePaths.containsKey(conflict.apiId())) {
+                trustedErrors.add(conflict.error());
+            } else if (seenRecheck.add(conflict.apiId())) {
+                needsRecheck.add(conflict.apiId());
+            }
+        }
+
+        var rechecked = new HashMap<String, List<Path>>();
+        for (var apiId : needsRecheck) {
+            apiCrudService
+                .findById(apiId)
+                .ifPresent(api -> {
+                    var paths = ApiPathExtractor.extractPaths(api);
+                    if (!paths.isEmpty()) {
+                        rechecked.put(apiId, paths);
+                    }
+                });
+        }
+        var rescannedConflicts = ApiPathIndex.scanPaths(rechecked, excludeApiId, candidatePaths);
+
+        var allErrors = new ArrayList<Error>(trustedErrors);
+        rescannedConflicts.forEach(c -> allErrors.add(c.error()));
+        return allErrors;
+    }
+
+    private java.util.stream.Stream<io.gravitee.apim.core.api.model.Api> searchPathBearing(String envId, java.time.Instant updatedAtFrom) {
+        var criteria = ApiSearchCriteria.builder()
+            .environmentId(envId)
+            .definitionVersion(PATH_BEARING_DEFINITIONS)
+            .updatedAtFrom(updatedAtFrom)
+            .build();
+        return apiSearchService.search(criteria, null, ApiFieldFilter.builder().pictureExcluded(true).build());
     }
 
     private List<Error> invalidPathErrors(List<Path.PathBuilder> sanitizedBuilder) {

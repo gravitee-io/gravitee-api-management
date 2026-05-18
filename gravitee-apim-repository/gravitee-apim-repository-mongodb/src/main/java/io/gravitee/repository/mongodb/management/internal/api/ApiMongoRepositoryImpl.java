@@ -172,6 +172,15 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
                     if (apiCriteria.getIntegrationId() != null && !apiCriteria.getIntegrationId().isEmpty()) {
                         criteria.add(where("integrationId").is(apiCriteria.getIntegrationId()));
                     }
+<<<<<<< HEAD
+=======
+                    if (apiCriteria.getApiTypes() != null && !apiCriteria.getApiTypes().isEmpty()) {
+                        criteria.add(where("type").in(apiCriteria.getApiTypes()));
+                    }
+                    if (apiCriteria.getUpdatedAtFrom() != null) {
+                        criteria.add(where("updatedAt").gte(apiCriteria.getUpdatedAtFrom()));
+                    }
+>>>>>>> 45bed588dc (fix(api): close cross-pod path-index race window (APIM-14052))
                     return criteria;
                 })
                 .filter(criteria -> !criteria.isEmpty())

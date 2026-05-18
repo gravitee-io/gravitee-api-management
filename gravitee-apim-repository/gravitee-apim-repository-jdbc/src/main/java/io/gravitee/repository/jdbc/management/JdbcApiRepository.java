@@ -537,6 +537,15 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             if (hasText(apiCriteria.getIntegrationId())) {
                 ps.setString(lastIndex++, apiCriteria.getIntegrationId());
             }
+<<<<<<< HEAD
+=======
+            if (!isEmpty(apiCriteria.getApiTypes())) {
+                lastIndex = getOrm().setArguments(ps, apiCriteria.getApiTypes(), lastIndex);
+            }
+            if (apiCriteria.getUpdatedAtFrom() != null) {
+                ps.setTimestamp(lastIndex++, new java.sql.Timestamp(apiCriteria.getUpdatedAtFrom().getTime()));
+            }
+>>>>>>> 45bed588dc (fix(api): close cross-pod path-index race window (APIM-14052))
         }
         return lastIndex;
     }
@@ -603,6 +612,15 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             }
             clauses.add(clauseBuilder.toString());
         }
+<<<<<<< HEAD
+=======
+        if (!isEmpty(apiCriteria.getApiTypes())) {
+            clauses.add("a.type in (" + getOrm().buildInClause(apiCriteria.getApiTypes()) + ")");
+        }
+        if (apiCriteria.getUpdatedAtFrom() != null) {
+            clauses.add("a.updated_at >= ?");
+        }
+>>>>>>> 45bed588dc (fix(api): close cross-pod path-index race window (APIM-14052))
         if (!clauses.isEmpty()) {
             return String.join(" and ", clauses);
         }

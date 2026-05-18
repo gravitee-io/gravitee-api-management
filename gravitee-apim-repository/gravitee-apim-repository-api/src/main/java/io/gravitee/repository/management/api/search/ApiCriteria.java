@@ -22,6 +22,7 @@ import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -46,6 +47,11 @@ public class ApiCriteria {
     private String crossId;
     private List<DefinitionVersion> definitionVersion;
     private String integrationId;
+<<<<<<< HEAD
+=======
+    private List<ApiType> apiTypes;
+    private Date updatedAtFrom;
+>>>>>>> 45bed588dc (fix(api): close cross-pod path-index race window (APIM-14052))
 
     ApiCriteria(ApiCriteria.Builder builder) {
         this.ids = builder.ids;
@@ -62,6 +68,11 @@ public class ApiCriteria {
         this.crossId = builder.crossId;
         this.definitionVersion = builder.definitionVersion;
         this.integrationId = builder.integrationId;
+<<<<<<< HEAD
+=======
+        this.apiTypes = builder.apiTypes;
+        this.updatedAtFrom = builder.updatedAtFrom;
+>>>>>>> 45bed588dc (fix(api): close cross-pod path-index race window (APIM-14052))
     }
 
     public Collection<String> getIds() {
@@ -132,6 +143,17 @@ public class ApiCriteria {
         this.integrationId = integrationId;
     }
 
+<<<<<<< HEAD
+=======
+    public List<ApiType> getApiTypes() {
+        return apiTypes;
+    }
+
+    public Date getUpdatedAtFrom() {
+        return updatedAtFrom;
+    }
+
+>>>>>>> 45bed588dc (fix(api): close cross-pod path-index race window (APIM-14052))
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -151,7 +173,13 @@ public class ApiCriteria {
             Objects.equals(environments, that.environments) &&
             Objects.equals(crossId, that.crossId) &&
             Objects.equals(definitionVersion, that.definitionVersion) &&
+<<<<<<< HEAD
             Objects.equals(integrationId, that.integrationId)
+=======
+            Objects.equals(integrationId, that.integrationId) &&
+            Objects.equals(apiTypes, that.apiTypes) &&
+            Objects.equals(updatedAtFrom, that.updatedAtFrom)
+>>>>>>> 45bed588dc (fix(api): close cross-pod path-index race window (APIM-14052))
         );
     }
 
@@ -171,7 +199,13 @@ public class ApiCriteria {
             environments,
             crossId,
             definitionVersion,
+<<<<<<< HEAD
             integrationId
+=======
+            integrationId,
+            apiTypes,
+            updatedAtFrom
+>>>>>>> 45bed588dc (fix(api): close cross-pod path-index race window (APIM-14052))
         );
     }
 
@@ -191,6 +225,11 @@ public class ApiCriteria {
         private String crossId;
         private List<DefinitionVersion> definitionVersion;
         private String integrationId;
+<<<<<<< HEAD
+=======
+        private List<ApiType> apiTypes;
+        private Date updatedAtFrom;
+>>>>>>> 45bed588dc (fix(api): close cross-pod path-index race window (APIM-14052))
 
         public ApiCriteria.Builder ids(final String... id) {
             this.ids = Set.of(id);
@@ -272,6 +311,19 @@ public class ApiCriteria {
             return this;
         }
 
+<<<<<<< HEAD
+=======
+        public ApiCriteria.Builder apiTypes(final List<ApiType> apiTypes) {
+            this.apiTypes = apiTypes;
+            return this;
+        }
+
+        public ApiCriteria.Builder updatedAtFrom(final Date updatedAtFrom) {
+            this.updatedAtFrom = updatedAtFrom;
+            return this;
+        }
+
+>>>>>>> 45bed588dc (fix(api): close cross-pod path-index race window (APIM-14052))
         public ApiCriteria build() {
             return new ApiCriteria(this);
         }
