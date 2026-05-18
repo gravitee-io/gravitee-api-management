@@ -67,13 +67,16 @@ databaseChangeLog:
                     MODIFY COLUMN `key` NVARCHAR(128) NOT NULL,
                     ADD CONSTRAINT pk_${gravitee_rate_limit_prefix}ratelimit PRIMARY KEY (`key`);
 
-    # Same MARK_RAN guard as the MySQL changeset above. Postgres, MSSQL, and H2
-    # all report character_maximum_length in characters (not bytes), so a
-    # single sqlCheck applies cleanly across the !mysql,!mariadb family.
+    # Same MARK_RAN guard as the MySQL changeset above. The sqlCheck MUST filter
+    # by current schema, otherwise multi-schema deployments where
+    # `${gravitee_rate_limit_prefix}ratelimit.key` is visible in >1 schema return
+    # multiple rows and Liquibase aborts with "Result set larger than one row",
+    # leaving mapi/gateway in a permanent crash loop. The current-schema function
+    # differs per DBMS, so the changeset is split into one per engine.
     - changeSet:
-        id: 1.25.2-rebuild-key-pk-other
+        id: 1.25.2-rebuild-key-pk-postgresql
         author: GraviteeSource Team
-        dbms: '!mysql, !mariadb'
+        dbms: postgresql
         preConditions:
         - onFail: MARK_RAN
         - sqlCheck:
@@ -81,7 +84,35 @@ databaseChangeLog:
             sql: |
                 SELECT character_maximum_length
                 FROM information_schema.columns
-                WHERE table_name = '${gravitee_rate_limit_prefix}ratelimit'
+                WHERE table_schema = CURRENT_SCHEMA()
+                  AND table_name = '${gravitee_rate_limit_prefix}ratelimit'
+                  AND column_name = 'key'
+        changes:
+        - dropPrimaryKey:
+            constraintName: pk_${gravitee_rate_limit_prefix}ratelimit
+            tableName: ${gravitee_rate_limit_prefix}ratelimit
+        - modifyDataType:
+            tableName: ${gravitee_rate_limit_prefix}ratelimit
+            columnName: key
+            newDataType: varchar(128)
+        - addPrimaryKey:
+             constraintName: pk_${gravitee_rate_limit_prefix}ratelimit
+             columnNames: key
+             tableName: ${gravitee_rate_limit_prefix}ratelimit
+
+    - changeSet:
+        id: 1.25.2-rebuild-key-pk-mssql
+        author: GraviteeSource Team
+        dbms: mssql
+        preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: 64
+            sql: |
+                SELECT character_maximum_length
+                FROM information_schema.columns
+                WHERE table_schema = SCHEMA_NAME()
+                  AND table_name = '${gravitee_rate_limit_prefix}ratelimit'
                   AND column_name = 'key'
         changes:
         - dropPrimaryKey:
