@@ -43,6 +43,18 @@
             <artifactId>gravitee-gamma-plugin-module-api</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.gravitee.apim.rest.api</groupId>
+            <artifactId>gravitee-apim-rest-api-rest</artifactId>
+            <version>${gravitee-apim.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api</groupId>
+            <artifactId>gravitee-apim-rest-api-model</artifactId>
+            <version>${gravitee-apim.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-servlet</artifactId>
             <scope>provided</scope>

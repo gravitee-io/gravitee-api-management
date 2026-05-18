@@ -4,6 +4,10 @@ import io.gravitee.gamma.module.authz.entityimport.model.ScimConnectorRequest;
 import io.gravitee.gamma.module.authz.entityimport.model.ScimConnectorResponse;
 import io.gravitee.gamma.module.authz.entityimport.service.NotFoundException;
 import io.gravitee.gamma.module.authz.entityimport.service.ScimConnectorService;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -22,12 +26,14 @@ public class ScimConnectorsResource {
     private ScimConnectorService service;
 
     @GET
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.READ }) })
     public List<ScimConnectorResponse> list(@PathParam("envId") String envId) {
         return service.list(envId);
     }
 
     @GET
     @Path("/{id}")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.READ }) })
     public Response get(@PathParam("envId") String envId, @PathParam("id") String id) {
         return ResponseErrors.call(() ->
             service
@@ -38,6 +44,7 @@ public class ScimConnectorsResource {
     }
 
     @POST
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.CREATE }) })
     public Response create(@PathParam("envId") String envId, @Valid @NotNull ScimConnectorRequest request) {
         return ResponseErrors.call(() -> {
             ScimConnectorResponse created = service.create(envId, request);
@@ -47,12 +54,14 @@ public class ScimConnectorsResource {
 
     @PUT
     @Path("/{id}")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.UPDATE }) })
     public Response update(@PathParam("envId") String envId, @PathParam("id") String id, @Valid @NotNull ScimConnectorRequest request) {
         return ResponseErrors.call(() -> Response.ok(service.update(envId, id, request)).build());
     }
 
     @DELETE
     @Path("/{id}")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.DELETE }) })
     public Response delete(@PathParam("envId") String envId, @PathParam("id") String id) {
         return ResponseErrors.call(() -> {
             if (!service.delete(envId, id)) {
@@ -64,6 +73,7 @@ public class ScimConnectorsResource {
 
     @POST
     @Path("/{id}/sync")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.UPDATE }) })
     public Response syncNow(@PathParam("envId") String envId, @PathParam("id") String id) {
         return ResponseErrors.call(() -> Response.ok(service.syncNow(envId, id)).build());
     }
