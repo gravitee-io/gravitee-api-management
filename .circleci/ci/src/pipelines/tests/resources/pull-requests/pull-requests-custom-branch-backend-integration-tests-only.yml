@@ -250,6 +250,7 @@ workflows:
       - job-validate-workflow-status:
           name: Validate workflow status
           requires:
+            - Build backend
             - Integration tests
 orbs:
   keeper: gravitee-io/keeper@0.7.0

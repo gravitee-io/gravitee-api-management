@@ -152,6 +152,7 @@ export class PullRequestsWorkflow {
           requires: ['Validate backend'],
         }),
       );
+      requires.push('Build backend');
 
       if (!filterJobs || shouldTestDefinition(environment.changedFiles)) {
         const testDefinitionJob = TestDefinitionJob.create(dynamicConfig, environment);
@@ -548,7 +549,7 @@ export class PullRequestsWorkflow {
     }
 
     // Force validation workflow in case only distribution pom.xml has changed
-    if (environment.changedFiles.some((file) => file.includes('gravitee-apim-distribution'))) {
+    if (!requires.includes('Build backend') && environment.changedFiles.some((file) => file.includes('gravitee-apim-distribution'))) {
       addValidationJob = true;
       requires.push('Build backend');
     }

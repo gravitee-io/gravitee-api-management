@@ -1327,6 +1327,7 @@ workflows:
           name: Validate workflow status
           requires:
             - Helm Chart - Lint & Test
+            - Build backend
             - Test definition
             - Test gateway
             - Test rest-api
