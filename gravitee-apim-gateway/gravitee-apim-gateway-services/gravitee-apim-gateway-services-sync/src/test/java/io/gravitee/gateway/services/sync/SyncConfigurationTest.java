@@ -19,6 +19,8 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
 import io.gravitee.gateway.services.sync.process.deployer.NoOpSubscriptionDispatcher;
+import io.gravitee.gateway.services.sync.process.repository.service.AuthzRegistry;
+import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.function.Supplier;
 import org.assertj.core.api.Assertions;
@@ -46,6 +48,18 @@ class SyncConfigurationTest {
     void should_provide_noop_subscription_dispatcher() {
         final Supplier<SubscriptionDispatcher> supplier = cut.provideSubscriptionDispatcher(new DummySubscriptionDispatcher(true));
         Assertions.assertThat(supplier.get()).isInstanceOf(NoOpSubscriptionDispatcher.class);
+    }
+
+    @Test
+    void should_provide_plan_service() {
+        Assertions.assertThat(cut.planService()).isInstanceOf(PlanService.class);
+    }
+
+    @Test
+    void should_provide_authz_registry_unconditionally() {
+        AuthzRegistry registry = cut.authzRegistry();
+        Assertions.assertThat(registry).isNotNull();
+        Assertions.assertThat(registry.isResourceDeployed("api.never-registered")).isFalse();
     }
 
     private static class DummySubscriptionDispatcher implements SubscriptionDispatcher {

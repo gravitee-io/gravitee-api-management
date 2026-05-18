@@ -28,7 +28,9 @@ import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupM
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
+import io.gravitee.gateway.services.sync.process.repository.service.AuthzRegistry;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEnginePort;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.license.LicenseFactory;
 import io.gravitee.node.api.license.LicenseManager;
@@ -75,6 +77,10 @@ public class DeployerFactory {
 
     private final ApiProductSubscriptionRefresher apiProductSubscriptionRefresher;
 
+    private final AuthzEnginePort authzEnginePort;
+    private final AuthzRegistry authzRegistry;
+    private final io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityIdExtractor authzEntityIdExtractor;
+
     public SubscriptionDeployer createSubscriptionDeployer() {
         return new SubscriptionDeployer(
             subscriptionService,
@@ -91,7 +97,7 @@ public class DeployerFactory {
     }
 
     public ApiDeployer createApiDeployer() {
-        return new ApiDeployer(apiManager, planCache, distributedSyncService);
+        return new ApiDeployer(apiManager, planCache, distributedSyncService, authzRegistry, authzEntityIdExtractor, authzEnginePort);
     }
 
     public DictionaryDeployer createDictionaryDeployer() {
@@ -133,5 +139,13 @@ public class DeployerFactory {
             );
         }
         return new ApiProductDeployer(apiProductManager, planCache, distributedSyncService, apiProductSubscriptionRefresher);
+    }
+
+    public AuthzEntityDeployer createAuthzEntityDeployer() {
+        return new AuthzEntityDeployer(authzEnginePort, authzRegistry);
+    }
+
+    public AuthzPolicyDeployer createAuthzPolicyDeployer() {
+        return new AuthzPolicyDeployer(authzEnginePort, authzRegistry);
     }
 }
