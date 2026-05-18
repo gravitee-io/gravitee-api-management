@@ -38,7 +38,6 @@ import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.time.Duration;
 import java.util.List;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
@@ -96,7 +95,7 @@ class VerifyApiPathDomainServiceTest {
             installationAccessQueryService,
             new ApiHostValidatorDomainServiceGoogleImpl(),
             new ApiPathIndex(),
-            Duration.ofSeconds(10)
+            (io.gravitee.node.api.configuration.Configuration) null
         );
     }
 
