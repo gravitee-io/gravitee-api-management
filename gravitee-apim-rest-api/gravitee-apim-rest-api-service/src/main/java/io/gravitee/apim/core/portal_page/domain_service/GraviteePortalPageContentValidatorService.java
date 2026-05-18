@@ -16,17 +16,19 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.api.service_provider.ApiTemplateModelProvider;
+import io.gravitee.apim.core.environment.service_provider.EnvironmentTemplateModelProvider;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalPageContentTemplateException;
 import io.gravitee.apim.core.portal_page.exception.PortalPageContentTemplateException;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
-import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
 import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
@@ -38,6 +40,8 @@ public class GraviteePortalPageContentValidatorService implements PortalPageCont
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
     private final PortalNavigationEnclosingApiDomainService portalNavigationEnclosingApiDomainService;
     private final PortalNavigationTemplatingService portalNavigationTemplatingService;
+    private final ApiTemplateModelProvider apiTemplateModelProvider;
+    private final EnvironmentTemplateModelProvider environmentTemplateModelProvider;
 
     @Override
     public boolean appliesTo(PortalPageContent<?> existingContent) {
@@ -62,19 +66,16 @@ public class GraviteePortalPageContentValidatorService implements PortalPageCont
         final var organizationId = existingContent.getOrganizationId();
         final var enclosingApiId = portalNavigationEnclosingApiDomainService.findEnclosingApiId(environmentId, navigationPage.get());
 
-        tryDryRender(markdown, portalPageContentId, organizationId, environmentId, enclosingApiId);
+        tryDryRender(markdown, organizationId, environmentId, enclosingApiId);
     }
 
-    private void tryDryRender(
-        String markdown,
-        PortalPageContentId templateKey,
-        String orgId,
-        String envId,
-        Optional<String> enclosingApiId
-    ) {
+    private void tryDryRender(String markdown, String organizationId, String environmentId, Optional<String> enclosingApiId) {
+        final Map<String, Object> model = enclosingApiId
+            .<Map<String, Object>>map(id -> Map.of("api", apiTemplateModelProvider.getApiTemplateModel(organizationId, environmentId, id)))
+            .orElseGet(() -> Map.of("metadata", environmentTemplateModelProvider.getEnvironmentMetadata(environmentId)));
         try {
             portalNavigationTemplatingService.renderGraviteeMarkdown(
-                new RenderPortalNavigationMarkdownInput(markdown, templateKey.json(), orgId, envId, enclosingApiId)
+                new RenderPortalNavigationMarkdownInput(GraviteeMarkdown.of(markdown), model)
             );
         } catch (PortalPageContentTemplateException e) {
             throw new InvalidPortalPageContentTemplateException(e.getMessage(), e);

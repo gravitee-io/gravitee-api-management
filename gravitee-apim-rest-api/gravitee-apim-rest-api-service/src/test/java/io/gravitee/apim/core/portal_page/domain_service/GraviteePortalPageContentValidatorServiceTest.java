@@ -27,6 +27,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
+import io.gravitee.apim.core.api.service_provider.ApiTemplateModelProvider;
+import io.gravitee.apim.core.environment.service_provider.EnvironmentTemplateModelProvider;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
 import io.gravitee.apim.core.gravitee_markdown.exception.GraviteeMarkdownContentEmptyException;
@@ -38,6 +40,7 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -51,6 +54,8 @@ class GraviteePortalPageContentValidatorServiceTest {
     private PortalNavigationItemsQueryService portalNavigationItemsQueryService;
     private PortalNavigationEnclosingApiDomainService portalNavigationEnclosingApiDomainService;
     private PortalNavigationTemplatingService portalNavigationTemplatingService;
+    private ApiTemplateModelProvider apiTemplateModelProvider;
+    private EnvironmentTemplateModelProvider environmentTemplateModelProvider;
     private GraviteePortalPageContentValidatorService validator;
 
     @BeforeEach
@@ -59,11 +64,16 @@ class GraviteePortalPageContentValidatorServiceTest {
         portalNavigationItemsQueryService = mock(PortalNavigationItemsQueryService.class);
         portalNavigationEnclosingApiDomainService = mock(PortalNavigationEnclosingApiDomainService.class);
         portalNavigationTemplatingService = mock(PortalNavigationTemplatingService.class);
+        apiTemplateModelProvider = mock(ApiTemplateModelProvider.class);
+        environmentTemplateModelProvider = mock(EnvironmentTemplateModelProvider.class);
+        when(environmentTemplateModelProvider.getEnvironmentMetadata(any())).thenReturn(Map.of());
         validator = new GraviteePortalPageContentValidatorService(
             gmdValidator,
             portalNavigationItemsQueryService,
             portalNavigationEnclosingApiDomainService,
-            portalNavigationTemplatingService
+            portalNavigationTemplatingService,
+            apiTemplateModelProvider,
+            environmentTemplateModelProvider
         );
     }
 
@@ -132,6 +142,7 @@ class GraviteePortalPageContentValidatorServiceTest {
         var update = UpdatePortalPageContent.builder().content("Hello ${metadata.nope}").build();
 
         assertThatThrownBy(() -> validator.validate(existing, update)).isInstanceOf(InvalidPortalPageContentTemplateException.class);
+        verify(portalNavigationTemplatingService).renderGraviteeMarkdown(argThat(input -> input.model().containsKey("metadata")));
     }
 
     @Test
@@ -159,19 +170,20 @@ class GraviteePortalPageContentValidatorServiceTest {
         when(portalNavigationEnclosingApiDomainService.findEnclosingApiId(eq(PortalNavigationItemFixtures.ENV_ID), eq(page))).thenReturn(
             Optional.of("api-1")
         );
+        var fakeApiModel = new Object();
+        when(
+            apiTemplateModelProvider.getApiTemplateModel(
+                eq(PortalNavigationItemFixtures.ORG_ID),
+                eq(PortalNavigationItemFixtures.ENV_ID),
+                eq("api-1")
+            )
+        ).thenReturn(fakeApiModel);
 
         var update = UpdatePortalPageContent.builder().content("${api.name}").build();
         validator.validate(existing, update);
 
         verify(portalNavigationTemplatingService).renderGraviteeMarkdown(
-            argThat(
-                input ->
-                    input.rawMarkdown().equals("${api.name}") &&
-                    input.templateKey().equals(contentId.json()) &&
-                    input.organizationId().equals(PortalNavigationItemFixtures.ORG_ID) &&
-                    input.environmentId().equals(PortalNavigationItemFixtures.ENV_ID) &&
-                    input.enclosingApiId().equals(Optional.of("api-1"))
-            )
+            argThat(input -> input.rawMarkdown().value().equals("${api.name}") && input.model().get("api") == fakeApiModel)
         );
     }
 }
