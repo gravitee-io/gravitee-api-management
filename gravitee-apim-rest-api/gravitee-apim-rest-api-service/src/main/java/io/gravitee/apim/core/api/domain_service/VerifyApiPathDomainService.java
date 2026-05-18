@@ -154,67 +154,57 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
         var excludeApiId = input.apiId;
 
         var snapshot = apiPathIndex.snapshotOf(env, () -> searchPathBearing(env, null));
+        var snapshotConflicts = ApiPathIndex.scanPaths(snapshot.pathsByApiId(), excludeApiId, candidatePaths);
 
-        // Always supplement the snapshot with rows updated since the snapshot's watermark minus a safety margin
-        // (covers inter-pod clock skew + cron batch processing duration). On a fresh seed of a quiet env, this
-        // returns 0 rows. On a busy env or in the first seconds after a remote write lands in Mongo but before our
-        // broadcast cron pulls it, this catches the unseen rows.
-        var since = snapshot.refreshedAt().minus(SAFETY_MARGIN);
-        var overridePaths = new HashMap<String, List<Path>>();
-        try (var recent = searchPathBearing(env, since)) {
-            recent.forEach(api -> overridePaths.put(api.getId(), ApiPathExtractor.extractPaths(api)));
+        // Snapshot is clean → the only remaining risk is a cross-pod create/update we haven't seen via the broadcast
+        // cron yet. One bounded supplementary query catches that. This is the common case (most validates pass).
+        if (snapshotConflicts.isEmpty()) {
+            return supplementaryScan(env, snapshot.refreshedAt(), excludeApiId, candidatePaths);
         }
 
-        // Merge: supplementary wins. Empty paths means a path-removing update or non-HTTP API — drop from view.
-        var merged = new HashMap<>(snapshot.pathsByApiId());
-        overridePaths.forEach((apiId, paths) -> {
-            if (paths.isEmpty()) {
-                merged.remove(apiId);
-            } else {
-                merged.put(apiId, paths);
-            }
-        });
-
-        var conflicts = ApiPathIndex.scanPaths(merged, excludeApiId, candidatePaths);
-        if (conflicts.isEmpty()) {
-            return List.of();
-        }
-
-        // Partition: conflicts against rows we just read from Mongo (override) are trusted; conflicts against
-        // snapshot-only rows need a per-apiId recheck to catch hard deletes (which leave no row for the
-        // supplementary query to find) and any update that escaped the watermark window.
-        var trustedErrors = new ArrayList<Error>();
-        var needsRecheck = new ArrayList<String>();
-        var seenRecheck = new HashSet<String>();
-        for (var conflict : conflicts) {
-            if (overridePaths.containsKey(conflict.apiId())) {
-                trustedErrors.add(conflict.error());
-            } else if (seenRecheck.add(conflict.apiId())) {
-                needsRecheck.add(conflict.apiId());
-            }
-        }
-
-        // Single Mongo round-trip for the entire rechecked cohort (typically N <= a handful).
-        // The {_id IN (...)} predicate hits the primary-key index; environmentId is applied as a residual filter
-        // server-side (the existing environmentId index isn't useful here because the IDs already narrow the scan).
-        // We keep the same pictureExcluded field filter as the supplementary query so the definition is loaded
-        // — without it ApiPathExtractor.extractPaths would return [] and we'd drop real conflicts.
+        // Snapshot says conflict — but the snapshot can lag a remote update/delete by one cron interval. Re-read just
+        // the rows we collided with in one batched query (the {_id IN (...)} hits the PK index) and rescan against
+        // their current paths. Single round-trip even for multiple conflicting apiIds.
+        var distinctApiIds = snapshotConflicts.stream().map(ApiPathIndex.Conflict::apiId).distinct().toList();
         var rechecked = new HashMap<String, List<Path>>();
-        if (!needsRecheck.isEmpty()) {
-            try (var stream = searchByIds(env, needsRecheck)) {
-                stream.forEach(api -> {
-                    var paths = ApiPathExtractor.extractPaths(api);
-                    if (!paths.isEmpty()) {
-                        rechecked.put(api.getId(), paths);
-                    }
-                });
-            }
+        try (var stream = searchByIds(env, distinctApiIds)) {
+            stream.forEach(api -> {
+                var paths = ApiPathExtractor.extractPaths(api);
+                if (!paths.isEmpty()) {
+                    rechecked.put(api.getId(), paths);
+                }
+            });
         }
-        var rescannedConflicts = ApiPathIndex.scanPaths(rechecked, excludeApiId, candidatePaths);
+        var confirmed = ApiPathIndex.scanPaths(rechecked, excludeApiId, candidatePaths);
+        if (!confirmed.isEmpty()) {
+            // Snapshot conflict survived recheck — real. Return without firing the supplementary query.
+            return confirmed.stream().map(ApiPathIndex.Conflict::error).toList();
+        }
 
-        var allErrors = new ArrayList<Error>(trustedErrors);
-        rescannedConflicts.forEach(c -> allErrors.add(c.error()));
-        return allErrors;
+        // All snapshot conflicts were stale (the rows moved their paths, became non-HTTP, or were hard-deleted).
+        // We still need to check whether a recently-created remote API happens to take the now-free path before
+        // returning "no conflict".
+        return supplementaryScan(env, snapshot.refreshedAt(), excludeApiId, candidatePaths);
+    }
+
+    /**
+     * Fetches APIs updated since {@code refreshedAt - SAFETY_MARGIN} (indexed by {@code (environmentId, updatedAt)})
+     * and scans them for conflicts against the candidate paths. Used both when the snapshot is clean and as a fallback
+     * when every snapshot conflict has been resolved by the recheck — in both cases we need to surface a remote
+     * create that hasn't propagated via the broadcast cron yet.
+     */
+    private List<Error> supplementaryScan(String env, java.time.Instant refreshedAt, String excludeApiId, List<Path> candidatePaths) {
+        var since = refreshedAt.minus(SAFETY_MARGIN);
+        var recentPaths = new HashMap<String, List<Path>>();
+        try (var recent = searchPathBearing(env, since)) {
+            recent.forEach(api -> {
+                var paths = ApiPathExtractor.extractPaths(api);
+                if (!paths.isEmpty()) {
+                    recentPaths.put(api.getId(), paths);
+                }
+            });
+        }
+        return ApiPathIndex.scanPaths(recentPaths, excludeApiId, candidatePaths).stream().map(ApiPathIndex.Conflict::error).toList();
     }
 
     private java.util.stream.Stream<io.gravitee.apim.core.api.model.Api> searchPathBearing(String envId, java.time.Instant updatedAtFrom) {
