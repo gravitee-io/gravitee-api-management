@@ -93,7 +93,7 @@ public class ApiValidationServiceImplTest {
         installationAccessQueryService,
         apiHostValidatorDomainService,
         new io.gravitee.apim.core.api.domain_service.ApiPathIndex(),
-        java.time.Duration.ofSeconds(10)
+        (io.gravitee.node.api.configuration.Configuration) null
     );
 
     @Spy

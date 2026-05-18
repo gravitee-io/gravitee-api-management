@@ -26,6 +26,7 @@ import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryS
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.node.api.configuration.Configuration;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,10 +41,13 @@ import lombok.extern.slf4j.Slf4j;
 =======
 import lombok.CustomLog;
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> caa802a768 (perf(api): in-memory path index for collision checks (APIM-14052))
 =======
 import org.springframework.beans.factory.annotation.Value;
 >>>>>>> 45bed588dc (fix(api): close cross-pod path-index race window (APIM-14052))
+=======
+>>>>>>> 69ba820eba (fix(api): inject node Configuration instead of Spring @Value (APIM-14052))
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -63,36 +67,24 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
     private final ApiPathIndex apiPathIndex;
     private final Duration safetyMargin;
 
-    @org.springframework.beans.factory.annotation.Autowired
     public VerifyApiPathDomainService(
         ApiQueryService apiSearchService,
         InstallationAccessQueryService installationAccessQueryService,
         ApiHostValidatorDomainService apiHostValidatorDomainService,
         ApiPathIndex apiPathIndex,
-        @Value("${services.search_indexer.path_index.safety_margin:PT10S}") String safetyMargin
-    ) {
-        this(
-            apiSearchService,
-            installationAccessQueryService,
-            apiHostValidatorDomainService,
-            apiPathIndex,
-            parseSafetyMargin(safetyMargin)
-        );
-    }
-
-    public VerifyApiPathDomainService(
-        ApiQueryService apiSearchService,
-        InstallationAccessQueryService installationAccessQueryService,
-        ApiHostValidatorDomainService apiHostValidatorDomainService,
-        ApiPathIndex apiPathIndex,
-        Duration safetyMargin
+        Configuration configuration
     ) {
         this.apiSearchService = apiSearchService;
         this.installationAccessQueryService = installationAccessQueryService;
         this.apiHostValidatorDomainService = apiHostValidatorDomainService;
         this.apiPathIndex = apiPathIndex;
-        this.safetyMargin = safetyMargin == null ? Duration.ofSeconds(10) : safetyMargin;
+        this.safetyMargin = parseSafetyMargin(
+            configuration == null ? null : configuration.getProperty(SAFETY_MARGIN_PROPERTY, DEFAULT_SAFETY_MARGIN_ISO8601)
+        );
     }
+
+    private static final String SAFETY_MARGIN_PROPERTY = "services.search_indexer.path_index.safety_margin";
+    private static final String DEFAULT_SAFETY_MARGIN_ISO8601 = "PT10S";
 
     private static Duration parseSafetyMargin(String value) {
         if (value == null || value.isBlank()) {
@@ -101,7 +93,7 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
         try {
             return Duration.parse(value);
         } catch (java.time.format.DateTimeParseException e) {
-            log.warn("Invalid services.search_indexer.path_index.safety_margin=[{}], using default 10s", value);
+            log.warn("Invalid {}=[{}], using default 10s", SAFETY_MARGIN_PROPERTY, value);
             return Duration.ofSeconds(10);
         }
     }
