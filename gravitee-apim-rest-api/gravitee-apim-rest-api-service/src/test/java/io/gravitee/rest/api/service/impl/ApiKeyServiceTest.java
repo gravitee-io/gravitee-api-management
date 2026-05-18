@@ -1041,6 +1041,8 @@ public class ApiKeyServiceTest {
 
         apiKeyService.renew(GraviteeContext.getExecutionContext(), application);
 
+        verify(apiKeyRepository, times(1)).create(argThat(apiKey -> ENVIRONMENT_ID.equals(apiKey.getEnvironmentId())));
+
         // 3 old keys have been expired, but not the new one
         verify(apiKeyRepository, times(1)).update(argThat(apiKey -> apiKey.getId().equals("apiKey-2") && apiKey.getExpireAt() != null));
         verify(apiKeyRepository, times(1)).update(argThat(apiKey -> apiKey.getId().equals("apiKey-3") && apiKey.getExpireAt() != null));
