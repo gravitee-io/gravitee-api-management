@@ -26,7 +26,6 @@ import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryS
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.node.api.configuration.Configuration;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,41 +47,28 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
 
     private static final List<DefinitionVersion> PATH_BEARING_DEFINITIONS = List.of(DefinitionVersion.V2, DefinitionVersion.V4);
 
+    /**
+     * Slack subtracted from the snapshot watermark when issuing the supplementary "recently updated" Mongo query.
+     * Sized to absorb realistic inter-pod clock skew plus a cron-batch processing window. A too-tight value just
+     * widens the per-conflict recheck cohort (still one batch query), so this is a perf knob, not a correctness one.
+     */
+    private static final Duration SAFETY_MARGIN = Duration.ofSeconds(10);
+
     private final ApiQueryService apiSearchService;
     private final InstallationAccessQueryService installationAccessQueryService;
     private final ApiHostValidatorDomainService apiHostValidatorDomainService;
     private final ApiPathIndex apiPathIndex;
-    private final Duration safetyMargin;
 
     public VerifyApiPathDomainService(
         ApiQueryService apiSearchService,
         InstallationAccessQueryService installationAccessQueryService,
         ApiHostValidatorDomainService apiHostValidatorDomainService,
-        ApiPathIndex apiPathIndex,
-        Configuration configuration
+        ApiPathIndex apiPathIndex
     ) {
         this.apiSearchService = apiSearchService;
         this.installationAccessQueryService = installationAccessQueryService;
         this.apiHostValidatorDomainService = apiHostValidatorDomainService;
         this.apiPathIndex = apiPathIndex;
-        this.safetyMargin = parseSafetyMargin(
-            configuration == null ? null : configuration.getProperty(SAFETY_MARGIN_PROPERTY, DEFAULT_SAFETY_MARGIN_ISO8601)
-        );
-    }
-
-    private static final String SAFETY_MARGIN_PROPERTY = "services.search_indexer.path_index.safety_margin";
-    private static final String DEFAULT_SAFETY_MARGIN_ISO8601 = "PT10S";
-
-    private static Duration parseSafetyMargin(String value) {
-        if (value == null || value.isBlank()) {
-            return Duration.ofSeconds(10);
-        }
-        try {
-            return Duration.parse(value);
-        } catch (java.time.format.DateTimeParseException e) {
-            log.warn("Invalid {}=[{}], using default 10s", SAFETY_MARGIN_PROPERTY, value);
-            return Duration.ofSeconds(10);
-        }
     }
 
     @Override
@@ -160,7 +146,7 @@ public class VerifyApiPathDomainService implements Validator<VerifyApiPathDomain
         // (covers inter-pod clock skew + cron batch processing duration). On a fresh seed of a quiet env, this
         // returns 0 rows. On a busy env or in the first seconds after a remote write lands in Mongo but before our
         // broadcast cron pulls it, this catches the unseen rows.
-        var since = snapshot.refreshedAt().minus(safetyMargin);
+        var since = snapshot.refreshedAt().minus(SAFETY_MARGIN);
         var overridePaths = new HashMap<String, List<Path>>();
         try (var recent = searchPathBearing(env, since)) {
             recent.forEach(api -> overridePaths.put(api.getId(), ApiPathExtractor.extractPaths(api)));
