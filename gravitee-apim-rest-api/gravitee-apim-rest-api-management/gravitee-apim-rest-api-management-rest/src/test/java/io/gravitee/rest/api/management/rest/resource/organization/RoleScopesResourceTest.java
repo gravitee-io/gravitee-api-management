@@ -55,6 +55,7 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
             "API_PRODUCT",
             "APPLICATION",
             "AUDIT",
+            "AUTHORIZATION",
             "CATEGORY",
             "CLIENT_REGISTRATION_PROVIDER",
             "CLUSTER",
