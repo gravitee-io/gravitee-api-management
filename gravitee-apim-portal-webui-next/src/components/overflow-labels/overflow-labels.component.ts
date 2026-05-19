@@ -32,6 +32,8 @@ import { MatTooltip } from '@angular/material/tooltip';
 
 import { BadgeComponent } from '../badge/badge.component';
 
+const GAP_PX = 4;
+
 export function computeVisibleCount(badgeWidths: number[], containerWidth: number, counterWidth: number, gap: number): number {
   if (badgeWidths.length === 0 || containerWidth <= 0) {
     return 0;
@@ -80,8 +82,11 @@ export class OverflowLabelsComponent {
     equal: (a, b) => a.length === b.length && a.every((value, index) => value === b[index]),
   });
   private readonly counterWidth = signal(0);
+  private readonly hasMeasured = signal(false);
 
-  private readonly visibleCount = computed(() => computeVisibleCount(this.badgeWidths(), this.containerWidth(), this.counterWidth(), 4));
+  private readonly visibleCount = computed(() =>
+    this.hasMeasured() ? computeVisibleCount(this.badgeWidths(), this.containerWidth(), this.counterWidth(), GAP_PX) : this.labels().length,
+  );
   protected readonly visibleLabels = computed(() => this.labels().slice(0, this.visibleCount()));
   protected readonly hiddenLabels = computed(() => this.labels().slice(this.visibleCount()));
   protected readonly hiddenLabelsTooltip = computed(() => this.hiddenLabels().join(', '));
@@ -92,19 +97,20 @@ export class OverflowLabelsComponent {
     afterNextRender(() => {
       const element = this.containerElement().nativeElement;
       this.containerWidth.set(element.getBoundingClientRect().width);
-      this.measureBadges();
 
       const resizeObserver = new ResizeObserver(entries => {
         this.containerWidth.set(entries[0]?.contentRect.width ?? 0);
-        this.measureBadges();
       });
       resizeObserver.observe(element);
       this.destroyRef.onDestroy(() => resizeObserver.disconnect());
     });
 
-    afterRenderEffect(() => {
-      this.labels();
-      this.measureBadges();
+    afterRenderEffect({
+      read: () => {
+        this.labels();
+        this.measureBadges();
+        this.hasMeasured.set(true);
+      },
     });
   }
 
