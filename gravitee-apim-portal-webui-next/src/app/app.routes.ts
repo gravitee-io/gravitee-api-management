@@ -172,6 +172,13 @@ export const routes: Routes = [
         loadComponent: () => import('./dashboard/subscription-details/subscription-details.component'),
       },
       {
+        path: 'subscriptions/:subscriptionId/configure',
+        loadComponent: () =>
+          import('../components/subscription/webhook/configure-consumer/configure-consumer.component').then(
+            m => m.ConfigureConsumerComponent,
+          ),
+      },
+      {
         path: 'applications',
         loadComponent: () => import('./dashboard/applications/applications.component'),
       },
