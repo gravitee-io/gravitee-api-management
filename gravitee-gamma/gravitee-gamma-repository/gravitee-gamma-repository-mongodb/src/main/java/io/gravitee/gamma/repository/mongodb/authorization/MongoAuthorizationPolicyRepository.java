@@ -48,7 +48,7 @@ public class MongoAuthorizationPolicyRepository implements AuthorizationPolicyRe
     private AuthorizationMapper mapper;
 
     @Autowired
-    @Qualifier("managementMongoTemplate")
+    @Qualifier("mongoTemplate")
     private MongoOperations mongoOperations;
 
     @Override

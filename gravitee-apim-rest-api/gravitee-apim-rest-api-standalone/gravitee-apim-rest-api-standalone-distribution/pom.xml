@@ -335,6 +335,13 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <!-- Gamma Repositories (jar lib on parent classpath, not a Gravitee plugin) -->
+        <dependency>
+            <groupId>io.gravitee.gamma.repository</groupId>
+            <artifactId>gravitee-gamma-repository-mongodb</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

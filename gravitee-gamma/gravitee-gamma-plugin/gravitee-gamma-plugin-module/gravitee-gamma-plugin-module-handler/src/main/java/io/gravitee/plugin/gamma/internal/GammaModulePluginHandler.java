@@ -57,10 +57,7 @@ public class GammaModulePluginHandler extends AbstractPluginHandler {
 
     @Override
     protected ClassLoader getClassLoader(Plugin plugin) {
-        return pluginClassLoaderFactory.getOrCreateClassLoader(
-            plugin,
-            applicationContext.getBean("managementMongoTemplate").getClass().getClassLoader()
-        );
+        return pluginClassLoaderFactory.getOrCreateClassLoader(plugin, getClass().getClassLoader());
     }
 
     @Override
