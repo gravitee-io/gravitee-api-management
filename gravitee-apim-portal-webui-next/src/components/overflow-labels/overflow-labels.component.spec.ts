@@ -87,7 +87,9 @@ describe('OverflowLabelsComponent', () => {
     fixture.componentRef.setInput('labels', ['type:http', 'scope:proxy']);
     fixture.detectChanges();
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, OverflowLabelsHarness);
-    // In JSDOM, container width is 0 so no visible badges — all hidden behind the counter
+    // Initial render shows all labels (hasMeasured=false). After afterRenderEffect fires,
+    // JSDOM returns 0 for all getBoundingClientRect widths, so computeVisibleCount returns 0
+    // and all labels collapse into the overflow counter.
     expect(await harness.getOverflowCounterText()).toContain('+2');
   });
 });

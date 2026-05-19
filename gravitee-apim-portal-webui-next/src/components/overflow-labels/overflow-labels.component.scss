@@ -25,7 +25,7 @@
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 4px;
+  gap: 4px; // Keep in sync with GAP_PX constant in overflow-labels.component.ts
   overflow: hidden;
 
   &__badge {
