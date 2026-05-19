@@ -17,8 +17,9 @@ package io.gravitee.apim.infra.portal_page;
 
 import freemarker.template.TemplateException;
 import io.gravitee.apim.core.portal_page.exception.PortalPageContentTemplateException;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
+import io.gravitee.apim.core.portal_page.model.RenderedPageContent;
 import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
-import io.gravitee.apim.core.portal_page.service_provider.RenderedPageContent;
 import io.gravitee.apim.core.template.TemplateProcessor;
 import io.gravitee.apim.core.template.TemplateProcessorException;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,10 @@ public class PortalNavigationTemplatingServiceImpl implements PortalNavigationTe
     @Override
     public RenderedPageContent renderGraviteeMarkdown(RenderPortalNavigationMarkdownInput input) {
         try {
-            return RenderedPageContent.of(templateProcessor.processInlineTemplate(input.rawMarkdown().value(), input.model()));
+            return RenderedPageContent.of(
+                templateProcessor.processInlineTemplate(input.rawMarkdown().value(), input.model()),
+                PortalPageContentType.GRAVITEE_MARKDOWN
+            );
         } catch (TemplateProcessorException e) {
             // Evaluation failures wrap a freemarker.template.TemplateException; parse failures wrap an IOException
             // (FreeMarker's ParseException extends IOException, not TemplateException).

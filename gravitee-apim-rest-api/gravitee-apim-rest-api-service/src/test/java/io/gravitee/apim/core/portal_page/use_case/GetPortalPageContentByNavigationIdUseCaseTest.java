@@ -38,6 +38,8 @@ import inmemory.SubscriptionQueryServiceInMemory;
 import io.gravitee.apim.core.api.service_provider.ApiTemplateModelProvider;
 import io.gravitee.apim.core.environment.service_provider.EnvironmentTemplateModelProvider;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.DefaultContentRenderer;
+import io.gravitee.apim.core.portal_page.domain_service.GraviteeMarkdownContentRenderer;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationEnclosingApiDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
@@ -48,8 +50,9 @@ import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
+import io.gravitee.apim.core.portal_page.model.RenderedPageContent;
 import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
-import io.gravitee.apim.core.portal_page.service_provider.RenderedPageContent;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -97,17 +100,20 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
         var enclosingApiDomainService = new PortalNavigationEnclosingApiDomainService(navigationItemsQueryService);
         when(portalNavigationTemplatingService.renderGraviteeMarkdown(any())).thenAnswer(invocation -> {
             var in = (PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput) invocation.getArgument(0);
-            return RenderedPageContent.of(in.rawMarkdown().value());
+            return RenderedPageContent.of(in.rawMarkdown().value(), PortalPageContentType.GRAVITEE_MARKDOWN);
         });
         when(environmentTemplateModelProvider.getEnvironmentMetadata(any())).thenReturn(Map.of());
-        useCase = new GetPortalPageContentByNavigationIdUseCase(
-            navigationItemsQueryService,
-            pageContentQueryService,
-            apiVisibilityDomainService,
+        var gmdRenderer = new GraviteeMarkdownContentRenderer(
             enclosingApiDomainService,
             portalNavigationTemplatingService,
             apiTemplateModelProvider,
             environmentTemplateModelProvider
+        );
+        useCase = new GetPortalPageContentByNavigationIdUseCase(
+            navigationItemsQueryService,
+            pageContentQueryService,
+            apiVisibilityDomainService,
+            List.of(gmdRenderer, new DefaultContentRenderer())
         );
 
         clearInvocations(portalNavigationTemplatingService);
@@ -143,17 +149,19 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
 
         var output = useCase.execute(input);
 
-        assertThat(output.portalPageContent()).isNotNull();
-        assertThat(output.portalPageContent()).isInstanceOf(GraviteeMarkdownPageContent.class);
+        assertThat(output.renderedContent()).isNotNull();
+        assertThat(output.renderedContent().type()).isEqualTo(PortalPageContentType.GRAVITEE_MARKDOWN);
+        assertThat(output.renderedContent().value()).isEqualTo("Page 11 content");
         assertThat(output.portalNavigationItem()).isNotNull();
         assertThat(output.portalNavigationItem()).isInstanceOf(PortalNavigationPage.class);
         assertThat(output.portalNavigationItem().getId().toString()).isEqualTo(PAGE11_ID);
-        assertThat(((GraviteeMarkdownPageContent) output.portalPageContent()).getContent().value()).isEqualTo("Page 11 content");
     }
 
     @Test
     void should_apply_portal_navigation_templating_to_gravitee_markdown() {
-        doReturn(RenderedPageContent.of("templated")).when(portalNavigationTemplatingService).renderGraviteeMarkdown(any());
+        doReturn(RenderedPageContent.of("templated", PortalPageContentType.GRAVITEE_MARKDOWN))
+            .when(portalNavigationTemplatingService)
+            .renderGraviteeMarkdown(any());
 
         var input = new GetPortalPageContentByNavigationIdUseCase.Input(
             PAGE11_ID,
@@ -164,7 +172,7 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
 
         var output = useCase.execute(input);
 
-        assertThat(((GraviteeMarkdownPageContent) output.portalPageContent()).getContent().value()).isEqualTo("templated");
+        assertThat(output.renderedContent().value()).isEqualTo("templated");
         assertThat(
             ((GraviteeMarkdownPageContent) pageContentQueryService
                     .findById(PortalPageContentId.of(PAGE11_CONTENT_ID))
@@ -196,7 +204,7 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
     }
 
     @Test
-    void should_leave_original_markdown_when_template_rendering_fails() {
+    void should_throw_when_template_rendering_fails() {
         doThrow(new PortalPageContentTemplateException("Invalid expression or value is missing"))
             .when(portalNavigationTemplatingService)
             .renderGraviteeMarkdown(any());
@@ -208,9 +216,7 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
             PortalNavigationItemViewerContext.forConsole()
         );
 
-        var output = useCase.execute(input);
-
-        assertThat(((GraviteeMarkdownPageContent) output.portalPageContent()).getContent().value()).isEqualTo("Page 11 content");
+        assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(PortalPageContentTemplateException.class);
     }
 
     @Test

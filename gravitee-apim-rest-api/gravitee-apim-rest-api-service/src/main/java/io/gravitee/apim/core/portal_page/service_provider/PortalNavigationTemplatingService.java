@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.service_provider;
 
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
+import io.gravitee.apim.core.portal_page.model.RenderedPageContent;
 import java.util.Map;
 
 public interface PortalNavigationTemplatingService {

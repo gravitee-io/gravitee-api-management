@@ -1322,6 +1322,16 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public ApiTemplateModelProvider apiTemplateModelProvider() {
+        return mock(ApiTemplateModelProvider.class);
+    }
+
+    @Bean
+    public EnvironmentTemplateModelProvider environmentTemplateModelProvider() {
+        return mock(EnvironmentTemplateModelProvider.class);
+    }
+
+    @Bean
     public AnalyticsDefinitionQueryService analyticsDefinitionQueryService() {
         return new AnalyticsDefinitionYAMLQueryService();
     }

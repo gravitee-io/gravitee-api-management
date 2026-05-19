@@ -15,14 +15,15 @@
  */
 package io.gravitee.apim.core.portal_page.exception;
 
-/** Thrown when portal navigation page markdown fails FreeMarker evaluation (invalid syntax or missing model data). */
-public class PortalPageContentTemplateException extends RendererException {
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 
-    public PortalPageContentTemplateException(String message) {
+public class RendererException extends TechnicalDomainException {
+
+    public RendererException(String message) {
         super(message);
     }
 
-    public PortalPageContentTemplateException(String message, Throwable cause) {
+    public RendererException(String message, Throwable cause) {
         super(message, cause);
     }
 }

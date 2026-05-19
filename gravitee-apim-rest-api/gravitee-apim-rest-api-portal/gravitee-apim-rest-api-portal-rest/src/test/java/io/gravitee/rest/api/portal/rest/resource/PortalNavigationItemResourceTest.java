@@ -27,6 +27,7 @@ import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.RenderedPageContent;
 import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
 import io.gravitee.rest.api.portal.rest.fixture.PortalNavigationFixtures;
 import io.gravitee.rest.api.portal.rest.model.PortalPageContent;
@@ -66,7 +67,10 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
         GraviteeContext.setCurrentEnvironment(ENV_ID);
         doAnswer(invocation -> {
             var in = (PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput) invocation.getArgument(0);
-            return in.rawMarkdown();
+            return RenderedPageContent.of(
+                in.rawMarkdown().value(),
+                io.gravitee.apim.core.portal_page.model.PortalPageContentType.GRAVITEE_MARKDOWN
+            );
         })
             .when(portalNavigationTemplatingService)
             .renderGraviteeMarkdown(any());

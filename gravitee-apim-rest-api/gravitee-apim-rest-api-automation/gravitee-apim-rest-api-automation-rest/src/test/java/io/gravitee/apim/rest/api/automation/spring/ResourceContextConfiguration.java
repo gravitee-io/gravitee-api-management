@@ -63,6 +63,7 @@ import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.api.service_provider.ApiTemplateModelProvider;
 import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
@@ -103,6 +104,7 @@ import io.gravitee.apim.core.dictionary.use_case.DeleteDictionaryUseCase;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageAccessControlsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
+import io.gravitee.apim.core.environment.service_provider.EnvironmentTemplateModelProvider;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
@@ -1121,6 +1123,16 @@ public class ResourceContextConfiguration {
     @Bean
     public PortalNavigationTemplatingService portalNavigationTemplatingService() {
         return mock(PortalNavigationTemplatingService.class);
+    }
+
+    @Bean
+    public ApiTemplateModelProvider apiTemplateModelProvider() {
+        return mock(ApiTemplateModelProvider.class);
+    }
+
+    @Bean
+    public EnvironmentTemplateModelProvider environmentTemplateModelProvider() {
+        return mock(EnvironmentTemplateModelProvider.class);
     }
 
     @Bean

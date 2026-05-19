@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.service_provider;
+package io.gravitee.apim.core.portal_page.model;
 
-/**
- * Rendered page content after FreeMarker template processing.
- */
-public record RenderedPageContent(String value) {
-    public static RenderedPageContent of(String value) {
-        return new RenderedPageContent(value);
+public record RenderedPageContent(String value, PortalPageContentType type) {
+    public static RenderedPageContent of(String value, PortalPageContentType type) {
+        return new RenderedPageContent(value, type);
     }
 }

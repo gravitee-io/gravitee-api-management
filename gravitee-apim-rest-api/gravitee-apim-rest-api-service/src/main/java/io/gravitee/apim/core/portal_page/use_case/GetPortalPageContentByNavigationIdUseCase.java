@@ -16,46 +16,35 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.api.service_provider.ApiTemplateModelProvider;
-import io.gravitee.apim.core.environment.service_provider.EnvironmentTemplateModelProvider;
-import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
+import io.gravitee.apim.core.portal_page.domain_service.ContentRenderer;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
-import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationEnclosingApiDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
-import io.gravitee.apim.core.portal_page.exception.PortalPageContentTemplateException;
-import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.exception.RendererException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
-import io.gravitee.apim.core.portal_page.model.PortalPageContent;
+import io.gravitee.apim.core.portal_page.model.RenderedPageContent;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
-import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
-import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
 @RequiredArgsConstructor
-@CustomLog
 public class GetPortalPageContentByNavigationIdUseCase {
 
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
     private final PortalPageContentQueryService portalPageContentQueryService;
     private final PortalNavigationApiVisibilityDomainService apiVisibilityDomainService;
-    private final PortalNavigationEnclosingApiDomainService enclosingApiDomainService;
-    private final PortalNavigationTemplatingService portalNavigationTemplatingService;
-    private final ApiTemplateModelProvider apiTemplateModelProvider;
-    private final EnvironmentTemplateModelProvider environmentTemplateModelProvider;
+    private final List<ContentRenderer> contentRenderers;
 
     public Output execute(Input input) {
-        // Get the portal navigation item by id and env id
         final var portalNavigationItem = Optional.ofNullable(
             portalNavigationItemsQueryService.findByIdAndEnvironmentId(
                 input.environmentId(),
@@ -76,7 +65,6 @@ public class GetPortalPageContentByNavigationIdUseCase {
             throw new PortalNavigationItemNotFoundException(portalNavigationItem.getId().json());
         }
 
-        // If the nav item is not a page, throw exception
         if (!(portalNavigationItem instanceof PortalNavigationPage page)) {
             throw InvalidPortalNavigationItemDataException.typeMismatch(
                 PortalNavigationItemType.PAGE.name(),
@@ -84,44 +72,18 @@ public class GetPortalPageContentByNavigationIdUseCase {
             );
         }
 
-        // Then get the portal page content by the content id from the navigation item
         var portalPageContent = portalPageContentQueryService
             .findById(page.getPortalPageContentId())
             .orElseThrow(() -> new PageContentNotFoundException(page.getPortalPageContentId().toString()));
 
-        if (portalPageContent instanceof GraviteeMarkdownPageContent markdownPage) {
-            final var markdownValue = markdownPage.getContent().value();
-            if (markdownValue != null) {
-                try {
-                    final var enclosingApiId = enclosingApiDomainService.findEnclosingApiId(input.environmentId(), page);
-                    final Map<String, Object> model = enclosingApiId
-                        .<Map<String, Object>>map(id ->
-                            Map.of("api", apiTemplateModelProvider.getApiTemplateModel(input.organizationId(), input.environmentId(), id))
-                        )
-                        .orElseGet(() ->
-                            Map.of("metadata", environmentTemplateModelProvider.getEnvironmentMetadata(input.environmentId()))
-                        );
-                    final var renderedMarkdown = portalNavigationTemplatingService.renderGraviteeMarkdown(
-                        new PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput(markdownPage.getContent(), model)
-                    );
-                    portalPageContent = new GraviteeMarkdownPageContent(
-                        markdownPage.getId(),
-                        markdownPage.getOrganizationId(),
-                        markdownPage.getEnvironmentId(),
-                        GraviteeMarkdown.of(renderedMarkdown.value())
-                    );
-                } catch (PortalPageContentTemplateException e) {
-                    log.warn(
-                        "Skipping Gravitee markdown templating for portal navigation page [{}] in environment [{}]: {}",
-                        page.getId().json(),
-                        input.environmentId(),
-                        e.getMessage()
-                    );
-                }
-            }
-        }
+        var rendered = contentRenderers
+            .stream()
+            .filter(r -> r.appliesTo(portalPageContent))
+            .findFirst()
+            .orElseThrow(() -> new RendererException("No renderer found for content type: " + portalPageContent.getType()))
+            .render(page, portalPageContent);
 
-        return new Output(portalPageContent, portalNavigationItem);
+        return new Output(rendered, portalNavigationItem);
     }
 
     public record Input(
@@ -131,5 +93,5 @@ public class GetPortalPageContentByNavigationIdUseCase {
         PortalNavigationItemViewerContext viewerContext
     ) {}
 
-    public record Output(PortalPageContent<?> portalPageContent, PortalNavigationItem portalNavigationItem) {}
+    public record Output(RenderedPageContent renderedContent, PortalNavigationItem portalNavigationItem) {}
 }
