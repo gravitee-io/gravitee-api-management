@@ -15,11 +15,13 @@
  */
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
 import { AnalyticsDashboardCardComponent } from './analytics-dashboard-card.component';
 import { AnalyticsDashboardCardHarness } from './analytics-dashboard-card.harness';
 import { fakeDashboard } from '../../entities/analytics-dashboard/analytics-dashboard.fixtures';
+import { OverflowLabelsComponent } from '../overflow-labels/overflow-labels.component';
 
 describe('AnalyticsDashboardCardComponent', () => {
   let fixture: ComponentFixture<AnalyticsDashboardCardComponent>;
@@ -51,10 +53,18 @@ describe('AnalyticsDashboardCardComponent', () => {
   });
 
   it('should_pass_dashboard_labels_to_overflow_labels', async () => {
-    const overflowLabels = await harness.getOverflowLabelsHarness();
-    expect(overflowLabels).not.toBeNull();
-    // In JSDOM container width is 0 → all 2 labels go behind the counter.
-    expect(await overflowLabels!.getOverflowCounterText()).toContain('+2');
+    expect(await harness.getOverflowLabelsHarness()).not.toBeNull();
+
+    const overflowLabels = fixture.debugElement.query(By.directive(OverflowLabelsComponent));
+    expect(overflowLabels.componentInstance.labels()).toEqual(['type:http', 'scope:proxy']);
+  });
+
+  it('should_map_dashboard_labels_to_key_value_strings', () => {
+    fixture.componentRef.setInput('dashboard', fakeDashboard({ labels: { env: 'dev', team: 'core' } }));
+    fixture.detectChanges();
+
+    const overflowLabels = fixture.debugElement.query(By.directive(OverflowLabelsComponent));
+    expect(overflowLabels.componentInstance.labels()).toEqual(['env:dev', 'team:core']);
   });
 
   it('should_render_widget_count', async () => {
