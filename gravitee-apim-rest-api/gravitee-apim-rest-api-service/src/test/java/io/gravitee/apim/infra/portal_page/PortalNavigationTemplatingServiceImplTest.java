@@ -25,8 +25,9 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.exception.PortalPageContentTemplateException;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
+import io.gravitee.apim.core.portal_page.model.RenderedPageContent;
 import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
-import io.gravitee.apim.core.portal_page.service_provider.RenderedPageContent;
 import io.gravitee.apim.core.template.TemplateProcessor;
 import io.gravitee.apim.core.template.TemplateProcessorException;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
@@ -61,7 +62,7 @@ class PortalNavigationTemplatingServiceImplTest {
 
         var input = new PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput(GraviteeMarkdown.of("${api}"), model);
 
-        assertThat(cut.renderGraviteeMarkdown(input)).isEqualTo(RenderedPageContent.of("my-api"));
+        assertThat(cut.renderGraviteeMarkdown(input)).isEqualTo(RenderedPageContent.of("my-api", PortalPageContentType.GRAVITEE_MARKDOWN));
     }
 
     @Test
@@ -70,7 +71,7 @@ class PortalNavigationTemplatingServiceImplTest {
 
         var input = new PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput(GraviteeMarkdown.of("plain"), Map.of());
 
-        assertThat(cut.renderGraviteeMarkdown(input)).isEqualTo(RenderedPageContent.of("plain"));
+        assertThat(cut.renderGraviteeMarkdown(input)).isEqualTo(RenderedPageContent.of("plain", PortalPageContentType.GRAVITEE_MARKDOWN));
     }
 
     @Test

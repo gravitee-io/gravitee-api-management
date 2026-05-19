@@ -63,6 +63,7 @@ import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.api.service_provider.ApiTemplateModelProvider;
 import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
@@ -103,6 +104,7 @@ import io.gravitee.apim.core.dictionary.use_case.DeleteDictionaryUseCase;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageAccessControlsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
+import io.gravitee.apim.core.environment.service_provider.EnvironmentTemplateModelProvider;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
@@ -139,6 +141,7 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDoma
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
+import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
 import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
@@ -1115,6 +1118,21 @@ public class ResourceContextConfiguration {
     @Bean
     public GetPortalPageContentUseCase getPortalPageContentUseCase() {
         return mock(GetPortalPageContentUseCase.class);
+    }
+
+    @Bean
+    public PortalNavigationTemplatingService portalNavigationTemplatingService() {
+        return mock(PortalNavigationTemplatingService.class);
+    }
+
+    @Bean
+    public ApiTemplateModelProvider apiTemplateModelProvider() {
+        return mock(ApiTemplateModelProvider.class);
+    }
+
+    @Bean
+    public EnvironmentTemplateModelProvider environmentTemplateModelProvider() {
+        return mock(EnvironmentTemplateModelProvider.class);
     }
 
     @Bean

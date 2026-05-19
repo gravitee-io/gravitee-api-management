@@ -66,11 +66,12 @@ public class PortalNavigationItemResource extends AbstractResource {
         var result = getPortalPageContentByNavigationIdUseCase.execute(
             new GetPortalPageContentByNavigationIdUseCase.Input(
                 portalNavigationItemId,
+                executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
                 PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull())
             )
         );
 
-        return Response.ok(portalNavigationItemMapper.map(result.portalPageContent())).build();
+        return Response.ok(portalNavigationItemMapper.map(result.renderedContent())).build();
     }
 }

@@ -18,7 +18,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static fixtures.core.model.PortalPageContentFixtures.ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doAnswer;
 
 import fixtures.core.model.PortalPageContentFixtures;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -27,6 +27,8 @@ import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.RenderedPageContent;
+import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
 import io.gravitee.rest.api.portal.rest.fixture.PortalNavigationFixtures;
 import io.gravitee.rest.api.portal.rest.model.PortalPageContent;
 import io.gravitee.rest.api.portal.rest.model.PortalPageContentType;
@@ -52,6 +54,9 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
     @Autowired
     private PortalPageContentQueryServiceInMemory portalPageContentQueryService;
 
+    @Autowired
+    private PortalNavigationTemplatingService portalNavigationTemplatingService;
+
     @Override
     protected String contextPath() {
         return "portal-navigation-items/";
@@ -60,6 +65,15 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
     @BeforeEach
     public void init() {
         GraviteeContext.setCurrentEnvironment(ENV_ID);
+        doAnswer(invocation -> {
+            var in = (PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput) invocation.getArgument(0);
+            return RenderedPageContent.of(
+                in.rawMarkdown().value(),
+                io.gravitee.apim.core.portal_page.model.PortalPageContentType.GRAVITEE_MARKDOWN
+            );
+        })
+            .when(portalNavigationTemplatingService)
+            .renderGraviteeMarkdown(any());
     }
 
     @AfterEach

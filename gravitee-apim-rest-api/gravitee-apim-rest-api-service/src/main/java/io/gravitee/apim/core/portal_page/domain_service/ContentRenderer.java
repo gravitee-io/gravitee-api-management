@@ -15,11 +15,12 @@
  */
 package io.gravitee.apim.core.portal_page.domain_service;
 
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
-import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
+import io.gravitee.apim.core.portal_page.model.RenderedPageContent;
 
-public interface PortalPageContentValidator {
-    boolean appliesTo(PortalPageContent<?> existingContent);
+public interface ContentRenderer {
+    boolean appliesTo(PortalPageContent<?> content);
 
-    void validate(PortalPageContent<?> existingContent, UpdatePortalPageContent updateContent);
+    RenderedPageContent render(PortalNavigationItem item, PortalPageContent<?> content);
 }

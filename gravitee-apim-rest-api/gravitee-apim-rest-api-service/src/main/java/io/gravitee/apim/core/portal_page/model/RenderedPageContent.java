@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.domain_service;
+package io.gravitee.apim.core.portal_page.model;
 
-import io.gravitee.apim.core.portal_page.model.PortalPageContent;
-import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
-
-public interface PortalPageContentValidator {
-    boolean appliesTo(PortalPageContent<?> existingContent);
-
-    void validate(PortalPageContent<?> existingContent, UpdatePortalPageContent updateContent);
+public record RenderedPageContent(String value, PortalPageContentType type) {
+    public static RenderedPageContent of(String value, PortalPageContentType type) {
+        return new RenderedPageContent(value, type);
+    }
 }

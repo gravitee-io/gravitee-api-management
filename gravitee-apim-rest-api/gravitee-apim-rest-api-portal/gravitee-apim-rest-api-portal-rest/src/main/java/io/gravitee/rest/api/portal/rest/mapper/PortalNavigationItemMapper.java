@@ -15,8 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
-import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
@@ -24,8 +22,8 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
-import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.RenderedPageContent;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.util.List;
@@ -62,16 +60,9 @@ public interface PortalNavigationItemMapper {
     io.gravitee.rest.api.portal.rest.model.PortalNavigationPage map(PortalNavigationPage page);
     io.gravitee.rest.api.portal.rest.model.PortalNavigationApi map(PortalNavigationApi api);
 
-    default String extractContent(PortalPageContent<?> content) {
-        return switch (content) {
-            case GraviteeMarkdownPageContent gmd -> gmd.getContent().value();
-            case OpenApiPageContent oapi -> oapi.getContent().value();
-        };
-    }
-
-    @Mapping(target = "content", expression = "java(extractContent(content))")
+    @Mapping(source = "value", target = "content")
     @Mapping(source = "type", target = "type")
-    io.gravitee.rest.api.portal.rest.model.PortalPageContent map(PortalPageContent<?> content);
+    io.gravitee.rest.api.portal.rest.model.PortalPageContent map(RenderedPageContent content);
 
     default String map(@Nullable PortalNavigationItemId portalNavigationItemId) {
         if (portalNavigationItemId == null) {

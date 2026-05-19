@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.service_provider;
+package io.gravitee.apim.core.environment.service_provider;
 
-/**
- * Rendered page content after FreeMarker template processing.
- */
-public record RenderedPageContent(String value) {
-    public static RenderedPageContent of(String value) {
-        return new RenderedPageContent(value);
-    }
+import java.util.Map;
+
+public interface EnvironmentTemplateModelProvider {
+    /**
+     * Returns the environment metadata as a flat key→value map suitable for FreeMarker template rendering
+     * (e.g. {@code ${metadata.someKey}}).
+     *
+     * @param environmentId the environment whose metadata to fetch
+     * @return a map of metadata key/value pairs; never {@code null}
+     */
+    Map<String, String> getEnvironmentMetadata(String environmentId);
 }

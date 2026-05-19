@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.domain_service;
+package io.gravitee.apim.core.portal_page.exception;
 
-import io.gravitee.apim.core.portal_page.model.PortalPageContent;
-import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 
-public interface PortalPageContentValidator {
-    boolean appliesTo(PortalPageContent<?> existingContent);
+public class RendererException extends TechnicalDomainException {
 
-    void validate(PortalPageContent<?> existingContent, UpdatePortalPageContent updateContent);
+    public RendererException(String message) {
+        super(message);
+    }
+
+    public RendererException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

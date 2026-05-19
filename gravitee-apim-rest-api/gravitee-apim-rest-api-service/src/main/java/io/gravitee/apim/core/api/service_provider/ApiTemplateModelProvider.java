@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.domain_service;
+package io.gravitee.apim.core.api.service_provider;
 
-import io.gravitee.apim.core.portal_page.model.PortalPageContent;
-import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
-
-public interface PortalPageContentValidator {
-    boolean appliesTo(PortalPageContent<?> existingContent);
-
-    void validate(PortalPageContent<?> existingContent, UpdatePortalPageContent updateContent);
+public interface ApiTemplateModelProvider {
+    /**
+     * Returns an API model object suitable for FreeMarker template rendering (e.g. {@code ${api.name}}).
+     *
+     * @param organizationId the organization the API belongs to
+     * @param environmentId  the environment the API belongs to
+     * @param apiId          the technical API ID
+     * @return an object exposing API properties that FreeMarker can navigate
+     */
+    Object getApiTemplateModel(String organizationId, String environmentId, String apiId);
 }

@@ -20,18 +20,26 @@ import static fixtures.core.model.PortalPageContentFixtures.ENVIRONMENT_ID;
 import static fixtures.core.model.PortalPageContentFixtures.ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalPageContentFixtures;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
+import io.gravitee.apim.core.api.service_provider.ApiTemplateModelProvider;
+import io.gravitee.apim.core.environment.service_provider.EnvironmentTemplateModelProvider;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
 import io.gravitee.apim.core.gravitee_markdown.exception.GraviteeMarkdownContentEmptyException;
 import io.gravitee.apim.core.portal_page.domain_service.GraviteePortalPageContentValidatorService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationEnclosingApiDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
+import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -47,9 +55,17 @@ class UpdatePortalPageContentUseCaseTest {
         PortalPageContentQueryServiceInMemory queryService = new PortalPageContentQueryServiceInMemory();
         PortalPageContentCrudServiceInMemory crudService = new PortalPageContentCrudServiceInMemory();
 
-        // Create validator chain
         GraviteeMarkdownValidator gmdValidator = new GraviteeMarkdownValidator();
-        GraviteePortalPageContentValidatorService gmdContentValidator = new GraviteePortalPageContentValidatorService(gmdValidator);
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService = mock(PortalNavigationItemsQueryService.class);
+        when(portalNavigationItemsQueryService.search(any())).thenReturn(java.util.List.of());
+        GraviteePortalPageContentValidatorService gmdContentValidator = new GraviteePortalPageContentValidatorService(
+            gmdValidator,
+            portalNavigationItemsQueryService,
+            mock(PortalNavigationEnclosingApiDomainService.class),
+            mock(PortalNavigationTemplatingService.class),
+            mock(ApiTemplateModelProvider.class),
+            mock(EnvironmentTemplateModelProvider.class)
+        );
         PortalPageContentValidatorService validatorService = new PortalPageContentValidatorService(java.util.List.of(gmdContentValidator));
 
         useCase = new UpdatePortalPageContentUseCase(queryService, crudService, validatorService);

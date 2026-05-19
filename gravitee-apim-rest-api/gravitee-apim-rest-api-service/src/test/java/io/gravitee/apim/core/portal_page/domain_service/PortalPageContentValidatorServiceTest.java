@@ -54,7 +54,7 @@ class PortalPageContentValidatorServiceTest {
 
         // Then
         verify(mockValidator).appliesTo(existingContent);
-        verify(mockValidator).validate(updateContent);
+        verify(mockValidator).validate(existingContent, updateContent);
     }
 
     @Test
@@ -69,6 +69,6 @@ class PortalPageContentValidatorServiceTest {
 
         // Then
         verify(mockValidator).appliesTo(existingContent);
-        verify(mockValidator, never()).validate(any());
+        verify(mockValidator, never()).validate(any(), any());
     }
 }

@@ -15,10 +15,8 @@
  */
 package io.gravitee.apim.core.portal_page.exception;
 
-import io.gravitee.apim.core.exception.TechnicalDomainException;
-
 /** Thrown when portal navigation page markdown fails FreeMarker evaluation (invalid syntax or missing model data). */
-public class PortalPageContentTemplateException extends TechnicalDomainException {
+public class PortalPageContentTemplateException extends RendererException {
 
     public PortalPageContentTemplateException(String message) {
         super(message);

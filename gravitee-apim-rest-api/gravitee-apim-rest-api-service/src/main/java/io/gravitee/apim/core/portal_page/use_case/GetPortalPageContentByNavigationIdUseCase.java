@@ -16,19 +16,22 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal_page.domain_service.ContentRenderer;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
+import io.gravitee.apim.core.portal_page.exception.RendererException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
-import io.gravitee.apim.core.portal_page.model.PortalPageContent;
+import io.gravitee.apim.core.portal_page.model.RenderedPageContent;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
@@ -39,9 +42,9 @@ public class GetPortalPageContentByNavigationIdUseCase {
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
     private final PortalPageContentQueryService portalPageContentQueryService;
     private final PortalNavigationApiVisibilityDomainService apiVisibilityDomainService;
+    private final List<ContentRenderer> contentRenderers;
 
     public Output execute(Input input) {
-        // Get the portal navigation item by id and env id
         final var portalNavigationItem = Optional.ofNullable(
             portalNavigationItemsQueryService.findByIdAndEnvironmentId(
                 input.environmentId(),
@@ -62,7 +65,6 @@ public class GetPortalPageContentByNavigationIdUseCase {
             throw new PortalNavigationItemNotFoundException(portalNavigationItem.getId().json());
         }
 
-        // If the nav item is not a page, throw exception
         if (!(portalNavigationItem instanceof PortalNavigationPage page)) {
             throw InvalidPortalNavigationItemDataException.typeMismatch(
                 PortalNavigationItemType.PAGE.name(),
@@ -70,15 +72,26 @@ public class GetPortalPageContentByNavigationIdUseCase {
             );
         }
 
-        // Then get the portal page content by the content id from the navigation item
-        final var portalPageContent = portalPageContentQueryService
+        var portalPageContent = portalPageContentQueryService
             .findById(page.getPortalPageContentId())
             .orElseThrow(() -> new PageContentNotFoundException(page.getPortalPageContentId().toString()));
 
-        return new Output(portalPageContent, portalNavigationItem);
+        var rendered = contentRenderers
+            .stream()
+            .filter(r -> r.appliesTo(portalPageContent))
+            .findFirst()
+            .orElseThrow(() -> new RendererException("No renderer found for content type: " + portalPageContent.getType()))
+            .render(page, portalPageContent);
+
+        return new Output(rendered, portalNavigationItem);
     }
 
-    public record Input(String portalNavigationItemId, String environmentId, PortalNavigationItemViewerContext viewerContext) {}
+    public record Input(
+        String portalNavigationItemId,
+        String organizationId,
+        String environmentId,
+        PortalNavigationItemViewerContext viewerContext
+    ) {}
 
-    public record Output(PortalPageContent<?> portalPageContent, PortalNavigationItem portalNavigationItem) {}
+    public record Output(RenderedPageContent renderedContent, PortalNavigationItem portalNavigationItem) {}
 }

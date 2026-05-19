@@ -16,26 +16,27 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
-import io.gravitee.apim.core.open_api.OpenApi;
-import io.gravitee.apim.core.open_api.OpenApiValidator;
+import io.gravitee.apim.core.portal_page.exception.RendererException;
+import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
-import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
-import lombok.RequiredArgsConstructor;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
+import io.gravitee.apim.core.portal_page.model.RenderedPageContent;
 
-@RequiredArgsConstructor
 @DomainService
-public class OpenApiPortalPageContentValidatorService implements PortalPageContentValidator {
-
-    private final OpenApiValidator openApiValidator;
+public class DefaultContentRenderer implements ContentRenderer {
 
     @Override
-    public boolean appliesTo(PortalPageContent<?> existingContent) {
-        return existingContent instanceof OpenApiPageContent;
+    public boolean appliesTo(PortalPageContent<?> content) {
+        return !(content instanceof GraviteeMarkdownPageContent);
     }
 
     @Override
-    public void validate(PortalPageContent<?> existingContent, UpdatePortalPageContent updateContent) {
-        openApiValidator.validateNotEmpty(OpenApi.of(updateContent.getContent()));
+    public RenderedPageContent render(PortalNavigationItem item, PortalPageContent<?> content) {
+        return switch (content) {
+            case OpenApiPageContent oapi -> RenderedPageContent.of(oapi.getContent().value(), PortalPageContentType.OPENAPI);
+            default -> throw new RendererException("Content type not supported: " + content.getType());
+        };
     }
 }
