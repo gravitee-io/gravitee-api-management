@@ -255,8 +255,11 @@ export class ApiProductNavigationComponent {
         header: { title: 'Configuration', subtitle: 'Manage general settings and user permissions.' },
         tabs: configurationTabs,
       },
-      { displayName: 'APIs', routerLink: 'apis', icon: 'gio:cloud-settings' },
     ];
+
+    if (this.canAccessApiProductDefinition()) {
+      items.push({ displayName: 'APIs', routerLink: 'apis', icon: 'gio:cloud-settings' });
+    }
 
     const hasPlanRead = this.permissionService.hasAnyMatching(['api_product-plan-r']);
     const hasSubscriptionRead = this.permissionService.hasAnyMatching(['api_product-subscription-r']);
@@ -285,6 +288,10 @@ export class ApiProductNavigationComponent {
 
   private canAccessApiProductUserPermissions(): boolean {
     return this.permissionService.hasAnyMatching(['api_product-member-r']);
+  }
+
+  private canAccessApiProductDefinition(): boolean {
+    return this.permissionService.hasAnyMatching(['api_product-definition-r']);
   }
 
   private isItemActive(item: MenuItem): boolean {

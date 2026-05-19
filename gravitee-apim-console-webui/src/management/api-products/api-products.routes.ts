@@ -71,6 +71,12 @@ export const API_PRODUCTS_ROUTES: Routes = [
       {
         path: 'apis',
         loadComponent: () => import('./apis/api-product-apis.component').then(m => m.ApiProductApisComponent),
+        data: {
+          permissions: {
+            anyOf: ['api_product-definition-r'],
+            unauthorizedFallbackTo: 'configuration/general',
+          },
+        },
       },
       {
         path: 'consumers',

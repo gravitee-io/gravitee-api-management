@@ -22,6 +22,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ActivatedRoute, Router } from '@angular/router';
+import { fakeAsync, flush, tick } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { GioConfirmAndValidateDialogHarness, GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 
@@ -56,7 +57,7 @@ describe('ApiProductConfigurationComponent', () => {
       providers: [
         { provide: Constants, useValue: CONSTANTS_TESTING },
         { provide: SnackBarService, useValue: fakeSnackBarService },
-        { provide: GioTestingPermissionProvider, useValue: ['environment-api_product-u'] },
+        { provide: GioTestingPermissionProvider, useValue: ['api_product-definition-u'] },
         {
           provide: ActivatedRoute,
           useValue: {
@@ -98,6 +99,44 @@ describe('ApiProductConfigurationComponent', () => {
     expect(form).toBeTruthy();
     expect(form?.getRawValue().name).toBe('Test API Product');
     expect(form?.getRawValue().version).toBe('1.0');
+  });
+
+  it('should disable form fields and danger zone when user lacks api_product-definition-u', async () => {
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      imports: [ApiProductConfigurationComponent, GioTestingModule, MatIconTestingModule, NoopAnimationsModule],
+      providers: [
+        { provide: Constants, useValue: CONSTANTS_TESTING },
+        { provide: SnackBarService, useValue: fakeSnackBarService },
+        { provide: GioTestingPermissionProvider, useValue: ['api_product-definition-r'] },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            params: of({ apiProductId: API_PRODUCT_ID }),
+            snapshot: { params: { apiProductId: API_PRODUCT_ID } },
+          },
+        },
+      ],
+    }).compileComponents();
+    fixture = TestBed.createComponent(ApiProductConfigurationComponent);
+    loader = TestbedHarnessEnvironment.loader(fixture);
+    httpTestingController = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
+    req.flush(fakeApiProduct);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
+    const versionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="version"]' }));
+    const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="description"]' }));
+    expect(await nameInput.isDisabled()).toBe(true);
+    expect(await versionInput.isDisabled()).toBe(true);
+    expect(await descriptionInput.isDisabled()).toBe(true);
+
+    const deleteButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="api_product_dangerzone_delete"]' }));
+    expect(await deleteButton.isDisabled()).toBe(true);
   });
 
   it('should validate required fields', async () => {
@@ -151,6 +190,42 @@ describe('ApiProductConfigurationComponent', () => {
 
     expect(fakeSnackBarService.success).toHaveBeenCalledWith('Configuration successfully saved!');
   });
+
+  it('should verify renamed product name before save', fakeAsync(async () => {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
+    req.flush(fakeApiProduct);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
+    await nameInput.setValue('Renamed API Product');
+    tick(250);
+    fixture.detectChanges();
+
+    const verifyReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/_verify`);
+    expect(verifyReq.request.body).toEqual({ name: 'Renamed API Product' });
+    verifyReq.flush({ ok: true });
+    flush();
+    await fixture.whenStable();
+
+    const form = fixture.componentInstance.form;
+    form!.markAsDirty();
+    fixture.componentInstance.onSubmit();
+
+    const updateReq = httpTestingController.expectOne({
+      method: 'PUT',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`,
+    });
+    expect(updateReq.request.body.name).toBe('Renamed API Product');
+    updateReq.flush({ ...fakeApiProduct, name: 'Renamed API Product' });
+
+    const refetchReq = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
+    refetchReq.flush({ ...fakeApiProduct, name: 'Renamed API Product' });
+    flush();
+    await fixture.whenStable();
+
+    expect(fakeSnackBarService.success).toHaveBeenCalledWith('Configuration successfully saved!');
+  }));
 
   it('should show snackbar on load error', async () => {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);

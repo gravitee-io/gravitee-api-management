@@ -260,6 +260,28 @@ describe('ApiProductNavigationComponent', () => {
     });
   });
 
+  describe('APIs menu item visibility', () => {
+    it('should show APIs menu item when user has api product definition read permission', async () => {
+      await configureNavigationTestBed(['api_product-definition-r']);
+      createFixture();
+      flushRequests(fakeApiProduct);
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain('APIs');
+    });
+
+    it('should hide APIs menu item when user lacks api product definition read permission', async () => {
+      await configureNavigationTestBed(['api_product-member-r']);
+      createFixture();
+      flushRequests(fakeApiProduct);
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).not.toContain('APIs');
+    });
+  });
+
   describe('Consumers menu item visibility', () => {
     it('should show consumers menu item when user has api product plan read permission', async () => {
       await configureNavigationTestBed(['api_product-plan-r']);

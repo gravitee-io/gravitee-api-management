@@ -78,7 +78,7 @@ export class ApiProductConfigurationComponent {
   private readonly snackBarService = inject(SnackBarService);
   private readonly matDialog = inject(MatDialog);
 
-  protected readonly isReadOnly = !this.permissionService.hasAnyMatching(['environment-api_product-u']);
+  protected readonly isReadOnly = !this.permissionService.hasAnyMatching(['api_product-definition-u']);
 
   readonly nameMaxLength = 512;
   readonly versionMaxLength = 64;
@@ -121,6 +121,11 @@ export class ApiProductConfigurationComponent {
       version: p.version ?? '',
       description: p.description ?? '',
     });
+    if (this.isReadOnly) {
+      this.form.disable({ emitEvent: false });
+    } else {
+      this.form.enable({ emitEvent: false });
+    }
     this.initialFormValue.set(this.form.getRawValue());
   });
 
