@@ -36,6 +36,26 @@ jest.mock('@gravitee/gamma-modules-sdk', () => ({
 
 jest.mock('@gravitee/graphene-core', () => ({
     Badge: ({ children, className }: { children?: ReactNode; className?: string }) => <span className={className}>{children}</span>,
+    Checkbox: ({
+        checked,
+        onCheckedChange,
+        disabled,
+    }: {
+        checked?: boolean;
+        onCheckedChange?: (v: boolean) => void;
+        disabled?: boolean;
+    }) => (
+        <input
+            type="checkbox"
+            checked={checked}
+            onChange={e => onCheckedChange?.(e.target.checked)}
+            disabled={disabled}
+            readOnly={!onCheckedChange}
+        />
+    ),
+    Popover: ({ children }: { children?: ReactNode }) => <>{children}</>,
+    PopoverContent: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+    PopoverTrigger: ({ children }: { children?: ReactNode }) => <>{children}</>,
     Button: ({
         children,
         onClick,
@@ -120,6 +140,14 @@ jest.mock('../../../utils/queryKeys', () => ({
         all: ['api-detail'],
         detail: (envId: string, apiId: string) => ['api-detail', envId, apiId],
     },
+    envCategoryKeys: {
+        all: ['env-categories'],
+        list: (envId: string) => ['env-categories', envId],
+    },
+}));
+
+jest.mock('../../../hooks/useEnvCategories', () => ({
+    useEnvCategories: jest.fn(() => ({ data: [], isLoading: false })),
 }));
 
 import { ApiGeneralPage } from './ApiGeneralPage';

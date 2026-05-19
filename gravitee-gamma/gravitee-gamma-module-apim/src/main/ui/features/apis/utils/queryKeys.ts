@@ -66,6 +66,11 @@ export const orgTagKeys = {
     list: () => [...orgTagKeys.all, 'list'] as const,
 };
 
+export const envCategoryKeys = {
+    all: ['env-categories'] as const,
+    list: (envId: string) => [...envCategoryKeys.all, envId] as const,
+};
+
 export const apiPermissionKeys = {
     all: ['api-permissions'] as const,
     detail: (envId: string, apiId: string) => [...apiPermissionKeys.all, envId, apiId] as const,

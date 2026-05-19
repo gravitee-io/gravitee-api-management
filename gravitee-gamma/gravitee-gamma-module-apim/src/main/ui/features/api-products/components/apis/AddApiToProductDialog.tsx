@@ -34,27 +34,18 @@ function ApiRow({ api, selected, onToggle }: { api: ApiListItem; selected: boole
         <button
             type="button"
             onClick={onToggle}
-            className={`w-full flex items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors ${
+            className={`w-full flex items-start gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors ${
                 selected ? 'border-primary/30 bg-primary/5' : 'hover:bg-muted'
             }`}
         >
-            <div className="rounded-md bg-primary/10 p-1.5 shrink-0">
+            <div className="rounded-md bg-primary/10 p-1.5 shrink-0 mt-0.5">
                 <GlobeIcon className="size-3.5 text-primary" aria-hidden />
             </div>
-            <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {api.name}
-                </p>
-                {path ? (
-                    <p
-                        className="text-xs text-muted-foreground font-mono"
-                        style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                    >
-                        {path}
-                    </p>
-                ) : null}
+            <div className="flex-1">
+                <p className="text-sm font-medium break-all">{api.name}</p>
+                {path ? <p className="text-xs text-muted-foreground font-mono">{path}</p> : null}
             </div>
-            <Badge variant="outline" className="text-xs shrink-0">
+            <Badge variant="outline" className="text-xs shrink-0 mt-0.5">
                 {api.apiVersion}
             </Badge>
         </button>
@@ -63,8 +54,12 @@ function ApiRow({ api, selected, onToggle }: { api: ApiListItem; selected: boole
 
 function SelectedChip({ name, onRemove }: { name: string; onRemove: () => void }) {
     return (
-        <span className="inline-flex items-center gap-1 rounded-full border bg-secondary text-secondary-foreground px-2 py-0.5 text-xs font-medium">
-            {name}
+        <span
+            className="inline-flex items-center gap-1 rounded-full border bg-secondary text-secondary-foreground px-2 py-0.5 text-xs font-medium"
+            style={{ maxWidth: '16rem' }}
+            title={name}
+        >
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
             <button type="button" onClick={onRemove} className="hover:text-destructive transition-colors" aria-label={`Remove ${name}`}>
                 <XIcon className="size-3" aria-hidden />
             </button>
@@ -123,7 +118,7 @@ export function AddApiToProductDialog({ open, existingApiIds, onClose, onAdd, is
 
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
-            <DialogContent className="max-w-lg">
+            <DialogContent aria-describedby={undefined}>
                 <DialogHeader>
                     <DialogTitle>Add API</DialogTitle>
                 </DialogHeader>

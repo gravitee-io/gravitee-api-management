@@ -43,10 +43,10 @@ export function VirtualHostsCard({
                 {/* Header row */}
                 <div className="flex items-start justify-between gap-4">
                     <div>
-                        <p className="text-sm font-semibold text-foreground flex items-center">
+                        <div className="text-sm font-semibold text-foreground flex items-center">
                             Virtual hosts
                             <InfoTooltip text="Map Virtual host, Context path, and Override access per row — matching the management console listener configuration." />
-                        </p>
+                        </div>
                         <p className="mt-0.5 text-xs text-muted-foreground">
                             Map Virtual host, Context path, and Override access per row — matching the management console listener
                             configuration.
@@ -69,17 +69,17 @@ export function VirtualHostsCard({
                         </p>
                     </div>
                     <div>
-                        <p className="text-xs font-medium text-muted-foreground flex items-center">
+                        <div className="text-xs font-medium text-muted-foreground flex items-center">
                             Context path
                             <InfoTooltip text="Path segment appended to the virtual host for this listener." />
-                        </p>
+                        </div>
                         <p className="text-xs text-muted-foreground">Path segment appended to the virtual host for this listener.</p>
                     </div>
                     <div>
-                        <p className="text-xs font-medium text-muted-foreground flex items-center">
+                        <div className="text-xs font-medium text-muted-foreground flex items-center">
                             Override access
                             <InfoTooltip text="Portal access URL override for this virtual host." />
-                        </p>
+                        </div>
                         <p className="text-xs text-muted-foreground">Portal access URL override for this virtual host.</p>
                     </div>
                     <div />

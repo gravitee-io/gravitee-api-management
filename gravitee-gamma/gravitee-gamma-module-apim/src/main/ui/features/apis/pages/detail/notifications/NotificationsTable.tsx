@@ -127,7 +127,7 @@ export function NotificationsTable({
                             <TableHead>Channel</TableHead>
                             <TableHead>Events</TableHead>
                             <TableHead>Target</TableHead>
-                            {hasActionsColumn && <TableHead className="w-12" />}
+                            {hasActionsColumn && <TableHead className="w-12 text-right">Actions</TableHead>}
                         </TableRow>
                     </TableHeader>
                     <TableBody>

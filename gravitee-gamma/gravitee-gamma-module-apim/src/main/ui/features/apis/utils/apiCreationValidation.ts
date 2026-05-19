@@ -17,6 +17,18 @@ import type { ApiProxyDraft, ValidationErrors } from '../types/apiCreation';
 
 const CONTEXT_PATH_PATTERN = /^\/[/.a-zA-Z0-9\-_]*$/;
 
+function validateTargetUrl(value: string): string | null {
+    const trimmed = value.trim();
+    if (!trimmed) return 'Target URL is required.';
+    try {
+        const url = new URL(trimmed);
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') return 'Target URL must start with http:// or https://.';
+    } catch {
+        return 'Target URL must be a valid URL (e.g. https://api.example.com).';
+    }
+    return null;
+}
+
 export function validateContextPath(value: string): string | null {
     if (!value.trim()) return 'Context path is required.';
     if (value.includes('//')) return 'Context path is not valid.';
@@ -34,7 +46,8 @@ export function validateDetails(form: ApiProxyDraft): ValidationErrors {
 
 export function validateEntrypoints(form: ApiProxyDraft): ValidationErrors {
     const errors: ValidationErrors = {};
-    if (!form.targetUrl.trim()) errors['targetUrl'] = 'Target URL is required.';
+    const urlError = validateTargetUrl(form.targetUrl);
+    if (urlError) errors['targetUrl'] = urlError;
     if (form.virtualHostsEnabled) {
         const hasEmptyHost = form.virtualHosts.some(vh => !vh.host.trim());
         if (hasEmptyHost) errors['virtualHosts'] = 'All virtual hosts must have a host value.';
@@ -60,6 +73,7 @@ export function validateEssentials(form: ApiProxyDraft): ValidationErrors {
     if (!form.apiVersion.trim()) errors['apiVersion'] = 'Version is required.';
     const pathError = validateContextPath(form.contextPath);
     if (pathError) errors['contextPath'] = pathError;
-    if (!form.targetUrl.trim()) errors['targetUrl'] = 'Target URL is required.';
+    const urlError = validateTargetUrl(form.targetUrl);
+    if (urlError) errors['targetUrl'] = urlError;
     return errors;
 }
