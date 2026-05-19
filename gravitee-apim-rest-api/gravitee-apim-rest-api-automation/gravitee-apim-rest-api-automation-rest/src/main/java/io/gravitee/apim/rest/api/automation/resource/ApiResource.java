@@ -79,6 +79,11 @@ public class ApiResource extends AbstractResource {
         return resourceContext.getResource(ApiSubscriptionsResource.class);
     }
 
+    @Path("mock")
+    public ApiMockDocumentsResource getMockDocumentsResource() {
+        return resourceContext.getResource(ApiMockDocumentsResource.class);
+    }
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)

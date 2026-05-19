@@ -57,7 +57,7 @@ public class ApplicationsResource extends AbstractResource {
     @Context
     private ResourceContext resourceContext;
 
-    @Path("/{hrid}")
+    @Path("/{appHrid}")
     public ApplicationResource getApplicationResource() {
         return resourceContext.getResource(ApplicationResource.class);
     }

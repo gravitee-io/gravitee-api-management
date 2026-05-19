@@ -44,6 +44,14 @@ public final class HRIDToUUID {
         return new TopLevelBuilder();
     }
 
+    public static SubResourceBuilder apiMock() {
+        return new SubResourceBuilder("api");
+    }
+
+    public static SubResourceBuilder appMock() {
+        return new SubResourceBuilder("app");
+    }
+
     public static TopLevelBuilder application() {
         return new TopLevelBuilder();
     }
@@ -97,18 +105,30 @@ public final class HRIDToUUID {
 
     public static class SubResourceBuilder {
 
+        private final String prefix;
+
+        SubResourceBuilder() {
+            this.prefix = "";
+        }
+        SubResourceBuilder(String prefix) {
+            this.prefix = prefix;
+        }
+
         public SubResourceWithContext context(AuditInfo audit) {
-            return new SubResourceWithContext(audit.organizationId(), audit.environmentId());
+            return new SubResourceWithContext(audit.organizationId(), audit.environmentId(), prefix);
         }
 
         public SubResourceWithContext context(ExecutionContext ctx) {
-            return new SubResourceWithContext(ctx.getOrganizationId(), ctx.getEnvironmentId());
+            return new SubResourceWithContext(ctx.getOrganizationId(), ctx.getEnvironmentId(), prefix);
         }
     }
 
-    public record SubResourceWithContext(String organizationId, String environmentId) {
+    public record SubResourceWithContext(String organizationId, String environmentId, String prefix) {
         public SubResourceWithApi api(String apiHrid) {
-            return new SubResourceWithApi(UuidString.generateFrom(organizationId, apiHrid), environmentId);
+            return new SubResourceWithApi(UuidString.generateFrom(organizationId, apiHrid, prefix), environmentId);
+        }
+        public SubResourceWithApi app(String appHrid) {
+            return new SubResourceWithApi(UuidString.generateFrom(organizationId, appHrid, prefix), environmentId);
         }
     }
 
@@ -123,6 +143,10 @@ public final class HRIDToUUID {
 
         public SubResourceResult subscription(String subscriptionHrid) {
             return new SubResourceResult(apiCrossId, environmentId, subscriptionHrid);
+        }
+
+        public SubResourceResult mock(String mockHrid) {
+            return new SubResourceResult(apiCrossId, environmentId, mockHrid);
         }
     }
 

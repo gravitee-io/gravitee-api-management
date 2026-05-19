@@ -42,6 +42,8 @@ tags:
     description: Everything about Dictionaries
   - name: Subscriptions
     description: Everything about subscriptions
+  - name: Mock Documents
+    description: Mock document storage for testing
 paths:
   # APIs
   /organizations/{orgId}/environments/{envId}/apis:
@@ -566,6 +568,140 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  # Mock Documents - API
+  /organizations/{orgId}/environments/{envId}/apis/{apiHrid}/mock:
+    put:
+      operationId: createOrUpdateApiMockDocument
+      tags:
+        - Mock Documents
+      summary: Create or update a mock document for an API
+      description: Create/update a mock document stored in memory
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiHridParam"
+      requestBody:
+        description: Document specification
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/DocumentSpec"
+        required: true
+      responses:
+        "200":
+          description: Document successfully created/updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentState"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        default:
+          $ref: "#/components/responses/Error"
+  /organizations/{orgId}/environments/{envId}/apis/{apiHrid}/mock/{hrid}:
+    parameters:
+      - $ref: "#/components/parameters/orgIdParam"
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiHridParam"
+      - $ref: "#/components/parameters/hridParam"
+    get:
+      operationId: getApiMockDocument
+      tags:
+        - Mock Documents
+      summary: Get a mock document for an API
+      description: Get a mock document by HRID
+      responses:
+        "200":
+          description: Document successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentState"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: deleteApiMockDocument
+      tags:
+        - Mock Documents
+      summary: Delete a mock document for an API
+      description: Delete a mock document by HRID
+      responses:
+        "204":
+          description: Document successfully deleted
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
+
+  # Mock Documents - Application
+  /organizations/{orgId}/environments/{envId}/applications/{appHrid}/mock:
+    put:
+      operationId: createOrUpdateApplicationMockDocument
+      tags:
+        - Mock Documents
+      summary: Create or update a mock document for an Application
+      description: Create/update a mock document stored in memory
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/appHridParam"
+      requestBody:
+        description: Document specification
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/DocumentSpec"
+        required: true
+      responses:
+        "200":
+          description: Document successfully created/updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentState"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        default:
+          $ref: "#/components/responses/Error"
+  /organizations/{orgId}/environments/{envId}/applications/{appHrid}/mock/{hrid}:
+    parameters:
+      - $ref: "#/components/parameters/orgIdParam"
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/appHridParam"
+      - $ref: "#/components/parameters/hridParam"
+    get:
+      operationId: getApplicationMockDocument
+      tags:
+        - Mock Documents
+      summary: Get a mock document for an Application
+      description: Get a mock document by HRID
+      responses:
+        "200":
+          description: Document successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentState"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: deleteApplicationMockDocument
+      tags:
+        - Mock Documents
+      summary: Delete a mock document for an Application
+      description: Delete a mock document by HRID
+      responses:
+        "204":
+          description: Document successfully deleted
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
+
 components:
   schemas:
     Hrid:
@@ -581,6 +717,46 @@ components:
         - demo_shared_policy_groups
         - demo_dictionary
       maxLength: 256
+    DocumentSpec:
+      description: A simple mock document for testing purposes.
+      type: object
+      properties:
+        hrid:
+          type: string
+          description: Human-readable ID of the document
+          examples:
+            - my_mock_document
+        name:
+          type: string
+          description: Name of the document
+          examples:
+            - My Mock Document
+        content:
+          type: string
+          description: Content of the document
+          examples:
+            - Some content here
+      required:
+        - hrid
+        - name
+    DocumentState:
+      description: A simple mock document for testing purposes.
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/DocumentSpec"
+        - type: object
+      properties:
+        id:
+          type: string
+          description: API's uuid.
+        environmentId:
+          description:
+            The environment ID of the API.
+          type: string
+        organizationId:
+          description:
+            The organization ID of the API.
+          type: string
     ApiV4Spec:
       description: ApiV4DefinitionSpec defines the desired state of ApiDefinition.
       type: object
@@ -2927,6 +3103,15 @@ components:
         type: string
         examples:
           - my_demo_api
+    appHridParam:
+      name: appHrid
+      in: path
+      required: true
+      description: Human-readable ID of application
+      schema:
+        type: string
+        examples:
+          - simple_demo_app
   securitySchemes:
     BasicAuth:
       description: Basic authentication

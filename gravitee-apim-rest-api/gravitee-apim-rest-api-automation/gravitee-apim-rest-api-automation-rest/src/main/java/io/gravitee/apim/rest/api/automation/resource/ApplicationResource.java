@@ -43,9 +43,12 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -62,6 +65,9 @@ import java.util.stream.Collectors;
  * @author GraviteeSource Team
  */
 public class ApplicationResource extends AbstractResource {
+
+    @Context
+    private ResourceContext resourceContext;
 
     @Inject
     private ApplicationService applicationService;
@@ -81,11 +87,16 @@ public class ApplicationResource extends AbstractResource {
     @Inject
     private ApplicationMetadataCrudService applicationMetadataCrudService;
 
+    @Path("mock")
+    public ApplicationMockDocumentsResource getMockDocumentsResource() {
+        return resourceContext.getResource(ApplicationMockDocumentsResource.class);
+    }
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = { RolePermissionAction.READ }) })
-    public Response getApplicationByHRID(@PathParam("hrid") String hrid, @QueryParam("hridContainsUUID") boolean hridContainsUUID) {
+    public Response getApplicationByHRID(@PathParam("appHrid") String hrid, @QueryParam("hridContainsUUID") boolean hridContainsUUID) {
         var executionContext = GraviteeContext.getExecutionContext();
         try {
             ApplicationEntity applicationEntity = applicationService.findById(
@@ -161,7 +172,7 @@ public class ApplicationResource extends AbstractResource {
 
     @DELETE
     @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE) })
-    public Response deleteApplicationByHrid(@PathParam("hrid") String hrid, @QueryParam("hridContainsUUID") boolean hridContainsUUID) {
+    public Response deleteApplicationByHrid(@PathParam("appHrid") String hrid, @QueryParam("hridContainsUUID") boolean hridContainsUUID) {
         var executionContext = GraviteeContext.getExecutionContext();
 
         try {
