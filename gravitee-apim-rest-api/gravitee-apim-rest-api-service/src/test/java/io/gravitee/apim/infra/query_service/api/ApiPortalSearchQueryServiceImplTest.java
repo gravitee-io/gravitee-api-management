@@ -192,17 +192,8 @@ class ApiPortalSearchQueryServiceImplTest {
 
         @Test
         void should_return_all_intersected_matches_when_pageable_is_null() {
-            when(apiSearchService.searchIds(any(), any(), any(), any()))
-                .thenReturn(List.of("api-1", "api-2", "api-3", "api-4", "api-5"));
-            givenApis(
-                List.of(
-                    anApi("api-1"),
-                    anApi("api-2"),
-                    anApi("api-3"),
-                    anApi("api-4"),
-                    anApi("api-5")
-                )
-            );
+            when(apiSearchService.searchIds(any(), any(), any(), any())).thenReturn(List.of("api-1", "api-2", "api-3", "api-4", "api-5"));
+            givenApis(List.of(anApi("api-1"), anApi("api-2"), anApi("api-3"), anApi("api-4"), anApi("api-5")));
 
             var result = service.search("env", "org", "term", Set.of("api-1", "api-2", "api-3", "api-4", "api-5"), null, null);
 

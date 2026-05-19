@@ -37,9 +37,7 @@ public class ApiPortalSearchQueryServiceInMemory extends AbstractQueryServiceInM
         Sortable sortable = q.sortable().orElse(null);
 
         int pageNumber = pageable != null ? pageable.getPageNumber() : 1;
-        int pageSize = pageable != null
-            ? pageable.getPageSize()
-            : (query != null && !query.isBlank() ? Integer.MAX_VALUE : 10);
+        int pageSize = pageable != null ? pageable.getPageSize() : (query != null && !query.isBlank() ? Integer.MAX_VALUE : 10);
 
         if (allowedApiIds != null && allowedApiIds.isEmpty()) {
             return new Page<>(List.of(), pageNumber, 0, 0);
