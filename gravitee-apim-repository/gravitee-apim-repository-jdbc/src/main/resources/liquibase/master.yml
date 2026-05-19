@@ -345,3 +345,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_12_0/07_add_api_product_primary_owner_to_groups.yml
     - include:
         - file: liquibase/changelogs/v4_12_0/08_add_disable_membership_notifications_to_api_products.yml
+    - include:
+        - file: liquibase/changelogs/v4_12_0/09_drop_portal_navigation_items_title_unique_constraint.yml

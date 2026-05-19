@@ -601,4 +601,106 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
 
         assertThat(items).isEmpty();
     }
+
+    @Test
+    public void should_allow_duplicate_page_titles_for_same_organization_and_environment() throws Exception {
+        String sharedTitle = "Shared Page Title";
+
+        PortalNavigationItem firstPage = PortalNavigationItem.builder()
+            .id("duplicate-title-page-1")
+            .organizationId("org-1")
+            .environmentId("env-duplicate-title")
+            .title(sharedTitle)
+            .type(PortalNavigationItem.Type.PAGE)
+            .area(PortalNavigationItem.Area.TOP_NAVBAR)
+            .order(1)
+            .published(true)
+            .configuration("{ \"portalPageContentId\": \"880e8400-e29b-41d4-a716-446655440003\" }")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("duplicate-title-page-1")
+            .build();
+
+        PortalNavigationItem secondPage = PortalNavigationItem.builder()
+            .id("duplicate-title-page-2")
+            .organizationId("org-1")
+            .environmentId("env-duplicate-title")
+            .title(sharedTitle)
+            .type(PortalNavigationItem.Type.PAGE)
+            .area(PortalNavigationItem.Area.TOP_NAVBAR)
+            .order(2)
+            .published(true)
+            .configuration("{ \"portalPageContentId\": \"990e8400-e29b-41d4-a716-446655440004\" }")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("duplicate-title-page-2")
+            .build();
+
+        try {
+            portalNavigationItemRepository.create(firstPage);
+            portalNavigationItemRepository.create(secondPage);
+
+            var firstFound = portalNavigationItemRepository.findById("duplicate-title-page-1");
+            var secondFound = portalNavigationItemRepository.findById("duplicate-title-page-2");
+
+            assertThat(firstFound).isPresent();
+            assertThat(secondFound).isPresent();
+            assertThat(firstFound.get().getTitle()).isEqualTo(sharedTitle);
+            assertThat(secondFound.get().getTitle()).isEqualTo(sharedTitle);
+        } finally {
+            portalNavigationItemRepository.delete("duplicate-title-page-1");
+            portalNavigationItemRepository.delete("duplicate-title-page-2");
+        }
+    }
+
+    @Test
+    public void should_allow_duplicate_api_titles_for_same_organization_and_environment() throws Exception {
+        String sharedTitle = "Shared API Name";
+
+        PortalNavigationItem firstApi = PortalNavigationItem.builder()
+            .id("duplicate-title-api-1")
+            .organizationId("org-1")
+            .environmentId("env-duplicate-api-title")
+            .title(sharedTitle)
+            .type(PortalNavigationItem.Type.API)
+            .apiId("api-duplicate-title-1")
+            .area(PortalNavigationItem.Area.TOP_NAVBAR)
+            .order(1)
+            .published(true)
+            .configuration("{}")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("duplicate-title-api-1")
+            .build();
+
+        PortalNavigationItem secondApi = PortalNavigationItem.builder()
+            .id("duplicate-title-api-2")
+            .organizationId("org-1")
+            .environmentId("env-duplicate-api-title")
+            .title(sharedTitle)
+            .type(PortalNavigationItem.Type.API)
+            .apiId("api-duplicate-title-2")
+            .area(PortalNavigationItem.Area.TOP_NAVBAR)
+            .order(2)
+            .published(true)
+            .configuration("{}")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("duplicate-title-api-2")
+            .build();
+
+        try {
+            portalNavigationItemRepository.create(firstApi);
+            portalNavigationItemRepository.create(secondApi);
+
+            var firstFound = portalNavigationItemRepository.findById("duplicate-title-api-1");
+            var secondFound = portalNavigationItemRepository.findById("duplicate-title-api-2");
+
+            assertThat(firstFound).isPresent();
+            assertThat(secondFound).isPresent();
+            assertThat(firstFound.get().getTitle()).isEqualTo(sharedTitle);
+            assertThat(secondFound.get().getTitle()).isEqualTo(sharedTitle);
+            assertThat(firstFound.get().getApiId()).isEqualTo("api-duplicate-title-1");
+            assertThat(secondFound.get().getApiId()).isEqualTo("api-duplicate-title-2");
+        } finally {
+            portalNavigationItemRepository.delete("duplicate-title-api-1");
+            portalNavigationItemRepository.delete("duplicate-title-api-2");
+        }
+    }
 }
