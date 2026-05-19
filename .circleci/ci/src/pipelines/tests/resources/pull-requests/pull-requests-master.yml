@@ -530,7 +530,7 @@ jobs:
             - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run gamma repository tests
-          command: mvn --fail-fast -s .gravitee.settings.xml verify --no-transfer-progress -Dgamma-repository-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C
+          command: mvn --fail-fast -s .gravitee.settings.xml verify --no-transfer-progress -Dgamma-repository-modules -Dskip.ui.build=true -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C
       - run:
           name: Save test results
           command: |-
@@ -542,9 +542,6 @@ jobs:
           jobName: job-test-gamma-repository
       - store_test_results:
           path: ~/test-results
-      - persist_to_workspace:
-          root: .
-          paths: []
   job-nx-format-check:
     docker:
       - image: cimg/node:22.12.0

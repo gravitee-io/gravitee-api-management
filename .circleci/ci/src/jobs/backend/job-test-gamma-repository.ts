@@ -28,7 +28,7 @@ export class TestGammaRepositoryJob extends AbstractTestJob {
       [
         new commands.Run({
           name: `Run gamma repository tests`,
-          command: `mvn --fail-fast -s ${config.maven.settingsFile} verify --no-transfer-progress -Dgamma-repository-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C`,
+          command: `mvn --fail-fast -s ${config.maven.settingsFile} verify --no-transfer-progress -Dgamma-repository-modules -Dskip.ui.build=true -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C`,
         }),
       ],
       UbuntuExecutor.create('large'),
