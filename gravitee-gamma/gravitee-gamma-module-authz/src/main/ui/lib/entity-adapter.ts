@@ -10,7 +10,7 @@
  * the canonical entityId verbatim.
  *
  * Server-side validation rejects anything outside `[a-z0-9._-]+`
- * (see `EntityIdValidator` in `gravitee-apim-authorization-core`); the
+ * (see `EntityIdValidator` in `gravitee-gamma-authorization-core`); the
  * legacy `Type::"id"` form this adapter used to produce was failing every
  * create with a 400 — that's bug #8 from the review, fixed here.
  *
