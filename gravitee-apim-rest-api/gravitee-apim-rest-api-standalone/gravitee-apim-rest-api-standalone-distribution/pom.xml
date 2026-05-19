@@ -335,6 +335,34 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <!-- Authz -->
+        <dependency>
+            <groupId>com.graviteesource.gamma</groupId>
+            <artifactId>gravitee-service-authz-pdp</artifactId>
+            <version>${gravitee-service-authz-pdp.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.graviteesource.gamma</groupId>
+            <artifactId>gravitee-policy-authz-pep</artifactId>
+            <version>${gravitee-policy-authz-pep.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
 
     <build>
