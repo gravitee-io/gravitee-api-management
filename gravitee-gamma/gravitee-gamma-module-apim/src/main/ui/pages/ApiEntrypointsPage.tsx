@@ -225,17 +225,6 @@ export function ApiEntrypointsPage() {
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                    {showConfig && (
-                        <Button variant="outline" size="sm" className="gap-1.5" asChild>
-                            <a
-                                href="https://documentation.gravitee.io/apim/configuration/api-configuration/entrypoints"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                Documentation
-                            </a>
-                        </Button>
-                    )}
                     {showConfig && !isReadOnly && (
                         <Button size="sm" onClick={handleSave} disabled={!canSave} className="gap-1.5" aria-label="Save changes">
                             <CheckIcon className="size-3.5" />

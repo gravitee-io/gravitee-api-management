@@ -19,7 +19,6 @@ import {
     BellIcon,
     ChevronDownIcon,
     ChevronRightIcon,
-    FileTextIcon,
     GlobeIcon,
     LayoutDashboardIcon,
     ListIcon,
@@ -98,10 +97,7 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
     },
     {
         label: 'Design',
-        items: [
-            { path: 'policy-studio', label: 'Policy Studio', icon: WorkflowIcon },
-            { path: 'documentation', label: 'Documentation', icon: FileTextIcon },
-        ],
+        items: [{ path: 'policy-studio', label: 'Policy Studio', icon: WorkflowIcon }],
     },
     {
         label: 'Consumer Access',
