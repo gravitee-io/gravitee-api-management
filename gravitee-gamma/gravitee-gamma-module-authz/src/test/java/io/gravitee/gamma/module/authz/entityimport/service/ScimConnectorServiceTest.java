@@ -12,12 +12,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.authorization.api.AuthzCallerContext;
-import io.gravitee.apim.authorization.api.EntityAdminApi;
-import io.gravitee.apim.authorization.domain.Entity;
-import io.gravitee.apim.authorization.domain.EntityKind;
-import io.gravitee.apim.authorization.service.CascadeResult;
-import io.gravitee.apim.authorization.service.EntityFilter;
+import io.gravitee.gamma.authorization.api.AuthzCallerContext;
+import io.gravitee.gamma.authorization.api.EntityAdminApi;
+import io.gravitee.gamma.authorization.domain.Entity;
+import io.gravitee.gamma.authorization.domain.EntityKind;
+import io.gravitee.gamma.authorization.service.CascadeResult;
+import io.gravitee.gamma.authorization.service.EntityFilter;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.gamma.module.authz.entityimport.model.ScimConnectorRequest;
 import io.gravitee.gamma.module.authz.entityimport.model.ScimConnectorResponse;

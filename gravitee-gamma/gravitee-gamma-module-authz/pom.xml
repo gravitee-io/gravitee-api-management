@@ -101,8 +101,8 @@
             host — the parent Spring context exposes the @Bean.
         -->
         <dependency>
-            <groupId>io.gravitee.apim.authorization</groupId>
-            <artifactId>gravitee-apim-authorization-api</artifactId>
+            <groupId>io.gravitee.gamma.authorization</groupId>
+            <artifactId>gravitee-gamma-authorization-api</artifactId>
             <version>${gravitee-apim.version}</version>
             <scope>provided</scope>
         </dependency>
