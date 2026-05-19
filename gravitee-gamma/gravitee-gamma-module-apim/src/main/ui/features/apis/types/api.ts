@@ -172,6 +172,17 @@ export interface ApiEndpointGroup {
     endpoints?: ApiHttpEndpoint[];
 }
 
+export interface Failover {
+    enabled?: boolean;
+    maxRetries?: number;
+    slowCallDuration?: number;
+    openStateDuration?: number;
+    maxFailures?: number;
+    perSubscription?: boolean;
+    failureCondition?: string;
+    forceNextEndpointOnFailure?: boolean;
+}
+
 /** Lightweight shape used by the API detail view. */
 export interface ApiDetailDto {
     id: string;
@@ -198,6 +209,7 @@ export interface ApiDetailDto {
     services?: { dynamicProperty?: DynamicPropertyConfig };
     listeners?: HttpListener[];
     endpointGroups?: ApiEndpointGroup[];
+    failover?: Failover;
     /** Populated for APIs synced from an external source (e.g. Kubernetes operator). */
     definitionContext?: {
         origin?: 'MANAGEMENT' | 'KUBERNETES';

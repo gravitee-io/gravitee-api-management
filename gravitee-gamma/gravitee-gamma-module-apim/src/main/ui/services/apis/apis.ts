@@ -19,6 +19,7 @@ import type {
     DuplicateApiOptions,
     Cors,
     DynamicPropertyConfig,
+    Failover,
     Property,
 } from '../../features/apis/types/api';
 import { apimFetchJsonV2 } from '../../shared/api/apimClient';
@@ -146,6 +147,15 @@ export async function updateApiProperties(environmentId: string, apiId: string, 
         method: 'PUT',
         headers: JSON_HEADERS,
         body: JSON.stringify({ ...current, properties }),
+    });
+}
+
+export async function updateApiFailover(environmentId: string, apiId: string, failover: Failover): Promise<void> {
+    const current = await apimFetchJsonV2<Record<string, unknown>>(environmentId, `/apis/${encodeURIComponent(apiId)}`);
+    await apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}`, {
+        method: 'PUT',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ ...current, failover }),
     });
 }
 

@@ -33,6 +33,7 @@ import { ApiCorsPage } from '../pages/ApiCorsPage';
 import { ApiDetailOverviewPage } from '../pages/ApiDetailOverviewPage';
 import { ApiDetailPlaceholderPage } from '../pages/ApiDetailPlaceholderPage';
 import { ApiEntrypointsPage } from '../pages/ApiEntrypointsPage';
+import { ApiFailoverPage } from '../pages/ApiFailoverPage';
 import { ApiGeneralPage } from '../pages/ApiGeneralPage';
 import { ApiNotificationsPage } from '../pages/ApiNotificationsPage';
 import { ApiPlanFormPage } from '../pages/ApiPlanFormPage';
@@ -111,7 +112,7 @@ export function AppRoutes() {
                             <Route path="endpoints">
                                 <Route index element={<Navigate to="list" replace />} />
                                 <Route path="list" element={<ApiDetailPlaceholderPage title="Endpoints" />} />
-                                <Route path="failover" element={<ApiDetailPlaceholderPage title="Failover" />} />
+                                <Route path="failover" element={<ApiFailoverPage />} />
                                 <Route
                                     path="health-check-dashboard"
                                     element={<ApiDetailPlaceholderPage title="Health Check Dashboard" />}

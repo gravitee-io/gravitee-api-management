@@ -52,8 +52,6 @@ import type { AlertTrigger } from '../features/apis/types/api';
 import { apiAlertKeys } from '../features/apis/utils/queryKeys';
 import { deleteAlertTrigger, listAlerts, updateAlertTrigger, alertTriggerToFormData } from '../services/alerts/alerts';
 
-const DOCS_URL = 'https://documentation.gravitee.io/apim/guides/api-monitoring/alerts';
-
 const CAPABILITIES = [
     'Monitor response times, error rates, and throughput',
     'Detect health check status changes on endpoints',
@@ -213,11 +211,6 @@ export function ApiAlertsPage() {
                     <p className="text-sm text-muted-foreground">Set up alerting conditions for the Gateway.</p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                    <Button type="button" variant="outline" size="sm" asChild>
-                        <a href={DOCS_URL} target="_blank" rel="noopener noreferrer">
-                            Documentation
-                        </a>
-                    </Button>
                     {canEdit && (
                         <Button type="button" size="sm" onClick={handleAdd}>
                             <PlusIcon className="size-4" aria-hidden="true" />
