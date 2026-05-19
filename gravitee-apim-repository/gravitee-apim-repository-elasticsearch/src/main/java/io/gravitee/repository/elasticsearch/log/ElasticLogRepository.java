@@ -96,7 +96,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
                     .size(MAX_RESULT_WINDOW)
                     .query(logQueryString)
                     .build();
-                final String sQuery = this.createSafeElasticsearchJsonQuery(logQuery);
+                final String sQuery = this.createElasticsearchJsonQuery(logQuery);
 
                 Single<SearchResponse> result = this.client.search(
                     this.indexNameGenerator.getIndexName(queryContext.placeholder(), Type.LOG, from, to, clusters),

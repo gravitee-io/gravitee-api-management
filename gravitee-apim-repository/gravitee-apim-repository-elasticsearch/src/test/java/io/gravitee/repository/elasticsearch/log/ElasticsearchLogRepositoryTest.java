@@ -328,6 +328,25 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
     }
 
     @Test
+    public void testTabular_withBodyShorthandFilter() throws Exception {
+        // Regression guard for APIM-13994.
+        // The portal sends body filters using the short-form key "body" (not the full field name
+        // "client-response.body"). getQuery() transforms "body:value" to "\\*.body:value" so that
+        // Lucene can expand it as a field wildcard (matching client-response.body, proxy-response.body…).
+        // createSafeElasticsearchJsonQuery() then quadruples those backslashes, so Elasticsearch
+        // receives "\\*.body" as a literal non-existent field name → zero results for any search term.
+        // createElasticsearchJsonQuery() leaves the rendered JSON untouched, preserving the intended
+        // "\*.body" field wildcard and returning the expected results.
+        TabularResponse response = logRepository.query(
+            queryContext,
+            tabular().timeRange(lastDays(60), hours(1)).query("body:*not valid or is expired*").page(1).size(10).build()
+        );
+        assertThat(response).isNotNull();
+        assertThat(response.getSize()).isEqualTo(6);
+        assertThat(response.getLogs()).hasSize(6);
+    }
+
+    @Test
     public void testTabular_caseInsensitiveBodySearch() throws Exception {
         TabularResponse responseLower = logRepository.query(
             queryContext,
