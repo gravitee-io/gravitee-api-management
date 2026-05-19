@@ -15,10 +15,10 @@
  */
 package io.gravitee.gamma.rest.spring;
 
-import io.gravitee.gamma.authorization.config.AuthorizationConfig;
+import io.gravitee.gamma.authz.rest.spring.GammaAuthzSpringConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import({ AuthorizationConfig.class })
+@Import({ GammaAuthzSpringConfiguration.class })
 public class GammaSpringConfiguration {}

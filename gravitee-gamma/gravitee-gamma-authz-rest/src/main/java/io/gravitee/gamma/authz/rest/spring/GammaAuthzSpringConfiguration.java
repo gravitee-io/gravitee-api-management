@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.authz.rest.dto;
+package io.gravitee.gamma.authz.rest.spring;
 
-import io.gravitee.gamma.authorization.domain.PolicyKind;
+import io.gravitee.gamma.authorization.config.AuthorizationConfig;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
-public record PolicyRequest(String name, PolicyKind kind, String entityId, String policyText) {}
+@Configuration
+@Import({ AuthorizationConfig.class })
+public class GammaAuthzSpringConfiguration {}

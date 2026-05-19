@@ -122,11 +122,6 @@
             <artifactId>gravitee-gamma-rest-api</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>io.gravitee.gamma</groupId>
-            <artifactId>gravitee-gamma-authz-rest</artifactId>
-            <version>${project.version}</version>
-        </dependency>
 
         <dependency>
             <groupId>io.gravitee.apim.rest.api</groupId>

@@ -42,6 +42,11 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.gravitee.gamma</groupId>
+            <artifactId>gravitee-gamma-authz-rest</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>io.gravitee.gamma.plugin.module</groupId>
             <artifactId>gravitee-gamma-plugin-module-handler</artifactId>
             <version>${project.version}</version>

@@ -15,7 +15,7 @@
  */
 package io.gravitee.gamma.authz.rest.exception;
 
-import io.gravitee.apim.authorization.service.exception.InvalidEntityIdException;
+import io.gravitee.gamma.authorization.service.exception.InvalidEntityIdException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;

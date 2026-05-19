@@ -18,7 +18,6 @@ package io.gravitee.rest.api.standalone.jetty;
 import io.gravitee.apim.rest.api.automation.GraviteeAutomationApplication;
 import io.gravitee.apim.rest.api.automation.security.SecurityAutomationConfiguration;
 import io.gravitee.common.component.AbstractLifecycleComponent;
-import io.gravitee.gamma.authz.rest.GammaAuthzApplication;
 import io.gravitee.gamma.rest.GammaModuleApplication;
 import io.gravitee.rest.api.management.rest.resource.GraviteeManagementApplication;
 import io.gravitee.rest.api.management.security.SecurityManagementConfiguration;
@@ -144,7 +143,6 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
         if (gammaEnabled && startGamma) {
             // Configuration for Gamma modules. For now, inherit security from Management API V2, but it could be different in the future if needed.
             contexts.add(configureAPI("/gamma", GammaModuleApplication.class.getName(), SecurityManagementV2Configuration.class));
-            contexts.add(configureAPI("/gamma/authz", GammaAuthzApplication.class.getName(), SecurityManagementV2Configuration.class));
         }
 
         if (contexts.isEmpty()) {

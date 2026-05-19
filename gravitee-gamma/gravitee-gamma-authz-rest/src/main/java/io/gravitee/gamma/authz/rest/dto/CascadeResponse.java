@@ -15,7 +15,7 @@
  */
 package io.gravitee.gamma.authz.rest.dto;
 
-import io.gravitee.apim.authorization.service.CascadeResult;
+import io.gravitee.gamma.authorization.service.CascadeResult;
 import java.util.List;
 
 public record CascadeResponse(List<String> deletedEntityIds, List<String> deletedPolicyIds, int totalAffected) {

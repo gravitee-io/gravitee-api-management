@@ -35,15 +35,19 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.gravitee.apim.authorization</groupId>
-            <artifactId>gravitee-apim-authorization-api</artifactId>
+            <groupId>io.gravitee.gamma.authorization</groupId>
+            <artifactId>gravitee-gamma-authorization-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.gravitee.apim.authorization</groupId>
-            <artifactId>gravitee-apim-authorization-core</artifactId>
+            <groupId>io.gravitee.gamma.authorization</groupId>
+            <artifactId>gravitee-gamma-authorization-core</artifactId>
             <version>${project.version}</version>
-            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.gamma.repository</groupId>
+            <artifactId>gravitee-gamma-repository-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>

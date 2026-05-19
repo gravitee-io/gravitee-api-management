@@ -15,8 +15,8 @@
  */
 package io.gravitee.gamma.authz.rest.dto;
 
-import io.gravitee.apim.authorization.domain.Entity;
-import io.gravitee.apim.authorization.domain.EntityKind;
+import io.gravitee.gamma.authorization.domain.Entity;
+import io.gravitee.gamma.authorization.domain.EntityKind;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;

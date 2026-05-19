@@ -15,7 +15,7 @@
  */
 package io.gravitee.gamma.authz.rest.resource;
 
-import io.gravitee.apim.authorization.api.SchemaAdminApi;
+import io.gravitee.gamma.authorization.api.SchemaAdminApi;
 import io.gravitee.gamma.authz.rest.dto.SchemaResponse;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;

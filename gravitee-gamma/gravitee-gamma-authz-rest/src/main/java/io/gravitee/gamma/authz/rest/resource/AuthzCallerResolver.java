@@ -15,7 +15,7 @@
  */
 package io.gravitee.gamma.authz.rest.resource;
 
-import io.gravitee.apim.authorization.api.AuthzCallerContext;
+import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;

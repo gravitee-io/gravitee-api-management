@@ -15,21 +15,21 @@
  */
 package io.gravitee.gamma.authz.rest.resource;
 
-import io.gravitee.apim.authorization.api.AuthzCallerContext;
-import io.gravitee.apim.authorization.api.PolicyAdminApi;
-import io.gravitee.apim.authorization.domain.Policy;
-import io.gravitee.apim.authorization.domain.PolicyKind;
-import io.gravitee.apim.authorization.domain.PolicyStatus;
-import io.gravitee.apim.authorization.service.CreatePolicyCommand;
-import io.gravitee.apim.authorization.service.Pageable;
-import io.gravitee.apim.authorization.service.PagedResult;
-import io.gravitee.apim.authorization.service.PolicyFilter;
-import io.gravitee.apim.authorization.service.UpdatePolicyCommand;
-import io.gravitee.apim.authorization.service.exception.PolicyNotFoundException;
+import io.gravitee.gamma.authorization.api.AuthzCallerContext;
+import io.gravitee.gamma.authorization.api.PolicyAdminApi;
+import io.gravitee.gamma.authorization.domain.Policy;
+import io.gravitee.gamma.authorization.domain.PolicyKind;
+import io.gravitee.gamma.authorization.domain.PolicyStatus;
+import io.gravitee.gamma.authorization.service.CreatePolicyCommand;
+import io.gravitee.gamma.authorization.service.PolicyFilter;
+import io.gravitee.gamma.authorization.service.UpdatePolicyCommand;
+import io.gravitee.gamma.authorization.service.exception.PolicyNotFoundException;
 import io.gravitee.gamma.authz.rest.dto.PagedResponseDto;
 import io.gravitee.gamma.authz.rest.dto.PolicyRequest;
 import io.gravitee.gamma.authz.rest.dto.PolicyResponse;
 import io.gravitee.gamma.authz.rest.dto.UpdatePolicyRequest;
+import io.gravitee.gamma.repository.paging.Pageable;
+import io.gravitee.gamma.repository.paging.PagedResult;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;

@@ -20,19 +20,23 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.authorization.api.AuthzCallerContext;
-import io.gravitee.apim.authorization.domain.Policy;
-import io.gravitee.apim.authorization.domain.PolicyKind;
-import io.gravitee.apim.authorization.domain.PolicyStatus;
-import io.gravitee.apim.authorization.service.CreatePolicyCommand;
-import io.gravitee.apim.authorization.service.UpdatePolicyCommand;
-import io.gravitee.apim.authorization.service.exception.EntityIdValidationCode;
-import io.gravitee.apim.authorization.service.exception.InvalidEntityIdException;
-import io.gravitee.apim.authorization.service.exception.InvalidStatusTransitionException;
-import io.gravitee.apim.authorization.service.exception.PolicyNotFoundException;
+import io.gravitee.gamma.authorization.api.AuthzCallerContext;
+import io.gravitee.gamma.authorization.domain.Policy;
+import io.gravitee.gamma.authorization.domain.PolicyKind;
+import io.gravitee.gamma.authorization.domain.PolicyStatus;
+import io.gravitee.gamma.authorization.service.CreatePolicyCommand;
+import io.gravitee.gamma.authorization.service.PolicyFilter;
+import io.gravitee.gamma.authorization.service.UpdatePolicyCommand;
+import io.gravitee.gamma.authorization.service.exception.EntityIdValidationCode;
+import io.gravitee.gamma.authorization.service.exception.InvalidEntityIdException;
+import io.gravitee.gamma.authorization.service.exception.InvalidStatusTransitionException;
+import io.gravitee.gamma.authorization.service.exception.PolicyNotFoundException;
+import io.gravitee.gamma.authz.rest.dto.PagedResponseDto;
 import io.gravitee.gamma.authz.rest.dto.PolicyRequest;
 import io.gravitee.gamma.authz.rest.dto.PolicyResponse;
 import io.gravitee.gamma.authz.rest.dto.UpdatePolicyRequest;
+import io.gravitee.gamma.repository.paging.Pageable;
+import io.gravitee.gamma.repository.paging.PagedResult;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.MediaType;
@@ -120,41 +124,44 @@ class PoliciesResourceTest extends AbstractAuthorizationResourceTest {
 
     @Test
     void get_list_returns_all_policies_when_no_filter() {
-        when(policyService.findAll(ENV)).thenReturn(
-            List.of(
-                policy("a", "g1", PolicyKind.GLOBAL, null, "", PolicyStatus.DRAFT),
-                policy("b", "r1", PolicyKind.RESOURCE, "api-1", "", PolicyStatus.DRAFT)
-            )
+        List<Policy> page = List.of(
+            policy("a", "g1", PolicyKind.GLOBAL, null, "", PolicyStatus.DRAFT),
+            policy("b", "r1", PolicyKind.RESOURCE, "api-1", "", PolicyStatus.DRAFT)
+        );
+        when(policyService.findPage(eq(ENV), eq(new PolicyFilter(null, null, null)), any(Pageable.class))).thenReturn(
+            new PagedResult<>(page, page.size(), 1, Pageable.DEFAULT_PER_PAGE)
         );
 
         try (Response response = target("/environments/" + ENV + "/policies").request().get()) {
             assertThat(response.getStatus()).isEqualTo(200);
-            List<PolicyResponse> body = response.readEntity(new GenericType<>() {});
-            assertThat(body).hasSize(2);
+            PagedResponseDto<PolicyResponse> body = response.readEntity(new GenericType<>() {});
+            assertThat(body.data()).hasSize(2);
         }
     }
 
     @Test
     void get_list_filters_by_kind() {
-        when(policyService.findByKind(ENV, PolicyKind.GLOBAL)).thenReturn(
-            List.of(policy("a", "g1", PolicyKind.GLOBAL, null, "", PolicyStatus.DRAFT))
+        List<Policy> page = List.of(policy("a", "g1", PolicyKind.GLOBAL, null, "", PolicyStatus.DRAFT));
+        when(policyService.findPage(eq(ENV), eq(new PolicyFilter(PolicyKind.GLOBAL, null, null)), any(Pageable.class))).thenReturn(
+            new PagedResult<>(page, page.size(), 1, Pageable.DEFAULT_PER_PAGE)
         );
 
         try (Response response = target("/environments/" + ENV + "/policies").queryParam("kind", "GLOBAL").request().get()) {
-            List<PolicyResponse> body = response.readEntity(new GenericType<>() {});
-            assertThat(body).hasSize(1).first().extracting(PolicyResponse::kind).isEqualTo(PolicyKind.GLOBAL);
+            PagedResponseDto<PolicyResponse> body = response.readEntity(new GenericType<>() {});
+            assertThat(body.data()).hasSize(1).first().extracting(PolicyResponse::kind).isEqualTo(PolicyKind.GLOBAL);
         }
     }
 
     @Test
     void get_list_filters_by_entity_id() {
-        when(policyService.findByEntityId(ENV, "api-1")).thenReturn(
-            List.of(policy("a", "r1", PolicyKind.RESOURCE, "api-1", "", PolicyStatus.DRAFT))
+        List<Policy> page = List.of(policy("a", "r1", PolicyKind.RESOURCE, "api-1", "", PolicyStatus.DRAFT));
+        when(policyService.findPage(eq(ENV), eq(new PolicyFilter(null, "api-1", null)), any(Pageable.class))).thenReturn(
+            new PagedResult<>(page, page.size(), 1, Pageable.DEFAULT_PER_PAGE)
         );
 
         try (Response response = target("/environments/" + ENV + "/policies").queryParam("entityId", "api-1").request().get()) {
-            List<PolicyResponse> body = response.readEntity(new GenericType<>() {});
-            assertThat(body).hasSize(1).first().extracting(PolicyResponse::entityId).isEqualTo("api-1");
+            PagedResponseDto<PolicyResponse> body = response.readEntity(new GenericType<>() {});
+            assertThat(body.data()).hasSize(1).first().extracting(PolicyResponse::entityId).isEqualTo("api-1");
         }
     }
 

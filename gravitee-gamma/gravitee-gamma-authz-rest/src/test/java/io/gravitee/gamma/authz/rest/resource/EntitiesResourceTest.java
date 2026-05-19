@@ -20,19 +20,22 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.authorization.api.AuthzCallerContext;
-import io.gravitee.apim.authorization.domain.Entity;
-import io.gravitee.apim.authorization.domain.EntityKind;
-import io.gravitee.apim.authorization.service.CascadeResult;
-import io.gravitee.apim.authorization.service.CreateOrReplaceEntityCommand;
-import io.gravitee.apim.authorization.service.EntityFilter;
-import io.gravitee.apim.authorization.service.UpdateEntityCommand;
-import io.gravitee.apim.authorization.service.UpsertResult;
-import io.gravitee.apim.authorization.service.exception.EntityNotFoundException;
+import io.gravitee.gamma.authorization.api.AuthzCallerContext;
+import io.gravitee.gamma.authorization.domain.Entity;
+import io.gravitee.gamma.authorization.domain.EntityKind;
+import io.gravitee.gamma.authorization.service.CascadeResult;
+import io.gravitee.gamma.authorization.service.CreateOrReplaceEntityCommand;
+import io.gravitee.gamma.authorization.service.EntityFilter;
+import io.gravitee.gamma.authorization.service.UpdateEntityCommand;
+import io.gravitee.gamma.authorization.service.UpsertResult;
+import io.gravitee.gamma.authorization.service.exception.EntityNotFoundException;
 import io.gravitee.gamma.authz.rest.dto.CascadeResponse;
 import io.gravitee.gamma.authz.rest.dto.EntityRequest;
 import io.gravitee.gamma.authz.rest.dto.EntityResponse;
+import io.gravitee.gamma.authz.rest.dto.PagedResponseDto;
 import io.gravitee.gamma.authz.rest.dto.UpdateEntityRequest;
+import io.gravitee.gamma.repository.paging.Pageable;
+import io.gravitee.gamma.repository.paging.PagedResult;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
@@ -111,40 +114,43 @@ class EntitiesResourceTest extends AbstractAuthorizationResourceTest {
 
     @Test
     void get_list_filters_by_kind() {
-        when(entityService.find(eq(ENV), eq(new EntityFilter(EntityKind.PRINCIPAL, null, null)))).thenReturn(
-            List.of(entity("idp.am.alice", EntityKind.PRINCIPAL, Map.of(), List.of(), "gravitee_am_default"))
+        List<Entity> page = List.of(entity("idp.am.alice", EntityKind.PRINCIPAL, Map.of(), List.of(), "gravitee_am_default"));
+        when(entityService.findPage(eq(ENV), eq(new EntityFilter(EntityKind.PRINCIPAL, null, null)), any(Pageable.class))).thenReturn(
+            new PagedResult<>(page, page.size(), 1, Pageable.DEFAULT_PER_PAGE)
         );
 
         try (Response response = target("/environments/" + ENV + "/entities").queryParam("kind", "PRINCIPAL").request().get()) {
-            List<EntityResponse> body = response.readEntity(new GenericType<>() {});
-            assertThat(body).extracting(EntityResponse::entityId).containsExactly("idp.am.alice");
+            PagedResponseDto<EntityResponse> body = response.readEntity(new GenericType<>() {});
+            assertThat(body.data()).extracting(EntityResponse::entityId).containsExactly("idp.am.alice");
         }
     }
 
     @Test
     void get_list_filters_by_source() {
-        when(entityService.find(eq(ENV), eq(new EntityFilter(null, "apim", null)))).thenReturn(
-            List.of(entity("api.123", EntityKind.RESOURCE, Map.of(), List.of(), "apim"))
+        List<Entity> page = List.of(entity("api.123", EntityKind.RESOURCE, Map.of(), List.of(), "apim"));
+        when(entityService.findPage(eq(ENV), eq(new EntityFilter(null, "apim", null)), any(Pageable.class))).thenReturn(
+            new PagedResult<>(page, page.size(), 1, Pageable.DEFAULT_PER_PAGE)
         );
 
         try (Response response = target("/environments/" + ENV + "/entities").queryParam("source", "apim").request().get()) {
-            List<EntityResponse> body = response.readEntity(new GenericType<>() {});
-            assertThat(body).extracting(EntityResponse::entityId).containsExactly("api.123");
+            PagedResponseDto<EntityResponse> body = response.readEntity(new GenericType<>() {});
+            assertThat(body.data()).extracting(EntityResponse::entityId).containsExactly("api.123");
         }
     }
 
     @Test
     void get_list_filters_by_entityIdPrefix() {
-        when(entityService.find(eq(ENV), eq(new EntityFilter(null, null, "api.123")))).thenReturn(
-            List.of(
-                entity("api.123", EntityKind.RESOURCE, Map.of(), List.of(), "apim"),
-                entity("api.123.tool-a", EntityKind.RESOURCE, Map.of(), List.of(), "apim")
-            )
+        List<Entity> page = List.of(
+            entity("api.123", EntityKind.RESOURCE, Map.of(), List.of(), "apim"),
+            entity("api.123.tool-a", EntityKind.RESOURCE, Map.of(), List.of(), "apim")
+        );
+        when(entityService.findPage(eq(ENV), eq(new EntityFilter(null, null, "api.123")), any(Pageable.class))).thenReturn(
+            new PagedResult<>(page, page.size(), 1, Pageable.DEFAULT_PER_PAGE)
         );
 
         try (Response response = target("/environments/" + ENV + "/entities").queryParam("entityIdPrefix", "api.123").request().get()) {
-            List<EntityResponse> body = response.readEntity(new GenericType<>() {});
-            assertThat(body).extracting(EntityResponse::entityId).containsExactlyInAnyOrder("api.123", "api.123.tool-a");
+            PagedResponseDto<EntityResponse> body = response.readEntity(new GenericType<>() {});
+            assertThat(body.data()).extracting(EntityResponse::entityId).containsExactlyInAnyOrder("api.123", "api.123.tool-a");
         }
     }
 

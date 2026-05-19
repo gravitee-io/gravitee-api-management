@@ -15,7 +15,7 @@
  */
 package io.gravitee.gamma.authz.rest.dto;
 
-import io.gravitee.apim.authorization.service.PagedResult;
+import io.gravitee.gamma.repository.paging.PagedResult;
 import java.util.List;
 import java.util.function.Function;
 

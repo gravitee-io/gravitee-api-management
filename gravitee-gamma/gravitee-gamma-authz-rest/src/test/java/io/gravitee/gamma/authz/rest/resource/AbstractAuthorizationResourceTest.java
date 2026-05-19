@@ -18,9 +18,9 @@ package io.gravitee.gamma.authz.rest.resource;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 
-import io.gravitee.apim.authorization.api.EntityAdminApi;
-import io.gravitee.apim.authorization.api.PolicyAdminApi;
-import io.gravitee.apim.authorization.api.SchemaAdminApi;
+import io.gravitee.gamma.authorization.api.EntityAdminApi;
+import io.gravitee.gamma.authorization.api.PolicyAdminApi;
+import io.gravitee.gamma.authorization.api.SchemaAdminApi;
 import io.gravitee.gamma.authz.rest.exception.CascadeTooLargeExceptionMapper;
 import io.gravitee.gamma.authz.rest.exception.EntityNotFoundExceptionMapper;
 import io.gravitee.gamma.authz.rest.exception.ForbiddenAccessExceptionMapper;

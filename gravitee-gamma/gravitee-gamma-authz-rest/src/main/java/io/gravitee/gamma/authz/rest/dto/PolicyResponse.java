@@ -15,9 +15,9 @@
  */
 package io.gravitee.gamma.authz.rest.dto;
 
-import io.gravitee.apim.authorization.domain.Policy;
-import io.gravitee.apim.authorization.domain.PolicyKind;
-import io.gravitee.apim.authorization.domain.PolicyStatus;
+import io.gravitee.gamma.authorization.domain.Policy;
+import io.gravitee.gamma.authorization.domain.PolicyKind;
+import io.gravitee.gamma.authorization.domain.PolicyStatus;
 import java.time.Instant;
 
 public record PolicyResponse(

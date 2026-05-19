@@ -15,22 +15,22 @@
  */
 package io.gravitee.gamma.authz.rest.resource;
 
-import io.gravitee.apim.authorization.api.AuthzCallerContext;
-import io.gravitee.apim.authorization.api.EntityAdminApi;
-import io.gravitee.apim.authorization.domain.Entity;
-import io.gravitee.apim.authorization.domain.EntityKind;
-import io.gravitee.apim.authorization.service.CreateOrReplaceEntityCommand;
-import io.gravitee.apim.authorization.service.EntityFilter;
-import io.gravitee.apim.authorization.service.Pageable;
-import io.gravitee.apim.authorization.service.PagedResult;
-import io.gravitee.apim.authorization.service.UpdateEntityCommand;
-import io.gravitee.apim.authorization.service.UpsertResult;
-import io.gravitee.apim.authorization.service.exception.EntityNotFoundException;
+import io.gravitee.gamma.authorization.api.AuthzCallerContext;
+import io.gravitee.gamma.authorization.api.EntityAdminApi;
+import io.gravitee.gamma.authorization.domain.Entity;
+import io.gravitee.gamma.authorization.domain.EntityKind;
+import io.gravitee.gamma.authorization.service.CreateOrReplaceEntityCommand;
+import io.gravitee.gamma.authorization.service.EntityFilter;
+import io.gravitee.gamma.authorization.service.UpdateEntityCommand;
+import io.gravitee.gamma.authorization.service.UpsertResult;
+import io.gravitee.gamma.authorization.service.exception.EntityNotFoundException;
 import io.gravitee.gamma.authz.rest.dto.CascadeResponse;
 import io.gravitee.gamma.authz.rest.dto.EntityRequest;
 import io.gravitee.gamma.authz.rest.dto.EntityResponse;
 import io.gravitee.gamma.authz.rest.dto.PagedResponseDto;
 import io.gravitee.gamma.authz.rest.dto.UpdateEntityRequest;
+import io.gravitee.gamma.repository.paging.Pageable;
+import io.gravitee.gamma.repository.paging.PagedResult;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;

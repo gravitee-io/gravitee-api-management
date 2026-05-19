@@ -16,6 +16,15 @@
 package io.gravitee.gamma.rest;
 
 import com.fasterxml.jackson.core.util.JacksonFeature;
+import io.gravitee.gamma.authz.rest.exception.CascadeTooLargeExceptionMapper;
+import io.gravitee.gamma.authz.rest.exception.EntityNotFoundExceptionMapper;
+import io.gravitee.gamma.authz.rest.exception.ForbiddenAccessExceptionMapper;
+import io.gravitee.gamma.authz.rest.exception.IllegalArgumentExceptionMapper;
+import io.gravitee.gamma.authz.rest.exception.InvalidEntityIdExceptionMapper;
+import io.gravitee.gamma.authz.rest.exception.InvalidStatusTransitionExceptionMapper;
+import io.gravitee.gamma.authz.rest.exception.PolicyNotFoundExceptionMapper;
+import io.gravitee.gamma.authz.rest.exception.UnauthorizedAccessExceptionMapper;
+import io.gravitee.gamma.authz.rest.resource.AuthzRootResource;
 import io.gravitee.gamma.rest.resources.GammaRootResource;
 import io.gravitee.gamma.rest.resources.GammaUIResource;
 import io.gravitee.rest.api.management.rest.mapper.ObjectMapperResolver;
@@ -52,6 +61,16 @@ public class GammaModuleApplication extends ResourceConfig {
     public GammaModuleApplication() {
         register(GammaRootResource.class);
         register(GammaUIResource.class);
+        register(AuthzRootResource.class);
+
+        register(PolicyNotFoundExceptionMapper.class);
+        register(EntityNotFoundExceptionMapper.class);
+        register(CascadeTooLargeExceptionMapper.class);
+        register(InvalidStatusTransitionExceptionMapper.class);
+        register(InvalidEntityIdExceptionMapper.class);
+        register(IllegalArgumentExceptionMapper.class);
+        register(UnauthorizedAccessExceptionMapper.class);
+        register(ForbiddenAccessExceptionMapper.class);
 
         register(MultiPartFeature.class);
         register(PayloadInputBodyReader.class);
