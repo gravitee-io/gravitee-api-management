@@ -52,8 +52,8 @@ public interface AuthorizationEntityRepository extends CrudRepository<Authorizat
             : findAllByEnvironmentId(environmentId);
         List<AuthorizationEntity> matching = base
             .stream()
-            .filter(e -> kind == null || e.kind() == kind)
-            .filter(e -> source == null || source.equals(e.source()))
+            .filter(e -> kind == null || e.getKind() == kind)
+            .filter(e -> source == null || source.equals(e.getSource()))
             .toList();
         return PagedResult.of(matching, pageable);
     }

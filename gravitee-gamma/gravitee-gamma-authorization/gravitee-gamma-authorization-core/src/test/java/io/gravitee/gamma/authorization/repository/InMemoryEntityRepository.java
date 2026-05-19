@@ -15,114 +15,85 @@
  */
 package io.gravitee.gamma.authorization.repository;
 
-import io.gravitee.gamma.repository.authorization.api.AuthorizationEntityRepository;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationEntity;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationEntityKind;
+import io.gravitee.gamma.authorization.api.EntityRepository;
+import io.gravitee.gamma.authorization.domain.Entity;
+import io.gravitee.gamma.authorization.domain.EntityKind;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import org.springframework.dao.DuplicateKeyException;
 
-public final class InMemoryEntityRepository implements AuthorizationEntityRepository {
+public final class InMemoryEntityRepository implements EntityRepository {
 
-    private final ConcurrentMap<String, AuthorizationEntity> store = new ConcurrentHashMap<>();
-
-    @Override
-    public Optional<AuthorizationEntity> findById(String id) {
-        return Optional.ofNullable(store.get(id));
-    }
+    private final ConcurrentMap<Key, Entity> store = new ConcurrentHashMap<>();
 
     @Override
-    public AuthorizationEntity create(AuthorizationEntity entity) {
+    public Entity save(Entity entity) {
         Objects.requireNonNull(entity, "entity must not be null");
-        Optional<AuthorizationEntity> conflict = findByEnvironmentIdAndEntityId(entity.environmentId(), entity.entityId());
+        Optional<Entity> conflict = findByEntityId(entity.environmentId(), entity.entityId());
         if (conflict.isPresent() && !conflict.get().id().equals(entity.id())) {
             throw new DuplicateKeyException(
                 "entityId '" + entity.entityId() + "' is already used in environment '" + entity.environmentId() + "'"
             );
         }
-        store.put(entity.id(), entity);
+        store.put(new Key(entity.environmentId(), entity.id()), entity);
         return entity;
     }
 
     @Override
-    public AuthorizationEntity update(AuthorizationEntity entity) {
-        Objects.requireNonNull(entity, "entity must not be null");
-        store.put(entity.id(), entity);
-        return entity;
+    public Optional<Entity> findById(String environmentId, String id) {
+        return Optional.ofNullable(store.get(new Key(environmentId, id)));
     }
 
     @Override
-    public void delete(String id) {
-        store.remove(id);
-    }
-
-    @Override
-    public Set<AuthorizationEntity> findAll() {
-        return Set.copyOf(store.values());
-    }
-
-    @Override
-    public Optional<AuthorizationEntity> findByEnvironmentIdAndId(String environmentId, String id) {
-        return findById(id).filter(e -> environmentId.equals(e.environmentId()));
-    }
-
-    @Override
-    public Optional<AuthorizationEntity> findByEnvironmentIdAndEntityId(String environmentId, String entityId) {
+    public Optional<Entity> findByEntityId(String environmentId, String entityId) {
         Objects.requireNonNull(entityId, "entityId");
-        return findAllByEnvironmentId(environmentId)
+        return findAll(environmentId)
             .stream()
             .filter(e -> entityId.equals(e.entityId()))
             .findFirst();
     }
 
     @Override
-    public List<AuthorizationEntity> findAllByEnvironmentId(String environmentId) {
+    public List<Entity> findAll(String environmentId) {
         return store
-            .values()
+            .entrySet()
             .stream()
-            .filter(e -> Objects.equals(environmentId, e.environmentId()))
+            .filter(entry -> entry.getKey().environmentId().equals(environmentId))
+            .map(java.util.Map.Entry::getValue)
             .toList();
     }
 
     @Override
-    public List<AuthorizationEntity> findAllByEnvironmentIdAndKind(String environmentId, AuthorizationEntityKind kind) {
+    public List<Entity> findByKind(String environmentId, EntityKind kind) {
         Objects.requireNonNull(kind, "kind");
-        return findAllByEnvironmentId(environmentId)
+        return findAll(environmentId)
             .stream()
             .filter(e -> e.kind() == kind)
             .toList();
     }
 
     @Override
-    public List<AuthorizationEntity> findAllByEnvironmentIdAndEntityIdStartingWith(String environmentId, String entityIdPrefix) {
-        Objects.requireNonNull(entityIdPrefix, "entityIdPrefix");
-        return findAllByEnvironmentId(environmentId)
+    public List<Entity> findByEntityIdPrefix(String environmentId, String prefix) {
+        Objects.requireNonNull(prefix, "prefix");
+        return findAll(environmentId)
             .stream()
-            .filter(e -> e.entityId().startsWith(entityIdPrefix))
+            .filter(e -> e.entityId().startsWith(prefix))
             .toList();
     }
 
     @Override
-    public long deleteByEnvironmentIdAndId(String environmentId, String id) {
-        AuthorizationEntity existing = store.get(id);
-        if (existing == null || !Objects.equals(environmentId, existing.environmentId())) {
-            return 0L;
-        }
-        store.remove(id);
-        return 1L;
+    public boolean deleteById(String environmentId, String id) {
+        return store.remove(new Key(environmentId, id)) != null;
     }
 
     @Override
-    public long deleteByEnvironmentIdAndEntityId(String environmentId, String entityId) {
-        Optional<AuthorizationEntity> existing = findByEnvironmentIdAndEntityId(environmentId, entityId);
-        if (existing.isEmpty()) {
-            return 0L;
-        }
-        store.remove(existing.get().id());
-        return 1L;
+    public boolean deleteByEntityId(String environmentId, String entityId) {
+        Optional<Entity> existing = findByEntityId(environmentId, entityId);
+        return existing.isPresent() && deleteById(environmentId, existing.get().id());
     }
+
+    private record Key(String environmentId, String id) {}
 }

@@ -15,12 +15,12 @@
  */
 package io.gravitee.gamma.authorization.api;
 
+import io.gravitee.gamma.authorization.domain.Entity;
 import io.gravitee.gamma.authorization.service.CascadeResult;
 import io.gravitee.gamma.authorization.service.CreateOrReplaceEntityCommand;
 import io.gravitee.gamma.authorization.service.EntityFilter;
 import io.gravitee.gamma.authorization.service.UpdateEntityCommand;
 import io.gravitee.gamma.authorization.service.UpsertResult;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationEntity;
 import io.gravitee.gamma.repository.paging.Pageable;
 import io.gravitee.gamma.repository.paging.PagedResult;
 import java.util.List;
@@ -30,23 +30,23 @@ import java.util.Set;
 public interface EntityAdminApi {
     UpsertResult upsert(AuthzCallerContext caller, CreateOrReplaceEntityCommand command);
 
-    AuthorizationEntity update(AuthzCallerContext caller, String entityId, UpdateEntityCommand command);
+    Entity update(AuthzCallerContext caller, String entityId, UpdateEntityCommand command);
 
-    Optional<AuthorizationEntity> findByEntityId(String environmentId, String entityId);
+    Optional<Entity> findByEntityId(String environmentId, String entityId);
 
     /**
      * Unpaged lookup. Kept for callers that genuinely need every row in
      * one pass — SCIM reconcile is the main one, where the alternative is
      * treating page-2+ entities as orphans on the next sync.
      */
-    List<AuthorizationEntity> find(String environmentId, EntityFilter filter);
+    List<Entity> find(String environmentId, EntityFilter filter);
 
     /**
      * Paginated lookup of entities matching {@code filter}. Use this for
      * any UI-driven listing; the unpaged {@link #find(String, EntityFilter)}
      * is for whole-env scans.
      */
-    PagedResult<AuthorizationEntity> findPage(String environmentId, EntityFilter filter, Pageable pageable);
+    PagedResult<Entity> findPage(String environmentId, EntityFilter filter, Pageable pageable);
 
     Set<String> findApiAliases(String environmentId, String apiId);
 

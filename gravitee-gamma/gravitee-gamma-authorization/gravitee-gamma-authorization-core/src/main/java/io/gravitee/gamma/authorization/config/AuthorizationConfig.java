@@ -21,7 +21,9 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.gamma.authorization.api.AuthzAuditPort;
 import io.gravitee.gamma.authorization.api.AuthzEventPublisher;
 import io.gravitee.gamma.authorization.api.EntityAdminApi;
+import io.gravitee.gamma.authorization.api.EntityRepository;
 import io.gravitee.gamma.authorization.api.PolicyAdminApi;
+import io.gravitee.gamma.authorization.api.PolicyRepository;
 import io.gravitee.gamma.authorization.api.SchemaAdminApi;
 import io.gravitee.gamma.authorization.audit.ApimAuthzAuditAdapter;
 import io.gravitee.gamma.authorization.event.EventRepositoryAuthzEventPublisher;
@@ -31,17 +33,17 @@ import io.gravitee.gamma.authorization.service.EntityIdValidator;
 import io.gravitee.gamma.authorization.service.EntityServiceImpl;
 import io.gravitee.gamma.authorization.service.PolicyServiceImpl;
 import io.gravitee.gamma.authorization.service.SchemaServiceImpl;
-import io.gravitee.gamma.repository.authorization.api.AuthorizationEntityRepository;
-import io.gravitee.gamma.repository.authorization.api.AuthorizationPolicyRepository;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.EventRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 
 @Configuration
+@ComponentScan(basePackages = "io.gravitee.gamma.authorization.infra")
 @Conditional(GammaEnabledCondition.class)
 public class AuthorizationConfig {
 
@@ -80,7 +82,7 @@ public class AuthorizationConfig {
 
     @Bean
     public PolicyAdminApi policyService(
-        @Lazy AuthorizationPolicyRepository policyRepository,
+        @Lazy PolicyRepository policyRepository,
         EntityIdValidator entityIdValidator,
         SchemaAdminApi schemaService,
         AuthzEventPublisher eventPublisher,
@@ -90,17 +92,14 @@ public class AuthorizationConfig {
     }
 
     @Bean
-    public SchemaAdminApi schemaService(
-        @Lazy AuthorizationEntityRepository entityRepository,
-        @Lazy AuthorizationPolicyRepository policyRepository
-    ) {
+    public SchemaAdminApi schemaService(@Lazy EntityRepository entityRepository, @Lazy PolicyRepository policyRepository) {
         return new SchemaServiceImpl(entityRepository, policyRepository);
     }
 
     @Bean
     public EntityAdminApi entityService(
-        @Lazy AuthorizationEntityRepository entityRepository,
-        @Lazy AuthorizationPolicyRepository policyRepository,
+        @Lazy EntityRepository entityRepository,
+        @Lazy PolicyRepository policyRepository,
         EntityIdValidator entityIdValidator,
         SchemaAdminApi schemaService,
         AuthzEventPublisher eventPublisher,

@@ -13,26 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.authorization.service;
+package io.gravitee.gamma.authorization.domain;
 
 import io.gravitee.gamma.authorization.api.Validators;
-import io.gravitee.gamma.authorization.domain.EntityKind;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
-public record CreateOrReplaceEntityCommand(
-    @NotBlank String environmentId,
+public record Entity(
+    @NotNull String id,
     @NotBlank String entityId,
     @NotNull EntityKind kind,
-    Map<String, Object> attributes,
-    List<String> parents,
-    @NotBlank String source
+    @NotNull Map<String, Object> attributes,
+    @NotNull List<String> parents,
+    @NotBlank String source,
+    @NotBlank String environmentId,
+    @NotNull Instant createdAt,
+    @NotNull Instant updatedAt
 ) {
-    public CreateOrReplaceEntityCommand {
-        Validators.validateCtor(CreateOrReplaceEntityCommand.class, environmentId, entityId, kind, attributes, parents, source);
+    public Entity {
+        Validators.validateCtor(Entity.class, id, entityId, kind, attributes, parents, source, environmentId, createdAt, updatedAt);
         attributes = Map.copyOf(attributes);
         parents = List.copyOf(parents);
     }

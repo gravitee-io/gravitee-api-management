@@ -20,13 +20,11 @@ import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicyStatu
 import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Setter
 @Getter
-@Accessors(fluent = true)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}authz_policies")
 public class AuthorizationPolicyMongo {
 

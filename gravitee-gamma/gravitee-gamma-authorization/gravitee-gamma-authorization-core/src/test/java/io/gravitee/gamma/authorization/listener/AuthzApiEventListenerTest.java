@@ -28,11 +28,11 @@ import io.gravitee.definition.model.v4.flow.selector.McpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.gamma.authorization.api.AuthzAuditPort;
 import io.gravitee.gamma.authorization.api.AuthzEventPublisher;
+import io.gravitee.gamma.authorization.domain.Entity;
 import io.gravitee.gamma.authorization.repository.InMemoryEntityRepository;
 import io.gravitee.gamma.authorization.repository.InMemoryPolicyRepository;
 import io.gravitee.gamma.authorization.service.EntityIdValidator;
 import io.gravitee.gamma.authorization.service.EntityServiceImpl;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationEntity;
 import io.gravitee.rest.api.service.event.ApiEvent;
 import java.util.List;
 import java.util.Set;
@@ -71,8 +71,8 @@ class AuthzApiEventListenerTest {
 
         listener.handle(ApiEvent.DEPLOY, api);
 
-        assertThat(entityRepository.findByEnvironmentIdAndEntityId(ENV, "api.api-1")).map(AuthorizationEntity::source).contains("apim");
-        assertThat(entityRepository.findAllByEnvironmentId(ENV)).hasSize(1);
+        assertThat(entityRepository.findByEntityId(ENV, "api.api-1")).map(Entity::source).contains("apim");
+        assertThat(entityRepository.findAll(ENV)).hasSize(1);
     }
 
     @Test
@@ -85,8 +85,8 @@ class AuthzApiEventListenerTest {
 
         listener.handle(ApiEvent.DEPLOY, api);
 
-        assertThat(entityRepository.findAllByEnvironmentId(ENV))
-            .extracting(AuthorizationEntity::entityId)
+        assertThat(entityRepository.findAll(ENV))
+            .extracting(Entity::entityId)
             .containsExactlyInAnyOrder("api.bookings", "mcp.bookings.get-booking", "mcp.bookings.list-bookings");
     }
 
@@ -95,12 +95,12 @@ class AuthzApiEventListenerTest {
         Api initial = proxyApi("api-1", "Initial Name");
 
         listener.handle(ApiEvent.DEPLOY, initial);
-        String firstInternalId = entityRepository.findByEnvironmentIdAndEntityId(ENV, "api.api-1").orElseThrow().id();
+        String firstInternalId = entityRepository.findByEntityId(ENV, "api.api-1").orElseThrow().id();
 
         Api renamed = proxyApi("api-1", "Renamed");
         listener.handle(ApiEvent.UPDATE, renamed);
 
-        AuthorizationEntity reloaded = entityRepository.findByEnvironmentIdAndEntityId(ENV, "api.api-1").orElseThrow();
+        Entity reloaded = entityRepository.findByEntityId(ENV, "api.api-1").orElseThrow();
         assertThat(reloaded.id()).isEqualTo(firstInternalId);
         assertThat(reloaded.attributes()).containsEntry("apiName", "Renamed");
     }
@@ -109,11 +109,11 @@ class AuthzApiEventListenerTest {
     void undeploy_event_cascades_delete_for_api_and_its_tool_aliases() {
         Api api = mcpProxyApi("api-1", "bookings", List.of(mcpToolFlow("get-booking", Set.of("tools/call"))));
         listener.handle(ApiEvent.DEPLOY, api);
-        assertThat(entityRepository.findAllByEnvironmentId(ENV)).hasSize(2);
+        assertThat(entityRepository.findAll(ENV)).hasSize(2);
 
         listener.handle(ApiEvent.UNDEPLOY, api);
 
-        assertThat(entityRepository.findAllByEnvironmentId(ENV)).isEmpty();
+        assertThat(entityRepository.findAll(ENV)).isEmpty();
     }
 
     @Test
@@ -122,7 +122,7 @@ class AuthzApiEventListenerTest {
 
         listener.handle(ApiEvent.START_DYNAMIC_PROPERTY_V4, api);
 
-        assertThat(entityRepository.findAllByEnvironmentId(ENV)).isEmpty();
+        assertThat(entityRepository.findAll(ENV)).isEmpty();
     }
 
     @Test
@@ -135,7 +135,7 @@ class AuthzApiEventListenerTest {
         repoApi.setDefinitionVersion(DefinitionVersion.V2);
         eventManager.publishEvent(ApiEvent.DEPLOY, repoApi);
 
-        assertThat(entityRepository.findAllByEnvironmentId(ENV)).isEmpty();
+        assertThat(entityRepository.findAll(ENV)).isEmpty();
     }
 
     @Test
@@ -155,8 +155,8 @@ class AuthzApiEventListenerTest {
         repoApi.setDefinitionVersion(DefinitionVersion.V4);
         eventManager.publishEvent(ApiEvent.DEPLOY, repoApi);
 
-        assertThat(entityRepository.findAllByEnvironmentId(ENV))
-            .extracting(io.gravitee.gamma.repository.authorization.model.AuthorizationEntity::entityId)
+        assertThat(entityRepository.findAll(ENV))
+            .extracting(io.gravitee.gamma.authorization.domain.Entity::entityId)
             .containsExactlyInAnyOrder("api.bookings", "mcp.bookings.get-booking");
     }
 
@@ -172,7 +172,7 @@ class AuthzApiEventListenerTest {
         repoApi.setDefinitionVersion(DefinitionVersion.V4);
         eventManager.publishEvent(ApiEvent.DEPLOY, repoApi);
 
-        assertThat(entityRepository.findAllByEnvironmentId(ENV)).isEmpty();
+        assertThat(entityRepository.findAll(ENV)).isEmpty();
 
         listener.unsubscribe();
     }
@@ -180,87 +180,53 @@ class AuthzApiEventListenerTest {
     @Test
     void deploy_event_with_partial_batch_failure_continues_remaining_entities() {
         InMemoryEntityRepository delegate = entityRepository;
-        io.gravitee.gamma.repository.authorization.api.AuthorizationEntityRepository faultyRepo =
-            new io.gravitee.gamma.repository.authorization.api.AuthorizationEntityRepository() {
-                @Override
-                public io.gravitee.gamma.repository.authorization.model.AuthorizationEntity create(
-                    io.gravitee.gamma.repository.authorization.model.AuthorizationEntity entity
-                ) {
-                    if ("mcp.bookings.get-booking".equals(entity.entityId())) {
-                        throw new RuntimeException("simulated transient repo failure");
-                    }
-                    return delegate.create(entity);
+        io.gravitee.gamma.authorization.api.EntityRepository faultyRepo = new io.gravitee.gamma.authorization.api.EntityRepository() {
+            @Override
+            public io.gravitee.gamma.authorization.domain.Entity save(io.gravitee.gamma.authorization.domain.Entity entity) {
+                if ("mcp.bookings.get-booking".equals(entity.entityId())) {
+                    throw new RuntimeException("simulated transient repo failure");
                 }
+                return delegate.save(entity);
+            }
 
-                @Override
-                public io.gravitee.gamma.repository.authorization.model.AuthorizationEntity update(
-                    io.gravitee.gamma.repository.authorization.model.AuthorizationEntity entity
-                ) {
-                    return delegate.update(entity);
-                }
+            @Override
+            public java.util.Optional<io.gravitee.gamma.authorization.domain.Entity> findById(String environmentId, String id) {
+                return delegate.findById(environmentId, id);
+            }
 
-                @Override
-                public java.util.Optional<io.gravitee.gamma.repository.authorization.model.AuthorizationEntity> findById(String id) {
-                    return delegate.findById(id);
-                }
+            @Override
+            public java.util.Optional<io.gravitee.gamma.authorization.domain.Entity> findByEntityId(String environmentId, String entityId) {
+                return delegate.findByEntityId(environmentId, entityId);
+            }
 
-                @Override
-                public void delete(String id) {
-                    delegate.delete(id);
-                }
+            @Override
+            public java.util.List<io.gravitee.gamma.authorization.domain.Entity> findAll(String environmentId) {
+                return delegate.findAll(environmentId);
+            }
 
-                @Override
-                public java.util.Set<io.gravitee.gamma.repository.authorization.model.AuthorizationEntity> findAll() {
-                    return delegate.findAll();
-                }
+            @Override
+            public java.util.List<io.gravitee.gamma.authorization.domain.Entity> findByKind(
+                String environmentId,
+                io.gravitee.gamma.authorization.domain.EntityKind kind
+            ) {
+                return delegate.findByKind(environmentId, kind);
+            }
 
-                @Override
-                public java.util.Optional<io.gravitee.gamma.repository.authorization.model.AuthorizationEntity> findByEnvironmentIdAndId(
-                    String envId,
-                    String id
-                ) {
-                    return delegate.findByEnvironmentIdAndId(envId, id);
-                }
+            @Override
+            public java.util.List<io.gravitee.gamma.authorization.domain.Entity> findByEntityIdPrefix(String environmentId, String prefix) {
+                return delegate.findByEntityIdPrefix(environmentId, prefix);
+            }
 
-                @Override
-                public java.util.Optional<
-                    io.gravitee.gamma.repository.authorization.model.AuthorizationEntity
-                > findByEnvironmentIdAndEntityId(String envId, String entityId) {
-                    return delegate.findByEnvironmentIdAndEntityId(envId, entityId);
-                }
+            @Override
+            public boolean deleteById(String environmentId, String id) {
+                return delegate.deleteById(environmentId, id);
+            }
 
-                @Override
-                public java.util.List<io.gravitee.gamma.repository.authorization.model.AuthorizationEntity> findAllByEnvironmentId(
-                    String envId
-                ) {
-                    return delegate.findAllByEnvironmentId(envId);
-                }
-
-                @Override
-                public java.util.List<io.gravitee.gamma.repository.authorization.model.AuthorizationEntity> findAllByEnvironmentIdAndKind(
-                    String envId,
-                    io.gravitee.gamma.repository.authorization.model.AuthorizationEntityKind kind
-                ) {
-                    return delegate.findAllByEnvironmentIdAndKind(envId, kind);
-                }
-
-                @Override
-                public java.util.List<
-                    io.gravitee.gamma.repository.authorization.model.AuthorizationEntity
-                > findAllByEnvironmentIdAndEntityIdStartingWith(String envId, String prefix) {
-                    return delegate.findAllByEnvironmentIdAndEntityIdStartingWith(envId, prefix);
-                }
-
-                @Override
-                public long deleteByEnvironmentIdAndId(String envId, String id) {
-                    return delegate.deleteByEnvironmentIdAndId(envId, id);
-                }
-
-                @Override
-                public long deleteByEnvironmentIdAndEntityId(String envId, String entityId) {
-                    return delegate.deleteByEnvironmentIdAndEntityId(envId, entityId);
-                }
-            };
+            @Override
+            public boolean deleteByEntityId(String environmentId, String entityId) {
+                return delegate.deleteByEntityId(environmentId, entityId);
+            }
+        };
         InMemoryPolicyRepository faultyPolicyRepository = new InMemoryPolicyRepository();
         EntityServiceImpl faultyService = new EntityServiceImpl(
             faultyRepo,
@@ -275,8 +241,8 @@ class AuthzApiEventListenerTest {
         Api api = mcpProxyApi("api-1", "bookings", List.of(mcpToolFlow("get-booking", Set.of("tools/call"))));
         faultyListener.handle(ApiEvent.DEPLOY, api);
 
-        assertThat(delegate.findAllByEnvironmentId(ENV))
-            .extracting(io.gravitee.gamma.repository.authorization.model.AuthorizationEntity::entityId)
+        assertThat(delegate.findAll(ENV))
+            .extracting(io.gravitee.gamma.authorization.domain.Entity::entityId)
             .containsExactly("api.bookings");
     }
 
@@ -288,13 +254,13 @@ class AuthzApiEventListenerTest {
             List.of(mcpToolFlow("get-booking", Set.of("tools/call")), mcpToolFlow("list-bookings", Set.of("tools/call")))
         );
         listener.handle(ApiEvent.DEPLOY, initial);
-        assertThat(entityRepository.findAllByEnvironmentId(ENV)).hasSize(3);
+        assertThat(entityRepository.findAll(ENV)).hasSize(3);
 
         Api redeployed = mcpProxyApi("api-1", "bookings", List.of(mcpToolFlow("get-booking", Set.of("tools/call"))));
         listener.handle(ApiEvent.UPDATE, redeployed);
 
-        assertThat(entityRepository.findAllByEnvironmentId(ENV))
-            .extracting(io.gravitee.gamma.repository.authorization.model.AuthorizationEntity::entityId)
+        assertThat(entityRepository.findAll(ENV))
+            .extracting(io.gravitee.gamma.authorization.domain.Entity::entityId)
             .containsExactlyInAnyOrder("api.bookings", "mcp.bookings.get-booking");
     }
 
@@ -312,8 +278,8 @@ class AuthzApiEventListenerTest {
 
         listener.handle(ApiEvent.DEPLOY, apiWithoutEnv);
 
-        assertThat(entityRepository.findAllByEnvironmentId(ENV)).isEmpty();
-        assertThat(entityRepository.findAllByEnvironmentId("")).isEmpty();
+        assertThat(entityRepository.findAll(ENV)).isEmpty();
+        assertThat(entityRepository.findAll("")).isEmpty();
     }
 
     private static Api proxyApi(String id, String name) {

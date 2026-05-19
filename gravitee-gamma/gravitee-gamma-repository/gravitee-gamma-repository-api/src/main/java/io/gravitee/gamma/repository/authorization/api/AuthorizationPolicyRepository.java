@@ -53,8 +53,8 @@ public interface AuthorizationPolicyRepository extends CrudRepository<Authorizat
         }
         List<AuthorizationPolicy> matching = base
             .stream()
-            .filter(p -> kind == null || p.kind() == kind)
-            .filter(p -> status == null || p.status() == status)
+            .filter(p -> kind == null || p.getKind() == kind)
+            .filter(p -> status == null || p.getStatus() == status)
             .toList();
         return PagedResult.of(matching, pageable);
     }

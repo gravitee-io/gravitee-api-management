@@ -15,11 +15,11 @@
  */
 package io.gravitee.gamma.authorization.service;
 
+import io.gravitee.gamma.authorization.api.EntityRepository;
+import io.gravitee.gamma.authorization.api.PolicyRepository;
 import io.gravitee.gamma.authorization.api.SchemaAdminApi;
-import io.gravitee.gamma.repository.authorization.api.AuthorizationEntityRepository;
-import io.gravitee.gamma.repository.authorization.api.AuthorizationPolicyRepository;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationEntity;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicy;
+import io.gravitee.gamma.authorization.domain.Entity;
+import io.gravitee.gamma.authorization.domain.Policy;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -35,11 +35,11 @@ public class SchemaServiceImpl implements SchemaAdminApi {
 
     private static final String EMPTY_SCHEMA = "// No entities or policies defined yet.\n";
 
-    private final AuthorizationEntityRepository entityRepository;
-    private final AuthorizationPolicyRepository policyRepository;
+    private final EntityRepository entityRepository;
+    private final PolicyRepository policyRepository;
     private final ConcurrentMap<String, String> cacheByEnv = new ConcurrentHashMap<>();
 
-    public SchemaServiceImpl(AuthorizationEntityRepository entityRepository, AuthorizationPolicyRepository policyRepository) {
+    public SchemaServiceImpl(EntityRepository entityRepository, PolicyRepository policyRepository) {
         this.entityRepository = Objects.requireNonNull(entityRepository, "entityRepository must not be null");
         this.policyRepository = Objects.requireNonNull(policyRepository, "policyRepository must not be null");
     }
@@ -62,14 +62,14 @@ public class SchemaServiceImpl implements SchemaAdminApi {
     }
 
     private String build(String environmentId) {
-        List<AuthorizationEntity> entities = entityRepository.findAllByEnvironmentId(environmentId);
-        List<AuthorizationPolicy> policies = policyRepository.findAllByEnvironmentId(environmentId);
+        List<Entity> entities = entityRepository.findAll(environmentId);
+        List<Policy> policies = policyRepository.findAll(environmentId);
 
-        Map<String, List<AuthorizationEntity>> bucketsByType = new LinkedHashMap<>();
-        for (AuthorizationEntity e : entities) {
+        Map<String, List<Entity>> bucketsByType = new LinkedHashMap<>();
+        for (Entity e : entities) {
             bucketsByType.computeIfAbsent(typeNameFor(e), k -> new java.util.ArrayList<>()).add(e);
         }
-        for (AuthorizationPolicy p : policies) {
+        for (Policy p : policies) {
             String typeName = typeNameFor(p);
             if (typeName != null) {
                 bucketsByType.computeIfAbsent(typeName, k -> new java.util.ArrayList<>());
@@ -82,7 +82,7 @@ public class SchemaServiceImpl implements SchemaAdminApi {
 
         StringBuilder out = new StringBuilder();
         boolean first = true;
-        for (Map.Entry<String, List<AuthorizationEntity>> bucket : bucketsByType.entrySet()) {
+        for (Map.Entry<String, List<Entity>> bucket : bucketsByType.entrySet()) {
             if (!first) out.append('\n');
             first = false;
             out.append("entity ").append(bucket.getKey());
@@ -92,7 +92,7 @@ public class SchemaServiceImpl implements SchemaAdminApi {
         return out.toString();
     }
 
-    private static String typeNameFor(AuthorizationEntity e) {
+    private static String typeNameFor(Entity e) {
         String entityId = e.entityId();
         int firstDot = entityId.indexOf('.');
         if (firstDot > 0) {
@@ -101,7 +101,7 @@ public class SchemaServiceImpl implements SchemaAdminApi {
         return capitalise(e.kind().name());
     }
 
-    private static String typeNameFor(AuthorizationPolicy p) {
+    private static String typeNameFor(Policy p) {
         String entityId = p.entityId();
         if (entityId == null) {
             return null;
@@ -115,8 +115,8 @@ public class SchemaServiceImpl implements SchemaAdminApi {
 
     /**
      * Normalise a raw uid-prefix or kind enum name to PascalCase using a fixed
-     * (locale-independent) lowercase fold so {@code typeNameFor(AuthorizationEntity)} and
-     * {@code typeNameFor(AuthorizationPolicy)} bucket consistently regardless of input casing.
+     * (locale-independent) lowercase fold so {@code typeNameFor(Entity)} and
+     * {@code typeNameFor(Policy)} bucket consistently regardless of input casing.
      */
     private static String capitalise(String s) {
         if (s.isEmpty()) {
@@ -126,9 +126,9 @@ public class SchemaServiceImpl implements SchemaAdminApi {
         return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
     }
 
-    private static void renderAttributes(List<AuthorizationEntity> bucket, StringBuilder out) {
+    private static void renderAttributes(List<Entity> bucket, StringBuilder out) {
         TreeMap<String, String> typeByAttribute = new TreeMap<>();
-        for (AuthorizationEntity e : bucket) {
+        for (Entity e : bucket) {
             for (Map.Entry<String, Object> attr : e.attributes().entrySet()) {
                 typeByAttribute.putIfAbsent(attr.getKey(), gaplTypeOf(attr.getValue()));
             }

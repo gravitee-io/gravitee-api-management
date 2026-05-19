@@ -15,22 +15,22 @@
  */
 package io.gravitee.gamma.authorization.api;
 
-import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicy;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicyKind;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicyStatus;
+import io.gravitee.gamma.authorization.domain.Policy;
+import io.gravitee.gamma.authorization.domain.PolicyKind;
+import io.gravitee.gamma.authorization.domain.PolicyStatus;
 import java.time.Instant;
 
 public record PolicyAuditSnapshot(
     String id,
     String name,
-    AuthorizationPolicyKind kind,
+    PolicyKind kind,
     String entityId,
-    AuthorizationPolicyStatus status,
+    PolicyStatus status,
     String environmentId,
     Instant createdAt,
     Instant updatedAt
 ) implements AuthzAuditSnapshot {
-    public static PolicyAuditSnapshot of(AuthorizationPolicy policy) {
+    public static PolicyAuditSnapshot of(Policy policy) {
         if (policy == null) {
             return null;
         }

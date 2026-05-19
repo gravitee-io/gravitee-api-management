@@ -15,15 +15,15 @@
  */
 package io.gravitee.gamma.authorization.api;
 
-import io.gravitee.gamma.repository.authorization.model.AuthorizationEntity;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationEntityKind;
+import io.gravitee.gamma.authorization.domain.Entity;
+import io.gravitee.gamma.authorization.domain.EntityKind;
 import java.time.Instant;
 import java.util.List;
 
 public record EntityAuditSnapshot(
     String id,
     String entityId,
-    AuthorizationEntityKind kind,
+    EntityKind kind,
     List<String> parents,
     String source,
     String environmentId,
@@ -34,7 +34,7 @@ public record EntityAuditSnapshot(
         parents = parents == null ? List.of() : List.copyOf(parents);
     }
 
-    public static EntityAuditSnapshot of(AuthorizationEntity entity) {
+    public static EntityAuditSnapshot of(Entity entity) {
         if (entity == null) {
             return null;
         }

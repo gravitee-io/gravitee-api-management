@@ -18,6 +18,6 @@ package io.gravitee.gamma.authorization.service.exception;
 public class PolicyNotFoundException extends RuntimeException {
 
     public PolicyNotFoundException(String environmentId, String id) {
-        super("AuthorizationPolicy '" + id + "' not found in environment '" + environmentId + "'");
+        super("Policy '" + id + "' not found in environment '" + environmentId + "'");
     }
 }

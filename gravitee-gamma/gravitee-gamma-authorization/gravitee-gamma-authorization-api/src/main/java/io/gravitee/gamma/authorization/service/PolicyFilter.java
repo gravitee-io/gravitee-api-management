@@ -15,8 +15,8 @@
  */
 package io.gravitee.gamma.authorization.service;
 
-import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicyKind;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicyStatus;
+import io.gravitee.gamma.authorization.domain.PolicyKind;
+import io.gravitee.gamma.authorization.domain.PolicyStatus;
 
 /**
  * Filters for paginated policy listings.
@@ -30,7 +30,7 @@ import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicyStatu
  * the REST layer applies the status filter client-side after fetching.
  * Promote to a repo-level filter the day there's a query plan for it.
  */
-public record PolicyFilter(AuthorizationPolicyKind kind, String entityId, AuthorizationPolicyStatus status) {
+public record PolicyFilter(PolicyKind kind, String entityId, PolicyStatus status) {
     public static PolicyFilter none() {
         return new PolicyFilter(null, null, null);
     }

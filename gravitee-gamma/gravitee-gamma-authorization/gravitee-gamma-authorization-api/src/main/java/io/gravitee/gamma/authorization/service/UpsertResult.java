@@ -15,6 +15,6 @@
  */
 package io.gravitee.gamma.authorization.service;
 
-import io.gravitee.gamma.repository.authorization.model.AuthorizationEntity;
+import io.gravitee.gamma.authorization.domain.Entity;
 
-public record UpsertResult(AuthorizationEntity entity, boolean created) {}
+public record UpsertResult(Entity entity, boolean created) {}

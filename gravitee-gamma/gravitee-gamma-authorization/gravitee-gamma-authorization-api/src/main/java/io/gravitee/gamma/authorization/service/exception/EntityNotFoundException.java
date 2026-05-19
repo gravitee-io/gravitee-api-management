@@ -21,7 +21,7 @@ public class EntityNotFoundException extends RuntimeException {
     private final String entityId;
 
     public EntityNotFoundException(String environmentId, String entityId) {
-        super("AuthorizationEntity '" + entityId + "' not found in environment '" + environmentId + "'");
+        super("Entity '" + entityId + "' not found in environment '" + environmentId + "'");
         this.environmentId = environmentId;
         this.entityId = entityId;
     }

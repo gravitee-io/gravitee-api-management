@@ -21,14 +21,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.Accessors;
 
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-@Accessors(fluent = true)
 public class AuthorizationPolicy {
 
     private String id;

@@ -16,8 +16,8 @@
 package io.gravitee.gamma.authorization.event;
 
 import io.gravitee.gamma.authorization.api.AuthzEventPublisher;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationEntity;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicy;
+import io.gravitee.gamma.authorization.domain.Entity;
+import io.gravitee.gamma.authorization.domain.Policy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -31,7 +31,7 @@ public final class RecordingAuthzEventPublisher implements AuthzEventPublisher {
         ENTITY_UNPUBLISHED,
     }
 
-    public record Recorded(EventKind kind, String environmentId, String id, AuthorizationPolicy policy, AuthorizationEntity entity) {
+    public record Recorded(EventKind kind, String environmentId, String id, Policy policy, Entity entity) {
         public Recorded {
             Objects.requireNonNull(kind, "kind");
             Objects.requireNonNull(environmentId, "environmentId");
@@ -42,22 +42,22 @@ public final class RecordingAuthzEventPublisher implements AuthzEventPublisher {
     private final List<Recorded> recorded = new ArrayList<>();
 
     @Override
-    public void publishPolicyDeployed(AuthorizationPolicy policy) {
+    public void publishPolicyDeployed(Policy policy) {
         recorded.add(new Recorded(EventKind.POLICY_PUBLISHED, policy.environmentId(), policy.id(), policy, null));
     }
 
     @Override
-    public void unpublishPolicy(AuthorizationPolicy policy) {
+    public void unpublishPolicy(Policy policy) {
         recorded.add(new Recorded(EventKind.POLICY_UNPUBLISHED, policy.environmentId(), policy.id(), policy, null));
     }
 
     @Override
-    public void publishEntityUpserted(AuthorizationEntity entity) {
+    public void publishEntityUpserted(Entity entity) {
         recorded.add(new Recorded(EventKind.ENTITY_PUBLISHED, entity.environmentId(), entity.entityId(), null, entity));
     }
 
     @Override
-    public void unpublishEntity(AuthorizationEntity entity) {
+    public void unpublishEntity(Entity entity) {
         recorded.add(new Recorded(EventKind.ENTITY_UNPUBLISHED, entity.environmentId(), entity.entityId(), null, entity));
     }
 

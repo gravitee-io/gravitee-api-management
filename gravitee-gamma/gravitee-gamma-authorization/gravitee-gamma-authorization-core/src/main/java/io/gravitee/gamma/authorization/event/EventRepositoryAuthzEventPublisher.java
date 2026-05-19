@@ -21,8 +21,8 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.gamma.authorization.api.AuthzEventPayloadFields;
 import io.gravitee.gamma.authorization.api.AuthzEventPublisher;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationEntity;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicy;
+import io.gravitee.gamma.authorization.domain.Entity;
+import io.gravitee.gamma.authorization.domain.Policy;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.EventRepository;
@@ -57,7 +57,7 @@ public final class EventRepositoryAuthzEventPublisher implements AuthzEventPubli
     }
 
     @Override
-    public void publishPolicyDeployed(AuthorizationPolicy policy) {
+    public void publishPolicyDeployed(Policy policy) {
         Objects.requireNonNull(policy, "policy must not be null");
         requireNonBlank(policy.environmentId(), "policy.environmentId");
         Map<String, Object> payload = new LinkedHashMap<>();
@@ -77,7 +77,7 @@ public final class EventRepositoryAuthzEventPublisher implements AuthzEventPubli
     }
 
     @Override
-    public void unpublishPolicy(AuthorizationPolicy policy) {
+    public void unpublishPolicy(Policy policy) {
         Objects.requireNonNull(policy, "policy must not be null");
         requireNonBlank(policy.environmentId(), "policy.environmentId");
         requireNonBlank(policy.id(), "policy.id");
@@ -95,7 +95,7 @@ public final class EventRepositoryAuthzEventPublisher implements AuthzEventPubli
     }
 
     @Override
-    public void publishEntityUpserted(AuthorizationEntity entity) {
+    public void publishEntityUpserted(Entity entity) {
         Objects.requireNonNull(entity, "entity must not be null");
         requireNonBlank(entity.environmentId(), "entity.environmentId");
         Map<String, Object> payload = new LinkedHashMap<>();
@@ -116,7 +116,7 @@ public final class EventRepositoryAuthzEventPublisher implements AuthzEventPubli
     }
 
     @Override
-    public void unpublishEntity(AuthorizationEntity entity) {
+    public void unpublishEntity(Entity entity) {
         Objects.requireNonNull(entity, "entity must not be null");
         requireNonBlank(entity.environmentId(), "entity.environmentId");
         requireNonBlank(entity.entityId(), "entity.entityId");

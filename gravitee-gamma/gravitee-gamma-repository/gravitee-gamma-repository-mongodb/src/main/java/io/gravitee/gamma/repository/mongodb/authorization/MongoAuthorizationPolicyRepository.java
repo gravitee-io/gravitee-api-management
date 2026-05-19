@@ -59,7 +59,7 @@ public class MongoAuthorizationPolicyRepository implements AuthorizationPolicyRe
 
     @Override
     public AuthorizationPolicy create(AuthorizationPolicy policy) throws TechnicalException {
-        log.debug("Create authorization policy [{}]", policy.id());
+        log.debug("Create authorization policy [{}]", policy.getId());
         return mapper.map(internalRepository.insert(mapper.map(policy)));
     }
 
@@ -68,11 +68,11 @@ public class MongoAuthorizationPolicyRepository implements AuthorizationPolicyRe
         if (policy == null) {
             throw new IllegalStateException("AuthorizationPolicy must not be null");
         }
-        var existing = internalRepository.findById(policy.id()).orElse(null);
+        var existing = internalRepository.findById(policy.getId()).orElse(null);
         if (existing == null) {
-            throw new IllegalStateException(String.format("No authorization policy found with id [%s]", policy.id()));
+            throw new IllegalStateException(String.format("No authorization policy found with id [%s]", policy.getId()));
         }
-        log.debug("Update authorization policy [{}]", policy.id());
+        log.debug("Update authorization policy [{}]", policy.getId());
         return mapper.map(internalRepository.save(mapper.map(policy)));
     }
 

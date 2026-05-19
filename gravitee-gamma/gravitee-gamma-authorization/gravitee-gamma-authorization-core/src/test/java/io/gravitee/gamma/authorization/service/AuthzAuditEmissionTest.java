@@ -28,12 +28,12 @@ import io.gravitee.gamma.authorization.api.AuthzPolicyAuditEvent;
 import io.gravitee.gamma.authorization.api.EntityAuditSnapshot;
 import io.gravitee.gamma.authorization.api.PolicyAuditSnapshot;
 import io.gravitee.gamma.authorization.audit.RecordingAuthzAuditPort;
+import io.gravitee.gamma.authorization.domain.Entity;
+import io.gravitee.gamma.authorization.domain.EntityKind;
+import io.gravitee.gamma.authorization.domain.Policy;
+import io.gravitee.gamma.authorization.domain.PolicyKind;
 import io.gravitee.gamma.authorization.repository.InMemoryEntityRepository;
 import io.gravitee.gamma.authorization.repository.InMemoryPolicyRepository;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationEntity;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationEntityKind;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicy;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicyKind;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -85,10 +85,7 @@ class AuthzAuditEmissionTest {
 
         @Test
         void create_emits_POLICY_CREATED_with_null_old_and_populated_new_snapshot() {
-            AuthorizationPolicy created = policyService.create(
-                CALLER,
-                new CreatePolicyCommand(ENV, "global", AuthorizationPolicyKind.GLOBAL, null, "permit")
-            );
+            Policy created = policyService.create(CALLER, new CreatePolicyCommand(ENV, "global", PolicyKind.GLOBAL, null, "permit"));
 
             assertThat(audit.entries()).hasSize(1);
             AuthzAuditEntry entry = audit.entries().get(0);
@@ -104,10 +101,7 @@ class AuthzAuditEmissionTest {
 
         @Test
         void update_emits_POLICY_UPDATED_with_both_snapshots() {
-            AuthorizationPolicy created = policyService.create(
-                CALLER,
-                new CreatePolicyCommand(ENV, "global", AuthorizationPolicyKind.GLOBAL, null, "permit")
-            );
+            Policy created = policyService.create(CALLER, new CreatePolicyCommand(ENV, "global", PolicyKind.GLOBAL, null, "permit"));
             audit.clear();
 
             policyService.update(CALLER, created.id(), new UpdatePolicyCommand("global", "deny"));
@@ -121,10 +115,7 @@ class AuthzAuditEmissionTest {
 
         @Test
         void deploy_emits_POLICY_DEPLOYED() {
-            AuthorizationPolicy created = policyService.create(
-                CALLER,
-                new CreatePolicyCommand(ENV, "global", AuthorizationPolicyKind.GLOBAL, null, "permit")
-            );
+            Policy created = policyService.create(CALLER, new CreatePolicyCommand(ENV, "global", PolicyKind.GLOBAL, null, "permit"));
             audit.clear();
 
             policyService.deploy(CALLER, created.id());
@@ -135,10 +126,7 @@ class AuthzAuditEmissionTest {
 
         @Test
         void disable_emits_POLICY_DISABLED() {
-            AuthorizationPolicy created = policyService.create(
-                CALLER,
-                new CreatePolicyCommand(ENV, "global", AuthorizationPolicyKind.GLOBAL, null, "permit")
-            );
+            Policy created = policyService.create(CALLER, new CreatePolicyCommand(ENV, "global", PolicyKind.GLOBAL, null, "permit"));
             policyService.deploy(CALLER, created.id());
             audit.clear();
 
@@ -150,10 +138,7 @@ class AuthzAuditEmissionTest {
 
         @Test
         void delete_emits_POLICY_DELETED_with_pre_delete_snapshot_and_null_new() {
-            AuthorizationPolicy created = policyService.create(
-                CALLER,
-                new CreatePolicyCommand(ENV, "global", AuthorizationPolicyKind.GLOBAL, null, "permit")
-            );
+            Policy created = policyService.create(CALLER, new CreatePolicyCommand(ENV, "global", PolicyKind.GLOBAL, null, "permit"));
             audit.clear();
 
             policyService.delete(CALLER, created.id());
@@ -181,7 +166,7 @@ class AuthzAuditEmissionTest {
         void upsert_create_emits_ENTITY_CREATED_with_null_old() {
             UpsertResult result = entityService.upsert(
                 CALLER,
-                new CreateOrReplaceEntityCommand(ENV, "api.123", AuthorizationEntityKind.RESOURCE, Map.of("k", "v"), List.of(), "apim")
+                new CreateOrReplaceEntityCommand(ENV, "api.123", EntityKind.RESOURCE, Map.of("k", "v"), List.of(), "apim")
             );
 
             assertThat(audit.entries()).hasSize(1);
@@ -198,13 +183,13 @@ class AuthzAuditEmissionTest {
         void upsert_replace_emits_ENTITY_UPDATED_with_both_snapshots() {
             entityService.upsert(
                 CALLER,
-                new CreateOrReplaceEntityCommand(ENV, "api.123", AuthorizationEntityKind.RESOURCE, Map.of(), List.of(), "apim")
+                new CreateOrReplaceEntityCommand(ENV, "api.123", EntityKind.RESOURCE, Map.of(), List.of(), "apim")
             );
             audit.clear();
 
             entityService.upsert(
                 CALLER,
-                new CreateOrReplaceEntityCommand(ENV, "api.123", AuthorizationEntityKind.RESOURCE, Map.of("k", "v2"), List.of(), "apim")
+                new CreateOrReplaceEntityCommand(ENV, "api.123", EntityKind.RESOURCE, Map.of("k", "v2"), List.of(), "apim")
             );
 
             assertThat(audit.entries()).hasSize(1);
@@ -216,11 +201,8 @@ class AuthzAuditEmissionTest {
 
         @Test
         void update_emits_ENTITY_UPDATED_with_both_snapshots() {
-            AuthorizationEntity created = entityService
-                .upsert(
-                    CALLER,
-                    new CreateOrReplaceEntityCommand(ENV, "api.123", AuthorizationEntityKind.RESOURCE, Map.of(), List.of(), "apim")
-                )
+            Entity created = entityService
+                .upsert(CALLER, new CreateOrReplaceEntityCommand(ENV, "api.123", EntityKind.RESOURCE, Map.of(), List.of(), "apim"))
                 .entity();
             audit.clear();
 
@@ -234,7 +216,7 @@ class AuthzAuditEmissionTest {
         void delete_emits_ENTITY_DELETED_with_pre_delete_snapshot() {
             entityService.upsert(
                 CALLER,
-                new CreateOrReplaceEntityCommand(ENV, "api.123", AuthorizationEntityKind.RESOURCE, Map.of(), List.of(), "apim")
+                new CreateOrReplaceEntityCommand(ENV, "api.123", EntityKind.RESOURCE, Map.of(), List.of(), "apim")
             );
             audit.clear();
 
@@ -256,15 +238,15 @@ class AuthzAuditEmissionTest {
         void cascade_delete_emits_one_entity_entry_per_affected_row() {
             entityService.upsert(
                 CALLER,
-                new CreateOrReplaceEntityCommand(ENV, "api.svc", AuthorizationEntityKind.RESOURCE, Map.of(), List.of(), "apim")
+                new CreateOrReplaceEntityCommand(ENV, "api.svc", EntityKind.RESOURCE, Map.of(), List.of(), "apim")
             );
             entityService.upsert(
                 CALLER,
-                new CreateOrReplaceEntityCommand(ENV, "api.svc.endpoint1", AuthorizationEntityKind.RESOURCE, Map.of(), List.of(), "apim")
+                new CreateOrReplaceEntityCommand(ENV, "api.svc.endpoint1", EntityKind.RESOURCE, Map.of(), List.of(), "apim")
             );
             entityService.upsert(
                 CALLER,
-                new CreateOrReplaceEntityCommand(ENV, "api.svc.endpoint2", AuthorizationEntityKind.RESOURCE, Map.of(), List.of(), "apim")
+                new CreateOrReplaceEntityCommand(ENV, "api.svc.endpoint2", EntityKind.RESOURCE, Map.of(), List.of(), "apim")
             );
             audit.clear();
 
@@ -284,11 +266,11 @@ class AuthzAuditEmissionTest {
         void cascade_delete_emits_one_policy_entry_per_attached_policy() {
             entityService.upsert(
                 CALLER,
-                new CreateOrReplaceEntityCommand(ENV, "api.svc", AuthorizationEntityKind.RESOURCE, Map.of(), List.of(), "apim")
+                new CreateOrReplaceEntityCommand(ENV, "api.svc", EntityKind.RESOURCE, Map.of(), List.of(), "apim")
             );
-            AuthorizationPolicy attached = policyService.create(
+            Policy attached = policyService.create(
                 CALLER,
-                new CreatePolicyCommand(ENV, "svc-policy", AuthorizationPolicyKind.RESOURCE, "api.svc", "permit")
+                new CreatePolicyCommand(ENV, "svc-policy", PolicyKind.RESOURCE, "api.svc", "permit")
             );
             audit.clear();
 
@@ -311,7 +293,7 @@ class AuthzAuditEmissionTest {
 
             entityService.upsert(
                 system,
-                new CreateOrReplaceEntityCommand(ENV, "api.from-system", AuthorizationEntityKind.RESOURCE, Map.of(), List.of(), "apim")
+                new CreateOrReplaceEntityCommand(ENV, "api.from-system", EntityKind.RESOURCE, Map.of(), List.of(), "apim")
             );
 
             assertThat(audit.entries()).isEmpty();
@@ -321,7 +303,7 @@ class AuthzAuditEmissionTest {
         void user_caller_metadata_round_trips_into_audit_entry() {
             AuthzCallerContext custom = AuthzCallerContext.ofUser("org-42", "env-99", "bob");
 
-            policyService.create(custom, new CreatePolicyCommand("env-99", "p", AuthorizationPolicyKind.GLOBAL, null, "permit"));
+            policyService.create(custom, new CreatePolicyCommand("env-99", "p", PolicyKind.GLOBAL, null, "permit"));
 
             assertThat(audit.entries()).hasSize(1);
             AuthzCallerContext seen = audit.entries().get(0).caller();

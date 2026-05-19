@@ -15,88 +15,62 @@
  */
 package io.gravitee.gamma.authorization.repository;
 
-import io.gravitee.gamma.repository.authorization.api.AuthorizationPolicyRepository;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicy;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicyKind;
+import io.gravitee.gamma.authorization.api.PolicyRepository;
+import io.gravitee.gamma.authorization.domain.Policy;
+import io.gravitee.gamma.authorization.domain.PolicyKind;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public final class InMemoryPolicyRepository implements AuthorizationPolicyRepository {
+public final class InMemoryPolicyRepository implements PolicyRepository {
 
-    private final ConcurrentMap<String, AuthorizationPolicy> store = new ConcurrentHashMap<>();
-
-    @Override
-    public Optional<AuthorizationPolicy> findById(String id) {
-        return Optional.ofNullable(store.get(id));
-    }
+    private final ConcurrentMap<Key, Policy> store = new ConcurrentHashMap<>();
 
     @Override
-    public AuthorizationPolicy create(AuthorizationPolicy policy) {
+    public Policy save(Policy policy) {
         Objects.requireNonNull(policy, "policy must not be null");
-        store.put(policy.id(), policy);
+        store.put(new Key(policy.environmentId(), policy.id()), policy);
         return policy;
     }
 
     @Override
-    public AuthorizationPolicy update(AuthorizationPolicy policy) {
-        Objects.requireNonNull(policy, "policy must not be null");
-        store.put(policy.id(), policy);
-        return policy;
+    public Optional<Policy> findById(String environmentId, String id) {
+        return Optional.ofNullable(store.get(new Key(environmentId, id)));
     }
 
     @Override
-    public void delete(String id) {
-        store.remove(id);
-    }
-
-    @Override
-    public Set<AuthorizationPolicy> findAll() {
-        return Set.copyOf(store.values());
-    }
-
-    @Override
-    public Optional<AuthorizationPolicy> findByEnvironmentIdAndId(String environmentId, String id) {
-        return findById(id).filter(p -> environmentId.equals(p.environmentId()));
-    }
-
-    @Override
-    public List<AuthorizationPolicy> findAllByEnvironmentId(String environmentId) {
+    public List<Policy> findAll(String environmentId) {
         return store
-            .values()
+            .entrySet()
             .stream()
-            .filter(p -> Objects.equals(environmentId, p.environmentId()))
+            .filter(entry -> entry.getKey().environmentId().equals(environmentId))
+            .map(java.util.Map.Entry::getValue)
             .toList();
     }
 
     @Override
-    public List<AuthorizationPolicy> findAllByEnvironmentIdAndKind(String environmentId, AuthorizationPolicyKind kind) {
-        Objects.requireNonNull(kind, "kind");
-        return findAllByEnvironmentId(environmentId)
+    public List<Policy> findByKind(String environmentId, PolicyKind kind) {
+        return findAll(environmentId)
             .stream()
-            .filter(p -> p.kind() == kind)
+            .filter(policy -> policy.kind() == kind)
             .toList();
     }
 
     @Override
-    public List<AuthorizationPolicy> findAllByEnvironmentIdAndEntityId(String environmentId, String entityId) {
+    public List<Policy> findByEntityId(String environmentId, String entityId) {
         Objects.requireNonNull(entityId, "entityId");
-        return findAllByEnvironmentId(environmentId)
+        return findAll(environmentId)
             .stream()
-            .filter(p -> entityId.equals(p.entityId()))
+            .filter(policy -> entityId.equals(policy.entityId()))
             .toList();
     }
 
     @Override
-    public long deleteByEnvironmentIdAndId(String environmentId, String id) {
-        AuthorizationPolicy existing = store.get(id);
-        if (existing == null || !Objects.equals(environmentId, existing.environmentId())) {
-            return 0L;
-        }
-        store.remove(id);
-        return 1L;
+    public boolean deleteById(String environmentId, String id) {
+        return store.remove(new Key(environmentId, id)) != null;
     }
+
+    private record Key(String environmentId, String id) {}
 }

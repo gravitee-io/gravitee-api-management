@@ -23,8 +23,8 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 import io.gravitee.gamma.authorization.api.EntityAdminApi;
+import io.gravitee.gamma.authorization.domain.EntityKind;
 import io.gravitee.gamma.authorization.service.CreateOrReplaceEntityCommand;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationEntityKind;
 import io.gravitee.rest.api.service.event.ApiEvent;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -113,14 +113,7 @@ public class AuthzApiEventListener implements EventListener<ApiEvent, io.gravite
             try {
                 entityService.upsert(
                     caller,
-                    new CreateOrReplaceEntityCommand(
-                        envId,
-                        entityId,
-                        AuthorizationEntityKind.RESOURCE,
-                        attributesFor(coreApi),
-                        List.of(),
-                        SOURCE
-                    )
+                    new CreateOrReplaceEntityCommand(envId, entityId, EntityKind.RESOURCE, attributesFor(coreApi), List.of(), SOURCE)
                 );
             } catch (RuntimeException e) {
                 log.warn("Failed to upsert authz entity '{}' on DEPLOY for API '{}'", entityId, coreApi.getId(), e);

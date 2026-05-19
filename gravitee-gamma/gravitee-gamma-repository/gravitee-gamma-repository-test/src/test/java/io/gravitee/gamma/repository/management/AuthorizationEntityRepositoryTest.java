@@ -46,14 +46,14 @@ public class AuthorizationEntityRepositoryTest extends AbstractGammaRepositoryTe
     public void should_find_by_environment_id_and_id() throws TechnicalException {
         Optional<AuthorizationEntity> found = authorizationEntityRepository.findByEnvironmentIdAndId("DEFAULT", "entity-1");
         assertThat(found).isPresent();
-        assertThat(found.get().entityId()).isEqualTo("user-alice");
+        assertThat(found.get().getEntityId()).isEqualTo("user-alice");
     }
 
     @Test
     public void should_find_by_environment_id_and_entity_id() throws TechnicalException {
         Optional<AuthorizationEntity> found = authorizationEntityRepository.findByEnvironmentIdAndEntityId("DEFAULT", "user-alice");
         assertThat(found).isPresent();
-        assertThat(found.get().id()).isEqualTo("entity-1");
+        assertThat(found.get().getId()).isEqualTo("entity-1");
     }
 
     @Test
@@ -87,19 +87,19 @@ public class AuthorizationEntityRepositoryTest extends AbstractGammaRepositoryTe
 
         AuthorizationEntity created = authorizationEntityRepository.create(entity);
 
-        assertThat(created.id()).isEqualTo("created-1");
+        assertThat(created.getId()).isEqualTo("created-1");
         assertThat(authorizationEntityRepository.findById("created-1")).isPresent();
     }
 
     @Test
     public void should_update_entity() throws TechnicalException {
         AuthorizationEntity existing = authorizationEntityRepository.findById("entity-1").orElseThrow();
-        existing.source("updated-source");
+        existing.setSource("updated-source");
 
         AuthorizationEntity updated = authorizationEntityRepository.update(existing);
 
-        assertThat(updated.source()).isEqualTo("updated-source");
-        assertThat(authorizationEntityRepository.findById("entity-1").orElseThrow().source()).isEqualTo("updated-source");
+        assertThat(updated.getSource()).isEqualTo("updated-source");
+        assertThat(authorizationEntityRepository.findById("entity-1").orElseThrow().getSource()).isEqualTo("updated-source");
     }
 
     @Test

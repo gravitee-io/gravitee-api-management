@@ -15,9 +15,9 @@
  */
 package io.gravitee.gamma.authorization.service;
 
-import io.gravitee.gamma.repository.authorization.model.AuthorizationEntityKind;
+import io.gravitee.gamma.authorization.domain.EntityKind;
 
-public record EntityFilter(AuthorizationEntityKind kind, String source, String entityIdPrefix) {
+public record EntityFilter(EntityKind kind, String source, String entityIdPrefix) {
     public static EntityFilter none() {
         return new EntityFilter(null, null, null);
     }

@@ -21,13 +21,11 @@ import java.util.List;
 import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Setter
 @Getter
-@Accessors(fluent = true)
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}authz_entities")
 public class AuthorizationEntityMongo {
 

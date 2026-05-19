@@ -23,9 +23,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Primary;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration;
+import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
+import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.utility.DockerImageName;
@@ -69,5 +74,11 @@ public class MongoTestRepositoryConfiguration extends AbstractMongoClientConfigu
             com.mongodb.reactivestreams.client.MongoClients.create(mongoDBContainer.getReplicaSetUrl()),
             DATABASE_NAME
         );
+    }
+
+    @Primary
+    @Bean(name = "managementMongoTemplate")
+    public MongoOperations managementMongoTemplate(MongoDatabaseFactory mongoDbFactory, MappingMongoConverter converter) {
+        return new MongoTemplate(mongoDbFactory, converter);
     }
 }

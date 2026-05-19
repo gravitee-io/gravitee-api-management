@@ -59,7 +59,7 @@ public class MongoAuthorizationEntityRepository implements AuthorizationEntityRe
 
     @Override
     public AuthorizationEntity create(AuthorizationEntity entity) throws TechnicalException {
-        log.debug("Create authorization entity [{}]", entity.id());
+        log.debug("Create authorization entity [{}]", entity.getId());
         return mapper.map(internalRepository.insert(mapper.map(entity)));
     }
 
@@ -68,11 +68,11 @@ public class MongoAuthorizationEntityRepository implements AuthorizationEntityRe
         if (entity == null) {
             throw new IllegalStateException("AuthorizationEntity must not be null");
         }
-        var existing = internalRepository.findById(entity.id()).orElse(null);
+        var existing = internalRepository.findById(entity.getId()).orElse(null);
         if (existing == null) {
-            throw new IllegalStateException(String.format("No authorization entity found with id [%s]", entity.id()));
+            throw new IllegalStateException(String.format("No authorization entity found with id [%s]", entity.getId()));
         }
-        log.debug("Update authorization entity [{}]", entity.id());
+        log.debug("Update authorization entity [{}]", entity.getId());
         return mapper.map(internalRepository.save(mapper.map(entity)));
     }
 

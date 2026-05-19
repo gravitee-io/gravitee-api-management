@@ -89,12 +89,12 @@ class AuthorizationMapperTest {
     @Test
     void should_preserve_kind_enum_value_for_entity() {
         AuthorizationEntity entity = AuthorizationEntity.builder().kind(AuthorizationEntityKind.PRINCIPAL).build();
-        assertThat(mapper.map(entity).kind()).isEqualTo(AuthorizationEntityKind.PRINCIPAL);
+        assertThat(mapper.map(entity).getKind()).isEqualTo(AuthorizationEntityKind.PRINCIPAL);
     }
 
     @Test
     void should_preserve_status_enum_value_for_policy() {
         AuthorizationPolicy policy = AuthorizationPolicy.builder().status(AuthorizationPolicyStatus.DRAFT).build();
-        assertThat(mapper.map(policy).status()).isEqualTo(AuthorizationPolicyStatus.DRAFT);
+        assertThat(mapper.map(policy).getStatus()).isEqualTo(AuthorizationPolicyStatus.DRAFT);
     }
 }

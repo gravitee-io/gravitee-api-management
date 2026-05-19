@@ -21,14 +21,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 import io.gravitee.gamma.authorization.audit.RecordingAuthzAuditPort;
+import io.gravitee.gamma.authorization.domain.Entity;
+import io.gravitee.gamma.authorization.domain.EntityKind;
+import io.gravitee.gamma.authorization.domain.PolicyKind;
 import io.gravitee.gamma.authorization.event.RecordingAuthzEventPublisher;
 import io.gravitee.gamma.authorization.event.RecordingAuthzEventPublisher.EventKind;
 import io.gravitee.gamma.authorization.repository.InMemoryEntityRepository;
 import io.gravitee.gamma.authorization.repository.InMemoryPolicyRepository;
 import io.gravitee.gamma.authorization.service.exception.EntityNotFoundException;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationEntity;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationEntityKind;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicyKind;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -74,7 +74,7 @@ class EntityServiceImplTest {
     void upsert_creates_entity_with_generated_id_and_timestamps() {
         UpsertResult result = entityService.upsert(
             CALLER,
-            new CreateOrReplaceEntityCommand(ENV, "api.123", AuthorizationEntityKind.RESOURCE, Map.of("k", "v"), List.of(), "apim")
+            new CreateOrReplaceEntityCommand(ENV, "api.123", EntityKind.RESOURCE, Map.of("k", "v"), List.of(), "apim")
         );
 
         assertThat(result.created()).isTrue();
@@ -88,7 +88,7 @@ class EntityServiceImplTest {
     void upsert_replaces_existing_entity_preserving_id_and_createdAt() {
         UpsertResult first = entityService.upsert(
             CALLER,
-            new CreateOrReplaceEntityCommand(ENV, "api.123", AuthorizationEntityKind.RESOURCE, Map.of(), List.of(), "apim")
+            new CreateOrReplaceEntityCommand(ENV, "api.123", EntityKind.RESOURCE, Map.of(), List.of(), "apim")
         );
 
         Instant later = FIXED.plusSeconds(60);
@@ -107,14 +107,7 @@ class EntityServiceImplTest {
 
         UpsertResult second = entityService.upsert(
             CALLER,
-            new CreateOrReplaceEntityCommand(
-                ENV,
-                "api.123",
-                AuthorizationEntityKind.RESOURCE,
-                Map.of("k", "v2"),
-                List.of("api.parent"),
-                "apim"
-            )
+            new CreateOrReplaceEntityCommand(ENV, "api.123", EntityKind.RESOURCE, Map.of("k", "v2"), List.of("api.parent"), "apim")
         );
 
         assertThat(second.created()).isFalse();
@@ -129,18 +122,14 @@ class EntityServiceImplTest {
     void update_modifies_attributes_and_parents_only() {
         entityService.upsert(
             CALLER,
-            new CreateOrReplaceEntityCommand(ENV, "api.123", AuthorizationEntityKind.RESOURCE, Map.of("k", "v1"), List.of(), "apim")
+            new CreateOrReplaceEntityCommand(ENV, "api.123", EntityKind.RESOURCE, Map.of("k", "v1"), List.of(), "apim")
         );
 
-        AuthorizationEntity updated = entityService.update(
-            CALLER,
-            "api.123",
-            new UpdateEntityCommand(Map.of("k", "v2"), List.of("api.parent"))
-        );
+        Entity updated = entityService.update(CALLER, "api.123", new UpdateEntityCommand(Map.of("k", "v2"), List.of("api.parent")));
 
         assertThat(updated.attributes()).containsEntry("k", "v2");
         assertThat(updated.parents()).containsExactly("api.parent");
-        assertThat(updated.kind()).isEqualTo(AuthorizationEntityKind.RESOURCE);
+        assertThat(updated.kind()).isEqualTo(EntityKind.RESOURCE);
         assertThat(updated.source()).isEqualTo("apim");
     }
 
@@ -148,10 +137,10 @@ class EntityServiceImplTest {
     void update_leaves_null_fields_unchanged() {
         entityService.upsert(
             CALLER,
-            new CreateOrReplaceEntityCommand(ENV, "api.123", AuthorizationEntityKind.RESOURCE, Map.of("k", "v1"), List.of("p"), "apim")
+            new CreateOrReplaceEntityCommand(ENV, "api.123", EntityKind.RESOURCE, Map.of("k", "v1"), List.of("p"), "apim")
         );
 
-        AuthorizationEntity updated = entityService.update(CALLER, "api.123", new UpdateEntityCommand(null, null));
+        Entity updated = entityService.update(CALLER, "api.123", new UpdateEntityCommand(null, null));
 
         assertThat(updated.attributes()).containsEntry("k", "v1");
         assertThat(updated.parents()).containsExactly("p");
@@ -166,73 +155,71 @@ class EntityServiceImplTest {
 
     @Test
     void find_with_no_filter_returns_all_entities_in_environment() {
-        entityService.upsert(CALLER, create("api.1", AuthorizationEntityKind.RESOURCE, "apim"));
-        entityService.upsert(CALLER, create("idp.am.alice", AuthorizationEntityKind.PRINCIPAL, "gravitee_am_default"));
+        entityService.upsert(CALLER, create("api.1", EntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("idp.am.alice", EntityKind.PRINCIPAL, "gravitee_am_default"));
 
         assertThat(entityService.find(ENV, EntityFilter.none())).hasSize(2);
     }
 
     @Test
     void find_filters_by_kind() {
-        entityService.upsert(CALLER, create("api.1", AuthorizationEntityKind.RESOURCE, "apim"));
-        entityService.upsert(CALLER, create("idp.am.alice", AuthorizationEntityKind.PRINCIPAL, "gravitee_am_default"));
+        entityService.upsert(CALLER, create("api.1", EntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("idp.am.alice", EntityKind.PRINCIPAL, "gravitee_am_default"));
 
-        assertThat(entityService.find(ENV, new EntityFilter(AuthorizationEntityKind.RESOURCE, null, null)))
-            .extracting(AuthorizationEntity::entityId)
+        assertThat(entityService.find(ENV, new EntityFilter(EntityKind.RESOURCE, null, null)))
+            .extracting(Entity::entityId)
             .containsExactly("api.1");
     }
 
     @Test
     void find_filters_by_source() {
-        entityService.upsert(CALLER, create("api.1", AuthorizationEntityKind.RESOURCE, "apim"));
-        entityService.upsert(CALLER, create("idp.am.alice", AuthorizationEntityKind.PRINCIPAL, "gravitee_am_default"));
+        entityService.upsert(CALLER, create("api.1", EntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("idp.am.alice", EntityKind.PRINCIPAL, "gravitee_am_default"));
 
-        assertThat(entityService.find(ENV, new EntityFilter(null, "apim", null)))
-            .extracting(AuthorizationEntity::entityId)
-            .containsExactly("api.1");
+        assertThat(entityService.find(ENV, new EntityFilter(null, "apim", null))).extracting(Entity::entityId).containsExactly("api.1");
     }
 
     @Test
     void find_filters_by_entityIdPrefix() {
-        entityService.upsert(CALLER, create("api.123", AuthorizationEntityKind.RESOURCE, "apim"));
-        entityService.upsert(CALLER, create("api.123.tool-a", AuthorizationEntityKind.RESOURCE, "apim"));
-        entityService.upsert(CALLER, create("api.999", AuthorizationEntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("api.123", EntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("api.123.tool-a", EntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("api.999", EntityKind.RESOURCE, "apim"));
 
         assertThat(entityService.find(ENV, new EntityFilter(null, null, "api.123")))
-            .extracting(AuthorizationEntity::entityId)
+            .extracting(Entity::entityId)
             .containsExactlyInAnyOrder("api.123", "api.123.tool-a");
     }
 
     @Test
     void delete_removes_target_entity_and_returns_it_in_cascade_result() {
-        entityService.upsert(CALLER, create("api.123", AuthorizationEntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("api.123", EntityKind.RESOURCE, "apim"));
 
         CascadeResult result = entityService.delete(CALLER, "api.123");
 
         assertThat(result.deletedEntityIds()).containsExactly("api.123");
         assertThat(result.deletedPolicyIds()).isEmpty();
-        assertThat(entityRepository.findByEnvironmentIdAndEntityId(ENV, "api.123")).isEmpty();
+        assertThat(entityRepository.findByEntityId(ENV, "api.123")).isEmpty();
     }
 
     @Test
     void delete_cascades_to_descendants_under_the_entityId_prefix() {
-        entityService.upsert(CALLER, create("api.123", AuthorizationEntityKind.RESOURCE, "apim"));
-        entityService.upsert(CALLER, create("api.123.tool-a", AuthorizationEntityKind.RESOURCE, "apim"));
-        entityService.upsert(CALLER, create("api.123.tool-b", AuthorizationEntityKind.RESOURCE, "apim"));
-        entityService.upsert(CALLER, create("api.999", AuthorizationEntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("api.123", EntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("api.123.tool-a", EntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("api.123.tool-b", EntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("api.999", EntityKind.RESOURCE, "apim"));
 
         CascadeResult result = entityService.delete(CALLER, "api.123");
 
         assertThat(result.deletedEntityIds()).containsExactlyInAnyOrder("api.123", "api.123.tool-a", "api.123.tool-b");
-        assertThat(entityRepository.findByEnvironmentIdAndEntityId(ENV, "api.999")).isPresent();
+        assertThat(entityRepository.findByEntityId(ENV, "api.999")).isPresent();
     }
 
     @Test
     void delete_cascades_to_mcp_alias_when_target_is_api_dot_apiId() {
-        entityService.upsert(CALLER, create("api.bookings", AuthorizationEntityKind.RESOURCE, "apim"));
-        entityService.upsert(CALLER, create("mcp.bookings.tool-1", AuthorizationEntityKind.RESOURCE, "apim"));
-        entityService.upsert(CALLER, create("mcp.bookings.tool-2", AuthorizationEntityKind.RESOURCE, "apim"));
-        entityService.upsert(CALLER, create("mcp.bookings.tool-3", AuthorizationEntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("api.bookings", EntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("mcp.bookings.tool-1", EntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("mcp.bookings.tool-2", EntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("mcp.bookings.tool-3", EntityKind.RESOURCE, "apim"));
 
         CascadeResult result = entityService.delete(CALLER, "api.bookings");
 
@@ -246,37 +233,28 @@ class EntityServiceImplTest {
 
     @Test
     void delete_cascades_to_RESOURCE_policies_referencing_any_affected_entityId() {
-        entityService.upsert(CALLER, create("api.bookings", AuthorizationEntityKind.RESOURCE, "apim"));
-        entityService.upsert(CALLER, create("mcp.bookings.tool-1", AuthorizationEntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("api.bookings", EntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("mcp.bookings.tool-1", EntityKind.RESOURCE, "apim"));
 
-        var server = policyService.create(
-            CALLER,
-            new CreatePolicyCommand(ENV, "p-server", AuthorizationPolicyKind.RESOURCE, "api.bookings", "")
-        );
-        var tool = policyService.create(
-            CALLER,
-            new CreatePolicyCommand(ENV, "p-tool", AuthorizationPolicyKind.RESOURCE, "mcp.bookings.tool-1", "")
-        );
-        var global = policyService.create(CALLER, new CreatePolicyCommand(ENV, "g", AuthorizationPolicyKind.GLOBAL, null, ""));
+        var server = policyService.create(CALLER, new CreatePolicyCommand(ENV, "p-server", PolicyKind.RESOURCE, "api.bookings", ""));
+        var tool = policyService.create(CALLER, new CreatePolicyCommand(ENV, "p-tool", PolicyKind.RESOURCE, "mcp.bookings.tool-1", ""));
+        var global = policyService.create(CALLER, new CreatePolicyCommand(ENV, "g", PolicyKind.GLOBAL, null, ""));
 
         CascadeResult result = entityService.delete(CALLER, "api.bookings");
 
         assertThat(result.deletedPolicyIds()).containsExactlyInAnyOrder(server.id(), tool.id());
-        assertThat(policyRepository.findByEnvironmentIdAndId(ENV, global.id())).isPresent();
+        assertThat(policyRepository.findById(ENV, global.id())).isPresent();
     }
 
     @Test
     void delete_cascade_total_matches_architecture_example_one_server_five_tools_fifty_policies() {
-        entityService.upsert(CALLER, create("api.example", AuthorizationEntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("api.example", EntityKind.RESOURCE, "apim"));
         for (int i = 1; i <= 5; i++) {
-            entityService.upsert(CALLER, create("mcp.example.tool-" + i, AuthorizationEntityKind.RESOURCE, "apim"));
+            entityService.upsert(CALLER, create("mcp.example.tool-" + i, EntityKind.RESOURCE, "apim"));
         }
-        policyService.create(CALLER, new CreatePolicyCommand(ENV, "p-server", AuthorizationPolicyKind.RESOURCE, "api.example", ""));
+        policyService.create(CALLER, new CreatePolicyCommand(ENV, "p-server", PolicyKind.RESOURCE, "api.example", ""));
         for (int i = 1; i <= 5; i++) {
-            policyService.create(
-                CALLER,
-                new CreatePolicyCommand(ENV, "p-tool-" + i, AuthorizationPolicyKind.RESOURCE, "mcp.example.tool-" + i, "")
-            );
+            policyService.create(CALLER, new CreatePolicyCommand(ENV, "p-tool-" + i, PolicyKind.RESOURCE, "mcp.example.tool-" + i, ""));
         }
 
         CascadeResult result = entityService.delete(CALLER, "api.example");
@@ -288,14 +266,14 @@ class EntityServiceImplTest {
 
     @Test
     void delete_does_not_remove_aliased_mcp_when_target_is_a_descendant_not_the_api() {
-        entityService.upsert(CALLER, create("api.bookings", AuthorizationEntityKind.RESOURCE, "apim"));
-        entityService.upsert(CALLER, create("api.bookings.foo", AuthorizationEntityKind.RESOURCE, "apim"));
-        entityService.upsert(CALLER, create("mcp.bookings.tool-1", AuthorizationEntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("api.bookings", EntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("api.bookings.foo", EntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("mcp.bookings.tool-1", EntityKind.RESOURCE, "apim"));
 
         CascadeResult result = entityService.delete(CALLER, "api.bookings.foo");
 
         assertThat(result.deletedEntityIds()).containsExactly("api.bookings.foo");
-        assertThat(entityRepository.findByEnvironmentIdAndEntityId(ENV, "mcp.bookings.tool-1")).isPresent();
+        assertThat(entityRepository.findByEntityId(ENV, "mcp.bookings.tool-1")).isPresent();
     }
 
     @Test
@@ -304,7 +282,7 @@ class EntityServiceImplTest {
         assertThat(result.totalAffected()).isZero();
     }
 
-    private static CreateOrReplaceEntityCommand create(String entityId, AuthorizationEntityKind kind, String source) {
+    private static CreateOrReplaceEntityCommand create(String entityId, EntityKind kind, String source) {
         return new CreateOrReplaceEntityCommand(ENV, entityId, kind, Map.of(), List.of(), source);
     }
 
@@ -312,7 +290,7 @@ class EntityServiceImplTest {
     void upsert_emits_PUBLISH_AUTHZ_ENTITY_with_the_full_entity_payload() {
         events.clear();
 
-        UpsertResult result = entityService.upsert(CALLER, create("api.123", AuthorizationEntityKind.RESOURCE, "apim"));
+        UpsertResult result = entityService.upsert(CALLER, create("api.123", EntityKind.RESOURCE, "apim"));
 
         assertThat(events.events()).hasSize(1);
         RecordingAuthzEventPublisher.Recorded event = events.events().get(0);
@@ -324,10 +302,10 @@ class EntityServiceImplTest {
 
     @Test
     void upsert_replace_emits_a_second_PUBLISH_AUTHZ_ENTITY() {
-        entityService.upsert(CALLER, create("api.123", AuthorizationEntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("api.123", EntityKind.RESOURCE, "apim"));
         events.clear();
 
-        entityService.upsert(CALLER, create("api.123", AuthorizationEntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("api.123", EntityKind.RESOURCE, "apim"));
 
         assertThat(events.events()).hasSize(1);
         assertThat(events.events().get(0).kind()).isEqualTo(EventKind.ENTITY_PUBLISHED);
@@ -335,7 +313,7 @@ class EntityServiceImplTest {
 
     @Test
     void update_emits_PUBLISH_AUTHZ_ENTITY_so_the_gateway_picks_up_the_attribute_change() {
-        entityService.upsert(CALLER, create("api.123", AuthorizationEntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("api.123", EntityKind.RESOURCE, "apim"));
         events.clear();
 
         entityService.update(CALLER, "api.123", new UpdateEntityCommand(Map.of("k", "v"), null));
@@ -348,9 +326,9 @@ class EntityServiceImplTest {
 
     @Test
     void cascade_delete_emits_one_UNPUBLISH_per_affected_entity_then_one_per_affected_policy() {
-        entityService.upsert(CALLER, create("api.bookings", AuthorizationEntityKind.RESOURCE, "apim"));
-        entityService.upsert(CALLER, create("mcp.bookings.tool-1", AuthorizationEntityKind.RESOURCE, "apim"));
-        var policy = policyService.create(CALLER, new CreatePolicyCommand(ENV, "p", AuthorizationPolicyKind.RESOURCE, "api.bookings", ""));
+        entityService.upsert(CALLER, create("api.bookings", EntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("mcp.bookings.tool-1", EntityKind.RESOURCE, "apim"));
+        var policy = policyService.create(CALLER, new CreatePolicyCommand(ENV, "p", PolicyKind.RESOURCE, "api.bookings", ""));
         policyService.deploy(CALLER, policy.id());
         events.clear();
 
@@ -387,13 +365,13 @@ class EntityServiceImplTest {
             int calls = 0;
 
             @Override
-            public void publishPolicyDeployed(io.gravitee.gamma.repository.authorization.model.AuthorizationPolicy policy) {}
+            public void publishPolicyDeployed(io.gravitee.gamma.authorization.domain.Policy policy) {}
 
             @Override
-            public void unpublishPolicy(io.gravitee.gamma.repository.authorization.model.AuthorizationPolicy policy) {}
+            public void unpublishPolicy(io.gravitee.gamma.authorization.domain.Policy policy) {}
 
             @Override
-            public void publishEntityUpserted(io.gravitee.gamma.repository.authorization.model.AuthorizationEntity entity) {
+            public void publishEntityUpserted(io.gravitee.gamma.authorization.domain.Entity entity) {
                 calls++;
                 throw new io.gravitee.gamma.authorization.event.AuthzEventPublishException(
                     "simulated publish failure",
@@ -402,7 +380,7 @@ class EntityServiceImplTest {
             }
 
             @Override
-            public void unpublishEntity(io.gravitee.gamma.repository.authorization.model.AuthorizationEntity entity) {}
+            public void unpublishEntity(io.gravitee.gamma.authorization.domain.Entity entity) {}
         };
         EntityIdValidator validator = new EntityIdValidator();
         SchemaServiceImpl schemaService = new SchemaServiceImpl(entityRepository, policyRepository);
@@ -416,7 +394,7 @@ class EntityServiceImplTest {
             DEFAULT_CASCADE_HARD_LIMIT
         );
 
-        assertThatThrownBy(() -> failingService.upsert(CALLER, create("api.test", AuthorizationEntityKind.RESOURCE, "apim"))).isInstanceOf(
+        assertThatThrownBy(() -> failingService.upsert(CALLER, create("api.test", EntityKind.RESOURCE, "apim"))).isInstanceOf(
             io.gravitee.gamma.authorization.event.AuthzEventPublishException.class
         );
 
@@ -435,13 +413,13 @@ class EntityServiceImplTest {
             int calls = 0;
 
             @Override
-            public void publishPolicyDeployed(io.gravitee.gamma.repository.authorization.model.AuthorizationPolicy policy) {}
+            public void publishPolicyDeployed(io.gravitee.gamma.authorization.domain.Policy policy) {}
 
             @Override
-            public void unpublishPolicy(io.gravitee.gamma.repository.authorization.model.AuthorizationPolicy policy) {}
+            public void unpublishPolicy(io.gravitee.gamma.authorization.domain.Policy policy) {}
 
             @Override
-            public void publishEntityUpserted(io.gravitee.gamma.repository.authorization.model.AuthorizationEntity entity) {
+            public void publishEntityUpserted(io.gravitee.gamma.authorization.domain.Entity entity) {
                 calls++;
                 throw new io.gravitee.gamma.authorization.event.AuthzEventPublishException(
                     "simulated retry-time failure",
@@ -450,7 +428,7 @@ class EntityServiceImplTest {
             }
 
             @Override
-            public void unpublishEntity(io.gravitee.gamma.repository.authorization.model.AuthorizationEntity entity) {}
+            public void unpublishEntity(io.gravitee.gamma.authorization.domain.Entity entity) {}
         };
         EntityIdValidator validator = new EntityIdValidator();
         SchemaServiceImpl schemaService = new SchemaServiceImpl(racingRepo, policyRepository);
@@ -464,7 +442,7 @@ class EntityServiceImplTest {
             DEFAULT_CASCADE_HARD_LIMIT
         );
 
-        assertThatThrownBy(() -> racingService.upsert(CALLER, create("api.race", AuthorizationEntityKind.RESOURCE, "apim"))).isInstanceOf(
+        assertThatThrownBy(() -> racingService.upsert(CALLER, create("api.race", EntityKind.RESOURCE, "apim"))).isInstanceOf(
             io.gravitee.gamma.authorization.event.AuthzEventPublishException.class
         );
 
@@ -472,87 +450,65 @@ class EntityServiceImplTest {
         assertThat(racingRepo.saveCalls).isEqualTo(2);
     }
 
-    private static final class DuplicateOnFirstSaveEntityRepository
-        implements io.gravitee.gamma.repository.authorization.api.AuthorizationEntityRepository {
+    private static final class DuplicateOnFirstSaveEntityRepository implements io.gravitee.gamma.authorization.api.EntityRepository {
 
-        private final io.gravitee.gamma.repository.authorization.api.AuthorizationEntityRepository delegate;
+        private final io.gravitee.gamma.authorization.api.EntityRepository delegate;
         int saveCalls = 0;
 
-        DuplicateOnFirstSaveEntityRepository(io.gravitee.gamma.repository.authorization.api.AuthorizationEntityRepository delegate) {
+        DuplicateOnFirstSaveEntityRepository(io.gravitee.gamma.authorization.api.EntityRepository delegate) {
             this.delegate = delegate;
         }
 
         @Override
-        public AuthorizationEntity create(AuthorizationEntity entity) {
+        public Entity save(Entity entity) {
             saveCalls++;
             if (saveCalls == 1) {
                 throw new org.springframework.dao.DuplicateKeyException("simulated unique-violation race");
             }
-            return delegate.create(entity);
+            return delegate.save(entity);
         }
 
         @Override
-        public AuthorizationEntity update(AuthorizationEntity entity) {
-            saveCalls++;
-            return delegate.update(entity);
+        public java.util.Optional<Entity> findById(String environmentId, String id) {
+            return delegate.findById(environmentId, id);
         }
 
         @Override
-        public java.util.Optional<AuthorizationEntity> findById(String id) {
-            return delegate.findById(id);
+        public java.util.Optional<Entity> findByEntityId(String environmentId, String entityId) {
+            return delegate.findByEntityId(environmentId, entityId);
         }
 
         @Override
-        public void delete(String id) {
-            delegate.delete(id);
+        public List<Entity> findAll(String environmentId) {
+            return delegate.findAll(environmentId);
         }
 
         @Override
-        public java.util.Set<AuthorizationEntity> findAll() {
-            return delegate.findAll();
+        public List<Entity> findByKind(String environmentId, EntityKind kind) {
+            return delegate.findByKind(environmentId, kind);
         }
 
         @Override
-        public java.util.Optional<AuthorizationEntity> findByEnvironmentIdAndId(String environmentId, String id) {
-            return delegate.findByEnvironmentIdAndId(environmentId, id);
+        public List<Entity> findByEntityIdPrefix(String environmentId, String prefix) {
+            return delegate.findByEntityIdPrefix(environmentId, prefix);
         }
 
         @Override
-        public java.util.Optional<AuthorizationEntity> findByEnvironmentIdAndEntityId(String environmentId, String entityId) {
-            return delegate.findByEnvironmentIdAndEntityId(environmentId, entityId);
+        public boolean deleteById(String environmentId, String id) {
+            return delegate.deleteById(environmentId, id);
         }
 
         @Override
-        public List<AuthorizationEntity> findAllByEnvironmentId(String environmentId) {
-            return delegate.findAllByEnvironmentId(environmentId);
-        }
-
-        @Override
-        public List<AuthorizationEntity> findAllByEnvironmentIdAndKind(String environmentId, AuthorizationEntityKind kind) {
-            return delegate.findAllByEnvironmentIdAndKind(environmentId, kind);
-        }
-
-        @Override
-        public List<AuthorizationEntity> findAllByEnvironmentIdAndEntityIdStartingWith(String environmentId, String entityIdPrefix) {
-            return delegate.findAllByEnvironmentIdAndEntityIdStartingWith(environmentId, entityIdPrefix);
-        }
-
-        @Override
-        public long deleteByEnvironmentIdAndId(String environmentId, String id) {
-            return delegate.deleteByEnvironmentIdAndId(environmentId, id);
-        }
-
-        @Override
-        public long deleteByEnvironmentIdAndEntityId(String environmentId, String entityId) {
-            return delegate.deleteByEnvironmentIdAndEntityId(environmentId, entityId);
+        public boolean deleteByEntityId(String environmentId, String entityId) {
+            return delegate.deleteByEntityId(environmentId, entityId);
         }
     }
 
     @Test
     void cascade_delete_above_hard_limit_throws_CascadeTooLargeException() {
-        entityService.upsert(CALLER, create("api.huge", AuthorizationEntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("api.huge", EntityKind.RESOURCE, "apim"));
         for (int i = 0; i < DEFAULT_CASCADE_HARD_LIMIT + 1; i++) {
-            entityService.upsert(CALLER, create("mcp.huge.tool-" + i, AuthorizationEntityKind.RESOURCE, "apim"));
+            entityService.upsert(CALLER, create("mcp.huge.tool-" + i, EntityKind.RESOURCE, "apim"));
         }
         events.clear();
 
@@ -560,7 +516,7 @@ class EntityServiceImplTest {
             io.gravitee.gamma.authorization.service.exception.CascadeTooLargeException.class
         );
 
-        assertThat(entityRepository.findByEnvironmentIdAndEntityId(ENV, "api.huge")).isPresent();
+        assertThat(entityRepository.findByEntityId(ENV, "api.huge")).isPresent();
         assertThat(events.events()).isEmpty();
     }
 }

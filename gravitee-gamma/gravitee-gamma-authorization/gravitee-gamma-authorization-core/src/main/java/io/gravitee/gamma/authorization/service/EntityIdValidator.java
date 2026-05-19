@@ -15,10 +15,10 @@
  */
 package io.gravitee.gamma.authorization.service;
 
+import io.gravitee.gamma.authorization.domain.EntityKind;
+import io.gravitee.gamma.authorization.domain.PolicyKind;
 import io.gravitee.gamma.authorization.service.exception.EntityIdValidationCode;
 import io.gravitee.gamma.authorization.service.exception.InvalidEntityIdException;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationEntityKind;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicyKind;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -30,10 +30,10 @@ public final class EntityIdValidator {
 
     public EntityIdValidator() {}
 
-    public void validate(AuthorizationPolicyKind kind, String entityId) {
+    public void validate(PolicyKind kind, String entityId) {
         Objects.requireNonNull(kind, "kind must not be null");
 
-        if (kind == AuthorizationPolicyKind.GLOBAL) {
+        if (kind == PolicyKind.GLOBAL) {
             if (entityId != null) {
                 throw new InvalidEntityIdException(
                     EntityIdValidationCode.ENTITY_ID_FORBIDDEN_ON_GLOBAL,
@@ -46,7 +46,7 @@ public final class EntityIdValidator {
         validateFormatAndPrefixes(entityId);
     }
 
-    public void validate(AuthorizationEntityKind kind, String entityId) {
+    public void validate(EntityKind kind, String entityId) {
         Objects.requireNonNull(kind, "kind must not be null");
         validateRequiredEntityId(entityId, kind.name());
         validateFormatAndPrefixes(entityId);

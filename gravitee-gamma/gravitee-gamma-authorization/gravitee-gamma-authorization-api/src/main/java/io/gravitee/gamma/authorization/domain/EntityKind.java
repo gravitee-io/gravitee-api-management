@@ -13,13 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.authorization.service.exception;
+package io.gravitee.gamma.authorization.domain;
 
-import io.gravitee.gamma.authorization.domain.PolicyStatus;
-
-public class InvalidStatusTransitionException extends RuntimeException {
-
-    public InvalidStatusTransitionException(PolicyStatus from, PolicyStatus to) {
-        super("Invalid status transition from " + from + " to " + to);
-    }
+public enum EntityKind {
+    PRINCIPAL,
+    RESOURCE,
 }

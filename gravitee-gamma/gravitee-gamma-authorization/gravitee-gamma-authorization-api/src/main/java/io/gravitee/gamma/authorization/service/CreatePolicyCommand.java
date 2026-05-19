@@ -16,7 +16,7 @@
 package io.gravitee.gamma.authorization.service;
 
 import io.gravitee.gamma.authorization.api.Validators;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicyKind;
+import io.gravitee.gamma.authorization.domain.PolicyKind;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -24,7 +24,7 @@ import jakarta.validation.constraints.Size;
 public record CreatePolicyCommand(
     @NotBlank String environmentId,
     @NotBlank String name,
-    @NotNull AuthorizationPolicyKind kind,
+    @NotNull PolicyKind kind,
     String entityId,
     @NotNull String policyText
 ) {

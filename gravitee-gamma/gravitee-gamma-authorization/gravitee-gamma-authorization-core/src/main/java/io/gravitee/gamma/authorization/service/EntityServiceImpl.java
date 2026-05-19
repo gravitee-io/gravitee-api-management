@@ -24,16 +24,16 @@ import io.gravitee.gamma.authorization.api.AuthzEventPublisher;
 import io.gravitee.gamma.authorization.api.AuthzPolicyAuditEvent;
 import io.gravitee.gamma.authorization.api.EntityAdminApi;
 import io.gravitee.gamma.authorization.api.EntityAuditSnapshot;
+import io.gravitee.gamma.authorization.api.EntityRepository;
 import io.gravitee.gamma.authorization.api.PolicyAuditSnapshot;
+import io.gravitee.gamma.authorization.api.PolicyRepository;
 import io.gravitee.gamma.authorization.api.SchemaAdminApi;
+import io.gravitee.gamma.authorization.domain.Entity;
+import io.gravitee.gamma.authorization.domain.EntityKind;
+import io.gravitee.gamma.authorization.domain.Policy;
 import io.gravitee.gamma.authorization.listener.AuthzEntityIdExtractor;
 import io.gravitee.gamma.authorization.service.exception.CascadeTooLargeException;
 import io.gravitee.gamma.authorization.service.exception.EntityNotFoundException;
-import io.gravitee.gamma.repository.authorization.api.AuthorizationEntityRepository;
-import io.gravitee.gamma.repository.authorization.api.AuthorizationPolicyRepository;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationEntity;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationEntityKind;
-import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicy;
 import io.gravitee.gamma.repository.paging.Pageable;
 import io.gravitee.gamma.repository.paging.PagedResult;
 import java.time.Instant;
@@ -59,8 +59,8 @@ public class EntityServiceImpl implements EntityAdminApi {
 
     static final int TRANSACTION_TIMEOUT_SECONDS = 30;
 
-    private final AuthorizationEntityRepository entityRepository;
-    private final AuthorizationPolicyRepository policyRepository;
+    private final EntityRepository entityRepository;
+    private final PolicyRepository policyRepository;
     private final EntityIdValidator entityIdValidator;
     private final SchemaAdminApi schemaService;
     private final AuthzEventPublisher eventPublisher;
@@ -68,8 +68,8 @@ public class EntityServiceImpl implements EntityAdminApi {
     private final int cascadeHardLimit;
 
     public EntityServiceImpl(
-        AuthorizationEntityRepository entityRepository,
-        AuthorizationPolicyRepository policyRepository,
+        EntityRepository entityRepository,
+        PolicyRepository policyRepository,
         EntityIdValidator entityIdValidator,
         SchemaAdminApi schemaService,
         AuthzEventPublisher eventPublisher,
@@ -79,8 +79,8 @@ public class EntityServiceImpl implements EntityAdminApi {
     }
 
     public EntityServiceImpl(
-        AuthorizationEntityRepository entityRepository,
-        AuthorizationPolicyRepository policyRepository,
+        EntityRepository entityRepository,
+        PolicyRepository policyRepository,
         EntityIdValidator entityIdValidator,
         SchemaAdminApi schemaService,
         AuthzEventPublisher eventPublisher,
@@ -128,15 +128,12 @@ public class EntityServiceImpl implements EntityAdminApi {
     }
 
     private UpsertOutcome doUpsert(CreateOrReplaceEntityCommand command) {
-        Optional<AuthorizationEntity> existing = entityRepository.findByEnvironmentIdAndEntityId(
-            command.environmentId(),
-            command.entityId()
-        );
+        Optional<Entity> existing = entityRepository.findByEntityId(command.environmentId(), command.entityId());
         Instant now = TimeProvider.instantNow();
 
-        AuthorizationEntity toSave = existing
+        Entity toSave = existing
             .map(prev ->
-                new AuthorizationEntity(
+                new Entity(
                     prev.id(),
                     command.entityId(),
                     command.kind(),
@@ -149,7 +146,7 @@ public class EntityServiceImpl implements EntityAdminApi {
                 )
             )
             .orElseGet(() ->
-                new AuthorizationEntity(
+                new Entity(
                     UUID.randomUUID().toString(),
                     command.entityId(),
                     command.kind(),
@@ -161,26 +158,26 @@ public class EntityServiceImpl implements EntityAdminApi {
                     now
                 )
             );
-        AuthorizationEntity saved = existing.isPresent() ? entityRepository.update(toSave) : entityRepository.create(toSave);
+        Entity saved = entityRepository.save(toSave);
         eventPublisher.publishEntityUpserted(saved);
         schemaService.invalidate(command.environmentId());
         return new UpsertOutcome(saved, existing.orElse(null), existing.isEmpty());
     }
 
-    private record UpsertOutcome(AuthorizationEntity saved, AuthorizationEntity previous, boolean wasNew) {}
+    private record UpsertOutcome(Entity saved, Entity previous, boolean wasNew) {}
 
     @Override
     @Transactional
-    public AuthorizationEntity update(AuthzCallerContext caller, String entityId, UpdateEntityCommand command) {
+    public Entity update(AuthzCallerContext caller, String entityId, UpdateEntityCommand command) {
         Objects.requireNonNull(caller, "caller must not be null");
         Objects.requireNonNull(command, "command must not be null");
-        entityIdValidator.validate(AuthorizationEntityKind.RESOURCE, entityId);
+        entityIdValidator.validate(EntityKind.RESOURCE, entityId);
 
-        AuthorizationEntity existing = entityRepository
-            .findByEnvironmentIdAndEntityId(caller.environmentId(), entityId)
+        Entity existing = entityRepository
+            .findByEntityId(caller.environmentId(), entityId)
             .orElseThrow(() -> new EntityNotFoundException(caller.environmentId(), entityId));
 
-        AuthorizationEntity updated = new AuthorizationEntity(
+        Entity updated = new Entity(
             existing.id(),
             existing.entityId(),
             existing.kind(),
@@ -191,7 +188,7 @@ public class EntityServiceImpl implements EntityAdminApi {
             existing.createdAt(),
             TimeProvider.instantNow()
         );
-        AuthorizationEntity saved = entityRepository.update(updated);
+        Entity saved = entityRepository.save(updated);
         eventPublisher.publishEntityUpserted(saved);
         schemaService.invalidate(caller.environmentId());
         if (!caller.isSystem()) {
@@ -209,10 +206,10 @@ public class EntityServiceImpl implements EntityAdminApi {
     }
 
     @Override
-    public Optional<AuthorizationEntity> findByEntityId(String environmentId, String entityId) {
+    public Optional<Entity> findByEntityId(String environmentId, String entityId) {
         requireNonBlank(environmentId, "environmentId");
         requireNonBlank(entityId, "entityId");
-        return entityRepository.findByEnvironmentIdAndEntityId(environmentId, entityId);
+        return entityRepository.findByEntityId(environmentId, entityId);
     }
 
     @Override
@@ -220,33 +217,26 @@ public class EntityServiceImpl implements EntityAdminApi {
         requireNonBlank(environmentId, "environmentId");
         requireNonBlank(apiId, "apiId");
         Set<String> ids = new LinkedHashSet<>();
-        entityRepository.findByEnvironmentIdAndEntityId(environmentId, API_PREFIX + apiId).ifPresent(e -> ids.add(e.entityId()));
-        entityRepository
-            .findAllByEnvironmentIdAndEntityIdStartingWith(environmentId, API_PREFIX + apiId + ".")
-            .forEach(e -> ids.add(e.entityId()));
-        entityRepository
-            .findAllByEnvironmentIdAndEntityIdStartingWith(environmentId, MCP_PREFIX + apiId + ".")
-            .forEach(e -> ids.add(e.entityId()));
-        entityRepository
-            .findAllByEnvironmentIdAndEntityIdStartingWith(environmentId, AGENT_PREFIX + apiId + ".")
-            .forEach(e -> ids.add(e.entityId()));
+        entityRepository.findByEntityId(environmentId, API_PREFIX + apiId).ifPresent(e -> ids.add(e.entityId()));
+        entityRepository.findByEntityIdPrefix(environmentId, API_PREFIX + apiId + ".").forEach(e -> ids.add(e.entityId()));
+        entityRepository.findByEntityIdPrefix(environmentId, MCP_PREFIX + apiId + ".").forEach(e -> ids.add(e.entityId()));
+        entityRepository.findByEntityIdPrefix(environmentId, AGENT_PREFIX + apiId + ".").forEach(e -> ids.add(e.entityId()));
         return ids;
     }
 
     @Override
-    public List<AuthorizationEntity> find(String environmentId, EntityFilter filter) {
+    public List<Entity> find(String environmentId, EntityFilter filter) {
         requireNonBlank(environmentId, "environmentId");
         validateFilter(filter);
-        return findInMemory(environmentId, filter);
+        return entityRepository.findPage(environmentId, filter, Pageable.unbounded()).data();
     }
 
     @Override
-    public PagedResult<AuthorizationEntity> findPage(String environmentId, EntityFilter filter, Pageable pageable) {
+    public PagedResult<Entity> findPage(String environmentId, EntityFilter filter, Pageable pageable) {
         requireNonBlank(environmentId, "environmentId");
         Objects.requireNonNull(pageable, "pageable must not be null");
         validateFilter(filter);
-        EntityFilter f = filter == null ? EntityFilter.none() : filter;
-        return entityRepository.findPage(environmentId, f.kind(), f.source(), f.entityIdPrefix(), pageable);
+        return entityRepository.findPage(environmentId, filter, pageable);
     }
 
     private void validateFilter(EntityFilter filter) {
@@ -256,31 +246,19 @@ public class EntityServiceImpl implements EntityAdminApi {
         }
     }
 
-    private List<AuthorizationEntity> findInMemory(String environmentId, EntityFilter filter) {
-        EntityFilter f = filter == null ? EntityFilter.none() : filter;
-        List<AuthorizationEntity> base = f.entityIdPrefix() != null
-            ? entityRepository.findAllByEnvironmentIdAndEntityIdStartingWith(environmentId, f.entityIdPrefix())
-            : entityRepository.findAllByEnvironmentId(environmentId);
-        return base
-            .stream()
-            .filter(e -> f.kind() == null || e.kind() == f.kind())
-            .filter(e -> f.source() == null || f.source().equals(e.source()))
-            .toList();
-    }
-
     @Override
     @Transactional(timeout = TRANSACTION_TIMEOUT_SECONDS)
     public CascadeResult delete(AuthzCallerContext caller, String entityId) {
         Objects.requireNonNull(caller, "caller must not be null");
         requireNonBlank(entityId, "entityId");
-        entityIdValidator.validate(AuthorizationEntityKind.RESOURCE, entityId);
+        entityIdValidator.validate(EntityKind.RESOURCE, entityId);
 
         String environmentId = caller.environmentId();
-        LinkedHashMap<String, AuthorizationEntity> affectedEntities = computeCascadeEntities(environmentId, entityId);
+        LinkedHashMap<String, Entity> affectedEntities = computeCascadeEntities(environmentId, entityId);
 
-        LinkedHashMap<String, AuthorizationPolicy> affectedPolicies = new LinkedHashMap<>();
+        LinkedHashMap<String, Policy> affectedPolicies = new LinkedHashMap<>();
         for (String eid : affectedEntities.keySet()) {
-            for (AuthorizationPolicy p : policyRepository.findAllByEnvironmentIdAndEntityId(environmentId, eid)) {
+            for (Policy p : policyRepository.findByEntityId(environmentId, eid)) {
                 affectedPolicies.putIfAbsent(p.id(), p);
             }
         }
@@ -291,16 +269,16 @@ public class EntityServiceImpl implements EntityAdminApi {
         }
 
         for (String eid : affectedEntities.keySet()) {
-            entityRepository.deleteByEnvironmentIdAndEntityId(environmentId, eid);
+            entityRepository.deleteByEntityId(environmentId, eid);
         }
         for (String pid : affectedPolicies.keySet()) {
-            policyRepository.deleteByEnvironmentIdAndId(environmentId, pid);
+            policyRepository.deleteById(environmentId, pid);
         }
 
-        for (AuthorizationEntity e : affectedEntities.values()) {
+        for (Entity e : affectedEntities.values()) {
             eventPublisher.unpublishEntity(e);
         }
-        for (AuthorizationPolicy p : affectedPolicies.values()) {
+        for (Policy p : affectedPolicies.values()) {
             eventPublisher.unpublishPolicy(p);
         }
 
@@ -309,12 +287,12 @@ public class EntityServiceImpl implements EntityAdminApi {
         }
 
         if (!caller.isSystem()) {
-            for (AuthorizationEntity e : affectedEntities.values()) {
+            for (Entity e : affectedEntities.values()) {
                 auditPort.record(
                     AuthzAuditEntry.entity(caller, AuthzEntityAuditEvent.ENTITY_DELETED, e.entityId(), EntityAuditSnapshot.of(e), null)
                 );
             }
-            for (AuthorizationPolicy p : affectedPolicies.values()) {
+            for (Policy p : affectedPolicies.values()) {
                 auditPort.record(
                     AuthzAuditEntry.policy(caller, AuthzPolicyAuditEvent.POLICY_DELETED, p.id(), PolicyAuditSnapshot.of(p), null)
                 );
@@ -324,25 +302,19 @@ public class EntityServiceImpl implements EntityAdminApi {
         return new CascadeResult(new ArrayList<>(affectedEntities.keySet()), new ArrayList<>(affectedPolicies.keySet()));
     }
 
-    private LinkedHashMap<String, AuthorizationEntity> computeCascadeEntities(String environmentId, String entityId) {
-        LinkedHashMap<String, AuthorizationEntity> result = new LinkedHashMap<>();
-        entityRepository.findByEnvironmentIdAndEntityId(environmentId, entityId).ifPresent(e -> result.put(e.entityId(), e));
-        for (AuthorizationEntity e : entityRepository.findAllByEnvironmentIdAndEntityIdStartingWith(environmentId, entityId + ".")) {
+    private LinkedHashMap<String, Entity> computeCascadeEntities(String environmentId, String entityId) {
+        LinkedHashMap<String, Entity> result = new LinkedHashMap<>();
+        entityRepository.findByEntityId(environmentId, entityId).ifPresent(e -> result.put(e.entityId(), e));
+        for (Entity e : entityRepository.findByEntityIdPrefix(environmentId, entityId + ".")) {
             result.putIfAbsent(e.entityId(), e);
         }
         if (entityId.startsWith(API_PREFIX)) {
             String apiId = entityId.substring(API_PREFIX.length());
             if (!apiId.isEmpty() && !apiId.contains(".")) {
-                for (AuthorizationEntity e : entityRepository.findAllByEnvironmentIdAndEntityIdStartingWith(
-                    environmentId,
-                    MCP_PREFIX + apiId + "."
-                )) {
+                for (Entity e : entityRepository.findByEntityIdPrefix(environmentId, MCP_PREFIX + apiId + ".")) {
                     result.putIfAbsent(e.entityId(), e);
                 }
-                for (AuthorizationEntity e : entityRepository.findAllByEnvironmentIdAndEntityIdStartingWith(
-                    environmentId,
-                    AGENT_PREFIX + apiId + "."
-                )) {
+                for (Entity e : entityRepository.findByEntityIdPrefix(environmentId, AGENT_PREFIX + apiId + ".")) {
                     result.putIfAbsent(e.entityId(), e);
                 }
             }
