@@ -24,11 +24,69 @@ import org.mapstruct.MappingConstants;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface AuthorizationMapper {
-    AuthorizationEntity map(AuthorizationEntityMongo mongo);
+    default AuthorizationEntity map(AuthorizationEntityMongo mongo) {
+        if (mongo == null) {
+            return null;
+        }
+        return AuthorizationEntity.builder()
+            .id(mongo.id())
+            .entityId(mongo.entityId())
+            .kind(mongo.kind())
+            .attributes(mongo.attributes())
+            .parents(mongo.parents())
+            .source(mongo.source())
+            .environmentId(mongo.environmentId())
+            .createdAt(mongo.createdAt())
+            .updatedAt(mongo.updatedAt())
+            .build();
+    }
 
-    AuthorizationEntityMongo map(AuthorizationEntity domain);
+    default AuthorizationEntityMongo map(AuthorizationEntity domain) {
+        if (domain == null) {
+            return null;
+        }
+        return new AuthorizationEntityMongo()
+            .id(domain.id())
+            .entityId(domain.entityId())
+            .kind(domain.kind())
+            .attributes(domain.attributes())
+            .parents(domain.parents())
+            .source(domain.source())
+            .environmentId(domain.environmentId())
+            .createdAt(domain.createdAt())
+            .updatedAt(domain.updatedAt());
+    }
 
-    AuthorizationPolicy map(AuthorizationPolicyMongo mongo);
+    default AuthorizationPolicy map(AuthorizationPolicyMongo mongo) {
+        if (mongo == null) {
+            return null;
+        }
+        return AuthorizationPolicy.builder()
+            .id(mongo.id())
+            .name(mongo.name())
+            .kind(mongo.kind())
+            .entityId(mongo.entityId())
+            .policyText(mongo.policyText())
+            .status(mongo.status())
+            .environmentId(mongo.environmentId())
+            .createdAt(mongo.createdAt())
+            .updatedAt(mongo.updatedAt())
+            .build();
+    }
 
-    AuthorizationPolicyMongo map(AuthorizationPolicy domain);
+    default AuthorizationPolicyMongo map(AuthorizationPolicy domain) {
+        if (domain == null) {
+            return null;
+        }
+        return new AuthorizationPolicyMongo()
+            .id(domain.id())
+            .name(domain.name())
+            .kind(domain.kind())
+            .entityId(domain.entityId())
+            .policyText(domain.policyText())
+            .status(domain.status())
+            .environmentId(domain.environmentId())
+            .createdAt(domain.createdAt())
+            .updatedAt(domain.updatedAt());
+    }
 }
