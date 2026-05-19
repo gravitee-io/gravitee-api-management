@@ -145,7 +145,7 @@ export function ApiListTable({ apis, isLoading, skeletonRowCount = 5 }: ApiListT
                         <TableHead>Sync Status</TableHead>
                         <TableHead>Access</TableHead>
                         <TableHead>Owner</TableHead>
-                        <TableHead className="w-10 text-right" />
+                        <TableHead className="w-10 text-right">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>

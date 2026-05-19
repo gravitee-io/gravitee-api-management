@@ -14,7 +14,41 @@
  * limitations under the License.
  */
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { MemoryRouter, useParams } from 'react-router-dom';
+
+// Render DropdownMenu inline (no portal) with open/close state so only the
+// triggered row's items are visible at a time.
+// All React APIs are accessed via require() to satisfy jest.mock hoisting rules.
+jest.mock('@gravitee/graphene-core', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const { useState, createContext, useContext } = jest.requireActual('react');
+    const MenuCtx = createContext<{ open: boolean; setOpen: (v: boolean) => void }>({ open: false, setOpen: () => {} });
+    return {
+        ...jest.requireActual<object>('@gravitee/graphene-core'),
+        DropdownMenu: ({ children }: { children?: ReactNode }) => {
+            const [open, setOpen] = useState(false);
+            return <MenuCtx.Provider value={{ open, setOpen }}>{children}</MenuCtx.Provider>;
+        },
+        DropdownMenuTrigger: ({ children, asChild: _ }: { children?: ReactNode; asChild?: boolean }) => {
+            const { setOpen } = useContext(MenuCtx);
+            return (
+                <span role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && setOpen(true)} onClick={() => setOpen(true)}>
+                    {children}
+                </span>
+            );
+        },
+        DropdownMenuContent: ({ children }: { children?: ReactNode }) => {
+            const { open } = useContext(MenuCtx);
+            return open ? <div>{children}</div> : null;
+        },
+        DropdownMenuItem: ({ children, onSelect }: { children?: ReactNode; onSelect?: () => void }) => (
+            <button role="menuitem" onClick={onSelect}>
+                {children}
+            </button>
+        ),
+    };
+});
 
 import { ApiProductApisPage } from './ApiProductApisPage';
 import { useApiProductDetailContext } from '../../../context/ApiProductDetailContext';
@@ -123,14 +157,16 @@ describe('ApiProductApisPage', () => {
     describe('removing a single API', () => {
         it('opens a confirmation dialog when the remove button is clicked', async () => {
             renderPage();
-            fireEvent.click(screen.getByRole('button', { name: 'Remove API One' }));
+            fireEvent.click(screen.getByRole('button', { name: 'Actions for API One' }));
+            fireEvent.click(await screen.findByRole('menuitem', { name: 'Remove from product' }));
             expect(await screen.findByText('Remove API')).toBeInTheDocument();
         });
 
         it('calls updateProduct with only the target API filtered out of apiIds', async () => {
             renderPage();
             // Remove api-1; product.apiIds was ['api-1', 'api-2'] → should become ['api-2']
-            fireEvent.click(screen.getByRole('button', { name: 'Remove API One' }));
+            fireEvent.click(screen.getByRole('button', { name: 'Actions for API One' }));
+            fireEvent.click(await screen.findByRole('menuitem', { name: 'Remove from product' }));
             fireEvent.click(await screen.findByRole('button', { name: 'Remove' }));
             expect(mockUpdateProduct).toHaveBeenCalledWith(
                 expect.objectContaining({ apiIds: ['api-2'] }),
@@ -140,7 +176,8 @@ describe('ApiProductApisPage', () => {
 
         it('does not call updateProduct when the remove dialog is cancelled', async () => {
             renderPage();
-            fireEvent.click(screen.getByRole('button', { name: 'Remove API One' }));
+            fireEvent.click(screen.getByRole('button', { name: 'Actions for API One' }));
+            fireEvent.click(await screen.findByRole('menuitem', { name: 'Remove from product' }));
             fireEvent.click(await screen.findByRole('button', { name: 'Cancel' }));
             expect(mockUpdateProduct).not.toHaveBeenCalled();
         });

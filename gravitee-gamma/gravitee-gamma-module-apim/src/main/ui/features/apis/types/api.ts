@@ -246,6 +246,14 @@ export interface OrgShardingTag {
     description?: string;
 }
 
+export interface EnvCategory {
+    id: string;
+    key: string;
+    name: string;
+    description?: string;
+    hidden?: boolean;
+}
+
 // ─── Properties types ─────────────────────────────────────────────────────────
 
 export interface Property {

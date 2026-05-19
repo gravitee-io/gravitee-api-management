@@ -251,7 +251,7 @@ export function ApiAlertsPage() {
                                 <TableHead>Rule</TableHead>
                                 <TableHead>Severity</TableHead>
                                 <TableHead>Enabled</TableHead>
-                                {canEdit && <TableHead className="w-12" />}
+                                {canEdit && <TableHead className="w-12 text-right">Actions</TableHead>}
                             </TableRow>
                         </TableHeader>
                         <TableBody>

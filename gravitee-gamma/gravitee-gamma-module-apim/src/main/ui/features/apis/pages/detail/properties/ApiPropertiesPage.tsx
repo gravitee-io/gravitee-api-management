@@ -205,7 +205,7 @@ function PropertyDialog({ state, existingKeys, isSaving, onClose, onSave }: Prop
 
     return (
         <Dialog open onOpenChange={open => !open && onClose()}>
-            <DialogContent className="max-w-md w-full">
+            <DialogContent className="max-w-md w-full" aria-describedby={undefined}>
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
                 </DialogHeader>
@@ -303,7 +303,7 @@ function ImportPropertiesDialog({ existingProperties, isSaving, onClose, onImpor
 
     return (
         <Dialog open onOpenChange={open => !open && onClose()}>
-            <DialogContent className="max-w-xl w-full">
+            <DialogContent className="max-w-xl w-full" aria-describedby={undefined}>
                 <DialogHeader>
                     <DialogTitle>Import properties</DialogTitle>
                 </DialogHeader>
@@ -580,7 +580,7 @@ export function ApiPropertiesPage() {
                                         <TableHead style={{ width: '30%' }}>Key</TableHead>
                                         <TableHead>Value</TableHead>
                                         <TableHead>Characteristics</TableHead>
-                                        <TableHead className="w-14" />
+                                        <TableHead className="w-14 text-right">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>

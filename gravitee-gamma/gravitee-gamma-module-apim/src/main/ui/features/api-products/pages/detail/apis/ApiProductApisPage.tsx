@@ -27,6 +27,10 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
     Input,
     Skeleton,
     Table,
@@ -42,9 +46,9 @@ import {
     CircleCheckIcon,
     GlobeIcon,
     LayoutGridIcon,
+    MoreHorizontalIcon,
     PlusIcon,
     SearchIcon,
-    Trash2Icon,
     UsersRoundIcon,
 } from '@gravitee/graphene-core/icons';
 import { useEffect, useId, useState } from 'react';
@@ -78,9 +82,18 @@ function ApiRow({ api, onRequestRemove }: { api: ApiListItem; onRequestRemove: (
             </TableCell>
             <TableCell className="text-sm text-muted-foreground">{api.primaryOwner?.displayName ?? '—'}</TableCell>
             <TableCell className="text-right">
-                <Button variant="ghost" size="icon" aria-label={`Remove ${api.name}`} onClick={onRequestRemove}>
-                    <Trash2Icon className="size-4 text-muted-foreground hover:text-destructive transition-colors" aria-hidden />
-                </Button>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" aria-label={`Actions for ${api.name}`}>
+                            <MoreHorizontalIcon className="size-4" aria-hidden />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-auto min-w-[12rem]">
+                        <DropdownMenuItem onSelect={onRequestRemove} className="text-destructive focus:text-destructive">
+                            Remove from product
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </TableCell>
         </TableRow>
     );
@@ -90,12 +103,14 @@ function DiagramNode({
     icon: Icon,
     label,
     sub,
+    truncateSub,
     iconClass,
     iconStyle,
 }: {
     icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
     label: string;
     sub: string;
+    truncateSub?: boolean;
     iconClass?: string;
     iconStyle?: React.CSSProperties;
 }) {
@@ -105,9 +120,17 @@ function DiagramNode({
                 <Icon className={iconClass ?? 'size-5'} style={iconStyle} aria-hidden />
             </div>
             <p className="mt-1.5 text-xs font-medium">{label}</p>
-            <p className="text-xs text-muted-foreground" style={{ maxWidth: '140px' }}>
-                {sub}
-            </p>
+            {truncateSub ? (
+                <p
+                    className="text-xs text-muted-foreground w-full overflow-hidden"
+                    style={{ textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                    title={sub}
+                >
+                    {sub}
+                </p>
+            ) : (
+                <p className="text-xs text-muted-foreground break-words">{sub}</p>
+            )}
         </div>
     );
 }
@@ -134,6 +157,7 @@ function EmptyApisLanding({ productName }: { productName?: string }) {
                             icon={LayoutGridIcon}
                             label="API Product"
                             sub={productName ?? 'This product'}
+                            truncateSub
                             iconClass="size-5"
                             iconStyle={{ color: '#7c3aed' }}
                         />
@@ -303,7 +327,7 @@ export function ApiProductApisPage() {
                                     <TableHead>API Name</TableHead>
                                     <TableHead>Version</TableHead>
                                     <TableHead>Owner</TableHead>
-                                    <TableHead className="w-10" />
+                                    <TableHead className="w-10 text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>

@@ -34,6 +34,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { CategorySelectInput } from './CategorySelectInput';
 import { ChipInput } from './ChipInput';
 import { DeleteDialog } from './DeleteDialog';
 import { DuplicateDialog } from './DuplicateDialog';
@@ -43,6 +44,7 @@ import { ImportDialog } from './ImportDialog';
 import { PromoteDialog } from './PromoteDialog';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import { useApiGeneralMutations } from '../../../hooks/useApiGeneralMutations';
+import { useEnvCategories } from '../../../hooks/useEnvCategories';
 import { exportApiDefinition } from '../../../services/apis';
 import type { ApiDetailDto } from '../../../types/api';
 
@@ -101,6 +103,8 @@ export function ApiGeneralPage() {
 
     // Delete is blocked while the API is running or published (matches legacy canDelete logic).
     const cannotDelete = api?.state === 'STARTED' || api?.lifecycleState === 'PUBLISHED';
+
+    const { data: envCategories = [], isLoading: categoriesLoading } = useEnvCategories();
 
     // ── Form state ────────────────────────────────────────────────────────────
 
@@ -344,11 +348,13 @@ export function ApiGeneralPage() {
 
                             <div className="space-y-1">
                                 <Label htmlFor="api-categories">Categories</Label>
-                                <ChipInput
+                                <CategorySelectInput
                                     id="api-categories"
-                                    values={form.categories}
-                                    onChange={v => !isReadOnly && setField('categories', v)}
-                                    placeholder={isReadOnly ? '' : 'Type a category and press Enter'}
+                                    selectedKeys={form.categories}
+                                    categories={envCategories}
+                                    isLoading={categoriesLoading}
+                                    disabled={isReadOnly}
+                                    onChange={keys => setField('categories', keys)}
                                 />
                             </div>
 
