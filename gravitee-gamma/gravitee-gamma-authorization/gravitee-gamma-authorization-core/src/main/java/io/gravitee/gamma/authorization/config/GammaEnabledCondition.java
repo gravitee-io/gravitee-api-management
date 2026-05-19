@@ -28,6 +28,6 @@ public class GammaEnabledCondition implements ConfigurationCondition {
 
     @Override
     public ConfigurationPhase getConfigurationPhase() {
-        return ConfigurationPhase.REGISTER_BEAN;
+        return ConfigurationPhase.PARSE_CONFIGURATION;
     }
 }
