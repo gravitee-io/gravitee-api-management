@@ -15,17 +15,19 @@
  */
 package io.gravitee.gamma.authorization.service;
 
+import io.gravitee.gamma.authorization.api.EntityIdConstants;
 import io.gravitee.gamma.authorization.api.Validators;
 import io.gravitee.gamma.authorization.domain.PolicyKind;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record CreatePolicyCommand(
     @NotBlank String environmentId,
     @NotBlank String name,
     @NotNull PolicyKind kind,
-    String entityId,
+    @Size(max = EntityIdConstants.MAX_ENTITY_ID_LENGTH) @Pattern(regexp = EntityIdConstants.FORMAT_REGEX) String entityId,
     @NotNull String policyText
 ) {
     public CreatePolicyCommand {

@@ -15,17 +15,19 @@
  */
 package io.gravitee.gamma.authorization.service;
 
+import io.gravitee.gamma.authorization.api.EntityIdConstants;
 import io.gravitee.gamma.authorization.api.Validators;
 import io.gravitee.gamma.authorization.domain.EntityKind;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.Map;
 
 public record CreateOrReplaceEntityCommand(
     @NotBlank String environmentId,
-    @NotBlank String entityId,
+    @NotBlank @Size(max = EntityIdConstants.MAX_ENTITY_ID_LENGTH) @Pattern(regexp = EntityIdConstants.FORMAT_REGEX) String entityId,
     @NotNull EntityKind kind,
     Map<String, Object> attributes,
     List<String> parents,

@@ -505,6 +505,62 @@ class EntityServiceImplTest {
     }
 
     @Test
+    void bulkUpsert_creates_all_entities_in_one_call() {
+        List<UpsertResult> results = entityService.bulkUpsert(
+            CALLER,
+            List.of(create("api.1", EntityKind.RESOURCE, "apim"), create("mcp.1.tool-a", EntityKind.RESOURCE, "apim"))
+        );
+
+        assertThat(results).hasSize(2);
+        assertThat(results).allMatch(UpsertResult::created);
+        assertThat(entityRepository.findAll(ENV)).extracting(Entity::entityId).containsExactlyInAnyOrder("api.1", "mcp.1.tool-a");
+    }
+
+    @Test
+    void bulkUpsert_replaces_existing_entities_preserving_id_and_createdAt() {
+        UpsertResult first = entityService.upsert(CALLER, create("api.1", EntityKind.RESOURCE, "apim"));
+        Instant later = FIXED.plusSeconds(60);
+        TimeProvider.overrideClock(Clock.fixed(later, ZoneOffset.UTC));
+
+        List<UpsertResult> results = entityService.bulkUpsert(
+            CALLER,
+            List.of(
+                new CreateOrReplaceEntityCommand(ENV, "api.1", EntityKind.RESOURCE, Map.of("k", "v"), List.of(), "apim"),
+                create("api.2", EntityKind.RESOURCE, "apim")
+            )
+        );
+
+        assertThat(results.get(0).created()).isFalse();
+        assertThat(results.get(0).entity().id()).isEqualTo(first.entity().id());
+        assertThat(results.get(0).entity().createdAt()).isEqualTo(FIXED);
+        assertThat(results.get(0).entity().updatedAt()).isEqualTo(later);
+        assertThat(results.get(1).created()).isTrue();
+    }
+
+    @Test
+    void bulkUpsert_with_empty_list_is_a_no_op() {
+        List<UpsertResult> results = entityService.bulkUpsert(CALLER, List.of());
+
+        assertThat(results).isEmpty();
+        assertThat(entityRepository.findAll(ENV)).isEmpty();
+        assertThat(events.events()).isEmpty();
+    }
+
+    @Test
+    void bulkUpsert_emits_one_event_per_entity() {
+        events.clear();
+
+        entityService.bulkUpsert(
+            CALLER,
+            List.of(create("api.1", EntityKind.RESOURCE, "apim"), create("api.2", EntityKind.RESOURCE, "apim"))
+        );
+
+        assertThat(events.events()).hasSize(2);
+        assertThat(events.events()).allMatch(e -> e.kind() == EventKind.ENTITY_PUBLISHED);
+        assertThat(events.events()).extracting(RecordingAuthzEventPublisher.Recorded::id).containsExactly("api.1", "api.2");
+    }
+
+    @Test
     void cascade_delete_above_hard_limit_throws_CascadeTooLargeException() {
         entityService.upsert(CALLER, create("api.huge", EntityKind.RESOURCE, "apim"));
         for (int i = 0; i < DEFAULT_CASCADE_HARD_LIMIT + 1; i++) {

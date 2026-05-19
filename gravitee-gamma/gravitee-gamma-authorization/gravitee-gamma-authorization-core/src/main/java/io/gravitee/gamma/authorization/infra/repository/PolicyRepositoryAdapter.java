@@ -23,6 +23,7 @@ import io.gravitee.gamma.authorization.service.PolicyFilter;
 import io.gravitee.gamma.repository.authorization.api.AuthorizationPolicyRepository;
 import io.gravitee.gamma.repository.paging.Pageable;
 import io.gravitee.gamma.repository.paging.PagedResult;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
@@ -67,8 +68,18 @@ public class PolicyRepositoryAdapter implements PolicyRepository {
     }
 
     @Override
+    public List<Policy> findByEntityIds(String environmentId, Collection<String> entityIds) {
+        return storage.findAllByEnvironmentIdAndEntityIdIn(environmentId, entityIds).stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
     public boolean deleteById(String environmentId, String id) {
         return storage.deleteByEnvironmentIdAndId(environmentId, id) > 0;
+    }
+
+    @Override
+    public long deleteByIds(String environmentId, Collection<String> ids) {
+        return storage.deleteByEnvironmentIdAndIdIn(environmentId, ids);
     }
 
     @Override

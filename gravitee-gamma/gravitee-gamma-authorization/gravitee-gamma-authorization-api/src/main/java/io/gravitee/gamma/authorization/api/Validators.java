@@ -21,6 +21,7 @@ import jakarta.validation.Validator;
 import jakarta.validation.executable.ExecutableValidator;
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -47,6 +48,23 @@ public final class Validators {
         Set<ConstraintViolation<T>> violations = EXECUTABLE_VALIDATOR.validateConstructorParameters(canonical, values);
         if (!violations.isEmpty()) {
             throw new IllegalArgumentException(message(violations));
+        }
+    }
+
+    public static String requireNonBlank(String value, String name) {
+        Objects.requireNonNull(value, name);
+        if (value.isBlank()) {
+            throw new IllegalArgumentException(name + " must not be blank");
+        }
+        return value;
+    }
+
+    public static void requireMatchingEnv(AuthzCallerContext caller, String commandEnvId) {
+        requireNonBlank(commandEnvId, "command.environmentId");
+        if (!caller.environmentId().equals(commandEnvId)) {
+            throw new IllegalArgumentException(
+                "command.environmentId (" + commandEnvId + ") does not match caller.environmentId (" + caller.environmentId() + ")"
+            );
         }
     }
 

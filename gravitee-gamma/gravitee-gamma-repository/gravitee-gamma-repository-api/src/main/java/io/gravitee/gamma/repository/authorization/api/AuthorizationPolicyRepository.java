@@ -22,6 +22,8 @@ import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicyStatu
 import io.gravitee.gamma.repository.exceptions.TechnicalException;
 import io.gravitee.gamma.repository.paging.Pageable;
 import io.gravitee.gamma.repository.paging.PagedResult;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,7 +36,39 @@ public interface AuthorizationPolicyRepository extends CrudRepository<Authorizat
 
     List<AuthorizationPolicy> findAllByEnvironmentIdAndEntityId(String environmentId, String entityId) throws TechnicalException;
 
+    /**
+     * Batch lookup by entityId. Empty/null collection yields an empty list.
+     * Mongo adapter overrides with a single {@code $in} query; default
+     * implementation falls back to per-entity lookups for in-memory adapters.
+     */
+    default List<AuthorizationPolicy> findAllByEnvironmentIdAndEntityIdIn(String environmentId, Collection<String> entityIds)
+        throws TechnicalException {
+        if (entityIds == null || entityIds.isEmpty()) {
+            return List.of();
+        }
+        LinkedHashSet<AuthorizationPolicy> merged = new LinkedHashSet<>();
+        for (String entityId : entityIds) {
+            merged.addAll(findAllByEnvironmentIdAndEntityId(environmentId, entityId));
+        }
+        return List.copyOf(merged);
+    }
+
     long deleteByEnvironmentIdAndId(String environmentId, String id) throws TechnicalException;
+
+    /**
+     * Batch delete by id. Returns the number of deleted documents.
+     * Empty/null collection deletes nothing and returns {@code 0}.
+     */
+    default long deleteByEnvironmentIdAndIdIn(String environmentId, Collection<String> ids) throws TechnicalException {
+        if (ids == null || ids.isEmpty()) {
+            return 0L;
+        }
+        long deleted = 0L;
+        for (String id : ids) {
+            deleted += deleteByEnvironmentIdAndId(environmentId, id);
+        }
+        return deleted;
+    }
 
     default PagedResult<AuthorizationPolicy> findPage(
         String environmentId,

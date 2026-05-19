@@ -59,7 +59,6 @@ public final class EventRepositoryAuthzEventPublisher implements AuthzEventPubli
     @Override
     public void publishPolicyDeployed(Policy policy) {
         Objects.requireNonNull(policy, "policy must not be null");
-        requireNonBlank(policy.environmentId(), "policy.environmentId");
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put(AuthzEventPayloadFields.ID, policy.id());
         payload.put(AuthzEventPayloadFields.NAME, policy.name());
@@ -79,8 +78,6 @@ public final class EventRepositoryAuthzEventPublisher implements AuthzEventPubli
     @Override
     public void unpublishPolicy(Policy policy) {
         Objects.requireNonNull(policy, "policy must not be null");
-        requireNonBlank(policy.environmentId(), "policy.environmentId");
-        requireNonBlank(policy.id(), "policy.id");
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put(AuthzEventPayloadFields.ID, policy.id());
         payload.put(AuthzEventPayloadFields.KIND, policy.kind().name());
@@ -97,7 +94,6 @@ public final class EventRepositoryAuthzEventPublisher implements AuthzEventPubli
     @Override
     public void publishEntityUpserted(Entity entity) {
         Objects.requireNonNull(entity, "entity must not be null");
-        requireNonBlank(entity.environmentId(), "entity.environmentId");
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put(AuthzEventPayloadFields.ID, entity.id());
         payload.put(AuthzEventPayloadFields.ENTITY_ID, entity.entityId());
@@ -118,8 +114,6 @@ public final class EventRepositoryAuthzEventPublisher implements AuthzEventPubli
     @Override
     public void unpublishEntity(Entity entity) {
         Objects.requireNonNull(entity, "entity must not be null");
-        requireNonBlank(entity.environmentId(), "entity.environmentId");
-        requireNonBlank(entity.entityId(), "entity.entityId");
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put(AuthzEventPayloadFields.ENTITY_ID, entity.entityId());
         payload.put(AuthzEventPayloadFields.KIND, entity.kind().name());
@@ -168,13 +162,6 @@ public final class EventRepositoryAuthzEventPublisher implements AuthzEventPubli
             return objectMapper.writeValueAsString(payload);
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Failed to serialise authz event payload", e);
-        }
-    }
-
-    private static void requireNonBlank(String value, String name) {
-        Objects.requireNonNull(value, name);
-        if (value.isBlank()) {
-            throw new IllegalArgumentException(name + " must not be blank");
         }
     }
 

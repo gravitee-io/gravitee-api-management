@@ -17,6 +17,7 @@ package io.gravitee.gamma.repository.mongodb.internal.authorization;
 
 import io.gravitee.gamma.repository.authorization.model.AuthorizationPolicyKind;
 import io.gravitee.gamma.repository.mongodb.internal.model.AuthorizationPolicyMongo;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -32,5 +33,9 @@ public interface AuthorizationPolicyMongoRepository extends MongoRepository<Auth
 
     List<AuthorizationPolicyMongo> findAllByEnvironmentIdAndEntityId(String environmentId, String entityId);
 
+    List<AuthorizationPolicyMongo> findAllByEnvironmentIdAndEntityIdIn(String environmentId, Collection<String> entityIds);
+
     long deleteByEnvironmentIdAndId(String environmentId, String id);
+
+    long deleteByEnvironmentIdAndIdIn(String environmentId, Collection<String> ids);
 }

@@ -20,6 +20,8 @@ import io.gravitee.gamma.authorization.domain.PolicyKind;
 import io.gravitee.gamma.authorization.service.PolicyFilter;
 import io.gravitee.gamma.repository.paging.Pageable;
 import io.gravitee.gamma.repository.paging.PagedResult;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,7 +36,40 @@ public interface PolicyRepository {
 
     List<Policy> findByEntityId(String environmentId, String entityId);
 
+    /**
+     * Batch lookup of policies attached to any of the given entityIds.
+     * Used by cascade-delete to fetch all impacted policies in one query.
+     * Empty/null collection yields an empty list.
+     */
+    default List<Policy> findByEntityIds(String environmentId, Collection<String> entityIds) {
+        if (entityIds == null || entityIds.isEmpty()) {
+            return List.of();
+        }
+        LinkedHashSet<Policy> merged = new LinkedHashSet<>();
+        for (String entityId : entityIds) {
+            merged.addAll(findByEntityId(environmentId, entityId));
+        }
+        return List.copyOf(merged);
+    }
+
     boolean deleteById(String environmentId, String id);
+
+    /**
+     * Batch delete by id. Returns the number of deleted policies.
+     * Empty/null collection deletes nothing and returns {@code 0}.
+     */
+    default long deleteByIds(String environmentId, Collection<String> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return 0L;
+        }
+        long deleted = 0L;
+        for (String id : ids) {
+            if (deleteById(environmentId, id)) {
+                deleted++;
+            }
+        }
+        return deleted;
+    }
 
     /**
      * Paginated lookup of policies matching {@code filter}.

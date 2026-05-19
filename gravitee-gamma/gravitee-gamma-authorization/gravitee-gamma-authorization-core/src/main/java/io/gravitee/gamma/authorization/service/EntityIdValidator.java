@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.authorization.service;
 
+import io.gravitee.gamma.authorization.api.EntityIdConstants;
 import io.gravitee.gamma.authorization.domain.EntityKind;
 import io.gravitee.gamma.authorization.domain.PolicyKind;
 import io.gravitee.gamma.authorization.service.exception.EntityIdValidationCode;
@@ -24,60 +25,50 @@ import java.util.regex.Pattern;
 
 public final class EntityIdValidator {
 
-    private static final Pattern FORMAT = Pattern.compile("^[a-z0-9._-]+$");
-
-    static final int MAX_ENTITY_ID_LENGTH = 255;
+    private static final Pattern FORMAT = Pattern.compile(EntityIdConstants.FORMAT_REGEX);
 
     public EntityIdValidator() {}
 
     public void validate(PolicyKind kind, String entityId) {
         Objects.requireNonNull(kind, "kind must not be null");
-
-        if (kind == PolicyKind.GLOBAL) {
-            if (entityId != null) {
-                throw new InvalidEntityIdException(
-                    EntityIdValidationCode.ENTITY_ID_FORBIDDEN_ON_GLOBAL,
-                    "entityId must be null when kind is GLOBAL"
-                );
+        switch (kind) {
+            case GLOBAL -> {
+                if (entityId != null) {
+                    throw new InvalidEntityIdException(
+                        EntityIdValidationCode.ENTITY_ID_FORBIDDEN_ON_GLOBAL,
+                        "entityId must be null when kind is GLOBAL"
+                    );
+                }
             }
-            return;
+            case RESOURCE -> {
+                if (entityId == null || entityId.isBlank()) {
+                    throw new InvalidEntityIdException(
+                        EntityIdValidationCode.ENTITY_ID_REQUIRED_FOR_RESOURCE,
+                        "entityId must not be null or blank when kind is RESOURCE"
+                    );
+                }
+            }
         }
-        validateRequiredEntityId(entityId, "RESOURCE");
-        validateFormatAndPrefixes(entityId);
     }
 
     public void validate(EntityKind kind, String entityId) {
         Objects.requireNonNull(kind, "kind must not be null");
-        validateRequiredEntityId(entityId, kind.name());
-        validateFormatAndPrefixes(entityId);
-    }
-
-    private static void validateRequiredEntityId(String entityId, String kindLabel) {
         if (entityId == null || entityId.isBlank()) {
             throw new InvalidEntityIdException(
                 EntityIdValidationCode.ENTITY_ID_REQUIRED_FOR_RESOURCE,
-                "entityId must not be null or blank when kind is " + kindLabel
+                "entityId must not be null or blank when kind is " + kind.name()
             );
         }
-    }
-
-    private void validateFormatAndPrefixes(String entityId) {
-        if (entityId.length() > MAX_ENTITY_ID_LENGTH) {
+        if (entityId.length() > EntityIdConstants.MAX_ENTITY_ID_LENGTH) {
             throw new InvalidEntityIdException(
                 EntityIdValidationCode.ENTITY_ID_MALFORMED,
-                "entityId must be at most " + MAX_ENTITY_ID_LENGTH + " characters (got " + entityId.length() + ")"
+                "entityId must be at most " + EntityIdConstants.MAX_ENTITY_ID_LENGTH + " characters (got " + entityId.length() + ")"
             );
         }
         if (!FORMAT.matcher(entityId).matches()) {
             throw new InvalidEntityIdException(
                 EntityIdValidationCode.ENTITY_ID_MALFORMED,
-                "entityId must match [a-z0-9._-]+ (got: '" + entityId + "')"
-            );
-        }
-        if (entityId.startsWith(".") || entityId.endsWith(".") || entityId.contains("..")) {
-            throw new InvalidEntityIdException(
-                EntityIdValidationCode.ENTITY_ID_MALFORMED,
-                "entityId must not start with, end with, or contain consecutive dots (got: '" + entityId + "')"
+                "entityId must match " + EntityIdConstants.FORMAT_REGEX + " (got: '" + entityId + "')"
             );
         }
     }

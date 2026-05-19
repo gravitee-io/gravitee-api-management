@@ -24,6 +24,7 @@ import io.gravitee.gamma.repository.mongodb.internal.model.AuthorizationEntityMo
 import io.gravitee.gamma.repository.mongodb.mapper.AuthorizationMapper;
 import io.gravitee.gamma.repository.paging.Pageable;
 import io.gravitee.gamma.repository.paging.PagedResult;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -119,6 +120,31 @@ public class MongoAuthorizationEntityRepository implements AuthorizationEntityRe
     }
 
     @Override
+    public List<AuthorizationEntity> findAllByEnvironmentIdAndEntityIdStartingWithAny(
+        String environmentId,
+        Collection<String> entityIdPrefixes
+    ) throws TechnicalException {
+        if (entityIdPrefixes == null || entityIdPrefixes.isEmpty()) {
+            return List.of();
+        }
+        Criteria[] prefixCriteria = entityIdPrefixes
+            .stream()
+            .map(prefix -> Criteria.where("entityId").regex("^" + Pattern.quote(prefix)))
+            .toArray(Criteria[]::new);
+        Query query = new Query(Criteria.where("environmentId").is(environmentId).orOperator(prefixCriteria));
+        return mongoOperations.find(query, AuthorizationEntityMongo.class).stream().map(mapper::map).toList();
+    }
+
+    @Override
+    public List<AuthorizationEntity> findAllByEnvironmentIdAndEntityIdIn(String environmentId, Collection<String> entityIds)
+        throws TechnicalException {
+        if (entityIds == null || entityIds.isEmpty()) {
+            return List.of();
+        }
+        return internalRepository.findAllByEnvironmentIdAndEntityIdIn(environmentId, entityIds).stream().map(mapper::map).toList();
+    }
+
+    @Override
     public long deleteByEnvironmentIdAndId(String environmentId, String id) throws TechnicalException {
         return internalRepository.deleteByEnvironmentIdAndId(environmentId, id);
     }
@@ -126,6 +152,14 @@ public class MongoAuthorizationEntityRepository implements AuthorizationEntityRe
     @Override
     public long deleteByEnvironmentIdAndEntityId(String environmentId, String entityId) throws TechnicalException {
         return internalRepository.deleteByEnvironmentIdAndEntityId(environmentId, entityId);
+    }
+
+    @Override
+    public long deleteByEnvironmentIdAndEntityIdIn(String environmentId, Collection<String> entityIds) throws TechnicalException {
+        if (entityIds == null || entityIds.isEmpty()) {
+            return 0L;
+        }
+        return internalRepository.deleteByEnvironmentIdAndEntityIdIn(environmentId, entityIds);
     }
 
     @Override

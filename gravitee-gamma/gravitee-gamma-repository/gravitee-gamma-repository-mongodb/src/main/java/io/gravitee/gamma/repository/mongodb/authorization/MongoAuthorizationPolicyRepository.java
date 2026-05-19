@@ -25,6 +25,7 @@ import io.gravitee.gamma.repository.mongodb.internal.model.AuthorizationPolicyMo
 import io.gravitee.gamma.repository.mongodb.mapper.AuthorizationMapper;
 import io.gravitee.gamma.repository.paging.Pageable;
 import io.gravitee.gamma.repository.paging.PagedResult;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -109,8 +110,25 @@ public class MongoAuthorizationPolicyRepository implements AuthorizationPolicyRe
     }
 
     @Override
+    public List<AuthorizationPolicy> findAllByEnvironmentIdAndEntityIdIn(String environmentId, Collection<String> entityIds)
+        throws TechnicalException {
+        if (entityIds == null || entityIds.isEmpty()) {
+            return List.of();
+        }
+        return internalRepository.findAllByEnvironmentIdAndEntityIdIn(environmentId, entityIds).stream().map(mapper::map).toList();
+    }
+
+    @Override
     public long deleteByEnvironmentIdAndId(String environmentId, String id) throws TechnicalException {
         return internalRepository.deleteByEnvironmentIdAndId(environmentId, id);
+    }
+
+    @Override
+    public long deleteByEnvironmentIdAndIdIn(String environmentId, Collection<String> ids) throws TechnicalException {
+        if (ids == null || ids.isEmpty()) {
+            return 0L;
+        }
+        return internalRepository.deleteByEnvironmentIdAndIdIn(environmentId, ids);
     }
 
     @Override

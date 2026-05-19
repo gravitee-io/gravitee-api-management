@@ -24,10 +24,12 @@ import io.gravitee.gamma.authorization.api.AuthzEventPublisher;
 import io.gravitee.gamma.authorization.api.AuthzPolicyAuditEvent;
 import io.gravitee.gamma.authorization.api.EntityAdminApi;
 import io.gravitee.gamma.authorization.api.EntityAuditSnapshot;
+import io.gravitee.gamma.authorization.api.EntityIdConstants;
 import io.gravitee.gamma.authorization.api.EntityRepository;
 import io.gravitee.gamma.authorization.api.PolicyAuditSnapshot;
 import io.gravitee.gamma.authorization.api.PolicyRepository;
 import io.gravitee.gamma.authorization.api.SchemaAdminApi;
+import io.gravitee.gamma.authorization.api.Validators;
 import io.gravitee.gamma.authorization.domain.Entity;
 import io.gravitee.gamma.authorization.domain.EntityKind;
 import io.gravitee.gamma.authorization.domain.Policy;
@@ -104,31 +106,68 @@ public class EntityServiceImpl implements EntityAdminApi {
     public UpsertResult upsert(AuthzCallerContext caller, CreateOrReplaceEntityCommand command) {
         Objects.requireNonNull(caller, "caller must not be null");
         Objects.requireNonNull(command, "command must not be null");
-        requireMatchingEnv(caller, command.environmentId());
+        Validators.requireMatchingEnv(caller, command.environmentId());
         entityIdValidator.validate(command.kind(), command.entityId());
 
         UpsertOutcome outcome;
         try {
-            outcome = doUpsert(command);
+            outcome = doUpsert(command, null);
         } catch (DuplicateKeyException race) {
-            outcome = doUpsert(command);
+            outcome = doUpsert(command, null);
         }
-        if (!caller.isSystem()) {
-            auditPort.record(
-                AuthzAuditEntry.entity(
-                    caller,
-                    outcome.wasNew() ? AuthzEntityAuditEvent.ENTITY_CREATED : AuthzEntityAuditEvent.ENTITY_UPDATED,
-                    outcome.saved().entityId(),
-                    outcome.wasNew() ? null : EntityAuditSnapshot.of(outcome.previous()),
-                    EntityAuditSnapshot.of(outcome.saved())
-                )
-            );
-        }
+        eventPublisher.publishEntityUpserted(outcome.saved());
+        schemaService.invalidate(command.environmentId());
+        recordUpsertAudit(caller, outcome);
         return new UpsertResult(outcome.saved(), outcome.wasNew());
     }
 
-    private UpsertOutcome doUpsert(CreateOrReplaceEntityCommand command) {
-        Optional<Entity> existing = entityRepository.findByEntityId(command.environmentId(), command.entityId());
+    @Override
+    @Transactional
+    public List<UpsertResult> bulkUpsert(AuthzCallerContext caller, List<CreateOrReplaceEntityCommand> commands) {
+        Objects.requireNonNull(caller, "caller must not be null");
+        Objects.requireNonNull(commands, "commands must not be null");
+        if (commands.isEmpty()) {
+            return List.of();
+        }
+        for (CreateOrReplaceEntityCommand command : commands) {
+            Objects.requireNonNull(command, "command must not be null");
+            Validators.requireMatchingEnv(caller, command.environmentId());
+            entityIdValidator.validate(command.kind(), command.entityId());
+        }
+
+        String environmentId = caller.environmentId();
+        List<String> entityIds = commands.stream().map(CreateOrReplaceEntityCommand::entityId).toList();
+        Map<String, Entity> existingByEntityId = entityRepository
+            .findByEntityIds(environmentId, entityIds)
+            .stream()
+            .collect(java.util.stream.Collectors.toMap(Entity::entityId, e -> e, (a, b) -> a, LinkedHashMap::new));
+
+        List<UpsertResult> results = new ArrayList<>(commands.size());
+        List<UpsertOutcome> outcomes = new ArrayList<>(commands.size());
+        for (CreateOrReplaceEntityCommand command : commands) {
+            UpsertOutcome outcome;
+            try {
+                outcome = doUpsert(command, existingByEntityId.get(command.entityId()));
+            } catch (DuplicateKeyException race) {
+                outcome = doUpsert(command, null);
+            }
+            outcomes.add(outcome);
+            results.add(new UpsertResult(outcome.saved(), outcome.wasNew()));
+        }
+        for (UpsertOutcome outcome : outcomes) {
+            eventPublisher.publishEntityUpserted(outcome.saved());
+        }
+        schemaService.invalidate(environmentId);
+        for (UpsertOutcome outcome : outcomes) {
+            recordUpsertAudit(caller, outcome);
+        }
+        return results;
+    }
+
+    private UpsertOutcome doUpsert(CreateOrReplaceEntityCommand command, Entity preloadedExisting) {
+        Optional<Entity> existing = preloadedExisting != null
+            ? Optional.of(preloadedExisting)
+            : entityRepository.findByEntityId(command.environmentId(), command.entityId());
         Instant now = TimeProvider.instantNow();
 
         Entity toSave = existing
@@ -159,9 +198,22 @@ public class EntityServiceImpl implements EntityAdminApi {
                 )
             );
         Entity saved = entityRepository.save(toSave);
-        eventPublisher.publishEntityUpserted(saved);
-        schemaService.invalidate(command.environmentId());
         return new UpsertOutcome(saved, existing.orElse(null), existing.isEmpty());
+    }
+
+    private void recordUpsertAudit(AuthzCallerContext caller, UpsertOutcome outcome) {
+        if (caller.isSystem()) {
+            return;
+        }
+        auditPort.record(
+            AuthzAuditEntry.entity(
+                caller,
+                outcome.wasNew() ? AuthzEntityAuditEvent.ENTITY_CREATED : AuthzEntityAuditEvent.ENTITY_UPDATED,
+                outcome.saved().entityId(),
+                outcome.wasNew() ? null : EntityAuditSnapshot.of(outcome.previous()),
+                EntityAuditSnapshot.of(outcome.saved())
+            )
+        );
     }
 
     private record UpsertOutcome(Entity saved, Entity previous, boolean wasNew) {}
@@ -207,15 +259,15 @@ public class EntityServiceImpl implements EntityAdminApi {
 
     @Override
     public Optional<Entity> findByEntityId(String environmentId, String entityId) {
-        requireNonBlank(environmentId, "environmentId");
-        requireNonBlank(entityId, "entityId");
+        Validators.requireNonBlank(environmentId, "environmentId");
+        Validators.requireNonBlank(entityId, "entityId");
         return entityRepository.findByEntityId(environmentId, entityId);
     }
 
     @Override
     public Set<String> findApiAliases(String environmentId, String apiId) {
-        requireNonBlank(environmentId, "environmentId");
-        requireNonBlank(apiId, "apiId");
+        Validators.requireNonBlank(environmentId, "environmentId");
+        Validators.requireNonBlank(apiId, "apiId");
         Set<String> ids = new LinkedHashSet<>();
         entityRepository.findByEntityId(environmentId, API_PREFIX + apiId).ifPresent(e -> ids.add(e.entityId()));
         entityRepository.findByEntityIdPrefix(environmentId, API_PREFIX + apiId + ".").forEach(e -> ids.add(e.entityId()));
@@ -226,14 +278,14 @@ public class EntityServiceImpl implements EntityAdminApi {
 
     @Override
     public List<Entity> find(String environmentId, EntityFilter filter) {
-        requireNonBlank(environmentId, "environmentId");
+        Validators.requireNonBlank(environmentId, "environmentId");
         validateFilter(filter);
         return entityRepository.findPage(environmentId, filter, Pageable.unbounded()).data();
     }
 
     @Override
     public PagedResult<Entity> findPage(String environmentId, EntityFilter filter, Pageable pageable) {
-        requireNonBlank(environmentId, "environmentId");
+        Validators.requireNonBlank(environmentId, "environmentId");
         Objects.requireNonNull(pageable, "pageable must not be null");
         validateFilter(filter);
         return entityRepository.findPage(environmentId, filter, pageable);
@@ -241,8 +293,8 @@ public class EntityServiceImpl implements EntityAdminApi {
 
     private void validateFilter(EntityFilter filter) {
         if (filter == null) return;
-        if (filter.entityIdPrefix() != null && filter.entityIdPrefix().length() > EntityIdValidator.MAX_ENTITY_ID_LENGTH) {
-            throw new IllegalArgumentException("entityIdPrefix must be at most " + EntityIdValidator.MAX_ENTITY_ID_LENGTH + " characters");
+        if (filter.entityIdPrefix() != null && filter.entityIdPrefix().length() > EntityIdConstants.MAX_ENTITY_ID_LENGTH) {
+            throw new IllegalArgumentException("entityIdPrefix must be at most " + EntityIdConstants.MAX_ENTITY_ID_LENGTH + " characters");
         }
     }
 
@@ -250,17 +302,15 @@ public class EntityServiceImpl implements EntityAdminApi {
     @Transactional(timeout = TRANSACTION_TIMEOUT_SECONDS)
     public CascadeResult delete(AuthzCallerContext caller, String entityId) {
         Objects.requireNonNull(caller, "caller must not be null");
-        requireNonBlank(entityId, "entityId");
+        Validators.requireNonBlank(entityId, "entityId");
         entityIdValidator.validate(EntityKind.RESOURCE, entityId);
 
         String environmentId = caller.environmentId();
         LinkedHashMap<String, Entity> affectedEntities = computeCascadeEntities(environmentId, entityId);
 
         LinkedHashMap<String, Policy> affectedPolicies = new LinkedHashMap<>();
-        for (String eid : affectedEntities.keySet()) {
-            for (Policy p : policyRepository.findByEntityId(environmentId, eid)) {
-                affectedPolicies.putIfAbsent(p.id(), p);
-            }
+        for (Policy p : policyRepository.findByEntityIds(environmentId, affectedEntities.keySet())) {
+            affectedPolicies.putIfAbsent(p.id(), p);
         }
 
         int totalAffected = affectedEntities.size() + affectedPolicies.size();
@@ -268,12 +318,8 @@ public class EntityServiceImpl implements EntityAdminApi {
             throw new CascadeTooLargeException(totalAffected, cascadeHardLimit);
         }
 
-        for (String eid : affectedEntities.keySet()) {
-            entityRepository.deleteByEntityId(environmentId, eid);
-        }
-        for (String pid : affectedPolicies.keySet()) {
-            policyRepository.deleteById(environmentId, pid);
-        }
+        entityRepository.deleteByEntityIds(environmentId, affectedEntities.keySet());
+        policyRepository.deleteByIds(environmentId, affectedPolicies.keySet());
 
         for (Entity e : affectedEntities.values()) {
             eventPublisher.unpublishEntity(e);
@@ -305,19 +351,17 @@ public class EntityServiceImpl implements EntityAdminApi {
     private LinkedHashMap<String, Entity> computeCascadeEntities(String environmentId, String entityId) {
         LinkedHashMap<String, Entity> result = new LinkedHashMap<>();
         entityRepository.findByEntityId(environmentId, entityId).ifPresent(e -> result.put(e.entityId(), e));
-        for (Entity e : entityRepository.findByEntityIdPrefix(environmentId, entityId + ".")) {
-            result.putIfAbsent(e.entityId(), e);
-        }
+        List<String> prefixes = new ArrayList<>(3);
+        prefixes.add(entityId + ".");
         if (entityId.startsWith(API_PREFIX)) {
             String apiId = entityId.substring(API_PREFIX.length());
             if (!apiId.isEmpty() && !apiId.contains(".")) {
-                for (Entity e : entityRepository.findByEntityIdPrefix(environmentId, MCP_PREFIX + apiId + ".")) {
-                    result.putIfAbsent(e.entityId(), e);
-                }
-                for (Entity e : entityRepository.findByEntityIdPrefix(environmentId, AGENT_PREFIX + apiId + ".")) {
-                    result.putIfAbsent(e.entityId(), e);
-                }
+                prefixes.add(MCP_PREFIX + apiId + ".");
+                prefixes.add(AGENT_PREFIX + apiId + ".");
             }
+        }
+        for (Entity e : entityRepository.findByAnyEntityIdPrefix(environmentId, prefixes)) {
+            result.putIfAbsent(e.entityId(), e);
         }
         return result;
     }
@@ -328,22 +372,5 @@ public class EntityServiceImpl implements EntityAdminApi {
 
     private static List<String> nonNullList(List<String> in) {
         return in == null ? List.of() : in;
-    }
-
-    private static String requireNonBlank(String value, String name) {
-        Objects.requireNonNull(value, name);
-        if (value.isBlank()) {
-            throw new IllegalArgumentException(name + " must not be blank");
-        }
-        return value;
-    }
-
-    private static void requireMatchingEnv(AuthzCallerContext caller, String commandEnvId) {
-        requireNonBlank(commandEnvId, "command.environmentId");
-        if (!caller.environmentId().equals(commandEnvId)) {
-            throw new IllegalArgumentException(
-                "command.environmentId (" + commandEnvId + ") does not match caller.environmentId (" + caller.environmentId() + ")"
-            );
-        }
     }
 }

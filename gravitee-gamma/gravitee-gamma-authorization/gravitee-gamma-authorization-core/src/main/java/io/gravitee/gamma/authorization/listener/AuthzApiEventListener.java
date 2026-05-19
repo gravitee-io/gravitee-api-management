@@ -107,17 +107,20 @@ public class AuthzApiEventListener implements EventListener<ApiEvent, io.gravite
 
     private void upsertAll(Api coreApi) {
         Set<String> entityIds = extractor.extract(coreApi);
+        if (entityIds.isEmpty()) {
+            return;
+        }
         String envId = coreApi.getEnvironmentId();
         AuthzCallerContext caller = AuthzCallerContext.system(envId);
-        for (String entityId : entityIds) {
-            try {
-                entityService.upsert(
-                    caller,
-                    new CreateOrReplaceEntityCommand(envId, entityId, EntityKind.RESOURCE, attributesFor(coreApi), List.of(), SOURCE)
-                );
-            } catch (RuntimeException e) {
-                log.warn("Failed to upsert authz entity '{}' on DEPLOY for API '{}'", entityId, coreApi.getId(), e);
-            }
+        Map<String, Object> attributes = attributesFor(coreApi);
+        List<CreateOrReplaceEntityCommand> commands = entityIds
+            .stream()
+            .map(entityId -> new CreateOrReplaceEntityCommand(envId, entityId, EntityKind.RESOURCE, attributes, List.of(), SOURCE))
+            .toList();
+        try {
+            entityService.bulkUpsert(caller, commands);
+        } catch (RuntimeException e) {
+            log.warn("Failed to bulk-upsert authz entities for API '{}' ({} aliases)", coreApi.getId(), entityIds.size(), e);
         }
     }
 

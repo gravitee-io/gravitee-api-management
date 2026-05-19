@@ -43,9 +43,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 
 @Configuration
-@ComponentScan(
-    basePackages = { "io.gravitee.gamma.authorization.infra", "io.gravitee.gamma.repository.mongodb" }
-)
+@ComponentScan(basePackages = { "io.gravitee.gamma.authorization.infra", "io.gravitee.gamma.repository.mongodb" })
 @Conditional(GammaEnabledCondition.class)
 public class AuthorizationConfig {
 

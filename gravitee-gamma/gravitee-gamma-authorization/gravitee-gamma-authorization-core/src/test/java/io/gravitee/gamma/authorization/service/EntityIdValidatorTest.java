@@ -18,6 +18,7 @@ package io.gravitee.gamma.authorization.service;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.gravitee.gamma.authorization.domain.EntityKind;
 import io.gravitee.gamma.authorization.domain.PolicyKind;
 import io.gravitee.gamma.authorization.service.exception.EntityIdValidationCode;
 import io.gravitee.gamma.authorization.service.exception.InvalidEntityIdException;
@@ -41,7 +42,7 @@ class EntityIdValidatorTest {
     }
 
     @Test
-    void resource_with_null_entityId_is_rejected_with_REQUIRED_FOR_RESOURCE() {
+    void policyKind_resource_with_null_entityId_is_rejected_with_REQUIRED_FOR_RESOURCE() {
         assertThatThrownBy(() -> validator.validate(PolicyKind.RESOURCE, null))
             .isInstanceOf(InvalidEntityIdException.class)
             .extracting(e -> ((InvalidEntityIdException) e).code())
@@ -49,7 +50,7 @@ class EntityIdValidatorTest {
     }
 
     @Test
-    void resource_with_blank_entityId_is_rejected_with_REQUIRED_FOR_RESOURCE() {
+    void policyKind_resource_with_blank_entityId_is_rejected_with_REQUIRED_FOR_RESOURCE() {
         assertThatThrownBy(() -> validator.validate(PolicyKind.RESOURCE, "   "))
             .isInstanceOf(InvalidEntityIdException.class)
             .extracting(e -> ((InvalidEntityIdException) e).code())
@@ -57,29 +58,44 @@ class EntityIdValidatorTest {
     }
 
     @Test
-    void resource_with_uppercase_entityId_is_rejected_as_MALFORMED() {
-        assertThatThrownBy(() -> validator.validate(PolicyKind.RESOURCE, "api.MyApi"))
+    void entityKind_with_uppercase_entityId_is_rejected_as_MALFORMED() {
+        assertThatThrownBy(() -> validator.validate(EntityKind.RESOURCE, "api.MyApi"))
             .isInstanceOf(InvalidEntityIdException.class)
             .extracting(e -> ((InvalidEntityIdException) e).code())
             .isEqualTo(EntityIdValidationCode.ENTITY_ID_MALFORMED);
     }
 
     @Test
-    void resource_with_space_in_entityId_is_rejected_as_MALFORMED() {
-        assertThatThrownBy(() -> validator.validate(PolicyKind.RESOURCE, "api.my api"))
+    void entityKind_with_space_in_entityId_is_rejected_as_MALFORMED() {
+        assertThatThrownBy(() -> validator.validate(EntityKind.RESOURCE, "api.my api"))
             .isInstanceOf(InvalidEntityIdException.class)
             .extracting(e -> ((InvalidEntityIdException) e).code())
             .isEqualTo(EntityIdValidationCode.ENTITY_ID_MALFORMED);
+    }
+
+    @Test
+    void entityKind_with_leading_or_trailing_or_consecutive_dots_is_rejected_as_MALFORMED() {
+        assertThatThrownBy(() -> validator.validate(EntityKind.RESOURCE, ".api.x")).isInstanceOf(InvalidEntityIdException.class);
+        assertThatThrownBy(() -> validator.validate(EntityKind.RESOURCE, "api.x.")).isInstanceOf(InvalidEntityIdException.class);
+        assertThatThrownBy(() -> validator.validate(EntityKind.RESOURCE, "api..x")).isInstanceOf(InvalidEntityIdException.class);
+    }
+
+    @Test
+    void entityKind_with_null_entityId_is_rejected_with_REQUIRED_FOR_RESOURCE() {
+        assertThatThrownBy(() -> validator.validate(EntityKind.RESOURCE, null))
+            .isInstanceOf(InvalidEntityIdException.class)
+            .extracting(e -> ((InvalidEntityIdException) e).code())
+            .isEqualTo(EntityIdValidationCode.ENTITY_ID_REQUIRED_FOR_RESOURCE);
     }
 
     @Test
     void api_prefix_is_accepted_for_any_apiId_format() {
-        assertThatCode(() -> validator.validate(PolicyKind.RESOURCE, "api.abc-123_xyz")).doesNotThrowAnyException();
+        assertThatCode(() -> validator.validate(EntityKind.RESOURCE, "api.abc-123_xyz")).doesNotThrowAnyException();
     }
 
     @Test
     void mcp_prefix_with_three_or_more_segments_is_accepted() {
-        assertThatCode(() -> validator.validate(PolicyKind.RESOURCE, "mcp.any-api.tool-x")).doesNotThrowAnyException();
-        assertThatCode(() -> validator.validate(PolicyKind.RESOURCE, "mcp.any-api.tools-call.get-bookings")).doesNotThrowAnyException();
+        assertThatCode(() -> validator.validate(EntityKind.RESOURCE, "mcp.any-api.tool-x")).doesNotThrowAnyException();
+        assertThatCode(() -> validator.validate(EntityKind.RESOURCE, "mcp.any-api.tools-call.get-bookings")).doesNotThrowAnyException();
     }
 }

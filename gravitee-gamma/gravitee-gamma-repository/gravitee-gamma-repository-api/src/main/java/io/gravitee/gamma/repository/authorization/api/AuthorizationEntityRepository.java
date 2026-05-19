@@ -21,6 +21,8 @@ import io.gravitee.gamma.repository.authorization.model.AuthorizationEntityKind;
 import io.gravitee.gamma.repository.exceptions.TechnicalException;
 import io.gravitee.gamma.repository.paging.Pageable;
 import io.gravitee.gamma.repository.paging.PagedResult;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,9 +38,60 @@ public interface AuthorizationEntityRepository extends CrudRepository<Authorizat
     List<AuthorizationEntity> findAllByEnvironmentIdAndEntityIdStartingWith(String environmentId, String entityIdPrefix)
         throws TechnicalException;
 
+    /**
+     * Batch lookup for cascade computation: returns entities matching any of
+     * the given prefixes in a single round-trip. Empty/null collection yields
+     * an empty list (no query is issued).
+     */
+    default List<AuthorizationEntity> findAllByEnvironmentIdAndEntityIdStartingWithAny(
+        String environmentId,
+        Collection<String> entityIdPrefixes
+    ) throws TechnicalException {
+        if (entityIdPrefixes == null || entityIdPrefixes.isEmpty()) {
+            return List.of();
+        }
+        LinkedHashSet<AuthorizationEntity> merged = new LinkedHashSet<>();
+        for (String prefix : entityIdPrefixes) {
+            merged.addAll(findAllByEnvironmentIdAndEntityIdStartingWith(environmentId, prefix));
+        }
+        return List.copyOf(merged);
+    }
+
+    /**
+     * Batch lookup by entityId. Empty/null collection yields an empty list.
+     * Mongo adapter overrides with a single {@code $in} query; the default
+     * implementation falls back to per-id lookups for in-memory adapters.
+     */
+    default List<AuthorizationEntity> findAllByEnvironmentIdAndEntityIdIn(String environmentId, Collection<String> entityIds)
+        throws TechnicalException {
+        if (entityIds == null || entityIds.isEmpty()) {
+            return List.of();
+        }
+        List<AuthorizationEntity> result = new java.util.ArrayList<>(entityIds.size());
+        for (String entityId : entityIds) {
+            findByEnvironmentIdAndEntityId(environmentId, entityId).ifPresent(result::add);
+        }
+        return result;
+    }
+
     long deleteByEnvironmentIdAndId(String environmentId, String id) throws TechnicalException;
 
     long deleteByEnvironmentIdAndEntityId(String environmentId, String entityId) throws TechnicalException;
+
+    /**
+     * Batch delete by entityId. Returns the number of deleted documents.
+     * Empty/null collection deletes nothing and returns {@code 0}.
+     */
+    default long deleteByEnvironmentIdAndEntityIdIn(String environmentId, Collection<String> entityIds) throws TechnicalException {
+        if (entityIds == null || entityIds.isEmpty()) {
+            return 0L;
+        }
+        long deleted = 0L;
+        for (String entityId : entityIds) {
+            deleted += deleteByEnvironmentIdAndEntityId(environmentId, entityId);
+        }
+        return deleted;
+    }
 
     default PagedResult<AuthorizationEntity> findPage(
         String environmentId,

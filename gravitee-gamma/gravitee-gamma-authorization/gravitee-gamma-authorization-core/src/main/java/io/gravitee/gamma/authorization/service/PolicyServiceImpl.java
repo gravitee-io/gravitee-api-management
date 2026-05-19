@@ -25,6 +25,7 @@ import io.gravitee.gamma.authorization.api.PolicyAdminApi;
 import io.gravitee.gamma.authorization.api.PolicyAuditSnapshot;
 import io.gravitee.gamma.authorization.api.PolicyRepository;
 import io.gravitee.gamma.authorization.api.SchemaAdminApi;
+import io.gravitee.gamma.authorization.api.Validators;
 import io.gravitee.gamma.authorization.domain.Policy;
 import io.gravitee.gamma.authorization.domain.PolicyKind;
 import io.gravitee.gamma.authorization.domain.PolicyStatus;
@@ -66,7 +67,7 @@ public class PolicyServiceImpl implements PolicyAdminApi {
     public Policy create(AuthzCallerContext caller, CreatePolicyCommand command) {
         Objects.requireNonNull(caller, "caller must not be null");
         Objects.requireNonNull(command, "command must not be null");
-        requireMatchingEnv(caller, command.environmentId());
+        Validators.requireMatchingEnv(caller, command.environmentId());
         entityIdValidator.validate(command.kind(), command.entityId());
 
         Instant now = TimeProvider.instantNow();
@@ -97,7 +98,7 @@ public class PolicyServiceImpl implements PolicyAdminApi {
     @Transactional
     public Policy update(AuthzCallerContext caller, String id, UpdatePolicyCommand command) {
         Objects.requireNonNull(caller, "caller must not be null");
-        requireNonBlank(id, "id");
+        Validators.requireNonBlank(id, "id");
         Objects.requireNonNull(command, "command must not be null");
 
         Policy existing = repository
@@ -138,7 +139,7 @@ public class PolicyServiceImpl implements PolicyAdminApi {
     @Transactional
     public Policy deploy(AuthzCallerContext caller, String id) {
         Objects.requireNonNull(caller, "caller must not be null");
-        requireNonBlank(id, "id");
+        Validators.requireNonBlank(id, "id");
 
         Policy existing = repository
             .findById(caller.environmentId(), id)
@@ -169,7 +170,7 @@ public class PolicyServiceImpl implements PolicyAdminApi {
     @Transactional
     public Policy disable(AuthzCallerContext caller, String id) {
         Objects.requireNonNull(caller, "caller must not be null");
-        requireNonBlank(id, "id");
+        Validators.requireNonBlank(id, "id");
 
         Policy existing = repository
             .findById(caller.environmentId(), id)
@@ -201,34 +202,34 @@ public class PolicyServiceImpl implements PolicyAdminApi {
 
     @Override
     public Optional<Policy> findById(String environmentId, String id) {
-        requireNonBlank(environmentId, "environmentId");
-        requireNonBlank(id, "id");
+        Validators.requireNonBlank(environmentId, "environmentId");
+        Validators.requireNonBlank(id, "id");
         return repository.findById(environmentId, id);
     }
 
     @Override
     public List<Policy> findAll(String environmentId) {
-        requireNonBlank(environmentId, "environmentId");
+        Validators.requireNonBlank(environmentId, "environmentId");
         return repository.findAll(environmentId);
     }
 
     @Override
     public List<Policy> findByKind(String environmentId, PolicyKind kind) {
-        requireNonBlank(environmentId, "environmentId");
+        Validators.requireNonBlank(environmentId, "environmentId");
         Objects.requireNonNull(kind, "kind");
         return repository.findByKind(environmentId, kind);
     }
 
     @Override
     public List<Policy> findByEntityId(String environmentId, String entityId) {
-        requireNonBlank(environmentId, "environmentId");
-        requireNonBlank(entityId, "entityId");
+        Validators.requireNonBlank(environmentId, "environmentId");
+        Validators.requireNonBlank(entityId, "entityId");
         return repository.findByEntityId(environmentId, entityId);
     }
 
     @Override
     public PagedResult<Policy> findPage(String environmentId, PolicyFilter filter, Pageable pageable) {
-        requireNonBlank(environmentId, "environmentId");
+        Validators.requireNonBlank(environmentId, "environmentId");
         Objects.requireNonNull(pageable, "pageable must not be null");
         return repository.findPage(environmentId, filter, pageable);
     }
@@ -237,7 +238,7 @@ public class PolicyServiceImpl implements PolicyAdminApi {
     @Transactional
     public boolean delete(AuthzCallerContext caller, String id) {
         Objects.requireNonNull(caller, "caller must not be null");
-        requireNonBlank(id, "id");
+        Validators.requireNonBlank(id, "id");
         Optional<Policy> existing = repository.findById(caller.environmentId(), id);
         if (existing.isEmpty()) {
             return false;
@@ -270,22 +271,5 @@ public class PolicyServiceImpl implements PolicyAdminApi {
             existing.createdAt(),
             TimeProvider.instantNow()
         );
-    }
-
-    private static String requireNonBlank(String value, String name) {
-        Objects.requireNonNull(value, name);
-        if (value.isBlank()) {
-            throw new IllegalArgumentException(name + " must not be blank");
-        }
-        return value;
-    }
-
-    private static void requireMatchingEnv(AuthzCallerContext caller, String commandEnvId) {
-        requireNonBlank(commandEnvId, "command.environmentId");
-        if (!caller.environmentId().equals(commandEnvId)) {
-            throw new IllegalArgumentException(
-                "command.environmentId (" + commandEnvId + ") does not match caller.environmentId (" + caller.environmentId() + ")"
-            );
-        }
     }
 }

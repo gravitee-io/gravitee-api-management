@@ -23,6 +23,7 @@ import io.gravitee.gamma.authorization.service.EntityFilter;
 import io.gravitee.gamma.repository.authorization.api.AuthorizationEntityRepository;
 import io.gravitee.gamma.repository.paging.Pageable;
 import io.gravitee.gamma.repository.paging.PagedResult;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
@@ -72,6 +73,16 @@ public class EntityRepositoryAdapter implements EntityRepository {
     }
 
     @Override
+    public List<Entity> findByEntityIds(String environmentId, Collection<String> entityIds) {
+        return storage.findAllByEnvironmentIdAndEntityIdIn(environmentId, entityIds).stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
+    public List<Entity> findByAnyEntityIdPrefix(String environmentId, Collection<String> prefixes) {
+        return storage.findAllByEnvironmentIdAndEntityIdStartingWithAny(environmentId, prefixes).stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
     public boolean deleteById(String environmentId, String id) {
         return storage.deleteByEnvironmentIdAndId(environmentId, id) > 0;
     }
@@ -79,6 +90,11 @@ public class EntityRepositoryAdapter implements EntityRepository {
     @Override
     public boolean deleteByEntityId(String environmentId, String entityId) {
         return storage.deleteByEnvironmentIdAndEntityId(environmentId, entityId) > 0;
+    }
+
+    @Override
+    public long deleteByEntityIds(String environmentId, Collection<String> entityIds) {
+        return storage.deleteByEnvironmentIdAndEntityIdIn(environmentId, entityIds);
     }
 
     @Override

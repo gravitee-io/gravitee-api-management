@@ -20,6 +20,8 @@ import io.gravitee.gamma.authorization.domain.EntityKind;
 import io.gravitee.gamma.authorization.service.EntityFilter;
 import io.gravitee.gamma.repository.paging.Pageable;
 import io.gravitee.gamma.repository.paging.PagedResult;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,9 +38,59 @@ public interface EntityRepository {
 
     List<Entity> findByEntityIdPrefix(String environmentId, String prefix);
 
+    /**
+     * Batch lookup by entityId in a single round-trip when supported. Order
+     * of returned entities is not guaranteed; missing entityIds are simply
+     * omitted. Empty/null collection yields an empty list.
+     */
+    default List<Entity> findByEntityIds(String environmentId, Collection<String> entityIds) {
+        if (entityIds == null || entityIds.isEmpty()) {
+            return List.of();
+        }
+        List<Entity> result = new java.util.ArrayList<>(entityIds.size());
+        for (String id : entityIds) {
+            findByEntityId(environmentId, id).ifPresent(result::add);
+        }
+        return result;
+    }
+
+    /**
+     * Batch lookup by entityId prefix: returns entities whose entityId starts
+     * with any of the given prefixes. Used by cascade computation to merge
+     * disjoint prefix scans into one query. Empty/null collection yields an
+     * empty list.
+     */
+    default List<Entity> findByAnyEntityIdPrefix(String environmentId, Collection<String> prefixes) {
+        if (prefixes == null || prefixes.isEmpty()) {
+            return List.of();
+        }
+        LinkedHashSet<Entity> merged = new LinkedHashSet<>();
+        for (String prefix : prefixes) {
+            merged.addAll(findByEntityIdPrefix(environmentId, prefix));
+        }
+        return List.copyOf(merged);
+    }
+
     boolean deleteById(String environmentId, String id);
 
     boolean deleteByEntityId(String environmentId, String entityId);
+
+    /**
+     * Batch delete by entityId. Returns the number of deleted entities.
+     * Empty/null collection deletes nothing and returns {@code 0}.
+     */
+    default long deleteByEntityIds(String environmentId, Collection<String> entityIds) {
+        if (entityIds == null || entityIds.isEmpty()) {
+            return 0L;
+        }
+        long deleted = 0L;
+        for (String entityId : entityIds) {
+            if (deleteByEntityId(environmentId, entityId)) {
+                deleted++;
+            }
+        }
+        return deleted;
+    }
 
     /**
      * Paginated lookup of entities matching {@code filter} within the env.

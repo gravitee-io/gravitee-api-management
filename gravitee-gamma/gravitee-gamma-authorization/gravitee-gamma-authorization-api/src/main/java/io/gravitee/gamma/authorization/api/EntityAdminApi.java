@@ -30,6 +30,18 @@ import java.util.Set;
 public interface EntityAdminApi {
     UpsertResult upsert(AuthzCallerContext caller, CreateOrReplaceEntityCommand command);
 
+    /**
+     * Batch variant of {@link #upsert(AuthzCallerContext, CreateOrReplaceEntityCommand)}
+     * for hot paths (e.g. API deployment events) that touch N entities for
+     * the same environment in one go.
+     *
+     * <p>Folds the per-entity {@code findByEntityId} into a single {@code $in}
+     * lookup and emits a single {@code schemaService.invalidate} at the end;
+     * audit entries and entity-upserted events are still produced per entity.
+     * All commands must target the caller's environment.
+     */
+    List<UpsertResult> bulkUpsert(AuthzCallerContext caller, List<CreateOrReplaceEntityCommand> commands);
+
     Entity update(AuthzCallerContext caller, String entityId, UpdateEntityCommand command);
 
     Optional<Entity> findByEntityId(String environmentId, String entityId);

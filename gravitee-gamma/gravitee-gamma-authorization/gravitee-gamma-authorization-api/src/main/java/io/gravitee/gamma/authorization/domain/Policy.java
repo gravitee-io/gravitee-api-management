@@ -15,16 +15,19 @@
  */
 package io.gravitee.gamma.authorization.domain;
 
+import io.gravitee.gamma.authorization.api.EntityIdConstants;
 import io.gravitee.gamma.authorization.api.Validators;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.time.Instant;
 
 public record Policy(
-    @NotNull String id,
+    @NotBlank String id,
     @NotBlank String name,
     @NotNull PolicyKind kind,
-    String entityId,
+    @Size(max = EntityIdConstants.MAX_ENTITY_ID_LENGTH) @Pattern(regexp = EntityIdConstants.FORMAT_REGEX) String entityId,
     @NotNull String policyText,
     @NotNull PolicyStatus status,
     @NotBlank String environmentId,
