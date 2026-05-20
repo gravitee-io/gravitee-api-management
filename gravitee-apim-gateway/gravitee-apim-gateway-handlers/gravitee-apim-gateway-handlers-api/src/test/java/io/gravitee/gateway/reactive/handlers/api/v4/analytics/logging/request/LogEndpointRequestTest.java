@@ -265,8 +265,8 @@ class LogEndpointRequestTest {
         cut.setupCapture(ctx);
         triggerRequestToBackend(null, false);
 
-        assertNull(cut.getTraceId());
-        assertNull(cut.getSpanId());
+        assertThat(cut.getTraceId()).isNull();
+        assertThat(cut.getSpanId()).isNull();
     }
 
     private void triggerRequestToBackend(HttpHeaders backendHeaders, boolean expectCaptureBody) {

@@ -288,8 +288,8 @@ class LogEndpointResponseTest {
         cut.setupCapture(ctx);
         triggerResponseFromBackend(null);
 
-        assertNull(cut.getTraceId());
-        assertNull(cut.getSpanId());
+        assertThat(cut.getTraceId()).isNull();
+        assertThat(cut.getSpanId()).isNull();
     }
 
     @Test

@@ -21,9 +21,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
+import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.response.LogEntrypointResponse;
@@ -94,10 +96,15 @@ class LogResponseProcessorTest extends AbstractV4ProcessorTest {
     }
 
     @Test
-    void should_capture_entrypoint_response_when_otelLogs_enabled_without_logging_configured() {
+    void shouldCaptureEntrypointResponseWhenOtelLogsEnabledWithoutLoggingConfigured() {
         LoggingContext realLoggingContext = new LoggingContext(null); // no ES logging
         realLoggingContext.setOtelLogsEnabled(true);
         when(analyticsContext.getLoggingContext()).thenReturn(realLoggingContext);
+        when(mockResponse.status()).thenReturn(200);
+
+        Tracer mockTracer = mock(Tracer.class);
+        when(mockTracer.traceId()).thenReturn("test-trace-id");
+        ctx.tracer(mockTracer);
 
         Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
         log.setEntrypointResponse(new LogEntrypointResponse(realLoggingContext, mockResponse));
@@ -106,12 +113,12 @@ class LogResponseProcessorTest extends AbstractV4ProcessorTest {
         final TestObserver<Void> obs = cut.execute(ctx).test();
         obs.assertComplete();
 
-        // entrypointResponse() returns true via otelLogsEnabled → LogResponseProcessor calls capture() on it
-        assertNotNull(log.getEntrypointResponse());
+        // traceId is only set when the OTel capture path runs
+        assertThat(log.getEntrypointResponse().getTraceId()).isEqualTo("test-trace-id");
     }
 
     @Test
-    void should_not_capture_entrypoint_response_when_otelLogs_disabled_and_no_logging_configured() {
+    void shouldNotCaptureEntrypointResponseWhenOtelLogsDisabledAndNoLoggingConfigured() {
         LoggingContext realLoggingContext = new LoggingContext(null); // no ES logging, otelLogs off
         when(analyticsContext.getLoggingContext()).thenReturn(realLoggingContext);
 

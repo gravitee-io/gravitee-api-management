@@ -225,7 +225,7 @@ class LogEntrypointResponseTest {
         final var logResponse = new LogEntrypointResponse(loggingContext, response);
         logResponse.capture(ctx);
 
-        assertNull(logResponse.getTraceId());
-        assertNull(logResponse.getSpanId());
+        assertThat(logResponse.getTraceId()).isNull();
+        assertThat(logResponse.getSpanId()).isNull();
     }
 }
