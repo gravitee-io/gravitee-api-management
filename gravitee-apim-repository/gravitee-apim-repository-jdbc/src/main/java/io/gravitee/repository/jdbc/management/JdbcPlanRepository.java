@@ -280,6 +280,22 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
     }
 
     @Override
+    public Set<Plan> findByCrossIds(Collection<String> crossIds) throws TechnicalException {
+        log.debug("JdbcPlanRepository.findByCrossIds({})", crossIds);
+        if (isEmpty(crossIds)) {
+            return Collections.emptySet();
+        }
+        try {
+            var query = getOrm().getSelectAllSql() + " where cross_id in (" + getOrm().buildInClause(crossIds) + ")";
+            List<Plan> plans = jdbcTemplate.query(query, ps -> getOrm().setArguments(ps, crossIds, 1), getOrm().getRowMapper());
+            addDataToPlans(plans);
+            return new HashSet<>(plans);
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to find plans by crossId list", ex);
+        }
+    }
+
+    @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("JdbcPlanRepository.deleteByEnvironment({})", environmentId);
         try {

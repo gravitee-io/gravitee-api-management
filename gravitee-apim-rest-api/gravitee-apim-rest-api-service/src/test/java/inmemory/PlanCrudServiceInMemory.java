@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlternative<Plan> {
@@ -77,27 +78,30 @@ public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlterna
 
     @Override
     public Optional<Plan> findByPlanIdAndReferenceIdAndReferenceType(String planId, String referenceId, String referenceType) {
+        var refType = GenericPlanEntity.ReferenceType.valueOf(referenceType);
         return storage
             .stream()
             .filter(
-                plan ->
-                    planId.equals(plan.getId()) &&
-                    plan.getReferenceId().equals(referenceId) &&
-                    plan.getReferenceType().equals(GenericPlanEntity.ReferenceType.valueOf(referenceType))
+                plan -> planId.equals(plan.getId()) && referenceId.equals(plan.getReferenceId()) && refType.equals(plan.getReferenceType())
             )
             .findFirst();
     }
 
     @Override
     public Collection<Plan> findByReferenceIdAndReferenceType(String referenceId, String referenceType) {
+        var refType = GenericPlanEntity.ReferenceType.valueOf(referenceType);
         return storage
             .stream()
-            .filter(
-                plan ->
-                    plan.getReferenceId().equals(referenceId) &&
-                    plan.getReferenceType().equals(GenericPlanEntity.ReferenceType.valueOf(referenceType))
-            )
+            .filter(plan -> referenceId.equals(plan.getReferenceId()) && refType.equals(plan.getReferenceType()))
             .toList();
+    }
+
+    @Override
+    public Set<Plan> findByCrossIds(Collection<String> crossIds) {
+        return storage
+            .stream()
+            .filter(plan -> plan.getCrossId() != null && crossIds.contains(plan.getCrossId()))
+            .collect(Collectors.toSet());
     }
 
     @Override

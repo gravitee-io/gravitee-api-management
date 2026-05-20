@@ -127,4 +127,13 @@ public interface PlanRepository extends CrudRepository<Plan, String> {
      */
     Optional<Plan> findByIdAndReferenceIdAndReferenceType(String plan, String referenceId, Plan.PlanReferenceType planReferenceType)
         throws TechnicalException;
+
+    /**
+     * Finds plans whose crossId is in the given collection.
+     *
+     * @param crossIds the crossIds to look up. Cannot be null; may be empty (returns empty set).
+     * @return a set of matching plans; never null.
+     * @throws TechnicalException if an error occurs during retrieval.
+     */
+    Set<Plan> findByCrossIds(Collection<String> crossIds) throws TechnicalException;
 }

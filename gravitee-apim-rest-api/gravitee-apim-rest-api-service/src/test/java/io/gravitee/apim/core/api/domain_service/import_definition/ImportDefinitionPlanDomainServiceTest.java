@@ -212,6 +212,7 @@ class ImportDefinitionPlanDomainServiceTest {
 
     @Test
     @SneakyThrows
+<<<<<<< HEAD
     void should_update_api_plan_when_export_has_plan_id_but_no_cross_id() {
         var planToUpdate = PlanFixtures.HttpV4.anApiKey()
             .toBuilder()
@@ -324,19 +325,56 @@ class ImportDefinitionPlanDomainServiceTest {
                 .type(planToUpdate.getType())
                 .planDefinitionHttpV4(planToUpdate.getPlanDefinitionHttpV4())
                 .name("updated via id fallback")
+=======
+    void should_heal_reference_fields_for_legacy_plan_with_null_reference_id_and_type() {
+        // Legacy plan in DB: created by old code that didn't set referenceId/referenceType.
+        var legacyPlan = PlanFixtures.HttpV4.anApiKey()
+            .toBuilder()
+            .crossId("legacy-plan-cross")
+            .apiId(API_ID)
+            .referenceType(null)
+            .referenceId(null)
+            .environmentId(ENVIRONMENT_ID)
+            .build();
+        initializer.planCrudServiceInMemory.initWith(List.of(legacyPlan));
+
+        // Incoming plan from a promotion export: id stripped, crossId preserved.
+        Set<PlanWithFlows> importDefinitionPlans = Set.of(
+            PlanWithFlows.builder()
+                .id(null)
+                .crossId(legacyPlan.getCrossId())
+                .referenceId(null)
+                .referenceType(null)
+                .definitionVersion(legacyPlan.getDefinitionVersion())
+                .type(legacyPlan.getType())
+                .planDefinitionHttpV4(legacyPlan.getPlanDefinitionHttpV4())
+                .name("healed plan")
+>>>>>>> 5743be61a7 (fix: promoting apis that exist in the target env causes subscription errors)
                 .flows(Collections.emptyList())
                 .build()
         );
 
         service.upsertPlanWithFlows(EXISTING_API, importDefinitionPlans, AUDIT_INFO);
 
+<<<<<<< HEAD
+=======
+        // After promotion the plan must be queryable by API id (referenceId healed).
+>>>>>>> 5743be61a7 (fix: promoting apis that exist in the target env causes subscription errors)
         var apiPlans = initializer.planCrudServiceInMemory.findByApiId(API_ID);
         assertThat(apiPlans)
             .hasSize(1)
             .first()
             .satisfies(p -> {
+<<<<<<< HEAD
                 assertThat(p.getId()).isEqualTo(planToUpdate.getId());
                 assertThat(p.getName()).isEqualTo("updated via id fallback");
+=======
+                assertThat(p.getId()).isEqualTo(legacyPlan.getId());
+                assertThat(p.getCrossId()).isEqualTo("legacy-plan-cross");
+                assertThat(p.getReferenceId()).isEqualTo(API_ID);
+                assertThat(p.getReferenceType()).isEqualTo(GenericPlanEntity.ReferenceType.API);
+                assertThat(p.getName()).isEqualTo("healed plan");
+>>>>>>> 5743be61a7 (fix: promoting apis that exist in the target env causes subscription errors)
             });
     }
 }

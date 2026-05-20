@@ -19,6 +19,7 @@ import io.gravitee.apim.core.plan.model.Plan;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface PlanCrudService {
     Plan getById(String planId);
@@ -34,6 +35,8 @@ public interface PlanCrudService {
     void delete(String planId);
 
     List<Plan> findByIds(List<String> planIds);
+
+    Set<Plan> findByCrossIds(Collection<String> crossIds);
 
     void updateCrossIds(List<Plan> plans);
 
