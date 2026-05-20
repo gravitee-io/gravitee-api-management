@@ -24,10 +24,13 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
+import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.response.LogEndpointResponse;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.response.LogEntrypointResponse;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.AbstractV4ProcessorTest;
 import io.gravitee.reporter.api.v4.log.Log;
@@ -93,6 +96,91 @@ class LogResponseProcessorTest extends AbstractV4ProcessorTest {
         obs.assertComplete();
 
         assertNotNull(log.getEntrypointResponse());
+    }
+
+    @Test
+    void shouldNotOverwriteEndpointStatusWithEntrypointResponseWhenNoFailure() {
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+        log.setEndpointResponse(new LogEndpointResponse(loggingContext, mockResponse));
+        log.getEndpointResponse().setStatus(201);
+        when(mockMetrics.getLog()).thenReturn(log);
+        when(loggingContext.entrypointResponse()).thenReturn(false);
+        when(loggingContext.endpointResponse()).thenReturn(true);
+
+        cut.execute(ctx).test().assertComplete();
+
+        assertThat(log.getEndpointResponse().getStatus()).isEqualTo(201);
+    }
+
+    @Test
+    void shouldKeepEndpointStatusZeroWhenBackendDidNotRespondDespiteFailure() {
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+        log.setEndpointResponse(new LogEndpointResponse(loggingContext, mockResponse));
+        log.getEndpointResponse().setStatus(0);
+        when(mockMetrics.getLog()).thenReturn(log);
+        when(loggingContext.entrypointResponse()).thenReturn(false);
+        when(loggingContext.endpointResponse()).thenReturn(true);
+        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, new ExecutionFailure(504));
+
+        cut.execute(ctx).test().assertComplete();
+
+        assertThat(log.getEndpointResponse().getStatus()).isEqualTo(0);
+    }
+
+    @Test
+    void shouldUpdateEndpointResponseStatusWhenFailureIsPresentForMessageApi() {
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+        log.setEndpointResponse(new LogEndpointResponse(loggingContext, mockResponse));
+        log.getEndpointResponse().setStatus(200);
+        when(mockMetrics.getLog()).thenReturn(log);
+        when(mockMetrics.getApiType()).thenReturn(ApiType.MESSAGE.getLabel());
+        when(loggingContext.entrypointResponse()).thenReturn(false);
+        when(loggingContext.endpointResponse()).thenReturn(true);
+        when(loggingContext.endpointResponsePayload()).thenReturn(false);
+        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, new ExecutionFailure(400));
+
+        cut.execute(ctx).test().assertComplete();
+
+        assertThat(log.getEndpointResponse().getStatus()).isEqualTo(400);
+    }
+
+    @Test
+    void shouldNotOverwriteEndpointStatusForProxyApiEvenWhenFailureIsPresent() {
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+        log.setEndpointResponse(new LogEndpointResponse(loggingContext, mockResponse));
+        log.getEndpointResponse().setStatus(200);
+        when(mockMetrics.getLog()).thenReturn(log);
+        when(mockMetrics.getApiType()).thenReturn(ApiType.PROXY.getLabel());
+        when(loggingContext.entrypointResponse()).thenReturn(false);
+        when(loggingContext.endpointResponse()).thenReturn(true);
+        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, new ExecutionFailure(400));
+
+        cut.execute(ctx).test().assertComplete();
+
+        assertThat(log.getEndpointResponse().getStatus()).isEqualTo(200);
+    }
+
+    @Test
+    void shouldUpdateEndpointResponseBodyWhenFailureHasMessageAndPayloadLoggingEnabledForMessageApi() {
+        final String errorMessage = "{\"message\":\"orderId is required\"}";
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+        log.setEndpointResponse(new LogEndpointResponse(loggingContext, mockResponse));
+        log.getEndpointResponse().setStatus(200);
+        when(mockMetrics.getLog()).thenReturn(log);
+        when(mockMetrics.getApiType()).thenReturn(ApiType.MESSAGE.getLabel());
+        when(loggingContext.entrypointResponse()).thenReturn(false);
+        when(loggingContext.endpointResponse()).thenReturn(true);
+        when(loggingContext.endpointResponsePayload()).thenReturn(true);
+        when(loggingContext.isBodyLoggable()).thenReturn(true);
+        ctx.setInternalAttribute(
+            InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE,
+            new ExecutionFailure(400).message(errorMessage)
+        );
+
+        cut.execute(ctx).test().assertComplete();
+
+        assertThat(log.getEndpointResponse().getStatus()).isEqualTo(400);
+        assertThat(log.getEndpointResponse().getBody()).isEqualTo(errorMessage);
     }
 
     @Test

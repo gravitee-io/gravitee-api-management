@@ -31,6 +31,8 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
+import io.gravitee.gateway.reactive.api.ExecutionFailure;
+import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.HttpResponseInternal;
@@ -164,6 +166,38 @@ class LogEntrypointResponseTest {
 
         assertNull(logResponse.getHeaders());
         assertThat(logResponse.getBody()).isEqualTo(BODY_CONTENT.substring(0, maxPayloadSize));
+    }
+
+    @Test
+    void should_use_failure_status_when_execution_failure_is_present() {
+        when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
+        when(loggingContext.entrypointResponsePayload()).thenReturn(false);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE)).thenReturn(new ExecutionFailure(400));
+
+        final var logResponse = new LogEntrypointResponse(loggingContext, response);
+        logResponse.capture(ctx);
+
+        assertThat(logResponse.getStatus()).isEqualTo(400);
+        assertNull(logResponse.getBody());
+    }
+
+    @Test
+    void should_set_failure_message_as_body_when_payload_logging_enabled_and_no_body_captured() {
+        final String errorMessage = "{\"message\":\"validation failed\"}";
+        when(response.headers()).thenReturn(HttpHeaders.create());
+        when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
+        when(loggingContext.entrypointResponsePayload()).thenReturn(true);
+        when(loggingContext.isBodyLoggable()).thenReturn(true);
+        when(loggingContext.isContentTypeLoggable(any(), any())).thenReturn(false);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE)).thenReturn(
+            new ExecutionFailure(400).message(errorMessage)
+        );
+
+        final var logResponse = new LogEntrypointResponse(loggingContext, response);
+        logResponse.capture(ctx);
+
+        assertThat(logResponse.getStatus()).isEqualTo(400);
+        assertThat(logResponse.getBody()).isEqualTo(errorMessage);
     }
 
     @Test

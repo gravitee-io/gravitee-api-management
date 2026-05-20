@@ -25,12 +25,16 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
+import io.gravitee.gateway.reactive.api.ExecutionFailure;
+import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.HttpResponseInternal;
@@ -79,7 +83,7 @@ class LogEndpointResponseTest {
 
     @BeforeEach
     void init() {
-        doNothing().when(response).registerBuffersInterceptor(buffersInterceptorCaptor.capture());
+        lenient().doNothing().when(response).registerBuffersInterceptor(buffersInterceptorCaptor.capture());
         cut = new LogEndpointResponse(loggingContext, response);
     }
 
@@ -305,6 +309,51 @@ class LogEndpointResponseTest {
 
         assertNull(cut.getHeaders());
         assertThat(cut.getBody()).isEqualTo("BODY NOT CAPTURED");
+    }
+
+    @Test
+    void should_use_failure_status_when_execution_failure_is_present() {
+        initializeHeaders(HttpHeaders.create());
+        when(loggingContext.endpointResponseHeaders()).thenReturn(false);
+        when(loggingContext.endpointResponsePayload()).thenReturn(false);
+        when(response.status()).thenReturn(OK_200);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE)).thenReturn(new ExecutionFailure(400));
+
+        cut.setupCapture(ctx);
+        triggerResponseFromBackend(null);
+
+        assertThat(cut.getStatus()).isEqualTo(400);
+        assertNull(cut.getBody());
+    }
+
+    @Test
+    void should_set_failure_message_as_body_when_payload_logging_enabled_and_no_body_captured() {
+        final String errorMessage = "{\"message\":\"validation failed\"}";
+        initializeHeaders(HttpHeaders.create());
+        when(loggingContext.endpointResponseHeaders()).thenReturn(false);
+        when(loggingContext.endpointResponsePayload()).thenReturn(true);
+        when(loggingContext.isBodyLoggable()).thenReturn(true);
+        when(loggingContext.isContentTypeLoggable(any(), any())).thenReturn(false);
+        when(response.status()).thenReturn(OK_200);
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE)).thenReturn(
+            new ExecutionFailure(400).message(errorMessage)
+        );
+
+        cut.setupCapture(ctx);
+        triggerResponseFromBackend(null);
+
+        assertThat(cut.getStatus()).isEqualTo(400);
+        assertThat(cut.getBody()).isEqualTo(errorMessage);
+    }
+
+    @Test
+    void should_keep_status_zero_when_backend_did_not_respond_despite_failure() {
+        when(response.status()).thenReturn(0);
+
+        cut.finalizeCapture(ctx);
+
+        assertThat(cut.getStatus()).isEqualTo(0);
+        verify(ctx, never()).getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE);
     }
 
     private void triggerResponseFromBackend(HttpHeaders backendHeaders) {
