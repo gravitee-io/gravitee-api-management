@@ -45,6 +45,17 @@ export const applicationListKeys = {
     groups: (envId: string) => [...applicationListKeys.all, 'groups', envId] as const,
 } as const;
 
+export const applicationMemberKeys = {
+    all: ['application-members'] as const,
+    list: (envId: string, applicationId: string) => [...applicationMemberKeys.all, 'list', envId, applicationId] as const,
+    roles: () => [...applicationMemberKeys.all, 'roles'] as const,
+    groups: (envId: string) => [...applicationMemberKeys.all, 'env-groups', envId] as const,
+    groupMembers: (envId: string, applicationId: string, groupId: string) =>
+        [...applicationMemberKeys.all, 'group-members', envId, applicationId, groupId] as const,
+    associatedGroups: (envId: string, groupIdsKey: string) =>
+        [...applicationMemberKeys.all, 'associated-groups', envId, groupIdsKey] as const,
+} as const;
+
 export const applicationSubscriptionKeys = {
     all: ['application-subscriptions'] as const,
     list: (envId: string, applicationId: string, filters: ApplicationSubscriptionsFilters | undefined, page: number, size: number) =>
