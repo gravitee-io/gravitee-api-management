@@ -16,7 +16,7 @@
 package fixtures.core.model;
 
 import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
-import io.gravitee.apim.core.invitation.model.ApplicationInvitationId;
+import io.gravitee.apim.core.invitation.model.InvitationId;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -37,7 +37,7 @@ public class ApplicationInvitationFixtures {
     }
 
     public static ApplicationInvitation anApplicationInvitation(String id, String applicationId, String email, String role) {
-        return new ApplicationInvitation(ApplicationInvitationId.of(id), applicationId, email, role, date(), date());
+        return new ApplicationInvitation(InvitationId.of(id), applicationId, email, role, date(), date());
     }
 
     private static ZonedDateTime date() {

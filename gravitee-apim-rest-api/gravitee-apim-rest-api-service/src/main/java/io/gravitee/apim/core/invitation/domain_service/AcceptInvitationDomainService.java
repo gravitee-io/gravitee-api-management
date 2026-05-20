@@ -13,21 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.invitation.crud_service;
+package io.gravitee.apim.core.invitation.domain_service;
 
-import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
 import io.gravitee.apim.core.invitation.model.Invitation;
-import io.gravitee.apim.core.invitation.model.InvitationId;
-import java.util.List;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 
-public interface InvitationCrudService {
-    ApplicationInvitation create(ApplicationInvitation invitation);
-
-    default List<Invitation> findByEmail(String email) {
-        throw new UnsupportedOperationException("findByEmail not implemented");
-    }
-
-    default void delete(InvitationId invitationId) {
-        throw new UnsupportedOperationException("delete not implemented");
-    }
+public interface AcceptInvitationDomainService {
+    /**
+     * Adds {@code userId} as a member of the resource referenced by {@code invitation}.
+     * Dispatches on invitation type (GROUP, APPLICATION, …).
+     */
+    void addMember(ExecutionContext executionContext, Invitation invitation, String userId);
 }

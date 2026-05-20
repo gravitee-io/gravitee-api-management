@@ -25,6 +25,7 @@ import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.DashboardAuditLogEntity;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
+import io.gravitee.apim.core.audit.model.OrganizationAuditLogEntity;
 import io.gravitee.apim.core.json.JsonDiffProcessor;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -128,6 +129,26 @@ public class AuditDomainService {
             auditCrudService.create(entity);
         } catch (TechnicalManagementException e) {
             log.error("Error occurs during the creation of an API Product Audit Log.", e);
+        }
+    }
+
+    public void createOrganizationAuditLog(OrganizationAuditLogEntity audit) {
+        try {
+            var entity = AuditEntity.builder()
+                .id(UuidString.generateRandom())
+                .organizationId(audit.organizationId())
+                .createdAt(audit.createdAt())
+                .user(createActor(audit.actor()))
+                .properties(adaptAuditLogProperties(audit.properties()))
+                .referenceType(AuditEntity.AuditReferenceType.ORGANIZATION)
+                .referenceId(audit.organizationId())
+                .event(audit.event().name())
+                .patch(jsonDiffProcessor.diff(audit.oldValue(), audit.newValue()))
+                .build();
+
+            auditCrudService.create(entity);
+        } catch (TechnicalManagementException e) {
+            log.error("Error occurs during the creation of an Organization Audit Log.", e);
         }
     }
 

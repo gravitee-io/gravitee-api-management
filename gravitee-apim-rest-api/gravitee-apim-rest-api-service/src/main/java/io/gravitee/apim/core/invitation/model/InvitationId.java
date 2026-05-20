@@ -17,20 +17,15 @@ package io.gravitee.apim.core.invitation.model;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import jakarta.annotation.Nonnull;
-import java.util.Objects;
 import java.util.UUID;
 
-public record ApplicationInvitationId(@Nonnull UUID id) {
-    public ApplicationInvitationId {
-        Objects.requireNonNull(id, "id");
+public record InvitationId(@Nonnull UUID id) {
+    public static InvitationId random() {
+        return new InvitationId(UUID.randomUUID());
     }
 
-    public static ApplicationInvitationId random() {
-        return new ApplicationInvitationId(UUID.randomUUID());
-    }
-
-    public static ApplicationInvitationId of(String value) {
-        return new ApplicationInvitationId(UUID.fromString(value));
+    public static InvitationId of(String value) {
+        return new InvitationId(UUID.fromString(value));
     }
 
     @JsonValue

@@ -13,21 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.invitation.model;
+package io.gravitee.apim.core.user.domain_service;
 
-import io.gravitee.common.utils.TimeProvider;
-import java.time.ZonedDateTime;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.Optional;
 
-public record ApplicationInvitation(
-    InvitationId id,
-    String applicationId,
-    String email,
-    String roleName,
-    ZonedDateTime createdAt,
-    ZonedDateTime updatedAt
-) implements Invitation {
-    public static ApplicationInvitation create(String applicationId, String email, String roleName) {
-        var now = TimeProvider.now();
-        return new ApplicationInvitation(InvitationId.random(), applicationId, email, roleName, now, now);
-    }
+public interface CreateUserDomainService {
+    BaseUserEntity createExternalUser(
+        ExecutionContext executionContext,
+        String email,
+        Optional<String> firstname,
+        Optional<String> lastname
+    );
 }

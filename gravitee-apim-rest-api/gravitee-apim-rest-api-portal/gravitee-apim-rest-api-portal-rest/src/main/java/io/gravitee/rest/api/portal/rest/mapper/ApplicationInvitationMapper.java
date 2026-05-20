@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
-import io.gravitee.apim.core.invitation.model.ApplicationInvitationId;
+import io.gravitee.apim.core.invitation.model.InvitationId;
 import io.gravitee.rest.api.portal.rest.model.Invitation;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
@@ -34,7 +34,7 @@ public interface ApplicationInvitationMapper {
 
     List<Invitation> toInvitation(List<ApplicationInvitation> invitations);
 
-    default String map(ApplicationInvitationId id) {
+    default String map(InvitationId id) {
         return id.toString();
     }
 

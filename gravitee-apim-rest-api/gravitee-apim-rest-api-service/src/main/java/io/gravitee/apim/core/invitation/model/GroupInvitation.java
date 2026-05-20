@@ -15,19 +15,11 @@
  */
 package io.gravitee.apim.core.invitation.model;
 
-import io.gravitee.common.utils.TimeProvider;
-import java.time.ZonedDateTime;
-
-public record ApplicationInvitation(
+public record GroupInvitation(
     InvitationId id,
-    String applicationId,
+    String referenceId,
+    String referenceType,
     String email,
-    String roleName,
-    ZonedDateTime createdAt,
-    ZonedDateTime updatedAt
-) implements Invitation {
-    public static ApplicationInvitation create(String applicationId, String email, String roleName) {
-        var now = TimeProvider.now();
-        return new ApplicationInvitation(InvitationId.random(), applicationId, email, roleName, now, now);
-    }
-}
+    String apiRole,
+    String applicationRole
+) implements Invitation {}

@@ -38,6 +38,7 @@ public class BaseUserEntity {
     private String source;
     /** The user reference in the external source */
     private String sourceId;
+    private String status;
 
     public String displayName() {
         if (isNotBlank(firstname)) {

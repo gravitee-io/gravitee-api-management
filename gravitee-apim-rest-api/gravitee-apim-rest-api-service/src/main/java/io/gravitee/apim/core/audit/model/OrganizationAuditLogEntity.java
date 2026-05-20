@@ -13,21 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.invitation.model;
+package io.gravitee.apim.core.audit.model;
 
-import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.apim.core.audit.model.event.AuditEvent;
 import java.time.ZonedDateTime;
+import java.util.Map;
+import lombok.Builder;
 
-public record ApplicationInvitation(
-    InvitationId id,
-    String applicationId,
-    String email,
-    String roleName,
+@Builder
+public record OrganizationAuditLogEntity(
+    String organizationId,
+    AuditActor actor,
+    Map<AuditProperties, String> properties,
+    AuditEvent event,
     ZonedDateTime createdAt,
-    ZonedDateTime updatedAt
-) implements Invitation {
-    public static ApplicationInvitation create(String applicationId, String email, String roleName) {
-        var now = TimeProvider.now();
-        return new ApplicationInvitation(InvitationId.random(), applicationId, email, roleName, now, now);
-    }
-}
+    Object oldValue,
+    Object newValue
+) {}
