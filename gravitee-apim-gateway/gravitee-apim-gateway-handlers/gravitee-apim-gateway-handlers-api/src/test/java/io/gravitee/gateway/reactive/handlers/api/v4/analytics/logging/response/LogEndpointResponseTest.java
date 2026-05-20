@@ -279,6 +279,20 @@ class LogEndpointResponseTest {
     }
 
     @Test
+    void should_not_capture_traceId_when_otelLogs_disabled() {
+        when(loggingContext.isOtelLogsEnabled()).thenReturn(false);
+        initializeHeaders(HttpHeaders.create());
+        when(loggingContext.endpointResponseHeaders()).thenReturn(false);
+        when(loggingContext.endpointResponsePayload()).thenReturn(false);
+
+        cut.setupCapture(ctx);
+        triggerResponseFromBackend(null);
+
+        assertNull(cut.getTraceId());
+        assertNull(cut.getSpanId());
+    }
+
+    @Test
     void should_log_body_not_captured_when_body_is_not_loggable() {
         initializeHeaders(HttpHeaders.create());
         when(loggingContext.endpointResponseHeaders()).thenReturn(false);
