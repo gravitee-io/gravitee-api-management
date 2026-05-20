@@ -29,7 +29,7 @@ import {
     updateApiFromDefinition,
     updateApiGeneral,
     updateApiPicture,
-} from '../../../services/apis/apis';
+} from '../services/apis';
 import type { ApiDetailDto } from '../types/api';
 import { apiDetailKeys } from '../utils/queryKeys';
 

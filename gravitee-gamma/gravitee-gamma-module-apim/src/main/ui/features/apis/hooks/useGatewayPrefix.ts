@@ -16,7 +16,7 @@
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useQuery } from '@tanstack/react-query';
 
-import { getEnvironmentPortalSettings } from '../../../services/portal/settings';
+import { getEnvironmentPortalSettings } from '../../settings/services/portalSettings';
 import { GATEWAY_URL_PLACEHOLDER } from '../utils/apiProxyMapper';
 import { portalSettingsKeys } from '../utils/queryKeys';
 

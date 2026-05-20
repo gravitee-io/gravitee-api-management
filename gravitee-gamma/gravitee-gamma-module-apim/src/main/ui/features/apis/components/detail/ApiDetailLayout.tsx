@@ -18,7 +18,7 @@ import { CircleCheckIcon, CircleStopIcon, CircleXIcon } from '@gravitee/graphene
 import { Navigate, Outlet, useParams } from 'react-router-dom';
 
 import { API_PROXY_NAV_GROUPS, ApiDetailSidebarNav } from './ApiDetailSidebarNav';
-import { useDetailBasePath } from '../../../shared/hooks/useDetailBasePath';
+import { useDetailBasePath } from '../../../../shared/hooks/useDetailBasePath';
 import { ApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDetail } from '../../hooks/useApiDetail';
 import { useApiPermissions } from '../../hooks/useApiPermissions';

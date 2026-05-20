@@ -16,7 +16,7 @@
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useQuery } from '@tanstack/react-query';
 
-import { getApiEvents } from '../../../services/apis/apis';
+import { getApiEvents } from '../services/apis';
 import { apiEventsKeys } from '../utils/queryKeys';
 
 export function useApiEvents(apiId: string | undefined, page: number, perPage: number) {

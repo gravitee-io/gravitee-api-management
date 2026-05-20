@@ -17,9 +17,9 @@ import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 
-import { listAlerts } from '../../../services/alerts/alerts';
-import { getApiAnalyticsStats } from '../../../services/apis/analytics';
-import { getExposedEntrypoints } from '../../../services/apis/entrypoints';
+import { listAlerts } from '../services/alerts';
+import { getApiAnalyticsStats } from '../services/analytics';
+import { getExposedEntrypoints } from '../services/entrypoints';
 import { getApiMembers } from '../services/members';
 import { apiAlertKeys, apiAnalyticsKeys, apiEntrypointKeys, apiMemberKeys } from '../utils/queryKeys';
 

@@ -15,7 +15,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 
-import { getOrgTags } from '../../../services/organization/tags';
+import { getOrgTags } from '../../settings/services/organizationTags';
 import { orgTagKeys } from '../utils/queryKeys';
 
 export function useOrgTags() {

@@ -28,7 +28,7 @@ import {
 } from '@gravitee/graphene-core/icons';
 import type { LucideIcon } from '@gravitee/graphene-core/icons';
 
-import { FeatureTile } from '../../shared/components';
+import { FeatureTile } from '../../../shared/components';
 
 // ─── Static data ─────────────────────────────────────────────────────────────
 

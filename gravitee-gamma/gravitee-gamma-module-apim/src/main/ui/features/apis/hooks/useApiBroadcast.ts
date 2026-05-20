@@ -17,7 +17,7 @@ import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import { listApplicationRoles, sendBroadcast } from '../../../services/apis/broadcasts';
+import { listApplicationRoles, sendBroadcast } from '../services/broadcasts';
 import type { BroadcastPayload, RecipientOption } from '../types/broadcast';
 import { apiBroadcastKeys } from '../utils/queryKeys';
 
