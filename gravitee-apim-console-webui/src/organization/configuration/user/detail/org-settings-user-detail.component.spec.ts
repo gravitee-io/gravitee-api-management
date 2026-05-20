@@ -429,6 +429,35 @@ describe('OrgSettingsUserDetailComponent', () => {
     ]);
   });
 
+  it('should display api product name link', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      status: 'ACTIVE',
+    });
+    expectInitRequests(user, defaultEnvironments, {
+      envAlphaId: {
+        apiProducts: [
+          {
+            id: 'productAlphaId',
+            name: 'Product Alpha',
+            version: '1.0.0',
+            visibility: 'PUBLIC',
+            environmentId: 'envAlphaId',
+            environmentName: 'Environment Alpha',
+          },
+        ],
+      },
+    });
+
+    const membershipsCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__memberships-card' }));
+    const apiProductsTable = await membershipsCard.getHarness(MatTableHarness.with({ selector: '[aria-label="API Products table"]' }));
+    expect(await apiProductsTable.getCellTextByIndex()).toEqual([['Product Alpha', '1.0.0', 'public Public']]);
+
+    const clickableName = fixture.debugElement.query(By.css('a[href="/envAlphaId/api-products/productAlphaId/configuration/general"]'));
+    expect(clickableName).toBeTruthy();
+  });
+
   it('should display applications user membership in environment tab', async () => {
     const user = fakeUser({
       id: 'userId',
