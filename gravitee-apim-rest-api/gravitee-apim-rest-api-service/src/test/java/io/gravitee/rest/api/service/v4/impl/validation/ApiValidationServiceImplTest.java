@@ -46,6 +46,7 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
@@ -76,6 +77,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -192,6 +194,32 @@ public class ApiValidationServiceImplTest {
         verify(resourcesValidationService, times(1)).validateAndSanitize(List.of());
         verify(planValidationService, times(1)).validateAndSanitize(apiEntity.getType(), Set.of());
         verify(flowValidationDomainService, times(1)).validatePathParameters(any(), any(), any());
+    }
+
+    @Test(expected = InvalidDataException.class)
+    public void shouldRejectDynamicPropertiesScheduleWhenConfiguredCronIsSlower() {
+        var validator = new ApiValidationServiceImpl(
+            tagsValidationService,
+            groupValidationService,
+            listenerValidationService,
+            endpointGroupsValidationService,
+            flowValidationService,
+            resourcesValidationService,
+            loggingValidationService,
+            planSearchService,
+            planValidationService,
+            apiServicePluginService,
+            flowValidationDomainService,
+            apiProductQueryService
+        );
+        ReflectionTestUtils.setField(validator, "dynamicPropertiesCronLimit", "0 */5 * * * *");
+
+        var dynamicProperties = Service.builder().type("http-dynamic-properties").configuration("{\"schedule\":\"* * * * * *\"}").build();
+        when(
+            apiServicePluginService.validateApiServiceConfiguration(dynamicProperties.getType(), dynamicProperties.getConfiguration())
+        ).thenReturn(dynamicProperties.getConfiguration());
+
+        validator.validateDynamicProperties(dynamicProperties);
     }
 
     @Test(expected = InvalidDataException.class)

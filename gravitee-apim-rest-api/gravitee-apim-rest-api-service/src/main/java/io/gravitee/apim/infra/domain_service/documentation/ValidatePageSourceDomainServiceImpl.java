@@ -22,6 +22,7 @@ import io.gravitee.apim.core.documentation.exception.InvalidPageSourceException;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.rest.api.service.common.CronScheduleLimits;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
@@ -34,6 +35,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import lombok.CustomLog;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
 
@@ -79,6 +81,9 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
 
     private final ObjectMapper objectMapper;
     private final Vertx vertx;
+
+    @Value("${services.auto_fetch.cron_limit:}")
+    private String autoFetchCronLimit;
 
     public ValidatePageSourceDomainServiceImpl(ObjectMapper objectMapper, Vertx vertx) {
         this.objectMapper = objectMapper;
@@ -237,10 +242,23 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
             return Result.empty();
         }
         return CronExpression.isValidExpression(cronExpression)
-            ? Result.ofValue(cronExpression)
+            ? validateFetchCronLimit(pageName, sourceType, cronExpression)
             : Result.withError(
                 Error.severe("property [fetchCron] of source [%s] must be a valid cron expression for page [%s]", sourceType, pageName)
             );
+    }
+
+    private Validator.Result<String> validateFetchCronLimit(String pageName, String sourceType, String cronExpression) {
+        return CronScheduleLimits.isMoreFrequentThanLimit(cronExpression, autoFetchCronLimit)
+            ? Result.withError(
+                Error.severe(
+                    "property [fetchCron] of source [%s] must not run more frequently than [%s] for page [%s]",
+                    sourceType,
+                    autoFetchCronLimit,
+                    pageName
+                )
+            )
+            : Result.ofValue(cronExpression);
     }
 
     private Validator.Result<Map<String, Object>> checkRequiredProperties(

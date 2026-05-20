@@ -71,6 +71,7 @@ import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
+import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -1068,7 +1069,7 @@ public class ApiService_UpdateTest {
     }
 
     @Test
-    public void shouldLimitHealthcheckScheduleWhenConfiguredCronIsSlower() throws TechnicalException {
+    public void shouldRejectHealthcheckScheduleWhenConfiguredCronIsSlower() throws TechnicalException {
         ReflectionTestUtils.setField(apiService, "healthcheckCronLimit", "0 */5 * * * *");
         prepareUpdate();
         Services services = new Services();
@@ -1077,9 +1078,24 @@ public class ApiService_UpdateTest {
         services.put(HealthCheckService.class, healthCheckService);
         updateApiEntity.setServices(services);
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+        assertThatThrownBy(() -> apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity)).isInstanceOf(
+            InvalidDataException.class
+        );
+    }
 
-        assertEquals("0 */5 * * * *", healthCheckService.getSchedule());
+    @Test
+    public void shouldRejectDynamicPropertiesScheduleWhenConfiguredCronIsSlower() throws TechnicalException {
+        ReflectionTestUtils.setField(apiService, "dynamicPropertiesCronLimit", "0 */5 * * * *");
+        prepareUpdate();
+        Services services = new Services();
+        DynamicPropertyService dynamicPropertyService = new DynamicPropertyService();
+        dynamicPropertyService.setSchedule("* * * * * *");
+        services.put(DynamicPropertyService.class, dynamicPropertyService);
+        updateApiEntity.setServices(services);
+
+        assertThatThrownBy(() -> apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity)).isInstanceOf(
+            InvalidDataException.class
+        );
     }
 
     @Test

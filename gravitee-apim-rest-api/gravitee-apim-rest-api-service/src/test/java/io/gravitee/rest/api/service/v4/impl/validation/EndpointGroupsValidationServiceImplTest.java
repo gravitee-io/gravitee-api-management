@@ -43,6 +43,7 @@ import io.gravitee.rest.api.service.exceptions.EndpointNameAlreadyExistsExceptio
 import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
 import io.gravitee.rest.api.service.exceptions.HealthcheckInheritanceException;
 import io.gravitee.rest.api.service.exceptions.HealthcheckInvalidException;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiServicePluginService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
@@ -57,6 +58,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -236,6 +238,34 @@ public class EndpointGroupsValidationServiceImplTest {
         assertThat(validatedEndpointGroup.getSharedConfiguration()).isNotNull();
         assertThat(validatedEndpointGroup.getLoadBalancer()).isNotNull();
         assertThat(validatedEndpointGroup.getLoadBalancer().getType()).isEqualTo(LoadBalancerType.ROUND_ROBIN);
+    }
+
+    @Test
+    public void shouldRejectEndpointGroupsWithHealthCheckMoreFrequentThanConfiguredLimit() {
+        ReflectionTestUtils.setField(endpointGroupsValidationService, "healthcheckCronLimit", "0 */5 * * * *");
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("my name");
+        endpointGroup.setType("http");
+        endpointGroup.setSharedConfiguration("sharedConfiguration");
+        Endpoint endpoint = new Endpoint();
+        endpoint.setName("endpoint");
+        endpoint.setType("http");
+        endpoint.setInheritConfiguration(true);
+        endpointGroup.setEndpoints(List.of(endpoint));
+
+        Service healthCheck = new Service();
+        healthCheck.setType(HEALTH_CHECK_TYPE);
+        healthCheck.setEnabled(true);
+        healthCheck.setConfiguration("{\"schedule\":\"* * * * * *\"}");
+        endpointGroup.getServices().setHealthCheck(healthCheck);
+
+        when(apiServicePluginService.validateApiServiceConfiguration(eq(HEALTH_CHECK_TYPE), any())).thenReturn(
+            healthCheck.getConfiguration()
+        );
+
+        assertThatThrownBy(() ->
+            endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup))
+        ).isInstanceOf(InvalidDataException.class);
     }
 
     @Test

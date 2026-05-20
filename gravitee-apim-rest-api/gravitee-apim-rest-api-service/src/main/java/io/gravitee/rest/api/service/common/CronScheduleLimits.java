@@ -31,11 +31,19 @@ public final class CronScheduleLimits {
             return userCron;
         }
 
-        return frequency(userCron).compareTo(frequency(cronLimit)) < 0 ? cronLimit : userCron;
+        return isMoreFrequentThanLimit(userCron, cronLimit) ? cronLimit : userCron;
     }
 
     public static long limitFrequency(long userDelayMillis, long delayLimitMillis) {
         return delayLimitMillis > 0 ? Math.max(userDelayMillis, delayLimitMillis) : userDelayMillis;
+    }
+
+    public static boolean isMoreFrequentThanLimit(String userCron, String cronLimit) {
+        return StringUtils.isNotBlank(cronLimit) && frequency(userCron).compareTo(frequency(cronLimit)) < 0;
+    }
+
+    public static boolean isMoreFrequentThanLimit(long userDelayMillis, long delayLimitMillis) {
+        return delayLimitMillis > 0 && userDelayMillis < delayLimitMillis;
     }
 
     private static Duration frequency(String cron) {

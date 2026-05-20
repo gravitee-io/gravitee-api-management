@@ -67,6 +67,7 @@ import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.CronScheduleLimits;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
@@ -103,6 +104,7 @@ import java.util.stream.Stream;
 import lombok.CustomLog;
 import net.minidev.json.JSONObject;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
@@ -139,6 +141,9 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     private final PermissionService permissionService;
     private final ApiIdsCalculatorService apiIdsCalculatorService;
     private final CategoryMapper categoryMapper;
+
+    @Value("${services.auto_fetch.cron_limit:}")
+    private String autoFetchCronLimit;
 
     public ApiDuplicatorServiceImpl(
         HttpClientService httpClientService,
@@ -1147,6 +1152,15 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                         log.debug("Validating fetchCron '{}'", cron);
                         try {
                             CronExpression.parse(cron); // Validate cron
+                            if (CronScheduleLimits.isMoreFrequentThanLimit(cron, autoFetchCronLimit)) {
+                                String pageName = pageNode.path("name").asText("Unnamed Page");
+                                throw new ApiImportException(
+                                    "Invalid fetchCron expression in page '" +
+                                        pageName +
+                                        "': it must not run more frequently than the configured limit " +
+                                        autoFetchCronLimit
+                                );
+                            }
                         } catch (IllegalArgumentException e) {
                             String pageName = pageNode.path("name").asText("Unnamed Page");
                             throw new ApiImportException("Invalid fetchCron expression in page '" + pageName + "': " + e.getMessage());

@@ -43,4 +43,14 @@ class CronScheduleLimitsTest {
     void should_limit_delay_when_user_delay_is_shorter() {
         assertThat(CronScheduleLimits.limitFrequency(1_000, 60_000)).isEqualTo(60_000);
     }
+
+    @Test
+    void should_detect_cron_more_frequent_than_limit() {
+        assertThat(CronScheduleLimits.isMoreFrequentThanLimit("* * * * * *", "0 */5 * * * *")).isTrue();
+    }
+
+    @Test
+    void should_detect_delay_more_frequent_than_limit() {
+        assertThat(CronScheduleLimits.isMoreFrequentThanLimit(1_000, 60_000)).isTrue();
+    }
 }

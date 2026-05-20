@@ -31,20 +31,24 @@ import io.gravitee.repository.management.model.Dictionary;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
+import io.gravitee.rest.api.model.configuration.dictionary.DictionaryTriggerEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryType;
 import io.gravitee.rest.api.model.configuration.dictionary.UpdateDictionaryEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DictionaryServiceImpl_UpdateTest {
@@ -190,6 +194,29 @@ public class DictionaryServiceImpl_UpdateTest {
                     auditLogData.getCreatedAt().equals(updatedDictionary.getUpdatedAt())
             )
         );
+    }
+
+    @Test(expected = InvalidDataException.class)
+    public void shouldNotUpdateDynamicDictionaryWhenTriggerIsMoreFrequentThanConfiguredLimit() throws TechnicalException {
+        ReflectionTestUtils.setField(dictionaryService, "delayLimitMillis", 60_000L);
+
+        Dictionary dictionaryInDb = new Dictionary();
+        dictionaryInDb.setId(DICTIONARY_ID);
+        dictionaryInDb.setCreatedAt(new Date());
+        dictionaryInDb.setState(LifecycleState.STARTED);
+        dictionaryInDb.setEnvironmentId(ENVIRONMENT_ID);
+        when(dictionaryRepository.findById(dictionaryInDb.getId())).thenReturn(Optional.of(dictionaryInDb));
+
+        DictionaryTriggerEntity trigger = new DictionaryTriggerEntity();
+        trigger.setRate(1);
+        trigger.setUnit(TimeUnit.SECONDS);
+
+        UpdateDictionaryEntity updateDictionaryEntity = new UpdateDictionaryEntity();
+        updateDictionaryEntity.setName("UpdatedName");
+        updateDictionaryEntity.setType(DictionaryType.DYNAMIC);
+        updateDictionaryEntity.setTrigger(trigger);
+
+        dictionaryService.update(GraviteeContext.getExecutionContext(), dictionaryInDb.getId(), updateDictionaryEntity);
     }
 
     @Test(expected = DictionaryNotFoundException.class)

@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -43,6 +44,7 @@ import io.gravitee.rest.api.model.UpdatePageEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.InvalidFetchCronExpressionException;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
@@ -191,7 +193,7 @@ public class PageService_AutoFetchTest {
 
     @Test
     public void shouldNotFetch_SourcePage_AutoFetch_LimitedByConfiguredCron() throws Exception {
-        ReflectionTestUtils.setField(pageService, "autoFetchCronLimit", "0 */5 * * * *");
+        ReflectionTestUtils.setField(pageService, "autoFetchCronLimit", "0 0 0 1 1 *");
 
         PageSource pageSource = new PageSource();
 
@@ -221,6 +223,13 @@ public class PageService_AutoFetchTest {
 
         verify(pageRepository, times(0)).update(any());
         verify(pageRepository, times(0)).create(any());
+    }
+
+    @Test
+    public void shouldRejectFetchCronMoreFrequentThanConfiguredLimit() {
+        assertThrows(InvalidFetchCronExpressionException.class, () ->
+            PageServiceImpl.validateFetchConfig("{\"autoFetch\": true, \"fetchCron\" : \"* * * * * *\"}", "0 */5 * * * *")
+        );
     }
 
     @Test

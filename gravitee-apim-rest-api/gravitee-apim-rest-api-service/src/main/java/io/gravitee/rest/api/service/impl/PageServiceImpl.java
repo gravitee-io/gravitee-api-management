@@ -344,6 +344,10 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     public static void validateFetchConfig(String jsonConfig) throws InvalidFetchCronExpressionException {
+        validateFetchConfig(jsonConfig, null);
+    }
+
+    public static void validateFetchConfig(String jsonConfig, String fetchCronLimit) throws InvalidFetchCronExpressionException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root;
         try {
@@ -361,6 +365,11 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         if (!isInvalid) {
             try {
                 CronExpression.parse(fetchCron);
+                if (CronScheduleLimits.isMoreFrequentThanLimit(fetchCron, fetchCronLimit)) {
+                    throw new InvalidFetchCronExpressionException(
+                        "fetchCron must not run more frequently than the configured limit: " + fetchCronLimit
+                    );
+                }
             } catch (IllegalArgumentException e) {
                 throw new InvalidFetchCronExpressionException(fetchCron, e);
             }
@@ -1433,7 +1442,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     private void validatePageFetchConfig(FetchablePageEntity pageEntity) {
         if (pageEntity.getSource() != null && pageEntity.getSource().getConfiguration() != null) {
             log.debug("Validating fetch config for page");
-            validateFetchConfig(pageEntity.getSource().getConfiguration());
+            validateFetchConfig(pageEntity.getSource().getConfiguration(), autoFetchCronLimit);
         }
     }
 

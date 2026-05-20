@@ -36,6 +36,7 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -374,6 +375,29 @@ public class ValidatePageSourceDomainServiceImplTest {
                 .isNotEmpty()
                 .hasValue(
                     List.of(severe("property [fetchCron] of source [http-fetcher] must be a valid cron expression for page [test-page]"))
+                );
+        }
+
+        @Test
+        void should_return_error_when_cron_is_more_frequent_than_configured_limit() {
+            var cut = new ValidatePageSourceDomainServiceImpl(new ObjectMapper(), vertx);
+            ReflectionTestUtils.setField(cut, "autoFetchCronLimit", "0 */5 * * * *");
+            var source = PageSource.builder()
+                .type("http-fetcher")
+                .configurationMap(Map.of("url", "https://petstore.swagger.io/v2/swagger.json", "fetchCron", "* * * * * *"))
+                .build();
+
+            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
+
+            assertThat(result.warning()).isEmpty();
+            assertThat(result.severe())
+                .isNotEmpty()
+                .hasValue(
+                    List.of(
+                        severe(
+                            "property [fetchCron] of source [http-fetcher] must not run more frequently than [0 */5 * * * *] for page [test-page]"
+                        )
+                    )
                 );
         }
 

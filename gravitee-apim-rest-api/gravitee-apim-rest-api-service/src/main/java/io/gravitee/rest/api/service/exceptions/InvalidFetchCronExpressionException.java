@@ -47,7 +47,7 @@ public class InvalidFetchCronExpressionException extends AbstractManagementExcep
 
     @Override
     public String getMessage() {
-        return "The fetch cron expression is invalid: " + fetchCron;
+        return fetchCron != null ? "The fetch cron expression is invalid: " + fetchCron : super.getMessage();
     }
 
     @Override

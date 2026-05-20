@@ -68,6 +68,7 @@ import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
+import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
@@ -403,6 +404,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Value("${services.healthcheck.cron_limit:}")
     private String healthcheckCronLimit;
 
+    @Value("${services.dynamic_properties.cron_limit:}")
+    private String dynamicPropertiesCronLimit;
+
     @Autowired
     private PrimaryOwnerService primaryOwnerService;
 
@@ -619,6 +623,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // validate HC cron schedule
             validateHealtcheckSchedule(api);
+            validateDynamicPropertiesSchedule(api);
 
             // check CORS Allow-origin format
             corsValidationService.validateAndSanitize(api.getProxy().getCors());
@@ -857,8 +862,34 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 String schedule = healthCheckService.getSchedule();
                 if (schedule != null) {
                     try {
-                        healthCheckService.setSchedule(CronScheduleLimits.limitFrequency(schedule, healthcheckCronLimit));
-                        new CronTrigger(healthCheckService.getSchedule());
+                        new CronTrigger(schedule);
+                        if (CronScheduleLimits.isMoreFrequentThanLimit(schedule, healthcheckCronLimit)) {
+                            throw new InvalidDataException(
+                                "Healthcheck schedule must not run more frequently than the configured limit: " + healthcheckCronLimit
+                            );
+                        }
+                    } catch (IllegalArgumentException e) {
+                        throw new InvalidDataException(e);
+                    }
+                }
+            }
+        }
+    }
+
+    private void validateDynamicPropertiesSchedule(UpdateApiEntity api) {
+        if (api.getServices() != null) {
+            DynamicPropertyService dynamicPropertyService = api.getServices().get(DynamicPropertyService.class);
+            if (dynamicPropertyService != null) {
+                String schedule = dynamicPropertyService.getSchedule();
+                if (schedule != null) {
+                    try {
+                        new CronTrigger(schedule);
+                        if (CronScheduleLimits.isMoreFrequentThanLimit(schedule, dynamicPropertiesCronLimit)) {
+                            throw new InvalidDataException(
+                                "Dynamic properties schedule must not run more frequently than the configured limit: " +
+                                    dynamicPropertiesCronLimit
+                            );
+                        }
                     } catch (IllegalArgumentException e) {
                         throw new InvalidDataException(e);
                     }
@@ -1223,6 +1254,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // validate HC cron schedule
             validateHealtcheckSchedule(updateApiEntity);
+            validateDynamicPropertiesSchedule(updateApiEntity);
 
             // check CORS Allow-origin format
             updateApiEntity.getProxy().setCors(corsValidationService.validateAndSanitize(updateApiEntity.getProxy().getCors()));

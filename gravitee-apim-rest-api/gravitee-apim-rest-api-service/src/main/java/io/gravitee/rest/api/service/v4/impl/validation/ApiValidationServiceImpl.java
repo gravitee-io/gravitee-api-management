@@ -19,6 +19,8 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.ARCHIVED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -36,6 +38,7 @@ import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
+import io.gravitee.rest.api.service.common.CronScheduleLimits;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.DefinitionVersionException;
 import io.gravitee.rest.api.service.exceptions.DynamicPropertiesInvalidException;
@@ -59,6 +62,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 import lombok.CustomLog;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -68,6 +72,9 @@ import org.springframework.stereotype.Component;
 @Component
 @CustomLog
 public class ApiValidationServiceImpl extends TransactionalService implements ApiValidationService {
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final String SCHEDULE_CONFIGURATION_FIELD = "schedule";
 
     private final TagsValidationService tagsValidationService;
     private final GroupValidationService groupValidationService;
@@ -81,6 +88,9 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     private final ApiServicePluginService apiServicePluginService;
     private final FlowValidationDomainService flowValidationDomainService;
     private final ApiProductQueryService apiProductQueryService;
+
+    @Value("${services.dynamic_properties.cron_limit:}")
+    private String dynamicPropertiesCronLimit;
 
     public ApiValidationServiceImpl(
         final TagsValidationService tagsValidationService,
@@ -320,6 +330,28 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         dynamicProperties.setConfiguration(
             this.apiServicePluginService.validateApiServiceConfiguration(dynamicProperties.getType(), dynamicProperties.getConfiguration())
         );
+        validateDynamicPropertiesSchedule(dynamicProperties);
+    }
+
+    private void validateDynamicPropertiesSchedule(Service dynamicProperties) {
+        var configuration = dynamicProperties.getConfiguration();
+        if (isBlank(dynamicPropertiesCronLimit) || isBlank(configuration)) {
+            return;
+        }
+
+        try {
+            var scheduleNode = OBJECT_MAPPER.readTree(configuration).get(SCHEDULE_CONFIGURATION_FIELD);
+            if (scheduleNode != null && !scheduleNode.isNull()) {
+                var schedule = scheduleNode.asText();
+                if (CronScheduleLimits.isMoreFrequentThanLimit(schedule, dynamicPropertiesCronLimit)) {
+                    throw new InvalidDataException(
+                        "Dynamic properties schedule must not run more frequently than the configured limit: " + dynamicPropertiesCronLimit
+                    );
+                }
+            }
+        } catch (JsonProcessingException | IllegalArgumentException e) {
+            throw new DynamicPropertiesInvalidException(dynamicProperties.getType());
+        }
     }
 
     public List<Resource> validateAndSanitize(List<Resource> resources) {

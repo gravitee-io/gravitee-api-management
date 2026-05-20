@@ -33,6 +33,7 @@ import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
+import io.gravitee.rest.api.service.common.CronScheduleLimits;
 import io.gravitee.rest.api.service.exceptions.EndpointConfigurationValidationException;
 import io.gravitee.rest.api.service.exceptions.EndpointGroupNameAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.EndpointMissingException;
@@ -40,6 +41,7 @@ import io.gravitee.rest.api.service.exceptions.EndpointNameAlreadyExistsExceptio
 import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
 import io.gravitee.rest.api.service.exceptions.HealthcheckInheritanceException;
 import io.gravitee.rest.api.service.exceptions.HealthcheckInvalidException;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.ApiServicePluginService;
@@ -57,6 +59,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -68,10 +71,14 @@ import org.springframework.stereotype.Component;
 public class EndpointGroupsValidationServiceImpl extends TransactionalService implements EndpointGroupsValidationService {
 
     private static final String LLM_PROXY_TYPE = "llm-proxy";
+    private static final String SCHEDULE_CONFIGURATION_FIELD = "schedule";
 
     private final EndpointConnectorPluginService endpointService;
     private final ApiServicePluginService apiServicePluginService;
     private final ObjectMapper objectMapper;
+
+    @Value("${services.healthcheck.cron_limit:}")
+    private String healthcheckCronLimit;
 
     public EndpointGroupsValidationServiceImpl(
         final EndpointConnectorPluginService endpointService,
@@ -258,6 +265,27 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         healthCheck.setConfiguration(
             this.apiServicePluginService.validateApiServiceConfiguration(healthCheck.getType(), healthCheck.getConfiguration())
         );
+        validateHealthCheckSchedule(healthCheck);
+    }
+
+    private void validateHealthCheckSchedule(Service healthCheck) {
+        if (isBlank(healthcheckCronLimit) || isBlank(healthCheck.getConfiguration())) {
+            return;
+        }
+
+        try {
+            var scheduleNode = objectMapper.readTree(healthCheck.getConfiguration()).get(SCHEDULE_CONFIGURATION_FIELD);
+            if (scheduleNode != null && !scheduleNode.isNull()) {
+                var schedule = scheduleNode.asText();
+                if (CronScheduleLimits.isMoreFrequentThanLimit(schedule, healthcheckCronLimit)) {
+                    throw new InvalidDataException(
+                        "Healthcheck schedule must not run more frequently than the configured limit: " + healthcheckCronLimit
+                    );
+                }
+            }
+        } catch (JsonProcessingException | IllegalArgumentException e) {
+            throw new HealthcheckInvalidException(healthCheck.getType());
+        }
     }
 
     private void validateName(final String name) {

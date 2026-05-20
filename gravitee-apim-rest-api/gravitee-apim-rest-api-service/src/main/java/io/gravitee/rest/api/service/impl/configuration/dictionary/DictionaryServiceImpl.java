@@ -38,9 +38,11 @@ import io.gravitee.rest.api.model.configuration.dictionary.UpdateDictionaryEntit
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
+import io.gravitee.rest.api.service.common.CronScheduleLimits;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import java.io.IOException;
@@ -52,6 +54,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -78,6 +81,9 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
     @Autowired
     private ObjectMapper mapper;
+
+    @Value("${services.dictionary.delay_limit:0}")
+    private long delayLimitMillis;
 
     @Override
     public Set<DictionaryEntity> findAll(ExecutionContext executionContext) {
@@ -249,6 +255,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             //if dictionary with this name exists, we generate a UUID, otherwise we use the name as ID to be backward compatible
             Dictionary dictionary = convert(newDictionaryEntity, dictionaryRepository.findById(key).isEmpty());
+            validateTriggerLimit(dictionary);
 
             dictionary.setEnvironmentId(executionContext.getEnvironmentId());
 
@@ -277,6 +284,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 .orElseThrow(() -> new DictionaryNotFoundException(updateDictionaryEntity.getName()));
 
             Dictionary dictionary = convert(updateDictionaryEntity);
+            validateTriggerLimit(dictionary);
 
             dictionary.setId(id);
             dictionary.setKey(dictionaryToUpdate.getKey());
@@ -529,5 +537,18 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         }
 
         return entity;
+    }
+
+    private void validateTriggerLimit(Dictionary dictionary) {
+        if (
+            dictionary.getType() == DictionaryType.DYNAMIC && dictionary.getTrigger() != null && dictionary.getTrigger().getUnit() != null
+        ) {
+            long delayMillis = dictionary.getTrigger().getUnit().toMillis(dictionary.getTrigger().getRate());
+            if (CronScheduleLimits.isMoreFrequentThanLimit(delayMillis, delayLimitMillis)) {
+                throw new InvalidDataException(
+                    "Dictionary trigger must not run more frequently than the configured limit: " + delayLimitMillis + "ms"
+                );
+            }
+        }
     }
 }

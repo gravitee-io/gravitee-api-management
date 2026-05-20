@@ -552,4 +552,34 @@ public class ApiDuplicatorServiceImplTest {
         assertTrue(exception.getMessage().startsWith("Invalid fetchCron expression in page"));
         assertTrue(exception.getMessage().contains("Cron expression must consist of 6 fields"));
     }
+
+    @Test
+    public void shouldThrowExceptionForFetchCronMoreFrequentThanConfiguredLimit() throws IOException {
+        ReflectionTestUtils.setField(apiDuplicatorService, "autoFetchCronLimit", "0 */5 * * * *");
+        ImportApiJsonNode node = new ImportApiJsonNode(
+            objectMapper.readTree(
+                """
+                {
+                  "pages": [
+                    {
+                      "name": "Test",
+                      "source": {
+                        "configuration": {
+                          "fetchCron": "* * * * * *"
+                        }
+                      }
+                    }
+                  ]
+                }
+                """
+            )
+        );
+
+        ApiImportException exception = assertThrows(ApiImportException.class, () ->
+            ReflectionTestUtils.invokeMethod(apiDuplicatorService, "checkPagesConsistency", node)
+        );
+
+        assertTrue(exception.getMessage().startsWith("Invalid fetchCron expression in page 'Test'"));
+        assertTrue(exception.getMessage().contains("must not run more frequently than the configured limit 0 */5 * * * *"));
+    }
 }
