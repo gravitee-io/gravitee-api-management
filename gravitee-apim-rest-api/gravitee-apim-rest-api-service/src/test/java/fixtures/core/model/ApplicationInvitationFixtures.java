@@ -15,24 +15,29 @@
  */
 package fixtures.core.model;
 
+import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
 import io.gravitee.apim.core.invitation.model.ApplicationInvitationId;
-import io.gravitee.apim.core.invitation.model.ApplicationInvitationItem;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
-public class ApplicationInvitationItemFixtures {
+public class ApplicationInvitationFixtures {
 
     private static final Instant INSTANT_NOW = Instant.parse("2020-02-01T20:22:02.00Z");
+    private static final String APPLICATION_ID = "application-id";
 
-    private ApplicationInvitationItemFixtures() {}
+    private ApplicationInvitationFixtures() {}
 
-    public static ApplicationInvitationItem anApplicationInvitationItem(String id, String email) {
-        return anApplicationInvitationItem(id, email, "USER");
+    public static ApplicationInvitation anApplicationInvitation(String id, String email) {
+        return anApplicationInvitation(id, email, "USER");
     }
 
-    public static ApplicationInvitationItem anApplicationInvitationItem(String id, String email, String role) {
-        return new ApplicationInvitationItem(ApplicationInvitationId.of(id), email, role, date(), date());
+    public static ApplicationInvitation anApplicationInvitation(String id, String email, String role) {
+        return anApplicationInvitation(id, APPLICATION_ID, email, role);
+    }
+
+    public static ApplicationInvitation anApplicationInvitation(String id, String applicationId, String email, String role) {
+        return new ApplicationInvitation(ApplicationInvitationId.of(id), applicationId, email, role, date(), date());
     }
 
     private static ZonedDateTime date() {

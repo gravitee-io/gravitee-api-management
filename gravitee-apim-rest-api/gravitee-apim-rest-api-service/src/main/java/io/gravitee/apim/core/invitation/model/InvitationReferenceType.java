@@ -17,5 +17,6 @@ package io.gravitee.apim.core.invitation.model;
 
 public enum InvitationReferenceType {
     APPLICATION,
+    API,
     GROUP,
 }

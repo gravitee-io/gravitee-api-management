@@ -16,9 +16,11 @@
 package io.gravitee.apim.infra.query_service.invitation;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
-import io.gravitee.apim.core.invitation.model.ApplicationInvitationItem;
+import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
+import io.gravitee.apim.core.invitation.model.InvitationReference;
 import io.gravitee.apim.core.invitation.model.SearchApplicationInvitationsCriteria;
 import io.gravitee.apim.core.invitation.query_service.InvitationQueryService;
+import io.gravitee.apim.infra.adapter.ApplicationInvitationAdapter;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.InvitationRepository;
@@ -44,15 +46,12 @@ public class InvitationQueryServiceImpl implements InvitationQueryService {
     }
 
     @Override
-    public List<ApplicationInvitationItem> findByReference(
-        io.gravitee.apim.core.invitation.model.InvitationReferenceType referenceType,
-        String referenceId
-    ) {
+    public List<ApplicationInvitation> findByReference(@Nonnull InvitationReference reference) {
         try {
             return invitationRepository
-                .findByReferenceIdAndReferenceType(referenceId, InvitationReferenceType.valueOf(referenceType.name()))
+                .findByReferenceIdAndReferenceType(reference.id(), InvitationReferenceType.valueOf(reference.type().name()))
                 .stream()
-                .map(ApplicationInvitationItemMapper.INSTANCE::toApplicationInvitationItem)
+                .map(ApplicationInvitationAdapter.INSTANCE::toEntity)
                 .toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find invitations by reference", e);
@@ -60,7 +59,7 @@ public class InvitationQueryServiceImpl implements InvitationQueryService {
     }
 
     @Override
-    public Page<ApplicationInvitationItem> findByApplicationId(
+    public Page<ApplicationInvitation> findByApplicationId(
         String applicationId,
         @Nonnull SearchApplicationInvitationsCriteria criteria,
         @Nonnull Pageable pageable
@@ -77,11 +76,7 @@ public class InvitationQueryServiceImpl implements InvitationQueryService {
                 new PageableBuilder().pageNumber(resolvedPageable.getPageNumber() - 1).pageSize(resolvedPageable.getPageSize()).build()
             );
 
-            var content = repositoryPage
-                .getContent()
-                .stream()
-                .map(ApplicationInvitationItemMapper.INSTANCE::toApplicationInvitationItem)
-                .toList();
+            var content = repositoryPage.getContent().stream().map(ApplicationInvitationAdapter.INSTANCE::toEntity).toList();
 
             return new Page<>(content, resolvedPageable.getPageNumber(), content.size(), repositoryPage.getTotalElements());
         } catch (TechnicalException e) {

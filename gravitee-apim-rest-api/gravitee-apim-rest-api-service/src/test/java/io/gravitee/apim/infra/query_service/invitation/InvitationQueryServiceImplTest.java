@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.invitation.model.ApplicationInvitationId;
+import io.gravitee.apim.core.invitation.model.InvitationReference;
 import io.gravitee.apim.core.invitation.model.SearchApplicationInvitationsCriteria;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.TimeProvider;
@@ -86,10 +87,12 @@ class InvitationQueryServiceImplTest {
         assertThat(result.getTotalElements()).isEqualTo(3);
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getContent().get(0).id()).isEqualTo(ApplicationInvitationId.of(INVITATION_ID_2));
+        assertThat(result.getContent().get(0).applicationId()).isEqualTo(APPLICATION_ID);
         assertThat(result.getContent().get(0).roleName()).isNull();
         assertThat(result.getContent().get(0).createdAt()).isEqualTo(expectedCreatedAt);
         assertThat(result.getContent().get(0).updatedAt()).isEqualTo(expectedUpdatedAt);
         assertThat(result.getContent().get(1).id()).isEqualTo(ApplicationInvitationId.of(INVITATION_ID_1));
+        assertThat(result.getContent().get(1).applicationId()).isEqualTo(APPLICATION_ID);
         assertThat(result.getContent().get(1).roleName()).isEqualTo("USER");
         assertThat(result.getContent().get(1).createdAt()).isEqualTo(expectedCreatedAt);
         assertThat(result.getContent().get(1).updatedAt()).isEqualTo(expectedUpdatedAt);
@@ -104,17 +107,26 @@ class InvitationQueryServiceImplTest {
             List.of(invitation)
         );
 
-        var result = cut.findByReference(
-            io.gravitee.apim.core.invitation.model.InvitationReferenceType.APPLICATION,
-            APPLICATION_ID
-        );
+        var result = cut.findByReference(InvitationReference.application(APPLICATION_ID));
 
         assertThat(result).hasSize(1);
         assertThat(result.getFirst().id()).isEqualTo(ApplicationInvitationId.of(INVITATION_ID_1));
+        assertThat(result.getFirst().applicationId()).isEqualTo(APPLICATION_ID);
         assertThat(result.getFirst().email()).isEqualTo("john@example.com");
         assertThat(result.getFirst().roleName()).isEqualTo("USER");
         assertThat(result.getFirst().createdAt()).isEqualTo(createdAt.toInstant().atZone(TimeProvider.clock().getZone()));
         verify(invitationRepository).findByReferenceIdAndReferenceType(APPLICATION_ID, InvitationReferenceType.APPLICATION);
+    }
+
+    @Test
+    void should_find_invitations_by_api_reference() throws Exception {
+        var apiId = "api-id";
+        when(invitationRepository.findByReferenceIdAndReferenceType(apiId, InvitationReferenceType.API)).thenReturn(List.of());
+
+        var result = cut.findByReference(InvitationReference.api(apiId));
+
+        assertThat(result).isEmpty();
+        verify(invitationRepository).findByReferenceIdAndReferenceType(apiId, InvitationReferenceType.API);
     }
 
     @Test

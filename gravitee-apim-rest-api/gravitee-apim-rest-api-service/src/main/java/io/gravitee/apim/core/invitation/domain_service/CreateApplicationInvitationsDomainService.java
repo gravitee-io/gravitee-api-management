@@ -21,17 +21,16 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.exception.ConflictDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.invitation.crud_service.InvitationCrudService;
-import io.gravitee.apim.core.invitation.model.ApplicationInvitationItem;
-import io.gravitee.apim.core.invitation.model.InvitationReferenceType;
+import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
+import io.gravitee.apim.core.invitation.model.InvitationReference;
 import io.gravitee.apim.core.invitation.query_service.InvitationQueryService;
 import io.gravitee.apim.core.membership.exception.RoleNotFoundException;
 import io.gravitee.apim.core.membership.query_service.RoleQueryService;
 import io.gravitee.rest.api.service.common.ReferenceContext;
+import jakarta.annotation.Nonnull;
 import jakarta.mail.internet.AddressException;
 import jakarta.mail.internet.InternetAddress;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
@@ -43,53 +42,54 @@ public class CreateApplicationInvitationsDomainService {
     private final InvitationCrudService invitationCrudService;
     private final RoleQueryService roleQueryService;
 
-    public List<ApplicationInvitationItem> create(
-        String organizationId,
-        String applicationId,
-        Set<String> recipientEmails,
-        String role,
+    public List<ApplicationInvitation> create(
+        @Nonnull String organizationId,
+        @Nonnull String applicationId,
+        @Nonnull Set<String> recipientEmails,
+        @Nonnull String roleName,
         boolean notifyUsers
     ) {
         if (notifyUsers) {
             throw new UnsupportedOperationException("Application invitation notifications are not implemented yet.");
         }
 
-        var sanitizedRole = validateAndSanitizeRole(organizationId, role);
-        var emails = validateAndSanitizeRecipients(recipientEmails);
+        validateRoleName(organizationId, roleName);
+        var emails = validateRecipients(recipientEmails);
 
         validateNoPendingInvitation(applicationId, emails);
-        return invitationCrudService.createApplicationInvitations(applicationId, sanitizedRole, emails);
+        return emails
+            .stream()
+            .map(email -> ApplicationInvitation.create(applicationId, email, roleName))
+            .map(invitationCrudService::create)
+            .toList();
     }
 
-    private String validateAndSanitizeRole(String organizationId, String role) {
-        if (role == null || role.isBlank()) {
+    private void validateRoleName(String organizationId, String roleName) {
+        if (roleName == null || roleName.isBlank()) {
             throw new ValidationDomainException("Application invitation role must not be blank.");
         }
 
-        var sanitizedRole = role.trim();
         var referenceContext = new ReferenceContext(ORGANIZATION, organizationId);
         roleQueryService
-            .findApplicationRole(sanitizedRole, referenceContext)
-            .orElseThrow(() -> new RoleNotFoundException(sanitizedRole, referenceContext));
-
-        return sanitizedRole;
+            .findApplicationRole(roleName, referenceContext)
+            .orElseThrow(() -> new RoleNotFoundException(roleName, referenceContext));
     }
 
-    private List<String> validateAndSanitizeRecipients(Set<String> recipients) {
+    private Set<String> validateRecipients(Set<String> recipients) {
         if (recipients == null || recipients.isEmpty()) {
             throw new ValidationDomainException("At least one application invitation recipient is required.");
         }
 
-        var sanitizedEmails = new ArrayList<String>();
-        for (var recipient : recipients) {
-            var email = sanitizeEmail(recipient);
+        for (var email : recipients) {
+            if (email == null || email.isBlank()) {
+                throw new ValidationDomainException("Application invitation email must not be blank.");
+            }
             if (!isValidEmail(email)) {
                 throw new ValidationDomainException("Application invitation email is invalid: " + email);
             }
-            sanitizedEmails.add(email);
         }
 
-        return sanitizedEmails;
+        return recipients;
     }
 
     private boolean isValidEmail(String email) {
@@ -102,21 +102,15 @@ public class CreateApplicationInvitationsDomainService {
         }
     }
 
-    private void validateNoPendingInvitation(String applicationId, List<String> emails) {
-        var requestedEmails = Set.copyOf(emails);
+    private void validateNoPendingInvitation(String applicationId, Set<String> emails) {
         invitationQueryService
-            .findByReference(InvitationReferenceType.APPLICATION, applicationId)
+            .findByReference(InvitationReference.application(applicationId))
             .stream()
-            .map(ApplicationInvitationItem::email)
-            .map(this::sanitizeEmail)
-            .filter(requestedEmails::contains)
+            .map(ApplicationInvitation::email)
+            .filter(emails::contains)
             .findFirst()
             .ifPresent(email -> {
                 throw new ConflictDomainException("A pending application invitation already exists for email [" + email + "].", email);
             });
-    }
-
-    private String sanitizeEmail(String email) {
-        return email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
     }
 }
