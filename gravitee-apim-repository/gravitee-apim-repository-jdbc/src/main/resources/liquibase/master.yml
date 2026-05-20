@@ -328,6 +328,8 @@ databaseChangeLog:
     - include:
         - file: liquibase/changelogs/v4_11_1/01_add_apis_environment_id_updated_at_index.yml
     - include:
+        - file: liquibase/changelogs/v4_11_8/00_drop_portal_navigation_items_title_unique_constraint.yml
+    - include:
         - file: liquibase/changelogs/v4_12_0/00_add_tags_key_column.yml
     - include:
         - file: liquibase/changelogs/v4_12_0/01_add_tenants_key_column.yml
