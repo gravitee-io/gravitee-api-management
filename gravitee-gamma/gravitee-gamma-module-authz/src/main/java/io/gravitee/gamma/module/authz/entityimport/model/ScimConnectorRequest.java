@@ -11,6 +11,10 @@ public record ScimConnectorRequest(
     String name,
     @NotBlank String url,
     String token,
+    String tokenUrl,
+    String clientId,
+    String clientSecret,
+    String refreshToken,
     Boolean importUsers,
     Boolean importGroups,
     @Min(value = 10, message = "intervalSeconds must be >= 10")

@@ -12,13 +12,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 import io.gravitee.gamma.authorization.api.EntityAdminApi;
 import io.gravitee.gamma.authorization.domain.Entity;
 import io.gravitee.gamma.authorization.domain.EntityKind;
 import io.gravitee.gamma.authorization.service.CascadeResult;
 import io.gravitee.gamma.authorization.service.EntityFilter;
-import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.gamma.module.authz.entityimport.model.ScimConnectorRequest;
 import io.gravitee.gamma.module.authz.entityimport.model.ScimConnectorResponse;
 import io.gravitee.gamma.module.authz.entityimport.repository.ScimConnectorDocument;
@@ -45,8 +45,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * {@link EntityAdminApi} so audit + gateway-sync events fire), and sync-status
  * persistence (OK / PARTIAL / ERROR mapping from {@link ScimSyncEngine.SyncResult}).
  *
- * <p>Repository, EntityAdminApi and the sync engine are mocked — no Mongo,
- * no HTTP. The pure {@code toResponse} mapping is exercised implicitly on
+ * <p>Repository, EntityAdminApi, sync engine and token provider are mocked — no
+ * Mongo, no HTTP. The pure {@code toResponse} mapping is exercised implicitly on
  * every test that asserts a returned {@link ScimConnectorResponse}.
  *
  * <p>Methods are named {@code <category>_<scenario>} (create_, read_, update_,
@@ -69,6 +69,9 @@ class ScimConnectorServiceTest {
     private ScimSyncEngine syncEngine;
 
     @Mock
+    private ScimTokenProvider tokenProvider;
+
+    @Mock
     private DataEncryptor dataEncryptor;
 
     @InjectMocks
@@ -88,7 +91,7 @@ class ScimConnectorServiceTest {
     }
 
     private static ScimConnectorRequest request(String name, String url, String token, Boolean importUsers, Boolean importGroups) {
-        return new ScimConnectorRequest(name, url, token, importUsers, importGroups, null);
+        return new ScimConnectorRequest(name, url, token, null, null, null, null, importUsers, importGroups, null);
     }
 
     private static ScimConnectorRequest request(
@@ -99,7 +102,18 @@ class ScimConnectorServiceTest {
         Boolean importGroups,
         Integer intervalSeconds
     ) {
-        return new ScimConnectorRequest(name, url, token, importUsers, importGroups, intervalSeconds);
+        return new ScimConnectorRequest(name, url, token, null, null, null, null, importUsers, importGroups, intervalSeconds);
+    }
+
+    private static ScimConnectorRequest refreshRequest(
+        String name,
+        String url,
+        String tokenUrl,
+        String clientId,
+        String clientSecret,
+        String refreshToken
+    ) {
+        return new ScimConnectorRequest(name, url, null, tokenUrl, clientId, clientSecret, refreshToken, true, true, null);
     }
 
     private static ScimConnectorDocument existing(String id, String name) {
@@ -244,6 +258,31 @@ class ScimConnectorServiceTest {
         verify(repo, never()).save(any());
     }
 
+    @Test
+    void create_persistsOAuth2RefreshFields_andEncryptsSecrets() {
+        when(repo.findByEnvAndName(ENV, "okta")).thenReturn(Optional.empty());
+        when(repo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        ScimConnectorResponse res = service.create(
+            ENV,
+            refreshRequest("okta", "https://idp/scim", "https://idp/oauth/token", "cid", "csec", "rtok")
+        );
+
+        ArgumentCaptor<ScimConnectorDocument> captor = ArgumentCaptor.forClass(ScimConnectorDocument.class);
+        verify(repo).save(captor.capture());
+        ScimConnectorDocument saved = captor.getValue();
+        assertThat(saved.getTokenUrl()).isEqualTo("https://idp/oauth/token");
+        assertThat(saved.getClientId()).isEqualTo("cid");
+        assertThat(saved.getClientSecret()).isEqualTo("enc:csec");
+        assertThat(saved.getRefreshToken()).isEqualTo("enc:rtok");
+        // Cache cleared so the first sync after persist refreshes against the IdP.
+        assertThat(saved.getAccessToken()).isNull();
+        assertThat(saved.getAccessTokenExpiresAt()).isNull();
+
+        assertThat(res.tokenUrl()).isEqualTo("https://idp/oauth/token");
+        assertThat(res.clientId()).isEqualTo("cid");
+    }
+
     // ─────────────────────────────────────────────────────────────────────
     // list() / get()
     // ─────────────────────────────────────────────────────────────────────
@@ -306,6 +345,23 @@ class ScimConnectorServiceTest {
         assertThat(doc.isImportGroups()).isTrue();
         assertThat(doc.getUpdatedAt()).isAfter(before);
         assertThat(out.url()).isEqualTo("https://new");
+    }
+
+    @Test
+    void update_rotatingRefreshToken_clearsAccessTokenCache() {
+        // Rotating the refresh token means any previously cached access token
+        // was minted against the old refresh chain and must not be reused.
+        ScimConnectorDocument doc = existing("a", "okta");
+        doc.setAccessToken("enc:stale-access");
+        doc.setAccessTokenExpiresAt(Instant.now().plusSeconds(3600));
+        when(repo.findById("a", ENV)).thenReturn(Optional.of(doc));
+        when(repo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        service.update(ENV, "a", refreshRequest("okta", "https://idp/scim", "https://idp/oauth/token", "cid", "csec", "new-refresh"));
+
+        assertThat(doc.getRefreshToken()).isEqualTo("enc:new-refresh");
+        assertThat(doc.getAccessToken()).isNull();
+        assertThat(doc.getAccessTokenExpiresAt()).isNull();
     }
 
     @Test
@@ -458,17 +514,34 @@ class ScimConnectorServiceTest {
     // ─────────────────────────────────────────────────────────────────────
 
     @Test
-    void syncNow_decryptsTokenBeforePassingToEngine() throws GeneralSecurityException {
+    void syncNow_resolvesTokenViaProvider_beforePassingToEngine() {
         ScimConnectorDocument doc = existing("a", "okta");
-        doc.setToken("enc:plain-tok");
         when(repo.findById("a", ENV)).thenReturn(Optional.of(doc));
         when(repo.save(any())).thenAnswer(inv -> inv.getArgument(0));
-        when(syncEngine.sync(eq(doc), eq("plain-tok"))).thenReturn(new ScimSyncEngine.SyncResult());
+        when(tokenProvider.resolve(doc)).thenReturn("resolved-access");
+        when(syncEngine.sync(eq(doc), eq("resolved-access"))).thenReturn(new ScimSyncEngine.SyncResult());
 
         service.syncNow(ENV, "a");
 
-        verify(dataEncryptor).decrypt("enc:plain-tok");
-        verify(syncEngine).sync(eq(doc), eq("plain-tok"));
+        verify(tokenProvider).resolve(doc);
+        verify(syncEngine).sync(eq(doc), eq("resolved-access"));
+    }
+
+    @Test
+    void syncNow_persistsStatusError_whenTokenRefreshFails_andDoesNotInvokeEngine() {
+        // Refresh failure must surface in lastSyncStatus/lastError exactly like
+        // a sync-time failure would — the dashboard treats both as the same
+        // "this connector is broken" signal.
+        ScimConnectorDocument doc = existing("a", "okta");
+        when(repo.findById("a", ENV)).thenReturn(Optional.of(doc));
+        when(repo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(tokenProvider.resolve(doc)).thenThrow(new ScimTokenProvider.TokenRefreshException("Token endpoint returned HTTP 401"));
+
+        ScimConnectorResponse out = service.syncNow(ENV, "a");
+
+        assertThat(out.lastSyncStatus()).isEqualTo("ERROR");
+        assertThat(out.lastError()).contains("Token endpoint returned HTTP 401");
+        verifyNoInteractions(syncEngine);
     }
 
     @Test

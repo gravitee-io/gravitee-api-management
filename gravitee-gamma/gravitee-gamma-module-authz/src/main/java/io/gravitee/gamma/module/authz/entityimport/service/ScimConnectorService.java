@@ -1,10 +1,10 @@
 package io.gravitee.gamma.module.authz.entityimport.service;
 
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 import io.gravitee.gamma.authorization.api.EntityAdminApi;
 import io.gravitee.gamma.authorization.domain.Entity;
 import io.gravitee.gamma.authorization.service.EntityFilter;
-import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.gamma.module.authz.entityimport.model.ScimConnectorRequest;
 import io.gravitee.gamma.module.authz.entityimport.model.ScimConnectorResponse;
 import io.gravitee.gamma.module.authz.entityimport.repository.ScimConnectorDocument;
@@ -26,6 +26,7 @@ public class ScimConnectorService {
     private final ScimConnectorRepository repo;
     private final EntityAdminApi entityApi;
     private final ScimSyncEngine syncEngine;
+    private final ScimTokenProvider tokenProvider;
     private final DataEncryptor dataEncryptor;
 
     public static int intervalSecondsOf(ScimConnectorDocument doc) {
@@ -38,11 +39,13 @@ public class ScimConnectorService {
         ScimConnectorRepository repo,
         EntityAdminApi entityApi,
         ScimSyncEngine syncEngine,
+        ScimTokenProvider tokenProvider,
         DataEncryptor dataEncryptor
     ) {
         this.repo = repo;
         this.entityApi = entityApi;
         this.syncEngine = syncEngine;
+        this.tokenProvider = tokenProvider;
         this.dataEncryptor = dataEncryptor;
     }
 
@@ -114,18 +117,31 @@ public class ScimConnectorService {
     /** Run sync now for one connector, persisting status fields on the document. */
     public ScimConnectorResponse syncNow(String environmentId, String id) {
         ScimConnectorDocument doc = repo.findById(id, environmentId).orElseThrow(() -> new NotFoundException("Connector not found: " + id));
-        applySyncResult(doc, syncEngine.sync(doc, decryptToken(doc.getToken())));
+        runSync(doc);
         return toResponse(repo.save(doc));
     }
 
     /** Called by the scheduler — runs sync against an already-loaded document. */
     public void runScheduledSync(ScimConnectorDocument doc) {
-        applySyncResult(doc, syncEngine.sync(doc, decryptToken(doc.getToken())));
+        runSync(doc);
         repo.save(doc);
     }
 
     public List<ScimConnectorDocument> findAllForScheduler() {
         return repo.findAll();
+    }
+
+    private void runSync(ScimConnectorDocument doc) {
+        String accessToken;
+        try {
+            accessToken = tokenProvider.resolve(doc);
+        } catch (ScimTokenProvider.TokenRefreshException e) {
+            ScimSyncEngine.SyncResult tokenError = new ScimSyncEngine.SyncResult();
+            tokenError.error = e.getMessage();
+            applySyncResult(doc, tokenError);
+            return;
+        }
+        applySyncResult(doc, syncEngine.sync(doc, accessToken));
     }
 
     private void applySyncResult(ScimConnectorDocument doc, ScimSyncEngine.SyncResult r) {
@@ -152,9 +168,23 @@ public class ScimConnectorService {
         if (req.token() != null && !req.token().isBlank()) {
             doc.setToken(encryptToken(req.token()));
         }
+        doc.setTokenUrl(blankToNull(req.tokenUrl()));
+        doc.setClientId(blankToNull(req.clientId()));
+        if (req.clientSecret() != null && !req.clientSecret().isBlank()) {
+            doc.setClientSecret(encryptToken(req.clientSecret()));
+        }
+        if (req.refreshToken() != null && !req.refreshToken().isBlank()) {
+            doc.setRefreshToken(encryptToken(req.refreshToken()));
+            doc.setAccessToken(null);
+            doc.setAccessTokenExpiresAt(null);
+        }
         doc.setImportUsers(req.importUsers() == null || req.importUsers());
         doc.setImportGroups(req.importGroups() == null || req.importGroups());
         doc.setIntervalSeconds(req.intervalSeconds() == null ? DEFAULT_INTERVAL_SECONDS : req.intervalSeconds());
+    }
+
+    private static String blankToNull(String s) {
+        return s == null || s.isBlank() ? null : s;
     }
 
     private String encryptToken(String plaintext) {
@@ -165,27 +195,21 @@ public class ScimConnectorService {
         }
     }
 
-    private String decryptToken(String ciphertext) {
-        if (ciphertext == null || ciphertext.isBlank()) return null;
-        try {
-            return dataEncryptor.decrypt(ciphertext);
-        } catch (GeneralSecurityException e) {
-            throw new IllegalStateException("Failed to decrypt SCIM token", e);
-        }
-    }
-
     private ScimConnectorResponse toResponse(ScimConnectorDocument d) {
         return new ScimConnectorResponse(
             d.getId(),
             d.getEnvironmentId(),
             d.getName(),
             d.getUrl(),
+            d.getTokenUrl(),
+            d.getClientId(),
             d.isImportUsers(),
             d.isImportGroups(),
             intervalSecondsOf(d),
             d.getLastSyncAt(),
             d.getLastSyncStatus(),
             d.getLastError(),
+            d.getAccessTokenExpiresAt(),
             d.getLastUsersSynced(),
             d.getLastGroupsSynced(),
             d.getLastDeleted(),

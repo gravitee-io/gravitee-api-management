@@ -20,6 +20,13 @@ public class ScimConnectorDocument {
 
     private String token;
 
+    private String tokenUrl;
+    private String clientId;
+    private String clientSecret;
+    private String refreshToken;
+    private String accessToken;
+    private Instant accessTokenExpiresAt;
+
     private boolean importUsers;
     private boolean importGroups;
     private Integer intervalSeconds;
