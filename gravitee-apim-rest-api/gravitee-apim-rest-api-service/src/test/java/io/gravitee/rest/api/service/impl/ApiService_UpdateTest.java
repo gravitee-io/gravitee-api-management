@@ -169,6 +169,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -1064,6 +1065,21 @@ public class ApiService_UpdateTest {
         assertEquals(API_NAME, apiEntity.getName());
         verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
         verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+    }
+
+    @Test
+    public void shouldLimitHealthcheckScheduleWhenConfiguredCronIsSlower() throws TechnicalException {
+        ReflectionTestUtils.setField(apiService, "healthcheckCronLimit", "0 */5 * * * *");
+        prepareUpdate();
+        Services services = new Services();
+        HealthCheckService healthCheckService = new HealthCheckService();
+        healthCheckService.setSchedule("* * * * * *");
+        services.put(HealthCheckService.class, healthCheckService);
+        updateApiEntity.setServices(services);
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+
+        assertEquals("0 */5 * * * *", healthCheckService.getSchedule());
     }
 
     @Test

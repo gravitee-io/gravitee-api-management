@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.HttpClientService;
+import io.gravitee.rest.api.service.common.CronScheduleLimits;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
@@ -41,6 +42,7 @@ import java.util.Map;
 import java.util.Objects;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 @CustomLog
 public class DynamicPropertiesService extends AbstractService implements EventListener<ApiEvent, Api> {
@@ -67,6 +69,9 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
 
     @Autowired
     private Node node;
+
+    @Value("${services.dynamic_properties.cron_limit:}")
+    private String cronLimit;
 
     @Override
     protected String name() {
@@ -148,9 +153,10 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
 
         EnvironmentEntity environment = environmentService.findById(api.getEnvironmentId());
         ExecutionContext executionContext = new ExecutionContext(environment.getOrganizationId(), environment.getId());
+        String schedule = CronScheduleLimits.limitFrequency(dynamicPropertyService.getSchedule(), cronLimit);
         DynamicPropertyScheduler scheduler = DynamicPropertyScheduler.builder()
             .clusterManager(clusterManager)
-            .schedule(dynamicPropertyService.getSchedule())
+            .schedule(schedule)
             .api(api)
             .apiConverter(apiConverter)
             .apiService(apiService)
@@ -158,7 +164,7 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
             .build();
         if (DynamicPropertyProvider.HTTP == dynamicPropertyService.getProvider()) {
             HttpProvider provider = new HttpProvider(dynamicPropertyService.getConfiguration(), httpClientService, node);
-            log.info("{} Add a scheduled task to poll dynamic properties each {}", api.getId(), dynamicPropertyService.getSchedule());
+            log.info("{} Add a scheduled task to poll dynamic properties each {}", api.getId(), schedule);
 
             // Force the first refresh, and then run it periodically
             scheduler.schedule(provider);

@@ -171,6 +171,7 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.V4EmulationEngineService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
+import io.gravitee.rest.api.service.common.CronScheduleLimits;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
@@ -399,6 +400,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Value("${configuration.default-api-icon:}")
     private String defaultApiIcon;
 
+    @Value("${services.healthcheck.cron_limit:}")
+    private String healthcheckCronLimit;
+
     @Autowired
     private PrimaryOwnerService primaryOwnerService;
 
@@ -612,6 +616,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // check endpoints configuration
             checkEndpointsConfiguration(api);
+
+            // validate HC cron schedule
+            validateHealtcheckSchedule(api);
 
             // check CORS Allow-origin format
             corsValidationService.validateAndSanitize(api.getProxy().getCors());
@@ -850,7 +857,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 String schedule = healthCheckService.getSchedule();
                 if (schedule != null) {
                     try {
-                        new CronTrigger(schedule);
+                        healthCheckService.setSchedule(CronScheduleLimits.limitFrequency(schedule, healthcheckCronLimit));
+                        new CronTrigger(healthCheckService.getSchedule());
                     } catch (IllegalArgumentException e) {
                         throw new InvalidDataException(e);
                     }

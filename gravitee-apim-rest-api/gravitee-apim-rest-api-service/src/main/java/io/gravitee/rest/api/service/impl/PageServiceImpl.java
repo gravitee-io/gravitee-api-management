@@ -58,6 +58,7 @@ import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.CronScheduleLimits;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.PageConverter;
@@ -127,6 +128,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
     @Value("${documentation.audit.max-content-size:-1}")
     private int maxContentSize;
+
+    @Value("${services.auto_fetch.cron_limit:}")
+    private String autoFetchCronLimit;
 
     @Lazy
     @Autowired
@@ -1719,7 +1723,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             if (configuration.isAutoFetch()) {
                 String cron = configuration.getFetchCron();
                 if (cron != null && !cron.isEmpty()) {
-                    CronExpression cronExpression = CronExpression.parse(cron);
+                    CronExpression cronExpression = CronExpression.parse(CronScheduleLimits.limitFrequency(cron, autoFetchCronLimit));
                     if (pageItem.getUpdatedAt() != null) {
                         LocalDateTime nextRun;
                         LocalDateTime updatedAt = LocalDateTime.ofInstant(pageItem.getUpdatedAt().toInstant(), ZoneId.systemDefault());

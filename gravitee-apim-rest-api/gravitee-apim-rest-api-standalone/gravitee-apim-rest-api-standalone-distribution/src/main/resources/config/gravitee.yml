@@ -286,6 +286,23 @@ services:
   auto_fetch:
     enabled: true
     cron: "0 */5 * * * *"
+    # Limit user-configured documentation fetch cron frequency. Empty means no limit.
+    # cron_limit: "0 */5 * * * *"
+
+  # Dynamic properties service.
+  dynamic_properties:
+    # Limit user-configured dynamic properties cron frequency. Empty means no limit.
+    # cron_limit: "0 */5 * * * *"
+
+  # Dynamic dictionaries service.
+  dictionary:
+    # Limit user-configured dynamic dictionary polling delay in milliseconds. 0 means no limit.
+    delay_limit: 0
+
+  # Health-check service.
+  healthcheck:
+    # Limit user-configured health-check cron frequency. Empty means no limit.
+    # cron_limit: "0 */5 * * * *"
 
   # Subscription service
   subscription:

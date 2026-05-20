@@ -65,6 +65,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -134,6 +135,21 @@ public class DynamicPropertiesServiceTest {
         cut.onEvent(new SimpleEvent<>(ApiEvent.DEPLOY, api));
 
         assertThat(cut.schedulers).isNotEmpty();
+    }
+
+    @Test
+    public void should_start_scheduler_with_configured_cron_limit_when_user_cron_is_faster() throws Exception {
+        ReflectionTestUtils.setField(cut, "cronLimit", "0 */5 * * * *");
+        HttpDynamicPropertyProviderConfiguration providerConfiguration = new HttpDynamicPropertyProviderConfiguration();
+        providerConfiguration.setUrl("http://localhost:8080/success");
+        providerConfiguration.setSpecification(IOUtils.toString(read("/jolt/specification-value-as-key.json"), Charset.defaultCharset()));
+        final Api api = createApi(providerConfiguration);
+
+        cut.onEvent(new SimpleEvent<>(ApiEvent.DEPLOY, api));
+
+        assertThat(cut.schedulers.values())
+            .singleElement()
+            .satisfies(scheduler -> assertThat(ReflectionTestUtils.getField(scheduler, "schedule")).isEqualTo("0 */5 * * * *"));
     }
 
     @Test

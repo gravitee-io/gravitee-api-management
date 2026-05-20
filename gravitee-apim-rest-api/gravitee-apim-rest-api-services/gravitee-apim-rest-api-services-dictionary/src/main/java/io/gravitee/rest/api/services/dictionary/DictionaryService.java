@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryProviderEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryTriggerEntity;
 import io.gravitee.rest.api.service.HttpClientService;
+import io.gravitee.rest.api.service.common.CronScheduleLimits;
 import io.gravitee.rest.api.service.event.DictionaryEvent;
 import io.gravitee.rest.api.services.dictionary.provider.http.HttpProvider;
 import io.gravitee.rest.api.services.dictionary.provider.http.configuration.HttpProviderConfiguration;
@@ -34,6 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -61,6 +63,9 @@ public class DictionaryService extends AbstractService implements EventListener<
 
     @Autowired
     private Node node;
+
+    @Value("${services.dictionary.delay_limit:0}")
+    private long delayLimitMillis;
 
     private final Map<String, Long> timers = new HashMap<>();
 
@@ -127,7 +132,10 @@ public class DictionaryService extends AbstractService implements EventListener<
                     // Force the first refresh, and then run it periodically
                     refresher.handle(null);
 
-                    long periodicTimer = vertx.setPeriodic(getDelayMillis(dictionary.getTrigger()), refresher);
+                    long periodicTimer = vertx.setPeriodic(
+                        CronScheduleLimits.limitFrequency(getDelayMillis(dictionary.getTrigger()), delayLimitMillis),
+                        refresher
+                    );
                     timers.put(dictionary.getId(), periodicTimer);
                 } catch (JsonProcessingException jpe) {
                     log.error("Dictionary provider configuration for dictionary [{}] is invalid", dictionary.getId(), jpe);
