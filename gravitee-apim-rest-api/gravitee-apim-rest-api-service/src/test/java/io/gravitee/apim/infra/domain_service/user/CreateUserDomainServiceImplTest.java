@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.user.domain_service;
+package io.gravitee.apim.infra.domain_service.user;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
