@@ -15,14 +15,18 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import io.gravitee.apim.core.invitation.use_case.CreateApplicationInvitationsUseCase;
 import io.gravitee.apim.core.invitation.use_case.SearchApplicationInvitationsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationInvitationMapper;
+import io.gravitee.rest.api.portal.rest.mapper.ApplicationInvitationsCreateInputMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationInvitationsSearchCriteriaMapper;
 import io.gravitee.rest.api.portal.rest.model.ApplicationInvitationsSearchInput;
+import io.gravitee.rest.api.portal.rest.model.InvitationCreateInput;
+import io.gravitee.rest.api.portal.rest.model.InvitationsResponse;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
@@ -48,6 +52,31 @@ public class ApplicationInvitationsResource extends AbstractResource {
 
     @Inject
     private SearchApplicationInvitationsUseCase searchApplicationInvitationsUseCase;
+
+    @Inject
+    private CreateApplicationInvitationsUseCase createApplicationInvitationsUseCase;
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.CREATE) })
+    public Response createApplicationInvitations(
+        @PathParam("applicationId") String applicationId,
+        @Valid @NotNull(message = "Input must not be null.") InvitationCreateInput input
+    ) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var output = createApplicationInvitationsUseCase.execute(
+            new CreateApplicationInvitationsUseCase.Input(
+                executionContext,
+                applicationId,
+                ApplicationInvitationsCreateInputMapper.INSTANCE.toCreateApplicationInvitations(input)
+            )
+        );
+
+        return Response.status(Response.Status.CREATED)
+            .entity(new InvitationsResponse().data(INVITATION_MAPPER.toInvitation(output.invitations())))
+            .build();
+    }
 
     @POST
     @Path("/_search")
