@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.11.2_00_drop_portal_navigation_items_title_unique_constraint
+      author: GraviteeSource Team
+      preConditions:
+        - onFail: MARK_RAN
+        - uniqueConstraintExists:
+            constraintName: uk_${gravitee_prefix}portal_navigation_items_org_env_title
+            tableName: ${gravitee_prefix}portal_navigation_items
+      changes:
+        - dropUniqueConstraint:
+            constraintName: uk_${gravitee_prefix}portal_navigation_items_org_env_title
+            tableName: ${gravitee_prefix}portal_navigation_items

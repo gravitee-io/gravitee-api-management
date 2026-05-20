@@ -328,3 +328,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_11_1/00_add_validation_constraints_to_subscription_forms.yml
     - include:
         - file: liquibase/changelogs/v4_11_1/01_add_apis_environment_id_updated_at_index.yml
+    - include:
+        - file: liquibase/changelogs/v4_11_2/00_drop_portal_navigation_items_title_unique_constraint.yml
