@@ -218,4 +218,19 @@ class LogEntrypointRequestTest {
         assertNull(logRequest.getTraceId());
         assertNull(logRequest.getSpanId());
     }
+
+    @Test
+    void should_not_capture_traceId_when_otelLogs_disabled() {
+        when(loggingContext.isOtelLogsEnabled()).thenReturn(false);
+        when(request.method()).thenReturn(io.gravitee.common.http.HttpMethod.GET);
+        when(request.uri()).thenReturn(URI);
+        when(loggingContext.entrypointRequestHeaders()).thenReturn(false);
+        when(loggingContext.entrypointRequestPayload()).thenReturn(false);
+
+        final var logRequest = new LogEntrypointRequest(loggingContext, request);
+        logRequest.capture(ctx);
+
+        assertNull(logRequest.getTraceId());
+        assertNull(logRequest.getSpanId());
+    }
 }

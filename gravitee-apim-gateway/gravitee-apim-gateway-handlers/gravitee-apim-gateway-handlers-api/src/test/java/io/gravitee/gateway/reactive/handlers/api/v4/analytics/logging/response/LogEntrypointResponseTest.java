@@ -214,4 +214,18 @@ class LogEntrypointResponseTest {
         assertNull(logResponse.getHeaders());
         assertThat(logResponse.getBody()).isEqualTo("BODY NOT CAPTURED");
     }
+
+    @Test
+    void should_not_capture_traceId_when_otelLogs_disabled() {
+        when(loggingContext.isOtelLogsEnabled()).thenReturn(false);
+        when(response.status()).thenReturn(200);
+        when(loggingContext.entrypointResponseHeaders()).thenReturn(false);
+        when(loggingContext.entrypointResponsePayload()).thenReturn(false);
+
+        final var logResponse = new LogEntrypointResponse(loggingContext, response);
+        logResponse.capture(ctx);
+
+        assertNull(logResponse.getTraceId());
+        assertNull(logResponse.getSpanId());
+    }
 }

@@ -256,6 +256,19 @@ class LogEndpointRequestTest {
         assertThat(cut.getSpanId()).isEmpty();
     }
 
+    @Test
+    void should_not_capture_traceId_when_otelLogs_disabled() {
+        when(loggingContext.isOtelLogsEnabled()).thenReturn(false);
+        when(loggingContext.endpointRequestHeaders()).thenReturn(false);
+        when(loggingContext.endpointRequestPayload()).thenReturn(false);
+
+        cut.setupCapture(ctx);
+        triggerRequestToBackend(null, false);
+
+        assertNull(cut.getTraceId());
+        assertNull(cut.getSpanId());
+    }
+
     private void triggerRequestToBackend(HttpHeaders backendHeaders, boolean expectCaptureBody) {
         if (backendHeaders != null) {
             backendHeaders.forEach(e -> request.headers().set(e.getKey(), e.getValue()));
