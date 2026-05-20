@@ -54,7 +54,7 @@
       <mat-icon [owlDateTimeTrigger]="toDateTimePicker" matSuffix svgIcon="gio:calendar"></mat-icon>
       <owl-date-time #toDateTimePicker></owl-date-time>
       @if (form.hasError('dateRange')) {
-        <mat-error>To date cannot be earlier than From date</mat-error>
+        <mat-error>To date cannot be earlier than or equal to From date</mat-error>
       }
     </mat-form-field>
 
