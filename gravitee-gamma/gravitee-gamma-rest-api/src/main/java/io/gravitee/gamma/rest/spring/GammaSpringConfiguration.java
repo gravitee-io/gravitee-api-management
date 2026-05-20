@@ -13,21 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.authorization.service;
+package io.gravitee.gamma.rest.spring;
 
-import io.gravitee.gamma.authorization.api.AuthzValidators;
-import io.gravitee.gamma.authorization.domain.AuthzPolicyKind;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import io.gravitee.gamma.authorization.rest.spring.GammaAuthzSpringConfiguration;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
-public record CreateAuthzPolicyCommand(
-    @NotBlank String environmentId,
-    @NotBlank String name,
-    @NotNull AuthzPolicyKind kind,
-    String entityId,
-    @NotNull String policyText
-) {
-    public CreateAuthzPolicyCommand {
-        AuthzValidators.validateCtor(CreateAuthzPolicyCommand.class, environmentId, name, kind, entityId, policyText);
-    }
-}
+@Configuration
+@Import({ GammaAuthzSpringConfiguration.class })
+public class GammaSpringConfiguration {}

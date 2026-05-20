@@ -13,21 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.authorization.service;
+package io.gravitee.gamma.authorization.rest.resource;
 
-import io.gravitee.gamma.authorization.api.AuthzValidators;
-import io.gravitee.gamma.authorization.domain.AuthzPolicyKind;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
-public record CreateAuthzPolicyCommand(
-    @NotBlank String environmentId,
-    @NotBlank String name,
-    @NotNull AuthzPolicyKind kind,
-    String entityId,
-    @NotNull String policyText
-) {
-    public CreateAuthzPolicyCommand {
-        AuthzValidators.validateCtor(CreateAuthzPolicyCommand.class, environmentId, name, kind, entityId, policyText);
+@Path("/health")
+@Produces(MediaType.APPLICATION_JSON)
+public class HealthResource {
+
+    public record HealthStatus(String status) {}
+
+    @GET
+    public Response health() {
+        return Response.ok(new HealthStatus("OK")).build();
     }
 }

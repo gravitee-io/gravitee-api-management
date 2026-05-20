@@ -13,21 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.authorization.service;
+package io.gravitee.gamma.authorization.rest.dto;
 
-import io.gravitee.gamma.authorization.api.AuthzValidators;
-import io.gravitee.gamma.authorization.domain.AuthzPolicyKind;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import java.util.List;
+import java.util.Map;
 
-public record CreateAuthzPolicyCommand(
-    @NotBlank String environmentId,
-    @NotBlank String name,
-    @NotNull AuthzPolicyKind kind,
-    String entityId,
-    @NotNull String policyText
-) {
-    public CreateAuthzPolicyCommand {
-        AuthzValidators.validateCtor(CreateAuthzPolicyCommand.class, environmentId, name, kind, entityId, policyText);
-    }
-}
+public record UpdateAuthzEntityRequest(Map<String, Object> attributes, List<String> parents) {}
