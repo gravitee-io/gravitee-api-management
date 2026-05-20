@@ -22,7 +22,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
-import io.gravitee.apim.core.invitation.model.ApplicationInvitationItem;
+import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
 import io.gravitee.apim.core.invitation.model.SearchApplicationInvitationsCriteria;
 import io.gravitee.apim.core.invitation.query_service.InvitationQueryService;
 import io.gravitee.common.data.domain.Page;
@@ -94,9 +94,7 @@ class SearchApplicationInvitationsUseCaseTest {
 
         assertThat(result.invitations().getTotalElements()).isEqualTo(1);
         assertThat(result.invitations().getPageElements()).isEqualTo(1);
-        assertThat(result.invitations().getContent())
-            .extracting(ApplicationInvitationItem::email)
-            .containsExactly("john.alpha@example.com");
+        assertThat(result.invitations().getContent()).extracting(ApplicationInvitation::email).containsExactly("john.alpha@example.com");
         verify(invitationQueryService).findByApplicationId(APPLICATION_ID, criteria, pageable);
     }
 
@@ -132,7 +130,7 @@ class SearchApplicationInvitationsUseCaseTest {
         assertThat(throwable).isInstanceOf(PaginationInvalidException.class);
     }
 
-    private ApplicationInvitationItem anInvitation(String email) {
-        return ApplicationInvitationItem.create(email, "USER");
+    private ApplicationInvitation anInvitation(String email) {
+        return ApplicationInvitation.create(APPLICATION_ID, email, "USER");
     }
 }

@@ -17,17 +17,11 @@ package io.gravitee.apim.infra.crud_service.invitation;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.invitation.crud_service.InvitationCrudService;
-import io.gravitee.apim.core.invitation.model.ApplicationInvitationItem;
-import io.gravitee.apim.infra.query_service.invitation.ApplicationInvitationItemMapper;
+import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
+import io.gravitee.apim.infra.adapter.ApplicationInvitationAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.InvitationRepository;
-import io.gravitee.repository.management.model.Invitation;
-import io.gravitee.repository.management.model.InvitationReferenceType;
-import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.impl.TransactionalService;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -41,29 +35,13 @@ public class InvitationCrudServiceImpl extends TransactionalService implements I
     }
 
     @Override
-    public List<ApplicationInvitationItem> createApplicationInvitations(String applicationId, String role, List<String> emails) {
+    public ApplicationInvitation create(ApplicationInvitation invitation) {
         try {
-            var createdInvitations = new ArrayList<ApplicationInvitationItem>();
-            for (var email : emails) {
-                createdInvitations.add(createApplicationInvitation(applicationId, role, email));
-            }
-            return createdInvitations;
+            return ApplicationInvitationAdapter.INSTANCE.toEntity(
+                invitationRepository.create(ApplicationInvitationAdapter.INSTANCE.toRepository(invitation))
+            );
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException("An error occurs while trying to create application invitations", e);
+            throw new TechnicalDomainException("An error occurs while trying to create application invitation", e);
         }
-    }
-
-    private ApplicationInvitationItem createApplicationInvitation(String applicationId, String role, String email)
-        throws TechnicalException {
-        var invitation = new Invitation();
-        invitation.setId(UuidString.generateRandom());
-        invitation.setReferenceType(InvitationReferenceType.APPLICATION.name());
-        invitation.setReferenceId(applicationId);
-        invitation.setEmail(email);
-        invitation.setApiRole(null);
-        invitation.setApplicationRole(role);
-        invitation.setCreatedAt(new Date());
-
-        return ApplicationInvitationItemMapper.INSTANCE.toApplicationInvitationItem(invitationRepository.create(invitation));
     }
 }

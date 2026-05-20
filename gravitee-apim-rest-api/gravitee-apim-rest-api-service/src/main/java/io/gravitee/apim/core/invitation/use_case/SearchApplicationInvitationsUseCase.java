@@ -17,7 +17,7 @@ package io.gravitee.apim.core.invitation.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
-import io.gravitee.apim.core.invitation.model.ApplicationInvitationItem;
+import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
 import io.gravitee.apim.core.invitation.model.SearchApplicationInvitationsCriteria;
 import io.gravitee.apim.core.invitation.query_service.InvitationQueryService;
 import io.gravitee.common.data.domain.Page;
@@ -51,5 +51,5 @@ public class SearchApplicationInvitationsUseCase {
         Pageable pageable
     ) {}
 
-    public record Output(Page<ApplicationInvitationItem> invitations) {}
+    public record Output(Page<ApplicationInvitation> invitations) {}
 }

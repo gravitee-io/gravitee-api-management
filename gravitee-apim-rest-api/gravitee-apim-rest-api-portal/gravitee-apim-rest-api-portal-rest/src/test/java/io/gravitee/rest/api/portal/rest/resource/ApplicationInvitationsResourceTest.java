@@ -25,8 +25,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import inmemory.ApplicationCrudServiceInMemory;
+import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
 import io.gravitee.apim.core.invitation.model.ApplicationInvitationId;
-import io.gravitee.apim.core.invitation.model.ApplicationInvitationItem;
 import io.gravitee.apim.core.invitation.model.SearchApplicationInvitationsCriteria;
 import io.gravitee.apim.core.invitation.query_service.InvitationQueryService;
 import io.gravitee.common.data.domain.Page;
@@ -152,9 +152,10 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
         verify(invitationQueryService, never()).findByApplicationId(anyString(), any(), any());
     }
 
-    private ApplicationInvitationItem anInvitation(String id, String email) {
-        return new ApplicationInvitationItem(
+    private ApplicationInvitation anInvitation(String id, String email) {
+        return new ApplicationInvitation(
             ApplicationInvitationId.of(id),
+            APPLICATION,
             email,
             "USER",
             ZonedDateTime.parse("2026-04-23T09:30:00Z"),

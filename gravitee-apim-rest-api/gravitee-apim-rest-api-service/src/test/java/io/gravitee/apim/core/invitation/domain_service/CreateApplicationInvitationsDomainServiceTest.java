@@ -15,13 +15,14 @@
  */
 package io.gravitee.apim.core.invitation.domain_service;
 
-import static fixtures.core.model.ApplicationInvitationItemFixtures.anApplicationInvitationItem;
+import static fixtures.core.model.ApplicationInvitationFixtures.anApplicationInvitation;
 import static fixtures.core.model.RoleFixtures.anApplicationRole;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -29,8 +30,8 @@ import static org.mockito.Mockito.when;
 import io.gravitee.apim.core.exception.ConflictDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.invitation.crud_service.InvitationCrudService;
-import io.gravitee.apim.core.invitation.model.ApplicationInvitationItem;
-import io.gravitee.apim.core.invitation.model.InvitationReferenceType;
+import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
+import io.gravitee.apim.core.invitation.model.InvitationReference;
 import io.gravitee.apim.core.invitation.query_service.InvitationQueryService;
 import io.gravitee.apim.core.membership.exception.RoleNotFoundException;
 import io.gravitee.apim.core.membership.query_service.RoleQueryService;
@@ -42,6 +43,7 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -50,7 +52,7 @@ class CreateApplicationInvitationsDomainServiceTest {
 
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String APPLICATION_ID = "application-id";
-    private static final String ROLE = "USER";
+    private static final String ROLE_NAME = "USER";
     private static final String INVITATION_ID_1 = "00000000-0000-0000-0000-000000000001";
     private static final String INVITATION_ID_2 = "00000000-0000-0000-0000-000000000002";
     private static final String EXISTING_INVITATION_ID = "00000000-0000-0000-0000-000000000003";
@@ -72,38 +74,41 @@ class CreateApplicationInvitationsDomainServiceTest {
     }
 
     @Test
-    void should_create_invitations_with_sanitized_input_when_notify_is_false() {
+    void should_create_invitations_with_normalized_input_when_notify_is_false() {
         givenExistingRole();
-        when(invitationQueryService.findByReference(InvitationReferenceType.APPLICATION, APPLICATION_ID)).thenReturn(List.of());
-        when(
-            invitationCrudService.createApplicationInvitations(APPLICATION_ID, ROLE, List.of("alice@example.com", "bob@example.com"))
-        ).thenReturn(
-            List.of(
-                anApplicationInvitationItem(INVITATION_ID_1, "alice@example.com"),
-                anApplicationInvitationItem(INVITATION_ID_2, "bob@example.com")
-            )
+        when(invitationQueryService.findByReference(InvitationReference.application(APPLICATION_ID))).thenReturn(List.of());
+        when(invitationCrudService.create(any(ApplicationInvitation.class))).thenReturn(
+            anApplicationInvitation(INVITATION_ID_1, "alice@example.com"),
+            anApplicationInvitation(INVITATION_ID_2, "bob@example.com")
         );
 
-        var result = cut.create(ORGANIZATION_ID, APPLICATION_ID, recipients(" Alice@Example.com ", "BOB@example.com"), " USER ", false);
+        var result = cut.create(ORGANIZATION_ID, APPLICATION_ID, recipients("alice@example.com", "bob@example.com"), ROLE_NAME, false);
 
-        assertThat(result).extracting(ApplicationInvitationItem::email).containsExactly("alice@example.com", "bob@example.com");
-        verify(invitationCrudService).createApplicationInvitations(APPLICATION_ID, ROLE, List.of("alice@example.com", "bob@example.com"));
+        assertThat(result).extracting(ApplicationInvitation::email).containsExactly("alice@example.com", "bob@example.com");
+
+        var invitationCaptor = ArgumentCaptor.forClass(ApplicationInvitation.class);
+        verify(invitationCrudService, times(2)).create(invitationCaptor.capture());
+        assertThat(invitationCaptor.getAllValues()).extracting(ApplicationInvitation::applicationId).containsOnly(APPLICATION_ID);
+        assertThat(invitationCaptor.getAllValues())
+            .extracting(ApplicationInvitation::email)
+            .containsExactly("alice@example.com", "bob@example.com");
+        assertThat(invitationCaptor.getAllValues()).extracting(ApplicationInvitation::roleName).containsOnly(ROLE_NAME);
     }
 
     @Test
     void should_reject_invalid_email_before_creating_any_invitation() {
         givenExistingRole();
 
-        var throwable = catchThrowable(() -> cut.create(ORGANIZATION_ID, APPLICATION_ID, Set.of("not-an-email"), ROLE, false));
+        var throwable = catchThrowable(() -> cut.create(ORGANIZATION_ID, APPLICATION_ID, Set.of("not-an-email"), ROLE_NAME, false));
 
         assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining("email is invalid");
         verifyNoInteractions(invitationCrudService);
-        verify(invitationQueryService, never()).findByReference(any(), any());
+        verify(invitationQueryService, never()).findByReference(any());
     }
 
     @Test
     void should_reject_notify_true_before_creating_any_invitation() {
-        var throwable = catchThrowable(() -> cut.create(ORGANIZATION_ID, APPLICATION_ID, Set.of("alice@example.com"), ROLE, true));
+        var throwable = catchThrowable(() -> cut.create(ORGANIZATION_ID, APPLICATION_ID, Set.of("alice@example.com"), ROLE_NAME, true));
 
         assertThat(throwable).isInstanceOf(UnsupportedOperationException.class).hasMessageContaining("not implemented yet");
         verifyNoInteractions(roleQueryService, invitationQueryService, invitationCrudService);
@@ -112,11 +117,11 @@ class CreateApplicationInvitationsDomainServiceTest {
     @Test
     void should_reject_pending_invitation_conflict_before_creating_any_invitation() {
         givenExistingRole();
-        when(invitationQueryService.findByReference(InvitationReferenceType.APPLICATION, APPLICATION_ID)).thenReturn(
-            List.of(anApplicationInvitationItem(EXISTING_INVITATION_ID, "alice@example.com"))
+        when(invitationQueryService.findByReference(InvitationReference.application(APPLICATION_ID))).thenReturn(
+            List.of(anApplicationInvitation(EXISTING_INVITATION_ID, "alice@example.com"))
         );
 
-        var throwable = catchThrowable(() -> cut.create(ORGANIZATION_ID, APPLICATION_ID, Set.of("ALICE@example.com"), ROLE, false));
+        var throwable = catchThrowable(() -> cut.create(ORGANIZATION_ID, APPLICATION_ID, Set.of("alice@example.com"), ROLE_NAME, false));
 
         assertThat(throwable).isInstanceOf(ConflictDomainException.class).hasMessageContaining("pending application invitation");
         verifyNoInteractions(invitationCrudService);
@@ -124,17 +129,17 @@ class CreateApplicationInvitationsDomainServiceTest {
 
     @Test
     void should_reject_unknown_application_role() {
-        when(roleQueryService.findApplicationRole(eq(ROLE), any(ReferenceContext.class))).thenReturn(Optional.empty());
+        when(roleQueryService.findApplicationRole(eq(ROLE_NAME), any(ReferenceContext.class))).thenReturn(Optional.empty());
 
-        var throwable = catchThrowable(() -> cut.create(ORGANIZATION_ID, APPLICATION_ID, Set.of("alice@example.com"), ROLE, false));
+        var throwable = catchThrowable(() -> cut.create(ORGANIZATION_ID, APPLICATION_ID, Set.of("alice@example.com"), ROLE_NAME, false));
 
         assertThat(throwable).isInstanceOf(RoleNotFoundException.class);
         verifyNoInteractions(invitationQueryService, invitationCrudService);
     }
 
     private void givenExistingRole() {
-        when(roleQueryService.findApplicationRole(eq(ROLE), any(ReferenceContext.class))).thenReturn(
-            Optional.of(anApplicationRole("role-id", ROLE))
+        when(roleQueryService.findApplicationRole(eq(ROLE_NAME), any(ReferenceContext.class))).thenReturn(
+            Optional.of(anApplicationRole("role-id", ROLE_NAME))
         );
     }
 

@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.query_service.invitation;
+package io.gravitee.apim.infra.adapter;
 
+import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
 import io.gravitee.apim.core.invitation.model.ApplicationInvitationId;
-import io.gravitee.apim.core.invitation.model.ApplicationInvitationItem;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.repository.management.model.Invitation;
 import java.time.ZonedDateTime;
@@ -26,17 +26,32 @@ import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
-public interface ApplicationInvitationItemMapper {
-    ApplicationInvitationItemMapper INSTANCE = Mappers.getMapper(ApplicationInvitationItemMapper.class);
+public interface ApplicationInvitationAdapter {
+    ApplicationInvitationAdapter INSTANCE = Mappers.getMapper(ApplicationInvitationAdapter.class);
 
     @Mapping(target = "roleName", source = "applicationRole")
-    ApplicationInvitationItem toApplicationInvitationItem(Invitation invitation);
+    @Mapping(target = "applicationId", source = "referenceId")
+    ApplicationInvitation toEntity(Invitation invitation);
+
+    @Mapping(target = "applicationRole", source = "roleName")
+    @Mapping(target = "referenceId", source = "applicationId")
+    @Mapping(target = "referenceType", constant = "APPLICATION")
+    @Mapping(target = "apiRole", ignore = true)
+    Invitation toRepository(ApplicationInvitation invitation);
 
     default ApplicationInvitationId map(String id) {
         return ApplicationInvitationId.of(id);
     }
 
+    default String map(ApplicationInvitationId id) {
+        return id.toString();
+    }
+
     default ZonedDateTime map(Date date) {
         return date == null ? null : date.toInstant().atZone(TimeProvider.clock().getZone());
+    }
+
+    default Date map(ZonedDateTime date) {
+        return date == null ? null : Date.from(date.toInstant());
     }
 }

@@ -15,8 +15,8 @@
  */
 package io.gravitee.apim.core.invitation.query_service;
 
-import io.gravitee.apim.core.invitation.model.ApplicationInvitationItem;
-import io.gravitee.apim.core.invitation.model.InvitationReferenceType;
+import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
+import io.gravitee.apim.core.invitation.model.InvitationReference;
 import io.gravitee.apim.core.invitation.model.SearchApplicationInvitationsCriteria;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -24,9 +24,9 @@ import jakarta.annotation.Nonnull;
 import java.util.List;
 
 public interface InvitationQueryService {
-    List<ApplicationInvitationItem> findByReference(InvitationReferenceType referenceType, String referenceId);
+    List<ApplicationInvitation> findByReference(@Nonnull InvitationReference reference);
 
-    Page<ApplicationInvitationItem> findByApplicationId(
+    Page<ApplicationInvitation> findByApplicationId(
         String applicationId,
         @Nonnull SearchApplicationInvitationsCriteria criteria,
         @Nonnull Pageable pageable

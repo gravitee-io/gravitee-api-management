@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.crud_service.invitation;
 
+import static fixtures.core.model.ApplicationInvitationFixtures.anApplicationInvitation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
@@ -25,11 +26,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.InvitationRepository;
 import io.gravitee.repository.management.model.Invitation;
 import io.gravitee.repository.management.model.InvitationReferenceType;
-import io.gravitee.rest.api.service.common.UuidString;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,7 +40,6 @@ class InvitationCrudServiceImplTest {
     private static final String APPLICATION_ID = "application-id";
     private static final String ROLE = "USER";
     private static final String INVITATION_ID_1 = "00000000-0000-0000-0000-000000000001";
-    private static final String INVITATION_ID_2 = "00000000-0000-0000-0000-000000000002";
 
     @Mock
     private InvitationRepository invitationRepository;
@@ -52,37 +48,32 @@ class InvitationCrudServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        var index = new AtomicInteger(0);
-        UuidString.overrideGenerator(() -> List.of(INVITATION_ID_1, INVITATION_ID_2).get(index.getAndIncrement()));
         cut = new InvitationCrudServiceImpl(invitationRepository);
     }
 
-    @AfterEach
-    void tearDown() {
-        UuidString.reset();
-    }
-
     @Test
-    void should_create_application_invitations() throws TechnicalException {
+    void should_create_application_invitation() throws TechnicalException {
         when(invitationRepository.create(any(Invitation.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        var invitationToCreate = anApplicationInvitation(INVITATION_ID_1, APPLICATION_ID, "alice@example.com", ROLE);
 
-        var result = cut.createApplicationInvitations(APPLICATION_ID, ROLE, List.of("alice@example.com", "bob@example.com"));
+        var result = cut.create(invitationToCreate);
 
-        assertThat(result).extracting(invitation -> invitation.id().toString()).containsExactly(INVITATION_ID_1, INVITATION_ID_2);
-        assertThat(result).extracting("email").containsExactly("alice@example.com", "bob@example.com");
+        assertThat(result.id().toString()).isEqualTo(INVITATION_ID_1);
+        assertThat(result.applicationId()).isEqualTo(APPLICATION_ID);
+        assertThat(result.email()).isEqualTo("alice@example.com");
 
         var captor = ArgumentCaptor.forClass(Invitation.class);
-        org.mockito.Mockito.verify(invitationRepository, org.mockito.Mockito.times(2)).create(captor.capture());
+        org.mockito.Mockito.verify(invitationRepository).create(captor.capture());
         SoftAssertions.assertSoftly(soft -> {
-            var firstInvitation = captor.getAllValues().get(0);
-            soft.assertThat(firstInvitation.getId()).isEqualTo(INVITATION_ID_1);
-            soft.assertThat(firstInvitation.getReferenceType()).isEqualTo(InvitationReferenceType.APPLICATION.name());
-            soft.assertThat(firstInvitation.getReferenceId()).isEqualTo(APPLICATION_ID);
-            soft.assertThat(firstInvitation.getEmail()).isEqualTo("alice@example.com");
-            soft.assertThat(firstInvitation.getApplicationRole()).isEqualTo(ROLE);
-            soft.assertThat(firstInvitation.getApiRole()).isNull();
-            soft.assertThat(firstInvitation.getCreatedAt()).isNotNull();
-            soft.assertThat(firstInvitation.getUpdatedAt()).isNull();
+            var repositoryInvitation = captor.getValue();
+            soft.assertThat(repositoryInvitation.getId()).isEqualTo(INVITATION_ID_1);
+            soft.assertThat(repositoryInvitation.getReferenceType()).isEqualTo(InvitationReferenceType.APPLICATION.name());
+            soft.assertThat(repositoryInvitation.getReferenceId()).isEqualTo(APPLICATION_ID);
+            soft.assertThat(repositoryInvitation.getEmail()).isEqualTo("alice@example.com");
+            soft.assertThat(repositoryInvitation.getApplicationRole()).isEqualTo(ROLE);
+            soft.assertThat(repositoryInvitation.getApiRole()).isNull();
+            soft.assertThat(repositoryInvitation.getCreatedAt()).isNotNull();
+            soft.assertThat(repositoryInvitation.getUpdatedAt()).isNotNull();
         });
     }
 
@@ -90,8 +81,10 @@ class InvitationCrudServiceImplTest {
     void should_throw_technical_domain_exception_when_repository_fails() throws TechnicalException {
         when(invitationRepository.create(any(Invitation.class))).thenThrow(new TechnicalException("error"));
 
-        var throwable = catchThrowable(() -> cut.createApplicationInvitations(APPLICATION_ID, ROLE, List.of("alice@example.com")));
+        var throwable = catchThrowable(() ->
+            cut.create(anApplicationInvitation(INVITATION_ID_1, APPLICATION_ID, "alice@example.com", ROLE))
+        );
 
-        assertThat(throwable).isInstanceOf(TechnicalDomainException.class).hasMessageContaining("create application invitations");
+        assertThat(throwable).isInstanceOf(TechnicalDomainException.class).hasMessageContaining("create application invitation");
     }
 }

@@ -15,9 +15,8 @@
  */
 package io.gravitee.apim.core.invitation.crud_service;
 
-import io.gravitee.apim.core.invitation.model.ApplicationInvitationItem;
-import java.util.List;
+import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
 
 public interface InvitationCrudService {
-    List<ApplicationInvitationItem> createApplicationInvitations(String applicationId, String role, List<String> emails);
+    ApplicationInvitation create(ApplicationInvitation invitation);
 }
