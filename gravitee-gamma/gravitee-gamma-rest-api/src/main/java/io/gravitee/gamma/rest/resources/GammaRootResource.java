@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.resources;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.gamma.authorization.rest.resource.AuthzRootResource;
 import io.gravitee.plugin.gamma.internal.GammaModuleDefinition;
 import io.gravitee.plugin.gamma.internal.GammaModuleService;
 import jakarta.inject.Inject;
@@ -46,5 +47,10 @@ public class GammaRootResource {
     @Path("/organizations/{orgId}/environments/{envId}/modules")
     public GammaModulesResource getModulesResourceFromEnvironment() {
         return resourceContext.getResource(GammaModulesResource.class);
+    }
+
+    @Path("/authz")
+    public AuthzRootResource authz() {
+        return resourceContext.getResource(AuthzRootResource.class);
     }
 }

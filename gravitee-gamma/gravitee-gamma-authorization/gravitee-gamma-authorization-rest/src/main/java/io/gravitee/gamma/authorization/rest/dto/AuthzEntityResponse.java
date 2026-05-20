@@ -13,26 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.authorization.service;
+package io.gravitee.gamma.authorization.rest.dto;
 
-import io.gravitee.gamma.authorization.api.AuthzValidators;
+import io.gravitee.gamma.authorization.domain.AuthzEntity;
 import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
-public record CreateOrReplaceAuthzEntityCommand(
-    @NotBlank String environmentId,
-    @NotBlank String entityId,
-    @NotNull AuthzEntityKind kind,
+public record AuthzEntityResponse(
+    String id,
+    String entityId,
+    AuthzEntityKind kind,
     Map<String, Object> attributes,
     List<String> parents,
-    @NotBlank String source
+    String source,
+    String environmentId,
+    Instant createdAt,
+    Instant updatedAt
 ) {
-    public CreateOrReplaceAuthzEntityCommand {
-        AuthzValidators.validateCtor(CreateOrReplaceAuthzEntityCommand.class, environmentId, entityId, kind, attributes, parents, source);
-        attributes = Map.copyOf(attributes);
-        parents = List.copyOf(parents);
+    public static AuthzEntityResponse from(AuthzEntity entity) {
+        return new AuthzEntityResponse(
+            entity.id(),
+            entity.entityId(),
+            entity.kind(),
+            entity.attributes(),
+            entity.parents(),
+            entity.source(),
+            entity.environmentId(),
+            entity.createdAt(),
+            entity.updatedAt()
+        );
     }
 }
