@@ -17,8 +17,8 @@ import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 
-import { getExposedEntrypoints, updateApiListeners } from '../../../services/apis/entrypoints';
 import { useApiDetailContext } from '../context/ApiDetailContext';
+import { getExposedEntrypoints, updateApiListeners } from '../services/entrypoints';
 import type { HttpListener } from '../types/api';
 import { apiDetailKeys, apiEntrypointKeys } from '../utils/queryKeys';
 

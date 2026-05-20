@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { EntityContext } from '../../shared/types/entityContext';
+import type { EntityContext } from '../../../shared/types/entityContext';
 
 // TODO: Subscription types — prep for subscriptions feature (no services/hooks/pages yet)
 export type SubscriptionStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CLOSED' | 'PAUSED' | 'RESUMED';

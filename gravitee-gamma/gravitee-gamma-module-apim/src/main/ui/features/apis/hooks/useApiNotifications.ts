@@ -24,7 +24,7 @@ import {
     listNotifiers,
     listNotifications,
     updateNotification,
-} from '../../../services/apis/notifications';
+} from '../services/notifications';
 import type {
     ApiHook,
     ApiNotifier,

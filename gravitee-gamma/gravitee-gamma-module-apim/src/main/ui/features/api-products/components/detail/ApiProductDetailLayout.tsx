@@ -22,7 +22,7 @@ import { useApiProductPermissions } from '../../hooks/useApiProductPermissions';
 import type { ApiProductListItem } from '../../types/apiProduct';
 import { SyncStatusBadge } from '../SyncStatusBadge';
 import { ApiProductSidebarNav } from './ApiProductSidebarNav';
-import { useDetailBasePath } from '../../../shared/hooks/useDetailBasePath';
+import { useDetailBasePath } from '../../../../shared/hooks/useDetailBasePath';
 
 function ProductInfoHeader({ product, isLoading }: { product: ApiProductListItem | null; isLoading: boolean }) {
     if (isLoading) {

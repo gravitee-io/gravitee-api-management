@@ -16,7 +16,7 @@
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useQuery } from '@tanstack/react-query';
 
-import { getApiV4 } from '../../../services/apis/apis';
+import { getApiV4 } from '../services/apis';
 import { apiDetailKeys } from '../utils/queryKeys';
 
 export function useApiDetail(apiId: string | undefined) {

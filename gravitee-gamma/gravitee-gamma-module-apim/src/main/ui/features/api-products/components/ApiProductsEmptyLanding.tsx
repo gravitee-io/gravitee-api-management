@@ -26,7 +26,7 @@ import {
 } from '@gravitee/graphene-core/icons';
 import type { LucideIcon } from '@gravitee/graphene-core/icons';
 
-import { FeatureTile } from '../../shared/components';
+import { FeatureTile } from '../../../shared/components';
 
 const SAMPLE_APIS: { readonly Icon: LucideIcon; readonly name: string }[] = [
     { Icon: GlobeIcon, name: 'Flight Status API' },

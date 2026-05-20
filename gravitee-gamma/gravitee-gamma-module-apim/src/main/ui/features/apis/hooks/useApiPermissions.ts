@@ -17,7 +17,7 @@ import { permissionService, useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
-import { getApiPermissions } from '../../../services/apis/permissions';
+import { getApiPermissions } from '../services/permissions';
 import { apiPermissionKeys } from '../utils/queryKeys';
 
 /**
