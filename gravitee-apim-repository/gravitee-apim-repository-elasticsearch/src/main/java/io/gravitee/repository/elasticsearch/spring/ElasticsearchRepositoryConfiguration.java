@@ -18,12 +18,6 @@ package io.gravitee.repository.elasticsearch.spring;
 import static java.lang.String.format;
 
 import io.gravitee.elasticsearch.client.Client;
-import io.gravitee.elasticsearch.client.http.ClientSslConfiguration;
-import io.gravitee.elasticsearch.client.http.HttpClient;
-import io.gravitee.elasticsearch.client.http.HttpClientConfiguration;
-import io.gravitee.elasticsearch.client.http.HttpClientJksSslConfiguration;
-import io.gravitee.elasticsearch.client.http.HttpClientPemSslConfiguration;
-import io.gravitee.elasticsearch.client.http.HttpClientPfxSslConfiguration;
 import io.gravitee.elasticsearch.exception.ElasticsearchException;
 import io.gravitee.elasticsearch.index.ILMIndexNameGenerator;
 import io.gravitee.elasticsearch.index.IndexNameGenerator;
@@ -31,7 +25,9 @@ import io.gravitee.elasticsearch.index.MultiTypeIndexNameGenerator;
 import io.gravitee.elasticsearch.index.PerTypeIndexNameGenerator;
 import io.gravitee.elasticsearch.templating.freemarker.FreeMarkerComponent;
 import io.gravitee.elasticsearch.version.ElasticsearchInfo;
+import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.elasticsearch.analytics.spring.AnalyticsConfiguration;
+import io.gravitee.repository.elasticsearch.client.ElasticsearchHttpClientFactory;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.healthcheck.spring.HealthCheckConfiguration;
 import io.gravitee.repository.elasticsearch.log.spring.LogConfiguration;
@@ -45,6 +41,7 @@ import lombok.CustomLog;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -83,46 +80,11 @@ public class ElasticsearchRepositoryConfiguration {
     }
 
     @Bean
-    public Client client(RepositoryConfiguration repositoryConfiguration) {
-        HttpClientConfiguration clientConfiguration = new HttpClientConfiguration();
-        clientConfiguration.setEndpoints(repositoryConfiguration.getEndpoints());
-        clientConfiguration.setUsername(repositoryConfiguration.getUsername());
-        clientConfiguration.setPassword(repositoryConfiguration.getPassword());
-        clientConfiguration.setRequestTimeout(repositoryConfiguration.getRequestTimeout());
-
-        clientConfiguration.setProxyType(repositoryConfiguration.getProxyType());
-        clientConfiguration.setProxyHttpHost(repositoryConfiguration.getProxyHttpHost());
-        clientConfiguration.setProxyHttpPort(repositoryConfiguration.getProxyHttpPort());
-        clientConfiguration.setProxyHttpUsername(repositoryConfiguration.getProxyHttpUsername());
-        clientConfiguration.setProxyHttpPassword(repositoryConfiguration.getProxyHttpPassword());
-        clientConfiguration.setProxyHttpsHost(repositoryConfiguration.getProxyHttpsHost());
-        clientConfiguration.setProxyHttpsPort(repositoryConfiguration.getProxyHttpsPort());
-        clientConfiguration.setProxyHttpsUsername(repositoryConfiguration.getProxyHttpsUsername());
-        clientConfiguration.setProxyHttpsPassword(repositoryConfiguration.getProxyHttpsPassword());
-        clientConfiguration.setProxyConfigured(repositoryConfiguration.isProxyConfigured());
-
-        if (repositoryConfiguration.getSslKeystoreType() != null) {
-            if (repositoryConfiguration.getSslKeystoreType().equalsIgnoreCase(ClientSslConfiguration.JKS_KEYSTORE_TYPE)) {
-                clientConfiguration.setSslConfig(
-                    new HttpClientJksSslConfiguration(
-                        repositoryConfiguration.getSslKeystore(),
-                        repositoryConfiguration.getSslKeystorePassword()
-                    )
-                );
-            } else if (repositoryConfiguration.getSslKeystoreType().equalsIgnoreCase(ClientSslConfiguration.PFX_KEYSTORE_TYPE)) {
-                clientConfiguration.setSslConfig(
-                    new HttpClientPfxSslConfiguration(
-                        repositoryConfiguration.getSslKeystore(),
-                        repositoryConfiguration.getSslKeystorePassword()
-                    )
-                );
-            } else if (repositoryConfiguration.getSslKeystoreType().equalsIgnoreCase(ClientSslConfiguration.PEM_KEYSTORE_TYPE)) {
-                clientConfiguration.setSslConfig(
-                    new HttpClientPemSslConfiguration(repositoryConfiguration.getSslPemCerts(), repositoryConfiguration.getSslPemKeys())
-                );
-            }
-        }
-        return new HttpClient(clientConfiguration);
+    public Client client(Environment environment) {
+        // RepositoryConfiguration still owns analytics' index-naming / ILM / retention concerns and is
+        // injected into other @Beans below; the client wiring is now scope-prefixed (analytics.elasticsearch.*)
+        // through the shared factory, mirroring how the OTEL_TRACES scope reads otel-traces.elasticsearch.*.
+        return new ElasticsearchHttpClientFactory(environment, Scope.ANALYTICS.getName()).createHttpClient();
     }
 
     @Bean

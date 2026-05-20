@@ -130,6 +130,43 @@ data:
         type: none
         {{- end }}
 
+      {{- if ne .Values.api.otelTraces.type "none" }}
+      otel-traces:
+        type: {{ .Values.api.otelTraces.type }}
+        {{- if (eq .Values.api.otelTraces.type "elasticsearch") }}
+        elasticsearch:
+          {{- with .Values.api.otelTraces.elasticsearch.endpoints }}
+          endpoints:
+            {{ toYaml . | nindent 12 | trim -}}
+          {{- end }}
+          {{- if .Values.api.otelTraces.elasticsearch.http }}
+          http:
+            {{- if .Values.api.otelTraces.elasticsearch.http.timeout }}
+            timeout: {{ .Values.api.otelTraces.elasticsearch.http.timeout }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.api.otelTraces.elasticsearch.security }}
+          security:
+            username: {{ .Values.api.otelTraces.elasticsearch.security.username }}
+            password: {{ .Values.api.otelTraces.elasticsearch.security.password }}
+          {{- end }}
+          {{- if .Values.api.otelTraces.elasticsearch.ssl }}
+          ssl:
+            keystore:
+              type: {{ .Values.api.otelTraces.elasticsearch.ssl.keystore.type }}
+              {{- if or .Values.api.otelTraces.elasticsearch.ssl.keystore.path .Values.api.otelTraces.elasticsearch.ssl.keystore.password }}
+              path: {{ .Values.api.otelTraces.elasticsearch.ssl.keystore.path }}
+              password: {{ .Values.api.otelTraces.elasticsearch.ssl.keystore.password }}
+              {{- end }}
+              {{- if or .Values.api.otelTraces.elasticsearch.ssl.keystore.certs .Values.api.otelTraces.elasticsearch.ssl.keystore.keys }}
+              certs: {{ .Values.api.otelTraces.elasticsearch.ssl.keystore.certs }}
+              keys: {{ .Values.api.otelTraces.elasticsearch.ssl.keystore.keys }}
+              {{- end }}
+          {{- end }}
+          index: {{ .Values.api.otelTraces.elasticsearch.index }}
+        {{- end }}
+      {{- end }}
+
     # Secret Manager configuration
     {{- if .Values.secrets }}
     secrets:

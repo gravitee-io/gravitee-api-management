@@ -1130,6 +1130,33 @@ api:
   analytics:
     type: elasticsearch # or none
 
+  # OpenTelemetry traces reader (used by the gamma APIM tracing resource). Disabled by default; set type to
+  # "elasticsearch" to wire the ES-backed TracingRepository. Configuration is independent from `analytics.*` —
+  # tracing can target a different ES cluster (or no analytics at all). The Elasticsearch endpoint chosen must be
+  # the same one the OTel collector / OTLP endpoint writes traces to.
+  otelTraces:
+    type: none # or elasticsearch
+    elasticsearch:
+      # Index/data-stream name template. {orgId} / {envId} are substituted (lowercased) from the caller's
+      # QueryContext at query time, matching the analytics IndexNameUtils.format convention. Should match the
+      # data-stream name the OTel collector elasticsearch exporter (mapping.mode: otel) writes to.
+      index: traces-apim.otel-{orgId}
+      endpoints:
+        - http://elasticsearch:9200
+      # security:
+      #   username: elastic
+      #   password: changeme
+      # ssl:
+      #   keystore:
+      #     type: jks            # jks, pkcs12 or pem
+      #     path: /path/to/keystore.jks
+      #     password: changeme
+      #     # PEM only:
+      #     # certs: [/path/to/cert1.pem, /path/to/cert2.pem]
+      #     # keys:  [/path/to/key1.pem,  /path/to/key2.pem]
+      # http:
+      #   timeout: 10000
+
   # External Authentication settings
   #  auth:
   #    external:

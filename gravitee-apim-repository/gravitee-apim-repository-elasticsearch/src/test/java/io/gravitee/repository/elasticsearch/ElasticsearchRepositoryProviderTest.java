@@ -34,14 +34,16 @@ public class ElasticsearchRepositoryProviderTest {
     }
 
     @Test
-    public void shouldReturnAnalyticsScope() {
-        assertThat(provider.scopes()).containsExactly(Scope.ANALYTICS);
+    public void shouldReturnAnalyticsAndTracingScopes() {
+        assertThat(provider.scopes()).containsExactly(Scope.ANALYTICS, Scope.OTEL_TRACES);
     }
 
     @Test
     public void shouldReturnElasticSearchConfigurationClass() {
-        Class<?> configClass = provider.configuration(Scope.ANALYTICS);
-        assertThat(configClass).isEqualTo(ElasticsearchRepositoryConfiguration.class);
+        assertThat(provider.configuration(Scope.ANALYTICS)).isEqualTo(ElasticsearchRepositoryConfiguration.class);
+        assertThat(provider.configuration(Scope.OTEL_TRACES)).isEqualTo(
+            io.gravitee.repository.elasticsearch.tracing.spring.TracingConfiguration.class
+        );
     }
 
     @Test
