@@ -19,6 +19,7 @@ import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.repository.management.model.User;
 import io.gravitee.rest.api.model.UserEntity;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -32,4 +33,13 @@ public interface UserAdapter {
     BaseUserEntity fromUser(User user);
     BaseUserEntity fromUser(UserEntity user);
     UserEntity toUserEntity(BaseUserEntity base);
+
+    @Mapping(target = "password", ignore = true)
+    @Mapping(target = "lastConnectionAt", ignore = true)
+    @Mapping(target = "firstConnectionAt", ignore = true)
+    @Mapping(target = "picture", ignore = true)
+    @Mapping(target = "loginCount", ignore = true)
+    @Mapping(target = "newsletterSubscribed", ignore = true)
+    @Mapping(target = "isServiceAccount", ignore = true)
+    User toUser(BaseUserEntity base);
 }
