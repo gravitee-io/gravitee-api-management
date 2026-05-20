@@ -87,9 +87,7 @@ public class ApiProductsResource extends AbstractResource {
     @Path("_verify")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions(
-        { @Permission(value = RolePermission.ENVIRONMENT_API_PRODUCT, acls = { RolePermissionAction.CREATE, RolePermissionAction.UPDATE }) }
-    )
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_PRODUCT, acls = { RolePermissionAction.READ }) })
     public Response verifyApiProductName(@Valid @NotNull final VerifyApiProduct verifyApiProduct) {
         var executionContext = GraviteeContext.getExecutionContext();
         try {

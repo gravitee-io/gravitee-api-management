@@ -20,11 +20,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import inmemory.ApiAuthorizationDomainServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
+import io.gravitee.apim.core.api.domain_service.ApiAuthorizationDomainService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductSearchQueryService;
@@ -41,6 +43,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -151,6 +155,66 @@ class GetApiProductApisUseCaseTest {
             assertThat(output.apisPage()).isNotNull();
             assertThat(output.apisPage().getContent()).hasSize(1);
             assertThat(output.apisPage().getTotalElements()).isEqualTo(2);
+        }
+    }
+
+    @Nested
+    class NonAdminUser {
+
+        @Mock
+        private ApiAuthorizationDomainService apiAuthorizationDomainServiceMock;
+
+        @Captor
+        private ArgumentCaptor<List<String>> searchApiIdsCaptor;
+
+        @BeforeEach
+        void setUpNonAdmin() {
+            useCase = new GetApiProductApisUseCase(apiAuthorizationDomainServiceMock, apiProductSearchQueryService, apiProductQueryService);
+        }
+
+        @Test
+        void should_search_only_apis_on_product_when_user_can_manage_more_apis() {
+            apiProductQueryService.initWith(
+                List.of(
+                    ApiProduct.builder()
+                        .id(API_PRODUCT_ID)
+                        .name("Product")
+                        .environmentId(ENV_ID)
+                        .apiIds(Set.of("api-on-product", "api-not-manageable"))
+                        .build()
+                )
+            );
+            when(apiAuthorizationDomainServiceMock.findIdsByUser(any(), eq(USER_ID), any(), any(), eq(true))).thenReturn(
+                Set.of("api-on-product", "api-other-1", "api-other-2")
+            );
+
+            var apiEntity = new ApiEntity();
+            apiEntity.setId("api-on-product");
+            when(
+                apiProductSearchQueryService.searchApis(any(), anyString(), anyBoolean(), searchApiIdsCaptor.capture(), any(), any(), any())
+            ).thenReturn(new Page<>(List.of(apiEntity), 1, 10, 1));
+
+            var output = useCase.execute(input(API_PRODUCT_ID, null, new PageableImpl(1, 10), null, USER_ID, false));
+
+            assertThat(output.apisPage().getContent()).hasSize(1);
+            assertThat(searchApiIdsCaptor.getValue()).containsExactly("api-on-product");
+        }
+
+        @Test
+        void should_return_empty_page_when_user_cannot_manage_any_product_api() {
+            apiProductQueryService.initWith(
+                List.of(
+                    ApiProduct.builder().id(API_PRODUCT_ID).name("Product").environmentId(ENV_ID).apiIds(Set.of("api-on-product")).build()
+                )
+            );
+            when(apiAuthorizationDomainServiceMock.findIdsByUser(any(), eq(USER_ID), any(), any(), eq(true))).thenReturn(
+                Set.of("api-other-1")
+            );
+
+            var output = useCase.execute(input(API_PRODUCT_ID, null, new PageableImpl(1, 10), null, USER_ID, false));
+
+            assertThat(output.apisPage().getContent()).isEmpty();
+            assertThat(output.apisPage().getTotalElements()).isZero();
         }
     }
 

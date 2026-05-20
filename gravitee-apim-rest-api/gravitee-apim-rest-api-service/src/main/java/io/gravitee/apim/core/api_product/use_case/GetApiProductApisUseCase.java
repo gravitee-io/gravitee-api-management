@@ -26,7 +26,6 @@ import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -68,7 +67,10 @@ public class GetApiProductApisUseCase {
             if (manageableIds == null || manageableIds.isEmpty()) {
                 return new Output(emptyPage(input.pageable()));
             }
-            searchIds = new ArrayList<>(manageableIds);
+            searchIds = apiIds.stream().filter(manageableIds::contains).toList();
+            if (searchIds.isEmpty()) {
+                return new Output(emptyPage(input.pageable()));
+            }
         }
 
         String query = (input.query() == null || input.query().isBlank()) ? null : input.query().trim();
