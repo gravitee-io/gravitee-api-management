@@ -68,7 +68,7 @@ describe('applicationDetailNavigation permissions', () => {
         ).toBe('general');
         expect(
             getFirstAccessibleImplementedApplicationDetailPath(APPLICATION_NAV_GROUPS, APPLICATION_IMPLEMENTED_DETAIL_PATHS, hasMemberRead),
-        ).toBeNull();
+        ).toBe('user-permissions');
     });
 
     it('returns null when user has no tab permissions', () => {

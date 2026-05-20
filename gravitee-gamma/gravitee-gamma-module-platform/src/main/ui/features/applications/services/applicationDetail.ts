@@ -53,9 +53,9 @@ export async function updateApplication(
         name: payload.name,
         description: payload.description,
         domain: payload.domain,
-        groups: application.groups,
+        groups: payload.groups ?? application.groups,
         settings: payload.settings,
-        disable_membership_notifications: application.disable_membership_notifications,
+        disable_membership_notifications: payload.disable_membership_notifications ?? application.disable_membership_notifications,
         api_key_mode: application.api_key_mode,
     };
     if (payload.picture !== undefined) {

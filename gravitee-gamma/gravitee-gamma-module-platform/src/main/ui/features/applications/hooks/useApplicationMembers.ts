@@ -1,0 +1,65 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
+import { useQuery } from '@tanstack/react-query';
+
+import {
+    listApplicationMembers,
+    listApplicationRoles,
+    listEnvironmentGroups,
+    searchEnvironmentGroupsByIds,
+} from '../services/applicationMembers';
+import type { EnvironmentGroup } from '../types/applicationMembers.types';
+import { applicationMemberKeys } from '../utils/queryKeys';
+
+export function useApplicationMembers(applicationId: string | undefined) {
+    const env = useEnvironment();
+    return useQuery({
+        queryKey: applicationMemberKeys.list(env?.id ?? '', applicationId ?? ''),
+        queryFn: () => listApplicationMembers(env!.id, applicationId!),
+        enabled: Boolean(env && applicationId),
+        staleTime: 30_000,
+    });
+}
+
+export function useApplicationRoles() {
+    return useQuery({
+        queryKey: applicationMemberKeys.roles(),
+        queryFn: () => listApplicationRoles(),
+        staleTime: 60_000,
+    });
+}
+
+export function useEnvironmentGroups() {
+    const env = useEnvironment();
+    return useQuery({
+        queryKey: applicationMemberKeys.groups(env?.id ?? ''),
+        queryFn: () => listEnvironmentGroups(env!.id),
+        enabled: Boolean(env),
+        staleTime: 60_000,
+    });
+}
+
+export function useApplicationAssociatedGroups(groupIds: string[]) {
+    const env = useEnvironment();
+    const groupIdsKey = groupIds.join(',');
+    return useQuery<EnvironmentGroup[]>({
+        queryKey: applicationMemberKeys.associatedGroups(env?.id ?? '', groupIdsKey),
+        queryFn: () => searchEnvironmentGroupsByIds(env!.id, groupIds),
+        enabled: Boolean(env) && groupIds.length > 0,
+        staleTime: 60_000,
+    });
+}

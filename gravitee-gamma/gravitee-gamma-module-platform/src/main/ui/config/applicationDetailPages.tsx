@@ -18,10 +18,12 @@ import type { ComponentType } from 'react';
 import { ApplicationDetailPlaceholderPage } from '../features/applications/components/detail';
 import { ApplicationDetailGeneralPage } from '../pages/ApplicationDetailGeneralPage';
 import { ApplicationDetailSubscriptionsPage } from '../pages/ApplicationDetailSubscriptionsPage';
+import { ApplicationUserPermissionsPage } from '../pages/ApplicationUserPermissionsPage';
 
 /** Tab paths with a dedicated page implementation (keys drive routing and landing redirect). */
 export const APPLICATION_DETAIL_PAGES = {
     general: ApplicationDetailGeneralPage,
+    'user-permissions': ApplicationUserPermissionsPage,
     subscriptions: ApplicationDetailSubscriptionsPage,
 } as const satisfies Record<string, ComponentType>;
 
