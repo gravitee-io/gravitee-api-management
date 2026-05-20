@@ -57,7 +57,7 @@ describe('ApiProductConfigurationComponent', () => {
       providers: [
         { provide: Constants, useValue: CONSTANTS_TESTING },
         { provide: SnackBarService, useValue: fakeSnackBarService },
-        { provide: GioTestingPermissionProvider, useValue: ['api_product-definition-u'] },
+        { provide: GioTestingPermissionProvider, useValue: ['api_product-definition-u', 'api_product-definition-d'] },
         {
           provide: ActivatedRoute,
           useValue: {
@@ -135,8 +135,46 @@ describe('ApiProductConfigurationComponent', () => {
     expect(await versionInput.isDisabled()).toBe(true);
     expect(await descriptionInput.isDisabled()).toBe(true);
 
-    const deleteButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="api_product_dangerzone_delete"]' }));
-    expect(await deleteButton.isDisabled()).toBe(true);
+    const deleteButton = await loader.getHarnessOrNull(
+      MatButtonHarness.with({ selector: '[data-testid="api_product_dangerzone_delete"]' }),
+    );
+    expect(deleteButton).toBeNull();
+  });
+
+  it('should hide delete when user has definition-u but not definition-d', async () => {
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      imports: [ApiProductConfigurationComponent, GioTestingModule, MatIconTestingModule, NoopAnimationsModule],
+      providers: [
+        { provide: Constants, useValue: CONSTANTS_TESTING },
+        { provide: SnackBarService, useValue: fakeSnackBarService },
+        { provide: GioTestingPermissionProvider, useValue: ['api_product-definition-u'] },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            params: of({ apiProductId: API_PRODUCT_ID }),
+            snapshot: { params: { apiProductId: API_PRODUCT_ID } },
+          },
+        },
+      ],
+    }).compileComponents();
+    fixture = TestBed.createComponent(ApiProductConfigurationComponent);
+    loader = TestbedHarnessEnvironment.loader(fixture);
+    httpTestingController = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`);
+    req.flush(fakeApiProduct);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
+    expect(await nameInput.isDisabled()).toBe(false);
+
+    const deleteButton = await loader.getHarnessOrNull(
+      MatButtonHarness.with({ selector: '[data-testid="api_product_dangerzone_delete"]' }),
+    );
+    expect(deleteButton).toBeNull();
   });
 
   it('should validate required fields', async () => {

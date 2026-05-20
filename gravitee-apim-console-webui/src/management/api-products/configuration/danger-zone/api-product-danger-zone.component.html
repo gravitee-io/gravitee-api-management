@@ -27,18 +27,14 @@
         </button>
       </div>
 
-      <div class="danger-card__actions__action">
-        <span class="gv-form-danger-text"> Delete this API Product. </span>
-        <button
-          mat-button
-          color="warn"
-          [disabled]="isReadOnly()"
-          [attr.data-testid]="'api_product_dangerzone_delete'"
-          (click)="onDeleteApiProduct()"
-        >
-          Delete API Product
-        </button>
-      </div>
+      @if (canDelete()) {
+        <div class="danger-card__actions__action">
+          <span class="gv-form-danger-text"> Delete this API Product. </span>
+          <button mat-button color="warn" [attr.data-testid]="'api_product_dangerzone_delete'" (click)="onDeleteApiProduct()">
+            Delete API Product
+          </button>
+        </div>
+      }
     </div>
   </mat-card-content>
 </mat-card>

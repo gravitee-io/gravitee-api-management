@@ -31,6 +31,7 @@ import { ApiProduct } from '../../../../entities/management-api-v2/api-product';
   template: `<api-product-danger-zone
     [apiProduct]="apiProduct()"
     [isReadOnly]="isReadOnly()"
+    [canDelete]="canDelete()"
     (removeApisClick)="onRemoveApis()"
     (deleteApiProductClick)="onDeleteApiProduct()"
   ></api-product-danger-zone>`,
@@ -44,6 +45,7 @@ class TestHostComponent {
     apiIds: ['api-1', 'api-2'],
   });
   isReadOnly = signal(false);
+  canDelete = signal(true);
   removeApisEmitted = false;
   deleteApiProductEmitted = false;
 
@@ -93,6 +95,17 @@ describe('ApiProductDangerZoneComponent', () => {
   it('should always show Remove APIs button', async () => {
     const removeButtons = await loader.getAllHarnesses(MatButtonHarness.with({ text: /Remove APIs/i }));
     expect(removeButtons.length).toBe(1);
+  });
+
+  it('should hide Delete API Product button when canDelete is false', async () => {
+    hostComponent.canDelete.set(false);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const deleteButton = await loader.getHarnessOrNull(
+      MatButtonHarness.with({ selector: '[data-testid="api_product_dangerzone_delete"]' }),
+    );
+    expect(deleteButton).toBeNull();
   });
 
   it('should show Remove APIs button even when product has no APIs', async () => {
