@@ -84,4 +84,9 @@ public class NoOpPlanRepository extends AbstractNoOpManagementRepository<Plan, S
         throws TechnicalException {
         return Optional.empty();
     }
+
+    @Override
+    public Set<Plan> findByCrossIds(Collection<String> crossIds) throws TechnicalException {
+        return Set.of();
+    }
 }

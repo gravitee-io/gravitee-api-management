@@ -595,4 +595,37 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertThat(plan).isEmpty();
     }
+
+    @Test
+    public void shouldFindByCrossIds() throws TechnicalException {
+        Set<Plan> plans = planRepository.findByCrossIds(List.of("cross-id-alpha", "cross-id-beta"));
+
+        assertThat(plans)
+            .extracting(Plan::getId, Plan::getCrossId, Plan::getReferenceId)
+            .containsExactlyInAnyOrder(
+                tuple("plan-cross-id-alpha", "cross-id-alpha", "api-cross-test-1"),
+                tuple("plan-cross-id-beta", "cross-id-beta", "api-cross-test-2")
+            );
+    }
+
+    @Test
+    public void shouldFindByCrossIds_returnsOnlyMatchingPlans() throws TechnicalException {
+        Set<Plan> plans = planRepository.findByCrossIds(List.of("cross-id-alpha", "cross-id-unknown"));
+
+        assertThat(plans).extracting(Plan::getId, Plan::getCrossId).containsExactly(tuple("plan-cross-id-alpha", "cross-id-alpha"));
+    }
+
+    @Test
+    public void shouldFindByCrossIds_returnsEmptySet_whenNoCrossIdMatches() throws TechnicalException {
+        Set<Plan> plans = planRepository.findByCrossIds(List.of("cross-id-unknown-1", "cross-id-unknown-2"));
+
+        assertThat(plans).isEmpty();
+    }
+
+    @Test
+    public void shouldFindByCrossIds_returnsEmptySet_whenInputIsEmpty() throws TechnicalException {
+        Set<Plan> plans = planRepository.findByCrossIds(List.of());
+
+        assertThat(plans).isEmpty();
+    }
 }
