@@ -13,28 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../scss/theme';
 
 :host {
-  display: inline-flex;
+  display: block;
+  position: relative;
   min-width: 0;
-  max-width: 100%;
+  overflow: hidden;
 }
 
-.badge {
-  display: inline-flex;
+.overflow-labels {
+  display: flex;
+  flex-wrap: nowrap;
   align-items: center;
-  justify-content: center;
-  height: 27px;
-  padding: 0 10px;
-  border-radius: 4px;
-  background-color: theme.$badge-container-color;
-  color: theme.$badge-label-text-color;
-  max-width: 100%;
+  gap: 4px; // Keep in sync with GAP_PX constant in overflow-labels.component.ts
+  overflow: hidden;
 
-  &--truncate {
+  &__badge {
+    min-width: 0;
+    flex: 0 1 auto;
+  }
+
+  &__measure {
+    position: absolute;
+    visibility: hidden;
+    height: 0;
     overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    display: flex;
+    flex-wrap: nowrap;
+    pointer-events: none;
   }
 }

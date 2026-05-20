@@ -43,6 +43,20 @@
     }
   }
 
+  &__pinned {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    h2 {
+      margin: 0;
+    }
+  }
+
+  &__pinned-row {
+    display: block;
+  }
+
   &__content {
     display: flex;
     flex-direction: column;

@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 import { BaseHarnessFilters, ContentContainerComponentHarness, HarnessPredicate } from '@angular/cdk/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { MatButtonHarness } from '@angular/material/button/testing';
+
+import { OverflowLabelsHarness } from '../overflow-labels/overflow-labels.harness';
 
 export class AnalyticsDashboardCardHarness extends ContentContainerComponentHarness {
   public static hostSelector = 'app-analytics-dashboard-card';
@@ -21,8 +25,9 @@ export class AnalyticsDashboardCardHarness extends ContentContainerComponentHarn
   private readonly locateTitle = this.locatorFor('.dashboard-card__title');
   private readonly locateWidgetCount = this.locatorForOptional('[data-testid="widget-count"]');
   private readonly locateLastModified = this.locatorForOptional('[data-testid="last-modified"]');
-  private readonly locateLabels = this.locatorForAll('app-badge');
-  private readonly locateOverflowCounter = this.locatorForOptional('[data-testid="hidden-labels-count"]');
+  private readonly locateOverflowLabels = this.locatorForOptional(OverflowLabelsHarness);
+  private readonly locatePinButton = this.locatorForOptional(MatButtonHarness.with({ selector: '.dashboard-card__pin-button' }));
+  private readonly locatePinButtonElement = this.locatorForOptional('.dashboard-card__pin-button');
 
   public static with(options: BaseHarnessFilters): HarnessPredicate<AnalyticsDashboardCardHarness> {
     return new HarnessPredicate(AnalyticsDashboardCardHarness, options);
@@ -42,13 +47,24 @@ export class AnalyticsDashboardCardHarness extends ContentContainerComponentHarn
     return element ? element.text() : null;
   }
 
-  public async getLabelCount(): Promise<number> {
-    return (await this.locateLabels()).length;
+  public async hasOverflowLabels(): Promise<boolean> {
+    return (await this.locateOverflowLabels()) !== null;
   }
 
-  public async getOverflowCounter(): Promise<string | null> {
-    const element = await this.locateOverflowCounter();
-    return element ? element.text() : null;
+  public async getOverflowLabelsHarness(): Promise<OverflowLabelsHarness | null> {
+    return this.locateOverflowLabels();
+  }
+
+  public async getPinButton(): Promise<MatButtonHarness | null> {
+    return this.locatePinButton();
+  }
+
+  /** Native click instead of MatButtonHarness: avoids deadlock when pin starts HTTP that stays pending until HttpTestingController.flush. */
+  public async clickPinButtonWithoutStabilizing(): Promise<void> {
+    const pin = await this.locatePinButtonElement();
+    if (!pin) throw new Error('Pin button not found on this card');
+    const pinElement = TestbedHarnessEnvironment.getNativeElement(pin) as HTMLElement;
+    pinElement.click();
   }
 
   public async click(): Promise<void> {

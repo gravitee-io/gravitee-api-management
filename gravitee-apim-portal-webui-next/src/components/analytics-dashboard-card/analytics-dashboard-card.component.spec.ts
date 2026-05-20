@@ -15,11 +15,13 @@
  */
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 
 import { AnalyticsDashboardCardComponent } from './analytics-dashboard-card.component';
 import { AnalyticsDashboardCardHarness } from './analytics-dashboard-card.harness';
 import { fakeDashboard } from '../../entities/analytics-dashboard/analytics-dashboard.fixtures';
+import { OverflowLabelsComponent } from '../overflow-labels/overflow-labels.component';
 
 describe('AnalyticsDashboardCardComponent', () => {
   let fixture: ComponentFixture<AnalyticsDashboardCardComponent>;
@@ -50,21 +52,19 @@ describe('AnalyticsDashboardCardComponent', () => {
     expect(await harness.getTitle()).toContain('HTTP Overview');
   });
 
-  it('should_render_all_labels_when_count_is_within_visible_limit', async () => {
-    expect(await harness.getLabelCount()).toBe(2);
-    expect(await harness.getOverflowCounter()).toBeNull();
+  it('should_pass_dashboard_labels_to_overflow_labels', async () => {
+    expect(await harness.getOverflowLabelsHarness()).not.toBeNull();
+
+    const overflowLabels = fixture.debugElement.query(By.directive(OverflowLabelsComponent));
+    expect(overflowLabels.componentInstance.labels()).toEqual(['type:http', 'scope:proxy']);
   });
 
-  it('should_render_overflow_counter_when_labels_exceed_visible_limit', async () => {
-    fixture.componentRef.setInput(
-      'dashboard',
-      fakeDashboard({
-        labels: { type: 'http', scope: 'proxy', env: 'dev', team: 'core' },
-      }),
-    );
+  it('should_map_dashboard_labels_to_key_value_strings', () => {
+    fixture.componentRef.setInput('dashboard', fakeDashboard({ labels: { env: 'dev', team: 'core' } }));
     fixture.detectChanges();
-    expect(await harness.getLabelCount()).toBe(3);
-    expect(await harness.getOverflowCounter()).toContain('+2');
+
+    const overflowLabels = fixture.debugElement.query(By.directive(OverflowLabelsComponent));
+    expect(overflowLabels.componentInstance.labels()).toEqual(['env:dev', 'team:core']);
   });
 
   it('should_render_widget_count', async () => {
@@ -75,15 +75,55 @@ describe('AnalyticsDashboardCardComponent', () => {
     expect(await harness.getLastModified()).toBeTruthy();
   });
 
-  it('should_not_render_labels_when_empty', async () => {
+  it('should_not_render_overflow_labels_when_empty', async () => {
     fixture.componentRef.setInput('dashboard', fakeDashboard({ labels: {} }));
     fixture.detectChanges();
-    expect(await harness.getLabelCount()).toBe(0);
+    expect(await harness.hasOverflowLabels()).toBe(false);
   });
 
   it('should_emit_card_select_on_click', async () => {
     const emitSpy = jest.spyOn(component.cardSelect, 'emit');
     await harness.click();
+    expect(emitSpy).toHaveBeenCalledWith('dashboard-1');
+  });
+
+  it('should_show_pin_button', async () => {
+    expect(await harness.getPinButton()).toBeTruthy();
+  });
+
+  it('should_emit_pin_toggle_on_pin_click', async () => {
+    const emitSpy = jest.spyOn(component.pinToggle, 'emit');
+    const pinButton = await harness.getPinButton();
+    await pinButton!.click();
+    expect(emitSpy).toHaveBeenCalledWith('dashboard-1');
+  });
+
+  it('should_not_emit_pin_toggle_when_not_pinned_and_cannot_pin', async () => {
+    fixture.componentRef.setInput('isPinned', false);
+    fixture.componentRef.setInput('canPin', false);
+    fixture.detectChanges();
+    const emitSpy = jest.spyOn(component.pinToggle, 'emit');
+    const pinButton = await harness.getPinButton();
+    await pinButton!.click();
+    expect(emitSpy).not.toHaveBeenCalled();
+  });
+
+  it('should_mark_pin_button_as_aria_disabled_when_cannot_pin', async () => {
+    fixture.componentRef.setInput('isPinned', false);
+    fixture.componentRef.setInput('canPin', false);
+    fixture.detectChanges();
+    const pinButton = await harness.getPinButton();
+    const host = await pinButton!.host();
+    expect(await host.getAttribute('aria-disabled')).toBe('true');
+  });
+
+  it('should_allow_unpin_even_when_cannot_pin_more', async () => {
+    fixture.componentRef.setInput('isPinned', true);
+    fixture.componentRef.setInput('canPin', false);
+    fixture.detectChanges();
+    const emitSpy = jest.spyOn(component.pinToggle, 'emit');
+    const pinButton = await harness.getPinButton();
+    await pinButton!.click();
     expect(emitSpy).toHaveBeenCalledWith('dashboard-1');
   });
 });

@@ -23,6 +23,24 @@
   </div>
 </div>
 
+@if (pinnedDashboards().length > 0) {
+  <div class="analytics-list__pinned">
+    <h2 class="next-gen-h5" i18n="@@analyticsPinnedTitle">Pinned</h2>
+    <app-cards-grid class="analytics-list__pinned-row" [cards]="pinnedDashboards()">
+      <ng-template #cardTemplate let-dashboard>
+        <app-analytics-dashboard-card
+          [dashboard]="dashboard"
+          [isPinned]="true"
+          [canPin]="true"
+          [showAccent]="true"
+          (cardSelect)="navigateToDashboard($event)"
+          (pinToggle)="togglePin($event)"
+        />
+      </ng-template>
+    </app-cards-grid>
+  </div>
+}
+
 <div class="analytics-list__content">
   @if (dashboardsResource.isLoading()) {
     <app-loader class="analytics-list__loader" />
@@ -37,7 +55,13 @@
       [showEmptyState]="dashboardPaginator().data.length === 0"
     >
       <ng-template #cardTemplate let-dashboard>
-        <app-analytics-dashboard-card [dashboard]="dashboard" (cardSelect)="navigateToDashboard($event)" />
+        <app-analytics-dashboard-card
+          [dashboard]="dashboard"
+          [isPinned]="pinnedIdsSet().has(dashboard.id)"
+          [canPin]="canPinMore()"
+          (cardSelect)="navigateToDashboard($event)"
+          (pinToggle)="togglePin($event)"
+        />
       </ng-template>
 
       <ng-container slot="empty-state">

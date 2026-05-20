@@ -38,4 +38,5 @@ import { Component, input } from '@angular/core';
 })
 export class BadgeComponent {
   readonly label = input.required<string>();
+  readonly truncate = input(false);
 }
