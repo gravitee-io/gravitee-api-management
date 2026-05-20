@@ -263,6 +263,46 @@ repositories:
 #            username: user
 #            password: secret
 
+# OTel traces repository — feeds the gamma APIM tracing resource. Disabled by default; set type to
+# "elasticsearch" to wire the ES-backed TracingRepository. Configuration is fully independent from
+# analytics (same per-scope pattern as ratelimit.redis / distributed-sync.redis). The ES cluster declared
+# here must be the one the OTel collector / Elastic Cloud OTLP endpoint writes traces to.
+#  otel-traces:
+#    type: elasticsearch # or "none" to disable
+#    elasticsearch:
+#      # Index/data-stream template — {orgId} / {envId} placeholders are substituted (lowercased) from the
+#      # caller's QueryContext at query time, matching the analytics IndexNameUtils.format convention.
+#      # Should match the data-stream name the OTel collector elasticsearch exporter (mapping.mode: otel)
+#      # writes to.
+#      index: traces-apim.otel-{orgId}
+#      endpoints:
+#        - http://${ds.elastic.host}:${ds.elastic.port}
+#      security:
+#        username: user
+#        password: secret
+#      ssl:
+#        keystore:
+#          type: jks # jks, pkcs12 or pem
+#          path: ${gravitee.home}/security/keystore.jks
+#          password: secret
+#          # PEM only:
+#          # certs: [/path/to/cert1.pem, /path/to/cert2.pem]
+#          # keys:  [/path/to/key1.pem,  /path/to/key2.pem]
+#      http:
+#        timeout: 10000 # in milliseconds
+#        proxy:
+#          type: HTTP #HTTP, SOCK4, SOCK5
+#          http:
+#            host: localhost
+#            port: 3128
+#            username: user
+#            password: secret
+#          https:
+#            host: localhost
+#            port: 3128
+#            username: user
+#            password: secret
+
 services:
   core:
     http:

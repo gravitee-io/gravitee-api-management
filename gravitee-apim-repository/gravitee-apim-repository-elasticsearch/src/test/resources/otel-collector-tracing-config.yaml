@@ -1,0 +1,38 @@
+# OTel Collector pipeline used by ElasticsearchTracingRepositoryIT: receives OTLP HTTP traces from the test
+# fixture seeder and writes them to Elasticsearch using OTel-native field names (mapping_mode: otel) so the
+# repository's snake_case parser sees the documents exactly as production does.
+#
+# traces_index is set to traces-apim.otel-test-org because the contract test's QueryContext resolves
+# tracing.elasticsearch.index ("traces-apim.otel-{orgId}") with orgId = Fixtures.ORG_ID = "test-org".
+
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+exporters:
+  elasticsearch:
+    endpoints: ["http://elasticsearch:9200"]
+    mapping:
+      mode: otel
+    traces_index: traces-apim.otel-test-org
+    # Tests need the exporter to flush each push from the OTel SDK immediately and surface errors instead of
+    # silently retrying — production deployments would want different defaults.
+    flush:
+      interval: 1s
+    retry:
+      enabled: false
+    sending_queue:
+      enabled: false
+    timeout: 30s
+processors:
+  batch:
+    timeout: 200ms
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [elasticsearch]

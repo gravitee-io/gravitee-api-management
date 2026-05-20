@@ -30,4 +30,9 @@ public class RestApiRepositoryScopeProviderTest {
     public void shouldReturnManagementAndAnalyticsScopes() {
         Assert.assertArrayEquals(new Scope[] { Scope.MANAGEMENT, Scope.ANALYTICS }, provider.getHandledScopes());
     }
+
+    @Test
+    public void shouldReturnOtelTracesAsOptionalScope() {
+        Assert.assertArrayEquals(new Scope[] { Scope.OTEL_TRACES }, provider.getOptionalHandledScopes());
+    }
 }

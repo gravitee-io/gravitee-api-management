@@ -9,3 +9,91 @@ To do so you can use the following commands:
 * ES 8.x: `mvn clean test -Delasticsearch.version=8.17.2` (Default)
 * OS 1.x: `mvn clean test -Dsearch.type=opensearch -Dopensearch.version=1.3.9`
 * OS 2.x: `mvn clean test -Dsearch.type=opensearch -Dopensearch.version=2`
+
+== Tracing repository (`Scope.OTEL_TRACES`)
+
+This plugin also implements the APIM `TracingRepository` SPI, querying OpenTelemetry traces written to Elasticsearch by an OpenTelemetry Collector configured with the `elasticsearch` exporter in `mapping.mode: otel`. Documents use the OTel-native snake_case field names (`trace_id`, `span_id`, `parent_span_id`, `@timestamp`, `duration`, `status.code`, `attributes.*`, `resource.attributes.*`, `events[]`).
+
+=== Configuration
+
+In `gravitee.yml`:
+
+[source,yaml]
+----
+otel-traces:
+  type: elasticsearch
+  elasticsearch:
+    # Spans data stream / index template. {orgId} and {envId} are substituted from the caller's QueryContext
+    # at query time, lowercased — same convention as IndexNameUtils.format on the analytics side. Use a single
+    # placeholder for an org-scoped index (recommended), or both for full isolation.
+    index: traces-apim.otel-{orgId}
+    endpoints:
+      - http://localhost:9200
+    # security:
+    #   username: elastic
+    #   password: changeme
+    # http:
+    #   timeout: 10000
+    # ssl, http.proxy, …: same shape as the analytics block; see RepositoryConfiguration for the full list.
+----
+
+The `otel-traces.elasticsearch.*` block is **independent** from `analytics.elasticsearch.*` — same per-scope pattern as the Redis plugin (`ratelimit.redis.*` vs `distributed-sync.redis.*`). No fallback: tracing can be enabled even when analytics targets a different repository (Mongo, JDBC, none), or vice-versa. If the same ES cluster backs both, the operator duplicates the endpoint/auth values in each block.
+
+NOTE: The OTel collector's `elasticsearch` exporter in `mapping.mode: otel` writes span events to a separate logs data stream (it forces `data_stream.type = logs` for events). This repository returns spans only — span events live behind the future `LogsRepository` SPI (see `OTEL_LOGS` scope), and the consumer use case is responsible for fetching and stitching them onto the matching spans.
+
+=== Org and env scoping
+
+The repository maps APIM's two-level identity (`QueryContext.orgId` / `QueryContext.envId`) onto two distinct mechanisms — same shape as the Tempo adapter so the model is consistent across backends:
+
+* **Org → index name** (hard partition): `orgId` is substituted into the `otel-traces.elasticsearch.index` template. Two orgs never share an index.
+* **Soft scopes (env, module, …) → resource-attribute filters** inside the org: the caller (e.g. the gamma APIM use case) declares these as an explicit `Map<String, String>` of resource-attribute filters and passes it via `TraceSearchCriteria.resourceAttributeFilters()` for `searchTraces`, or as the third argument of `getTrace(qc, traceId, filters)`. Each entry becomes a `term { resource.attributes.<key>: <value> }` filter in the ES query. The repository has no built-in knowledge of which keys belong here — anything the caller puts in the map is emitted as a resource filter. Producers must emit those keys as resource attributes on every span (typically via `services.opentelemetry.extraAttributes` in the gateway / management API config); without them the resource filter rejects every span.
+
+The mapping from APIM concepts (env id, module) to specific OTel attribute keys lives in the caller (`ApimTraceResourceFilters` in `gravitee-gamma-module-apim`), not in this adapter. Callers can also pass arbitrary span-attribute filters (e.g. `gravitee.api.id` for a per-API view) via `TraceSearchCriteria.attributeFilters` — those land on `attributes.<key>` rather than `resource.attributes.<key>`.
+
+=== Index templates, mappings & retention (ILM)
+
+This repository is **reader-only**. It does not author index templates, field mappings, or ILM policies — those live with the producer or the cluster operator:
+
+* **Mappings & index template**: applied by whoever writes the spans.
+  - *Self-managed OTel Collector*: the `elasticsearch` exporter (`mapping.mode: otel`) applies the template at startup — field mappings, `data_stream: {}` declaration, dynamic templates for `attributes.*`, etc. Configurable via the exporter's `mapping_settings_template` and related options.
+  - *Elastic Cloud managed OTLP endpoint* (`<deployment>.cloud.es.io/otlp/v1/traces`): Elastic handles template + mapping management server-side, no operator action needed.
+* **ILM policy (retention)**: bound to the data stream via `index.lifecycle.name` on the index template.
+  - *Self-managed OTel Collector*: no default policy. Operator pushes a policy via `_ilm/policy/...` and binds it on the template (`index.lifecycle.name: traces-apim-policy`).
+  - *Elastic Cloud managed OTLP*: ships with sensible defaults (`traces@lifecycle`, `logs@lifecycle`); customize via Kibana or the `_ilm/policy/...` API if the default retention doesn't fit.
+
+If queries return no data, check (in this order): (1) the data stream `traces-apim.otel-<orgId>` exists, (2) the OTel collector or OTLP endpoint is actively writing to it, (3) the template's mapping mode is `otel` (not `ecs`), (4) the ILM policy hasn't already deleted the documents you're looking for.
+
+=== OTel Collector configuration snippet
+
+A minimal OTel Collector pipeline that writes traces matching the default index template:
+
+[source,yaml]
+----
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+exporters:
+  elasticsearch:
+    endpoints: ["http://elasticsearch:9200"]
+    mapping:
+      mode: otel
+    # Per-tenant data stream. Replace `<orgId>` with the actual organization id, or use traces_dynamic_index +
+    # an attribute to derive it from each span.
+    traces_index: traces-apim.otel-<orgId>
+
+processors:
+  batch:
+    timeout: 1s
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [elasticsearch]
+----
