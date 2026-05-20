@@ -156,8 +156,7 @@ class ApiProductsResourceTest extends AbstractResourceTest {
                     any(),
                     eq(RolePermission.ENVIRONMENT_API_PRODUCT),
                     eq(ENV_ID),
-                    eq(RolePermissionAction.CREATE),
-                    eq(RolePermissionAction.UPDATE)
+                    eq(RolePermissionAction.READ)
                 )
             ).thenReturn(false);
             VerifyApiProduct verifyApiProduct = new VerifyApiProduct();
