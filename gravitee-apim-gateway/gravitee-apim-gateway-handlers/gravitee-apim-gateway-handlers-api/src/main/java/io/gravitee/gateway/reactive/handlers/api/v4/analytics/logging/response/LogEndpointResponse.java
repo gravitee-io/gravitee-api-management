@@ -17,6 +17,8 @@ package io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.response;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.reactive.api.ExecutionFailure;
+import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.HttpResponseInternal;
@@ -49,7 +51,9 @@ public class LogEndpointResponse extends LogResponse {
                 if (loggingContext.isBodyLoggable()) {
                     chunks = chunks
                         .doOnNext(chunk -> BufferUtils.appendBuffer(buffer, chunk, loggingContext.getMaxSizeLogMessage()))
-                        .doFinally(() -> this.setBody(buffer.toString()));
+                        .doFinally(() -> {
+                            if (buffer.length() > 0) this.setBody(buffer.toString());
+                        });
                 } else {
                     this.setBody("BODY NOT CAPTURED");
                 }
@@ -70,7 +74,17 @@ public class LogEndpointResponse extends LogResponse {
             this.setHeaders(response.headers());
             response.setHeaders(((LogHeadersCaptor) response.headers()).getDelegate());
         }
-        this.setStatus(response.status());
+        int status = response.status();
+        if (status != 0) {
+            final ExecutionFailure executionFailure = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE);
+            if (executionFailure != null) {
+                status = executionFailure.statusCode();
+                if (isLogPayload() && loggingContext.isBodyLoggable() && executionFailure.message() != null && this.getBody() == null) {
+                    this.setBody(executionFailure.message());
+                }
+            }
+        }
+        this.setStatus(status);
     }
 
     protected boolean isLogPayload() {

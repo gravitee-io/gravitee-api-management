@@ -15,12 +15,15 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4.processor.logging;
 
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.response.LogEntrypointResponse;
+import io.gravitee.reporter.api.common.Response;
 import io.gravitee.reporter.api.v4.log.Log;
 import io.reactivex.rxjava3.core.Completable;
 
@@ -53,6 +56,26 @@ public class LogResponseProcessor implements Processor {
             if (log != null && loggingContext.entrypointResponse()) {
                 LogEntrypointResponse entrypointResponse = (LogEntrypointResponse) log.getEntrypointResponse();
                 entrypointResponse.capture(ctx);
+            }
+
+            if (log != null && loggingContext.endpointResponse() && ApiType.MESSAGE == ApiType.fromLabel(ctx.metrics().getApiType())) {
+                final Response endpointResponse = log.getEndpointResponse();
+                if (endpointResponse != null && endpointResponse.getStatus() != 0) {
+                    final ExecutionFailure executionFailure = ctx.getInternalAttribute(
+                        InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE
+                    );
+                    if (executionFailure != null) {
+                        endpointResponse.setStatus(executionFailure.statusCode());
+                        if (
+                            loggingContext.endpointResponsePayload() &&
+                            loggingContext.isBodyLoggable() &&
+                            executionFailure.message() != null &&
+                            endpointResponse.getBody() == null
+                        ) {
+                            endpointResponse.setBody(executionFailure.message());
+                        }
+                    }
+                }
             }
         });
     }
