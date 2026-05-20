@@ -23,12 +23,14 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.request.LogEntrypointRequest;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.AbstractV4ProcessorTest;
 import io.gravitee.reporter.api.v4.log.Log;
+import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -91,6 +93,39 @@ class LogRequestProcessorTest extends AbstractV4ProcessorTest {
         obs.assertComplete();
 
         assertNotNull(log.getEntrypointRequest());
+    }
+
+    @Test
+    void should_capture_entrypoint_request_when_otelLogs_enabled_without_logging_configured() {
+        LoggingContext realLoggingContext = new LoggingContext(null); // no ES logging
+        realLoggingContext.setOtelLogsEnabled(true);
+        when(analyticsContext.getLoggingContext()).thenReturn(realLoggingContext);
+        when(mockRequest.chunks()).thenReturn(Flowable.empty());
+
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+        log.setEntrypointRequest(new LogEntrypointRequest(realLoggingContext, mockRequest));
+        when(mockMetrics.getLog()).thenReturn(log);
+
+        final TestObserver<Void> obs = cut.execute(ctx).test();
+        obs.assertComplete();
+
+        // entrypointRequest() returns true via otelLogsEnabled → LogRequestProcessor calls capture() on it
+        assertNotNull(log.getEntrypointRequest());
+    }
+
+    @Test
+    void should_not_capture_entrypoint_request_when_otelLogs_disabled_and_no_logging_configured() {
+        LoggingContext realLoggingContext = new LoggingContext(null); // no ES logging, otelLogs off
+        when(analyticsContext.getLoggingContext()).thenReturn(realLoggingContext);
+
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+        when(mockMetrics.getLog()).thenReturn(log);
+
+        final TestObserver<Void> obs = cut.execute(ctx).test();
+        obs.assertComplete();
+
+        // entrypointRequest() returns false → no entrypointRequest object set
+        assertNull(log.getEntrypointRequest());
     }
 
     @Test
