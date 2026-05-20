@@ -122,6 +122,21 @@ describe('GioTimeframeComponent', () => {
     expect(component.disabled).toBe(true);
   });
 
+  it('should be valid when from date is before to date', () => {
+    const fromDate = moment('2024-01-10');
+    const toDate = moment('2024-01-15');
+
+    component.form.patchValue({ from: fromDate, to: toDate });
+    expect(component.form.hasError('dateRange')).toBe(false);
+  });
+
+  it('should not be valid when dates are equal', () => {
+    const date = moment('2024-01-10');
+
+    component.form.patchValue({ from: date, to: date });
+    expect(component.form.hasError('dateRange')).toBe(true);
+  });
+
   it('should hide error and enable Apply when date range becomes valid', () => {
     // Arrange: provide timeFrames and valid custom period
     fixture.componentRef.setInput('timeFrames', [

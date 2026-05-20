@@ -52,7 +52,7 @@
       <mat-icon [owlDateTimeTrigger]="toDateTimePicker" matSuffix>edit_calendar</mat-icon>
       <owl-date-time #toDateTimePicker />
       @if (form.hasError('dateRange')) {
-        <mat-error>To date cannot be earlier than From date</mat-error>
+        <mat-error>To date cannot be earlier than or equal to From date</mat-error>
       }
     </mat-form-field>
 
