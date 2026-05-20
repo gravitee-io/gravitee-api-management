@@ -101,11 +101,11 @@ describe('TimeframeSelectorComponent', () => {
       expect(component.form.hasError('dateRange')).toBe(false);
     });
 
-    it('should be valid when dates are equal', () => {
+    it('should not be valid when dates are equal', () => {
       const date = moment('2024-01-10');
 
       component.form.patchValue({ from: date, to: date });
-      expect(component.form.hasError('dateRange')).toBe(false);
+      expect(component.form.hasError('dateRange')).toBe(true);
     });
   });
 
