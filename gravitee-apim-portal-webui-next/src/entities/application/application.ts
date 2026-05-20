@@ -115,6 +115,8 @@ export interface ApplicationsMetadataSubscriptions {
   [applicationId: string]: Subscription[];
 }
 
+export const APPLICATION_PRIMARY_OWNER_ROLE_NAME = 'PRIMARY_OWNER';
+
 export interface ApplicationRole {
   id?: string;
   name: string;
@@ -122,7 +124,9 @@ export interface ApplicationRole {
   system?: boolean;
 }
 
-export const APPLICATION_PRIMARY_OWNER_ROLE_NAME = 'PRIMARY_OWNER';
+export function isAssignableApplicationRole(role: ApplicationRole): role is ApplicationRole & { name: string } {
+  return !!role.name && !role.system && role.name !== APPLICATION_PRIMARY_OWNER_ROLE_NAME;
+}
 
 export interface ConfigurationApplicationRolesResponse {
   data?: ApplicationRole[];

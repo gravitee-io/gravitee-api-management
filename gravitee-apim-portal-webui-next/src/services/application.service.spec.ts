@@ -90,7 +90,6 @@ describe('ApplicationService', () => {
 
     const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/configuration/applications/roles`);
     expect(req.request.method).toEqual('GET');
-
     req.flush({ data: applicationRoles });
   });
 

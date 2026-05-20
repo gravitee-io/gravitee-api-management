@@ -32,6 +32,10 @@ import { UserApplicationPermissions } from '../../../../entities/permission/perm
 import { CurrentUserService } from '../../../../services/current-user.service';
 import { MembershipService } from '../../../../services/membership.service';
 import {
+  ApplicationMemberEditDialogComponent,
+  ApplicationMemberEditDialogData,
+} from '../application-member-edit-dialog/application-member-edit-dialog.component';
+import {
   ApplicationMembersAddDialogComponent,
   ApplicationMembersAddDialogData,
 } from '../application-members-add-dialog/application-members-add-dialog.component';
@@ -88,22 +92,34 @@ export class ApplicationTabMembersComponent {
 
   readonly canRead = computed(() => this.userApplicationPermissions().MEMBER?.includes('R') ?? false);
   readonly canCreate = computed(() => this.userApplicationPermissions().MEMBER?.includes('C') ?? false);
+  readonly canUpdate = computed(() => this.userApplicationPermissions().MEMBER?.includes('U') ?? false);
   readonly canDelete = computed(() => this.userApplicationPermissions().MEMBER?.includes('D') ?? false);
 
-  readonly actions = computed<TableAction<MemberTableRow>[]>(() =>
-    this.canDelete()
-      ? [
-          {
-            id: 'delete',
-            icon: 'delete_outline',
-            ariaLabel: $localize`:@@deleteMemberAriaLabel:Delete member`,
-            color: 'warn',
-            isVisible: (row: MemberTableRow) => !row.isPrimaryOwner,
-            isDisabled: (row: MemberTableRow) => row.isCurrentUser,
-          },
-        ]
-      : [],
-  );
+  readonly actions = computed<TableAction<MemberTableRow>[]>(() => {
+    const actions: TableAction<MemberTableRow>[] = [];
+
+    if (this.canUpdate()) {
+      actions.push({
+        id: 'edit',
+        icon: 'edit',
+        ariaLabel: $localize`:@@editMemberRoleAriaLabel:Edit member role`,
+        isVisible: (row: MemberTableRow) => !row.isPrimaryOwner,
+      });
+    }
+
+    if (this.canDelete()) {
+      actions.push({
+        id: 'delete',
+        icon: 'delete_outline',
+        ariaLabel: $localize`:@@deleteMemberAriaLabel:Delete member`,
+        color: 'warn',
+        isVisible: (row: MemberTableRow) => !row.isPrimaryOwner,
+        isDisabled: (row: MemberTableRow) => row.isCurrentUser,
+      });
+    }
+
+    return actions;
+  });
 
   protected readonly membersResource = rxResource<MembersResponse | undefined, MembersRequestParams | null>({
     params: () =>
@@ -150,7 +166,9 @@ export class ApplicationTabMembersComponent {
   }
 
   onActionClick({ actionId, row }: { actionId: string; row: MemberTableRow }): void {
-    if (actionId === 'delete') {
+    if (actionId === 'edit') {
+      this.openEditMemberDialog(row);
+    } else if (actionId === 'delete') {
       this.openDeleteConfirmation(row);
     }
   }
@@ -165,6 +183,26 @@ export class ApplicationTabMembersComponent {
       .afterClosed()
       .pipe(
         filter((membersAdded): membersAdded is true => membersAdded === true),
+        tap(() => this.membersResource.reload()),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  private openEditMemberDialog(member: MemberTableRow): void {
+    this.error.set(null);
+    this.matDialog
+      .open<ApplicationMemberEditDialogComponent, ApplicationMemberEditDialogData, boolean>(ApplicationMemberEditDialogComponent, {
+        data: {
+          applicationId: this.applicationId(),
+          memberId: member.id,
+          memberDisplayName: member.user.displayName,
+          currentRole: member.role,
+        },
+      })
+      .afterClosed()
+      .pipe(
+        filter((memberUpdated): memberUpdated is true => memberUpdated === true),
         tap(() => this.membersResource.reload()),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -200,7 +238,7 @@ export class ApplicationTabMembersComponent {
       user?.display_name ??
       (user?.first_name || user?.last_name ? `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() : (user?.id ?? ''));
     return {
-      id: member.id ?? '',
+      id: member.id ?? user?.id ?? '',
       user: {
         displayName,
         email: user?.email,
