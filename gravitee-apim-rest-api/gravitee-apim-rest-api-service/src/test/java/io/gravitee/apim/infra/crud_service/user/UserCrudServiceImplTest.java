@@ -19,9 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.core.user.model.EncodedPassword;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.User;
@@ -209,6 +211,213 @@ public class UserCrudServiceImplTest {
 
             // Then
             assertThat(throwable).isInstanceOf(TechnicalManagementException.class).hasMessageContaining("technical exception");
+        }
+    }
+
+    @Nested
+    class Create {
+
+        @Test
+        void should_create_user_and_return_adapted_entity() throws TechnicalException {
+            // Given
+            var userToCreate = BaseUserEntity.builder()
+                .id("user-id")
+                .organizationId("organization-id")
+                .source("gravitee")
+                .sourceId("jane@example.com")
+                .email("jane@example.com")
+                .firstname("Jane")
+                .lastname("Doe")
+                .build();
+            when(userRepository.create(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            // When
+            var result = service.create(userToCreate);
+
+            // Then
+            assertThat(result.getId()).isEqualTo("user-id");
+            assertThat(result.getEmail()).isEqualTo("jane@example.com");
+        }
+
+        @Test
+        void should_pass_all_fields_to_repository() throws TechnicalException {
+            // Given
+            var created = Date.from(Instant.parse("2024-01-01T00:00:00Z"));
+            var userToCreate = BaseUserEntity.builder()
+                .id("user-id")
+                .organizationId("org-id")
+                .source("gravitee")
+                .sourceId("jane@example.com")
+                .email("jane@example.com")
+                .firstname("Jane")
+                .lastname("Doe")
+                .createdAt(created)
+                .build();
+            when(userRepository.create(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            service.create(userToCreate);
+
+            var captor = org.mockito.ArgumentCaptor.forClass(User.class);
+            verify(userRepository).create(captor.capture());
+            var sent = captor.getValue();
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(sent.getId()).isEqualTo("user-id");
+                soft.assertThat(sent.getOrganizationId()).isEqualTo("org-id");
+                soft.assertThat(sent.getSource()).isEqualTo("gravitee");
+                soft.assertThat(sent.getSourceId()).isEqualTo("jane@example.com");
+                soft.assertThat(sent.getEmail()).isEqualTo("jane@example.com");
+                soft.assertThat(sent.getFirstname()).isEqualTo("Jane");
+                soft.assertThat(sent.getLastname()).isEqualTo("Doe");
+                soft.assertThat(sent.getCreatedAt()).isEqualTo(created);
+                soft.assertThat(sent.getPassword()).isNull();
+            });
+        }
+
+        @Test
+        void should_throw_when_repository_fails() throws TechnicalException {
+            // Given
+            when(userRepository.create(any(User.class))).thenThrow(new TechnicalException("error"));
+
+            // When
+            var throwable = catchThrowable(() -> service.create(BaseUserEntity.builder().id("user-id").build()));
+
+            // Then
+            assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
+        }
+    }
+
+    @Nested
+    class Update {
+
+        @Test
+        void should_update_user_and_return_adapted_entity() throws TechnicalException {
+            // Given
+            var userToUpdate = BaseUserEntity.builder()
+                .id("user-id")
+                .organizationId("org-id")
+                .email("updated@example.com")
+                .updatedAt(Date.from(Instant.parse("2024-06-01T00:00:00Z")))
+                .build();
+            when(userRepository.update(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            // When
+            var result = service.update(userToUpdate);
+
+            // Then
+            assertThat(result.getId()).isEqualTo("user-id");
+            assertThat(result.getEmail()).isEqualTo("updated@example.com");
+        }
+
+        @Test
+        void should_not_write_password_field() throws TechnicalException {
+            // Given
+            when(userRepository.update(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            service.update(BaseUserEntity.builder().id("user-id").build());
+
+            var captor = org.mockito.ArgumentCaptor.forClass(User.class);
+            verify(userRepository).update(captor.capture());
+            assertThat(captor.getValue().getPassword()).isNull();
+        }
+
+        @Test
+        void should_throw_when_repository_fails() throws TechnicalException {
+            // Given
+            when(userRepository.update(any(User.class))).thenThrow(new TechnicalException("error"));
+
+            // When
+            var throwable = catchThrowable(() -> service.update(BaseUserEntity.builder().id("user-id").build()));
+
+            // Then
+            assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
+        }
+    }
+
+    @Nested
+    class UpdateAndSetPassword {
+
+        @Test
+        void should_write_encoded_password_to_repository() throws TechnicalException {
+            // Given
+            var user = BaseUserEntity.builder().id("user-id").email("jane@example.com").build();
+            var encodedPassword = new EncodedPassword("$2a$hashed");
+            when(userRepository.update(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            service.updateAndSetPassword(user, encodedPassword);
+
+            var captor = org.mockito.ArgumentCaptor.forClass(User.class);
+            verify(userRepository).update(captor.capture());
+            assertThat(captor.getValue().getPassword()).isEqualTo("$2a$hashed");
+        }
+
+        @Test
+        void should_return_updated_entity() throws TechnicalException {
+            // Given
+            var user = BaseUserEntity.builder().id("user-id").email("jane@example.com").build();
+            when(userRepository.update(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            var result = service.updateAndSetPassword(user, new EncodedPassword("$2a$hashed"));
+
+            assertThat(result.getId()).isEqualTo("user-id");
+            assertThat(result.getEmail()).isEqualTo("jane@example.com");
+        }
+
+        @Test
+        void should_throw_when_repository_fails() throws TechnicalException {
+            // Given
+            when(userRepository.update(any(User.class))).thenThrow(new TechnicalException("error"));
+
+            var throwable = catchThrowable(() ->
+                service.updateAndSetPassword(BaseUserEntity.builder().id("user-id").build(), new EncodedPassword("$2a$hashed"))
+            );
+
+            assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
+        }
+    }
+
+    @Nested
+    class IsPasswordSet {
+
+        @Test
+        void should_return_true_when_password_is_not_blank() throws TechnicalException {
+            // Given
+            when(userRepository.findById("user-id")).thenReturn(Optional.of(User.builder().id("user-id").password("$2a$hashed").build()));
+
+            assertThat(service.isPasswordSet("user-id")).isTrue();
+        }
+
+        @Test
+        void should_return_false_when_password_is_blank() throws TechnicalException {
+            // Given
+            when(userRepository.findById("user-id")).thenReturn(Optional.of(User.builder().id("user-id").password("").build()));
+
+            assertThat(service.isPasswordSet("user-id")).isFalse();
+        }
+
+        @Test
+        void should_return_false_when_password_is_null() throws TechnicalException {
+            // Given
+            when(userRepository.findById("user-id")).thenReturn(Optional.of(User.builder().id("user-id").build()));
+
+            assertThat(service.isPasswordSet("user-id")).isFalse();
+        }
+
+        @Test
+        void should_return_false_when_user_not_found() throws TechnicalException {
+            // Given
+            when(userRepository.findById("user-id")).thenReturn(Optional.empty());
+
+            assertThat(service.isPasswordSet("user-id")).isFalse();
+        }
+
+        @Test
+        void should_throw_when_repository_fails() throws TechnicalException {
+            // Given
+            when(userRepository.findById("user-id")).thenThrow(new TechnicalException("error"));
+
+            var throwable = catchThrowable(() -> service.isPasswordSet("user-id"));
+
+            assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
         }
     }
 
