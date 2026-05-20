@@ -30,6 +30,7 @@ import { ApiProduct } from '../../../../entities/management-api-v2/api-product';
 export class ApiProductDangerZoneComponent {
   apiProduct = input.required<ApiProduct>();
   isReadOnly = input<boolean>(false);
+  canDelete = input<boolean>(false);
 
   removeApisClick = output<void>();
   deleteApiProductClick = output<void>();

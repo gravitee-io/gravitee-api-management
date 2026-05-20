@@ -79,6 +79,7 @@ export class ApiProductConfigurationComponent {
   private readonly matDialog = inject(MatDialog);
 
   protected readonly isReadOnly = !this.permissionService.hasAnyMatching(['api_product-definition-u']);
+  protected readonly canDeleteApiProduct = this.permissionService.hasAnyMatching(['api_product-definition-d']);
 
   readonly nameMaxLength = 512;
   readonly versionMaxLength = 64;
