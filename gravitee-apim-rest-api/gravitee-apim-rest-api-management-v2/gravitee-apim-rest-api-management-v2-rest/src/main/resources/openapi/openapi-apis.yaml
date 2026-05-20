@@ -2870,10 +2870,10 @@ components:
                           additionalProperties: true
                       groups:
                           type: array
-                          description: API's groups. Used to add team in your API.
+                          description: List of group IDs associated with this API. Used to manage team access.
                           example:
-                              - MY_GROUP1
-                              - MY_GROUP2
+                              - 6c530064-0b2c-4004-9300-640b2ce0047b
+                              - 12559b64-0b2c-4004-9300-640b2ce0047b
                           items:
                               type: string
                       state:
@@ -3247,10 +3247,10 @@ components:
                     $ref: "#/components/schemas/DefinitionVersion"
                 groups:
                     type: array
-                    description: API's groups. Used to add team in your API.
+                    description: List of group IDs associated with this API. Used to manage team access.
                     example:
-                        - MY_GROUP1
-                        - MY_GROUP2
+                        - 6c530064-0b2c-4004-9300-640b2ce0047b
+                        - 12559b64-0b2c-4004-9300-640b2ce0047b
                     items:
                         type: string
             required: [name, apiVersion, definitionVersion]
@@ -3447,10 +3447,10 @@ components:
                     $ref: "#/components/schemas/DefinitionVersion"
                 groups:
                     type: array
-                    description: API's groups. Used to add team in your API.
+                    description: List of group IDs associated with this API. Used to manage team access.
                     example:
-                        - MY_GROUP1
-                        - MY_GROUP2
+                        - 6c530064-0b2c-4004-9300-640b2ce0047b
+                        - 12559b64-0b2c-4004-9300-640b2ce0047b
                     items:
                         type: string
                 tags:
