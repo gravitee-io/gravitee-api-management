@@ -232,7 +232,16 @@
                   <th mat-header-cell *matHeaderCellDef id="api-product-name">Name</th>
                   <td mat-cell *matCellDef="let membershipApiProduct">
                     @if (membershipApiProduct.environmentId && membershipApiProduct.id) {
-                      <a [routerLink]="['/', membershipApiProduct.environmentId, 'api-products', membershipApiProduct.id]">
+                      <a
+                        [routerLink]="[
+                          '/',
+                          membershipApiProduct.environmentId,
+                          'api-products',
+                          membershipApiProduct.id,
+                          'configuration',
+                          'general',
+                        ]"
+                      >
                         {{ membershipApiProduct.name }}
                       </a>
                     } @else {
