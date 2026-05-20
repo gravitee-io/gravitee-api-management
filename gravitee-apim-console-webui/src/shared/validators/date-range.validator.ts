@@ -22,9 +22,9 @@
 import { AbstractControl, FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { Moment } from 'moment';
 
-// Internal helper: returns { dateRange: true } if from > to, otherwise null.
+// Internal helper: returns { dateRange: true } if from >= to, otherwise null.
 function validateMomentDateRange(from: Moment | null, to: Moment | null): ValidationErrors | null {
-  if (from && to && from.isAfter(to)) {
+  if (from && to && from.isSameOrAfter(to)) {
     return { dateRange: true };
   }
   return null;
