@@ -42,4 +42,8 @@ export class MembershipService {
   addApplicationMember(applicationId: string, memberInput: MemberInput): Observable<Member> {
     return this.http.post<Member>(`${this.configService.baseURL}/applications/${applicationId}/members`, memberInput);
   }
+
+  updateApplicationMember(applicationId: string, memberId: string, memberInput: MemberInput): Observable<Member> {
+    return this.http.put<Member>(`${this.configService.baseURL}/applications/${applicationId}/members/${memberId}`, memberInput);
+  }
 }

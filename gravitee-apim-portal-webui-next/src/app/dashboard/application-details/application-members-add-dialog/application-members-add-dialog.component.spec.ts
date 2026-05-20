@@ -37,6 +37,7 @@ const MOCK_DATE = new Date(1466424490000);
 const APPLICATION_ROLES: ApplicationRole[] = [
   { id: APPLICATION_PRIMARY_OWNER_ROLE_NAME, name: APPLICATION_PRIMARY_OWNER_ROLE_NAME, default: false, system: true },
   { id: 'SYSTEM_AUDITOR', name: 'SYSTEM_AUDITOR', default: false, system: true },
+  { id: 'EMPTY', name: '', default: false, system: false },
   { id: 'OWNER', name: 'OWNER', default: false, system: false },
   { id: 'USER', name: 'USER', default: true, system: false },
 ];
@@ -121,7 +122,7 @@ describe('ApplicationMembersAddDialogComponent', () => {
     expect(await harness.getRoleValueText()).toBe('USER');
   });
 
-  it('should not offer system application roles', async () => {
+  it('should offer only assignable application roles', async () => {
     await init({
       applicationId: APPLICATION_ID,
     });

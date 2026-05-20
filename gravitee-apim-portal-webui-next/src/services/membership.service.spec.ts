@@ -104,4 +104,20 @@ describe('MembershipService', () => {
     expect(req.request.body).toEqual({ user: 'user-1', role: 'USER' });
     req.flush(member);
   });
+
+  it('should update an application member role', done => {
+    const memberId = 'member-1';
+    const member: Member = { id: memberId, role: 'OWNER' };
+
+    service.updateApplicationMember(applicationId, memberId, { role: 'OWNER' }).subscribe(res => {
+      expect(res).toEqual(member);
+      done();
+    });
+
+    const req = httpTestingController.expectOne(
+      r => r.url === `${TESTING_BASE_URL}/applications/${applicationId}/members/${memberId}` && r.method === 'PUT',
+    );
+    expect(req.request.body).toEqual({ role: 'OWNER' });
+    req.flush(member);
+  });
 });

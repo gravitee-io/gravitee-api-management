@@ -36,10 +36,12 @@ import { ApplicationService } from '../../../../services/application.service';
 import { ConfigService } from '../../../../services/config.service';
 import { CurrentUserService } from '../../../../services/current-user.service';
 import { TESTING_BASE_URL } from '../../../../testing/app-testing.module';
+import { ApplicationMemberEditDialogHarness } from '../application-member-edit-dialog/application-member-edit-dialog.component.harness';
 
 const CURRENT_USER_ID = 'current-user-id';
 const APPLICATION_ROLES: ApplicationRole[] = [
   { id: APPLICATION_PRIMARY_OWNER_ROLE_NAME, name: APPLICATION_PRIMARY_OWNER_ROLE_NAME, default: false, system: true },
+  { id: 'OWNER', name: 'OWNER', default: false, system: false },
   { id: 'USER', name: 'USER', default: true, system: false },
 ];
 
@@ -57,9 +59,9 @@ describe('ApplicationTabMembersComponent', () => {
         provideHttpClientTesting(),
         provideNoopAnimations(),
         provideRouter([]),
+        { provide: ApplicationService, useValue: { getApplicationRoles: () => of(APPLICATION_ROLES) } },
         { provide: ConfigService, useValue: { baseURL: TESTING_BASE_URL } },
         { provide: CurrentUserService, useValue: { user: () => ({ id: CURRENT_USER_ID }) } },
-        { provide: ApplicationService, useValue: { getApplicationRoles: () => of(APPLICATION_ROLES) } },
       ],
     })
       .overrideProvider(InteractivityChecker, { useValue: { isFocusable: () => true, isTabbable: () => true } })
@@ -86,6 +88,18 @@ describe('ApplicationTabMembersComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     return getHarness();
+  }
+
+  async function openEditDialog(member = fakeMember()): Promise<ApplicationMemberEditDialogHarness> {
+    const membersHarness = await flush(fakeMembersResponse([member]));
+    const table = await membersHarness.getPaginatedTable();
+    const editButton = await table!.getActionButton('edit');
+    expect(editButton).not.toBeNull();
+    await editButton!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    return rootLoader.getHarness(ApplicationMemberEditDialogHarness);
   }
 
   it('should display members table', async () => {
@@ -330,6 +344,74 @@ describe('ApplicationTabMembersComponent', () => {
     });
   });
 
+  describe('edit role action', () => {
+    beforeEach(() => {
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'U'] }));
+    });
+
+    it('should show edit button when user has MEMBER[U] permission', async () => {
+      const harness = await flush(fakeMembersResponse([fakeMember()]));
+      const table = await harness.getPaginatedTable();
+      const editButton = await table!.getActionButton('edit');
+      expect(editButton).not.toBeNull();
+    });
+
+    it('should not show edit button when user lacks MEMBER[U] permission', async () => {
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R'] }));
+      const harness = await flush(fakeMembersResponse([fakeMember()]));
+      const table = await harness.getPaginatedTable();
+      const editButton = await table!.getActionButton('edit');
+      expect(editButton).toBeNull();
+    });
+
+    it('should hide edit button for primary owner', async () => {
+      const harness = await flush(fakeMembersResponse([fakeMember({ role: APPLICATION_PRIMARY_OWNER_ROLE_NAME })]));
+      const table = await harness.getPaginatedTable();
+      const editButton = await table!.getActionButton('edit');
+      expect(editButton).toBeNull();
+    });
+
+    it('should open edit member dialog with current role preselected', async () => {
+      const dialog = await openEditDialog(fakeMember({ role: 'USER' }));
+
+      expect(await dialog.getRoleValueText()).toBe('USER');
+    });
+
+    it('should update member role and reload members table on success', async () => {
+      const member = fakeMember({ id: undefined, role: 'USER', user: { id: 'user-1', display_name: 'Alice Smith', _links: {} } });
+      const dialog = await openEditDialog(member);
+
+      await dialog.selectRole('OWNER');
+      await dialog.clickSave();
+      fixture.detectChanges();
+
+      const updateRequest = httpTestingController.expectOne(
+        request =>
+          request.url === `${TESTING_BASE_URL}/applications/${applicationId}/members/${member.user!.id}` && request.method === 'PUT',
+      );
+      expect(updateRequest.request.body).toEqual({ role: 'OWNER' });
+      updateRequest.flush({ ...member, role: 'OWNER' });
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      httpTestingController
+        .expectOne(request => request.url.includes('members/_search'))
+        .flush(fakeMembersResponse([{ ...member, role: 'OWNER' }]));
+      await fixture.whenStable();
+    });
+
+    it('should not update member role when edit dialog is cancelled', async () => {
+      const dialog = await openEditDialog(fakeMember({ role: 'USER' }));
+
+      await dialog.selectRole('OWNER');
+      await dialog.clickCancel();
+      fixture.detectChanges();
+
+      httpTestingController.expectNone(request => request.method === 'PUT');
+      httpTestingController.expectNone(request => request.url.includes('members/_search'));
+    });
+  });
+
   describe('delete action', () => {
     beforeEach(() => {
       fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'D'] }));
@@ -374,7 +456,7 @@ describe('ApplicationTabMembersComponent', () => {
     });
 
     it('should send DELETE request and reload list on confirm', async () => {
-      const member = fakeMember({ id: 'member-1' });
+      const member = fakeMember({ id: undefined, user: { id: 'user-1', display_name: 'Alice Smith', _links: {} } });
       const harness = await flush(fakeMembersResponse([member]));
       const table = await harness.getPaginatedTable();
       await table!.getActionButton('delete').then(btn => btn!.click());
@@ -385,7 +467,7 @@ describe('ApplicationTabMembersComponent', () => {
       fixture.detectChanges();
 
       httpTestingController
-        .expectOne(r => r.url === `${TESTING_BASE_URL}/applications/${applicationId}/members/${member.id}` && r.method === 'DELETE')
+        .expectOne(r => r.url === `${TESTING_BASE_URL}/applications/${applicationId}/members/${member.user!.id}` && r.method === 'DELETE')
         .flush(null, { status: 204, statusText: 'No Content' });
       fixture.detectChanges();
 

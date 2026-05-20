@@ -29,7 +29,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { catchError, debounceTime, from, map, mergeMap, Observable, of, startWith, toArray } from 'rxjs';
 
 import { UserCellComponent, UserCellVM } from '../../../../components/user-cell/user-cell.component';
-import { APPLICATION_PRIMARY_OWNER_ROLE_NAME, ApplicationRole } from '../../../../entities/application/application';
+import { isAssignableApplicationRole } from '../../../../entities/application/application';
 import { User, UsersResponse } from '../../../../entities/user/user';
 import { ApplicationService } from '../../../../services/application.service';
 import { MembershipService } from '../../../../services/membership.service';
@@ -123,7 +123,7 @@ export class ApplicationMembersAddDialogComponent {
       params.length > 0 ? this.usersService.searchUsersForApplicationMembership(this.data.applicationId, params) : of(undefined),
   });
 
-  readonly assignableRoles = computed(() => (this.rolesResource.value() ?? []).filter(role => this.isAssignableRole(role)));
+  readonly assignableRoles = computed(() => (this.rolesResource.value() ?? []).filter(isAssignableApplicationRole));
 
   private readonly defaultRoleSelectionEffect = effect(() => {
     if (this.hasInitializedDefaultRole || this.roleControl.value) {
@@ -285,11 +285,6 @@ export class ApplicationMembersAddDialogComponent {
   private clearUserSearchControl(): void {
     queueMicrotask(() => this.userControl.setValue(''));
   }
-
-  private isAssignableRole(role: ApplicationRole): role is ApplicationRole & { name: string } {
-    return !!role.name && !role.system && role.name !== APPLICATION_PRIMARY_OWNER_ROLE_NAME;
-  }
-
   private toSelectedUser(user: User, id: string): SelectedUser {
     const vm = this.toUserCell(user);
     return {
