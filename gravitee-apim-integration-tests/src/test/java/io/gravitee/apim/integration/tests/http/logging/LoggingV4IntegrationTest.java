@@ -36,6 +36,7 @@ import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.analytics.logging.LoggingContent;
 import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
 import io.gravitee.definition.model.v4.analytics.logging.LoggingPhase;
+import io.gravitee.definition.model.v4.analytics.logging.OtelLogs;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
@@ -549,6 +550,58 @@ class LoggingV4IntegrationTest {
                 });
 
             wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint")));
+        }
+    }
+
+    @Nested
+    @GatewayTest
+    @DeployApi({ "/apis/v4/http/api.json" })
+    class OtelLogsEnabled extends AbstractLoggingV4IntegrationTest {
+
+        @Override
+        public void configureApi(ReactableApi<?> api, Class<?> definitionClass) {
+            // OTel logs only — no ES logging configured.
+            // Validates: isLoggingEnabled() includes otelLogs, so LoggingContext IS initialized
+            // and entrypointRequestPayload() is widened → request body captured → Log reported.
+            var otelLogs = new OtelLogs();
+            otelLogs.setEnabled(true);
+
+            var analytics = new Analytics();
+            analytics.setEnabled(true);
+            analytics.setOtelLogs(otelLogs);
+
+            if (api.getDefinition() instanceof Api apiDefinition) {
+                apiDefinition.setAnalytics(analytics);
+            }
+        }
+
+        @Test
+        void should_report_log_when_otel_logs_enabled_without_analytics_logging(HttpClient httpClient, VertxTestContext context)
+            throws Exception {
+            wiremock.stubFor(get("/endpoint").willReturn(ok("response body")));
+
+            subject
+                .doOnNext(log -> {
+                    // Log was reported — proves isLoggingEnabled() picks up otelLogs
+                    assertThat(log).isNotNull();
+                    // entrypointRequest populated — proves entrypointRequestPayload() widened for otelLogs
+                    assertThat(log.getEntrypointRequest()).isNotNull();
+                    assertThat(log.getEntrypointRequest().getUri()).isEqualTo("/test");
+                })
+                .doOnNext(m -> context.completeNow())
+                .doOnError(context::failNow)
+                .subscribe();
+
+            httpClient
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(request -> request.rxSend())
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete();
         }
     }
 

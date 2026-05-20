@@ -230,7 +230,7 @@ class LogEntrypointRequestTest {
         final var logRequest = new LogEntrypointRequest(loggingContext, request);
         logRequest.capture(ctx);
 
-        assertNull(logRequest.getTraceId());
-        assertNull(logRequest.getSpanId());
+        assertThat(logRequest.getTraceId()).isNull();
+        assertThat(logRequest.getSpanId()).isNull();
     }
 }

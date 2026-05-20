@@ -21,10 +21,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
+import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.request.LogEntrypointRequest;
@@ -96,11 +98,15 @@ class LogRequestProcessorTest extends AbstractV4ProcessorTest {
     }
 
     @Test
-    void should_capture_entrypoint_request_when_otelLogs_enabled_without_logging_configured() {
+    void shouldCaptureEntrypointRequestWhenOtelLogsEnabledWithoutLoggingConfigured() {
         LoggingContext realLoggingContext = new LoggingContext(null); // no ES logging
         realLoggingContext.setOtelLogsEnabled(true);
         when(analyticsContext.getLoggingContext()).thenReturn(realLoggingContext);
         when(mockRequest.chunks()).thenReturn(Flowable.empty());
+
+        Tracer mockTracer = mock(Tracer.class);
+        when(mockTracer.traceId()).thenReturn("test-trace-id");
+        ctx.tracer(mockTracer);
 
         Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
         log.setEntrypointRequest(new LogEntrypointRequest(realLoggingContext, mockRequest));
@@ -109,12 +115,12 @@ class LogRequestProcessorTest extends AbstractV4ProcessorTest {
         final TestObserver<Void> obs = cut.execute(ctx).test();
         obs.assertComplete();
 
-        // entrypointRequest() returns true via otelLogsEnabled → LogRequestProcessor calls capture() on it
-        assertNotNull(log.getEntrypointRequest());
+        // capture() sets traceId when otelLogsEnabled → proves the capture path was exercised
+        assertThat(log.getEntrypointRequest().getTraceId()).isEqualTo("test-trace-id");
     }
 
     @Test
-    void should_not_capture_entrypoint_request_when_otelLogs_disabled_and_no_logging_configured() {
+    void shouldNotCaptureEntrypointRequestWhenOtelLogsDisabledAndNoLoggingConfigured() {
         LoggingContext realLoggingContext = new LoggingContext(null); // no ES logging, otelLogs off
         when(analyticsContext.getLoggingContext()).thenReturn(realLoggingContext);
 
