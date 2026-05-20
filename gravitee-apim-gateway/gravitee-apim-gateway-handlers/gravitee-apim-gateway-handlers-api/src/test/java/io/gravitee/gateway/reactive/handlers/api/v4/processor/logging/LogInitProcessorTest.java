@@ -177,6 +177,45 @@ class LogInitProcessorTest extends AbstractV4ProcessorTest {
     }
 
     @Test
+    void shouldCreateLogWhenOtelLogsEnabledWithoutEsLogging() {
+        // isLoggingEnabled() returns true because otelLogs is set — LogInitProcessor creates the Log
+        when(analyticsContext.isLoggingEnabled()).thenReturn(true);
+        when(loggingContext.getCondition()).thenReturn("");
+        // otelLogs widens direction methods → all 4 objects are initialised
+        when(loggingContext.entrypointRequest()).thenReturn(true);
+        when(loggingContext.entrypointResponse()).thenReturn(true);
+        when(loggingContext.endpointRequest()).thenReturn(true);
+        when(loggingContext.endpointResponse()).thenReturn(true);
+        when(mockRequest.timestamp()).thenReturn(System.currentTimeMillis());
+        when(mockRequest.id()).thenReturn(REQUEST_ID);
+
+        final TestObserver<Void> obs = cut.execute(ctx).test();
+        obs.assertComplete();
+
+        ArgumentCaptor<Log> logCaptor = ArgumentCaptor.forClass(Log.class);
+        verify(mockMetrics).setLog(logCaptor.capture());
+
+        final Log log = logCaptor.getValue();
+        assertNotNull(log);
+        assertNotNull(log.getEntrypointRequest());
+        assertNotNull(log.getEntrypointResponse());
+        assertNotNull(log.getEndpointRequest());
+        assertNotNull(log.getEndpointResponse());
+    }
+
+    @Test
+    void shouldNotCreateLogWhenOtelLogsDisabledAndNoEsLogging() {
+        // isLoggingEnabled() returns false — no ES logging and otelLogs off
+        when(analyticsContext.isLoggingEnabled()).thenReturn(false);
+
+        final TestObserver<Void> obs = cut.execute(ctx).test();
+        obs.assertComplete();
+
+        verifyNoInteractions(mockMetrics);
+        verifyNoInteractions(mockRequest);
+    }
+
+    @Test
     void shouldReturnId() {
         assertEquals(ID, cut.getId());
     }

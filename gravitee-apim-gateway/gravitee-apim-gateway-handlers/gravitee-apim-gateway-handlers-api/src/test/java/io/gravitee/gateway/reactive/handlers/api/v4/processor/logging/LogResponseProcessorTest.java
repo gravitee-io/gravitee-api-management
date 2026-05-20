@@ -94,6 +94,38 @@ class LogResponseProcessorTest extends AbstractV4ProcessorTest {
     }
 
     @Test
+    void should_capture_entrypoint_response_when_otelLogs_enabled_without_logging_configured() {
+        LoggingContext realLoggingContext = new LoggingContext(null); // no ES logging
+        realLoggingContext.setOtelLogsEnabled(true);
+        when(analyticsContext.getLoggingContext()).thenReturn(realLoggingContext);
+
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+        log.setEntrypointResponse(new LogEntrypointResponse(realLoggingContext, mockResponse));
+        when(mockMetrics.getLog()).thenReturn(log);
+
+        final TestObserver<Void> obs = cut.execute(ctx).test();
+        obs.assertComplete();
+
+        // entrypointResponse() returns true via otelLogsEnabled → LogResponseProcessor calls capture() on it
+        assertNotNull(log.getEntrypointResponse());
+    }
+
+    @Test
+    void should_not_capture_entrypoint_response_when_otelLogs_disabled_and_no_logging_configured() {
+        LoggingContext realLoggingContext = new LoggingContext(null); // no ES logging, otelLogs off
+        when(analyticsContext.getLoggingContext()).thenReturn(realLoggingContext);
+
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+        when(mockMetrics.getLog()).thenReturn(log);
+
+        final TestObserver<Void> obs = cut.execute(ctx).test();
+        obs.assertComplete();
+
+        // entrypointResponse() returns false → no entrypointResponse object set
+        assertNull(log.getEntrypointResponse());
+    }
+
+    @Test
     void shouldReturnId() {
         assertEquals(ID, cut.getId());
     }
