@@ -78,17 +78,25 @@ public class ApiPortalSearchQueryServiceImpl implements ApiPortalSearchQueryServ
         List<String> intersected = luceneIds.stream().filter(allowedApiIds::contains).toList();
 
         int total = intersected.size();
-        int pageSize = pageable.map(Pageable::getPageSize).orElse(10);
 
-        if (total == 0 || pageSize <= 0) {
-            return new Page<>(List.of(), pageNumber, 0, total);
+        if (total == 0) {
+            return new Page<>(List.of(), pageNumber, 0, 0);
         }
 
-        int start = (pageNumber - 1) * pageSize;
-        if (start >= total) {
-            return new Page<>(List.of(), pageNumber, 0, total);
+        final List<String> pageSubset;
+        if (pageable.isEmpty()) {
+            pageSubset = intersected;
+        } else {
+            int pageSize = Math.min(pageable.get().getPageSize(), 100);
+            if (pageSize <= 0) {
+                return new Page<>(List.of(), pageNumber, 0, total);
+            }
+            int start = (pageNumber - 1) * pageSize;
+            if (start >= total) {
+                return new Page<>(List.of(), pageNumber, 0, total);
+            }
+            pageSubset = intersected.subList(start, Math.min(start + pageSize, total));
         }
-        List<String> pageSubset = intersected.subList(start, Math.min(start + pageSize, total));
 
         // Fetch by IDs then reorder to preserve Lucene relevance order
         Map<String, Api> apiById = apiQueryService
