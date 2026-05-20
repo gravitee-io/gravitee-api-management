@@ -27,6 +27,8 @@ import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -72,6 +74,17 @@ public class PlanCrudServiceImpl implements PlanCrudService {
             return planRepository.findByIdIn(planIds).stream().map(PlanAdapter.INSTANCE::fromRepository).toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(String.format("An error occurred while trying to find all plan by ids %s", planIds), e);
+        }
+    }
+
+    @Override
+    public Set<Plan> findByCrossIds(Collection<String> crossIds) {
+        log.debug("Find all plans by crossIds : {}", crossIds);
+
+        try {
+            return planRepository.findByCrossIds(crossIds).stream().map(PlanAdapter.INSTANCE::fromRepository).collect(Collectors.toSet());
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(String.format("An error occurred while trying to find plans by crossIds %s", crossIds), e);
         }
     }
 
