@@ -17,6 +17,8 @@ package io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.response;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
+import io.gravitee.gateway.reactive.api.ExecutionFailure;
+import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.HttpResponseInternal;
 import io.gravitee.gateway.reactive.core.v4.analytics.BufferUtils;
@@ -42,7 +44,9 @@ public class LogEntrypointResponse extends LogResponse {
                     response
                         .chunks()
                         .doOnNext(chunk -> BufferUtils.appendBuffer(buffer, chunk, loggingContext.getMaxSizeLogMessage()))
-                        .doOnComplete(() -> this.setBody(buffer.toString()))
+                        .doOnComplete(() -> {
+                            if (buffer.length() > 0) this.setBody(buffer.toString());
+                        })
                 );
             } else {
                 this.setBody("BODY NOT CAPTURED");
@@ -53,7 +57,17 @@ public class LogEntrypointResponse extends LogResponse {
             this.setHeaders(response.headers());
         }
 
-        this.setStatus(response.status());
+        final ExecutionFailure executionFailure = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE);
+        this.setStatus(executionFailure != null ? executionFailure.statusCode() : response.status());
+        if (
+            isLogPayload() &&
+            loggingContext.isBodyLoggable() &&
+            executionFailure != null &&
+            executionFailure.message() != null &&
+            this.getBody() == null
+        ) {
+            this.setBody(executionFailure.message());
+        }
     }
 
     protected boolean isLogPayload() {
