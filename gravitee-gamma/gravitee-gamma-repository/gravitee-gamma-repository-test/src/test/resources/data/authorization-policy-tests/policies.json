@@ -1,0 +1,24 @@
+[
+    {
+        "id": "policy-1",
+        "name": "Admin policy",
+        "kind": "GLOBAL",
+        "entityId": "user-alice",
+        "policyText": "allow",
+        "status": "DEPLOYED",
+        "environmentId": "DEFAULT",
+        "createdAt": "2026-01-01T10:00:00Z",
+        "updatedAt": "2026-01-01T10:00:00Z"
+    },
+    {
+        "id": "policy-2",
+        "name": "Read policy",
+        "kind": "RESOURCE",
+        "entityId": "doc-readme",
+        "policyText": "allow read",
+        "status": "DRAFT",
+        "environmentId": "DEFAULT",
+        "createdAt": "2026-01-01T10:00:00Z",
+        "updatedAt": "2026-01-01T10:00:00Z"
+    }
+]

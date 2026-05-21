@@ -490,6 +490,34 @@ jobs:
           root: .
           paths:
             - gravitee-apim-repository/gravitee-apim-repository-coverage/target/site/jacoco-aggregate/
+  job-test-gamma-repository:
+    machine:
+      image: ubuntu-2204:current
+      docker_layer_caching: false
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-gamma-repository
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: Run gamma repository tests
+          command: mvn --fail-fast -s .gravitee.settings.xml verify --no-transfer-progress -Dgamma-repository-modules -Dskip.ui.build=true -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C
+      - run:
+          name: Save test results
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-test-gamma-repository
+      - store_test_results:
+          path: ~/test-results
   job-nx-format-check:
     docker:
       - image: cimg/node:22.12.0
@@ -922,6 +950,12 @@ workflows:
             - Test repository
           working_directory: gravitee-apim-repository
           cache_type: backend
+      - job-test-gamma-repository:
+          name: Test gamma repository
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build backend
       - job-nx-format-check:
           name: Check prettier formatting for nx projects
           context:
@@ -1018,6 +1052,7 @@ workflows:
             - Test plugins
             - Test reporters
             - Test repository
+            - Test gamma repository
             - Check prettier formatting for nx projects
             - Lint & test APIM Libs
             - Lint & test APIM Console

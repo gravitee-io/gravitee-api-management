@@ -47,6 +47,7 @@ import {
   TestPluginJob,
   TestReporterJob,
   TestRepositoryJob,
+  TestGammaRepositoryJob,
   TestRestApiJob,
   TriggerSaasDockerImagesJob,
   ValidateJob,
@@ -312,6 +313,20 @@ export class PullRequestsWorkflow {
           }),
         );
         requires.push('Test repository');
+      }
+
+      if (!filterJobs || shouldTestGammaRepository(environment.changedFiles)) {
+        const testGammaRepositoryJob = TestGammaRepositoryJob.create(dynamicConfig, environment);
+        dynamicConfig.addJob(testGammaRepositoryJob);
+
+        jobs.push(
+          new workflow.WorkflowJob(testGammaRepositoryJob, {
+            name: 'Test gamma repository',
+            context: config.jobContext,
+            requires: ['Build backend'],
+          }),
+        );
+        requires.push('Test gamma repository');
       }
     }
 
@@ -700,12 +715,28 @@ export class PullRequestsWorkflow {
       new workflow.WorkflowJob(publishOnArtifactoryJob, {
         name: 'Publish on artifactory',
         context: config.jobContext,
-        requires: ['Test definition', 'Test gateway', 'Test plugins', 'Test reporters', 'Test repository', 'Test rest-api'],
+        requires: [
+          'Test definition',
+          'Test gateway',
+          'Test plugins',
+          'Test reporters',
+          'Test repository',
+          'Test gamma repository',
+          'Test rest-api',
+        ],
       }),
       new workflow.WorkflowJob(publishOnNexusJob, {
         name: 'Publish on nexus',
         context: config.jobContext,
-        requires: ['Test definition', 'Test gateway', 'Test plugins', 'Test reporters', 'Test repository', 'Test rest-api'],
+        requires: [
+          'Test definition',
+          'Test gateway',
+          'Test plugins',
+          'Test reporters',
+          'Test repository',
+          'Test gamma repository',
+          'Test rest-api',
+        ],
       }),
       new workflow.WorkflowJob(deployOnAzureJob, {
         name: 'Deploy on Azure cluster',
@@ -716,6 +747,7 @@ export class PullRequestsWorkflow {
           'Test plugins',
           'Test reporters',
           'Test repository',
+          'Test gamma repository',
           'Test rest-api',
           'Build APIM Management API docker image',
           'Build APIM Gateway docker image',
@@ -856,6 +888,14 @@ function shouldTestReporter(changedFiles: string[]): boolean {
 
 function shouldTestRepository(changedFiles: string[]): boolean {
   const mavenProjectsIdentifiers = ['gravitee-apim-definition', 'gravitee-apim-repository'];
+  return (
+    shouldTestAllBackend(changedFiles) ||
+    changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
+  );
+}
+
+function shouldTestGammaRepository(changedFiles: string[]): boolean {
+  const mavenProjectsIdentifiers = ['gravitee-gamma/gravitee-gamma-repository'];
   return (
     shouldTestAllBackend(changedFiles) ||
     changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
