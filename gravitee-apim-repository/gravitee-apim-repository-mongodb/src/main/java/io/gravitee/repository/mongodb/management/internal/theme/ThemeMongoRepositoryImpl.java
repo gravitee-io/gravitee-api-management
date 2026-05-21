@@ -21,6 +21,7 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.*;
 import io.gravitee.repository.mongodb.management.internal.model.ThemeMongo;
+import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -37,11 +38,14 @@ public class ThemeMongoRepositoryImpl implements ThemeMongoRepositoryCustom {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    @Autowired
+    private MongoQueries mongoQueries;
+
     @Override
     public Page<ThemeMongo> search(ThemeCriteria criteria, Pageable pageable) {
         var query = buildQuery(criteria, pageable);
 
-        long total = mongoTemplate.count(query, ThemeMongo.class);
+        long total = mongoQueries.countOrTimeout(mongoTemplate, query, ThemeMongo.class);
 
         List<ThemeMongo> apis = mongoTemplate.find(query, ThemeMongo.class);
 

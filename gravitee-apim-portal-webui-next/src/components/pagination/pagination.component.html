@@ -27,7 +27,7 @@
     <span i18n="@@paginationPrevious">Previous</span>
   </button>
 
-  @if (pagination().hasPreviousPage) {
+  @if (pagination().hasPreviousPage && pagination().isTotalKnown) {
     <button mat-button (click)="goToPage(1)" [attr.aria-label]="'Go to page 1'">1</button>
 
     @if (pagination().currentPage > 3) {
@@ -54,7 +54,7 @@
 
   <button mat-stroked-button aria-label="Current page of results" aria-current="page">{{ pagination().currentPage }}</button>
 
-  @if (pagination().hasNextPage) {
+  @if (pagination().hasNextPage && pagination().isTotalKnown) {
     @if (pagination().currentPage + 1 < pagination().totalPages) {
       <button mat-button (click)="goToNextPage()" [attr.aria-label]="'Go to page ' + (pagination().currentPage + 1)">
         {{ pagination().currentPage + 1 }}

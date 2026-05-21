@@ -26,6 +26,7 @@ import io.gravitee.repository.management.api.search.PromotionCriteria;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.PromotionMongo;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
+import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.PageRequest;
@@ -43,9 +44,11 @@ import org.springframework.util.StringUtils;
 public class PromotionMongoRepositoryImpl implements PromotionMongoRepositoryCustom {
 
     private final MongoTemplate mongoTemplate;
+    private final MongoQueries mongoQueries;
 
-    public PromotionMongoRepositoryImpl(MongoTemplate mongoTemplate) {
+    public PromotionMongoRepositoryImpl(MongoTemplate mongoTemplate, MongoQueries mongoQueries) {
         this.mongoTemplate = mongoTemplate;
+        this.mongoQueries = mongoQueries;
     }
 
     @Override
@@ -81,7 +84,7 @@ public class PromotionMongoRepositoryImpl implements PromotionMongoRepositoryCus
         }
 
         // Keep the count before adding pagination param to ensure the result is correct
-        long total = mongoTemplate.count(query, PromotionMongo.class);
+        long total = mongoQueries.countOrTimeout(mongoTemplate, query, PromotionMongo.class);
 
         if (pageable != null) {
             query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));

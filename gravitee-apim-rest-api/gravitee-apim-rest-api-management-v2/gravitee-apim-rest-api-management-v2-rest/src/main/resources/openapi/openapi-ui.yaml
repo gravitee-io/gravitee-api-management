@@ -542,7 +542,7 @@ components:
                 totalCount:
                     type: integer
                     format: int64
-                    description: The total number of items.
+                    description: The total number of items, or `-1` if the count could not be computed within the configured timeout.
 
         PortalComponentDefinition:
             type: object

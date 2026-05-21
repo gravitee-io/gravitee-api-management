@@ -77,3 +77,9 @@ $typography: map.get(gio.$mat-theme, typography);
     }
   }
 }
+
+
+:host(.gio-unknown-length) ::ng-deep .mat-mdc-paginator-navigation-last {
+  opacity: 0.38;
+  pointer-events: none;
+}

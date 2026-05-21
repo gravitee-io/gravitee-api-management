@@ -1118,7 +1118,8 @@
   },
   "search": {
     "results": {
-      "label": "{count, plural, =0{Aucun résultat} one{{count} résultat} other{{count} résultats}}"
+      "label": "{count, plural, =0{Aucun résultat} one{{count} résultat} other{{count} résultats}}",
+      "many": "De nombreux résultats"
     }
   },
   "site": {

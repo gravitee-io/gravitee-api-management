@@ -28,6 +28,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.search.*;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
+import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.bson.Document;
@@ -48,6 +49,9 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    @Autowired
+    private MongoQueries mongoQueries;
+
     @Override
     public Page<ApiMongo> search(ApiCriteria criteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter) {
         final Query query = buildQuery(apiFieldFilter, criteria == null ? emptyList() : List.of(criteria));
@@ -60,7 +64,7 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
             sort = Sort.by(sortOrder, FieldUtils.toCamelCase(sortable.field()));
         }
 
-        long total = mongoTemplate.count(query, ApiMongo.class);
+        long total = mongoQueries.countOrTimeout(mongoTemplate, query, ApiMongo.class);
 
         if (pageable != null) {
             query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sort));
@@ -89,7 +93,7 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
         }
 
         // Get total count before adding pagination to the query
-        long total = mongoTemplate.count(query, ApiMongo.class);
+        long total = mongoQueries.countOrTimeout(mongoTemplate, query, ApiMongo.class);
 
         // set pageable
         query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sort));

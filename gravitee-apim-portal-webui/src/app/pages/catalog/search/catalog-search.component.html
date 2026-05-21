@@ -35,7 +35,11 @@
 
             <gv-pagination [data]="paginationData" has-select widget medium="true"></gv-pagination>
           </form>
-          <div class="catalog-search__info" [innerHTML]="'search.results.label' | translate: { count: totalElements }"></div>
+          @if (totalElements < 0) {
+            <div class="catalog-search__info" [innerHTML]="'search.results.many' | translate"></div>
+          } @else {
+            <div class="catalog-search__info" [innerHTML]="'search.results.label' | translate: { count: totalElements }"></div>
+          }
         </div>
 
         <div *ngIf="apiResults" class="catalog-search__list">

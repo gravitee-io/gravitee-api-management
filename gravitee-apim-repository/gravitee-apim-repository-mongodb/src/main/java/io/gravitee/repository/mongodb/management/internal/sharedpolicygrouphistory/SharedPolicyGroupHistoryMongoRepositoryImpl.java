@@ -20,6 +20,7 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.SharedPolicyGroupHistoryCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.SharedPolicyGroupHistoryMongo;
+import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -36,6 +37,9 @@ public class SharedPolicyGroupHistoryMongoRepositoryImpl implements SharedPolicy
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Autowired
+    private MongoQueries mongoQueries;
 
     @Override
     public Page<SharedPolicyGroupHistoryMongo> search(SharedPolicyGroupHistoryCriteria criteria, PageRequest pageRequest) {
@@ -54,7 +58,7 @@ public class SharedPolicyGroupHistoryMongoRepositoryImpl implements SharedPolicy
             query.addCriteria(where("lifecycleState").is(criteria.getLifecycleState().name()));
         }
 
-        final long total = mongoTemplate.count(query, SharedPolicyGroupHistoryMongo.class);
+        final long total = mongoQueries.countOrTimeout(mongoTemplate, query, SharedPolicyGroupHistoryMongo.class);
         if (total == 0) {
             return new Page<>(List.of(), pageRequest.getPageNumber(), pageRequest.getPageSize(), 0);
         }

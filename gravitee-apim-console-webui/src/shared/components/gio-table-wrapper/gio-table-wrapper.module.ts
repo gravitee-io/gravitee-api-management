@@ -21,6 +21,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { GioTableWrapperComponent } from './gio-table-wrapper.component';
@@ -34,6 +35,7 @@ import { GioTableWrapperComponent } from './gio-table-wrapper.component';
     MatInputModule,
     MatIconModule,
     MatSortModule,
+    MatTooltipModule,
     GioIconsModule,
   ],
   declarations: [GioTableWrapperComponent],

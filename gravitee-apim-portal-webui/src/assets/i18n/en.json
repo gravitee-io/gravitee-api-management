@@ -1126,7 +1126,8 @@
   },
   "search": {
     "results": {
-      "label": "{count, plural, =0{No result} one{{count} result} other{{count} results}}"
+      "label": "{count, plural, =0{No result} one{{count} result} other{{count} results}}",
+      "many": "Many results"
     }
   },
   "site": {

@@ -19,6 +19,7 @@ import {
   Component,
   ContentChild,
   EventEmitter,
+  HostBinding,
   Input,
   OnChanges,
   Output,
@@ -74,9 +75,20 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
   @Input()
   searchLabel = 'Search';
 
-  /** The current total number of items being paged (only for display) */
+  /** The current total number of items being paged (only for display). `-1` means unknown (count timed out). */
   @Input()
   length = 0;
+
+  /** Coerces unknown-count (-1) to a large sentinel so MatPaginator's range label reads "Many results". */
+  get effectiveLength(): number {
+    return this.length < 0 ? Number.MAX_SAFE_INTEGER : this.length;
+  }
+
+  @HostBinding('class.gio-unknown-length')
+  get isUnknownLength(): boolean {
+    return this.length < 0;
+  }
+
 
   /** Disable search input */
   @Input()
@@ -109,6 +121,7 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
   private readonly unsubscribe$ = new Subject<boolean>();
 
   constructor(private readonly changeDetectorRef: ChangeDetectorRef) {}
+
 
   ngOnChanges(changes: SimpleChanges): void {
     // Update values on changes
