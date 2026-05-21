@@ -43,6 +43,10 @@ describe('applicationDetailNavigation permissions', () => {
         expect(getApplicationDetailTabPermissions('general')).toEqual(['application-definition-r']);
     });
 
+    it('maps subscriptions tab to application-subscription-r', () => {
+        expect(getApplicationDetailTabPermissions('subscriptions')).toEqual(['application-subscription-r']);
+    });
+
     it('filters nav groups by permission', () => {
         const filtered = filterApplicationDetailNavGroups(APPLICATION_NAV_GROUPS, hasDefinitionRead);
         expect(filtered.map(g => g.label)).toEqual(['General']);

@@ -24,13 +24,20 @@ import { applicationDetailTabElement } from '../config/applicationDetailPages';
 import { NAV_GROUPS } from '../config/navigation';
 import { PLATFORM_ROUTE_CONFIG } from '../config/routes';
 import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../features/applications/components/detail';
+import { ApplicationDetailSubscriptionPage } from '../pages/ApplicationDetailSubscriptionPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
+import { retryTransientRequest } from '../shared/api/queryRetry';
 import { ConsoleSettingsProvider } from '../shared/console-settings';
 import { useEnvironmentPermissions } from '../shared/hooks/useEnvironmentPermissions';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: { retry: retryTransientRequest },
+        mutations: { retry: retryTransientRequest },
+    },
+});
 
 const APPLICATION_DETAIL_TABS = flattenApplicationDetailNavItems(APPLICATION_NAV_GROUPS);
 
@@ -77,6 +84,7 @@ export function AppRoutes() {
                                 {APPLICATION_DETAIL_TABS.map(tab => (
                                     <Route key={tab.path} path={tab.path} element={applicationDetailTabElement(tab.path, tab.label)} />
                                 ))}
+                                <Route path="subscriptions/:subscriptionId" element={<ApplicationDetailSubscriptionPage />} />
                                 <Route path="*" element={<ApplicationDetailIndexRedirect />} />
                             </Route>
                         </Route>

@@ -17,10 +17,12 @@ import type { ComponentType } from 'react';
 
 import { ApplicationDetailPlaceholderPage } from '../features/applications/components/detail';
 import { ApplicationDetailGeneralPage } from '../pages/ApplicationDetailGeneralPage';
+import { ApplicationDetailSubscriptionsPage } from '../pages/ApplicationDetailSubscriptionsPage';
 
 /** Tab paths with a dedicated page implementation (keys drive routing and landing redirect). */
 export const APPLICATION_DETAIL_PAGES = {
     general: ApplicationDetailGeneralPage,
+    subscriptions: ApplicationDetailSubscriptionsPage,
 } as const satisfies Record<string, ComponentType>;
 
 export type ApplicationDetailImplementedPath = keyof typeof APPLICATION_DETAIL_PAGES;
