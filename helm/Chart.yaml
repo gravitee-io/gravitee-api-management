@@ -51,3 +51,5 @@ annotations:
           url: https://gravitee.atlassian.net/browse/APIM-13749
         - name: Github PR
           url: https://github.com/gravitee-io/gravitee-api-management/pull/16606
+    - kind: added
+      description: "Expose `api.services.audit.cleanup.batchSize` to tune the audit retention cleaner page size"
