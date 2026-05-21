@@ -35,6 +35,7 @@ export default class ApplicationComponent {
   readonly userApplicationPermissions = input.required<UserApplicationPermissions>();
 
   readonly canViewMembersTab = computed(() => this.userApplicationPermissions().MEMBER?.includes('R') ?? false);
+  readonly canViewInvitationsTab = computed(() => this.userApplicationPermissions().MEMBER?.includes('R') ?? false);
 
   constructor() {
     effect(() => {

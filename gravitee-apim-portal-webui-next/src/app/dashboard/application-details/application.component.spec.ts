@@ -66,15 +66,32 @@ describe('ApplicationComponent', () => {
     expect(await loader.getHarnessOrNull(TestIdHarness.for('application-members-tab'))).not.toBeNull();
   });
 
+  it('should render Invitations tab when user has MEMBER read permission', async () => {
+    fixture.detectChanges();
+    expect(await loader.getHarnessOrNull(TestIdHarness.for('application-invitations-tab'))).not.toBeNull();
+  });
+
   it('should not render Members tab when user lacks MEMBER read permission', async () => {
     fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: [] }));
     fixture.detectChanges();
     expect(await loader.getHarnessOrNull(TestIdHarness.for('application-members-tab'))).toBeNull();
   });
 
+  it('should not render Invitations tab when user lacks MEMBER read permission', async () => {
+    fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: [] }));
+    fixture.detectChanges();
+    expect(await loader.getHarnessOrNull(TestIdHarness.for('application-invitations-tab'))).toBeNull();
+  });
+
   it('should not render Members tab when MEMBER has no R flag', async () => {
     fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['U'] }));
     fixture.detectChanges();
     expect(await loader.getHarnessOrNull(TestIdHarness.for('application-members-tab'))).toBeNull();
+  });
+
+  it('should not render Invitations tab when MEMBER has no R flag', async () => {
+    fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['U'] }));
+    fixture.detectChanges();
+    expect(await loader.getHarnessOrNull(TestIdHarness.for('application-invitations-tab'))).toBeNull();
   });
 });

@@ -37,6 +37,17 @@
           ><span class="next-gen-small-bold" i18n="@@appMembers">Members</span></a
         >
       }
+      @if (canViewInvitationsTab()) {
+        <a
+          mat-tab-link
+          [routerLink]="['.', 'invitations']"
+          routerLinkActive
+          #invitationsActive="routerLinkActive"
+          [active]="invitationsActive.isActive"
+          data-testid="application-invitations-tab"
+          ><span class="next-gen-small-bold" i18n="@@appInvitations">Invitations</span></a
+        >
+      }
       <a mat-tab-link [routerLink]="['.', 'logs']" routerLinkActive #logsActive="routerLinkActive" [active]="logsActive.isActive"
         ><span class="next-gen-small-bold" i18n="@@appAnalyticsAndLogs">Logs</span></a
       >
