@@ -44,6 +44,7 @@ import {
 import { Role } from '../../../../entities/role/role';
 import { GioRoleService } from '../../../../shared/components/gio-role/gio-role.service';
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { mapApiGroupsToGroupData } from '../group-data.utils';
 
 class MemberDataSource {
   id: string;
@@ -134,11 +135,7 @@ export class ApiGeneralMembersComponent implements OnInit {
           this.roles = roles ?? [];
           this.defaultRole = roles.find((role) => role.default);
           this.roleNames = roles.map((r) => r.name) ?? [];
-          this.groupData = api.groups?.map((id) => ({
-            id,
-            name: groups.data.find((g) => g.id === id)?.name,
-            isVisible: true,
-          }));
+          this.groupData = mapApiGroupsToGroupData(api.groups, groups.data);
           this.initDataSource();
           this.initForm(api);
           if (members?.pagination?.totalCount) {

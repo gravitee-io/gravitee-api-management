@@ -39,6 +39,7 @@ import { Hooks } from '../../../entities/notification/hooks';
 import { GroupV2Service } from '../../../services-ngx/group-v2.service';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { GroupData } from '../user-group-access/members/api-general-members.component';
+import { mapApiGroupsToGroupData } from '../user-group-access/group-data.utils';
 import { CurrentUserService } from '../../../services-ngx/current-user.service';
 
 @Component({
@@ -107,11 +108,7 @@ export class ApiNotificationComponent implements OnInit, OnDestroy {
       .subscribe(([notifiers, notifications, api, groups, primaryOwner, currentUser]) => {
         this.notifiers = notifiers;
         this.notifications$.next(notifications);
-        this.groupData = api.groups?.map((id) => ({
-          id,
-          name: groups.data.find((g) => g.id === id)?.name,
-          isVisible: true,
-        }));
+        this.groupData = mapApiGroupsToGroupData(api.groups, groups.data);
         this.apiPrimaryOwner = primaryOwner.id;
         this.isApiPrimaryOwner = primaryOwner.id === currentUser.id;
       });
