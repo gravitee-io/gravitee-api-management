@@ -19,9 +19,14 @@ import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
+import io.gravitee.gateway.services.sync.process.repository.service.AuthzRegistry;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEnginePort;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityIdExtractor;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
+import java.util.Set;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -36,45 +41,139 @@ public class ApiDeployer implements Deployer<ApiReactorDeployable> {
     private final ApiManager apiManager;
     private final PlanService planService;
     private final DistributedSyncService distributedSyncService;
+    private final AuthzRegistry authzRegistry;
+    private final AuthzEntityIdExtractor authzEntityIdExtractor;
+    private final AuthzEnginePort authzEnginePort;
 
     @Override
     public Completable deploy(final ApiReactorDeployable deployable) {
-        return Completable.fromRunnable(() -> {
-            ReactableApi<?> reactableApi = deployable.reactableApi();
-            try {
-                apiManager.register(reactableApi);
-                log.debug("Api [{}] deployed ", deployable.apiId());
-            } catch (Exception e) {
-                throw new SyncException(
-                    String.format("An error occurred when trying to deploy api %s [%s].", reactableApi.getName(), reactableApi.getId()),
-                    e
-                );
-            }
-        });
-    }
-
-    @Override
-    public Completable doAfterDeployment(final ApiReactorDeployable deployable) {
-        return Completable.fromRunnable(() -> planService.register(deployable)).andThen(
-            distributedSyncService.distributeIfNeeded(deployable)
+        Set<AuthzEntityIdExtractor.EntityFragment> fragments = extractFragmentsSafely(deployable.reactableApi());
+        return stageAuthzResourcesOnDeploy(deployable, fragments).andThen(
+            Completable.fromRunnable(() -> {
+                ReactableApi<?> reactableApi = deployable.reactableApi();
+                try {
+                    apiManager.register(reactableApi);
+                    log.debug("Api [{}] deployed ", deployable.apiId());
+                } catch (Exception e) {
+                    throw new SyncException(
+                        String.format("An error occurred when trying to deploy api %s [%s].", reactableApi.getName(), reactableApi.getId()),
+                        e
+                    );
+                }
+            })
         );
     }
 
     @Override
+    public Completable doAfterDeployment(final ApiReactorDeployable deployable) {
+        Set<String> entityIds = extractIdsSafely(deployable.reactableApi());
+        return Completable.fromRunnable(() -> {
+            planService.register(deployable);
+            authzRegistry.registerForApi(deployable.apiId(), entityIds);
+        }).andThen(distributedSyncService.distributeIfNeeded(deployable));
+    }
+
+    @Override
     public Completable undeploy(final ApiReactorDeployable deployable) {
+        Set<String> entityIds = authzRegistry.entitiesForApi(deployable.apiId());
         return Completable.fromRunnable(() -> {
             try {
+                authzRegistry.unregisterApi(deployable.apiId());
                 planService.unregister(deployable);
                 apiManager.unregister(deployable.apiId());
                 log.debug("Api [{}] undeployed ", deployable.apiId());
             } catch (Exception e) {
                 throw new SyncException(String.format("An error occurred when trying to undeploy api [%s].", deployable.apiId()), e);
             }
-        });
+        }).andThen(stageAuthzResourcesOnUndeploy(deployable, entityIds));
     }
 
     @Override
     public Completable doAfterUndeployment(final ApiReactorDeployable deployable) {
         return distributedSyncService.distributeIfNeeded(deployable);
+    }
+
+    private Set<String> extractIdsSafely(final ReactableApi<?> reactableApi) {
+        if (reactableApi == null) {
+            return Set.of();
+        }
+        try {
+            return authzEntityIdExtractor.extract(reactableApi);
+        } catch (RuntimeException e) {
+            log.warn("Authz entityId extraction threw for API [{}] — proceeding with empty set", reactableApi.getId(), e);
+            return Set.of();
+        }
+    }
+
+    private Set<AuthzEntityIdExtractor.EntityFragment> extractFragmentsSafely(final ReactableApi<?> reactableApi) {
+        if (reactableApi == null) {
+            return Set.of();
+        }
+        try {
+            return authzEntityIdExtractor.extractWithAttributes(reactableApi);
+        } catch (RuntimeException e) {
+            log.warn("Authz entityId extraction threw for API [{}] — proceeding with empty set", reactableApi.getId(), e);
+            return Set.of();
+        }
+    }
+
+    private Completable stageAuthzResourcesOnDeploy(
+        final ApiReactorDeployable deployable,
+        final Set<AuthzEntityIdExtractor.EntityFragment> fragments
+    ) {
+        return Completable.defer(() -> {
+            if (fragments.isEmpty()) {
+                return Completable.complete();
+            }
+            return Flowable.fromIterable(fragments)
+                .concatMapCompletable(fragment ->
+                    authzEnginePort
+                        .addOrUpdateEntity(
+                            AuthzEntityIdExtractor.toResourceEngineUid(fragment.uid()),
+                            fragment.attributes(),
+                            fragment.parents()
+                        )
+                        .onErrorComplete(t -> {
+                            log.warn("Authz engine addOrUpdateEntity failed for [{}] on API [{}]", fragment.uid(), deployable.apiId(), t);
+                            return true;
+                        })
+                )
+                .andThen(Completable.defer(authzEnginePort::commit))
+                .onErrorComplete(t -> {
+                    log.warn(
+                        "Authz engine commit failed for API [{}]; entities will be retried on the next API redeploy " +
+                            "(events path filters auto-derived ids)",
+                        deployable.apiId(),
+                        t
+                    );
+                    return true;
+                });
+        });
+    }
+
+    private Completable stageAuthzResourcesOnUndeploy(final ApiReactorDeployable deployable, final Set<String> entityIds) {
+        return Completable.defer(() -> {
+            if (entityIds.isEmpty()) {
+                return Completable.complete();
+            }
+            return Flowable.fromIterable(entityIds)
+                .concatMapCompletable(entityId ->
+                    authzEnginePort
+                        .removeEntity(AuthzEntityIdExtractor.toResourceEngineUid(entityId))
+                        .onErrorComplete(t -> {
+                            log.warn("Authz engine removeEntity failed for [{}] on API [{}]", entityId, deployable.apiId(), t);
+                            return true;
+                        })
+                )
+                .andThen(Completable.defer(authzEnginePort::commit))
+                .onErrorComplete(t -> {
+                    log.warn(
+                        "Authz engine commit failed for undeploy of API [{}]; orphan entities will linger until next gateway restart",
+                        deployable.apiId(),
+                        t
+                    );
+                    return true;
+                });
+        });
     }
 }

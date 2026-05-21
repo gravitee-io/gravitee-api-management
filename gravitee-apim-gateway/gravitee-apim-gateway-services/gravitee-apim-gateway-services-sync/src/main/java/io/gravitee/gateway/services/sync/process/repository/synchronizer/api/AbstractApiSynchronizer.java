@@ -47,6 +47,7 @@ public abstract class AbstractApiSynchronizer {
     protected final PlanAppender planAppender;
     protected final SubscriptionAppender subscriptionAppender;
     protected final ApiKeyAppender apiKeyAppender;
+    protected final AuthzAppender authzAppender;
     protected final DeployerFactory deployerFactory;
     protected final ThreadPoolExecutor syncFetcherExecutor;
     protected final ThreadPoolExecutor syncDeployerExecutor;
@@ -118,6 +119,7 @@ public abstract class AbstractApiSynchronizer {
                         .map(deployables -> planAppender.appends(deployables, environments))
                         .map(deployables -> subscriptionAppender.appends(initialSync, deployables, environments))
                         .map(deployables -> apiKeyAppender.appends(initialSync, deployables, environments))
+                        .concatMapSingle(deployables -> authzAppender.appends(initialSync, deployables, environments))
                         .flatMapIterable(d -> d);
                 } else if (reactableByAction.getKey() == ActionOnApi.UNDEPLOY) {
                     return reactableByAction.map(reactableApi ->
