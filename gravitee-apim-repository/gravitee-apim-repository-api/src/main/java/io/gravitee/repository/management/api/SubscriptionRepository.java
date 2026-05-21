@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.api.search.SubscriptionCursor;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import java.util.Collection;
@@ -47,6 +48,31 @@ public interface SubscriptionRepository extends CrudRepository<Subscription, Str
      * {@code endingAt} that would otherwise be blocked by the sort stage (ESR violation).
      */
     List<Subscription> searchUnordered(SubscriptionCriteria criteria) throws TechnicalException;
+
+    /**
+     * Keyset / seek pagination over subscriptions matching {@code criteria}. Returns up to
+     * {@code pageSize} subscriptions positioned strictly after {@code after} (or starting from
+     * the beginning when {@code after} is {@code null}). A short page (size {@code < pageSize})
+     * signals exhaustion.
+     *
+     * <p>Sort and seek mode are controlled by {@code sortable.field()}:
+     * <ul>
+     *   <li>{@code "updatedAt"} (or {@code null}) — sort {@code (updatedAt ASC, id ASC)}, seek
+     *       past {@code (after.updatedAt, after.id)}. Used by the gateway-sync delta loop.</li>
+     *   <li>{@code "id"} — sort {@code id ASC}, seek past {@code after.id}. Used by the
+     *       gateway-sync warmup load where a {@code plans IN} filter dominates selectivity.</li>
+     * </ul>
+     * {@code sortable.order()} is ignored — ASC is enforced.
+     *
+     * <p>Implementations <b>must</b> reject criteria including {@code planSecurityTypes} or
+     * {@code excludedApis} with {@link TechnicalException} — these filters are not supported by
+     * this narrow path (use {@link #search(SubscriptionCriteria, Sortable)} instead).
+     *
+     * @throws TechnicalException if {@code criteria} carries an unsupported filter or if
+     *         {@code sortable.field()} is not one of the documented values.
+     */
+    List<Subscription> searchAfter(SubscriptionCriteria criteria, Sortable sortable, SubscriptionCursor after, int pageSize)
+        throws TechnicalException;
 
     List<Subscription> findByIdIn(Collection<String> ids) throws TechnicalException;
 
