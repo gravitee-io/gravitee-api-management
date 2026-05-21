@@ -25,6 +25,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.mongodb.management.internal.model.IntegrationMongo;
+import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -47,6 +48,9 @@ class IntegrationMongoRepositoryImplTest {
     @Mock
     MongoTemplate mongoTemplate;
 
+    @Mock
+    MongoQueries mongoQueries;
+
     @InjectMocks
     IntegrationMongoRepositoryImpl sut;
 
@@ -60,7 +64,7 @@ class IntegrationMongoRepositoryImplTest {
         String environmentId = "env-1";
         Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(5).build();
         Collection<String> groups = Set.of("grp-1");
-        given(mongoTemplate.count(query.capture(), eq(IntegrationMongo.class))).willReturn(0L);
+        given(mongoQueries.countOrTimeout(eq(mongoTemplate), query.capture(), eq(IntegrationMongo.class))).willReturn(0L);
         given(mongoTemplate.find(query.capture(), eq(IntegrationMongo.class))).willReturn(List.of());
         // When
         Page<IntegrationMongo> result = sut.findAllByEnvironmentIdAndGroups(environmentId, pageable, Set.of(), groups);
@@ -92,7 +96,7 @@ class IntegrationMongoRepositoryImplTest {
         String environmentId = "env-1";
         Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(5).build();
         Collection<String> groups = Set.of("grp-1");
-        given(mongoTemplate.count(query.capture(), eq(IntegrationMongo.class))).willReturn(0L);
+        given(mongoQueries.countOrTimeout(eq(mongoTemplate), query.capture(), eq(IntegrationMongo.class))).willReturn(0L);
         given(mongoTemplate.find(query.capture(), eq(IntegrationMongo.class))).willReturn(List.of());
         // When
         Page<IntegrationMongo> result = sut.findAllByEnvironmentIdAndGroups(environmentId, pageable, Set.of("id1"), groups);

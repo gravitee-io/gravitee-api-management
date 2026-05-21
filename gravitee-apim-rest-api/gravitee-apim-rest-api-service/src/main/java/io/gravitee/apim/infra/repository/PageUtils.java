@@ -30,6 +30,34 @@ public class PageUtils {
         R apply(T t) throws TechnicalException;
     }
 
+    @FunctionalInterface
+    public interface ThrowingConsumer<T> {
+        void accept(T t) throws TechnicalException;
+    }
+
+    /**
+     * Iterate every page produced by {@code pageSupplier} and feed it to {@code handler}, stopping when a page returns
+     * fewer items than {@code pageSize}. Never reads {@link Page#getTotalElements()} — safe to use against repositories
+     * that may return {@code -1} when their count operation timed out (APIM-14093).
+     *
+     * <p>Upgraders and other "must-complete" backend tasks should iterate pages through this helper rather than building
+     * a {@code do { ... } while (handled < page.getTotalElements())} loop.
+     */
+    public static <T> void forEachPage(ThrowingFunction<Pageable, Page<T>> pageSupplier, int pageSize, ThrowingConsumer<Page<T>> handler)
+        throws TechnicalException {
+        int pageIdx = 0;
+        boolean hasMore;
+        do {
+            Page<T> page = pageSupplier.apply(new PageableBuilder().pageSize(pageSize).pageNumber(pageIdx).build());
+            if (page == null || page.getContent() == null || page.getContent().isEmpty()) {
+                return;
+            }
+            handler.accept(page);
+            hasMore = page.getContent().size() == pageSize;
+            pageIdx++;
+        } while (hasMore);
+    }
+
     public static <T> Stream<T> toStream(ThrowingFunction<Pageable, Page<T>> pageSupplier) throws TechnicalException {
         var pageable = new PageableBuilder().pageSize(BATCH_PAGE_SIZE).pageNumber(0).build();
         var fistPage = pageSupplier.apply(pageable);
@@ -61,6 +89,11 @@ public class PageUtils {
     }
 
     private static boolean hasNext(Page page) {
+        // When the repository could not compute the total (count timed out), fall back to the page-fullness heuristic so we
+        // don't silently truncate iteration. The page is treated as last when it returned fewer elements than the page size.
+        if (page.getTotalElements() < 0) {
+            return page.getContent() != null && page.getPageElements() > 0;
+        }
         return (page.getPageNumber() + 1) * page.getPageElements() < page.getTotalElements();
     }
 

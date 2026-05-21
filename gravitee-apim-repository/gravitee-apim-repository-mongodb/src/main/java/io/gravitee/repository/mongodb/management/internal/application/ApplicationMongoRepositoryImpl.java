@@ -27,6 +27,7 @@ import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
+import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -49,6 +50,9 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    @Autowired
+    private MongoQueries mongoQueries;
+
     @Override
     public Page<ApplicationMongo> search(final ApplicationCriteria criteria, final Pageable pageable, Sortable sortable) {
         final Query query = buildSearchCriteria(criteria);
@@ -66,7 +70,7 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
 
         query.with(Sort.by(order));
 
-        long total = mongoTemplate.count(query, ApplicationMongo.class);
+        long total = mongoQueries.countOrTimeout(mongoTemplate, query, ApplicationMongo.class);
 
         if (pageable != null) {
             query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));

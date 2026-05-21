@@ -27,6 +27,7 @@ import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.mongodb.management.internal.group.GroupMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.GroupMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -62,6 +63,9 @@ public class MongoGroupRepository implements GroupRepository {
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Autowired
+    private MongoQueries mongoQueries;
 
     @Autowired
     private GraviteeMapper mapper;
@@ -152,7 +156,7 @@ public class MongoGroupRepository implements GroupRepository {
             Sort.by(Sort.Order.asc("name"))
         );
 
-        long total = mongoTemplate.count(Query.of(query), GroupMongo.class);
+        long total = mongoQueries.countOrTimeout(mongoTemplate, Query.of(query), GroupMongo.class);
 
         query = query.with(dbPageable).collation(Collation.of(Locale.ENGLISH).strength(Collation.ComparisonLevel.secondary()));
         List<Group> groups = mongoTemplate.find(query, GroupMongo.class).stream().map(mapper::map).toList();

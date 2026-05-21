@@ -26,6 +26,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.ApiProductMongo;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
+import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -46,6 +47,9 @@ public class ApiProductsMongoRepositoryImpl implements ApiProductsMongoRepositor
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Autowired
+    private MongoQueries mongoQueries;
 
     @Override
     public Set<ApiProductMongo> findByApiId(String apiId) {
@@ -118,7 +122,7 @@ public class ApiProductsMongoRepositoryImpl implements ApiProductsMongoRepositor
             sort = Sort.by(sortOrder, FieldUtils.toCamelCase(sortable.field()));
         }
 
-        long total = mongoTemplate.count(query, ApiProductMongo.class);
+        long total = mongoQueries.countOrTimeout(mongoTemplate, query, ApiProductMongo.class);
         query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize(), sort));
 
         List<String> ids = mongoTemplate

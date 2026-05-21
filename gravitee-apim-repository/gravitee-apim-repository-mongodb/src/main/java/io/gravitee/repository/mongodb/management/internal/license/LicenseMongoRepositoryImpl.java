@@ -22,6 +22,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.LicenseCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.LicenseMongo;
+import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,9 @@ public class LicenseMongoRepositoryImpl implements LicenseMongoRepositoryCustom 
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Autowired
+    private MongoQueries mongoQueries;
 
     @Override
     public Page<LicenseMongo> search(LicenseCriteria filter, Pageable pageable) {
@@ -57,7 +61,7 @@ public class LicenseMongoRepositoryImpl implements LicenseMongoRepositoryCustom 
             }
         }
 
-        long total = mongoTemplate.count(query, LicenseMongo.class);
+        long total = mongoQueries.countOrTimeout(mongoTemplate, query, LicenseMongo.class);
         List<LicenseMongo> license = mongoTemplate.find(query, LicenseMongo.class);
 
         return new Page<>(license, pageable != null ? pageable.pageNumber() : 0, pageable != null ? pageable.pageSize() : 0, total);
