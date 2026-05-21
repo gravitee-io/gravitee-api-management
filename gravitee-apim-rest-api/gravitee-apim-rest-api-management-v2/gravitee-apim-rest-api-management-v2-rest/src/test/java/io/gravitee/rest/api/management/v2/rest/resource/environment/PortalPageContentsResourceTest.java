@@ -22,7 +22,9 @@ import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.PortalNavigationItemFixtures;
 import fixtures.core.model.PortalPageContentFixtures;
+import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -57,6 +59,9 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
     @Inject
     private EnvironmentService environmentService;
 
+    @Inject
+    private PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService;
+
     private WebTarget target;
 
     @Override
@@ -84,6 +89,7 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
         GraviteeContext.cleanContext();
         portalPageContentQueryService.reset();
         portalPageContentCrudService.reset();
+        portalNavigationItemsQueryService.reset();
     }
 
     @Test
@@ -180,6 +186,18 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
 
             portalPageContentCrudService.initWith(List.of(content));
             portalPageContentQueryService.initWith(List.of(content));
+
+            var navigationPage = PortalNavigationItemFixtures.aPage(
+                PortalNavigationItemFixtures.PAGE_ID,
+                "Test Page",
+                null,
+                PortalPageContentId.of(CONTENT_ID)
+            )
+                .toBuilder()
+                .organizationId(ORGANIZATION)
+                .environmentId(ENVIRONMENT)
+                .build();
+            portalNavigationItemsQueryService.initWith(List.of(navigationPage));
         }
 
         @Test
