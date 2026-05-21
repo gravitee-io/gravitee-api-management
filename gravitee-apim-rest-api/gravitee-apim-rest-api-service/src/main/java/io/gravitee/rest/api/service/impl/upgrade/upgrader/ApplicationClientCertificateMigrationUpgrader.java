@@ -18,14 +18,12 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
 import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService;
 import io.gravitee.apim.core.application_certificate.model.ClientCertificate;
-import io.gravitee.common.data.domain.Page;
+import io.gravitee.apim.infra.repository.PageUtils;
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
-import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.AbstractClientCertificateException;
@@ -48,6 +46,7 @@ import org.springframework.stereotype.Component;
 public class ApplicationClientCertificateMigrationUpgrader implements Upgrader {
 
     static final String METADATA_CLIENT_CERTIFICATE = "client_certificate";
+    static final int PAGE_SIZE = 100;
 
     @Lazy
     @Autowired
@@ -65,26 +64,24 @@ public class ApplicationClientCertificateMigrationUpgrader implements Upgrader {
             log.info("Starting migration of application client certificates to ClientCertificate entity");
 
             ApplicationCriteria criteria = ApplicationCriteria.builder().build();
-            int pageNumber = 0;
-            Page<Application> page;
-            do {
-                Pageable pageable = new PageableBuilder().pageNumber(pageNumber).pageSize(100).build();
-                page = applicationRepository.search(criteria, pageable);
-                for (Application application : page
-                    .getContent()
-                    .stream()
-                    .filter(
-                        app ->
-                            app.getMetadata() != null &&
-                            app.getMetadata().get(METADATA_CLIENT_CERTIFICATE) != null &&
-                            !app.getMetadata().get(METADATA_CLIENT_CERTIFICATE).isBlank()
-                    )
-                    .toList()) {
-                    // candidate to be migrated
-                    migrateApplicationCertificate(application);
+            PageUtils.forEachPage(
+                pageable -> applicationRepository.search(criteria, pageable),
+                PAGE_SIZE,
+                page -> {
+                    for (Application application : page
+                        .getContent()
+                        .stream()
+                        .filter(
+                            app ->
+                                app.getMetadata() != null &&
+                                app.getMetadata().get(METADATA_CLIENT_CERTIFICATE) != null &&
+                                !app.getMetadata().get(METADATA_CLIENT_CERTIFICATE).isBlank()
+                        )
+                        .toList()) {
+                        migrateApplicationCertificate(application);
+                    }
                 }
-                pageNumber++;
-            } while (page.getTotalElements() > pageNumber * page.getPageElements());
+            );
 
             log.info("Completed migration of application client certificates");
             return true;

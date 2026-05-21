@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management.internal.integration;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.IntegrationMongo;
+import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
@@ -36,6 +37,7 @@ import org.springframework.stereotype.Component;
 public class IntegrationMongoRepositoryImpl implements IntegrationMongoRepositoryCustom {
 
     private final MongoTemplate mongoTemplate;
+    private final MongoQueries mongoQueries;
 
     @Override
     public Page<IntegrationMongo> findAllByEnvironmentIdAndGroups(
@@ -56,7 +58,7 @@ public class IntegrationMongoRepositoryImpl implements IntegrationMongoRepositor
         );
         query.with(Sort.by(Sort.Direction.DESC, "updatedAt"));
 
-        long total = mongoTemplate.count(query, IntegrationMongo.class);
+        long total = mongoQueries.countOrTimeout(mongoTemplate, query, IntegrationMongo.class);
 
         if (pageable != null) {
             query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
@@ -73,7 +75,7 @@ public class IntegrationMongoRepositoryImpl implements IntegrationMongoRepositor
         query.addCriteria(Criteria.where("environmentId").is(environmentId));
         query.with(Sort.by(Sort.Direction.DESC, "updatedAt"));
 
-        long total = mongoTemplate.count(query, IntegrationMongo.class);
+        long total = mongoQueries.countOrTimeout(mongoTemplate, query, IntegrationMongo.class);
 
         if (pageable != null) {
             query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));

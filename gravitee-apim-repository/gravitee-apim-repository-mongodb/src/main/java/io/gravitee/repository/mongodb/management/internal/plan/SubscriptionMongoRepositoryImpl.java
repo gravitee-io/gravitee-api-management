@@ -35,6 +35,7 @@ import io.gravitee.repository.management.api.search.SubscriptionCursor;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
+import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.util.*;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -59,6 +60,9 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    @Autowired
+    private MongoQueries mongoQueries;
+
     @Value("${management.mongodb.prefix:}")
     private String tablePrefix;
 
@@ -66,7 +70,7 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
     public Page<SubscriptionMongo> search(SubscriptionCriteria criteria, final Sortable sortable, final Pageable pageable) {
         List<Bson> filterPipeline = buildFilterPipeline(criteria);
 
-        Integer totalCount = null;
+        Long totalCount = null;
         // if pageable, count total subscriptions matching criteria — counting only needs the $match stages,
         // not the sort or projection that follows, so build the count pipeline before adding those.
         if (pageable != null) {
@@ -75,9 +79,7 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             AggregateIterable<Document> countAggregate = mongoTemplate
                 .getCollection(mongoTemplate.getCollectionName(SubscriptionMongo.class))
                 .aggregate(countPipeline);
-            if (countAggregate.first() != null) {
-                totalCount = countAggregate.first().getInteger("totalCount", 0);
-            }
+            totalCount = mongoQueries.countAggregationOrTimeout(countAggregate, "totalCount", SubscriptionMongo.class.getSimpleName());
         }
 
         List<Bson> dataPipeline = new ArrayList<>(filterPipeline);
@@ -349,11 +351,7 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
         dataPipeline.add(match(or(migratedFilter, legacyFilter)));
     }
 
-    private Page<SubscriptionMongo> buildSubscriptionsPage(
-        Pageable pageable,
-        AggregateIterable<Document> dataAggregate,
-        Integer totalCount
-    ) {
+    private Page<SubscriptionMongo> buildSubscriptionsPage(Pageable pageable, AggregateIterable<Document> dataAggregate, Long totalCount) {
         List<SubscriptionMongo> subscriptions = new ArrayList<>();
 
         MongoConverter converter = mongoTemplate.getConverter();

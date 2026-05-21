@@ -40,6 +40,7 @@ import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.rest.api.service.exceptions.ClientCertificateInvalidException;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
@@ -165,16 +166,26 @@ class ApplicationClientCertificateMigrationUpgraderTest {
         // Given
         String base64Cert = Base64.getEncoder().encodeToString(VALID_PEM_CERTIFICATE.getBytes());
 
-        Map<String, String> metadata1 = new HashMap<>();
-        metadata1.put(METADATA_CLIENT_CERTIFICATE, base64Cert);
-        Application app1 = Application.builder().id("app-1").name("App 1").environmentId("env-1").metadata(metadata1).build();
+        // Build a first page of exactly PAGE_SIZE applications so the upgrader fetches a second page;
+        // the second page is partial which signals "no more pages".
+        List<Application> firstPageApps = new ArrayList<>();
+        for (int i = 0; i < ApplicationClientCertificateMigrationUpgrader.PAGE_SIZE; i++) {
+            Map<String, String> metadata = new HashMap<>();
+            metadata.put(METADATA_CLIENT_CERTIFICATE, base64Cert);
+            firstPageApps.add(Application.builder().id("app-" + i).name("App " + i).environmentId("env-1").metadata(metadata).build());
+        }
 
-        Map<String, String> metadata2 = new HashMap<>();
-        metadata2.put(METADATA_CLIENT_CERTIFICATE, base64Cert);
-        Application app2 = Application.builder().id("app-2").name("App 2").environmentId("env-1").metadata(metadata2).build();
+        Map<String, String> lastMetadata = new HashMap<>();
+        lastMetadata.put(METADATA_CLIENT_CERTIFICATE, base64Cert);
+        Application appOnSecondPage = Application.builder()
+            .id("app-last")
+            .name("App last")
+            .environmentId("env-1")
+            .metadata(lastMetadata)
+            .build();
 
-        Page<Application> page1 = new Page<>(List.of(app1), 1, 1, 2);
-        Page<Application> page2 = new Page<>(List.of(app2), 2, 1, 2);
+        Page<Application> page1 = new Page<>(firstPageApps, 0, firstPageApps.size(), firstPageApps.size() + 1);
+        Page<Application> page2 = new Page<>(List.of(appOnSecondPage), 1, 1, firstPageApps.size() + 1);
 
         when(applicationRepository.search(any(ApplicationCriteria.class), any(Pageable.class))).thenReturn(page1).thenReturn(page2);
         when(clientCertificateValidationDomainService.validate(any())).thenReturn(VALID_CERT_INFO);
@@ -184,9 +195,10 @@ class ApplicationClientCertificateMigrationUpgraderTest {
         boolean result = upgrader.upgrade();
 
         // Then
+        int expectedMigrations = firstPageApps.size() + 1;
         assertThat(result).isTrue();
-        verify(clientCertificateCrudService, times(2)).create(any(), any(ClientCertificate.class));
-        verify(applicationRepository, times(2)).update(any(Application.class));
+        verify(clientCertificateCrudService, times(expectedMigrations)).create(any(), any(ClientCertificate.class));
+        verify(applicationRepository, times(expectedMigrations)).update(any(Application.class));
     }
 
     @Test

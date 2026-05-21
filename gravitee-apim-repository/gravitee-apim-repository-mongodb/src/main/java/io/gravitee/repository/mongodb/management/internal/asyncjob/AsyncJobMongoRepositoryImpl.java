@@ -19,6 +19,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.AsyncJobRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.AsyncJobMongo;
+import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.CustomLog;
@@ -37,12 +38,13 @@ import org.springframework.stereotype.Component;
 public class AsyncJobMongoRepositoryImpl implements AsyncJobMongoRepositoryCustom {
 
     private final MongoTemplate mongoTemplate;
+    private final MongoQueries mongoQueries;
 
     @Override
     public Page<AsyncJobMongo> search(AsyncJobRepository.SearchCriteria criteria, Pageable pageable) {
         var query = toQuery(criteria).with(Sort.by(Sort.Direction.DESC, "updatedAt"));
 
-        long total = mongoTemplate.count(query, AsyncJobMongo.class);
+        long total = mongoQueries.countOrTimeout(mongoTemplate, query, AsyncJobMongo.class);
 
         if (pageable != null) {
             query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));

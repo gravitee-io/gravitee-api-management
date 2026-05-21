@@ -27,6 +27,7 @@ import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
+import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.util.Collection;
 import java.util.List;
 import org.bson.Document;
@@ -48,6 +49,9 @@ public class PageMongoRepositoryImpl implements PageMongoRepositoryCustom {
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Autowired
+    private MongoQueries mongoQueries;
 
     @Override
     public int findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, String referenceType) {
@@ -121,7 +125,7 @@ public class PageMongoRepositoryImpl implements PageMongoRepositoryCustom {
     @Override
     public Page<PageMongo> findAll(Pageable pageable) {
         Query query = new Query();
-        long total = mongoTemplate.count(query, PageMongo.class);
+        long total = mongoQueries.countOrTimeout(mongoTemplate, query, PageMongo.class);
 
         query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
         List<PageMongo> pages = mongoTemplate.find(query, PageMongo.class);

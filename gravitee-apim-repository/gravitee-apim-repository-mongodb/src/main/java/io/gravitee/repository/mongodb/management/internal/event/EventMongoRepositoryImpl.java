@@ -24,6 +24,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
+import io.gravitee.repository.mongodb.utils.MongoQueries;
 import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -61,6 +62,9 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    @Autowired
+    private MongoQueries mongoQueries;
+
     @Value("${management.mongodb.prefix:}")
     private String collectionPrefix;
 
@@ -78,7 +82,7 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
         // set sort by updated at
         query.with(Sort.by(Sort.Direction.DESC, UPDATED_AT_FIELD, "_id"));
 
-        long total = mongoTemplate.count(query, EventMongo.class);
+        long total = mongoQueries.countOrTimeout(mongoTemplate, query, EventMongo.class);
 
         // set pageable
         if (pageable != null) {
