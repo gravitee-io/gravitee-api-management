@@ -30,8 +30,6 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -42,8 +40,6 @@ import org.springframework.stereotype.Repository;
 @Slf4j
 @Repository
 public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, String> implements CommandRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcCommandRepository.class);
 
     private final String COMMAND_ACKNOWLEDGMENTS;
     private final String COMMAND_TAGS;
@@ -68,14 +64,6 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .build();
     }
-
-    private static final JdbcHelper.ChildAdder<Command> CHILD_ADDER = (Command parent, ResultSet rs) -> {
-        String acknowledgment = rs.getString("acknowledgment");
-        fillCommandAcknowledgments(parent, acknowledgment);
-
-        String tag = rs.getString("tag");
-        fillCommandTags(parent, tag);
-    };
 
     private static void fillCommandTags(Command command, String tag) {
         List<String> tags = command.getTags();
@@ -106,7 +94,7 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
 
     @Override
     public Optional<Command> findById(String id) throws TechnicalException {
-        LOGGER.debug("JdbcCommandRepository.findById({})", id);
+        log.debug("JdbcCommandRepository.findById({})", id);
         try {
             // Find the command itself
             Optional<Command> command = jdbcTemplate.query(getOrm().getSelectByIdSql(), getRowMapper(), id).stream().findFirst();
@@ -130,41 +118,41 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
 
             return command;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find command by id:", ex);
+            log.error("Failed to find command by id:", ex);
             throw new TechnicalException("Failed to find command by id", ex);
         }
     }
 
     @Override
     public Command create(Command item) throws TechnicalException {
-        LOGGER.debug("JdbcCommandRepository.create({})", item);
+        log.debug("JdbcCommandRepository.create({})", item);
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
             storeAcknowledgments(item, false);
             storeTags(item, false);
             return findById(item.getId()).orElse(null);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to create command", ex);
+            log.error("Failed to create command", ex);
             throw new TechnicalException("Failed to create command", ex);
         }
     }
 
     @Override
     public void delete(String id) throws TechnicalException {
-        LOGGER.debug("JdbcCommandRepository.delete({})", id);
+        log.debug("JdbcCommandRepository.delete({})", id);
         try {
             jdbcTemplate.update(getOrm().getDeleteSql(), id);
             jdbcTemplate.update("delete from " + COMMAND_ACKNOWLEDGMENTS + " where command_id = ?", id);
             jdbcTemplate.update("delete from " + COMMAND_TAGS + " where command_id = ?", id);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete command:", ex);
+            log.error("Failed to delete command:", ex);
             throw new TechnicalException("Failed to delete command", ex);
         }
     }
 
     @Override
     public Command update(Command item) throws TechnicalException {
-        LOGGER.debug("JdbcCommandRepository.update({})", item);
+        log.debug("JdbcCommandRepository.update({})", item);
         if (item == null) {
             throw new IllegalStateException();
         }
@@ -178,26 +166,15 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to update command", ex);
+            log.error("Failed to update command", ex);
             throw new TechnicalException("Failed to update command", ex);
         }
     }
 
     @Override
     public List<Command> search(CommandCriteria criteria) {
-        LOGGER.debug("JdbcCommandRepository.search({})", criteria);
-        JdbcHelper.CollatingRowMapper<Command> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
-        final StringBuilder query = new StringBuilder(
-            getOrm().getSelectAllSql() +
-                " c " +
-                "left join " +
-                COMMAND_ACKNOWLEDGMENTS +
-                " ca on c.id = ca.command_id " +
-                "left join " +
-                COMMAND_TAGS +
-                " ct on c.id = ct.command_id " +
-                "where 1=1 "
-        );
+        log.debug("JdbcCommandRepository.search({})", criteria);
+        final StringBuilder query = new StringBuilder(getOrm().getSelectAllSql() + " c where 1=1 ");
 
         if (criteria.getNotAckBy() != null) {
             query
@@ -225,7 +202,7 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
 
         List<Command> commands;
         try {
-            jdbcTemplate.query(
+            commands = jdbcTemplate.query(
                 query.toString(),
                 (PreparedStatement ps) -> {
                     int lastIndex = 1;
@@ -248,11 +225,11 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
                         ps.setDate(lastIndex++, new java.sql.Date(System.currentTimeMillis()));
                     }
                 },
-                rowMapper
+                getOrm().getRowMapper()
             );
-            commands = rowMapper.getRows();
+            loadAcknowledgmentsAndTags(commands);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find command records:", ex);
+            log.error("Failed to find command records for criteria {}", criteria, ex);
             throw new IllegalStateException("Failed to find command records", ex);
         }
 
@@ -265,13 +242,49 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
                 .collect(Collectors.toList());
         }
 
-        LOGGER.debug("command records found ({}): {}", commands.size(), commands);
+        log.debug("command records found ({}): {}", commands.size(), commands);
         return commands;
+    }
+
+    /**
+     * Loads acknowledgments and tags in separate queries to avoid multi-table LEFT JOIN deadlocks
+     * on SQL Server when several Management API nodes poll commands concurrently (see APIM-3113 / APIM-13681).
+     */
+    private void loadAcknowledgmentsAndTags(List<Command> commands) {
+        if (commands == null || commands.isEmpty()) {
+            return;
+        }
+
+        var commandsById = commands.stream().collect(Collectors.toMap(Command::getId, command -> command, (a, b) -> a));
+        var commandIds = new ArrayList<>(commandsById.keySet());
+        var inClause = getOrm().buildInClause(commandIds);
+
+        jdbcTemplate.query(
+            "select command_id, acknowledgment from " + COMMAND_ACKNOWLEDGMENTS + " where command_id in (" + inClause + ")",
+            (PreparedStatement ps) -> getOrm().setArguments(ps, commandIds, 1),
+            (ResultSet rs) -> {
+                var command = commandsById.get(rs.getString("command_id"));
+                if (command != null) {
+                    fillCommandAcknowledgments(command, rs.getString("acknowledgment"));
+                }
+            }
+        );
+
+        jdbcTemplate.query(
+            "select command_id, tag from " + COMMAND_TAGS + " where command_id in (" + inClause + ")",
+            (PreparedStatement ps) -> getOrm().setArguments(ps, commandIds, 1),
+            (ResultSet rs) -> {
+                var command = commandsById.get(rs.getString("command_id"));
+                if (command != null) {
+                    fillCommandTags(command, rs.getString("tag"));
+                }
+            }
+        );
     }
 
     @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
-        LOGGER.debug("JdbcCommandRepository.deleteByEnvironmentId({})", environmentId);
+        log.debug("JdbcCommandRepository.deleteByEnvironmentId({})", environmentId);
         try {
             final var rows = jdbcTemplate.queryForList(
                 "select id from " + this.tableName + " where environment_id = ?",
@@ -283,17 +296,17 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
                 jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
             }
 
-            LOGGER.debug("JdbcCommandRepository.deleteByEnvironmentId({}) - Done", environmentId);
+            log.debug("JdbcCommandRepository.deleteByEnvironmentId({}) - Done", environmentId);
             return rows;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete commands by environmentId: {}", environmentId, ex);
+            log.error("Failed to delete commands by environmentId: {}", environmentId, ex);
             throw new TechnicalException("Failed to delete commands by environment", ex);
         }
     }
 
     @Override
     public List<String> deleteByOrganizationId(String organizationId) throws TechnicalException {
-        LOGGER.debug("JdbcCommandRepository.deleteByOrganizationId({})", organizationId);
+        log.debug("JdbcCommandRepository.deleteByOrganizationId({})", organizationId);
         try {
             final var rows = jdbcTemplate.queryForList(
                 "select id from " + this.tableName + " where organization_id = ?",
@@ -305,10 +318,10 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
                 jdbcTemplate.update("delete from " + tableName + " where organization_id = ?", organizationId);
             }
 
-            LOGGER.debug("JdbcCommandRepository.deleteByOrganizationId({}) - Done", organizationId);
+            log.debug("JdbcCommandRepository.deleteByOrganizationId({}) - Done", organizationId);
             return rows;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to delete commands by organizationId: {}", organizationId, ex);
+            log.error("Failed to delete commands by organizationId: {}", organizationId, ex);
             throw new TechnicalException("Failed to delete commands by organization", ex);
         }
     }
@@ -339,7 +352,7 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
     }
 
     private void storeAcknowledgments(Command command, boolean deleteFirst) {
-        LOGGER.debug("JdbcCommandRepository.storeAcknowledgments({}, {})", command, deleteFirst);
+        log.debug("JdbcCommandRepository.storeAcknowledgments({}, {})", command, deleteFirst);
         if (deleteFirst) {
             jdbcTemplate.update("delete from " + COMMAND_ACKNOWLEDGMENTS + " where command_id = ?", command.getId());
         }
@@ -353,7 +366,7 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
     }
 
     private void storeTags(Command command, boolean deleteFirst) {
-        LOGGER.debug("JdbcCommandRepository.storeTags({}, {})", command, deleteFirst);
+        log.debug("JdbcCommandRepository.storeTags({}, {})", command, deleteFirst);
         if (deleteFirst) {
             jdbcTemplate.update("delete from " + COMMAND_TAGS + " where command_id = ?", command.getId());
         }
