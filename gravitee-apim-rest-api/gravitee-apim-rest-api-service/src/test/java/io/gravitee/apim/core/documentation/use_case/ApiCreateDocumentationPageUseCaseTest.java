@@ -47,6 +47,7 @@ import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
 import io.gravitee.rest.api.service.sanitizer.HtmlSanitizer;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.*;
@@ -681,6 +682,29 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .toList()
                 .get(0);
             assertThat(savedPage).isEqualTo(res.createdPage());
+        }
+
+        @Test
+        void should_create_swagger_with_configuration() {
+            var res = apiCreateDocumentationPageUsecase.execute(
+                ApiCreateDocumentationPageUseCase.Input.builder()
+                    .page(
+                        Page.builder()
+                            .type(Page.Type.SWAGGER)
+                            .name("new page")
+                            .content("openapi: 3.0.0")
+                            .homepage(false)
+                            .visibility(Page.Visibility.PRIVATE)
+                            .referenceType(Page.ReferenceType.API)
+                            .referenceId(API_ID)
+                            .configuration(Map.of("viewer", "Redoc"))
+                            .build()
+                    )
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.createdPage().getConfiguration()).containsEntry("viewer", "Redoc");
         }
 
         @Test

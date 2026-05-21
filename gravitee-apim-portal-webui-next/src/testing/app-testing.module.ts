@@ -32,20 +32,26 @@ export const TESTING_ACTIVATED_ROUTE = {
 };
 @Injectable()
 export class ConfigServiceStub {
+  private _configuration: Configuration = {
+    portalNext: {
+      banner: {
+        enabled: true,
+        title: 'Welcome to Gravitee Developer Portal!',
+        subtitle: 'Great subtitle',
+      },
+    },
+  };
+
   get baseURL(): string {
     return TESTING_BASE_URL;
   }
 
   get configuration(): Configuration {
-    return {
-      portalNext: {
-        banner: {
-          enabled: true,
-          title: 'Welcome to Gravitee Developer Portal!',
-          subtitle: 'Great subtitle',
-        },
-      },
-    };
+    return this._configuration;
+  }
+
+  set configuration(configuration: Configuration) {
+    this._configuration = configuration;
   }
 }
 
