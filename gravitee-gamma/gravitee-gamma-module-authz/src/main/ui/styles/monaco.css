@@ -1,0 +1,5 @@
+/* Ensure Monaco container grows with flex parents */
+.monaco-editor,
+.monaco-editor .overflow-guard {
+    border-radius: 6px;
+}
