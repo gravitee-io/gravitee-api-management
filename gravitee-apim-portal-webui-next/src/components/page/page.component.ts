@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
 
 import { PageAsciidocComponent } from './page-asciidoc/page-asciidoc.component';
 import { PageAsyncApiComponent } from './page-async-api/page-async-api.component';
@@ -21,6 +21,7 @@ import { PageMarkdownComponent } from './page-markdown/page-markdown.component';
 import { PageRedocComponent } from './page-redoc/page-redoc.component';
 import { PageSwaggerComponent } from './page-swagger/page-swagger.component';
 import { Page } from '../../entities/page/page';
+import { ConfigService } from '../../services/config.service';
 
 @Component({
   selector: 'app-page',
@@ -35,4 +36,10 @@ export class PageComponent {
   pages: Page[] = []; // Used to create links in Markdown to other pages within the scope
   @Input()
   apiId?: string;
+
+  private configService = inject(ConfigService);
+
+  get effectiveViewer(): string {
+    return this.page.configuration?.viewer ?? this.configService.configuration.openAPIDocViewer?.openAPIDocType?.defaultType ?? 'Swagger';
+  }
 }

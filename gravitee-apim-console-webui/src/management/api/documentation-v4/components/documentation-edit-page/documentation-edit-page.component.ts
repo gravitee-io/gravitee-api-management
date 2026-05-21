@@ -56,6 +56,7 @@ import {
 } from '../api-documentation-v4-page-configuration/api-documentation-v4-page-configuration.component';
 import { ApiDocumentationV4PageHeaderComponent } from '../api-documentation-v4-page-header/api-documentation-v4-page-header.component';
 import { FetcherService } from '../../../../../services-ngx/fetcher.service';
+import { EnvironmentSettingsService } from '../../../../../services-ngx/environment-settings.service';
 
 interface OpenApiConfiguration {
   entrypointAsBasePath: FormControl<boolean>;
@@ -150,6 +151,7 @@ export class DocumentationEditPageComponent implements OnInit {
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
     private readonly fetcherService: FetcherService,
+    private readonly environmentSettingsService: EnvironmentSettingsService,
   ) {}
 
   ngOnInit(): void {
@@ -170,7 +172,11 @@ export class DocumentationEditPageComponent implements OnInit {
       }),
       content: new FormControl<string>(this.page.content ?? '', [Validators.required]),
       openApiConfiguration: new FormGroup<OpenApiConfiguration>({
-        viewer: new FormControl(this.page.configuration?.['viewer'] ?? 'Swagger'),
+        viewer: new FormControl(
+          this.page.configuration?.['viewer'] ??
+            this.environmentSettingsService.getSnapshot()?.openAPIDocViewer?.openAPIDocType?.defaultType ??
+            'Swagger',
+        ),
         entrypointAsBasePath: new FormControl(this.parseConfigurationStringToBoolean(this.page.configuration?.['entrypointAsBasePath'])),
         entrypointsAsServers: new FormControl(this.parseConfigurationStringToBoolean(this.page.configuration?.['entrypointsAsServers'])),
         tryItURL: new FormControl(this.page.configuration?.['tryItURL'] ?? ''),
