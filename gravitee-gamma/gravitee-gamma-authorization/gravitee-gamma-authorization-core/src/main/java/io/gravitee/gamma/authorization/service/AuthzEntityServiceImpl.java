@@ -33,7 +33,6 @@ import io.gravitee.gamma.authorization.api.AuthzValidators;
 import io.gravitee.gamma.authorization.domain.AuthzEntity;
 import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
 import io.gravitee.gamma.authorization.domain.AuthzPolicy;
-import io.gravitee.gamma.authorization.listener.EntityIdExtractor;
 import io.gravitee.gamma.authorization.paging.Pageable;
 import io.gravitee.gamma.authorization.paging.PagedResult;
 import io.gravitee.gamma.authorization.service.exception.AuthzCascadeTooLargeException;
@@ -52,9 +51,9 @@ import org.springframework.dao.DuplicateKeyException;
 
 public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
 
-    private static final String API_PREFIX = EntityIdExtractor.API_PREFIX;
-    private static final String MCP_PREFIX = EntityIdExtractor.MCP_PREFIX;
-    private static final String AGENT_PREFIX = EntityIdExtractor.AGENT_PREFIX;
+    private static final String API_PREFIX = AuthzEntityIdConstants.API_PREFIX;
+    private static final String MCP_PREFIX = AuthzEntityIdConstants.MCP_PREFIX;
+    private static final String AGENT_PREFIX = AuthzEntityIdConstants.AGENT_PREFIX;
 
     public static final int DEFAULT_CASCADE_HARD_LIMIT = 500;
 
