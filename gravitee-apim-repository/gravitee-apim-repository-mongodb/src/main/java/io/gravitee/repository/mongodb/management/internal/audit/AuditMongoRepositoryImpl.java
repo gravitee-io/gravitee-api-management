@@ -22,6 +22,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.AuditCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.AuditMongo;
+import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
@@ -43,6 +44,9 @@ public class AuditMongoRepositoryImpl implements AuditMongoRepositoryCustom {
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Autowired
+    private MongoQueries mongoQueries;
 
     @Value("${services.audit.cleanup.batchSize:1000}")
     private int batchSize;
@@ -85,7 +89,7 @@ public class AuditMongoRepositoryImpl implements AuditMongoRepositoryCustom {
             query.addCriteria(where("organizationId").is(filter.getOrganizationId()));
         }
 
-        long total = mongoTemplate.count(query, AuditMongo.class);
+        long total = mongoQueries.countOrTimeout(mongoTemplate, query, AuditMongo.class);
 
         query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize(), Sort.by(Sort.Direction.DESC, "createdAt")));
 

@@ -24,6 +24,7 @@ import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.TicketCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.TicketMongo;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
+import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.util.List;
 import java.util.Locale;
 import org.apache.commons.lang3.StringUtils;
@@ -44,6 +45,9 @@ public class TicketMongoRepositoryImpl implements TicketMongoRepositoryCustom {
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Autowired
+    private MongoQueries mongoQueries;
 
     @Override
     public Page<TicketMongo> search(TicketCriteria criteria, Sortable sortable, Pageable pageable) {
@@ -72,7 +76,7 @@ public class TicketMongoRepositoryImpl implements TicketMongoRepositoryCustom {
             }
         }
 
-        long total = mongoTemplate.count(query, TicketMongo.class);
+        long total = mongoQueries.countOrTimeout(mongoTemplate, query, TicketMongo.class);
 
         if (pageable != null) {
             query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
