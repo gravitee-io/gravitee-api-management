@@ -24,8 +24,9 @@ import { PageRedocHarness } from './page-redoc/page-redoc.harness';
 import { PageSwaggerHarness } from './page-swagger/page-swagger.harness';
 import { PageComponent } from './page.component';
 import { fakePage } from '../../entities/page/page.fixtures';
+import { ConfigService } from '../../services/config.service';
 import { RedocService } from '../../services/redoc.service';
-import { AppTestingModule } from '../../testing/app-testing.module';
+import { AppTestingModule, ConfigServiceStub } from '../../testing/app-testing.module';
 
 describe('PageComponent', () => {
   let component: PageComponent;
@@ -70,6 +71,21 @@ describe('PageComponent', () => {
     });
 
     it('should show redoc content', async () => {
+      const redoc = await harnessLoader.getHarnessOrNull(PageRedocHarness);
+      expect(redoc).toBeTruthy();
+      expect(await redoc?.getRedoc()).toBeTruthy();
+    });
+  });
+
+  describe('redoc via env default', () => {
+    beforeEach(() => {
+      const configService = TestBed.inject(ConfigService) as unknown as ConfigServiceStub;
+      configService.configuration = { openAPIDocViewer: { openAPIDocType: { defaultType: 'Redoc' } } };
+      component.page = fakePage({ type: 'SWAGGER' });
+      fixture.detectChanges();
+    });
+
+    it('should show redoc content when env default is Redoc and page has no explicit viewer', async () => {
       const redoc = await harnessLoader.getHarnessOrNull(PageRedocHarness);
       expect(redoc).toBeTruthy();
       expect(await redoc?.getRedoc()).toBeTruthy();

@@ -29,6 +29,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiService, Page, PageConfiguration, PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { GvPageContentSlotDirective } from '../../directives/gv-page-content-slot.directive';
 import { PageService } from '../../services/page.service';
+import { ConfigurationService } from '../../services/configuration.service';
 
 @Component({
   selector: 'app-gv-page',
@@ -59,6 +60,7 @@ export class GvPageComponent implements OnChanges, OnDestroy {
     private apiService: ApiService,
     private route: ActivatedRoute,
     private pageService: PageService,
+    private configurationService: ConfigurationService,
   ) {}
 
   ngOnChanges(changes: SimpleChanges) {
@@ -78,8 +80,10 @@ export class GvPageComponent implements OnChanges, OnDestroy {
         const { GvPageMarkdownComponent } = await import('../gv-page-markdown/gv-page-markdown.component');
         componentFactory = this.componentFactoryResolver.resolveComponentFactory(GvPageMarkdownComponent);
       } else if (this.page.type.toUpperCase() === Page.TypeEnum.SWAGGER) {
-        const documentationViewer = this.page.configuration ? this.page.configuration.viewer : '';
-        if (documentationViewer && documentationViewer.toUpperCase() === PageConfiguration.ViewerEnum.Redoc.toUpperCase()) {
+        const documentationViewer =
+          (this.page.configuration ? this.page.configuration.viewer : '') ||
+          this.configurationService.get('openAPIDocViewer.openAPIDocType.defaultType', 'Swagger');
+        if (documentationViewer.toUpperCase() === PageConfiguration.ViewerEnum.Redoc.toUpperCase()) {
           const { GvPageRedocComponent } = await import('../gv-page-redoc/gv-page-redoc.component');
           componentFactory = this.componentFactoryResolver.resolveComponentFactory(GvPageRedocComponent);
         } else {
