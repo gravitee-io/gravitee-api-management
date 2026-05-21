@@ -207,5 +207,21 @@
         "apiLifecycleState": "CREATED",
         "disableMembershipNotifications": false,
         "integrationId": "integration-id"
+    },
+    {
+        "id": "legacy-explicit-null-defv-api",
+        "environmentId": "ENV-NULL-DEFV",
+        "origin": "management",
+        "mode": "fully_managed",
+        "name": "legacy explicit null defv api name",
+        "definitionVersion": null,
+        "version": "legacy-null",
+        "definition": "{\"id\":\"legacy-explicit-null\",\"name\":\"legacy\",\"version\":\"legacy-null\"}",
+        "visibility": "PRIVATE",
+        "createdAt": 1439022010883,
+        "updatedAt": 1439022010883,
+        "lifecycleState": "STARTED",
+        "apiLifecycleState": "CREATED",
+        "disableMembershipNotifications": true
     }
 ]

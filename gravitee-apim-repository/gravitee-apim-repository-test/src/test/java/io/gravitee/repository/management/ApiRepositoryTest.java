@@ -286,7 +286,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
             new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2)).build(),
             ApiFieldFilter.allFields()
         );
-        assertThat(v2Apis).hasSize(10);
+        assertThat(v2Apis).hasSize(11);
 
         List<Api> v4Apis = apiRepository.search(
             new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V4)).build(),
@@ -462,6 +462,9 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(DefinitionVersion.V4, apis.get(0).getDefinitionVersion());
         assertEquals(ApiType.MESSAGE, apis.get(0).getType());
         assertEquals("async-searched-crossId", apis.get(0).getCrossId());
+        // Guard against a future regression that incorrectly broadens $in to always include null:
+        // V4-only must NOT pull legacy null/missing-defVersion docs.
+        assertThat(apis.stream().map(Api::getId).toList()).doesNotContain("legacy-explicit-null-defv-api");
     }
 
     @Test
@@ -475,6 +478,23 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertTrue(apis.stream().map(Api::getId).toList().containsAll(asList("api-to-delete", "big-name")));
         assertNull(apis.get(0).getDefinitionVersion());
         assertNull(apis.get(1).getDefinitionVersion());
+    }
+
+    @Test
+    public void shouldFindByDefinitionVersion_V2AndV4_includesLegacyNullDocs() {
+        final List<Api> apis = apiRepository.search(
+            new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V2, DefinitionVersion.V4)).build(),
+            ApiFieldFilter.allFields()
+        );
+        assertNotNull(apis);
+        assertThat(apis).hasSize(12);
+        assertThat(apis.stream().map(Api::getId).toList()).contains(
+            "async-api",
+            "api-with-many-categories",
+            "legacy-explicit-null-defv-api",
+            "api-to-delete",
+            "big-name"
+        );
     }
 
     @Test
@@ -652,7 +672,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
-        assertEquals(12, apis.size());
+        assertEquals(13, apis.size());
     }
 
     @Test
