@@ -132,8 +132,11 @@ public class RepositorySyncConfiguration {
     }
 
     @Bean
-    public SubscriptionFetcher subscriptionFetcher(SubscriptionRepository subscriptionRepository) {
-        return new SubscriptionFetcher(subscriptionRepository);
+    public SubscriptionFetcher subscriptionFetcher(
+        SubscriptionRepository subscriptionRepository,
+        @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems
+    ) {
+        return new SubscriptionFetcher(subscriptionRepository, bulkItems);
     }
 
     @Bean
