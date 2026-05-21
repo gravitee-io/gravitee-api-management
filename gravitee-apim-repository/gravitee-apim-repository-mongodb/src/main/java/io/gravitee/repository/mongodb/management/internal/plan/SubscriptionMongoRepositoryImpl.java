@@ -31,6 +31,7 @@ import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.api.search.SubscriptionCursor;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
@@ -39,8 +40,11 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.convert.MongoConverter;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -228,6 +232,63 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
         }
 
         return dataPipeline;
+    }
+
+    @Override
+    public List<SubscriptionMongo> searchAfter(
+        SubscriptionCriteria criteria,
+        SubscriptionCursor after,
+        int pageSize,
+        boolean sortByUpdatedAt
+    ) {
+        Criteria mongoCriteria = new Criteria();
+        List<Criteria> clauses = new ArrayList<>();
+
+        if (!CollectionUtils.isEmpty(criteria.getEnvironments())) {
+            clauses.add(Criteria.where("environmentId").in(criteria.getEnvironments()));
+        }
+        if (criteria.getStatuses() != null && !criteria.getStatuses().isEmpty()) {
+            clauses.add(Criteria.where("status").in(criteria.getStatuses()));
+        }
+        if (criteria.getPlans() != null && !criteria.getPlans().isEmpty()) {
+            clauses.add(Criteria.where("plan").in(criteria.getPlans()));
+        }
+        if (criteria.getFrom() > 0) {
+            clauses.add(Criteria.where("updatedAt").gte(new Date(criteria.getFrom())));
+        }
+        if (criteria.getTo() > 0) {
+            clauses.add(Criteria.where("updatedAt").lt(new Date(criteria.getTo())));
+        }
+        if (criteria.getEndingAtAfter() > 0) {
+            Criteria endingAfter = Criteria.where("endingAt").gte(new Date(criteria.getEndingAtAfter()));
+            if (criteria.isIncludeWithoutEnd()) {
+                clauses.add(new Criteria().orOperator(Criteria.where("endingAt").is(null), endingAfter));
+            } else {
+                clauses.add(endingAfter);
+            }
+        }
+        if (after != null) {
+            if (sortByUpdatedAt) {
+                Date marker = new Date(after.updatedAt());
+                clauses.add(
+                    new Criteria().orOperator(
+                        Criteria.where("updatedAt").gt(marker),
+                        new Criteria().andOperator(Criteria.where("updatedAt").is(marker), Criteria.where("_id").gt(after.id()))
+                    )
+                );
+            } else {
+                clauses.add(Criteria.where("_id").gt(after.id()));
+            }
+        }
+
+        if (!clauses.isEmpty()) {
+            mongoCriteria = mongoCriteria.andOperator(clauses.toArray(new Criteria[0]));
+        }
+
+        Sort sort = sortByUpdatedAt ? Sort.by(Sort.Order.asc("updatedAt"), Sort.Order.asc("_id")) : Sort.by(Sort.Order.asc("_id"));
+        Query query = new Query(mongoCriteria).with(sort).limit(pageSize);
+
+        return mongoTemplate.find(query, SubscriptionMongo.class);
     }
 
     @Override

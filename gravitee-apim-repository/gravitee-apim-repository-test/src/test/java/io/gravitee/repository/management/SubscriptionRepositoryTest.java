@@ -30,6 +30,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.api.search.SubscriptionCursor;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Subscription;
@@ -294,8 +295,27 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     public void shouldFindBeforeToDate() throws TechnicalException {
         List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder().to(1569022010883L).build());
 
-        assertEquals("Subscriptions size", 1, subscriptions.size());
-        assertEquals("Subscription id", "sub1", subscriptions.getFirst().getId());
+        assertEquals("Subscriptions size", 13, subscriptions.size());
+        Set<String> subscriptionIds = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
+        assertTrue(subscriptionIds.contains("sub1"));
+        assertTrue(
+            subscriptionIds.containsAll(
+                List.of(
+                    "sub-sa-1",
+                    "sub-sa-2a",
+                    "sub-sa-2b",
+                    "sub-sa-3-a",
+                    "sub-sa-3-b",
+                    "sub-sa-3-c",
+                    "sub-sa-3-d",
+                    "sub-sa-3-e",
+                    "sub-sa-4-a",
+                    "sub-sa-4-b",
+                    "sub-sa-4-c",
+                    "sub-sa-4-d"
+                )
+            )
+        );
     }
 
     @Test
@@ -353,12 +373,32 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
             SubscriptionCriteria.builder().endingAtAfter(1449022010880L).includeWithoutEnd(true).build()
         );
 
-        assertEquals("Subscriptions size", 9, subscriptions.size());
+        assertEquals("Subscriptions size", 21, subscriptions.size());
         assertTrue(
             "Subscription id",
-            List.of("sub3", "sub2", "sub5", "sub4", "sub1", "sub6", "sub7", "sub8", "sub-legacy-push").containsAll(
-                subscriptions.stream().map(Subscription::getId).toList()
-            )
+            List.of(
+                "sub3",
+                "sub2",
+                "sub5",
+                "sub4",
+                "sub1",
+                "sub6",
+                "sub7",
+                "sub8",
+                "sub-legacy-push",
+                "sub-sa-1",
+                "sub-sa-2a",
+                "sub-sa-2b",
+                "sub-sa-3-a",
+                "sub-sa-3-b",
+                "sub-sa-3-c",
+                "sub-sa-3-d",
+                "sub-sa-3-e",
+                "sub-sa-4-a",
+                "sub-sa-4-b",
+                "sub-sa-4-c",
+                "sub-sa-4-d"
+            ).containsAll(subscriptions.stream().map(Subscription::getId).toList())
         );
     }
 
@@ -381,7 +421,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
             SubscriptionCriteria.builder().endingAtBefore(1569022010883L).includeWithoutEnd(true).build()
         );
 
-        assertEquals("Subscriptions size", 11, subscriptions.size());
+        assertEquals("Subscriptions size", 23, subscriptions.size());
         Set<String> subscriptionIds = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
         assertTrue(
             "Should contain expected subscriptions",
@@ -708,5 +748,246 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         Set<String> sortedIds = sorted.stream().map(Subscription::getId).collect(Collectors.toSet());
         Set<String> unorderedIds = unordered.stream().map(Subscription::getId).collect(Collectors.toSet());
         assertEquals("Subscription id set", sortedIds, unorderedIds);
+    }
+
+    @Test
+    public void searchAfter_shouldReturnSingleSubscriptionForEnvironment() throws TechnicalException {
+        List<Subscription> page = subscriptionRepository.searchAfter(
+            SubscriptionCriteria.builder().environments(singleton("env-sa-1")).build(),
+            new SortableBuilder().field("updatedAt").order(Order.ASC).build(),
+            null,
+            10
+        );
+
+        assertNotNull(page);
+        assertEquals(1, page.size());
+        assertEquals("sub-sa-1", page.getFirst().getId());
+    }
+
+    @Test
+    public void searchAfter_shouldPaginateByIdWithPlansFilter() throws TechnicalException {
+        SubscriptionCriteria criteria = SubscriptionCriteria.builder().plans(List.of("plan3")).build();
+        var sortable = new SortableBuilder().field("id").order(Order.ASC).build();
+
+        Set<String> collected = new java.util.LinkedHashSet<>();
+        SubscriptionCursor cursor = null;
+        int pageSize = 2;
+        int guard = 10;
+        while (guard-- > 0) {
+            List<Subscription> page = subscriptionRepository.searchAfter(criteria, sortable, cursor, pageSize);
+            if (page.isEmpty()) {
+                break;
+            }
+            for (Subscription s : page) {
+                assertTrue("Duplicate id across pages: " + s.getId(), collected.add(s.getId()));
+            }
+            Subscription last = page.getLast();
+            cursor = SubscriptionCursor.byId(last.getId());
+            if (page.size() < pageSize) {
+                break;
+            }
+        }
+
+        assertEquals(
+            "plan3 subs returned exactly — no leak from unrelated plans",
+            Set.of("sub-legacy-push", "sub2", "sub3", "sub6", "sub7", "sub8"),
+            collected
+        );
+    }
+
+    @Test
+    public void searchAfter_shouldHonourEndingAtAfterWithIncludeWithoutEnd() throws TechnicalException {
+        // Warmup criteria — initial sync filter uses endingAtAfter(now) + includeWithoutEnd(true)
+        // to load subs that are active OR have no expiry. searchAfter's net-new criteria support
+        // must produce the same set as the legacy search() for this exact shape.
+        SubscriptionCriteria criteria = SubscriptionCriteria.builder()
+            .plans(List.of("plan-sa"))
+            .endingAtAfter(2500L)
+            .includeWithoutEnd(true)
+            .build();
+        var sortable = new SortableBuilder().field("id").order(Order.ASC).build();
+
+        Set<String> viaSearchAfter = new java.util.LinkedHashSet<>();
+        SubscriptionCursor cursor = null;
+        int pageSize = 50;
+        int guard = 20;
+        while (guard-- > 0) {
+            List<Subscription> page = subscriptionRepository.searchAfter(criteria, sortable, cursor, pageSize);
+            if (page.isEmpty()) {
+                break;
+            }
+            page.forEach(s -> viaSearchAfter.add(s.getId()));
+            cursor = SubscriptionCursor.byId(page.getLast().getId());
+            if (page.size() < pageSize) {
+                break;
+            }
+        }
+
+        Set<String> viaLegacySearch = subscriptionRepository.search(criteria).stream().map(Subscription::getId).collect(Collectors.toSet());
+
+        assertEquals(
+            "searchAfter and legacy search() must return identical set for endingAtAfter+includeWithoutEnd",
+            viaLegacySearch,
+            viaSearchAfter
+        );
+    }
+
+    @Test
+    public void searchAfter_shouldRejectUnsupportedCriteria() {
+        var sortable = new SortableBuilder().field("updatedAt").order(Order.ASC).build();
+
+        // planSecurityTypes rejected
+        SubscriptionCriteria withPlanSecurity = SubscriptionCriteria.builder().planSecurityTypes(List.of(API_KEY.name())).build();
+        try {
+            subscriptionRepository.searchAfter(withPlanSecurity, sortable, null, 10);
+            fail("Expected TechnicalException for planSecurityTypes");
+        } catch (TechnicalException expected) {
+            assertTrue(expected.getMessage().toLowerCase().contains("planscuritytypes".replace("scur", "secur")));
+        }
+
+        // excludedApis rejected
+        SubscriptionCriteria withExcludedApis = SubscriptionCriteria.builder().excludedApis(List.of("api-1")).build();
+        try {
+            subscriptionRepository.searchAfter(withExcludedApis, sortable, null, 10);
+            fail("Expected TechnicalException for excludedApis");
+        } catch (TechnicalException expected) {
+            assertTrue(expected.getMessage().toLowerCase().contains("excludedapis"));
+        }
+    }
+
+    @Test
+    public void searchAfter_shouldReturnEmptyWhenNoMatch() throws TechnicalException {
+        List<Subscription> page = subscriptionRepository.searchAfter(
+            SubscriptionCriteria.builder().environments(singleton("env-sa-empty")).build(),
+            new SortableBuilder().field("updatedAt").order(Order.ASC).build(),
+            null,
+            10
+        );
+
+        assertNotNull(page);
+        assertTrue(page.isEmpty());
+    }
+
+    @Test
+    public void searchAfter_shouldTerminateOnExactMultipleOfPageSize() throws TechnicalException {
+        SubscriptionCriteria criteria = SubscriptionCriteria.builder().environments(singleton("env-sa-4")).build();
+        var sortable = new SortableBuilder().field("updatedAt").order(Order.ASC).build();
+        int pageSize = 2;
+
+        List<Subscription> page1 = subscriptionRepository.searchAfter(criteria, sortable, null, pageSize);
+        assertEquals(2, page1.size());
+
+        Subscription last = page1.getLast();
+        List<Subscription> page2 = subscriptionRepository.searchAfter(
+            criteria,
+            sortable,
+            SubscriptionCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()),
+            pageSize
+        );
+        assertEquals(2, page2.size());
+
+        last = page2.getLast();
+        List<Subscription> page3 = subscriptionRepository.searchAfter(
+            criteria,
+            sortable,
+            SubscriptionCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()),
+            pageSize
+        );
+        assertTrue("Page after exact-multiple total must be empty", page3.isEmpty());
+    }
+
+    @Test
+    public void searchAfter_shouldNotSkipOrDuplicateAcrossSameMsBoundary() throws TechnicalException {
+        SubscriptionCriteria criteria = SubscriptionCriteria.builder().environments(singleton("env-sa-3")).build();
+        var sortable = new SortableBuilder().field("updatedAt").order(Order.ASC).build();
+
+        Set<String> collected = new java.util.LinkedHashSet<>();
+        SubscriptionCursor cursor = null;
+        int pageSize = 2;
+        int guard = 10;
+        while (guard-- > 0) {
+            List<Subscription> page = subscriptionRepository.searchAfter(criteria, sortable, cursor, pageSize);
+            if (page.isEmpty()) {
+                break;
+            }
+            for (Subscription s : page) {
+                assertTrue("Duplicate id across pages: " + s.getId(), collected.add(s.getId()));
+            }
+            Subscription last = page.getLast();
+            cursor = SubscriptionCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId());
+            if (page.size() < pageSize) {
+                break;
+            }
+        }
+
+        assertEquals(
+            "All 5 same-ms subs returned exactly once",
+            Set.of("sub-sa-3-a", "sub-sa-3-b", "sub-sa-3-c", "sub-sa-3-d", "sub-sa-3-e"),
+            collected
+        );
+    }
+
+    @Test
+    public void searchAfter_shouldReturnCompleteMetadataAndNotShortPageDueToJoin() throws TechnicalException {
+        // Regression: SQL `LIMIT` applied to a JOIN of subscriptions + metadata would consume
+        // metadata rows against the page budget. With pageSize=2 and two subs (3 + 2 metadata rows),
+        // a naive LIMIT 2 on the join returns only the first sub with partial metadata. The page
+        // must contain exactly the two subscriptions with their complete metadata maps.
+        SubscriptionCriteria criteria = SubscriptionCriteria.builder().environments(singleton("env-sa-2")).build();
+        var sortable = new SortableBuilder().field("updatedAt").order(Order.ASC).build();
+
+        List<Subscription> page = subscriptionRepository.searchAfter(criteria, sortable, null, 2);
+        assertEquals(2, page.size());
+        Subscription a = page
+            .stream()
+            .filter(s -> "sub-sa-2a".equals(s.getId()))
+            .findFirst()
+            .orElseThrow();
+        Subscription b = page
+            .stream()
+            .filter(s -> "sub-sa-2b".equals(s.getId()))
+            .findFirst()
+            .orElseThrow();
+        assertEquals(java.util.Map.of("k1", "v1", "k2", "v2", "k3", "v3"), a.getMetadata());
+        assertEquals(java.util.Map.of("kA", "vA", "kB", "vB"), b.getMetadata());
+
+        // Short page contract: next call past last sub returns empty
+        Subscription last = page.getLast();
+        List<Subscription> next = subscriptionRepository.searchAfter(
+            criteria,
+            sortable,
+            SubscriptionCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()),
+            2
+        );
+        assertTrue(next.isEmpty());
+    }
+
+    @Test
+    public void searchAfter_shouldAdvanceSubscriptionCursorAcrossPagesAndTerminate() throws TechnicalException {
+        SubscriptionCriteria criteria = SubscriptionCriteria.builder().environments(singleton("env-sa-2")).build();
+        var sortable = new SortableBuilder().field("updatedAt").order(Order.ASC).build();
+
+        List<Subscription> page1 = subscriptionRepository.searchAfter(criteria, sortable, null, 1);
+        assertEquals(1, page1.size());
+        assertEquals("sub-sa-2a", page1.getFirst().getId());
+
+        Subscription last = page1.getFirst();
+        List<Subscription> page2 = subscriptionRepository.searchAfter(
+            criteria,
+            sortable,
+            SubscriptionCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()),
+            1
+        );
+        assertEquals(1, page2.size());
+        assertEquals("sub-sa-2b", page2.getFirst().getId());
+
+        last = page2.getFirst();
+        List<Subscription> page3 = subscriptionRepository.searchAfter(
+            criteria,
+            sortable,
+            SubscriptionCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()),
+            1
+        );
+        assertTrue(page3.isEmpty());
     }
 }

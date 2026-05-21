@@ -22,6 +22,7 @@ import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.api.search.SubscriptionCursor;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
@@ -71,6 +72,30 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
     @Override
     public List<Subscription> searchUnordered(final SubscriptionCriteria criteria) throws TechnicalException {
         return mapper.mapSubscriptions(internalSubscriptionRepository.searchUnordered(criteria));
+    }
+
+    @Override
+    public List<Subscription> searchAfter(SubscriptionCriteria criteria, Sortable sortable, SubscriptionCursor after, int pageSize)
+        throws TechnicalException {
+        if (
+            (criteria.getPlanSecurityTypes() != null && !criteria.getPlanSecurityTypes().isEmpty()) ||
+            (criteria.getExcludedApis() != null && !criteria.getExcludedApis().isEmpty())
+        ) {
+            throw new TechnicalException("searchAfter does not support planSecurityTypes or excludedApis filters; use search() instead");
+        }
+        boolean sortByUpdatedAt = resolveSortByUpdatedAt(sortable);
+        return mapper.mapSubscriptions(internalSubscriptionRepository.searchAfter(criteria, after, pageSize, sortByUpdatedAt));
+    }
+
+    private static boolean resolveSortByUpdatedAt(Sortable sortable) throws TechnicalException {
+        if (sortable == null || sortable.field() == null) {
+            return true;
+        }
+        return switch (sortable.field()) {
+            case "updatedAt" -> true;
+            case "id" -> false;
+            default -> throw new TechnicalException("searchAfter supports sort field 'updatedAt' or 'id' only, got: " + sortable.field());
+        };
     }
 
     @Override
