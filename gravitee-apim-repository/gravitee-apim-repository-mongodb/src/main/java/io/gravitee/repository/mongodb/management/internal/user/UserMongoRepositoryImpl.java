@@ -21,6 +21,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
+import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -39,6 +40,9 @@ public class UserMongoRepositoryImpl implements UserMongoRepositoryCustom {
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Autowired
+    private MongoQueries mongoQueries;
 
     @Override
     public Page<UserMongo> search(UserCriteria criteria, Pageable pageable) {
@@ -64,7 +68,7 @@ public class UserMongoRepositoryImpl implements UserMongoRepositoryCustom {
         */
         query.with(Sort.by(Sort.Direction.ASC, "_id"));
 
-        long total = mongoTemplate.count(query, UserMongo.class);
+        long total = mongoQueries.countOrTimeout(mongoTemplate, query, UserMongo.class);
 
         if (pageable != null) {
             query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));

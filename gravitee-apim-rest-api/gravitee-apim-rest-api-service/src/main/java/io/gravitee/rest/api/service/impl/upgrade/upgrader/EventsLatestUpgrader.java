@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.infra.repository.PageUtils;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.node.api.upgrader.UpgraderException;
@@ -99,27 +100,11 @@ public class EventsLatestUpgrader implements Upgrader {
         modelCounter = 0;
         eventsForModelCounter = 0;
         List<ApiCriteria> emptyCriteria = List.of();
-        Page<String> firstPage = this.apiRepository.searchIds(
-            emptyCriteria,
-            new PageableBuilder().pageNumber(0).pageSize(BULK_SIZE).build(),
-            null
+        PageUtils.forEachPage(
+            pageable -> apiRepository.searchIds(emptyCriteria, pageable, null),
+            BULK_SIZE,
+            page -> migrateEvents(Event.EventProperties.API_ID.getValue(), page.getContent())
         );
-        if (firstPage != null && firstPage.getContent() != null) {
-            migrateEvents(Event.EventProperties.API_ID.getValue(), firstPage.getContent());
-
-            // Cover others pages if required
-            if (firstPage.getTotalElements() > firstPage.getPageElements()) {
-                long pageNumber = (int) Math.ceil((double) firstPage.getTotalElements() / BULK_SIZE);
-                for (int pageIdx = 1; pageIdx < pageNumber; pageIdx++) {
-                    Page<String> nextPage = this.apiRepository.searchIds(
-                        emptyCriteria,
-                        new PageableBuilder().pageNumber(pageIdx).pageSize(BULK_SIZE).build(),
-                        null
-                    );
-                    migrateEvents(Event.EventProperties.API_ID.getValue(), nextPage.getContent());
-                }
-            }
-        }
         log.info("{} events regarding {} APIs have been migrated", eventsForModelCounter, modelCounter);
     }
 

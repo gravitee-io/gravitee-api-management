@@ -66,10 +66,11 @@
     @if (pagination().totalPages > 4 && pagination().currentPage <= pagination().totalPages - 3) {
       <span class="m3-body-medium" aria-hidden="true">...</span>
     }
-
-    <button mat-button (click)="goToPage(pagination().totalPages)" [attr.aria-label]="'Go to page ' + pagination().totalPages">
-      {{ pagination().totalPages }}
-    </button>
+    @if (pagination().isTotalKnown) {
+      <button mat-button (click)="goToPage(pagination().totalPages)" [attr.aria-label]="'Go to page ' + pagination().totalPages">
+        {{ pagination().totalPages }}
+      </button>
+    }
   }
 
   <button

@@ -282,10 +282,12 @@ public class EventsLatestUpgraderTest {
 
     @Test
     public void should_create_latest_events_from_existing_apis_with_multiple_pages() throws TechnicalException, UpgraderException {
-        // Prepare pages
+        // Prepare 4 full pages of 100 APIs each plus a final partial page of 50 (totalling 450).
+        // The partial last page signals "no more data" — the upgrader can't rely on totalElements anymore
+        // because the repository may now return -1 if the count timed out (APIM-14093).
         Map<Integer, List<String>> pageMapping = new HashMap<>();
         int index = 0;
-        for (int i = 1; i <= 5; i++) {
+        for (int i = 1; i <= 4; i++) {
             List<String> apis = new ArrayList<>();
             for (int j = 0; j < 100; j++) {
                 apis.add("api" + index);
@@ -293,15 +295,22 @@ public class EventsLatestUpgraderTest {
             }
             pageMapping.put(i, apis);
         }
+        List<String> lastPage = new ArrayList<>();
+        for (int j = 0; j < 50; j++) {
+            lastPage.add("api" + index);
+            index++;
+        }
+        pageMapping.put(5, lastPage);
+        int total = 450;
 
         when(apiRepository.searchIds(eq(List.of()), any(), eq(null)))
-            .thenReturn(new Page<>(pageMapping.get(1), 0, 100, 500))
-            .thenReturn(new Page<>(pageMapping.get(2), 1, 100, 500))
-            .thenReturn(new Page<>(pageMapping.get(3), 2, 100, 500))
-            .thenReturn(new Page<>(pageMapping.get(4), 3, 100, 500))
-            .thenReturn(new Page<>(pageMapping.get(5), 4, 100, 500));
+            .thenReturn(new Page<>(pageMapping.get(1), 0, 100, total))
+            .thenReturn(new Page<>(pageMapping.get(2), 1, 100, total))
+            .thenReturn(new Page<>(pageMapping.get(3), 2, 100, total))
+            .thenReturn(new Page<>(pageMapping.get(4), 3, 100, total))
+            .thenReturn(new Page<>(pageMapping.get(5), 4, 50, total));
 
-        for (int i = 0; i < 500; i++) {
+        for (int i = 0; i < total; i++) {
             Event event = new Event();
             when(
                 eventRepository.search(
@@ -313,7 +322,7 @@ public class EventsLatestUpgraderTest {
         }
         cut.upgrade();
 
-        verify(eventLatestRepository, times(500)).createOrUpdate(any());
+        verify(eventLatestRepository, times(total)).createOrUpdate(any());
     }
 
     @Test

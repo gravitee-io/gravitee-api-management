@@ -20,6 +20,7 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.ClusterCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.ClusterMongo;
+import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -35,6 +36,9 @@ public class ClusterMongoRepositoryImpl implements ClusterMongoRepositoryCustom 
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Autowired
+    private MongoQueries mongoQueries;
 
     @Override
     public Page<ClusterMongo> search(ClusterCriteria criteria, PageRequest pageRequest) {
@@ -59,7 +63,7 @@ public class ClusterMongoRepositoryImpl implements ClusterMongoRepositoryCustom 
             );
         }
 
-        final long total = mongoTemplate.count(query, ClusterMongo.class);
+        final long total = mongoQueries.countOrTimeout(mongoTemplate, query, ClusterMongo.class);
         if (total == 0) {
             return new Page<>(List.of(), pageRequest.getPageNumber(), pageRequest.getPageSize(), 0);
         }
