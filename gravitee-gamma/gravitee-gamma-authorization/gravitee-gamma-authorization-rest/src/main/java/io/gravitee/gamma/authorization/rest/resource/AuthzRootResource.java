@@ -24,11 +24,6 @@ public class AuthzRootResource {
     @Context
     private ResourceContext resourceContext;
 
-    @Path("/health")
-    public HealthResource health() {
-        return resourceContext.getResource(HealthResource.class);
-    }
-
     @Path("/environments/{environmentId}/entities")
     public AuthzEntitiesResource entities() {
         return resourceContext.getResource(AuthzEntitiesResource.class);
