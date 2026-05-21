@@ -28,6 +28,17 @@ import java.util.Optional;
 public interface AuthzEntityRepository {
     AuthzEntity save(AuthzEntity entity);
 
+    default List<AuthzEntity> saveAll(Collection<AuthzEntity> entities) {
+        if (entities == null || entities.isEmpty()) {
+            return List.of();
+        }
+        List<AuthzEntity> saved = new java.util.ArrayList<>(entities.size());
+        for (AuthzEntity entity : entities) {
+            saved.add(save(entity));
+        }
+        return saved;
+    }
+
     Optional<AuthzEntity> findById(String environmentId, String id);
 
     Optional<AuthzEntity> findByEntityId(String environmentId, String entityId);

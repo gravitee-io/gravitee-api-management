@@ -48,12 +48,14 @@ import org.springframework.data.mongodb.core.MongoOperations;
 public class AuthorizationConfig {
 
     @Bean
-    public AuthzEntityRepository authzEntityRepository(@Qualifier("managementMongoTemplate") MongoOperations mongoOperations) {
+    @Lazy
+    public AuthzEntityRepository authzEntityRepository(@Lazy @Qualifier("managementMongoTemplate") MongoOperations mongoOperations) {
         return new MongoAuthzEntityRepository(mongoOperations);
     }
 
     @Bean
-    public AuthzPolicyRepository authzPolicyRepository(@Qualifier("managementMongoTemplate") MongoOperations mongoOperations) {
+    @Lazy
+    public AuthzPolicyRepository authzPolicyRepository(@Lazy @Qualifier("managementMongoTemplate") MongoOperations mongoOperations) {
         return new MongoAuthzPolicyRepository(mongoOperations);
     }
 
