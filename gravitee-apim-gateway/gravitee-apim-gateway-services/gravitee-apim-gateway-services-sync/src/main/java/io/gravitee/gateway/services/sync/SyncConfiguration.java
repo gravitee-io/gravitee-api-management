@@ -168,9 +168,10 @@ public class SyncConfiguration {
     public SubscriptionAppender subscriptionAppender(
         SubscriptionRepository subscriptionRepository,
         SubscriptionMapper subscriptionMapper,
-        ApiProductRegistry apiProductRegistry
+        ApiProductRegistry apiProductRegistry,
+        @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems
     ) {
-        return new SubscriptionAppender(subscriptionRepository, subscriptionMapper, apiProductRegistry);
+        return new SubscriptionAppender(subscriptionRepository, subscriptionMapper, apiProductRegistry, bulkItems);
     }
 
     @Bean

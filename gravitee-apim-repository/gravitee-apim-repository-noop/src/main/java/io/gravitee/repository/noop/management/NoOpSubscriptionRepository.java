@@ -23,6 +23,7 @@ import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.api.search.SubscriptionCursor;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
@@ -54,6 +55,12 @@ public class NoOpSubscriptionRepository extends AbstractNoOpManagementRepository
 
     @Override
     public List<Subscription> searchUnordered(SubscriptionCriteria criteria) throws TechnicalException {
+        return List.of();
+    }
+
+    @Override
+    public List<Subscription> searchAfter(SubscriptionCriteria criteria, Sortable sortable, SubscriptionCursor after, int pageSize)
+        throws TechnicalException {
         return List.of();
     }
 

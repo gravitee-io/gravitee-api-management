@@ -149,6 +149,96 @@ class SubscriptionSynchronizerTest {
         }
 
         @Test
+        void should_deploy_each_subscription_exactly_once_across_multiple_pages() throws InterruptedException {
+            io.gravitee.repository.management.model.Subscription a = subscription("sub-a");
+            io.gravitee.repository.management.model.Subscription b = subscription("sub-b");
+            io.gravitee.repository.management.model.Subscription c = subscription("sub-c");
+            planCache.register(ApiReactorDeployable.builder().apiId("api").subscribablePlans(Set.of("plan")).build());
+
+            when(subscriptionFetcher.fetchLatest(any(), any(), any())).thenReturn(Flowable.just(List.of(a, b), List.of(c)));
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+
+            verify(subscriptionDeployer, org.mockito.Mockito.times(3)).deploy(any());
+            verify(subscriptionDeployer, org.mockito.Mockito.times(3)).doAfterDeployment(any());
+        }
+
+        private io.gravitee.repository.management.model.Subscription subscription(String id) {
+            io.gravitee.repository.management.model.Subscription s = new io.gravitee.repository.management.model.Subscription();
+            s.setId(id);
+            s.setApi("api");
+            s.setPlan("plan");
+            s.setStatus(io.gravitee.repository.management.model.Subscription.Status.ACCEPTED);
+            return s;
+        }
+
+        @Test
+        void should_deploy_all_subscriptions_when_real_fetcher_streams_same_ms_pages_via_repository()
+            throws InterruptedException, io.gravitee.repository.exceptions.TechnicalException {
+            // Wire the real SubscriptionFetcher against a stubbed SubscriptionRepository so the
+            // cursor-advance code in the fetcher is exercised through the full synchronizer chain.
+            // Scenario: 5 subs sharing the same updatedAt across 3 pages (2,2,1) — boundary cursor
+            // semantics must not drop any sub at the page boundary.
+            io.gravitee.repository.management.api.SubscriptionRepository repo = mock(
+                io.gravitee.repository.management.api.SubscriptionRepository.class
+            );
+            int bulkItems = 2;
+            io.gravitee.gateway.services.sync.process.repository.fetcher.SubscriptionFetcher realFetcher =
+                new io.gravitee.gateway.services.sync.process.repository.fetcher.SubscriptionFetcher(repo, bulkItems);
+
+            SubscriptionSynchronizer realCut = new SubscriptionSynchronizer(
+                realFetcher,
+                new SubscriptionMapper(objectMapper, mock(ApiProductRegistry.class)),
+                deployerFactory,
+                planCache,
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+                new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
+            );
+
+            long sameMs = 7777L;
+            io.gravitee.repository.management.model.Subscription a = sub("sub-a", sameMs);
+            io.gravitee.repository.management.model.Subscription b = sub("sub-b", sameMs);
+            io.gravitee.repository.management.model.Subscription c = sub("sub-c", sameMs);
+            io.gravitee.repository.management.model.Subscription d = sub("sub-d", sameMs);
+            io.gravitee.repository.management.model.Subscription e = sub("sub-e", sameMs);
+            planCache.register(ApiReactorDeployable.builder().apiId("api").subscribablePlans(Set.of("plan")).build());
+
+            // Page 1: cursor = null, return a + b
+            when(
+                repo.searchAfter(any(), any(), org.mockito.ArgumentMatchers.isNull(), org.mockito.ArgumentMatchers.eq(bulkItems))
+            ).thenReturn(List.of(a, b));
+            // Page 2: cursor at b's (updatedAt, id), return c + d
+            when(
+                repo.searchAfter(
+                    any(),
+                    any(),
+                    org.mockito.ArgumentMatchers.argThat(cursor -> cursor != null && "sub-b".equals(cursor.id())),
+                    org.mockito.ArgumentMatchers.eq(bulkItems)
+                )
+            ).thenReturn(List.of(c, d));
+            // Page 3 (short): cursor at d, return only e
+            when(
+                repo.searchAfter(
+                    any(),
+                    any(),
+                    org.mockito.ArgumentMatchers.argThat(cursor -> cursor != null && "sub-d".equals(cursor.id())),
+                    org.mockito.ArgumentMatchers.eq(bulkItems)
+                )
+            ).thenReturn(List.of(e));
+
+            realCut.synchronize(1L, 2L, Set.of("env")).test().await().assertComplete();
+
+            // Every sub deployed exactly once — no skip, no duplicate across the same-ms boundary
+            verify(subscriptionDeployer, org.mockito.Mockito.times(5)).deploy(any());
+            verify(subscriptionDeployer, org.mockito.Mockito.times(5)).doAfterDeployment(any());
+        }
+
+        private io.gravitee.repository.management.model.Subscription sub(String id, long updatedAtMs) {
+            io.gravitee.repository.management.model.Subscription s = subscription(id);
+            s.setUpdatedAt(new java.util.Date(updatedAtMs));
+            return s;
+        }
+
+        @Test
         void should_undeploy_subscriptions_when_fetching_inactive_api_keys() throws InterruptedException {
             io.gravitee.repository.management.model.Subscription subscription = new io.gravitee.repository.management.model.Subscription();
             subscription.setId("subscription");
