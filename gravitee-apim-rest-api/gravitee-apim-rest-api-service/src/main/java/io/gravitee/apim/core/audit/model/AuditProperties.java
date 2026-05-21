@@ -46,4 +46,6 @@ public enum AuditProperties {
     CLUSTER,
     API_PRODUCT,
     CLIENT_CERTIFICATE,
+    AUTHORIZATION_POLICY,
+    AUTHORIZATION_ENTITY,
 }
