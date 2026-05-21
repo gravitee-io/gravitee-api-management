@@ -17,9 +17,12 @@ package inmemory;
 
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.subscription.model.ExpiringSubscription;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
+import io.gravitee.rest.api.model.SubscriptionStatus;
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,6 +54,16 @@ public class SubscriptionQueryServiceInMemory implements SubscriptionQueryServic
 
     public void setPlanCrudService(PlanCrudService planCrudService) {
         this.planCrudService = planCrudService;
+    }
+
+    @Override
+    public List<ExpiringSubscription> findExpiringSubscriptions(
+        Instant now,
+        List<Integer> daysBuckets,
+        long windowMs,
+        List<SubscriptionStatus> statuses
+    ) {
+        return List.of();
     }
 
     @Override
