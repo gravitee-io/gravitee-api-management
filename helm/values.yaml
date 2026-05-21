@@ -846,6 +846,8 @@ api:
 #      cron: "0 1 * * * *"
 #      retention:
 #        days: 365
+#      cleanup:
+#        batchSize: 1000
   http:
     services:
       core:

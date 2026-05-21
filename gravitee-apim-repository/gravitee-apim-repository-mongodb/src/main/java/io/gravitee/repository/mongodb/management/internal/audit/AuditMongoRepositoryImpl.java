@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management.internal.audit;
 
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
+import com.mongodb.client.result.DeleteResult;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.AuditCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -24,7 +25,9 @@ import io.gravitee.repository.mongodb.management.internal.model.AuditMongo;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -35,10 +38,14 @@ import org.springframework.data.mongodb.core.query.Query;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class AuditMongoRepositoryImpl implements AuditMongoRepositoryCustom {
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Value("${services.audit.cleanup.batchSize:1000}")
+    private int batchSize;
 
     @Override
     public Page<AuditMongo> search(AuditCriteria filter, Pageable pageable) {
@@ -89,6 +96,28 @@ public class AuditMongoRepositoryImpl implements AuditMongoRepositoryCustom {
 
     public void deleteByEnvironmentIdAndAge(String environmentId, Instant limit) {
         var criteria = where("environmentId").is(environmentId).andOperator(where("createdAt").lt(Date.from(limit)));
-        mongoTemplate.remove(new Query(criteria), AuditMongo.class);
+        Query chunkQuery = new Query(criteria).limit(batchSize);
+        chunkQuery.fields().include("_id");
+
+        long totalDeleted = 0;
+        List<AuditMongo> chunk = mongoTemplate.find(chunkQuery, AuditMongo.class);
+        while (!chunk.isEmpty()) {
+            List<String> ids = chunk.stream().map(AuditMongo::getId).toList();
+            DeleteResult result = mongoTemplate.remove(new Query(where("_id").in(ids)), AuditMongo.class);
+            long deleted = result.getDeletedCount();
+            if (deleted == 0) {
+                log.warn(
+                    "Audit cleanup made no progress for environment {} after fetching {} candidates; aborting tick",
+                    environmentId,
+                    ids.size()
+                );
+                break;
+            }
+            totalDeleted += deleted;
+            chunk = mongoTemplate.find(chunkQuery, AuditMongo.class);
+        }
+        if (totalDeleted > 0) {
+            log.info("Cleaned {} audit docs for environment {}", totalDeleted, environmentId);
+        }
     }
 }
