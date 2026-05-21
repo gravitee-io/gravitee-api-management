@@ -3,6 +3,9 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.11.8
+- Expose `api.services.audit.cleanup.batchSize` to tune the page size used by the audit retention cleaner (defaults to `1000`).
+
 ### 4.11.5
 - Support Hazelcast as a distributed rate-limit backend (`ratelimit.type=hazelcast`). Renders `config/hazelcast-ratelimit.xml` with Kubernetes discovery, exposes a ClusterIP `-hz` Service for peer discovery, allows configuring the rate-limit Hazelcast port with `gateway.ratelimit.hazelcast.port`, and creates a ClusterRole/Binding granting the gateway ServiceAccount `get`/`list` on `endpoints`/`pods`/`nodes`/`services`.
 

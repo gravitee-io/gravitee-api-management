@@ -94,7 +94,11 @@ public class ScheduledAuditCleanerService extends AbstractService implements Run
                 environment.getId(),
                 environment.getOrganizationId()
             );
-            removeOldAuditDataUseCase.execute(new RemoveOldAuditDataUseCase.Input(environment.getId(), maxAge));
+            try {
+                removeOldAuditDataUseCase.execute(new RemoveOldAuditDataUseCase.Input(environment.getId(), maxAge));
+            } catch (Exception e) {
+                log.error("Audit cleanup failed for environment {} ({})", environment.getName(), environment.getId(), e);
+            }
         }
     }
 }

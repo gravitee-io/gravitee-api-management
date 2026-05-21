@@ -70,6 +70,24 @@ tests:
             \s   retention:
             \s     days: 90
 
+  - it: Enable audit cleaner service with custom cleanup batchSize
+    template: api/api-configmap.yaml
+    set:
+      api:
+        services:
+          audit:
+            enabled: true
+            cleanup:
+              batchSize: 500
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \s audit:
+            \s   cleanup:
+            \s     batchSize: 500
+            \s   enabled: true
+
   - it: Does not render audit section when disabled
     template: api/api-configmap.yaml
     set:
