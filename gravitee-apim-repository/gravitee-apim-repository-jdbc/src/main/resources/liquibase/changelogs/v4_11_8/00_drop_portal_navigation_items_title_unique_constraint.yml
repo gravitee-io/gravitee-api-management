@@ -1,7 +1,9 @@
 databaseChangeLog:
+  # PostgreSQL: dropUniqueConstraint with uniqueConstraintExists works.
   - changeSet:
       id: 4.11.8_00_drop_portal_navigation_items_title_unique_constraint
       author: GraviteeSource Team
+      dbms: postgresql
       preConditions:
         - onFail: MARK_RAN
         - uniqueConstraintExists:
@@ -11,3 +13,31 @@ databaseChangeLog:
         - dropUniqueConstraint:
             constraintName: uk_${gravitee_prefix}portal_navigation_items_org_env_title
             tableName: ${gravitee_prefix}portal_navigation_items
+
+  # MySQL and MariaDB implement unique constraints as unique indexes; uniqueConstraintExists does not detect them.
+  - changeSet:
+      id: 4.11.8_01_drop_portal_navigation_items_title_unique_index_mysql
+      author: GraviteeSource Team
+      dbms: mysql, mariadb
+      preConditions:
+        - onFail: MARK_RAN
+        - indexExists:
+            indexName: uk_${gravitee_prefix}portal_navigation_items_org_env_title
+            tableName: ${gravitee_prefix}portal_navigation_items
+      changes:
+        - sql:
+            sql: ALTER TABLE `${gravitee_prefix}portal_navigation_items` DROP INDEX `uk_${gravitee_prefix}portal_navigation_items_org_env_title`
+
+  # SQL Server: Liquibase dropUniqueConstraint does not reliably drop the constraint; use explicit SQL.
+  - changeSet:
+      id: 4.11.8_02_drop_portal_navigation_items_title_unique_constraint_mssql
+      author: GraviteeSource Team
+      dbms: mssql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: 1
+            sql: SELECT COUNT(*) FROM sys.key_constraints WHERE name = 'uk_${gravitee_prefix}portal_navigation_items_org_env_title' AND parent_object_id = OBJECT_ID('${gravitee_prefix}portal_navigation_items')
+      changes:
+        - sql:
+            sql: ALTER TABLE ${gravitee_prefix}portal_navigation_items DROP CONSTRAINT uk_${gravitee_prefix}portal_navigation_items_org_env_title
