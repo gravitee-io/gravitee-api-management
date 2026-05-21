@@ -159,15 +159,12 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
                         criteria.add(where("crossId").is(apiCriteria.getCrossId()));
                     }
                     if (apiCriteria.getDefinitionVersion() != null && !apiCriteria.getDefinitionVersion().isEmpty()) {
-                        var lookingForV2 = apiCriteria.getDefinitionVersion().stream().anyMatch(DefinitionVersion.V2::equals);
-
-                        var definitionVersionCriteria = new ArrayList<Criteria>();
-                        definitionVersionCriteria.add(where("definitionVersion").in(apiCriteria.getDefinitionVersion()));
-                        if (lookingForV2) {
-                            // V2 are stored with a null value for DefinitionVersion
-                            definitionVersionCriteria.add(where("definitionVersion").isNull());
+                        var values = new ArrayList<DefinitionVersion>(apiCriteria.getDefinitionVersion());
+                        if (values.contains(DefinitionVersion.V2)) {
+                            // V2 APIs are stored with definitionVersion=null (or missing); $in matches both.
+                            values.add(null);
                         }
-                        criteria.add(new Criteria().orOperator(definitionVersionCriteria));
+                        criteria.add(where("definitionVersion").in(values));
                     }
                     if (apiCriteria.getIntegrationId() != null && !apiCriteria.getIntegrationId().isEmpty()) {
                         criteria.add(where("integrationId").is(apiCriteria.getIntegrationId()));
