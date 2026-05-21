@@ -43,6 +43,7 @@
             <groupId>io.gravitee.gamma.authorization</groupId>
             <artifactId>gravitee-gamma-authorization-core</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
