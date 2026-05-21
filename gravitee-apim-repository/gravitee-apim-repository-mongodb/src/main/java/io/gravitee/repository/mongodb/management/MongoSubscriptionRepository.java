@@ -69,6 +69,11 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
     }
 
     @Override
+    public List<Subscription> searchUnordered(final SubscriptionCriteria criteria) throws TechnicalException {
+        return mapper.mapSubscriptions(internalSubscriptionRepository.searchUnordered(criteria));
+    }
+
+    @Override
     public Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria, Order order) {
         return internalSubscriptionRepository.findReferenceIdsOrderByNumberOfSubscriptions(criteria, order);
     }

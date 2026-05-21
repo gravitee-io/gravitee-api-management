@@ -53,6 +53,11 @@ public class NoOpSubscriptionRepository extends AbstractNoOpManagementRepository
     }
 
     @Override
+    public List<Subscription> searchUnordered(SubscriptionCriteria criteria) throws TechnicalException {
+        return List.of();
+    }
+
+    @Override
     public List<Subscription> findByIdIn(Collection<String> ids) throws TechnicalException {
         return List.of();
     }

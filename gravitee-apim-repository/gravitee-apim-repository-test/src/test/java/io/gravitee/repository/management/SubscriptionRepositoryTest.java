@@ -695,4 +695,18 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         assertNotNull(subscription);
         assertFalse(subscription.isPresent());
     }
+
+    @Test
+    public void searchUnorderedShouldReturnSameSetAsSearch() throws TechnicalException {
+        SubscriptionCriteria criteria = SubscriptionCriteria.builder().applications(singleton("app1")).build();
+
+        List<Subscription> sorted = subscriptionRepository.search(criteria);
+        List<Subscription> unordered = subscriptionRepository.searchUnordered(criteria);
+
+        assertNotNull(unordered);
+        assertEquals("Subscriptions size", sorted.size(), unordered.size());
+        Set<String> sortedIds = sorted.stream().map(Subscription::getId).collect(Collectors.toSet());
+        Set<String> unorderedIds = unordered.stream().map(Subscription::getId).collect(Collectors.toSet());
+        assertEquals("Subscription id set", sortedIds, unorderedIds);
+    }
 }
