@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static io.gravitee.rest.api.service.impl.upgrade.upgrader.UpgraderOrder.INTEGRATION_PRIMARY_OWNER_UPGRADER;
 
+import io.gravitee.apim.infra.repository.PageUtils;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.node.api.upgrader.UpgraderException;
@@ -99,17 +100,11 @@ public class IntegrationPrimaryOwnerUpgrader implements Upgrader {
     private void setPrimaryOwnersForIntegrations(ExecutionContext executionContext) throws TechnicalException {
         log.info("Start to set primary owners for integrations");
 
-        int handledIntegrations = 0;
-        Page<Integration> integrationPage;
-        do {
-            integrationPage = integrationRepository.findAllByEnvironment(
-                executionContext.getEnvironmentId(),
-                new PageableBuilder().pageNumber(handledIntegrations / PAGE_SIZE).pageSize(PAGE_SIZE).build()
-            );
-            handledIntegrations += (int) integrationPage.getPageElements();
-
-            setPrimaryOwnersForIntegrations(integrationPage, executionContext);
-        } while (handledIntegrations < integrationPage.getTotalElements());
+        PageUtils.forEachPage(
+            pageable -> integrationRepository.findAllByEnvironment(executionContext.getEnvironmentId(), pageable),
+            PAGE_SIZE,
+            integrationPage -> setPrimaryOwnersForIntegrations(integrationPage, executionContext)
+        );
 
         log.info("Finish to set primary owners for integrations");
     }

@@ -26,6 +26,7 @@ interface PaginationVM {
   hasNextPage: boolean;
   currentPage: number;
   totalPages: number;
+  isTotalKnown: boolean;
 }
 
 @Component({
@@ -46,18 +47,20 @@ export class PaginationComponent {
   selectPageSize = output<number>();
 
   pagination: Signal<PaginationVM> = computed(() => {
-    const totalPages = Math.ceil(this.totalResults() / this.pageSize());
+    const isTotalKnown = this.totalResults() >= 0;
+    const totalPages = isTotalKnown ? Math.ceil(this.totalResults() / this.pageSize()) : 0;
 
     return {
       hasPreviousPage: this.currentPage() > 1,
-      hasNextPage: this.currentPage() < totalPages,
+      hasNextPage: isTotalKnown ? this.currentPage() < totalPages : true,
       currentPage: this.currentPage(),
       totalPages,
+      isTotalKnown,
     };
   });
 
   goToPage(page: number) {
-    if (page > 0 && page <= this.pagination().totalPages) {
+    if (page > 0 && (!this.pagination().isTotalKnown || page <= this.pagination().totalPages)) {
       this.selectPage.emit(page);
     }
   }
@@ -69,7 +72,7 @@ export class PaginationComponent {
   }
 
   goToNextPage() {
-    if (this.currentPage() < this.pagination().totalPages) {
+    if (!this.pagination().isTotalKnown || this.currentPage() < this.pagination().totalPages) {
       this.selectPage.emit(this.currentPage() + 1);
     }
   }

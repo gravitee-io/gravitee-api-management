@@ -33,7 +33,7 @@
       <mat-paginator
         class="gio-table-wrapper__header-bar__paginator"
         #paginatorTop
-        [length]="length"
+        [length]="effectiveLength"
         [pageSizeOptions]="paginationPageSizeOptions"
         [hidePageSize]="disablePageSize"
         [showFirstLastButtons]="true"
@@ -50,8 +50,8 @@
   <mat-paginator
     #paginatorBottom
     class="gio-table-wrapper__footer-bar__paginator"
-    [class.hidden]="length <= paginatorBottom.pageSize"
-    [length]="length"
+    [class.hidden]="length >= 0 && length <= paginatorBottom.pageSize"
+    [length]="effectiveLength"
     [hidePageSize]="true"
     [showFirstLastButtons]="true"
     aria-label="Select page"

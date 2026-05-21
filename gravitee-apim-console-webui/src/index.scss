@@ -698,3 +698,9 @@ body {
     font-family: 'Libre Franklin', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   }
 }
+
+/* Disable mat-paginator's "Last page" button when count timed out — emitted by gio-table-wrapper. */
+gio-table-wrapper.gio-unknown-length .mat-mdc-paginator-navigation-last {
+  opacity: 0.38;
+  pointer-events: none;
+}
