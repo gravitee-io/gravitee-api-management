@@ -92,6 +92,7 @@ public class UpdateNativeApiUseCase {
                 .categories(updateNativeApi.getCategories())
                 .groups(updateNativeApi.getGroups())
                 .disableMembershipNotifications(updateNativeApi.isDisableMembershipNotifications())
+                .allowMultiJwtOauth2Subscriptions(updateNativeApi.isAllowMultiJwtOauth2Subscriptions())
                 .apiDefinitionValue(
                     currentApi.getApiDefinitionValue() instanceof NativeApi nativeApi
                         ? nativeApi
