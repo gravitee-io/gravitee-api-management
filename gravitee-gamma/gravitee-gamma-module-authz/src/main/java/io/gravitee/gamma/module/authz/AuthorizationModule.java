@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.authorization.rest.spring;
+package io.gravitee.gamma.module.authz;
 
-import io.gravitee.gamma.authorization.config.AuthorizationConfig;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import io.gravitee.apim.plugin.gamma.api.GammaModule;
 
-@Configuration
-@Import({ AuthorizationConfig.class })
-public class GammaAuthzSpringConfiguration {}
+public class AuthorizationModule implements GammaModule {
+
+    @Override
+    public Class<?> restResource() {
+        return null;
+    }
+}
