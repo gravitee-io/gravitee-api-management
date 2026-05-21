@@ -46,6 +46,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-mongodb</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
             <groupId>io.gravitee.authorization</groupId>
             <artifactId>gravitee-authz-engine</artifactId>
             <version>1.0.0-alpha.7</version>

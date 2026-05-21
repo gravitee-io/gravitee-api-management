@@ -15,25 +15,15 @@
  */
 package io.gravitee.gamma.authorization.api;
 
-import io.gravitee.gamma.authorization.domain.Entity;
-import io.gravitee.gamma.authorization.domain.Policy;
+import io.gravitee.gamma.authorization.domain.AuthzEntity;
+import io.gravitee.gamma.authorization.domain.AuthzPolicy;
 
 public interface AuthzEventPublisher {
-    void publishPolicyDeployed(Policy policy);
+    void publishPolicyDeployed(AuthzPolicy policy);
 
-    /**
-     * Emits an UNPUBLISH event with full policy context so the gateway-side
-     * mapper can route the undeploy to the right registry bucket without
-     * falling back to a hard-coded {@code GLOBAL} kind.
-     */
-    void unpublishPolicy(Policy policy);
+    void unpublishPolicy(AuthzPolicy policy);
 
-    void publishEntityUpserted(Entity entity);
+    void publishEntityUpserted(AuthzEntity entity);
 
-    /**
-     * Emits an UNPUBLISH event with full entity context (incl. {@code kind})
-     * so the gateway-side mapper removes the entity from the right registry
-     * bucket without hard-coding {@code RESOURCE}.
-     */
-    void unpublishEntity(Entity entity);
+    void unpublishEntity(AuthzEntity entity);
 }

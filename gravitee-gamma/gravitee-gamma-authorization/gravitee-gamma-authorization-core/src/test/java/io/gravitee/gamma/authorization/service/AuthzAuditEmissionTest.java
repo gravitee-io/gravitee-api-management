@@ -23,17 +23,17 @@ import io.gravitee.gamma.authorization.api.AuthzAuditEntry;
 import io.gravitee.gamma.authorization.api.AuthzAuditReferenceKind;
 import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 import io.gravitee.gamma.authorization.api.AuthzEntityAuditEvent;
+import io.gravitee.gamma.authorization.api.AuthzEntityAuditSnapshot;
 import io.gravitee.gamma.authorization.api.AuthzEventPublisher;
 import io.gravitee.gamma.authorization.api.AuthzPolicyAuditEvent;
-import io.gravitee.gamma.authorization.api.EntityAuditSnapshot;
-import io.gravitee.gamma.authorization.api.PolicyAuditSnapshot;
+import io.gravitee.gamma.authorization.api.AuthzPolicyAuditSnapshot;
 import io.gravitee.gamma.authorization.audit.RecordingAuthzAuditPort;
-import io.gravitee.gamma.authorization.domain.Entity;
-import io.gravitee.gamma.authorization.domain.EntityKind;
-import io.gravitee.gamma.authorization.domain.Policy;
-import io.gravitee.gamma.authorization.domain.PolicyKind;
-import io.gravitee.gamma.authorization.repository.InMemoryEntityRepository;
-import io.gravitee.gamma.authorization.repository.InMemoryPolicyRepository;
+import io.gravitee.gamma.authorization.domain.AuthzEntity;
+import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
+import io.gravitee.gamma.authorization.domain.AuthzPolicy;
+import io.gravitee.gamma.authorization.domain.AuthzPolicyKind;
+import io.gravitee.gamma.authorization.repository.InMemoryAuthzEntityRepository;
+import io.gravitee.gamma.authorization.repository.InMemoryAuthzPolicyRepository;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -50,22 +50,22 @@ class AuthzAuditEmissionTest {
     private static final String ENV = "env-1";
     private static final AuthzCallerContext CALLER = AuthzCallerContext.ofUser("org-1", ENV, "alice");
 
-    private InMemoryPolicyRepository policyRepository;
-    private InMemoryEntityRepository entityRepository;
-    private PolicyServiceImpl policyService;
-    private EntityServiceImpl entityService;
+    private InMemoryAuthzPolicyRepository policyRepository;
+    private InMemoryAuthzEntityRepository entityRepository;
+    private AuthzPolicyServiceImpl policyService;
+    private AuthzEntityServiceImpl entityService;
     private RecordingAuthzAuditPort audit;
 
     @BeforeEach
     void setUp() {
         TimeProvider.overrideClock(Clock.fixed(FIXED, ZoneOffset.UTC));
-        policyRepository = new InMemoryPolicyRepository();
-        entityRepository = new InMemoryEntityRepository();
-        EntityIdValidator validator = new EntityIdValidator();
+        policyRepository = new InMemoryAuthzPolicyRepository();
+        entityRepository = new InMemoryAuthzEntityRepository();
+        AuthzEntityIdValidator validator = new AuthzEntityIdValidator();
         audit = new RecordingAuthzAuditPort();
-        SchemaServiceImpl schemaService = new SchemaServiceImpl(entityRepository, policyRepository);
-        policyService = new PolicyServiceImpl(policyRepository, validator, schemaService, mock(AuthzEventPublisher.class), audit);
-        entityService = new EntityServiceImpl(
+        AuthzSchemaServiceImpl schemaService = new AuthzSchemaServiceImpl(entityRepository, policyRepository);
+        policyService = new AuthzPolicyServiceImpl(policyRepository, validator, schemaService, mock(AuthzEventPublisher.class), audit);
+        entityService = new AuthzEntityServiceImpl(
             entityRepository,
             policyRepository,
             validator,
@@ -85,7 +85,10 @@ class AuthzAuditEmissionTest {
 
         @Test
         void create_emits_POLICY_CREATED_with_null_old_and_populated_new_snapshot() {
-            Policy created = policyService.create(CALLER, new CreatePolicyCommand(ENV, "global", PolicyKind.GLOBAL, null, "permit"));
+            AuthzPolicy created = policyService.create(
+                CALLER,
+                new CreateAuthzPolicyCommand(ENV, "global", AuthzPolicyKind.GLOBAL, null, "permit")
+            );
 
             assertThat(audit.entries()).hasSize(1);
             AuthzAuditEntry entry = audit.entries().get(0);
@@ -93,18 +96,21 @@ class AuthzAuditEmissionTest {
             assertThat(entry.referenceKind()).isEqualTo(AuthzAuditReferenceKind.POLICY);
             assertThat(entry.referenceId()).isEqualTo(created.id());
             assertThat(entry.oldSnapshot()).isNull();
-            assertThat(entry.newSnapshot()).isInstanceOf(PolicyAuditSnapshot.class);
-            assertThat(((PolicyAuditSnapshot) entry.newSnapshot()).id()).isEqualTo(created.id());
-            assertThat(((PolicyAuditSnapshot) entry.newSnapshot()).name()).isEqualTo("global");
+            assertThat(entry.newSnapshot()).isInstanceOf(AuthzPolicyAuditSnapshot.class);
+            assertThat(((AuthzPolicyAuditSnapshot) entry.newSnapshot()).id()).isEqualTo(created.id());
+            assertThat(((AuthzPolicyAuditSnapshot) entry.newSnapshot()).name()).isEqualTo("global");
             assertThat(entry.caller()).isEqualTo(CALLER);
         }
 
         @Test
         void update_emits_POLICY_UPDATED_with_both_snapshots() {
-            Policy created = policyService.create(CALLER, new CreatePolicyCommand(ENV, "global", PolicyKind.GLOBAL, null, "permit"));
+            AuthzPolicy created = policyService.create(
+                CALLER,
+                new CreateAuthzPolicyCommand(ENV, "global", AuthzPolicyKind.GLOBAL, null, "permit")
+            );
             audit.clear();
 
-            policyService.update(CALLER, created.id(), new UpdatePolicyCommand("global", "deny"));
+            policyService.update(CALLER, created.id(), new UpdateAuthzPolicyCommand("global", "deny"));
 
             assertThat(audit.entries()).hasSize(1);
             AuthzAuditEntry entry = audit.entries().get(0);
@@ -115,7 +121,10 @@ class AuthzAuditEmissionTest {
 
         @Test
         void deploy_emits_POLICY_DEPLOYED() {
-            Policy created = policyService.create(CALLER, new CreatePolicyCommand(ENV, "global", PolicyKind.GLOBAL, null, "permit"));
+            AuthzPolicy created = policyService.create(
+                CALLER,
+                new CreateAuthzPolicyCommand(ENV, "global", AuthzPolicyKind.GLOBAL, null, "permit")
+            );
             audit.clear();
 
             policyService.deploy(CALLER, created.id());
@@ -126,7 +135,10 @@ class AuthzAuditEmissionTest {
 
         @Test
         void disable_emits_POLICY_DISABLED() {
-            Policy created = policyService.create(CALLER, new CreatePolicyCommand(ENV, "global", PolicyKind.GLOBAL, null, "permit"));
+            AuthzPolicy created = policyService.create(
+                CALLER,
+                new CreateAuthzPolicyCommand(ENV, "global", AuthzPolicyKind.GLOBAL, null, "permit")
+            );
             policyService.deploy(CALLER, created.id());
             audit.clear();
 
@@ -138,7 +150,10 @@ class AuthzAuditEmissionTest {
 
         @Test
         void delete_emits_POLICY_DELETED_with_pre_delete_snapshot_and_null_new() {
-            Policy created = policyService.create(CALLER, new CreatePolicyCommand(ENV, "global", PolicyKind.GLOBAL, null, "permit"));
+            AuthzPolicy created = policyService.create(
+                CALLER,
+                new CreateAuthzPolicyCommand(ENV, "global", AuthzPolicyKind.GLOBAL, null, "permit")
+            );
             audit.clear();
 
             policyService.delete(CALLER, created.id());
@@ -146,7 +161,7 @@ class AuthzAuditEmissionTest {
             assertThat(audit.entries()).hasSize(1);
             AuthzAuditEntry entry = audit.entries().get(0);
             assertThat(entry.event()).isEqualTo(AuthzPolicyAuditEvent.POLICY_DELETED);
-            assertThat(entry.oldSnapshot()).isInstanceOf(PolicyAuditSnapshot.class);
+            assertThat(entry.oldSnapshot()).isInstanceOf(AuthzPolicyAuditSnapshot.class);
             assertThat(entry.newSnapshot()).isNull();
             assertThat(entry.referenceId()).isEqualTo(created.id());
         }
@@ -164,9 +179,9 @@ class AuthzAuditEmissionTest {
 
         @Test
         void upsert_create_emits_ENTITY_CREATED_with_null_old() {
-            UpsertResult result = entityService.upsert(
+            AuthzUpsertResult result = entityService.upsert(
                 CALLER,
-                new CreateOrReplaceEntityCommand(ENV, "api.123", EntityKind.RESOURCE, Map.of("k", "v"), List.of(), "apim")
+                new CreateOrReplaceAuthzEntityCommand(ENV, "api.123", AuthzEntityKind.RESOURCE, Map.of("k", "v"), List.of(), "apim")
             );
 
             assertThat(audit.entries()).hasSize(1);
@@ -175,7 +190,7 @@ class AuthzAuditEmissionTest {
             assertThat(entry.referenceKind()).isEqualTo(AuthzAuditReferenceKind.ENTITY);
             assertThat(entry.referenceId()).isEqualTo("api.123");
             assertThat(entry.oldSnapshot()).isNull();
-            assertThat(entry.newSnapshot()).isInstanceOf(EntityAuditSnapshot.class);
+            assertThat(entry.newSnapshot()).isInstanceOf(AuthzEntityAuditSnapshot.class);
             assertThat(result.created()).isTrue();
         }
 
@@ -183,13 +198,13 @@ class AuthzAuditEmissionTest {
         void upsert_replace_emits_ENTITY_UPDATED_with_both_snapshots() {
             entityService.upsert(
                 CALLER,
-                new CreateOrReplaceEntityCommand(ENV, "api.123", EntityKind.RESOURCE, Map.of(), List.of(), "apim")
+                new CreateOrReplaceAuthzEntityCommand(ENV, "api.123", AuthzEntityKind.RESOURCE, Map.of(), List.of(), "apim")
             );
             audit.clear();
 
             entityService.upsert(
                 CALLER,
-                new CreateOrReplaceEntityCommand(ENV, "api.123", EntityKind.RESOURCE, Map.of("k", "v2"), List.of(), "apim")
+                new CreateOrReplaceAuthzEntityCommand(ENV, "api.123", AuthzEntityKind.RESOURCE, Map.of("k", "v2"), List.of(), "apim")
             );
 
             assertThat(audit.entries()).hasSize(1);
@@ -201,12 +216,15 @@ class AuthzAuditEmissionTest {
 
         @Test
         void update_emits_ENTITY_UPDATED_with_both_snapshots() {
-            Entity created = entityService
-                .upsert(CALLER, new CreateOrReplaceEntityCommand(ENV, "api.123", EntityKind.RESOURCE, Map.of(), List.of(), "apim"))
+            AuthzEntity created = entityService
+                .upsert(
+                    CALLER,
+                    new CreateOrReplaceAuthzEntityCommand(ENV, "api.123", AuthzEntityKind.RESOURCE, Map.of(), List.of(), "apim")
+                )
                 .entity();
             audit.clear();
 
-            entityService.update(CALLER, created.entityId(), new UpdateEntityCommand(Map.of("k", "v"), List.of()));
+            entityService.update(CALLER, created.entityId(), new UpdateAuthzEntityCommand(Map.of("k", "v"), List.of()));
 
             assertThat(audit.entries()).hasSize(1);
             assertThat(audit.entries().get(0).event()).isEqualTo(AuthzEntityAuditEvent.ENTITY_UPDATED);
@@ -216,7 +234,7 @@ class AuthzAuditEmissionTest {
         void delete_emits_ENTITY_DELETED_with_pre_delete_snapshot() {
             entityService.upsert(
                 CALLER,
-                new CreateOrReplaceEntityCommand(ENV, "api.123", EntityKind.RESOURCE, Map.of(), List.of(), "apim")
+                new CreateOrReplaceAuthzEntityCommand(ENV, "api.123", AuthzEntityKind.RESOURCE, Map.of(), List.of(), "apim")
             );
             audit.clear();
 
@@ -226,7 +244,7 @@ class AuthzAuditEmissionTest {
             assertThat(entityEntries).hasSize(1);
             AuthzAuditEntry entry = entityEntries.get(0);
             assertThat(entry.event()).isEqualTo(AuthzEntityAuditEvent.ENTITY_DELETED);
-            assertThat(entry.oldSnapshot()).isInstanceOf(EntityAuditSnapshot.class);
+            assertThat(entry.oldSnapshot()).isInstanceOf(AuthzEntityAuditSnapshot.class);
             assertThat(entry.newSnapshot()).isNull();
         }
     }
@@ -238,15 +256,15 @@ class AuthzAuditEmissionTest {
         void cascade_delete_emits_one_entity_entry_per_affected_row() {
             entityService.upsert(
                 CALLER,
-                new CreateOrReplaceEntityCommand(ENV, "api.svc", EntityKind.RESOURCE, Map.of(), List.of(), "apim")
+                new CreateOrReplaceAuthzEntityCommand(ENV, "api.svc", AuthzEntityKind.RESOURCE, Map.of(), List.of(), "apim")
             );
             entityService.upsert(
                 CALLER,
-                new CreateOrReplaceEntityCommand(ENV, "api.svc.endpoint1", EntityKind.RESOURCE, Map.of(), List.of(), "apim")
+                new CreateOrReplaceAuthzEntityCommand(ENV, "api.svc.endpoint1", AuthzEntityKind.RESOURCE, Map.of(), List.of(), "apim")
             );
             entityService.upsert(
                 CALLER,
-                new CreateOrReplaceEntityCommand(ENV, "api.svc.endpoint2", EntityKind.RESOURCE, Map.of(), List.of(), "apim")
+                new CreateOrReplaceAuthzEntityCommand(ENV, "api.svc.endpoint2", AuthzEntityKind.RESOURCE, Map.of(), List.of(), "apim")
             );
             audit.clear();
 
@@ -266,11 +284,11 @@ class AuthzAuditEmissionTest {
         void cascade_delete_emits_one_policy_entry_per_attached_policy() {
             entityService.upsert(
                 CALLER,
-                new CreateOrReplaceEntityCommand(ENV, "api.svc", EntityKind.RESOURCE, Map.of(), List.of(), "apim")
+                new CreateOrReplaceAuthzEntityCommand(ENV, "api.svc", AuthzEntityKind.RESOURCE, Map.of(), List.of(), "apim")
             );
-            Policy attached = policyService.create(
+            AuthzPolicy attached = policyService.create(
                 CALLER,
-                new CreatePolicyCommand(ENV, "svc-policy", PolicyKind.RESOURCE, "api.svc", "permit")
+                new CreateAuthzPolicyCommand(ENV, "svc-policy", AuthzPolicyKind.RESOURCE, "api.svc", "permit")
             );
             audit.clear();
 
@@ -293,7 +311,7 @@ class AuthzAuditEmissionTest {
 
             entityService.upsert(
                 system,
-                new CreateOrReplaceEntityCommand(ENV, "api.from-system", EntityKind.RESOURCE, Map.of(), List.of(), "apim")
+                new CreateOrReplaceAuthzEntityCommand(ENV, "api.from-system", AuthzEntityKind.RESOURCE, Map.of(), List.of(), "apim")
             );
 
             assertThat(audit.entries()).isEmpty();
@@ -303,7 +321,7 @@ class AuthzAuditEmissionTest {
         void user_caller_metadata_round_trips_into_audit_entry() {
             AuthzCallerContext custom = AuthzCallerContext.ofUser("org-42", "env-99", "bob");
 
-            policyService.create(custom, new CreatePolicyCommand("env-99", "p", PolicyKind.GLOBAL, null, "permit"));
+            policyService.create(custom, new CreateAuthzPolicyCommand("env-99", "p", AuthzPolicyKind.GLOBAL, null, "permit"));
 
             assertThat(audit.entries()).hasSize(1);
             AuthzCallerContext seen = audit.entries().get(0).caller();

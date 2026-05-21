@@ -27,7 +27,7 @@ public record AuthzAuditEntry(
     AuthzAuditSnapshot newSnapshot
 ) {
     public AuthzAuditEntry {
-        Validators.validateCtor(AuthzAuditEntry.class, caller, event, referenceKind, referenceId, oldSnapshot, newSnapshot);
+        AuthzValidators.validateCtor(AuthzAuditEntry.class, caller, event, referenceKind, referenceId, oldSnapshot, newSnapshot);
         if (oldSnapshot == null && newSnapshot == null) {
             throw new IllegalArgumentException("at least one of oldSnapshot / newSnapshot must be non-null");
         }
@@ -38,10 +38,10 @@ public record AuthzAuditEntry(
                         "referenceKind=POLICY requires AuthzPolicyAuditEvent, got " + event.getClass().getSimpleName()
                     );
                 }
-                if (oldSnapshot != null && !(oldSnapshot instanceof PolicyAuditSnapshot)) {
+                if (oldSnapshot != null && !(oldSnapshot instanceof AuthzPolicyAuditSnapshot)) {
                     throw new IllegalArgumentException("referenceKind=POLICY requires PolicyAuditSnapshot for oldSnapshot");
                 }
-                if (newSnapshot != null && !(newSnapshot instanceof PolicyAuditSnapshot)) {
+                if (newSnapshot != null && !(newSnapshot instanceof AuthzPolicyAuditSnapshot)) {
                     throw new IllegalArgumentException("referenceKind=POLICY requires PolicyAuditSnapshot for newSnapshot");
                 }
             }
@@ -51,10 +51,10 @@ public record AuthzAuditEntry(
                         "referenceKind=ENTITY requires AuthzEntityAuditEvent, got " + event.getClass().getSimpleName()
                     );
                 }
-                if (oldSnapshot != null && !(oldSnapshot instanceof EntityAuditSnapshot)) {
+                if (oldSnapshot != null && !(oldSnapshot instanceof AuthzEntityAuditSnapshot)) {
                     throw new IllegalArgumentException("referenceKind=ENTITY requires EntityAuditSnapshot for oldSnapshot");
                 }
-                if (newSnapshot != null && !(newSnapshot instanceof EntityAuditSnapshot)) {
+                if (newSnapshot != null && !(newSnapshot instanceof AuthzEntityAuditSnapshot)) {
                     throw new IllegalArgumentException("referenceKind=ENTITY requires EntityAuditSnapshot for newSnapshot");
                 }
             }
@@ -65,8 +65,8 @@ public record AuthzAuditEntry(
         AuthzCallerContext caller,
         AuthzPolicyAuditEvent event,
         String policyId,
-        PolicyAuditSnapshot oldSnapshot,
-        PolicyAuditSnapshot newSnapshot
+        AuthzPolicyAuditSnapshot oldSnapshot,
+        AuthzPolicyAuditSnapshot newSnapshot
     ) {
         return new AuthzAuditEntry(caller, event, AuthzAuditReferenceKind.POLICY, policyId, oldSnapshot, newSnapshot);
     }
@@ -75,8 +75,8 @@ public record AuthzAuditEntry(
         AuthzCallerContext caller,
         AuthzEntityAuditEvent event,
         String entityId,
-        EntityAuditSnapshot oldSnapshot,
-        EntityAuditSnapshot newSnapshot
+        AuthzEntityAuditSnapshot oldSnapshot,
+        AuthzEntityAuditSnapshot newSnapshot
     ) {
         return new AuthzAuditEntry(caller, event, AuthzAuditReferenceKind.ENTITY, entityId, oldSnapshot, newSnapshot);
     }
