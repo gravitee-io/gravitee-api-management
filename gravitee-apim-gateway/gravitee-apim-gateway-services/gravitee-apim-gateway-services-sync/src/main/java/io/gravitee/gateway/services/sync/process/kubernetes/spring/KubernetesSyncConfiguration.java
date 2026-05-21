@@ -87,6 +87,7 @@ public class KubernetesSyncConfiguration {
         PlanAppender planAppender,
         SubscriptionAppender subscriptionAppender,
         ApiKeyAppender apiKeyAppender,
+        io.gravitee.gateway.services.sync.process.repository.synchronizer.api.AuthzAppender authzAppender,
         DeployerFactory deployerFactory,
         @Qualifier("syncKubernetesExecutor") ThreadPoolExecutor syncKubernetesExecutor,
         @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
@@ -98,6 +99,7 @@ public class KubernetesSyncConfiguration {
             planAppender,
             subscriptionAppender,
             apiKeyAppender,
+            authzAppender,
             deployerFactory,
             syncKubernetesExecutor,
             syncDeployerExecutor

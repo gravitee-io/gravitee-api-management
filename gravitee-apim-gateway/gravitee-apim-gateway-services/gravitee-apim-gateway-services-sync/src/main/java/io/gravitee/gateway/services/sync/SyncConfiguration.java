@@ -39,17 +39,29 @@ import io.gravitee.gateway.services.sync.process.distributed.service.NoopDistrib
 import io.gravitee.gateway.services.sync.process.distributed.spring.DistributedSyncDisabledCondition;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiMapper;
+import io.gravitee.gateway.services.sync.process.repository.service.AuthzRegistry;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiKeyAppender;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.AuthzAppender;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.NoopAuthzAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.PlanAppender;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.RepositoryAuthzAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.SubscriptionAppender;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEnginePort;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityIdExtractor;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzPolicyMapper;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.EventBusAuthzEnginePort;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.GammaDisabledCondition;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.GammaEnabledCondition;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.NoopAuthzEnginePort;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.license.LicenseFactory;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
+import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
@@ -147,6 +159,23 @@ public class SyncConfiguration {
     }
 
     @Bean
+    public AuthzRegistry authzRegistry(@Autowired(required = false) io.micrometer.core.instrument.MeterRegistry meterRegistry) {
+        return new AuthzRegistry(meterRegistry);
+    }
+
+    @Bean
+    @Conditional(GammaEnabledCondition.class)
+    public AuthzEnginePort authzEnginePort(io.vertx.core.Vertx vertx) {
+        return new EventBusAuthzEnginePort(vertx);
+    }
+
+    @Bean
+    @Conditional(GammaDisabledCondition.class)
+    public AuthzEnginePort noopAuthzEnginePort() {
+        return new NoopAuthzEnginePort();
+    }
+
+    @Bean
     public EnvironmentService environmentEnhanceService(
         EnvironmentRepository environmentRepository,
         OrganizationRepository organizationRepository
@@ -206,7 +235,10 @@ public class SyncConfiguration {
         ClusterManager clusterManager,
         DistributedSyncService distributedSyncService,
         ApiProductManager apiProductManager,
-        @Autowired(required = false) ApiProductSubscriptionRefresher apiProductSubscriptionRefresher
+        @Autowired(required = false) ApiProductSubscriptionRefresher apiProductSubscriptionRefresher,
+        AuthzEnginePort authzEnginePort,
+        AuthzRegistry authzRegistry,
+        io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityIdExtractor authzEntityIdExtractor
     ) {
         Supplier<SubscriptionDispatcher> subscriptionDispatcherSupplier = provideSubscriptionDispatcher(subscriptionDispatcher);
         return new DeployerFactory(
@@ -229,8 +261,33 @@ public class SyncConfiguration {
             clusterManager,
             distributedSyncService,
             apiProductManager,
-            apiProductSubscriptionRefresher
+            apiProductSubscriptionRefresher,
+            authzEnginePort,
+            authzRegistry,
+            authzEntityIdExtractor
         );
+    }
+
+    @Bean
+    public AuthzEntityIdExtractor authzEntityIdExtractor() {
+        return AuthzEntityIdExtractor.INSTANCE;
+    }
+
+    @Bean
+    @Conditional(GammaEnabledCondition.class)
+    public AuthzAppender repositoryAuthzAppender(
+        AuthzEntityIdExtractor extractor,
+        EventLatestRepository eventLatestRepository,
+        AuthzPolicyMapper policyMapper,
+        AuthzEnginePort enginePort
+    ) {
+        return new RepositoryAuthzAppender(extractor, eventLatestRepository, policyMapper, enginePort);
+    }
+
+    @Bean
+    @Conditional(GammaDisabledCondition.class)
+    public AuthzAppender noopAuthzAppender() {
+        return new NoopAuthzAppender();
     }
 
     /**

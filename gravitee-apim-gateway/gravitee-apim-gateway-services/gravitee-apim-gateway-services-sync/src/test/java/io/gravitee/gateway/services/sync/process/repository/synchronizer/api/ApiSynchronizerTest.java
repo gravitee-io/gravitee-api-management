@@ -135,6 +135,7 @@ class ApiSynchronizerTest {
                 100
             ),
             new ApiKeyAppender(apiKeyRepository, new ApiKeyMapper()),
+            authzAppenderPassThrough(),
             deployerFactory,
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
@@ -157,6 +158,14 @@ class ApiSynchronizerTest {
         lenient().when(subscriptionDeployer.doAfterDeployment(any())).thenReturn(Completable.complete());
         lenient().when(subscriptionDeployer.undeploy(any())).thenReturn(Completable.complete());
         lenient().when(subscriptionDeployer.doAfterUndeployment(any())).thenReturn(Completable.complete());
+    }
+
+    private static io.gravitee.gateway.services.sync.process.repository.synchronizer.api.AuthzAppender authzAppenderPassThrough() {
+        var appender = mock(io.gravitee.gateway.services.sync.process.repository.synchronizer.api.AuthzAppender.class);
+        lenient()
+            .when(appender.appends(anyBoolean(), anyList(), anySet()))
+            .thenAnswer(invocation -> io.reactivex.rxjava3.core.Single.just(invocation.getArgument(1)));
+        return appender;
     }
 
     @Nested
