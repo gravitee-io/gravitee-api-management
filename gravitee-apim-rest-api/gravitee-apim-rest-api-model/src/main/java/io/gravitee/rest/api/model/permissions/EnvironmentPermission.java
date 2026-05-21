@@ -50,7 +50,8 @@ public enum EnvironmentPermission implements Permission {
     INTEGRATION("INTEGRATION", 3800),
     SHARED_POLICY_GROUP("SHARED_POLICY_GROUP", 3900),
     CLUSTER("CLUSTER", 4000),
-    API_PRODUCT("API_PRODUCT", 4100);
+    API_PRODUCT("API_PRODUCT", 4100),
+    AUTHORIZATION("AUTHORIZATION", 4200);
 
     String name;
     int mask;

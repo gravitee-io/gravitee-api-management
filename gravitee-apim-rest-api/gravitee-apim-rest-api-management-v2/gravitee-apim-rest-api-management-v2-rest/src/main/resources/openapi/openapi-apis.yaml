@@ -7638,6 +7638,10 @@ components:
                 - UNPUBLISH_API
                 - UNPUBLISH_API_RESULT
                 - UNPUBLISH_DICTIONARY
+                - PUBLISH_AUTHZ_POLICY
+                - UNPUBLISH_AUTHZ_POLICY
+                - PUBLISH_AUTHZ_ENTITY
+                - UNPUBLISH_AUTHZ_ENTITY
 
         # Documentation pages
         AccessControl:
