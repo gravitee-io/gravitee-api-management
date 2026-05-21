@@ -1,0 +1,51 @@
+<?xml version="1.0" ?>
+<!--
+
+    Copyright © 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<assembly>
+    <id>plugin</id>
+    <formats>
+        <format>zip</format>
+    </formats>
+    <includeBaseDirectory>false</includeBaseDirectory>
+
+    <files>
+        <file>
+            <source>${project.build.directory}/${project.build.finalName}.jar</source>
+        </file>
+    </files>
+
+    <!--
+        Bundle gamma-authorization-core into the plugin zip so its classes are
+        loaded by the plugin's URLClassLoader. That URLClassLoader's parent is
+        the apim-mongo plugin's classloader (per GammaModulePluginHandler), which
+        carries spring-data-mongodb on its classpath. If gamma-authorization-core
+        lived in lib/ instead, its defining classloader (graviteeClassLoader)
+        would not see spring-data-mongodb and the Mongo adapters would fail to
+        load with NoClassDefFoundError.
+    -->
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory></outputDirectory>
+            <unpack>false</unpack>
+            <useProjectArtifact>false</useProjectArtifact>
+            <includes>
+                <include>io.gravitee.gamma.authorization:gravitee-gamma-authorization-core</include>
+            </includes>
+        </dependencySet>
+    </dependencySets>
+</assembly>

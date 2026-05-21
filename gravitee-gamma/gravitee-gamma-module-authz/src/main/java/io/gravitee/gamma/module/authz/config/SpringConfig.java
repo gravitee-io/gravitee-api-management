@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.authorization.config;
+package io.gravitee.gamma.module.authz.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -44,18 +44,28 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.mongodb.core.MongoOperations;
 
+/**
+ * Spring configuration for the authz Gamma plugin.
+ *
+ * <p>This class lives inside the plugin jar (not in gamma-authorization-core) so that
+ * the JVM resolves @Bean method parameter types — most notably {@code MongoOperations}
+ * from spring-data-mongodb, which is on the apim-mongo plugin's classpath — through
+ * <em>this</em> class's defining ClassLoader (the plugin's URLClassLoader). That
+ * URLClassLoader's parent chain sees apim-mongo's classes, whereas gamma-authorization-core's
+ * defining ClassLoader (graviteeClassLoader / lib/) does not.
+ *
+ * <p>Mirrors the AIM module's CatalogConfiguration pattern.
+ */
 @Configuration
-public class AuthorizationConfig {
+public class SpringConfig {
 
     @Bean
-    @Lazy
-    public AuthzEntityRepository authzEntityRepository(@Lazy @Qualifier("managementMongoTemplate") MongoOperations mongoOperations) {
+    public AuthzEntityRepository authzEntityRepository(@Qualifier("managementMongoTemplate") MongoOperations mongoOperations) {
         return new MongoAuthzEntityRepository(mongoOperations);
     }
 
     @Bean
-    @Lazy
-    public AuthzPolicyRepository authzPolicyRepository(@Lazy @Qualifier("managementMongoTemplate") MongoOperations mongoOperations) {
+    public AuthzPolicyRepository authzPolicyRepository(@Qualifier("managementMongoTemplate") MongoOperations mongoOperations) {
         return new MongoAuthzPolicyRepository(mongoOperations);
     }
 
@@ -92,9 +102,15 @@ public class AuthorizationConfig {
         return new ApimAuthzAuditAdapter(auditDomainService);
     }
 
+    // @Qualifier is required on @Lazy params for repositories/services because the plugin
+    // handler propagates plugin-ctx beans into the parent rest-api ctx with an "authz." prefix
+    // (see GammaModulePluginHandler.initPluginSpringContext). At @Lazy proxy resolution time
+    // the plugin ctx sees both its own bean and the propagated parent copy — autowire-by-type
+    // would then fail with NoUniqueBeanDefinitionException. Pinning by name picks the local one.
+
     @Bean
     public AuthzPolicyAdminApi policyService(
-        @Lazy AuthzPolicyRepository policyRepository,
+        @Lazy @Qualifier("authzPolicyRepository") AuthzPolicyRepository policyRepository,
         AuthzEntityIdValidator entityIdValidator,
         AuthzSchemaAdminApi schemaService,
         AuthzEventPublisher eventPublisher,
@@ -104,14 +120,17 @@ public class AuthorizationConfig {
     }
 
     @Bean
-    public AuthzSchemaAdminApi schemaService(@Lazy AuthzEntityRepository entityRepository, @Lazy AuthzPolicyRepository policyRepository) {
+    public AuthzSchemaAdminApi schemaService(
+        @Lazy @Qualifier("authzEntityRepository") AuthzEntityRepository entityRepository,
+        @Lazy @Qualifier("authzPolicyRepository") AuthzPolicyRepository policyRepository
+    ) {
         return new AuthzSchemaServiceImpl(entityRepository, policyRepository);
     }
 
     @Bean
     public AuthzEntityAdminApi entityService(
-        @Lazy AuthzEntityRepository entityRepository,
-        @Lazy AuthzPolicyRepository policyRepository,
+        @Lazy @Qualifier("authzEntityRepository") AuthzEntityRepository entityRepository,
+        @Lazy @Qualifier("authzPolicyRepository") AuthzPolicyRepository policyRepository,
         AuthzEntityIdValidator entityIdValidator,
         AuthzSchemaAdminApi schemaService,
         AuthzEventPublisher eventPublisher,
