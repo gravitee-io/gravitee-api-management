@@ -41,6 +41,13 @@ public interface SubscriptionRepository extends CrudRepository<Subscription, Str
 
     List<Subscription> search(SubscriptionCriteria criteria) throws TechnicalException;
 
+    /**
+     * Same filters as {@link #search(SubscriptionCriteria)} but skips the implicit {@code createdAt desc}
+     * default sort. Use this for index-friendly queries where order is irrelevant — notably range scans on
+     * {@code endingAt} that would otherwise be blocked by the sort stage (ESR violation).
+     */
+    List<Subscription> searchUnordered(SubscriptionCriteria criteria) throws TechnicalException;
+
     List<Subscription> findByIdIn(Collection<String> ids) throws TechnicalException;
 
     Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria, Order order) throws TechnicalException;

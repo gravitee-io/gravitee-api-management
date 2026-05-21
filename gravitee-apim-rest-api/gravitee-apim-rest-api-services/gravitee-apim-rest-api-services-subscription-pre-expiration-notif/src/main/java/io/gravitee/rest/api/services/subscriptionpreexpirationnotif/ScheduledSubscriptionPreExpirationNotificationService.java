@@ -16,13 +16,13 @@
 package io.gravitee.rest.api.services.subscriptionpreexpirationnotif;
 
 import com.google.common.annotations.VisibleForTesting;
+import io.gravitee.apim.core.subscription.model.ExpiringSubscription;
+import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.key.ApiKeyQuery;
-import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.ApiKeyService;
@@ -33,17 +33,18 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
@@ -83,6 +84,9 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
     private SubscriptionService subscriptionService;
 
     @Autowired
+    private SubscriptionQueryService subscriptionQueryService;
+
+    @Autowired
     private UserService userService;
 
     @Autowired
@@ -119,13 +123,47 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
         log.debug("Subscription Pre Expiration Notification #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
 
         Instant now = Instant.now();
+        Map<Integer, List<ExpiringSubscription>> subscriptionsByBucket = bucketExpiringSubscriptions(now);
 
-        notificationDays.forEach(daysToExpiration -> {
-            Set<String> notifiedSubscriptionIds = notifySubscriptionsExpirations(now, daysToExpiration);
+        // Iterate buckets in descending day order. Within a single tick this only affects ordering of side-effects,
+        // since windows are disjoint (1h cron slot vs day-granularity offsets). Across ticks it keeps the
+        // daysToExpirationOnLastNotification idempotency filter monotonic: a later tick covering a smaller D
+        // will not overwrite a previous notification with a smaller-than-current value.
+        subscriptionsByBucket.forEach((daysToExpiration, subs) -> {
+            Set<String> notifiedSubscriptionIds = notifySubscriptionsExpirations(daysToExpiration, subs);
             notifyApiKeysExpirations(now, daysToExpiration, notifiedSubscriptionIds);
         });
 
         log.debug("Subscription Pre Expiration Notification #{} ended at {}", counter.get(), Instant.now().toString());
+    }
+
+    @VisibleForTesting
+    Map<Integer, List<ExpiringSubscription>> bucketExpiringSubscriptions(Instant now) {
+        List<ExpiringSubscription> expiring = subscriptionQueryService.findExpiringSubscriptions(
+            now,
+            notificationDays,
+            cronPeriodInMs,
+            List.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED)
+        );
+        Map<Integer, List<ExpiringSubscription>> buckets = new LinkedHashMap<>();
+        long oneDayMs = Duration.ofDays(1).toMillis();
+        for (Integer d : notificationDays) {
+            long lo = now.toEpochMilli() + d * oneDayMs;
+            long hi = lo + cronPeriodInMs;
+            List<ExpiringSubscription> inBucket = expiring
+                .stream()
+                .filter(s -> {
+                    ZonedDateTime ending = s.endingAt();
+                    if (ending == null) {
+                        return false;
+                    }
+                    long endingMs = ending.toInstant().toEpochMilli();
+                    return endingMs >= lo && endingMs < hi;
+                })
+                .toList();
+            buckets.put(d, inBucket);
+        }
+        return buckets;
     }
 
     private void notifyApiKeysExpirations(Instant now, Integer daysToExpiration, Set<String> notifiedSubscriptionIds) {
@@ -158,7 +196,7 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
                 );
                 GenericPlanEntity plan = planSearchService.findById(GraviteeContext.getExecutionContext(), subscription.getPlan());
 
-                findEmailsToNotify(subscription, application).forEach(email ->
+                findEmailsToNotify(subscription.getSubscribedBy(), application).forEach(email ->
                     this.sendEmail(email, daysToExpiration, api, plan, application, apiKey)
                 );
             });
@@ -166,32 +204,31 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
         apiKeyService.updateDaysToExpirationOnLastNotification(GraviteeContext.getExecutionContext(), apiKey, daysToExpiration);
     }
 
-    private Set<String> notifySubscriptionsExpirations(Instant now, Integer daysToExpiration) {
-        Collection<SubscriptionEntity> subscriptionExpirationsToNotify = findSubscriptionExpirationsToNotify(now, daysToExpiration);
-
-        findSubscriptionExpirationsToNotify(now, daysToExpiration)
+    private Set<String> notifySubscriptionsExpirations(Integer daysToExpiration, List<ExpiringSubscription> subscriptions) {
+        subscriptions
             .stream()
             .filter(
-                subscription -> // Remove the ones for which an email has already been sent (could happen in case of restart or concurrent processing with multiple instance of APIM)
-                    subscription.getDaysToExpirationOnLastNotification() == null ||
-                    subscription.getDaysToExpirationOnLastNotification() > daysToExpiration
+                // Remove the ones for which an email has already been sent (could happen in case of restart or concurrent processing with multiple instance of APIM)
+                subscription ->
+                    subscription.daysToExpirationOnLastNotification() == null ||
+                    subscription.daysToExpirationOnLastNotification() > daysToExpiration
             )
             .forEach(subscription -> notifySubscriptionExpiration(daysToExpiration, subscription));
 
-        return subscriptionExpirationsToNotify.stream().map(SubscriptionEntity::getId).collect(Collectors.toSet());
+        return subscriptions.stream().map(ExpiringSubscription::id).collect(Collectors.toSet());
     }
 
-    private void notifySubscriptionExpiration(Integer daysToExpiration, SubscriptionEntity subscription) {
-        GenericApiEntity api = apiSearchService.findById(GraviteeContext.getExecutionContext(), subscription.getApi());
-        GenericPlanEntity plan = planSearchService.findById(GraviteeContext.getExecutionContext(), subscription.getPlan());
+    private void notifySubscriptionExpiration(Integer daysToExpiration, ExpiringSubscription subscription) {
+        GenericApiEntity api = apiSearchService.findById(GraviteeContext.getExecutionContext(), subscription.apiId());
+        GenericPlanEntity plan = planSearchService.findById(GraviteeContext.getExecutionContext(), subscription.planId());
 
-        ApplicationEntity application = applicationService.findById(GraviteeContext.getExecutionContext(), subscription.getApplication());
+        ApplicationEntity application = applicationService.findById(GraviteeContext.getExecutionContext(), subscription.applicationId());
 
-        findEmailsToNotify(subscription, application).forEach(email ->
+        findEmailsToNotify(subscription.subscribedBy(), application).forEach(email ->
             this.sendEmail(email, daysToExpiration, api, plan, application, null)
         );
 
-        subscriptionService.updateDaysToExpirationOnLastNotification(subscription.getId(), daysToExpiration);
+        subscriptionService.updateDaysToExpirationOnLastNotification(subscription.id(), daysToExpiration);
     }
 
     @VisibleForTesting
@@ -219,18 +256,6 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
     }
 
     @VisibleForTesting
-    Collection<SubscriptionEntity> findSubscriptionExpirationsToNotify(Instant now, Integer daysToExpiration) {
-        long expirationStartingTime = now.plus(Duration.ofDays((long) daysToExpiration)).getEpochSecond() * 1000;
-
-        SubscriptionQuery query = new SubscriptionQuery();
-        query.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED));
-        query.setEndingAtAfter(expirationStartingTime);
-        query.setEndingAtBefore(expirationStartingTime + cronPeriodInMs);
-
-        return subscriptionService.search(GraviteeContext.getExecutionContext(), query);
-    }
-
-    @VisibleForTesting
     Collection<ApiKeyEntity> findApiKeyExpirationsToNotify(Instant now, Integer daysToExpiration) {
         long expirationStartingTime = now.plus(Duration.ofDays((long) daysToExpiration)).getEpochSecond() * 1000;
 
@@ -244,9 +269,9 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
     }
 
     @VisibleForTesting
-    Set<String> findEmailsToNotify(SubscriptionEntity subscription, ApplicationEntity application) {
+    Set<String> findEmailsToNotify(String subscribedBy, ApplicationEntity application) {
         Set<String> emails = new HashSet<>();
-        emails.add(userService.findById(GraviteeContext.getExecutionContext(), subscription.getSubscribedBy()).getEmail());
+        emails.add(userService.findById(GraviteeContext.getExecutionContext(), subscribedBy).getEmail());
         emails.add(application.getPrimaryOwner().getEmail());
 
         // Email can be null, in that case we can't send a notification so just remove it

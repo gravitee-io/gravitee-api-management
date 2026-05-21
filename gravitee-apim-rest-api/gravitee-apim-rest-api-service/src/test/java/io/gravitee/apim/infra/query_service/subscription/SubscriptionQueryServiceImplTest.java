@@ -33,6 +33,7 @@ import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
+import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -69,14 +70,14 @@ public class SubscriptionQueryServiceImplTest {
         void should_query_for_expired_subscriptions() throws TechnicalException {
             // Given
             var now = new Date().getTime();
-            when(subscriptionRepository.search(any())).thenAnswer(invocation -> List.of());
+            when(subscriptionRepository.searchUnordered(any())).thenAnswer(invocation -> List.of());
 
             // When
             service.findExpiredSubscriptions();
 
             // Then
             var captor = ArgumentCaptor.forClass(SubscriptionCriteria.class);
-            verify(subscriptionRepository).search(captor.capture());
+            verify(subscriptionRepository).searchUnordered(captor.capture());
             assertThat(captor.getValue()).satisfies(criteria -> {
                 assertThat(criteria.getStatuses()).containsExactly(Subscription.Status.ACCEPTED.name());
                 assertThat(criteria.getEndingAtBefore()).isBetween(now, new Date().getTime());
@@ -97,7 +98,7 @@ public class SubscriptionQueryServiceImplTest {
         @Test
         void should_return_subscriptions_and_adapt_them() throws TechnicalException {
             // Given
-            when(subscriptionRepository.search(any())).thenAnswer(invocation ->
+            when(subscriptionRepository.searchUnordered(any())).thenAnswer(invocation ->
                 List.of(aSubscription("s1").status(Subscription.Status.ACCEPTED).build())
             );
 
@@ -124,7 +125,7 @@ public class SubscriptionQueryServiceImplTest {
         @Test
         void should_return_empty_stream_when_no_subscriptions_found() throws TechnicalException {
             // Given
-            when(subscriptionRepository.search(any())).thenReturn(List.of());
+            when(subscriptionRepository.searchUnordered(any())).thenReturn(List.of());
 
             // When
             var result = service.findExpiredSubscriptions();
@@ -136,7 +137,7 @@ public class SubscriptionQueryServiceImplTest {
         @Test
         void should_throw_when_technical_exception_occurs() throws TechnicalException {
             // Given
-            when(subscriptionRepository.search(any())).thenThrow(TechnicalException.class);
+            when(subscriptionRepository.searchUnordered(any())).thenThrow(TechnicalException.class);
 
             // When
             Throwable throwable = catchThrowable(() -> service.findExpiredSubscriptions());
@@ -145,6 +146,47 @@ public class SubscriptionQueryServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalManagementException.class)
                 .hasMessage("An error occurs while trying to find expired subscription");
+        }
+    }
+
+    @Nested
+    class FindExpiringSubscriptions {
+
+        private static final long ONE_DAY_MS = 24L * 60L * 60L * 1000L;
+        private static final long ONE_HOUR_MS = 60L * 60L * 1000L;
+
+        @Test
+        void should_query_outer_range_covering_all_buckets_and_pin_exact_bounds() throws TechnicalException {
+            // Given a fixed instant so we can assert exact epoch millis (catches seconds-vs-millis flips
+            // and min/max swaps that previous shouldFindSubscriptionExpirationsToNotify caught).
+            Instant now = Instant.ofEpochMilli(1_700_000_000_000L);
+            when(subscriptionRepository.searchUnordered(any())).thenReturn(List.of());
+
+            // When
+            service.findExpiringSubscriptions(
+                now,
+                List.of(90, 45, 30),
+                ONE_HOUR_MS,
+                List.of(SubscriptionStatus.ACCEPTED, SubscriptionStatus.PAUSED)
+            );
+
+            // Then
+            var captor = ArgumentCaptor.forClass(SubscriptionCriteria.class);
+            verify(subscriptionRepository).searchUnordered(captor.capture());
+            assertThat(captor.getValue()).satisfies(criteria -> {
+                assertThat(criteria.getStatuses()).containsExactly(SubscriptionStatus.ACCEPTED.name(), SubscriptionStatus.PAUSED.name());
+                // endingAtAfter = now + min(daysBuckets) days
+                assertThat(criteria.getEndingAtAfter()).isEqualTo(1_700_000_000_000L + 30L * ONE_DAY_MS);
+                // endingAtBefore = now + max(daysBuckets) days + windowMs
+                assertThat(criteria.getEndingAtBefore()).isEqualTo(1_700_000_000_000L + 90L * ONE_DAY_MS + ONE_HOUR_MS);
+            });
+        }
+
+        @Test
+        void should_return_empty_when_no_buckets_given() throws TechnicalException {
+            var result = service.findExpiringSubscriptions(Instant.now(), List.of(), ONE_HOUR_MS, List.of(SubscriptionStatus.ACCEPTED));
+            assertThat(result).isEmpty();
+            verify(subscriptionRepository, org.mockito.Mockito.never()).searchUnordered(any());
         }
     }
 
