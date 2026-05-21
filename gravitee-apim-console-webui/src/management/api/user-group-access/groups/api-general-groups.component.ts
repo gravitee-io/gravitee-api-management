@@ -19,6 +19,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { Api, Group } from '../../../../entities/management-api-v2';
+import { isGroupAssociatedWithApi } from '../group-data.utils';
 
 export interface ApiGroupsDialogData {
   api: Api;
@@ -60,7 +61,7 @@ export class ApiGeneralGroupsComponent implements OnInit {
     this.isReadOnly = this.isKubernetesOrigin || !this.permissionService.hasAnyMatching(['api-member-u']);
     this.isV1Api = this.api.definitionVersion === 'V1';
 
-    const userGroupList: Group[] = this.groups.filter(group => this.api.groups?.includes(group.id));
+    const userGroupList: Group[] = this.groups.filter(group => isGroupAssociatedWithApi(this.api.groups, group));
     this.form = this.formBuilder.group({
       selectedGroups: {
         value: userGroupList.map(g => g.id),
