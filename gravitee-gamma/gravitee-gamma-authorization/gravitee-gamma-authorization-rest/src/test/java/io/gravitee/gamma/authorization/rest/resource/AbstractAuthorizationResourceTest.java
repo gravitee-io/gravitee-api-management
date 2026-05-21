@@ -60,7 +60,6 @@ abstract class AbstractAuthorizationResourceTest extends JerseyTest {
             .register(new AuthzPoliciesResource(policyService))
             .register(new AuthzEntitiesResource(entityService))
             .register(new AuthzSchemaResource(schemaService))
-            .register(new HealthResource())
             .register(AuthzPolicyNotFoundExceptionMapper.class)
             .register(AuthzEntityNotFoundExceptionMapper.class)
             .register(AuthzCascadeTooLargeExceptionMapper.class)
