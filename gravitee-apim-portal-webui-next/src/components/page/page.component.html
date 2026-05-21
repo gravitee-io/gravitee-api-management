@@ -17,7 +17,7 @@
 -->
 @switch (page.type) {
   @case ('SWAGGER') {
-    @if (page.configuration?.viewer?.toLowerCase() === 'redoc') {
+    @if (effectiveViewer.toLowerCase() === 'redoc') {
       <app-page-redoc [page]="page" />
     } @else {
       <app-page-swagger [page]="page" />

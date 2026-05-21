@@ -37,4 +37,9 @@ export interface Configuration {
   application?: ConfigurationApplication;
   recaptcha?: ConfigurationReCaptcha;
   alert?: Enabled;
+  openAPIDocViewer?: {
+    openAPIDocType?: {
+      defaultType?: string;
+    };
+  };
 }
