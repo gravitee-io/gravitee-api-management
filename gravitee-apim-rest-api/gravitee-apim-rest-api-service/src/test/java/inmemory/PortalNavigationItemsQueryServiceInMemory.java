@@ -63,7 +63,7 @@ public class PortalNavigationItemsQueryServiceInMemory
     @Override
     public List<PortalNavigationItem> search(PortalNavigationItemQueryCriteria criteria) {
         Predicate<PortalNavigationItem> PARENT_ID_FILTER = i -> {
-            if (criteria.getParentId() == null && criteria.getRoot()) {
+            if (criteria.getParentId() == null && Boolean.TRUE.equals(criteria.getRoot())) {
                 return i.getParentId() == null;
             } else if (criteria.getParentId() != null) {
                 return criteria.getParentId().equals(i.getParentId());
