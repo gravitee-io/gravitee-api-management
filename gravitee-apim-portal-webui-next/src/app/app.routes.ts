@@ -25,6 +25,7 @@ import { ApiTabSubscriptionsComponent } from './api/api-details/api-tab-subscrip
 import { SubscriptionsDetailsComponent } from './api/api-details/api-tab-subscriptions/subscriptions-details/subscriptions-details.component';
 import { SubscriptionsTableComponent } from './api/api-details/api-tab-subscriptions/subscriptions-table/subscriptions-table.component';
 import { ApiComponent } from './api/api.component';
+import { ApplicationTabInvitationsComponent } from './dashboard/application-details/application-tab-invitations/application-tab-invitations.component';
 import { ConfigureConsumerComponent } from '../components/subscription/webhook/configure-consumer/configure-consumer.component';
 import { anonymousGuard } from '../guards/anonymous.guard';
 import { authGuard } from '../guards/auth.guard';
@@ -37,6 +38,7 @@ import { ApplicationTabLogsComponent } from './dashboard/application-details/app
 import { ApplicationTabMembersComponent } from './dashboard/application-details/application-tab-members/application-tab-members.component';
 import { ApplicationTabSettingsComponent } from './dashboard/application-details/application-tab-settings/application-tab-settings.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { DocumentationSubscribeComponent } from './documentation/components/documentation-subscribe/documentation-subscribe.component';
 import { RegistrationConfirmationComponent } from './registration/registration-confirmation/registration-confirmation.component';
 import { ServiceUnavailableComponent } from './service-unavailable/service-unavailable.component';
 import { NavigationPageFullWidthComponent } from '../components/navigation-page-full-width/navigation-page-full-width.component';
@@ -46,7 +48,6 @@ import { apiResolver } from '../resolvers/api.resolver';
 import { applicationPermissionResolver, applicationResolver, applicationTypeResolver } from '../resolvers/application.resolver';
 import { homepageContentResolver } from '../resolvers/homepage-content.resolver';
 import { CatalogComponent } from './catalog/catalog.component';
-import { DocumentationSubscribeComponent } from './documentation/components/documentation-subscribe/documentation-subscribe.component';
 import { DocumentationComponent } from './documentation/components/documentation.component';
 import { documentationResolver } from './documentation/resolvers/documentation.resolver';
 import { LogInComponent } from './log-in/log-in.component';
@@ -213,6 +214,10 @@ export const routes: Routes = [
           {
             path: 'members',
             component: ApplicationTabMembersComponent,
+          },
+          {
+            path: 'invitations',
+            component: ApplicationTabInvitationsComponent,
           },
         ],
       },

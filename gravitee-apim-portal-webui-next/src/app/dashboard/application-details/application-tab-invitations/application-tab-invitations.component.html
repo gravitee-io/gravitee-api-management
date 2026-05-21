@@ -1,0 +1,59 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+@if (canRead()) {
+  <h4 class="next-gen-h4 invitations__title" data-testid="invitations-section-title" i18n="@@applicationInvitationsTitle">
+    Invitations ({{ totalElements() }})
+  </h4>
+  @if (invitationsResource.isLoading()) {
+    <app-loader />
+  } @else if (invitationsResource.error()) {
+    <div class="invitations__error next-gen-body" role="alert" data-testid="invitations-list-error" i18n="@@invitationsListError">
+      An error occurred while loading invitations. Try again later or contact your Portal administrator.
+    </div>
+  } @else if (totalElements() === 0) {
+    <div class="invitations__empty-state" data-testid="invitations-empty-state">
+      <p class="next-gen-body" i18n="@@invitationsEmptyState">No pending invitations found.</p>
+    </div>
+  } @else {
+    <app-paginated-table
+      [columns]="tableColumns"
+      [rows]="rows()"
+      [totalElements]="totalElements()"
+      [currentPage]="currentPage()"
+      [pageSize]="pageSize()"
+      [navigable]="false"
+      (pageChange)="onPageChange($event)"
+      (pageSizeChange)="onPageSizeChange($event)"
+    >
+      <ng-template appTableCell="email" let-row>
+        <span class="invitations__email">
+          <span class="invitations__email-icon-container" aria-hidden="true" data-testid="invitation-email-icon">
+            <mat-icon class="invitations__email-icon">mail_outline</mat-icon>
+          </span>
+          <span class="next-gen-small" data-testid="invitation-email">{{ row.email }}</span>
+        </span>
+      </ng-template>
+      <ng-template appTableCell="role" let-row>
+        <span class="next-gen-small" data-testid="invitation-role">{{ row.role }}</span>
+      </ng-template>
+      <ng-template appTableCell="actions">
+        <span data-testid="invitation-actions"></span>
+      </ng-template>
+    </app-paginated-table>
+  }
+}
