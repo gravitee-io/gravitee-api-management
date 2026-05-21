@@ -47,6 +47,7 @@ export interface CreateDocumentationSwagger extends BaseCreateDocumentation {
   content?: string;
   homepage?: boolean;
   source?: PageSource;
+  configuration?: Record<string, unknown>;
 }
 
 export interface CreateDocumentationAsyncApi extends BaseCreateDocumentation {
