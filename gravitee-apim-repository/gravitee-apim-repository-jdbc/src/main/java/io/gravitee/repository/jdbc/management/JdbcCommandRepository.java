@@ -70,14 +70,6 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
             .build();
     }
 
-    private static final JdbcHelper.ChildAdder<Command> CHILD_ADDER = (Command parent, ResultSet rs) -> {
-        String acknowledgment = rs.getString("acknowledgment");
-        fillCommandAcknowledgments(parent, acknowledgment);
-
-        String tag = rs.getString("tag");
-        fillCommandTags(parent, tag);
-    };
-
     private static void fillCommandTags(Command command, String tag) {
         List<String> tags = command.getTags();
         if (tags == null) {
@@ -187,18 +179,7 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
     @Override
     public List<Command> search(CommandCriteria criteria) {
         log.debug("JdbcCommandRepository.search({})", criteria);
-        JdbcHelper.CollatingRowMapper<Command> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
-        final StringBuilder query = new StringBuilder(
-            getOrm().getSelectAllSql() +
-                " c " +
-                "left join " +
-                COMMAND_ACKNOWLEDGMENTS +
-                " ca on c.id = ca.command_id " +
-                "left join " +
-                COMMAND_TAGS +
-                " ct on c.id = ct.command_id " +
-                "where 1=1 "
-        );
+        final StringBuilder query = new StringBuilder(getOrm().getSelectAllSql() + " c where 1=1 ");
 
         if (criteria.getNotAckBy() != null) {
             query
@@ -226,7 +207,7 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
 
         List<Command> commands;
         try {
-            jdbcTemplate.query(
+            commands = jdbcTemplate.query(
                 query.toString(),
                 (PreparedStatement ps) -> {
                     int lastIndex = 1;
@@ -249,11 +230,11 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
                         ps.setDate(lastIndex++, new java.sql.Date(System.currentTimeMillis()));
                     }
                 },
-                rowMapper
+                getOrm().getRowMapper()
             );
-            commands = rowMapper.getRows();
+            loadAcknowledgmentsAndTags(commands);
         } catch (final Exception ex) {
-            log.error("Failed to find command records:", ex);
+            log.error("Failed to find command records for criteria {}", criteria, ex);
             throw new IllegalStateException("Failed to find command records", ex);
         }
 
@@ -268,6 +249,42 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
 
         log.debug("command records found ({}): {}", commands.size(), commands);
         return commands;
+    }
+
+    /**
+     * Loads acknowledgments and tags in separate queries to avoid multi-table LEFT JOIN deadlocks
+     * on SQL Server when several Management API nodes poll commands concurrently (see APIM-3113 / APIM-13681).
+     */
+    private void loadAcknowledgmentsAndTags(List<Command> commands) {
+        if (commands == null || commands.isEmpty()) {
+            return;
+        }
+
+        var commandsById = commands.stream().collect(Collectors.toMap(Command::getId, command -> command, (a, b) -> a));
+        var commandIds = new ArrayList<>(commandsById.keySet());
+        var inClause = getOrm().buildInClause(commandIds);
+
+        jdbcTemplate.query(
+            "select command_id, acknowledgment from " + COMMAND_ACKNOWLEDGMENTS + " where command_id in (" + inClause + ")",
+            (PreparedStatement ps) -> getOrm().setArguments(ps, commandIds, 1),
+            (ResultSet rs) -> {
+                var command = commandsById.get(rs.getString("command_id"));
+                if (command != null) {
+                    fillCommandAcknowledgments(command, rs.getString("acknowledgment"));
+                }
+            }
+        );
+
+        jdbcTemplate.query(
+            "select command_id, tag from " + COMMAND_TAGS + " where command_id in (" + inClause + ")",
+            (PreparedStatement ps) -> getOrm().setArguments(ps, commandIds, 1),
+            (ResultSet rs) -> {
+                var command = commandsById.get(rs.getString("command_id"));
+                if (command != null) {
+                    fillCommandTags(command, rs.getString("tag"));
+                }
+            }
+        );
     }
 
     @Override
