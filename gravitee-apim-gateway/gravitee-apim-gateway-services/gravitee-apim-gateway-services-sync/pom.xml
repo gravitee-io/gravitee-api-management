@@ -57,6 +57,12 @@
         </dependency>
 
         <dependency>
+            <groupId>io.gravitee.gamma.authorization</groupId>
+            <artifactId>gravitee-gamma-authorization-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.gravitee.apim.gateway.handlers</groupId>
             <artifactId>gravitee-apim-gateway-handlers-api</artifactId>
             <version>${project.version}</version>
