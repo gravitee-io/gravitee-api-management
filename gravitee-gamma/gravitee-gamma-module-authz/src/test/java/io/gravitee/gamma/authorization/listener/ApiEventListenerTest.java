@@ -90,7 +90,7 @@ class ApiEventListenerTest {
 
         assertThat(entityRepository.findAll(ENV))
             .extracting(AuthzEntity::entityId)
-            .containsExactlyInAnyOrder("api.bookings", "mcp.bookings.get-booking", "mcp.bookings.list-bookings");
+            .containsExactlyInAnyOrder("api.api-1", "mcp.api-1.get-booking", "mcp.api-1.list-bookings");
     }
 
     @Test
@@ -157,7 +157,7 @@ class ApiEventListenerTest {
 
         assertThat(entityRepository.findAll(ENV))
             .extracting(AuthzEntity::entityId)
-            .containsExactlyInAnyOrder("api.bookings", "mcp.bookings.get-booking");
+            .containsExactlyInAnyOrder("api.api-1", "mcp.api-1.get-booking");
     }
 
     @Test
@@ -183,7 +183,7 @@ class ApiEventListenerTest {
         AuthzEntityRepository faultyRepo = new AuthzEntityRepository() {
             @Override
             public AuthzEntity save(AuthzEntity entity) {
-                if ("mcp.bookings.get-booking".equals(entity.entityId())) {
+                if ("mcp.api-1.get-booking".equals(entity.entityId())) {
                     throw new RuntimeException("simulated transient repo failure");
                 }
                 return delegate.save(entity);
@@ -238,7 +238,7 @@ class ApiEventListenerTest {
         Api api = mcpProxyApi("api-1", "bookings", List.of(mcpToolFlow("get-booking", Set.of("tools/call"))));
         faultyListener.handle(ApiEvent.DEPLOY, api);
 
-        assertThat(delegate.findAll(ENV)).extracting(AuthzEntity::entityId).containsExactly("api.bookings");
+        assertThat(delegate.findAll(ENV)).extracting(AuthzEntity::entityId).containsExactly("api.api-1");
     }
 
     @Test
@@ -256,7 +256,7 @@ class ApiEventListenerTest {
 
         assertThat(entityRepository.findAll(ENV))
             .extracting(AuthzEntity::entityId)
-            .containsExactlyInAnyOrder("api.bookings", "mcp.bookings.get-booking");
+            .containsExactlyInAnyOrder("api.api-1", "mcp.api-1.get-booking");
     }
 
     @Test

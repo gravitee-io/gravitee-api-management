@@ -23,6 +23,7 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 import io.gravitee.gamma.authorization.api.AuthzEntityAdminApi;
+import io.gravitee.gamma.authorization.api.AuthzEntityIdConstants;
 import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
 import io.gravitee.gamma.authorization.service.CreateOrReplaceAuthzEntityCommand;
 import io.gravitee.rest.api.service.event.ApiEvent;
@@ -129,7 +130,7 @@ public class ApiEventListener implements EventListener<ApiEvent, io.gravitee.rep
     private void syncForApi(Api coreApi) {
         String envId = coreApi.getEnvironmentId();
         AuthzCallerContext caller = AuthzCallerContext.system(envId);
-        String apiId = EntityIdExtractor.identifierOf(coreApi);
+        String apiId = coreApi.getId();
         Set<String> currentIds = extractor.extract(coreApi);
         Set<String> previousIds = entityService.findApiAliases(envId, apiId);
 
@@ -148,7 +149,7 @@ public class ApiEventListener implements EventListener<ApiEvent, io.gravitee.rep
     private void undeploy(Api coreApi) {
         String envId = coreApi.getEnvironmentId();
         AuthzCallerContext caller = AuthzCallerContext.system(envId);
-        String rootEntityId = EntityIdExtractor.API_PREFIX + EntityIdExtractor.identifierOf(coreApi);
+        String rootEntityId = AuthzEntityIdConstants.API_PREFIX + coreApi.getId();
         try {
             entityService.delete(caller, rootEntityId);
         } catch (RuntimeException e) {
