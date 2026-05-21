@@ -30,6 +30,8 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.BulkOperations;
+import org.springframework.data.mongodb.core.FindAndReplaceOptions;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -51,6 +53,20 @@ public class MongoAuthzEntityRepository implements AuthzEntityRepository {
     public AuthzEntity save(AuthzEntity entity) {
         mongo.save(AuthzEntityDocumentMapper.toDocument(entity));
         return entity;
+    }
+
+    @Override
+    public List<AuthzEntity> saveAll(Collection<AuthzEntity> entities) {
+        if (entities == null || entities.isEmpty()) {
+            return List.of();
+        }
+        BulkOperations bulk = mongo.bulkOps(BulkOperations.BulkMode.UNORDERED, AuthzEntityMongo.class);
+        for (AuthzEntity entity : entities) {
+            AuthzEntityMongo doc = AuthzEntityDocumentMapper.toDocument(entity);
+            bulk.replaceOne(new Query(Criteria.where("_id").is(doc.id())), doc, FindAndReplaceOptions.options().upsert());
+        }
+        bulk.execute();
+        return List.copyOf(entities);
     }
 
     @Override

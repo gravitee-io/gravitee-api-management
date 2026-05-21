@@ -42,7 +42,8 @@ public class MongoAuthzPolicyRepository implements AuthzPolicyRepository {
     @PostConstruct
     void ensureIndexes() {
         var indexOps = mongo.indexOps(AuthzPolicyMongo.class);
-        indexOps.ensureIndex(new Index().on("environmentId", Sort.Direction.ASC).on("id", Sort.Direction.ASC).named("e1i1"));
+        indexOps.ensureIndex(new Index().on("environmentId", Sort.Direction.ASC).named("e1"));
+        indexOps.ensureIndex(new Index().on("environmentId", Sort.Direction.ASC).on("entityId", Sort.Direction.ASC).named("e1ei1"));
     }
 
     @Override

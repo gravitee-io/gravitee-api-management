@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import org.springframework.transaction.annotation.Transactional;
 
 public class AuthzPolicyServiceImpl implements AuthzPolicyAdminApi {
 
@@ -63,7 +62,6 @@ public class AuthzPolicyServiceImpl implements AuthzPolicyAdminApi {
     }
 
     @Override
-    @Transactional
     public AuthzPolicy create(AuthzCallerContext caller, CreateAuthzPolicyCommand command) {
         Objects.requireNonNull(caller, "caller must not be null");
         Objects.requireNonNull(command, "command must not be null");
@@ -95,7 +93,6 @@ public class AuthzPolicyServiceImpl implements AuthzPolicyAdminApi {
     }
 
     @Override
-    @Transactional
     public AuthzPolicy update(AuthzCallerContext caller, String id, UpdateAuthzPolicyCommand command) {
         Objects.requireNonNull(caller, "caller must not be null");
         AuthzValidators.requireNonBlank(id, "id");
@@ -136,7 +133,6 @@ public class AuthzPolicyServiceImpl implements AuthzPolicyAdminApi {
     }
 
     @Override
-    @Transactional
     public AuthzPolicy deploy(AuthzCallerContext caller, String id) {
         Objects.requireNonNull(caller, "caller must not be null");
         AuthzValidators.requireNonBlank(id, "id");
@@ -167,7 +163,6 @@ public class AuthzPolicyServiceImpl implements AuthzPolicyAdminApi {
     }
 
     @Override
-    @Transactional
     public AuthzPolicy disable(AuthzCallerContext caller, String id) {
         Objects.requireNonNull(caller, "caller must not be null");
         AuthzValidators.requireNonBlank(id, "id");
@@ -235,7 +230,6 @@ public class AuthzPolicyServiceImpl implements AuthzPolicyAdminApi {
     }
 
     @Override
-    @Transactional
     public boolean delete(AuthzCallerContext caller, String id) {
         Objects.requireNonNull(caller, "caller must not be null");
         AuthzValidators.requireNonBlank(id, "id");

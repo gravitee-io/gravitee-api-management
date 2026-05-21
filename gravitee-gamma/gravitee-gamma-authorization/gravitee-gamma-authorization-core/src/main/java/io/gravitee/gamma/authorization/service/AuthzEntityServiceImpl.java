@@ -49,7 +49,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.transaction.annotation.Transactional;
 
 public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
 
@@ -58,8 +57,6 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
     private static final String AGENT_PREFIX = EntityIdExtractor.AGENT_PREFIX;
 
     public static final int DEFAULT_CASCADE_HARD_LIMIT = 500;
-
-    static final int TRANSACTION_TIMEOUT_SECONDS = 30;
 
     private final AuthzEntityRepository entityRepository;
     private final AuthzPolicyRepository policyRepository;
@@ -102,7 +99,6 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
     }
 
     @Override
-    @Transactional
     public AuthzUpsertResult upsert(AuthzCallerContext caller, CreateOrReplaceAuthzEntityCommand command) {
         Objects.requireNonNull(caller, "caller must not be null");
         Objects.requireNonNull(command, "command must not be null");
@@ -122,7 +118,6 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
     }
 
     @Override
-    @Transactional
     public List<AuthzUpsertResult> bulkUpsert(AuthzCallerContext caller, List<CreateOrReplaceAuthzEntityCommand> commands) {
         Objects.requireNonNull(caller, "caller must not be null");
         Objects.requireNonNull(commands, "commands must not be null");
@@ -137,23 +132,14 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
 
         String environmentId = caller.environmentId();
         List<String> entityIds = commands.stream().map(CreateOrReplaceAuthzEntityCommand::entityId).toList();
-        Map<String, AuthzEntity> existingByEntityId = entityRepository
-            .findByEntityIds(environmentId, entityIds)
-            .stream()
-            .collect(java.util.stream.Collectors.toMap(AuthzEntity::entityId, e -> e, (a, b) -> a, LinkedHashMap::new));
 
-        List<AuthzUpsertResult> results = new ArrayList<>(commands.size());
-        List<UpsertOutcome> outcomes = new ArrayList<>(commands.size());
-        for (CreateOrReplaceAuthzEntityCommand command : commands) {
-            UpsertOutcome outcome;
-            try {
-                outcome = doUpsert(command, existingByEntityId.get(command.entityId()));
-            } catch (DuplicateKeyException race) {
-                outcome = doUpsert(command, null);
-            }
-            outcomes.add(outcome);
-            results.add(new AuthzUpsertResult(outcome.saved(), outcome.wasNew()));
+        List<UpsertOutcome> outcomes;
+        try {
+            outcomes = doBulkUpsert(environmentId, commands, entityIds);
+        } catch (DuplicateKeyException race) {
+            outcomes = doBulkUpsert(environmentId, commands, entityIds);
         }
+
         for (UpsertOutcome outcome : outcomes) {
             eventPublisher.publishEntityUpserted(outcome.saved());
         }
@@ -161,44 +147,69 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
         for (UpsertOutcome outcome : outcomes) {
             recordUpsertAudit(caller, outcome);
         }
-        return results;
+        return outcomes
+            .stream()
+            .map(o -> new AuthzUpsertResult(o.saved(), o.wasNew()))
+            .toList();
+    }
+
+    private List<UpsertOutcome> doBulkUpsert(
+        String environmentId,
+        List<CreateOrReplaceAuthzEntityCommand> commands,
+        List<String> entityIds
+    ) {
+        Map<String, AuthzEntity> existingByEntityId = entityRepository
+            .findByEntityIds(environmentId, entityIds)
+            .stream()
+            .collect(java.util.stream.Collectors.toMap(AuthzEntity::entityId, e -> e, (a, b) -> a, LinkedHashMap::new));
+
+        Instant now = TimeProvider.instantNow();
+        List<AuthzEntity> toSaveList = new ArrayList<>(commands.size());
+        List<UpsertOutcome> outcomes = new ArrayList<>(commands.size());
+        for (CreateOrReplaceAuthzEntityCommand command : commands) {
+            AuthzEntity prev = existingByEntityId.get(command.entityId());
+            AuthzEntity toSave = buildUpsertEntity(command, prev, now);
+            toSaveList.add(toSave);
+            outcomes.add(new UpsertOutcome(toSave, prev, prev == null));
+        }
+        entityRepository.saveAll(toSaveList);
+        return outcomes;
     }
 
     private UpsertOutcome doUpsert(CreateOrReplaceAuthzEntityCommand command, AuthzEntity preloadedExisting) {
-        Optional<AuthzEntity> existing = preloadedExisting != null
-            ? Optional.of(preloadedExisting)
-            : entityRepository.findByEntityId(command.environmentId(), command.entityId());
-        Instant now = TimeProvider.instantNow();
-
-        AuthzEntity toSave = existing
-            .map(prev ->
-                new AuthzEntity(
-                    prev.id(),
-                    command.entityId(),
-                    command.kind(),
-                    nonNullMap(command.attributes()),
-                    nonNullList(command.parents()),
-                    command.source(),
-                    command.environmentId(),
-                    prev.createdAt(),
-                    now
-                )
-            )
-            .orElseGet(() ->
-                new AuthzEntity(
-                    UUID.randomUUID().toString(),
-                    command.entityId(),
-                    command.kind(),
-                    nonNullMap(command.attributes()),
-                    nonNullList(command.parents()),
-                    command.source(),
-                    command.environmentId(),
-                    now,
-                    now
-                )
-            );
+        AuthzEntity existing = preloadedExisting != null
+            ? preloadedExisting
+            : entityRepository.findByEntityId(command.environmentId(), command.entityId()).orElse(null);
+        AuthzEntity toSave = buildUpsertEntity(command, existing, TimeProvider.instantNow());
         AuthzEntity saved = entityRepository.save(toSave);
-        return new UpsertOutcome(saved, existing.orElse(null), existing.isEmpty());
+        return new UpsertOutcome(saved, existing, existing == null);
+    }
+
+    private static AuthzEntity buildUpsertEntity(CreateOrReplaceAuthzEntityCommand command, AuthzEntity existing, Instant now) {
+        if (existing != null) {
+            return new AuthzEntity(
+                existing.id(),
+                command.entityId(),
+                command.kind(),
+                nonNullMap(command.attributes()),
+                nonNullList(command.parents()),
+                command.source(),
+                command.environmentId(),
+                existing.createdAt(),
+                now
+            );
+        }
+        return new AuthzEntity(
+            UUID.randomUUID().toString(),
+            command.entityId(),
+            command.kind(),
+            nonNullMap(command.attributes()),
+            nonNullList(command.parents()),
+            command.source(),
+            command.environmentId(),
+            now,
+            now
+        );
     }
 
     private void recordUpsertAudit(AuthzCallerContext caller, UpsertOutcome outcome) {
@@ -219,7 +230,6 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
     private record UpsertOutcome(AuthzEntity saved, AuthzEntity previous, boolean wasNew) {}
 
     @Override
-    @Transactional
     public AuthzEntity update(AuthzCallerContext caller, String entityId, UpdateAuthzEntityCommand command) {
         Objects.requireNonNull(caller, "caller must not be null");
         Objects.requireNonNull(command, "command must not be null");
@@ -270,9 +280,8 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
         AuthzValidators.requireNonBlank(apiId, "apiId");
         Set<String> ids = new LinkedHashSet<>();
         entityRepository.findByEntityId(environmentId, API_PREFIX + apiId).ifPresent(e -> ids.add(e.entityId()));
-        entityRepository.findByEntityIdPrefix(environmentId, API_PREFIX + apiId + ".").forEach(e -> ids.add(e.entityId()));
-        entityRepository.findByEntityIdPrefix(environmentId, MCP_PREFIX + apiId + ".").forEach(e -> ids.add(e.entityId()));
-        entityRepository.findByEntityIdPrefix(environmentId, AGENT_PREFIX + apiId + ".").forEach(e -> ids.add(e.entityId()));
+        List<String> prefixes = List.of(API_PREFIX + apiId + ".", MCP_PREFIX + apiId + ".", AGENT_PREFIX + apiId + ".");
+        entityRepository.findByAnyEntityIdPrefix(environmentId, prefixes).forEach(e -> ids.add(e.entityId()));
         return ids;
     }
 
@@ -301,7 +310,6 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
     }
 
     @Override
-    @Transactional(timeout = TRANSACTION_TIMEOUT_SECONDS)
     public AuthzCascadeResult delete(AuthzCallerContext caller, String entityId) {
         Objects.requireNonNull(caller, "caller must not be null");
         AuthzValidators.requireNonBlank(entityId, "entityId");
