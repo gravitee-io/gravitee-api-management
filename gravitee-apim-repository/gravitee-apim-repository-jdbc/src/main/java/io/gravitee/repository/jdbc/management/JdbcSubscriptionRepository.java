@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.AND_CLAUSE;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.WHERE_CLAUSE;
@@ -32,6 +33,7 @@ import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.api.search.SubscriptionCursor;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import java.sql.PreparedStatement;
@@ -191,6 +193,109 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             return rows;
         } catch (Exception ex) {
             throw new TechnicalException("Failed to delete subscription by environment", ex);
+        }
+    }
+
+    @Override
+    public List<Subscription> searchAfter(SubscriptionCriteria criteria, Sortable sortable, SubscriptionCursor after, int pageSize)
+        throws TechnicalException {
+        if (!isEmpty(criteria.getPlanSecurityTypes()) || !isEmpty(criteria.getExcludedApis())) {
+            throw new TechnicalException("searchAfter does not support planSecurityTypes or excludedApis filters; use search() instead");
+        }
+        boolean sortByUpdatedAt;
+        if (sortable == null || sortable.field() == null || "updatedAt".equals(sortable.field())) {
+            sortByUpdatedAt = true;
+        } else if ("id".equals(sortable.field())) {
+            sortByUpdatedAt = false;
+        } else {
+            throw new TechnicalException("searchAfter supports sort field 'updatedAt' or 'id' only, got: " + sortable.field());
+        }
+
+        final List<Object> argsList = new ArrayList<>();
+        JdbcHelper.CollatingRowMapper<Subscription> rowMapper = new JdbcHelper.CollatingRowMapper<>(
+            getOrm().getRowMapper(),
+            METADATA_ADDER,
+            "id"
+        );
+
+        // The pageSize limit must apply BEFORE the metadata LEFT JOIN, otherwise a subscription
+        // with multiple metadata rows consumes more than one row of the limit (partial metadata +
+        // false short-page exhaustion). Build the page of subscription ids in a subquery, then
+        // join metadata on the outer query.
+        final StringBuilder inner = new StringBuilder("select * from ").append(this.tableName);
+
+        boolean started = false;
+        if (!isEmpty(criteria.getEnvironments())) {
+            inner
+                .append(WHERE_CLAUSE)
+                .append(" ( environment_id in ( ")
+                .append(getOrm().buildInClause(criteria.getEnvironments()))
+                .append(" ) )");
+            argsList.addAll(criteria.getEnvironments());
+            started = true;
+        }
+        if (criteria.getStatuses() != null && !criteria.getStatuses().isEmpty()) {
+            started = addStringsWhereClause(criteria.getStatuses(), "status", argsList, inner, started);
+        }
+        if (criteria.getPlans() != null && !criteria.getPlans().isEmpty()) {
+            started = addStringsWhereClause(criteria.getPlans(), escapeReservedWord("plan"), argsList, inner, started);
+        }
+        if (criteria.getFrom() > 0) {
+            inner.append(started ? AND_CLAUSE : WHERE_CLAUSE);
+            inner.append("updated_at >= ?");
+            argsList.add(new Date(criteria.getFrom()));
+            started = true;
+        }
+        if (criteria.getTo() > 0) {
+            inner.append(started ? AND_CLAUSE : WHERE_CLAUSE);
+            inner.append("updated_at < ?");
+            argsList.add(new Date(criteria.getTo()));
+            started = true;
+        }
+        if (criteria.getEndingAtAfter() > 0) {
+            inner.append(started ? AND_CLAUSE : WHERE_CLAUSE);
+            if (criteria.isIncludeWithoutEnd()) {
+                inner.append("( ending_at is NULL or ending_at >= ? )");
+            } else {
+                inner.append("ending_at >= ?");
+            }
+            argsList.add(new Date(criteria.getEndingAtAfter()));
+            started = true;
+        }
+        if (after != null) {
+            inner.append(started ? AND_CLAUSE : WHERE_CLAUSE);
+            if (sortByUpdatedAt) {
+                inner.append("( updated_at > ? or ( updated_at = ? and id > ? ) )");
+                Date marker = new Date(after.updatedAt());
+                argsList.add(marker);
+                argsList.add(marker);
+                argsList.add(after.id());
+            } else {
+                inner.append("id > ?");
+                argsList.add(after.id());
+            }
+        }
+
+        if (sortByUpdatedAt) {
+            inner.append(" order by updated_at asc, id asc ");
+        } else {
+            inner.append(" order by id asc ");
+        }
+        inner.append(createPagingClause(pageSize, 0));
+
+        final String query =
+            "select s.*, sm.k as sm_k, sm.v as sm_v from (" +
+            inner +
+            ") s left join " +
+            this.metadataTableName +
+            " sm on s.id = sm.subscription_id " +
+            (sortByUpdatedAt ? "order by s.updated_at asc, s.id asc" : "order by s.id asc");
+
+        try {
+            jdbcTemplate.query(query, rowMapper, argsList.toArray());
+            return rowMapper.getRows();
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to search subscriptions after cursor", ex);
         }
     }
 

@@ -18,6 +18,8 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.api;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -30,6 +32,8 @@ import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.search.SubscriptionCursor;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -64,11 +68,13 @@ class SubscriptionAppenderTest {
 
     private SubscriptionAppender cut;
 
+    private static final int BULK_ITEMS = 2;
+
     @BeforeEach
     public void beforeEach() {
         when(apiProductRegistry.getApiProductPlanEntriesForApi(any(), any())).thenReturn(List.of());
         SubscriptionMapper subscriptionMapper = new SubscriptionMapper(objectMapper, apiProductRegistry);
-        cut = new SubscriptionAppender(subscriptionRepository, subscriptionMapper, apiProductRegistry);
+        cut = new SubscriptionAppender(subscriptionRepository, subscriptionMapper, apiProductRegistry, BULK_ITEMS);
         memoryAppender.reset();
     }
 
@@ -107,11 +113,18 @@ class SubscriptionAppenderTest {
         subscription2.setId("sub2");
         subscription2.setApi("api1");
         when(
-            subscriptionRepository.search(
-                argThat(argument -> argument.getPlans().contains("plan1") && argument.getEnvironments().contains("env")),
-                any()
+            subscriptionRepository.searchAfter(
+                argThat(
+                    argument -> argument != null && argument.getPlans().contains("plan1") && argument.getEnvironments().contains("env")
+                ),
+                any(),
+                isNull(),
+                eq(BULK_ITEMS)
             )
         ).thenReturn(List.of(subscription1, subscription2));
+        when(subscriptionRepository.searchAfter(any(), any(), argThat(c -> c != null && "sub2".equals(c.id())), eq(BULK_ITEMS))).thenReturn(
+            List.of()
+        );
         ApiReactorDeployable apiReactorDeployable2 = ApiReactorDeployable.builder()
             .apiId("api2")
             .reactableApi(mock(ReactableApi.class))
@@ -122,6 +135,36 @@ class SubscriptionAppenderTest {
         assertThat(deployables).hasSize(2);
         assertThat(deployables.get(0).subscriptions()).hasSize(2);
         assertThat(deployables.get(1).subscriptions()).isEmpty();
+    }
+
+    @Test
+    void should_aggregate_subscriptions_across_multiple_pages() throws TechnicalException {
+        ApiReactorDeployable deployable = ApiReactorDeployable.builder()
+            .apiId("api1")
+            .reactableApi(mock(ReactableApi.class))
+            .subscribablePlans(new HashSet<>(Set.of("plan1")))
+            .apiKeyPlans(new HashSet<>(Set.of("plan1")))
+            .build();
+
+        io.gravitee.repository.management.model.Subscription a = sub("sub-a");
+        io.gravitee.repository.management.model.Subscription b = sub("sub-b");
+        io.gravitee.repository.management.model.Subscription c = sub("sub-c");
+
+        when(subscriptionRepository.searchAfter(any(), any(), isNull(), eq(BULK_ITEMS))).thenReturn(List.of(a, b));
+        when(
+            subscriptionRepository.searchAfter(any(), any(), argThat(cur -> cur != null && "sub-b".equals(cur.id())), eq(BULK_ITEMS))
+        ).thenReturn(List.of(c));
+
+        List<ApiReactorDeployable> deployables = cut.appends(true, List.of(deployable), Set.of("env"));
+        assertThat(deployables).hasSize(1);
+        assertThat(deployables.get(0).subscriptions()).hasSize(3);
+    }
+
+    private static io.gravitee.repository.management.model.Subscription sub(String id) {
+        io.gravitee.repository.management.model.Subscription s = new io.gravitee.repository.management.model.Subscription();
+        s.setId(id);
+        s.setApi("api1");
+        return s;
     }
 
     @Test
@@ -142,7 +185,12 @@ class SubscriptionAppenderTest {
         io.gravitee.repository.management.model.Subscription subscription3 = new io.gravitee.repository.management.model.Subscription();
         subscription3.setId("sub3");
         subscription3.setApi("api3");
-        when(subscriptionRepository.search(any(), any())).thenReturn(List.of(subscription1, subscription2, subscription3));
+        when(subscriptionRepository.searchAfter(any(), any(), isNull(), eq(BULK_ITEMS))).thenReturn(
+            List.of(subscription1, subscription2, subscription3)
+        );
+        when(
+            subscriptionRepository.searchAfter(any(), any(), argThat(cur -> cur != null && "sub3".equals(cur.id())), eq(BULK_ITEMS))
+        ).thenReturn(List.of());
         ApiReactorDeployable apiReactorDeployable2 = ApiReactorDeployable.builder()
             .apiId("api2")
             .reactableApi(mock(ReactableApi.class))
