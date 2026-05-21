@@ -623,6 +623,18 @@
             </modules>
         </profile>
         <profile>
+            <id>gamma-repository-modules</id>
+            <activation>
+                <property>
+                    <name>gamma-repository-modules</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <modules>
+                <module>gravitee-gamma/gravitee-gamma-repository</module>
+            </modules>
+        </profile>
+        <profile>
             <id>integration-tests-modules</id>
             <activation>
                 <property>
