@@ -19,6 +19,7 @@ import io.gravitee.apim.core.application.model.crd.ApplicationCRDStatus;
 import io.gravitee.apim.rest.api.automation.model.ApplicationSpec;
 import io.gravitee.apim.rest.api.automation.model.ApplicationState;
 import io.gravitee.apim.rest.api.automation.model.ClientCertificate;
+import io.gravitee.apim.rest.api.automation.model.Errors;
 import io.gravitee.apim.rest.api.automation.model.Metadata;
 import io.gravitee.rest.api.management.v2.rest.mapper.CollectionFactory;
 import io.gravitee.rest.api.management.v2.rest.mapper.DateMapper;
@@ -30,6 +31,7 @@ import io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -50,26 +52,41 @@ public interface ApplicationMapper {
     )
     ApplicationCRDSpec applicationSpecToApplicationCRDSpec(ApplicationSpec applicationSpec);
 
-    @Mapping(target = "id", source = "id")
-    @Mapping(target = "errors", ignore = true)
-    @Mapping(target = "organizationId", source = "organizationId")
-    @Mapping(target = "environmentId", source = "environmentId")
-    ApplicationState applicationSpecToApplicationState(
+    default ApplicationState applicationSpecToApplicationState(
         ApplicationSpec applicationSpec,
         String id,
         String organizationId,
         String environmentId
-    );
+    ) {
+        var state = new ApplicationState(applicationSpec.getPrimaryOwner(), id, environmentId, organizationId, null);
+        mapAppSpecToState(applicationSpec, state);
+        return state;
+    }
 
-    @Mapping(target = "id", source = "status.id")
-    @Mapping(target = "errors", source = "status.errors")
-    @Mapping(target = "organizationId", source = "status.organizationId")
-    @Mapping(target = "environmentId", source = "status.environmentId")
+    default ApplicationState applicationSpecAndStatusToApplicationState(ApplicationSpec spec, ApplicationCRDStatus status) {
+        var state = new ApplicationState(
+            spec.getPrimaryOwner(),
+            status.getId(),
+            status.getEnvironmentId(),
+            status.getOrganizationId(),
+            toErrors(status.getErrors())
+        );
+        mapAppSpecToState(spec, state);
+        return state;
+    }
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "primaryOwner", ignore = true)
+    @Mapping(target = "errors", ignore = true)
+    @Mapping(target = "organizationId", ignore = true)
+    @Mapping(target = "environmentId", ignore = true)
     @Mapping(
         target = "settings.tls.clientCertificate",
         expression = "java(applicationTLSSettings.getClientCertificate() != null ? applicationTLSSettings.getClientCertificate().stripTrailing() : null)"
     )
-    ApplicationState applicationSpecAndStatusToApplicationState(ApplicationSpec spec, ApplicationCRDStatus status);
+    void mapAppSpecToState(ApplicationSpec spec, @MappingTarget ApplicationState state);
+
+    Errors toErrors(ApplicationCRDStatus.Errors errors);
 
     @Mapping(source = "content", target = "certificate")
     CreateClientCertificate map(ClientCertificate clientCertificate);

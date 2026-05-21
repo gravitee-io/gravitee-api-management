@@ -17,6 +17,7 @@ package io.gravitee.apim.rest.api.automation.mapper;
 
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRDStatus;
+import io.gravitee.apim.rest.api.automation.model.Errors;
 import io.gravitee.apim.rest.api.automation.model.LegacySharedPolicyGroupSpec;
 import io.gravitee.apim.rest.api.automation.model.SharedPolicyGroupState;
 import io.gravitee.apim.rest.api.automation.model.StepV4;
@@ -41,28 +42,39 @@ public interface SharedPolicyGroupMapper {
     @Mapping(target = "originContext", ignore = true)
     io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRD map(LegacySharedPolicyGroupSpec spec);
 
-    @Mapping(target = "errors", ignore = true)
-    SharedPolicyGroupState toState(SharedPolicyGroup sharedPolicyGroup);
+    default SharedPolicyGroupState toState(SharedPolicyGroup spg) {
+        var state = new SharedPolicyGroupState(spg.getId(), spg.getEnvironmentId(), spg.getOrganizationId(), null, spg.getCrossId());
+        mapToState(spg, state);
+        return state;
+    }
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "crossId", ignore = true)
     @Mapping(target = "errors", ignore = true)
     @Mapping(target = "organizationId", ignore = true)
     @Mapping(target = "environmentId", ignore = true)
-    SharedPolicyGroupState toState(LegacySharedPolicyGroupSpec spec);
+    void mapToState(SharedPolicyGroup spg, @MappingTarget SharedPolicyGroupState state);
 
-    @Mapping(target = "id", source = "status.id")
-    @Mapping(target = "crossId", source = "status.crossId")
-    @Mapping(target = "steps", ignore = true)
-    @Mapping(target = "prerequisiteMessage", ignore = true)
-    @Mapping(target = "phase", ignore = true)
-    @Mapping(target = "name", ignore = true)
-    @Mapping(target = "hrid", ignore = true)
-    @Mapping(target = "description", ignore = true)
-    @Mapping(target = "apiType", ignore = true)
-    @Mapping(target = "organizationId", source = "status.organizationId")
-    @Mapping(target = "environmentId", source = "status.environmentId")
-    SharedPolicyGroupState withStatusInfos(@MappingTarget SharedPolicyGroupState state, SharedPolicyGroupCRDStatus status);
+    default SharedPolicyGroupState toState(LegacySharedPolicyGroupSpec spec, SharedPolicyGroupCRDStatus status) {
+        var state = new SharedPolicyGroupState(
+            status.getId(),
+            status.getEnvironmentId(),
+            status.getOrganizationId(),
+            toErrors(status.getErrors()),
+            status.getCrossId()
+        );
+        mapSpecToState(spec, state);
+        return state;
+    }
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "crossId", ignore = true)
+    @Mapping(target = "errors", ignore = true)
+    @Mapping(target = "organizationId", ignore = true)
+    @Mapping(target = "environmentId", ignore = true)
+    void mapSpecToState(LegacySharedPolicyGroupSpec spec, @MappingTarget SharedPolicyGroupState state);
+
+    Errors toErrors(SharedPolicyGroupCRDStatus.Errors errors);
 
     @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
     Step mapStep(StepV4 step);

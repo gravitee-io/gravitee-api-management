@@ -96,18 +96,14 @@ public class SharedPolicyGroupsResource extends AbstractResource {
                             .environmentId(auditInfo.environmentId()),
                     errors -> statusBuilder.errors(SharedPolicyGroupCRDStatus.Errors.fromErrorList(errors))
                 );
-            return Response.ok(
-                SharedPolicyGroupMapper.INSTANCE.withStatusInfos(SharedPolicyGroupMapper.INSTANCE.toState(spec), statusBuilder.build())
-            ).build();
+            return Response.ok(SharedPolicyGroupMapper.INSTANCE.toState(spec, statusBuilder.build())).build();
         }
 
         var output = importSharedPolicyGroupCRDCRDUseCase.execute(
             new ImportSharedPolicyGroupCRDCRDUseCase.Input(auditInfo, sharedPolicyGroupCRD)
         );
 
-        return Response.ok(
-            SharedPolicyGroupMapper.INSTANCE.withStatusInfos(SharedPolicyGroupMapper.INSTANCE.toState(spec), output.status())
-        ).build();
+        return Response.ok(SharedPolicyGroupMapper.INSTANCE.toState(spec, output.status())).build();
     }
 
     @Path("/{hrid}")
