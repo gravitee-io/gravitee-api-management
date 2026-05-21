@@ -42,3 +42,20 @@ export function useEnvironmentPermissions(): void {
         permissionService.load('environment', permissions);
     }, [permissions]);
 }
+
+/**
+ * True once environment-scoped permissions are loaded into {@link permissionService}.
+ * Shares the query with {@link useEnvironmentPermissions} (deduped by React Query).
+ */
+export function useEnvironmentPermissionsReady(): boolean {
+    const env = useEnvironment();
+
+    const { isSuccess } = useQuery({
+        queryKey: environmentPermissionKeys.detail(env?.id ?? ''),
+        queryFn: () => getEnvironmentPermissions(env!.id),
+        enabled: Boolean(env?.id),
+        staleTime: 60_000,
+    });
+
+    return isSuccess;
+}
