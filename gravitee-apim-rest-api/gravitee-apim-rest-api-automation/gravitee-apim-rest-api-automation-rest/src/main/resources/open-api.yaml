@@ -700,7 +700,7 @@ components:
             maxLength: 64
           uniqueItems: true
           default: [ ]
-          examples: 
+          examples:
             - ["example"]
         metadata:
           type: array
@@ -790,29 +790,7 @@ components:
       description: API state
       allOf:
         - $ref: "#/components/schemas/ApiV4Spec"
-        - type: object
-          properties:
-            errors:
-              $ref: "#/components/schemas/Errors"
-        - type: object
-          properties:
-            id:
-              type: string
-              description: API's uuid.
-            crossId:
-              type: string
-              description: >-
-                When promoting an API from one environment to the other,
-                this ID identifies the API across those different
-                environments.
-            environmentId:
-              description:
-                The environment ID of the API.
-              type: string
-            organizationId:
-              description:
-                The organization ID of the API.
-              type: string
+        - $ref: "#/components/schemas/CrossIdStatus"
     ApplicationSpec:
       description: |
         Defines the desired state of Application. 
@@ -1045,29 +1023,7 @@ components:
       description: Application state that has been created/updated
       allOf:
         - $ref: "#/components/schemas/ApplicationSpec"
-        - type: object
-          properties:
-            errors:
-              $ref: "#/components/schemas/Errors"
-        - type: object
-          properties:
-            id:
-              type: string
-              description: Application's uuid.
-              examples:
-                - 550e8400-e29b-41d4-a716-446655440000
-            environmentId:
-              description: The environment ID of the Application.
-              type: string
-              default: DEFAULT
-              examples:
-                - DEFAULT
-            organizationId:
-              description: The organization ID of the Application.
-              type: string
-              default: DEFAULT
-              examples:
-                - DEFAULT
+        - $ref: "#/components/schemas/BaseStatus"
 
     GroupSpec:
       description: |
@@ -1130,31 +1086,17 @@ components:
         - sourceId
     GroupStatus:
       description: Status information for a group after import.
-      type: object
-      properties:
-        id:
-          type: string
-          description: Group's uuid.
-          readOnly: true
-          examples:
-            - 550e8400-e29b-41d4-a716-446655440000
-        environmentId:
-          type: string
-          description: The environment ID of the API.
-          readOnly: true
-        organizationId:
-          type: string
-          description: The organization ID of the API.
-          readOnly: true
-        memberCount:
-          type: integer
-          format: int64
-          description: Number of members in the group.
-          examples:
-            - 5
-          readOnly: true
-        errors:
-          $ref: "#/components/schemas/Errors"
+      allOf:
+        - $ref: "#/components/schemas/BaseStatus"
+        - type: object
+          properties:
+            memberCount:
+              type: integer
+              format: int64
+              description: Number of members in the group.
+              examples:
+                - 5
+              readOnly: true
 
     GroupState:
       description: Group state combining spec and status after creation/update.
@@ -1163,24 +1105,10 @@ components:
         - $ref: "#/components/schemas/GroupStatus"
 
     DictionaryState:
-      type: object
+      description: Dictionary state
       allOf:
         - $ref: "#/components/schemas/DictionarySpec"
-        - type: object
-          properties:
-            id:
-              type: string
-              readOnly: true
-            environmentId:
-              type: string
-              description: The environment ID of the API.
-              readOnly: true
-            organizationId:
-              type: string
-              description: The organization ID of the API.
-              readOnly: true
-          required:
-            - id
+        - $ref: "#/components/schemas/BaseStatus"
     DictionarySpec:
       description: |
         Specification of a dictionary resource. Allow users to create, update and delete dictionaries. Dictionaries
@@ -1409,62 +1337,34 @@ components:
             }
       required: [entrypointId]
 
-    SubscriptionState:
-      description: State of subscription that has been created/update
+    SubscriptionStatus:
+      description: Status information for a subscription after import.
       allOf:
-        - $ref: "#/components/schemas/SubscriptionSpec"
+        - $ref: "#/components/schemas/BaseStatus"
         - type: object
           properties:
-            errors:
-              $ref: "#/components/schemas/Errors"
-        - type: object
-          properties:
-            id:
-              type: string
-              description: Subscription's uuid.
             apiHrid:
               type: string
               description: The API's Hrid.
               example: demo-api
-            environmentId:
-              description: The environment ID of the Subscription.
-              type: string
-            organizationId:
-              description: The organization ID of the Subscription.
-              type: string
+              readOnly: true
             startingAt:
               type: string
               description: Start validity date time of this Subscription
               format: date-time
               example: "2040-12-25T09:12:28+01:00"
+              readOnly: true
+    SubscriptionState:
+      description: State of subscription that has been created/updated
+      allOf:
+        - $ref: "#/components/schemas/SubscriptionSpec"
+        - $ref: "#/components/schemas/SubscriptionStatus"
 
     SharedPolicyGroupState:
       description: State of Shared Policy Groups that has been created/updated
       allOf:
         - $ref: "#/components/schemas/SharedPolicyGroupSpec"
-        - type: object
-          properties:
-            errors:
-              $ref: "#/components/schemas/Errors"
-        - type: object
-          properties:
-            id:
-              description:
-                The id of the shared policy group.
-              type: string
-            crossId:
-              description:
-                The Cross ID is used to identify a shared policy group that has been promoted from
-                one environment to another.
-              type: string
-            environmentId:
-              description:
-                The environment ID of the shared policy group.
-              type: string
-            organizationId:
-              description:
-                The organization ID of the shared policy group.
-              type: string
+        - $ref: "#/components/schemas/CrossIdStatus"
     SharedPolicyGroupSpec:
       description: Shared Policy Group Spec
       type: object
@@ -1538,11 +1438,13 @@ components:
           items:
             type: string
             maxLength: 64
+          default: []
         excludedGroups:
           description: Access-control, UUID of groups excluded from this plan
           type: array
           items:
             type: string
+          default: []
         selectionRule:
           type: string
           maxLength: 256
@@ -1556,6 +1458,7 @@ components:
             type: string
             maxLength: 64
           uniqueItems: true
+          default: []
         type:
           $ref: '#/components/schemas/PlanType'
         validation:
@@ -1742,6 +1645,7 @@ components:
           items:
             type: string
           uniqueItems: true
+          default: []
         allowMethods:
           description: |
            `Access-Control-Allow-Methods`: Specifies the method or methods allowed when accessing the resource. This is used in response to a preflight request. HTTP methods that are allow to access the resource.
@@ -1759,6 +1663,7 @@ components:
              - OPTIONS
              - TRACE
              - HEAD
+          default: []
         allowOrigin:
           uniqueItems: true
           description: |
@@ -1769,6 +1674,7 @@ components:
             type: string
           examples:
             - ["*","http://api.acme\\.com", ".*\\.api\\.acme\\.com"]
+          default: []
         exposeHeaders:
           description: | 
             `Access-Control-Expose-Headers`: This header lets a server whitelist headers that browsers are allowed to access.
@@ -1778,6 +1684,7 @@ components:
             type: string
           examples:
             - ["Content-Type"]
+          default: []
         maxAge:
           description: How long (in seconds) the results of a preflight request can be cached (-1 if disabled).
           type: integer
@@ -1833,6 +1740,7 @@ components:
           description: The list of Getaway's tenants on which the endpoint can be used.
           items:
             type: string
+          default: []
       required:
         - type
         - name
@@ -1954,6 +1862,7 @@ components:
           examples:
             - [ tag1, tag2 ]
           uniqueItems: true
+          default: []
       required:
         - enabled
     FlowExecution:
@@ -2731,10 +2640,6 @@ components:
         defaultValue:
           type: string
           description: The default value of the metadata if the value is not set.
-        hidden:
-          type: boolean
-          description: if this metadata should be hidden
-          default: false
       required:
         - name
         - format
@@ -2808,6 +2713,36 @@ components:
                 description: The invalid value.
                 examples:
                   - $...faulty
+
+    BaseStatus:
+      description: Base status properties common to all resources.
+      type: object
+      properties:
+        id:
+          type: string
+          description: Resource UUID.
+          readOnly: true
+        environmentId:
+          type: string
+          description: The environment ID.
+          readOnly: true
+        organizationId:
+          type: string
+          description: The organization ID.
+          readOnly: true
+        errors:
+          readOnly: true
+          $ref: "#/components/schemas/Errors"
+    CrossIdStatus:
+      description: Status with cross-environment identifier for promotable resources.
+      allOf:
+        - $ref: "#/components/schemas/BaseStatus"
+        - type: object
+          properties:
+            crossId:
+              type: string
+              description: Identifier used to track this resource across environment promotions.
+              readOnly: true
 
     Errors:
       description: >-
@@ -2894,7 +2829,7 @@ components:
       schema:
         type: boolean
         default: false
-        examples: 
+        examples:
           - true
     hridParam:
       name: hrid

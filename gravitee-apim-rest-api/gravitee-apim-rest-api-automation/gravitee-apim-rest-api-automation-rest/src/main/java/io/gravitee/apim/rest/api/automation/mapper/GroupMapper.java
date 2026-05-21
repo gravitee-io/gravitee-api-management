@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
@@ -55,33 +56,45 @@ public interface GroupMapper {
     Errors toErrors(GroupCRDStatus.Errors errors);
 
     default GroupState groupSpecAndStatusToGroupState(GroupSpec spec, GroupCRDStatus status, ExecutionContext executionContext) {
-        GroupState state = new GroupState(
+        var state = new GroupState(
             status.getId(),
             executionContext.getEnvironmentId(),
             executionContext.getOrganizationId(),
+            toErrors(status.getErrors()),
             status.getMembers()
         );
-        state.setHrid(spec.getHrid());
-        state.setName(spec.getName());
-        state.setMembers(spec.getMembers());
-        state.setNotifyMembers(spec.getNotifyMembers());
-        state.setErrors(toErrors(status.getErrors()));
+        mapSpecToState(spec, state);
         return state;
     }
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "environmentId", ignore = true)
+    @Mapping(target = "organizationId", ignore = true)
+    @Mapping(target = "errors", ignore = true)
+    @Mapping(target = "memberCount", ignore = true)
+    void mapSpecToState(GroupSpec spec, @MappingTarget GroupState state);
+
     default GroupState groupToGroupState(Group group, Set<GroupCRDSpec.Member> members, ExecutionContext executionContext) {
-        GroupState state = new GroupState(
+        var state = new GroupState(
             group.getId(),
             executionContext.getEnvironmentId(),
             executionContext.getOrganizationId(),
+            null,
             members != null ? (long) members.size() : 0L
         );
-        state.setHrid(group.getHrid());
-        state.setName(group.getName());
-        state.setNotifyMembers(!group.isDisableMembershipNotifications());
+        mapGroupToState(group, state);
         state.setMembers(members != null ? members.stream().map(this::memberToGroupMember).toList() : null);
         return state;
     }
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "environmentId", ignore = true)
+    @Mapping(target = "organizationId", ignore = true)
+    @Mapping(target = "errors", ignore = true)
+    @Mapping(target = "memberCount", ignore = true)
+    @Mapping(target = "members", ignore = true)
+    @Mapping(target = "notifyMembers", expression = "java(!group.isDisableMembershipNotifications())")
+    void mapGroupToState(Group group, @MappingTarget GroupState state);
 
     @Named("stringMapToRoleScopeMap")
     default Map<RoleScope, String> stringMapToRoleScopeMap(Map<String, String> roles) {

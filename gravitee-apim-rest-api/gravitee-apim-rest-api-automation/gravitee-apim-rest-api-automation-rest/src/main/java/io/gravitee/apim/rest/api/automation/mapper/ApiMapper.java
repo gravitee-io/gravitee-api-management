@@ -52,6 +52,7 @@ import java.util.Map;
 import java.util.Objects;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -68,13 +69,11 @@ public interface ApiMapper {
     @Mapping(target = "consoleNotificationConfiguration", source = "consoleNotification")
     ApiCRDSpec apiV4SpecToApiCRDSpec(LegacyAPIV4Spec apiV4Spec);
 
-    @Mapping(target = "id", source = "id")
-    @Mapping(target = "crossId", source = "crossId")
-    @Mapping(target = "errors", ignore = true)
-    @Mapping(target = "organizationId", source = "organizationId")
-    @Mapping(target = "environmentId", source = "environmentId")
-    @Mapping(target = "consoleNotification", expression = "java(apiV4Spec.getConsoleNotification())")
-    ApiV4State apiV4SpecToApiV4State(ApiV4Spec apiV4Spec, String id, String crossId, String organizationId, String environmentId);
+    default ApiV4State apiV4SpecToApiV4State(ApiV4Spec apiV4Spec, String id, String crossId, String organizationId, String environmentId) {
+        var state = new ApiV4State(id, environmentId, organizationId, null, crossId);
+        mapApiSpecToState(apiV4Spec, state);
+        return state;
+    }
 
     @Mapping(target = "selectors", expression = "java(mapApiV4SpecSelectors(flowV4))")
     io.gravitee.rest.api.management.v2.rest.model.FlowV4 map(FlowV4 flowV4);
@@ -82,14 +81,24 @@ public interface ApiMapper {
     @Mapping(target = "selectors", expression = "java(mapApiCRDSpecSelectors(flowV4))")
     FlowV4 map(io.gravitee.rest.api.management.v2.rest.model.FlowV4 flowV4);
 
-    @Mapping(target = "id", source = "status.id")
-    @Mapping(target = "crossId", source = "status.crossId")
-    @Mapping(target = "errors", source = "status.errors")
-    @Mapping(target = "plans", source = "spec.plans")
-    @Mapping(target = "state", source = "spec.state")
-    @Mapping(target = "organizationId", source = "status.organizationId")
-    @Mapping(target = "environmentId", source = "status.environmentId")
-    ApiV4State apiV4SpecAndStatusToApiV4State(ApiV4Spec spec, ApiCRDStatus status);
+    default ApiV4State apiV4SpecAndStatusToApiV4State(ApiV4Spec spec, ApiCRDStatus status) {
+        var state = new ApiV4State(
+            status.getId(),
+            status.getEnvironmentId(),
+            status.getOrganizationId(),
+            toErrors(status.getErrors()),
+            status.getCrossId()
+        );
+        mapApiSpecToState(spec, state);
+        return state;
+    }
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "crossId", ignore = true)
+    @Mapping(target = "errors", ignore = true)
+    @Mapping(target = "organizationId", ignore = true)
+    @Mapping(target = "environmentId", ignore = true)
+    void mapApiSpecToState(ApiV4Spec spec, @MappingTarget ApiV4State state);
 
     Errors toErrors(ApiCRDStatus.Errors apiV4State);
 

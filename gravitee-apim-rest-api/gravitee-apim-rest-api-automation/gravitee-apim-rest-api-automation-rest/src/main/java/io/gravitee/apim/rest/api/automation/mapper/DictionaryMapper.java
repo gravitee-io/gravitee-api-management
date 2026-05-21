@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
@@ -74,7 +75,8 @@ public interface DictionaryMapper {
         DictionaryState state = new DictionaryState(
             entity.getId(),
             executionContext.getEnvironmentId(),
-            executionContext.getOrganizationId()
+            executionContext.getOrganizationId(),
+            null
         );
         state.setHrid(entity.getKey() != null ? entity.getKey() : entity.getId());
         state.setName(entity.getName());
@@ -95,7 +97,17 @@ public interface DictionaryMapper {
         return state;
     }
 
-    DictionaryState toDictionaryState(DictionarySpec entity);
+    default DictionaryState toDictionaryState(DictionarySpec spec) {
+        var state = new DictionaryState();
+        mapSpecToState(spec, state);
+        return state;
+    }
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "environmentId", ignore = true)
+    @Mapping(target = "organizationId", ignore = true)
+    @Mapping(target = "errors", ignore = true)
+    void mapSpecToState(DictionarySpec spec, @MappingTarget DictionaryState state);
 
     DictionaryType toSpecType(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType type);
 

@@ -27,6 +27,7 @@ import io.gravitee.rest.api.management.v2.rest.mapper.DateMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.OriginContextMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -37,13 +38,32 @@ import org.mapstruct.factory.Mappers;
 public interface SubscriptionMapper {
     SubscriptionMapper INSTANCE = Mappers.getMapper(SubscriptionMapper.class);
 
-    @Mapping(target = "id", source = "status.id")
-    @Mapping(target = "errors", source = "status.errors")
-    @Mapping(target = "organizationId", source = "status.organizationId")
-    @Mapping(target = "environmentId", source = "status.environmentId")
-    @Mapping(target = "startingAt", source = "status.startingAt")
-    @Mapping(target = "endingAt", source = "status.endingAt")
-    SubscriptionState subscriptionSpecAndStatusToSubscriptionState(String apiHrid, SubscriptionSpec spec, SubscriptionCRDStatus status);
+    default SubscriptionState subscriptionSpecAndStatusToSubscriptionState(
+        String apiHrid,
+        SubscriptionSpec spec,
+        SubscriptionCRDStatus status
+    ) {
+        var state = new SubscriptionState(
+            status.getId(),
+            status.getEnvironmentId(),
+            status.getOrganizationId(),
+            toErrors(status.getErrors()),
+            apiHrid,
+            status.getStartingAt() != null ? status.getStartingAt().toOffsetDateTime() : null
+        );
+        mapSpecToState(spec, state);
+        state.setEndingAt(status.getEndingAt() != null ? status.getEndingAt().toOffsetDateTime() : null);
+        return state;
+    }
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "errors", ignore = true)
+    @Mapping(target = "organizationId", ignore = true)
+    @Mapping(target = "environmentId", ignore = true)
+    @Mapping(target = "apiHrid", ignore = true)
+    @Mapping(target = "startingAt", ignore = true)
+    @Mapping(target = "endingAt", ignore = true)
+    void mapSpecToState(SubscriptionSpec spec, @MappingTarget SubscriptionState state);
 
     @Mapping(target = "entrypointConfiguration", qualifiedByName = "deserializeConfiguration")
     SubscriptionConsumerConfiguration toSubscriptionConsumerConfiguration(SubscriptionConfiguration configuration);

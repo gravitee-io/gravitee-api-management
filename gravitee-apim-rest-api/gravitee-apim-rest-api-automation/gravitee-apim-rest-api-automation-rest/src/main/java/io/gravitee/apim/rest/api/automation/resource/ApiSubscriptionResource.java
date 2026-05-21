@@ -84,14 +84,17 @@ public class ApiSubscriptionResource extends AbstractResource {
                 throw new SubscriptionNotFoundException(apiHrid);
             }
 
-            SubscriptionState subscriptionState = new SubscriptionState();
-            subscriptionState.setId(subscriptionId);
+            SubscriptionState subscriptionState = new SubscriptionState(
+                subscriptionId,
+                executionContext.getEnvironmentId(),
+                executionContext.getOrganizationId(),
+                null,
+                apiHrid,
+                subscriptionEntity.getStartingAt().toOffsetDateTime()
+            );
             if (!hridContainsUUID) {
                 subscriptionState.setHrid(hrid);
             }
-            subscriptionState.setEnvironmentId(executionContext.getEnvironmentId());
-            subscriptionState.setOrganizationId(executionContext.getOrganizationId());
-            subscriptionState.setApiHrid(apiHrid);
 
             BaseApplicationEntity application = applicationCrudService.findById(
                 subscriptionEntity.getApplicationId(),
@@ -102,7 +105,6 @@ public class ApiSubscriptionResource extends AbstractResource {
             Plan plan = planCrudService.getById(subscriptionEntity.getPlanId());
             subscriptionState.setPlanHrid(plan.getHrid());
 
-            subscriptionState.setStartingAt(subscriptionEntity.getStartingAt().toOffsetDateTime());
             subscriptionState.setEndingAt(
                 subscriptionEntity.getEndingAt() != null ? subscriptionEntity.getEndingAt().toOffsetDateTime() : null
             );
