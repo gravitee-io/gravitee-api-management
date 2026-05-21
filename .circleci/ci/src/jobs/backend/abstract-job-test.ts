@@ -60,14 +60,10 @@ find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-resu
         new commands.StoreTestResults({
           path: '~/test-results',
         }),
-        ...(pathsToPersist.length > 0
-          ? [
-              new commands.workspace.Persist({
-                root: '.',
-                paths: pathsToPersist,
-              }),
-            ]
-          : []),
+        new commands.workspace.Persist({
+          root: '.',
+          paths: pathsToPersist,
+        }),
       ],
       properties,
     );

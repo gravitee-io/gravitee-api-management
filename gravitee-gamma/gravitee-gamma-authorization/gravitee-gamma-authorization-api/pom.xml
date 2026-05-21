@@ -33,12 +33,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.gravitee.gamma.repository</groupId>
-            <artifactId>gravitee-gamma-repository-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>jakarta.validation</groupId>
             <artifactId>jakarta.validation-api</artifactId>
             <scope>provided</scope>

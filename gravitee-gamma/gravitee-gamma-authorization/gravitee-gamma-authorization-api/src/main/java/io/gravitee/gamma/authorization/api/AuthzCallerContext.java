@@ -21,7 +21,7 @@ public record AuthzCallerContext(@NotBlank String organizationId, @NotBlank Stri
     public static final String SYSTEM_USER = "system";
 
     public AuthzCallerContext {
-        Validators.validateCtor(AuthzCallerContext.class, organizationId, environmentId, userId);
+        AuthzValidators.validateCtor(AuthzCallerContext.class, organizationId, environmentId, userId);
     }
 
     public static AuthzCallerContext ofUser(String organizationId, String environmentId, String userId) {

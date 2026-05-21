@@ -15,4 +15,4 @@
  */
 package io.gravitee.gamma.authorization.api;
 
-public sealed interface AuthzAuditSnapshot permits PolicyAuditSnapshot, EntityAuditSnapshot {}
+public sealed interface AuthzAuditSnapshot permits AuthzPolicyAuditSnapshot, AuthzEntityAuditSnapshot {}

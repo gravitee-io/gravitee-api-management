@@ -37,11 +37,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.gravitee.gamma.authorization</groupId>
-            <artifactId>gravitee-gamma-authorization-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>io.gravitee.gamma.plugin.module</groupId>
             <artifactId>gravitee-gamma-plugin-module-handler</artifactId>
             <version>${project.version}</version>
