@@ -15,8 +15,11 @@
  */
 package io.gravitee.apim.core.subscription.query_service;
 
+import io.gravitee.apim.core.subscription.model.ExpiringSubscription;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
+import io.gravitee.rest.api.model.SubscriptionStatus;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +27,19 @@ import java.util.Set;
 
 public interface SubscriptionQueryService {
     List<SubscriptionEntity> findExpiredSubscriptions();
+
+    /**
+     * Returns subscriptions whose {@code endingAt} falls inside any of the per-bucket windows
+     * {@code [now + d*24h, now + d*24h + windowMs)} for each {@code d} in {@code daysBuckets}, restricted
+     * to the given statuses. Runs as a single repository query over the outer-union range; callers
+     * perform bucket-inference in memory.
+     */
+    List<ExpiringSubscription> findExpiringSubscriptions(
+        Instant now,
+        List<Integer> daysBuckets,
+        long windowMs,
+        List<SubscriptionStatus> statuses
+    );
 
     List<SubscriptionEntity> findSubscriptionsByPlan(String planId);
 

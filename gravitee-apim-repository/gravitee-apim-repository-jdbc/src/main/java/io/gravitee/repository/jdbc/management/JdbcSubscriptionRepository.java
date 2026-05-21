@@ -165,6 +165,11 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
     }
 
     @Override
+    public List<Subscription> searchUnordered(final SubscriptionCriteria criteria) throws TechnicalException {
+        return searchPage(criteria, null, null, false).getContent();
+    }
+
+    @Override
     public List<String> deleteByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("JdbcSubscriptionRepository.deleteByEnvironment({})", environmentId);
         try {
@@ -191,13 +196,13 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
 
     @Override
     public List<Subscription> search(final SubscriptionCriteria criteria, final Sortable sortable) throws TechnicalException {
-        return searchPage(criteria, sortable, null).getContent();
+        return searchPage(criteria, sortable, null, true).getContent();
     }
 
     @Override
     public Page<Subscription> search(final SubscriptionCriteria criteria, final Sortable sortable, final Pageable pageable)
         throws TechnicalException {
-        return searchPage(criteria, sortable, pageable);
+        return searchPage(criteria, sortable, pageable, true);
     }
 
     @Override
@@ -259,7 +264,12 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
         };
     }
 
-    private Page<Subscription> searchPage(final SubscriptionCriteria criteria, final Sortable sortable, final Pageable pageable) {
+    private Page<Subscription> searchPage(
+        final SubscriptionCriteria criteria,
+        final Sortable sortable,
+        final Pageable pageable,
+        final boolean applyDefaultSort
+    ) {
         final List<Object> argsList = new ArrayList<>();
         JdbcHelper.CollatingRowMapper<Subscription> rowMapper = new JdbcHelper.CollatingRowMapper<>(
             getOrm().getRowMapper(),
@@ -364,7 +374,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             builder.append(" order by s.");
             builder.append(toSnakeCase(sortable.field()));
             builder.append(sortable.order() == null || sortable.order().equals(Order.ASC) ? " asc " : " desc ");
-        } else {
+        } else if (applyDefaultSort) {
             builder.append(" order by s.created_at desc ");
         }
 

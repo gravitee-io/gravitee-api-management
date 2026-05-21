@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.query_service.subscription;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.subscription.model.ExpiringSubscription;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
@@ -23,9 +24,15 @@ import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -52,10 +59,53 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
             .build();
 
         try {
-            return subscriptionRepository.search(criteria).stream().map(subscriptionAdapter::toEntity).toList();
+            return subscriptionRepository.searchUnordered(criteria).stream().map(subscriptionAdapter::toEntity).toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to find expired subscription", e);
         }
+    }
+
+    @Override
+    public List<ExpiringSubscription> findExpiringSubscriptions(
+        Instant now,
+        List<Integer> daysBuckets,
+        long windowMs,
+        List<SubscriptionStatus> statuses
+    ) {
+        if (daysBuckets == null || daysBuckets.isEmpty()) {
+            return List.of();
+        }
+        long oneDayMs = Duration.ofDays(1).toMillis();
+        long min = daysBuckets.stream().min(Comparator.naturalOrder()).get();
+        long max = daysBuckets.stream().max(Comparator.naturalOrder()).get();
+        long nowMs = now.toEpochMilli();
+        long endingAfter = nowMs + min * oneDayMs;
+        long endingBefore = nowMs + max * oneDayMs + windowMs;
+
+        SubscriptionCriteria criteria = SubscriptionCriteria.builder()
+            .statuses(statuses.stream().map(SubscriptionStatus::name).toList())
+            .endingAtAfter(endingAfter)
+            .endingAtBefore(endingBefore)
+            .build();
+
+        try {
+            return subscriptionRepository.searchUnordered(criteria).stream().map(SubscriptionQueryServiceImpl::toExpiring).toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurs while trying to find expiring subscriptions", e);
+        }
+    }
+
+    private static ExpiringSubscription toExpiring(Subscription s) {
+        ZonedDateTime ending = s.getEndingAt() == null ? null : s.getEndingAt().toInstant().atZone(ZoneOffset.UTC);
+        return new ExpiringSubscription(
+            s.getId(),
+            s.getApi(),
+            s.getPlan(),
+            s.getApplication(),
+            s.getSubscribedBy(),
+            ending,
+            s.getDaysToExpirationOnLastNotification()
+        );
     }
 
     @Override

@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
+import java.util.List;
 import java.util.Set;
 import org.springframework.stereotype.Repository;
 
@@ -31,6 +32,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface SubscriptionMongoRepositoryCustom {
     Page<SubscriptionMongo> search(SubscriptionCriteria criteria, Sortable sortable, Pageable pageable);
+
+    List<SubscriptionMongo> searchUnordered(SubscriptionCriteria criteria);
 
     Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria, Order order);
 }

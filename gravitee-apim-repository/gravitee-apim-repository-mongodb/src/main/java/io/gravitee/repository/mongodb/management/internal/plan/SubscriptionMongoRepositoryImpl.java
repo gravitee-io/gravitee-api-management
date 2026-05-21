@@ -60,6 +60,64 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
 
     @Override
     public Page<SubscriptionMongo> search(SubscriptionCriteria criteria, final Sortable sortable, final Pageable pageable) {
+        List<Bson> filterPipeline = buildFilterPipeline(criteria);
+
+        Integer totalCount = null;
+        // if pageable, count total subscriptions matching criteria — counting only needs the $match stages,
+        // not the sort or projection that follows, so build the count pipeline before adding those.
+        if (pageable != null) {
+            List<Bson> countPipeline = new ArrayList<>(filterPipeline);
+            countPipeline.add(count("totalCount"));
+            AggregateIterable<Document> countAggregate = mongoTemplate
+                .getCollection(mongoTemplate.getCollectionName(SubscriptionMongo.class))
+                .aggregate(countPipeline);
+            if (countAggregate.first() != null) {
+                totalCount = countAggregate.first().getInteger("totalCount", 0);
+            }
+        }
+
+        List<Bson> dataPipeline = new ArrayList<>(filterPipeline);
+        // set sortable
+        if (sortable != null) {
+            if (sortable.order().equals(Order.ASC)) {
+                dataPipeline.add(sort(Sorts.ascending(FieldUtils.toCamelCase(sortable.field()))));
+            } else {
+                dataPipeline.add(sort(Sorts.descending(FieldUtils.toCamelCase(sortable.field()))));
+            }
+        } else {
+            dataPipeline.add(sort(Sorts.descending("createdAt")));
+        }
+        dataPipeline.add(Aggregates.project(Projections.exclude("_class")));
+
+        if (pageable != null) {
+            dataPipeline.add(skip(pageable.pageNumber() * pageable.pageSize()));
+            dataPipeline.add(limit(pageable.pageSize()));
+        }
+
+        AggregateIterable<Document> dataAggregate = mongoTemplate
+            .getCollection(mongoTemplate.getCollectionName(SubscriptionMongo.class))
+            .aggregate(dataPipeline);
+        return buildSubscriptionsPage(pageable, dataAggregate, totalCount);
+    }
+
+    @Override
+    public List<SubscriptionMongo> searchUnordered(SubscriptionCriteria criteria) {
+        List<Bson> dataPipeline = buildFilterPipeline(criteria);
+        dataPipeline.add(Aggregates.project(Projections.exclude("_class")));
+
+        AggregateIterable<Document> dataAggregate = mongoTemplate
+            .getCollection(mongoTemplate.getCollectionName(SubscriptionMongo.class))
+            .aggregate(dataPipeline);
+
+        List<SubscriptionMongo> subscriptions = new ArrayList<>();
+        MongoConverter converter = mongoTemplate.getConverter();
+        for (Document doc : dataAggregate) {
+            subscriptions.add(converter.read(SubscriptionMongo.class, doc));
+        }
+        return subscriptions;
+    }
+
+    private List<Bson> buildFilterPipeline(SubscriptionCriteria criteria) {
         List<Bson> dataPipeline = new ArrayList<>();
 
         if (criteria.getClientId() != null) {
@@ -169,38 +227,7 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             dataPipeline.add(match(nin("referenceId", criteria.getExcludedApis())));
         }
 
-        // set sortable
-        if (sortable != null) {
-            if (sortable.order().equals(Order.ASC)) {
-                dataPipeline.add(sort(Sorts.ascending(FieldUtils.toCamelCase(sortable.field()))));
-            } else {
-                dataPipeline.add(sort(Sorts.descending(FieldUtils.toCamelCase(sortable.field()))));
-            }
-        } else {
-            dataPipeline.add(sort(Sorts.descending("createdAt")));
-        }
-
-        dataPipeline.add(Aggregates.project(Projections.exclude("_class")));
-
-        Integer totalCount = null;
-        // if pageable, count total subscriptions matching criterias
-        if (pageable != null) {
-            List<Bson> countPipeline = new ArrayList<>(dataPipeline);
-            countPipeline.add(count("totalCount"));
-            AggregateIterable<Document> countAggregate = mongoTemplate
-                .getCollection(mongoTemplate.getCollectionName(SubscriptionMongo.class))
-                .aggregate(countPipeline);
-            if (countAggregate.first() != null) {
-                totalCount = countAggregate.first().getInteger("totalCount", 0);
-            }
-            dataPipeline.add(skip(pageable.pageNumber() * pageable.pageSize()));
-            dataPipeline.add(limit(pageable.pageSize()));
-        }
-
-        AggregateIterable<Document> dataAggregate = mongoTemplate
-            .getCollection(mongoTemplate.getCollectionName(SubscriptionMongo.class))
-            .aggregate(dataPipeline);
-        return buildSubscriptionsPage(pageable, dataAggregate, totalCount);
+        return dataPipeline;
     }
 
     @Override
