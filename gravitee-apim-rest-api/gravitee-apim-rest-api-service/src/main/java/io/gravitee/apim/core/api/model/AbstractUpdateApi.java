@@ -47,6 +47,8 @@ public abstract class AbstractUpdateApi {
 
     protected boolean disableMembershipNotifications;
 
+    protected boolean allowMultiJwtOauth2Subscriptions;
+
     @Builder.Default
     protected Set<String> groups = Set.of();
 

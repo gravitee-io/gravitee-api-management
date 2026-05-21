@@ -275,6 +275,7 @@ public class UpdateNativeApiUseCaseTest {
             )
             .analytics(NativeAnalytics.builder().enabled(false).build())
             .disableMembershipNotifications(true)
+            .allowMultiJwtOauth2Subscriptions(true)
             .build();
 
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-does-not-exist");
@@ -290,6 +291,7 @@ public class UpdateNativeApiUseCaseTest {
             .categories(Set.of("new"))
             .groups(Set.of("new"))
             .disableMembershipNotifications(true)
+            .allowMultiJwtOauth2Subscriptions(true)
             .apiDefinitionNativeV4(
                 existingApi
                     .getApiDefinitionNativeV4()
@@ -337,6 +339,7 @@ public class UpdateNativeApiUseCaseTest {
                 assertThat(api.getCategories()).containsExactly("new-key");
                 assertThat(api.getGroups()).containsExactly("new");
                 assertThat(api.isDisableMembershipNotifications()).isEqualTo(true);
+                assertThat(api.isAllowMultiJwtOauth2Subscriptions()).isEqualTo(true);
             })
             .extracting(Api::getApiDefinitionNativeV4)
             .satisfies(definition -> {
