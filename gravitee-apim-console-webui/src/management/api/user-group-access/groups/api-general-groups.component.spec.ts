@@ -27,7 +27,7 @@ import { ApiGeneralGroupsHarness } from './api-general-groups.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiUserGroupModule } from '../api-user-group.module';
-import { Api, fakeApiV4, fakeGroup, fakeGroupsResponse, Group, MembersResponse } from '../../../../entities/management-api-v2';
+import { Api, fakeApiV2, fakeApiV4, fakeGroup, fakeGroupsResponse, Group, MembersResponse } from '../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiGeneralMembersComponent } from '../members/api-general-members.component';
 import { ApiGeneralMembersHarness } from '../members/api-general-members.harness';
@@ -133,6 +133,30 @@ describe('ApiGeneralGroupsComponent', () => {
       mockedReturnedGroups.forEach(id => expectGetGroupMembersRequest(fakeGroup({ id })));
       fixture.detectChanges();
       expect(matDialogSpy.open).toHaveBeenCalled();
+    });
+
+    it('should resolve V2 API group names when loading inherited members', async () => {
+      const groupName = 'my-group';
+      const api = fakeApiV2({ id: apiId, groups: [groupName] });
+      expectApiGetRequest(api);
+      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups?page=1&perPage=9999`, method: 'GET' }).flush(
+        fakeGroupsResponse({
+          data: [fakeGroup({ id: groupId1, name: groupName }), fakeGroup({ id: groupId2, name: `${groupId2}-name` })],
+        }),
+      );
+      fixture.detectChanges();
+      expectApiMembersGetRequest(api);
+      expectApiRoleGetRequest();
+      httpTestingController
+        .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups/${groupId1}/members?page=1&perPage=10`, method: 'GET' })
+        .flush(
+          { httpStatus: 403, message: 'You do not have the permissions to access this resource' },
+          { statusText: 'Forbidden', status: 403 },
+        );
+      fixture.detectChanges();
+
+      expect(await harness.getGroupsLength()).toStrictEqual(1);
+      expect(await harness.getGroupsNames()).toEqual([`Group ${groupName}`]);
     });
 
     it('should not apply group changes if dialog is closed without saving', async () => {
