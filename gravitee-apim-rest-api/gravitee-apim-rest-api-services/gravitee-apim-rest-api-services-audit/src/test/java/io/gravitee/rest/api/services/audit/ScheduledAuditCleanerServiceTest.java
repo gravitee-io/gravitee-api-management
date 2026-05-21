@@ -17,7 +17,9 @@ package io.gravitee.rest.api.services.audit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -125,6 +127,29 @@ class ScheduledAuditCleanerServiceTest {
 
         // Then - scheduler is registered regardless; primary check happens in run()
         verify(scheduler).schedule(eq(service), any(CronTrigger.class));
+    }
+
+    @Test
+    void run_continues_to_next_environment_when_one_environment_fails() {
+        Member mockMember = mock(Member.class);
+        when(mockMember.primary()).thenReturn(true);
+        when(clusterManager.self()).thenReturn(mockMember);
+        OrganizationEntity org = new OrganizationEntity();
+        org.setId("oId");
+        when(organizationService.findAll()).thenReturn(List.of(org));
+        EnvironmentEntity env1 = new EnvironmentEntity();
+        env1.setId("env1");
+        EnvironmentEntity env2 = new EnvironmentEntity();
+        env2.setId("env2");
+        when(environmentService.findByOrganization(any())).thenReturn(List.of(env1, env2));
+        doThrow(new RuntimeException("boom"))
+            .when(removeOldAuditDataUseCase)
+            .execute(argThat(input -> "env1".equals(input.environmentId())));
+
+        sut.run();
+
+        verify(removeOldAuditDataUseCase, times(2)).execute(inputArgumentCaptor.capture());
+        assertThat(inputArgumentCaptor.getAllValues()).map(RemoveOldAuditDataUseCase.Input::environmentId).containsExactly("env1", "env2");
     }
 
     @Test
