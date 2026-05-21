@@ -112,10 +112,11 @@
 
       <mat-form-field appearance="outline" class="client-registration-provider__card__content__row__form-field">
         <mat-label>Endpoint</mat-label>
-        <input type="url" matInput formControlName="renew_client_secret_endpoint" />
-        <mat-hint>
-          Provide an URL to reach the renew client secret endpoint, for example:
-          {{ renewClientSecretEndpointUrlExample }}
+        <input type="url" matInput formControlName="renew_client_secret_endpoint" [placeholder]="renewClientSecretEndpointUrlExample" />
+        <mat-hint align="start"
+          >Provide the URL for the renew client secret endpoint. Use the variable <code>{{ renewClientSecretClientIdElToken }}</code
+          >—APIM will automatically resolve this to the correct ID at runtime. Do not manually replace this variable.<br />
+          Example for AM: {{ renewClientSecretEndpointUrlExample }}
         </mat-hint>
       </mat-form-field>
     </mat-card-content>

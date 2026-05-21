@@ -72,6 +72,13 @@ describe('ClientRegistrationProvider', () => {
       expect(fixture.componentInstance.updateMode).toBeFalsy();
     });
 
+    it('should document the AM renew secret endpoint with an EL client_id token', () => {
+      expect(fixture.componentInstance.renewClientSecretClientIdElToken).toBe('{#client_id}');
+      expect(fixture.componentInstance.renewClientSecretEndpointUrlExample).toBe(
+        'https://[am_gateway]/[domain]/oidc/register/{#client_id}/renew_secret',
+      );
+    });
+
     it('should submit form', async () => {
       expect(loader).toBeTruthy();
       fixture.componentInstance.providerForm.setValue(fakeNewClientRegistrationProvider());
