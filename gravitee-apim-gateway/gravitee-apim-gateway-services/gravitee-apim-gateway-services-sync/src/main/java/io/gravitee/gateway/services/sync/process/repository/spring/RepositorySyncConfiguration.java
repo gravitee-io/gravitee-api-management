@@ -56,6 +56,12 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.Pla
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.SubscriptionAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.ApiKeySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductSynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEnginePort;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityMapper;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntitySynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzPolicyMapper;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzPolicySynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.GammaEnabledCondition;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.cluster.ClusterSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.debug.DebugSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionarySynchronizer;
@@ -192,6 +198,7 @@ public class RepositorySyncConfiguration {
         PlanAppender planAppender,
         SubscriptionAppender subscriptionAppender,
         ApiKeyAppender apiKeyAppender,
+        io.gravitee.gateway.services.sync.process.repository.synchronizer.api.AuthzAppender authzAppender,
         DeployerFactory deployerFactory,
         @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
         @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
@@ -203,6 +210,7 @@ public class RepositorySyncConfiguration {
             planAppender,
             subscriptionAppender,
             apiKeyAppender,
+            authzAppender,
             deployerFactory,
             syncFetcherExecutor,
             syncDeployerExecutor
@@ -339,6 +347,58 @@ public class RepositorySyncConfiguration {
             eventsFetcher,
             sharedPolicyGroupMapper,
             deployerFactory,
+            syncFetcherExecutor,
+            syncDeployerExecutor
+        );
+    }
+
+    @Bean
+    @Conditional(GammaEnabledCondition.class)
+    public AuthzEntityMapper authzEntityMapper(ObjectMapper objectMapper) {
+        return new AuthzEntityMapper(objectMapper);
+    }
+
+    @Bean
+    @Conditional(GammaEnabledCondition.class)
+    public AuthzEntitySynchronizer authzEntitySynchronizer(
+        LatestEventFetcher eventsFetcher,
+        AuthzEntityMapper authzEntityMapper,
+        DeployerFactory deployerFactory,
+        AuthzEnginePort authzEnginePort,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
+    ) {
+        return new AuthzEntitySynchronizer(
+            eventsFetcher,
+            authzEntityMapper,
+            deployerFactory,
+            authzEnginePort,
+            syncFetcherExecutor,
+            syncDeployerExecutor
+        );
+    }
+
+    @Bean
+    @Conditional(GammaEnabledCondition.class)
+    public AuthzPolicyMapper authzPolicyMapper(ObjectMapper objectMapper) {
+        return new AuthzPolicyMapper(objectMapper);
+    }
+
+    @Bean
+    @Conditional(GammaEnabledCondition.class)
+    public AuthzPolicySynchronizer authzPolicySynchronizer(
+        LatestEventFetcher eventsFetcher,
+        AuthzPolicyMapper authzPolicyMapper,
+        DeployerFactory deployerFactory,
+        AuthzEnginePort authzEnginePort,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
+    ) {
+        return new AuthzPolicySynchronizer(
+            eventsFetcher,
+            authzPolicyMapper,
+            deployerFactory,
+            authzEnginePort,
             syncFetcherExecutor,
             syncDeployerExecutor
         );
