@@ -22,6 +22,7 @@ import io.gravitee.apim.core.audit.model.OrganizationAuditLogEntity;
 import io.gravitee.apim.core.audit.model.event.UserAuditEvent;
 import io.gravitee.apim.core.invitation.crud_service.InvitationCrudService;
 import io.gravitee.apim.core.invitation.domain_service.AcceptInvitationDomainService;
+import io.gravitee.apim.core.invitation.exception.InvitationCanceledException;
 import io.gravitee.apim.core.invitation.model.Invitation;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.domain_service.CreateUserDomainService;
@@ -53,7 +54,7 @@ public class AcceptUserInvitationUseCase {
     private final AuditDomainService auditDomainService;
 
     public Output execute(Input input) {
-        input.password().ifPresent(pwd -> userPasswordService.validate(pwd));
+        input.password().ifPresent(userPasswordService::validate);
 
         var pendingInvitations = switch (input.action()) {
             case UserRegistrationAction ignored -> {
@@ -63,7 +64,7 @@ public class AcceptUserInvitationUseCase {
             case GroupInvitationAction a -> {
                 var invitations = invitationCrudService.findByEmail(a.email());
                 if (invitations.isEmpty()) {
-                    throw new IllegalStateException("Invitation has been canceled");
+                    throw new InvitationCanceledException(a.email());
                 }
                 yield invitations;
             }
@@ -72,13 +73,7 @@ public class AcceptUserInvitationUseCase {
         var user = input
             .action()
             .existingUserId()
-            .map(userId -> {
-                var found = userCrudService.findBaseUserById(userId).orElseThrow(() -> new UserNotFoundException(userId));
-                if (userCrudService.isPasswordSet(userId)) {
-                    throw new UserAlreadyFinalizedException(input.executionContext().getOrganizationId());
-                }
-                return found;
-            })
+            .map(userId -> findAndValidateExistingUser(userId, input.executionContext()))
             .orElseGet(() ->
                 createUserDomainService.createExternalUser(
                     input.executionContext(),
@@ -90,10 +85,9 @@ public class AcceptUserInvitationUseCase {
 
         switch (input.action()) {
             case UserRegistrationAction ignored -> {}
-            case GroupInvitationAction ignored -> pendingInvitations.forEach(invitation -> {
-                acceptInvitationDomainService.addMember(input.executionContext(), invitation, user.getId());
-                invitationCrudService.delete(invitation.id());
-            });
+            case GroupInvitationAction ignored -> pendingInvitations.forEach(invitation ->
+                processInvitation(input.executionContext(), invitation, user.getId())
+            );
         }
 
         user.setUpdatedAt(Date.from(TimeProvider.now().toInstant()));
@@ -118,6 +112,19 @@ public class AcceptUserInvitationUseCase {
         userPortalNotificationService.triggerUserRegistered(input.executionContext(), updated);
 
         return new Output(updated);
+    }
+
+    private BaseUserEntity findAndValidateExistingUser(String userId, ExecutionContext executionContext) {
+        var user = userCrudService.findBaseUserById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        if (userCrudService.isPasswordSet(userId)) {
+            throw new UserAlreadyFinalizedException(executionContext.getOrganizationId());
+        }
+        return user;
+    }
+
+    private void processInvitation(ExecutionContext executionContext, Invitation invitation, String userId) {
+        acceptInvitationDomainService.addMember(executionContext, invitation, userId);
+        invitationCrudService.delete(invitation.id());
     }
 
     public sealed interface Action permits UserRegistrationAction, GroupInvitationAction {

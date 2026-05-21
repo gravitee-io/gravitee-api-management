@@ -30,6 +30,7 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.invitation.domain_service.AcceptInvitationDomainService;
+import io.gravitee.apim.core.invitation.exception.InvitationCanceledException;
 import io.gravitee.apim.core.invitation.model.GroupInvitation;
 import io.gravitee.apim.core.invitation.model.InvitationId;
 import io.gravitee.apim.core.invitation.use_case.AcceptUserInvitationUseCase.GroupInvitationAction;
@@ -401,8 +402,8 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
                     )
                 )
             )
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Invitation has been canceled");
+                .isInstanceOf(InvitationCanceledException.class)
+                .hasMessageContaining("user@example.com");
 
             verify(createUserDomainService, never()).createExternalUser(any(), any(), any(), any());
             verify(userPortalNotificationService, never()).triggerUserRegistered(any(), any());
@@ -431,8 +432,8 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
                     )
                 )
             )
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Invitation has been canceled");
+                .isInstanceOf(InvitationCanceledException.class)
+                .hasMessageContaining("user@example.com");
         }
     }
 
