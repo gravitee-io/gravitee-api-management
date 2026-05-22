@@ -269,3 +269,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_8_0/05_add_environment_ids_to_entrypoints_table.yml
     - include:
         - file: liquibase/changelogs/v4_8_24/01_add_users_service_account_column.yml
+    - include:
+        - file: liquibase/changelogs/v4_8_24/02_change_generic_notification_config_datatype.yml
