@@ -110,6 +110,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq(new PageableImpl(1, 10)),
                 eq(false),
                 eq(true),
+                isNull(),
                 isNull()
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
@@ -151,6 +152,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq(new PageableImpl(1, 10)),
                 eq(false),
                 eq(true),
+                isNull(),
                 isNull()
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
@@ -193,6 +195,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq(new PageableImpl(1, 10)),
                 eq(false),
                 eq(true),
+                isNull(),
                 isNull()
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
@@ -231,6 +234,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq(new PageableImpl(1, 10)),
                 eq(false),
                 eq(true),
+                isNull(),
                 isNull()
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
@@ -282,6 +286,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq(new PageableImpl(1, 10)),
                 eq(false),
                 eq(true),
+                isNull(),
                 isNull()
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
@@ -320,6 +325,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq(new PageableImpl(1, 10)),
                 eq(false),
                 eq(true),
+                isNull(),
                 isNull()
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
@@ -359,6 +365,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq(new PageableImpl(1, 10)),
                 eq(false),
                 eq(true),
+                isNull(),
                 isNull()
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
@@ -403,6 +410,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq(new PageableImpl(1, 10)),
                 eq(false),
                 eq(true),
+                isNull(),
                 isNull()
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
@@ -447,7 +455,8 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq(new PageableImpl(1, 10)),
                 eq(true),
                 eq(true),
-                eq(Set.of("deploymentState"))
+                eq(Set.of("deploymentState")),
+                isNull()
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
@@ -486,6 +495,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq(new PageableImpl(1, 10)),
                 eq(false),
                 eq(true),
+                isNull(),
                 isNull()
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
@@ -554,7 +564,8 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq(new PageableImpl(1, 10)),
                 eq(false),
                 eq(true),
-                eq(Set.of("metadata"))
+                eq(Set.of("metadata")),
+                isNull()
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
 
@@ -591,6 +602,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 eq(new PageableImpl(1, 10)),
                 eq(false),
                 eq(false),
+                isNull(),
                 isNull()
             )
         ).thenReturn(new Page<>(List.of(apiEntity), 1, 1, 1));
