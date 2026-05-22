@@ -164,7 +164,10 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
                 var client = container.client(vertx.getDelegate());
                 var response = client
                     .get("/api/traces")
+                    // Tracer's service.name is the gateway node application (GatewayNode#APPLICATION_NAME);
+                    // API identity flows through resource attributes — narrow the query by gravitee.api.id.
                     .addQueryParam("service", "gio-apim-gateway")
+                    .addQueryParam("tags", "{\"gravitee.api.id\":\"my-api-v4\"}")
                     .send()
                     .toCompletionStage()
                     .toCompletableFuture()
@@ -221,6 +224,7 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
                 var response = client
                     .get("/api/traces")
                     .addQueryParam("service", "gio-apim-gateway")
+                    .addQueryParam("tags", "{\"gravitee.api.id\":\"my-api\"}")
                     .send()
                     .toCompletionStage()
                     .toCompletableFuture()

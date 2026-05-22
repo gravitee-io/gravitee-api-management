@@ -17,6 +17,7 @@ package io.gravitee.gateway.handlers.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.common.util.Version;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.el.TemplateVariableProvider;
@@ -53,6 +54,7 @@ import io.gravitee.gateway.handlers.api.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.processor.transaction.TransactionResponseProcessorConfiguration;
 import io.gravitee.gateway.handlers.api.security.PlanBasedAuthenticationHandlerEnhancer;
+import io.gravitee.gateway.opentelemetry.TracerResourceAttributes;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
@@ -120,6 +122,9 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
     public static final String HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY = "handlers.request.headers.x-forwarded-prefix";
     public static final String REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY = "reporters.logging.excluded_response_types";
     public static final String PENDING_REQUESTS_TIMEOUT_PROPERTY = "api.pending_requests_timeout";
+
+    /** OTel {@code gravitee.module} resource-attribute value identifying this reactor. */
+    private static final String MODULE = "apim";
 
     protected final ContentTemplateVariableProvider contentTemplateVariableProvider;
     protected final Node node;
@@ -454,13 +459,14 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         );
     }
 
-    private TracingContext createTracingContext(final Api api, final String spanNamespace) {
+    private TracingContext createTracingContext(final Api api, final String apiType) {
         Tracer tracer = openTelemetryFactory.createTracer(
-            api.getId(),
-            api.getName(),
-            spanNamespace,
-            api.getApiVersion(),
-            instrumenterTracerFactories
+            node.id(),
+            node.application(),
+            "gravitee",
+            Version.RUNTIME_VERSION.MAJOR_VERSION,
+            instrumenterTracerFactories,
+            TracerResourceAttributes.of(MODULE, api.getId(), api.getName(), apiType, api.getOrganizationId(), api.getEnvironmentId())
         );
         return new TracingContext(tracer, openTelemetryConfiguration.isTracesEnabled(), openTelemetryConfiguration.isVerboseEnabled());
     }

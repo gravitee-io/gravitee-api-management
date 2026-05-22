@@ -30,6 +30,7 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
+import io.gravitee.gateway.opentelemetry.TracerResourceAttributes;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
@@ -71,7 +72,6 @@ import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import java.util.List;
-import java.util.Map;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.ResolvableType;
@@ -81,6 +81,9 @@ import org.springframework.core.ResolvableType;
  * @author GraviteeSource Team
  */
 public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
+
+    /** OTel {@code gravitee.module} resource-attribute value identifying this reactor. */
+    private static final String MODULE = "apim";
 
     protected final Node node;
     protected final EntrypointConnectorPluginManager entrypointConnectorPluginManager;
@@ -421,16 +424,16 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
             );
     }
 
-    protected TracingContext createTracingContext(final Api api, final String serviceNameSpace) {
+    protected TracingContext createTracingContext(final Api api, final String apiType) {
         boolean tracingEnabled = isApiTracingEnabled(api);
         if (tracingEnabled) {
             Tracer tracer = openTelemetryFactory.createTracer(
                 node.id(),
                 node.application(),
-                serviceNameSpace,
+                "gravitee",
                 Version.RUNTIME_VERSION.MAJOR_VERSION,
                 instrumenterTracerFactories,
-                Map.of("gravitee.api.id", api.getId(), "gravitee.api.name", api.getName()),
+                TracerResourceAttributes.of(MODULE, api.getId(), api.getName(), apiType, api.getOrganizationId(), api.getEnvironmentId()),
                 TracingRedactionMapper.toRedactionConfig(api)
             );
             return new TracingContext(tracer, true, isApiTracingVerboseEnabled(api));
