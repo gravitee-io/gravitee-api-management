@@ -408,7 +408,8 @@ public class ApisResource extends AbstractResource {
             paginationParam.toPageable(),
             expandDeploymentState,
             manageOnly,
-            expands
+            expands,
+            apiSearchQuery.getHasOpenApiDocumentation()
         );
 
         long totalCount = apis.getTotalElements();

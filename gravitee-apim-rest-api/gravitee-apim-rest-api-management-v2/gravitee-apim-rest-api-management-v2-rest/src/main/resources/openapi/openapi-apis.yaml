@@ -4222,6 +4222,10 @@ components:
                   type: boolean
                   description: When set, filters results to only APIs with this allowedInApiProducts value. When true, only returns APIs allowed in API Products. When false, only returns APIs not allowed in API Products. Only applicable for V4 HTTP Proxy APIs.
                   example: true
+                hasOpenApiDocumentation:
+                  type: boolean
+                  description: When set, filters results based on whether the API has at least one published OpenAPI/Swagger documentation page. When true, only returns APIs that publish an OpenAPI documentation page. When false, only returns APIs without one.
+                  example: true
         ApiType:
             type: string
             description: API's type.
