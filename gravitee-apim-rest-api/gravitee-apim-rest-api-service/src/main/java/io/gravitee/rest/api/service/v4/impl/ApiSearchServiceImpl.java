@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.v4.impl;
 import static io.gravitee.apim.core.utils.CollectionUtils.isNotEmpty;
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.PageDocumentTransformer.FIELD_PAGE_TYPE;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
@@ -37,6 +38,7 @@ import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.repository.management.model.Visibility;
+import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -68,6 +70,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -252,7 +255,8 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         final Pageable pageable,
         final boolean mapToFullGenericApiEntity,
         final boolean manageOnly,
-        final Set<String> expands
+        final Set<String> expands,
+        final Boolean hasOpenApiDocumentation
     ) {
         // Step 1: find apiIds from lucene indexer from 'query' parameter without any pagination and sorting
         var apiQuery = apiQueryBuilder.build();
@@ -263,6 +267,19 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         }
 
         List<String> apiIds = new LinkedList<>(apiIdsResult.getDocuments());
+
+        // Step 1.5: cross-index resolution of the has-open-api-documentation flag via page docs.
+        if (hasOpenApiDocumentation != null) {
+            Set<String> apiIdsWithOpenApiDoc = findApiIdsWithOpenApiDocumentation();
+            if (hasOpenApiDocumentation) {
+                apiIds.retainAll(apiIdsWithOpenApiDoc);
+            } else {
+                apiIds.removeAll(apiIdsWithOpenApiDoc);
+            }
+            if (apiIds.isEmpty()) {
+                return new Page<>(List.of(), 0, 0, 0);
+            }
+        }
 
         // Step 2: if user is not admin, get list of apiIds in their scope and join with Lucene results
         if (!isAdmin) {
@@ -337,6 +354,15 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         }
 
         return new Page<>(apiEntityList, pageable.getPageNumber(), apis.size(), apiIds.size());
+    }
+
+    private Set<String> findApiIdsWithOpenApiDocumentation() {
+        Query<PageEntity> pageQuery = QueryBuilder.create(PageEntity.class)
+            .addFilter(FIELD_PAGE_TYPE, "swagger")
+            .addFilter("reference_type", "api")
+            .build();
+        SearchResult result = searchEngineService.searchPageReference(GraviteeContext.getExecutionContext(), pageQuery);
+        return new HashSet<>(result.getDocuments());
     }
 
     private void fetchAndSetMetadata(final ExecutionContext executionContext, final List<GenericApiEntity> apiEntityList) {

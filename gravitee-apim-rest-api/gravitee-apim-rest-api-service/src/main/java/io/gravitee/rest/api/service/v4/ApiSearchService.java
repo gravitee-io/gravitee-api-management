@@ -67,7 +67,8 @@ public interface ApiSearchService {
         final Pageable pageable,
         final boolean mapToFullGenericApiEntity,
         final boolean manageOnly,
-        final Set<String> expands
+        final Set<String> expands,
+        final Boolean hasOpenApiDocumentation
     );
 
     Collection<String> searchIds(

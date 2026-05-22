@@ -189,6 +189,7 @@ public class ApiSearchService_SearchTest {
             new PageableImpl(1, 10),
             false,
             true,
+            null,
             null
         );
 
@@ -236,6 +237,7 @@ public class ApiSearchService_SearchTest {
             new PageableImpl(1, 10),
             false,
             true,
+            null,
             null
         );
 
@@ -294,6 +296,7 @@ public class ApiSearchService_SearchTest {
             new PageableImpl(2, 2),
             false,
             true,
+            null,
             null
         );
 
@@ -354,6 +357,7 @@ public class ApiSearchService_SearchTest {
             new PageableImpl(1, 10),
             false,
             true,
+            null,
             null
         );
 
@@ -400,6 +404,7 @@ public class ApiSearchService_SearchTest {
             new PageableImpl(1, 10),
             false,
             true,
+            null,
             null
         );
 
@@ -446,6 +451,7 @@ public class ApiSearchService_SearchTest {
             new PageableImpl(1, 10),
             false,
             true,
+            null,
             null
         );
 
@@ -500,6 +506,7 @@ public class ApiSearchService_SearchTest {
             new PageableImpl(1, 2),
             true,
             true,
+            null,
             null
         );
 
@@ -568,7 +575,8 @@ public class ApiSearchService_SearchTest {
             new PageableImpl(1, 2),
             false,
             true,
-            Set.of(ApiService.EXPAND_METADATA)
+            Set.of(ApiService.EXPAND_METADATA),
+            null
         );
 
         assertThat(apis.getContent()).hasSize(2);
@@ -601,6 +609,7 @@ public class ApiSearchService_SearchTest {
             new PageableImpl(1, 1),
             false,
             true,
+            null,
             null
         );
 

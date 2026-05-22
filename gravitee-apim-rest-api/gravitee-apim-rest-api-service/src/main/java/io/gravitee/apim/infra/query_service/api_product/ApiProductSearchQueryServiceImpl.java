@@ -91,6 +91,6 @@ public class ApiProductSearchQueryServiceImpl implements ApiProductSearchQuerySe
             queryBuilder.setSort(sortable);
         }
 
-        return apiSearchService.search(executionContext, userId, isAdmin, queryBuilder, pageable, false, true, null);
+        return apiSearchService.search(executionContext, userId, isAdmin, queryBuilder, pageable, false, true, null, null);
     }
 }
