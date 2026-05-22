@@ -53,19 +53,31 @@ function quote(value: string): string {
     return `"${value.replace(/"/g, '\\"')}"`;
 }
 
+// Refs picked from the chip combobox carry a display-friendly `label`
+// (e.g. "Customers MCP") that is NOT the entity slug. Emitting it as the
+// GAPL UID would break round-trip — the next parse would see
+// `MCP::"Customers MCP"` and fail to match the catalog option whose canonical
+// id is `MCP::"customers"`. So we prefer `r.id` whenever it's already in the
+// canonical `Type::"slug"` form (which it is for chip-picked and parser-
+// produced refs). Fallback to label-based emission keeps legacy callers that
+// only have `kind` + `label` working — those still round-trip through the
+// parser since the slug-mismatch case can't happen without a stored id.
+function emitToken(kind: string | undefined, id: string, label: string): string {
+    const m = id.match(/^[^:]+::".+"$/);
+    if (m) return id;
+    return `${kind ?? 'Action'}::${quote(label)}`;
+}
+
 function formatPrincipalTokens(refs: readonly PrincipalRef[]): string[] {
-    return refs.map(r => `${r.kind}::${quote(r.label)}`);
+    return refs.map(r => emitToken(r.kind, r.id, r.label));
 }
 
 function formatActionTokens(refs: readonly ActionRef[]): string[] {
-    // Preserve the source namespace verbatim when known (e.g. the parser may
-    // have read 'Action::"read"'). Default to capitalised 'Action' so newly
-    // authored visual policies match the canonical GAPL schema casing.
-    return refs.map(a => `${a.kind ?? 'Action'}::${quote(a.label)}`);
+    return refs.map(a => emitToken(a.kind, a.id, a.label));
 }
 
 function formatResourceTokens(refs: readonly ResourceRef[]): string[] {
-    return refs.map(r => `${r.kind}::${quote(r.label)}`);
+    return refs.map(r => emitToken(r.kind, r.id, r.label));
 }
 
 /**

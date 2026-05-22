@@ -24,11 +24,6 @@ export const mcpServiceConfig: ServicePageConfig = {
     searchPlaceholder: 'Search MCP policies…',
     icon: Server,
     hasTarget: true,
-    targetPickerVariant: 'default',
-    targetPickerTitle: 'Create policy for MCP',
-    targetPickerDescription: 'Pick an MCP Server from the catalog. Servers that already have a policy are hidden.',
-    targetPickerEmptyState: 'Every catalog MCP Server already has a policy. Edit an existing one from the list.',
-    targetPickerSearchPlaceholder: 'Search MCP servers…',
     serviceLabel: 'MCP',
     resourceGroups: [
         { key: 'MCPServer', label: 'MCP Server' },

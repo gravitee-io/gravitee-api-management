@@ -14,45 +14,7 @@
  * limitations under the License.
  */
 import { Brain } from 'lucide-react';
-import type { CatalogEntry } from '../../../../lib/api/authz-api.types';
 import type { ServicePageConfig } from '../ServicePolicyPage';
-
-export interface AiProviderEntry {
-    readonly id: string;
-    readonly name: string;
-    readonly description?: string;
-    readonly models: readonly {
-        readonly id: string;
-        readonly name: string;
-        readonly description?: string;
-        readonly badges?: readonly string[];
-    }[];
-}
-
-/**
- * Build the two-step AI provider/model picker entries from the flat catalog.
- *
- * Convention: the backend catalog for LLM type returns entries where each entry is a provider,
- * and its sub-resources are models (kind = 'LLMModel').
- *
- * If the catalog instead has both providers and individual models as top-level entries,
- * we treat entries with sub-resources as providers and entries without as models of
- * the entry whose id is a prefix of theirs.
- */
-export function buildLlmProviders(entries: readonly CatalogEntry[]): readonly AiProviderEntry[] {
-    return entries.map(entry => ({
-        id: entry.id,
-        name: entry.name,
-        description: entry.description,
-        models: entry.subResources
-            .filter(s => s.kind === 'LLMModel' || s.kind === 'model')
-            .map(s => ({
-                id: s.id,
-                name: s.name,
-                description: s.description,
-            })),
-    }));
-}
 
 const conditionSnippets: readonly { label: string; snippet: string }[] = [
     { label: 'Token budget', snippet: 'context.usage.tokens_per_day(principal) < 50000' },
@@ -69,14 +31,10 @@ export const llmsServiceConfig: ServicePageConfig = {
     searchPlaceholder: 'Search AI Model policies…',
     icon: Brain,
     hasTarget: true,
-    targetPickerVariant: 'ai-model',
-    targetPickerTitle: 'Create AI Model policy',
-    targetPickerDescription: 'Pick an AI Provider to cover every model it exposes, or drill down to a specific Model.',
     serviceLabel: 'AI Model',
     resourceGroups: [
         { key: 'LLMProvider', label: 'AI Provider' },
         { key: 'LLMModel', label: 'Model' },
     ],
     conditionSnippets,
-    buildProviders: buildLlmProviders,
 };

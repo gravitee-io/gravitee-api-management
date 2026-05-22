@@ -31,11 +31,6 @@ export const apisServiceConfig: ServicePageConfig = {
     searchPlaceholder: 'Search API policies…',
     icon: Globe,
     hasTarget: true,
-    targetPickerVariant: 'default',
-    targetPickerTitle: 'Create policy for API',
-    targetPickerDescription: 'Pick an API from the catalog. APIs that already have a policy are hidden.',
-    targetPickerEmptyState: 'Every catalog API already has a policy. Edit an existing one from the list.',
-    targetPickerSearchPlaceholder: 'Search APIs…',
     serviceLabel: 'API',
     resourceGroups: [
         { key: 'API', label: 'API' },

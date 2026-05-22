@@ -32,6 +32,10 @@
     <name>Gravitee.io Gamma - Module - Authorization</name>
     <description>Authorization module for Gravitee Gamma</description>
 
+    <properties>
+        <skip.ui.build>false</skip.ui.build>
+    </properties>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -77,6 +81,11 @@
             <artifactId>jackson-databind</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -88,6 +97,27 @@
         </resources>
 
         <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>nx-build</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <executable>yarn</executable>
+                            <workingDirectory>${project.basedir}/../..</workingDirectory>
+                            <arguments>
+                                <argument>nx</argument>
+                                <argument>build</argument>
+                                <argument>gravitee-gamma-module-authz</argument>
+                            </arguments>
+                            <skip>${skip.ui.build}</skip>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <executions>

@@ -14,23 +14,16 @@
  * limitations under the License.
  */
 import {
-    Badge,
     Button,
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList,
     Label,
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
     Textarea,
+    ToggleGroup,
+    ToggleGroupItem,
     cn,
 } from '@gravitee/graphene-core';
-import { Check, ChevronDown, Copy, Trash2 } from 'lucide-react';
-import { useId, useState } from 'react';
+import { ChevronDownIcon, CopyIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
+import { useState } from 'react';
+import { ChipCombobox, GAPL_UID_PATTERN } from '../../../components/ChipCombobox';
 import type { ActionRef, PolicyEffect, PolicyStatement, PrincipalRef, ResourceRef } from './statement-to-gapl';
 
 export interface ChipOption {
@@ -97,31 +90,46 @@ export function PolicyStatementCard({
     const setEffect = (effect: PolicyEffect) => onChange({ ...statement, effect });
 
     const effectBorderClass =
-        statement.effect === 'permit' ? 'border-emerald-500/40 ring-1 ring-emerald-500/20' : 'border-red-500/40 ring-1 ring-red-500/20';
+        statement.effect === 'permit'
+            ? 'border-success/40 ring-1 ring-success/20'
+            : 'border-destructive/40 ring-1 ring-destructive/20';
+
+    // Parse a canonical GAPL uid (`Type::"label"`) into its parts so we can
+    // keep references to entities that no longer exist in the catalog —
+    // otherwise a typo in Code view would silently drop the chip on every
+    // round-trip, which is harder to debug than leaving a flagged ghost chip.
+    const parseUid = (id: string): { kind: string; label: string } => {
+        const m = id.match(GAPL_UID_PATTERN);
+        return m ? { kind: m[1]!, label: m[2]! } : { kind: 'Unknown', label: id };
+    };
 
     const syncPrincipals = (ids: string[]) => {
-        const next = ids
-            .map(id => principalOptions.find(p => p.id === id))
-            .filter((p): p is ChipOption => p !== undefined)
-            .map(p => ({ id: p.id, kind: p.group, label: p.label }) as PrincipalRef);
+        const next = ids.map(id => {
+            const opt = principalOptions.find(p => p.id === id);
+            if (opt) return { id: opt.id, kind: opt.group, label: opt.label } as PrincipalRef;
+            const { kind, label } = parseUid(id);
+            return { id, kind, label } as PrincipalRef;
+        });
         onChange({ ...statement, principals: next });
     };
 
     const syncActions = (ids: string[]) => {
-        const next = ids
-            .map(id => actionOptions.find(a => a.id === id))
-            .filter((a): a is ChipOption => a !== undefined)
-            // The chip option's `group` carries the source namespace (e.g.
-            // 'Action') so the serialiser can preserve casing on round-trip.
-            .map(a => ({ id: a.id, label: a.label, kind: a.group }) as ActionRef);
+        const next = ids.map(id => {
+            const opt = actionOptions.find(a => a.id === id);
+            if (opt) return { id: opt.id, label: opt.label, kind: opt.group } as ActionRef;
+            const { kind, label } = parseUid(id);
+            return { id, label, kind } as ActionRef;
+        });
         onChange({ ...statement, actions: next });
     };
 
     const syncResources = (ids: string[]) => {
-        const next = ids
-            .map(id => resourceOptions.find(r => r.id === id))
-            .filter((r): r is ChipOption => r !== undefined)
-            .map(r => ({ id: r.id, kind: r.group, label: r.label }) as ResourceRef);
+        const next = ids.map(id => {
+            const opt = resourceOptions.find(r => r.id === id);
+            if (opt) return { id: opt.id, kind: opt.group, label: opt.label } as ResourceRef;
+            const { kind, label } = parseUid(id);
+            return { id, kind, label } as ResourceRef;
+        });
         onChange({ ...statement, resources: next });
     };
 
@@ -138,33 +146,34 @@ export function PolicyStatementCard({
         <div className={cn('rounded-lg border bg-card p-3 shadow-sm', effectBorderClass)}>
             <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                    <div className="inline-flex overflow-hidden rounded-md border text-xs">
-                        <button
-                            type="button"
-                            onClick={() => setEffect('permit')}
+                    <ToggleGroup
+                        type="single"
+                        variant="outline"
+                        size="sm"
+                        value={statement.effect}
+                        onValueChange={value => value && setEffect(value as PolicyEffect)}
+                        className="text-xs"
+                    >
+                        <ToggleGroupItem
+                            value="permit"
                             className={cn(
-                                'px-2.5 py-1 transition',
-                                statement.effect === 'permit'
-                                    ? 'bg-emerald-500/15 font-medium text-emerald-700 dark:text-emerald-300'
-                                    : 'text-muted-foreground hover:bg-muted',
+                                statement.effect === 'permit' &&
+                                    'bg-success/10 text-success border-success font-semibold hover:bg-success/10 hover:text-success',
                             )}
                         >
                             permit
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setEffect('forbid')}
+                        </ToggleGroupItem>
+                        <ToggleGroupItem
+                            value="forbid"
                             className={cn(
-                                'border-l px-2.5 py-1 transition',
-                                statement.effect === 'forbid'
-                                    ? 'bg-red-500/15 font-medium text-red-700 dark:text-red-300'
-                                    : 'text-muted-foreground hover:bg-muted',
+                                statement.effect === 'forbid' &&
+                                    'bg-destructive/10 text-destructive border-destructive font-semibold hover:bg-destructive/10 hover:text-destructive',
                             )}
                         >
                             forbid
-                        </button>
-                    </div>
-                    <span className="text-muted-foreground" style={{ fontSize: '11px' }}>
+                        </ToggleGroupItem>
+                    </ToggleGroup>
+                    <span className="text-xs text-muted-foreground">
                         #{index + 1}
                     </span>
                 </div>
@@ -203,7 +212,7 @@ export function PolicyStatementCard({
                         aria-label="Duplicate statement"
                         className="h-7 w-7 p-0"
                     >
-                        <Copy className="size-3.5" />
+                        <CopyIcon className="size-3.5" aria-hidden />
                     </Button>
                     <Button
                         type="button"
@@ -213,7 +222,7 @@ export function PolicyStatementCard({
                         aria-label="Delete statement"
                         className="h-7 w-7 p-0 text-destructive hover:text-destructive"
                     >
-                        <Trash2 className="size-3.5" />
+                        <Trash2Icon className="size-3.5" aria-hidden />
                     </Button>
                 </div>
             </div>
@@ -257,18 +266,16 @@ export function PolicyStatementCard({
                 <button
                     type="button"
                     onClick={() => setConditionOpen(o => !o)}
-                    className="flex w-full items-center gap-1.5 rounded-md px-1 py-0.5 text-left font-medium uppercase tracking-wide text-muted-foreground hover:text-foreground"
-                    style={{ fontSize: '11px' }}
+                    className="flex w-full items-center gap-1.5 rounded-md px-1 py-0.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground hover:text-foreground"
                 >
-                    <ChevronDown className={cn('size-3 transition-transform', conditionOpen ? 'rotate-0' : '-rotate-90')} />
+                    <ChevronDownIcon className={cn('size-3 transition-transform', conditionOpen ? 'rotate-0' : '-rotate-90')} aria-hidden />
                     <span>Condition</span>
-                    <span className="normal-case tracking-normal text-muted-foreground/70" style={{ fontSize: '10px' }}>
+                    <span className="text-[10px] normal-case tracking-normal text-muted-foreground/70">
                         Optional
                     </span>
                     {!conditionOpen && hasCondition ? (
                         <span
-                            className="ml-auto max-w-[60%] truncate font-mono normal-case tracking-normal text-foreground/70"
-                            style={{ fontSize: '11px' }}
+                            className="ml-auto max-w-[60%] truncate font-mono text-xs normal-case tracking-normal text-foreground/70"
                         >
                             {statement.condition}
                         </span>
@@ -280,8 +287,7 @@ export function PolicyStatementCard({
                             value={statement.condition ?? ''}
                             onChange={e => onChange({ ...statement, condition: e.target.value })}
                             placeholder="e.g. context.time.hour >= 9 && context.time.hour < 17"
-                            className="min-h-[48px] font-mono leading-relaxed"
-                            style={{ fontSize: '12px' }}
+                            className="min-h-12 font-mono text-xs leading-relaxed"
                         />
                         <div className="flex flex-wrap gap-1">
                             {snippets.map(s => (
@@ -289,8 +295,7 @@ export function PolicyStatementCard({
                                     key={s.label}
                                     type="button"
                                     onClick={() => appendCondition(s.snippet)}
-                                    className="rounded border border-dashed px-1.5 py-0.5 text-muted-foreground hover:border-foreground/40 hover:text-foreground"
-                                    style={{ fontSize: '11px' }}
+                                    className="rounded border border-dashed px-1.5 py-0.5 text-xs text-muted-foreground hover:border-foreground/40 hover:text-foreground"
                                 >
                                     + {s.label}
                                 </button>
@@ -306,7 +311,7 @@ export function PolicyStatementCard({
 function ChipField({ label, children }: { label: string; children: React.ReactNode }) {
     return (
         <div className="space-y-1">
-            <Label className="font-medium uppercase tracking-wide text-muted-foreground" style={{ fontSize: '11px' }}>
+            <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 {label}
             </Label>
             {children}
@@ -314,154 +319,3 @@ function ChipField({ label, children }: { label: string; children: React.ReactNo
     );
 }
 
-/** Multi-select chip combobox using Popover + Command from graphene-core */
-function ChipCombobox({
-    placeholder,
-    options,
-    selectedIds,
-    onChange,
-    groupOrder,
-    emptyHint,
-}: {
-    placeholder: string;
-    options: readonly ChipOption[];
-    selectedIds: readonly string[];
-    onChange: (ids: string[]) => void;
-    groupOrder?: readonly string[];
-    emptyHint?: string;
-}) {
-    const [open, setOpen] = useState(false);
-    const listboxId = useId();
-
-    const selectedSet = new Set(selectedIds);
-
-    const toggle = (id: string) => {
-        if (selectedSet.has(id)) {
-            onChange(selectedIds.filter(x => x !== id));
-        } else {
-            onChange([...selectedIds, id]);
-        }
-    };
-
-    const selectedOptions = selectedIds.map(id => options.find(o => o.id === id)).filter((o): o is ChipOption => o !== undefined);
-
-    // Group options
-    const grouped: Array<{ group: string; items: ChipOption[] }> = [];
-    const seenGroups = new Set<string>();
-    const orderedGroups = groupOrder ?? [...new Set(options.map(o => o.group))];
-
-    for (const group of orderedGroups) {
-        const items = options.filter(o => o.group === group);
-        if (items.length > 0) {
-            grouped.push({ group, items });
-            seenGroups.add(group);
-        }
-    }
-    // Add remaining groups not in orderedGroups
-    for (const o of options) {
-        if (!seenGroups.has(o.group)) {
-            const items = options.filter(x => x.group === o.group);
-            grouped.push({ group: o.group, items });
-            seenGroups.add(o.group);
-        }
-    }
-
-    return (
-        <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-                <button
-                    type="button"
-                    role="combobox"
-                    aria-expanded={open}
-                    aria-controls={listboxId}
-                    aria-haspopup="listbox"
-                    className={cn(
-                        'flex min-h-[36px] w-full flex-wrap items-center gap-1 rounded-md border border-input bg-background px-2 py-1.5 text-sm shadow-sm transition-colors hover:bg-muted/30 focus:outline-none focus:ring-1 focus:ring-ring',
-                    )}
-                    aria-label={placeholder}
-                >
-                    {selectedOptions.length === 0 ? (
-                        <span className="text-muted-foreground">{placeholder}</span>
-                    ) : (
-                        selectedOptions.map(o => (
-                            <Badge key={o.id} variant="secondary" className="gap-1 pr-1">
-                                {o.label}
-                                <button
-                                    type="button"
-                                    aria-label={`Remove ${o.label}`}
-                                    className="cursor-pointer rounded-full opacity-60 hover:opacity-100"
-                                    onClick={e => {
-                                        e.stopPropagation();
-                                        toggle(o.id);
-                                    }}
-                                    onKeyDown={e => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            toggle(o.id);
-                                        }
-                                    }}
-                                >
-                                    ×
-                                </button>
-                            </Badge>
-                        ))
-                    )}
-                    <ChevronDown className="ml-auto size-3.5 shrink-0 text-muted-foreground" />
-                </button>
-            </PopoverTrigger>
-            <PopoverContent
-                className="w-[280px] p-0"
-                align="start"
-                id={listboxId}
-                role="listbox"
-                // PolicyEditor sheet is a PortalModal at z-index 10000; without
-                // explicit z-index here Radix's portal lands behind the modal and
-                // the dropdown is unclickable.
-                style={{ zIndex: 10001 }}
-            >
-                <Command>
-                    <CommandInput placeholder={`Search ${placeholder.toLowerCase()}…`} />
-                    <CommandList>
-                        {/*
-                         * When the option list is empty (e.g. an empty schema
-                         * with no actions, or no entities yet) we surface the
-                         * caller-supplied hint instead of the generic
-                         * "No results" copy — otherwise users can't tell
-                         * whether the picker is broken or simply has no data.
-                         */}
-                        <CommandEmpty>
-                            {options.length === 0 && emptyHint ? (
-                                <span className="block px-2 py-1.5 text-sm text-muted-foreground">{emptyHint}</span>
-                            ) : (
-                                'No results.'
-                            )}
-                        </CommandEmpty>
-                        {grouped.map(({ group, items }) => (
-                            <CommandGroup key={group} heading={group}>
-                                {items.map(item => (
-                                    <CommandItem
-                                        key={item.id}
-                                        value={`${group} ${item.label}`}
-                                        onSelect={() => toggle(item.id)}
-                                        className="flex items-center gap-2"
-                                    >
-                                        <Check className={cn('size-3.5', selectedSet.has(item.id) ? 'opacity-100' : 'opacity-0')} />
-                                        <div className="min-w-0 flex-1">
-                                            <p className="truncate text-sm">{item.label}</p>
-                                            {item.description ? (
-                                                <p className="truncate text-muted-foreground" style={{ fontSize: '11px' }}>
-                                                    {item.description}
-                                                </p>
-                                            ) : null}
-                                        </div>
-                                    </CommandItem>
-                                ))}
-                            </CommandGroup>
-                        ))}
-                    </CommandList>
-                </Command>
-            </PopoverContent>
-        </Popover>
-    );
-}

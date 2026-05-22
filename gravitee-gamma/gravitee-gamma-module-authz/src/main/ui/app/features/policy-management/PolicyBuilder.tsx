@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Button } from '@gravitee/graphene-core';
-import { Plus, Sparkles } from 'lucide-react';
+import { PlusIcon, SparklesIcon } from '@gravitee/graphene-core/icons';
 import { PolicyStatementCard, type ChipOption } from './PolicyStatementCard';
 import { createEmptyStatement, type PolicyEffect, type PolicyStatement } from './statement-to-gapl';
 
@@ -118,19 +118,31 @@ export function PolicyBuilder({
                     emptyResourcesHint={emptyResourcesHint}
                 />
             ))}
-            <div className="flex items-center gap-2 pt-1">
-                <Button type="button" variant="outline" size="sm" onClick={() => addStatement('permit')}>
-                    <Plus className="size-3.5 mr-1.5" />
+            <div className="flex flex-col items-start gap-1.5 pt-1">
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addStatement('permit')}
+                    className="h-7 px-2 text-xs border-success/40 text-success hover:bg-success/10 hover:text-success"
+                >
+                    <PlusIcon className="size-3 mr-1" />
                     Add permit statement
                 </Button>
-                <Button type="button" variant="outline" size="sm" onClick={() => addStatement('forbid')}>
-                    <Plus className="size-3.5 mr-1.5" />
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addStatement('forbid')}
+                    className="h-7 px-2 text-xs border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                    <PlusIcon className="size-3 mr-1" />
                     Add forbid statement
                 </Button>
-                <span className="ml-auto inline-flex items-center gap-1 text-muted-foreground" style={{ fontSize: '11px' }}>
-                    <Sparkles className="size-3" />
-                    Deny-by-default: anything not permitted is denied.
-                </span>
+                <p className="inline-flex items-center gap-1 pt-1 text-xs text-muted-foreground">
+                    <SparklesIcon className="size-3" aria-hidden />
+                    forbid wins — anything matched by a forbid is denied even when also matched by a permit.
+                </p>
             </div>
         </div>
     );

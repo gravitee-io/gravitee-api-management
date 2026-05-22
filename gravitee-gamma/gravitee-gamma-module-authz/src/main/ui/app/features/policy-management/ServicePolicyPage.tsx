@@ -18,7 +18,6 @@ import {
     AlertDescription,
     AlertTitle,
     Button,
-    Card,
     Dialog,
     DialogContent,
     DialogDescription,
@@ -37,8 +36,9 @@ import {
     SelectValue,
     Spinner,
 } from '@gravitee/graphene-core';
-import { Plus, RefreshCcw } from 'lucide-react';
+import { PlusIcon, RefreshCwIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useMemo, useState } from 'react';
+import { KpiTile } from '../../../components/KpiTile';
 import type { ApiError } from '../../../lib/api/authz-api-client';
 import type { CatalogEntry, PolicyRequest, PolicyResponse, PolicyStatus, PolicyType } from '../../../lib/api/authz-api.types';
 import { parseGaplSchema } from '../../../lib/gapl-parser';
@@ -50,8 +50,6 @@ import { useEnvironment } from '../../lib/env/EnvironmentContext';
 import { PolicyEditorSheet } from './PolicyEditorSheet';
 import { PolicyListTable } from './PolicyListTable';
 import type { ChipOption } from './PolicyStatementCard';
-import type { AiProviderEntry } from './service-defs/llms';
-import { UnifiedTargetPickerDialog, type UnifiedTarget } from './UnifiedTargetPickerDialog';
 
 export interface ServicePageConfig {
     readonly type: PolicyType;
@@ -61,24 +59,16 @@ export interface ServicePageConfig {
     readonly searchPlaceholder: string;
     /** Icon for the page header */
     readonly icon?: React.ComponentType<{ className?: string }>;
-    /** If false, the target column is hidden and no target picker is shown (Custom policies). */
+    /** If false, the target column is hidden (Custom policies). */
     readonly hasTarget: boolean;
-    /** Target picker dialog variant. 'ai-model' uses the two-step AI Model picker. */
-    readonly targetPickerVariant?: 'default' | 'ai-model';
-    readonly targetPickerTitle?: string;
-    readonly targetPickerDescription?: string;
-    readonly targetPickerEmptyState?: string;
-    readonly targetPickerSearchPlaceholder?: string;
     /** Service label displayed in the editor (e.g. 'MCP', 'Agent', 'AI Model') */
     readonly serviceLabel: string;
-    /** Resource groups for the statement resource picker. */
+    /** Resource groups for the statement resource chip combobox. */
     readonly resourceGroups?: readonly { key: string; label: string }[];
     /** Static resource options for Custom policies (no catalog). */
     readonly resourceOptions?: readonly ChipOption[];
     /** Condition snippet chips shown under the condition textarea. */
     readonly conditionSnippets?: readonly { label: string; snippet: string }[];
-    /** Function to build provider list from catalog entries (for ai-model picker). */
-    readonly buildProviders?: (entries: readonly CatalogEntry[]) => readonly AiProviderEntry[];
 }
 
 type SheetState = { kind: 'closed' } | { kind: 'create'; target: CatalogEntry | null } | { kind: 'edit'; policy: PolicyResponse };
@@ -98,12 +88,11 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
 
     const policies = usePolicies(env, { type: config.type });
     const schema = useSchema(env);
-    // The `/catalog` endpoint was retired during the canonical /gamma/authz
-    // migration. Pages that used to drive their target picker from a curated
-    // catalog now synthesize the same shape from the entity list, filtered
+    // We synthesize a CatalogEntry list from the entity collection, filtered
     // by the entityId prefix that classifies each entity (mcp.*, agent.*,
-    // llm.*, api.*, event.*). For CUSTOM pages (hasTarget=false) the picker
-    // is never opened, so the synthesized list stays empty.
+    // llm.*, api.*, event.*). The list is consumed only when re-hydrating an
+    // edited policy's target — the in-editor chip combobox builds its
+    // options directly from `entities` so the catalog stub stays minimal.
     const entities = useEntities(env, /* initialPerPage */ 1000);
     const catalog = useMemo(() => {
         if (!config.hasTarget) {
@@ -127,8 +116,6 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
                     name,
                     description,
                     type: config.type as 'MCP' | 'AGENT' | 'LLM' | 'API' | 'EVENT',
-                    // Canonical entities don't carry sub-resources — the picker
-                    // shows just the entity, no nested actions or endpoints.
                     subResources: [],
                 };
             });
@@ -136,7 +123,6 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
     }, [config.hasTarget, config.type, entities.data, entities.isLoading, entities.error]);
 
     const [sheet, setSheet] = useState<SheetState>({ kind: 'closed' });
-    const [unifiedPickerOpen, setUnifiedPickerOpen] = useState(false);
     const [submitError, setSubmitError] = useState<Error | null>(null);
     const [statusFilter, setStatusFilter] = useState<PolicyStatus | 'ALL'>('ALL');
     const [search, setSearch] = useState('');
@@ -208,16 +194,19 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
         return 'No principals available. Add Users, Groups, Service Accounts or Agent Identities under Policy Structure → Entities.';
     }, [principalOptions.length]);
 
-    // Resource options for the Custom policy editor. Target-bound pages
-    // (MCP/LLM/API/AGENT) seed a single chip from the picked entity and rely
-    // on `config.resourceOptions` (which is normally undefined for those
-    // pages — the picker is the only entry point). Custom policies have no
-    // target, so the resource picker must be a live catalog. We source it
-    // from the entity collection, excluding principals and the Actions
-    // catalog so the dropdown stays focused on things a policy can target.
-    const customResourceOptions = useMemo((): readonly ChipOption[] => {
-        if (config.hasTarget) return [];
+    // Resource options for the in-editor chip combobox.
+    //
+    // For target-bound pages (MCP / LLM / API / AGENT) we narrow to entities
+    // whose `entityId` starts with the page's type prefix — the MCPs page
+    // only surfaces `mcp.*`, the LLMs page only `llm.*`, etc. Sub-segments
+    // (`mcp.bookings.get-booking`) stay in the list so users can scope a
+    // statement to a specific tool or endpoint inline.
+    //
+    // Custom policies are not bound to any service shape — list every
+    // non-principal, non-action entity grouped by canonical kind.
+    const serviceResourceOptions = useMemo((): readonly ChipOption[] => {
         const items: ChipOption[] = [];
+        const typePrefix = config.type.toLowerCase();
         for (const e of entities.data?.data ?? []) {
             const kindRaw = (e.attributes?._kind as string | undefined) ?? '';
             const kind = kindRaw.toLowerCase();
@@ -226,6 +215,8 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
             if (PRINCIPAL_KINDS.has(kind) || PRINCIPAL_KINDS.has(firstSeg)) continue;
             // skip actions
             if (kind === 'action' || firstSeg === 'action') continue;
+            // Target-bound pages: only entities matching this page's type.
+            if (config.hasTarget && firstSeg !== typePrefix) continue;
             const attrs = e.attributes ?? {};
             const label =
                 typeof attrs.displayName === 'string' && attrs.displayName
@@ -251,28 +242,29 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
                           ? 'API'
                           : 'Resource';
             const description = typeof attrs.description === 'string' ? (attrs.description as string) : undefined;
-            items.push({ id: e.uid, label, group, description });
+            // Canonical GAPL form (`MCP::"bookings"`) so chip IDs round-trip
+            // with parseGaplToStatements after a switch-to-visual or reload.
+            const labelForUid = e.uid.includes('.') ? e.uid.slice(e.uid.indexOf('.') + 1) : e.uid;
+            items.push({ id: `${group}::"${labelForUid}"`, label, group, description });
         }
         items.sort((a, b) => (a.group === b.group ? a.label.localeCompare(b.label) : a.group.localeCompare(b.group)));
         return items;
-    }, [config.hasTarget, entities.data]);
+    }, [config.hasTarget, config.type, entities.data]);
 
-    const effectiveConfig = useMemo<ServicePageConfig>(() => {
-        if (config.hasTarget) return config;
-        return {
+    const effectiveConfig = useMemo<ServicePageConfig>(
+        () => ({
             ...config,
-            resourceOptions: customResourceOptions,
-            resourceGroups: [
+            resourceOptions: serviceResourceOptions,
+            resourceGroups: config.resourceGroups ?? [
                 { key: 'API', label: 'API' },
                 { key: 'MCP', label: 'MCP' },
                 { key: 'LLM', label: 'LLM' },
                 { key: 'Agent', label: 'Agent' },
                 { key: 'Resource', label: 'Resource' },
             ],
-        };
-    }, [config, customResourceOptions]);
-
-    const existingTargetIds = useMemo(() => (policies.data?.data ?? []).map(p => p.target?.id ?? '').filter(Boolean), [policies.data]);
+        }),
+        [config, serviceResourceOptions],
+    );
 
     // KPI summary cards rendered above the filters. Mirrors the prototype's
     // four-tile row (Policies / Deployed / Draft / Unique targets). The
@@ -298,27 +290,10 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
 
     const startCreate = () => {
         setSubmitError(null);
-        if (!config.hasTarget) {
-            setSheet({ kind: 'create', target: null });
-            return;
-        }
-        setUnifiedPickerOpen(true);
-    };
-
-    const onUnifiedPick = (target: UnifiedTarget) => {
-        setUnifiedPickerOpen(false);
-        // Open editor inline with a CatalogEntry synthesized from the picked
-        // unified target. Editor uses the current page's config (resource
-        // groups / snippets) — the simplest cross-type flow that avoids extra
-        // routing or config-switching machinery.
-        // PolicyType includes 'CUSTOM' which CatalogServiceType doesn't —
-        // narrow with a fallback since the unified picker only emits service
-        // types (MCP/LLM/API/AGENT), never CUSTOM.
-        const type = target.type === 'CUSTOM' ? 'API' : target.type;
-        setSheet({
-            kind: 'create',
-            target: { id: target.id, name: target.name, description: target.description, type, subResources: [] },
-        });
+        // No more target-pre-picker step: open the editor directly and let the
+        // user pick the resource(s) from the in-editor chip combobox, which is
+        // filtered to this page's service type (e.g. mcp.* on MCPs page).
+        setSheet({ kind: 'create', target: null });
     };
 
     const submit = async (req: PolicyRequest) => {
@@ -361,11 +336,6 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
         entities.reload();
     }, [policies, entities]);
 
-    const providers = useMemo(() => {
-        if (!config.buildProviders) return [];
-        return config.buildProviders(catalog.entries);
-    }, [config.buildProviders, catalog.entries]);
-
     const isLoading = policies.isLoading || (config.hasTarget && catalog.isLoading);
 
     return (
@@ -380,10 +350,10 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     <Button type="button" variant="outline" size="sm" onClick={handleReload} aria-label="Refresh">
-                        <RefreshCcw className="size-4" />
+                        <RefreshCwIcon aria-hidden className="size-4" />
                     </Button>
                     <Button type="button" onClick={startCreate}>
-                        <Plus size={16} aria-hidden /> {config.hasTarget ? 'Create policy' : config.createButtonLabel}
+                        <PlusIcon aria-hidden className="size-4" /> {config.hasTarget ? 'Create policy' : config.createButtonLabel}
                     </Button>
                 </div>
             </header>
@@ -398,10 +368,10 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
                     gap: '1rem',
                 }}
             >
-                <KpiCard label="Policies" value={kpis.total} loading={policies.isLoading} />
-                <KpiCard label="Deployed" value={kpis.deployed} loading={policies.isLoading} tone="emerald" />
-                <KpiCard label="Draft" value={kpis.draft} loading={policies.isLoading} tone="muted" />
-                {config.hasTarget ? <KpiCard label="Unique targets" value={kpis.uniqueTargets} loading={policies.isLoading} /> : null}
+                <KpiTile label="Policies" value={kpis.total} loading={policies.isLoading} />
+                <KpiTile label="Deployed" value={kpis.deployed} loading={policies.isLoading} tone="success" />
+                <KpiTile label="Draft" value={kpis.draft} loading={policies.isLoading} tone="muted" />
+                {config.hasTarget ? <KpiTile label="Unique targets" value={kpis.uniqueTargets} loading={policies.isLoading} /> : null}
             </div>
 
             {/* Filters */}
@@ -485,18 +455,6 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
                 />
             )}
 
-            {config.hasTarget ? (
-                <UnifiedTargetPickerDialog
-                    open={unifiedPickerOpen}
-                    onOpenChange={setUnifiedPickerOpen}
-                    entities={entities.data?.data ?? []}
-                    existingTargetIds={existingTargetIds}
-                    serviceType={config.type}
-                    serviceLabel={config.serviceLabel}
-                    onSelect={onUnifiedPick}
-                />
-            ) : null}
-
             <PolicyEditorSheet
                 config={effectiveConfig}
                 open={sheet.kind !== 'closed'}
@@ -505,9 +463,9 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
                     sheet.kind === 'create'
                         ? sheet.target
                         : sheet.kind === 'edit' && sheet.policy.target
-                          ? // Re-hydrate the catalog entry by id so the resource picker has the
-                            // proper subResources (tools/endpoints/etc) to choose from. Falls back
-                            // to a synthetic stub if the entry is no longer in the catalog.
+                          ? // Re-hydrate the catalog entry by id so the editor header can show
+                            // the policy's target name. Falls back to a synthetic stub when the
+                            // entry is no longer in the catalog (e.g. the resource was deleted).
                             (catalog.entries.find(e => e.id === sheet.policy.target!.id) ?? {
                                 id: sheet.policy.target.id,
                                 name: sheet.policy.target.label,
@@ -528,14 +486,6 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
                     }
                 }}
                 onSubmit={submit}
-                onChangeTarget={
-                    config.hasTarget
-                        ? () => {
-                              setSheet({ kind: 'closed' });
-                              setUnifiedPickerOpen(true);
-                          }
-                        : undefined
-                }
             />
 
             {/* Delete confirmation. Replaces window.confirm() for accessibility,
@@ -573,26 +523,3 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
     );
 }
 
-// Small presentational tile for the KPI strip. Kept local to this page since
-// no other page renders the same shape — promote it if a second caller appears.
-function KpiCard({
-    label,
-    value,
-    loading,
-    tone,
-}: {
-    readonly label: string;
-    readonly value: number;
-    readonly loading: boolean;
-    readonly tone?: 'emerald' | 'muted';
-}) {
-    const valueClass = tone === 'emerald' ? 'text-2xl text-emerald-600' : tone === 'muted' ? 'text-2xl text-muted-foreground' : 'text-2xl';
-    return (
-        <Card role="listitem" className="p-4" aria-label={label}>
-            <div className={valueClass} aria-live="polite">
-                {loading ? '—' : value}
-            </div>
-            <p className="text-xs text-muted-foreground">{label}</p>
-        </Card>
-    );
-}

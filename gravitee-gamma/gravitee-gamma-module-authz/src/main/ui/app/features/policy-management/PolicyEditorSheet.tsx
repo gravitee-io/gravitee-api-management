@@ -14,15 +14,22 @@
  * limitations under the License.
  */
 import {
-    Badge,
     Button,
     Input,
+    Sheet,
+    SheetContent,
+    SheetTitle,
     Spinner,
+    ToggleGroup,
+    ToggleGroupItem,
     cn,
+    toast,
 } from '@gravitee/graphene-core';
-import { Code2, List, RefreshCcw, Sparkles } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { PortalModal } from '../../../components/PortalModal';
+import { ListIcon } from '@gravitee/graphene-core/icons';
+// `Code2` isn't in `@gravitee/graphene-core/icons` yet, so we keep the lucide
+// import for that single glyph; everything else uses the Graphene icon set.
+import { Code2 } from 'lucide-react';
+import { useMemo, useRef, useState, useEffect } from 'react';
 import { StatusBadge } from '../../../components/StatusBadge';
 import { ValidationErrorAlert } from '../../../components/ValidationErrorAlert';
 import type { ApiError } from '../../../lib/api/authz-api-client';
@@ -44,7 +51,6 @@ export interface PolicyEditorSheetProps {
     readonly actionOptions: readonly ChipOption[];
     readonly onOpenChange: (open: boolean) => void;
     readonly onSubmit: (request: PolicyRequest) => Promise<void>;
-    readonly onChangeTarget?: () => void;
     /**
      * Optional empty-state hints rendered inside the chip pickers when the
      * corresponding option list is empty. The page-level container is the
@@ -70,7 +76,6 @@ export function PolicyEditorSheet({
     actionOptions,
     onOpenChange,
     onSubmit,
-    onChangeTarget,
     emptyPrincipalsHint,
     emptyActionsHint,
     emptyResourcesHint,
@@ -84,10 +89,6 @@ export function PolicyEditorSheet({
     const [codeDirty, setCodeDirty] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [deploying, setDeploying] = useState(false);
-    // Inline toast shown briefly after a successful deploy. We avoid adding a
-    // global Toaster dependency (none exists yet) — a local timed banner keeps
-    // the surface small and the feature self-contained.
-    const [deployToast, setDeployToast] = useState<string | null>(null);
     // True once the user has touched any visual control on this open. In edit
     // mode we only regenerate the code buffer from the visual statements
     // after the user actually edited the visual side — otherwise switching
@@ -102,30 +103,14 @@ export function PolicyEditorSheet({
 
     const target = policy?.target ?? (initialTarget ? { id: initialTarget.id, label: initialTarget.name } : null);
 
-    // Build resource options from catalog entry sub-resources, plus the
-    // target itself as a first-class option. Including the target means the
-    // editor can pre-select it on a fresh policy (see the seed-first-statement
-    // effect below) so the user doesn't have to manually re-pick the same
-    // resource they just chose in the unified picker.
-    const resourceOptions = useMemo((): readonly ChipOption[] => {
-        const opts: ChipOption[] = [];
-        if (initialTarget) {
-            opts.push({
-                id: initialTarget.id,
-                label: initialTarget.id,
-                group: config.resourceGroups?.[0]?.key ?? 'Resource',
-                description: initialTarget.name,
-            });
-        }
-        const subResources = initialTarget?.subResources ?? [];
-        for (const s of subResources) {
-            opts.push({ id: s.id, label: s.name, group: s.kind, description: s.description });
-        }
-        if (opts.length === 0) {
-            return config.resourceOptions ?? [];
-        }
-        return opts;
-    }, [initialTarget, config.resourceOptions, config.resourceGroups]);
+    // Resource options come straight from the page-level catalog
+    // (`config.resourceOptions`), which already filters by service type for
+    // target-bound pages (mcp.* / llm.* / api.*) and lists every authorable
+    // resource for Custom policies. Sub-resources are no longer surfaced via
+    // CatalogEntry — the entity collection itself carries every addressable
+    // resource as a top-level row, so any tool/endpoint shows up alongside
+    // its parent service.
+    const resourceOptions = config.resourceOptions ?? [];
 
     const generatedCode = useMemo(
         () => statementsToGapl(name || 'new-policy', statements, target ?? undefined),
@@ -159,34 +144,20 @@ export function PolicyEditorSheet({
                 setView('code');
             }
         } else {
-            // Fresh policy: pre-seed the first statement's Resources chip with
-            // the target the user just picked from the unified picker — saves
-            // a click. Custom policies have no initialTarget so they keep the
-            // fully empty statement.
-            const seedResources = initialTarget
-                ? [
-                      {
-                          id: initialTarget.id,
-                          kind: config.resourceGroups?.[0]?.key ?? 'Resource',
-                          label: initialTarget.id,
-                      },
-                  ]
-                : [];
-            setStatements([{ ...createEmptyStatement('permit'), resources: seedResources }]);
+            // Fresh policy: empty first statement. The user picks all three
+            // slots (principal / action / resource) from the in-editor chip
+            // comboboxes.
+            setStatements([createEmptyStatement('permit')]);
             setVisualUnavailable(false);
             setView('visual');
-            // Pre-fill the policy name with the target's display name so users
-            // don't have to type it from scratch. Empty for Custom policies.
-            if (initialTarget) setName(initialTarget.name);
         }
-    }, [open, policy, initialTarget, config.resourceGroups]);
+    }, [open, policy]);
 
     useEffect(() => {
         // Only auto-sync the code buffer from the visual statements when
         // creating a new policy. For edits we must not silently overwrite the
         // user's stored GAPL with regenerated text — that loses any GAPL
-        // features the visual editor cannot represent. The user can always
-        // explicitly hit "Regenerate from visual" in the code pane to opt in.
+        // features the visual editor cannot represent.
         if (view === 'code' && !codeDirty && policy === null) {
             setPolicyText(generatedCode);
         }
@@ -207,26 +178,34 @@ export function PolicyEditorSheet({
         setView('code');
     };
 
-    const switchToVisual = () => setView('visual');
-
-    const resetCodeFromVisual = () => {
-        setPolicyText(generatedCode);
-        setCodeDirty(false);
+    const switchToVisual = () => {
+        // Re-parse the current code buffer so anything the user typed in the
+        // Code view shows up in the Visual statements immediately. If the
+        // parser can't represent the GAPL (advanced when-clauses etc.) we
+        // keep the user in the Code view and surface a warning toast — the
+        // policy text in the buffer is left intact so the user doesn't lose
+        // their edits.
+        if (codeDirty) {
+            const parsed = parseGaplToStatements(policyText);
+            if (parsed && parsed.statements.length > 0) {
+                setStatements(parsed.statements);
+                setVisualDirty(false);
+                setCodeDirty(false);
+                setVisualUnavailable(false);
+            } else {
+                setVisualUnavailable(true);
+                setView('code');
+                toast.warning('This GAPL uses features the visual editor cannot represent. Continue in the Code view.');
+                return;
+            }
+        }
+        setView('visual');
     };
 
     const handleStatementsChange = (next: readonly PolicyStatement[]) => {
         setStatements(next);
         setVisualDirty(true);
     };
-
-    // Auto-dismiss the deploy toast after 3s. Cleanup cancels the timer if
-    // the sheet closes or another deploy fires before the previous toast
-    // expires — avoids state updates on an unmounted component.
-    useEffect(() => {
-        if (!deployToast) return;
-        const handle = window.setTimeout(() => setDeployToast(null), 3000);
-        return () => window.clearTimeout(handle);
-    }, [deployToast]);
 
     const buildRequest = (overrideStatus?: PolicyStatus): PolicyRequest => {
         const finalText =
@@ -250,7 +229,7 @@ export function PolicyEditorSheet({
         try {
             await onSubmit(buildRequest('DEPLOYED'));
             setStatus('DEPLOYED');
-            setDeployToast('Policy deployed. Gateway sync expected within 30s.');
+            toast.success('Policy deployed. Gateway sync expected within 30s.');
         } finally {
             setDeploying(false);
         }
@@ -266,7 +245,7 @@ export function PolicyEditorSheet({
         try {
             await onSubmit(buildRequest('DISABLED'));
             setStatus('DISABLED');
-            setDeployToast('Policy undeployed. Gateway sync will drop it within 30s.');
+            toast.success('Policy undeployed. Gateway sync will drop it within 30s.');
         } finally {
             setDeploying(false);
         }
@@ -291,9 +270,8 @@ export function PolicyEditorSheet({
     //
     // The policy editor's header is richer than the icon-and-title most
     // panels need: an editable name input + status pill + view toggle +
-    // status select + save / deploy buttons. PortalModal accepts JSX for
-    // both `title` and `headerActions`, so we render the custom shell into
-    // those slots and the modal handles overlay / esc / click-outside.
+    // status select + save / deploy buttons. Built into the Sheet shell
+    // below — Graphene's Sheet handles overlay / esc / focus trap.
 
     const lastEdited = (() => {
         if (!policy?.updatedAt) return '';
@@ -308,12 +286,12 @@ export function PolicyEditorSheet({
                     value={name}
                     onChange={e => setName(e.target.value)}
                     placeholder="Policy name"
-                    className="h-8 min-w-[220px] max-w-[480px] border-transparent bg-transparent px-1 text-base font-semibold shadow-none focus-visible:border-input"
+                    className="h-8 min-w-56 max-w-[30rem] border-transparent bg-transparent px-1 text-base font-semibold shadow-none focus-visible:border-input"
                     aria-label="Policy name"
                 />
                 <StatusBadge status={status} />
             </div>
-            <p className="text-muted-foreground" style={{ fontSize: '11px' }}>
+            <p className="pl-1 text-xs text-muted-foreground">
                 {config.serviceLabel} policy
                 {lastEdited}
             </p>
@@ -354,28 +332,12 @@ export function PolicyEditorSheet({
 
     const subHeader = (
         <>
-            {deployToast ? (
-                <div
-                    role="status"
-                    aria-live="polite"
-                    className="shrink-0 border-b bg-emerald-50 px-6 py-2 text-sm text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200"
-                >
-                    {deployToast}
-                </div>
-            ) : null}
-
-            {config.hasTarget ? null : (
-                <div className="shrink-0 border-b bg-muted/20 px-6 py-2 text-muted-foreground" style={{ fontSize: '12px' }}>
-                    No scoped target — custom policies apply to whatever principal, action, and resource you define.
-                </div>
-            )}
-
             <div className="shrink-0 border-b px-6 py-2">
                 <Input
                     value={description}
                     onChange={e => setDescription(e.target.value)}
                     placeholder="Description (optional)"
-                    className="border-transparent bg-transparent shadow-none text-sm"
+                    className="h-8 border-transparent bg-transparent px-1 text-sm shadow-none focus-visible:border-input"
                     aria-label="Policy description"
                 />
             </div>
@@ -387,7 +349,7 @@ export function PolicyEditorSheet({
         try {
             await onSubmit(buildRequest('DEPLOYED'));
             setStatus('DEPLOYED');
-            setDeployToast('Policy created and deployed. Gateway sync expected within 30s.');
+            toast.success('Policy created and deployed. Gateway sync expected within 30s.');
         } finally {
             setSubmitting(false);
         }
@@ -396,7 +358,7 @@ export function PolicyEditorSheet({
     const footer = (
         <div className="flex w-full flex-col gap-2">
             <ValidationErrorAlert error={submitError} title="Could not save policy" />
-            <div className="flex items-center justify-end gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting || deploying}>
                     Cancel
                 </Button>
@@ -421,45 +383,61 @@ export function PolicyEditorSheet({
         </div>
     );
 
+    const ariaLabel = policy ? `Edit policy: ${policy.name}` : `New ${config.type} policy`;
+
     return (
-        <PortalModal
-            open={open}
-            onOpenChange={onOpenChange}
-            ariaLabel={policy ? `Edit policy: ${policy.name}` : `New ${config.type} policy`}
-            icon={null}
-            title={headerTitle}
-            headerActions={headerActions}
-            subHeader={subHeader}
-            footer={footer}
-            width="min(960px, 100%)"
-        >
-            {view === 'visual' ? (
-                <PolicyBuilder
-                    policyName={name}
-                    target={target}
-                    statements={statements}
-                    principalOptions={principalOptions}
-                    actionOptions={actionOptions}
-                    resourceOptions={resourceOptions}
-                    resourceGroups={config.resourceGroups ?? []}
-                    conditionSnippets={config.conditionSnippets}
-                    onChange={handleStatementsChange}
-                    emptyPrincipalsHint={emptyPrincipalsHint}
-                    emptyActionsHint={emptyActionsHint}
-                    emptyResourcesHint={emptyResourcesHint}
-                />
-            ) : (
-                <CodePane
-                    code={policyText}
-                    onCodeChange={next => {
-                        setPolicyText(next);
-                        setCodeDirty(next !== generatedCode);
-                    }}
-                    onReset={resetCodeFromVisual}
-                    dirty={codeDirty}
-                />
-            )}
-        </PortalModal>
+        <Sheet open={open} onOpenChange={onOpenChange}>
+            <SheetContent
+                side="right"
+                showCloseButton={false}
+                aria-label={ariaLabel}
+                // Inline style overrides Graphene's `w-3/4 sm:max-w-sm` defaults
+                // directly — Tailwind's `cn()` merge was keeping Graphene's
+                // classes because our overrides arrived "behind" theirs in the
+                // merge, and Tailwind doesn't always purge arbitrary data-side
+                // utilities consistently.
+                style={{ width: 'min(720px, 100vw)', maxWidth: 'min(720px, 100vw)' }}
+                className="flex h-full flex-col gap-0 p-0"
+            >
+                <SheetTitle className="sr-only">{ariaLabel}</SheetTitle>
+
+                <div className="flex items-start gap-3 border-b px-6 py-4">
+                    <div className="min-w-0 flex-1">{headerTitle}</div>
+                    <div className="flex flex-none items-center gap-2">{headerActions}</div>
+                </div>
+
+                {subHeader}
+
+                <div className="flex-1 overflow-y-auto px-6 py-5">
+                    {view === 'visual' ? (
+                        <PolicyBuilder
+                            policyName={name}
+                            target={target}
+                            statements={statements}
+                            principalOptions={principalOptions}
+                            actionOptions={actionOptions}
+                            resourceOptions={resourceOptions}
+                            resourceGroups={config.resourceGroups ?? []}
+                            conditionSnippets={config.conditionSnippets}
+                            onChange={handleStatementsChange}
+                            emptyPrincipalsHint={emptyPrincipalsHint}
+                            emptyActionsHint={emptyActionsHint}
+                            emptyResourcesHint={emptyResourcesHint}
+                        />
+                    ) : (
+                        <CodePane
+                            code={policyText}
+                            onCodeChange={next => {
+                                setPolicyText(next);
+                                setCodeDirty(next !== generatedCode);
+                            }}
+                        />
+                    )}
+                </div>
+
+                <div className="border-t bg-muted/40 px-6 py-3.5">{footer}</div>
+            </SheetContent>
+        </Sheet>
     );
 }
 
@@ -479,33 +457,41 @@ function ViewToggle({
     visualDisabledTitle?: string;
 }) {
     return (
-        <div className="inline-flex rounded-md border bg-muted p-0.5 text-xs">
-            <button
-                type="button"
-                onClick={onVisual}
+        <ToggleGroup
+            type="single"
+            size="sm"
+            value={view}
+            onValueChange={value => {
+                if (value === 'visual') onVisual();
+                else if (value === 'code') onCode();
+            }}
+            className="bg-muted rounded-md p-0.5 text-xs"
+        >
+            <ToggleGroupItem
+                value="visual"
                 disabled={visualDisabled}
                 title={visualDisabled ? visualDisabledTitle : undefined}
                 className={cn(
-                    'flex items-center gap-1.5 rounded px-2.5 py-1',
-                    view === 'visual' ? 'bg-background font-medium shadow-sm' : 'text-muted-foreground',
-                    visualDisabled && 'cursor-not-allowed opacity-50',
+                    'gap-1.5',
+                    view === 'visual' &&
+                        'bg-primary/10 text-primary border-primary font-semibold shadow-sm hover:bg-primary/10 hover:text-primary',
                 )}
             >
-                <List className="size-3.5" />
+                <ListIcon className="size-3.5" aria-hidden />
                 Visual
-            </button>
-            <button
-                type="button"
-                onClick={onCode}
+            </ToggleGroupItem>
+            <ToggleGroupItem
+                value="code"
                 className={cn(
-                    'flex items-center gap-1.5 rounded px-2.5 py-1',
-                    view === 'code' ? 'bg-background font-medium shadow-sm' : 'text-muted-foreground',
+                    'gap-1.5',
+                    view === 'code' &&
+                        'bg-primary/10 text-primary border-primary font-semibold shadow-sm hover:bg-primary/10 hover:text-primary',
                 )}
             >
                 <Code2 className="size-3.5" />
                 Code
-            </button>
-        </div>
+            </ToggleGroupItem>
+        </ToggleGroup>
     );
 }
 
@@ -514,13 +500,9 @@ function ViewToggle({
 function CodePane({
     code,
     onCodeChange,
-    onReset,
-    dirty,
 }: {
     code: string;
     onCodeChange: (next: string) => void;
-    onReset: () => void;
-    dirty: boolean;
 }) {
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
     const gutterRef = useRef<HTMLDivElement | null>(null);
@@ -533,40 +515,8 @@ function CodePane({
 
     return (
         <div className="flex h-full flex-col">
-            <div className="flex shrink-0 items-center justify-between border-b bg-muted/30 px-6 py-2 text-xs">
-                <div className="flex items-center gap-2">
-                    <span className="font-mono text-muted-foreground" style={{ fontSize: '11px' }}>
-                        policy.gapl
-                    </span>
-                    {dirty ? (
-                        <Badge
-                            variant="outline"
-                            className="border-amber-300 text-amber-700 dark:border-amber-700 dark:text-amber-400"
-                            style={{ fontSize: '10px' }}
-                        >
-                            Modified in code
-                        </Badge>
-                    ) : (
-                        <Badge variant="outline" className="text-muted-foreground" style={{ fontSize: '10px' }}>
-                            Synced with visual
-                        </Badge>
-                    )}
-                </div>
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={onReset}
-                    disabled={!dirty}
-                    title="Discard code edits and regenerate from the visual editor"
-                >
-                    <RefreshCcw className="size-3.5 mr-1.5" />
-                    Regenerate from visual
-                </Button>
-            </div>
-
             <div className="min-h-0 flex-1 overflow-hidden bg-background">
-                <div className="flex h-full font-mono leading-[1.6]" style={{ fontSize: '13px' }}>
+                <div className="flex h-full font-mono text-sm leading-relaxed">
                     <div
                         ref={gutterRef}
                         className="w-12 shrink-0 overflow-hidden border-r bg-muted/30 py-3 pr-2 text-right text-muted-foreground/70 tabular-nums"
@@ -587,14 +537,6 @@ function CodePane({
                         aria-label="GAPL policy text"
                     />
                 </div>
-            </div>
-
-            <div className="shrink-0 border-t bg-muted/20 px-6 py-2 text-muted-foreground" style={{ fontSize: '11px' }}>
-                <span className="inline-flex items-center gap-1">
-                    <Sparkles className="size-3" />
-                    Code edits stay in this buffer for review. The visual editor remains the source of truth — use{' '}
-                    <span className="font-medium">Regenerate from visual</span> to sync back.
-                </span>
             </div>
         </div>
     );

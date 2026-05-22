@@ -29,6 +29,17 @@
         </file>
     </files>
 
+    <!-- Include UI assets (mf-manifest.json + compiled JS/CSS) so the
+         backend can serve them under /gamma/.../modules/authz/assets/
+         and so the modules endpoint returns a full `mfManifest` payload
+         (otherwise the host falls back to a hand-rolled remote URL). -->
+    <fileSets>
+        <fileSet>
+            <directory>${project.build.directory}/classes/ui</directory>
+            <outputDirectory>ui</outputDirectory>
+        </fileSet>
+    </fileSets>
+
     <!--
         Bundle gamma-authorization-core into the plugin zip so its classes are
         loaded by the plugin's URLClassLoader. That URLClassLoader's parent is

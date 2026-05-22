@@ -57,11 +57,12 @@ function summarizeAttributes(attrs: Record<string, unknown>): string | undefined
 function toChipOption(entity: EntityResponse): ChipOption {
     const { type, id } = parseEntityUid(entity.uid);
     return {
-        // Use the raw entity UID as the ChipOption id so it matches what
-        // `parseGaplToStatements` produces when hydrating the visual editor
-        // from stored GAPL — both sides must agree on the same canonical id
-        // (`User::"alice"`) for chip selection to round-trip on edit.
-        id: entity.uid,
+        // ChipOption.id must equal the canonical GAPL UID (`User::"alice"`)
+        // that `parseGaplToStatements` emits — the two sides have to agree on
+        // the same key for selected chips to highlight after switch-to-visual
+        // or after save+reload. The backend stores entity.uid in dot form
+        // (`user.alice`), so we explicitly reformat here.
+        id: `${type}::"${id}"`,
         label: id,
         group: type,
         description: summarizeAttributes(entity.attributes),

@@ -37,7 +37,7 @@ export function ValidationErrorAlert({ error, title = 'Request failed' }: Valida
             <AlertDescription>
                 <div>{message}</div>
                 {details.length > 0 && (
-                    <ul style={{ margin: '0.5rem 0 0', paddingLeft: '1.25rem' }}>
+                    <ul className="mt-2 pl-5">
                         {details.map((d, i) => (
                             <li key={i}>{d}</li>
                         ))}
