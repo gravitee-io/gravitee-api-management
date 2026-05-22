@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.invitation.use_case;
 
+import static fixtures.core.model.BaseUserEntityFixtures.aBaseUserEntity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -36,7 +37,6 @@ import io.gravitee.apim.core.invitation.model.InvitationId;
 import io.gravitee.apim.core.invitation.use_case.AcceptUserInvitationUseCase.GroupInvitationAction;
 import io.gravitee.apim.core.invitation.use_case.AcceptUserInvitationUseCase.UserRegistrationAction;
 import io.gravitee.apim.core.user.domain_service.CreateUserDomainService;
-import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.core.user.model.EncodedPassword;
 import io.gravitee.apim.core.user.model.RawPassword;
 import io.gravitee.apim.core.user.service_provider.UserPasswordService;
@@ -115,7 +115,7 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
 
         @Test
         void should_create_new_user_and_set_password() {
-            var createdUser = aUser(GENERATED_UUID, USER_EMAIL);
+            var createdUser = aBaseUserEntity(GENERATED_UUID, USER_EMAIL);
             when(createUserDomainService.createExternalUser(eq(executionContext), eq(USER_EMAIL), any(), any())).thenReturn(createdUser);
             when(userPasswordService.encode(RAW_PASSWORD)).thenReturn(ENCODED_PASSWORD);
 
@@ -139,7 +139,7 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
 
         @Test
         void should_create_new_user_without_password() {
-            var createdUser = aUser(GENERATED_UUID, USER_EMAIL);
+            var createdUser = aBaseUserEntity(GENERATED_UUID, USER_EMAIL);
             when(createUserDomainService.createExternalUser(eq(executionContext), eq(USER_EMAIL), any(), any())).thenReturn(createdUser);
 
             var output = cut.execute(
@@ -160,7 +160,7 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
 
         @Test
         void should_finalize_existing_user() {
-            var existingUser = aUser(EXISTING_USER_ID, USER_EMAIL);
+            var existingUser = aBaseUserEntity(EXISTING_USER_ID, USER_EMAIL);
             userCrudService.initWith(List.of(existingUser));
             when(userPasswordService.encode(RAW_PASSWORD)).thenReturn(ENCODED_PASSWORD);
 
@@ -216,7 +216,7 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
 
         @Test
         void should_throw_when_user_already_finalized() {
-            var existingUser = aUser(EXISTING_USER_ID, USER_EMAIL);
+            var existingUser = aBaseUserEntity(EXISTING_USER_ID, USER_EMAIL);
             userCrudService.initWith(List.of(existingUser));
             userCrudService.updateAndSetPassword(existingUser, ENCODED_PASSWORD);
 
@@ -257,7 +257,7 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
 
         @Test
         void should_create_organization_audit_log() {
-            var createdUser = aUser(GENERATED_UUID, USER_EMAIL);
+            var createdUser = aBaseUserEntity(GENERATED_UUID, USER_EMAIL);
             when(createUserDomainService.createExternalUser(any(), any(), any(), any())).thenReturn(createdUser);
 
             cut.execute(
@@ -301,7 +301,7 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
                 null
             );
             invitationCrudService.initWith(List.of(invitation));
-            var createdUser = aUser(GENERATED_UUID, USER_EMAIL);
+            var createdUser = aBaseUserEntity(GENERATED_UUID, USER_EMAIL);
             when(createUserDomainService.createExternalUser(eq(executionContext), eq(USER_EMAIL), any(), any())).thenReturn(createdUser);
 
             var output = cut.execute(
@@ -339,7 +339,7 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
                 null
             );
             invitationCrudService.initWith(List.of(inv1, inv2));
-            var createdUser = aUser(GENERATED_UUID, USER_EMAIL);
+            var createdUser = aBaseUserEntity(GENERATED_UUID, USER_EMAIL);
             when(createUserDomainService.createExternalUser(any(), any(), any(), any())).thenReturn(createdUser);
 
             cut.execute(
@@ -368,7 +368,7 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
                 null
             );
             invitationCrudService.initWith(List.of(invitation));
-            var existingUser = aUser(EXISTING_USER_ID, USER_EMAIL);
+            var existingUser = aBaseUserEntity(EXISTING_USER_ID, USER_EMAIL);
             userCrudService.initWith(List.of(existingUser));
             when(userPasswordService.encode(RAW_PASSWORD)).thenReturn(ENCODED_PASSWORD);
 
@@ -435,9 +435,5 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
                 .isInstanceOf(InvitationCanceledException.class)
                 .hasMessageContaining("user@example.com");
         }
-    }
-
-    private static BaseUserEntity aUser(String id, String email) {
-        return BaseUserEntity.builder().id(id).email(email).source("gravitee").sourceId(email).build();
     }
 }

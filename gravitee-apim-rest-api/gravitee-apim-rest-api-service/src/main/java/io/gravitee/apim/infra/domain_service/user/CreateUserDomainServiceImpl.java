@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.domain_service.user;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.domain_service.CreateUserDomainService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.core.user.model.IdpSource;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -43,7 +44,7 @@ public class CreateUserDomainServiceImpl implements CreateUserDomainService {
         var user = BaseUserEntity.builder()
             .id(UuidString.generateRandom())
             .organizationId(executionContext.getOrganizationId())
-            .source("gravitee")
+            .source(IdpSource.gravitee())
             .sourceId(email)
             .email(email)
             .firstname(firstname.orElse(null))

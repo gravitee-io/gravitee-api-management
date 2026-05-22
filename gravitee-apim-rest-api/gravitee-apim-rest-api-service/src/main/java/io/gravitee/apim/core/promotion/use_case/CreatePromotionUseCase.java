@@ -142,7 +142,7 @@ public class CreatePromotionUseCase {
                         .userId(authenticatedUser.getId())
                         .displayName(authenticatedUser.displayName())
                         .email(authenticatedUser.getEmail())
-                        .source(authenticatedUser.getSource())
+                        .source(authenticatedUser.getSource() != null ? authenticatedUser.getSource().value() : null)
                         .sourceId(authenticatedUser.getSourceId())
                         .build()
                 )

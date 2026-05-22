@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.core.user.model.IdpSource;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -71,7 +72,7 @@ class CreateUserDomainServiceImplTest {
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.getId()).isEqualTo("generated-uuid");
             soft.assertThat(result.getOrganizationId()).isEqualTo("org-id");
-            soft.assertThat(result.getSource()).isEqualTo("gravitee");
+            soft.assertThat(result.getSource()).isEqualTo(IdpSource.GRAVITEE);
             soft.assertThat(result.getSourceId()).isEqualTo("jane@example.com");
             soft.assertThat(result.getEmail()).isEqualTo("jane@example.com");
             soft.assertThat(result.getFirstname()).isEqualTo("Jane");

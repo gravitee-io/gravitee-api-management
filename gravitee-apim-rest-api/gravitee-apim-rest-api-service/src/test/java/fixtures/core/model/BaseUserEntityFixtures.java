@@ -16,6 +16,7 @@
 package fixtures.core.model;
 
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.core.user.model.IdpSource;
 import java.time.Instant;
 import java.util.Date;
 
@@ -27,7 +28,7 @@ public class BaseUserEntityFixtures {
         return BaseUserEntity.builder()
             .id("user-id")
             .organizationId("organization-id")
-            .source("source")
+            .source(IdpSource.of("source"))
             .sourceId("source-id")
             .email("jane.doe@gravitee.io")
             .firstname("Jane")
@@ -40,11 +41,15 @@ public class BaseUserEntityFixtures {
     public static BaseUserEntity aBaseUserEntity(String userId) {
         return BaseUserEntity.builder()
             .id(userId)
-            .source("test")
+            .source(IdpSource.of("test"))
             .sourceId("test-source-id")
             .email("user@example.com")
             .firstname("John")
             .lastname("Smith")
             .build();
+    }
+
+    public static BaseUserEntity aBaseUserEntity(String id, String email) {
+        return BaseUserEntity.builder().id(id).email(email).source(IdpSource.GRAVITEE).sourceId(email).build();
     }
 }

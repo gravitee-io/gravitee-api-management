@@ -39,6 +39,7 @@ import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainServi
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.core.user.model.IdpSource;
 import io.gravitee.apim.infra.domain_service.application.ValidateApplicationSettingsDomainServiceImpl;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.Origin;
@@ -352,7 +353,7 @@ class ImportApplicationCRDUseCaseTest {
                 MEMBER_SOURCE_ID_1,
                 new Date(),
                 new Date(),
-                MEMBER_SOURCE,
+                IdpSource.of(MEMBER_SOURCE),
                 MEMBER_SOURCE_ID_1,
                 null
             ),
@@ -364,7 +365,7 @@ class ImportApplicationCRDUseCaseTest {
                 MEMBER_SOURCE_ID_2,
                 new Date(),
                 new Date(),
-                MEMBER_SOURCE,
+                IdpSource.of(MEMBER_SOURCE),
                 MEMBER_SOURCE_ID_2,
                 null
             )

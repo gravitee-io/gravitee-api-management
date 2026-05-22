@@ -35,7 +35,7 @@ public class BaseUserEntity {
     private Date createdAt;
     private Date updatedAt;
     /** The source when user is coming from an external system (LDAP, ...) */
-    private String source;
+    private IdpSource source;
     /** The user reference in the external source */
     private String sourceId;
     private String status;
@@ -48,7 +48,7 @@ public class BaseUserEntity {
             return firstname;
         } else if (isNotBlank(lastname)) {
             return lastname;
-        } else if (isNotBlank(email) && !"memory".equals(source)) {
+        } else if (isNotBlank(email) && !IdpSource.MEMORY.equals(source)) {
             return email;
         }
         return sourceId;

@@ -45,19 +45,19 @@ public class BaseUserEntityTest {
 
         @Test
         void should_return_email_when_user_coming_from_idp() {
-            var user = BaseUserEntity.builder().email("jane.doe@gravitee.io").source("google").build();
+            var user = BaseUserEntity.builder().email("jane.doe@gravitee.io").source(IdpSource.of("google")).build();
             assertThat(user.displayName()).isEqualTo("jane.doe@gravitee.io");
         }
 
         @Test
         void should_return_sourceId_when_user_coming_from_idp_without_email() {
-            var user = BaseUserEntity.builder().sourceId("google-user-id").source("google").build();
+            var user = BaseUserEntity.builder().sourceId("google-user-id").source(IdpSource.of("google")).build();
             assertThat(user.displayName()).isEqualTo("google-user-id");
         }
 
         @Test
         void should_return_sourceId_when_user_is_in_memory_user() {
-            var user = BaseUserEntity.builder().sourceId("source-id").source("memory").build();
+            var user = BaseUserEntity.builder().sourceId("source-id").source(IdpSource.MEMORY).build();
             assertThat(user.displayName()).isEqualTo("source-id");
         }
     }

@@ -33,7 +33,8 @@ public class UserDomainServiceInMemory implements UserDomainService, InMemoryAlt
             .filter(
                 userEntity ->
                     userEntity.getOrganizationId().equals(organizationId) &&
-                    userEntity.getSource().equals(source) &&
+                    userEntity.getSource() != null &&
+                    userEntity.getSource().value().equals(source) &&
                     userEntity.getSourceId().equals(sourceId)
             )
             .findFirst();

@@ -37,6 +37,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.core.user.model.IdpSource;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -96,8 +97,8 @@ class ApiCRDExportDomainServiceImplTest {
     void setUp() {
         userCrudService.initWith(
             List.of(
-                BaseUserEntity.builder().id(USER_ID).source("gravitee").sourceId("user").build(),
-                BaseUserEntity.builder().id(PO_ID).source("gravitee").sourceId("user").build()
+                BaseUserEntity.builder().id(USER_ID).source(IdpSource.GRAVITEE).sourceId("user").build(),
+                BaseUserEntity.builder().id(PO_ID).source(IdpSource.GRAVITEE).sourceId("user").build()
             )
         );
         groupQueryServiceInMemory.initWith(List.of(Group.builder().id(GROUP_ID).name(GROUP_NAME).build()));

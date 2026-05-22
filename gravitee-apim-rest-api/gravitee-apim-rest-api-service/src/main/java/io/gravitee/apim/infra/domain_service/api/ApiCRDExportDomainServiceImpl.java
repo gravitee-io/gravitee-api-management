@@ -121,7 +121,7 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
             var user = usersById.get(id);
             if (user != null) {
                 member.setSourceId(user.getSourceId());
-                member.setSource(user.getSource());
+                member.setSource(user.getSource() != null ? user.getSource().value() : null);
             }
             member.setId(null);
         });

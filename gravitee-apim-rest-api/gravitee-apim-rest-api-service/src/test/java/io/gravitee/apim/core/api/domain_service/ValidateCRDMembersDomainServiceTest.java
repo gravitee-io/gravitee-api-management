@@ -26,6 +26,7 @@ import io.gravitee.apim.core.member.model.MembershipReferenceType;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.core.user.model.IdpSource;
 import io.gravitee.apim.core.validation.Validator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -60,8 +61,13 @@ class ValidateCRDMembersDomainServiceTest {
     void setUp() {
         userDomainService.initWith(
             List.of(
-                BaseUserEntity.builder().organizationId(ORG_ID).id(USER_ID).source(USER_SOURCE).sourceId(USER_ID).build(),
-                BaseUserEntity.builder().organizationId(ORG_ID).id(ACTOR_USER_ID).source(USER_SOURCE).sourceId(ACTOR_USER_ID).build()
+                BaseUserEntity.builder().organizationId(ORG_ID).id(USER_ID).source(IdpSource.of(USER_SOURCE)).sourceId(USER_ID).build(),
+                BaseUserEntity.builder()
+                    .organizationId(ORG_ID)
+                    .id(ACTOR_USER_ID)
+                    .source(IdpSource.of(USER_SOURCE))
+                    .sourceId(ACTOR_USER_ID)
+                    .build()
             )
         );
         roleQueryService.initWith(
@@ -175,7 +181,7 @@ class ValidateCRDMembersDomainServiceTest {
     @EnumSource(value = MembershipReferenceType.class, names = { "APPLICATION", "API" })
     void should_return_error_changing_primary_owner_role(MembershipReferenceType referenceType) {
         userDomainService.initWith(
-            List.of(BaseUserEntity.builder().organizationId(ORG_ID).id(USER_ID).source(USER_SOURCE).sourceId(USER_ID).build())
+            List.of(BaseUserEntity.builder().organizationId(ORG_ID).id(USER_ID).source(IdpSource.of(USER_SOURCE)).sourceId(USER_ID).build())
         );
         var members = new LinkedHashSet<>(Set.of(MemberCRD.builder().source(USER_SOURCE).sourceId(ACTOR_USER_ID).role("USER").build()));
         var expectedMembers = Set.of();

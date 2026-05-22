@@ -142,6 +142,7 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.core.user.model.IdpSource;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.infra.adapter.PlanAdapter;
 import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDomainServiceImpl;
@@ -388,13 +389,13 @@ class ImportApiCRDUseCaseTest {
         userDomainService.initWith(
             List.of(
                 BaseUserEntity.builder()
-                    .source(USER_ENTITY_SOURCE)
+                    .source(IdpSource.of(USER_ENTITY_SOURCE))
                     .sourceId(USER_ENTITY_SOURCE_ID)
                     .id(USER_ID)
                     .organizationId(ORGANIZATION_ID)
                     .build(),
                 BaseUserEntity.builder()
-                    .source(USER_ENTITY_SOURCE)
+                    .source(IdpSource.of(USER_ENTITY_SOURCE))
                     .sourceId(ACTOR_USER_ID)
                     .id(ACTOR_USER_ID)
                     .organizationId(ORGANIZATION_ID)
@@ -526,14 +527,14 @@ class ImportApiCRDUseCaseTest {
                 BaseUserEntity.builder()
                     .organizationId(ORGANIZATION_ID)
                     .id(ACTOR_USER_ID)
-                    .source(USER_ENTITY_SOURCE)
+                    .source(IdpSource.of(USER_ENTITY_SOURCE))
                     .sourceId(ACTOR_USER_ID)
                     .email("devops@gravitee.io")
                     .build(),
                 BaseUserEntity.builder()
                     .organizationId(ORGANIZATION_ID)
                     .id(USER_ID)
-                    .source(USER_ENTITY_SOURCE)
+                    .source(IdpSource.of(USER_ENTITY_SOURCE))
                     .sourceId(USER_ENTITY_SOURCE_ID)
                     .firstname("Jane")
                     .lastname("Doe")
