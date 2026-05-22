@@ -99,6 +99,9 @@ public class SimpleFailureProcessor extends AbstractProcessor<ExecutionContext> 
                 payload = Buffer.buffer(failure.message());
             }
 
+            // Drop any Transfer-Encoding inherited from upstream: the error body replaces the backend
+            // body and the Content-Length set below is incompatible with chunked framing (RFC 7230 §3.3.3).
+            response.headers().remove(HttpHeaderNames.TRANSFER_ENCODING);
             response.headers().set(HttpHeaderNames.CONTENT_LENGTH, Integer.toString(payload.length()));
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
             response.write(payload);
