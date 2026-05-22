@@ -167,6 +167,43 @@ data:
         {{- end }}
       {{- end }}
 
+      {{- if ne .Values.api.otelLogs.type "none" }}
+      otel-logs:
+        type: {{ .Values.api.otelLogs.type }}
+        {{- if (eq .Values.api.otelLogs.type "elasticsearch") }}
+        elasticsearch:
+          {{- with .Values.api.otelLogs.elasticsearch.endpoints }}
+          endpoints:
+            {{ toYaml . | nindent 12 | trim -}}
+          {{- end }}
+          {{- if .Values.api.otelLogs.elasticsearch.http }}
+          http:
+            {{- if .Values.api.otelLogs.elasticsearch.http.timeout }}
+            timeout: {{ .Values.api.otelLogs.elasticsearch.http.timeout }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.api.otelLogs.elasticsearch.security }}
+          security:
+            username: {{ .Values.api.otelLogs.elasticsearch.security.username }}
+            password: {{ .Values.api.otelLogs.elasticsearch.security.password }}
+          {{- end }}
+          {{- if .Values.api.otelLogs.elasticsearch.ssl }}
+          ssl:
+            keystore:
+              type: {{ .Values.api.otelLogs.elasticsearch.ssl.keystore.type }}
+              {{- if or .Values.api.otelLogs.elasticsearch.ssl.keystore.path .Values.api.otelLogs.elasticsearch.ssl.keystore.password }}
+              path: {{ .Values.api.otelLogs.elasticsearch.ssl.keystore.path }}
+              password: {{ .Values.api.otelLogs.elasticsearch.ssl.keystore.password }}
+              {{- end }}
+              {{- if or .Values.api.otelLogs.elasticsearch.ssl.keystore.certs .Values.api.otelLogs.elasticsearch.ssl.keystore.keys }}
+              certs: {{ .Values.api.otelLogs.elasticsearch.ssl.keystore.certs }}
+              keys: {{ .Values.api.otelLogs.elasticsearch.ssl.keystore.keys }}
+              {{- end }}
+          {{- end }}
+          index: {{ .Values.api.otelLogs.elasticsearch.index }}
+        {{- end }}
+      {{- end }}
+
     # Secret Manager configuration
     {{- if .Values.secrets }}
     secrets:

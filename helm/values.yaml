@@ -1157,6 +1157,33 @@ api:
       # http:
       #   timeout: 10000
 
+  # OpenTelemetry logs reader (backs the gamma APIM tracing resource alongside otelTraces). Reads the same
+  # data stream the OTel collector writes span events to AND the one gravitee-reporter-otel writes captured
+  # request/response payloads to. Disabled by default; set type to "elasticsearch" to wire the ES-backed
+  # OtelLogRepository. Independent from `analytics.*` and `otelTraces.*` — no fallback across scopes.
+  otelLogs:
+    type: none # or elasticsearch
+    elasticsearch:
+      # Index/data-stream template — {orgId} / {envId} are substituted (lowercased) from the caller's
+      # QueryContext at query time. Should match the data-stream name the OTel collector elasticsearch
+      # exporter (mapping.mode: otel) writes to AND the one gravitee-reporter-otel ships to.
+      index: logs-apim.otel-{orgId}
+      endpoints:
+        - http://elasticsearch:9200
+      # security:
+      #   username: elastic
+      #   password: changeme
+      # ssl:
+      #   keystore:
+      #     type: jks            # jks, pkcs12 or pem
+      #     path: /path/to/keystore.jks
+      #     password: changeme
+      #     # PEM only:
+      #     # certs: [/path/to/cert1.pem, /path/to/cert2.pem]
+      #     # keys:  [/path/to/key1.pem,  /path/to/key2.pem]
+      # http:
+      #   timeout: 10000
+
   # External Authentication settings
   #  auth:
   #    external:

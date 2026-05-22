@@ -29,12 +29,13 @@ public class RestApiRepositoryScopeProvider implements RepositoryScopeProvider {
     }
 
     /**
-     * OTEL_TRACES is opt-in: the rest-api can query traces (e.g. via the gamma APIM tracing resource) but startup
-     * must not fail when no provider is wired. Declaring it as optional means the platform loads the matching
-     * {@code RepositoryProvider} when {@code otel-traces.type} is set and silently skips it otherwise.
+     * OTEL_TRACES / OTEL_LOGS are opt-in: the rest-api can query traces and span-event logs (e.g. via the gamma
+     * APIM tracing resource) but startup must not fail when no provider is wired. Declaring them as optional
+     * means the platform loads the matching {@code RepositoryProvider} when {@code otel-traces.type} /
+     * {@code otel-logs.type} is set and silently skips otherwise.
      */
     @Override
     public Scope[] getOptionalHandledScopes() {
-        return new Scope[] { Scope.OTEL_TRACES };
+        return new Scope[] { Scope.OTEL_TRACES, Scope.OTEL_LOGS };
     }
 }

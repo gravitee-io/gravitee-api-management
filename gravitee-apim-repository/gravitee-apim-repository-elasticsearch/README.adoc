@@ -97,3 +97,93 @@ service:
       processors: [batch]
       exporters: [elasticsearch]
 ----
+
+== OTel logs repository (`Scope.OTEL_LOGS`)
+
+This plugin also implements the APIM `OtelLogRepository` SPI — the read side for the OpenTelemetry logs data stream populated by two distinct producers:
+
+* **Span events**, written by the OTel Collector's `elasticsearch` exporter (in `mapping.mode: otel`) when it processes incoming OTel traces. The exporter forces `data_stream.type = logs` for events, so they land in the logs data stream rather than alongside the spans they belong to.
+* **Payload logs**, written by `gravitee-reporter-otel` (the gateway-side reporter that ships captured request/response payloads as OTLP log records).
+
+The SPI exposes a single `findLogs` method that returns both shapes uniformly — span events carry an `event.name` attribute (per the OTel logs data model convention), payload logs carry their captured payload in `body`. Consumers that need to partition span events vs payload logs do it on `record.attributes().containsKey("event.name")`.
+
+=== Configuration
+
+In `gravitee.yml`:
+
+[source,yaml]
+----
+otel-logs:
+  type: elasticsearch
+  elasticsearch:
+    # Logs data stream / index template. {orgId} and {envId} are substituted from the caller's QueryContext
+    # at query time, lowercased — same convention as the analytics / tracing scopes.
+    index: logs-apim.otel-{orgId}
+    endpoints:
+      - http://localhost:9200
+    # security, ssl, http.proxy, …: same shape as analytics / otel-traces; see RepositoryConfiguration for
+    # the full list of supported properties.
+----
+
+The `otel-logs.elasticsearch.*` block is **independent** from `analytics.elasticsearch.*` and `otel-traces.elasticsearch.*` — same per-scope pattern. No fallback: the OTel logs reader can target a different ES cluster from analytics / tracing, or be enabled in deployments that don't use ES for either.
+
+NOTE: For the Tempo + Loki stack (PR 4, future), span events live inline on the spans inside Tempo and are returned by `TracingRepository.getTrace` rather than by `OtelLogRepository.findLogs`. A Loki-backed `OtelLogRepository` returns only payload logs from Loki, with no `event.name` attribute on any record — consumers should still partition the same way.
+
+=== Org and env scoping
+
+Same two-level mapping as the tracing repository:
+
+* **Org → index name** (hard partition): `orgId` is substituted into the `otel-logs.elasticsearch.index` template.
+* **Soft scopes** (env, module, …): the caller passes `Map<String, String>` to `OtelLogSearchCriteria.resourceAttributeFilters()` (matched on `resource.attributes.<key>`) and/or `attributeFilters()` (matched on `attributes.<key>`). The producer must emit those keys as resource attributes on each log record (typically via `services.opentelemetry.extraAttributes` in the gateway / management API config); without them the resource filter rejects every record.
+
+The trace-detail use case calls with a `traceId` plus the env/module resource filters, but the SPI is intentionally generic so a future logs-explorer use case can browse logs by API id + time window with no `traceId` at all.
+
+=== Index templates, mappings & retention (ILM)
+
+Reader-only, same as tracing — the index template and mappings are authored by the producer:
+
+* **Self-managed OTel Collector**: the `elasticsearch` exporter (`mapping.mode: otel`) applies the logs template at startup, including the dynamic templates for `attributes.*`. The dedicated `logs_index` / `logs_dynamic_index` setting points at the data stream.
+* **`gravitee-reporter-otel`**: writes via OTLP/HTTP to the same OTel Collector pipeline; the exporter handles the template / mapping.
+* **Elastic Cloud managed OTLP**: ships with a sensible default `logs@lifecycle`; customize via Kibana or `_ilm/policy/...`.
+
+If queries return no data, check (in this order): (1) the data stream `logs-apim.otel-<orgId>` exists, (2) at least one of the two producers (collector for span events, gravitee-reporter-otel for payload logs) is actively writing, (3) the template's mapping mode is `otel` (not `ecs`), (4) ILM hasn't already deleted the documents.
+
+=== OTel Collector configuration snippet
+
+A minimal collector pipeline that handles both shapes — receives OTLP traces from the gateway tracing pipeline (the exporter extracts span events into the logs data stream automatically) and OTLP logs from `gravitee-reporter-otel`:
+
+[source,yaml]
+----
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+exporters:
+  elasticsearch:
+    endpoints: ["http://elasticsearch:9200"]
+    mapping:
+      mode: otel
+    # Span events from the traces pipeline AND payload log records from the logs pipeline both land in this
+    # data stream. The repository discriminates them on attribute presence at read time.
+    logs_index: logs-apim.otel-<orgId>
+    traces_index: traces-apim.otel-<orgId>
+
+processors:
+  batch:
+    timeout: 1s
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [elasticsearch]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [elasticsearch]
+----

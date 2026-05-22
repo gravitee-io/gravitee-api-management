@@ -17,6 +17,7 @@ package io.gravitee.repository.elasticsearch;
 
 import io.gravitee.platform.repository.api.RepositoryProvider;
 import io.gravitee.platform.repository.api.Scope;
+import io.gravitee.repository.elasticsearch.otel.log.spring.OtelLogConfiguration;
 import io.gravitee.repository.elasticsearch.spring.ElasticsearchRepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.tracing.spring.TracingConfiguration;
 import lombok.CustomLog;
@@ -35,19 +36,22 @@ public class ElasticsearchRepositoryProvider implements RepositoryProvider {
 
     @Override
     public Scope[] scopes() {
-        return new Scope[] { Scope.ANALYTICS, Scope.OTEL_TRACES };
+        return new Scope[] { Scope.ANALYTICS, Scope.OTEL_TRACES, Scope.OTEL_LOGS };
     }
 
     @Override
     public Class<?> configuration(Scope scope) {
         // Distinct configuration classes per scope are mandatory: the platform creates one application context per
-        // scope and promotes its singletons into the parent bean factory. Returning the same class for both scopes
+        // scope and promotes its singletons into the parent bean factory. Returning the same class for two scopes
         // double-registers every bean (e.g. analyticsRepository, client, …) and fails with a bean-name conflict.
         if (scope == Scope.ANALYTICS) {
             return ElasticsearchRepositoryConfiguration.class;
         }
         if (scope == Scope.OTEL_TRACES) {
             return TracingConfiguration.class;
+        }
+        if (scope == Scope.OTEL_LOGS) {
+            return OtelLogConfiguration.class;
         }
         log.debug("Skipping unhandled repository scope {}", scope);
         return null;

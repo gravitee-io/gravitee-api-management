@@ -1,0 +1,51 @@
+# OTel Collector pipeline used by ElasticsearchOtelLogRepositoryIT.
+#
+# Two distinct producer paths feed the same logs data stream:
+#   * OTLP traces — the elasticsearch exporter (mapping.mode: otel) extracts span events into a logs data
+#     stream (it forces data_stream.type = logs for events regardless of pipeline). The fixture seeder
+#     emits a trace with two span events that surface here.
+#   * OTLP logs — direct log records emitted by the fixture seeder, modelling what gravitee-reporter-otel
+#     ships at runtime when the gateway captures a request/response payload.
+#
+# logs_index matches `logs-apim.otel-test-org` because the contract test's QueryContext resolves
+# otel-logs.elasticsearch.index ("logs-apim.otel-{orgId}") with orgId = Fixtures.ORG_ID = "test-org".
+
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+exporters:
+  elasticsearch:
+    endpoints: ["http://elasticsearch:9200"]
+    mapping:
+      mode: otel
+    logs_index: logs-apim.otel-test-org
+    # We don't query the traces data stream from the OTel-logs IT, but we still need to route it somewhere
+    # — the exporter requires it to be set when traces flow through the pipeline.
+    traces_index: traces-apim.otel-test-org
+    # Tests need the exporter to flush each push from the OTel SDK immediately and surface errors instead of
+    # silently retrying — production deployments would want different defaults.
+    flush:
+      interval: 1s
+    retry:
+      enabled: false
+    sending_queue:
+      enabled: false
+    timeout: 30s
+
+processors:
+  batch:
+    timeout: 200ms
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [elasticsearch]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [elasticsearch]
