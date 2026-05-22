@@ -19,10 +19,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.distributed.service.NoopDistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.handler.SyncHandler;
 import io.gravitee.node.api.Node;
+import io.gravitee.repository.distributedsync.model.DistributedSyncState;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
 import io.vertx.ext.web.Route;
@@ -82,6 +85,26 @@ class DefaultSyncManagerTest {
         inOrder.verify(route).handler(argThat(argument -> argument instanceof SyncHandler));
         inOrder.verify(synchronizer1).synchronize(eq(-1L), any(), anySet());
         inOrder.verify(synchronizer2).synchronize(eq(-1L), any(), anySet());
+        assertThat(cut.syncDone()).isTrue();
+    }
+
+    @Test
+    void should_report_sync_done_on_primary_node_when_restoring_existing_distributed_state() throws Exception {
+        DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
+        when(distributedSyncService.isEnabled()).thenReturn(true);
+        when(distributedSyncService.isPrimaryNode()).thenReturn(true);
+        when(distributedSyncService.ready()).thenReturn(Completable.complete());
+        when(distributedSyncService.state()).thenReturn(Maybe.just(DistributedSyncState.builder().from(1_000L).to(2_000L).build()));
+        when(distributedSyncService.storeState(anyLong(), anyLong())).thenReturn(Completable.complete());
+
+        RepositorySynchronizer synchronizer = spy(new FakeSynchronizer(Completable.complete(), 1));
+        synchronizers.add(synchronizer);
+
+        cut = new DefaultSyncManager(router, node, synchronizers, null, distributedSyncService, 5, TimeUnit.SECONDS, 1);
+        cut.start();
+
+        verify(synchronizer).synchronize(eq(1_000L), any(), anySet());
+        assertThat(cut.syncDone()).isTrue();
     }
 
     @Test

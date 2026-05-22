@@ -206,9 +206,7 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
                     .doOnComplete(() -> {
                         lastSyncOnError.set(false);
                         lastSyncErrorMessage.set(null);
-                        if (nextFromTime == -1) {
-                            initialSync.set(true);
-                        }
+                        initialSync.set(true);
                         nextFromTime = nextToTime;
 
                         log.debug(
