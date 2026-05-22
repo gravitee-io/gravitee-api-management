@@ -739,6 +739,14 @@ components:
           items:
             $ref: '#/components/schemas/PageV4'
           default: [ ]
+        allowedInApiProducts:
+          type: boolean
+          description: Indicates whether this API is allowed to be used in API Products. Only applicable for V4 HTTP Proxy APIs.
+          default: false
+        allowMultiJwtOauth2Subscriptions:
+          type: boolean
+          description: Allow an application to subscribe to more than one JWT/OAuth2 plan (V4 only).
+          default: false
         consoleNotification:
           type: object
           description: Console notification configuration.
@@ -2575,8 +2583,12 @@ components:
             host:
               description: A hostname for which the API will match against SNI.
               type: string
+            port:
+              type: integer
+              minimum: 0
+              description: The port of the listener
           required:
-            - "host"
+            - host
     FailoverV4:
       description: Defines the failover behavior to bypass endpoints when some are slow.
       type: object
