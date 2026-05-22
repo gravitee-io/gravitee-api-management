@@ -36,4 +36,22 @@ public class PageDocumentTransformerTest {
         Document doc = transformer.transform(page);
         assertThat(doc.get("id")).isEqualTo(page.getId());
     }
+
+    @Test
+    public void shouldIndexPageTypeInLowerCase() {
+        PageEntity page = new PageEntity();
+        page.setId("page-uuid");
+        page.setType("SWAGGER");
+        Document doc = transformer.transform(page);
+        assertThat(doc.getField("page_type")).isNotNull();
+        assertThat(doc.getField("page_type").stringValue()).isEqualTo("swagger");
+    }
+
+    @Test
+    public void shouldNotIndexPageTypeWhenMissing() {
+        PageEntity page = new PageEntity();
+        page.setId("page-uuid");
+        Document doc = transformer.transform(page);
+        assertThat(doc.getField("page_type")).isNull();
+    }
 }

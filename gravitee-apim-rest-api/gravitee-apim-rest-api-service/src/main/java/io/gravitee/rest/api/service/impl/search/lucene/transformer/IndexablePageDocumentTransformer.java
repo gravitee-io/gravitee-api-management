@@ -47,6 +47,10 @@ public class IndexablePageDocumentTransformer implements DocumentTransformer<Ind
 
         var page = indexable.getPage();
 
+        if (page.getType() != null) {
+            document.add(new StringField(FIELD_PAGE_TYPE, page.getType().name().toLowerCase(), Field.Store.NO));
+        }
+
         if (indexable.getPage().getName() != null) {
             document.add(new StringField(FIELD_NAME, page.getName(), Field.Store.NO));
             document.add(new StringField(FIELD_NAME_LOWERCASE, page.getName().toLowerCase(), Field.Store.NO));
