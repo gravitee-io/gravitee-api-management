@@ -1,0 +1,116 @@
+suite: Test Management API configmap for the OTel logs repository scope
+templates:
+  - "api/api-configmap.yaml"
+tests:
+  - it: Default values render no otel-logs block (type "none")
+    template: api/api-configmap.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "otel-logs:"
+
+  - it: Type elasticsearch renders the block with endpoints and index template
+    template: api/api-configmap.yaml
+    set:
+      api:
+        otelLogs:
+          type: elasticsearch
+          elasticsearch:
+            index: logs-apim.otel-{orgId}
+            endpoints:
+              - http://es.example.com:9200
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "otel-logs:\\s+type: elasticsearch"
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "- http://es.example.com:9200"
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "index: logs-apim.otel-\\{orgId\\}"
+
+  - it: Type elasticsearch renders the security block when set
+    template: api/api-configmap.yaml
+    set:
+      api:
+        otelLogs:
+          type: elasticsearch
+          elasticsearch:
+            index: logs-apim.otel-{orgId}
+            endpoints:
+              - http://es.example.com:9200
+            security:
+              username: elastic
+              password: changeme
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "username: elastic"
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "password: changeme"
+
+  - it: Type elasticsearch renders the SSL keystore block when set
+    template: api/api-configmap.yaml
+    set:
+      api:
+        otelLogs:
+          type: elasticsearch
+          elasticsearch:
+            index: logs-apim.otel-{orgId}
+            endpoints:
+              - https://es.example.com:9200
+            ssl:
+              keystore:
+                type: jks
+                path: /path/to/keystore.jks
+                password: kspw
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "type: jks"
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "path: /path/to/keystore.jks"
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "password: kspw"
+
+  - it: Type elasticsearch renders the http timeout when set
+    template: api/api-configmap.yaml
+    set:
+      api:
+        otelLogs:
+          type: elasticsearch
+          elasticsearch:
+            index: logs-apim.otel-{orgId}
+            endpoints:
+              - http://es.example.com:9200
+            http:
+              timeout: 30000
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "timeout: 30000"
+
+  - it: Type other than elasticsearch (e.g. loki) still renders the type line but skips ES-specific config
+    template: api/api-configmap.yaml
+    set:
+      api:
+        otelLogs:
+          type: loki
+    asserts:
+      # The block-level guard is `ne … "none"`, so any non-"none" type renders `otel-logs.type: <value>`
+      # without forcing it through the ES branch. A Loki-backed impl would add its own block next to the
+      # elasticsearch one — this test pins that the structure is type-agnostic, not ES-only.
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "otel-logs:\\s+type: loki"
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "otel-logs:\\s+type: loki\\s+elasticsearch:"

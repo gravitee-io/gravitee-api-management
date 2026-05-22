@@ -32,7 +32,7 @@ public class RestApiRepositoryScopeProviderTest {
     }
 
     @Test
-    public void shouldReturnOtelTracesAsOptionalScope() {
-        Assert.assertArrayEquals(new Scope[] { Scope.OTEL_TRACES }, provider.getOptionalHandledScopes());
+    public void shouldReturnOtelTracesAndOtelLogsAsOptionalScopes() {
+        Assert.assertArrayEquals(new Scope[] { Scope.OTEL_TRACES, Scope.OTEL_LOGS }, provider.getOptionalHandledScopes());
     }
 }
