@@ -541,4 +541,121 @@ public class ApiSearchServiceImplTest {
         assertNotNull(entities);
         assertEquals(1, entities.size());
     }
+
+    @Test
+    public void should_filter_apis_with_open_api_documentation_when_filter_is_true() throws TechnicalException {
+        var api1 = new Api();
+        api1.setId("api1");
+        api1.setEnvironmentId("DEFAULT");
+        api1.setDefinitionVersion(DefinitionVersion.V4);
+        api1.setType(ApiType.MESSAGE);
+        var api2 = new Api();
+        api2.setId("api2");
+        api2.setEnvironmentId("DEFAULT");
+        api2.setDefinitionVersion(DefinitionVersion.V4);
+        api2.setType(ApiType.MESSAGE);
+
+        when(searchEngineService.search(any(), any())).thenReturn(
+            new io.gravitee.rest.api.service.impl.search.SearchResult(List.of("api1", "api2"), 2)
+        );
+        when(searchEngineService.searchPageReference(any(), any())).thenReturn(
+            new io.gravitee.rest.api.service.impl.search.SearchResult(List.of("api1"), 1)
+        );
+        when(apiRepository.search(any(ApiCriteria.class), eq(ApiFieldFilter.allFields()))).thenReturn(List.of(api1));
+
+        UserEntity admin = new UserEntity();
+        admin.setId("admin");
+        when(primaryOwnerService.getPrimaryOwners(any(), any())).thenReturn(Map.of("api1", new PrimaryOwnerEntity(admin)));
+
+        var queryBuilder = io.gravitee.rest.api.service.search.query.QueryBuilder.create(ApiEntity.class);
+
+        var page = apiSearchService.search(
+            GraviteeContext.getExecutionContext(),
+            "admin",
+            true,
+            queryBuilder,
+            new io.gravitee.rest.api.model.common.PageableImpl(1, 25),
+            false,
+            true,
+            Set.of(),
+            true
+        );
+
+        assertNotNull(page);
+        assertEquals(1, page.getContent().size());
+        assertEquals("api1", page.getContent().get(0).getId());
+    }
+
+    @Test
+    public void should_exclude_apis_with_open_api_documentation_when_filter_is_false() throws TechnicalException {
+        var api2 = new Api();
+        api2.setId("api2");
+        api2.setEnvironmentId("DEFAULT");
+        api2.setDefinitionVersion(DefinitionVersion.V4);
+        api2.setType(ApiType.MESSAGE);
+
+        when(searchEngineService.search(any(), any())).thenReturn(
+            new io.gravitee.rest.api.service.impl.search.SearchResult(List.of("api1", "api2"), 2)
+        );
+        when(searchEngineService.searchPageReference(any(), any())).thenReturn(
+            new io.gravitee.rest.api.service.impl.search.SearchResult(List.of("api1"), 1)
+        );
+        when(apiRepository.search(any(ApiCriteria.class), eq(ApiFieldFilter.allFields()))).thenReturn(List.of(api2));
+
+        UserEntity admin = new UserEntity();
+        admin.setId("admin");
+        when(primaryOwnerService.getPrimaryOwners(any(), any())).thenReturn(Map.of("api2", new PrimaryOwnerEntity(admin)));
+
+        var queryBuilder = io.gravitee.rest.api.service.search.query.QueryBuilder.create(ApiEntity.class);
+
+        var page = apiSearchService.search(
+            GraviteeContext.getExecutionContext(),
+            "admin",
+            true,
+            queryBuilder,
+            new io.gravitee.rest.api.model.common.PageableImpl(1, 25),
+            false,
+            true,
+            Set.of(),
+            false
+        );
+
+        assertNotNull(page);
+        assertEquals(1, page.getContent().size());
+        assertEquals("api2", page.getContent().get(0).getId());
+    }
+
+    @Test
+    public void should_not_query_pages_when_open_api_filter_is_absent() throws TechnicalException {
+        var api1 = new Api();
+        api1.setId("api1");
+        api1.setEnvironmentId("DEFAULT");
+        api1.setDefinitionVersion(DefinitionVersion.V4);
+        api1.setType(ApiType.MESSAGE);
+
+        when(searchEngineService.search(any(), any())).thenReturn(
+            new io.gravitee.rest.api.service.impl.search.SearchResult(List.of("api1"), 1)
+        );
+        when(apiRepository.search(any(ApiCriteria.class), eq(ApiFieldFilter.allFields()))).thenReturn(List.of(api1));
+
+        UserEntity admin = new UserEntity();
+        admin.setId("admin");
+        when(primaryOwnerService.getPrimaryOwners(any(), any())).thenReturn(Map.of("api1", new PrimaryOwnerEntity(admin)));
+
+        var queryBuilder = io.gravitee.rest.api.service.search.query.QueryBuilder.create(ApiEntity.class);
+
+        apiSearchService.search(
+            GraviteeContext.getExecutionContext(),
+            "admin",
+            true,
+            queryBuilder,
+            new io.gravitee.rest.api.model.common.PageableImpl(1, 25),
+            false,
+            true,
+            Set.of(),
+            null
+        );
+
+        verify(searchEngineService, times(0)).searchPageReference(any(), any());
+    }
 }
