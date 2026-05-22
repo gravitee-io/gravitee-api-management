@@ -13,21 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.invitation.model;
+package io.gravitee.apim.core.invitation.exception;
 
-import io.gravitee.common.utils.TimeProvider;
-import java.time.ZonedDateTime;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 
-public record ApplicationInvitation(
-    InvitationId id,
-    String applicationId,
-    String email,
-    String roleName,
-    ZonedDateTime createdAt,
-    ZonedDateTime updatedAt
-) implements Invitation {
-    public static ApplicationInvitation create(String applicationId, String email, String roleName) {
-        var now = TimeProvider.now();
-        return new ApplicationInvitation(InvitationId.random(), applicationId, email, roleName, now, now);
+public class InvitationCanceledException extends ValidationDomainException {
+
+    public InvitationCanceledException(String email) {
+        super("No active invitation found for email [" + email + "]");
     }
 }

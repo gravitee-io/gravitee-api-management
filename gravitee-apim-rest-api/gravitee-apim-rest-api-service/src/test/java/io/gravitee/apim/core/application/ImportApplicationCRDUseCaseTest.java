@@ -353,7 +353,8 @@ class ImportApplicationCRDUseCaseTest {
                 new Date(),
                 new Date(),
                 MEMBER_SOURCE,
-                MEMBER_SOURCE_ID_1
+                MEMBER_SOURCE_ID_1,
+                null
             ),
             new BaseUserEntity(
                 USER_ID,
@@ -364,7 +365,8 @@ class ImportApplicationCRDUseCaseTest {
                 new Date(),
                 new Date(),
                 MEMBER_SOURCE,
-                MEMBER_SOURCE_ID_2
+                MEMBER_SOURCE_ID_2,
+                null
             )
         );
     }

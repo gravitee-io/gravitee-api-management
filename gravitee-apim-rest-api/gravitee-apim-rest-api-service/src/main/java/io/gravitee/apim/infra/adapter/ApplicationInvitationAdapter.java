@@ -16,7 +16,7 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
-import io.gravitee.apim.core.invitation.model.ApplicationInvitationId;
+import io.gravitee.apim.core.invitation.model.InvitationId;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.repository.management.model.Invitation;
 import java.time.ZonedDateTime;
@@ -39,11 +39,11 @@ public interface ApplicationInvitationAdapter {
     @Mapping(target = "apiRole", ignore = true)
     Invitation toRepository(ApplicationInvitation invitation);
 
-    default ApplicationInvitationId map(String id) {
-        return ApplicationInvitationId.of(id);
+    default InvitationId map(String id) {
+        return InvitationId.of(id);
     }
 
-    default String map(ApplicationInvitationId id) {
+    default String map(InvitationId id) {
         return id.toString();
     }
 

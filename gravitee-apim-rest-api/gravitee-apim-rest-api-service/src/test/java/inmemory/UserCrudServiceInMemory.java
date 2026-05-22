@@ -17,10 +17,13 @@ package inmemory;
 
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.core.user.model.EncodedPassword;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,6 +31,7 @@ import java.util.stream.Collectors;
 public class UserCrudServiceInMemory implements UserCrudService, InMemoryAlternative<BaseUserEntity> {
 
     final List<BaseUserEntity> storage = new ArrayList<>();
+    private final Map<String, EncodedPassword> passwords = new HashMap<>();
 
     @Override
     public Optional<BaseUserEntity> findBaseUserById(String userId) {
@@ -55,6 +59,38 @@ public class UserCrudServiceInMemory implements UserCrudService, InMemoryAlterna
     }
 
     @Override
+    public BaseUserEntity create(BaseUserEntity user) {
+        storage.add(user);
+        return user;
+    }
+
+    @Override
+    public BaseUserEntity update(BaseUserEntity user) {
+        var index = findIndex(storage, u -> u.getId().equals(user.getId()));
+        if (index.isPresent()) {
+            storage.set(index.getAsInt(), user);
+        } else {
+            storage.add(user);
+        }
+        return user;
+    }
+
+    @Override
+    public BaseUserEntity updateAndSetPassword(BaseUserEntity user, EncodedPassword encodedPassword) {
+        passwords.put(user.getId(), encodedPassword);
+        return update(user);
+    }
+
+    @Override
+    public boolean isPasswordSet(String userId) {
+        return passwords.containsKey(userId);
+    }
+
+    public Optional<EncodedPassword> getStoredPassword(String userId) {
+        return Optional.ofNullable(passwords.get(userId));
+    }
+
+    @Override
     public void initWith(List<BaseUserEntity> items) {
         storage.addAll(items);
     }
@@ -62,6 +98,7 @@ public class UserCrudServiceInMemory implements UserCrudService, InMemoryAlterna
     @Override
     public void reset() {
         storage.clear();
+        passwords.clear();
     }
 
     @Override

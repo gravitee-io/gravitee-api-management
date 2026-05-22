@@ -18,7 +18,7 @@ package io.gravitee.rest.api.portal.rest.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
-import io.gravitee.apim.core.invitation.model.ApplicationInvitationId;
+import io.gravitee.apim.core.invitation.model.InvitationId;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,7 @@ class ApplicationInvitationMapperTest {
     void should_map_application_invitation_item() {
         var invitationId = "00000000-0000-0000-0000-000000000001";
         var invitationItem = new ApplicationInvitation(
-            ApplicationInvitationId.of(invitationId),
+            InvitationId.of(invitationId),
             "application-id",
             "alice@example.com",
             "USER",

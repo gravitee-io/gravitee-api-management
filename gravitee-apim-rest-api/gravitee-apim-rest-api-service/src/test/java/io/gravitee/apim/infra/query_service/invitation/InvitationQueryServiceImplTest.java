@@ -21,7 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
-import io.gravitee.apim.core.invitation.model.ApplicationInvitationId;
+import io.gravitee.apim.core.invitation.model.InvitationId;
 import io.gravitee.apim.core.invitation.model.InvitationReference;
 import io.gravitee.apim.core.invitation.model.SearchApplicationInvitationsCriteria;
 import io.gravitee.common.data.domain.Page;
@@ -86,12 +86,12 @@ class InvitationQueryServiceImplTest {
         assertThat(result.getPageElements()).isEqualTo(2);
         assertThat(result.getTotalElements()).isEqualTo(3);
         assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent().get(0).id()).isEqualTo(ApplicationInvitationId.of(INVITATION_ID_2));
+        assertThat(result.getContent().get(0).id()).isEqualTo(InvitationId.of(INVITATION_ID_2));
         assertThat(result.getContent().get(0).applicationId()).isEqualTo(APPLICATION_ID);
         assertThat(result.getContent().get(0).roleName()).isNull();
         assertThat(result.getContent().get(0).createdAt()).isEqualTo(expectedCreatedAt);
         assertThat(result.getContent().get(0).updatedAt()).isEqualTo(expectedUpdatedAt);
-        assertThat(result.getContent().get(1).id()).isEqualTo(ApplicationInvitationId.of(INVITATION_ID_1));
+        assertThat(result.getContent().get(1).id()).isEqualTo(InvitationId.of(INVITATION_ID_1));
         assertThat(result.getContent().get(1).applicationId()).isEqualTo(APPLICATION_ID);
         assertThat(result.getContent().get(1).roleName()).isEqualTo("USER");
         assertThat(result.getContent().get(1).createdAt()).isEqualTo(expectedCreatedAt);
@@ -110,7 +110,7 @@ class InvitationQueryServiceImplTest {
         var result = cut.findByReference(InvitationReference.application(APPLICATION_ID));
 
         assertThat(result).hasSize(1);
-        assertThat(result.getFirst().id()).isEqualTo(ApplicationInvitationId.of(INVITATION_ID_1));
+        assertThat(result.getFirst().id()).isEqualTo(InvitationId.of(INVITATION_ID_1));
         assertThat(result.getFirst().applicationId()).isEqualTo(APPLICATION_ID);
         assertThat(result.getFirst().email()).isEqualTo("john@example.com");
         assertThat(result.getFirst().roleName()).isEqualTo("USER");

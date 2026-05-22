@@ -29,7 +29,7 @@ import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import io.gravitee.apim.core.invitation.crud_service.InvitationCrudService;
 import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
-import io.gravitee.apim.core.invitation.model.ApplicationInvitationId;
+import io.gravitee.apim.core.invitation.model.InvitationId;
 import io.gravitee.apim.core.invitation.model.SearchApplicationInvitationsCriteria;
 import io.gravitee.apim.core.invitation.query_service.InvitationQueryService;
 import io.gravitee.apim.core.membership.model.Role;
@@ -253,7 +253,7 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
 
     private ApplicationInvitation anInvitation(String id, String email) {
         return new ApplicationInvitation(
-            ApplicationInvitationId.of(id),
+            InvitationId.of(id),
             APPLICATION,
             email,
             "USER",

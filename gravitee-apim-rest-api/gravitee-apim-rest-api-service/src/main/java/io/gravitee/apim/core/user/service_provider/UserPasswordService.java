@@ -13,21 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.invitation.model;
+package io.gravitee.apim.core.user.service_provider;
 
-import io.gravitee.common.utils.TimeProvider;
-import java.time.ZonedDateTime;
+import io.gravitee.apim.core.user.model.EncodedPassword;
+import io.gravitee.apim.core.user.model.RawPassword;
 
-public record ApplicationInvitation(
-    InvitationId id,
-    String applicationId,
-    String email,
-    String roleName,
-    ZonedDateTime createdAt,
-    ZonedDateTime updatedAt
-) implements Invitation {
-    public static ApplicationInvitation create(String applicationId, String email, String roleName) {
-        var now = TimeProvider.now();
-        return new ApplicationInvitation(InvitationId.random(), applicationId, email, roleName, now, now);
-    }
+public interface UserPasswordService {
+    /** Throws {@link io.gravitee.rest.api.service.exceptions.PasswordFormatInvalidException} if the password does not meet format requirements. */
+    void validate(RawPassword password);
+
+    EncodedPassword encode(RawPassword password);
 }
