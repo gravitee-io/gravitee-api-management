@@ -79,22 +79,43 @@ describe('ApiRuntimeLogsNativeComponent', () => {
       );
   };
 
+  const drainSummary = () => {
+    httpTestingController
+      .match(r => r.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native/summary`)
+      .forEach(r => r.flush({ countByConnectionStatus: {} }));
+  };
+
+  // Predicate matcher so the assertion survives new query params being appended.
+  const expectInitialNativeLogsRequest = () =>
+    httpTestingController.expectOne(
+      r =>
+        r.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native` &&
+        r.params.get('page') === '1' &&
+        r.params.get('perPage') === '10' &&
+        !!r.params.get('from') &&
+        !!r.params.get('to'),
+    );
+
   afterEach(() => {
+    // Summary widget's rxResource fires on its own cycle; drain it before verify so each test
+    // doesn't have to. Tests asserting summary behavior do an inline drain first.
+    drainSummary();
     httpTestingController?.verify();
   });
 
-  it('renders empty state when no rows', async () => {
+  it('renders empty state when no rows', fakeAsync(async () => {
     await initComponent();
     expectApiCalls();
     httpTestingController
       .expectOne(req => req.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native` && req.method === 'GET')
       .flush(fakeEmptyNativeApiLogsResponse());
+    flush();
     fixture.detectChanges();
 
     expect(await harness.getEmptyStateText()).toContain('No data to display');
-  });
+  }));
 
-  it('triggers initial search with apiId and pagination defaults', async () => {
+  it('triggers initial search with apiId and pagination defaults', fakeAsync(async () => {
     await initComponent();
     expectApiCalls();
     const req = httpTestingController.expectOne(
@@ -106,21 +127,38 @@ describe('ApiRuntimeLogsNativeComponent', () => {
     expect(req.request.method).toBe('GET');
     req.flush(fakeNativeApiLogsResponse());
     flushRowAppResolution();
-  });
+    flush();
+  }));
 
-  it('exposes Configure Reporting link', async () => {
+  it('sends numeric from/to derived from the default period when no query params are present', fakeAsync(async () => {
     await initComponent();
     expectApiCalls();
-    httpTestingController
-      .expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native?page=1&perPage=10`)
-      .flush(fakeNativeApiLogsResponse());
+    const req = expectInitialNativeLogsRequest();
+    expect(Number.isFinite(Number(req.request.params.get('from')))).toBe(true);
+    expect(Number.isFinite(Number(req.request.params.get('to')))).toBe(true);
+    expect(Number(req.request.params.get('to'))).toBeGreaterThan(Number(req.request.params.get('from')));
+    req.flush(fakeNativeApiLogsResponse());
     flushRowAppResolution();
+    flush();
+
+    expect(routerNavigateSpy).toHaveBeenCalledWith(
+      ['.'],
+      expect.objectContaining({ queryParams: expect.objectContaining({ period: '1d' }) }),
+    );
+  }));
+
+  it('exposes Configure Reporting link', fakeAsync(async () => {
+    await initComponent();
+    expectApiCalls();
+    expectInitialNativeLogsRequest().flush(fakeNativeApiLogsResponse());
+    flushRowAppResolution();
+    flush();
     fixture.detectChanges();
 
     expect(await harness.getConfigureReportingLabel()).toBe('Configure Reporting');
-  });
+  }));
 
-  it('shows reporting-disabled banner and hides the summary widget when reporterMetricsEnabled is false', async () => {
+  it('shows reporting-disabled banner and hides the summary widget when reporterMetricsEnabled is false', fakeAsync(async () => {
     await initComponent();
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`).flush(
       fakeApiV4({
@@ -138,19 +176,18 @@ describe('ApiRuntimeLogsNativeComponent', () => {
     httpTestingController
       .expectOne(req => req.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native`)
       .flush(fakeEmptyNativeApiLogsResponse());
+    flush();
     fixture.detectChanges();
 
     expect(await harness.isReportingDisabledBannerVisible()).toBe(true);
     httpTestingController.expectNone(req => req.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native/summary`);
     expect(fixture.nativeElement.querySelector('api-runtime-logs-native-summary')).toBeNull();
-  });
+  }));
 
   it('refresh re-triggers search', fakeAsync(async () => {
     await initComponent();
     expectApiCalls();
-    httpTestingController
-      .expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native?page=1&perPage=10`)
-      .flush(fakeNativeApiLogsResponse());
+    expectInitialNativeLogsRequest().flush(fakeNativeApiLogsResponse());
     flushRowAppResolution();
     flush();
     fixture.detectChanges();
@@ -170,9 +207,7 @@ describe('ApiRuntimeLogsNativeComponent', () => {
   it('filter change triggers search with serialized NativeApiLogsParam shape', fakeAsync(async () => {
     await initComponent();
     expectApiCalls();
-    httpTestingController
-      .expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native?page=1&perPage=10`)
-      .flush(fakeNativeApiLogsResponse());
+    expectInitialNativeLogsRequest().flush(fakeNativeApiLogsResponse());
     flushRowAppResolution();
     flush();
     fixture.detectChanges();
@@ -201,9 +236,7 @@ describe('ApiRuntimeLogsNativeComponent', () => {
   it('pagination event triggers search with new page and perPage', fakeAsync(async () => {
     await initComponent();
     expectApiCalls();
-    httpTestingController
-      .expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native?page=1&perPage=10`)
-      .flush(fakeNativeApiLogsResponse());
+    expectInitialNativeLogsRequest().flush(fakeNativeApiLogsResponse());
     flushRowAppResolution();
     flush();
     fixture.detectChanges();
@@ -225,18 +258,45 @@ describe('ApiRuntimeLogsNativeComponent', () => {
   it('does not trigger a search OR a summary refetch when timeframe period switches to custom (waits for explicit Apply)', fakeAsync(async () => {
     await initComponent();
     expectApiCalls();
-    httpTestingController
-      .expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native?page=1&perPage=10`)
-      .flush(fakeNativeApiLogsResponse());
+    expectInitialNativeLogsRequest().flush(fakeNativeApiLogsResponse());
     flushRowAppResolution();
     flush();
     fixture.detectChanges();
+    drainSummary();
 
     fixture.componentInstance['form'].patchValue({ timeframe: { period: 'custom', from: null, to: null } });
     flush();
 
     httpTestingController.expectNone(req => req.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native`);
     httpTestingController.expectNone(req => req.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native/summary`);
+  }));
+
+  it('falls back to the default period when the query param period is unrecognised', fakeAsync(async () => {
+    await initComponent({ period: 'not-a-real-period' });
+    expectApiCalls();
+    const req = expectInitialNativeLogsRequest();
+    req.flush(fakeNativeApiLogsResponse());
+    flushRowAppResolution();
+    flush();
+
+    expect(routerNavigateSpy).toHaveBeenCalledWith(
+      ['.'],
+      expect.objectContaining({ queryParams: expect.objectContaining({ period: '1d' }) }),
+    );
+  }));
+
+  it('falls back to the default period when period=custom is given without from/to', fakeAsync(async () => {
+    await initComponent({ period: 'custom' });
+    expectApiCalls();
+    const req = expectInitialNativeLogsRequest();
+    req.flush(fakeNativeApiLogsResponse());
+    flushRowAppResolution();
+    flush();
+
+    expect(routerNavigateSpy).toHaveBeenCalledWith(
+      ['.'],
+      expect.objectContaining({ queryParams: expect.objectContaining({ period: '1d' }) }),
+    );
   }));
 
   it('hydrates form from query params and fires initial search with from/to derived from preset', fakeAsync(async () => {
@@ -280,9 +340,7 @@ describe('ApiRuntimeLogsNativeComponent', () => {
   it('keeps the search Subject alive after a failed search request', fakeAsync(async () => {
     await initComponent();
     expectApiCalls();
-    httpTestingController
-      .expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native?page=1&perPage=10`)
-      .error(new ProgressEvent('Network error'), { status: 500, statusText: 'Internal Server Error' });
+    expectInitialNativeLogsRequest().error(new ProgressEvent('Network error'), { status: 500, statusText: 'Internal Server Error' });
     flush();
     fixture.detectChanges();
 
@@ -298,9 +356,7 @@ describe('ApiRuntimeLogsNativeComponent', () => {
   it('still publishes logs when row name resolution fails', fakeAsync(async () => {
     await initComponent();
     expectApiCalls();
-    httpTestingController
-      .expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native?page=1&perPage=10`)
-      .flush(fakeNativeApiLogsResponse());
+    expectInitialNativeLogsRequest().flush(fakeNativeApiLogsResponse());
     httpTestingController
       .match(req => req.url.includes(`${CONSTANTS_TESTING.env.baseURL}/applications/_paged`) && req.params.has('ids'))
       .forEach(req => req.error(new ProgressEvent('Network error'), { status: 500, statusText: 'Internal Server Error' }));
