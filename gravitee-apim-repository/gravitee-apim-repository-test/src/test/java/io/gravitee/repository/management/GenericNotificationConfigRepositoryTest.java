@@ -68,6 +68,43 @@ public class GenericNotificationConfigRepositoryTest extends AbstractManagementR
     }
 
     @Test
+    public void shouldCreateAndUpdateWithLongConfig() throws Exception {
+        final StringBuilder longConfigBuilder = new StringBuilder("https://example.com/webhook?token=");
+        while (longConfigBuilder.length() < 300) {
+            longConfigBuilder.append("0123456789abcdef");
+        }
+        final String longConfig = longConfigBuilder.substring(0, 300);
+
+        final GenericNotificationConfig cfg = new GenericNotificationConfig();
+        cfg.setId("long-config-id");
+        cfg.setName("long config");
+        cfg.setReferenceType(NotificationReferenceType.ENVIRONMENT);
+        cfg.setReferenceId("env-long-config");
+        cfg.setNotifier("default-webhook");
+        cfg.setConfig(longConfig);
+        cfg.setUseSystemProxy(false);
+        cfg.setHooks(List.of("API_UPDATED"));
+        cfg.setOrganizationId("org1");
+        cfg.setUpdatedAt(new Date(1439022010883L));
+        cfg.setCreatedAt(new Date(1439022010883L));
+
+        GenericNotificationConfig created = genericNotificationConfigRepository.create(cfg);
+        assertEquals(longConfig, created.getConfig());
+        assertTrue(created.getConfig().length() > 256);
+
+        final String updatedLongConfig = longConfig + "&retry=true&format=json";
+        created.setConfig(updatedLongConfig);
+        created.setUpdatedAt(new Date(1479022010883L));
+
+        GenericNotificationConfig updated = genericNotificationConfigRepository.update(created);
+        assertEquals(updatedLongConfig, updated.getConfig());
+
+        Optional<GenericNotificationConfig> found = genericNotificationConfigRepository.findById("long-config-id");
+        assertTrue(found.isPresent());
+        assertEquals(updatedLongConfig, found.get().getConfig());
+    }
+
+    @Test
     public void shouldDelete() throws Exception {
         assertTrue(genericNotificationConfigRepository.findById("notif-to-delete").isPresent());
         genericNotificationConfigRepository.delete("notif-to-delete");
