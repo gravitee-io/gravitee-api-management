@@ -62,6 +62,7 @@ public class IndexablePageDocumentTransformerTest {
         document.add(new StringField("type", "page", Field.Store.YES));
         document.add(new StringField("reference_type", "api", Field.Store.NO));
         document.add(new StringField("reference_id", API_ID, Field.Store.YES));
+        document.add(new StringField("page_type", "markdown", Field.Store.NO));
         document.add(new StringField("name", PAGE_NAME, Field.Store.NO));
         document.add(new StringField("name_lowercase", PAGE_NAME.toLowerCase(), Field.Store.NO));
         document.add(new TextField("name_split", PAGE_NAME, Field.Store.NO));

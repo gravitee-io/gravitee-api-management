@@ -36,6 +36,7 @@ public class PageDocumentTransformer implements DocumentTransformer<PageEntity> 
     public static final String FIELD_NAME_LOWERCASE = "name_lowercase";
     public static final String FIELD_NAME_SPLIT = "name_split";
     public static final String FIELD_CONTENT = "content";
+    public static final String FIELD_PAGE_TYPE = "page_type";
 
     static final String FIELD_ID = "id";
     static final String FIELD_TYPE = "type";
@@ -50,6 +51,10 @@ public class PageDocumentTransformer implements DocumentTransformer<PageEntity> 
         if (page.getReferenceId() != null) {
             doc.add(new StringField(FIELD_REFERENCE_TYPE, page.getReferenceType().toLowerCase(), Field.Store.NO));
             doc.add(new StringField(FIELD_REFERENCE_ID, page.getReferenceId(), Field.Store.YES));
+        }
+
+        if (page.getType() != null) {
+            doc.add(new StringField(FIELD_PAGE_TYPE, page.getType().toLowerCase(), Field.Store.NO));
         }
 
         if (page.getName() != null) {
