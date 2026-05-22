@@ -5233,6 +5233,7 @@ components:
             example: PROXY
             enum:
                 - A2A_PROXY
+                - EDGE
                 - LLM_PROXY
                 - MCP_PROXY
                 - PROXY
@@ -7183,6 +7184,7 @@ components:
                     type: string
                     enum:
                         - a2a_proxy
+                        - edge
                         - llm_proxy
                         - mcp_proxy
                         - proxy

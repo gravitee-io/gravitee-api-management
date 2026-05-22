@@ -73,6 +73,9 @@ public class ApiLicenseServiceImplTest {
     private io.gravitee.definition.model.v4.nativeapi.NativeApi nativeApiV4;
 
     @Mock
+    private io.gravitee.definition.model.v4.edge.EdgeApi edgeApi;
+
+    @Mock
     private io.gravitee.definition.model.Api apiV2;
 
     @Mock
@@ -94,6 +97,7 @@ public class ApiLicenseServiceImplTest {
 
         when(objectMapper.readValue("dummy definition", io.gravitee.definition.model.v4.Api.class)).thenReturn(apiV4);
         when(objectMapper.readValue("dummy definition", io.gravitee.definition.model.v4.nativeapi.NativeApi.class)).thenReturn(nativeApiV4);
+        when(objectMapper.readValue("dummy definition", io.gravitee.definition.model.v4.edge.EdgeApi.class)).thenReturn(edgeApi);
         when(objectMapper.readValue("dummy definition", io.gravitee.definition.model.Api.class)).thenReturn(apiV2);
 
         when(apiV4.getPlugins()).thenReturn(List.of(new Plugin("apiV4-type", "apiV4-id"), new Plugin("another", "plugin")));
@@ -122,6 +126,14 @@ public class ApiLicenseServiceImplTest {
             new LicenseManager.Plugin("another", "plugin")
         );
         verify(licenseManager, times(1)).validatePluginFeatures(eq(executionContext.getOrganizationId()), eq(v4LicensePlugins));
+    }
+
+    @Test
+    public void should_verify_v4_edge_definition() throws Exception {
+        when(repositoryApi.getType()).thenReturn(ApiType.EDGE);
+        when(edgeApi.getPlugins()).thenReturn(List.of());
+        assertDoesNotThrow(() -> apiLicenseService.checkLicense(executionContext, API));
+        verify(licenseManager, times(1)).validatePluginFeatures(eq(executionContext.getOrganizationId()), eq(List.of()));
     }
 
     @Test
