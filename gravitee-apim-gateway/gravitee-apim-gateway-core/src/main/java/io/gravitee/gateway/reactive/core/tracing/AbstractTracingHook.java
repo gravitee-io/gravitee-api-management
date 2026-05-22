@@ -34,6 +34,8 @@ import java.util.Map;
 public abstract class AbstractTracingHook implements HttpHook {
 
     public static final String SPAN_PHASE_ATTR = "gravitee.execution.phase";
+    public static final String SPAN_REQUEST_ID_ATTR = "gravitee.request.id";
+    public static final String SPAN_TRANSACTION_ID_ATTR = "gravitee.transaction.id";
     public static final String ATTR_INTERNAL_TRACING_SPAN = "tracing-span-%s";
 
     @Override
@@ -92,6 +94,12 @@ public abstract class AbstractTracingHook implements HttpHook {
         Map<String, String> attributes = new HashMap<>();
         if (executionPhase != null) {
             attributes.put(SPAN_PHASE_ATTR, executionPhase.getLabel());
+        }
+        if (ctx.request() != null) {
+            attributes.put(SPAN_REQUEST_ID_ATTR, ctx.request().id());
+            if (ctx.request().transactionId() != null) {
+                attributes.put(SPAN_TRANSACTION_ID_ATTR, ctx.request().transactionId());
+            }
         }
         return attributes;
     }

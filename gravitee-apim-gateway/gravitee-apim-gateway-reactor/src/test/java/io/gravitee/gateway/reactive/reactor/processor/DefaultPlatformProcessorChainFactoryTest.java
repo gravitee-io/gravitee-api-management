@@ -34,6 +34,7 @@ import io.gravitee.gateway.reactive.reactor.processor.metrics.MetricsProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.reporter.ReporterProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.responsetime.ResponseTimeProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.tracing.TraceContextProcessor;
+import io.gravitee.gateway.reactive.reactor.processor.tracing.TracingPreProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessorFactory;
 import io.gravitee.gateway.report.ReporterService;
@@ -94,16 +95,18 @@ class DefaultPlatformProcessorChainFactoryTest {
                 node,
                 "8080",
                 gatewayConfiguration,
-                connectionDrainManager
+                connectionDrainManager,
+                true
             );
             List<Processor> processors = platformProcessorChainFactory.buildPreProcessorList();
 
-            assertEquals(5, processors.size());
+            assertEquals(6, processors.size());
             assertInstanceOf(ConnectionDrainProcessor.class, processors.get(0));
             assertInstanceOf(TransactionPreProcessor.class, processors.get(1));
-            assertInstanceOf(MetricsProcessor.class, processors.get(2));
-            assertInstanceOf(XForwardProcessor.class, processors.get(3));
-            assertInstanceOf(TraceContextProcessor.class, processors.get(4));
+            assertInstanceOf(TracingPreProcessor.class, processors.get(2));
+            assertInstanceOf(MetricsProcessor.class, processors.get(3));
+            assertInstanceOf(XForwardProcessor.class, processors.get(4));
+            assertInstanceOf(TraceContextProcessor.class, processors.get(5));
         }
 
         @Test
@@ -117,7 +120,32 @@ class DefaultPlatformProcessorChainFactoryTest {
                 node,
                 "8080",
                 gatewayConfiguration,
-                connectionDrainManager
+                connectionDrainManager,
+                true
+            );
+            List<Processor> processors = platformProcessorChainFactory.buildPreProcessorList();
+
+            assertEquals(5, processors.size());
+            assertInstanceOf(ConnectionDrainProcessor.class, processors.get(0));
+            assertInstanceOf(TransactionPreProcessor.class, processors.get(1));
+            assertInstanceOf(TracingPreProcessor.class, processors.get(2));
+            assertInstanceOf(MetricsProcessor.class, processors.get(3));
+            assertInstanceOf(XForwardProcessor.class, processors.get(4));
+        }
+
+        @Test
+        void should_not_have_TracingPreProcessor_when_otlp_is_disabled() {
+            DefaultPlatformProcessorChainFactory platformProcessorChainFactory = new DefaultPlatformProcessorChainFactory(
+                transactionHandlerFactory,
+                false,
+                true,
+                reporterService,
+                eventProducer,
+                node,
+                "8080",
+                gatewayConfiguration,
+                connectionDrainManager,
+                false
             );
             List<Processor> processors = platformProcessorChainFactory.buildPreProcessorList();
 
@@ -143,7 +171,8 @@ class DefaultPlatformProcessorChainFactoryTest {
                 node,
                 "8080",
                 gatewayConfiguration,
-                connectionDrainManager
+                connectionDrainManager,
+                false
             );
             when(eventProducer.isEmpty()).thenReturn(true);
 
@@ -165,7 +194,8 @@ class DefaultPlatformProcessorChainFactoryTest {
                 node,
                 "8080",
                 gatewayConfiguration,
-                connectionDrainManager
+                connectionDrainManager,
+                false
             );
             when(eventProducer.isEmpty()).thenReturn(false);
 

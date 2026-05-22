@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.reactive.core.tracing;
 
+import static io.gravitee.gateway.reactive.core.tracing.AbstractTracingHook.SPAN_REQUEST_ID_ATTR;
+import static io.gravitee.gateway.reactive.core.tracing.AbstractTracingHook.SPAN_TRANSACTION_ID_ATTR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -22,17 +24,21 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
+import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.node.api.opentelemetry.Span;
+import io.gravitee.node.api.opentelemetry.internal.InternalRequest;
 import io.gravitee.node.opentelemetry.tracer.noop.NoOpSpan;
 import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -54,11 +60,35 @@ class TracingHookTest {
     }
 
     @Test
+    public void span_attribute_constants_have_expected_values() {
+        assertThat(SPAN_REQUEST_ID_ATTR).isEqualTo("gravitee.request.id");
+        assertThat(SPAN_TRANSACTION_ID_ATTR).isEqualTo("gravitee.transaction.id");
+    }
+
+    @Test
     public void should_start_span_on_pre_step() {
         tracingHook.pre("any", ctx, ExecutionPhase.REQUEST).test().assertComplete();
 
         verify(spyNoopTracer).startSpanFrom(any(), any());
         assertThat(ctx.<Span>getInternalAttribute("tracing-span-any")).isNotNull();
+    }
+
+    @Test
+    public void should_include_request_id_and_transaction_id_in_span_attributes() {
+        var mockRequest = mock(MutableRequest.class);
+        when(mockRequest.id()).thenReturn("test-req-id");
+        when(mockRequest.transactionId()).thenReturn("test-tx-id");
+        ctx = new DefaultExecutionContext(mockRequest, null);
+        ctx.metrics(mock(Metrics.class));
+        ctx.tracer(new Tracer(null, spyNoopTracer));
+
+        tracingHook.pre("any", ctx, ExecutionPhase.REQUEST).test().assertComplete();
+
+        var captor = ArgumentCaptor.forClass(InternalRequest.class);
+        verify(spyNoopTracer).startSpanFrom(any(), captor.capture());
+        assertThat(captor.getValue().attributes())
+            .containsEntry(SPAN_REQUEST_ID_ATTR, "test-req-id")
+            .containsEntry(SPAN_TRANSACTION_ID_ATTR, "test-tx-id");
     }
 
     @Test

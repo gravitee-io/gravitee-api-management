@@ -148,7 +148,8 @@ public class ReactorConfiguration {
             node,
             httpPort,
             gatewayConfiguration,
-            connectionDrainManager
+            connectionDrainManager,
+            openTelemetryConfiguration.isTracesEnabled()
         );
     }
 

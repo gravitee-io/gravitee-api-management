@@ -59,7 +59,8 @@ public class DebugPlatformProcessorChainFactory extends DefaultPlatformProcessor
             node,
             port,
             gatewayConfiguration,
-            connectionDrainManager
+            connectionDrainManager,
+            tracing
         );
         this.eventRepository = eventRepository;
         this.objectMapper = objectMapper;
