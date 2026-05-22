@@ -128,15 +128,39 @@ describe('ApiRuntimeLogsNativeDetailsComponent', () => {
     expect(await harness.isBackLinkVisible()).toBe(true);
   });
 
-  it('renders the load-failed banner without firing an HTTP call when from/to query params are missing', async () => {
+  it('fires the detail request with default-period from/to when query params are missing', async () => {
     await setup({});
-    httpTestingController.expectNone(req => req.url.includes(`/logs/native/${REQUEST_ID}`));
+    const req = httpTestingController.expectOne(
+      r =>
+        r.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native/${REQUEST_ID}` &&
+        Number.isFinite(Number(r.params.get('from'))) &&
+        Number.isFinite(Number(r.params.get('to'))) &&
+        Number(r.params.get('to')) > Number(r.params.get('from')),
+    );
+    req.flush(fakeNativeApiLog({ connectionStatus: 'CONNECTED' }));
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(await harness.isLoadFailedBannerVisible()).toBe(true);
+    expect(await harness.isLoadFailedBannerVisible()).toBe(false);
     expect(await harness.isNotFoundBannerVisible()).toBe(false);
-    expect(await harness.isBackLinkVisible()).toBe(true);
+    expect(await harness.isTitleVisible()).toBe(true);
+  });
+
+  // Number('') === 0 — would pass Number.isFinite and silently ship from=0, to=0 without the explicit guard.
+  it('uses the default-period from/to when query params are present but empty strings', async () => {
+    await setup({ from: '', to: '' });
+    const req = httpTestingController.expectOne(
+      r =>
+        r.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native/${REQUEST_ID}` &&
+        Number(r.params.get('from')) > 0 &&
+        Number(r.params.get('to')) > Number(r.params.get('from')),
+    );
+    req.flush(fakeNativeApiLog({ connectionStatus: 'CONNECTED' }));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(await harness.isLoadFailedBannerVisible()).toBe(false);
+    expect(await harness.isTitleVisible()).toBe(true);
   });
 
   it('renders a dash for Duration in the connection card when connectionDurationMs is null', async () => {

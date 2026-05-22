@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, inject } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Params, RouterLink } from '@angular/router';
 import { AsyncPipe, DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatCardModule } from '@angular/material/card';
@@ -23,10 +23,15 @@ import { GioBannerModule, GioIconsModule } from '@gravitee/ui-particles-angular'
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
-import { NATIVE_STATUS_META, isNativeConnectionErrored } from '../runtime-logs-native/api-runtime-logs-native.models';
+import {
+  DEFAULT_NATIVE_LOGS_PERIOD,
+  NATIVE_STATUS_META,
+  isNativeConnectionErrored,
+} from '../runtime-logs-native/api-runtime-logs-native.models';
 import { ApiNativeLogsV2Service } from '../../../../services-ngx/api-native-logs-v2.service';
 import { FormatDurationPipe } from '../../../../shared/pipes/format-duration.pipe';
 import { NativeApiLog } from '../../../../entities/management-api-v2';
+import { timeFrameRangesParams } from '../../../../shared/utils/timeFrameRanges';
 
 type LogState = { kind: 'ok'; log: NativeApiLog } | { kind: 'not-found' } | { kind: 'load-failed' };
 
@@ -43,20 +48,26 @@ export class ApiRuntimeLogsNativeDetailsComponent {
 
   private readonly apiId = this.route.snapshot.params.apiId as string;
   protected readonly requestId = this.route.snapshot.params.requestId as string;
-  private readonly from = Number(this.route.snapshot.queryParams.from);
-  private readonly to = Number(this.route.snapshot.queryParams.to);
+  private readonly range = resolveTimeWindow(this.route.snapshot.queryParams);
 
   protected readonly backQueryParams = this.route.snapshot.queryParams;
 
   protected readonly statusMeta = NATIVE_STATUS_META;
 
-  protected readonly state$: Observable<LogState> =
-    Number.isFinite(this.from) && Number.isFinite(this.to)
-      ? this.logsService.getConnectionLog(this.apiId, this.requestId, this.from, this.to).pipe(
-          map(log => ({ kind: 'ok', log }) as LogState),
-          catchError((err: HttpErrorResponse) => of({ kind: err.status === 404 ? 'not-found' : 'load-failed' } as LogState)),
-        )
-      : of({ kind: 'load-failed' } as LogState);
+  protected readonly state$: Observable<LogState> = this.logsService
+    .getConnectionLog(this.apiId, this.requestId, this.range.from, this.range.to)
+    .pipe(
+      map(log => ({ kind: 'ok', log }) as LogState),
+      catchError((err: HttpErrorResponse) => of({ kind: err.status === 404 ? 'not-found' : 'load-failed' } as LogState)),
+    );
 
   protected readonly isErrored = isNativeConnectionErrored;
+}
+
+function resolveTimeWindow(qp: Params): { from: number; to: number } {
+  const fromQp = qp.from ? Number(qp.from) : NaN;
+  const toQp = qp.to ? Number(qp.to) : NaN;
+  if (Number.isFinite(fromQp) && Number.isFinite(toQp)) return { from: fromQp, to: toQp };
+  const { from, to } = timeFrameRangesParams(DEFAULT_NATIVE_LOGS_PERIOD);
+  return { from, to };
 }

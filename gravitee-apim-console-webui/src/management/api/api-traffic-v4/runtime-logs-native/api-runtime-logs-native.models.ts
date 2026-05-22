@@ -15,6 +15,9 @@
  */
 import { NativeConnectionStatus } from '../../../../entities/management-api-v2';
 
+// Used when the URL has no `period` or it's unrecognised.
+export const DEFAULT_NATIVE_LOGS_PERIOD = '1d';
+
 export interface NativeConnectionStatusMeta {
   label: string;
   // gio-badge-* utility class — colors the badge in both the table cell and the summary card.

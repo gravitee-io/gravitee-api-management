@@ -21,7 +21,8 @@
   </div>
 </api-navigation-header>
 
-@if (isReportingDisabled$ | async) {
+@let reportingDisabled = isReportingDisabled$ | async;
+@if (reportingDisabled === true) {
   <gio-banner-info class="banner-warning">
     <div class="banner-warning__content" data-testid="native_logs_reporting_disabled_banner">
       Reporting is disabled
@@ -30,7 +31,7 @@
       >
     </div>
   </gio-banner-info>
-} @else {
+} @else if (reportingDisabled === false) {
   <api-runtime-logs-native-summary [apiId]="apiId" [from]="summaryRange().from" [to]="summaryRange().to" />
 }
 

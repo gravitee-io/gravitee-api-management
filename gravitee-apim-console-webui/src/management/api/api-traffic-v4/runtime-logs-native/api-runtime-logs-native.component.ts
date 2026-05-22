@@ -27,7 +27,7 @@ import { EMPTY, Observable, of, ReplaySubject, Subject } from 'rxjs';
 import { isEqual } from 'lodash';
 import moment from 'moment';
 
-import { NATIVE_CONNECTION_STATUSES, NATIVE_STATUS_META } from './api-runtime-logs-native.models';
+import { DEFAULT_NATIVE_LOGS_PERIOD, NATIVE_CONNECTION_STATUSES, NATIVE_STATUS_META } from './api-runtime-logs-native.models';
 import { ApiRuntimeLogsNativeListComponent } from './components/api-runtime-logs-native-list/api-runtime-logs-native-list.component';
 import { ApiRuntimeLogsNativeSummaryComponent } from './components/api-runtime-logs-native-summary/api-runtime-logs-native-summary.component';
 
@@ -106,7 +106,7 @@ export class ApiRuntimeLogsNativeComponent implements OnInit {
   protected readonly rowApplications$ = new ReplaySubject<Application[]>(1);
   protected readonly loading = signal(true);
   protected readonly form = new FormGroup<NativeLogFiltersForm>({
-    timeframe: new FormControl<TimeframeValue | null>({ period: '', from: null, to: null }),
+    timeframe: new FormControl<TimeframeValue | null>({ period: DEFAULT_NATIVE_LOGS_PERIOD, from: null, to: null }),
     applicationIds: new FormControl<string[]>([], { nonNullable: true }),
     planIds: new FormControl<string[]>([], { nonNullable: true }),
     connectionStatuses: new FormControl<NativeConnectionStatus[]>([], { nonNullable: true }),
@@ -247,9 +247,9 @@ export class ApiRuntimeLogsNativeComponent implements OnInit {
 
   private hydrateFormFromQueryParams() {
     const qp = this.activatedRoute.snapshot.queryParams;
-    const period = qp?.period ?? '';
     const fromQp = qp?.from ? moment(Number(qp.from)) : null;
     const toQp = qp?.to ? moment(Number(qp.to)) : null;
+    const period = resolvePeriod(qp.period, fromQp, toQp);
     this.form.patchValue(
       {
         timeframe: { period, from: period === CUSTOM_PERIOD ? fromQp : null, to: period === CUSTOM_PERIOD ? toQp : null },
@@ -278,4 +278,13 @@ function toFromTo(tf: TimeframeValue | null | undefined): { from: number | null;
   }
   const { from, to } = timeFrameRangesParams(tf.period);
   return { from, to };
+}
+
+const KNOWN_PRESETS = new Set<string>(timeFrames.map(t => t.id));
+
+// 'custom' is only valid with finite from/to — otherwise the request would fire unscoped.
+function resolvePeriod(value: unknown, from: moment.Moment | null, to: moment.Moment | null): string {
+  if (value === CUSTOM_PERIOD && from?.isValid() && to?.isValid()) return CUSTOM_PERIOD;
+  if (typeof value === 'string' && KNOWN_PRESETS.has(value)) return value;
+  return DEFAULT_NATIVE_LOGS_PERIOD;
 }
