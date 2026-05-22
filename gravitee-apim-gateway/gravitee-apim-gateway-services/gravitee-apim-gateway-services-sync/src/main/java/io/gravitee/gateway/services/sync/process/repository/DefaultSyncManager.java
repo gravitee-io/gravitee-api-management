@@ -67,7 +67,8 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
     private final TimeUnit unit;
 
     private final AtomicLong syncCounter = new AtomicLong(0);
-    private final AtomicBoolean initialSync = new AtomicBoolean(false);
+    /** Set after any successful sync; used only by {@link #syncDone()} for the sync-process health probe. */
+    private final AtomicBoolean syncReadyForProbe = new AtomicBoolean(false);
     private final AtomicLong totalSyncOnErrorCounter = new AtomicLong(0);
     private final AtomicBoolean lastSyncOnError = new AtomicBoolean(false);
 
@@ -206,7 +207,7 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
                     .doOnComplete(() -> {
                         lastSyncOnError.set(false);
                         lastSyncErrorMessage.set(null);
-                        initialSync.set(true);
+                        syncReadyForProbe.set(true);
                         nextFromTime = nextToTime;
 
                         log.debug(
@@ -245,7 +246,7 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
     }
 
     public boolean syncDone() {
-        return initialSync.get();
+        return syncReadyForProbe.get();
     }
 
     public long totalSyncOnError() {
