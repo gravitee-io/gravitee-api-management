@@ -18,9 +18,18 @@ package io.gravitee.apim.core.api.model.factory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.listener.http.Path;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -113,5 +122,50 @@ class ApiModelFactoryTest {
         var definition = api.getApiDefinitionHttpV4();
         assertThat(definition.getType()).isEqualTo(ApiType.PROXY);
         assertThat(definition.getAllowedInApiProducts()).isNull();
+    }
+
+    @Test
+    void fromCrd_should_forward_allowedInApiProducts_and_allowMultiJwtOauth2Subscriptions() {
+        var crd = minimalProxyCrd(true, true);
+
+        Api api = ApiModelFactory.fromCrd(crd, ENVIRONMENT_ID);
+
+        assertThat(api.isAllowMultiJwtOauth2Subscriptions()).isTrue();
+        assertThat(api.getApiDefinitionHttpV4().getAllowedInApiProducts()).isTrue();
+    }
+
+    private static ApiCRDSpec minimalProxyCrd(boolean allowedInApiProducts, boolean allowMultiJwtOauth2Subscriptions) {
+        return ApiCRDSpec.builder()
+            .id("api-id")
+            .name("api")
+            .version("1.0.0")
+            .type("PROXY")
+            .lifecycleState("CREATED")
+            .state("STARTED")
+            .visibility("PRIVATE")
+            .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build())
+            .listeners(
+                List.of(
+                    HttpListener.builder()
+                        .paths(List.of(Path.builder().path("/").build()))
+                        .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
+                        .build()
+                )
+            )
+            .endpointGroups(
+                List.of(
+                    EndpointGroup.builder()
+                        .name("default")
+                        .type("http-proxy")
+                        .endpoints(List.of(Endpoint.builder().name("default").type("http-proxy").configuration("{}").build()))
+                        .build()
+                )
+            )
+            .properties(List.of())
+            .flows(List.of())
+            .plans(Map.of())
+            .allowedInApiProducts(allowedInApiProducts)
+            .allowMultiJwtOauth2Subscriptions(allowMultiJwtOauth2Subscriptions)
+            .build();
     }
 }

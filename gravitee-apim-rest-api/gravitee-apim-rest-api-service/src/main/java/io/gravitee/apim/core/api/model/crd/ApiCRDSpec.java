@@ -123,6 +123,10 @@ public class ApiCRDSpec {
 
     private boolean notifyMembers;
 
+    private Boolean allowedInApiProducts;
+
+    private boolean allowMultiJwtOauth2Subscriptions;
+
     private FlowExecution flowExecution;
 
     private Set<String> categories;
@@ -167,7 +171,8 @@ public class ApiCRDSpec {
                         : OriginContext.Origin.KUBERNETES.name()
                 )
             )
-            .groups(groups);
+            .groups(groups)
+            .allowMultiJwtOauth2Subscriptions(allowMultiJwtOauth2Subscriptions);
     }
 
     /**
@@ -191,7 +196,8 @@ public class ApiCRDSpec {
             .plans(toApiPlans(plans))
             .services(services != null ? new ApiServices(services.getDynamicProperty()) : null)
             .tags(tags)
-            .type(ApiType.valueOf(type));
+            .type(ApiType.valueOf(type))
+            .allowedInApiProducts(allowedInApiProducts);
     }
 
     /**
