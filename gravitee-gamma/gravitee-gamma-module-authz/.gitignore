@@ -1,0 +1,42 @@
+!.gitignore
+
+**/target/
+.idea/
+*.iml
+.DS_Store
+.*.settings.xml
+gravitee.*.log.*/*.log
+**/.logs
+
+# eclipse
+.settings/
+.project
+.classpath
+/bin/
+
+# Related to UI Console and Portal
+**/.tmp/
+**/coverage/
+**/dist/
+**/dist-tsc/
+**/node_modules/
+**/npm-debug.log
+gravitee-**-webui/node/
+**/.settings
+**/report.*.json
+**/.vscode
+**/storybook-static
+**/.angular
+package-lock.json
+
+# used in makefile as working directory
+.working/
+
+# Yarn
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions

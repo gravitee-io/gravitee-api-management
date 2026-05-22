@@ -29,6 +29,10 @@
         </file>
     </files>
 
+    <!-- Include UI assets (mf-manifest.json + compiled JS/CSS) so the
+         backend can serve them under /gamma/.../modules/authz/assets/
+         and so the modules endpoint returns a full `mfManifest` payload
+         (otherwise the host falls back to a hand-rolled remote URL). -->
     <fileSets>
         <fileSet>
             <directory>${project.build.directory}/classes/ui</directory>
