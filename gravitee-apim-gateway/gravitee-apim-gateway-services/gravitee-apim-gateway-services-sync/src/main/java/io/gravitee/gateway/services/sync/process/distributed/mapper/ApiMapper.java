@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.edge.EdgeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.ReactableApi;
@@ -67,6 +68,14 @@ public class ApiMapper {
                     reactableApi ->
                         reactableApi.getDefinitionVersion() == DefinitionVersion.V4 &&
                         ((NativeApi) reactableApi.getDefinition()).getType() == ApiType.NATIVE
+                ),
+            payload ->
+                parseAndAssert(
+                    payload,
+                    io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi.class,
+                    reactableApi ->
+                        reactableApi.getDefinitionVersion() == DefinitionVersion.V4 &&
+                        ((EdgeApi) reactableApi.getDefinition()).getType() == ApiType.EDGE
                 )
         );
     }

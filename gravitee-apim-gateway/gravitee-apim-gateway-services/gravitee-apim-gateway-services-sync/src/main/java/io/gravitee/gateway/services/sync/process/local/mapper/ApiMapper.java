@@ -15,18 +15,17 @@
  */
 package io.gravitee.gateway.services.sync.process.local.mapper;
 
-import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
 import static io.gravitee.repository.management.model.Event.EventProperties.DEPLOYMENT_NUMBER;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.edge.EdgeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.LifecycleState;
-import io.reactivex.rxjava3.core.Maybe;
 import java.util.Optional;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +56,10 @@ public class ApiMapper {
 
                     // Update definition with required information for deployment phase
                     reactableApi = new io.gravitee.gateway.reactive.handlers.api.v4.NativeApi(eventApiDefinition);
+                } else if (api.getType() == ApiType.EDGE) {
+                    var eventApiDefinition = objectMapper.readValue(api.getDefinition(), EdgeApi.class);
+
+                    reactableApi = new io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi(eventApiDefinition);
                 } else if (
                     api.getType() == ApiType.PROXY ||
                     api.getType() == ApiType.LLM_PROXY ||
