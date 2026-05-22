@@ -21,6 +21,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
+import io.gravitee.gateway.opentelemetry.TracerResourceAttributes;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.core.context.DefaultDeploymentContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsUtils;
@@ -37,11 +38,13 @@ import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import java.util.List;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class TcpApiReactorFactory implements ReactorFactory<Api> {
+
+    /** OTel {@code gravitee.module} resource-attribute value identifying this reactor. */
+    private static final String MODULE = "apim";
 
     private final Configuration configuration;
     private final Node node;
@@ -100,10 +103,17 @@ public class TcpApiReactorFactory implements ReactorFactory<Api> {
             Tracer tracer = openTelemetryFactory.createTracer(
                 node.id(),
                 node.application(),
-                "API_V4_TCP",
+                "gravitee",
                 Version.RUNTIME_VERSION.MAJOR_VERSION,
                 instrumenterTracerFactories,
-                Map.of("gravitee.api.id", api.getId(), "gravitee.api.name", api.getName()),
+                TracerResourceAttributes.of(
+                    MODULE,
+                    api.getId(),
+                    api.getName(),
+                    "API_V4_TCP",
+                    api.getOrganizationId(),
+                    api.getEnvironmentId()
+                ),
                 TracingRedactionMapper.toRedactionConfig(api)
             );
             return new TracingContext(tracer, true, isApiTracingVerboseEnabled(api));

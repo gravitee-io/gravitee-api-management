@@ -43,7 +43,7 @@ public class OpenTelemetryConfiguration {
         Tracer tracer = openTelemetryFactory.createTracer(
             node.id(),
             node.application(),
-            "GATEWAY",
+            "gravitee",
             Version.RUNTIME_VERSION.MAJOR_VERSION,
             instrumenterTracerFactories
         );

@@ -18,6 +18,8 @@ package io.gravitee.gateway.reactive.handlers.api.v4;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -172,18 +174,68 @@ class TcpApiReactorFactoryTest {
             when(api.getDefinition()).thenReturn(def);
             when(api.getId()).thenReturn("api-id");
             when(api.getName()).thenReturn("api-name");
+            when(api.getOrganizationId()).thenReturn("org-id");
+            when(api.getEnvironmentId()).thenReturn("env-id");
             when(openTelemetryConfiguration.isTracesEnabled()).thenReturn(true);
-            when(
-                openTelemetryFactory.createTracer(any(), any(), any(), any(), any(), any(Map.class), any(RedactionConfig.class))
-            ).thenReturn(mock(Tracer.class));
+            when(openTelemetryFactory.createTracer(any(), any(), any(), any(), any(), anyMap(), any(RedactionConfig.class))).thenReturn(
+                mock(Tracer.class)
+            );
 
             cut.createTracingContext(api);
 
             ArgumentCaptor<RedactionConfig> captor = ArgumentCaptor.forClass(RedactionConfig.class);
-            verify(openTelemetryFactory).createTracer(any(), any(), any(), any(), any(), any(Map.class), captor.capture());
+            verify(openTelemetryFactory).createTracer(any(), any(), any(), any(), any(), anyMap(), captor.capture());
             assertThat(captor.getValue().rules()).hasSize(1);
             assertThat(captor.getValue().rules().get(0).attributeNamePattern()).isEqualTo("enduser.id");
             assertThat(captor.getValue().rules().get(0).maskingStrategy()).isInstanceOf(FullMaskingStrategy.class);
+        }
+
+        @Test
+        @SuppressWarnings("unchecked")
+        void should_pass_gateway_node_identity_and_api_resource_attributes_with_tcp_api_type_to_createTracer() {
+            // TCP reactor hardcodes "API_V4_TCP" as the api type (no caller-supplied arg) — verify the
+            // resource-attribute map carries it under gravitee.api.type alongside the rest of the API
+            // identity, with the gateway node as the OTel service identity.
+            var tracing = new Tracing();
+            tracing.setEnabled(true);
+            var analytics = new Analytics();
+            analytics.setEnabled(true);
+            analytics.setTracing(tracing);
+            var def = new io.gravitee.definition.model.v4.Api();
+            def.setAnalytics(analytics);
+
+            Api api = mock(Api.class);
+            when(api.getDefinition()).thenReturn(def);
+            when(api.getId()).thenReturn("api-id");
+            when(api.getName()).thenReturn("api-name");
+            when(api.getOrganizationId()).thenReturn("org-id");
+            when(api.getEnvironmentId()).thenReturn("env-id");
+            when(openTelemetryConfiguration.isTracesEnabled()).thenReturn(true);
+            when(node.id()).thenReturn("node-id");
+            when(node.application()).thenReturn("apim-gateway");
+            when(openTelemetryFactory.createTracer(any(), any(), any(), any(), any(), anyMap(), any(RedactionConfig.class))).thenReturn(
+                mock(Tracer.class)
+            );
+
+            cut.createTracingContext(api);
+
+            ArgumentCaptor<Map<String, String>> mapCaptor = ArgumentCaptor.forClass(Map.class);
+            verify(openTelemetryFactory).createTracer(
+                eq("node-id"),
+                eq("apim-gateway"),
+                eq("gravitee"),
+                any(),
+                anyList(),
+                mapCaptor.capture(),
+                any(RedactionConfig.class)
+            );
+            assertThat(mapCaptor.getValue())
+                .containsEntry("gravitee.module", "apim")
+                .containsEntry("gravitee.api.id", "api-id")
+                .containsEntry("gravitee.api.name", "api-name")
+                .containsEntry("gravitee.api.type", "API_V4_TCP")
+                .containsEntry("gravitee.org.id", "org-id")
+                .containsEntry("gravitee.env.id", "env-id");
         }
     }
 
