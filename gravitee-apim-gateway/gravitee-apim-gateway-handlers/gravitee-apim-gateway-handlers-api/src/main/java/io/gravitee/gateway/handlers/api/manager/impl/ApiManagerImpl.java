@@ -88,13 +88,20 @@ public class ApiManagerImpl implements ApiManager {
         this.gatewayConfiguration = gatewayConfiguration;
         this.licenseManager = licenseManager;
         this.apiProductRegistry = apiProductRegistry;
-        deployers = Map.of(
-            Api.class,
-            new ApiDeployer(gatewayConfiguration, dataEncryptor),
-            io.gravitee.gateway.reactive.handlers.api.v4.Api.class,
-            new io.gravitee.gateway.reactive.handlers.api.v4.deployer.ApiDeployer(gatewayConfiguration, dataEncryptor),
-            io.gravitee.gateway.reactive.handlers.api.v4.NativeApi.class,
-            new io.gravitee.gateway.reactive.handlers.api.v4.deployer.NativeApiDeployer(gatewayConfiguration, dataEncryptor)
+        deployers = Map.ofEntries(
+            Map.entry(Api.class, new ApiDeployer(gatewayConfiguration, dataEncryptor)),
+            Map.entry(
+                io.gravitee.gateway.reactive.handlers.api.v4.Api.class,
+                new io.gravitee.gateway.reactive.handlers.api.v4.deployer.ApiDeployer(gatewayConfiguration, dataEncryptor)
+            ),
+            Map.entry(
+                io.gravitee.gateway.reactive.handlers.api.v4.NativeApi.class,
+                new io.gravitee.gateway.reactive.handlers.api.v4.deployer.NativeApiDeployer(gatewayConfiguration, dataEncryptor)
+            ),
+            Map.entry(
+                io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi.class,
+                new io.gravitee.gateway.reactive.handlers.api.v4.deployer.EdgeApiDeployer(gatewayConfiguration, dataEncryptor)
+            )
         );
 
         // Listen to secret discovery events to update APIs when secrets change
