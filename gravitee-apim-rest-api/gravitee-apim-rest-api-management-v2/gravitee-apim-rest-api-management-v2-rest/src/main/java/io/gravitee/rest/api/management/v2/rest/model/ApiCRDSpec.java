@@ -121,6 +121,10 @@ public class ApiCRDSpec {
 
     private boolean notifyMembers;
 
+    private boolean allowedInApiProducts;
+
+    private boolean allowMultiJwtOauth2Subscriptions;
+
     private Map<String, PageCRD> pages;
 
     public String getDefinitionVersion() {
