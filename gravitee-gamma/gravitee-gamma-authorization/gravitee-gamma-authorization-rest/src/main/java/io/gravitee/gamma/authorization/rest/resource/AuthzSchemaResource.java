@@ -21,6 +21,9 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -29,6 +32,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import java.util.Objects;
 
+@Tag(name = "Authz Schema", description = "Current GAPL schema for the environment, computed from registered entities and policies")
 @Path("/environments/{environmentId}/schema")
 @Produces(MediaType.APPLICATION_JSON)
 public class AuthzSchemaResource {
@@ -41,8 +45,10 @@ public class AuthzSchemaResource {
     }
 
     @GET
+    @Operation(summary = "Return the current GAPL schema for the given environment")
+    @ApiResponse(responseCode = "200", description = "Current GAPL schema")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.READ }) })
     public AuthzSchemaResponse currentSchema(@PathParam("environmentId") String environmentId) {
-        return new AuthzSchemaResponse(schemaService.currentGaplSchema(environmentId));
+        return AuthzSchemaResponse.from(schemaService.currentGaplSchema(environmentId));
     }
 }

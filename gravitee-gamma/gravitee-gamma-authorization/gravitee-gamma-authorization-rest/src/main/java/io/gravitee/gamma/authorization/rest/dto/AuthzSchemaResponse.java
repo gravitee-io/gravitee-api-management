@@ -15,4 +15,8 @@
  */
 package io.gravitee.gamma.authorization.rest.dto;
 
-public record AuthzSchemaResponse(String schema) {}
+public record AuthzSchemaResponse(String schema) {
+    public static AuthzSchemaResponse from(String schema) {
+        return new AuthzSchemaResponse(schema);
+    }
+}

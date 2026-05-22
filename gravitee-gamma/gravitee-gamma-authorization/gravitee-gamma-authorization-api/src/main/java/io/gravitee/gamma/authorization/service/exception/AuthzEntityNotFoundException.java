@@ -15,7 +15,7 @@
  */
 package io.gravitee.gamma.authorization.service.exception;
 
-public class AuthzEntityNotFoundException extends RuntimeException {
+public class AuthzEntityNotFoundException extends AuthzApiException {
 
     private final String environmentId;
     private final String entityId;
@@ -32,5 +32,15 @@ public class AuthzEntityNotFoundException extends RuntimeException {
 
     public String entityId() {
         return entityId;
+    }
+
+    @Override
+    public int httpStatus() {
+        return 404;
+    }
+
+    @Override
+    public String errorCode() {
+        return "EntityNotFound";
     }
 }

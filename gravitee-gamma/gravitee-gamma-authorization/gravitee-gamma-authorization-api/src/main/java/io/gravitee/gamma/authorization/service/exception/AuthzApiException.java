@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.authorization.rest.dto;
+package io.gravitee.gamma.authorization.service.exception;
 
-import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import java.util.List;
-import java.util.Map;
+public abstract class AuthzApiException extends RuntimeException {
 
-public record AuthzEntityRequest(
-    @NotBlank String entityId,
-    @NotNull AuthzEntityKind kind,
-    Map<String, Object> attributes,
-    List<String> parents,
-    @NotBlank String source
-) {}
+    protected AuthzApiException(String message) {
+        super(message);
+    }
+
+    public abstract int httpStatus();
+
+    public abstract String errorCode();
+}

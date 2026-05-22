@@ -39,6 +39,13 @@ public record Pageable(int page, int perPage) {
         return new Pageable(page, perPage);
     }
 
+    public static Pageable fromQuery(Integer page, Integer perPage) {
+        if (page == null && perPage == null) {
+            return firstPage();
+        }
+        return of(page == null ? 1 : page, perPage == null ? DEFAULT_PER_PAGE : perPage);
+    }
+
     public static Pageable unbounded() {
         return new Pageable(1, MAX_PER_PAGE);
     }

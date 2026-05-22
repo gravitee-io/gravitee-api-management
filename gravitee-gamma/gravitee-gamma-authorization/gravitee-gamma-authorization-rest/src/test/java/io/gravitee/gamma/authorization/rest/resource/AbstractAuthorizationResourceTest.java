@@ -21,14 +21,8 @@ import static org.mockito.Mockito.reset;
 import io.gravitee.gamma.authorization.api.AuthzEntityAdminApi;
 import io.gravitee.gamma.authorization.api.AuthzPolicyAdminApi;
 import io.gravitee.gamma.authorization.api.AuthzSchemaAdminApi;
-import io.gravitee.gamma.authorization.rest.exception.AuthzCascadeTooLargeExceptionMapper;
-import io.gravitee.gamma.authorization.rest.exception.AuthzEntityNotFoundExceptionMapper;
-import io.gravitee.gamma.authorization.rest.exception.AuthzInvalidEntityIdExceptionMapper;
-import io.gravitee.gamma.authorization.rest.exception.AuthzInvalidStatusTransitionExceptionMapper;
-import io.gravitee.gamma.authorization.rest.exception.AuthzPolicyNotFoundExceptionMapper;
-import io.gravitee.gamma.authorization.rest.exception.ForbiddenAccessExceptionMapper;
+import io.gravitee.gamma.authorization.rest.exception.AuthzApiExceptionMapper;
 import io.gravitee.gamma.authorization.rest.exception.IllegalArgumentExceptionMapper;
-import io.gravitee.gamma.authorization.rest.exception.UnauthorizedAccessExceptionMapper;
 import jakarta.ws.rs.core.Application;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -60,14 +54,8 @@ abstract class AbstractAuthorizationResourceTest extends JerseyTest {
             .register(new AuthzPoliciesResource(policyService))
             .register(new AuthzEntitiesResource(entityService))
             .register(new AuthzSchemaResource(schemaService))
-            .register(AuthzPolicyNotFoundExceptionMapper.class)
-            .register(AuthzEntityNotFoundExceptionMapper.class)
-            .register(AuthzCascadeTooLargeExceptionMapper.class)
-            .register(AuthzInvalidStatusTransitionExceptionMapper.class)
-            .register(AuthzInvalidEntityIdExceptionMapper.class)
+            .register(AuthzApiExceptionMapper.class)
             .register(IllegalArgumentExceptionMapper.class)
-            .register(UnauthorizedAccessExceptionMapper.class)
-            .register(ForbiddenAccessExceptionMapper.class)
             .register(JacksonFeature.class);
         config.property("contextConfig", emptySpringContext);
         return config;

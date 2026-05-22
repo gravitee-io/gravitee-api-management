@@ -15,10 +15,12 @@
  */
 package io.gravitee.gamma.authorization.rest.resource;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 
+@Tag(name = "Authz", description = "Fine-grained authorization administration (entities, policies, schema)")
 public class AuthzRootResource {
 
     @Context

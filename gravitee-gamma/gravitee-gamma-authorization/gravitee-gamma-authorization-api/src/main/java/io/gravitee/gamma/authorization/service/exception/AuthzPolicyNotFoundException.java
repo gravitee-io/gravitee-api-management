@@ -15,9 +15,19 @@
  */
 package io.gravitee.gamma.authorization.service.exception;
 
-public class AuthzPolicyNotFoundException extends RuntimeException {
+public class AuthzPolicyNotFoundException extends AuthzApiException {
 
     public AuthzPolicyNotFoundException(String environmentId, String id) {
         super("Policy '" + id + "' not found in environment '" + environmentId + "'");
+    }
+
+    @Override
+    public int httpStatus() {
+        return 404;
+    }
+
+    @Override
+    public String errorCode() {
+        return "PolicyNotFound";
     }
 }

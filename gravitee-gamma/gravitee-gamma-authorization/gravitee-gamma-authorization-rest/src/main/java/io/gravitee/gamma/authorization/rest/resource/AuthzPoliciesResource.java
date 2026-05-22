@@ -34,7 +34,11 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -51,6 +55,7 @@ import jakarta.ws.rs.core.SecurityContext;
 import java.util.List;
 import java.util.Objects;
 
+@Tag(name = "Authz Policies", description = "Fine-grained authorization policies (global and resource-scoped)")
 @Path("/environments/{environmentId}/policies")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -67,8 +72,11 @@ public class AuthzPoliciesResource {
     }
 
     @POST
+    @Operation(summary = "Create a new authorization policy in DRAFT status")
+    @ApiResponse(responseCode = "201", description = "Policy created")
+    @ApiResponse(responseCode = "400", description = "Invalid request body or entity id")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.CREATE }) })
-    public Response create(@PathParam("environmentId") String environmentId, AuthzPolicyRequest request) {
+    public Response create(@PathParam("environmentId") String environmentId, @Valid AuthzPolicyRequest request) {
         AuthzCallerContext caller = AuthzCallerResolver.resolve(securityContext, environmentId);
         AuthzPolicy created = service.create(
             caller,
@@ -78,6 +86,8 @@ public class AuthzPoliciesResource {
     }
 
     @GET
+    @Operation(summary = "List authorization policies with optional filters")
+    @ApiResponse(responseCode = "200", description = "Page of policies")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.READ }) })
     public PagedResponseDto<AuthzPolicyResponse> list(
         @PathParam("environmentId") String environmentId,
@@ -87,15 +97,16 @@ public class AuthzPoliciesResource {
         @QueryParam("page") Integer page,
         @QueryParam("perPage") Integer perPage
     ) {
-        Pageable pageable = (page == null && perPage == null)
-            ? Pageable.firstPage()
-            : Pageable.of(page == null ? 1 : page, perPage == null ? Pageable.DEFAULT_PER_PAGE : perPage);
+        Pageable pageable = Pageable.fromQuery(page, perPage);
         PagedResult<AuthzPolicy> result = service.findPage(environmentId, new AuthzPolicyFilter(kind, entityId, status), pageable);
         return PagedResponseDto.from(result, AuthzPolicyResponse::from);
     }
 
     @GET
     @Path("/{id}")
+    @Operation(summary = "Fetch a single policy by id")
+    @ApiResponse(responseCode = "200", description = "Policy found")
+    @ApiResponse(responseCode = "404", description = "Policy not found")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.READ }) })
     public AuthzPolicyResponse findById(@PathParam("environmentId") String environmentId, @PathParam("id") String id) {
         return service
@@ -106,11 +117,14 @@ public class AuthzPoliciesResource {
 
     @PUT
     @Path("/{id}")
+    @Operation(summary = "Update name and/or text of an existing policy")
+    @ApiResponse(responseCode = "200", description = "Policy updated")
+    @ApiResponse(responseCode = "404", description = "Policy not found")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.UPDATE }) })
     public AuthzPolicyResponse update(
         @PathParam("environmentId") String environmentId,
         @PathParam("id") String id,
-        UpdateAuthzPolicyRequest request
+        @Valid UpdateAuthzPolicyRequest request
     ) {
         AuthzCallerContext caller = AuthzCallerResolver.resolve(securityContext, environmentId);
         AuthzPolicy updated = service.update(caller, id, new UpdateAuthzPolicyCommand(request.name(), request.policyText()));
@@ -119,6 +133,10 @@ public class AuthzPoliciesResource {
 
     @POST
     @Path("/{id}/deploy")
+    @Operation(summary = "Transition a DRAFT policy to DEPLOYED")
+    @ApiResponse(responseCode = "200", description = "Policy deployed")
+    @ApiResponse(responseCode = "404", description = "Policy not found")
+    @ApiResponse(responseCode = "409", description = "Invalid status transition")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.UPDATE }) })
     public AuthzPolicyResponse deploy(@PathParam("environmentId") String environmentId, @PathParam("id") String id) {
         AuthzCallerContext caller = AuthzCallerResolver.resolve(securityContext, environmentId);
@@ -127,6 +145,10 @@ public class AuthzPoliciesResource {
 
     @POST
     @Path("/{id}/disable")
+    @Operation(summary = "Transition a DEPLOYED policy to DISABLED")
+    @ApiResponse(responseCode = "200", description = "Policy disabled")
+    @ApiResponse(responseCode = "404", description = "Policy not found")
+    @ApiResponse(responseCode = "409", description = "Invalid status transition")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.UPDATE }) })
     public AuthzPolicyResponse disable(@PathParam("environmentId") String environmentId, @PathParam("id") String id) {
         AuthzCallerContext caller = AuthzCallerResolver.resolve(securityContext, environmentId);
@@ -135,6 +157,8 @@ public class AuthzPoliciesResource {
 
     @DELETE
     @Path("/{id}")
+    @Operation(summary = "Delete a policy", description = "Idempotent — returns 204 even if the policy does not exist")
+    @ApiResponse(responseCode = "204", description = "Policy deleted (or did not exist)")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.DELETE }) })
     public Response delete(@PathParam("environmentId") String environmentId, @PathParam("id") String id) {
         AuthzCallerContext caller = AuthzCallerResolver.resolve(securityContext, environmentId);

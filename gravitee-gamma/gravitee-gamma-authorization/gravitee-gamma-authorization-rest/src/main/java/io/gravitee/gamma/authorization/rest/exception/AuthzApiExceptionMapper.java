@@ -15,20 +15,20 @@
  */
 package io.gravitee.gamma.authorization.rest.exception;
 
-import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
+import io.gravitee.gamma.authorization.service.exception.AuthzApiException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
 
 @Provider
-public class UnauthorizedAccessExceptionMapper implements ExceptionMapper<UnauthorizedAccessException> {
+public class AuthzApiExceptionMapper implements ExceptionMapper<AuthzApiException> {
 
     @Override
-    public Response toResponse(UnauthorizedAccessException exception) {
-        return Response.status(Response.Status.UNAUTHORIZED)
+    public Response toResponse(AuthzApiException exception) {
+        return Response.status(exception.httpStatus())
             .type(MediaType.APPLICATION_JSON)
-            .entity(new ErrorBody("Unauthorized", exception.getMessage()))
+            .entity(new ErrorBody(exception.errorCode(), exception.getMessage()))
             .build();
     }
 }

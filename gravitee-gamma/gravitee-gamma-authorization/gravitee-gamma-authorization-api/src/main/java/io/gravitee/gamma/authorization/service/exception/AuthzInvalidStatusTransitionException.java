@@ -17,9 +17,19 @@ package io.gravitee.gamma.authorization.service.exception;
 
 import io.gravitee.gamma.authorization.domain.AuthzPolicyStatus;
 
-public class AuthzInvalidStatusTransitionException extends RuntimeException {
+public class AuthzInvalidStatusTransitionException extends AuthzApiException {
 
     public AuthzInvalidStatusTransitionException(AuthzPolicyStatus from, AuthzPolicyStatus to) {
         super("Invalid status transition from " + from + " to " + to);
+    }
+
+    @Override
+    public int httpStatus() {
+        return 409;
+    }
+
+    @Override
+    public String errorCode() {
+        return "InvalidStatusTransition";
     }
 }

@@ -17,7 +17,7 @@ package io.gravitee.gamma.authorization.service.exception;
 
 import java.util.Objects;
 
-public class AuthzInvalidEntityIdException extends IllegalArgumentException {
+public class AuthzInvalidEntityIdException extends AuthzApiException {
 
     private final AuthzEntityIdValidationCode code;
 
@@ -28,5 +28,15 @@ public class AuthzInvalidEntityIdException extends IllegalArgumentException {
 
     public AuthzEntityIdValidationCode code() {
         return code;
+    }
+
+    @Override
+    public int httpStatus() {
+        return 400;
+    }
+
+    @Override
+    public String errorCode() {
+        return code.name();
     }
 }

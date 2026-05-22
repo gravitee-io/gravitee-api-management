@@ -15,9 +15,19 @@
  */
 package io.gravitee.gamma.authorization.service.exception;
 
-public class AuthzCascadeTooLargeException extends RuntimeException {
+public class AuthzCascadeTooLargeException extends AuthzApiException {
 
     public AuthzCascadeTooLargeException(int affected, int limit) {
         super("Cascade delete would touch " + affected + " entities/policies, exceeding the limit of " + limit);
+    }
+
+    @Override
+    public int httpStatus() {
+        return 413;
+    }
+
+    @Override
+    public String errorCode() {
+        return "CascadeTooLarge";
     }
 }

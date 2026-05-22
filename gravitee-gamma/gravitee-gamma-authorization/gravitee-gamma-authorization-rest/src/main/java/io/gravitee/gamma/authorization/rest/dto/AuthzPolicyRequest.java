@@ -16,5 +16,7 @@
 package io.gravitee.gamma.authorization.rest.dto;
 
 import io.gravitee.gamma.authorization.domain.AuthzPolicyKind;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
-public record AuthzPolicyRequest(String name, AuthzPolicyKind kind, String entityId, String policyText) {}
+public record AuthzPolicyRequest(@NotBlank String name, @NotNull AuthzPolicyKind kind, String entityId, String policyText) {}
