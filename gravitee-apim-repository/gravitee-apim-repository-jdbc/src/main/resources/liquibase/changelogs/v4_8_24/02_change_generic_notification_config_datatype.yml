@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.8.24_02_change_generic_notification_config_datatype
+      author: GraviteeSource Team
+      changes:
+        - modifyDataType:
+            tableName: ${gravitee_prefix}generic_notification_configs
+            columnName: config
+            newDataType: nvarchar(2048)
