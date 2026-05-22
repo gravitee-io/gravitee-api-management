@@ -74,9 +74,9 @@ public class PageDocumentSearcher extends AbstractDocumentSearcher {
         parser.setFuzzyMinSim(0.6f);
 
         BooleanQuery.Builder pageQuery = new BooleanQuery.Builder();
-        BooleanQuery.Builder pageFieldsQuery = new BooleanQuery.Builder();
 
         if (!isBlank(query.getQuery())) {
+            BooleanQuery.Builder pageFieldsQuery = new BooleanQuery.Builder();
             final Query parse = parser.parse(QueryParserBase.escape(query.getQuery()));
             pageFieldsQuery.add(parse, BooleanClause.Occur.SHOULD);
             pageFieldsQuery.add(new WildcardQuery(new Term("name", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
@@ -85,9 +85,9 @@ public class PageDocumentSearcher extends AbstractDocumentSearcher {
                 BooleanClause.Occur.SHOULD
             );
             pageFieldsQuery.add(new WildcardQuery(new Term("content", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
+            pageQuery.add(pageFieldsQuery.build(), BooleanClause.Occur.MUST);
         }
 
-        pageQuery.add(pageFieldsQuery.build(), BooleanClause.Occur.MUST);
         pageQuery.add(new TermQuery(new Term(FIELD_TYPE, FIELD_TYPE_VALUE)), BooleanClause.Occur.MUST);
         var baseFilterQuery = this.buildFilterQuery(query.getFilters(), Map.of(FIELD_API_TYPE_VALUE, FIELD_REFERENCE_ID));
         baseFilterQuery.ifPresent(q -> pageQuery.add(q, BooleanClause.Occur.FILTER));
