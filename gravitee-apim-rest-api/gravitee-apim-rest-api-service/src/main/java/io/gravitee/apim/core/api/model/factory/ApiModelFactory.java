@@ -127,6 +127,7 @@ public class ApiModelFactory {
             .listeners(spec.getListeners() != null ? (List<NativeListener>) spec.getListeners() : null)
             .flows(spec.getFlows() != null ? (List<NativeFlow>) spec.getFlows() : null)
             .properties(spec.getProperties())
+            .allowMultiJwtOauth2Subscriptions(spec.isAllowMultiJwtOauth2Subscriptions())
             .build();
     }
 

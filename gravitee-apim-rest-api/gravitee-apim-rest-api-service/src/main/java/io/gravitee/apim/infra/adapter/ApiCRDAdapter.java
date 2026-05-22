@@ -69,6 +69,8 @@ public interface ApiCRDAdapter {
     @Mapping(target = "notifyMembers", expression = "java(!exportEntity.getApiEntity().isDisableMembershipNotifications())")
     @Mapping(target = "consoleNotificationConfiguration", source = "portalNotificationConfig")
     @Mapping(target = "groups", source = "apiEntity.groups")
+    @Mapping(target = "allowedInApiProducts", source = "apiEntity.allowedInApiProducts")
+    @Mapping(target = "allowMultiJwtOauth2Subscriptions", source = "apiEntity.allowMultiJwtOauth2Subscriptions")
     ApiCRDSpec toCRDSpec(ExportApiEntity exportEntity, ApiEntity apiEntity, PortalNotificationConfigEntity portalNotificationConfig);
 
     @Mapping(target = "version", source = "apiEntity.apiVersion")
@@ -80,6 +82,7 @@ public interface ApiCRDAdapter {
     @Mapping(target = "notifyMembers", expression = "java(!exportEntity.getApiEntity().isDisableMembershipNotifications())")
     @Mapping(target = "consoleNotificationConfiguration", source = "portalNotificationConfig")
     @Mapping(target = "groups", source = "apiEntity.groups")
+    @Mapping(target = "allowMultiJwtOauth2Subscriptions", source = "apiEntity.allowMultiJwtOauth2Subscriptions")
     ApiCRDSpec toCRDSpec(ExportApiEntity exportEntity, NativeApiEntity apiEntity, PortalNotificationConfigEntity portalNotificationConfig);
 
     default ApiCRDSpec toCRDSpec(
