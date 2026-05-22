@@ -70,6 +70,9 @@ public class ApiLicenseServiceImpl implements ApiLicenseService {
                     case NATIVE -> objectMapper
                         .readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.v4.nativeapi.NativeApi.class)
                         .getPlugins();
+                    case EDGE -> objectMapper
+                        .readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.v4.edge.EdgeApi.class)
+                        .getPlugins();
                     case A2A_PROXY, LLM_PROXY, MCP_PROXY, PROXY, MESSAGE -> objectMapper
                         .readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.v4.Api.class)
                         .getPlugins();

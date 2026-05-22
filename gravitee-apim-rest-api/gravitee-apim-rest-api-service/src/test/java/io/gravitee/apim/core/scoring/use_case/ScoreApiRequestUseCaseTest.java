@@ -48,6 +48,7 @@ import io.gravitee.apim.core.scoring.model.ScoringAssetType;
 import io.gravitee.apim.core.scoring.model.ScoringRuleset;
 import io.gravitee.apim.infra.json.jackson.GraviteeDefinitionJacksonJsonSerializer;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import io.vertx.core.json.JsonObject;
@@ -311,6 +312,37 @@ class ScoreApiRequestUseCaseTest {
                     new ScoreRequest.CustomRuleset(CUSTOM_RULESET_3.payload())
                 );
         });
+    }
+
+    @Test
+    public void should_trigger_scoring_for_edge_api_with_null_format() {
+        // Given
+        var api = givenExistingApi(ApiFixtures.aProxyApiV4());
+        var edgeDefinition = GraviteeDefinition.V4.builder()
+            .api(ApiDescriptor.ApiDescriptorV4.builder().id(MY_API).name(MY_API_NAME).type(ApiType.EDGE).build())
+            .build();
+        when(apiExportDomainService.export(eq(MY_API), eq(AUDIT_INFO), anyCollection())).thenReturn(edgeDefinition);
+
+        // When
+        scoreApiRequestUseCase
+            .execute(new ScoreApiRequestUseCase.Input(api.getId(), AUDIT_INFO))
+            .test()
+            .awaitDone(5, TimeUnit.SECONDS)
+            .assertComplete();
+
+        // Then
+        assertThat(scoringProvider.pendingRequests())
+            .hasSize(1)
+            .first()
+            .satisfies(request -> {
+                assertThat(request.assets())
+                    .hasSize(1)
+                    .first()
+                    .satisfies(asset -> {
+                        assertThat(asset.assetType().type()).isEqualTo(ScoringAssetType.GRAVITEE_DEFINITION);
+                        assertThat(asset.assetType().format()).isNull();
+                    });
+            });
     }
 
     @ParameterizedTest

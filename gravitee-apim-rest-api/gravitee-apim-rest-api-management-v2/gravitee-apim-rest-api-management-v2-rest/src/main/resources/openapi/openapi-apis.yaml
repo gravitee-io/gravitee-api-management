@@ -4228,6 +4228,7 @@ components:
             example: MESSAGE
             enum:
                 - A2A_PROXY
+                - EDGE
                 - LLM_PROXY
                 - MCP_PROXY
                 - MESSAGE
