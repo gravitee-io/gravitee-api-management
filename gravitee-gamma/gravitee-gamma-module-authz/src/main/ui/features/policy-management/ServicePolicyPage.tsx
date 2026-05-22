@@ -15,6 +15,9 @@
  */
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import {
+    Alert,
+    AlertDescription,
+    AlertTitle,
     Button,
     Dialog,
     DialogContent,
@@ -34,13 +37,34 @@ import {
     SelectValue,
 } from '@gravitee/graphene-core';
 import { PlusIcon, RefreshCwIcon } from '@gravitee/graphene-core/icons';
-import { useDeferredValue, useMemo, useState } from 'react';
+import { useCallback, useDeferredValue, useMemo, useState } from 'react';
 import { KpiTile } from '../../components/KpiTile';
 import { ValidationErrorAlert } from '../../components/ValidationErrorAlert';
-import type { PolicyResponse, PolicyStatus, PolicyType } from '../../shared/api/authz-api.types';
+import type { PolicyRequest, PolicyResponse, PolicyStatus, PolicyType } from '../../shared/api/authz-api.types';
 import type { ChipOption } from '../../shared/chip-option';
+import { parseGaplSchema } from '../../shared/gapl-parser';
+import { useEntities } from '../../shared/hooks/useEntities';
+import { useEntityOptions } from '../../shared/hooks/useEntityOptions';
 import { usePolicies } from '../../shared/hooks/usePolicies';
+import { useSchema } from '../../shared/hooks/useSchema';
+import { PolicyEditorSheet } from './PolicyEditorSheet';
 import { PolicyListTable } from './PolicyListTable';
+
+export type CatalogEntryType = 'MCP' | 'AGENT' | 'LLM' | 'API' | 'EVENT';
+
+export type CatalogEntry = {
+    readonly id: string;
+    readonly name: string;
+    readonly description: string;
+    readonly type: CatalogEntryType;
+    readonly subResources: readonly never[];
+};
+
+const CATALOG_ENTRY_TYPES: readonly CatalogEntryType[] = ['MCP', 'AGENT', 'LLM', 'API', 'EVENT'];
+
+function toCatalogEntryType(type: PolicyType): CatalogEntryType {
+    return CATALOG_ENTRY_TYPES.includes(type as CatalogEntryType) ? (type as CatalogEntryType) : 'API';
+}
 
 type StatusFilter = PolicyStatus | 'ALL';
 
@@ -58,19 +82,44 @@ export interface ServicePageConfig {
     readonly conditionSnippets?: readonly { label: string; snippet: string }[];
 }
 
+type SheetState = { kind: 'closed' } | { kind: 'create'; target: CatalogEntry | null } | { kind: 'edit'; policy: PolicyResponse };
+
+const PRINCIPAL_KINDS: ReadonlySet<string> = new Set([
+    'user',
+    'group',
+    'serviceaccount',
+    'service-account',
+    'service_account',
+    'agent',
+    'agentidentity',
+]);
+
+const DEFAULT_RESOURCE_GROUPS: readonly { key: string; label: string }[] = [
+    { key: 'API', label: 'API' },
+    { key: 'MCP', label: 'MCP' },
+    { key: 'LLM', label: 'LLM' },
+    { key: 'Agent', label: 'Agent' },
+    { key: 'Resource', label: 'Resource' },
+];
+
 export function ServicePolicyPage({ config }: { readonly config: ServicePageConfig }) {
     const env = useEnvironment();
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
     const [search, setSearch] = useState('');
     const deferredSearch = useDeferredValue(search);
+    const [sheet, setSheet] = useState<SheetState>({ kind: 'closed' });
+    const [submitError, setSubmitError] = useState<Error | null>(null);
     const [pendingDelete, setPendingDelete] = useState<PolicyResponse | null>(null);
     const [deleting, setDeleting] = useState(false);
     const [deleteError, setDeleteError] = useState<Error | null>(null);
 
-    const policies = usePolicies(env?.id ?? '', {
+    const envId = env?.id ?? '';
+    const policies = usePolicies(envId, {
         type: config.type,
         status: statusFilter === 'ALL' ? undefined : statusFilter,
     });
+    const schema = useSchema(envId);
+    const entities = useEntities(envId, 1000);
 
     const allPolicies = useMemo<readonly PolicyResponse[]>(() => policies.data?.data ?? [], [policies.data]);
 
@@ -89,10 +138,155 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
             total,
             deployed: allPolicies.filter(p => p.status === 'DEPLOYED').length,
             draft: allPolicies.filter(p => p.status === 'DRAFT').length,
-            uniqueTargets: new Set(allPolicies.map(p => p.target?.id).filter(Boolean)).size,
+            uniqueTargets: new Set(allPolicies.map(p => p.target?.id).filter((id): id is string => Boolean(id))).size,
         }),
         [allPolicies, total],
     );
+
+    const catalog = useMemo(() => {
+        if (!config.hasTarget) {
+            return { entries: [] as CatalogEntry[], isLoading: false, error: undefined as string | undefined };
+        }
+        const prefix = config.type.toLowerCase() + '.';
+        const all = entities.data?.data ?? [];
+        const entries: CatalogEntry[] = all
+            .filter(e => e.uid.toLowerCase().startsWith(prefix))
+            .map(e => {
+                const attrs = e.attributes ?? {};
+                const name =
+                    typeof attrs.displayName === 'string' && attrs.displayName
+                        ? attrs.displayName
+                        : typeof attrs.name === 'string' && attrs.name
+                          ? attrs.name
+                          : e.uid;
+                const description = typeof attrs.description === 'string' ? attrs.description : '';
+                return {
+                    id: e.uid,
+                    name,
+                    description,
+                    type: toCatalogEntryType(config.type),
+                    subResources: [],
+                };
+            });
+        return { entries, isLoading: entities.isLoading, error: entities.error };
+    }, [config.hasTarget, config.type, entities.data, entities.isLoading, entities.error]);
+
+    const actionOptions = useMemo((): readonly ChipOption[] => {
+        const seen = new Set<string>();
+        const merged: ChipOption[] = [];
+        if (schema.schema?.schemaText) {
+            const parsed = parseGaplSchema(schema.schema.schemaText);
+            for (const a of parsed.actions) {
+                const id = `Action::"${a.name}"`;
+                if (!seen.has(id)) {
+                    seen.add(id);
+                    merged.push({ id, label: a.name, group: 'Action' });
+                }
+            }
+        }
+        for (const e of entities.data?.data ?? []) {
+            const kind = (e.attributes?._kind ?? '') as string;
+            const isAction = kind.toLowerCase() === 'action' || (typeof e.uid === 'string' && e.uid.startsWith('action.'));
+            if (!isAction) continue;
+            const name = (e.attributes?.name as string) || e.uid.replace(/^action\./, '');
+            if (!name) continue;
+            const id = `Action::"${name}"`;
+            if (seen.has(id)) continue;
+            seen.add(id);
+            const description = typeof e.attributes?.description === 'string' ? (e.attributes.description as string) : undefined;
+            merged.push({ id, label: name, group: 'Action', description });
+        }
+        return merged;
+    }, [schema.schema, entities.data]);
+
+    const { options: principalOptions } = useEntityOptions(envId, {
+        typeFilter: config.hasTarget ? ['User', 'Group', 'ServiceAccount', 'AgentIdentity'] : undefined,
+    });
+
+    const emptyActionsHint = useMemo<string | undefined>(() => {
+        if (actionOptions.length > 0) return undefined;
+        return 'No actions defined yet. Add some under Policy Structure → Actions, or declare them in the schema.';
+    }, [actionOptions.length]);
+
+    const emptyPrincipalsHint = useMemo<string | undefined>(() => {
+        if (principalOptions.length > 0) return undefined;
+        return 'No principals available. Add Users, Groups, Service Accounts or Agent Identities under Policy Structure → Entities.';
+    }, [principalOptions.length]);
+
+    const serviceResourceOptions = useMemo((): readonly ChipOption[] => {
+        const items: ChipOption[] = [];
+        const typePrefix = config.type.toLowerCase();
+        for (const e of entities.data?.data ?? []) {
+            const kindRaw = (e.attributes?._kind as string | undefined) ?? '';
+            const kind = kindRaw.toLowerCase();
+            const firstSeg = e.uid.includes('.') ? e.uid.slice(0, e.uid.indexOf('.')).toLowerCase() : '';
+            if (PRINCIPAL_KINDS.has(kind) || PRINCIPAL_KINDS.has(firstSeg)) continue;
+            if (kind === 'action' || firstSeg === 'action') continue;
+            if (config.hasTarget && firstSeg !== typePrefix) continue;
+            const attrs = e.attributes ?? {};
+            const label =
+                typeof attrs.displayName === 'string' && attrs.displayName
+                    ? (attrs.displayName as string)
+                    : typeof attrs.name === 'string' && attrs.name
+                      ? (attrs.name as string)
+                      : e.uid.includes('.')
+                        ? e.uid.slice(e.uid.indexOf('.') + 1)
+                        : e.uid;
+            const group =
+                firstSeg === 'mcp'
+                    ? 'MCP'
+                    : firstSeg === 'llm'
+                      ? 'LLM'
+                      : firstSeg === 'agent'
+                        ? 'Agent'
+                        : firstSeg === 'api'
+                          ? 'API'
+                          : 'Resource';
+            const description = typeof attrs.description === 'string' ? (attrs.description as string) : undefined;
+            const labelForUid = e.uid.includes('.') ? e.uid.slice(e.uid.indexOf('.') + 1) : e.uid;
+            items.push({ id: `${group}::"${labelForUid}"`, label, group, description });
+        }
+        items.sort((a, b) => (a.group === b.group ? a.label.localeCompare(b.label) : a.group.localeCompare(b.group)));
+        return items;
+    }, [config.hasTarget, config.type, entities.data]);
+
+    const effectiveConfig = useMemo<ServicePageConfig>(
+        () => ({
+            ...config,
+            resourceOptions: serviceResourceOptions,
+            resourceGroups: config.resourceGroups ?? DEFAULT_RESOURCE_GROUPS,
+        }),
+        [config, serviceResourceOptions],
+    );
+
+    const startCreate = useCallback(() => {
+        setSubmitError(null);
+        setSheet({ kind: 'create', target: null });
+    }, []);
+
+    const submit = useCallback(
+        async (req: PolicyRequest) => {
+            try {
+                if (sheet.kind === 'edit') {
+                    await policies.update(sheet.policy.id, req);
+                } else {
+                    await policies.create(req);
+                }
+                setSheet({ kind: 'closed' });
+                setSubmitError(null);
+            } catch (e) {
+                const err = e instanceof Error ? e : new Error('Save failed');
+                setSubmitError(err);
+                throw err;
+            }
+        },
+        [policies, sheet],
+    );
+
+    const onEdit = useCallback((p: PolicyResponse) => {
+        setSubmitError(null);
+        setSheet({ kind: 'edit', policy: p });
+    }, []);
 
     const confirmDelete = async () => {
         if (!pendingDelete) return;
@@ -113,14 +307,20 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
         setDeleteError(null);
     };
 
+    const handleReload = useCallback(() => {
+        policies.reload();
+        entities.reload();
+    }, [policies, entities]);
+
     const Icon = config.icon;
     const totalCount = policies.data?.total ?? 0;
     const hasNoPolicies = !policies.isLoading && totalCount === 0 && !deferredSearch && statusFilter === 'ALL';
     const hasNoMatches = !policies.isLoading && filteredPolicies.length === 0 && totalCount > 0;
+    const catalogError = config.hasTarget ? catalog.error : undefined;
 
     return (
         <div className="flex flex-col gap-4" data-testid={`page-policies-${config.type.toLowerCase()}`}>
-            <header className="flex items-start justify-between gap-3">
+            <header className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex items-start gap-3">
                     {Icon ? <Icon className="mt-1 size-5 text-muted-foreground" /> : null}
                     <div>
@@ -129,10 +329,10 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button type="button" variant="ghost" size="icon" onClick={() => policies.reload()} aria-label="Refresh">
+                    <Button type="button" variant="ghost" size="icon" onClick={handleReload} aria-label="Refresh">
                         <RefreshCwIcon aria-hidden className="size-4" />
                     </Button>
-                    <Button type="button" disabled title="Policy editor lands in the follow-up PR">
+                    <Button type="button" onClick={startCreate}>
                         <PlusIcon aria-hidden className="size-4" />
                         {config.hasTarget ? 'Create policy' : config.createButtonLabel}
                     </Button>
@@ -148,7 +348,7 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
                 ) : null}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
                 <Input
                     value={search}
                     onChange={e => setSearch(e.target.value)}
@@ -169,11 +369,25 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
                 </Select>
             </div>
 
+            {policies.error !== undefined && (
+                <Alert variant="destructive">
+                    <AlertTitle>Could not load policies</AlertTitle>
+                    <AlertDescription>{policies.error}</AlertDescription>
+                </Alert>
+            )}
+
+            {catalogError !== undefined && (
+                <Alert variant="destructive">
+                    <AlertTitle>Could not load catalog</AlertTitle>
+                    <AlertDescription>{catalogError}</AlertDescription>
+                </Alert>
+            )}
+
             {hasNoPolicies ? (
                 <Empty>
                     <EmptyHeader>
                         <EmptyTitle>No policies yet</EmptyTitle>
-                        <EmptyDescription>The editor that creates policies arrives in the next PR.</EmptyDescription>
+                        <EmptyDescription>Create a policy to define who can do what.</EmptyDescription>
                     </EmptyHeader>
                 </Empty>
             ) : hasNoMatches ? (
@@ -193,10 +407,40 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
                     isLoading={policies.isLoading}
                     onPageChange={policies.setPage}
                     onPerPageChange={policies.setPerPage}
-                    onEdit={noopEdit}
+                    onEdit={onEdit}
                     onDelete={setPendingDelete}
                 />
             )}
+
+            <PolicyEditorSheet
+                config={effectiveConfig}
+                open={sheet.kind !== 'closed'}
+                policy={sheet.kind === 'edit' ? sheet.policy : null}
+                initialTarget={
+                    sheet.kind === 'create'
+                        ? sheet.target
+                        : sheet.kind === 'edit' && sheet.policy.target
+                          ? (catalog.entries.find(e => e.id === sheet.policy.target!.id) ?? {
+                                id: sheet.policy.target.id,
+                                name: sheet.policy.target.label,
+                                description: '',
+                                type: toCatalogEntryType(config.type),
+                                subResources: [],
+                            })
+                          : null
+                }
+                submitError={submitError}
+                principalOptions={principalOptions}
+                actionOptions={actionOptions}
+                emptyPrincipalsHint={emptyPrincipalsHint}
+                emptyActionsHint={emptyActionsHint}
+                onOpenChange={o => {
+                    if (!o) {
+                        setSheet({ kind: 'closed' });
+                    }
+                }}
+                onSubmit={submit}
+            />
 
             <Dialog open={pendingDelete !== null} onOpenChange={open => !open && closeDeleteDialog()}>
                 <DialogContent>
@@ -208,10 +452,16 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
                     </DialogHeader>
                     {deleteError ? <ValidationErrorAlert error={deleteError} title="Delete failed" /> : null}
                     <DialogFooter>
-                        <Button variant="outline" onClick={closeDeleteDialog} disabled={deleting}>
+                        <Button type="button" variant="outline" onClick={closeDeleteDialog} disabled={deleting}>
                             Cancel
                         </Button>
-                        <Button variant="destructive" onClick={confirmDelete} disabled={deleting}>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={confirmDelete}
+                            disabled={deleting}
+                            aria-label={pendingDelete ? `Confirm delete ${pendingDelete.name}` : 'Confirm delete'}
+                        >
                             {deleting ? 'Deleting…' : deleteError ? 'Retry' : 'Delete'}
                         </Button>
                     </DialogFooter>
@@ -219,9 +469,4 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
             </Dialog>
         </div>
     );
-}
-
-// TODO(authz-ui-editor): wire to the policy editor Sheet in the follow-up PR.
-function noopEdit() {
-    /* no-op until the editor PR lands */
 }
