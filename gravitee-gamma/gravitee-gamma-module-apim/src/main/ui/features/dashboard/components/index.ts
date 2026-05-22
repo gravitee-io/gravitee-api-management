@@ -14,3 +14,9 @@
  * limitations under the License.
  */
 export { DashboardEmptyLanding } from './DashboardEmptyLanding';
+export { DashboardGetStartedCards } from './DashboardGetStartedCards';
+export { DashboardQuickActions } from './DashboardQuickActions';
+export { DashboardRecentActivity } from './DashboardRecentActivity';
+export { DashboardSearchCard } from './DashboardSearchCard';
+export { DashboardSummaryCards } from './DashboardSummaryCards';
+export { DashboardView } from './DashboardView';

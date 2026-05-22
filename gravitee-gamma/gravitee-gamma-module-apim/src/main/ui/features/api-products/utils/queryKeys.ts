@@ -18,6 +18,7 @@ export const apiProductKeys = {
     all: ['api-products'] as const,
     list: (envId: string, query: string, page: number, perPage: number) =>
         [...apiProductKeys.all, 'list', envId, query, page, perPage] as const,
+    count: (envId: string, filter: object) => [...apiProductKeys.all, 'count', envId, JSON.stringify(filter)] as const,
     detail: (envId: string, productId: string) => [...apiProductKeys.all, 'detail', envId, productId] as const,
     verify: (envId: string, name: string, productId?: string) =>
         [...apiProductKeys.all, 'verify-name', envId, name, productId ?? ''] as const,
