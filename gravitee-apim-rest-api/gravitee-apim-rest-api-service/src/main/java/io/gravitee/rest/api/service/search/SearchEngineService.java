@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.search;
 
+import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.command.CommandSearchIndexerEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -37,6 +38,12 @@ public interface SearchEngineService {
     void commit();
 
     SearchResult search(ExecutionContext executionContext, Query<? extends Indexable> query);
+
+    /**
+     * Searches the page index and returns the matching documents' {@code reference_id}
+     * (i.e. the parent API id) instead of the page id.
+     */
+    SearchResult searchPageReference(ExecutionContext executionContext, Query<PageEntity> query);
 
     void process(ExecutionContext executionContext, CommandSearchIndexerEntity content);
 }

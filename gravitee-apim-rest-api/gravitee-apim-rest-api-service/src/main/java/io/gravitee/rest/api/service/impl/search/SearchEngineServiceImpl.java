@@ -353,4 +353,21 @@ public class SearchEngineServiceImpl implements SearchEngineService {
 
         return results.orElse(new SearchResult(List.of()));
     }
+
+    @Override
+    public SearchResult searchPageReference(final ExecutionContext executionContext, Query<PageEntity> query) {
+        return searchers
+            .stream()
+            .filter(searcher -> searcher.handle(PageEntity.class))
+            .findFirst()
+            .flatMap(searcher -> {
+                try {
+                    return Optional.of(searcher.searchReference(executionContext, query));
+                } catch (TechnicalException te) {
+                    log.error("Unexpected error while searching page references", te);
+                    return Optional.empty();
+                }
+            })
+            .orElse(new SearchResult(List.of()));
+    }
 }
