@@ -75,8 +75,18 @@ public class GrpcNoEndpointV4EmulationIntegrationTest extends AbstractGrpcGatewa
 
                 @Override
                 public void onError(Throwable throwable) {
-                    assertThat(throwable).isNotNull().isInstanceOf(StatusRuntimeException.class);
-                    assertThat(((StatusRuntimeException) throwable).getStatus().getCode()).isEqualTo(Status.Code.UNKNOWN);
+                    // Wrap in verify(): this runs on a Vert.x event-loop thread, so a bare AssertionError
+                    // would be swallowed and the test would hang for 30s instead of failing fast.
+                    testContext.verify(() -> {
+                        assertThat(throwable).isNotNull().isInstanceOf(StatusRuntimeException.class);
+                        // Code is environment-dependent: UNAVAILABLE if the gateway delivered HTTP 503
+                        // cleanly (vertx-grpc maps 503 -> UNAVAILABLE since 5.0.12), UNKNOWN if the stream
+                        // was reset before the :status frame reached the client. See PR description.
+                        assertThat(((StatusRuntimeException) throwable).getStatus().getCode()).isIn(
+                            Status.Code.UNKNOWN,
+                            Status.Code.UNAVAILABLE
+                        );
+                    });
 
                     testContext.completeNow();
                 }
