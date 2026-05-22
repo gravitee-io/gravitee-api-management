@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 import { join } from 'path';
-
 import { NxModuleFederationPlugin } from '@nx/module-federation/rspack.js';
 import { NxAppRspackPlugin } from '@nx/rspack/app-plugin.js';
 import { NxReactRspackPlugin } from '@nx/rspack/react-plugin.js';
-
 import config from './module-federation.config';
 
 export default {

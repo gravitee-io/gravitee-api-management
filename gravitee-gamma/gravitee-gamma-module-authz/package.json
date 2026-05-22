@@ -5,7 +5,7 @@
         "@dagrejs/dagre": "1.1.4",
         "@fontsource/dm-sans": "5.2.8",
         "@gravitee/gamma-modules-sdk": "1.0.0-alpha.2",
-        "@gravitee/graphene-core": "2.3.2",
+        "@gravitee/graphene-core": "2.12.2",
         "@monaco-editor/react": "4.7.0",
         "@xyflow/react": "12.10.1",
         "lucide-react": "0.487.0",
