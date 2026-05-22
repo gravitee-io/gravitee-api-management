@@ -28,6 +28,7 @@ import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.edge.EdgeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -172,6 +173,29 @@ class ApiMapperTest {
             .assertValue(reactableApi -> {
                 assertThat(reactableApi.getId()).isEqualTo(nativeApi.getId());
                 assertThat(reactableApi.getDefinition()).isEqualTo(nativeApi);
+                return true;
+            })
+            .assertComplete();
+    }
+
+    @Test
+    void should_map_edge_api_v4() throws JsonProcessingException {
+        EdgeApi edgeApi = new EdgeApi();
+        edgeApi.setId("id");
+        edgeApi.setType(ApiType.EDGE);
+        edgeApi.setDefinitionVersion(DefinitionVersion.V4);
+
+        repoApiV4.setType(ApiType.EDGE);
+        repoApiV4.setDefinition(objectMapper.writeValueAsString(edgeApi));
+
+        Event event = new Event();
+        event.setPayload(objectMapper.writeValueAsString(repoApiV4));
+        cut
+            .to(event)
+            .test()
+            .assertValue(reactableApi -> {
+                assertThat(reactableApi.getId()).isEqualTo(edgeApi.getId());
+                assertThat(reactableApi.getDefinition()).isEqualTo(edgeApi);
                 return true;
             })
             .assertComplete();

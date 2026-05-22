@@ -27,6 +27,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
+import io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi;
 import io.gravitee.gateway.reactive.handlers.api.v4.NativeApi;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
@@ -131,6 +132,38 @@ class ApiMapperTest {
         apiDef.setDefinitionVersion(DefinitionVersion.V4);
         apiDef.setType(ApiType.NATIVE);
         NativeApi api = new NativeApi(apiDef);
+
+        DistributedEvent distributedEvent = DistributedEvent.builder()
+            .id("apiId")
+            .payload(objectMapper.writeValueAsString(api))
+            .updatedAt(new Date())
+            .type(DistributedEventType.API)
+            .syncAction(DistributedSyncAction.DEPLOY)
+            .build();
+
+        ApiReactorDeployable apiReactorDeployable = ApiReactorDeployable.builder()
+            .apiId("apiId")
+            .reactableApi(api)
+            .syncAction(SyncAction.DEPLOY)
+            .build();
+
+        cut
+            .to(distributedEvent)
+            .test()
+            .assertValue(reactorDeployable -> {
+                assertThat(reactorDeployable).isEqualTo(apiReactorDeployable);
+                return true;
+            });
+    }
+
+    @SneakyThrows
+    @Test
+    void should_return_distributed_event_for_v4_edge_api() {
+        io.gravitee.definition.model.v4.edge.EdgeApi apiDef = new io.gravitee.definition.model.v4.edge.EdgeApi();
+        apiDef.setId("apiId");
+        apiDef.setDefinitionVersion(DefinitionVersion.V4);
+        apiDef.setType(ApiType.EDGE);
+        EdgeApi api = new EdgeApi(apiDef);
 
         DistributedEvent distributedEvent = DistributedEvent.builder()
             .id("apiId")

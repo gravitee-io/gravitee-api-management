@@ -28,6 +28,7 @@ import io.gravitee.apim.gateway.tests.sdk.connector.ConnectorBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.container.GatewayTestContainer;
 import io.gravitee.apim.gateway.tests.sdk.converters.ApiDeploymentPreparer;
+import io.gravitee.apim.gateway.tests.sdk.converters.EdgeApiDeploymentPreparer;
 import io.gravitee.apim.gateway.tests.sdk.converters.LegacyApiDeploymentPreparer;
 import io.gravitee.apim.gateway.tests.sdk.converters.NativeApiDeploymentPreparer;
 import io.gravitee.apim.gateway.tests.sdk.converters.V4ApiDeploymentPreparer;
@@ -53,6 +54,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.edge.EdgeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
 import io.gravitee.gateway.dictionary.DictionaryManager;
@@ -222,7 +224,9 @@ public class GatewayRunner {
             io.gravitee.definition.model.v4.Api.class,
             new V4ApiDeploymentPreparer(),
             NativeApi.class,
-            new NativeApiDeploymentPreparer()
+            new NativeApiDeploymentPreparer(),
+            EdgeApi.class,
+            new EdgeApiDeploymentPreparer()
         );
     }
 
@@ -694,6 +698,8 @@ public class GatewayRunner {
             AbstractApi api;
             if (apiType == ApiType.NATIVE) {
                 api = graviteeMapper.treeToValue(apiAsJson, NativeApi.class);
+            } else if (apiType == ApiType.EDGE) {
+                api = graviteeMapper.treeToValue(apiAsJson, EdgeApi.class);
             } else {
                 api = graviteeMapper.treeToValue(apiAsJson, io.gravitee.definition.model.v4.Api.class);
             }
