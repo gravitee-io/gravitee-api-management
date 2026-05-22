@@ -15,8 +15,19 @@
  */
 import { Brain } from 'lucide-react';
 import type { CatalogEntry } from '../../../../lib/api/authz-api.types';
-import type { AiProviderEntry } from '../AiModelTargetPickerDialog';
 import type { ServicePageConfig } from '../ServicePolicyPage';
+
+export interface AiProviderEntry {
+    readonly id: string;
+    readonly name: string;
+    readonly description?: string;
+    readonly models: readonly {
+        readonly id: string;
+        readonly name: string;
+        readonly description?: string;
+        readonly badges?: readonly string[];
+    }[];
+}
 
 /**
  * Build the two-step AI provider/model picker entries from the flat catalog.

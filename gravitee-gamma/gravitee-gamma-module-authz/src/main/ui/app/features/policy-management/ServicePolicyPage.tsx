@@ -47,10 +47,10 @@ import { useEntityOptions } from '../../../lib/hooks/useEntityOptions';
 import { usePolicies } from '../../../lib/hooks/usePolicies';
 import { useSchema } from '../../../lib/hooks/useSchema';
 import { useEnvironment } from '../../lib/env/EnvironmentContext';
-import type { AiProviderEntry } from './AiModelTargetPickerDialog';
 import { PolicyEditorSheet } from './PolicyEditorSheet';
 import { PolicyListTable } from './PolicyListTable';
 import type { ChipOption } from './PolicyStatementCard';
+import type { AiProviderEntry } from './service-defs/llms';
 import { UnifiedTargetPickerDialog, type UnifiedTarget } from './UnifiedTargetPickerDialog';
 
 export interface ServicePageConfig {
