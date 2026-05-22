@@ -22,6 +22,7 @@ import io.gravitee.gateway.reactive.reactor.processor.connection.ConnectionDrain
 import io.gravitee.gateway.reactive.reactor.processor.forward.XForwardProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.metrics.MetricsProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.tracing.TraceContextProcessor;
+import io.gravitee.gateway.reactive.reactor.processor.tracing.TracingPreProcessor;
 import io.gravitee.gateway.reactive.reactor.processor.transaction.TransactionPreProcessorFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
@@ -38,6 +39,7 @@ public class DefaultPlatformProcessorChainFactory extends AbstractPlatformProces
 
     private final boolean xForwardProcessor;
     private final boolean traceContext;
+    private final boolean tracesEnabled;
     private final GatewayConfiguration gatewayConfiguration;
     private final ConnectionDrainManager connectionDrainManager;
 
@@ -50,13 +52,15 @@ public class DefaultPlatformProcessorChainFactory extends AbstractPlatformProces
         Node node,
         String port,
         GatewayConfiguration gatewayConfiguration,
-        ConnectionDrainManager connectionDrainManager
+        ConnectionDrainManager connectionDrainManager,
+        boolean tracesEnabled
     ) {
         super(transactionHandlerFactory, reporterService, eventProducer, node, port);
         this.traceContext = traceContext;
         this.xForwardProcessor = xForwardProcessor;
         this.gatewayConfiguration = gatewayConfiguration;
         this.connectionDrainManager = connectionDrainManager;
+        this.tracesEnabled = tracesEnabled;
     }
 
     @Override
@@ -64,6 +68,9 @@ public class DefaultPlatformProcessorChainFactory extends AbstractPlatformProces
         List<Processor> preProcessorList = new ArrayList<>();
         preProcessorList.add(new ConnectionDrainProcessor(connectionDrainManager));
         preProcessorList.add(transactionHandlerFactory.create());
+        if (tracesEnabled) {
+            preProcessorList.add(new TracingPreProcessor());
+        }
         preProcessorList.add(new MetricsProcessor(gatewayConfiguration));
 
         if (xForwardProcessor) {
