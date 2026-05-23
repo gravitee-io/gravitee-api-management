@@ -27,7 +27,7 @@ import { XIcon } from '@gravitee/graphene-core/icons';
 import { useMemo } from 'react';
 
 import { extractDefinition, formatDate } from './utils';
-import type { ApiEvent } from '../../../types/api';
+import type { ApiEvent } from '../../../types';
 
 type Props = Readonly<{
     event: ApiEvent;

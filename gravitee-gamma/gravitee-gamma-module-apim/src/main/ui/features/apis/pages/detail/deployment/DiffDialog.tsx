@@ -21,7 +21,7 @@ import { LineDiffView } from './LineDiffView';
 import { SideBySideView } from './SideBySideView';
 import type { DiffMode } from './types';
 import { computeSideBySideDiff, computeUnifiedDiff, extractDefinition, formatDate, hasDiffChanges } from './utils';
-import type { ApiEvent } from '../../../types/api';
+import type { ApiEvent } from '../../../types';
 
 type Props = Readonly<{
     left: ApiEvent;

@@ -22,7 +22,7 @@ import type {
     AlertRuleId,
     AlertStringOperator,
     AlertTimeUnit,
-} from '../types/api';
+} from '../types';
 
 // ─── Rule definitions ──────────────────────────────────────────────────────────
 

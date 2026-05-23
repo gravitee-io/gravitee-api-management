@@ -23,7 +23,7 @@ import { searchApiProducts } from '../../api-products/services/apiProduct';
 import type { ApiProductListItem } from '../../api-products/types/apiProduct';
 import { apiProductKeys } from '../../api-products/utils/queryKeys';
 import { searchApis } from '../../apis/services/apiList';
-import type { ApiListItem } from '../../apis/types/api';
+import type { ApiListItem } from '../../apis/types';
 import { apiListKeys } from '../../apis/utils/queryKeys';
 
 const MAX_RESULTS = 5;

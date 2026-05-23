@@ -21,7 +21,7 @@ import type {
     CreateApiProxyRequest,
     PathToVerify,
     VerifyApiPathResponse,
-} from '../types/api';
+} from '../types';
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 

@@ -26,7 +26,7 @@ import type {
     AlertOperator,
     AlertStringOperator,
     AlertTrigger,
-} from '../types/api';
+} from '../types';
 
 // ─── Condition converters ──────────────────────────────────────────────────────
 

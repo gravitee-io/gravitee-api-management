@@ -15,7 +15,7 @@
  */
 import { createContext, useContext } from 'react';
 
-import type { ApiDetailDto } from '../types/api';
+import type { ApiDetailDto } from '../types';
 
 export type ApiDetailContextValue = {
     readonly api: ApiDetailDto | null;

@@ -49,7 +49,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { ALERT_RULES } from '../../../constants/alertConstants';
 import { deleteAlertTrigger, listAlerts, updateAlertTrigger, alertTriggerToFormData } from '../../../services/alerts';
-import type { AlertTrigger } from '../../../types/api';
+import type { AlertTrigger } from '../../../types';
 import { apiAlertKeys } from '../../../utils/queryKeys';
 
 const CAPABILITIES = [

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
-import type { ApiListResponse } from '../../apis/types/api';
+import type { ApiListResponse } from '../../apis/types';
 import type {
     ApiProductListItem,
     ApiProductListResponse,

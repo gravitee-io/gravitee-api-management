@@ -27,7 +27,7 @@ import { validatePath } from './types';
 import { VirtualHostsCard } from './VirtualHostsCard';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import { useApiEntrypoints } from '../../../hooks/useApiEntrypoints';
-import type { ApiDetailDto, HttpListener } from '../../../types/api';
+import type { ApiDetailDto, HttpListener } from '../../../types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

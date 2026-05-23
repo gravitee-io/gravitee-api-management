@@ -17,7 +17,7 @@ import { Badge, Button, Dialog, DialogContent, DialogFooter, DialogHeader, Dialo
 import { GlobeIcon, InfoIcon, SearchIcon, XIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import type { ApiListItem } from '../../../apis/types/api';
+import type { ApiListItem } from '../../../apis/types';
 import { useApisAvailableForProduct } from '../../hooks/useApiProductApis';
 
 interface AddApiToProductDialogProps {

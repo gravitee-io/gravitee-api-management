@@ -65,7 +65,7 @@ import { useParams } from 'react-router-dom';
 
 import { useApiDetail } from '../../../hooks/useApiDetail';
 import { updateApiProperties } from '../../../services/apis';
-import type { Property } from '../../../types/api';
+import type { Property } from '../../../types';
 import { parsePropertiesStringFormat } from '../../../utils/propertiesParser';
 import { apiDetailKeys } from '../../../utils/queryKeys';
 

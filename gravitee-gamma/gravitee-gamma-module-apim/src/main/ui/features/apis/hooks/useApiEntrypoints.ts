@@ -19,7 +19,7 @@ import { useParams } from 'react-router-dom';
 
 import { useApiDetailContext } from '../context/ApiDetailContext';
 import { getExposedEntrypoints, updateApiListeners } from '../services/entrypoints';
-import type { HttpListener } from '../types/api';
+import type { HttpListener } from '../types';
 import { apiDetailKeys, apiEntrypointKeys } from '../utils/queryKeys';
 
 export function useApiEntrypoints(showConfig: boolean) {

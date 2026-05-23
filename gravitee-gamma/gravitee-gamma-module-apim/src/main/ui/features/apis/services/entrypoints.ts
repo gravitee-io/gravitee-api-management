@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
-import type { ApiDetailDto, ExposedEntrypoint, HttpListener } from '../types/api';
+import type { ApiDetailDto, ExposedEntrypoint, HttpListener } from '../types';
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 

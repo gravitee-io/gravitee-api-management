@@ -27,7 +27,7 @@ import {
     TableRow,
 } from '@gravitee/graphene-core';
 
-import type { AlertHistoryPage } from '../../../types/api';
+import type { AlertHistoryPage } from '../../../types';
 
 export interface HistoryTabProps {
     historyPage: AlertHistoryPage | undefined;

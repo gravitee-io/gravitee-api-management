@@ -22,7 +22,7 @@ import { useDetailBasePath } from '../../../../shared/hooks/useDetailBasePath';
 import { ApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDetail } from '../../hooks/useApiDetail';
 import { useApiPermissions } from '../../hooks/useApiPermissions';
-import type { ApiDetailDto } from '../../types/api';
+import type { ApiDetailDto } from '../../types';
 
 function StateIndicator({ state }: { state: ApiDetailDto['state'] }) {
     switch (state) {

@@ -21,7 +21,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { ApiCorsPage } from './ApiCorsPage';
 import { useApiDetail } from '../../../hooks/useApiDetail';
 import { updateApiCors } from '../../../services/apis';
-import type { Cors } from '../../../types/api';
+import type { Cors } from '../../../types';
 
 // ─── SDK / context mocks ──────────────────────────────────────────────────────
 

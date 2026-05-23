@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { CreateApiPlanRequest, CreateApiProxyRequest, HttpListener, PlanSecurity } from '../types/api';
+import type { CreateApiPlanRequest, CreateApiProxyRequest, HttpListener, PlanSecurity } from '../types';
 import type { ApiProxyDraft } from '../types/apiCreation';
 
 export const GATEWAY_URL_PLACEHOLDER = 'https://gateway.company.com';

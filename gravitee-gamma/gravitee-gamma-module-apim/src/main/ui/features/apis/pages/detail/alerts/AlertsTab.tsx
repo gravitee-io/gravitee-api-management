@@ -39,7 +39,7 @@ import { MissingDataConditionForm } from './MissingDataConditionForm';
 import { RateConditionForm } from './RateConditionForm';
 import { SimpleConditionForm } from './SimpleConditionForm';
 import { ALERT_RULES, API_METRICS, type AlertMetricDefinition, type AlertRuleDefinition } from '../../../constants/alertConstants';
-import type { AlertFormCondition, AlertFormTimeframe, AlertRuleId, AlertSeverity } from '../../../types/api';
+import type { AlertFormCondition, AlertFormTimeframe, AlertRuleId, AlertSeverity } from '../../../types';
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 

@@ -21,7 +21,7 @@ import {
     getConditionTypesForMetric,
     type AlertMetricDefinition,
 } from '../../../constants/alertConstants';
-import type { AlertConditionType, AlertFormCondition, AlertOperator, AlertStringOperator } from '../../../types/api';
+import type { AlertConditionType, AlertFormCondition, AlertOperator, AlertStringOperator } from '../../../types';
 
 interface Props {
     condition: AlertFormCondition;

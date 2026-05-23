@@ -30,7 +30,7 @@ import {
     updateApiGeneral,
     updateApiPicture,
 } from '../services/apis';
-import type { ApiDetailDto } from '../types/api';
+import type { ApiDetailDto } from '../types';
 import { apiDetailKeys } from '../utils/queryKeys';
 
 interface ApiGeneralSideEffects {

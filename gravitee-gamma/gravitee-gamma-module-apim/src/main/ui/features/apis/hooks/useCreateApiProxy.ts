@@ -18,7 +18,7 @@ import { useMutation } from '@tanstack/react-query';
 
 import { ApimApiError } from '../../../shared/api/apimClient';
 import { createApiPlan, createApiProxy, publishApiPlan, startApiProxy } from '../services/apiProxy';
-import type { ApiProxyCreated } from '../types/api';
+import type { ApiProxyCreated } from '../types';
 import type { ApiProxyDraft } from '../types/apiCreation';
 import { mapFormToCreateRequest, mapFormToPlanRequest } from '../utils/apiProxyMapper';
 import { apiProxyKeys } from '../utils/queryKeys';

@@ -16,7 +16,7 @@
 import { Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@gravitee/graphene-core';
 
 import { AGGREGATION_FUNCTIONS, ALERT_OPERATORS, TIME_UNITS, type AlertMetricDefinition } from '../../../constants/alertConstants';
-import type { AlertAggregationFunction, AlertFormCondition, AlertOperator, AlertTimeUnit } from '../../../types/api';
+import type { AlertAggregationFunction, AlertFormCondition, AlertOperator, AlertTimeUnit } from '../../../types';
 
 interface Props {
     condition: AlertFormCondition;

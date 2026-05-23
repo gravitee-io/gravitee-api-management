@@ -54,7 +54,7 @@ import {
 import { useEffect, useId, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-import type { ApiListItem } from '../../../../apis/types/api';
+import type { ApiListItem } from '../../../../apis/types';
 import { AddApiToProductDialog } from '../../../components/apis/AddApiToProductDialog';
 import { useApiProductDetailContext } from '../../../context/ApiProductDetailContext';
 import { useApiProductApis } from '../../../hooks/useApiProductApis';
