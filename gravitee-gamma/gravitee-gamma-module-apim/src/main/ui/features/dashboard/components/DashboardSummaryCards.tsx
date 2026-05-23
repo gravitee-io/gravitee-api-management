@@ -27,19 +27,17 @@ function StatCard({ Icon, title, total }: StatCardProps) {
     return (
         <Card>
             <CardContent className="pt-5 pb-5">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <div className="rounded-lg bg-primary/10 p-2">
-                            <Icon className="size-5 text-primary" aria-hidden />
-                        </div>
-                        <p className="text-sm font-medium text-muted-foreground">{title}</p>
+                <div className="flex items-center gap-2 mb-3">
+                    <div className="rounded-lg bg-primary/10 p-2">
+                        <Icon className="size-4 text-primary" aria-hidden />
                     </div>
-                    {total === null ? (
-                        <Skeleton className="rounded" style={{ height: '2rem', width: '2.5rem' }} />
-                    ) : (
-                        <p className="text-2xl font-semibold">{total}</p>
-                    )}
+                    <p className="text-sm font-medium text-muted-foreground">{title}</p>
                 </div>
+                {total === null ? (
+                    <Skeleton className="h-7 w-14 rounded" />
+                ) : (
+                    <p className="text-2xl font-semibold tracking-tight">{total.toLocaleString()}</p>
+                )}
             </CardContent>
         </Card>
     );
@@ -48,6 +46,8 @@ function StatCard({ Icon, title, total }: StatCardProps) {
 interface DashboardSummaryCardsProps {
     totalApis: number | null;
     totalProducts: number | null;
+    onGoToApis?: () => void;
+    onGoToApiProducts?: () => void;
 }
 
 export function DashboardSummaryCards({ totalApis, totalProducts }: DashboardSummaryCardsProps) {

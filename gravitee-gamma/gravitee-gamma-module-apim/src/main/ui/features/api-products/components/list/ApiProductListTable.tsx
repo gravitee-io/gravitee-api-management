@@ -32,7 +32,6 @@ import { MoreHorizontalIcon } from '@gravitee/graphene-core/icons';
 import { useNavigate } from 'react-router-dom';
 
 import type { ApiProductListItem } from '../../types/apiProduct';
-import { SyncStatusBadge } from '../SyncStatusBadge';
 
 function SkeletonRow() {
     return (
@@ -42,9 +41,6 @@ function SkeletonRow() {
             </TableCell>
             <TableCell>
                 <Skeleton className="h-4 w-10 rounded" />
-            </TableCell>
-            <TableCell>
-                <Skeleton className="h-5 w-20 rounded-full" />
             </TableCell>
             <TableCell>
                 <Skeleton className="h-4 w-16 rounded" />
@@ -89,7 +85,6 @@ export function ApiProductListTable({ products, isLoading, skeletonRowCount = 5 
                     <TableRow>
                         <TableHead>Product Name</TableHead>
                         <TableHead>Total APIs</TableHead>
-                        <TableHead>Sync Status</TableHead>
                         <TableHead>Version</TableHead>
                         <TableHead>Owner</TableHead>
                         <TableHead className="w-10 text-right">Actions</TableHead>
@@ -100,7 +95,7 @@ export function ApiProductListTable({ products, isLoading, skeletonRowCount = 5 
                         Array.from({ length: skeletonRowCount }).map((_, i) => <SkeletonRow key={i} />)
                     ) : products.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
+                            <TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">
                                 No API products found.
                             </TableCell>
                         </TableRow>
@@ -124,9 +119,6 @@ export function ApiProductListTable({ products, isLoading, skeletonRowCount = 5 
                                     <Badge variant="secondary" className="text-xs tabular-nums">
                                         {product.apiIds?.length ?? 0}
                                     </Badge>
-                                </TableCell>
-                                <TableCell>
-                                    <SyncStatusBadge state={product.deploymentState} />
                                 </TableCell>
                                 <TableCell>
                                     <Badge variant="outline" className="font-mono text-xs">

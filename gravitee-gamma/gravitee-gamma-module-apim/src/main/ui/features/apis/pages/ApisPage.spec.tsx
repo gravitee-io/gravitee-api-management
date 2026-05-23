@@ -19,12 +19,15 @@ import { MemoryRouter } from 'react-router-dom';
 import { ApisPage } from './ApisPage';
 import { useApiList } from '../hooks/useApiList';
 import { useApiStats } from '../hooks/useApiStats';
+import { useEnvironmentTotalCalls } from '../hooks/useEnvironmentTotalCalls';
 
 jest.mock('../hooks/useApiList');
 jest.mock('../hooks/useApiStats');
+jest.mock('../hooks/useEnvironmentTotalCalls');
 
 const mockUseApiList = useApiList as jest.Mock;
 const mockUseApiStats = useApiStats as jest.Mock;
+const mockUseEnvironmentTotalCalls = useEnvironmentTotalCalls as jest.Mock;
 
 const STUB_STATS = { total: 0, private: 0, published: 0, isLoading: false };
 
@@ -39,6 +42,7 @@ function renderPage() {
 describe('ApisPage', () => {
     beforeEach(() => {
         mockUseApiStats.mockReturnValue(STUB_STATS);
+        mockUseEnvironmentTotalCalls.mockReturnValue({ total: null, isLoading: false });
     });
 
     afterEach(() => jest.clearAllMocks());

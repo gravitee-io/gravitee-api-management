@@ -15,7 +15,7 @@
  */
 import { cn } from '@gravitee/graphene-core';
 import { UploadIcon } from '@gravitee/graphene-core/icons';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 const MAX_SIZE_BYTES = 500 * 1024;
 
@@ -47,6 +47,12 @@ export function ImagePicker({
 }>) {
     const inputRef = useRef<HTMLInputElement>(null);
     const [sizeError, setSizeError] = useState<string | null>(null);
+    const [imgError, setImgError] = useState(false);
+
+    // Reset error state when preview URL changes (e.g. after upload invalidates the query)
+    useEffect(() => {
+        setImgError(false);
+    }, [preview]);
 
     const handleFile = useCallback(
         async (file: File) => {
@@ -80,8 +86,8 @@ export function ImagePicker({
                 }}
                 aria-label={`Upload ${label}`}
             >
-                {preview ? (
-                    <img src={preview} alt={label} className="w-full h-full object-cover" />
+                {preview && !imgError ? (
+                    <img src={preview} alt={label} className="w-full h-full object-cover" onError={() => setImgError(true)} />
                 ) : (
                     <UploadIcon className="size-6 text-muted-foreground" />
                 )}
@@ -90,7 +96,7 @@ export function ImagePicker({
                 {label}
             </p>
             {sizeError && <p className="text-xs text-destructive">{sizeError}</p>}
-            {preview && !disabled && (
+            {preview && !imgError && !disabled && (
                 <button
                     type="button"
                     onClick={onRemove}

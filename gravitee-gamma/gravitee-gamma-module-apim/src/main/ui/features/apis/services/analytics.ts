@@ -28,6 +28,23 @@ export interface ApiStatsAnalytics {
     rph?: number;
 }
 
+/** Shape returned by GET /analytics/request-response-time */
+export interface EnvironmentRequestResponseTime {
+    requestsPerSecond?: number | null;
+    requestsTotal?: number | null;
+    responseMinTime?: number | null;
+    responseMaxTime?: number | null;
+    responseAvgTime?: number | null;
+}
+
+export async function getEnvironmentRequestResponseTime(
+    environmentId: string,
+    from: number,
+    to: number,
+): Promise<EnvironmentRequestResponseTime> {
+    return apimFetchJsonV2<EnvironmentRequestResponseTime>(environmentId, `/analytics/request-response-time?from=${from}&to=${to}`);
+}
+
 export async function getApiAnalyticsStats(
     environmentId: string,
     apiId: string,
