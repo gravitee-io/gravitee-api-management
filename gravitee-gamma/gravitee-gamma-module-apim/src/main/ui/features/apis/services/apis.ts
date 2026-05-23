@@ -14,7 +14,16 @@
  * limitations under the License.
  */
 import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
-import type { ApiDetailDto, ApiEventsPage, DuplicateApiOptions, Cors, DynamicPropertyConfig, Failover, Property } from '../types/api';
+import type {
+    Analytics,
+    ApiDetailDto,
+    ApiEventsPage,
+    DuplicateApiOptions,
+    Cors,
+    DynamicPropertyConfig,
+    Failover,
+    Property,
+} from '../types';
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
@@ -159,6 +168,15 @@ export async function updateApiCors(environmentId: string, apiId: string, cors: 
         method: 'PUT',
         headers: JSON_HEADERS,
         body: JSON.stringify({ ...current, listeners: updatedListeners.length > 0 ? updatedListeners : current.listeners }),
+    });
+}
+
+export async function updateApiAnalytics(environmentId: string, apiId: string, analytics: Analytics): Promise<void> {
+    const current = await apimFetchJsonV2<Record<string, unknown>>(environmentId, `/apis/${encodeURIComponent(apiId)}`);
+    await apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}`, {
+        method: 'PUT',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ ...current, analytics }),
     });
 }
 
