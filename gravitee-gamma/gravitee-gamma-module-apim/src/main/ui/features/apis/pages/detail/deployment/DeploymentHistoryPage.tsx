@@ -47,7 +47,7 @@ import { SingleEventDialog } from './SingleEventDialog';
 import { formatDate } from './utils';
 import { useApiEvents } from '../../../hooks/useApiEvents';
 import { rollbackApi } from '../../../services/apis';
-import type { ApiEvent } from '../../../types/api';
+import type { ApiEvent } from '../../../types';
 import { apiEventsKeys } from '../../../utils/queryKeys';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 25, 50, 100];

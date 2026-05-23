@@ -25,7 +25,7 @@ import { InfoTooltip } from './InfoTooltip';
 import { ToggleRow } from './ToggleRow';
 import { useApiDetail } from '../../../hooks/useApiDetail';
 import { updateApiCors } from '../../../services/apis';
-import type { Cors } from '../../../types/api';
+import type { Cors } from '../../../types';
 import { apiDetailKeys } from '../../../utils/queryKeys';
 
 // ─── Constants ────────────────────────────────────────────────────────────────

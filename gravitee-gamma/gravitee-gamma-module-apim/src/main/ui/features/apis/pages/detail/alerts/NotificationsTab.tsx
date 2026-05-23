@@ -38,7 +38,7 @@ import type { Dispatch, SetStateAction } from 'react';
 
 import { DAMPENING_MODES, NOTIFICATION_CHANNELS, TIME_UNITS } from '../../../constants/alertConstants';
 import type { AlertFormData } from '../../../services/alerts';
-import type { AlertDampeningMode, AlertFormNotification, AlertNotificationChannel, AlertTimeUnit } from '../../../types/api';
+import type { AlertDampeningMode, AlertFormNotification, AlertNotificationChannel, AlertTimeUnit } from '../../../types';
 
 const CHANNEL_META: Record<
     AlertNotificationChannel,

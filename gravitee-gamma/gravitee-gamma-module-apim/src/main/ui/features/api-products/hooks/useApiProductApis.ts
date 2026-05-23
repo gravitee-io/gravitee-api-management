@@ -16,7 +16,7 @@
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
-import type { ApiListResponse } from '../../apis/types/api';
+import type { ApiListResponse } from '../../apis/types';
 import { getApiProductApis, searchApisAllowedInProducts } from '../services/apiProduct';
 import { apiProductKeys } from '../utils/queryKeys';
 

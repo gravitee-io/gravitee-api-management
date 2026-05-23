@@ -17,7 +17,7 @@ import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useQuery } from '@tanstack/react-query';
 
 import { searchApis } from '../../apis/services/apiList';
-import type { ApiListItem } from '../../apis/types/api';
+import type { ApiListItem } from '../../apis/types';
 import { apiListKeys } from '../../apis/utils/queryKeys';
 
 const RECENT_PAGE = 1;

@@ -31,7 +31,7 @@ import {
 import { AlertCircleIcon, CircleCheckIcon, CircleXIcon, MoreHorizontalIcon, RefreshCwIcon } from '@gravitee/graphene-core/icons';
 import { useNavigate } from 'react-router-dom';
 
-import type { ApiDeploymentState, ApiListItem, ApiState } from '../../types/api';
+import type { ApiDeploymentState, ApiListItem, ApiState } from '../../types';
 import { getApiAccessPath } from '../../utils/apiAccess';
 
 // ─── Status helpers ───────────────────────────────────────────────────────────

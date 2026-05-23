@@ -17,7 +17,7 @@ import { ActivityIcon, GlobeIcon, LockIcon, NetworkIcon, UsersIcon, WorkflowIcon
 import { useMemo } from 'react';
 
 import { OverviewChecklistCard, type OverviewChecklistItem } from '../../../../../shared/components/OverviewChecklistCard';
-import type { AlertTrigger, ApiDetailDto } from '../../../types/api';
+import type { AlertTrigger, ApiDetailDto } from '../../../types';
 import type { MembersResponse } from '../../../types/members.types';
 
 function buildChecklistItems(

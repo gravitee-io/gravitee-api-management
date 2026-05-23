@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ApiListItem } from '../types/api';
+import type { ApiListItem } from '../types';
 
 /**
  * Extracts the primary access path from an API's listeners.

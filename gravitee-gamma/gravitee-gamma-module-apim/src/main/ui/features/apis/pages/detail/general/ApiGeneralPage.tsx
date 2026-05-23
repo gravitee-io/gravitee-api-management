@@ -46,7 +46,7 @@ import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import { useApiGeneralMutations } from '../../../hooks/useApiGeneralMutations';
 import { useEnvCategories } from '../../../hooks/useEnvCategories';
 import { exportApiDefinition } from '../../../services/apis';
-import type { ApiDetailDto } from '../../../types/api';
+import type { ApiDetailDto } from '../../../types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

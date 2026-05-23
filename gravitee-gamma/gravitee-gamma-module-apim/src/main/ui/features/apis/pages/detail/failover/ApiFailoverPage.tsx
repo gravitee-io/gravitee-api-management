@@ -37,7 +37,7 @@ import { NumberField } from './NumberField';
 import { ToggleSetting } from './ToggleSetting';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import { updateApiFailover } from '../../../services/apis';
-import type { Failover } from '../../../types/api';
+import type { Failover } from '../../../types';
 import { apiDetailKeys } from '../../../utils/queryKeys';
 import { InfoTooltip } from '../cors/InfoTooltip';
 

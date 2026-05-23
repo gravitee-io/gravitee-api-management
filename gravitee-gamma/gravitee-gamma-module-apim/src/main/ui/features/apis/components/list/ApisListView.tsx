@@ -19,7 +19,7 @@ import { useId } from 'react';
 
 import { ApiListTable } from './ApiListTable';
 import { ApiStatsCards } from './ApiStatsCards';
-import type { ApiListItem } from '../../types/api';
+import type { ApiListItem } from '../../types';
 
 interface ApisListViewProps {
     readonly apis: ApiListItem[];

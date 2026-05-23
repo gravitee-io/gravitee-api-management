@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { apimFetchJsonOrg } from '../../../shared/api/apimClient';
-import type { OrgShardingTag } from '../../apis/types/api';
+import type { OrgShardingTag } from '../../apis/types';
 
 export async function getOrgTags(): Promise<OrgShardingTag[]> {
     return apimFetchJsonOrg<OrgShardingTag[]>(`/configuration/tags`);

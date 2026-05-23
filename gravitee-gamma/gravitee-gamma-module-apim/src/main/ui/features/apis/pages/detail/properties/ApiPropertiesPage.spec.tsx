@@ -21,7 +21,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { ApiPropertiesPage } from './ApiPropertiesPage';
 import { useApiDetail } from '../../../hooks/useApiDetail';
 import { updateApiProperties } from '../../../services/apis';
-import type { Property } from '../../../types/api';
+import type { Property } from '../../../types';
 
 // ─── SDK / context mocks ──────────────────────────────────────────────────────
 

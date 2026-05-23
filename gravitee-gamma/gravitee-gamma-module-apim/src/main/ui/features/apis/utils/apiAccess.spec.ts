@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { getApiAccessPath } from './apiAccess';
-import type { ApiListItem } from '../types/api';
+import type { ApiListItem } from '../types';
 
 function makeApi(overrides: Partial<ApiListItem> = {}): ApiListItem {
     return { id: '1', name: 'Test API', apiVersion: '1.0', type: 'PROXY', definitionVersion: 'V4', ...overrides };

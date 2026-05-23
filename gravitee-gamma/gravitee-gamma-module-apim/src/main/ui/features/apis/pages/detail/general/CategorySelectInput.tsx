@@ -17,7 +17,7 @@ import { Badge, Checkbox, Popover, PopoverContent, PopoverTrigger, Skeleton } fr
 import { ChevronDownIcon, XIcon } from '@gravitee/graphene-core/icons';
 import { useRef, useState } from 'react';
 
-import type { EnvCategory } from '../../../types/api';
+import type { EnvCategory } from '../../../types';
 
 interface CategorySelectInputProps {
     id?: string;

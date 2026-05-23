@@ -16,7 +16,7 @@
 import { Badge, Button, Card, CardContent, Skeleton } from '@gravitee/graphene-core';
 import { ArrowRightIcon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 
-import type { ApiDeploymentState, ApiListItem, ApiState } from '../../apis/types/api';
+import type { ApiDeploymentState, ApiListItem, ApiState } from '../../apis/types';
 import { useDashboardRecentApis } from '../hooks/useDashboardRecentApis';
 
 // ─── State helpers ────────────────────────────────────────────────────────────

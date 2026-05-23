@@ -22,7 +22,7 @@ import {
     isStringMetric,
     type AlertMetricDefinition,
 } from '../../../constants/alertConstants';
-import type { AlertFormCondition, AlertOperator, AlertStringOperator, AlertTimeUnit } from '../../../types/api';
+import type { AlertFormCondition, AlertOperator, AlertStringOperator, AlertTimeUnit } from '../../../types';
 
 interface Props {
     condition: AlertFormCondition;

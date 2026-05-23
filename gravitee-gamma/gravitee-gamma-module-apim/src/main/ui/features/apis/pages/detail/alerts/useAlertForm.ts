@@ -44,7 +44,7 @@ import type {
     AlertNotificationChannel,
     AlertRuleId,
     AlertSeverity,
-} from '../../../types/api';
+} from '../../../types';
 import { apiAlertKeys } from '../../../utils/queryKeys';
 
 function getDefaultCondition(ruleId: AlertRuleId): AlertFormCondition[] {

@@ -16,7 +16,7 @@
 import { diffLines } from 'diff';
 
 import type { SideLine, UnifiedLine } from './types';
-import type { ApiEvent } from '../../../types/api';
+import type { ApiEvent } from '../../../types';
 
 export function formatDate(iso: string): string {
     return new Date(iso).toLocaleString(undefined, {

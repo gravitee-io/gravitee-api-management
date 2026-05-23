@@ -18,7 +18,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useNavigate } from 'react-router-dom';
 
 import { ApiListTable } from './ApiListTable';
-import type { ApiListItem } from '../../types/api';
+import type { ApiListItem } from '../../types';
 
 jest.mock('react-router-dom', () => ({
     ...jest.requireActual('react-router-dom'),

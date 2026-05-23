@@ -21,7 +21,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { AlertFormPage } from './AlertFormPage';
 import { createAlertTrigger, listAlerts, updateAlertTrigger } from '../../../services/alerts';
-import type { AlertTrigger } from '../../../types/api';
+import type { AlertTrigger } from '../../../types';
 
 // ─── SDK / context mocks ──────────────────────────────────────────────────────
 
