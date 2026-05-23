@@ -54,6 +54,7 @@ import { ApiNotificationsPage } from '../features/apis/pages/detail/notification
 import { ApiPlanFormPage } from '../features/apis/pages/detail/plans/ApiPlanFormPage';
 import { ApiPlansPage } from '../features/apis/pages/detail/plans/ApiPlansPage';
 import { ApiPropertiesPage } from '../features/apis/pages/detail/properties/ApiPropertiesPage';
+import { ApiReporterSettingsPage } from '../features/apis/pages/detail/reporter-settings/ApiReporterSettingsPage';
 import { UserPermissionsPage } from '../features/apis/pages/detail/user-permissions/UserPermissionsPage';
 import { ScratchWizardPage } from '../features/apis/pages/ScratchWizardPage';
 import { TemplateWizardPage } from '../features/apis/pages/TemplateWizardPage';
@@ -117,7 +118,7 @@ export function AppRoutes() {
                                     element={<ApiDetailPlaceholderPage title="Health Check Dashboard" />}
                                 />
                             </Route>
-                            <Route path="reporter-settings" element={<ApiDetailPlaceholderPage title="Reporter Settings" />} />
+                            <Route path="reporter-settings" element={<ApiReporterSettingsPage />} />
                             <Route path="policy-studio" element={<ApiDetailPlaceholderPage title="Policy Studio" />} />
                             <Route path="documentation" element={<ApiDetailPlaceholderPage title="Documentation" />} />
                             <Route path="plans">
