@@ -30,7 +30,7 @@ import {
     Label,
     Textarea,
 } from '@gravitee/graphene-core';
-import { BoxesIcon, CheckIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
+import { BoxesIcon, CheckIcon, ClockIcon, ServerIcon, Trash2Icon, UserIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -190,23 +190,34 @@ export function ApiProductGeneralPage() {
                             {/* Right: details panel separated by left border */}
                             <div className="shrink-0 border-l pl-8 space-y-3" style={{ width: '17.5rem' }}>
                                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Details</p>
-                                <dl className="space-y-2.5 text-sm">
-                                    <div className="flex items-start justify-between gap-2">
-                                        <dt className="text-muted-foreground shrink-0">Owner</dt>
-                                        <dd className="font-medium text-right truncate max-w-40" title={product?.primaryOwner?.displayName}>
+                                <dl className="space-y-2.5">
+                                    <div className="flex items-center justify-between gap-2">
+                                        <dt className="text-muted-foreground flex items-center gap-1.5 shrink-0 text-xs">
+                                            <UserIcon className="size-3" aria-hidden /> Owner
+                                        </dt>
+                                        <dd
+                                            className="text-right text-xs font-medium truncate max-w-40"
+                                            title={product?.primaryOwner?.displayName}
+                                        >
                                             {product?.primaryOwner?.displayName ?? '—'}
                                         </dd>
                                     </div>
-                                    <div className="flex items-start justify-between gap-2">
-                                        <dt className="text-muted-foreground shrink-0">Created</dt>
+                                    <div className="flex items-center justify-between gap-2">
+                                        <dt className="text-muted-foreground flex items-center gap-1.5 shrink-0 text-xs">
+                                            <ClockIcon className="size-3" aria-hidden /> Created
+                                        </dt>
                                         <dd className="text-right text-xs">{formatDate(product?.createdAt)}</dd>
                                     </div>
-                                    <div className="flex items-start justify-between gap-2">
-                                        <dt className="text-muted-foreground shrink-0">Updated</dt>
+                                    <div className="flex items-center justify-between gap-2">
+                                        <dt className="text-muted-foreground flex items-center gap-1.5 shrink-0 text-xs">
+                                            <ClockIcon className="size-3" aria-hidden /> Updated
+                                        </dt>
                                         <dd className="text-right text-xs">{formatDate(product?.updatedAt)}</dd>
                                     </div>
-                                    <div className="flex items-start justify-between gap-2">
-                                        <dt className="text-muted-foreground shrink-0">Gateway sync</dt>
+                                    <div className="flex items-center justify-between gap-2">
+                                        <dt className="text-muted-foreground flex items-center gap-1.5 shrink-0 text-xs">
+                                            <ServerIcon className="size-3" aria-hidden /> Gateway sync
+                                        </dt>
                                         <dd>
                                             {product?.deploymentState ? (
                                                 <SyncStatusBadge state={product.deploymentState} compact />

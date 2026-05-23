@@ -203,8 +203,14 @@ export interface ApiDetailDto {
     primaryOwner?: { id?: string; displayName?: string; email?: string };
     createdAt?: string;
     updatedAt?: string;
-    picture?: string;
-    background?: string;
+    /** Always null in GET response — use _links.pictureUrl to display the image. */
+    picture?: string | null;
+    /** Always null in GET response — use _links.backgroundUrl to display the image. */
+    background?: string | null;
+    _links?: {
+        pictureUrl?: string;
+        backgroundUrl?: string;
+    };
     properties?: Property[];
     services?: { dynamicProperty?: DynamicPropertyConfig };
     listeners?: HttpListener[];

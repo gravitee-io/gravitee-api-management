@@ -614,7 +614,7 @@ export function ApiPropertiesPage() {
                                                     ) : null}
                                                 </div>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="text-right">
                                                 {canEdit ? (
                                                     <DropdownMenu>
                                                         <DropdownMenuTrigger asChild>

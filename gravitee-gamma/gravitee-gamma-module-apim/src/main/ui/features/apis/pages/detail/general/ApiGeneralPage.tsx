@@ -385,7 +385,7 @@ export function ApiGeneralPage() {
                                 <div className="flex gap-3 items-start">
                                     <ImagePicker
                                         label="Picture"
-                                        preview={api?.picture}
+                                        preview={api?._links?.pictureUrl}
                                         width={88}
                                         height={88}
                                         onSelect={b64 => pictureMutation.mutate(b64)}
@@ -394,7 +394,7 @@ export function ApiGeneralPage() {
                                     />
                                     <ImagePicker
                                         label="Background"
-                                        preview={api?.background}
+                                        preview={api?._links?.backgroundUrl}
                                         width={152}
                                         height={88}
                                         onSelect={b64 => backgroundMutation.mutate(b64)}

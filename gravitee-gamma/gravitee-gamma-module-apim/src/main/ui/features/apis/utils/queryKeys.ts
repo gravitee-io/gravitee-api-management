@@ -99,6 +99,11 @@ export const apiAnalyticsKeys = {
         [...apiAnalyticsKeys.all, 'status-ranges', envId, apiId, window] as const,
 };
 
+export const envAnalyticsKeys = {
+    all: ['env-analytics'] as const,
+    requestResponseTime: (envId: string, window: string) => [...envAnalyticsKeys.all, 'request-response-time', envId, window] as const,
+};
+
 export const apiBroadcastKeys = {
     all: ['api-broadcasts'] as const,
     applicationRoles: () => [...apiBroadcastKeys.all, 'application-roles'] as const,
