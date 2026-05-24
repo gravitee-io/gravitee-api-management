@@ -17,6 +17,7 @@ package io.gravitee.gamma.authorization.rest.resource;
 
 import io.gravitee.gamma.authorization.api.AuthzSchemaAdminApi;
 import io.gravitee.gamma.authorization.rest.dto.AuthzSchemaResponse;
+import io.gravitee.gamma.authorization.rest.exception.AuthzCalls;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
@@ -47,6 +48,6 @@ public class AuthzSchemaResource {
     @GET
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.READ }) })
     public AuthzSchemaResponse currentSchema() {
-        return new AuthzSchemaResponse(schemaService.currentGaplSchema(GraviteeContext.getCurrentEnvironment()));
+        return AuthzCalls.execute(() -> new AuthzSchemaResponse(schemaService.currentGaplSchema(GraviteeContext.getCurrentEnvironment())));
     }
 }

@@ -29,23 +29,10 @@
         </file>
     </files>
 
-    <!--
-        Bundle gamma-authorization-core into the plugin zip so its classes are
-        loaded by the plugin's URLClassLoader. That URLClassLoader's parent is
-        the apim-mongo plugin's classloader (per GammaModulePluginHandler), which
-        carries spring-data-mongodb on its classpath. If gamma-authorization-core
-        lived in lib/ instead, its defining classloader (graviteeClassLoader)
-        would not see spring-data-mongodb and the Mongo adapters would fail to
-        load with NoClassDefFoundError.
-    -->
-    <dependencySets>
-        <dependencySet>
-            <outputDirectory></outputDirectory>
-            <unpack>false</unpack>
-            <useProjectArtifact>false</useProjectArtifact>
-            <includes>
-                <include>io.gravitee.gamma.authorization:gravitee-gamma-authorization-core</include>
-            </includes>
-        </dependencySet>
-    </dependencySets>
+    <fileSets>
+        <fileSet>
+            <directory>${project.build.directory}/classes/ui</directory>
+            <outputDirectory>ui</outputDirectory>
+        </fileSet>
+    </fileSets>
 </assembly>

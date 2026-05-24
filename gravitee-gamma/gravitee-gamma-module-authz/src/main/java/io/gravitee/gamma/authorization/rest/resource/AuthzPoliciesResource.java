@@ -26,6 +26,7 @@ import io.gravitee.gamma.authorization.rest.dto.AuthzPolicyRequest;
 import io.gravitee.gamma.authorization.rest.dto.AuthzPolicyResponse;
 import io.gravitee.gamma.authorization.rest.dto.PagedResponseDto;
 import io.gravitee.gamma.authorization.rest.dto.UpdateAuthzPolicyRequest;
+import io.gravitee.gamma.authorization.rest.exception.AuthzCalls;
 import io.gravitee.gamma.authorization.service.AuthzPolicyFilter;
 import io.gravitee.gamma.authorization.service.CreateAuthzPolicyCommand;
 import io.gravitee.gamma.authorization.service.UpdateAuthzPolicyCommand;
@@ -70,12 +71,20 @@ public class AuthzPoliciesResource {
     @POST
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.CREATE }) })
     public Response create(@Valid AuthzPolicyRequest request) {
-        AuthzCallerContext caller = AuthzCallerResolver.resolve(securityContext);
-        AuthzPolicy created = service.create(
-            caller,
-            new CreateAuthzPolicyCommand(caller.environmentId(), request.name(), request.kind(), request.entityId(), request.policyText())
-        );
-        return Response.status(Response.Status.CREATED).entity(AuthzPolicyResponse.from(created)).build();
+        return AuthzCalls.execute(() -> {
+            AuthzCallerContext caller = AuthzCallerResolver.resolve(securityContext);
+            AuthzPolicy created = service.create(
+                caller,
+                new CreateAuthzPolicyCommand(
+                    caller.environmentId(),
+                    request.name(),
+                    request.kind(),
+                    request.entityId(),
+                    request.policyText()
+                )
+            );
+            return Response.status(Response.Status.CREATED).entity(AuthzPolicyResponse.from(created)).build();
+        });
     }
 
     @GET
@@ -87,53 +96,61 @@ public class AuthzPoliciesResource {
         @QueryParam("page") Integer page,
         @QueryParam("perPage") Integer perPage
     ) {
-        String env = GraviteeContext.getCurrentEnvironment();
-        Pageable pageable = (page == null && perPage == null)
-            ? Pageable.firstPage()
-            : Pageable.of(page == null ? 1 : page, perPage == null ? Pageable.DEFAULT_PER_PAGE : perPage);
-        PagedResult<AuthzPolicy> result = service.findPage(env, new AuthzPolicyFilter(kind, entityId, status), pageable);
-        return PagedResponseDto.from(result, AuthzPolicyResponse::from);
+        return AuthzCalls.execute(() -> {
+            String env = GraviteeContext.getCurrentEnvironment();
+            Pageable pageable = (page == null && perPage == null)
+                ? Pageable.firstPage()
+                : Pageable.of(page == null ? 1 : page, perPage == null ? Pageable.DEFAULT_PER_PAGE : perPage);
+            PagedResult<AuthzPolicy> result = service.findPage(env, new AuthzPolicyFilter(kind, entityId, status), pageable);
+            return PagedResponseDto.from(result, AuthzPolicyResponse::from);
+        });
     }
 
     @GET
     @Path("/{id}")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.READ }) })
     public AuthzPolicyResponse findById(@PathParam("id") String id) {
-        String env = GraviteeContext.getCurrentEnvironment();
-        return service
-            .findById(env, id)
-            .map(AuthzPolicyResponse::from)
-            .orElseThrow(() -> new AuthzPolicyNotFoundException(env, id));
+        return AuthzCalls.execute(() -> {
+            String env = GraviteeContext.getCurrentEnvironment();
+            return service
+                .findById(env, id)
+                .map(AuthzPolicyResponse::from)
+                .orElseThrow(() -> new AuthzPolicyNotFoundException(env, id));
+        });
     }
 
     @PUT
     @Path("/{id}")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.UPDATE }) })
     public AuthzPolicyResponse update(@PathParam("id") String id, @Valid UpdateAuthzPolicyRequest request) {
-        AuthzCallerContext caller = AuthzCallerResolver.resolve(securityContext);
-        AuthzPolicy updated = service.update(caller, id, new UpdateAuthzPolicyCommand(request.name(), request.policyText()));
-        return AuthzPolicyResponse.from(updated);
+        return AuthzCalls.execute(() -> {
+            AuthzCallerContext caller = AuthzCallerResolver.resolve(securityContext);
+            AuthzPolicy updated = service.update(caller, id, new UpdateAuthzPolicyCommand(request.name(), request.policyText()));
+            return AuthzPolicyResponse.from(updated);
+        });
     }
 
     @POST
     @Path("/{id}/deploy")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.UPDATE }) })
     public AuthzPolicyResponse deploy(@PathParam("id") String id) {
-        return AuthzPolicyResponse.from(service.deploy(AuthzCallerResolver.resolve(securityContext), id));
+        return AuthzCalls.execute(() -> AuthzPolicyResponse.from(service.deploy(AuthzCallerResolver.resolve(securityContext), id)));
     }
 
     @POST
     @Path("/{id}/disable")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.UPDATE }) })
     public AuthzPolicyResponse disable(@PathParam("id") String id) {
-        return AuthzPolicyResponse.from(service.disable(AuthzCallerResolver.resolve(securityContext), id));
+        return AuthzCalls.execute(() -> AuthzPolicyResponse.from(service.disable(AuthzCallerResolver.resolve(securityContext), id)));
     }
 
     @DELETE
     @Path("/{id}")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.DELETE }) })
     public Response delete(@PathParam("id") String id) {
-        service.delete(AuthzCallerResolver.resolve(securityContext), id);
-        return Response.noContent().build();
+        return AuthzCalls.execute(() -> {
+            service.delete(AuthzCallerResolver.resolve(securityContext), id);
+            return Response.noContent().build();
+        });
     }
 }
