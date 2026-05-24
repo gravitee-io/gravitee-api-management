@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.authz;
+package io.gravitee.gamma.authorization.service.exception;
 
-import io.gravitee.apim.plugin.gamma.api.GammaModule;
-import io.gravitee.gamma.authorization.rest.resource.AuthzRootResource;
+// Service-layer IAE the REST mapper turns into 400.
+public class AuthzInvalidArgumentException extends IllegalArgumentException {
 
-public class AuthorizationModule implements GammaModule {
-
-    @Override
-    public Class<?> restResource() {
-        return AuthzRootResource.class;
+    public AuthzInvalidArgumentException(String message) {
+        super(message);
     }
 }

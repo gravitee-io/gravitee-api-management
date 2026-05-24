@@ -19,14 +19,6 @@ import io.gravitee.gamma.authorization.paging.PagedResult;
 import java.util.List;
 import java.util.function.Function;
 
-/**
- * Wire shape for paginated list endpoints under {@code /gamma/authz}.
- *
- * <p>Field names match the legacy UI {@code PagedResponse<T>} contract so
- * the existing module-authz TypeScript client can consume this directly —
- * see {@code authz-api.types.ts}. {@code total} is the filtered total
- * across all pages; the UI uses it to render the pagination footer.
- */
 public record PagedResponseDto<T>(List<T> data, long total, int page, int perPage) {
     public static <D, R> PagedResponseDto<R> from(PagedResult<D> result, Function<D, R> mapper) {
         return new PagedResponseDto<>(result.data().stream().map(mapper).toList(), result.total(), result.page(), result.perPage());

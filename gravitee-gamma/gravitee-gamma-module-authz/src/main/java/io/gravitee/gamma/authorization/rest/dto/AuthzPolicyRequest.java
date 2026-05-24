@@ -25,9 +25,6 @@ import jakarta.validation.constraints.Size;
 public record AuthzPolicyRequest(
     @NotBlank String name,
     @NotNull AuthzPolicyKind kind,
-    // Mirrors CreateAuthzPolicyCommand.entityId — null is allowed (kind=GLOBAL),
-    // but if provided it must match the canonical id grammar so the request
-    // surfaces a 400 at the edge instead of poisoning the event log.
     @Size(max = AuthzEntityIdConstants.MAX_ENTITY_ID_LENGTH) @Pattern(regexp = AuthzEntityIdConstants.FORMAT_REGEX) String entityId,
     @NotNull String policyText
 ) {}

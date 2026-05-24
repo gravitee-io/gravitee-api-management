@@ -38,6 +38,7 @@ import io.gravitee.gamma.authorization.paging.Pageable;
 import io.gravitee.gamma.authorization.paging.PagedResult;
 import io.gravitee.gamma.authorization.service.exception.AuthzCascadeTooLargeException;
 import io.gravitee.gamma.authorization.service.exception.AuthzEntityNotFoundException;
+import io.gravitee.gamma.authorization.service.exception.AuthzInvalidArgumentException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -303,7 +304,7 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
     private void validateFilter(AuthzEntityFilter filter) {
         if (filter == null) return;
         if (filter.entityIdPrefix() != null && filter.entityIdPrefix().length() > AuthzEntityIdConstants.MAX_ENTITY_ID_LENGTH) {
-            throw new IllegalArgumentException(
+            throw new AuthzInvalidArgumentException(
                 "entityIdPrefix must be at most " + AuthzEntityIdConstants.MAX_ENTITY_ID_LENGTH + " characters"
             );
         }

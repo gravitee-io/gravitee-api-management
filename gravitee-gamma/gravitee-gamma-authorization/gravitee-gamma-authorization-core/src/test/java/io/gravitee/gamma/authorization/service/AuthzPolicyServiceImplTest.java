@@ -30,6 +30,7 @@ import io.gravitee.gamma.authorization.repository.InMemoryAuthzEntityRepository;
 import io.gravitee.gamma.authorization.repository.InMemoryAuthzPolicyRepository;
 import io.gravitee.gamma.authorization.service.exception.AuthzInvalidStatusTransitionException;
 import io.gravitee.gamma.authorization.service.exception.AuthzPolicyNotFoundException;
+import jakarta.validation.ConstraintViolationException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -290,9 +291,9 @@ class AuthzPolicyServiceImplTest {
     }
 
     @Test
-    void delete_throws_NullPointerException_for_null_id() {
+    void delete_throws_IllegalArgumentException_for_null_id() {
         assertThatThrownBy(() -> service.delete(CALLER, null))
-            .isInstanceOf(NullPointerException.class)
+            .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("id");
     }
 
@@ -320,7 +321,7 @@ class AuthzPolicyServiceImplTest {
     @Test
     void create_rejects_null_environmentId_at_command_construction() {
         assertThatThrownBy(() -> new CreateAuthzPolicyCommand(null, "n", AuthzPolicyKind.GLOBAL, null, ""))
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(ConstraintViolationException.class)
             .hasMessageContaining("environmentId");
     }
 

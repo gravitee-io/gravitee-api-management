@@ -27,10 +27,7 @@ public record CreateAuthzPolicyCommand(
     @NotBlank String environmentId,
     @NotBlank String name,
     @NotNull AuthzPolicyKind kind,
-    // entityId is null for GLOBAL policies; the kind-aware AuthzEntityIdValidator
-    // enforces presence on RESOURCE. @Size + @Pattern only fire for non-null
-    // values so a 50 KB or arbitrary-character entityId is rejected at the edge
-    // instead of being persisted and broadcast through the event log.
+    // null for kind=GLOBAL; AuthzEntityIdValidator enforces presence for kind=RESOURCE.
     @Size(max = AuthzEntityIdConstants.MAX_ENTITY_ID_LENGTH) @Pattern(regexp = AuthzEntityIdConstants.FORMAT_REGEX) String entityId,
     @NotNull String policyText
 ) {

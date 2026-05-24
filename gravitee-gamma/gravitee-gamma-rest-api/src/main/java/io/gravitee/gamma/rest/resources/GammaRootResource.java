@@ -15,20 +15,9 @@
  */
 package io.gravitee.gamma.rest.resources;
 
-import io.gravitee.common.http.MediaType;
-import io.gravitee.gamma.authorization.rest.resource.AuthzRootResource;
-import io.gravitee.plugin.gamma.internal.GammaModuleDefinition;
-import io.gravitee.plugin.gamma.internal.GammaModuleService;
-import jakarta.inject.Inject;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.Response;
-import java.util.List;
 
 /**
  * Root REST resource for Gamma.
@@ -47,10 +36,5 @@ public class GammaRootResource {
     @Path("/organizations/{orgId}/environments/{envId}/modules")
     public GammaModulesResource getModulesResourceFromEnvironment() {
         return resourceContext.getResource(GammaModulesResource.class);
-    }
-
-    @Path("/authz")
-    public AuthzRootResource authz() {
-        return resourceContext.getResource(AuthzRootResource.class);
     }
 }
