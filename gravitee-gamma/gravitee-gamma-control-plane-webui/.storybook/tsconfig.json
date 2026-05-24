@@ -1,0 +1,18 @@
+{
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "emitDecoratorMetadata": true,
+        "outDir": "../../../dist/out-tsc",
+        "moduleResolution": "bundler",
+        "module": "esnext",
+        "target": "es2020",
+        "jsx": "react-jsx",
+        "types": ["node", "@nx/react/typings/cssmodule.d.ts", "@nx/react/typings/image.d.ts"],
+        "paths": {
+            "@gravitee/gamma-modules-sdk": ["../src/shared/gamma-modules-sdk.ts"]
+        }
+    },
+    "files": ["./main.ts", "./preview.tsx"],
+    "include": ["../src/**/*.stories.ts", "../src/**/*.stories.tsx"],
+    "exclude": ["../src/**/*.spec.ts", "../src/**/*.spec.tsx", "../src/**/*.test.ts", "../src/**/*.test.tsx"]
+}
