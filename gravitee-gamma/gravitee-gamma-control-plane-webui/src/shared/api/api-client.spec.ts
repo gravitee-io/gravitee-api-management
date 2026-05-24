@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiError, gammaApi, managementApi } from './api-client';
-import { TEST_GAMMA_BASE, TEST_MANAGEMENT_BASE } from '../../testing/factories';
+import { ApiError, gammaApi, managementApi, managementV2EnvironmentApi } from './api-client';
+import { TEST_GAMMA_BASE, TEST_MANAGEMENT_BASE, TEST_MANAGEMENT_V2_ENVIRONMENT_BASE } from '../../testing/factories';
 import { trackHandler, respondWithError } from '../../testing/helpers';
 
 describe('managementApi', () => {
@@ -60,5 +60,37 @@ describe('gammaApi', () => {
 
         expect(tracker.callCount).toBe(1);
         expect(tracker.lastCall?.url).toBe(`${TEST_GAMMA_BASE}/modules`);
+    });
+});
+
+describe('managementV2EnvironmentApi', () => {
+    it('should resolve to the v2 environment url without the /organizations prefix', async () => {
+        const tracker = trackHandler(
+            'post',
+            `${TEST_MANAGEMENT_V2_ENVIRONMENT_BASE}/env-1-id/apis/_search`,
+            { pagination: { totalCount: 42 } },
+        );
+
+        const res = await managementV2EnvironmentApi.post<{ pagination: { totalCount: number } }>('/env-1-id/apis/_search', {});
+
+        expect(tracker.callCount).toBe(1);
+        expect(tracker.lastCall?.url).toBe(`${TEST_MANAGEMENT_V2_ENVIRONMENT_BASE}/env-1-id/apis/_search`);
+        expect(res.pagination.totalCount).toBe(42);
+    });
+
+    it('should send the same csrf header and X-Requested-With as managementApi', async () => {
+        localStorage.setItem('XSRF-TOKEN', 'my-csrf-token');
+        const tracker = trackHandler('post', `${TEST_MANAGEMENT_V2_ENVIRONMENT_BASE}/env-1-id/apis/_search`, {});
+
+        await managementV2EnvironmentApi.post('/env-1-id/apis/_search', {});
+
+        expect(tracker.lastCall?.headers.get('X-Xsrf-Token')).toBe('my-csrf-token');
+        expect(tracker.lastCall?.headers.get('X-Requested-With')).toBe('XMLHttpRequest');
+    });
+
+    it('should throw ApiError on non-2xx', async () => {
+        respondWithError('post', `${TEST_MANAGEMENT_V2_ENVIRONMENT_BASE}/env-1-id/apis/_search`, 403);
+
+        await expect(managementV2EnvironmentApi.post('/env-1-id/apis/_search', {})).rejects.toThrow(ApiError);
     });
 });
