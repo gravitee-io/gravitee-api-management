@@ -15,7 +15,7 @@
  */
 import { useBootstrapStore } from '../config/bootstrap.store';
 
-export type Backend = 'management' | 'gamma';
+export type Backend = 'management' | 'gamma' | 'management-v2-environment';
 
 function resolveBaseUrl(backend: Backend): string {
     const config = useBootstrapStore.getState().config;
@@ -26,6 +26,8 @@ function resolveBaseUrl(backend: Backend): string {
             return `${config.managementBaseURL}/organizations/${config.organizationId}`;
         case 'gamma':
             return `${config.gammaBaseURL}/organizations/${config.organizationId}`;
+        case 'management-v2-environment':
+            return `${config.managementBaseURL}/v2/environments`;
     }
 }
 
@@ -99,3 +101,4 @@ function createClient(backend: Backend) {
 
 export const managementApi = createClient('management');
 export const gammaApi = createClient('gamma');
+export const managementV2EnvironmentApi = createClient('management-v2-environment');
