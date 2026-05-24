@@ -46,7 +46,7 @@ import org.junit.jupiter.api.Test;
 
 class AuthzEntitiesResourceTest extends AbstractAuthorizationResourceTest {
 
-    private static final String ENV = "env-1";
+    private static final String ENV = "test-env";
 
     @Test
     void post_creates_new_entity_and_returns_201() {
@@ -56,7 +56,7 @@ class AuthzEntitiesResourceTest extends AbstractAuthorizationResourceTest {
         );
 
         try (
-            Response response = target("/environments/" + ENV + "/entities")
+            Response response = target("/entities")
                 .request()
                 .post(
                     jakarta.ws.rs.client.Entity.json(
@@ -77,7 +77,7 @@ class AuthzEntitiesResourceTest extends AbstractAuthorizationResourceTest {
         when(entityService.upsert(any(), any())).thenReturn(new AuthzUpsertResult(replaced, false));
 
         try (
-            Response response = target("/environments/" + ENV + "/entities")
+            Response response = target("/entities")
                 .request()
                 .post(
                     jakarta.ws.rs.client.Entity.json(
@@ -93,11 +93,37 @@ class AuthzEntitiesResourceTest extends AbstractAuthorizationResourceTest {
     }
 
     @Test
+    void post_with_blank_entityId_is_rejected_by_bean_validation() {
+        try (
+            Response response = target("/entities")
+                .request()
+                .post(jakarta.ws.rs.client.Entity.json(new AuthzEntityRequest("", AuthzEntityKind.RESOURCE, Map.of(), List.of(), "apim")))
+        ) {
+            assertThat(response.getStatus()).isEqualTo(400);
+        }
+    }
+
+    @Test
+    void post_with_uppercase_entityId_is_rejected_by_bean_validation() {
+        try (
+            Response response = target("/entities")
+                .request()
+                .post(
+                    jakarta.ws.rs.client.Entity.json(
+                        new AuthzEntityRequest("api.MyApi", AuthzEntityKind.RESOURCE, Map.of(), List.of(), "apim")
+                    )
+                )
+        ) {
+            assertThat(response.getStatus()).isEqualTo(400);
+        }
+    }
+
+    @Test
     void get_by_entityId_returns_entity() {
         AuthzEntity stored = entity("api.123", AuthzEntityKind.RESOURCE, Map.of(), List.of(), "apim");
         when(entityService.findByEntityId(ENV, "api.123")).thenReturn(Optional.of(stored));
 
-        try (Response response = target("/environments/" + ENV + "/entities/api.123").request().get()) {
+        try (Response response = target("/entities/api.123").request().get()) {
             assertThat(response.getStatus()).isEqualTo(200);
             assertThat(response.readEntity(AuthzEntityResponse.class).entityId()).isEqualTo("api.123");
         }
@@ -107,7 +133,7 @@ class AuthzEntitiesResourceTest extends AbstractAuthorizationResourceTest {
     void get_by_entityId_unknown_returns_404() {
         when(entityService.findByEntityId(ENV, "api.missing")).thenReturn(Optional.empty());
 
-        try (Response response = target("/environments/" + ENV + "/entities/api.missing").request().get()) {
+        try (Response response = target("/entities/api.missing").request().get()) {
             assertThat(response.getStatus()).isEqualTo(404);
             Map<String, Object> body = response.readEntity(new GenericType<>() {});
             assertThat(body).containsEntry("error", "EntityNotFound");
@@ -121,7 +147,7 @@ class AuthzEntitiesResourceTest extends AbstractAuthorizationResourceTest {
             entityService.findPage(eq(ENV), eq(new AuthzEntityFilter(AuthzEntityKind.PRINCIPAL, null, null)), any(Pageable.class))
         ).thenReturn(new PagedResult<>(page, page.size(), 1, Pageable.DEFAULT_PER_PAGE));
 
-        try (Response response = target("/environments/" + ENV + "/entities").queryParam("kind", "PRINCIPAL").request().get()) {
+        try (Response response = target("/entities").queryParam("kind", "PRINCIPAL").request().get()) {
             PagedResponseDto<AuthzEntityResponse> body = response.readEntity(new GenericType<>() {});
             assertThat(body.data()).extracting(AuthzEntityResponse::entityId).containsExactly("idp.am.alice");
         }
@@ -134,7 +160,7 @@ class AuthzEntitiesResourceTest extends AbstractAuthorizationResourceTest {
             new PagedResult<>(page, page.size(), 1, Pageable.DEFAULT_PER_PAGE)
         );
 
-        try (Response response = target("/environments/" + ENV + "/entities").queryParam("source", "apim").request().get()) {
+        try (Response response = target("/entities").queryParam("source", "apim").request().get()) {
             PagedResponseDto<AuthzEntityResponse> body = response.readEntity(new GenericType<>() {});
             assertThat(body.data()).extracting(AuthzEntityResponse::entityId).containsExactly("api.123");
         }
@@ -150,7 +176,7 @@ class AuthzEntitiesResourceTest extends AbstractAuthorizationResourceTest {
             new PagedResult<>(page, page.size(), 1, Pageable.DEFAULT_PER_PAGE)
         );
 
-        try (Response response = target("/environments/" + ENV + "/entities").queryParam("entityIdPrefix", "api.123").request().get()) {
+        try (Response response = target("/entities").queryParam("entityIdPrefix", "api.123").request().get()) {
             PagedResponseDto<AuthzEntityResponse> body = response.readEntity(new GenericType<>() {});
             assertThat(body.data()).extracting(AuthzEntityResponse::entityId).containsExactlyInAnyOrder("api.123", "api.123.tool-a");
         }
@@ -162,7 +188,7 @@ class AuthzEntitiesResourceTest extends AbstractAuthorizationResourceTest {
         when(entityService.update(any(), eq("api.123"), any(UpdateAuthzEntityCommand.class))).thenReturn(updated);
 
         try (
-            Response response = target("/environments/" + ENV + "/entities/api.123")
+            Response response = target("/entities/api.123")
                 .request()
                 .put(jakarta.ws.rs.client.Entity.json(new UpdateAuthzEntityRequest(Map.of("k", "v2"), List.of("api.parent"))))
         ) {
@@ -179,7 +205,7 @@ class AuthzEntitiesResourceTest extends AbstractAuthorizationResourceTest {
         when(entityService.update(any(), eq("api.missing"), any())).thenThrow(new AuthzEntityNotFoundException(ENV, "api.missing"));
 
         try (
-            Response response = target("/environments/" + ENV + "/entities/api.missing")
+            Response response = target("/entities/api.missing")
                 .request()
                 .put(jakarta.ws.rs.client.Entity.json(new UpdateAuthzEntityRequest(Map.of(), List.of())))
         ) {
@@ -193,7 +219,7 @@ class AuthzEntitiesResourceTest extends AbstractAuthorizationResourceTest {
             new AuthzCascadeResult(List.of("api.bookings", "mcp.bookings.tool-1"), List.of("policy-1"))
         );
 
-        try (Response response = target("/environments/" + ENV + "/entities/api.bookings").request().delete()) {
+        try (Response response = target("/entities/api.bookings").request().delete()) {
             assertThat(response.getStatus()).isEqualTo(200);
             AuthzCascadeResponse body = response.readEntity(AuthzCascadeResponse.class);
             assertThat(body.deletedEntityIds()).containsExactlyInAnyOrder("api.bookings", "mcp.bookings.tool-1");

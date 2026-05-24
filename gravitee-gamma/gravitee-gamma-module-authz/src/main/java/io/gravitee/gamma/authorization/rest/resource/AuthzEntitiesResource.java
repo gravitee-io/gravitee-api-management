@@ -35,7 +35,9 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -49,10 +51,9 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
-import java.util.List;
 import java.util.Objects;
 
-@Path("/environments/{environmentId}/entities")
+@Path("/entities")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class AuthzEntitiesResource {
@@ -76,12 +77,12 @@ public class AuthzEntitiesResource {
             ),
         }
     )
-    public Response upsert(@PathParam("environmentId") String environmentId, AuthzEntityRequest request) {
-        AuthzCallerContext caller = AuthzCallerResolver.resolve(securityContext, environmentId);
+    public Response upsert(@Valid AuthzEntityRequest request) {
+        AuthzCallerContext caller = AuthzCallerResolver.resolve(securityContext);
         AuthzUpsertResult result = service.upsert(
             caller,
             new CreateOrReplaceAuthzEntityCommand(
-                environmentId,
+                caller.environmentId(),
                 request.entityId(),
                 request.kind(),
                 request.attributes(),
@@ -96,41 +97,36 @@ public class AuthzEntitiesResource {
     @GET
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.READ }) })
     public PagedResponseDto<AuthzEntityResponse> list(
-        @PathParam("environmentId") String environmentId,
         @QueryParam("kind") AuthzEntityKind kind,
         @QueryParam("source") String source,
         @QueryParam("entityIdPrefix") String entityIdPrefix,
         @QueryParam("page") Integer page,
         @QueryParam("perPage") Integer perPage
     ) {
-        // Default to Pageable.firstPage() so callers that omit ?page/?perPage
-        // still get a paged response and don't have to know about defaults.
+        String env = GraviteeContext.getCurrentEnvironment();
         Pageable pageable = (page == null && perPage == null)
             ? Pageable.firstPage()
             : Pageable.of(page == null ? 1 : page, perPage == null ? Pageable.DEFAULT_PER_PAGE : perPage);
-        PagedResult<AuthzEntity> result = service.findPage(environmentId, new AuthzEntityFilter(kind, source, entityIdPrefix), pageable);
+        PagedResult<AuthzEntity> result = service.findPage(env, new AuthzEntityFilter(kind, source, entityIdPrefix), pageable);
         return PagedResponseDto.from(result, AuthzEntityResponse::from);
     }
 
     @GET
     @Path("/{entityId}")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.READ }) })
-    public AuthzEntityResponse findByEntityId(@PathParam("environmentId") String environmentId, @PathParam("entityId") String entityId) {
+    public AuthzEntityResponse findByEntityId(@PathParam("entityId") String entityId) {
+        String env = GraviteeContext.getCurrentEnvironment();
         return service
-            .findByEntityId(environmentId, entityId)
+            .findByEntityId(env, entityId)
             .map(AuthzEntityResponse::from)
-            .orElseThrow(() -> new AuthzEntityNotFoundException(environmentId, entityId));
+            .orElseThrow(() -> new AuthzEntityNotFoundException(env, entityId));
     }
 
     @PUT
     @Path("/{entityId}")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.UPDATE }) })
-    public AuthzEntityResponse update(
-        @PathParam("environmentId") String environmentId,
-        @PathParam("entityId") String entityId,
-        UpdateAuthzEntityRequest request
-    ) {
-        AuthzCallerContext caller = AuthzCallerResolver.resolve(securityContext, environmentId);
+    public AuthzEntityResponse update(@PathParam("entityId") String entityId, @Valid UpdateAuthzEntityRequest request) {
+        AuthzCallerContext caller = AuthzCallerResolver.resolve(securityContext);
         AuthzEntity updated = service.update(caller, entityId, new UpdateAuthzEntityCommand(request.attributes(), request.parents()));
         return AuthzEntityResponse.from(updated);
     }
@@ -138,8 +134,7 @@ public class AuthzEntitiesResource {
     @DELETE
     @Path("/{entityId}")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.DELETE }) })
-    public AuthzCascadeResponse delete(@PathParam("environmentId") String environmentId, @PathParam("entityId") String entityId) {
-        AuthzCallerContext caller = AuthzCallerResolver.resolve(securityContext, environmentId);
-        return AuthzCascadeResponse.from(service.delete(caller, entityId));
+    public AuthzCascadeResponse delete(@PathParam("entityId") String entityId) {
+        return AuthzCascadeResponse.from(service.delete(AuthzCallerResolver.resolve(securityContext), entityId));
     }
 }

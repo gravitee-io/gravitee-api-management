@@ -15,19 +15,21 @@
  */
 package io.gravitee.gamma.authorization.paging;
 
+import io.gravitee.gamma.authorization.service.exception.AuthzInvalidArgumentException;
+
 public record Pageable(int page, int perPage) {
     public static final int DEFAULT_PER_PAGE = 25;
     public static final int MAX_PER_PAGE = 1000;
 
     public Pageable {
         if (page < 1) {
-            throw new IllegalArgumentException("page must be >= 1, got " + page);
+            throw new AuthzInvalidArgumentException("page must be >= 1, got " + page);
         }
         if (perPage < 1) {
-            throw new IllegalArgumentException("perPage must be >= 1, got " + perPage);
+            throw new AuthzInvalidArgumentException("perPage must be >= 1, got " + perPage);
         }
         if (perPage > MAX_PER_PAGE) {
-            throw new IllegalArgumentException("perPage must be <= " + MAX_PER_PAGE + ", got " + perPage);
+            throw new AuthzInvalidArgumentException("perPage must be <= " + MAX_PER_PAGE + ", got " + perPage);
         }
     }
 

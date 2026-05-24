@@ -35,6 +35,5 @@
     <modules>
         <module>gravitee-gamma-authorization-api</module>
         <module>gravitee-gamma-authorization-core</module>
-        <module>gravitee-gamma-authorization-rest</module>
     </modules>
 </project>

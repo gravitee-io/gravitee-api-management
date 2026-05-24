@@ -21,10 +21,10 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import java.util.Objects;
@@ -33,7 +33,7 @@ import java.util.Objects;
 //   cache invalidation across pods. Today this resource is read-only so a
 //   per-pod cache is safe; a write that bypasses cross-pod invalidation will
 //   leave stale schemas on every other replica.
-@Path("/environments/{environmentId}/schema")
+@Path("/schema")
 @Produces(MediaType.APPLICATION_JSON)
 public class AuthzSchemaResource {
 
@@ -46,7 +46,7 @@ public class AuthzSchemaResource {
 
     @GET
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.READ }) })
-    public AuthzSchemaResponse currentSchema(@PathParam("environmentId") String environmentId) {
-        return new AuthzSchemaResponse(schemaService.currentGaplSchema(environmentId));
+    public AuthzSchemaResponse currentSchema() {
+        return new AuthzSchemaResponse(schemaService.currentGaplSchema(GraviteeContext.getCurrentEnvironment()));
     }
 }

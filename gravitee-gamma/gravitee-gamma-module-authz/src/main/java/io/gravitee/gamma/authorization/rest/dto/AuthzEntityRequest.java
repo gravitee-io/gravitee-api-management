@@ -15,13 +15,21 @@
  */
 package io.gravitee.gamma.authorization.rest.dto;
 
+import io.gravitee.gamma.authorization.api.AuthzEntityIdConstants;
 import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.Map;
 
 public record AuthzEntityRequest(
+    @NotBlank
+    @Size(max = AuthzEntityIdConstants.MAX_ENTITY_ID_LENGTH)
+    @Pattern(regexp = AuthzEntityIdConstants.FORMAT_REGEX)
     String entityId,
-    AuthzEntityKind kind,
+    @NotNull AuthzEntityKind kind,
     Map<String, Object> attributes,
     List<String> parents,
     String source

@@ -15,16 +15,16 @@
  */
 package io.gravitee.gamma.authorization.api;
 
+import io.gravitee.gamma.authorization.service.exception.AuthzInvalidArgumentException;
 import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.executable.ExecutableValidator;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.RecordComponent;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public final class AuthzValidators {
 
@@ -36,7 +36,7 @@ public final class AuthzValidators {
     public static <T> void validate(T obj) {
         Set<ConstraintViolation<T>> violations = VALIDATOR.validate(obj);
         if (!violations.isEmpty()) {
-            throw new IllegalArgumentException(message(violations));
+            throw new ConstraintViolationException(violations);
         }
     }
 
@@ -54,14 +54,13 @@ public final class AuthzValidators {
         }
         Set<ConstraintViolation<T>> violations = EXECUTABLE_VALIDATOR.validateConstructorParameters(canonical, values);
         if (!violations.isEmpty()) {
-            throw new IllegalArgumentException(message(violations));
+            throw new ConstraintViolationException(violations);
         }
     }
 
     public static String requireNonBlank(String value, String name) {
-        Objects.requireNonNull(value, name);
-        if (value.isBlank()) {
-            throw new IllegalArgumentException(name + " must not be blank");
+        if (value == null || value.isBlank()) {
+            throw new AuthzInvalidArgumentException(name + " must not be null or blank");
         }
         return value;
     }
@@ -69,17 +68,9 @@ public final class AuthzValidators {
     public static void requireMatchingEnv(AuthzCallerContext caller, String commandEnvId) {
         requireNonBlank(commandEnvId, "command.environmentId");
         if (!caller.environmentId().equals(commandEnvId)) {
-            throw new IllegalArgumentException(
+            throw new AuthzInvalidArgumentException(
                 "command.environmentId (" + commandEnvId + ") does not match caller.environmentId (" + caller.environmentId() + ")"
             );
         }
-    }
-
-    private static <T> String message(Set<ConstraintViolation<T>> violations) {
-        return violations
-            .stream()
-            .map(v -> v.getPropertyPath() + " " + v.getMessage())
-            .sorted()
-            .collect(Collectors.joining(", "));
     }
 }

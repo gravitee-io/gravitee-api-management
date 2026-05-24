@@ -24,17 +24,17 @@ public class AuthzRootResource {
     @Context
     private ResourceContext resourceContext;
 
-    @Path("/environments/{environmentId}/entities")
+    @Path("/entities")
     public AuthzEntitiesResource entities() {
         return resourceContext.getResource(AuthzEntitiesResource.class);
     }
 
-    @Path("/environments/{environmentId}/policies")
+    @Path("/policies")
     public AuthzPoliciesResource policies() {
         return resourceContext.getResource(AuthzPoliciesResource.class);
     }
 
-    @Path("/environments/{environmentId}/schema")
+    @Path("/schema")
     public AuthzSchemaResource schema() {
         return resourceContext.getResource(AuthzSchemaResource.class);
     }

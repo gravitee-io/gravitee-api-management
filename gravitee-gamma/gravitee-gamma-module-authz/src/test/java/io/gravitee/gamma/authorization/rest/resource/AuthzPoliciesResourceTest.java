@@ -49,7 +49,7 @@ import org.junit.jupiter.api.Test;
 
 class AuthzPoliciesResourceTest extends AbstractAuthorizationResourceTest {
 
-    private static final String ENV = "env-1";
+    private static final String ENV = "test-env";
 
     @Test
     void post_creates_policy_and_returns_201() {
@@ -57,7 +57,7 @@ class AuthzPoliciesResourceTest extends AbstractAuthorizationResourceTest {
         when(policyService.create(any(AuthzCallerContext.class), any(CreateAuthzPolicyCommand.class))).thenReturn(created);
 
         try (
-            Response response = target("/environments/" + ENV + "/policies")
+            Response response = target("/policies")
                 .request()
                 .post(Entity.json(new AuthzPolicyRequest("global-1", AuthzPolicyKind.GLOBAL, null, "permit")))
         ) {
@@ -78,7 +78,7 @@ class AuthzPoliciesResourceTest extends AbstractAuthorizationResourceTest {
         );
 
         try (
-            Response response = target("/environments/" + ENV + "/policies")
+            Response response = target("/policies")
                 .request()
                 .post(Entity.json(new AuthzPolicyRequest("r", AuthzPolicyKind.RESOURCE, null, "")))
         ) {
@@ -95,12 +95,9 @@ class AuthzPoliciesResourceTest extends AbstractAuthorizationResourceTest {
         );
 
         try (
-            Response response = target("/environments/" + ENV + "/policies")
+            Response response = target("/policies")
                 .request()
-                // Format passes @Pattern at the edge so the request actually reaches
-                // the service, where the mock raises ENTITY_ID_MALFORMED to exercise
-                // the mapper. Anything that breaks @Pattern (e.g. mixed case) is
-                // already rejected upstream as a ConstraintViolationException.
+                // "api.my-api" passes @Pattern; service mock then raises ENTITY_ID_MALFORMED.
                 .post(Entity.json(new AuthzPolicyRequest("r", AuthzPolicyKind.RESOURCE, "api.my-api", "")))
         ) {
             assertThat(response.getStatus()).isEqualTo(400);
@@ -116,13 +113,39 @@ class AuthzPoliciesResourceTest extends AbstractAuthorizationResourceTest {
         );
 
         try (
-            Response response = target("/environments/" + ENV + "/policies")
+            Response response = target("/policies")
                 .request()
                 .post(Entity.json(new AuthzPolicyRequest("g", AuthzPolicyKind.GLOBAL, "api.x", "")))
         ) {
             assertThat(response.getStatus()).isEqualTo(400);
             Map<String, Object> body = response.readEntity(new GenericType<>() {});
             assertThat(body).containsEntry("error", "ENTITY_ID_FORBIDDEN_ON_GLOBAL");
+        }
+    }
+
+    @Test
+    void post_with_blank_name_is_rejected_by_bean_validation() {
+        try (
+            Response response = target("/policies")
+                .request()
+                .post(Entity.json(new AuthzPolicyRequest("", AuthzPolicyKind.GLOBAL, null, "permit")))
+        ) {
+            assertThat(response.getStatus()).isEqualTo(400);
+            Map<String, Object> body = response.readEntity(new GenericType<>() {});
+            assertThat(body).containsEntry("error", "ConstraintViolation");
+        }
+    }
+
+    @Test
+    void post_with_uppercase_entityId_is_rejected_by_bean_validation() {
+        try (
+            Response response = target("/policies")
+                .request()
+                .post(Entity.json(new AuthzPolicyRequest("p", AuthzPolicyKind.RESOURCE, "api.MyApi", "permit")))
+        ) {
+            assertThat(response.getStatus()).isEqualTo(400);
+            Map<String, Object> body = response.readEntity(new GenericType<>() {});
+            assertThat(body).containsEntry("error", "ConstraintViolation");
         }
     }
 
@@ -136,7 +159,7 @@ class AuthzPoliciesResourceTest extends AbstractAuthorizationResourceTest {
             new PagedResult<>(page, page.size(), 1, Pageable.DEFAULT_PER_PAGE)
         );
 
-        try (Response response = target("/environments/" + ENV + "/policies").request().get()) {
+        try (Response response = target("/policies").request().get()) {
             assertThat(response.getStatus()).isEqualTo(200);
             PagedResponseDto<AuthzPolicyResponse> body = response.readEntity(new GenericType<>() {});
             assertThat(body.data()).hasSize(2);
@@ -150,7 +173,7 @@ class AuthzPoliciesResourceTest extends AbstractAuthorizationResourceTest {
             policyService.findPage(eq(ENV), eq(new AuthzPolicyFilter(AuthzPolicyKind.GLOBAL, null, null)), any(Pageable.class))
         ).thenReturn(new PagedResult<>(page, page.size(), 1, Pageable.DEFAULT_PER_PAGE));
 
-        try (Response response = target("/environments/" + ENV + "/policies").queryParam("kind", "GLOBAL").request().get()) {
+        try (Response response = target("/policies").queryParam("kind", "GLOBAL").request().get()) {
             PagedResponseDto<AuthzPolicyResponse> body = response.readEntity(new GenericType<>() {});
             assertThat(body.data()).hasSize(1).first().extracting(AuthzPolicyResponse::kind).isEqualTo(AuthzPolicyKind.GLOBAL);
         }
@@ -163,7 +186,7 @@ class AuthzPoliciesResourceTest extends AbstractAuthorizationResourceTest {
             new PagedResult<>(page, page.size(), 1, Pageable.DEFAULT_PER_PAGE)
         );
 
-        try (Response response = target("/environments/" + ENV + "/policies").queryParam("entityId", "api-1").request().get()) {
+        try (Response response = target("/policies").queryParam("entityId", "api-1").request().get()) {
             PagedResponseDto<AuthzPolicyResponse> body = response.readEntity(new GenericType<>() {});
             assertThat(body.data()).hasSize(1).first().extracting(AuthzPolicyResponse::entityId).isEqualTo("api-1");
         }
@@ -174,7 +197,7 @@ class AuthzPoliciesResourceTest extends AbstractAuthorizationResourceTest {
         AuthzPolicy stored = policy("id-1", "g1", AuthzPolicyKind.GLOBAL, null, "", AuthzPolicyStatus.DRAFT);
         when(policyService.findById(ENV, "id-1")).thenReturn(Optional.of(stored));
 
-        try (Response response = target("/environments/" + ENV + "/policies/id-1").request().get()) {
+        try (Response response = target("/policies/id-1").request().get()) {
             assertThat(response.getStatus()).isEqualTo(200);
             AuthzPolicyResponse body = response.readEntity(AuthzPolicyResponse.class);
             assertThat(body.id()).isEqualTo("id-1");
@@ -185,7 +208,7 @@ class AuthzPoliciesResourceTest extends AbstractAuthorizationResourceTest {
     void get_by_id_unknown_returns_404() {
         when(policyService.findById(ENV, "missing")).thenReturn(Optional.empty());
 
-        try (Response response = target("/environments/" + ENV + "/policies/missing").request().get()) {
+        try (Response response = target("/policies/missing").request().get()) {
             assertThat(response.getStatus()).isEqualTo(404);
         }
     }
@@ -195,11 +218,7 @@ class AuthzPoliciesResourceTest extends AbstractAuthorizationResourceTest {
         AuthzPolicy updated = policy("id-1", "renamed", AuthzPolicyKind.GLOBAL, null, "new", AuthzPolicyStatus.DRAFT);
         when(policyService.update(any(), eq("id-1"), any(UpdateAuthzPolicyCommand.class))).thenReturn(updated);
 
-        try (
-            Response response = target("/environments/" + ENV + "/policies/id-1")
-                .request()
-                .put(Entity.json(new UpdateAuthzPolicyRequest("renamed", "new")))
-        ) {
+        try (Response response = target("/policies/id-1").request().put(Entity.json(new UpdateAuthzPolicyRequest("renamed", "new")))) {
             assertThat(response.getStatus()).isEqualTo(200);
             AuthzPolicyResponse body = response.readEntity(AuthzPolicyResponse.class);
             assertThat(body.name()).isEqualTo("renamed");
@@ -212,11 +231,7 @@ class AuthzPoliciesResourceTest extends AbstractAuthorizationResourceTest {
     void put_unknown_returns_404() {
         when(policyService.update(any(), eq("missing"), any())).thenThrow(new AuthzPolicyNotFoundException(ENV, "missing"));
 
-        try (
-            Response response = target("/environments/" + ENV + "/policies/missing")
-                .request()
-                .put(Entity.json(new UpdateAuthzPolicyRequest("x", null)))
-        ) {
+        try (Response response = target("/policies/missing").request().put(Entity.json(new UpdateAuthzPolicyRequest("x", null)))) {
             assertThat(response.getStatus()).isEqualTo(404);
         }
     }
@@ -226,7 +241,7 @@ class AuthzPoliciesResourceTest extends AbstractAuthorizationResourceTest {
         AuthzPolicy deployed = policy("id-1", "g1", AuthzPolicyKind.GLOBAL, null, "", AuthzPolicyStatus.DEPLOYED);
         when(policyService.deploy(any(), eq("id-1"))).thenReturn(deployed);
 
-        try (Response response = target("/environments/" + ENV + "/policies/id-1/deploy").request().post(Entity.json(""))) {
+        try (Response response = target("/policies/id-1/deploy").request().post(Entity.json(""))) {
             assertThat(response.getStatus()).isEqualTo(200);
             AuthzPolicyResponse body = response.readEntity(AuthzPolicyResponse.class);
             assertThat(body.id()).isEqualTo("id-1");
@@ -238,11 +253,7 @@ class AuthzPoliciesResourceTest extends AbstractAuthorizationResourceTest {
     void post_deploy_unknown_returns_404() {
         when(policyService.deploy(any(), eq("missing"))).thenThrow(new AuthzPolicyNotFoundException(ENV, "missing"));
 
-        try (
-            Response response = target("/environments/" + ENV + "/policies/missing/deploy")
-                .request()
-                .post(Entity.entity("", MediaType.APPLICATION_JSON_TYPE))
-        ) {
+        try (Response response = target("/policies/missing/deploy").request().post(Entity.entity("", MediaType.APPLICATION_JSON_TYPE))) {
             assertThat(response.getStatus()).isEqualTo(404);
         }
     }
@@ -252,7 +263,7 @@ class AuthzPoliciesResourceTest extends AbstractAuthorizationResourceTest {
         AuthzPolicy disabled = policy("id-1", "g1", AuthzPolicyKind.GLOBAL, null, "", AuthzPolicyStatus.DISABLED);
         when(policyService.disable(any(), eq("id-1"))).thenReturn(disabled);
 
-        try (Response response = target("/environments/" + ENV + "/policies/id-1/disable").request().post(Entity.json(""))) {
+        try (Response response = target("/policies/id-1/disable").request().post(Entity.json(""))) {
             assertThat(response.getStatus()).isEqualTo(200);
             AuthzPolicyResponse body = response.readEntity(AuthzPolicyResponse.class);
             assertThat(body.status()).isEqualTo(AuthzPolicyStatus.DISABLED);
@@ -265,7 +276,7 @@ class AuthzPoliciesResourceTest extends AbstractAuthorizationResourceTest {
             new AuthzInvalidStatusTransitionException(AuthzPolicyStatus.DRAFT, AuthzPolicyStatus.DISABLED)
         );
 
-        try (Response response = target("/environments/" + ENV + "/policies/id-1/disable").request().post(Entity.json(""))) {
+        try (Response response = target("/policies/id-1/disable").request().post(Entity.json(""))) {
             assertThat(response.getStatus()).isEqualTo(409);
             Map<String, Object> body = response.readEntity(new GenericType<>() {});
             assertThat(body).containsKey("error").containsKey("message");
@@ -276,11 +287,7 @@ class AuthzPoliciesResourceTest extends AbstractAuthorizationResourceTest {
     void post_disable_unknown_returns_404() {
         when(policyService.disable(any(), eq("missing"))).thenThrow(new AuthzPolicyNotFoundException(ENV, "missing"));
 
-        try (
-            Response response = target("/environments/" + ENV + "/policies/missing/disable")
-                .request()
-                .post(Entity.entity("", MediaType.APPLICATION_JSON_TYPE))
-        ) {
+        try (Response response = target("/policies/missing/disable").request().post(Entity.entity("", MediaType.APPLICATION_JSON_TYPE))) {
             assertThat(response.getStatus()).isEqualTo(404);
         }
     }
@@ -289,7 +296,7 @@ class AuthzPoliciesResourceTest extends AbstractAuthorizationResourceTest {
     void delete_returns_204_when_deleted() {
         when(policyService.delete(any(), eq("id-1"))).thenReturn(true);
 
-        try (Response response = target("/environments/" + ENV + "/policies/id-1").request().delete()) {
+        try (Response response = target("/policies/id-1").request().delete()) {
             assertThat(response.getStatus()).isEqualTo(204);
         }
     }
@@ -298,7 +305,7 @@ class AuthzPoliciesResourceTest extends AbstractAuthorizationResourceTest {
     void delete_returns_204_when_not_found() {
         when(policyService.delete(any(), eq("missing"))).thenReturn(false);
 
-        try (Response response = target("/environments/" + ENV + "/policies/missing").request().delete()) {
+        try (Response response = target("/policies/missing").request().delete()) {
             assertThat(response.getStatus()).isEqualTo(204);
         }
     }

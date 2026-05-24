@@ -24,13 +24,13 @@ import org.junit.jupiter.api.Test;
 
 class AuthzSchemaResourceTest extends AbstractAuthorizationResourceTest {
 
-    private static final String ENV = "env-1";
+    private static final String ENV = "test-env";
 
     @Test
     void get_schema_returns_payload_from_service() {
         when(schemaService.currentGaplSchema(ENV)).thenReturn("entity Api {\n  owner: String\n}\n");
 
-        try (Response response = target("/environments/" + ENV + "/schema").request().get()) {
+        try (Response response = target("/schema").request().get()) {
             assertThat(response.getStatus()).isEqualTo(200);
             AuthzSchemaResponse body = response.readEntity(AuthzSchemaResponse.class);
             assertThat(body.schema()).contains("entity Api {").contains("owner: String");
@@ -41,7 +41,7 @@ class AuthzSchemaResourceTest extends AbstractAuthorizationResourceTest {
     void get_schema_when_environment_empty_returns_placeholder() {
         when(schemaService.currentGaplSchema(ENV)).thenReturn("// No entities or policies defined yet.\n");
 
-        try (Response response = target("/environments/" + ENV + "/schema").request().get()) {
+        try (Response response = target("/schema").request().get()) {
             assertThat(response.getStatus()).isEqualTo(200);
             assertThat(response.readEntity(AuthzSchemaResponse.class).schema()).isEqualTo("// No entities or policies defined yet.\n");
         }

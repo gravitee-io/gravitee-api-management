@@ -23,11 +23,11 @@ import io.gravitee.gamma.authorization.api.AuthzPolicyAdminApi;
 import io.gravitee.gamma.authorization.api.AuthzSchemaAdminApi;
 import io.gravitee.gamma.authorization.rest.exception.AuthzCascadeTooLargeExceptionMapper;
 import io.gravitee.gamma.authorization.rest.exception.AuthzEntityNotFoundExceptionMapper;
+import io.gravitee.gamma.authorization.rest.exception.AuthzInvalidArgumentExceptionMapper;
 import io.gravitee.gamma.authorization.rest.exception.AuthzInvalidEntityIdExceptionMapper;
 import io.gravitee.gamma.authorization.rest.exception.AuthzInvalidStatusTransitionExceptionMapper;
 import io.gravitee.gamma.authorization.rest.exception.AuthzPolicyNotFoundExceptionMapper;
 import io.gravitee.gamma.authorization.rest.exception.ForbiddenAccessExceptionMapper;
-import io.gravitee.gamma.authorization.rest.exception.IllegalArgumentExceptionMapper;
 import io.gravitee.gamma.authorization.rest.exception.UnauthorizedAccessExceptionMapper;
 import jakarta.ws.rs.core.Application;
 import org.glassfish.jersey.client.ClientConfig;
@@ -65,7 +65,8 @@ abstract class AbstractAuthorizationResourceTest extends JerseyTest {
             .register(AuthzCascadeTooLargeExceptionMapper.class)
             .register(AuthzInvalidStatusTransitionExceptionMapper.class)
             .register(AuthzInvalidEntityIdExceptionMapper.class)
-            .register(IllegalArgumentExceptionMapper.class)
+            .register(AuthzInvalidArgumentExceptionMapper.class)
+            .register(TestConstraintViolationExceptionMapper.class)
             .register(UnauthorizedAccessExceptionMapper.class)
             .register(ForbiddenAccessExceptionMapper.class)
             .register(JacksonFeature.class);
