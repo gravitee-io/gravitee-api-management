@@ -65,11 +65,9 @@ describe('gammaApi', () => {
 
 describe('managementV2EnvironmentApi', () => {
     it('should resolve to the v2 environment url without the /organizations prefix', async () => {
-        const tracker = trackHandler(
-            'post',
-            `${TEST_MANAGEMENT_V2_ENVIRONMENT_BASE}/env-1-id/apis/_search`,
-            { pagination: { totalCount: 42 } },
-        );
+        const tracker = trackHandler('post', `${TEST_MANAGEMENT_V2_ENVIRONMENT_BASE}/env-1-id/apis/_search`, {
+            pagination: { totalCount: 42 },
+        });
 
         const res = await managementV2EnvironmentApi.post<{ pagination: { totalCount: number } }>('/env-1-id/apis/_search', {});
 

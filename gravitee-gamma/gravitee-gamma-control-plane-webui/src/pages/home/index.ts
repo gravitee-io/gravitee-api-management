@@ -13,6 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type { GammaModule, GammaModuleResponse } from './modules.types';
-export { useGammaModules } from './hooks/useGammaModules';
-export { RemoteModuleRoute } from './components/RemoteModuleRoute';
+export { HomePage } from './HomePage';
