@@ -36,13 +36,6 @@
     </properties>
 
     <dependencies>
-        <!-- Exposes Authz exception mappers for GammaModuleApplication.register();
-             JAX-RS sub-resource locators don't auto-discover mappers from plugin classloader. -->
-        <dependency>
-            <groupId>io.gravitee.gamma.module</groupId>
-            <artifactId>gravitee-gamma-module-authz</artifactId>
-            <version>${project.version}</version>
-        </dependency>
         <dependency>
             <groupId>io.gravitee.gamma.plugin.module</groupId>
             <artifactId>gravitee-gamma-plugin-module-handler</artifactId>
