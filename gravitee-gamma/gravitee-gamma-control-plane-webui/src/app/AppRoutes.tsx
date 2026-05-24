@@ -19,7 +19,7 @@ import { LoginPage, ProtectedRoute, PublicOnlyRoute } from '../features/auth';
 import { EnvironmentGuard, RootRedirect } from '../features/environment';
 import { type GammaModule, RemoteModuleRoute, useGammaModules } from '../features/modules';
 import { AboutPage } from '../pages/AboutPage';
-import { HomePage } from '../pages/HomePage';
+import { HomePage } from '../pages/home';
 import { RouteLayout } from '../shared/components/RouteLayout';
 import { ShellLayout } from '../shared/components/ShellLayout';
 

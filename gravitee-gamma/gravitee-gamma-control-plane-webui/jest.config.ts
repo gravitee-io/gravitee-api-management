@@ -20,6 +20,8 @@ export default {
     transformIgnorePatterns: ['/node_modules/(?!(until-async|@gravitee/graphene-core)/)'],
     moduleNameMapper: {
         '^@gravitee/graphene-core$': '<rootDir>/../../node_modules/@gravitee/graphene-core/dist/index.js',
+        // Subpath imports like `@gravitee/graphene-core/icons` resolve to `dist/<subpath>/index.js`.
+        '^@gravitee/graphene-core/(.+)$': '<rootDir>/../../node_modules/@gravitee/graphene-core/dist/$1/index.js',
         '^@gravitee/gamma-modules-sdk$': '<rootDir>/src/shared/gamma-modules-sdk.ts',
     },
     transform: {
