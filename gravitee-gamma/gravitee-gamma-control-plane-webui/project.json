@@ -18,6 +18,19 @@
             "options": {
                 "jestConfig": "gravitee-gamma/gravitee-gamma-control-plane-webui/jest.config.ts"
             }
+        },
+        "storybook": {
+            "executor": "nx:run-commands",
+            "options": {
+                "command": "storybook dev -c gravitee-gamma/gravitee-gamma-control-plane-webui/.storybook -p 4400"
+            }
+        },
+        "build-storybook": {
+            "executor": "nx:run-commands",
+            "outputs": ["{projectRoot}/storybook-static"],
+            "options": {
+                "command": "storybook build -c gravitee-gamma/gravitee-gamma-control-plane-webui/.storybook -o gravitee-gamma/gravitee-gamma-control-plane-webui/storybook-static"
+            }
         }
     }
 }
