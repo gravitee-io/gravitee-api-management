@@ -79,7 +79,7 @@ export class ApiRuntimeLogsListComponent {
       { name: 'timestamp', label: 'Timestamp' },
       { name: 'method', label: 'Method' },
       { name: 'status', label: 'Status' },
-      ...(type === 'MCP_PROXY'
+      ...(type === 'MCP_PROXY' || type === 'MCP_STUDIO'
         ? [
             { name: 'mcpMethod', label: 'MCP Method' },
             { name: 'mcpError', label: 'MCP Error' },

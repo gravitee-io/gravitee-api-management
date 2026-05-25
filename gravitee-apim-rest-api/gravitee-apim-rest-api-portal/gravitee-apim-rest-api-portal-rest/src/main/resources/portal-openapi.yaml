@@ -5236,6 +5236,7 @@ components:
                 - EDGE
                 - LLM_PROXY
                 - MCP_PROXY
+                - MCP_STUDIO
                 - PROXY
                 - MESSAGE
                 - NATIVE
@@ -7187,6 +7188,7 @@ components:
                         - edge
                         - llm_proxy
                         - mcp_proxy
+                        - mcp_studio
                         - proxy
                         - message
                         - native

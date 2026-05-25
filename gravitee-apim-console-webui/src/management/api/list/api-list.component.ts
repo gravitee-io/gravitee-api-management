@@ -427,6 +427,9 @@ export class ApiListComponent implements OnInit, OnDestroy {
     if (api.type === 'MCP_PROXY') {
       return 'MCP Proxy';
     }
+    if (api.type === 'MCP_STUDIO') {
+      return 'MCP Studio';
+    }
     if (api.type === 'LLM_PROXY') {
       return 'LLM Proxy';
     }

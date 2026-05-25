@@ -52,6 +52,9 @@ import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
         @case ('MCP_PROXY') {
           <api-analytics-mcp-proxy />
         }
+        @case ('MCP_STUDIO') {
+          <api-analytics-mcp-proxy />
+        }
       }
     }
   `,

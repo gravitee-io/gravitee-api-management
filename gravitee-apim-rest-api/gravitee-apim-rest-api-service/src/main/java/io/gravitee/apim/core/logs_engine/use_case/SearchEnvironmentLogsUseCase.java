@@ -331,7 +331,7 @@ public class SearchEnvironmentLogsUseCase {
     }
 
     private static boolean isWantedHttpApi(ApiType type) {
-        return type == ApiType.PROXY || type == ApiType.LLM_PROXY || type == ApiType.MCP_PROXY;
+        return type == ApiType.PROXY || type == ApiType.LLM_PROXY || type == ApiType.MCP_PROXY || type == ApiType.MCP_STUDIO;
     }
 
     private io.gravitee.apim.core.logs_engine.model.HttpMethod httpMethod(String method) {

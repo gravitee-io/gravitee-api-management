@@ -30,6 +30,7 @@ public enum FlowPhase {
         ApiProtocolType.HTTP_PROXY,
         ApiProtocolType.HTTP_MESSAGE,
         ApiProtocolType.MCP_PROXY,
+        ApiProtocolType.MCP_STUDIO,
         ApiProtocolType.LLM_PROXY,
         ApiProtocolType.A2A_PROXY
     ),
@@ -38,6 +39,7 @@ public enum FlowPhase {
         ApiProtocolType.HTTP_PROXY,
         ApiProtocolType.HTTP_MESSAGE,
         ApiProtocolType.MCP_PROXY,
+        ApiProtocolType.MCP_STUDIO,
         ApiProtocolType.LLM_PROXY,
         ApiProtocolType.A2A_PROXY
     );

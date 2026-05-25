@@ -31,6 +31,7 @@ public enum ApiType {
     EDGE("edge"),
     LLM_PROXY("llm-proxy"),
     MCP_PROXY("mcp-proxy"),
+    MCP_STUDIO("mcp-studio"),
     MESSAGE("message"),
     NATIVE("native"),
     PROXY("proxy");
@@ -40,6 +41,7 @@ public enum ApiType {
         Map.entry(EDGE.label, EDGE),
         Map.entry(LLM_PROXY.label, LLM_PROXY),
         Map.entry(MCP_PROXY.label, MCP_PROXY),
+        Map.entry(MCP_STUDIO.label, MCP_STUDIO),
         Map.entry(MESSAGE.label, MESSAGE),
         Map.entry(NATIVE.label, NATIVE),
         Map.entry(PROXY.label, PROXY)

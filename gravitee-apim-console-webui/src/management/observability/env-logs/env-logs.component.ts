@@ -57,6 +57,7 @@ const API_TYPE_LABELS: Record<LogApiType, string> = {
   HTTP_PROXY: 'HTTP',
   LLM_PROXY: 'LLM',
   MCP_PROXY: 'MCP',
+  MCP_STUDIO: 'MCP Studio',
 };
 
 @Component({

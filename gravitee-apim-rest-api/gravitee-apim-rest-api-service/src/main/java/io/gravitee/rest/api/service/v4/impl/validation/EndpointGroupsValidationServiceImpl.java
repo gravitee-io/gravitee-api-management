@@ -98,6 +98,10 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         List<G> endpointGroups
     ) {
         if (endpointGroups == null || endpointGroups.isEmpty()) {
+            // MCP Studio is a catalog-composition API, does not require an upstream backend endpoint
+            if (ApiType.MCP_STUDIO == apiType) {
+                return List.of();
+            }
             throw new EndpointMissingException();
         }
 

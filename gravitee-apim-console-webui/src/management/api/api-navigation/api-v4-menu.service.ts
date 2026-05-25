@@ -159,7 +159,7 @@ export class ApiV4MenuService implements ApiMenuService {
       },
     };
 
-    if (api.type === 'NATIVE' || api.type === 'LLM_PROXY') {
+    if (api.type === 'NATIVE' || api.type === 'MCP_STUDIO' || api.type === 'LLM_PROXY') {
       return {
         ...menuItem,
         routerLink: 'v4/entrypoints',
@@ -380,7 +380,7 @@ export class ApiV4MenuService implements ApiMenuService {
         icon: 'bar-chart-2',
         routerLink: hasTcpListeners ? 'DISABLED' : 'v4/analytics',
       };
-      if (apiType === 'PROXY' || apiType === 'MCP_PROXY' || apiType === 'LLM_PROXY') {
+      if (apiType === 'PROXY' || apiType === 'MCP_PROXY' || apiType === 'MCP_STUDIO' || apiType === 'LLM_PROXY') {
         return baseMenuItem;
       } else {
         return {

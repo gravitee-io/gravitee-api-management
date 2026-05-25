@@ -80,6 +80,7 @@ public interface LogsEngineMapper {
             case PROXY -> io.gravitee.rest.api.management.v2.rest.model.logs.engine.EnvironmentApiLog.ApiTypeEnum.HTTP_PROXY;
             case LLM_PROXY -> io.gravitee.rest.api.management.v2.rest.model.logs.engine.EnvironmentApiLog.ApiTypeEnum.LLM_PROXY;
             case MCP_PROXY -> io.gravitee.rest.api.management.v2.rest.model.logs.engine.EnvironmentApiLog.ApiTypeEnum.MCP_PROXY;
+            case MCP_STUDIO -> io.gravitee.rest.api.management.v2.rest.model.logs.engine.EnvironmentApiLog.ApiTypeEnum.MCP_STUDIO;
             case A2A_PROXY, EDGE, MESSAGE, NATIVE -> null;
         };
     }

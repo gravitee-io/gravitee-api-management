@@ -101,6 +101,6 @@ export class PlanEditRestrictionStepComponent implements OnInit, OnDestroy {
   }
 
   get isAIApi(): boolean {
-    return !!this.api && 'type' in this.api && ['MCP_PROXY', 'LLM_PROXY', 'A2A_PROXY'].includes(this.api.type);
+    return !!this.api && 'type' in this.api && ['MCP_PROXY', 'MCP_STUDIO', 'LLM_PROXY', 'A2A_PROXY'].includes(this.api.type);
   }
 }

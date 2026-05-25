@@ -623,6 +623,7 @@ const internalFormValueToPlanV4 = (
         defaultSelectors.push({ type: 'CHANNEL', channel: '/', channelOperator: 'STARTS_WITH' });
         break;
       case 'MCP_PROXY':
+      case 'MCP_STUDIO':
         defaultSelectors.push({ type: 'MCP', methods: [] } satisfies McpSelector);
     }
 

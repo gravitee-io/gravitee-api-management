@@ -44,6 +44,7 @@ public class CreateHttpApiUseCase {
         ApiType.PROXY,
         ApiType.MESSAGE,
         ApiType.MCP_PROXY,
+        ApiType.MCP_STUDIO,
         ApiType.LLM_PROXY,
         ApiType.A2A_PROXY
     );

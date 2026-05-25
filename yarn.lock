@@ -4663,9 +4663,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/ui-policy-studio-angular@npm:17.8.0":
-  version: 17.8.0
-  resolution: "@gravitee/ui-policy-studio-angular@npm:17.8.0"
+"@gravitee/ui-policy-studio-angular@npm:17.9.0":
+  version: 17.9.0
+  resolution: "@gravitee/ui-policy-studio-angular@npm:17.9.0"
   dependencies:
     tslib: "npm:^2.6.2"
   peerDependencies:
@@ -4678,7 +4678,7 @@ __metadata:
     "@gravitee/ui-particles-angular": "*"
     lodash: ^4.17.21
     ngx-markdown: ^19.1.1
-  checksum: 10c0/9a14f00102b3d15cdd0e0d7d050e3d2e3660541d81958640d7d4835bb7884a36b2bb7b094db295140627f38e4e9e812cf8725e345d8001e7b6f903459c094332
+  checksum: 10c0/2c9b798f9e11df758d1251cef694846b39d77a00a56778d12f58aecdb48be451d5eabee643919b5475c6454a3f255b0ffa984a4fc05018b7e84864336a0b705d
   languageName: node
   linkType: hard
 
@@ -20543,7 +20543,7 @@ __metadata:
     "@gravitee/ui-analytics": "npm:17.8.0"
     "@gravitee/ui-components": "npm:4.4.0"
     "@gravitee/ui-particles-angular": "npm:17.8.0"
-    "@gravitee/ui-policy-studio-angular": "npm:17.8.0"
+    "@gravitee/ui-policy-studio-angular": "npm:17.9.0"
     "@gravitee/ui-schematics": "npm:17.8.0"
     "@highcharts/map-collection": "npm:1.1.4"
     "@module-federation/enhanced": "npm:0.18.0"
