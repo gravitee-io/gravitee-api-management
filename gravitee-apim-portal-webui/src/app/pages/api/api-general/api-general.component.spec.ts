@@ -20,6 +20,9 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
+
+import { PortalService } from '../../../../../projects/portal-webclient-sdk/src/lib';
 
 import { ApiGeneralComponent } from './api-general.component';
 
@@ -63,6 +66,31 @@ describe('ApiGeneralComponent', () => {
       const resultUrl = component.getSearchUrl('labels', 'myTestValue');
 
       expect(resultUrl).toBe('/catalog/search?q=labels:%22myTestValue%22');
+    });
+  });
+
+  describe('categoryNames', () => {
+    it('should map slug to display name from PortalService.getCategories', () => {
+      spectator = createComponent({ detectChanges: false });
+      component = spectator.component;
+      component.apiHomepage = null;
+
+      const portalService = TestBed.inject(PortalService);
+      jest.spyOn(portalService, 'getCategories').mockReturnValue(
+        of({
+          data: [
+            { id: 'testaghg', name: 'TestÅghg' },
+            { id: 'smrrebrd', name: 'Smørrebrød' },
+          ],
+        }) as any,
+      );
+
+      component.ngOnInit();
+
+      expect(component.categoryNames).toEqual({
+        testaghg: 'TestÅghg',
+        smrrebrd: 'Smørrebrød',
+      });
     });
   });
 });
