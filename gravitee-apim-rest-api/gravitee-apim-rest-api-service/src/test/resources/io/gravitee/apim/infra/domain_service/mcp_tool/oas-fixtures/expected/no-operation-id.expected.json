@@ -1,0 +1,40 @@
+{
+    "result": [
+        {
+            "toolDefinition": {
+                "name": "get_alpha_beta",
+                "description": "Listing",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {},
+                    "required": []
+                }
+            },
+            "gatewayMapping": {
+                "http": {
+                    "method": "GET",
+                    "path": "/alpha/beta"
+                }
+            }
+        },
+        {
+            "toolDefinition": {
+                "name": "post_alpha_beta",
+                "description": "Creation",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {},
+                    "required": []
+                }
+            },
+            "gatewayMapping": {
+                "http": {
+                    "method": "POST",
+                    "path": "/alpha/beta"
+                }
+            }
+        }
+    ],
+    "errors": [],
+    "serverDescription": "Unnamed Ops"
+}

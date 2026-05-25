@@ -1,0 +1,50 @@
+{
+    "result": [
+        {
+            "toolDefinition": {
+                "name": "getTenantUser",
+                "description": "API for GET /tenants/{tenantId}/users/{userId}",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "tenantId": {
+                            "type": "string"
+                        },
+                        "userId": {
+                            "type": "string"
+                        },
+                        "includeDisabled": {
+                            "type": "boolean"
+                        },
+                        "X-Tenant-Token": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "tenantId",
+                        "userId",
+                        "X-Tenant-Token"
+                    ]
+                }
+            },
+            "gatewayMapping": {
+                "http": {
+                    "method": "GET",
+                    "path": "/tenants/:tenantId/users/:userId",
+                    "pathParams": [
+                        "tenantId",
+                        "userId"
+                    ],
+                    "queryParams": [
+                        "includeDisabled"
+                    ],
+                    "headers": [
+                        "X-Tenant-Token"
+                    ]
+                }
+            }
+        }
+    ],
+    "errors": [],
+    "serverDescription": "Multi Params"
+}
