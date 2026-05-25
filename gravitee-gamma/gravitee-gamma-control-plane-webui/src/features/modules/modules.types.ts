@@ -17,7 +17,8 @@ export interface GammaModuleResponse {
     id: string;
     name: string;
     version: string;
-    mfManifest: { name: string; exposes?: Array<{ name: string; [key: string]: unknown }>; [key: string]: unknown };
+    /** Module Federation manifest. Absent for backend-only modules that ship no UI (e.g. authz). */
+    mfManifest?: { name: string; exposes?: Array<{ name: string; [key: string]: unknown }>; [key: string]: unknown };
 }
 
 export interface GammaModule {
@@ -28,7 +29,15 @@ export interface GammaModule {
     exposedModule: string;
 }
 
-export function parseModule(raw: GammaModuleResponse): GammaModule {
+/** A module that ships a UI, i.e. exposes a Module Federation manifest. */
+export type UiGammaModuleResponse = GammaModuleResponse & { mfManifest: NonNullable<GammaModuleResponse['mfManifest']> };
+
+/** Type guard keeping only modules that ship a UI; backend-only modules are filtered out. */
+export function hasUi(raw: GammaModuleResponse): raw is UiGammaModuleResponse {
+    return raw.mfManifest != null;
+}
+
+export function parseModule(raw: UiGammaModuleResponse): GammaModule {
     const firstExpose = raw.mfManifest.exposes?.[0]?.name;
     const exposedModule = firstExpose ? firstExpose.replace(/^\.\//, '') : 'Module';
 
