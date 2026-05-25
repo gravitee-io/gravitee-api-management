@@ -42,6 +42,14 @@ tags:
     description: Everything about Dictionaries
   - name: Subscriptions
     description: Everything about subscriptions
+  - name: Portals
+    description: Everything about Portals (next-gen developer portal)
+  - name: Portal Listings
+    description: Everything about Portal Listings (publishing APIs to a portal)
+  - name: Portal Documentations
+    description: Everything about Portal Documentations
+  - name: API Documentations
+    description: Everything about API Documentations (next-gen portal)
 paths:
   # APIs
   /organizations/{orgId}/environments/{envId}/apis:
@@ -566,6 +574,324 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  # Portals
+  /organizations/{orgId}/environments/{envId}/portals:
+    put:
+      operationId: createOrUpdatePortal
+      tags:
+        - Portals
+      summary: Create or update a Portal
+      description: Create or update a Portal from PortalSpec
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/dryRunQueryParam"
+      requestBody:
+        description: Portal specification
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/PortalSpec"
+        required: true
+      responses:
+        "200":
+          description: State of the successfully created/updated Portal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalState"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        default:
+          $ref: "#/components/responses/Error"
+  /organizations/{orgId}/environments/{envId}/portals/{hrid}:
+    parameters:
+      - $ref: "#/components/parameters/orgIdParam"
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/hridParam"
+    get:
+      operationId: getPortal
+      tags:
+        - Portals
+      summary: Get one Portal
+      description: Get a Portal using HRID
+      responses:
+        "200":
+          description: Portal successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalState"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: deletePortal
+      tags:
+        - Portals
+      summary: Delete one Portal
+      description: Delete a Portal using HRID
+      responses:
+        "204":
+          description: Portal successfully deleted
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
+
+  # Portal Listings
+  /organizations/{orgId}/environments/{envId}/portals/{portalHrid}/listings:
+    put:
+      operationId: createOrUpdatePortalListing
+      tags:
+        - Portal Listings
+      summary: Create or update a Portal Listing
+      description: Create or update a Portal Listing from PortalListingSpec
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/portalHridParam"
+        - $ref: "#/components/parameters/dryRunQueryParam"
+      requestBody:
+        description: Portal Listing specification
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/PortalListingSpec"
+        required: true
+      responses:
+        "200":
+          description: State of the successfully created/updated Portal Listing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalListingState"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        default:
+          $ref: "#/components/responses/Error"
+  /organizations/{orgId}/environments/{envId}/portals/{portalHrid}/listings/{hrid}:
+    parameters:
+      - $ref: "#/components/parameters/orgIdParam"
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/portalHridParam"
+      - $ref: "#/components/parameters/hridParam"
+    get:
+      operationId: getPortalListing
+      tags:
+        - Portal Listings
+      summary: Get one Portal Listing
+      description: Get a Portal Listing using HRID
+      responses:
+        "200":
+          description: Portal Listing successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalListingState"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: deletePortalListing
+      tags:
+        - Portal Listings
+      summary: Delete one Portal Listing
+      description: Delete a Portal Listing using HRID
+      responses:
+        "204":
+          description: Portal Listing successfully deleted
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
+
+  # Portal Documentations
+  /organizations/{orgId}/environments/{envId}/portals/{portalHrid}/documentations:
+    put:
+      operationId: createOrUpdatePortalDocumentation
+      tags:
+        - Portal Documentations
+      summary: Create or update a Portal Documentation page
+      description: Create or update a Documentation page attached to a Portal
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/portalHridParam"
+        - $ref: "#/components/parameters/dryRunQueryParam"
+      requestBody:
+        description: Documentation specification
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/DocumentationSpec"
+        required: true
+      responses:
+        "200":
+          description: State of the successfully created/updated Documentation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentationState"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        default:
+          $ref: "#/components/responses/Error"
+  /organizations/{orgId}/environments/{envId}/portals/{portalHrid}/documentations/{hrid}:
+    parameters:
+      - $ref: "#/components/parameters/orgIdParam"
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/portalHridParam"
+      - $ref: "#/components/parameters/hridParam"
+    get:
+      operationId: getPortalDocumentation
+      tags:
+        - Portal Documentations
+      summary: Get one Portal Documentation page
+      description: Get a Portal Documentation page using HRID
+      responses:
+        "200":
+          description: Documentation successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentationState"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: deletePortalDocumentation
+      tags:
+        - Portal Documentations
+      summary: Delete one Portal Documentation page
+      description: Delete a Portal Documentation page using HRID
+      responses:
+        "204":
+          description: Documentation successfully deleted
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
+
+  # API Documentations
+  /organizations/{orgId}/environments/{envId}/apis/{apiHrid}/documentations:
+    put:
+      operationId: createOrUpdateApiDocumentation
+      tags:
+        - API Documentations
+      summary: Create or update an API Documentation page
+      description: Create or update a Documentation page attached to an API
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiHridParam"
+        - $ref: "#/components/parameters/dryRunQueryParam"
+      requestBody:
+        description: Documentation specification
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/DocumentationSpec"
+        required: true
+      responses:
+        "200":
+          description: State of the successfully created/updated Documentation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentationState"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        default:
+          $ref: "#/components/responses/Error"
+  /organizations/{orgId}/environments/{envId}/apis/{apiHrid}/documentations/{hrid}:
+    parameters:
+      - $ref: "#/components/parameters/orgIdParam"
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/apiHridParam"
+      - $ref: "#/components/parameters/hridParam"
+    get:
+      operationId: getApiDocumentation
+      tags:
+        - API Documentations
+      summary: Get one API Documentation page
+      description: Get an API Documentation page using HRID
+      responses:
+        "200":
+          description: Documentation successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentationState"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: deleteApiDocumentation
+      tags:
+        - API Documentations
+      summary: Delete one API Documentation page
+      description: Delete an API Documentation page using HRID
+      responses:
+        "204":
+          description: Documentation successfully deleted
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
+
 components:
   schemas:
     Hrid:
@@ -735,7 +1061,7 @@ components:
           writeOnly: true
         pages:
           type: array
-          description: Pages for the API. Elements positioned earlier in the list are displayed first, with subsequent elements appearing below.
+          description: Pages for the API (classic portal). Elements positioned earlier in the list are displayed first, with subsequent elements appearing below.
           items:
             $ref: '#/components/schemas/PageV4'
           default: [ ]
@@ -747,6 +1073,15 @@ components:
           type: boolean
           description: Allow an application to subscribe to more than one JWT/OAuth2 plan (V4 only).
           default: false
+        portalNavigation:
+          type: array
+          description: |
+            The API's internal documentation navigation tree for the next-gen portal.
+            Paths are ordered — the order in the list is preserved.
+            Intermediate folders are implicitly created if not listed explicitly.
+          items:
+            $ref: "#/components/schemas/NavigationPath"
+          default: [ ]
         consoleNotification:
           type: object
           description: Console notification configuration.
@@ -2804,6 +3139,184 @@ components:
           type: array
       type: object
 
+    # Portal schemas
+    NavigationPath:
+      description: A path entry in a portal or API navigation hierarchy.
+      type: object
+      properties:
+        path:
+          type: string
+          description: |
+            A slash-separated path defining the navigation hierarchy.
+            Intermediate folders are implicitly created if not listed explicitly.
+          examples:
+            - /projects/alpha
+            - /projects/alpha/docs
+        displayName:
+          type: string
+          description: |
+            Optional human-friendly label for this path node.
+            Listing a path explicitly is the only way to attach a displayName.
+          examples:
+            - Alpha
+        order:
+          type: integer
+          description: |
+            Optional display order of this node relative to its siblings at the same level.
+            Listing a path explicitly is the only way to attach an order.
+          examples:
+            - 1
+      required:
+        - path
+    PortalSpec:
+      description: Specification of a Portal resource. Represents a next-gen developer portal instance.
+      type: object
+      properties:
+        hrid:
+          $ref: "#/components/schemas/Hrid"
+        name:
+          type: string
+          description: Display name of the portal
+          examples:
+            - Default Portal
+        navigation:
+          type: array
+          description: |
+            The portal's navigation hierarchy as a flat list of paths.
+            Paths are ordered — the order in the list is preserved.
+            Intermediate folders are implicitly created if not listed explicitly.
+          items:
+            $ref: "#/components/schemas/NavigationPath"
+      required:
+        - hrid
+        - name
+    PortalState:
+      description: State of a Portal that has been created/updated.
+      allOf:
+        - $ref: "#/components/schemas/PortalSpec"
+        - $ref: "#/components/schemas/BaseStatus"
+
+    # Portal Listing schemas
+    PortalListingApiEntry:
+      description: An API placed at a location in a portal's navigation.
+      type: object
+      properties:
+        apiHrid:
+          type: string
+          description: Human-readable ID of the API to publish
+          examples:
+            - pets-api
+        location:
+          type: string
+          description: |
+            The path in the portal's navigation where this API should appear.
+            Must match a path defined in the Portal's navigation for the API to be visible.
+          examples:
+            - /projects/alpha
+        order:
+          type: integer
+          description: |
+            Display order of this API relative to its siblings at the same location.
+            Disambiguates ordering when APIs from multiple listings share a location.
+          examples:
+            - 1
+      required:
+        - apiHrid
+        - location
+    PortalListingSpec:
+      description: |
+        Specification of a Portal Listing resource.
+        Places one or more APIs at specific locations in a portal's navigation.
+      type: object
+      properties:
+        hrid:
+          $ref: "#/components/schemas/Hrid"
+        apis:
+          type: array
+          description: List of APIs to publish to the portal. Use each entry's order to control display order relative to siblings at the same location.
+          items:
+            $ref: "#/components/schemas/PortalListingApiEntry"
+      required:
+        - hrid
+        - apis
+    PortalListingStatus:
+      description: Status information for a Portal Listing after import.
+      allOf:
+        - $ref: "#/components/schemas/BaseStatus"
+        - type: object
+          properties:
+            portalHrid:
+              type: string
+              description: The HRID of the portal this listing belongs to.
+              readOnly: true
+    PortalListingState:
+      description: State of a Portal Listing that has been created/updated.
+      allOf:
+        - $ref: "#/components/schemas/PortalListingSpec"
+        - $ref: "#/components/schemas/PortalListingStatus"
+
+    # Documentation schemas
+    DocumentationType:
+      type: string
+      description: The type of documentation page
+      enum:
+        - GRAVITEE_MARKDOWN
+        - OPENAPI
+        - ASYNCAPI
+    DocumentationSpec:
+      description: |
+        Specification of a Documentation page.
+        Can be attached to either a portal or an API (determined by the endpoint used).
+      type: object
+      properties:
+        hrid:
+          $ref: "#/components/schemas/Hrid"
+        name:
+          type: string
+          description: Display name of the documentation page
+          examples:
+            - Getting Started
+        type:
+          $ref: "#/components/schemas/DocumentationType"
+        content:
+          type: string
+          description: The content of the documentation page
+        location:
+          type: string
+          description: |
+            The path in the navigation hierarchy where this page should appear.
+          examples:
+            - /projects/alpha/docs
+        order:
+          type: integer
+          description: Display order relative to siblings at the same location
+      required:
+        - hrid
+        - name
+        - type
+        - content
+    DocumentationStatus:
+      description: |
+        Status information for a Documentation page after import.
+        Exactly one of `portalHrid` / `apiHrid` is populated depending on the parent endpoint used.
+      allOf:
+        - $ref: "#/components/schemas/BaseStatus"
+        - type: object
+          properties:
+            portalHrid:
+              type: string
+              description: The HRID of the portal this documentation page belongs to (when attached to a portal).
+              readOnly: true
+            apiHrid:
+              type: string
+              description: The HRID of the API this documentation page belongs to (when attached to an API).
+              readOnly: true
+    DocumentationState:
+      description: State of a Documentation page that has been created/updated.
+      allOf:
+        - $ref: "#/components/schemas/DocumentationSpec"
+        - $ref: "#/components/schemas/DocumentationStatus"
+
   responses:
     NotFound:
       description: Resource not found
@@ -2901,6 +3414,15 @@ components:
         type: string
         examples:
           - my_demo_api
+    portalHridParam:
+      name: portalHrid
+      in: path
+      required: true
+      description: Human-readable ID of a portal
+      schema:
+        type: string
+        examples:
+          - default-portal
   securitySchemes:
     BasicAuth:
       description: Basic authentication
