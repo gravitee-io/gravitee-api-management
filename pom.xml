@@ -178,7 +178,7 @@
         <!-- Management API & Gateway -->
         <gravitee-alert-engine-connectors-ws.version>3.0.0-alpha.1</gravitee-alert-engine-connectors-ws.version>
         <gravitee-connector-http.version>6.0.0-alpha.2</gravitee-connector-http.version>
-        <gravitee-policy-apikey.version>5.2.0</gravitee-policy-apikey.version>
+        <gravitee-policy-apikey.version>6.0.0-alpha.2</gravitee-policy-apikey.version>
         <gravitee-policy-assign-attributes.version>3.2.0</gravitee-policy-assign-attributes.version>
         <gravitee-policy-assign-content.version>3.1.1</gravitee-policy-assign-content.version>
         <gravitee-policy-assign-metrics.version>3.1.0</gravitee-policy-assign-metrics.version>

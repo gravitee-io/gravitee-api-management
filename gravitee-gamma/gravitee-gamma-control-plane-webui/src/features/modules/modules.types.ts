@@ -34,7 +34,7 @@ export type UiGammaModuleResponse = GammaModuleResponse & { mfManifest: NonNulla
 
 /** Type guard keeping only modules that ship a UI; backend-only modules are filtered out. */
 export function hasUi(raw: GammaModuleResponse): raw is UiGammaModuleResponse {
-    return raw.mfManifest != null;
+    return raw.mfManifest !== null && raw.mfManifest !== undefined;
 }
 
 export function parseModule(raw: UiGammaModuleResponse): GammaModule {

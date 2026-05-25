@@ -16,9 +16,9 @@
 import { renderHook, waitFor } from '@testing-library/react';
 
 import { useGammaModules } from './useGammaModules';
-import { useAuthStore } from '../../auth/auth.store';
 import { buildUser, TEST_GAMMA_BASE } from '../../../testing/factories';
 import { respondWith } from '../../../testing/helpers';
+import { useAuthStore } from '../../auth/auth.store';
 
 const mockRegisterRemotes = jest.fn();
 jest.mock('@module-federation/runtime', () => ({
