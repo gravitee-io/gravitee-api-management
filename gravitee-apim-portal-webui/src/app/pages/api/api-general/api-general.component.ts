@@ -17,7 +17,7 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Params, PRIMARY_OUTLET, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { Subject } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import {
@@ -96,6 +96,7 @@ export class ApiGeneralComponent implements OnInit {
   apiInformations: Array<ApiInformation>;
   backButton: { url?: string; label?: string; queryParams?: Params };
   pageBaseUrl: string;
+  categoryNames: Record<string, string> = {};
 
   constructor(
     private apiService: ApiService,
@@ -125,6 +126,21 @@ export class ApiGeneralComponent implements OnInit {
     }
 
     this.hasRatingFeature = this.configService.hasFeature(FeatureEnum.rating);
+
+    this.portalService
+      .getCategories({ size: -1 })
+      .pipe(
+        catchError(() => of({ data: [] })),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(response => {
+        this.categoryNames = (response.data ?? []).reduce<Record<string, string>>((acc, category) => {
+          if (category.id && category.name) {
+            acc[category.id] = category.name;
+          }
+          return acc;
+        }, {});
+      });
 
     this.route.data
       .pipe(
