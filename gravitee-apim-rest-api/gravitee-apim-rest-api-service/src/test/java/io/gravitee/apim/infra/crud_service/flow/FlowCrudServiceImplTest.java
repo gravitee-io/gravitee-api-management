@@ -160,6 +160,22 @@ class FlowCrudServiceImplTest {
                 .isInstanceOf(TechnicalDomainException.class)
                 .hasMessage("An error occurs while trying to save flows for API: api-id");
         }
+
+        @Test
+        @SneakyThrows
+        void caller_supplied_id_not_matching_db_flow_is_replaced_with_generated_uuid() {
+            // Given
+            when(flowRepository.findByReference(any(), eq(API_ID))).thenReturn(List.of());
+            when(flowRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            // When
+            service.saveApiFlows(API_ID, List.of(Flow.builder().id("caller-id").name("f1").build()));
+
+            // Then
+            var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.flow.Flow.class);
+            verify(flowRepository).create(captor.capture());
+            assertThat(captor.getValue().getId()).isNotEqualTo("caller-id");
+        }
     }
 
     @Nested
