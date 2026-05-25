@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useState } from 'react';
 import { authzApiService, DEFAULT_PER_PAGE, type PolicyListParams } from '../api/authz-api.service';
 import type { PagedResponse, PolicyRequest, PolicyResponse, PolicyStatus, PolicyType } from '../api/authz-api.types';
+import { authzQueryKeys } from '../api/query-keys';
 
 export interface UsePoliciesOptions {
     readonly type?: PolicyType;
@@ -38,87 +40,72 @@ export interface UsePoliciesResult {
 }
 
 export function usePolicies(environmentId: string, options: UsePoliciesOptions = {}): UsePoliciesResult {
-    const mountedRef = useRef(true);
     const { type, status, initialPerPage = DEFAULT_PER_PAGE } = options;
     const [page, setPage] = useState(1);
-    // Resync perPage from prop on every change so callers can drive it as a controlled value.
     const [perPage, setPerPage] = useState(initialPerPage);
-    useEffect(() => {
+    const [lastInitialPerPage, setLastInitialPerPage] = useState(initialPerPage);
+
+    // Adjust perPage during render (React recommended pattern) rather than a
+    // secondary useEffect, avoiding the extra render cycle that the effect causes.
+    if (initialPerPage !== lastInitialPerPage) {
+        setLastInitialPerPage(initialPerPage);
         setPerPage(initialPerPage);
-    }, [initialPerPage]);
-    const [data, setData] = useState<PagedResponse<PolicyResponse> | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | undefined>(undefined);
-    const [nonce, setNonce] = useState(0);
+    }
 
-    useEffect(() => {
-        mountedRef.current = true;
-        return () => {
-            mountedRef.current = false;
-        };
-    }, []);
+    const queryClient = useQueryClient();
 
-    useEffect(() => {
-        let cancelled = false;
-        // Gate setState to break cascading renders when nothing actually
-        // changes (isLoading already true / error already undefined).
-        if (!isLoading) setIsLoading(true);
-        if (error !== undefined) setError(undefined);
+    const params: PolicyListParams = { page, perPage, type, status };
+    const query = useQuery({
+        queryKey: authzQueryKeys.policies.page(environmentId, page, perPage, type, status),
+        queryFn: () => authzApiService.listPolicies(environmentId, params),
+        staleTime: 30_000,
+        placeholderData: keepPreviousData,
+    });
 
-        const params: PolicyListParams = { page, perPage, type, status };
-        authzApiService
-            .listPolicies(environmentId, params)
-            .then(res => {
-                if (cancelled) return;
-                setData(res);
-            })
-            .catch(e => {
-                if (cancelled) return;
-                setError(e instanceof Error ? e.message : 'Failed to load policies');
-                setData(null);
-            })
-            .finally(() => {
-                if (!cancelled) setIsLoading(false);
-            });
+    const invalidate = useCallback(
+        () => queryClient.invalidateQueries({ queryKey: authzQueryKeys.policies.all(environmentId) }),
+        [environmentId, queryClient],
+    );
 
-        return () => {
-            cancelled = true;
-        };
-        // isLoading/error intentionally excluded — they are read for gating
-        // setState; including them would re-trigger the effect.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [environmentId, type, status, page, perPage, nonce]);
-
-    const reload = useCallback(() => setNonce(n => n + 1), []);
+    const reload = useCallback(() => void invalidate(), [invalidate]);
 
     const create = useCallback(
         async (request: PolicyRequest) => {
             const created = await authzApiService.createPolicy(environmentId, request);
-            if (!mountedRef.current) return created;
-            reload();
+            void invalidate();
             return created;
         },
-        [environmentId, reload],
+        [environmentId, invalidate],
     );
 
     const update = useCallback(
         async (id: string, request: PolicyRequest) => {
             const updated = await authzApiService.updatePolicy(environmentId, id, request);
-            if (!mountedRef.current) return updated;
-            reload();
+            void invalidate();
             return updated;
         },
-        [environmentId, reload],
+        [environmentId, invalidate],
     );
 
     const remove = useCallback(
         async (id: string) => {
             await authzApiService.deletePolicy(environmentId, id);
-            if (!mountedRef.current) return;
-            reload();
+            void invalidate();
         },
-        [environmentId, reload],
+        [environmentId, invalidate],
     );
 
-    return { data, isLoading, error, page, perPage, setPage, setPerPage, create, update, remove, reload };
+    return {
+        data: query.data ?? null,
+        isLoading: query.isLoading,
+        error: query.error instanceof Error ? query.error.message : query.error ? String(query.error) : undefined,
+        page,
+        perPage,
+        setPage,
+        setPerPage,
+        create,
+        update,
+        remove,
+        reload,
+    };
 }

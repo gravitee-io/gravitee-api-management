@@ -62,7 +62,7 @@ export interface EntityRequest {
 export interface SchemaResponse {
     readonly environmentId: string;
     readonly schemaText: string;
-    readonly updatedAt: string;
+    readonly updatedAt: string | null;
 }
 
 export interface PagedResponse<T> {

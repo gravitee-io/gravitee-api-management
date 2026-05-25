@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { EntityResponse, PagedResponse } from '../../api/authz-api.types';
 import { useEntityOptions, type UseEntityOptionsOpts } from '../useEntityOptions';
@@ -25,6 +27,11 @@ vi.mock('../../api/authz-api.service', () => ({
         listEntities: (env: string, params?: unknown) => listEntitiesSpy(env, params),
     },
 }));
+
+function makeWrapper() {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    return ({ children }: { children: ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+}
 
 function entity(uid: string, attributes: Record<string, unknown> = {}): EntityResponse {
     return {
@@ -73,7 +80,7 @@ describe('useEntityOptions', () => {
     it('returns empty options and no error for an empty list', async () => {
         listEntitiesSpy.mockResolvedValue(paged([]));
 
-        const { getByTestId } = render(<Probe env="env-1" />);
+        const { getByTestId } = render(<Probe env="env-1" />, { wrapper: makeWrapper() });
 
         await waitFor(() => expect(getByTestId('loading').textContent).toBe('false'));
         expect(getByTestId('count').textContent).toBe('0');
@@ -90,7 +97,7 @@ describe('useEntityOptions', () => {
             ]),
         );
 
-        const { getByTestId } = render(<Probe env="env-1" />);
+        const { getByTestId } = render(<Probe env="env-1" />, { wrapper: makeWrapper() });
 
         await waitFor(() => expect(getByTestId('count').textContent).toBe('3'));
         const items = getByTestId('options').querySelectorAll('li');
@@ -108,7 +115,7 @@ describe('useEntityOptions', () => {
     it('filters options by typeFilter', async () => {
         listEntitiesSpy.mockResolvedValue(paged([entity('User::"alice"'), entity('Group::"admins"'), entity('AgentIdentity::"agent-1"')]));
 
-        const { getByTestId } = render(<Probe env="env-1" opts={{ typeFilter: ['User'] }} />);
+        const { getByTestId } = render(<Probe env="env-1" opts={{ typeFilter: ['User'] }} />, { wrapper: makeWrapper() });
 
         await waitFor(() => expect(getByTestId('count').textContent).toBe('1'));
         const items = getByTestId('options').querySelectorAll('li');
@@ -119,7 +126,7 @@ describe('useEntityOptions', () => {
         const data = Array.from({ length: 200 }, (_, i) => entity(`User::"u${i}"`));
         listEntitiesSpy.mockResolvedValue(paged(data, 503));
 
-        const { getByTestId } = render(<Probe env="env-1" />);
+        const { getByTestId } = render(<Probe env="env-1" />, { wrapper: makeWrapper() });
 
         await waitFor(() => expect(getByTestId('count').textContent).toBe('200'));
         expect(getByTestId('error').textContent).toMatch(/too many entities/i);
@@ -135,7 +142,7 @@ describe('useEntityOptions', () => {
         );
         const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
-        const { unmount } = render(<Probe env="env-1" />);
+        const { unmount } = render(<Probe env="env-1" />, { wrapper: makeWrapper() });
         unmount();
         resolveFn(paged([entity('User::"alice"')]));
         await Promise.resolve();
@@ -149,7 +156,8 @@ describe('useEntityOptions', () => {
     it('refetches when typeFilter changes by value (not reference)', async () => {
         listEntitiesSpy.mockResolvedValue(paged([entity('User::"alice"'), entity('Group::"admins"')]));
 
-        const { rerender, getByTestId } = render(<Probe env="env-1" opts={{ typeFilter: ['User'] }} />);
+        const wrapper = makeWrapper();
+        const { rerender, getByTestId } = render(<Probe env="env-1" opts={{ typeFilter: ['User'] }} />, { wrapper });
         await waitFor(() => expect(getByTestId('count').textContent).toBe('1'));
         const callsAfterFirst = listEntitiesSpy.mock.calls.length;
 
