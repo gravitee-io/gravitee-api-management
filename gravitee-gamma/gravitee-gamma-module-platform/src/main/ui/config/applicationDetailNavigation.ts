@@ -92,7 +92,7 @@ export function getFirstAccessibleApplicationDetailPath(
     return null;
 }
 
-/** First permission-visible tab that has a real page (skips placeholder-only routes such as overview). */
+/** First permission-visible tab that has a real page (skips placeholder-only routes). */
 export function getFirstAccessibleImplementedApplicationDetailPath(
     groups: ApplicationDetailNavGroup[],
     implementedPaths: Set<string>,
