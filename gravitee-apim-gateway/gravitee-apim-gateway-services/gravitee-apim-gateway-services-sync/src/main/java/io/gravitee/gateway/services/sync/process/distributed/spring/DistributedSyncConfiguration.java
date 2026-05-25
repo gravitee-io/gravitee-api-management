@@ -23,6 +23,8 @@ import io.gravitee.gateway.services.sync.process.distributed.fetcher.Distributed
 import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzEntityMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzPolicyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.NodeMetadataMapper;
@@ -33,6 +35,8 @@ import io.gravitee.gateway.services.sync.process.distributed.service.DefaultDist
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.accesspoint.DistributedAccessPointSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.api.DistributedApiSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.apikey.DistributedApiKeySynchronizer;
+import io.gravitee.gateway.services.sync.process.distributed.synchronizer.authz.DistributedAuthzEntitySynchronizer;
+import io.gravitee.gateway.services.sync.process.distributed.synchronizer.authz.DistributedAuthzPolicySynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.dictionary.DistributedDictionarySynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.license.DistributedLicenseSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.node.DistributedNodeMetadataSynchronizer;
@@ -92,6 +96,16 @@ public class DistributedSyncConfiguration {
     @Bean
     public SharedPolicyGroupMapper distributedSharedPolicyGroupMapper(ObjectMapper objectMapper) {
         return new SharedPolicyGroupMapper(objectMapper);
+    }
+
+    @Bean
+    public AuthzEntityMapper distributedAuthzEntityMapper(ObjectMapper objectMapper) {
+        return new AuthzEntityMapper(objectMapper);
+    }
+
+    @Bean
+    public AuthzPolicyMapper distributedAuthzPolicyMapper(ObjectMapper objectMapper) {
+        return new AuthzPolicyMapper(objectMapper);
     }
 
     @Bean
@@ -249,6 +263,40 @@ public class DistributedSyncConfiguration {
     }
 
     @Bean
+    public DistributedAuthzEntitySynchronizer distributedAuthzEntitySynchronizer(
+        DistributedEventFetcher distributedEventFetcher,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+        DeployerFactory deployerFactory,
+        AuthzEntityMapper authzEntityMapper
+    ) {
+        return new DistributedAuthzEntitySynchronizer(
+            distributedEventFetcher,
+            syncFetcherExecutor,
+            syncDeployerExecutor,
+            deployerFactory,
+            authzEntityMapper
+        );
+    }
+
+    @Bean
+    public DistributedAuthzPolicySynchronizer distributedAuthzPolicySynchronizer(
+        DistributedEventFetcher distributedEventFetcher,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+        DeployerFactory deployerFactory,
+        AuthzPolicyMapper authzPolicyMapper
+    ) {
+        return new DistributedAuthzPolicySynchronizer(
+            distributedEventFetcher,
+            syncFetcherExecutor,
+            syncDeployerExecutor,
+            deployerFactory,
+            authzPolicyMapper
+        );
+    }
+
+    @Bean
     public DistributedNodeMetadataSynchronizer distributedNodeMetadataSynchronizer(
         DistributedEventFetcher distributedEventFetcher,
         @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
@@ -280,7 +328,9 @@ public class DistributedSyncConfiguration {
         final LicenseMapper licenseMapper,
         final AccessPointMapper accessPointMapper,
         final SharedPolicyGroupMapper sharedPolicyGroupMapper,
-        final NodeMetadataMapper nodeMetadataMapper
+        final NodeMetadataMapper nodeMetadataMapper,
+        final AuthzEntityMapper authzEntityMapper,
+        final AuthzPolicyMapper authzPolicyMapper
     ) {
         return new DefaultDistributedSyncService(
             node,
@@ -296,7 +346,9 @@ public class DistributedSyncConfiguration {
             licenseMapper,
             accessPointMapper,
             sharedPolicyGroupMapper,
-            nodeMetadataMapper
+            nodeMetadataMapper,
+            authzEntityMapper,
+            authzPolicyMapper
         );
     }
 }
