@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { LayoutDashboardIcon, PlugIcon, ShieldCheckIcon, SlidersHorizontalIcon } from '@gravitee/graphene-core/icons';
+import { BellIcon, LayoutDashboardIcon, PlugIcon, ShieldCheckIcon, SlidersHorizontalIcon } from '@gravitee/graphene-core/icons';
 import type { ComponentType } from 'react';
 
 import { APPLICATION_IMPLEMENTED_DETAIL_PATHS } from './applicationDetailPages';
@@ -47,6 +47,17 @@ export const APPLICATION_NAV_GROUPS: ApplicationDetailNavGroup[] = [
     {
         label: 'Subscriptions',
         items: [{ path: 'subscriptions', label: 'Subscriptions', icon: PlugIcon, permissions: ['application-subscription-r'] }],
+    },
+    {
+        label: 'Settings',
+        items: [
+            {
+                path: 'notifications',
+                label: 'Notification settings',
+                icon: BellIcon,
+                permissions: ['application-notification-r', 'application-alert-r'],
+            },
+        ],
     },
 ];
 
