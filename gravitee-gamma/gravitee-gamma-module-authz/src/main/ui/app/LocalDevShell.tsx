@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AppLayout, AppSidebar, ContentHeader, useLayoutSlots } from '@gravitee/graphene-core';
-import { Boxes } from 'lucide-react';
+import { AppLayout, AppSidebar, ContentHeader, Toaster, useLayoutSlots } from '@gravitee/graphene-core';
+import { BoxesIcon } from '@gravitee/graphene-core/icons';
 import type { ReactNode } from 'react';
 
 const localDevApp = {
     key: 'module-local',
     label: 'Authorization',
     description: 'Local dev',
-    icon: <Boxes size={20} />,
+    icon: <BoxesIcon size={20} />,
 };
 
 /** Minimal app chrome for standalone `nx serve` only; the host provides the real shell when federated. */
@@ -38,6 +38,7 @@ export function LocalDevShell({ children }: { readonly children: ReactNode }) {
             subheader={<ContentHeader breadcrumbs={breadcrumbs} />}
         >
             {children}
+            <Toaster position="top-right" richColors closeButton />
         </AppLayout>
     );
 }

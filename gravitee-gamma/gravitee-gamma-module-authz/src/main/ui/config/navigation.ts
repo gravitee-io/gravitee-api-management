@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type { NavGroup } from '@gravitee/graphene-core';
-import { Brain, Globe, ShieldCheck, SlidersHorizontal } from 'lucide-react';
+import { BrainIcon, GlobeIcon, ShieldCheckIcon, SlidersHorizontalIcon } from '@gravitee/graphene-core/icons';
 import { ROUTES } from './routes';
 
 /**
@@ -26,10 +26,10 @@ export const NAV_GROUPS: NavGroup[] = [
     {
         label: 'Policy Management',
         items: [
-            { key: 'mcps', title: ROUTES.mcps.label, icon: ShieldCheck },
-            { key: 'llms', title: ROUTES.llms.label, icon: Brain },
-            { key: 'apis', title: ROUTES.apis.label, icon: Globe },
-            { key: 'custom-policies', title: ROUTES['custom-policies'].label, icon: SlidersHorizontal },
+            { key: 'mcps', title: ROUTES.mcps.label, icon: ShieldCheckIcon },
+            { key: 'llms', title: ROUTES.llms.label, icon: BrainIcon },
+            { key: 'apis', title: ROUTES.apis.label, icon: GlobeIcon },
+            { key: 'custom-policies', title: ROUTES['custom-policies'].label, icon: SlidersHorizontalIcon },
         ],
     },
 ];
