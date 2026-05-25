@@ -22,7 +22,6 @@ import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.core.user.model.IdpSource;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -46,13 +45,11 @@ class CreateUserDomainServiceImplTest {
     @BeforeAll
     static void beforeAll() {
         TimeProvider.overrideClock(Clock.fixed(INSTANT_NOW, ZoneId.systemDefault()));
-        UuidString.overrideGenerator(() -> "generated-uuid");
     }
 
     @AfterAll
     static void afterAll() {
         TimeProvider.overrideClock(Clock.systemDefaultZone());
-        UuidString.reset();
     }
 
     @BeforeEach
@@ -67,10 +64,10 @@ class CreateUserDomainServiceImplTest {
 
     @Test
     void should_create_external_user_with_all_fields() {
-        var result = service.createExternalUser(EXECUTION_CONTEXT, "jane@example.com", Optional.of("Jane"), Optional.of("Doe"));
+        var result = service.createGraviteeUser(EXECUTION_CONTEXT, "jane@example.com", Optional.of("Jane"), Optional.of("Doe"));
 
         SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(result.getId()).isEqualTo("generated-uuid");
+            soft.assertThat(result.getId()).matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
             soft.assertThat(result.getOrganizationId()).isEqualTo("org-id");
             soft.assertThat(result.getSource()).isEqualTo(IdpSource.GRAVITEE);
             soft.assertThat(result.getSourceId()).isEqualTo("jane@example.com");
@@ -85,7 +82,7 @@ class CreateUserDomainServiceImplTest {
 
     @Test
     void should_use_null_for_absent_firstname_and_lastname() {
-        var result = service.createExternalUser(EXECUTION_CONTEXT, "nofirstlast@example.com", Optional.empty(), Optional.empty());
+        var result = service.createGraviteeUser(EXECUTION_CONTEXT, "nofirstlast@example.com", Optional.empty(), Optional.empty());
 
         assertThat(result.getFirstname()).isNull();
         assertThat(result.getLastname()).isNull();
@@ -93,7 +90,7 @@ class CreateUserDomainServiceImplTest {
 
     @Test
     void should_store_user_in_crud_service() {
-        service.createExternalUser(EXECUTION_CONTEXT, "stored@example.com", Optional.empty(), Optional.empty());
+        service.createGraviteeUser(EXECUTION_CONTEXT, "stored@example.com", Optional.empty(), Optional.empty());
 
         assertThat(userCrudService.storage()).hasSize(1).extracting(BaseUserEntity::getEmail).containsExactly("stored@example.com");
     }

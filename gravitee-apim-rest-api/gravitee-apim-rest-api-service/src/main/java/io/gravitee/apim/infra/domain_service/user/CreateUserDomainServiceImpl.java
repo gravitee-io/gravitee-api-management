@@ -18,10 +18,8 @@ package io.gravitee.apim.infra.domain_service.user;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.domain_service.CreateUserDomainService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
-import io.gravitee.apim.core.user.model.IdpSource;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.UuidString;
 import java.util.Date;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -34,25 +32,15 @@ public class CreateUserDomainServiceImpl implements CreateUserDomainService {
     private final UserCrudService userCrudService;
 
     @Override
-    public BaseUserEntity createExternalUser(
+    public BaseUserEntity createGraviteeUser(
         ExecutionContext executionContext,
         String email,
         Optional<String> firstname,
         Optional<String> lastname
     ) {
         var now = Date.from(TimeProvider.now().toInstant());
-        var user = BaseUserEntity.builder()
-            .id(UuidString.generateRandom())
-            .organizationId(executionContext.getOrganizationId())
-            .source(IdpSource.gravitee())
-            .sourceId(email)
-            .email(email)
-            .firstname(firstname.orElse(null))
-            .lastname(lastname.orElse(null))
-            .status("ACTIVE")
-            .createdAt(now)
-            .updatedAt(now)
-            .build();
-        return userCrudService.create(user);
+        return userCrudService.create(
+            BaseUserEntity.createGraviteeUser(executionContext.getOrganizationId(), email, firstname, lastname, now)
+        );
     }
 }

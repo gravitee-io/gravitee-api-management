@@ -20,7 +20,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Optional;
 
 public interface CreateUserDomainService {
-    BaseUserEntity createExternalUser(
+    BaseUserEntity createGraviteeUser(
         ExecutionContext executionContext,
         String email,
         Optional<String> firstname,

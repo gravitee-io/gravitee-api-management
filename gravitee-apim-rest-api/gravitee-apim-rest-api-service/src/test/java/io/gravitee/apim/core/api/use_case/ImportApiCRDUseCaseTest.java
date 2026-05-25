@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api.use_case;
 import static fixtures.ApplicationModelFixtures.anApplicationEntity;
 import static fixtures.core.model.ApiFixtures.aNativeApi;
 import static fixtures.core.model.ApiFixtures.aProxyApiV4;
+import static fixtures.core.model.BaseUserEntityFixtures.aBaseUserEntity;
 import static fixtures.core.model.MembershipFixtures.anApplicationPrimaryOwnerUserMembership;
 import static fixtures.core.model.SubscriptionFixtures.aSubscription;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -142,7 +143,6 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
-import io.gravitee.apim.core.user.model.IdpSource;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.infra.adapter.PlanAdapter;
 import io.gravitee.apim.infra.domain_service.documentation.ValidatePageSourceDomainServiceImpl;
@@ -388,18 +388,8 @@ class ImportApiCRDUseCaseTest {
 
         userDomainService.initWith(
             List.of(
-                BaseUserEntity.builder()
-                    .source(IdpSource.of(USER_ENTITY_SOURCE))
-                    .sourceId(USER_ENTITY_SOURCE_ID)
-                    .id(USER_ID)
-                    .organizationId(ORGANIZATION_ID)
-                    .build(),
-                BaseUserEntity.builder()
-                    .source(IdpSource.of(USER_ENTITY_SOURCE))
-                    .sourceId(ACTOR_USER_ID)
-                    .id(ACTOR_USER_ID)
-                    .organizationId(ORGANIZATION_ID)
-                    .build()
+                aBaseUserEntity(USER_ID, ORGANIZATION_ID, USER_ENTITY_SOURCE_ID),
+                aBaseUserEntity(ACTOR_USER_ID, ORGANIZATION_ID, ACTOR_USER_ID)
             )
         );
 
@@ -439,7 +429,7 @@ class ImportApiCRDUseCaseTest {
                     .build()
             )
         );
-        userCrudService.initWith(List.of(BaseUserEntity.builder().id(MY_MEMBER_ID).email(MEMBER_EMAIL).build()));
+        userCrudService.initWith(List.of(aBaseUserEntity(MY_MEMBER_ID, MEMBER_EMAIL)));
 
         var apiPrimaryOwnerService = new ApiPrimaryOwnerDomainService(
             auditDomainService,
@@ -524,22 +514,8 @@ class ImportApiCRDUseCaseTest {
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
         givenExistingUsers(
             List.of(
-                BaseUserEntity.builder()
-                    .organizationId(ORGANIZATION_ID)
-                    .id(ACTOR_USER_ID)
-                    .source(IdpSource.of(USER_ENTITY_SOURCE))
-                    .sourceId(ACTOR_USER_ID)
-                    .email("devops@gravitee.io")
-                    .build(),
-                BaseUserEntity.builder()
-                    .organizationId(ORGANIZATION_ID)
-                    .id(USER_ID)
-                    .source(IdpSource.of(USER_ENTITY_SOURCE))
-                    .sourceId(USER_ENTITY_SOURCE_ID)
-                    .firstname("Jane")
-                    .lastname("Doe")
-                    .email("jane.doe@gravitee.io")
-                    .build()
+                aBaseUserEntity(ACTOR_USER_ID, ORGANIZATION_ID, "devops@gravitee.io"),
+                aBaseUserEntity(USER_ID, ORGANIZATION_ID, USER_ENTITY_SOURCE_ID)
             )
         );
 

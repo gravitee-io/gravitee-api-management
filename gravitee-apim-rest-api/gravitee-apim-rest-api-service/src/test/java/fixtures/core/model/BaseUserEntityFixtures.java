@@ -52,4 +52,14 @@ public class BaseUserEntityFixtures {
     public static BaseUserEntity aBaseUserEntity(String id, String email) {
         return BaseUserEntity.builder().id(id).email(email).source(IdpSource.GRAVITEE).sourceId(email).build();
     }
+
+    public static BaseUserEntity aBaseUserEntity(String id, String organizationId, String email) {
+        return BaseUserEntity.builder()
+            .id(id)
+            .organizationId(organizationId)
+            .source(IdpSource.GRAVITEE)
+            .sourceId(email)
+            .email(email)
+            .build();
+    }
 }

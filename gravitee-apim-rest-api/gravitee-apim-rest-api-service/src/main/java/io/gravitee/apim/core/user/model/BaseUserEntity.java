@@ -16,6 +16,8 @@
 package io.gravitee.apim.core.user.model;
 
 import java.util.Date;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -39,6 +41,27 @@ public class BaseUserEntity {
     /** The user reference in the external source */
     private String sourceId;
     private String status;
+
+    public static BaseUserEntity createGraviteeUser(
+        String organizationId,
+        String email,
+        Optional<String> firstname,
+        Optional<String> lastname,
+        Date now
+    ) {
+        return BaseUserEntity.builder()
+            .id(UUID.randomUUID().toString())
+            .organizationId(organizationId)
+            .source(IdpSource.GRAVITEE)
+            .sourceId(email)
+            .email(email)
+            .firstname(firstname.orElse(null))
+            .lastname(lastname.orElse(null))
+            .status("ACTIVE")
+            .createdAt(now)
+            .updatedAt(now)
+            .build();
+    }
 
     public String displayName() {
         if (isNotBlank(firstname)) {
