@@ -115,6 +115,64 @@ describe('ApiV4MenuService', () => {
     expect(menu.subMenuItems.some(item => item.displayName === 'Webhooks')).toBe(false);
   });
 
+  describe('Entrypoints menu tabs', () => {
+    const httpListener = {
+      type: 'HTTP' as const,
+      paths: [{ path: '/test' }],
+      entrypoints: [{ type: 'http-proxy' }],
+    };
+
+    it('should expose Entrypoints and CORS tabs for MCP_PROXY (no MCP Entrypoint, no Response Templates)', () => {
+      TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: ['api-response_templates-r'] });
+      service = TestBed.inject(ApiV4MenuService);
+
+      const api = fakeApiV4({
+        type: 'MCP_PROXY',
+        listeners: [{ ...httpListener, entrypoints: [{ type: 'mcp-proxy' }] }],
+      });
+
+      const menu = service.getMenu(api);
+      const entrypoints = menu.subMenuItems.find(item => item.displayName === 'Entrypoints');
+
+      expect(entrypoints).toBeDefined();
+      expect(entrypoints.tabs?.map(t => t.displayName)).toEqual(['Entrypoints', 'CORS']);
+    });
+
+    it('should expose Entrypoints, MCP Entrypoint, Response Templates and CORS tabs for PROXY', () => {
+      TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: ['api-response_templates-r'] });
+      service = TestBed.inject(ApiV4MenuService);
+
+      const api = fakeApiV4({ type: 'PROXY', listeners: [httpListener] });
+
+      const menu = service.getMenu(api);
+      const entrypoints = menu.subMenuItems.find(item => item.displayName === 'Entrypoints');
+
+      expect(entrypoints.tabs?.map(t => t.displayName)).toEqual(['Entrypoints', 'MCP Entrypoint', 'Response Templates', 'CORS']);
+    });
+
+    it('should render a single Entrypoints route (no tabs) for NATIVE', () => {
+      service = TestBed.inject(ApiV4MenuService);
+
+      const api = fakeApiV4({ type: 'NATIVE' });
+      const menu = service.getMenu(api);
+      const entrypoints = menu.subMenuItems.find(item => item.displayName === 'Entrypoints');
+
+      expect(entrypoints.tabs).toBeUndefined();
+      expect(entrypoints.routerLink).toBe('v4/entrypoints');
+    });
+
+    it('should render a single Entrypoints route (no tabs) for LLM_PROXY', () => {
+      service = TestBed.inject(ApiV4MenuService);
+
+      const api = fakeApiV4({ type: 'LLM_PROXY', listeners: [httpListener] });
+      const menu = service.getMenu(api);
+      const entrypoints = menu.subMenuItems.find(item => item.displayName === 'Entrypoints');
+
+      expect(entrypoints.tabs).toBeUndefined();
+      expect(entrypoints.routerLink).toBe('v4/entrypoints');
+    });
+  });
+
   describe('Logs menu for NATIVE API', () => {
     it('should include Logs menu pointing to v4/runtime-logs-native when user has api-native_log-r permission', () => {
       TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: ['api-native_log-r'] });

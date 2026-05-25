@@ -159,7 +159,7 @@ export class ApiV4MenuService implements ApiMenuService {
       },
     };
 
-    if (api.type === 'NATIVE' || api.type === 'MCP_PROXY' || api.type === 'LLM_PROXY') {
+    if (api.type === 'NATIVE' || api.type === 'LLM_PROXY') {
       return {
         ...menuItem,
         routerLink: 'v4/entrypoints',
@@ -180,7 +180,7 @@ export class ApiV4MenuService implements ApiMenuService {
       });
     }
 
-    if (this.permissionService.hasAnyMatching(['api-response_templates-r'])) {
+    if (api.type !== 'MCP_PROXY' && this.permissionService.hasAnyMatching(['api-response_templates-r'])) {
       tabs.push({
         displayName: 'Response Templates',
         routerLink: hasTcpListeners ? 'DISABLED' : 'response-templates',
