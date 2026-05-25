@@ -186,7 +186,8 @@ public class PatchApiUseCase {
 
         if (input.dryRun()) {
             var validated = updateApiDomainService.validateV4(updatedApi, input.auditInfo());
-            return new Output(stripFlowIds(validated), primaryOwner, workflowState);
+            var result = flowsWerePatched(input.patchType(), patchNode) ? stripFlowIds(validated) : validated;
+            return new Output(result, primaryOwner, workflowState);
         }
 
         var persisted = updateApiDomainService.updateV4(updatedApi, input.auditInfo());
@@ -213,6 +214,22 @@ public class PatchApiUseCase {
             .map(f -> f == null ? null : (Flow) f.toBuilder().id(null).build())
             .toList();
         return api.toBuilder().apiDefinitionValue(httpV4.toBuilder().flows(stripped).build()).build();
+    }
+
+    private boolean flowsWerePatched(PatchType patchType, JsonNode patchNode) {
+        if (patchType == PatchType.MERGE_PATCH) {
+            return patchNode.has(FIELD_FLOWS);
+        }
+        if (patchType == PatchType.JSON_PATCH && patchNode.isArray()) {
+            String flowsPrefix = JSON_PATCH_PATH_PREFIX + FIELD_FLOWS;
+            for (JsonNode op : patchNode) {
+                String path = op.path("path").asText();
+                if (path.equals(flowsPrefix) || path.startsWith(flowsPrefix + "/")) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private JsonNode toJsonNode(Api api) {
