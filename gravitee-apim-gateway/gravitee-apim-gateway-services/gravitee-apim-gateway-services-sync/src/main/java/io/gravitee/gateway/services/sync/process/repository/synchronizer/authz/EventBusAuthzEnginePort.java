@@ -37,7 +37,7 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
     static final String OP_REMOVE_POLICY = "removePolicy";
     static final String OP_COMMIT = "commit";
 
-    // I4: Vertx default reply timeout is 30s — long enough to wedge a sync cycle when the PDP service
+    // Vertx default reply timeout is 30s — long enough to wedge a sync cycle when the PDP service
     // is unhealthy. 5s is short enough to fail fast and long enough for normal in-process replies.
     static final long REPLY_TIMEOUT_MS = 5_000L;
 

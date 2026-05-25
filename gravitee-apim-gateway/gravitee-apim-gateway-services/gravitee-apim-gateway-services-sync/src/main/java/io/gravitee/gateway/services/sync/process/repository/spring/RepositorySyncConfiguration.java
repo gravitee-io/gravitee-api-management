@@ -52,6 +52,7 @@ import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint.AccessPointSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiKeyAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiSynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.AuthzAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.PlanAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.SubscriptionAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.ApiKeySynchronizer;
@@ -198,7 +199,7 @@ public class RepositorySyncConfiguration {
         PlanAppender planAppender,
         SubscriptionAppender subscriptionAppender,
         ApiKeyAppender apiKeyAppender,
-        io.gravitee.gateway.services.sync.process.repository.synchronizer.api.AuthzAppender authzAppender,
+        AuthzAppender authzAppender,
         DeployerFactory deployerFactory,
         @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
         @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor

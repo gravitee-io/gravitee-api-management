@@ -193,7 +193,7 @@ class EventBusAuthzEnginePortTest {
 
     @Test
     void slow_consumer_propagates_as_timeout_so_a_wedged_pdp_does_not_stall_the_cycle(VertxTestContext ctx) {
-        // I4: without an explicit DeliveryOptions timeout, Vertx defaults to 30s — long enough
+        // Without an explicit DeliveryOptions timeout, Vertx defaults to 30s — long enough
         // to wedge a sync cycle when the PDP plugin is unhealthy. Replace the fast consumer with
         // one that never replies and verify the call fails fast.
         fakePluginConsumer.unregister();

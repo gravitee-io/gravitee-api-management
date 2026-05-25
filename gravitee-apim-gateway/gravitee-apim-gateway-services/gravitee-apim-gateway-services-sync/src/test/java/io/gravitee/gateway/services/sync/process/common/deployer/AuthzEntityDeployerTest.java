@@ -67,7 +67,7 @@ class AuthzEntityDeployerTest {
 
     @Test
     void deploy_auto_derived_resource_proceeds_when_API_is_registered() {
-        registry.register(List.of("api.bookings"));
+        registry.registerForApi("api.bookings", List.of("api.bookings"));
         AuthzEntityReactorDeployable d = resource("api.bookings");
 
         deployer.deploy(d).blockingAwait();
@@ -78,7 +78,7 @@ class AuthzEntityDeployerTest {
 
     @Test
     void deploy_custom_resource_entity_broadcasts_unconditionally() {
-        // C1: non-auto-derived RESOURCE entities aren't tied to any API and must land on
+        // Non-auto-derived RESOURCE entities aren't tied to any API and must land on
         // every gateway node regardless of which APIs the registry knows about.
         AuthzEntityReactorDeployable d = resource("team.acme.docs");
 
@@ -105,7 +105,7 @@ class AuthzEntityDeployerTest {
 
     @Test
     void deploy_forwards_attributes_and_parents_to_the_engine_port() {
-        registry.register(List.of("api.bookings"));
+        registry.registerForApi("api.bookings", List.of("api.bookings"));
         AuthzEntityReactorDeployable d = AuthzEntityReactorDeployable.builder()
             .entityId("api.bookings")
             .engineUid("Resource::\"api.bookings\"")

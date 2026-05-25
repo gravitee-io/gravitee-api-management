@@ -115,7 +115,7 @@ class ApiDeployerTest {
 
         @Test
         void should_stage_authz_entities_and_commit_BEFORE_apiManager_register_on_deploy() {
-            // C2: traffic flows to an API as soon as apiManager.register completes; if authz
+            // Traffic flows to an API as soon as apiManager.register completes; if authz
             // entities aren't already in the engine, policies referring to them evaluate
             // against a partial state. Entities must be committed before register.
             ReactableApi<?> reactableApi = httpProxyApi("api-1");

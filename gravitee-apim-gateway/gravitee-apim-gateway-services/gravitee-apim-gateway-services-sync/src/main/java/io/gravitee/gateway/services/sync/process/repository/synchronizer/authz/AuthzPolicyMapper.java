@@ -79,7 +79,7 @@ public class AuthzPolicyMapper {
                     log.warn("Skipping authz policy UNDEPLOY event [{}] — missing id", event.getId());
                     return null;
                 }
-                // I7: UNPUBLISH publishers historically omit kind. Kind is only used by the deployer
+                // UNPUBLISH publishers historically omit kind. Kind is only used by the deployer
                 // to filter RESOURCE policies by registry on this node; on undeploy the engine just
                 // needs docId, so defaulting to GLOBAL is safe and ensures the removePolicy reaches it.
                 AuthzPolicyReactorDeployable.Kind kind = wire.getKind() != null

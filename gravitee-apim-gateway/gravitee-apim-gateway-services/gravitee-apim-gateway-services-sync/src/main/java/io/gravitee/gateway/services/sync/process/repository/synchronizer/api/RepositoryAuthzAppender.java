@@ -85,7 +85,7 @@ public class RepositoryAuthzAppender implements AuthzAppender {
             return Single.just(deployables);
         }
 
-        // I6: the staging chain may resume on different reactive schedulers; a plain HashSet
+        // The staging chain may resume on different reactive schedulers; a plain HashSet
         // here would be a data race when doOnSuccess fires concurrently with completion.
         Set<String> stagedPolicies = ConcurrentHashMap.newKeySet();
 
