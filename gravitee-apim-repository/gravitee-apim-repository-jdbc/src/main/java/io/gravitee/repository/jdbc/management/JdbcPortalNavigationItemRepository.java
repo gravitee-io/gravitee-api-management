@@ -28,6 +28,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
@@ -37,6 +38,8 @@ import org.springframework.stereotype.Repository;
 public class JdbcPortalNavigationItemRepository
     extends JdbcAbstractCrudRepository<PortalNavigationItem, String>
     implements PortalNavigationItemRepository {
+
+    private static final String DELETE_FROM = "delete from ";
 
     JdbcPortalNavigationItemRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "portal_navigation_items");
@@ -109,10 +112,40 @@ public class JdbcPortalNavigationItemRepository
     }
 
     @Override
+    public List<PortalNavigationItem> findAllByRootId(String rootId, String environmentId) throws TechnicalException {
+        log.debug("JdbcPortalNavigationItemRepository.findAllByRootId({}, {})", rootId, environmentId);
+        try {
+            final String sql = getOrm().getSelectAllSql() + " where root_id = ? and environment_id = ?";
+            return jdbcTemplate.query(sql, getOrm().getRowMapper(), rootId, environmentId);
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to find portal navigation items by rootId", ex);
+        }
+    }
+
+    @Override
+    public void deleteByIds(List<String> ids) throws TechnicalException {
+        log.debug("JdbcPortalNavigationItemRepository.deleteByIds({})", ids.size());
+        if (ids.isEmpty()) return;
+        try {
+            int batchSize = 500;
+            for (int i = 0; i < ids.size(); i += batchSize) {
+                List<String> batch = ids.subList(i, Math.min(i + batchSize, ids.size()));
+                String placeholders = batch
+                    .stream()
+                    .map(id -> "?")
+                    .collect(Collectors.joining(", "));
+                jdbcTemplate.update(DELETE_FROM + this.tableName + " where id in (" + placeholders + ")", batch.toArray());
+            }
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to bulk delete portal navigation items", ex);
+        }
+    }
+
+    @Override
     public void deleteByOrganizationId(String organizationId) throws TechnicalException {
         log.debug("JdbcPortalNavigationItemRepository.deleteByOrganizationId({})", organizationId);
         try {
-            jdbcTemplate.update("delete from " + this.tableName + " where organization_id = ?", organizationId);
+            jdbcTemplate.update(DELETE_FROM + this.tableName + " where organization_id = ?", organizationId);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to delete portal navigation items by organizationId", ex);
         }
@@ -122,7 +155,7 @@ public class JdbcPortalNavigationItemRepository
     public void deleteByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("JdbcPortalNavigationItemRepository.deleteByEnvironmentId({})", environmentId);
         try {
-            jdbcTemplate.update("delete from " + this.tableName + " where environment_id = ?", environmentId);
+            jdbcTemplate.update(DELETE_FROM + this.tableName + " where environment_id = ?", environmentId);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to delete portal navigation items by environmentId", ex);
         }

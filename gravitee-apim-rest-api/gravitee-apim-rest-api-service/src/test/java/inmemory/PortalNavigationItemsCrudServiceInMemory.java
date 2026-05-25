@@ -57,6 +57,11 @@ public class PortalNavigationItemsCrudServiceInMemory
     }
 
     @Override
+    public void deleteByIds(List<PortalNavigationItemId> ids) {
+        storage.removeIf(item -> ids.contains(item.getId()));
+    }
+
+    @Override
     public void initWith(List<PortalNavigationItem> items) {
         storage.clear();
         storage.addAll(items);

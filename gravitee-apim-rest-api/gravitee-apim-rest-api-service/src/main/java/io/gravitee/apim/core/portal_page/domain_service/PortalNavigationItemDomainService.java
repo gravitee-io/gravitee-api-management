@@ -26,14 +26,20 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
@@ -126,6 +132,62 @@ public class PortalNavigationItemDomainService {
         siblingsToUpdate.forEach(crudService::update);
     }
 
+    public void deleteWithDescendants(PortalNavigationItem item) {
+        if (item.getRootId() == null || PortalNavigationItemId.ZERO.equals(item.getRootId())) {
+            // Legacy item without a rootId index — traverse via parent-child links instead
+            deleteLegacyDescendantsRecursive(item.getId(), item.getEnvironmentId());
+        } else {
+            var allUnderRoot = queryService.findAllByRootId(item.getEnvironmentId(), item.getRootId());
+            var descendantIds = collectDescendantIds(item.getId(), allUnderRoot);
+
+            allUnderRoot
+                .stream()
+                .filter(i -> descendantIds.contains(i.getId()))
+                .filter(PortalNavigationPage.class::isInstance)
+                .map(PortalNavigationPage.class::cast)
+                .map(PortalNavigationPage::getPortalPageContentId)
+                .forEach(pageContentCrudService::delete);
+
+            if (!descendantIds.isEmpty()) {
+                crudService.deleteByIds(new ArrayList<>(descendantIds));
+            }
+        }
+
+        delete(item);
+    }
+
+    private void deleteLegacyDescendantsRecursive(PortalNavigationItemId parentId, String environmentId) {
+        for (var child : queryService.findByParentIdAndEnvironmentId(environmentId, parentId)) {
+            deleteLegacyDescendantsRecursive(child.getId(), environmentId);
+            if (child instanceof PortalNavigationPage page) {
+                pageContentCrudService.delete(page.getPortalPageContentId());
+            }
+            crudService.delete(child.getId());
+        }
+    }
+
+    private Set<PortalNavigationItemId> collectDescendantIds(PortalNavigationItemId itemId, List<PortalNavigationItem> allItems) {
+        var childrenByParent = allItems
+            .stream()
+            .filter(i -> i.getParentId() != null)
+            .collect(Collectors.groupingBy(PortalNavigationItem::getParentId));
+
+        Set<PortalNavigationItemId> result = new HashSet<>();
+        collectDescendantIdsRecursive(itemId, childrenByParent, result);
+        return result;
+    }
+
+    private void collectDescendantIdsRecursive(
+        PortalNavigationItemId parentId,
+        Map<PortalNavigationItemId, List<PortalNavigationItem>> childrenByParent,
+        Set<PortalNavigationItemId> result
+    ) {
+        for (var child : childrenByParent.getOrDefault(parentId, List.of())) {
+            result.add(child.getId());
+            collectDescendantIdsRecursive(child.getId(), childrenByParent, result);
+        }
+    }
+
     public PortalNavigationItem update(UpdatePortalNavigationItem toUpdate, PortalNavigationItem originalItem) {
         final Integer originalOrder = originalItem.getOrder();
         final PortalNavigationItemId originalParentId = originalItem.getParentId();
@@ -163,13 +225,10 @@ public class PortalNavigationItemDomainService {
         }
 
         var updatedItem = crudService.update(originalItem);
-        if (PortalVisibility.PRIVATE.equals(changedVisibility) || Boolean.FALSE.equals(changedPublished)) {
-            propagateAttributesToDescendants(
-                updatedItem.getId(),
-                updatedItem.getEnvironmentId(),
-                PortalVisibility.PRIVATE.equals(changedVisibility) ? PortalVisibility.PRIVATE : null,
-                Boolean.FALSE.equals(changedPublished) ? Boolean.FALSE : null
-            );
+
+        final var visibilityToPropagate = PortalVisibility.PRIVATE.equals(changedVisibility) ? PortalVisibility.PRIVATE : null;
+        if (visibilityToPropagate != null || changedPublished != null) {
+            propagateAttributesToDescendants(updatedItem.getId(), updatedItem.getEnvironmentId(), visibilityToPropagate, changedPublished);
         }
         if (isMoveToNewParent) {
             propagateRootIdToDescendants(updatedItem.getId(), updatedItem.getEnvironmentId());

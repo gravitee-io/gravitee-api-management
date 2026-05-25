@@ -168,6 +168,20 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
     }
 
     @Override
+    public List<PortalNavigationItem> findAllByRootId(String rootId, String environmentId) throws TechnicalException {
+        log.debug("Find all PortalNavigationItem by rootId [{}] and environmentId [{}]", rootId, environmentId);
+        Set<PortalNavigationItemMongo> items = internalRepo.findAllByRootIdAndEnvironmentId(rootId, environmentId);
+        return items.stream().map(mapper::map).collect(Collectors.toList());
+    }
+
+    @Override
+    public void deleteByIds(List<String> ids) throws TechnicalException {
+        log.debug("Delete PortalNavigationItems by ids, count [{}]", ids.size());
+        if (ids.isEmpty()) return;
+        internalRepo.deleteByIdIn(ids);
+    }
+
+    @Override
     public void deleteByOrganizationId(String organizationId) throws TechnicalException {
         log.debug("Delete PortalNavigationItem by organizationId [{}]", organizationId);
         internalRepo.deleteByOrganizationId(organizationId);

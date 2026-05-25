@@ -269,10 +269,6 @@ export class FlatTreeComponent {
     return this.canUpdate || this.canDelete;
   }
 
-  hasChildren(node: FlatTreeNode): boolean {
-    return (node?.children ?? []).length > 0;
-  }
-
   onDrop(event: CdkDragDrop<SectionNode[]>) {
     const { previousIndex, currentIndex, item } = event;
 

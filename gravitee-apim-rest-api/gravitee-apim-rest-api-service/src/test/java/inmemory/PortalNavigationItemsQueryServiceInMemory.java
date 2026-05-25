@@ -103,6 +103,14 @@ public class PortalNavigationItemsQueryServiceInMemory
     }
 
     @Override
+    public List<PortalNavigationItem> findAllByRootId(String environmentId, PortalNavigationItemId rootId) {
+        return storage
+            .stream()
+            .filter(item -> environmentId.equals(item.getEnvironmentId()) && rootId.equals(item.getRootId()))
+            .toList();
+    }
+
+    @Override
     public void initWith(List<PortalNavigationItem> items) {
         storage.clear();
         storage.addAll(items);

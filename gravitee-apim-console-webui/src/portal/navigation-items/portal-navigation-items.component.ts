@@ -686,14 +686,15 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   private getPublishDialogData(navItem: PortalNavigationItem): GioConfirmDialogData {
     const isPublished = navItem.published;
     const typeLabel = navItem.type === 'API' ? 'API' : navItem.type.toLowerCase();
+    const isContainer = navItem.type === 'FOLDER' || navItem.type === 'API';
 
     const action = isPublished ? 'Unpublish' : 'Publish';
     const pastAction = `${action.toLowerCase()}ed`;
-    const isContainer = navItem.type === 'FOLDER' || navItem.type === 'API';
-    const warning =
-      isPublished && isContainer
+    const warning = isContainer
+      ? isPublished
         ? ` Unpublishing this ${typeLabel} will also unpublish all nested documentation and APIs. This action cannot be undone automatically. Do you want to proceed?`
-        : '';
+        : ` Publishing this ${typeLabel} will also publish all nested documentation and APIs. Do you want to proceed?`
+      : '';
 
     const contentScope = isContainer ? ' and its content ' : ' ';
 
@@ -706,8 +707,11 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   private confirmDeleteAction(event: NodeMenuActionEvent) {
     const node = event.node;
+    const hasChildren = !!node.children && node.children.length > 0;
     const title = `Delete "${node.label}" ${node.type.toLowerCase()}`;
-    const content = `This ${node.type.toLowerCase()} will no longer appear on your site.`;
+    const content = hasChildren
+      ? `This ${node.type.toLowerCase()} and all its nested items will be permanently deleted. This cannot be undone.`
+      : `This ${node.type.toLowerCase()} will no longer appear on your site.`;
 
     const data: GioConfirmAndValidateDialogData = {
       title,

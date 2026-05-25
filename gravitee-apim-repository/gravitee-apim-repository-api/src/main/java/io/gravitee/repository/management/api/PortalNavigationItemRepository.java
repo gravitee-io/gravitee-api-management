@@ -34,6 +34,10 @@ public interface PortalNavigationItemRepository extends CrudRepository<PortalNav
 
     List<PortalNavigationItem> searchByCriteria(PortalNavigationItemCriteria criteria) throws TechnicalException;
 
+    List<PortalNavigationItem> findAllByRootId(String rootId, String environmentId) throws TechnicalException;
+
+    void deleteByIds(List<String> ids) throws TechnicalException;
+
     void deleteByOrganizationId(String organizationId) throws TechnicalException;
 
     void deleteByEnvironmentId(String environmentId) throws TechnicalException;

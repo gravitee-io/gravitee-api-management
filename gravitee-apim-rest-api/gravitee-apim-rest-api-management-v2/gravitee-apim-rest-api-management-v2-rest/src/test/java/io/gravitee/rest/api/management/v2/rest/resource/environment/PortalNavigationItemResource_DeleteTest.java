@@ -17,14 +17,12 @@ package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import static assertions.MAPIAssertions.assertThat;
 import static fixtures.core.model.PortalNavigationItemFixtures.PAGE11_ID;
-import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemHasChildrenException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.use_case.DeletePortalNavigationItemUseCase;
@@ -130,31 +128,6 @@ class PortalNavigationItemResource_DeleteTest extends AbstractResourceTest {
                     input.environmentId().equals(ENVIRONMENT) &&
                     input.navigationItemId() != null &&
                     input.navigationItemId().toString().equals(unknownId)
-            )
-        );
-    }
-
-    @Test
-    void should_return_400_when_deleting_item_with_children() {
-        String navId = fixtures.core.model.PortalNavigationItemFixtures.APIS_ID; // fixture parent with children
-
-        when(deletePortalNavigationItemUseCase.execute(any())).thenThrow(
-            PortalNavigationItemHasChildrenException.forId(
-                io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.of(navId).toString()
-            )
-        );
-
-        Response response = target.path(navId).request().delete();
-
-        assertThat(response).hasStatus(BAD_REQUEST_400);
-
-        verify(deletePortalNavigationItemUseCase).execute(
-            org.mockito.ArgumentMatchers.argThat(
-                input ->
-                    input != null &&
-                    input.environmentId().equals(ENVIRONMENT) &&
-                    input.navigationItemId() != null &&
-                    input.navigationItemId().toString().equals(navId)
             )
         );
     }

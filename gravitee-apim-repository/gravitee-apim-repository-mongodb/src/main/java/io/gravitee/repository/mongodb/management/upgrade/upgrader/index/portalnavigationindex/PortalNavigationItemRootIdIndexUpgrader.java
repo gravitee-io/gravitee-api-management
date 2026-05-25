@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.crud_service;
+package io.gravitee.repository.mongodb.management.upgrade.upgrader.index.portalnavigationindex;
 
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
-import java.util.List;
+import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.Index;
+import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
+import org.springframework.stereotype.Component;
 
-public interface PortalNavigationItemCrudService {
-    PortalNavigationItem create(PortalNavigationItem portalNavigationItem);
+@Component
+public class PortalNavigationItemRootIdIndexUpgrader extends IndexUpgrader {
 
-    PortalNavigationItem update(PortalNavigationItem portalNavigationItem);
-
-    void delete(PortalNavigationItemId portalNavigationItemId);
-
-    void deleteByIds(List<PortalNavigationItemId> ids);
+    @Override
+    protected Index buildIndex() {
+        return Index.builder()
+            .collection("portal_navigation_items")
+            .key("rootId", ascending())
+            .name("ri1")
+            .build();
+    }
 }

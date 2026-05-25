@@ -703,4 +703,34 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             portalNavigationItemRepository.delete("duplicate-title-api-2");
         }
     }
+
+    @Test
+    public void should_find_all_navigation_items_by_root_id() throws Exception {
+        // "Resources" folder and its 3 children all share rootId 5a0b1c2d-3d4e-5f6a-7b8c-9d0e1f2a3b4c
+        List<PortalNavigationItem> items = portalNavigationItemRepository.findAllByRootId("5a0b1c2d-3d4e-5f6a-7b8c-9d0e1f2a3b4c", "env-1");
+
+        assertThat(items).isNotNull();
+        assertThat(items).hasSize(4);
+        assertThat(items)
+            .extracting("id")
+            .containsExactlyInAnyOrder(
+                "5a0b1c2d-3d4e-5f6a-7b8c-9d0e1f2a3b4c",
+                "6b1c2d3e-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+                "7c2d3e4f-5f6a-7b8c-9d0e-1f2a3b4c5d6e",
+                "8d3e4f5a-6a7b-8c9d-0e1f-2a3b4c5d6e7f"
+            );
+    }
+
+    @Test
+    public void should_delete_navigation_items_by_ids() throws Exception {
+        List<String> idsToDelete = List.of("6b1c2d3e-4e5f-6a7b-8c9d-0e1f2a3b4c5d", "7c2d3e4f-5f6a-7b8c-9d0e-1f2a3b4c5d6e");
+
+        portalNavigationItemRepository.deleteByIds(idsToDelete);
+
+        assertThat(portalNavigationItemRepository.findById("6b1c2d3e-4e5f-6a7b-8c9d-0e1f2a3b4c5d")).isEmpty();
+        assertThat(portalNavigationItemRepository.findById("7c2d3e4f-5f6a-7b8c-9d0e-1f2a3b4c5d6e")).isEmpty();
+        // sibling and root remain
+        assertThat(portalNavigationItemRepository.findById("5a0b1c2d-3d4e-5f6a-7b8c-9d0e1f2a3b4c")).isPresent();
+        assertThat(portalNavigationItemRepository.findById("8d3e4f5a-6a7b-8c9d-0e1f-2a3b4c5d6e7f")).isPresent();
+    }
 }

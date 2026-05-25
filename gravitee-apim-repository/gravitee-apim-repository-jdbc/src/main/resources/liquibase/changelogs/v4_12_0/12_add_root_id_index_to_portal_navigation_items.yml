@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.12.0_12_add_root_id_index_to_portal_navigation_items
+      author: GraviteeSource Team
+      changes:
+        - createIndex:
+            indexName: idx_${gravitee_prefix}portal_navigation_items_root_id
+            tableName: ${gravitee_prefix}portal_navigation_items
+            columns:
+              - column:
+                  name: root_id
+                  type: nvarchar(64)
