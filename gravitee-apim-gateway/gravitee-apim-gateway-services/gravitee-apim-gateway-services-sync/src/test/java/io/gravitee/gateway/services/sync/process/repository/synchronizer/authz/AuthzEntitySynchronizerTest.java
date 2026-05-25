@@ -28,6 +28,7 @@ import io.gravitee.gateway.services.sync.process.common.deployer.AuthzEntityDepl
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
+import io.gravitee.gateway.services.sync.process.repository.service.AuthzRegistry;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.reactivex.rxjava3.core.Completable;
@@ -41,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -61,15 +63,19 @@ class AuthzEntitySynchronizerTest {
     @Mock
     private AuthzEnginePort port;
 
+    private AuthzRegistry authzRegistry;
+
     private AuthzEntitySynchronizer synchronizer;
 
     @BeforeEach
     void setUp() {
+        authzRegistry = new AuthzRegistry(null);
         synchronizer = new AuthzEntitySynchronizer(
             fetcher,
             new AuthzEntityMapper(objectMapper),
             deployerFactory,
             port,
+            authzRegistry,
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
         );
@@ -167,6 +173,92 @@ class AuthzEntitySynchronizerTest {
         synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
 
         verify(deployer).deploy(any());
+        verify(port).commit();
+    }
+
+    @Test
+    void cold_sync_skips_auto_derived_resource_entities() throws InterruptedException {
+        Event apiResource = event("evt-api", EventType.PUBLISH_AUTHZ_ENTITY, "{\"entityId\": \"api.bookings\", \"kind\": \"RESOURCE\"}");
+        Event mcpResource = event(
+            "evt-mcp",
+            EventType.PUBLISH_AUTHZ_ENTITY,
+            "{\"entityId\": \"mcp.bookings.get\", \"kind\": \"RESOURCE\"}"
+        );
+        Event agentResource = event("evt-agent", EventType.PUBLISH_AUTHZ_ENTITY, "{\"entityId\": \"agent.bot\", \"kind\": \"RESOURCE\"}");
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(
+            Flowable.just(List.of(apiResource, mcpResource, agentResource))
+        );
+
+        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+
+        verify(deployer, never()).deploy(any());
+        verify(port, never()).commit();
+    }
+
+    @Test
+    void cold_sync_keeps_principal_entities() throws InterruptedException {
+        Event principal = event(
+            "evt-principal",
+            EventType.PUBLISH_AUTHZ_ENTITY,
+            "{\"entityId\": \"idp.am.alice\", \"kind\": \"PRINCIPAL\", \"attributes\": {}, \"parents\": []}"
+        );
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(principal)));
+
+        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+
+        ArgumentCaptor<AuthzEntityReactorDeployable> captor = ArgumentCaptor.forClass(AuthzEntityReactorDeployable.class);
+        verify(deployer).deploy(captor.capture());
+        assertThat(captor.getValue().entityId()).isEqualTo("idp.am.alice");
+        verify(port).commit();
+    }
+
+    @Test
+    void cold_sync_keeps_custom_resource_entities() throws InterruptedException {
+        Event customResource = event(
+            "evt-custom",
+            EventType.PUBLISH_AUTHZ_ENTITY,
+            "{\"entityId\": \"team.acme.docs\", \"kind\": \"RESOURCE\", \"attributes\": {}, \"parents\": []}"
+        );
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(customResource)));
+
+        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+
+        ArgumentCaptor<AuthzEntityReactorDeployable> captor = ArgumentCaptor.forClass(AuthzEntityReactorDeployable.class);
+        verify(deployer).deploy(captor.capture());
+        assertThat(captor.getValue().entityId()).isEqualTo("team.acme.docs");
+        verify(port).commit();
+    }
+
+    @Test
+    void incremental_skips_auto_derived_resource_when_api_not_hosted() throws InterruptedException {
+        Event apiResource = event(
+            "evt-api",
+            EventType.PUBLISH_AUTHZ_ENTITY,
+            "{\"entityId\": \"api.bookings\", \"kind\": \"RESOURCE\", \"attributes\": {}, \"parents\": []}"
+        );
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(apiResource)));
+
+        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+
+        verify(deployer, never()).deploy(any());
+        verify(port, never()).commit();
+    }
+
+    @Test
+    void incremental_keeps_auto_derived_resource_when_api_hosted() throws InterruptedException {
+        authzRegistry.registerForApi("api.bookings", List.of("api.bookings"));
+        Event apiResource = event(
+            "evt-api",
+            EventType.PUBLISH_AUTHZ_ENTITY,
+            "{\"entityId\": \"api.bookings\", \"kind\": \"RESOURCE\", \"attributes\": {}, \"parents\": []}"
+        );
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(apiResource)));
+
+        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+
+        ArgumentCaptor<AuthzEntityReactorDeployable> captor = ArgumentCaptor.forClass(AuthzEntityReactorDeployable.class);
+        verify(deployer).deploy(captor.capture());
+        assertThat(captor.getValue().entityId()).isEqualTo("api.bookings");
         verify(port).commit();
     }
 
