@@ -15,11 +15,11 @@
  */
 package io.gravitee.gamma.authorization.service;
 
-import io.gravitee.gamma.authorization.api.AuthzEntityIdConstants;
 import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
 import io.gravitee.gamma.authorization.domain.AuthzPolicyKind;
 import io.gravitee.gamma.authorization.service.exception.AuthzEntityIdValidationCode;
 import io.gravitee.gamma.authorization.service.exception.AuthzInvalidEntityIdException;
+import io.gravitee.gamma.definition.authz.AuthzEntityIdConstants;
 import java.util.Objects;
 import java.util.regex.Pattern;
 

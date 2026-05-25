@@ -74,6 +74,7 @@
     </build>
 
     <modules>
+        <module>gravitee-gamma-definition-model</module>
         <module>gravitee-gamma-plugin</module>
         <module>gravitee-gamma-rest-api</module>
         <module>gravitee-gamma-module-apim</module>
