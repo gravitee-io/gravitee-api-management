@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useCallback, useEffect, useState } from 'react';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useState } from 'react';
 import { authzApiService, DEFAULT_PER_PAGE } from '../api/authz-api.service';
 import type { EntityResponse, PagedResponse } from '../api/authz-api.types';
+import { authzQueryKeys } from '../api/query-keys';
 
 export interface UseEntitiesResult {
     readonly data: PagedResponse<EntityResponse> | null;
@@ -30,47 +32,38 @@ export interface UseEntitiesResult {
 
 export function useEntities(environmentId: string, initialPerPage = DEFAULT_PER_PAGE): UseEntitiesResult {
     const [page, setPage] = useState(1);
-    // Resync perPage from prop on every change so callers can drive it as a controlled value.
     const [perPage, setPerPage] = useState(initialPerPage);
-    useEffect(() => {
+    const [lastInitialPerPage, setLastInitialPerPage] = useState(initialPerPage);
+
+    // Adjust perPage during render (React recommended pattern) rather than a
+    // secondary useEffect, avoiding the extra render cycle that the effect causes.
+    if (initialPerPage !== lastInitialPerPage) {
+        setLastInitialPerPage(initialPerPage);
         setPerPage(initialPerPage);
-    }, [initialPerPage]);
-    const [data, setData] = useState<PagedResponse<EntityResponse> | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | undefined>(undefined);
-    const [nonce, setNonce] = useState(0);
+    }
 
-    useEffect(() => {
-        let cancelled = false;
-        // Gate setState to break cascading renders when nothing actually
-        // changes (isLoading already true / error already undefined).
-        if (!isLoading) setIsLoading(true);
-        if (error !== undefined) setError(undefined);
+    const queryClient = useQueryClient();
 
-        authzApiService
-            .listEntities(environmentId, { page, perPage })
-            .then(res => {
-                if (cancelled) return;
-                setData(res);
-            })
-            .catch(e => {
-                if (cancelled) return;
-                setError(e instanceof Error ? e.message : 'Failed to load entities');
-                setData(null);
-            })
-            .finally(() => {
-                if (!cancelled) setIsLoading(false);
-            });
+    const query = useQuery({
+        queryKey: authzQueryKeys.entities.page(environmentId, page, perPage),
+        queryFn: () => authzApiService.listEntities(environmentId, { page, perPage }),
+        staleTime: 30_000,
+        placeholderData: keepPreviousData,
+    });
 
-        return () => {
-            cancelled = true;
-        };
-        // isLoading/error intentionally excluded — they are read for gating
-        // setState; including them would re-trigger the effect.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [environmentId, page, perPage, nonce]);
+    const reload = useCallback(
+        () => void queryClient.invalidateQueries({ queryKey: authzQueryKeys.entities.all(environmentId) }),
+        [environmentId, queryClient],
+    );
 
-    const reload = useCallback(() => setNonce(n => n + 1), []);
-
-    return { data, isLoading, error, page, perPage, setPage, setPerPage, reload };
+    return {
+        data: query.data ?? null,
+        isLoading: query.isLoading,
+        error: query.error instanceof Error ? query.error.message : query.error ? String(query.error) : undefined,
+        page,
+        perPage,
+        setPage,
+        setPerPage,
+        reload,
+    };
 }

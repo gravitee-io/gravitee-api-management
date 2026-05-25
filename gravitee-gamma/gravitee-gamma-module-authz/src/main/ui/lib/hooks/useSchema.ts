@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { ApiError } from '../api/authz-api-client';
 import { authzApiService } from '../api/authz-api.service';
 import type { SchemaResponse } from '../api/authz-api.types';
+import { authzQueryKeys } from '../api/query-keys';
 
 export interface UseSchemaResult {
     readonly schema: SchemaResponse | null;
@@ -25,41 +26,31 @@ export interface UseSchemaResult {
     readonly error: string | undefined;
 }
 
+const NOT_FOUND = Symbol('schema-not-found');
+type SchemaQueryResult = SchemaResponse | typeof NOT_FOUND;
+
 export function useSchema(environmentId: string): UseSchemaResult {
-    const [schema, setSchema] = useState<SchemaResponse | null>(null);
-    const [notFound, setNotFound] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | undefined>(undefined);
+    const query = useQuery<SchemaQueryResult>({
+        queryKey: authzQueryKeys.schema(environmentId),
+        queryFn: async () => {
+            try {
+                return await authzApiService.getSchema(environmentId);
+            } catch (e) {
+                // 404 is a legitimate "no schema yet" state, not a transport error.
+                if (e instanceof ApiError && e.status === 404) return NOT_FOUND;
+                throw e;
+            }
+        },
+        staleTime: 30_000,
+    });
 
-    useEffect(() => {
-        let cancelled = false;
-        setIsLoading(true);
-        setError(undefined);
+    const notFound = query.data === NOT_FOUND;
+    const schema = !notFound && query.data ? (query.data as SchemaResponse) : null;
 
-        authzApiService
-            .getSchema(environmentId)
-            .then(res => {
-                if (cancelled) return;
-                setSchema(res);
-                setNotFound(false);
-            })
-            .catch(e => {
-                if (cancelled) return;
-                if (e instanceof ApiError && e.status === 404) {
-                    setSchema(null);
-                    setNotFound(true);
-                } else {
-                    setError(e instanceof Error ? e.message : 'Failed to load schema');
-                }
-            })
-            .finally(() => {
-                if (!cancelled) setIsLoading(false);
-            });
-
-        return () => {
-            cancelled = true;
-        };
-    }, [environmentId]);
-
-    return { schema, notFound, isLoading, error };
+    return {
+        schema,
+        notFound,
+        isLoading: query.isLoading,
+        error: query.error instanceof Error ? query.error.message : query.error ? String(query.error) : undefined,
+    };
 }

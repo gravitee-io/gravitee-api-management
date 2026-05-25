@@ -310,7 +310,7 @@ export const authzApiService = {
         return {
             environmentId,
             schemaText: c.schema ?? '',
-            updatedAt: null as unknown as string,
+            updatedAt: null,
         };
     },
 

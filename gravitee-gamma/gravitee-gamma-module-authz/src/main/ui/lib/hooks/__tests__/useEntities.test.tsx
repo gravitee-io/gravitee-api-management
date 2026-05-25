@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, render, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { useEffect } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useEntities, type UseEntitiesResult } from '../useEntities';
@@ -26,6 +28,11 @@ vi.mock('../../api/authz-api.service', () => ({
         listEntities: (env: string, params?: unknown) => listSpy(env, params),
     },
 }));
+
+function makeWrapper() {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    return ({ children }: { children: ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+}
 
 function Probe({ env }: { env: string }) {
     const state = useEntities(env);
@@ -46,7 +53,7 @@ describe('useEntities', () => {
     it('loads entities on mount with default pagination', async () => {
         listSpy.mockResolvedValue({ data: [], total: 0, page: 1, perPage: 10 });
 
-        const { getByTestId } = render(<Probe env="env-1" />);
+        const { getByTestId } = render(<Probe env="env-1" />, { wrapper: makeWrapper() });
 
         await waitFor(() => expect(getByTestId('total').textContent).toBe('0'));
         expect(listSpy).toHaveBeenCalledWith('env-1', { page: 1, perPage: 10 });
@@ -55,7 +62,7 @@ describe('useEntities', () => {
     it('sets error when listEntities fails', async () => {
         listSpy.mockRejectedValue(new Error('fail'));
 
-        const { getByTestId } = render(<Probe env="env-1" />);
+        const { getByTestId } = render(<Probe env="env-1" />, { wrapper: makeWrapper() });
 
         await waitFor(() => expect(getByTestId('error').textContent).toBe('fail'));
     });
@@ -70,7 +77,7 @@ describe('useEntities', () => {
         );
 
         const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-        const { unmount } = render(<Probe env="env-unmount" />);
+        const { unmount } = render(<Probe env="env-unmount" />, { wrapper: makeWrapper() });
         unmount();
 
         resolveFn({ data: [], total: 0, page: 1, perPage: 10 });
@@ -90,7 +97,8 @@ describe('useEntities', () => {
             return <span data-testid="total">{state.data?.total ?? 'null'}</span>;
         }
 
-        const { rerender, getByTestId } = render(<PerPageProbe perPage={10} />);
+        const wrapper = makeWrapper();
+        const { rerender, getByTestId } = render(<PerPageProbe perPage={10} />, { wrapper });
         await waitFor(() => expect(getByTestId('total').textContent).toBe('50'));
 
         rerender(<PerPageProbe perPage={50} />);
@@ -112,7 +120,7 @@ describe('useEntities', () => {
             return null;
         }
 
-        render(<CaptureProbe />);
+        render(<CaptureProbe />, { wrapper: makeWrapper() });
         await waitFor(() => expect(listSpy).toHaveBeenCalledTimes(1));
 
         await act(async () => {
@@ -133,7 +141,8 @@ describe('useEntities', () => {
         );
         listSpy.mockImplementationOnce(() => Promise.resolve({ data: [], total: 9, page: 1, perPage: 10 }));
 
-        const { rerender, getByTestId } = render(<Probe env="env-A" />);
+        const wrapper = makeWrapper();
+        const { rerender, getByTestId } = render(<Probe env="env-A" />, { wrapper });
         rerender(<Probe env="env-B" />);
 
         await waitFor(() => expect(getByTestId('total').textContent).toBe('9'));
