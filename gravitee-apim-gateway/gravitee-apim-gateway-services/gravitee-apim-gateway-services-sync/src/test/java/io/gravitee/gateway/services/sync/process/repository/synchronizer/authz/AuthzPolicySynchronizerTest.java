@@ -29,6 +29,7 @@ import io.gravitee.gateway.services.sync.process.common.deployer.AuthzPolicyDepl
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
+import io.gravitee.gateway.services.sync.process.repository.service.AuthzRegistry;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.reactivex.rxjava3.core.Completable;
@@ -42,6 +43,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -62,15 +64,19 @@ class AuthzPolicySynchronizerTest {
     @Mock
     private AuthzEnginePort port;
 
+    private AuthzRegistry authzRegistry;
+
     private AuthzPolicySynchronizer synchronizer;
 
     @BeforeEach
     void setUp() {
+        authzRegistry = new AuthzRegistry(null);
         synchronizer = new AuthzPolicySynchronizer(
             fetcher,
             new AuthzPolicyMapper(objectMapper),
             deployerFactory,
             port,
+            authzRegistry,
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
         );
@@ -120,6 +126,7 @@ class AuthzPolicySynchronizerTest {
 
     @Test
     void INCREMENTAL_deploys_both_GLOBAL_and_RESOURCE() throws InterruptedException {
+        authzRegistry.registerForApi("api.x", List.of("api.x"));
         Event globalEvt = event(
             "evt-g",
             EventType.PUBLISH_AUTHZ_POLICY,
@@ -204,6 +211,77 @@ class AuthzPolicySynchronizerTest {
         synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
 
         verify(deployer, times(1)).deploy(any());
+        verify(port).commit();
+    }
+
+    @Test
+    void cold_sync_skips_all_resource_policies() throws InterruptedException {
+        authzRegistry.registerForApi("api.bookings", List.of("api.bookings"));
+        Event autoDerived = event(
+            "evt-auto",
+            EventType.PUBLISH_AUTHZ_POLICY,
+            "{\"id\": \"doc-auto\", \"name\": \"A\", \"kind\": \"RESOURCE\", \"entityId\": \"api.bookings\", \"policyText\": \"permit(...);\"}"
+        );
+        Event custom = event(
+            "evt-custom",
+            EventType.PUBLISH_AUTHZ_POLICY,
+            "{\"id\": \"doc-custom\", \"name\": \"C\", \"kind\": \"RESOURCE\", \"entityId\": \"team.acme.docs\", \"policyText\": \"permit(...);\"}"
+        );
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(autoDerived, custom)));
+
+        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+
+        verify(deployer, never()).deploy(any());
+        verify(port, never()).commit();
+    }
+
+    @Test
+    void incremental_skips_auto_derived_resource_policy_when_api_not_hosted() throws InterruptedException {
+        Event autoDerived = event(
+            "evt-auto",
+            EventType.PUBLISH_AUTHZ_POLICY,
+            "{\"id\": \"doc-auto\", \"name\": \"A\", \"kind\": \"RESOURCE\", \"entityId\": \"api.bookings\", \"policyText\": \"permit(...);\"}"
+        );
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(autoDerived)));
+
+        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+
+        verify(deployer, never()).deploy(any());
+        verify(port, never()).commit();
+    }
+
+    @Test
+    void incremental_keeps_auto_derived_resource_policy_when_api_hosted() throws InterruptedException {
+        authzRegistry.registerForApi("api.bookings", List.of("api.bookings"));
+        Event autoDerived = event(
+            "evt-auto",
+            EventType.PUBLISH_AUTHZ_POLICY,
+            "{\"id\": \"doc-auto\", \"name\": \"A\", \"kind\": \"RESOURCE\", \"entityId\": \"api.bookings\", \"policyText\": \"permit(...);\"}"
+        );
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(autoDerived)));
+
+        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+
+        ArgumentCaptor<AuthzPolicyReactorDeployable> captor = ArgumentCaptor.forClass(AuthzPolicyReactorDeployable.class);
+        verify(deployer).deploy(captor.capture());
+        assertThat(captor.getValue().docId()).isEqualTo("doc-auto");
+        verify(port).commit();
+    }
+
+    @Test
+    void incremental_keeps_custom_resource_policies() throws InterruptedException {
+        Event custom = event(
+            "evt-custom",
+            EventType.PUBLISH_AUTHZ_POLICY,
+            "{\"id\": \"doc-custom\", \"name\": \"C\", \"kind\": \"RESOURCE\", \"entityId\": \"team.acme.docs\", \"policyText\": \"permit(...);\"}"
+        );
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(custom)));
+
+        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+
+        ArgumentCaptor<AuthzPolicyReactorDeployable> captor = ArgumentCaptor.forClass(AuthzPolicyReactorDeployable.class);
+        verify(deployer).deploy(captor.capture());
+        assertThat(captor.getValue().docId()).isEqualTo("doc-custom");
         verify(port).commit();
     }
 

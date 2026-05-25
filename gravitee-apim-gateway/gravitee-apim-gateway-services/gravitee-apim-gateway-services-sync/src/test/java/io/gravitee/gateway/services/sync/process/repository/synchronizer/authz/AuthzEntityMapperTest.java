@@ -56,7 +56,7 @@ class AuthzEntityMapperTest {
     }
 
     @Test
-    void toDeploy_auto_derived_entityId_is_filtered_out() {
+    void toDeploy_auto_derived_entityId_is_passed_through_for_synchronizer_to_filter() {
         for (String autoDerived : new String[] { "api.bookings", "mcp.bookings.get", "agent.bot" }) {
             Event event = event(
                 "evt-auto-" + autoDerived,
@@ -73,10 +73,13 @@ class AuthzEntityMapperTest {
                 )
             );
 
-            assertThat(mapper.toDeploy(event).blockingGet()).as("auto-derived id %s should be filtered out", autoDerived).isNull();
-            assertThat(mapper.toUndeploy(event).blockingGet())
-                .as("auto-derived id %s undeploy should be filtered out", autoDerived)
-                .isNull();
+            AuthzEntityReactorDeployable d = mapper.toDeploy(event).blockingGet();
+            assertThat(d).as("auto-derived id %s is decoded; filtering happens in the synchronizer", autoDerived).isNotNull();
+            assertThat(d.entityId()).isEqualTo(autoDerived);
+
+            AuthzEntityReactorDeployable u = mapper.toUndeploy(event).blockingGet();
+            assertThat(u).as("auto-derived id %s undeploy is decoded; filtering happens in the synchronizer", autoDerived).isNotNull();
+            assertThat(u.entityId()).isEqualTo(autoDerived);
         }
     }
 
