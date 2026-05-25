@@ -38,7 +38,11 @@ class AuthzEntityDeployerTest {
     void setUp() {
         registry = new AuthzRegistry(null);
         port = new RecordingPort();
-        deployer = new AuthzEntityDeployer(port, registry);
+        deployer = new AuthzEntityDeployer(
+            port,
+            registry,
+            new io.gravitee.gateway.services.sync.process.distributed.service.NoopDistributedSyncService()
+        );
     }
 
     @Test

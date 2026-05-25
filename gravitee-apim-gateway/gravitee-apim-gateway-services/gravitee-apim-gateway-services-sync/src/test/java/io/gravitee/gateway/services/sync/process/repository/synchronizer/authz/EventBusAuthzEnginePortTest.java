@@ -42,7 +42,7 @@ class EventBusAuthzEnginePortTest {
     @BeforeEach
     void setUp() {
         vertx = Vertx.vertx();
-        port = new EventBusAuthzEnginePort(vertx);
+        port = new EventBusAuthzEnginePort(io.vertx.rxjava3.core.Vertx.newInstance(vertx));
         fakePluginConsumer = vertx
             .eventBus()
             .<JsonObject>consumer(EventBusAuthzEnginePort.SYNC_ADDRESS, msg -> {

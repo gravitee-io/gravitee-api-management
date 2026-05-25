@@ -142,10 +142,10 @@ public class DeployerFactory {
     }
 
     public AuthzEntityDeployer createAuthzEntityDeployer() {
-        return new AuthzEntityDeployer(authzEnginePort, authzRegistry);
+        return new AuthzEntityDeployer(authzEnginePort, authzRegistry, distributedSyncService);
     }
 
     public AuthzPolicyDeployer createAuthzPolicyDeployer() {
-        return new AuthzPolicyDeployer(authzEnginePort, authzRegistry);
+        return new AuthzPolicyDeployer(authzEnginePort, authzRegistry, distributedSyncService);
     }
 }

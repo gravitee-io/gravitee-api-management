@@ -165,7 +165,7 @@ public class SyncConfiguration {
 
     @Bean
     @Conditional(GammaEnabledCondition.class)
-    public AuthzEnginePort authzEnginePort(io.vertx.core.Vertx vertx) {
+    public AuthzEnginePort authzEnginePort(io.vertx.rxjava3.core.Vertx vertx) {
         return new EventBusAuthzEnginePort(vertx);
     }
 

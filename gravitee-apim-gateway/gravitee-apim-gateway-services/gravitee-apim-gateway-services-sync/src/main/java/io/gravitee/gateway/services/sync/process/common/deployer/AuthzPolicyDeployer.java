@@ -16,6 +16,7 @@
 package io.gravitee.gateway.services.sync.process.common.deployer;
 
 import io.gravitee.gamma.definition.authz.AuthzEntityIdConstants;
+import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.service.AuthzRegistry;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEnginePort;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityIdExtractor;
@@ -30,6 +31,7 @@ public class AuthzPolicyDeployer implements Deployer<AuthzPolicyReactorDeployabl
 
     private final AuthzEnginePort enginePort;
     private final AuthzRegistry authzRegistry;
+    private final DistributedSyncService distributedSyncService;
 
     @Override
     public Completable deploy(AuthzPolicyReactorDeployable deployable) {
@@ -48,11 +50,21 @@ public class AuthzPolicyDeployer implements Deployer<AuthzPolicyReactorDeployabl
     }
 
     @Override
+    public Completable doAfterDeployment(AuthzPolicyReactorDeployable deployable) {
+        return distributedSyncService.distributeIfNeeded(deployable);
+    }
+
+    @Override
     public Completable undeploy(AuthzPolicyReactorDeployable deployable) {
         return enginePort
             .removePolicy(deployable.docId())
             .doOnComplete(() -> log.debug("Authz policy '{}' staged for removal on next commit", deployable.docId()))
             .doOnError(e -> log.warn("Failed to stage authz policy '{}' removal: {}", deployable.docId(), e.getMessage()));
+    }
+
+    @Override
+    public Completable doAfterUndeployment(AuthzPolicyReactorDeployable deployable) {
+        return distributedSyncService.distributeIfNeeded(deployable);
     }
 
     private boolean shouldDeployOnThisNode(AuthzPolicyReactorDeployable deployable) {

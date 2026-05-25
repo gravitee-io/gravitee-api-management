@@ -114,7 +114,9 @@ class DefaultDistributedSyncServiceTest {
             new LicenseMapper(),
             new AccessPointMapper(objectMapper),
             new SharedPolicyGroupMapper(objectMapper),
-            new NodeMetadataMapper(objectMapper)
+            new NodeMetadataMapper(objectMapper),
+            new io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzEntityMapper(objectMapper),
+            new io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzPolicyMapper(objectMapper)
         );
     }
 
@@ -141,6 +143,8 @@ class DefaultDistributedSyncServiceTest {
                 null,
                 distributedEventRepository,
                 distributedSyncStateRepository,
+                null,
+                null,
                 null,
                 null,
                 null,
