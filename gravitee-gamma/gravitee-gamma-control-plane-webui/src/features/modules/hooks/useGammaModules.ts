@@ -18,7 +18,7 @@ import { useState, useEffect } from 'react';
 
 import { useBootstrapStore } from '../../../shared/config/bootstrap.store';
 import { useAuthStore } from '../../auth/auth.store';
-import { type GammaModule, type GammaModuleResponse, parseModule } from '../modules.types';
+import { type GammaModule, type GammaModuleResponse, hasUi, parseModule } from '../modules.types';
 
 const DEV_MODULE_ENTRIES: Record<string, string> = (process.env.DEV_MODULE_ENTRIES ?? '')
     .split(',')
@@ -63,7 +63,7 @@ export function useGammaModules(): { modules: GammaModule[]; loading: boolean; e
                 return res.json() as Promise<GammaModuleResponse[]>;
             })
             .then(data => {
-                const parsed = Array.isArray(data) ? data.map(parseModule) : [];
+                const parsed = Array.isArray(data) ? data.filter(hasUi).map(parseModule) : [];
                 const remotes = parsed.map(m => ({
                     name: m.remoteName,
                     entry:

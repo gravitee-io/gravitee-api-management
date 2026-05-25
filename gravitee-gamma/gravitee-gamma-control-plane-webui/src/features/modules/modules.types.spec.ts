@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type GammaModuleResponse, parseModule } from './modules.types';
+import { type UiGammaModuleResponse, parseModule } from './modules.types';
 
 describe('parseModule', () => {
     it('should parse module with exposed name', () => {
-        const raw: GammaModuleResponse = {
+        const raw: UiGammaModuleResponse = {
             id: 'mod-1',
             name: 'Test Module',
             version: '1.0.0',
@@ -39,7 +39,7 @@ describe('parseModule', () => {
     });
 
     it('should default exposed module to Module when no exposes', () => {
-        const raw: GammaModuleResponse = {
+        const raw: UiGammaModuleResponse = {
             id: 'mod-2',
             name: 'Empty Module',
             version: '2.0.0',
@@ -52,7 +52,7 @@ describe('parseModule', () => {
     });
 
     it('should strip leading dot slash from expose name', () => {
-        const raw: GammaModuleResponse = {
+        const raw: UiGammaModuleResponse = {
             id: 'mod-3',
             name: 'Dotted Module',
             version: '3.0.0',
