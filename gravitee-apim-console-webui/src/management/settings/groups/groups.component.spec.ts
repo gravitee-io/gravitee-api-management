@@ -45,13 +45,15 @@ describe('GroupsComponent', () => {
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  const init = async () => {
+  const init = async (
+    permissions: string[] = ['environment-group-u', 'environment-group-d', 'environment-group-c', 'organization-settings-r'],
+  ) => {
     await TestBed.configureTestingModule({
       declarations: [],
       providers: [
         {
           provide: GioTestingPermissionProvider,
-          useValue: ['environment-group-u', 'environment-group-d', 'environment-group-c', 'environment-settings-r'],
+          useValue: permissions,
         },
       ],
       imports: [GroupsComponent, GioTestingModule, NoopAnimationsModule],
@@ -73,6 +75,17 @@ describe('GroupsComponent', () => {
 
   afterEach(() => {
     httpTestingController.verify();
+  });
+
+  describe('Settings (without organization-settings-r permission)', () => {
+    beforeEach(async () => {
+      await init(['environment-group-u', 'environment-group-d', 'environment-group-c']);
+    });
+
+    it('should not fetch console settings when user lacks organization-settings-r', async () => {
+      expectGetGroupsList(emptyPage);
+      httpTestingController.expectNone(`${CONSTANTS_TESTING.org.baseURL}/settings`);
+    });
   });
 
   describe('Settings', () => {
