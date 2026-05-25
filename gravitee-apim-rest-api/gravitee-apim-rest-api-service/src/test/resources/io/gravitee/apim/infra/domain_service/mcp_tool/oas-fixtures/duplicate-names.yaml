@@ -1,0 +1,35 @@
+openapi: 3.0.3
+info:
+  title: Dupes
+  version: '1.0'
+paths:
+  /users:
+    get:
+      operationId: getUser
+      responses:
+        '200':
+          description: OK
+  /users/{id}:
+    get:
+      operationId: getUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+  /users/{id}/profile:
+    get:
+      operationId: getUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK

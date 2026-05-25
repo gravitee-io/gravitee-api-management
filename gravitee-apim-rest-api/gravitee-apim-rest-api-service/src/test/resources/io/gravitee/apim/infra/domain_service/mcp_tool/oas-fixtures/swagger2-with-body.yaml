@@ -1,0 +1,32 @@
+swagger: '2.0'
+info:
+  title: Legacy Orders
+  version: '1.0'
+basePath: /api
+paths:
+  /orders:
+    post:
+      operationId: placeOrder
+      summary: Place a new order
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: order
+          required: true
+          schema:
+            $ref: '#/definitions/Order'
+      responses:
+        '201':
+          description: Created
+          schema:
+            $ref: '#/definitions/Order'
+definitions:
+  Order:
+    type: object
+    required: [sku]
+    properties:
+      sku:
+        type: string
+      quantity:
+        type: integer

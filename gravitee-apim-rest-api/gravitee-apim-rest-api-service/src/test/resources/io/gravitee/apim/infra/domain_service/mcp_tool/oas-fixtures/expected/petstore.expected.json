@@ -1,0 +1,201 @@
+{
+    "result": [
+        {
+            "toolDefinition": {
+                "name": "listPets",
+                "description": "List all pets",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "limit": {
+                            "type": "integer",
+                            "format": "int32"
+                        }
+                    },
+                    "required": []
+                },
+                "outputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "bodySchema": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "required": [
+                                    "id",
+                                    "name"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "integer",
+                                        "format": "int64"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "tag": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": []
+                }
+            },
+            "gatewayMapping": {
+                "http": {
+                    "method": "GET",
+                    "path": "/pets",
+                    "queryParams": [
+                        "limit"
+                    ]
+                }
+            }
+        },
+        {
+            "toolDefinition": {
+                "name": "createPet",
+                "description": "Create a pet",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "bodySchema": {
+                            "type": "object",
+                            "required": [
+                                "name"
+                            ],
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "tag": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "required": []
+                },
+                "outputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "bodySchema": {
+                            "type": "object",
+                            "required": [
+                                "id",
+                                "name"
+                            ],
+                            "properties": {
+                                "id": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "tag": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "required": []
+                }
+            },
+            "gatewayMapping": {
+                "http": {
+                    "method": "POST",
+                    "path": "/pets",
+                    "contentType": "application/json"
+                }
+            }
+        },
+        {
+            "toolDefinition": {
+                "name": "getPet",
+                "description": "Fetch a pet by id",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "petId": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "petId"
+                    ]
+                },
+                "outputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "bodySchema": {
+                            "type": "object",
+                            "required": [
+                                "id",
+                                "name"
+                            ],
+                            "properties": {
+                                "id": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "tag": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "required": []
+                },
+                "annotations": {
+                    "readOnlyHint": true,
+                    "idempotentHint": true
+                }
+            },
+            "gatewayMapping": {
+                "http": {
+                    "method": "GET",
+                    "path": "/pets/:petId",
+                    "pathParams": [
+                        "petId"
+                    ]
+                }
+            }
+        },
+        {
+            "toolDefinition": {
+                "name": "deletePet",
+                "description": "Delete a pet",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "petId": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "petId"
+                    ]
+                },
+                "annotations": {
+                    "destructiveHint": true
+                }
+            },
+            "gatewayMapping": {
+                "http": {
+                    "method": "DELETE",
+                    "path": "/pets/:petId",
+                    "pathParams": [
+                        "petId"
+                    ]
+                }
+            }
+        }
+    ],
+    "errors": [],
+    "serverDescription": "Petstore\n\nA minimal petstore API used as parser fixture."
+}

@@ -1,0 +1,16 @@
+openapi: 3.0.3
+info:
+  title: Unnamed Ops
+  version: '1.0'
+paths:
+  /alpha/beta:
+    get:
+      summary: Listing
+      responses:
+        '200':
+          description: OK
+    post:
+      summary: Creation
+      responses:
+        '201':
+          description: Created

@@ -1,0 +1,39 @@
+{
+    "result": [
+        {
+            "toolDefinition": {
+                "name": "placeOrder",
+                "description": "Place a new order",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "bodySchema": {
+                            "type": "object",
+                            "required": [
+                                "sku"
+                            ],
+                            "properties": {
+                                "sku": {
+                                    "type": "string"
+                                },
+                                "quantity": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    },
+                    "required": []
+                }
+            },
+            "gatewayMapping": {
+                "http": {
+                    "method": "POST",
+                    "path": "/orders",
+                    "contentType": "application/json"
+                }
+            }
+        }
+    ],
+    "errors": [],
+    "serverDescription": "Legacy Orders"
+}

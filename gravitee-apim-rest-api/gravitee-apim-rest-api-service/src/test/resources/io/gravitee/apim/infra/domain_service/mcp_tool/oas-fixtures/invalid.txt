@@ -1,0 +1,2 @@
+not-an-openapi-document
+just-some-text

@@ -1,0 +1,32 @@
+openapi: 3.0.3
+info:
+  title: Multi Params
+  version: '1.0'
+paths:
+  /tenants/{tenantId}/users/{userId}:
+    get:
+      operationId: getTenantUser
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: includeDisabled
+          in: query
+          required: false
+          schema:
+            type: boolean
+        - name: X-Tenant-Token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
