@@ -13,50 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { SidebarNavigation, Toaster, useLayoutConfig } from '@gravitee/graphene-core';
-import { useCallback, useMemo } from 'react';
-import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { useModuleRouting } from '@gravitee/gamma-modules-sdk/routing';
+import { SidebarNavigation, buildLinearBreadcrumbs, useLayoutConfig } from '@gravitee/graphene-core';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useMemo } from 'react';
+import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 import { NAV_GROUPS } from '../config/navigation';
-import { ROUTES, navigateToNavKey, resolveModulePath } from '../config/routes';
-import { buildLinearBreadcrumbs } from '../lib/buildLinearBreadcrumbs';
+import { AUTHZ_ROUTE_CONFIG, ROUTES, type RouteKey } from '../config/routes';
 import { ModuleErrorBoundary } from './ModuleErrorBoundary';
 import { ApisPage } from './features/policy-management/pages/ApisPage';
 import { CustomPoliciesPage } from './features/policy-management/pages/CustomPoliciesPage';
 import { LlmsPage } from './features/policy-management/pages/LlmsPage';
 import { McpsPage } from './features/policy-management/pages/McpsPage';
 
+const queryClient = new QueryClient();
+
 function ModuleLayout() {
-    const location = useLocation();
     const navigate = useNavigate();
+    const { activeNavKey, navigateToKey, rootPath } = useModuleRouting(AUTHZ_ROUTE_CONFIG);
 
-    const { modulePrefix, activeNavKey } = useMemo(() => resolveModulePath(location.pathname), [location.pathname]);
-
-    const handleNavSelect = useCallback(
-        (key: string) => {
-            navigateToNavKey(navigate, modulePrefix, key, location.pathname);
-        },
-        [navigate, modulePrefix, location.pathname],
+    const breadcrumbs = useMemo(
+        () => buildLinearBreadcrumbs(navigate, [{ label: 'Authorization', to: rootPath }, { label: ROUTES[activeNavKey].label }]),
+        [activeNavKey, navigate, rootPath],
     );
-
-    const breadcrumbs = useMemo(() => {
-        const pageLabel = ROUTES[activeNavKey].label;
-        const segments = location.pathname.split('/').filter(Boolean);
-        let hostPrefix = '';
-        if (segments[0] === 'environments' && segments.length >= 3) {
-            hostPrefix = `/${segments[0]}/${segments[1]}/${segments[2]}`;
-        } else if (modulePrefix) {
-            hostPrefix = `/${modulePrefix}`;
-        }
-        const rootPath = hostPrefix ? `${hostPrefix}/mcps` : '/mcps';
-        return buildLinearBreadcrumbs(navigate, [{ label: 'Authorization', to: rootPath }, { label: pageLabel }]);
-    }, [activeNavKey, navigate, modulePrefix, location.pathname]);
 
     useLayoutConfig(
         {
-            navigation: <SidebarNavigation groups={NAV_GROUPS} activeItemKey={activeNavKey} onItemSelect={handleNavSelect} />,
+            navigation: (
+                <SidebarNavigation groups={NAV_GROUPS} activeItemKey={activeNavKey} onItemSelect={key => navigateToKey(key as RouteKey)} />
+            ),
             breadcrumbs,
         },
-        [activeNavKey, breadcrumbs, handleNavSelect],
+        [activeNavKey, breadcrumbs, navigateToKey],
     );
 
     return <Outlet />;
@@ -64,18 +52,19 @@ function ModuleLayout() {
 
 export function AppRoutes() {
     return (
-        <ModuleErrorBoundary>
-            <Routes>
-                <Route element={<ModuleLayout />}>
-                    <Route index element={<Navigate to="mcps" replace />} />
-                    <Route path="dashboard" element={<Navigate to="../mcps" replace />} />
-                    <Route path="mcps" element={<McpsPage />} />
-                    <Route path="llms" element={<LlmsPage />} />
-                    <Route path="apis" element={<ApisPage />} />
-                    <Route path="custom-policies" element={<CustomPoliciesPage />} />
-                </Route>
-            </Routes>
-            <Toaster position="top-right" richColors closeButton />
-        </ModuleErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+            <ModuleErrorBoundary>
+                <Routes>
+                    <Route element={<ModuleLayout />}>
+                        <Route index element={<Navigate to="mcps" replace />} />
+                        <Route path="dashboard" element={<Navigate to="../mcps" replace />} />
+                        <Route path="mcps" element={<McpsPage />} />
+                        <Route path="llms" element={<LlmsPage />} />
+                        <Route path="apis" element={<ApisPage />} />
+                        <Route path="custom-policies" element={<CustomPoliciesPage />} />
+                    </Route>
+                </Routes>
+            </ModuleErrorBoundary>
+        </QueryClientProvider>
     );
 }
