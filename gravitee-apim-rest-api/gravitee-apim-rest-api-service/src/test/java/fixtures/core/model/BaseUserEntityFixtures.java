@@ -16,10 +16,26 @@
 package fixtures.core.model;
 
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import java.time.Instant;
+import java.util.Date;
 
 public class BaseUserEntityFixtures {
 
     private BaseUserEntityFixtures() {}
+
+    public static BaseUserEntity aBaseUserEntity() {
+        return BaseUserEntity.builder()
+            .id("user-id")
+            .organizationId("organization-id")
+            .source("source")
+            .sourceId("source-id")
+            .email("jane.doe@gravitee.io")
+            .firstname("Jane")
+            .lastname("Doe")
+            .createdAt(Date.from(Instant.parse("2020-01-01T00:00:00Z")))
+            .updatedAt(Date.from(Instant.parse("2020-01-02T00:00:00Z")))
+            .build();
+    }
 
     public static BaseUserEntity aBaseUserEntity(String userId) {
         return BaseUserEntity.builder()

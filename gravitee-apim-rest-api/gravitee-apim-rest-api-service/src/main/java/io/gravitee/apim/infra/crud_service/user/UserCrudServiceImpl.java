@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.crud_service.user;
 
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.core.user.model.EncodedPassword;
 import io.gravitee.apim.infra.adapter.UserAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
@@ -76,6 +77,57 @@ public class UserCrudServiceImpl implements UserCrudService {
         } catch (TechnicalException ex) {
             log.error("An error occurs while trying to get user using [userId={}]", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to get user " + id, ex);
+        }
+    }
+
+    @Override
+    public BaseUserEntity create(BaseUserEntity user) {
+        try {
+            log.debug("Create user [userId={}]", user.getId());
+            User created = userRepository.create(UserAdapter.INSTANCE.toUser(user));
+            return UserAdapter.INSTANCE.fromUser(created);
+        } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to create user [userId={}]", user.getId(), ex);
+            throw new TechnicalManagementException(ex);
+        }
+    }
+
+    @Override
+    public BaseUserEntity update(BaseUserEntity user) {
+        try {
+            log.debug("Update user [userId={}]", user.getId());
+            User updated = userRepository.update(UserAdapter.INSTANCE.toUser(user));
+            return UserAdapter.INSTANCE.fromUser(updated);
+        } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to update user [userId={}]", user.getId(), ex);
+            throw new TechnicalManagementException(ex);
+        }
+    }
+
+    @Override
+    public BaseUserEntity updateAndSetPassword(BaseUserEntity user, EncodedPassword encodedPassword) {
+        try {
+            log.debug("Update user with password [userId={}]", user.getId());
+            User repoUser = UserAdapter.INSTANCE.toUser(user);
+            repoUser.setPassword(encodedPassword.value());
+            return UserAdapter.INSTANCE.fromUser(userRepository.update(repoUser));
+        } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to update user with password [userId={}]", user.getId(), ex);
+            throw new TechnicalManagementException(ex);
+        }
+    }
+
+    @Override
+    public boolean isPasswordSet(String userId) {
+        try {
+            log.debug("Check if password is set [userId={}]", userId);
+            return userRepository
+                .findById(userId)
+                .map(u -> u.getPassword() != null && !u.getPassword().isBlank())
+                .orElse(false);
+        } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to check password for user [userId={}]", userId, ex);
+            throw new TechnicalManagementException(ex);
         }
     }
 }
