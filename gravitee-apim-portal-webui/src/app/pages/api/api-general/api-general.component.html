@@ -148,7 +148,7 @@
           <h4 class="title">{{ 'api.information.categories' | translate }}</h4>
           <span>
             <gv-tag (:gv-tag:click)="goToCategory(category)" *ngFor="let category of currentApi.categories" [clickable]="true">{{
-              category
+              categoryNames[category] ?? category
             }}</gv-tag>
           </span>
         </div>
