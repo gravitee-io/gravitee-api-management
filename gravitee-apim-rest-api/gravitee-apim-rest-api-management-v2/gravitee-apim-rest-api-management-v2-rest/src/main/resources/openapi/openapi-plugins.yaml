@@ -391,6 +391,7 @@ paths:
                           - NATIVE_KAFKA
                           - A2A_PROXY
                           - MCP_PROXY
+                          - MCP_STUDIO
                           - LLM_PROXY
             tags:
                 - Plugins - Policies
@@ -540,6 +541,11 @@ components:
                                   uniqueItems: true
                                   items:
                                       $ref: "#/components/schemas/FlowPhase"
+                              MCP_STUDIO:
+                                  type: array
+                                  uniqueItems: true
+                                  items:
+                                      $ref: "#/components/schemas/FlowPhase"
                               LLM_PROXY:
                                 type: array
                                 uniqueItems: true
@@ -596,6 +602,7 @@ components:
                 - A2A_PROXY
                 - LLM_PROXY
                 - MCP_PROXY
+                - MCP_STUDIO
                 - MESSAGE
                 - PROXY
                 - NATIVE

@@ -15,7 +15,7 @@
  */
 import { ApiV4 } from '../api';
 
-export type ApiProtocolType = 'HTTP_PROXY' | 'HTTP_MESSAGE' | 'NATIVE_KAFKA' | 'MCP_PROXY' | 'LLM_PROXY' | 'A2A_PROXY';
+export type ApiProtocolType = 'HTTP_PROXY' | 'HTTP_MESSAGE' | 'NATIVE_KAFKA' | 'MCP_PROXY' | 'MCP_STUDIO' | 'LLM_PROXY' | 'A2A_PROXY';
 
 export const getApiProtocolTypeFromApi = (api: ApiV4): ApiProtocolType => {
   switch (api.type) {
@@ -27,6 +27,8 @@ export const getApiProtocolTypeFromApi = (api: ApiV4): ApiProtocolType => {
       return 'NATIVE_KAFKA';
     case 'MCP_PROXY':
       return 'MCP_PROXY';
+    case 'MCP_STUDIO':
+      return 'MCP_STUDIO';
     case 'LLM_PROXY':
       return 'LLM_PROXY';
     case 'A2A_PROXY':

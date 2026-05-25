@@ -363,6 +363,34 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <!-- MCP Proxy connector plugins (entrypoint + endpoint needed by management API for plugin validation) -->
+        <dependency>
+            <groupId>com.graviteesource.entrypoint</groupId>
+            <artifactId>gravitee-entrypoint-mcp-proxy</artifactId>
+            <version>${gravitee-reactor-mcp-proxy.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.graviteesource.endpoint</groupId>
+            <artifactId>gravitee-endpoint-mcp-proxy</artifactId>
+            <version>${gravitee-reactor-mcp-proxy.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
 
     <build>

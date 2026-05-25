@@ -74,7 +74,7 @@ public class GenericPlanMapper {
 
         return switch (apiDefinitionVersion) {
             case V4 -> switch (api.getType()) {
-                case A2A_PROXY, LLM_PROXY, MCP_PROXY, PROXY, MESSAGE -> {
+                case A2A_PROXY, LLM_PROXY, MCP_PROXY, MCP_STUDIO, PROXY, MESSAGE -> {
                     final Map<String, List<Flow>> flowsByPlanId = flowService != null
                         ? flowService.findByReferences(FlowReferenceType.PLAN, planIds)
                         : Map.of();
@@ -138,7 +138,7 @@ public class GenericPlanMapper {
         var apiDefinitionVersion = api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
         return switch (apiDefinitionVersion) {
             case V4 -> switch (api.getType()) {
-                case A2A_PROXY, LLM_PROXY, MCP_PROXY, PROXY, MESSAGE -> planMapper.toEntity(plan, null);
+                case A2A_PROXY, LLM_PROXY, MCP_PROXY, MCP_STUDIO, PROXY, MESSAGE -> planMapper.toEntity(plan, null);
                 case NATIVE -> planMapper.toNativeEntity(plan, null);
             };
             case FEDERATED, FEDERATED_AGENT -> planMapper.toEntity(plan, null);
@@ -150,7 +150,7 @@ public class GenericPlanMapper {
         var apiDefinitionVersion = api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
         return switch (apiDefinitionVersion) {
             case V4 -> switch (api.getType()) {
-                case A2A_PROXY, LLM_PROXY, MCP_PROXY, PROXY, MESSAGE -> handleGenericPlanWithoutFlow(plans);
+                case A2A_PROXY, LLM_PROXY, MCP_PROXY, MCP_STUDIO, PROXY, MESSAGE -> handleGenericPlanWithoutFlow(plans);
                 case NATIVE -> plans
                     .stream()
                     .map(plan -> planMapper.toNativeEntity(plan, null))

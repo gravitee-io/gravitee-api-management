@@ -5235,6 +5235,7 @@ components:
                 - A2A_PROXY
                 - LLM_PROXY
                 - MCP_PROXY
+                - MCP_STUDIO
                 - PROXY
                 - MESSAGE
                 - NATIVE
@@ -7185,6 +7186,7 @@ components:
                         - a2a_proxy
                         - llm_proxy
                         - mcp_proxy
+                        - mcp_studio
                         - proxy
                         - message
                         - native

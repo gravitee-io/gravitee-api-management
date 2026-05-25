@@ -58,6 +58,7 @@ public class ApiMapper {
                         (((io.gravitee.definition.model.v4.Api) reactableApi.getDefinition()).getType() == ApiType.PROXY ||
                             ((io.gravitee.definition.model.v4.Api) reactableApi.getDefinition()).getType() == ApiType.LLM_PROXY ||
                             ((io.gravitee.definition.model.v4.Api) reactableApi.getDefinition()).getType() == ApiType.MCP_PROXY ||
+                            ((io.gravitee.definition.model.v4.Api) reactableApi.getDefinition()).getType() == ApiType.MCP_STUDIO ||
                             ((io.gravitee.definition.model.v4.Api) reactableApi.getDefinition()).getType() == ApiType.MESSAGE)
                 ),
             payload ->

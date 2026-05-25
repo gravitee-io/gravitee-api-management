@@ -30,6 +30,7 @@ public enum ApiType {
     A2A_PROXY("a2a-proxy"),
     LLM_PROXY("llm-proxy"),
     MCP_PROXY("mcp-proxy"),
+    MCP_STUDIO("mcp-studio"),
     MESSAGE("message"),
     NATIVE("native"),
     PROXY("proxy");
@@ -41,6 +42,8 @@ public enum ApiType {
         LLM_PROXY,
         MCP_PROXY.label,
         MCP_PROXY,
+        MCP_STUDIO.label,
+        MCP_STUDIO,
         MESSAGE.label,
         MESSAGE,
         NATIVE.label,

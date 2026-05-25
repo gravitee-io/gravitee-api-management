@@ -84,6 +84,8 @@ public class FlowValidationDomainService {
                 .findFirst(),
         ApiType.MCP_PROXY,
         flow -> Optional.empty(),
+        ApiType.MCP_STUDIO,
+        flow -> Optional.empty(),
         ApiType.LLM_PROXY,
         HTTP_PATH_EXTRACTOR,
         ApiType.A2A_PROXY,
@@ -153,7 +155,7 @@ public class FlowValidationDomainService {
                 }
 
                 checkChannelAsyncEntrypoint(flow);
-            } else if (ApiType.MCP_PROXY == apiType) {
+            } else if (ApiType.MCP_PROXY == apiType || ApiType.MCP_STUDIO == apiType) {
                 Set<String> invalidSelectors = flow
                     .getSelectors()
                     .stream()

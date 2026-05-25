@@ -1693,6 +1693,7 @@ components:
         - A2A_PROXY
         - LLM_PROXY
         - MCP_PROXY
+        - MCP_STUDIO
         - MESSAGE
         - PROXY
         - NATIVE
