@@ -62,6 +62,14 @@ export const applicationMemberKeys = {
         [...applicationMemberKeys.all, 'associated-groups', envId, groupIdsKey] as const,
 } as const;
 
+export const applicationNotificationKeys = {
+    all: ['application-notifications'] as const,
+    list: (envId: string, applicationId: string) => [...applicationNotificationKeys.all, 'list', envId, applicationId] as const,
+    notifiers: (envId: string, applicationId: string) => [...applicationNotificationKeys.all, 'notifiers', envId, applicationId] as const,
+    hooks: (envId: string) => [...applicationNotificationKeys.all, 'hooks', envId] as const,
+    metadata: (envId: string, applicationId: string) => [...applicationNotificationKeys.all, 'metadata', envId, applicationId] as const,
+} as const;
+
 export const applicationSubscriptionKeys = {
     all: ['application-subscriptions'] as const,
     list: (envId: string, applicationId: string, filters: ApplicationSubscriptionsFilters | undefined, page: number, size: number) =>
