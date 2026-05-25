@@ -17,6 +17,7 @@ import type { ComponentType } from 'react';
 
 import { ApplicationDetailPlaceholderPage } from '../features/applications/components/detail';
 import { ApplicationDetailGeneralPage } from '../pages/ApplicationDetailGeneralPage';
+import { ApplicationDetailOverviewPage } from '../pages/ApplicationDetailOverviewPage';
 import { ApplicationDetailSubscriptionsPage } from '../pages/ApplicationDetailSubscriptionsPage';
 import { ApplicationNotificationSettingsPage } from '../pages/ApplicationNotificationSettingsPage';
 import { ApplicationUserPermissionsPage } from '../pages/ApplicationUserPermissionsPage';
@@ -25,6 +26,7 @@ import { ApplicationUserPermissionsPage } from '../pages/ApplicationUserPermissi
 export const APPLICATION_DETAIL_PAGES = {
     general: ApplicationDetailGeneralPage,
     notifications: ApplicationNotificationSettingsPage,
+    overview: ApplicationDetailOverviewPage,
     'user-permissions': ApplicationUserPermissionsPage,
     subscriptions: ApplicationDetailSubscriptionsPage,
 } as const satisfies Record<string, ComponentType>;
