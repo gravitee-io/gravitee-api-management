@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '../../api/authz-api-client';
 import { useSchema } from '../useSchema';
@@ -26,6 +28,11 @@ vi.mock('../../api/authz-api.service', () => ({
         getSchema: (env: string) => getSchemaSpy(env),
     },
 }));
+
+function makeWrapper() {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    return ({ children }: { children: ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+}
 
 function Probe({ env }: { env: string }) {
     const state = useSchema(env);
@@ -51,7 +58,7 @@ describe('useSchema', () => {
             updatedAt: '2026-04-24T00:00:00Z',
         });
 
-        const { getByTestId } = render(<Probe env="env-1" />);
+        const { getByTestId } = render(<Probe env="env-1" />, { wrapper: makeWrapper() });
 
         await waitFor(() => expect(getByTestId('schemaText').textContent).toBe('entity User {};'));
         expect(getByTestId('notFound').textContent).toBe('false');
@@ -60,7 +67,7 @@ describe('useSchema', () => {
     it('treats 404 as notFound, not error', async () => {
         getSchemaSpy.mockRejectedValue(new ApiError(404, 'Not found'));
 
-        const { getByTestId } = render(<Probe env="env-1" />);
+        const { getByTestId } = render(<Probe env="env-1" />, { wrapper: makeWrapper() });
 
         await waitFor(() => expect(getByTestId('notFound').textContent).toBe('true'));
         expect(getByTestId('error').textContent).toBe('none');
@@ -69,7 +76,7 @@ describe('useSchema', () => {
     it('captures non-404 errors', async () => {
         getSchemaSpy.mockRejectedValue(new Error('boom'));
 
-        const { getByTestId } = render(<Probe env="env-1" />);
+        const { getByTestId } = render(<Probe env="env-1" />, { wrapper: makeWrapper() });
 
         await waitFor(() => expect(getByTestId('error').textContent).toBe('boom'));
     });
@@ -83,7 +90,7 @@ describe('useSchema', () => {
                 }),
         );
         const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-        const { unmount } = render(<Probe env="env-1" />);
+        const { unmount } = render(<Probe env="env-1" />, { wrapper: makeWrapper() });
         unmount();
 
         resolveFn({ environmentId: 'env-1', schemaText: 'x', updatedAt: '' });
@@ -111,7 +118,8 @@ describe('useSchema', () => {
             }),
         );
 
-        const { rerender, getByTestId } = render(<Probe env="env-A" />);
+        const wrapper = makeWrapper();
+        const { rerender, getByTestId } = render(<Probe env="env-A" />, { wrapper });
         rerender(<Probe env="env-B" />);
 
         await waitFor(() => expect(getByTestId('schemaText').textContent).toBe('fresh'));

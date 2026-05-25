@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import type { ChipOption } from '../chip-option';
 import { authzApiService } from '../api/authz-api.service';
 import type { EntityResponse } from '../api/authz-api.types';
 import { parseEntityUid } from '../entity-adapter';
+import { authzQueryKeys } from '../api/query-keys';
 
 export interface UseEntityOptionsResult {
     readonly options: readonly ChipOption[];
@@ -30,20 +32,8 @@ export interface UseEntityOptionsOpts {
     readonly typeFilter?: readonly string[];
 }
 
-/**
- * Maximum number of entities fetched in a single page. The chip picker is not
- * a paginated browser — once we exceed this we surface an error so the user
- * knows the picker may be incomplete. The list endpoint is paginated; for now
- * we deliberately fetch a single (large) page rather than aggregating to keep
- * the hook simple and fast.
- */
 const PER_PAGE = 200;
 
-/**
- * Build a short, human-readable summary of an entity's attributes for the
- * chip option description. Returns up to two `key=value` pairs (skipping
- * meta keys prefixed with `_`) so the dropdown stays scannable.
- */
 function summarizeAttributes(attrs: Record<string, unknown>): string | undefined {
     const entries = Object.entries(attrs).filter(([k]) => !k.startsWith('_'));
     if (entries.length === 0) return undefined;
@@ -57,11 +47,6 @@ function summarizeAttributes(attrs: Record<string, unknown>): string | undefined
 function toChipOption(entity: EntityResponse): ChipOption {
     const { type, id } = parseEntityUid(entity.uid);
     return {
-        // ChipOption.id must equal the canonical GAPL UID (`User::"alice"`)
-        // that `parseGaplToStatements` emits — the two sides have to agree on
-        // the same key for selected chips to highlight after switch-to-visual
-        // or after save+reload. The backend stores entity.uid in dot form
-        // (`user.alice`), so we explicitly reformat here.
         id: `${type}::"${id}"`,
         label: id,
         group: type,
@@ -69,80 +54,34 @@ function toChipOption(entity: EntityResponse): ChipOption {
     };
 }
 
-/**
- * Selector hook that turns the live list of entities into chip options for
- * the principal combobox in the policy builder.
- *
- * Behaviour:
- * - Calls `listEntities(environmentId, { page: 1, perPage: 200 })` once per
- *   `(environmentId, typeFilter)` pair.
- * - If `typeFilter` is given, drops options whose entity type is not in the
- *   filter. The filter is compared by stable string key, so callers may pass
- *   a fresh array literal on each render.
- * - If the backend reports `total > 200`, returns the loaded slice plus an
- *   `error` string telling the user to refine the schema or filter by type.
- * - Cancellation-safe: aborts in-flight on unmount or when the deps change.
- */
 export function useEntityOptions(environmentId: string, opts?: UseEntityOptionsOpts): UseEntityOptionsResult {
     const typeFilter = opts?.typeFilter;
-    // Stable string key for the typeFilter dependency: callers can pass a
-    // fresh array literal (`['User', 'Group']`) without retriggering the
-    // effect on every render.
+    // Stable string key for the typeFilter: callers can pass a fresh array
+    // literal on every render without causing a new network fetch.
     const typeFilterKey = useMemo(() => (typeFilter ? JSON.stringify([...typeFilter].sort()) : ''), [typeFilter]);
 
-    const [allOptions, setAllOptions] = useState<readonly ChipOption[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | undefined>(undefined);
+    const query = useQuery({
+        // typeFilterKey in the query key: different filter values → different
+        // cache entry + re-fetch. Same values (fresh array reference) → same
+        // key → no re-fetch.
+        queryKey: [...authzQueryKeys.entityOptions(environmentId), typeFilterKey],
+        queryFn: () => authzApiService.listEntities(environmentId, { page: 1, perPage: PER_PAGE }),
+        staleTime: 30_000,
+    });
 
-    const mountedRef = useRef(true);
-    useEffect(() => {
-        mountedRef.current = true;
-        return () => {
-            mountedRef.current = false;
-        };
-    }, []);
+    const allOptions = useMemo(() => query.data?.data.map(toChipOption) ?? [], [query.data]);
 
-    useEffect(() => {
-        let cancelled = false;
-        // Gate setState to break cascading renders when nothing actually
-        // changes (isLoading already true / error already undefined).
-        if (!isLoading) setIsLoading(true);
-        if (error !== undefined) setError(undefined);
-
-        authzApiService
-            .listEntities(environmentId, { page: 1, perPage: PER_PAGE })
-            .then(res => {
-                if (cancelled) return;
-                const mapped = res.data.map(toChipOption);
-                setAllOptions(mapped);
-                if (res.total > PER_PAGE) {
-                    setError('Too many entities for chip picker; consider refining schema or filtering by type.');
-                } else {
-                    setError(undefined);
-                }
-            })
-            .catch(e => {
-                if (cancelled) return;
-                setAllOptions([]);
-                setError(e instanceof Error ? e.message : 'Failed to load entities');
-            })
-            .finally(() => {
-                if (!cancelled) setIsLoading(false);
-            });
-
-        return () => {
-            cancelled = true;
-        };
-        // typeFilterKey is intentionally a dependency so changing the filter
-        // refetches. isLoading/error read for gating setState.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [environmentId, typeFilterKey]);
+    const tooMany = (query.data?.total ?? 0) > PER_PAGE;
 
     const options = useMemo(() => {
         if (!typeFilter || typeFilter.length === 0) return allOptions;
         const allow = new Set(typeFilter);
         return allOptions.filter(o => allow.has(o.group));
-    }, [allOptions, typeFilter, typeFilterKey]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [allOptions, typeFilter]);
 
-    return { options, isLoading, error };
+    const networkError =
+        query.error instanceof Error ? query.error.message : query.error ? String(query.error) : undefined;
+    const error = networkError ?? (tooMany ? 'Too many entities for chip picker; consider refining schema or filtering by type.' : undefined);
+
+    return { options, isLoading: query.isLoading, error };
 }

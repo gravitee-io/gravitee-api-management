@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, render, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { useEffect } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { usePolicies, type UsePoliciesResult } from '../usePolicies';
@@ -25,6 +27,11 @@ vi.mock('../../api/authz-api.service', () => ({
         listPolicies: (env: string, params?: unknown) => listSpy(env, params),
     },
 }));
+
+function makeWrapper() {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    return ({ children }: { children: ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+}
 
 function Probe({ env, type }: { env: string; type?: 'MCP' | 'AGENT' | 'LLM' | 'API' | 'EVENT' | 'CUSTOM' }) {
     const state = usePolicies(env, { type });
@@ -44,14 +51,14 @@ beforeEach(() => {
 describe('usePolicies', () => {
     it('calls listPolicies with env + type on mount', async () => {
         listSpy.mockResolvedValue({ data: [], total: 0, page: 1, perPage: 10 });
-        const { getByTestId } = render(<Probe env="env-1" type="MCP" />);
+        const { getByTestId } = render(<Probe env="env-1" type="MCP" />, { wrapper: makeWrapper() });
         await waitFor(() => expect(getByTestId('total').textContent).toBe('0'));
         expect(listSpy).toHaveBeenCalledWith('env-1', { page: 1, perPage: 10, type: 'MCP', status: undefined });
     });
 
     it('captures error into state', async () => {
         listSpy.mockRejectedValue(new Error('boom'));
-        const { getByTestId } = render(<Probe env="env-1" />);
+        const { getByTestId } = render(<Probe env="env-1" />, { wrapper: makeWrapper() });
         await waitFor(() => expect(getByTestId('error').textContent).toBe('boom'));
     });
 
@@ -65,7 +72,7 @@ describe('usePolicies', () => {
         );
 
         const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-        const { unmount } = render(<Probe env="env-1" />);
+        const { unmount } = render(<Probe env="env-1" />, { wrapper: makeWrapper() });
         unmount();
 
         resolveFn({ data: [], total: 0, page: 1, perPage: 10 });
@@ -85,7 +92,8 @@ describe('usePolicies', () => {
             return <span data-testid="total">{state.data?.total ?? 'null'}</span>;
         }
 
-        const { rerender, getByTestId } = render(<PerPageProbe perPage={10} />);
+        const wrapper = makeWrapper();
+        const { rerender, getByTestId } = render(<PerPageProbe perPage={10} />, { wrapper });
         await waitFor(() => expect(getByTestId('total').textContent).toBe('50'));
 
         rerender(<PerPageProbe perPage={50} />);
@@ -107,7 +115,7 @@ describe('usePolicies', () => {
             return null;
         }
 
-        render(<CaptureProbe />);
+        render(<CaptureProbe />, { wrapper: makeWrapper() });
         await waitFor(() => expect(listSpy).toHaveBeenCalledTimes(1));
 
         await act(async () => {
@@ -128,7 +136,8 @@ describe('usePolicies', () => {
         );
         listSpy.mockImplementationOnce(() => Promise.resolve({ data: [], total: 7, page: 1, perPage: 10 }));
 
-        const { rerender, getByTestId } = render(<Probe env="env-A" />);
+        const wrapper = makeWrapper();
+        const { rerender, getByTestId } = render(<Probe env="env-A" />, { wrapper });
         rerender(<Probe env="env-B" />);
 
         await waitFor(() => expect(getByTestId('total').textContent).toBe('7'));
