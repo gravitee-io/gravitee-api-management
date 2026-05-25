@@ -17,7 +17,6 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gamma.definition.authz.AuthzEntity;
-import io.gravitee.gamma.definition.authz.AuthzEntityIdConstants;
 import io.gravitee.gamma.definition.authz.AuthzEntityKind;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.repository.management.model.Event;
@@ -39,9 +38,6 @@ public class AuthzEntityMapper {
                 AuthzEntity wire = objectMapper.readValue(event.getPayload(), AuthzEntity.class);
                 if (wire.getEntityId() == null || wire.getEntityId().isBlank() || wire.getKind() == null) {
                     log.warn("Skipping authz entity DEPLOY event [{}] — missing entityId or kind", event.getId());
-                    return null;
-                }
-                if (AuthzEntityIdConstants.isAutoDerived(wire.getEntityId())) {
                     return null;
                 }
                 AuthzEntityReactorDeployable.Kind kind = toGatewayKind(wire.getKind());
@@ -66,9 +62,6 @@ public class AuthzEntityMapper {
                 AuthzEntity wire = objectMapper.readValue(event.getPayload(), AuthzEntity.class);
                 if (wire.getEntityId() == null || wire.getEntityId().isBlank()) {
                     log.warn("Skipping authz entity UNDEPLOY event [{}] — missing entityId", event.getId());
-                    return null;
-                }
-                if (AuthzEntityIdConstants.isAutoDerived(wire.getEntityId())) {
                     return null;
                 }
                 // UNPUBLISH publishers historically omit kind. Default to RESOURCE so the
