@@ -50,6 +50,11 @@
             <artifactId>gravitee-gamma-plugin-module-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.gamma.definition</groupId>
+            <artifactId>gravitee-gamma-definition-model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- REST layer (formerly gravitee-gamma-authorization-rest) -->
         <dependency>
             <groupId>io.gravitee.apim.rest.api</groupId>

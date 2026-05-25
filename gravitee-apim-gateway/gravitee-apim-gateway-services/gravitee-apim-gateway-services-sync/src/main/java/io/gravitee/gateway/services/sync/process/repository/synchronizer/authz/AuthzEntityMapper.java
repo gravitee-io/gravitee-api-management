@@ -15,15 +15,13 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.gamma.authorization.api.AuthzEntityIdConstants;
-import io.gravitee.gamma.authorization.api.AuthzEventPayloadFields;
+import io.gravitee.gamma.definition.authz.AuthzEntity;
+import io.gravitee.gamma.definition.authz.AuthzEntityIdConstants;
+import io.gravitee.gamma.definition.authz.AuthzEntityKind;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.repository.management.model.Event;
 import io.reactivex.rxjava3.core.Maybe;
-import java.util.List;
-import java.util.Map;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -33,39 +31,26 @@ public class AuthzEntityMapper {
 
     public static final String ENGINE_TYPE_PRINCIPAL = "Principal";
 
-    private static final TypeReference<Map<String, Object>> PAYLOAD_TYPE = new TypeReference<>() {};
-
     private final ObjectMapper objectMapper;
 
     public Maybe<AuthzEntityReactorDeployable> toDeploy(Event event) {
         return Maybe.fromCallable(() -> {
             try {
-                Map<String, Object> payload = objectMapper.readValue(event.getPayload(), PAYLOAD_TYPE);
-
-                String entityId = (String) payload.get(AuthzEventPayloadFields.ENTITY_ID);
-                String kindStr = (String) payload.get(AuthzEventPayloadFields.KIND);
-                if (entityId == null || entityId.isBlank() || kindStr == null) {
+                AuthzEntity wire = objectMapper.readValue(event.getPayload(), AuthzEntity.class);
+                if (wire.getEntityId() == null || wire.getEntityId().isBlank() || wire.getKind() == null) {
                     log.warn("Skipping authz entity DEPLOY event [{}] — missing entityId or kind", event.getId());
                     return null;
                 }
-                if (AuthzEntityIdConstants.isAutoDerived(entityId)) {
+                if (AuthzEntityIdConstants.isAutoDerived(wire.getEntityId())) {
                     return null;
                 }
-                AuthzEntityReactorDeployable.Kind kind = parseKind(kindStr);
-                if (kind == null) {
-                    log.warn("Skipping authz entity DEPLOY event [{}] — unknown kind '{}'", event.getId(), kindStr);
-                    return null;
-                }
-
-                Map<String, Object> attributes = asMapOrNull(payload.get(AuthzEventPayloadFields.ATTRIBUTES));
-                List<String> parents = asStringListOrNull(payload.get(AuthzEventPayloadFields.PARENTS));
-
+                AuthzEntityReactorDeployable.Kind kind = toGatewayKind(wire.getKind());
                 return AuthzEntityReactorDeployable.builder()
-                    .entityId(entityId)
-                    .engineUid(toEngineUid(kind, entityId))
+                    .entityId(wire.getEntityId())
+                    .engineUid(toEngineUid(kind, wire.getEntityId()))
                     .kind(kind)
-                    .attributes(attributes)
-                    .parents(parents)
+                    .attributes(wire.getAttributes())
+                    .parents(wire.getParents())
                     .syncAction(SyncAction.DEPLOY)
                     .build();
             } catch (Exception e) {
@@ -78,25 +63,22 @@ public class AuthzEntityMapper {
     public Maybe<AuthzEntityReactorDeployable> toUndeploy(Event event) {
         return Maybe.fromCallable(() -> {
             try {
-                Map<String, Object> payload = objectMapper.readValue(event.getPayload(), PAYLOAD_TYPE);
-                String entityId = (String) payload.get(AuthzEventPayloadFields.ENTITY_ID);
-                if (entityId == null || entityId.isBlank()) {
+                AuthzEntity wire = objectMapper.readValue(event.getPayload(), AuthzEntity.class);
+                if (wire.getEntityId() == null || wire.getEntityId().isBlank()) {
                     log.warn("Skipping authz entity UNDEPLOY event [{}] — missing entityId", event.getId());
                     return null;
                 }
-                if (AuthzEntityIdConstants.isAutoDerived(entityId)) {
+                if (AuthzEntityIdConstants.isAutoDerived(wire.getEntityId())) {
                     return null;
                 }
-                String kindStr = (String) payload.get(AuthzEventPayloadFields.KIND);
-                AuthzEntityReactorDeployable.Kind kind = kindStr != null ? parseKind(kindStr) : null;
-                if (kind == null) {
-                    // I7: UNPUBLISH publishers historically omit kind. Default to RESOURCE so the
-                    // engine still receives the removeEntity — without this, the orphan entity lingers.
-                    kind = AuthzEntityReactorDeployable.Kind.RESOURCE;
-                }
+                // I7: UNPUBLISH publishers historically omit kind. Default to RESOURCE so the
+                // engine still receives the removeEntity — without this, the orphan entity lingers.
+                AuthzEntityReactorDeployable.Kind kind = wire.getKind() != null
+                    ? toGatewayKind(wire.getKind())
+                    : AuthzEntityReactorDeployable.Kind.RESOURCE;
                 return AuthzEntityReactorDeployable.builder()
-                    .entityId(entityId)
-                    .engineUid(toEngineUid(kind, entityId))
+                    .entityId(wire.getEntityId())
+                    .engineUid(toEngineUid(kind, wire.getEntityId()))
                     .kind(kind)
                     .syncAction(SyncAction.UNDEPLOY)
                     .build();
@@ -107,34 +89,8 @@ public class AuthzEntityMapper {
         });
     }
 
-    @SuppressWarnings("unchecked")
-    private static Map<String, Object> asMapOrNull(Object raw) {
-        if (raw instanceof Map<?, ?> m) {
-            return (Map<String, Object>) m;
-        }
-        if (raw != null) {
-            log.warn("Unexpected 'attributes' shape in authz event payload: {}", raw.getClass().getSimpleName());
-        }
-        return null;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static List<String> asStringListOrNull(Object raw) {
-        if (raw instanceof List<?> l) {
-            return (List<String>) l;
-        }
-        if (raw != null) {
-            log.warn("Unexpected 'parents' shape in authz event payload: {}", raw.getClass().getSimpleName());
-        }
-        return null;
-    }
-
-    private static AuthzEntityReactorDeployable.Kind parseKind(String raw) {
-        try {
-            return AuthzEntityReactorDeployable.Kind.valueOf(raw);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+    private static AuthzEntityReactorDeployable.Kind toGatewayKind(AuthzEntityKind wireKind) {
+        return AuthzEntityReactorDeployable.Kind.valueOf(wireKind.name());
     }
 
     static String toEngineUid(AuthzEntityReactorDeployable.Kind kind, String entityId) {

@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.process.common.deployer;
 
-import io.gravitee.gamma.authorization.api.AuthzEntityIdConstants;
+import io.gravitee.gamma.definition.authz.AuthzEntityIdConstants;
 import io.gravitee.gateway.services.sync.process.repository.service.AuthzRegistry;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEnginePort;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityIdExtractor;

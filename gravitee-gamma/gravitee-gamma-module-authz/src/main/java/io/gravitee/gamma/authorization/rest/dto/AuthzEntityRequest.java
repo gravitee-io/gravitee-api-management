@@ -15,8 +15,8 @@
  */
 package io.gravitee.gamma.authorization.rest.dto;
 
-import io.gravitee.gamma.authorization.api.AuthzEntityIdConstants;
 import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
+import io.gravitee.gamma.definition.authz.AuthzEntityIdConstants;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;

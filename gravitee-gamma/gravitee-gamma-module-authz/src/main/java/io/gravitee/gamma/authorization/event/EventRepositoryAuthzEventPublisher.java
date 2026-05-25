@@ -19,7 +19,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.common.utils.UUID;
-import io.gravitee.gamma.authorization.api.AuthzEventPayloadFields;
 import io.gravitee.gamma.authorization.api.AuthzEventPublisher;
 import io.gravitee.gamma.authorization.domain.AuthzEntity;
 import io.gravitee.gamma.authorization.domain.AuthzPolicy;
@@ -59,18 +58,19 @@ public final class EventRepositoryAuthzEventPublisher implements AuthzEventPubli
     @Override
     public void publishPolicyDeployed(AuthzPolicy policy) {
         Objects.requireNonNull(policy, "policy must not be null");
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put(AuthzEventPayloadFields.ID, policy.id());
-        payload.put(AuthzEventPayloadFields.NAME, policy.name());
-        payload.put(AuthzEventPayloadFields.KIND, policy.kind().name());
-        payload.put(AuthzEventPayloadFields.ENTITY_ID, policy.entityId());
-        payload.put(AuthzEventPayloadFields.POLICY_TEXT, policy.policyText());
-        payload.put(AuthzEventPayloadFields.ENVIRONMENT_ID, policy.environmentId());
-        payload.put(AuthzEventPayloadFields.UPDATED_AT, policy.updatedAt().toString());
+        io.gravitee.gamma.definition.authz.AuthzPolicy wire = new io.gravitee.gamma.definition.authz.AuthzPolicy(
+            policy.id(),
+            policy.name(),
+            io.gravitee.gamma.definition.authz.AuthzPolicyKind.valueOf(policy.kind().name()),
+            policy.entityId(),
+            policy.policyText(),
+            policy.environmentId(),
+            policy.updatedAt().toString()
+        );
         emit(
             policy.environmentId(),
             EventType.PUBLISH_AUTHZ_POLICY,
-            payload,
+            wire,
             Map.of(Event.EventProperties.AUTHZ_POLICY_ID.getValue(), policy.id())
         );
     }
@@ -78,15 +78,22 @@ public final class EventRepositoryAuthzEventPublisher implements AuthzEventPubli
     @Override
     public void unpublishPolicy(AuthzPolicy policy) {
         Objects.requireNonNull(policy, "policy must not be null");
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put(AuthzEventPayloadFields.ID, policy.id());
-        payload.put(AuthzEventPayloadFields.KIND, policy.kind().name());
-        payload.put(AuthzEventPayloadFields.ENTITY_ID, policy.entityId());
-        payload.put(AuthzEventPayloadFields.ENVIRONMENT_ID, policy.environmentId());
+        // Unpublish carries minimal context — gateway only needs id + kind + envId to evict.
+        // We still emit a typed AuthzPolicy with placeholders for required fields the gateway
+        // will ignore (name/policyText) to keep one wire shape per event family.
+        io.gravitee.gamma.definition.authz.AuthzPolicy wire = new io.gravitee.gamma.definition.authz.AuthzPolicy(
+            policy.id(),
+            policy.name(),
+            io.gravitee.gamma.definition.authz.AuthzPolicyKind.valueOf(policy.kind().name()),
+            policy.entityId(),
+            policy.policyText(),
+            policy.environmentId(),
+            policy.updatedAt().toString()
+        );
         emit(
             policy.environmentId(),
             EventType.UNPUBLISH_AUTHZ_POLICY,
-            payload,
+            wire,
             Map.of(Event.EventProperties.AUTHZ_POLICY_ID.getValue(), policy.id())
         );
     }
@@ -94,19 +101,20 @@ public final class EventRepositoryAuthzEventPublisher implements AuthzEventPubli
     @Override
     public void publishEntityUpserted(AuthzEntity entity) {
         Objects.requireNonNull(entity, "entity must not be null");
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put(AuthzEventPayloadFields.ID, entity.id());
-        payload.put(AuthzEventPayloadFields.ENTITY_ID, entity.entityId());
-        payload.put(AuthzEventPayloadFields.KIND, entity.kind().name());
-        payload.put(AuthzEventPayloadFields.ATTRIBUTES, redactSensitive(entity.attributes()));
-        payload.put(AuthzEventPayloadFields.PARENTS, entity.parents());
-        payload.put(AuthzEventPayloadFields.SOURCE, entity.source());
-        payload.put(AuthzEventPayloadFields.ENVIRONMENT_ID, entity.environmentId());
-        payload.put(AuthzEventPayloadFields.UPDATED_AT, entity.updatedAt().toString());
+        io.gravitee.gamma.definition.authz.AuthzEntity wire = new io.gravitee.gamma.definition.authz.AuthzEntity(
+            entity.id(),
+            entity.entityId(),
+            io.gravitee.gamma.definition.authz.AuthzEntityKind.valueOf(entity.kind().name()),
+            redactSensitive(entity.attributes()),
+            entity.parents(),
+            entity.source(),
+            entity.environmentId(),
+            entity.updatedAt().toString()
+        );
         emit(
             entity.environmentId(),
             EventType.PUBLISH_AUTHZ_ENTITY,
-            payload,
+            wire,
             Map.of(Event.EventProperties.AUTHZ_ENTITY_ID.getValue(), entity.entityId())
         );
     }
@@ -114,14 +122,20 @@ public final class EventRepositoryAuthzEventPublisher implements AuthzEventPubli
     @Override
     public void unpublishEntity(AuthzEntity entity) {
         Objects.requireNonNull(entity, "entity must not be null");
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put(AuthzEventPayloadFields.ENTITY_ID, entity.entityId());
-        payload.put(AuthzEventPayloadFields.KIND, entity.kind().name());
-        payload.put(AuthzEventPayloadFields.ENVIRONMENT_ID, entity.environmentId());
+        io.gravitee.gamma.definition.authz.AuthzEntity wire = new io.gravitee.gamma.definition.authz.AuthzEntity(
+            entity.id(),
+            entity.entityId(),
+            io.gravitee.gamma.definition.authz.AuthzEntityKind.valueOf(entity.kind().name()),
+            null,
+            null,
+            entity.source(),
+            entity.environmentId(),
+            entity.updatedAt().toString()
+        );
         emit(
             entity.environmentId(),
             EventType.UNPUBLISH_AUTHZ_ENTITY,
-            payload,
+            wire,
             Map.of(Event.EventProperties.AUTHZ_ENTITY_ID.getValue(), entity.entityId())
         );
     }
@@ -134,7 +148,7 @@ public final class EventRepositoryAuthzEventPublisher implements AuthzEventPubli
      * permanently missing from the log under partial failure — sync chain
      * consumers that compute incremental deltas would never see it.
      */
-    private void emit(String environmentId, EventType type, Map<String, Object> payload, Map<String, String> properties) {
+    private void emit(String environmentId, EventType type, Object payload, Map<String, String> properties) {
         Event event = buildEvent(environmentId, type, payload, properties);
         try {
             eventRepository.create(event);
@@ -144,7 +158,7 @@ public final class EventRepositoryAuthzEventPublisher implements AuthzEventPubli
         }
     }
 
-    private Event buildEvent(String environmentId, EventType type, Map<String, Object> payload, Map<String, String> properties) {
+    private Event buildEvent(String environmentId, EventType type, Object payload, Map<String, String> properties) {
         Event event = new Event();
         event.setId(UUID.toString(UUID.random()));
         event.setEnvironments(Set.of(environmentId));
@@ -157,7 +171,7 @@ public final class EventRepositoryAuthzEventPublisher implements AuthzEventPubli
         return event;
     }
 
-    private String serialise(Map<String, Object> payload) {
+    private String serialise(Object payload) {
         try {
             return objectMapper.writeValueAsString(payload);
         } catch (JsonProcessingException e) {

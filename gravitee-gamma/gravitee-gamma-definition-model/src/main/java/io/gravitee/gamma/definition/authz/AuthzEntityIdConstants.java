@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.authorization.api;
+package io.gravitee.gamma.definition.authz;
 
 import java.util.Set;
 
