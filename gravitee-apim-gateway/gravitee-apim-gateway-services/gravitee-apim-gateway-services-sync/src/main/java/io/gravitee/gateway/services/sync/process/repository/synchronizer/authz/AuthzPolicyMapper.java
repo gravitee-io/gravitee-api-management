@@ -15,13 +15,12 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.gamma.authorization.api.AuthzEventPayloadFields;
+import io.gravitee.gamma.definition.authz.AuthzPolicy;
+import io.gravitee.gamma.definition.authz.AuthzPolicyKind;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.repository.management.model.Event;
 import io.reactivex.rxjava3.core.Maybe;
-import java.util.Map;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -29,49 +28,40 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthzPolicyMapper {
 
-    private static final TypeReference<Map<String, Object>> PAYLOAD_TYPE = new TypeReference<>() {};
-
     private final ObjectMapper objectMapper;
 
     public Maybe<AuthzPolicyReactorDeployable> toDeploy(Event event) {
         return Maybe.fromCallable(() -> {
             try {
-                Map<String, Object> payload = objectMapper.readValue(event.getPayload(), PAYLOAD_TYPE);
-
-                String docId = (String) payload.get(AuthzEventPayloadFields.ID);
-                String name = (String) payload.get(AuthzEventPayloadFields.NAME);
-                String kindStr = (String) payload.get(AuthzEventPayloadFields.KIND);
-                String policyText = (String) payload.get(AuthzEventPayloadFields.POLICY_TEXT);
-                if (docId == null || docId.isBlank() || kindStr == null || policyText == null || policyText.isBlank()) {
+                AuthzPolicy wire = objectMapper.readValue(event.getPayload(), AuthzPolicy.class);
+                if (
+                    wire.getId() == null ||
+                    wire.getId().isBlank() ||
+                    wire.getKind() == null ||
+                    wire.getPolicyText() == null ||
+                    wire.getPolicyText().isBlank()
+                ) {
                     log.warn(
                         "Skipping authz policy DEPLOY event [{}] — missing id, kind, or policyText (or policyText is blank)",
                         event.getId()
                     );
                     return null;
                 }
-                AuthzPolicyReactorDeployable.Kind kind = parseKind(kindStr);
-                if (kind == null) {
-                    log.warn("Skipping authz policy DEPLOY event [{}] — unknown kind '{}'", event.getId(), kindStr);
-                    return null;
-                }
-
-                String entityId = payload.get(AuthzEventPayloadFields.ENTITY_ID) instanceof String s && !s.isBlank() ? s : null;
-                if (kind == AuthzPolicyReactorDeployable.Kind.RESOURCE && entityId == null) {
+                AuthzPolicyReactorDeployable.Kind kind = toGatewayKind(wire.getKind());
+                if (kind == AuthzPolicyReactorDeployable.Kind.RESOURCE && (wire.getEntityId() == null || wire.getEntityId().isBlank())) {
                     log.warn(
                         "Skipping authz RESOURCE policy DEPLOY event [{}] — missing entityId (registry filter cannot run)",
                         event.getId()
                     );
                     return null;
                 }
-
-                String resolvedName = name != null && !name.isBlank() ? name : docId;
-
+                String resolvedName = wire.getName() != null && !wire.getName().isBlank() ? wire.getName() : wire.getId();
                 return AuthzPolicyReactorDeployable.builder()
-                    .docId(docId)
+                    .docId(wire.getId())
                     .name(resolvedName)
-                    .policyText(policyText)
+                    .policyText(wire.getPolicyText())
                     .kind(kind)
-                    .entityId(entityId)
+                    .entityId(wire.getEntityId())
                     .syncAction(SyncAction.DEPLOY)
                     .build();
             } catch (Exception e) {
@@ -84,26 +74,22 @@ public class AuthzPolicyMapper {
     public Maybe<AuthzPolicyReactorDeployable> toUndeploy(Event event) {
         return Maybe.fromCallable(() -> {
             try {
-                Map<String, Object> payload = objectMapper.readValue(event.getPayload(), PAYLOAD_TYPE);
-                String docId = (String) payload.get(AuthzEventPayloadFields.ID);
-                if (docId == null || docId.isBlank()) {
+                AuthzPolicy wire = objectMapper.readValue(event.getPayload(), AuthzPolicy.class);
+                if (wire.getId() == null || wire.getId().isBlank()) {
                     log.warn("Skipping authz policy UNDEPLOY event [{}] — missing id", event.getId());
                     return null;
                 }
-                String kindStr = (String) payload.get(AuthzEventPayloadFields.KIND);
-                AuthzPolicyReactorDeployable.Kind kind = kindStr != null ? parseKind(kindStr) : null;
-                if (kind == null) {
-                    // I7: UNPUBLISH publishers historically omit kind. Kind is only used by the deployer
-                    // to filter RESOURCE policies by registry on this node; on undeploy the engine just
-                    // needs docId, so defaulting to GLOBAL is safe and ensures the removePolicy reaches it.
-                    kind = AuthzPolicyReactorDeployable.Kind.GLOBAL;
-                }
-                String entityId = payload.get(AuthzEventPayloadFields.ENTITY_ID) instanceof String s && !s.isBlank() ? s : null;
+                // I7: UNPUBLISH publishers historically omit kind. Kind is only used by the deployer
+                // to filter RESOURCE policies by registry on this node; on undeploy the engine just
+                // needs docId, so defaulting to GLOBAL is safe and ensures the removePolicy reaches it.
+                AuthzPolicyReactorDeployable.Kind kind = wire.getKind() != null
+                    ? toGatewayKind(wire.getKind())
+                    : AuthzPolicyReactorDeployable.Kind.GLOBAL;
                 return AuthzPolicyReactorDeployable.builder()
-                    .docId(docId)
-                    .name(docId)
+                    .docId(wire.getId())
+                    .name(wire.getId())
                     .kind(kind)
-                    .entityId(entityId)
+                    .entityId(wire.getEntityId())
                     .syncAction(SyncAction.UNDEPLOY)
                     .build();
             } catch (Exception e) {
@@ -113,11 +99,7 @@ public class AuthzPolicyMapper {
         });
     }
 
-    private static AuthzPolicyReactorDeployable.Kind parseKind(String raw) {
-        try {
-            return AuthzPolicyReactorDeployable.Kind.valueOf(raw);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+    private static AuthzPolicyReactorDeployable.Kind toGatewayKind(AuthzPolicyKind wireKind) {
+        return AuthzPolicyReactorDeployable.Kind.valueOf(wireKind.name());
     }
 }

@@ -15,9 +15,9 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 
-import static io.gravitee.gamma.authorization.api.AuthzEntityIdConstants.API_PREFIX;
-import static io.gravitee.gamma.authorization.api.AuthzEntityIdConstants.MCP_PREFIX;
-import static io.gravitee.gamma.authorization.api.AuthzEntityIdConstants.TOOLS_CALL_METHOD;
+import static io.gravitee.gamma.definition.authz.AuthzEntityIdConstants.API_PREFIX;
+import static io.gravitee.gamma.definition.authz.AuthzEntityIdConstants.MCP_PREFIX;
+import static io.gravitee.gamma.definition.authz.AuthzEntityIdConstants.TOOLS_CALL_METHOD;
 
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
