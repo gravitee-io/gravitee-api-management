@@ -16,9 +16,11 @@
 package io.gravitee.gateway.reactive.handlers.api.v4.deployer;
 
 import io.gravitee.common.util.DataEncryptor;
+import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class EdgeApiDeployer extends AbstractApiDeployer<EdgeApi> {
 
@@ -37,6 +39,7 @@ public class EdgeApiDeployer extends AbstractApiDeployer<EdgeApi> {
 
     @Override
     public List<String> getPlans(final EdgeApi edgeApi) {
-        return List.of();
+        var plans = edgeApi.getDefinition().getPlans();
+        return plans != null ? plans.stream().map(Plan::getName).collect(Collectors.toList()) : List.of();
     }
 }
