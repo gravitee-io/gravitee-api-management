@@ -47,6 +47,10 @@ public class EdgeApi extends AbstractApi {
     @Builder.Default
     private ApiType type = ApiType.EDGE;
 
+    private String gatewayUrl;
+
+    private String reactorUrl;
+
     @NotNull
     private EdgeProxyDefinition proxy;
 
