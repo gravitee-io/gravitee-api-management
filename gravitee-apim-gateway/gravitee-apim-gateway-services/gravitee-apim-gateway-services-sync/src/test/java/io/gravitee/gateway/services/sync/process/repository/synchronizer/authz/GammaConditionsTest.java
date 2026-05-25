@@ -38,7 +38,7 @@ class GammaConditionsTest {
 
     @Test
     void gamma_disabled_condition_is_the_inverse_so_exactly_one_AuthzEnginePort_bean_is_registered() {
-        // I5: the two conditions are paired — at any time exactly one of {EventBus, Noop} must bind,
+        // The two conditions are paired — at any time exactly one of {EventBus, Noop} must bind,
         // otherwise the DeployerFactory wiring is ambiguous or absent.
         for (String value : new String[] { null, "false", "true" }) {
             ConditionContext ctx = ctxWithGamma(value);

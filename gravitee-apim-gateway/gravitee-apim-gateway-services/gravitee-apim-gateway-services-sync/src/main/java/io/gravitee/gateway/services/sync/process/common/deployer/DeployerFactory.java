@@ -31,6 +31,7 @@ import io.gravitee.gateway.services.sync.process.distributed.service.Distributed
 import io.gravitee.gateway.services.sync.process.repository.service.AuthzRegistry;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEnginePort;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityIdExtractor;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.license.LicenseFactory;
 import io.gravitee.node.api.license.LicenseManager;
@@ -79,7 +80,7 @@ public class DeployerFactory {
 
     private final AuthzEnginePort authzEnginePort;
     private final AuthzRegistry authzRegistry;
-    private final io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityIdExtractor authzEntityIdExtractor;
+    private final AuthzEntityIdExtractor authzEntityIdExtractor;
 
     public SubscriptionDeployer createSubscriptionDeployer() {
         return new SubscriptionDeployer(

@@ -68,7 +68,7 @@ class AuthzPolicyDeployerTest {
 
     @Test
     void deploy_auto_derived_resource_policy_proceeds_when_API_is_registered() {
-        registry.register(List.of("api.bookings"));
+        registry.registerForApi("api.bookings", List.of("api.bookings"));
         AuthzPolicyReactorDeployable d = resource("doc-3", "Bookings read", "api.bookings", "permit(...);");
 
         deployer.deploy(d).blockingAwait();
@@ -79,7 +79,7 @@ class AuthzPolicyDeployerTest {
 
     @Test
     void deploy_custom_resource_policy_broadcasts_unconditionally() {
-        // C1: RESOURCE policies referring to non-auto-derived entities must land on every
+        // RESOURCE policies referring to non-auto-derived entities must land on every
         // gateway node — the registry only partitions API-derived entities.
         AuthzPolicyReactorDeployable d = resource("doc-custom", "Custom doc read", "team.acme.docs", "permit(...);");
 

@@ -38,8 +38,8 @@ class AuthzRegistryTest {
     }
 
     @Test
-    void register_then_isResourceDeployed_returns_true() {
-        registry.register(List.of("api.1", "mcp.1.tool-a"));
+    void registerForApi_then_isResourceDeployed_returns_true() {
+        registry.registerForApi("api.1", List.of("api.1", "mcp.1.tool-a"));
 
         assertThat(registry.isResourceDeployed("api.1")).isTrue();
         assertThat(registry.isResourceDeployed("mcp.1.tool-a")).isTrue();
@@ -56,10 +56,12 @@ class AuthzRegistryTest {
     }
 
     @Test
-    void unregister_removes_only_the_listed_ids() {
-        registry.register(List.of("api.1", "api.2", "api.3"));
+    void unregisterApi_removes_only_that_api_entities() {
+        registry.registerForApi("api.1", List.of("api.1"));
+        registry.registerForApi("api.2", List.of("api.2"));
+        registry.registerForApi("api.3", List.of("api.3"));
 
-        registry.unregister(List.of("api.2"));
+        registry.unregisterApi("api.2");
 
         assertThat(registry.isResourceDeployed("api.1")).isTrue();
         assertThat(registry.isResourceDeployed("api.2")).isFalse();
@@ -67,46 +69,46 @@ class AuthzRegistryTest {
     }
 
     @Test
-    void register_is_idempotent_at_per_id_level() {
-        registry.register(List.of("api.1"));
-        registry.register(List.of("api.1"));
+    void registerForApi_is_idempotent_at_per_id_level() {
+        registry.registerForApi("api.1", List.of("api.1"));
+        registry.registerForApi("api.1", List.of("api.1"));
 
         assertThat(registry.snapshotForTesting()).containsExactly("api.1");
     }
 
     @Test
-    void unregister_unknown_id_is_a_safe_noop() {
-        registry.register(List.of("api.1"));
+    void unregisterApi_for_unknown_api_is_a_safe_noop() {
+        registry.registerForApi("api.1", List.of("api.1"));
 
-        registry.unregister(List.of("api.never-registered"));
+        registry.unregisterApi("api.never-registered");
 
         assertThat(registry.isResourceDeployed("api.1")).isTrue();
     }
 
     @Test
-    void register_skips_null_and_blank_ids() {
-        registry.register(Arrays.asList("api.1", null, "", "  "));
+    void registerForApi_skips_null_and_blank_ids() {
+        registry.registerForApi("api.1", Arrays.asList("api.1", null, "", "  "));
 
         assertThat(registry.snapshotForTesting()).containsExactly("api.1");
     }
 
     @Test
-    void register_with_null_collection_is_a_safe_noop() {
-        registry.register(null);
-        registry.unregister(null);
+    void registerForApi_with_null_collection_is_a_safe_noop() {
+        registry.registerForApi("api.1", null);
+        registry.unregisterApi(null);
 
         assertThat(registry.snapshotForTesting()).isEmpty();
     }
 
     @Test
-    void register_with_empty_collection_is_a_safe_noop() {
-        registry.register(Collections.emptyList());
+    void registerForApi_with_empty_collection_is_a_safe_noop() {
+        registry.registerForApi("api.1", Collections.emptyList());
 
         assertThat(registry.snapshotForTesting()).isEmpty();
     }
 
     @Test
-    void concurrent_register_and_isResourceDeployed_do_not_corrupt_state() throws Exception {
+    void concurrent_registerForApi_and_isResourceDeployed_do_not_corrupt_state() throws Exception {
         int n = 64;
         ExecutorService writers = Executors.newFixedThreadPool(8);
         ExecutorService readers = Executors.newFixedThreadPool(4);
@@ -118,8 +120,8 @@ class AuthzRegistryTest {
                     String id = "api." + i;
                     try {
                         for (int j = 0; j < 100 && !failed.get(); j++) {
-                            registry.register(List.of(id));
-                            registry.unregister(List.of(id));
+                            registry.registerForApi(id, List.of(id));
+                            registry.unregisterApi(id);
                         }
                     } catch (RuntimeException e) {
                         failed.set(true);

@@ -238,7 +238,7 @@ public class SyncConfiguration {
         @Autowired(required = false) ApiProductSubscriptionRefresher apiProductSubscriptionRefresher,
         AuthzEnginePort authzEnginePort,
         AuthzRegistry authzRegistry,
-        io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityIdExtractor authzEntityIdExtractor
+        AuthzEntityIdExtractor authzEntityIdExtractor
     ) {
         Supplier<SubscriptionDispatcher> subscriptionDispatcherSupplier = provideSubscriptionDispatcher(subscriptionDispatcher);
         return new DeployerFactory(

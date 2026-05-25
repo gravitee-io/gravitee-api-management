@@ -71,7 +71,7 @@ public class AuthzEntityMapper {
                 if (AuthzEntityIdConstants.isAutoDerived(wire.getEntityId())) {
                     return null;
                 }
-                // I7: UNPUBLISH publishers historically omit kind. Default to RESOURCE so the
+                // UNPUBLISH publishers historically omit kind. Default to RESOURCE so the
                 // engine still receives the removeEntity — without this, the orphan entity lingers.
                 AuthzEntityReactorDeployable.Kind kind = wire.getKind() != null
                     ? toGatewayKind(wire.getKind())

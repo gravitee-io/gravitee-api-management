@@ -42,17 +42,6 @@ public class AuthzRegistry {
             .register(meterRegistry);
     }
 
-    public void register(final Collection<String> entityIds) {
-        if (entityIds == null) {
-            return;
-        }
-        for (String entityId : entityIds) {
-            if (entityId != null && !entityId.isBlank()) {
-                deployedEntityIds.add(entityId);
-            }
-        }
-    }
-
     public void registerForApi(final String apiId, final Collection<String> entityIds) {
         if (apiId == null || apiId.isBlank() || entityIds == null) {
             return;
@@ -81,17 +70,6 @@ public class AuthzRegistry {
         Set<String> tracked = entitiesByApi.remove(apiId);
         if (tracked != null) {
             deployedEntityIds.removeAll(tracked);
-        }
-    }
-
-    public void unregister(final Collection<String> entityIds) {
-        if (entityIds == null) {
-            return;
-        }
-        for (String entityId : entityIds) {
-            if (entityId != null && !entityId.isBlank()) {
-                deployedEntityIds.remove(entityId);
-            }
         }
     }
 
