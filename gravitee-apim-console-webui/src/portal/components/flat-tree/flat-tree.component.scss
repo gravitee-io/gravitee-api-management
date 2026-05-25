@@ -125,12 +125,6 @@ $disappear-on-drag-transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
     }
   }
 
-  &__menu-item-delete--disabled {
-    color: mat.m2-get-color-from-palette(gio.$mat-error-palette, darker40);
-    fill: mat.m2-get-color-from-palette(gio.$mat-error-palette, darker40);
-    opacity: 0.8;
-  }
-
   &__drag {
     &-placeholder {
       height: $row-height;

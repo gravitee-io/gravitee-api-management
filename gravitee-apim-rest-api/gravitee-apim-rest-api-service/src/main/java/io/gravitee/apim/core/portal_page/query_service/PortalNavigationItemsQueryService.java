@@ -34,6 +34,8 @@ public interface PortalNavigationItemsQueryService {
 
     List<PortalNavigationItem> findTopLevelItemsByEnvironmentIdAndPortalArea(String environmentId, PortalArea portalArea);
 
+    List<PortalNavigationItem> findAllByRootId(String environmentId, PortalNavigationItemId rootId);
+
     default Optional<PortalNavigationPage> findNavigationPageByPortalPageContentId(String environmentId, PortalPageContentId contentId) {
         final var criteria = PortalNavigationItemQueryCriteria.builder()
             .environmentId(environmentId)

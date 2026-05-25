@@ -179,23 +179,10 @@
   }
 
   @if (canDelete) {
-    <span matTooltip="Only empty folders can be deleted" [matTooltipDisabled]="!hasChildren(node)" matTooltipPosition="right">
-      <button
-        mat-menu-item
-        [disabled]="hasChildren(node)"
-        [attr.aria-disabled]="hasChildren(node)"
-        [attr.tabindex]="hasChildren(node) ? -1 : null"
-        [class.tree__menu-item-delete]="!hasChildren(node)"
-        [class.tree__menu-item-delete--disabled]="hasChildren(node)"
-        (click)="onDelete(node)"
-        data-testid="delete-node-button"
-      >
-        <mat-icon [class.tree__menu-item-delete]="!hasChildren(node)" [class.tree__menu-item-delete--disabled]="hasChildren(node)"
-          >delete</mat-icon
-        >
-        Delete
-      </button>
-    </span>
+    <button mat-menu-item class="tree__menu-item-delete" (click)="onDelete(node)" data-testid="delete-node-button">
+      <mat-icon class="tree__menu-item-delete">delete</mat-icon>
+      Delete
+    </button>
   }
 </ng-template>
 

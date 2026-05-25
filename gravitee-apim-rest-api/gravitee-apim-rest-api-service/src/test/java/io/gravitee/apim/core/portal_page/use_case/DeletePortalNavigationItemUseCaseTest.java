@@ -23,7 +23,6 @@ import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
-import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemHasChildrenException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -72,6 +71,7 @@ public class DeletePortalNavigationItemUseCaseTest {
     void should_delete() {
         // Given
         var toDelete = PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE11_ID, "page11", null);
+        toDelete.markAsRoot();
         portalNavigationItemsCrudService.initWith(List.of(toDelete));
         portalNavigationItemsQueryService.initWith(List.of(toDelete));
 
@@ -92,10 +92,15 @@ public class DeletePortalNavigationItemUseCaseTest {
     void should_reorder_when_delete() {
         // Given
         PortalNavigationPage page1 = PortalNavigationItemFixtures.aPage("p1", null).toBuilder().order(1).build();
+        page1.markAsRoot();
         PortalNavigationPage page2 = PortalNavigationItemFixtures.aPage("p2", null).toBuilder().order(2).build();
+        page2.markAsRoot();
         PortalNavigationPage page3 = PortalNavigationItemFixtures.aPage("p3", null).toBuilder().order(3).build();
+        page3.markAsRoot();
         PortalNavigationPage page4 = PortalNavigationItemFixtures.aPage("p4", null).toBuilder().order(4).build();
+        page4.markAsRoot();
         PortalNavigationPage page5 = PortalNavigationItemFixtures.aPage("p5", null).toBuilder().order(5).build();
+        page5.markAsRoot();
         portalNavigationItemsCrudService.initWith(List.of(page1, page2, page3, page4, page5));
         portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
 
@@ -160,6 +165,7 @@ public class DeletePortalNavigationItemUseCaseTest {
             .toBuilder()
             .portalPageContentId(pageContent.getId())
             .build();
+        toDelete.markAsRoot();
         portalNavigationItemsCrudService.initWith(List.of(toDelete));
         portalNavigationItemsQueryService.initWith(List.of(toDelete));
         portalPageContentCrudService.initWith(List.of(pageContent));
@@ -179,50 +185,22 @@ public class DeletePortalNavigationItemUseCaseTest {
     }
 
     @Test
-    void should_throw_when_folder_has_children() {
-        // Given
-        var parent = PortalNavigationItemFixtures.aFolder("Parent");
-        var child1 = PortalNavigationItemFixtures.aPage("Child 1", parent.getId());
-        var child2 = PortalNavigationItemFixtures.aFolder("Child 2", parent.getId());
-        var grandChild = PortalNavigationItemFixtures.aPage("Grand Child", child2.getId());
-        portalNavigationItemsCrudService.initWith(List.of(parent, child1, child2, grandChild));
-        portalNavigationItemsQueryService.initWith(List.of(parent, child1, child2, grandChild));
+    void should_delete_folder_and_its_children() {
+        var folder = PortalNavigationItemFixtures.aFolder("50000000-0000-4000-8000-000000000001", "Folder");
+        folder.markAsRoot();
+        var child = PortalNavigationItemFixtures.aPage("50000000-0000-4000-8000-000000000002", "Child", folder.getId());
+        child.updateParent(folder);
+        portalNavigationItemsCrudService.initWith(List.of(folder, child));
+        portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
 
-        // When
-        var throwable = Assertions.catchThrowable(() ->
-            deletePortalNavigationItemUseCase.execute(
-                new DeletePortalNavigationItemUseCase.Input(
-                    PortalNavigationItemFixtures.ORG_ID,
-                    PortalNavigationItemFixtures.ENV_ID,
-                    parent.getId()
-                )
+        deletePortalNavigationItemUseCase.execute(
+            new DeletePortalNavigationItemUseCase.Input(
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                folder.getId()
             )
         );
 
-        // Then
-        Assertions.assertThat(throwable).isInstanceOf(PortalNavigationItemHasChildrenException.class).hasMessageContaining("has children");
-    }
-
-    @Test
-    void should_throw_when_api_has_children() {
-        // Given
-        var apiParent = PortalNavigationItemFixtures.anApi(PortalNavigationItemFixtures.API1_ID, "API Parent", null, "api-1");
-        var child = PortalNavigationItemFixtures.aFolder("Child Folder", apiParent.getId());
-        portalNavigationItemsCrudService.initWith(List.of(apiParent, child));
-        portalNavigationItemsQueryService.initWith(List.of(apiParent, child));
-
-        // When
-        var throwable = Assertions.catchThrowable(() ->
-            deletePortalNavigationItemUseCase.execute(
-                new DeletePortalNavigationItemUseCase.Input(
-                    PortalNavigationItemFixtures.ORG_ID,
-                    PortalNavigationItemFixtures.ENV_ID,
-                    apiParent.getId()
-                )
-            )
-        );
-
-        // Then
-        Assertions.assertThat(throwable).isInstanceOf(PortalNavigationItemHasChildrenException.class).hasMessageContaining("has children");
+        assertThat(portalNavigationItemsCrudService.storage()).isEmpty();
     }
 }

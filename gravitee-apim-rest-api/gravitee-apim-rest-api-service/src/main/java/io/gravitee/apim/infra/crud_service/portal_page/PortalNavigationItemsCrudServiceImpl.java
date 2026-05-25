@@ -22,6 +22,8 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.infra.adapter.PortalNavigationItemAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -77,6 +79,15 @@ public class PortalNavigationItemsCrudServiceImpl implements PortalNavigationIte
                 portalNavigationItemId
             );
             throw new TechnicalDomainException(errorMessage, e);
+        }
+    }
+
+    @Override
+    public void deleteByIds(List<PortalNavigationItemId> ids) {
+        try {
+            portalNavigationItemRepository.deleteByIds(ids.stream().map(PortalNavigationItemId::toString).collect(Collectors.toList()));
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurred while bulk deleting portal navigation items", e);
         }
     }
 }
