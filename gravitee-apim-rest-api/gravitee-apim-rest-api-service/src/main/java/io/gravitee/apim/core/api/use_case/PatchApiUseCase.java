@@ -189,8 +189,7 @@ public class PatchApiUseCase {
             return new Output(stripFlowIds(validated), primaryOwner, workflowState);
         }
 
-        var apiToUpdate = flowsWerePatched(input.patchType(), patchNode) ? stripFlowIds(updatedApi) : updatedApi;
-        var persisted = updateApiDomainService.updateV4(apiToUpdate, input.auditInfo());
+        var persisted = updateApiDomainService.updateV4(updatedApi, input.auditInfo());
         var httpV4 = persisted.getApiDefinitionHttpV4();
         if (httpV4 != null && httpV4.getFlows() != null) {
             var flows = flowCrudService.getApiV4Flows(persisted.getId());
@@ -201,33 +200,6 @@ public class PatchApiUseCase {
             );
         }
         return new Output(persisted, primaryOwner, workflowState);
-    }
-
-    private boolean flowsWerePatched(PatchType patchType, JsonNode rawPatchNode) {
-        if (patchType == PatchType.MERGE_PATCH) {
-            return rawPatchNode.has(FIELD_FLOWS);
-        }
-        if (!rawPatchNode.isArray()) {
-            return false;
-        }
-        for (JsonNode op : rawPatchNode) {
-            var opType = op.path("op").asText("");
-            if ("test".equals(opType)) {
-                continue;
-            }
-            var path = op.path("path").asText("");
-            if (referencesFlows(path)) {
-                return true;
-            }
-            if (("move".equals(opType) || "copy".equals(opType)) && referencesFlows(op.path("from").asText(""))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean referencesFlows(String pointer) {
-        return pointer.equals(JSON_PATCH_PATH_PREFIX + FIELD_FLOWS) || pointer.startsWith(JSON_PATCH_PATH_PREFIX + FIELD_FLOWS + "/");
     }
 
     private Api stripFlowIds(Api api) {

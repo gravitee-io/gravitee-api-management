@@ -2002,18 +2002,26 @@ class PatchApiUseCaseTest {
             assertThat(httpV4Def(output.api()).getFlows()).extracting(Flow::getId).containsExactly("preexisting-id");
         }
 
-        @Test
-        void caller_supplied_flow_id_is_not_echoed_back_in_real_patch_response() {
-            givenExistingApi(apiWithFlows(List.of()));
-            var serverFlow = Flow.builder().id("server-uuid").name("f1").enabled(true).request(List.of(aStep("s1", "policy-a"))).build();
-            flowCrudService.saveApiFlows(API_ID, List.of(serverFlow));
+        @ParameterizedTest
+        @EnumSource(PatchApiUseCase.PatchType.class)
+        void flows_patch_preserves_existing_flow_id_when_passed_to_update_domain_service(PatchApiUseCase.PatchType type) {
+            var existingFlow = Flow.builder()
+                .id("existing-uuid")
+                .name("f1")
+                .enabled(true)
+                .request(List.of(aStep("s1", "policy-a")))
+                .build();
+            givenExistingApi(apiWithFlows(List.of(existingFlow)));
+            flowCrudService.saveApiFlows(API_ID, List.of(existingFlow));
+
             var supplied = List.of(
-                Map.of("id", "caller-supplied-id", "name", "f1", "enabled", true, "request", List.of(stepMap("s1", "policy-a")))
+                Map.of("id", "existing-uuid", "name", "f1", "enabled", true, "request", List.of(stepMap("s1", "policy-a")))
             );
+            execute(type, setField(type, "flows", supplied), false);
 
-            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("flows", supplied), false);
-
-            assertThat(httpV4Def(output.api()).getFlows().getFirst().getId()).isNotEqualTo("caller-supplied-id");
+            var captor = ArgumentCaptor.forClass(Api.class);
+            verify(updateApiDomainService).updateV4(captor.capture(), any());
+            assertThat(httpV4Def(captor.getValue()).getFlows().getFirst().getId()).isEqualTo("existing-uuid");
         }
     }
 
