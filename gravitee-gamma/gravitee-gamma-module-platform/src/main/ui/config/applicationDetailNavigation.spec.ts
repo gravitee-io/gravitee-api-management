@@ -63,14 +63,14 @@ describe('applicationDetailNavigation permissions', () => {
         expect(getFirstAccessibleApplicationDetailPath(APPLICATION_NAV_GROUPS, hasDefinitionRead)).toBe('overview');
     });
 
-    it('returns first accessible implemented path (skips overview placeholder)', () => {
+    it('returns first accessible implemented path', () => {
         expect(
             getFirstAccessibleImplementedApplicationDetailPath(
                 APPLICATION_NAV_GROUPS,
                 APPLICATION_IMPLEMENTED_DETAIL_PATHS,
                 hasDefinitionRead,
             ),
-        ).toBe('general');
+        ).toBe('overview');
         expect(
             getFirstAccessibleImplementedApplicationDetailPath(APPLICATION_NAV_GROUPS, APPLICATION_IMPLEMENTED_DETAIL_PATHS, hasMemberRead),
         ).toBe('user-permissions');
@@ -88,7 +88,7 @@ describe('applicationDetailNavigation permissions', () => {
     });
 
     it('resolveApplicationDetailLandingPath prefers implemented tabs then any permitted tab', () => {
-        expect(resolveApplicationDetailLandingPath(hasDefinitionRead)).toBe('general');
+        expect(resolveApplicationDetailLandingPath(hasDefinitionRead)).toBe('overview');
         expect(resolveApplicationDetailLandingPath(hasMemberRead)).toBe('user-permissions');
         expect(resolveApplicationDetailLandingPath(hasNotificationRead)).toBe('notifications');
         expect(resolveApplicationDetailLandingPath(() => false)).toBeNull();
