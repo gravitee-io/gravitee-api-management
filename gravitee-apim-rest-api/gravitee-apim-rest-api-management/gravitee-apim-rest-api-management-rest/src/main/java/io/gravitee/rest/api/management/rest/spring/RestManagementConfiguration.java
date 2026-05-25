@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.rest.spring;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.use_case.PatchApiUseCase.FlowListDeserializer;
+import io.gravitee.apim.core.api.use_case.PatchApiUseCase.FlowListSerializer;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.el.ExpressionLanguageInitializer;
@@ -42,6 +43,11 @@ public class RestManagementConfiguration {
     @Bean
     public FlowListDeserializer flowListDeserializer(ObjectMapper objectMapper) {
         return node -> objectMapper.treeToValue(node, new TypeReference<List<Flow>>() {});
+    }
+
+    @Bean
+    public FlowListSerializer flowListSerializer(ObjectMapper objectMapper) {
+        return flows -> objectMapper.valueToTree(flows);
     }
 
     @Bean

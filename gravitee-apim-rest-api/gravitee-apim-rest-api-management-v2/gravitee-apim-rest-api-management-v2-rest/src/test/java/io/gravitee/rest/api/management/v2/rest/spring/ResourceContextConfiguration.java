@@ -81,6 +81,7 @@ import io.gravitee.apim.core.api.use_case.ImportApiDefinitionFromUrlUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.OAIToUpdateApiUseCase;
 import io.gravitee.apim.core.api.use_case.PatchApiUseCase.FlowListDeserializer;
+import io.gravitee.apim.core.api.use_case.PatchApiUseCase.FlowListSerializer;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateApiDefinitionFromImportUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateApiGroupsUseCase;
@@ -320,6 +321,11 @@ public class ResourceContextConfiguration {
     @Bean
     public FlowListDeserializer flowListDeserializer(ObjectMapper objectMapper) {
         return node -> FlowMapper.INSTANCE.mapToHttpV4(objectMapper.treeToValue(node, new TypeReference<List<FlowV4>>() {}));
+    }
+
+    @Bean
+    public FlowListSerializer flowListSerializer(ObjectMapper objectMapper) {
+        return flows -> objectMapper.valueToTree(FlowMapper.INSTANCE.mapFromHttpV4(flows));
     }
 
     @Bean
