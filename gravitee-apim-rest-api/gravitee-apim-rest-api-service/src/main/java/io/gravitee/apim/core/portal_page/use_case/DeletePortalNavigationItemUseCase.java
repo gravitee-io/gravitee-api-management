@@ -17,10 +17,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
-import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemHasChildrenException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import lombok.RequiredArgsConstructor;
@@ -38,25 +35,9 @@ public class DeletePortalNavigationItemUseCase {
             throw new PortalNavigationItemNotFoundException(input.navigationItemId().json());
         }
 
-        validateItemHasNoChildren(existing);
-
-        portalNavigationItemDomainService.delete(existing);
+        portalNavigationItemDomainService.deleteWithDescendants(existing);
 
         return new Output();
-    }
-
-    private void validateItemHasNoChildren(PortalNavigationItem existing) {
-        if (!(existing instanceof PortalNavigationItemContainer)) {
-            return;
-        }
-
-        var directChildren = portalNavigationItemsQueryService.findByParentIdAndEnvironmentId(
-            existing.getEnvironmentId(),
-            existing.getId()
-        );
-        if (!directChildren.isEmpty()) {
-            throw PortalNavigationItemHasChildrenException.forId(existing.getId().toString());
-        }
     }
 
     public record Output() {}

@@ -242,6 +242,219 @@ public class PortalNavigationItemDomainServiceTest {
     }
 
     @Nested
+    class DeleteWithDescendants {
+
+        @Test
+        void should_delete_folder_and_all_descendants() {
+            // folder (root, order=1) → childFolder → grandChildPage (has content)
+            //                        → childPage (has content)
+            // sibling (order=2) must survive and be reordered to order=1
+            PortalNavigationFolder folder = PortalNavigationItemFixtures.aFolder("30000000-0000-4000-8000-000000000001", "Folder");
+            folder.markAsRoot();
+            folder.setOrder(1);
+
+            PortalNavigationFolder childFolder = PortalNavigationItemFixtures.aFolder(
+                "30000000-0000-4000-8000-000000000002",
+                "Child Folder",
+                folder.getId()
+            );
+            childFolder.updateParent(folder);
+
+            var grandChildContent = portalPageContentCrudService.createDefault(
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                PortalPageContentType.GRAVITEE_MARKDOWN
+            );
+            PortalNavigationPage grandChildPage = PortalNavigationItemFixtures.aPage(
+                "30000000-0000-4000-8000-000000000003",
+                "Grand Child",
+                childFolder.getId()
+            )
+                .toBuilder()
+                .portalPageContentId(grandChildContent.getId())
+                .build();
+            grandChildPage.updateParent(childFolder);
+
+            var childPageContent = portalPageContentCrudService.createDefault(
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                PortalPageContentType.GRAVITEE_MARKDOWN
+            );
+            PortalNavigationPage childPage = PortalNavigationItemFixtures.aPage(
+                "30000000-0000-4000-8000-000000000004",
+                "Child Page",
+                folder.getId()
+            )
+                .toBuilder()
+                .portalPageContentId(childPageContent.getId())
+                .build();
+            childPage.updateParent(folder);
+
+            PortalNavigationFolder sibling = PortalNavigationItemFixtures.aFolder("30000000-0000-4000-8000-000000000005", "Sibling");
+            sibling.markAsRoot();
+            sibling.setOrder(2);
+
+            portalNavigationItemsCrudService.initWith(List.of(folder, childFolder, grandChildPage, childPage, sibling));
+            portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
+            portalPageContentCrudService.initWith(List.of(grandChildContent, childPageContent));
+
+            domainService.deleteWithDescendants(folder);
+
+            assertThat(portalNavigationItemsCrudService.storage()).hasSize(1);
+            assertThat(portalNavigationItemsCrudService.storage().get(0).getId()).isEqualTo(sibling.getId());
+            assertThat(portalNavigationItemsCrudService.storage().get(0).getOrder()).isEqualTo(1);
+            assertThat(portalPageContentCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_delete_single_leaf_item_without_descendants() {
+            // deleteWithDescendants on a leaf item behaves identically to delete
+            PortalNavigationFolder root = PortalNavigationItemFixtures.aFolder("31000000-0000-4000-8000-000000000001", "Root");
+            root.markAsRoot();
+
+            var pageContent = portalPageContentCrudService.createDefault(
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                PortalPageContentType.GRAVITEE_MARKDOWN
+            );
+            PortalNavigationPage page = PortalNavigationItemFixtures.aPage("31000000-0000-4000-8000-000000000002", "Page", root.getId())
+                .toBuilder()
+                .portalPageContentId(pageContent.getId())
+                .build();
+            page.updateParent(root);
+
+            portalNavigationItemsCrudService.initWith(List.of(root, page));
+            portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
+            portalPageContentCrudService.initWith(List.of(pageContent));
+
+            domainService.deleteWithDescendants(page);
+
+            var remainingIds = portalNavigationItemsCrudService
+                .storage()
+                .stream()
+                .map(io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId)
+                .toList();
+            assertThat(remainingIds).containsOnly(root.getId());
+            assertThat(portalPageContentCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_delete_legacy_item_with_zero_rootId_using_parent_child_traversal() {
+            // Given — legacy items that never had markAsRoot() called, so rootId == ZERO
+            PortalNavigationFolder folder = PortalNavigationItemFixtures.aFolder("33000000-0000-4000-8000-000000000001", "Legacy Folder");
+            // No markAsRoot() → rootId stays at ZERO
+            folder.setOrder(1);
+
+            PortalNavigationFolder child = PortalNavigationItemFixtures.aFolder(
+                "33000000-0000-4000-8000-000000000002",
+                "Legacy Child",
+                folder.getId()
+            );
+
+            var childPageContent = portalPageContentCrudService.createDefault(
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                PortalPageContentType.GRAVITEE_MARKDOWN
+            );
+            PortalNavigationPage childPage = PortalNavigationItemFixtures.aPage(
+                "33000000-0000-4000-8000-000000000003",
+                "Legacy Child Page",
+                folder.getId()
+            )
+                .toBuilder()
+                .portalPageContentId(childPageContent.getId())
+                .build();
+
+            PortalNavigationFolder sibling = PortalNavigationItemFixtures.aFolder("33000000-0000-4000-8000-000000000004", "Sibling");
+            sibling.setOrder(2);
+
+            portalNavigationItemsCrudService.initWith(List.of(folder, child, childPage, sibling));
+            portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
+            portalPageContentCrudService.initWith(List.of(childPageContent));
+
+            // When — must not throw, falls back to parent-child traversal
+            domainService.deleteWithDescendants(folder);
+
+            // Then — folder and all its descendants deleted; sibling survives
+            var remainingIds = portalNavigationItemsCrudService
+                .storage()
+                .stream()
+                .map(io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId)
+                .toList();
+            assertThat(remainingIds).containsOnly(sibling.getId());
+            assertThat(portalPageContentCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_delete_subtree_without_affecting_sibling_subtree_under_same_root() {
+            // Root → SubtreeA (folder) → PageA (has content)
+            //      → SubtreeB (folder) → PageB (has content)
+            // Delete SubtreeA. SubtreeB and PageB must survive.
+            PortalNavigationFolder root = PortalNavigationItemFixtures.aFolder("32000000-0000-4000-8000-000000000001", "Root");
+            root.markAsRoot();
+
+            PortalNavigationFolder subtreeA = PortalNavigationItemFixtures.aFolder(
+                "32000000-0000-4000-8000-000000000002",
+                "Subtree A",
+                root.getId()
+            );
+            subtreeA.updateParent(root);
+
+            var pageAContent = portalPageContentCrudService.createDefault(
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                PortalPageContentType.GRAVITEE_MARKDOWN
+            );
+            PortalNavigationPage pageA = PortalNavigationItemFixtures.aPage(
+                "32000000-0000-4000-8000-000000000003",
+                "Page A",
+                subtreeA.getId()
+            )
+                .toBuilder()
+                .portalPageContentId(pageAContent.getId())
+                .build();
+            pageA.updateParent(subtreeA);
+
+            PortalNavigationFolder subtreeB = PortalNavigationItemFixtures.aFolder(
+                "32000000-0000-4000-8000-000000000004",
+                "Subtree B",
+                root.getId()
+            );
+            subtreeB.updateParent(root);
+
+            var pageBContent = portalPageContentCrudService.createDefault(
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                PortalPageContentType.GRAVITEE_MARKDOWN
+            );
+            PortalNavigationPage pageB = PortalNavigationItemFixtures.aPage(
+                "32000000-0000-4000-8000-000000000005",
+                "Page B",
+                subtreeB.getId()
+            )
+                .toBuilder()
+                .portalPageContentId(pageBContent.getId())
+                .build();
+            pageB.updateParent(subtreeB);
+
+            portalNavigationItemsCrudService.initWith(List.of(root, subtreeA, pageA, subtreeB, pageB));
+            portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
+            portalPageContentCrudService.initWith(List.of(pageAContent, pageBContent));
+
+            domainService.deleteWithDescendants(subtreeA);
+
+            var remainingIds = portalNavigationItemsCrudService
+                .storage()
+                .stream()
+                .map(io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId)
+                .collect(Collectors.toSet());
+            assertThat(remainingIds).containsExactlyInAnyOrder(root.getId(), subtreeB.getId(), pageB.getId());
+            assertThat(portalPageContentCrudService.storage()).hasSize(1);
+            assertThat(portalPageContentCrudService.storage().get(0).getId()).isEqualTo(pageBContent.getId());
+        }
+    }
+
+    @Nested
     class Update {
 
         @Test
@@ -673,6 +886,106 @@ public class PortalNavigationItemDomainServiceTest {
                 .containsEntry(parentFolder.getId(), PortalVisibility.PRIVATE)
                 .containsEntry(childFolder.getId(), PortalVisibility.PRIVATE)
                 .containsEntry(grandChildPage.getId(), PortalVisibility.PRIVATE);
+        }
+
+        @Test
+        void should_not_propagate_visibility_when_folder_changes_from_private_to_public() {
+            PortalNavigationFolder parentFolder = PortalNavigationItemFixtures.aFolder("10000000-0000-4000-8000-000000000004", "Parent");
+            parentFolder.setVisibility(PortalVisibility.PRIVATE);
+            PortalNavigationFolder childFolder = PortalNavigationItemFixtures.aFolder(
+                "10000000-0000-4000-8000-000000000005",
+                "Child",
+                parentFolder.getId()
+            );
+            childFolder.setVisibility(PortalVisibility.PRIVATE);
+            PortalNavigationPage grandChildPage = PortalNavigationItemFixtures.aPage(
+                "10000000-0000-4000-8000-000000000006",
+                "Grand Child",
+                childFolder.getId()
+            );
+            grandChildPage.setVisibility(PortalVisibility.PRIVATE);
+            portalNavigationItemsCrudService.initWith(List.of(parentFolder, childFolder, grandChildPage));
+            portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
+
+            var toUpdate = UpdatePortalNavigationItem.builder()
+                .order(parentFolder.getOrder())
+                .title(parentFolder.getTitle())
+                .visibility(PortalVisibility.PUBLIC)
+                .type(parentFolder.getType())
+                .parentId(parentFolder.getParentId())
+                .published(parentFolder.getPublished())
+                .build();
+
+            var result = domainService.update(toUpdate, parentFolder);
+
+            assertThat(result.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
+            assertThat(
+                portalNavigationItemsCrudService
+                    .storage()
+                    .stream()
+                    .collect(
+                        Collectors.toMap(
+                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
+                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getVisibility
+                        )
+                    )
+            )
+                .containsEntry(parentFolder.getId(), PortalVisibility.PUBLIC)
+                .containsEntry(childFolder.getId(), PortalVisibility.PRIVATE)
+                .containsEntry(grandChildPage.getId(), PortalVisibility.PRIVATE);
+        }
+
+        @Test
+        void should_update_subtree_when_folder_published_changes_from_false_to_true() {
+            PortalNavigationFolder parentFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000001", "Parent")
+                .toBuilder()
+                .published(false)
+                .build();
+            PortalNavigationFolder childFolder = PortalNavigationItemFixtures.aFolder(
+                "20000000-0000-4000-8000-000000000002",
+                "Child",
+                parentFolder.getId()
+            )
+                .toBuilder()
+                .published(false)
+                .build();
+            PortalNavigationPage grandChildPage = PortalNavigationItemFixtures.aPage(
+                "20000000-0000-4000-8000-000000000003",
+                "Grand Child",
+                childFolder.getId()
+            )
+                .toBuilder()
+                .published(false)
+                .build();
+            portalNavigationItemsCrudService.initWith(List.of(parentFolder, childFolder, grandChildPage));
+            portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
+
+            var toUpdate = UpdatePortalNavigationItem.builder()
+                .order(parentFolder.getOrder())
+                .title(parentFolder.getTitle())
+                .visibility(parentFolder.getVisibility())
+                .type(parentFolder.getType())
+                .parentId(parentFolder.getParentId())
+                .published(true)
+                .build();
+
+            var result = domainService.update(toUpdate, parentFolder);
+
+            assertThat(result.getPublished()).isTrue();
+            assertThat(
+                portalNavigationItemsCrudService
+                    .storage()
+                    .stream()
+                    .collect(
+                        Collectors.toMap(
+                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
+                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getPublished
+                        )
+                    )
+            )
+                .containsEntry(parentFolder.getId(), true)
+                .containsEntry(childFolder.getId(), true)
+                .containsEntry(grandChildPage.getId(), true);
         }
     }
 }
