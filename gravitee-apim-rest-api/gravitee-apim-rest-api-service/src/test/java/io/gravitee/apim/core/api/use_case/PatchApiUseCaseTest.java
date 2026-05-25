@@ -2023,6 +2023,21 @@ class PatchApiUseCaseTest {
             verify(updateApiDomainService).updateV4(captor.capture(), any());
             assertThat(httpV4Def(captor.getValue()).getFlows().getFirst().getId()).isEqualTo("existing-uuid");
         }
+
+        @Test
+        void dry_run_patch_not_touching_flows_preserves_flow_ids() {
+            var existingFlow = Flow.builder()
+                .id("preexisting-uuid")
+                .name("f1")
+                .enabled(true)
+                .request(List.of(aStep("s1", "policy-a")))
+                .build();
+            givenExistingApi(apiWithFlows(List.of(existingFlow)));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("name", "renamed"), true);
+
+            assertThat(httpV4Def(output.api()).getFlows()).extracting(Flow::getId).containsExactly("preexisting-uuid");
+        }
     }
 
     @Nested
