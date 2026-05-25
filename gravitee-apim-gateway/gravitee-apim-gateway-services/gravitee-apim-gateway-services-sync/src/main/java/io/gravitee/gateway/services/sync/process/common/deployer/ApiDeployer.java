@@ -48,20 +48,7 @@ public class ApiDeployer implements Deployer<ApiReactorDeployable> {
     @Override
     public Completable deploy(final ApiReactorDeployable deployable) {
         Set<AuthzEntityIdExtractor.EntityFragment> fragments = extractFragmentsSafely(deployable.reactableApi());
-        return stageAuthzResourcesOnDeploy(deployable, fragments).andThen(
-            Completable.fromRunnable(() -> {
-                ReactableApi<?> reactableApi = deployable.reactableApi();
-                try {
-                    apiManager.register(reactableApi);
-                    log.debug("Api [{}] deployed ", deployable.apiId());
-                } catch (Exception e) {
-                    throw new SyncException(
-                        String.format("An error occurred when trying to deploy api %s [%s].", reactableApi.getName(), reactableApi.getId()),
-                        e
-                    );
-                }
-            })
-        );
+        return stageAuthzResourcesOnDeploy(deployable, fragments).andThen(registerApiOnReactor(deployable));
     }
 
     @Override
@@ -76,6 +63,25 @@ public class ApiDeployer implements Deployer<ApiReactorDeployable> {
     @Override
     public Completable undeploy(final ApiReactorDeployable deployable) {
         Set<String> entityIds = authzRegistry.entitiesForApi(deployable.apiId());
+        return unregisterApiFromReactor(deployable).andThen(stageAuthzResourcesOnUndeploy(deployable, entityIds));
+    }
+
+    private Completable registerApiOnReactor(final ApiReactorDeployable deployable) {
+        return Completable.fromRunnable(() -> {
+            ReactableApi<?> reactableApi = deployable.reactableApi();
+            try {
+                apiManager.register(reactableApi);
+                log.debug("Api [{}] deployed ", deployable.apiId());
+            } catch (Exception e) {
+                throw new SyncException(
+                    String.format("An error occurred when trying to deploy api %s [%s].", reactableApi.getName(), reactableApi.getId()),
+                    e
+                );
+            }
+        });
+    }
+
+    private Completable unregisterApiFromReactor(final ApiReactorDeployable deployable) {
         return Completable.fromRunnable(() -> {
             try {
                 authzRegistry.unregisterApi(deployable.apiId());
@@ -85,7 +91,7 @@ public class ApiDeployer implements Deployer<ApiReactorDeployable> {
             } catch (Exception e) {
                 throw new SyncException(String.format("An error occurred when trying to undeploy api [%s].", deployable.apiId()), e);
             }
-        }).andThen(stageAuthzResourcesOnUndeploy(deployable, entityIds));
+        });
     }
 
     @Override

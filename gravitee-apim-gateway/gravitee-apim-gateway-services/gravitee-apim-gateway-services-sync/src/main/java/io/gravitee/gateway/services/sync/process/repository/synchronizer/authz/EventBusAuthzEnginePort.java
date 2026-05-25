@@ -16,10 +16,11 @@
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 
 import io.reactivex.rxjava3.core.Completable;
-import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.rxjava3.core.Vertx;
+import io.vertx.rxjava3.core.eventbus.Message;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -81,31 +82,23 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
 
     @Override
     public Completable commit() {
-        return Completable.create(emitter ->
-            vertx
-                .eventBus()
-                .<JsonObject>request(SYNC_ADDRESS, new JsonObject().put("op", OP_COMMIT), deliveryOptions)
-                .onSuccess(reply -> {
-                    JsonObject body = reply.body();
-                    Long gen = body != null ? body.getLong("commitGeneration") : null;
-                    if (gen == null) {
-                        emitter.onError(new IllegalStateException("Authz PDP commit reply missing 'commitGeneration': " + body));
-                        return;
-                    }
-                    log.debug("Authz engine commit landed, commitGeneration={}", gen);
-                    emitter.onComplete();
-                })
-                .onFailure(emitter::onError)
-        );
+        return vertx
+            .eventBus()
+            .<JsonObject>rxRequest(SYNC_ADDRESS, new JsonObject().put("op", OP_COMMIT), deliveryOptions)
+            .flatMapCompletable(this::verifyCommitReply);
+    }
+
+    private Completable verifyCommitReply(Message<JsonObject> reply) {
+        JsonObject body = reply.body();
+        Long gen = body != null ? body.getLong("commitGeneration") : null;
+        if (gen == null) {
+            return Completable.error(new IllegalStateException("Authz PDP commit reply missing 'commitGeneration': " + body));
+        }
+        log.debug("Authz engine commit landed, commitGeneration={}", gen);
+        return Completable.complete();
     }
 
     private Completable send(JsonObject command) {
-        return Completable.create(emitter ->
-            vertx
-                .eventBus()
-                .<JsonObject>request(SYNC_ADDRESS, command, deliveryOptions)
-                .onSuccess(reply -> emitter.onComplete())
-                .onFailure(emitter::onError)
-        );
+        return vertx.eventBus().<JsonObject>rxRequest(SYNC_ADDRESS, command, deliveryOptions).ignoreElement();
     }
 }

@@ -16,6 +16,7 @@
 package io.gravitee.gateway.services.sync.process.common.deployer;
 
 import io.gravitee.gamma.definition.authz.AuthzEntityIdConstants;
+import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.service.AuthzRegistry;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEnginePort;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityIdExtractor;
@@ -30,6 +31,7 @@ public class AuthzEntityDeployer implements Deployer<AuthzEntityReactorDeployabl
 
     private final AuthzEnginePort enginePort;
     private final AuthzRegistry authzRegistry;
+    private final DistributedSyncService distributedSyncService;
 
     @Override
     public Completable deploy(AuthzEntityReactorDeployable deployable) {
@@ -44,11 +46,21 @@ public class AuthzEntityDeployer implements Deployer<AuthzEntityReactorDeployabl
     }
 
     @Override
+    public Completable doAfterDeployment(AuthzEntityReactorDeployable deployable) {
+        return distributedSyncService.distributeIfNeeded(deployable);
+    }
+
+    @Override
     public Completable undeploy(AuthzEntityReactorDeployable deployable) {
         return enginePort
             .removeEntity(deployable.engineUid())
             .doOnComplete(() -> log.debug("Authz entity '{}' staged for removal on next commit", deployable.entityId()))
             .doOnError(e -> log.warn("Failed to stage authz entity '{}' removal: {}", deployable.entityId(), e.getMessage()));
+    }
+
+    @Override
+    public Completable doAfterUndeployment(AuthzEntityReactorDeployable deployable) {
+        return distributedSyncService.distributeIfNeeded(deployable);
     }
 
     private boolean shouldDeployOnThisNode(AuthzEntityReactorDeployable deployable) {

@@ -21,6 +21,8 @@ import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzEntityMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzPolicyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.NodeMetadataMapper;
@@ -32,6 +34,8 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.accessp
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductReactorDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityReactorDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzPolicyReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionaryDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.node.NodeMetadataDeployable;
@@ -73,6 +77,8 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     private final AccessPointMapper accessPointMapper;
     private final SharedPolicyGroupMapper sharedPolicyGroupMapper;
     private final NodeMetadataMapper nodeMetadataMapper;
+    private final AuthzEntityMapper authzEntityMapper;
+    private final AuthzPolicyMapper authzPolicyMapper;
 
     @Override
     public void validate() {
@@ -261,6 +267,30 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
                 return nodeMetadataMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
             }
             log.debug("Not a primary node, skipping node metadata event distribution");
+            return Completable.complete();
+        });
+    }
+
+    @Override
+    public Completable distributeIfNeeded(final AuthzEntityReactorDeployable deployable) {
+        return Completable.defer(() -> {
+            if (isPrimaryNode()) {
+                log.debug("Node is primary, distributing authz entity event for {}", deployable.entityId());
+                return authzEntityMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
+            }
+            log.debug("Not a primary node, skipping authz entity event distribution");
+            return Completable.complete();
+        });
+    }
+
+    @Override
+    public Completable distributeIfNeeded(final AuthzPolicyReactorDeployable deployable) {
+        return Completable.defer(() -> {
+            if (isPrimaryNode()) {
+                log.debug("Node is primary, distributing authz policy event for {}", deployable.docId());
+                return authzPolicyMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
+            }
+            log.debug("Not a primary node, skipping authz policy event distribution");
             return Completable.complete();
         });
     }
