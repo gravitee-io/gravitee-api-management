@@ -37,6 +37,7 @@ import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -232,19 +233,16 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
         }
 
         static Stream<Arguments> lowercaseSelectorTypeVariants() {
-            var flows = List.of(
-                Map.of(
-                    "name",
-                    "f1",
-                    "enabled",
-                    true,
-                    "selectors",
-                    List.of(Map.of("type", "http", "path", "/api", "pathOperator", "EQUALS")),
-                    "request",
-                    List.of(stepMap("s1", "p1"))
+            return Stream.of(
+                List.of(Map.of("type", "http", "path", "/api", "pathOperator", "EQUALS")),
+                List.of(Map.of("type", "channel", "channel", "/", "channelOperator", "STARTS_WITH")),
+                List.of(Map.of("type", "condition", "condition", "#true")),
+                List.of(Map.of("type", "mcp"))
+            ).flatMap(selectors ->
+                bothFlowsReplaceVariants(
+                    List.of(Map.of("name", "f1", "enabled", true, "selectors", selectors, "request", List.of(stepMap("s1", "p1"))))
                 )
             );
-            return bothFlowsReplaceVariants(flows);
         }
 
         static Stream<Arguments> uppercaseSelectorTypeVariants() {
@@ -343,6 +341,47 @@ public class ApiResource_PatchApiFlowsTest extends ApiResourceTest {
 
             var error = assertThat(response).hasStatus(BAD_REQUEST_400).asError().actual();
             Assertions.assertThat(error.getMessage()).containsIgnoringCase("path");
+        }
+
+        @Test
+        void json_patch_add_sub_pointer_selector_with_uppercase_type_returns_200() {
+            givenApiWithFlows(
+                List.of(
+                    Flow.builder()
+                        .name("f1")
+                        .enabled(true)
+                        .selectors(List.of(HttpSelector.builder().path("/api").build()))
+                        .request(List.of(step("s1", "p1")))
+                        .build()
+                )
+            );
+
+            var body =
+                "[{\"op\":\"add\",\"path\":\"/flows/0/selectors/-\",\"value\":{\"type\":\"HTTP\",\"path\":\"/api2\",\"pathOperator\":\"EQUALS\"}}]";
+            var response = rootTarget(API).request().method("PATCH", Entity.entity(body, JSON_PATCH_TYPE));
+
+            assertThat(response).hasStatus(OK_200);
+        }
+
+        @Test
+        void json_patch_add_sub_pointer_selector_with_lowercase_type_returns_400_with_invalidValue_envelope() {
+            givenApiWithFlows(
+                List.of(
+                    Flow.builder()
+                        .name("f1")
+                        .enabled(true)
+                        .selectors(List.of(HttpSelector.builder().path("/api").build()))
+                        .request(List.of(step("s1", "p1")))
+                        .build()
+                )
+            );
+
+            var body =
+                "[{\"op\":\"add\",\"path\":\"/flows/0/selectors/-\",\"value\":{\"type\":\"http\",\"path\":\"/api2\",\"pathOperator\":\"EQUALS\"}}]";
+            var response = rootTarget(API).request().method("PATCH", Entity.entity(body, JSON_PATCH_TYPE));
+
+            var error = assertThat(response).hasStatus(BAD_REQUEST_400).asError().actual();
+            Assertions.assertThat(error.getTechnicalCode()).isEqualTo("invalidValue");
         }
     }
 }
