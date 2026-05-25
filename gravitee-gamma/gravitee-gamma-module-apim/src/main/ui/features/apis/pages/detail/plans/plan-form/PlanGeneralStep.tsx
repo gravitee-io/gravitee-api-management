@@ -39,12 +39,79 @@ import {
     SelectValue,
     Switch,
     Textarea,
+    cn,
 } from '@gravitee/graphene-core';
-import { CheckIcon, ChevronsUpDownIcon } from '@gravitee/graphene-core/icons';
-import { useState } from 'react';
+import { CheckIcon, ChevronsUpDownIcon, XIcon } from '@gravitee/graphene-core/icons';
+import { useRef, useState } from 'react';
 
 import { useGroups } from '../../../../hooks/useGroups';
+import { useOrgTags } from '../../../../hooks/useOrgTags';
 import type { GeneralFormData, PlanContext, PlanSecurityType } from '../../../../types/plan';
+
+function CharacteristicsInput({ value, onChange, readOnly }: { value: string[]; onChange: (v: string[]) => void; readOnly?: boolean }) {
+    const [input, setInput] = useState('');
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    function addTag() {
+        const trimmed = input.trim();
+        if (trimmed && !value.includes(trimmed)) {
+            onChange([...value, trimmed]);
+        }
+        setInput('');
+    }
+
+    function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            addTag();
+        } else if (e.key === 'Backspace' && input === '' && value.length > 0) {
+            onChange(value.slice(0, -1));
+        }
+    }
+
+    return (
+        <div
+            className={cn(
+                'flex flex-wrap gap-1.5 min-h-10 rounded-md border border-input bg-background px-3 py-2',
+                readOnly ? 'cursor-not-allowed opacity-50' : 'cursor-text',
+            )}
+        >
+            {value.map(tag => (
+                <span
+                    key={tag}
+                    className="inline-flex items-center gap-1 rounded-md bg-secondary text-secondary-foreground text-xs font-medium px-2 py-0.5"
+                >
+                    {tag}
+                    {!readOnly && (
+                        <button
+                            type="button"
+                            onClick={e => {
+                                e.stopPropagation();
+                                onChange(value.filter(t => t !== tag));
+                            }}
+                            className="opacity-60 hover:opacity-100 hover:text-destructive"
+                            aria-label={`Remove ${tag}`}
+                        >
+                            <XIcon className="size-3" aria-hidden />
+                        </button>
+                    )}
+                </span>
+            ))}
+            {!readOnly && (
+                <input
+                    ref={inputRef}
+                    value={input}
+                    onChange={e => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    onBlur={addTag}
+                    className="flex-1 min-w-24 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                    placeholder={value.length === 0 ? 'Type and press Enter…' : ''}
+                    aria-label="Add characteristic"
+                />
+            )}
+        </div>
+    );
+}
 
 interface PlanGeneralStepProps {
     ctx: PlanContext;
@@ -57,7 +124,9 @@ interface PlanGeneralStepProps {
 
 export function PlanGeneralStep({ ctx, securityType, value, onChange, errors, readOnly = false }: Readonly<PlanGeneralStepProps>) {
     const [groupsOpen, setGroupsOpen] = useState(false);
+    const [tagsOpen, setTagsOpen] = useState(false);
     const { data: groupsResponse } = useGroups();
+    const { data: orgTags = [] } = useOrgTags();
     const groups = (groupsResponse as { data?: { id: string; name: string }[] } | undefined)?.data ?? [];
 
     function toggleGroup(id: string) {
@@ -65,8 +134,18 @@ export function PlanGeneralStep({ ctx, securityType, value, onChange, errors, re
         onChange({ ...value, excludedGroups: next });
     }
 
-    const selectedLabels = value.excludedGroups
+    function toggleTag(id: string) {
+        const next = value.tags.includes(id) ? value.tags.filter(t => t !== id) : [...value.tags, id];
+        onChange({ ...value, tags: next });
+    }
+
+    const selectedGroupLabels = value.excludedGroups
         .map(id => groups.find(g => g.id === id)?.name)
+        .filter(Boolean)
+        .join(', ');
+
+    const selectedTagLabels = value.tags
+        .map(id => orgTags.find(t => t.id === id)?.name)
         .filter(Boolean)
         .join(', ');
     const isKeyless = securityType === 'KEY_LESS';
@@ -109,15 +188,12 @@ export function PlanGeneralStep({ ctx, securityType, value, onChange, errors, re
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="plan-characteristics">Characteristics</Label>
-                        <Input
-                            id="plan-characteristics"
+                        <Label>Characteristics</Label>
+                        <CharacteristicsInput
                             value={value.characteristics}
-                            onChange={e => onChange({ ...value, characteristics: e.target.value })}
-                            placeholder="e.g. production, sla-99.9"
-                            disabled={readOnly}
+                            onChange={tags => onChange({ ...value, characteristics: tags })}
+                            readOnly={readOnly}
                         />
-                        <p className="text-xs text-muted-foreground">Comma-separated tags.</p>
                     </div>
                 </CardContent>
             </Card>
@@ -216,6 +292,56 @@ export function PlanGeneralStep({ ctx, securityType, value, onChange, errors, re
                 </CardContent>
             </Card>
 
+            {/* Deployment — sharding tags */}
+            {orgTags.length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base">Deployment</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        <Label>Sharding tags</Label>
+                        <Popover open={tagsOpen} onOpenChange={setTagsOpen}>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={tagsOpen}
+                                    className="w-full justify-between font-normal"
+                                    disabled={readOnly}
+                                >
+                                    <span className="truncate text-left">
+                                        {selectedTagLabels || <span className="text-muted-foreground">None</span>}
+                                    </span>
+                                    <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                                <Command>
+                                    <CommandInput placeholder="Search tags…" />
+                                    <CommandList>
+                                        <CommandEmpty>No tags found.</CommandEmpty>
+                                        <CommandGroup>
+                                            <ScrollArea className="max-h-60">
+                                                {orgTags.map(tag => (
+                                                    <CommandItem key={tag.id} value={tag.name} onSelect={() => toggleTag(tag.id)}>
+                                                        <Checkbox checked={value.tags.includes(tag.id)} className="mr-2" aria-hidden />
+                                                        {tag.name}
+                                                        {value.tags.includes(tag.id) && <CheckIcon className="ml-auto size-4" />}
+                                                    </CommandItem>
+                                                ))}
+                                            </ScrollArea>
+                                        </CommandGroup>
+                                    </CommandList>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
+                        <p className="text-xs text-muted-foreground">
+                            Only gateways advertising matching sharding tags will enforce this plan.
+                        </p>
+                    </CardContent>
+                </Card>
+            )}
+
             {/* Access control — API only */}
             {showAccessControl && (
                 <Card>
@@ -234,7 +360,7 @@ export function PlanGeneralStep({ ctx, securityType, value, onChange, errors, re
                                     disabled={readOnly}
                                 >
                                     <span className="truncate text-left">
-                                        {selectedLabels || <span className="text-muted-foreground">None</span>}
+                                        {selectedGroupLabels || <span className="text-muted-foreground">None</span>}
                                     </span>
                                     <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
                                 </Button>

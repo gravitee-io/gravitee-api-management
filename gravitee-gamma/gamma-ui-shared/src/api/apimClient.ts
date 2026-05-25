@@ -79,6 +79,9 @@ async function doFetch<T>(url: string, path: string, init?: RequestInit): Promis
     headers.set('X-Requested-With', 'XMLHttpRequest');
     const csrf = localStorage.getItem('XSRF-TOKEN');
     if (csrf) headers.set('X-Xsrf-Token', csrf);
+    if (init?.body != null && !headers.has('Content-Type')) {
+        headers.set('Content-Type', 'application/json');
+    }
 
     const res = await fetch(url, { ...init, headers, credentials: 'include' });
 

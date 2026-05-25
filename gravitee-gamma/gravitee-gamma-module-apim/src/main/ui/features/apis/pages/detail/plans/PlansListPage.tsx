@@ -25,10 +25,9 @@ interface PlansListPageProps {
     ctx: PlanContext;
     counts: PlanStatusCounts;
     canUpdate: boolean;
-    canDelete: boolean;
 }
 
-export function PlansListPage({ ctx, counts, canUpdate, canDelete }: Readonly<PlansListPageProps>) {
+export function PlansListPage({ ctx, counts, canUpdate }: Readonly<PlansListPageProps>) {
     const [selectedStatus, setSelectedStatus] = useState<PlanStatus>('STAGING');
     const [page, setPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
@@ -65,7 +64,6 @@ export function PlansListPage({ ctx, counts, canUpdate, canDelete }: Readonly<Pl
                 perPage={perPage}
                 isLoading={isLoading}
                 canUpdate={canUpdate}
-                canDelete={canDelete}
                 onPage={setPage}
                 onPerPage={handlePerPageChange}
             />

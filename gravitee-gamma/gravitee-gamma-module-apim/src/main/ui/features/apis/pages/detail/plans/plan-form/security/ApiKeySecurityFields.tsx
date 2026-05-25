@@ -17,12 +17,14 @@ import { Input, Label, Switch } from '@gravitee/graphene-core';
 
 export interface ApiKeyConfig {
     propagateApiKey: boolean;
-    authorizationHeader: string;
+    enableCustomApiKeyHeader: boolean;
+    apiKeyHeader: string;
 }
 
 export const DEFAULT_API_KEY_CONFIG: ApiKeyConfig = {
     propagateApiKey: false,
-    authorizationHeader: 'X-Gravitee-Api-Key',
+    enableCustomApiKeyHeader: false,
+    apiKeyHeader: 'X-Gravitee-Api-Key',
 };
 
 interface ApiKeySecurityFieldsProps {
@@ -51,19 +53,42 @@ export function ApiKeySecurityFields({ value, onChange, readOnly = false }: Read
                 />
             </div>
 
-            <div className="space-y-2">
-                <Label htmlFor="custom-api-key-header">Custom API Key header</Label>
-                <Input
-                    id="custom-api-key-header"
-                    value={value.authorizationHeader}
-                    onChange={e => onChange({ ...value, authorizationHeader: e.target.value })}
-                    placeholder="X-Gravitee-Api-Key"
+            <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+                <div className="space-y-0.5">
+                    <Label htmlFor="enable-custom-api-key-header" className="text-sm font-medium">
+                        Custom API Key header
+                    </Label>
+                    <p className="text-xs text-muted-foreground">Override the default API Key header name (X-Gravitee-Api-Key).</p>
+                </div>
+                <Switch
+                    id="enable-custom-api-key-header"
+                    checked={value.enableCustomApiKeyHeader}
+                    onCheckedChange={checked =>
+                        onChange({
+                            ...value,
+                            enableCustomApiKeyHeader: checked,
+                            apiKeyHeader: checked ? value.apiKeyHeader : 'X-Gravitee-Api-Key',
+                        })
+                    }
                     disabled={readOnly}
                 />
-                <p className="text-xs text-muted-foreground">
-                    The header name used to pass the API key. Leave default for X-Gravitee-Api-Key.
-                </p>
             </div>
+
+            {value.enableCustomApiKeyHeader && (
+                <div className="space-y-2">
+                    <Label htmlFor="api-key-header">API Key header name</Label>
+                    <Input
+                        id="api-key-header"
+                        value={value.apiKeyHeader}
+                        onChange={e => onChange({ ...value, apiKeyHeader: e.target.value })}
+                        placeholder="X-Gravitee-Api-Key"
+                        disabled={readOnly}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                        The header name used to pass the API key. Only alphanumeric and special header characters allowed.
+                    </p>
+                </div>
+            )}
         </div>
     );
 }

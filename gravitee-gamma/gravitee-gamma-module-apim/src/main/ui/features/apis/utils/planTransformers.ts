@@ -19,8 +19,10 @@ import type {
     PlanFormValue,
     PolicyFlow,
     PolicyStep,
+    QuotaFormData,
+    RateLimitErrorStrategy,
+    RateLimitFormData,
     ResourceFilteringRule,
-    RestrictionsFormData,
 } from '../types/plan';
 import { EMPTY_RESTRICTIONS as EMPTY_R } from '../types/plan';
 
@@ -34,7 +36,7 @@ function findStep(flows: PolicyFlow[], policyName: string): PolicyStep | undefin
     return undefined;
 }
 
-function buildRateLimitFlow(data: RestrictionsFormData['rateLimit']): PolicyFlow {
+function buildRateLimitFlow(data: RateLimitFormData): PolicyFlow {
     return {
         enabled: true,
         request: [
@@ -42,15 +44,25 @@ function buildRateLimitFlow(data: RestrictionsFormData['rateLimit']): PolicyFlow
                 policy: 'rate-limit',
                 enabled: true,
                 configuration: {
-                    rate: { limit: data.max, periodTime: data.period, periodTimeUnit: data.unit },
-                    addHeaders: false,
+                    errorStrategy: data.errorStrategy,
+                    async: data.async,
+                    addHeaders: data.addHeaders,
+                    rate: {
+                        key: data.key || undefined,
+                        useKeyOnly: data.key ? data.useKeyOnly : false,
+                        limit: data.max,
+                        dynamicLimit: data.dynamicLimit || undefined,
+                        periodTime: data.period,
+                        periodTimeUnit: data.unit,
+                        dynamicPeriodTime: data.dynamicPeriodTime || undefined,
+                    },
                 },
             },
         ],
     };
 }
 
-function buildQuotaFlow(data: RestrictionsFormData['quota']): PolicyFlow {
+function buildQuotaFlow(data: QuotaFormData): PolicyFlow {
     return {
         enabled: true,
         request: [
@@ -58,15 +70,29 @@ function buildQuotaFlow(data: RestrictionsFormData['quota']): PolicyFlow {
                 policy: 'quota',
                 enabled: true,
                 configuration: {
-                    quota: { limit: data.max, periodTime: data.period, periodTimeUnit: data.unit },
-                    addHeaders: false,
+                    errorStrategy: data.errorStrategy,
+                    async: data.async,
+                    addHeaders: data.addHeaders,
+                    quota: {
+                        key: data.key || undefined,
+                        useKeyOnly: data.key ? data.useKeyOnly : false,
+                        limit: data.max,
+                        dynamicLimit: data.dynamicLimit || undefined,
+                        periodTime: data.period,
+                        periodTimeUnit: data.unit,
+                        dynamicPeriodTime: data.dynamicPeriodTime || undefined,
+                    },
                 },
             },
         ],
     };
 }
 
-function buildResourceFilteringFlow(rules: ResourceFilteringRule[]): PolicyFlow {
+function buildResourceFilteringFlow(
+    rules: ResourceFilteringRule[],
+    normalizeRequestPath: boolean,
+    decodeEncodedSlash: boolean,
+): PolicyFlow {
     return {
         enabled: true,
         request: [
@@ -74,7 +100,10 @@ function buildResourceFilteringFlow(rules: ResourceFilteringRule[]): PolicyFlow 
                 policy: 'resource-filtering',
                 enabled: true,
                 configuration: {
-                    whitelist: rules.map(r => ({ pattern: r.pattern, methods: r.methods, enabled: r.whitelist })),
+                    whitelist: rules.filter(r => r.whitelist).map(r => ({ pattern: r.pattern, methods: r.methods })),
+                    blacklist: rules.filter(r => !r.whitelist).map(r => ({ pattern: r.pattern, methods: r.methods })),
+                    normalizeRequestPath,
+                    decodeEncodedSlash: normalizeRequestPath ? decodeEncodedSlash : false,
                 },
             },
         ],
@@ -86,17 +115,20 @@ function buildResourceFilteringFlow(rules: ResourceFilteringRule[]): PolicyFlow 
 export function planFormToPayload(form: PlanFormValue, ctx: PlanContext): Omit<ManagedPlan, 'id' | 'order'> {
     const isKeyless = form.securityType === 'KEY_LESS';
 
-    const characteristics = form.general.characteristics
-        .split(',')
-        .map(s => s.trim())
-        .filter(Boolean);
+    const characteristics = form.general.characteristics;
 
     const flows: PolicyFlow[] = [];
     if (ctx.type === 'api') {
         if (form.restrictions.rateLimitEnabled) flows.push(buildRateLimitFlow(form.restrictions.rateLimit));
         if (form.restrictions.quotaEnabled) flows.push(buildQuotaFlow(form.restrictions.quota));
-        if (form.restrictions.resourceFilteringEnabled && form.restrictions.resourceFiltering.length > 0) {
-            flows.push(buildResourceFilteringFlow(form.restrictions.resourceFiltering));
+        if (form.restrictions.resourceFilteringEnabled) {
+            flows.push(
+                buildResourceFilteringFlow(
+                    form.restrictions.resourceFiltering,
+                    form.restrictions.normalizeRequestPath,
+                    form.restrictions.decodeEncodedSlash,
+                ),
+            );
         }
     }
 
@@ -109,6 +141,7 @@ export function planFormToPayload(form: PlanFormValue, ctx: PlanContext): Omit<M
         commentRequired: isKeyless ? false : form.general.commentRequired,
         commentMessage: !isKeyless && form.general.commentRequired ? form.general.commentMessage.trim() || undefined : undefined,
         excludedGroups: ctx.type === 'api' && form.general.excludedGroups.length > 0 ? form.general.excludedGroups : undefined,
+        tags: form.general.tags.length > 0 ? form.general.tags : undefined,
         status: 'STAGING',
         security: {
             type: form.securityType,
@@ -129,22 +162,58 @@ export function planToFormValue(plan: ManagedPlan): PlanFormValue {
     const rfStep = findStep(plan.flows ?? [], 'resource-filtering');
 
     const rlConfig = rateLimitStep?.configuration as
-        | { rate?: { limit?: number; periodTime?: number; periodTimeUnit?: string } }
+        | {
+              errorStrategy?: string;
+              async?: boolean;
+              addHeaders?: boolean;
+              rate?: {
+                  key?: string;
+                  useKeyOnly?: boolean;
+                  limit?: number;
+                  dynamicLimit?: string;
+                  periodTime?: number;
+                  periodTimeUnit?: string;
+                  dynamicPeriodTime?: string;
+              };
+          }
         | undefined;
-    const qConfig = quotaStep?.configuration as { quota?: { limit?: number; periodTime?: number; periodTimeUnit?: string } } | undefined;
-    const rfConfig = rfStep?.configuration as { whitelist?: { pattern?: string; methods?: string[]; enabled?: boolean }[] } | undefined;
+    const qConfig = quotaStep?.configuration as
+        | {
+              errorStrategy?: string;
+              async?: boolean;
+              addHeaders?: boolean;
+              quota?: {
+                  key?: string;
+                  useKeyOnly?: boolean;
+                  limit?: number;
+                  dynamicLimit?: string;
+                  periodTime?: number;
+                  periodTimeUnit?: string;
+                  dynamicPeriodTime?: string;
+              };
+          }
+        | undefined;
+    const rfConfig = rfStep?.configuration as
+        | {
+              whitelist?: { pattern?: string; methods?: string[] }[];
+              blacklist?: { pattern?: string; methods?: string[] }[];
+              normalizeRequestPath?: boolean;
+              decodeEncodedSlash?: boolean;
+          }
+        | undefined;
 
     return {
         securityType: plan.security.type,
         general: {
             name: plan.name,
             description: plan.description ?? '',
-            characteristics: (plan.characteristics ?? []).join(', '),
+            characteristics: plan.characteristics ?? [],
             generalConditions: plan.generalConditions ?? '',
             autoValidation: plan.validation === 'AUTO',
             commentRequired: plan.commentRequired ?? false,
             commentMessage: plan.commentMessage ?? '',
             excludedGroups: plan.excludedGroups ?? [],
+            tags: plan.tags ?? [],
         },
         security: {
             configuration: plan.security.configuration ?? {},
@@ -153,22 +222,37 @@ export function planToFormValue(plan: ManagedPlan): PlanFormValue {
         restrictions: {
             rateLimitEnabled: Boolean(rateLimitStep),
             rateLimit: {
+                errorStrategy: (rlConfig?.errorStrategy as RateLimitErrorStrategy) ?? EMPTY_R.rateLimit.errorStrategy,
+                async: rlConfig?.async ?? EMPTY_R.rateLimit.async,
+                addHeaders: rlConfig?.addHeaders ?? EMPTY_R.rateLimit.addHeaders,
+                key: rlConfig?.rate?.key ?? '',
+                useKeyOnly: rlConfig?.rate?.useKeyOnly ?? false,
                 max: rlConfig?.rate?.limit ?? EMPTY_R.rateLimit.max,
+                dynamicLimit: rlConfig?.rate?.dynamicLimit ?? '',
                 period: rlConfig?.rate?.periodTime ?? EMPTY_R.rateLimit.period,
-                unit: (rlConfig?.rate?.periodTimeUnit as RestrictionsFormData['rateLimit']['unit']) ?? EMPTY_R.rateLimit.unit,
+                unit: (rlConfig?.rate?.periodTimeUnit as RateLimitFormData['unit']) ?? EMPTY_R.rateLimit.unit,
+                dynamicPeriodTime: rlConfig?.rate?.dynamicPeriodTime ?? '',
             },
             quotaEnabled: Boolean(quotaStep),
             quota: {
+                errorStrategy: (qConfig?.errorStrategy as RateLimitErrorStrategy) ?? EMPTY_R.quota.errorStrategy,
+                async: qConfig?.async ?? EMPTY_R.quota.async,
+                addHeaders: qConfig?.addHeaders ?? EMPTY_R.quota.addHeaders,
+                key: qConfig?.quota?.key ?? '',
+                useKeyOnly: qConfig?.quota?.useKeyOnly ?? false,
                 max: qConfig?.quota?.limit ?? EMPTY_R.quota.max,
+                dynamicLimit: qConfig?.quota?.dynamicLimit ?? '',
                 period: qConfig?.quota?.periodTime ?? EMPTY_R.quota.period,
-                unit: (qConfig?.quota?.periodTimeUnit as RestrictionsFormData['quota']['unit']) ?? EMPTY_R.quota.unit,
+                unit: (qConfig?.quota?.periodTimeUnit as QuotaFormData['unit']) ?? EMPTY_R.quota.unit,
+                dynamicPeriodTime: qConfig?.quota?.dynamicPeriodTime ?? '',
             },
             resourceFilteringEnabled: Boolean(rfStep),
-            resourceFiltering: (rfConfig?.whitelist ?? []).map(r => ({
-                whitelist: r.enabled ?? true,
-                pattern: r.pattern ?? '',
-                methods: r.methods ?? [],
-            })),
+            resourceFiltering: [
+                ...(rfConfig?.whitelist ?? []).map(r => ({ whitelist: true, pattern: r.pattern ?? '', methods: r.methods ?? [] })),
+                ...(rfConfig?.blacklist ?? []).map(r => ({ whitelist: false, pattern: r.pattern ?? '', methods: r.methods ?? [] })),
+            ],
+            normalizeRequestPath: rfConfig?.normalizeRequestPath ?? false,
+            decodeEncodedSlash: rfConfig?.decodeEncodedSlash ?? false,
         },
     };
 }

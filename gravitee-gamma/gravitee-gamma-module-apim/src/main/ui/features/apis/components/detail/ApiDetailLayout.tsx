@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Badge, Skeleton } from '@gravitee/graphene-core';
-import { CircleCheckIcon, CircleStopIcon, CircleXIcon } from '@gravitee/graphene-core/icons';
+import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
+import { Alert, AlertDescription, Badge, Button, Skeleton } from '@gravitee/graphene-core';
+import { CircleCheckIcon, CircleStopIcon, CircleXIcon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { Navigate, Outlet, useParams } from 'react-router-dom';
 
 import { API_PROXY_NAV_GROUPS, ApiDetailSidebarNav } from './ApiDetailSidebarNav';
@@ -22,7 +25,9 @@ import { useDetailBasePath } from '../../../../shared/hooks/useDetailBasePath';
 import { ApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDetail } from '../../hooks/useApiDetail';
 import { useApiPermissions } from '../../hooks/useApiPermissions';
+import { deployApi } from '../../services/apis';
 import type { ApiDetailDto } from '../../types';
+import { apiDetailKeys } from '../../utils/queryKeys';
 
 function StateIndicator({ state }: { state: ApiDetailDto['state'] }) {
     switch (state) {
@@ -52,6 +57,27 @@ function StateIndicator({ state }: { state: ApiDetailDto['state'] }) {
     }
 }
 
+function ApiAvatar({ api }: { api: ApiDetailDto }) {
+    const [imgError, setImgError] = useState(false);
+    const pictureUrl = api._links?.pictureUrl;
+    if (!pictureUrl || imgError) return null;
+    return <img src={pictureUrl} alt={api.name} className="size-8 rounded-lg shrink-0 object-cover" onError={() => setImgError(true)} />;
+}
+
+function DeployBanner({ onDeploy, isPending }: { onDeploy: () => void; isPending: boolean }) {
+    return (
+        <Alert className="rounded-none border-x-0 border-t-0 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+                <TriangleAlertIcon className="size-4 text-warning shrink-0" />
+                <AlertDescription>This API has pending changes. Redeploy to apply them to the gateway.</AlertDescription>
+            </div>
+            <Button size="sm" onClick={onDeploy} disabled={isPending} className="shrink-0">
+                {isPending ? 'Deploying…' : 'Deploy API'}
+            </Button>
+        </Alert>
+    );
+}
+
 function ApiInfoHeader({ api, isLoading }: { api: ApiDetailDto | null; isLoading: boolean }) {
     if (isLoading) {
         return (
@@ -75,15 +101,18 @@ function ApiInfoHeader({ api, isLoading }: { api: ApiDetailDto | null; isLoading
 
     return (
         <div className="px-3 pt-4 pb-4 border-b space-y-2.5">
-            <div className="space-y-1">
-                <p
-                    className="text-sm font-semibold text-foreground leading-snug"
-                    style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                    title={api.name}
-                >
-                    {api.name}
-                </p>
-                {api.state ? <StateIndicator state={api.state} /> : null}
+            <div className="flex items-start gap-2.5">
+                <ApiAvatar api={api} />
+                <div className="space-y-1 min-w-0 flex-1">
+                    <p
+                        className="text-sm font-semibold text-foreground leading-snug"
+                        style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                        title={api.name}
+                    >
+                        {api.name}
+                    </p>
+                    {api.state ? <StateIndicator state={api.state} /> : null}
+                </div>
             </div>
 
             {/* Description */}
@@ -122,9 +151,24 @@ function ApiInfoHeader({ api, isLoading }: { api: ApiDetailDto | null; isLoading
 
 export function ApiDetailLayout() {
     const { apiId } = useParams<{ apiId: string }>();
+    const env = useEnvironment();
     const basePath = useDetailBasePath('apis', apiId);
     const { data: api, isLoading, isError } = useApiDetail(apiId);
     const { permissionsReady } = useApiPermissions(apiId);
+    const canDeploy = useHasPermission({ anyOf: ['api-definition-u'] });
+    const queryClient = useQueryClient();
+
+    const deployMutation = useMutation({
+        mutationFn: () => {
+            if (!env || !apiId) return Promise.resolve();
+            return deployApi(env.id, apiId);
+        },
+        onSuccess: () => {
+            if (env && apiId) {
+                queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env.id, apiId) });
+            }
+        },
+    });
 
     if (isError) {
         return (
@@ -133,6 +177,8 @@ export function ApiDetailLayout() {
             </div>
         );
     }
+
+    const showDeployBanner = api?.deploymentState === 'NEED_REDEPLOY' && canDeploy;
 
     return (
         <ApiDetailContext.Provider value={{ api: api ?? null, isLoading, permissionsReady }}>
@@ -143,6 +189,7 @@ export function ApiDetailLayout() {
                 </aside>
                 <div className="w-px bg-border shrink-0" />
                 <main className="min-w-0 flex-1 overflow-y-auto">
+                    {showDeployBanner && <DeployBanner onDeploy={() => deployMutation.mutate()} isPending={deployMutation.isPending} />}
                     <Outlet />
                 </main>
             </div>

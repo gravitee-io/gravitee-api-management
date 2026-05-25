@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 import { Card, CardContent, Skeleton, cn } from '@gravitee/graphene-core';
-import { CircleCheckIcon, ClockIcon, LockIcon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
+import { ClockIcon, GlobeIcon, LockIcon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 import type { LucideIcon } from '@gravitee/graphene-core/icons';
 
 import type { PlanStatus } from '../../../types/plan';
 
 const STATUS_CONFIG: Record<PlanStatus, { color: string; icon: LucideIcon; label: string }> = {
     STAGING: { color: 'var(--color-warning)', icon: ClockIcon, label: 'Staging' },
-    PUBLISHED: { color: 'var(--color-success)', icon: CircleCheckIcon, label: 'Published' },
+    PUBLISHED: { color: 'var(--color-success)', icon: GlobeIcon, label: 'Published' },
     DEPRECATED: { color: 'var(--color-destructive)', icon: TriangleAlertIcon, label: 'Deprecated' },
     CLOSED: { color: 'var(--color-destructive)', icon: LockIcon, label: 'Closed' },
 };

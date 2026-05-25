@@ -185,6 +185,7 @@ export interface ApiDetailDto {
     name: string;
     description?: string;
     state?: ApiState;
+    deploymentState?: ApiDeploymentState;
     type?: ApiType;
     apiVersion?: string;
     definitionVersion?: 'V4' | 'V4_NATIVE';
@@ -213,6 +214,7 @@ export interface ApiDetailDto {
     listeners?: HttpListener[];
     endpointGroups?: ApiEndpointGroup[];
     failover?: Failover;
+    allowMultiJwtOauth2Subscriptions?: boolean;
     /** Populated for APIs synced from an external source (e.g. Kubernetes operator). */
     definitionContext?: {
         origin?: 'MANAGEMENT' | 'KUBERNETES';

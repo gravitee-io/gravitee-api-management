@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Badge, Input, Skeleton } from '@gravitee/graphene-core';
-import { CircleCheckIcon, MonitorIcon, SearchIcon } from '@gravitee/graphene-core/icons';
+import { Badge, Button, Input, Skeleton } from '@gravitee/graphene-core';
+import { MonitorIcon, SearchIcon, XIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useEffect, useState } from 'react';
 
 import { useApplicationSearch } from '../../../hooks/useSubscriptions';
@@ -22,7 +22,7 @@ import type { Application } from '../../../types/subscription';
 
 interface ApplicationSearchListProps {
     selected: Application | null;
-    onSelect: (app: Application) => void;
+    onSelect: (app: Application | null) => void;
 }
 
 export function ApplicationSearchList({ selected, onSelect }: Readonly<ApplicationSearchListProps>) {
@@ -38,6 +38,29 @@ export function ApplicationSearchList({ selected, onSelect }: Readonly<Applicati
     const hasQuery = debouncedQuery.trim().length > 0;
 
     const handleQuery = useCallback((e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value), []);
+
+    if (selected) {
+        return (
+            <div className="flex items-center gap-3 rounded-md border px-3 py-2">
+                <MonitorIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate">{selected.name}</p>
+                    {selected.primaryOwner?.displayName && (
+                        <p className="text-xs text-muted-foreground truncate">{selected.primaryOwner.displayName}</p>
+                    )}
+                </div>
+                {selected.type && (
+                    <Badge variant="secondary" className="text-xs shrink-0">
+                        {selected.type}
+                    </Badge>
+                )}
+                <Button type="button" variant="ghost" size="icon" className="size-6 shrink-0" onClick={() => onSelect(null)}>
+                    <XIcon className="size-3.5" aria-hidden />
+                    <span className="sr-only">Remove selection</span>
+                </Button>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-2">
@@ -73,32 +96,28 @@ export function ApplicationSearchList({ selected, onSelect }: Readonly<Applicati
 
                 {hasQuery && !isLoading && apps.length > 0 && (
                     <div>
-                        {apps.map((app, idx) => {
-                            const isSelected = selected?.id === app.id;
-                            return (
-                                <button
-                                    key={app.id}
-                                    type="button"
-                                    onClick={() => onSelect(app)}
-                                    className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted"
-                                    style={idx > 0 ? { borderTop: '1px solid var(--color-border)' } : undefined}
-                                >
-                                    <MonitorIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-                                    <div className="min-w-0 flex-1">
-                                        <p className="font-medium truncate">{app.name}</p>
-                                        {app.primaryOwner?.displayName && (
-                                            <p className="text-xs text-muted-foreground truncate">{app.primaryOwner.displayName}</p>
-                                        )}
-                                    </div>
-                                    {app.type && (
-                                        <Badge variant="secondary" className="text-xs shrink-0">
-                                            {app.type}
-                                        </Badge>
+                        {apps.map((app, idx) => (
+                            <button
+                                key={app.id}
+                                type="button"
+                                onClick={() => onSelect(app)}
+                                className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted"
+                                style={idx > 0 ? { borderTop: '1px solid var(--color-border)' } : undefined}
+                            >
+                                <MonitorIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                                <div className="min-w-0 flex-1">
+                                    <p className="font-medium truncate">{app.name}</p>
+                                    {app.primaryOwner?.displayName && (
+                                        <p className="text-xs text-muted-foreground truncate">{app.primaryOwner.displayName}</p>
                                     )}
-                                    {isSelected && <CircleCheckIcon className="size-4 shrink-0 text-primary" aria-hidden />}
-                                </button>
-                            );
-                        })}
+                                </div>
+                                {app.type && (
+                                    <Badge variant="secondary" className="text-xs shrink-0">
+                                        {app.type}
+                                    </Badge>
+                                )}
+                            </button>
+                        ))}
                     </div>
                 )}
             </div>

@@ -13,13 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Skeleton } from '@gravitee/graphene-core';
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
+import {
+    Alert,
+    AlertDescription,
+    Button,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    Label,
+    Skeleton,
+    Switch,
+} from '@gravitee/graphene-core';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 
 import { CreatePlanDropdown } from './CreatePlanDropdown';
 import { PlansLearningPage } from './PlansLearningPage';
 import { PlansListPage } from './PlansListPage';
+import { useApiDetail } from '../../../hooks/useApiDetail';
 import { usePlanStatusCounts } from '../../../hooks/usePlans';
+import { updateAllowMultiJwtOauth2Subscriptions } from '../../../services/apis';
 import type { PlanContext } from '../../../types/plan';
+import { apiDetailKeys } from '../../../utils/queryKeys';
 
 interface PlansPageProps {
     ctx: PlanContext;
@@ -29,7 +48,85 @@ interface PlansPageProps {
     canDelete: boolean;
 }
 
-export function PlansPage({ ctx, canRead, canCreate, canUpdate, canDelete }: Readonly<PlansPageProps>) {
+function AllowMultiSubscriptionsToggle({ apiId, canUpdate }: { apiId: string; canUpdate: boolean }) {
+    const env = useEnvironment();
+    const queryClient = useQueryClient();
+    const { data: api } = useApiDetail(apiId);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+
+    const mutation = useMutation({
+        mutationFn: (allowed: boolean) => updateAllowMultiJwtOauth2Subscriptions(env?.id ?? '', apiId, allowed),
+        onSuccess: () => {
+            void queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env?.id ?? '', apiId) });
+            setConfirmOpen(false);
+        },
+    });
+
+    const currentValue = api?.allowMultiJwtOauth2Subscriptions ?? false;
+
+    function handleToggle(checked: boolean) {
+        if (checked) {
+            setConfirmOpen(true);
+        } else {
+            mutation.mutate(false);
+        }
+    }
+
+    return (
+        <>
+            <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+                <div className="space-y-0.5">
+                    <Label htmlFor="allow-multi-subscriptions" className="text-sm font-medium">
+                        Allow multi JWT/OAuth2 subscriptions per application
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                        Allow an application to subscribe to more than one JWT or OAuth2 plan simultaneously.
+                    </p>
+                </div>
+                <Switch
+                    id="allow-multi-subscriptions"
+                    checked={currentValue}
+                    onCheckedChange={handleToggle}
+                    disabled={!canUpdate || mutation.isPending || !api || !env}
+                />
+            </div>
+
+            {mutation.error && (
+                <Alert variant="destructive">
+                    <AlertDescription>{(mutation.error as Error).message}</AlertDescription>
+                </Alert>
+            )}
+
+            <Dialog
+                open={confirmOpen}
+                onOpenChange={open => {
+                    if (!open) setConfirmOpen(false);
+                }}
+            >
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Allow multiple JWT/OAuth2 subscriptions?</DialogTitle>
+                        <DialogDescription>
+                            By turning on this option, you will allow an application to subscribe to more than one JWT/OAuth2 plan. Be sure
+                            you understand the consequences, and you have configured Selection Rules or Sharding Tags on plans. Otherwise,
+                            it cannot be predicted which plan will be used to secure requests.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setConfirmOpen(false)} disabled={mutation.isPending}>
+                            Cancel
+                        </Button>
+                        <Button onClick={() => mutation.mutate(true)} disabled={mutation.isPending}>
+                            {mutation.isPending ? 'Saving…' : 'Enable'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </>
+    );
+}
+
+export function PlansPage({ ctx, canRead, canCreate, canUpdate }: Readonly<PlansPageProps>) {
     const counts = usePlanStatusCounts(ctx);
 
     if (!canRead) {
@@ -51,6 +148,9 @@ export function PlansPage({ ctx, canRead, canCreate, canUpdate, canDelete }: Rea
                 {canCreate && <CreatePlanDropdown ctx={ctx} />}
             </div>
 
+            {/* Allow multi JWT/OAuth2 subscriptions — API only */}
+            {ctx.type === 'api' && <AllowMultiSubscriptionsToggle apiId={ctx.entityId} canUpdate={canUpdate} />}
+
             {counts.isLoading ? (
                 <div className="space-y-3">
                     <Skeleton className="h-24 w-full rounded-lg" />
@@ -59,7 +159,7 @@ export function PlansPage({ ctx, canRead, canCreate, canUpdate, canDelete }: Rea
             ) : counts.total === 0 ? (
                 <PlansLearningPage ctx={ctx} />
             ) : (
-                <PlansListPage ctx={ctx} counts={counts} canUpdate={canUpdate} canDelete={canDelete} />
+                <PlansListPage ctx={ctx} counts={counts} canUpdate={canUpdate} />
             )}
         </div>
     );
