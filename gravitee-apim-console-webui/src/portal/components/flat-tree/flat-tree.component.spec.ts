@@ -839,7 +839,7 @@ describe('FlatTreeComponent', () => {
       expect(deleteButton).toBeTruthy();
     });
 
-    it('should disable "Delete" option for folder with children', async () => {
+    it('should enable "Delete" option for folder with children (cascade delete supported)', async () => {
       setupPermissions(['environment-documentation-d']);
       fixture = TestBed.createComponent(FlatTreeComponent);
       component = fixture.componentInstance;
@@ -857,7 +857,7 @@ describe('FlatTreeComponent', () => {
       const deleteButton = await harness.getMenuItemByTestId('delete-node-button');
 
       expect(deleteButton).toBeTruthy();
-      expect(await deleteButton!.isDisabled()).toBe(true);
+      expect(await deleteButton!.isDisabled()).toBe(false);
     });
   });
 

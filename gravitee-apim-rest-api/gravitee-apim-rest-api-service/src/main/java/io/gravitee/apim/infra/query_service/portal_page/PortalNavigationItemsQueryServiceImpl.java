@@ -107,4 +107,17 @@ public class PortalNavigationItemsQueryServiceImpl implements PortalNavigationIt
             throw new TechnicalDomainException(errorMessage, e);
         }
     }
+
+    @Override
+    public List<PortalNavigationItem> findAllByRootId(String environmentId, PortalNavigationItemId rootId) {
+        try {
+            var results = portalNavigationItemRepository.findAllByRootId(rootId.json(), environmentId);
+            return results.stream().map(portalNavigationItemAdapter::toEntity).collect(Collectors.toList());
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(
+                String.format("An error occurred while finding portal navigation items by rootId %s", rootId),
+                e
+            );
+        }
+    }
 }

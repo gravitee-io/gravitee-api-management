@@ -908,6 +908,43 @@ describe('PortalNavigationItemsComponent', () => {
 
       // No further GET expected; afterEach will verify outstanding requests are handled
     });
+
+    describe('deleting a folder with children warns about cascade', () => {
+      const childPage = fakePortalNavigationPage({
+        id: 'child-page-1',
+        title: 'Child Page',
+        parentId: 'folder-with-children',
+        portalPageContentId: 'child-page-1-content',
+      });
+      const folderWithChildren = fakePortalNavigationFolder({
+        id: 'folder-with-children',
+        title: 'Folder With Children',
+      });
+
+      beforeEach(async () => {
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folderWithChildren, childPage] }));
+        expectGetPageContent('child-page-1-content', 'Child page content');
+      });
+
+      it('should delete folder via standard endpoint', async () => {
+        await harness.deleteNodeById('folder-with-children');
+        fixture.detectChanges();
+        await fixture.whenStable();
+
+        const confirmDialog = await rootLoader.getHarness(GioConfirmAndValidateDialogHarness);
+        expect(document.body.textContent).toContain('nested items will be permanently deleted');
+        await confirmDialog.confirm();
+
+        const deleteReq = httpTestingController.expectOne({
+          method: 'DELETE',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/folder-with-children`,
+        });
+        deleteReq.flush({});
+
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [] }));
+        expect(await harness.getNavigationItemTitles()).toEqual([]);
+      });
+    });
   });
 
   describe('adding children to an api from tree node "More actions" menu', () => {
@@ -1384,6 +1421,34 @@ describe('PortalNavigationItemsComponent', () => {
         // After update, component refreshes the list — satisfy the subsequent GET
         await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [unpublishedNavItem] }));
         expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+      });
+    });
+
+    describe('publishing an unpublished folder', () => {
+      const unpublishedFolder = fakePortalNavigationFolder({
+        id: 'folder-1',
+        title: 'My Folder',
+        published: false,
+      });
+
+      beforeEach(async () => {
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [unpublishedFolder] }));
+      });
+
+      it('should show dialog and publish folder when confirmed', async () => {
+        await harness.publishNodeById('folder-1');
+
+        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+        expect(document.body.textContent).toContain('will also publish all nested documentation and APIs');
+        await confirmDialog.confirm();
+
+        expectPutPortalNavigationItem(
+          'folder-1',
+          { ...unpublishedFolder, published: true },
+          fakePortalNavigationFolder({ id: 'folder-1', published: true }),
+        );
+
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [unpublishedFolder] }));
       });
     });
 
