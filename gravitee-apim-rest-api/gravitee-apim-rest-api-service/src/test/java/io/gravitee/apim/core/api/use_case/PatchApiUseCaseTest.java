@@ -107,6 +107,8 @@ class PatchApiUseCaseTest {
             .with(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE)
             .readValue(node);
 
+    private static final PatchApiUseCase.FlowListSerializer FLOW_SERIALIZER = flows -> OBJECT_MAPPER.valueToTree(flows);
+
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     WorkflowQueryServiceInMemory workflowQueryService = new WorkflowQueryServiceInMemory();
     ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService = mock(ApiPrimaryOwnerDomainService.class);
@@ -127,7 +129,8 @@ class PatchApiUseCaseTest {
             workflowQueryService,
             OBJECT_MAPPER,
             propertyDomainService,
-            FLOW_DESERIALIZER
+            FLOW_DESERIALIZER,
+            FLOW_SERIALIZER
         );
 
         var primaryOwner = PrimaryOwnerEntity.builder().id(USER_ID).type(PrimaryOwnerEntity.Type.USER).build();
@@ -1920,7 +1923,8 @@ class PatchApiUseCaseTest {
                 workflowQueryService,
                 includeNullsMapper,
                 propertyDomainService,
-                node -> sentinel
+                node -> sentinel,
+                flows -> includeNullsMapper.valueToTree(flows)
             );
             givenExistingApi(apiWithFlows(null));
 

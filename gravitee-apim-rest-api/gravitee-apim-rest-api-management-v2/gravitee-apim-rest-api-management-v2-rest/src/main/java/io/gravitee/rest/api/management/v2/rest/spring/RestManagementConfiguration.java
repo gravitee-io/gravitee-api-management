@@ -23,6 +23,7 @@ import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransfor
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.api.use_case.PatchApiUseCase.FlowListDeserializer;
+import io.gravitee.apim.core.api.use_case.PatchApiUseCase.FlowListSerializer;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.infra.domain_service.analytics_engine.ManagementContextLoader;
 import io.gravitee.apim.infra.domain_service.analytics_engine.processors.ApiTypeFilterTransformer;
@@ -60,6 +61,11 @@ public class RestManagementConfiguration {
     @Bean
     public FlowListDeserializer flowListDeserializer(ObjectMapper objectMapper) {
         return node -> FlowMapper.INSTANCE.mapToHttpV4(objectMapper.treeToValue(node, new TypeReference<List<FlowV4>>() {}));
+    }
+
+    @Bean
+    public FlowListSerializer flowListSerializer(ObjectMapper objectMapper) {
+        return flows -> objectMapper.valueToTree(FlowMapper.INSTANCE.mapFromHttpV4(flows));
     }
 
     @Bean

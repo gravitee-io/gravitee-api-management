@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
@@ -155,6 +156,7 @@ public class PatchApiUseCase {
     private final ObjectMapper objectMapper;
     private final PropertyDomainService propertyDomainService;
     private final FlowListDeserializer flowListDeserializer;
+    private final FlowListSerializer flowListSerializer;
 
     public Output execute(Input input) {
         var existingApi = apiCrudService.get(input.apiId());
@@ -190,7 +192,10 @@ public class PatchApiUseCase {
     }
 
     private JsonNode toJsonNode(Api api) {
-        return objectMapper.valueToTree(PatchableView.from(api, requireHttpV4(api)));
+        var httpV4 = requireHttpV4(api);
+        var node = (ObjectNode) objectMapper.valueToTree(PatchableView.from(api, httpV4));
+        node.set(FIELD_FLOWS, flowListSerializer.serialize(httpV4.getFlows()));
+        return node;
     }
 
     private static io.gravitee.definition.model.v4.Api requireHttpV4(Api api) {
@@ -824,6 +829,11 @@ public class PatchApiUseCase {
     @FunctionalInterface
     public interface FlowListDeserializer {
         List<Flow> deserialize(JsonNode flowsArrayNode) throws IOException;
+    }
+
+    @FunctionalInterface
+    public interface FlowListSerializer {
+        JsonNode serialize(List<Flow> flows);
     }
 
     public enum PatchType {

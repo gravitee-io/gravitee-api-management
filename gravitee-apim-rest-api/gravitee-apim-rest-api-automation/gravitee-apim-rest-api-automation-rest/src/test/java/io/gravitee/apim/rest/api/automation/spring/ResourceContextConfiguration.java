@@ -71,6 +71,7 @@ import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.PatchApiUseCase.FlowListDeserializer;
+import io.gravitee.apim.core.api.use_case.PatchApiUseCase.FlowListSerializer;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api_key.domain_service.ReconcileApiKeysDomainService;
 import io.gravitee.apim.core.apim.service_provider.ApimProductInfo;
@@ -253,6 +254,11 @@ public class ResourceContextConfiguration {
     @Bean
     public FlowListDeserializer flowListDeserializer(ObjectMapper objectMapper) {
         return node -> objectMapper.treeToValue(node, new TypeReference<List<Flow>>() {});
+    }
+
+    @Bean
+    public FlowListSerializer flowListSerializer(ObjectMapper objectMapper) {
+        return flows -> objectMapper.valueToTree(flows);
     }
 
     @Bean
