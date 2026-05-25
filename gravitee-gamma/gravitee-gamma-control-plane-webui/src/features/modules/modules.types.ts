@@ -32,9 +32,11 @@ export interface GammaModule {
 /** A module that ships a UI, i.e. exposes a Module Federation manifest. */
 export type UiGammaModuleResponse = GammaModuleResponse & { mfManifest: NonNullable<GammaModuleResponse['mfManifest']> };
 
-/** Type guard keeping only modules that ship a UI; backend-only modules are filtered out. */
+/** Type guard keeping only modules that ship a UI; backend-only modules are filtered out.
+ *  Checks both `null` and `undefined` explicitly — the field is typed `?:` (so TS says
+ *  `undefined`) but the backend may serialize an absent value as `null`. */
 export function hasUi(raw: GammaModuleResponse): raw is UiGammaModuleResponse {
-    return raw.mfManifest != null;
+    return raw.mfManifest !== undefined && raw.mfManifest !== null;
 }
 
 export function parseModule(raw: UiGammaModuleResponse): GammaModule {
