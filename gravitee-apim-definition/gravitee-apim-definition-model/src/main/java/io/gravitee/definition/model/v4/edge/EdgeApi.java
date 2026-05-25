@@ -22,6 +22,7 @@ import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
+import io.gravitee.definition.model.v4.plan.Plan;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -55,6 +56,8 @@ public class EdgeApi extends AbstractApi {
     private EdgeProxyDefinition proxy;
 
     private EdgeShadowAiDefinition shadowAi;
+
+    private List<Plan> plans;
 
     @Override
     @JsonIgnore
