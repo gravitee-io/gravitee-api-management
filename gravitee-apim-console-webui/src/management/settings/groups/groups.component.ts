@@ -180,7 +180,7 @@ export class GroupsComponent implements OnInit {
   }
 
   private initializeSettingsForm() {
-    const canReadSettings = this.permissionService.hasAnyMatching(['environment-settings-r']);
+    const canReadSettings = this.permissionService.hasAnyMatching(['organization-settings-r']);
 
     if (canReadSettings) {
       this.consoleSettingsService
