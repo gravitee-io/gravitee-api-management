@@ -245,8 +245,6 @@ function RuleDialog({ open, isEdit, form, onFormChange, onSave, onClose }: RuleD
 
 // ─── Panel ────────────────────────────────────────────────────────────────────
 
-type RuleRow = RedactionRule & { _id: string };
-
 export interface SpanRedactionRulesProps {
     rules: RedactionRule[];
     disabled?: boolean;
@@ -254,41 +252,30 @@ export interface SpanRedactionRulesProps {
 }
 
 export function SpanRedactionRules({ rules, disabled, onChange }: SpanRedactionRulesProps) {
-    // Lazy-init: rows are seeded from the prop once on mount (same intent as initializedForApiIdRef
-    // on the parent page — prevents background refetches from wiping in-progress edits).
-    const [rows, setRows] = useState<RuleRow[]>(() => rules.map(r => ({ ...r, _id: crypto.randomUUID() })));
-
     const [dialogOpen, setDialogOpen] = useState(false);
-    const [editId, setEditId] = useState<string | null>(null);
+    const [editIndex, setEditIndex] = useState<number | null>(null);
     const [form, setForm] = useState<DialogForm>(DEFAULT_FORM);
 
-    const commit = (next: RuleRow[]) => {
-        setRows(next);
-        onChange(next.map(({ _id, ...r }) => r));
-    };
-
     const openAdd = () => {
-        setEditId(null);
+        setEditIndex(null);
         setForm(DEFAULT_FORM);
         setDialogOpen(true);
     };
 
-    const openEdit = (id: string) => {
-        const row = rows.find(r => r._id === id);
-        if (!row) return;
-        setEditId(id);
-        setForm(formFromRule(row));
+    const openEdit = (index: number) => {
+        setEditIndex(index);
+        setForm(formFromRule(rules[index]));
         setDialogOpen(true);
     };
 
     const closeDialog = () => {
         setDialogOpen(false);
-        setEditId(null);
+        setEditIndex(null);
     };
 
-    const removeRow = (id: string) => commit(rows.filter(r => r._id !== id));
+    const removeRow = (index: number) => onChange(rules.filter((_, i) => i !== index));
 
-    const existingPatterns = rows.filter(r => r._id !== editId).map(r => r.attributeNamePattern);
+    const existingPatterns = rules.filter((_, i) => i !== editIndex).map(r => r.attributeNamePattern);
 
     const handleSave = () => {
         const pattern = form.pattern.trim();
@@ -318,10 +305,10 @@ export function SpanRedactionRules({ rules, disabled, onChange }: SpanRedactionR
             ...(form.valuePattern.trim() ? { valuePattern: form.valuePattern.trim() } : {}),
         };
 
-        if (editId) {
-            commit(rows.map(r => (r._id === editId ? { ...rule, _id: editId } : r)));
+        if (editIndex !== null) {
+            onChange(rules.map((r, i) => (i === editIndex ? rule : r)));
         } else {
-            commit([...rows, { ...rule, _id: crypto.randomUUID() }]);
+            onChange([...rules, rule]);
         }
         closeDialog();
     };
@@ -344,7 +331,7 @@ export function SpanRedactionRules({ rules, disabled, onChange }: SpanRedactionR
                 </AlertDescription>
             </Alert>
 
-            {rows.length === 0 ? (
+            {rules.length === 0 ? (
                 <p className="text-xs text-muted-foreground py-2">No redaction rules — span attributes are exported as-is.</p>
             ) : (
                 <Table>
@@ -358,17 +345,21 @@ export function SpanRedactionRules({ rules, disabled, onChange }: SpanRedactionR
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {rows.map((row, i) => (
-                            <TableRow key={row._id}>
+                        {rules.map((rule, i) => (
+                            <TableRow key={rule.attributeNamePattern}>
                                 <TableCell>
                                     <Badge variant="secondary">{i + 1}</Badge>
                                 </TableCell>
                                 <TableCell>
-                                    <code className="text-xs">{row.attributeNamePattern}</code>
+                                    <code className="text-xs">{rule.attributeNamePattern}</code>
                                 </TableCell>
-                                <TableCell className="text-xs">{maskingDescription(row)}</TableCell>
+                                <TableCell className="text-xs">{maskingDescription(rule)}</TableCell>
                                 <TableCell className="text-xs">
-                                    {row.valuePattern ? <code>{row.valuePattern}</code> : <span className="text-muted-foreground">—</span>}
+                                    {rule.valuePattern ? (
+                                        <code>{rule.valuePattern}</code>
+                                    ) : (
+                                        <span className="text-muted-foreground">—</span>
+                                    )}
                                 </TableCell>
                                 {!disabled && (
                                     <TableCell>
@@ -377,7 +368,7 @@ export function SpanRedactionRules({ rules, disabled, onChange }: SpanRedactionR
                                                 variant="ghost"
                                                 size="icon-sm"
                                                 aria-label={`Edit rule ${i + 1}`}
-                                                onClick={() => openEdit(row._id)}
+                                                onClick={() => openEdit(i)}
                                             >
                                                 <PencilIcon className="size-3.5" />
                                             </Button>
@@ -385,7 +376,7 @@ export function SpanRedactionRules({ rules, disabled, onChange }: SpanRedactionR
                                                 variant="ghost"
                                                 size="icon-sm"
                                                 aria-label={`Delete rule ${i + 1}`}
-                                                onClick={() => removeRow(row._id)}
+                                                onClick={() => removeRow(i)}
                                             >
                                                 <Trash2Icon className="size-3.5 text-destructive" />
                                             </Button>
@@ -400,7 +391,7 @@ export function SpanRedactionRules({ rules, disabled, onChange }: SpanRedactionR
 
             <RuleDialog
                 open={dialogOpen}
-                isEdit={editId !== null}
+                isEdit={editIndex !== null}
                 form={form}
                 onFormChange={setForm}
                 onSave={handleSave}

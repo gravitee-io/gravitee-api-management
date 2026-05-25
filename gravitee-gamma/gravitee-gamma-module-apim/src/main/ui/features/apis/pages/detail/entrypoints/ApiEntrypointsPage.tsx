@@ -16,7 +16,7 @@
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Button, Skeleton } from '@gravitee/graphene-core';
 import { CheckIcon, PlusIcon } from '@gravitee/graphene-core/icons';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { ContextPathsCard } from './ContextPathsCard';
 import { EntrypointsLanding } from './EntrypointsLanding';
@@ -75,28 +75,40 @@ export function ApiEntrypointsPage() {
 
     const { exposedQuery, saveMutation } = useApiEntrypoints(showConfig);
 
-    // Initialize form once api data arrives
+    const initFromApi = useCallback(
+        (apiData: ApiDetailDto | null) => {
+            if (!apiData) return;
+            const listener = getHttpListener(apiData);
+
+            if (isVirtualHostMode(listener)) {
+                setVirtualHostMode(true);
+                setVirtualHosts(
+                    (listener?.hosts ?? []).map(h => ({
+                        id: newId(),
+                        host: h.host,
+                        path: h.path,
+                        overrideAccess: h.overrideAccess ?? false,
+                    })),
+                );
+                setContextPaths((listener?.paths ?? []).map(p => ({ id: newId(), path: p.path })));
+            } else {
+                setVirtualHostMode(false);
+                const paths = listener?.paths ?? [];
+                setContextPaths(paths.length > 0 ? paths.map(p => ({ id: newId(), path: p.path })) : [{ id: newId(), path: '/' }]);
+            }
+
+            setShowConfig(listenerHasEntrypoints(listener));
+            setIsDirty(false);
+            setSaveError(null);
+        },
+        [], // state setters are stable
+    );
+
+    // Initialize form once api data arrives; re-init only when API identity changes
     useEffect(() => {
-        if (!api) return;
-        const listener = getHttpListener(api);
-
-        if (isVirtualHostMode(listener)) {
-            setVirtualHostMode(true);
-            setVirtualHosts(
-                (listener?.hosts ?? []).map(h => ({ id: newId(), host: h.host, path: h.path, overrideAccess: h.overrideAccess ?? false })),
-            );
-            setContextPaths((listener?.paths ?? []).map(p => ({ id: newId(), path: p.path })));
-        } else {
-            setVirtualHostMode(false);
-            const paths = listener?.paths ?? [];
-            setContextPaths(paths.length > 0 ? paths.map(p => ({ id: newId(), path: p.path })) : [{ id: newId(), path: '/' }]);
-        }
-
-        setShowConfig(listenerHasEntrypoints(listener));
-        setIsDirty(false);
-        setSaveError(null);
+        initFromApi(api);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [api?.id]); // Re-init only when API identity changes, not on every save response
+    }, [api?.id]);
 
     // ── validation ──
     const contextPathErrors = contextPaths.map(r => validatePath(r.path));
@@ -172,6 +184,11 @@ export function ApiEntrypointsPage() {
         markDirty();
     }
 
+    // ── discard ──
+    function handleDiscard() {
+        initFromApi(api);
+    }
+
     // ── save ──
     function handleSave() {
         if (!api || !isFormValid) return;
@@ -202,7 +219,7 @@ export function ApiEntrypointsPage() {
     // ── render ──
     if (apiLoading) {
         return (
-            <div className="space-y-6 pb-8">
+            <div className="space-y-6 p-6">
                 <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1.5">
                         <Skeleton className="h-7 w-40 rounded" />
@@ -216,7 +233,7 @@ export function ApiEntrypointsPage() {
     }
 
     return (
-        <div className="space-y-6 pb-8">
+        <div className="space-y-6 p-6">
             {/* ── Page header ── */}
             <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
@@ -225,6 +242,11 @@ export function ApiEntrypointsPage() {
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
+                    {isDirty && showConfig && !isReadOnly && (
+                        <Button size="sm" variant="outline" onClick={handleDiscard} aria-label="Discard changes">
+                            Discard
+                        </Button>
+                    )}
                     {showConfig && !isReadOnly && (
                         <Button size="sm" onClick={handleSave} disabled={!canSave} className="gap-1.5" aria-label="Save changes">
                             <CheckIcon className="size-3.5" />

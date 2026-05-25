@@ -28,7 +28,14 @@ import type {
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
 export async function getApiV4(environmentId: string, apiId: string): Promise<ApiDetailDto> {
-    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/${encodeURIComponent(apiId)}`);
+    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/${encodeURIComponent(apiId)}?expands=deploymentState`);
+}
+
+export async function deployApi(environmentId: string, apiId: string): Promise<void> {
+    await apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}/deployments`, {
+        method: 'POST',
+        body: JSON.stringify({}),
+    });
 }
 
 export async function updateApiShardingTags(environmentId: string, apiId: string, tagIds: string[]): Promise<void> {
@@ -177,6 +184,19 @@ export async function updateApiAnalytics(environmentId: string, apiId: string, a
         method: 'PUT',
         headers: JSON_HEADERS,
         body: JSON.stringify({ ...current, analytics }),
+    });
+}
+
+export async function updateAllowMultiJwtOauth2Subscriptions(
+    environmentId: string,
+    apiId: string,
+    allowed: boolean,
+): Promise<ApiDetailDto> {
+    const current = await apimFetchJsonV2<Record<string, unknown>>(environmentId, `/apis/${encodeURIComponent(apiId)}`);
+    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/${encodeURIComponent(apiId)}`, {
+        method: 'PUT',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ ...current, allowMultiJwtOauth2Subscriptions: allowed }),
     });
 }
 

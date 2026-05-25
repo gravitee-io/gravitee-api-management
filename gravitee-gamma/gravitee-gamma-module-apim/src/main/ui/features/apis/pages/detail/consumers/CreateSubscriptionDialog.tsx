@@ -121,7 +121,7 @@ export function CreateSubscriptionDialog({ ctx, open, isPending, error, onConfir
                 <div className="space-y-5 py-2" style={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
                     <div className="space-y-2">
                         <Label>Select Application</Label>
-                        <ApplicationSearchList selected={selectedApp} onSelect={setSelectedApp} />
+                        <ApplicationSearchList selected={selectedApp} onSelect={app => setSelectedApp(app)} />
                     </div>
 
                     <Separator />

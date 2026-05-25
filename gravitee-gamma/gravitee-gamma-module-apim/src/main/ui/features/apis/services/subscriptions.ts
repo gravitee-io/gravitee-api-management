@@ -181,10 +181,30 @@ export async function listApiPlans(envId: string, ctx: SubscriptionContext): Pro
     return apimFetchJsonV2<PlanPage>(envId, `${entityBase(ctx)}/plans${buildQuery({ statuses: 'PUBLISHED', perPage: 100 })}`);
 }
 
+interface V1ApplicationEntry {
+    id: string;
+    name: string;
+    description?: string;
+    type?: string;
+    apiKeyMode?: Application['apiKeyMode'];
+    owner?: { displayName: string; id?: string; email?: string };
+    primaryOwner?: { displayName: string; id?: string; email?: string };
+}
+
 export async function searchApplications(envId: string, query: string): Promise<ApplicationPage> {
-    const res = await apimFetchJsonV1Env<{ data: Application[]; metadata?: { pagination?: { total?: number } } }>(
+    const res = await apimFetchJsonV1Env<{ data: V1ApplicationEntry[]; metadata?: { pagination?: { total?: number } } }>(
         envId,
         `/applications/_paged${buildQuery({ query: query.trim(), status: 'ACTIVE', page: 1, size: 20, order: 'name' })}`,
     );
-    return { data: res.data ?? [], pagination: { totalCount: res.metadata?.pagination?.total ?? 0 } };
+    const data = (res.data ?? []).map(
+        (app): Application => ({
+            id: app.id,
+            name: app.name,
+            description: app.description,
+            type: app.type,
+            apiKeyMode: app.apiKeyMode,
+            primaryOwner: app.primaryOwner ?? (app.owner ? { displayName: app.owner.displayName } : undefined),
+        }),
+    );
+    return { data, pagination: { totalCount: res.metadata?.pagination?.total ?? 0 } };
 }

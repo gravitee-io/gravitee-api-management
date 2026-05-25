@@ -133,6 +133,9 @@ export function ApiReporterSettingsPage() {
     });
 
     const handleSave = () => {
+        if (!api) return;
+        const effectiveTracingEnabled = enabled && tracingEnabled;
+        const effectiveTracingVerbose = effectiveTracingEnabled && tracingVerbose;
         mutation.mutate({
             enabled,
             logging: {
@@ -142,16 +145,16 @@ export function ApiReporterSettingsPage() {
                 ...(condition.trim() ? { condition: condition.trim() } : {}),
             },
             tracing: {
-                ...(api?.analytics?.tracing ?? {}),
-                enabled: tracingEnabled,
-                verbose: tracingVerbose,
+                ...(api.analytics?.tracing ?? {}),
+                enabled: effectiveTracingEnabled,
+                verbose: effectiveTracingVerbose,
                 redaction: {
-                    ...(api?.analytics?.tracing?.redaction ?? {}),
+                    ...(api.analytics?.tracing?.redaction ?? {}),
                     rules: redactionRules,
                 },
             },
             otelLogs: { enabled: otelLogsEnabled },
-            sampling: api?.analytics?.sampling,
+            sampling: api.analytics?.sampling,
         });
     };
 

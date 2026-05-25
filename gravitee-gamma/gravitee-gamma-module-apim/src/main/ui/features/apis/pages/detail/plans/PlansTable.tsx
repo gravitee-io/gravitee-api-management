@@ -30,23 +30,14 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@gravitee/graphene-core';
-import {
-    ArrowDownIcon,
-    ArrowUpIcon,
-    CircleCheckIcon,
-    CircleXIcon,
-    EyeIcon,
-    PencilIcon,
-    TriangleAlertIcon,
-    Trash2Icon,
-} from '@gravitee/graphene-core/icons';
+import { ArrowDownIcon, ArrowUpIcon, CircleXIcon, EyeIcon, GlobeIcon, PencilIcon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { PlanActionConfirmDialog } from './PlanActionConfirmDialog';
 import type { PlanDialogAction } from './PlanActionConfirmDialog';
 import { PlanStatusBadge } from './PlanStatusBadge';
-import { useDeletePlan, usePlanTransition, useReorderPlan } from '../../../hooks/usePlans';
+import { usePlanTransition, useReorderPlan } from '../../../hooks/usePlans';
 import type { ManagedPlan, PlanContext } from '../../../types/plan';
 import { PLAN_SECURITY_LABELS } from '../../../types/plan';
 
@@ -58,7 +49,6 @@ interface PlansTableProps {
     perPage: number;
     isLoading: boolean;
     canUpdate: boolean;
-    canDelete: boolean;
     onPage: (p: number) => void;
     onPerPage: (n: number) => void;
 }
@@ -66,48 +56,31 @@ interface PlansTableProps {
 interface PendingAction {
     planId: string;
     plan: ManagedPlan;
-    action: PlanDialogAction;
+    action: Exclude<PlanDialogAction, 'delete'>;
 }
 
-export function PlansTable({
-    ctx,
-    plans,
-    totalCount,
-    page,
-    perPage,
-    isLoading,
-    canUpdate,
-    canDelete,
-    onPage,
-    onPerPage,
-}: Readonly<PlansTableProps>) {
+export function PlansTable({ ctx, plans, totalCount, page, perPage, isLoading, canUpdate, onPage, onPerPage }: Readonly<PlansTableProps>) {
     const navigate = useNavigate();
     const [pending, setPending] = useState<PendingAction | null>(null);
 
     const transitionMutation = usePlanTransition(ctx);
-    const deleteMutation = useDeletePlan(ctx);
     const reorderMutation = useReorderPlan(ctx);
 
-    const mutationError = (transitionMutation.error ?? deleteMutation.error ?? reorderMutation.error)?.message ?? null;
-    const isMutating = transitionMutation.isPending || deleteMutation.isPending;
+    const mutationError = (transitionMutation.error ?? reorderMutation.error)?.message ?? null;
+    const isMutating = transitionMutation.isPending;
 
     const openDialog = useCallback(
-        (plan: ManagedPlan, action: PlanDialogAction) => {
+        (plan: ManagedPlan, action: Exclude<PlanDialogAction, 'delete'>) => {
             transitionMutation.reset();
-            deleteMutation.reset();
             setPending({ planId: plan.id, plan, action });
         },
-        [transitionMutation, deleteMutation],
+        [transitionMutation],
     );
 
     const handleConfirm = useCallback(() => {
         if (!pending) return;
-        if (pending.action === 'delete') {
-            deleteMutation.mutate(pending.planId, { onSuccess: () => setPending(null) });
-        } else {
-            transitionMutation.mutate({ planId: pending.planId, action: pending.action }, { onSuccess: () => setPending(null) });
-        }
-    }, [pending, deleteMutation, transitionMutation]);
+        transitionMutation.mutate({ planId: pending.planId, action: pending.action }, { onSuccess: () => setPending(null) });
+    }, [pending, transitionMutation]);
 
     const handleReorder = useCallback(
         (idx: number, plan: ManagedPlan, direction: 'up' | 'down') => {
@@ -261,7 +234,7 @@ export function PlansTable({
                                                             className="size-7 text-success hover:text-success"
                                                             onClick={() => openDialog(plan, 'publish')}
                                                         >
-                                                            <CircleCheckIcon className="size-3.5" aria-hidden />
+                                                            <GlobeIcon className="size-3.5" aria-hidden />
                                                             <span className="sr-only">Publish</span>
                                                         </Button>
                                                     </TooltipTrigger>
@@ -304,24 +277,6 @@ export function PlansTable({
                                                     <TooltipContent>Close plan</TooltipContent>
                                                 </Tooltip>
                                             )}
-
-                                            {canDelete && plan.status === 'STAGING' && (
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="size-7 text-destructive hover:text-destructive"
-                                                            onClick={() => openDialog(plan, 'delete')}
-                                                        >
-                                                            <Trash2Icon className="size-3.5" aria-hidden />
-                                                            <span className="sr-only">Delete</span>
-                                                        </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>Delete plan</TooltipContent>
-                                                </Tooltip>
-                                            )}
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -346,7 +301,6 @@ export function PlansTable({
                 onConfirm={handleConfirm}
                 onClose={() => {
                     transitionMutation.reset();
-                    deleteMutation.reset();
                     setPending(null);
                 }}
             />

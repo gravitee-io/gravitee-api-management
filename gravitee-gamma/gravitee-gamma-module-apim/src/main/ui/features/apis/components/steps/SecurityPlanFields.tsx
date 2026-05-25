@@ -20,6 +20,12 @@ import { useApiCreation } from '../../store/apiCreationStore';
 import type { ApiProxyDraft } from '../../types/apiCreation';
 import { AUTH_OPTIONS, JWKS_RESOLVERS, JWT_SIGNATURES, OAUTH2_RESOURCES } from '../../utils/securityFormatters';
 
+const RESOLVER_PARAM_LABELS: Record<string, string> = {
+    GIVEN_KEY: 'Public key',
+    JWKS_URL: 'JWKS URL',
+    RETRIEVING_KID: 'KID claim name',
+};
+
 interface SecurityPlanFieldsProps {
     showAuthSelector?: boolean;
 }
@@ -158,7 +164,9 @@ export function SecurityPlanFields({ showAuthSelector = true }: SecurityPlanFiel
                             </Select>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="jwt-resolver-parameter">Resolver Parameter</Label>
+                            <Label htmlFor="jwt-resolver-parameter">
+                                {RESOLVER_PARAM_LABELS[state.form.jwtJwksResolver] ?? 'Resolver parameter'}
+                            </Label>
                             <Input
                                 id="jwt-resolver-parameter"
                                 placeholder={
@@ -171,7 +179,7 @@ export function SecurityPlanFields({ showAuthSelector = true }: SecurityPlanFiel
                                 value={state.form.jwtResolverParameter}
                                 onChange={e => update({ jwtResolverParameter: e.target.value })}
                             />
-                            <p className="text-xs text-muted-foreground">Value used by the selected resolver. Supports EL.</p>
+                            <p className="text-xs text-muted-foreground">Supports Expression Language.</p>
                         </div>
                     </div>
                 </div>

@@ -54,6 +54,7 @@ export interface ManagedPlan {
     commentRequired?: boolean;
     commentMessage?: string;
     excludedGroups?: string[];
+    tags?: string[];
     flows?: PolicyFlow[];
     definitionVersion?: string;
     mode?: 'STANDARD' | 'PUSH';
@@ -75,12 +76,13 @@ export interface ResourceFilteringRule {
 export interface GeneralFormData {
     name: string;
     description: string;
-    characteristics: string;
+    characteristics: string[];
     generalConditions: string;
     autoValidation: boolean;
     commentRequired: boolean;
     commentMessage: string;
     excludedGroups: string[];
+    tags: string[];
 }
 
 export interface SecurityFormData {
@@ -88,13 +90,43 @@ export interface SecurityFormData {
     selectionRule: string;
 }
 
+export type RateLimitErrorStrategy = 'BLOCK_ON_INTERNAL_ERROR' | 'FALLBACK_PASS_TROUGH';
+
+export interface RateLimitFormData {
+    errorStrategy: RateLimitErrorStrategy;
+    async: boolean;
+    addHeaders: boolean;
+    key: string;
+    useKeyOnly: boolean;
+    max: number;
+    dynamicLimit: string;
+    period: number;
+    unit: 'SECONDS' | 'MINUTES';
+    dynamicPeriodTime: string;
+}
+
+export interface QuotaFormData {
+    errorStrategy: RateLimitErrorStrategy;
+    async: boolean;
+    addHeaders: boolean;
+    key: string;
+    useKeyOnly: boolean;
+    max: number;
+    dynamicLimit: string;
+    period: number;
+    unit: 'HOURS' | 'DAYS' | 'WEEKS' | 'MONTHS';
+    dynamicPeriodTime: string;
+}
+
 export interface RestrictionsFormData {
     rateLimitEnabled: boolean;
-    rateLimit: { max: number; period: number; unit: 'SECONDS' | 'MINUTES' };
+    rateLimit: RateLimitFormData;
     quotaEnabled: boolean;
-    quota: { max: number; period: number; unit: 'HOURS' | 'DAYS' | 'WEEKS' | 'MONTHS' };
+    quota: QuotaFormData;
     resourceFilteringEnabled: boolean;
     resourceFiltering: ResourceFilteringRule[];
+    normalizeRequestPath: boolean;
+    decodeEncodedSlash: boolean;
 }
 
 export interface PlanFormValue {
@@ -120,12 +152,13 @@ export const PLAN_SECURITY_LABELS: Record<PlanSecurityType, string> = {
 export const EMPTY_GENERAL: GeneralFormData = {
     name: '',
     description: '',
-    characteristics: '',
+    characteristics: [],
     generalConditions: '',
     autoValidation: false,
     commentRequired: false,
     commentMessage: '',
     excludedGroups: [],
+    tags: [],
 };
 
 export const EMPTY_SECURITY: SecurityFormData = {
@@ -135,11 +168,35 @@ export const EMPTY_SECURITY: SecurityFormData = {
 
 export const EMPTY_RESTRICTIONS: RestrictionsFormData = {
     rateLimitEnabled: false,
-    rateLimit: { max: 10, period: 1, unit: 'SECONDS' },
+    rateLimit: {
+        errorStrategy: 'FALLBACK_PASS_TROUGH',
+        async: false,
+        addHeaders: false,
+        key: '',
+        useKeyOnly: false,
+        max: 10,
+        dynamicLimit: '',
+        period: 1,
+        unit: 'SECONDS',
+        dynamicPeriodTime: '',
+    },
     quotaEnabled: false,
-    quota: { max: 100, period: 1, unit: 'HOURS' },
+    quota: {
+        errorStrategy: 'FALLBACK_PASS_TROUGH',
+        async: false,
+        addHeaders: true,
+        key: '',
+        useKeyOnly: false,
+        max: 100,
+        dynamicLimit: '',
+        period: 1,
+        unit: 'HOURS',
+        dynamicPeriodTime: '',
+    },
     resourceFilteringEnabled: false,
     resourceFiltering: [],
+    normalizeRequestPath: false,
+    decodeEncodedSlash: false,
 };
 
 export const ALL_HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD', 'TRACE', 'CONNECT'] as const;

@@ -114,6 +114,8 @@ export function PlanRestrictionsStep({ value, onChange, readOnly = false }: Read
                                     ...value,
                                     resourceFilteringEnabled: checked,
                                     resourceFiltering: checked ? value.resourceFiltering : [],
+                                    normalizeRequestPath: checked ? value.normalizeRequestPath : false,
+                                    decodeEncodedSlash: checked ? value.decodeEncodedSlash : false,
                                 })
                             }
                             disabled={readOnly}
@@ -125,6 +127,12 @@ export function PlanRestrictionsStep({ value, onChange, readOnly = false }: Read
                         <ResourceFilteringFields
                             rules={value.resourceFiltering}
                             onChange={resourceFiltering => onChange({ ...value, resourceFiltering })}
+                            normalizeRequestPath={value.normalizeRequestPath}
+                            decodeEncodedSlash={value.decodeEncodedSlash}
+                            onNormalizeChange={v =>
+                                onChange({ ...value, normalizeRequestPath: v, decodeEncodedSlash: v ? value.decodeEncodedSlash : false })
+                            }
+                            onDecodeSlashChange={v => onChange({ ...value, decodeEncodedSlash: v })}
                             readOnly={readOnly}
                         />
                     </CardContent>

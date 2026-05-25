@@ -379,4 +379,35 @@ describe('ApiEntrypointsPage', () => {
         const inputs = screen.getAllByRole('textbox', { name: /context path/i });
         expect(inputs[0]).toBeDisabled();
     });
+
+    // ── Discard button ─────────────────────────────────────────────────────────
+
+    it('does not show Discard button when form is clean', () => {
+        renderPage();
+        expect(screen.queryByRole('button', { name: /discard/i })).not.toBeInTheDocument();
+    });
+
+    it('shows Discard button after a field has been edited', () => {
+        renderPage();
+        const input = screen.getAllByRole('textbox', { name: /context path/i })[0];
+        fireEvent.change(input, { target: { value: '/changed' } });
+        expect(screen.getByRole('button', { name: /discard/i })).toBeInTheDocument();
+    });
+
+    it('restores the original value and hides Discard button when Discard is clicked', () => {
+        renderPage();
+        const input = screen.getAllByRole('textbox', { name: /context path/i })[0];
+        fireEvent.change(input, { target: { value: '/changed' } });
+        fireEvent.click(screen.getByRole('button', { name: /discard/i }));
+
+        const restored = screen.getAllByRole('textbox', { name: /context path/i })[0];
+        expect((restored as HTMLInputElement).value).toBe('/boarding');
+        expect(screen.queryByRole('button', { name: /discard/i })).not.toBeInTheDocument();
+    });
+
+    it('does not show Discard button for read-only users even after context changes', () => {
+        mockUseHasPermission.mockReturnValue(false);
+        renderPage();
+        expect(screen.queryByRole('button', { name: /discard/i })).not.toBeInTheDocument();
+    });
 });
