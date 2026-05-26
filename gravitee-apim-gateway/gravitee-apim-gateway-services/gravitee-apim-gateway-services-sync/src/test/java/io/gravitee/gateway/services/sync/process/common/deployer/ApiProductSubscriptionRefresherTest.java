@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.process.common.deployer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,6 +36,7 @@ import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -78,6 +80,9 @@ class ApiProductSubscriptionRefresherTest {
 
     private ApiProductSubscriptionRefresher cut;
 
+    private static final int BULK_ITEMS = 100;
+    private static final int CHUNK_SIZE = 900;
+
     @BeforeEach
     void setUp() {
         cut = new ApiProductSubscriptionRefresher(
@@ -86,7 +91,9 @@ class ApiProductSubscriptionRefresherTest {
             subscriptionMapper,
             apiKeyMapper,
             subscriptionService,
-            apiKeyService
+            apiKeyService,
+            BULK_ITEMS,
+            CHUNK_SIZE
         );
     }
 
@@ -120,7 +127,7 @@ class ApiProductSubscriptionRefresherTest {
             var gatewayKey = ApiKey.builder().id(KEY_ID).api(API_1).subscription(SUB_1).build();
             when(subscriptionRepository.search(any(), any())).thenReturn(List.of(repoSub));
             when(subscriptionMapper.to(repoSub)).thenReturn(List.of(gatewaySub));
-            when(apiKeyRepository.findByCriteria(any(), any())).thenReturn(List.of(repoKey));
+            when(apiKeyRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(repoKey));
             when(apiKeyMapper.to(repoKey, gatewaySub)).thenReturn(gatewayKey);
 
             cut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
@@ -136,7 +143,68 @@ class ApiProductSubscriptionRefresherTest {
             cut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
 
             verify(subscriptionRepository).search(any(), any());
-            verify(apiKeyRepository, never()).findByCriteria(any(), any());
+            verify(apiKeyRepository, never()).searchAfter(any(), any(), any(), any(int.class));
+        }
+
+        @Test
+        void chunks_subscriptions_in_list_and_dedups_federated_keys_across_chunks() throws TechnicalException {
+            // 5 subscription ids → 2 chunks of size 3 (last chunk has 2). A federated api key tied
+            // to subscriptions across both chunks must be processed exactly once (its mapped
+            // gateway keys still produced — one per matched subscription).
+            var localCut = new ApiProductSubscriptionRefresher(
+                subscriptionRepository,
+                apiKeyRepository,
+                subscriptionMapper,
+                apiKeyMapper,
+                subscriptionService,
+                apiKeyService,
+                BULK_ITEMS,
+                3 // small chunk size to force chunking with 5 subs
+            );
+
+            var repoSubs = IntStream.range(0, 5)
+                .mapToObj(i -> productSubscription("sub" + i, PLAN_1, ENV_1))
+                .toList();
+            when(subscriptionRepository.search(any(), any())).thenReturn(repoSubs);
+            var gatewaySubs = IntStream.range(0, 5)
+                .mapToObj(i -> Subscription.builder().id("sub" + i).api(API_1).plan(PLAN_1).build())
+                .toList();
+            for (int i = 0; i < 5; i++) {
+                when(subscriptionMapper.to(repoSubs.get(i))).thenReturn(List.of(gatewaySubs.get(i)));
+            }
+
+            // Federated key tied to sub0 (chunk 0) AND sub3 (chunk 1). With sorted IDs the chunks
+            // are deterministic: [sub0,sub1,sub2] and [sub3,sub4].
+            var federated = productApiKey("federated-key", ENV_1, "sub0");
+            federated.setSubscriptions(List.of("sub0", "sub3"));
+            var chunk1Only = productApiKey("k-chunk1", ENV_1, "sub4");
+
+            when(apiKeyRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenAnswer(invocation -> {
+                var criteria = (io.gravitee.repository.management.api.search.ApiKeyCriteria) invocation.getArgument(0);
+                if (criteria.getSubscriptions() != null && criteria.getSubscriptions().contains("sub0")) {
+                    return List.of(federated);
+                }
+                if (criteria.getSubscriptions() != null && criteria.getSubscriptions().contains("sub3")) {
+                    return List.of(federated, chunk1Only);
+                }
+                return List.of();
+            });
+            // Each (repoKey, gatewaySub) pair maps to a distinct gateway ApiKey.
+            when(apiKeyMapper.to(federated, gatewaySubs.get(0))).thenReturn(
+                ApiKey.builder().id("k-fed-sub0").api(API_1).subscription("sub0").build()
+            );
+            when(apiKeyMapper.to(federated, gatewaySubs.get(3))).thenReturn(
+                ApiKey.builder().id("k-fed-sub3").api(API_1).subscription("sub3").build()
+            );
+            when(apiKeyMapper.to(chunk1Only, gatewaySubs.get(4))).thenReturn(
+                ApiKey.builder().id("k-chunk1-sub4").api(API_1).subscription("sub4").build()
+            );
+
+            localCut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
+
+            // With dedup: federated processed once → emits 2 mapped keys (sub0, sub3) + chunk1Only's 1 = 3 register calls.
+            // Without dedup: federated processed in both chunks → 4 federated mappings + 1 chunk1Only = 5 register calls.
+            verify(apiKeyService, org.mockito.Mockito.times(3)).register(any(ApiKey.class));
         }
 
         @Test
@@ -177,7 +245,7 @@ class ApiProductSubscriptionRefresherTest {
 
             when(subscriptionRepository.search(any(), any())).thenReturn(List.of(repoSub));
             when(subscriptionMapper.toSubscriptionForApi(repoSub, "api-removed")).thenReturn(subForRemoved);
-            when(apiKeyRepository.findByCriteria(any(), any())).thenReturn(List.of(repoKey));
+            when(apiKeyRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(repoKey));
             when(apiKeyMapper.to(repoKey, subForRemoved)).thenReturn(gatewayKey);
 
             cut.unregisterRemovedApis(Set.of("api-removed"), Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();

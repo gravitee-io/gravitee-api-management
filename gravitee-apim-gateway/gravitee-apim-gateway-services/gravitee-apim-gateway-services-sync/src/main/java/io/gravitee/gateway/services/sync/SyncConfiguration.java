@@ -90,6 +90,10 @@ public class SyncConfiguration {
 
     public static final int POOL_SIZE = Runtime.getRuntime().availableProcessors() * 2;
     public static final int DEFAULT_BULK_ITEMS = 100;
+    // Chunk size for the `subscriptions IN (...)` filter applied when loading ApiKeys (appender
+    // + refresher). Conservative default below common DB IN-list parameter limits; tune higher via
+    // services.sync.apikey.subscriptions_chunk_size only after validating the target DB's parameter ceiling.
+    public static final int DEFAULT_APIKEY_SUBSCRIPTIONS_CHUNK_SIZE = 900;
 
     @Bean("syncFetcherExecutor")
     public ThreadPoolExecutor syncFetcherExecutor(@Value("${services.sync.fetcher:-1}") int syncFetcher) {
@@ -204,8 +208,15 @@ public class SyncConfiguration {
     }
 
     @Bean
-    public ApiKeyAppender apiKeyAppender(ApiKeyRepository apiKeyRepository, ApiKeyMapper apiKeyMapper) {
-        return new ApiKeyAppender(apiKeyRepository, apiKeyMapper);
+    public ApiKeyAppender apiKeyAppender(
+        ApiKeyRepository apiKeyRepository,
+        ApiKeyMapper apiKeyMapper,
+        @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems,
+        @Value(
+            "${services.sync.apikey.subscriptions_chunk_size:" + DEFAULT_APIKEY_SUBSCRIPTIONS_CHUNK_SIZE + "}"
+        ) int subscriptionsChunkSize
+    ) {
+        return new ApiKeyAppender(apiKeyRepository, apiKeyMapper, bulkItems, subscriptionsChunkSize);
     }
 
     @Bean

@@ -145,7 +145,7 @@ class AuthzAppenderIntegrationTest {
                 mock(io.gravitee.gateway.handlers.api.registry.ApiProductRegistry.class),
                 100
             ),
-            new ApiKeyAppender(apiKeyRepository, new ApiKeyMapper()),
+            new ApiKeyAppender(apiKeyRepository, new ApiKeyMapper(), 100, 900),
             realAppender,
             deployerFactory,
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
