@@ -78,9 +78,9 @@ export function useEntityOptions(environmentId: string, opts?: UseEntityOptionsO
         return allOptions.filter(o => allow.has(o.group));
     }, [allOptions, typeFilter]);
 
-    const networkError =
-        query.error instanceof Error ? query.error.message : query.error ? String(query.error) : undefined;
-    const error = networkError ?? (tooMany ? 'Too many entities for chip picker; consider refining schema or filtering by type.' : undefined);
+    const networkError = query.error instanceof Error ? query.error.message : query.error ? String(query.error) : undefined;
+    const error =
+        networkError ?? (tooMany ? 'Too many entities for chip picker; consider refining schema or filtering by type.' : undefined);
 
     return { options, isLoading: query.isLoading, error };
 }

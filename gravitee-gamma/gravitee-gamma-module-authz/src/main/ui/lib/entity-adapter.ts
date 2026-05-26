@@ -16,15 +16,7 @@
 import type { AttrValue, EntityInstance, EntitySource } from './entity.types';
 import type { EntityRequest, EntityResponse } from './api/authz-api.types';
 
-export const META_KEYS = new Set([
-    '_source',
-    '_displayName',
-    '_importedAt',
-    '_kind',
-    '_url',
-    '_syncedAt',
-    '_proxyApiId',
-]);
+export const META_KEYS = new Set(['_source', '_displayName', '_importedAt', '_kind', '_url', '_syncedAt', '_proxyApiId']);
 
 /**
  * Maps a kind hint (lowercased — either the `_kind` attribute or the first
