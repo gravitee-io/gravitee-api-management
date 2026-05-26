@@ -30,20 +30,21 @@ import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
+import io.gravitee.repository.management.api.search.ApiKeyCursor;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.reactivex.rxjava3.core.Completable;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
-import lombok.RequiredArgsConstructor;
 
 @CustomLog
-@RequiredArgsConstructor
 public class ApiProductSubscriptionRefresher {
 
     private static final List<String> INCREMENTAL_STATUS = List.of(ACCEPTED.name(), CLOSED.name(), PAUSED.name(), PENDING.name());
@@ -54,6 +55,34 @@ public class ApiProductSubscriptionRefresher {
     private final ApiKeyMapper apiKeyMapper;
     private final SubscriptionService subscriptionService;
     private final ApiKeyService apiKeyService;
+    private final int bulkItems;
+    private final int subscriptionsChunkSize;
+
+    public ApiProductSubscriptionRefresher(
+        SubscriptionRepository subscriptionRepository,
+        ApiKeyRepository apiKeyRepository,
+        SubscriptionMapper subscriptionMapper,
+        ApiKeyMapper apiKeyMapper,
+        SubscriptionService subscriptionService,
+        ApiKeyService apiKeyService,
+        int bulkItems,
+        int subscriptionsChunkSize
+    ) {
+        if (bulkItems <= 0) {
+            throw new IllegalArgumentException("bulkItems must be > 0 (got " + bulkItems + ")");
+        }
+        if (subscriptionsChunkSize <= 0) {
+            throw new IllegalArgumentException("subscriptionsChunkSize must be > 0 (got " + subscriptionsChunkSize + ")");
+        }
+        this.subscriptionRepository = subscriptionRepository;
+        this.apiKeyRepository = apiKeyRepository;
+        this.subscriptionMapper = subscriptionMapper;
+        this.apiKeyMapper = apiKeyMapper;
+        this.subscriptionService = subscriptionService;
+        this.apiKeyService = apiKeyService;
+        this.bulkItems = bulkItems;
+        this.subscriptionsChunkSize = subscriptionsChunkSize;
+    }
 
     /**
      * Refreshes subscriptions for the given API Product plans.
@@ -184,36 +213,63 @@ public class ApiProductSubscriptionRefresher {
             return List.of();
         }
 
+        Map<String, List<Subscription>> subscriptionsByIdMulti = subscriptions.stream().collect(Collectors.groupingBy(Subscription::getId));
+        // Sort for deterministic chunk boundaries — same rationale as ApiKeyAppender.
+        List<String> subscriptionIds = new ArrayList<>(subscriptionsByIdMulti.keySet());
+        subscriptionIds.sort(java.util.Comparator.naturalOrder());
+
+        var sortable = new SortableBuilder().field("id").order(Order.ASC).build();
+        List<ApiKey> result = new ArrayList<>();
+        // A federated api key tied to multiple subscriptions can match more than one chunk's
+        // `subscriptions IN` filter — dedup by key id so the refresher doesn't double-count it.
+        Set<String> seenKeyIds = new HashSet<>();
+
         try {
-            Map<String, List<Subscription>> subscriptionsByIdMulti = subscriptions
-                .stream()
-                .collect(Collectors.groupingBy(Subscription::getId));
+            for (int chunkStart = 0; chunkStart < subscriptionIds.size(); chunkStart += subscriptionsChunkSize) {
+                List<String> chunk = subscriptionIds.subList(
+                    chunkStart,
+                    Math.min(chunkStart + subscriptionsChunkSize, subscriptionIds.size())
+                );
+                ApiKeyCriteria criteria = ApiKeyCriteria.builder()
+                    .subscriptions(chunk)
+                    .environments(environments)
+                    .includeRevoked(true)
+                    .build();
 
-            ApiKeyCriteria.ApiKeyCriteriaBuilder criteriaBuilder = ApiKeyCriteria.builder()
-                .subscriptions(subscriptionsByIdMulti.keySet())
-                .environments(environments)
-                .includeRevoked(true);
-
-            List<io.gravitee.repository.management.model.ApiKey> bySubscriptions = apiKeyRepository.findByCriteria(
-                criteriaBuilder.build(),
-                new SortableBuilder().field("updatedAt").order(Order.ASC).build()
-            );
-
-            return bySubscriptions
-                .stream()
-                .flatMap(apiKey ->
-                    apiKey
-                        .getSubscriptions()
-                        .stream()
-                        .flatMap(subscriptionId -> {
-                            List<Subscription> subsForId = subscriptionsByIdMulti.get(subscriptionId);
-                            if (subsForId == null || subsForId.isEmpty()) {
-                                return java.util.stream.Stream.empty();
-                            }
-                            return subsForId.stream().map(subscription -> apiKeyMapper.to(apiKey, subscription));
-                        })
-                )
-                .toList();
+                ApiKeyCursor cursor = null;
+                while (true) {
+                    List<io.gravitee.repository.management.model.ApiKey> page = apiKeyRepository.searchAfter(
+                        criteria,
+                        sortable,
+                        cursor,
+                        bulkItems
+                    );
+                    if (page == null || page.isEmpty()) {
+                        break;
+                    }
+                    for (io.gravitee.repository.management.model.ApiKey record : page) {
+                        if (!seenKeyIds.add(record.getId())) {
+                            continue;
+                        }
+                        record
+                            .getSubscriptions()
+                            .stream()
+                            .flatMap(subscriptionId -> {
+                                List<Subscription> subsForId = subscriptionsByIdMulti.get(subscriptionId);
+                                if (subsForId == null || subsForId.isEmpty()) {
+                                    return java.util.stream.Stream.empty();
+                                }
+                                return subsForId.stream().map(subscription -> apiKeyMapper.to(record, subscription));
+                            })
+                            .forEach(result::add);
+                    }
+                    if (page.size() < bulkItems) {
+                        break;
+                    }
+                    cursor = ApiKeyCursor.byId(page.getLast().getId());
+                }
+            }
+            return result;
         } catch (Exception ex) {
             throw new SyncException("Error occurred when retrieving API Keys for API Product", ex);
         }
