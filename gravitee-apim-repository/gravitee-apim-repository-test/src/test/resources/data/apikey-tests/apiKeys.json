@@ -137,5 +137,207 @@
         "updatedAt": 1486771600000,
         "revoked": false,
         "federated": false
+    },
+    {
+        "id": "apikey-ka-1",
+        "key": "apikey-ka-1-key",
+        "subscriptions": ["sub-ka-1"],
+        "environmentId": "env-ka-1",
+        "createdAt": 1000,
+        "updatedAt": 1000,
+        "revoked": false,
+        "federated": false
+    },
+    {
+        "id": "apikey-ka-3-a",
+        "key": "apikey-ka-3-a-key",
+        "subscriptions": ["sub-ka-3"],
+        "environmentId": "env-ka-3",
+        "createdAt": 3000,
+        "updatedAt": 3000,
+        "revoked": false,
+        "federated": false
+    },
+    {
+        "id": "apikey-ka-3-b",
+        "key": "apikey-ka-3-b-key",
+        "subscriptions": ["sub-ka-3"],
+        "environmentId": "env-ka-3",
+        "createdAt": 3000,
+        "updatedAt": 3000,
+        "revoked": false,
+        "federated": false
+    },
+    {
+        "id": "apikey-ka-3-c",
+        "key": "apikey-ka-3-c-key",
+        "subscriptions": ["sub-ka-3"],
+        "environmentId": "env-ka-3",
+        "createdAt": 3000,
+        "updatedAt": 3000,
+        "revoked": false,
+        "federated": false
+    },
+    {
+        "id": "apikey-ka-3-d",
+        "key": "apikey-ka-3-d-key",
+        "subscriptions": ["sub-ka-3"],
+        "environmentId": "env-ka-3",
+        "createdAt": 3000,
+        "updatedAt": 3000,
+        "revoked": false,
+        "federated": false
+    },
+    {
+        "id": "apikey-ka-3-e",
+        "key": "apikey-ka-3-e-key",
+        "subscriptions": ["sub-ka-3"],
+        "environmentId": "env-ka-3",
+        "createdAt": 3000,
+        "updatedAt": 3000,
+        "revoked": false,
+        "federated": false
+    },
+    {
+        "id": "apikey-ka-warmup-1",
+        "key": "apikey-ka-warmup-1-key",
+        "subscriptions": ["sub-ka-warmup-a"],
+        "environmentId": "env-ka-warmup",
+        "createdAt": 5000,
+        "updatedAt": 5000,
+        "revoked": false,
+        "federated": false
+    },
+    {
+        "id": "apikey-ka-warmup-2",
+        "key": "apikey-ka-warmup-2-key",
+        "subscriptions": ["sub-ka-warmup-b"],
+        "environmentId": "env-ka-warmup",
+        "createdAt": 5001,
+        "updatedAt": 5001,
+        "revoked": false,
+        "federated": false
+    },
+    {
+        "id": "apikey-ka-warmup-3",
+        "key": "apikey-ka-warmup-3-key",
+        "subscriptions": ["sub-ka-warmup-c"],
+        "environmentId": "env-ka-warmup",
+        "createdAt": 5002,
+        "updatedAt": 5002,
+        "revoked": false,
+        "federated": false
+    },
+    {
+        "id": "apikey-ka-warmup-leak",
+        "key": "apikey-ka-warmup-leak-key",
+        "subscriptions": ["sub-ka-warmup-other"],
+        "environmentId": "env-ka-warmup",
+        "createdAt": 5003,
+        "updatedAt": 5003,
+        "revoked": false,
+        "federated": false
+    },
+    {
+        "id": "apikey-ka-join-a",
+        "key": "apikey-ka-join-a-key",
+        "subscriptions": ["sub-ka-join-a1", "sub-ka-join-a2", "sub-ka-join-a3"],
+        "environmentId": "env-ka-join",
+        "createdAt": 6000,
+        "updatedAt": 6000,
+        "revoked": false,
+        "federated": false
+    },
+    {
+        "id": "apikey-ka-join-b",
+        "key": "apikey-ka-join-b-key",
+        "subscriptions": ["sub-ka-join-b1", "sub-ka-join-b2"],
+        "environmentId": "env-ka-join",
+        "createdAt": 6001,
+        "updatedAt": 6001,
+        "revoked": false,
+        "federated": false
+    },
+    {
+        "id": "apikey-ka-term-a",
+        "key": "apikey-ka-term-a-key",
+        "subscriptions": ["sub-ka-term"],
+        "environmentId": "env-ka-term",
+        "createdAt": 7000,
+        "updatedAt": 7000,
+        "revoked": false,
+        "federated": false
+    },
+    {
+        "id": "apikey-ka-term-b",
+        "key": "apikey-ka-term-b-key",
+        "subscriptions": ["sub-ka-term"],
+        "environmentId": "env-ka-term",
+        "createdAt": 7001,
+        "updatedAt": 7001,
+        "revoked": false,
+        "federated": false
+    },
+    {
+        "id": "apikey-ka-term-c",
+        "key": "apikey-ka-term-c-key",
+        "subscriptions": ["sub-ka-term"],
+        "environmentId": "env-ka-term",
+        "createdAt": 7002,
+        "updatedAt": 7002,
+        "revoked": false,
+        "federated": false
+    },
+    {
+        "id": "apikey-ka-term-d",
+        "key": "apikey-ka-term-d-key",
+        "subscriptions": ["sub-ka-term"],
+        "environmentId": "env-ka-term",
+        "createdAt": 7003,
+        "updatedAt": 7003,
+        "revoked": false,
+        "federated": false
+    },
+    {
+        "id": "apikey-ka-flt-revoked",
+        "key": "apikey-ka-flt-revoked-key",
+        "subscriptions": ["sub-ka-flt"],
+        "environmentId": "env-ka-flt",
+        "createdAt": 8000,
+        "updatedAt": 8000,
+        "revoked": true,
+        "federated": false
+    },
+    {
+        "id": "apikey-ka-flt-active",
+        "key": "apikey-ka-flt-active-key",
+        "subscriptions": ["sub-ka-flt"],
+        "environmentId": "env-ka-flt",
+        "createdAt": 8001,
+        "updatedAt": 8001,
+        "expireAt": 99999999999,
+        "revoked": false,
+        "federated": false
+    },
+    {
+        "id": "apikey-ka-flt-expired",
+        "key": "apikey-ka-flt-expired-key",
+        "subscriptions": ["sub-ka-flt"],
+        "environmentId": "env-ka-flt",
+        "createdAt": 8002,
+        "updatedAt": 8002,
+        "expireAt": 1000,
+        "revoked": false,
+        "federated": false
+    },
+    {
+        "id": "apikey-ka-flt-noexpire",
+        "key": "apikey-ka-flt-noexpire-key",
+        "subscriptions": ["sub-ka-flt"],
+        "environmentId": "env-ka-flt",
+        "createdAt": 8003,
+        "updatedAt": 8003,
+        "revoked": false,
+        "federated": false
     }
 ]

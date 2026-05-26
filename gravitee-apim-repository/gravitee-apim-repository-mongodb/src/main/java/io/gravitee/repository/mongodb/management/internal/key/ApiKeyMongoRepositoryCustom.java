@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management.internal.key;
 
 import com.mongodb.client.result.UpdateResult;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
+import io.gravitee.repository.management.api.search.ApiKeyCursor;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
 import java.util.List;
@@ -29,6 +30,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ApiKeyMongoRepositoryCustom {
     List<ApiKeyMongo> search(ApiKeyCriteria filter, final Sortable sortable);
+
+    List<ApiKeyMongo> searchAfter(ApiKeyCriteria criteria, ApiKeyCursor after, int pageSize, boolean sortByUpdatedAt);
 
     List<ApiKeyMongo> findByKeyAndApi(String key, String api);
 

@@ -31,6 +31,7 @@ import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.result.UpdateResult;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
+import io.gravitee.repository.management.api.search.ApiKeyCursor;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
@@ -42,7 +43,10 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -117,6 +121,69 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
             .aggregate(pipeline);
 
         return getListFromAggregate(aggregate);
+    }
+
+    @Override
+    public List<ApiKeyMongo> searchAfter(ApiKeyCriteria criteria, ApiKeyCursor after, int pageSize, boolean sortByUpdatedAt) {
+        Criteria mongoCriteria = new Criteria();
+        List<Criteria> clauses = new ArrayList<>();
+
+        if (!CollectionUtils.isEmpty(criteria.getEnvironments())) {
+            clauses.add(Criteria.where("environmentId").in(criteria.getEnvironments()));
+        }
+        if (!CollectionUtils.isEmpty(criteria.getSubscriptions())) {
+            clauses.add(Criteria.where("subscriptions").in(criteria.getSubscriptions()));
+        }
+        if (!criteria.isIncludeRevoked()) {
+            clauses.add(Criteria.where("revoked").is(false));
+        }
+        if (!criteria.isIncludeFederated()) {
+            clauses.add(new Criteria().orOperator(Criteria.where("federated").is(false), Criteria.where("federated").is(null)));
+        }
+        if (criteria.getFrom() > 0) {
+            clauses.add(Criteria.where("updatedAt").gte(new Date(criteria.getFrom())));
+        }
+        if (criteria.getTo() > 0) {
+            clauses.add(Criteria.where("updatedAt").lte(new Date(criteria.getTo())));
+        }
+        if (criteria.getExpireAfter() > 0) {
+            Criteria expireAfter = Criteria.where("expireAt").gte(new Date(criteria.getExpireAfter()));
+            if (criteria.isIncludeWithoutExpiration()) {
+                clauses.add(new Criteria().orOperator(Criteria.where("expireAt").is(null), expireAfter));
+            } else {
+                clauses.add(expireAfter);
+            }
+        }
+        if (criteria.getExpireBefore() > 0) {
+            Criteria expireBefore = Criteria.where("expireAt").lte(new Date(criteria.getExpireBefore()));
+            if (criteria.isIncludeWithoutExpiration()) {
+                clauses.add(new Criteria().orOperator(Criteria.where("expireAt").is(null), expireBefore));
+            } else {
+                clauses.add(expireBefore);
+            }
+        }
+        if (after != null) {
+            if (sortByUpdatedAt) {
+                Date marker = new Date(after.updatedAt());
+                clauses.add(
+                    new Criteria().orOperator(
+                        Criteria.where("updatedAt").gt(marker),
+                        new Criteria().andOperator(Criteria.where("updatedAt").is(marker), Criteria.where("_id").gt(after.id()))
+                    )
+                );
+            } else {
+                clauses.add(Criteria.where("_id").gt(after.id()));
+            }
+        }
+
+        if (!clauses.isEmpty()) {
+            mongoCriteria = mongoCriteria.andOperator(clauses.toArray(new Criteria[0]));
+        }
+
+        Sort sort = sortByUpdatedAt ? Sort.by(Sort.Order.asc("updatedAt"), Sort.Order.asc("_id")) : Sort.by(Sort.Order.asc("_id"));
+        Query query = new Query(mongoCriteria).with(sort).limit(pageSize);
+
+        return mongoTemplate.find(query, ApiKeyMongo.class);
     }
 
     @Override

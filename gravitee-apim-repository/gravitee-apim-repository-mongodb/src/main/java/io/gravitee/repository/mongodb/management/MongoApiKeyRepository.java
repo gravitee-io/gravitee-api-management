@@ -22,6 +22,7 @@ import com.mongodb.client.result.UpdateResult;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
+import io.gravitee.repository.management.api.search.ApiKeyCursor;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.mongodb.management.internal.key.ApiKeyMongoRepository;
@@ -89,6 +90,24 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
     @Override
     public List<ApiKey> findByCriteria(ApiKeyCriteria filter) {
         return findByCriteria(filter, null);
+    }
+
+    @Override
+    public List<ApiKey> searchAfter(ApiKeyCriteria criteria, Sortable sortable, ApiKeyCursor after, int pageSize)
+        throws TechnicalException {
+        boolean sortByUpdatedAt = resolveSortByUpdatedAt(sortable);
+        return mapper.mapApiKeys(internalApiKeyRepo.searchAfter(criteria, after, pageSize, sortByUpdatedAt));
+    }
+
+    private static boolean resolveSortByUpdatedAt(Sortable sortable) throws TechnicalException {
+        if (sortable == null || sortable.field() == null) {
+            return true;
+        }
+        return switch (sortable.field()) {
+            case "updatedAt" -> true;
+            case "id" -> false;
+            default -> throw new TechnicalException("searchAfter supports sort field 'updatedAt' or 'id' only, got: " + sortable.field());
+        };
     }
 
     @Override

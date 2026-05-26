@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.11.8_02_add_keys_environment_id_updated_at_id_index
+      author: GraviteeSource Team
+      changes:
+        - createIndex:
+            indexName: idx_${gravitee_prefix}keys_env_updated_at_id
+            tableName: ${gravitee_prefix}keys
+            columns:
+              - column:
+                  name: environment_id
+              - column:
+                  name: updated_at
+              - column:
+                  name: id

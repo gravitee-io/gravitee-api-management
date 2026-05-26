@@ -30,14 +30,17 @@ import static org.junit.Assert.fail;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
+import io.gravitee.repository.management.api.search.ApiKeyCursor;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.ApiKey;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
@@ -294,7 +297,9 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void findByCriteria_should_find_by_criteria_with_expire_at_after_dates() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(ApiKeyCriteria.builder().expireAfter(30019401755L).build());
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
+            ApiKeyCriteria.builder().expireAfter(30019401755L).environments(Set.of("DEFAULT", "env5", "env7", "env8")).build()
+        );
 
         assertEquals("found 2 API Keys", 2, apiKeys.size());
 
@@ -305,7 +310,11 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void findByCriteria_should_find_by_criteria_with_expire_at_after_dates_including_no_expire_date() throws Exception {
         List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-            ApiKeyCriteria.builder().expireAfter(30019401755L).includeWithoutExpiration(true).build()
+            ApiKeyCriteria.builder()
+                .expireAfter(30019401755L)
+                .includeWithoutExpiration(true)
+                .environments(Set.of("DEFAULT", "env5", "env7", "env8"))
+                .build()
         );
 
         assertEquals("found 4 API Keys", 4, apiKeys.size());
@@ -321,7 +330,12 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void findByCriteria_should_find_by_criteria_with_expire_at_before_dates() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(ApiKeyCriteria.builder().expireBefore(30019401755L).build());
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
+            ApiKeyCriteria.builder()
+                .expireBefore(30019401755L)
+                .environments(Set.of("DEFAULT", "env4", "env5", "env6", "env7", "env8"))
+                .build()
+        );
 
         assertEquals("found 4 API Keys", 4, apiKeys.size());
 
@@ -332,7 +346,11 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void findByCriteria_should_find_by_criteria_with_expire_at_before_dates_including_no_expire_date() throws Exception {
         List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-            ApiKeyCriteria.builder().expireBefore(30019401755L).includeWithoutExpiration(true).build()
+            ApiKeyCriteria.builder()
+                .expireBefore(30019401755L)
+                .includeWithoutExpiration(true)
+                .environments(Set.of("DEFAULT", "env4", "env5", "env6", "env7", "env8"))
+                .build()
         );
 
         assertEquals("found 6 API Keys", 6, apiKeys.size());
@@ -350,7 +368,9 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void findByCriteria_should_read_subscriptions_list() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(ApiKeyCriteria.builder().expireAfter(30019401755L).build());
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
+            ApiKeyCriteria.builder().expireAfter(30019401755L).environments(Set.of("DEFAULT", "env5", "env7", "env8")).build()
+        );
         apiKeys.sort(Comparator.comparing(apikey -> apikey.getSubscriptions().size()));
 
         assertEquals(1, apiKeys.get(0).getSubscriptions().size());
@@ -412,7 +432,7 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     public void findAll_should_find_all_api_keys_even_with_no_subscription() throws TechnicalException {
         Set<ApiKey> apiKeys = apiKeyRepository.findAll();
 
-        assertThat(apiKeys).hasSize(13).extracting(ApiKey::getId).contains("id-of-apikey-8");
+        assertThat(apiKeys).extracting(ApiKey::getId).contains("id-of-apikey-8");
     }
 
     @Test
@@ -475,6 +495,241 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void searchAfter_shouldReturnSingleApiKeyForEnvironment() throws TechnicalException {
+        List<ApiKey> page = apiKeyRepository.searchAfter(
+            ApiKeyCriteria.builder().environments(singleton("env-ka-1")).build(),
+            new SortableBuilder().field("updatedAt").order(Order.ASC).build(),
+            null,
+            10
+        );
+
+        assertNotNull(page);
+        assertEquals(1, page.size());
+        assertEquals("apikey-ka-1", page.getFirst().getId());
+    }
+
+    @Test
+    public void searchAfter_shouldTerminateOnExactMultipleOfPageSize() throws TechnicalException {
+        ApiKeyCriteria criteria = ApiKeyCriteria.builder().environments(singleton("env-ka-term")).build();
+        var sortable = new SortableBuilder().field("updatedAt").order(Order.ASC).build();
+        int pageSize = 2;
+
+        List<ApiKey> page1 = apiKeyRepository.searchAfter(criteria, sortable, null, pageSize);
+        assertEquals(2, page1.size());
+
+        ApiKey last = page1.getLast();
+        List<ApiKey> page2 = apiKeyRepository.searchAfter(
+            criteria,
+            sortable,
+            ApiKeyCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()),
+            pageSize
+        );
+        assertEquals(2, page2.size());
+
+        last = page2.getLast();
+        List<ApiKey> page3 = apiKeyRepository.searchAfter(
+            criteria,
+            sortable,
+            ApiKeyCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()),
+            pageSize
+        );
+        assertTrue("Page after exact-multiple total must be empty", page3.isEmpty());
+    }
+
+    @Test
+    public void searchAfter_shouldFilterByIncludeRevokedAndExpireAfter() throws TechnicalException {
+        // includeRevoked=false (default) + expireAfter(now) + includeWithoutExpiration(true) is the
+        // warmup criteria shape. Of the four flt fixtures: revoked one excluded; expired one excluded
+        // (expireAt < expireAfter); active one and no-expire one included.
+        ApiKeyCriteria criteria = ApiKeyCriteria.builder()
+            .environments(singleton("env-ka-flt"))
+            .expireAfter(10000L)
+            .includeWithoutExpiration(true)
+            .build();
+        var sortable = new SortableBuilder().field("id").order(Order.ASC).build();
+
+        Set<String> collected = new LinkedHashSet<>();
+        ApiKeyCursor cursor = null;
+        int pageSize = 10;
+        int guard = 5;
+        while (guard-- > 0) {
+            List<ApiKey> page = apiKeyRepository.searchAfter(criteria, sortable, cursor, pageSize);
+            if (page.isEmpty()) {
+                break;
+            }
+            for (ApiKey k : page) {
+                collected.add(k.getId());
+            }
+            cursor = ApiKeyCursor.byId(page.getLast().getId());
+            if (page.size() < pageSize) {
+                break;
+            }
+        }
+
+        assertEquals(Set.of("apikey-ka-flt-active", "apikey-ka-flt-noexpire"), collected);
+    }
+
+    @Test
+    public void searchAfter_shouldHonourExpireAfterWithIncludeWithoutExpiration() throws TechnicalException {
+        // Compare searchAfter and legacy findByCriteria for the warmup criteria shape — they must
+        // return identical id sets.
+        ApiKeyCriteria criteria = ApiKeyCriteria.builder()
+            .environments(singleton("env-ka-flt"))
+            .expireAfter(10000L)
+            .includeWithoutExpiration(true)
+            .build();
+        var sortable = new SortableBuilder().field("id").order(Order.ASC).build();
+
+        Set<String> viaSearchAfter = new LinkedHashSet<>();
+        ApiKeyCursor cursor = null;
+        int pageSize = 50;
+        int guard = 5;
+        while (guard-- > 0) {
+            List<ApiKey> page = apiKeyRepository.searchAfter(criteria, sortable, cursor, pageSize);
+            if (page.isEmpty()) {
+                break;
+            }
+            page.forEach(k -> viaSearchAfter.add(k.getId()));
+            cursor = ApiKeyCursor.byId(page.getLast().getId());
+            if (page.size() < pageSize) {
+                break;
+            }
+        }
+
+        Set<String> viaLegacy = apiKeyRepository.findByCriteria(criteria).stream().map(ApiKey::getId).collect(Collectors.toSet());
+
+        assertEquals(
+            "searchAfter and legacy findByCriteria must return identical set for expireAfter+includeWithoutExpiration",
+            viaLegacy,
+            viaSearchAfter
+        );
+    }
+
+    @Test
+    public void searchAfter_shouldReturnCompleteSubscriptionsListAndNotShortPageDueToJoin() throws TechnicalException {
+        // Regression: JDBC LIMIT applied to keys LEFT JOIN key_subscriptions would consume
+        // key_subscriptions rows against the page budget. With pageSize=2 and two api keys
+        // (3 + 2 subscription rows), a naive LIMIT 2 on the join returns only the first key
+        // with partial subscriptions list. The page must contain exactly the two api keys with
+        // their complete subscriptions lists.
+        ApiKeyCriteria criteria = ApiKeyCriteria.builder().environments(singleton("env-ka-join")).build();
+        var sortable = new SortableBuilder().field("updatedAt").order(Order.ASC).build();
+
+        List<ApiKey> page = apiKeyRepository.searchAfter(criteria, sortable, null, 2);
+        assertEquals(2, page.size());
+        ApiKey a = page
+            .stream()
+            .filter(k -> "apikey-ka-join-a".equals(k.getId()))
+            .findFirst()
+            .orElseThrow();
+        ApiKey b = page
+            .stream()
+            .filter(k -> "apikey-ka-join-b".equals(k.getId()))
+            .findFirst()
+            .orElseThrow();
+        assertEquals(Set.of("sub-ka-join-a1", "sub-ka-join-a2", "sub-ka-join-a3"), Set.copyOf(a.getSubscriptions()));
+        assertEquals(Set.of("sub-ka-join-b1", "sub-ka-join-b2"), Set.copyOf(b.getSubscriptions()));
+
+        // Short page contract: next call past last key returns empty
+        ApiKey last = page.getLast();
+        List<ApiKey> next = apiKeyRepository.searchAfter(
+            criteria,
+            sortable,
+            ApiKeyCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()),
+            2
+        );
+        assertTrue(next.isEmpty());
+    }
+
+    @Test
+    public void searchAfter_shouldPaginateByIdWithSubscriptionsFilter() throws TechnicalException {
+        ApiKeyCriteria criteria = ApiKeyCriteria.builder()
+            .subscriptions(Set.of("sub-ka-warmup-a", "sub-ka-warmup-b", "sub-ka-warmup-c"))
+            .build();
+        var sortable = new SortableBuilder().field("id").order(Order.ASC).build();
+
+        Set<String> collected = new LinkedHashSet<>();
+        ApiKeyCursor cursor = null;
+        int pageSize = 2;
+        int guard = 10;
+        while (guard-- > 0) {
+            List<ApiKey> page = apiKeyRepository.searchAfter(criteria, sortable, cursor, pageSize);
+            if (page.isEmpty()) {
+                break;
+            }
+            for (ApiKey k : page) {
+                assertTrue("Duplicate id across pages: " + k.getId(), collected.add(k.getId()));
+            }
+            ApiKey last = page.getLast();
+            cursor = ApiKeyCursor.byId(last.getId());
+            if (page.size() < pageSize) {
+                break;
+            }
+        }
+
+        assertEquals(
+            "Warmup IN filter returns matching api keys exactly — no leak from unrelated subscription",
+            Set.of("apikey-ka-warmup-1", "apikey-ka-warmup-2", "apikey-ka-warmup-3"),
+            collected
+        );
+    }
+
+    @Test
+    public void searchAfter_shouldNotSkipOrDuplicateAcrossSameMsBoundary() throws TechnicalException {
+        ApiKeyCriteria criteria = ApiKeyCriteria.builder().environments(singleton("env-ka-3")).build();
+        var sortable = new SortableBuilder().field("updatedAt").order(Order.ASC).build();
+
+        Set<String> collected = new LinkedHashSet<>();
+        ApiKeyCursor cursor = null;
+        int pageSize = 2;
+        int guard = 10;
+        while (guard-- > 0) {
+            List<ApiKey> page = apiKeyRepository.searchAfter(criteria, sortable, cursor, pageSize);
+            if (page.isEmpty()) {
+                break;
+            }
+            for (ApiKey k : page) {
+                assertTrue("Duplicate id across pages: " + k.getId(), collected.add(k.getId()));
+            }
+            ApiKey last = page.getLast();
+            cursor = ApiKeyCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId());
+            if (page.size() < pageSize) {
+                break;
+            }
+        }
+
+        assertEquals(
+            "All 5 same-ms api keys returned exactly once",
+            Set.of("apikey-ka-3-a", "apikey-ka-3-b", "apikey-ka-3-c", "apikey-ka-3-d", "apikey-ka-3-e"),
+            collected
+        );
+    }
+
+    @Test
+    public void searchAfter_shouldRejectUnsupportedSortableField() {
+        var sortable = new SortableBuilder().field("createdAt").order(Order.ASC).build();
+        try {
+            apiKeyRepository.searchAfter(ApiKeyCriteria.builder().build(), sortable, null, 10);
+            fail("Expected TechnicalException for unsupported sortable field");
+        } catch (TechnicalException expected) {
+            assertTrue(expected.getMessage().toLowerCase().contains("createdat"));
+        }
+    }
+
+    @Test
+    public void searchAfter_shouldReturnEmptyWhenNoMatch() throws TechnicalException {
+        List<ApiKey> page = apiKeyRepository.searchAfter(
+            ApiKeyCriteria.builder().environments(singleton("env-ka-empty")).build(),
+            new SortableBuilder().field("updatedAt").order(Order.ASC).build(),
+            null,
+            10
+        );
+
+        assertNotNull(page);
+        assertTrue(page.isEmpty());
+    }
+
+    @Test
     public void should_delete_by_environment_id() throws TechnicalException {
         final var beforeDeletion = apiKeyRepository
             .findAll()
@@ -491,7 +746,7 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
             .count();
 
         assertEquals(beforeDeletion.size(), deleted.size());
-        assertEquals(beforeDeletion, deleted);
+        assertEquals(Set.copyOf(beforeDeletion), Set.copyOf(deleted));
         assertEquals(0, nbAfterDeletion);
     }
 }

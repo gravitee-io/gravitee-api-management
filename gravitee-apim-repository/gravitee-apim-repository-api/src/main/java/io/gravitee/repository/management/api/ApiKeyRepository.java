@@ -17,6 +17,7 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
+import io.gravitee.repository.management.api.search.ApiKeyCursor;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.ApiKey;
 import java.util.List;
@@ -97,6 +98,26 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
     List<ApiKey> findByCriteria(ApiKeyCriteria filter) throws TechnicalException;
 
     List<ApiKey> findByCriteria(ApiKeyCriteria filter, Sortable sortable) throws TechnicalException;
+
+    /**
+     * Keyset / seek pagination over api keys matching {@code criteria}. Returns up to
+     * {@code pageSize} api keys positioned strictly after {@code after} (or starting from the
+     * beginning when {@code after} is {@code null}). A short page (size {@code < pageSize})
+     * signals exhaustion.
+     *
+     * <p>Sort and seek mode are controlled by {@code sortable.field()}:
+     * <ul>
+     *   <li>{@code "updatedAt"} (or {@code null}) — sort {@code (updatedAt ASC, id ASC)}, seek
+     *       past {@code (after.updatedAt, after.id)}. Used by the gateway-sync delta loop.</li>
+     *   <li>{@code "id"} — sort {@code id ASC}, seek past {@code after.id}. Used by the
+     *       gateway-sync warmup load where a {@code subscriptions IN} filter dominates
+     *       selectivity.</li>
+     * </ul>
+     * {@code sortable.order()} is ignored — ASC is enforced.
+     *
+     * @throws TechnicalException if {@code sortable.field()} is not one of the documented values.
+     */
+    List<ApiKey> searchAfter(ApiKeyCriteria criteria, Sortable sortable, ApiKeyCursor after, int pageSize) throws TechnicalException;
 
     /**
      *
