@@ -17,11 +17,10 @@ export type AttrValue = string | number | boolean;
 
 /**
  * Where an entity record came from.
- *   - `local`     : hand-created in Authorization (fully editable).
- *   - `scim`      : synced from an external IdP via SCIM (read-only).
- *   - `directory` : synced from the built-in Gravitee User Directory (read-only).
+ *   - `local` : hand-created in Authorization (fully editable).
+ *   - `apim`  : derived from an APIM-managed API (read-only).
  */
-export type EntitySource = 'local' | 'scim' | 'directory';
+export type EntitySource = 'local' | 'apim';
 
 export interface EntityInstance {
     uid: { type: string; id: string };
@@ -31,13 +30,7 @@ export interface EntityInstance {
     parents: Array<{ type: string; id: string }>;
     /** Where this record was materialized from. Drives editability. */
     source: EntitySource;
-    /**
-     * Identity provider/source label for principals:
-     *  - SCIM: the IdP name (e.g. `Okta`, `Azure AD`).
-     *  - Directory: the directory name (e.g. `Gravitee User Directory`).
-     */
-    principalProvider?: string;
-    /** ISO timestamp of last import/sync (stored as _importedAt in backend attributes). */
+    /** ISO timestamp of last import (stored as _importedAt in backend attributes). */
     importedAt?: string;
     /** Backend record id (used for update/delete). Set after fromBackend(). */
     _backendId?: string;

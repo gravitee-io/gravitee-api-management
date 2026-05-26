@@ -29,10 +29,8 @@ describe('parseEntityUid', () => {
         expect(parseEntityUid('group.engineering')).toEqual({ type: 'Group', id: 'engineering' });
     });
 
-    it('parses SCIM 3-segment dotted form (kind.connector.slug)', () => {
-        // For SCIM mirrors the id keeps the full tail so a from→to round-trip
-        // reproduces the canonical entityId verbatim.
-        expect(parseEntityUid('user.okta.alice')).toEqual({ type: 'User', id: 'okta.alice' });
+    it('parses a multi-segment dotted id, keeping the full tail as the id', () => {
+        expect(parseEntityUid('mcp.flight-api.search')).toEqual({ type: 'MCPServer', id: 'flight-api.search' });
     });
 
     it('maps the mcp short kind back to MCPServer', () => {
@@ -63,9 +61,8 @@ describe('formatEntityUid', () => {
         expect(formatEntityUid({ type: 'MCPServer', id: 'flight-mcp' })).toBe('mcp.flight-mcp');
     });
 
-    it('keeps multi-segment ids intact (SCIM mirror layout)', () => {
-        // Round-tripping a SCIM-sourced uid must reproduce the canonical 3-seg form.
-        expect(formatEntityUid({ type: 'User', id: 'okta.alice' })).toBe('user.okta.alice');
+    it('keeps multi-segment ids intact', () => {
+        expect(formatEntityUid({ type: 'MCPServer', id: 'flight-api.search' })).toBe('mcp.flight-api.search');
     });
 
     it('round-trips a 2-segment local uid through parse', () => {
@@ -75,8 +72,8 @@ describe('formatEntityUid', () => {
         expect(parsed).toEqual(uid);
     });
 
-    it('round-trips a SCIM 3-segment uid through parse', () => {
-        const uid = { type: 'User', id: 'okta.alice' };
+    it('round-trips a multi-segment uid through parse', () => {
+        const uid = { type: 'MCPServer', id: 'flight-api.search' };
         const formatted = formatEntityUid(uid);
         const parsed = parseEntityUid(formatted);
         expect(parsed).toEqual(uid);
@@ -101,10 +98,8 @@ describe('fromBackend', () => {
         expect(inst.uid).toEqual({ type: 'User', id: 'alice' });
     });
 
-    it('parses SCIM 3-segment uid, keeping connector.slug as the id', () => {
-        // Regression for #8 — a SCIM-sourced principal must round-trip without
-        // re-wrapping its dotted entityId. The id keeps the connector segment.
-        const inst = fromBackend({ ...base, uid: 'user.okta.alice', attributes: { _kind: 'user', _connector: 'okta' } });
+    it('parses a multi-segment uid, keeping the tail as the id', () => {
+        const inst = fromBackend({ ...base, uid: 'user.okta.alice', attributes: { _kind: 'user' } });
         expect(inst.uid).toEqual({ type: 'User', id: 'okta.alice' });
     });
 
@@ -119,8 +114,8 @@ describe('fromBackend', () => {
     });
 
     it('extracts _source meta key', () => {
-        const inst = fromBackend({ ...base, attributes: { _kind: 'user', _source: 'scim' } });
-        expect(inst.source).toBe('scim');
+        const inst = fromBackend({ ...base, attributes: { _kind: 'user', _source: 'apim' } });
+        expect(inst.source).toBe('apim');
         expect(inst.attrs['_source']).toBeUndefined();
     });
 
@@ -183,9 +178,9 @@ describe('toBackend', () => {
             uid: { type: 'User', id: 'alice' },
             attrs: {},
             parents: [],
-            source: 'scim',
+            source: 'apim',
         });
-        expect(req.attributes['_source']).toBe('scim');
+        expect(req.attributes['_source']).toBe('apim');
     });
 
     it('writes _displayName when set', () => {
@@ -226,15 +221,12 @@ describe('toBackend', () => {
         expect(req.attributes['_displayName']).toBe('Engineering Team');
     });
 
-    it('round-trips a SCIM 3-segment principal without re-wrapping', () => {
-        // Regression for #8 — the bug was that fromBackend kept `id = "user.okta.alice"`
-        // and toBackend then produced `"User::"user.okta.alice""` (legacy wrap of the
-        // dotted form), corrupting the canonical entityId on every UI write.
+    it('round-trips a multi-segment principal without re-wrapping', () => {
         const response: EntityResponse = {
             id: 'x',
             environmentId: 'DEFAULT',
             uid: 'user.okta.alice',
-            attributes: { _kind: 'user', _connector: 'okta', _source: 'scim' },
+            attributes: { _kind: 'user', _source: 'apim' },
             parents: ['group.okta.engineering'],
             createdAt: '',
             updatedAt: '',
@@ -243,6 +235,6 @@ describe('toBackend', () => {
         const req = toBackend(inst);
         expect(req.uid).toBe('user.okta.alice');
         expect(req.parents).toEqual(['group.okta.engineering']);
-        expect(req.attributes['_source']).toBe('scim');
+        expect(req.attributes['_source']).toBe('apim');
     });
 });

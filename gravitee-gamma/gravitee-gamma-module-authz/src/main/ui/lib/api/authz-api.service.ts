@@ -188,10 +188,9 @@ export function deriveServiceType(entityId: string | null | undefined): PolicyTy
 // ---- Entity adapters --------------------------------------------------------
 
 function adaptEntityResponse(c: CanonicalEntity): EntityResponse {
-    // Surface canonical root-level kind/source as attributes so the existing
-    // entity-adapter (which already speaks _kind / _source) doesn't have to
-    // know we migrated. _source overrides nothing — if attributes already
-    // carry it (SCIM does), the canonical root just confirms.
+    // Surface the canonical root-level source as a `_source` attribute so the
+    // entity-adapter (which already speaks _source) doesn't need to know about
+    // the canonical shape. An existing _source attribute wins.
     const attrs: Record<string, unknown> = { ...c.attributes };
     if (c.source && attrs._source == null) {
         attrs._source = c.source;
