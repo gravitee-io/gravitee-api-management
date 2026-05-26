@@ -293,6 +293,35 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void findByCriteriaUnordered_should_return_same_set_as_findByCriteria() throws Exception {
+        ApiKeyCriteria criteria = ApiKeyCriteria.builder().expireAfter(1439022010000L).expireBefore(1439022020000L).build();
+
+        List<ApiKey> sorted = apiKeyRepository.findByCriteria(criteria);
+        List<ApiKey> unordered = apiKeyRepository.findByCriteriaUnordered(criteria);
+
+        assertNotNull(unordered);
+        assertEquals(sorted.size(), unordered.size());
+        Set<String> sortedIds = sorted.stream().map(ApiKey::getId).collect(java.util.stream.Collectors.toSet());
+        Set<String> unorderedIds = unordered.stream().map(ApiKey::getId).collect(java.util.stream.Collectors.toSet());
+        assertEquals(sortedIds, unorderedIds);
+    }
+
+    @Test
+    public void findByCriteriaUnordered_should_exclude_revoked_key_in_window() throws Exception {
+        // id-of-apikey-1 is revoked AND has expireAt=1439022010883 (inside the window). It must not surface.
+        ApiKeyCriteria criteria = ApiKeyCriteria.builder()
+            .includeRevoked(false)
+            .expireAfter(1439022010000L)
+            .expireBefore(1439022020000L)
+            .build();
+
+        List<ApiKey> result = apiKeyRepository.findByCriteriaUnordered(criteria);
+
+        Set<String> ids = result.stream().map(ApiKey::getId).collect(java.util.stream.Collectors.toSet());
+        assertTrue("revoked key id-of-apikey-1 must be excluded, got: " + ids, !ids.contains("id-of-apikey-1"));
+    }
+
+    @Test
     public void findByCriteria_should_find_by_criteria_with_expire_at_after_dates() throws Exception {
         List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(ApiKeyCriteria.builder().expireAfter(30019401755L).build());
 
