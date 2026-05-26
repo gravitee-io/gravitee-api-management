@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { stripLineComments } from './strip-line-comments';
+
 export interface ParsedEntity {
     name: string;
     parents: string[];
@@ -36,34 +38,6 @@ export interface ParsedSchema {
 interface Token {
     value: string;
     line: number;
-}
-
-function stripComments(text: string): string {
-    return text
-        .split('\n')
-        .map(line => {
-            let inString = false;
-            for (let i = 0; i < line.length; i++) {
-                const c = line[i];
-                if (inString) {
-                    if (c === '\\' && i + 1 < line.length) {
-                        i++;
-                        continue;
-                    }
-                    if (c === '"') inString = false;
-                    continue;
-                }
-                if (c === '"') {
-                    inString = true;
-                    continue;
-                }
-                if (c === '/' && line[i + 1] === '/') {
-                    return line.slice(0, i);
-                }
-            }
-            return line;
-        })
-        .join('\n');
 }
 
 function tokenise(strippedText: string): Token[] {
@@ -280,7 +254,7 @@ export function parseGaplSchema(text: string): ParsedSchema {
         return { entities: [], actions: [], diagnostics: [] };
     }
 
-    const stripped = stripComments(text);
+    const stripped = stripLineComments(text);
     const tokens = tokenise(stripped);
 
     const parser = new Parser(tokens);

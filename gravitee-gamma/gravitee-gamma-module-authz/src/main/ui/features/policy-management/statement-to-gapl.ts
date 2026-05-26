@@ -99,9 +99,11 @@ export function statementsToGapl(name: string, statements: readonly PolicyStatem
     return `${header}\n\n${body}`;
 }
 
+let emptyStatementSeq = 0;
+
 export function createEmptyStatement(effect: PolicyEffect = 'permit'): PolicyStatement {
     return {
-        id: `stmt-${Math.random().toString(36).slice(2, 9)}`,
+        id: `stmt-new-${emptyStatementSeq++}`,
         effect,
         principals: [],
         actions: [],

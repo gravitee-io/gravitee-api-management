@@ -20,6 +20,7 @@ import type {
     PrincipalRef,
     ResourceRef,
 } from '../features/policy-management/statement-to-gapl';
+import { stripLineComments } from './strip-line-comments';
 
 export interface ParsedPolicy {
     readonly statements: readonly PolicyStatement[];
@@ -30,32 +31,6 @@ interface Token {
     readonly value: string;
     readonly kind: 'word' | 'string' | 'punct' | 'op' | 'when-body';
     readonly raw?: string;
-}
-
-function stripComments(text: string): string {
-    return text
-        .split('\n')
-        .map(line => {
-            let inString = false;
-            for (let i = 0; i < line.length; i++) {
-                const c = line[i];
-                if (inString) {
-                    if (c === '\\' && i + 1 < line.length) {
-                        i++;
-                        continue;
-                    }
-                    if (c === '"') inString = false;
-                    continue;
-                }
-                if (c === '"') {
-                    inString = true;
-                    continue;
-                }
-                if (c === '/' && line[i + 1] === '/') return line.slice(0, i);
-            }
-            return line;
-        })
-        .join('\n');
 }
 
 function findMatchingBrace(text: string, open: number): number {
@@ -224,7 +199,7 @@ class PolicyParser {
         if (this.peek()?.value === ';') this.next();
 
         const stmt: PolicyStatement = {
-            id: `stmt-${Math.random().toString(36).slice(2, 9)}`,
+            id: `stmt-${this.statements.length}`,
             effect,
             principals,
             actions,
@@ -286,7 +261,7 @@ class PolicyParser {
 export function parseGaplToStatements(text: string): ParsedPolicy | null {
     if (!text || !text.trim()) return { statements: [], warnings: [] };
 
-    const stripped = stripComments(text);
+    const stripped = stripLineComments(text);
     const tokens = tokenise(stripped);
     if (tokens === null) return null;
     if (tokens.length === 0) return { statements: [], warnings: [] };
