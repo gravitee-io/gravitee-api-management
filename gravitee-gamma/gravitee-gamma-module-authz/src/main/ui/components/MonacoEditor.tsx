@@ -45,12 +45,14 @@ export function MonacoEditor({
         onMount?.(editor, monaco);
     };
 
+    const monacoTheme = theme === 'vs-dark' ? 'vs-dark' : 'vs';
+
     return (
         <div aria-label={ariaLabel} role={ariaLabel ? 'group' : undefined}>
             <Editor
                 height={height}
                 language={language}
-                theme={theme === 'system' ? 'vs' : theme}
+                theme={monacoTheme}
                 value={value}
                 onChange={v => onChange?.(v ?? '')}
                 onMount={handleMount}
