@@ -17,6 +17,8 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
+import { GioSelectSearchHarness } from '../../../../shared/components/gio-select-search/gio-select-search.harness';
+
 export class ApiRuntimeLogsNativeHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-native';
 
@@ -25,6 +27,8 @@ export class ApiRuntimeLogsNativeHarness extends ComponentHarness {
   );
   public emptyState = this.locatorForOptional(DivHarness.with({ selector: '.table__empty-state' }));
   public configureReportingLink = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid=native_logs_configure_reporting]' }));
+
+  public connectionStatusFilter = this.locatorFor(GioSelectSearchHarness.with({ formControlName: 'connectionStatuses' }));
 
   async isReportingDisabledBannerVisible(): Promise<boolean> {
     return this.reportingDisabledBanner().then(banner => banner != null);
