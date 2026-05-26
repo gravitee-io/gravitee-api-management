@@ -34,7 +34,7 @@
  * `_displayName`, `_importedAt`. These are NEVER shown in the visible
  * attributes table.
  */
-import type { AttrValue, EntityInstance, EntitySource } from '../app/features/policy-structure/entity-types';
+import type { AttrValue, EntityInstance, EntitySource } from './entity.types';
 import type { EntityRequest, EntityResponse } from './api/authz-api.types';
 
 // ---------- Meta key constants ------------------------------------------------
