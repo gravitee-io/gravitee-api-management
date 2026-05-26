@@ -92,6 +92,11 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
     }
 
     @Override
+    public List<ApiKey> findByCriteriaUnordered(ApiKeyCriteria filter) {
+        return mapper.mapApiKeys(internalApiKeyRepo.searchUnordered(filter));
+    }
+
+    @Override
     public Optional<ApiKey> addSubscription(String id, String subscriptionId) throws TechnicalException {
         UpdateResult result = internalApiKeyRepo.addSubscription(id, subscriptionId);
         if (result.getMatchedCount() == 0) {

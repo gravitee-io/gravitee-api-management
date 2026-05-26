@@ -30,6 +30,13 @@ import org.springframework.stereotype.Repository;
 public interface ApiKeyMongoRepositoryCustom {
     List<ApiKeyMongo> search(ApiKeyCriteria filter, final Sortable sortable);
 
+    /**
+     * Same predicate pipeline as {@link #search(ApiKeyCriteria, Sortable)} but emits no {@code $sort}
+     * stage. Lets the planner pick an ESR-friendly index for range-only call shapes
+     * (e.g. {@code {revoked:1, expireAt:1}}).
+     */
+    List<ApiKeyMongo> searchUnordered(ApiKeyCriteria filter);
+
     List<ApiKeyMongo> findByKeyAndApi(String key, String api);
 
     List<ApiKeyMongo> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType);

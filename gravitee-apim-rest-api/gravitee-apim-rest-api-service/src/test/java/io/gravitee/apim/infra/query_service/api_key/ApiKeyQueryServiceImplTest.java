@@ -17,16 +17,23 @@ package io.gravitee.apim.infra.query_service.api_key;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
+import io.gravitee.apim.core.api_key.model.ExpiringApiKey;
+import io.gravitee.apim.core.api_key.model.ExpiringApiKeySubscription;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
+import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -34,18 +41,22 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 public class ApiKeyQueryServiceImplTest {
 
     ApiKeyRepository apiKeyRepository;
+    SubscriptionRepository subscriptionRepository;
 
     ApiKeyQueryServiceImpl service;
 
     @BeforeEach
     void setUp() {
         apiKeyRepository = mock(ApiKeyRepository.class);
+        subscriptionRepository = mock(SubscriptionRepository.class);
 
-        service = new ApiKeyQueryServiceImpl(apiKeyRepository);
+        service = new ApiKeyQueryServiceImpl(apiKeyRepository, subscriptionRepository);
     }
 
     @Nested
@@ -351,6 +362,107 @@ public class ApiKeyQueryServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalManagementException.class)
                 .hasMessage("An error occurs while trying to find API keys by subscription id: " + subscriptionId);
+        }
+    }
+
+    @Nested
+    class FindExpiringApiKeys {
+
+        @Test
+        void should_return_empty_list_without_hitting_repo_when_days_buckets_is_empty() throws TechnicalException {
+            var result = service.findExpiringApiKeys(Instant.ofEpochMilli(1_700_000_000_000L), List.of(), 60_000L);
+
+            assertThat(result).isEmpty();
+            Mockito.verifyNoInteractions(apiKeyRepository);
+            Mockito.verifyNoInteractions(subscriptionRepository);
+        }
+
+        @Test
+        void should_emit_one_unordered_query_with_union_window_and_correct_flags() throws TechnicalException {
+            var now = Instant.ofEpochMilli(1_700_000_000_000L);
+            long oneDay = 24L * 60L * 60L * 1000L;
+            long windowMs = 60L * 60L * 1000L;
+            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class))).thenReturn(List.of());
+
+            service.findExpiringApiKeys(now, List.of(30, 45, 90), windowMs);
+
+            ArgumentCaptor<ApiKeyCriteria> captor = ArgumentCaptor.forClass(ApiKeyCriteria.class);
+            Mockito.verify(apiKeyRepository, Mockito.times(1)).findByCriteriaUnordered(captor.capture());
+            ApiKeyCriteria criteria = captor.getValue();
+            assertThat(criteria.isIncludeRevoked()).isFalse();
+            assertThat(criteria.isIncludeFederated()).isTrue();
+            assertThat(criteria.isIncludeWithoutExpiration()).isFalse();
+            assertThat(criteria.getExpireAfter()).isEqualTo(now.toEpochMilli() + 30 * oneDay);
+            assertThat(criteria.getExpireBefore()).isEqualTo(now.toEpochMilli() + 90 * oneDay + windowMs);
+        }
+
+        @Test
+        void should_skip_orphaned_subscription_references() throws TechnicalException {
+            var now = Instant.ofEpochMilli(1_700_000_000_000L);
+            ApiKey repoKey = ApiKey.builder()
+                .id("key-id")
+                .key("the-key-value")
+                .application("app-id")
+                .subscriptions(List.of("sub-found", "sub-missing"))
+                .expireAt(new Date(now.toEpochMilli() + 30L * 24 * 60 * 60 * 1000))
+                .build();
+            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class))).thenReturn(List.of(repoKey));
+            // sub-missing is intentionally not returned — simulates deletion between key write and our query
+            Subscription subFound = Subscription.builder().id("sub-found").api("api-x").plan("plan-x").subscribedBy("user-x").build();
+            when(subscriptionRepository.findByIdIn(any())).thenReturn(List.of(subFound));
+
+            List<ExpiringApiKey> result = service.findExpiringApiKeys(now, List.of(30), 60_000L);
+
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).subscriptions()).containsExactly(
+                new ExpiringApiKeySubscription("sub-found", "api-x", "plan-x", "user-x")
+            );
+        }
+
+        @Test
+        void should_map_api_keys_with_inline_subscription_projections_resolved_in_one_batch() throws TechnicalException {
+            var now = Instant.ofEpochMilli(1_700_000_000_000L);
+            Date expireDate = new Date(now.toEpochMilli() + 30L * 24 * 60 * 60 * 1000);
+            ApiKey repoKey = ApiKey.builder()
+                .id("key-id")
+                .key("the-key-value")
+                .application("app-id")
+                .subscriptions(List.of("sub-a", "sub-b"))
+                .expireAt(expireDate)
+                .daysToExpirationOnLastNotification(45)
+                .build();
+            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class))).thenReturn(List.of(repoKey));
+
+            Subscription subA = Subscription.builder().id("sub-a").api("api-a").plan("plan-a").subscribedBy("user-a").build();
+            Subscription subB = Subscription.builder().id("sub-b").api("api-b").plan("plan-b").subscribedBy("user-b").build();
+            when(subscriptionRepository.findByIdIn(any())).thenReturn(List.of(subA, subB));
+
+            List<ExpiringApiKey> result = service.findExpiringApiKeys(now, List.of(30), 60_000L);
+
+            assertThat(result).hasSize(1);
+            ExpiringApiKey mapped = result.get(0);
+            assertThat(mapped.id()).isEqualTo("key-id");
+            assertThat(mapped.key()).isEqualTo("the-key-value");
+            assertThat(mapped.applicationId()).isEqualTo("app-id");
+            assertThat(mapped.daysToExpirationOnLastNotification()).isEqualTo(45);
+            assertThat(mapped.expireAt().toInstant()).isEqualTo(expireDate.toInstant());
+            assertThat(mapped.subscriptions()).containsExactlyInAnyOrder(
+                new ExpiringApiKeySubscription("sub-a", "api-a", "plan-a", "user-a"),
+                new ExpiringApiKeySubscription("sub-b", "api-b", "plan-b", "user-b")
+            );
+
+            ArgumentCaptor<Collection<String>> idsCaptor = ArgumentCaptor.forClass(Collection.class);
+            Mockito.verify(subscriptionRepository, Mockito.times(1)).findByIdIn(idsCaptor.capture());
+            assertThat(idsCaptor.getValue()).containsExactlyInAnyOrder("sub-a", "sub-b");
+        }
+
+        @Test
+        void should_throw_technical_management_exception_when_repo_fails() throws TechnicalException {
+            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class))).thenThrow(TechnicalException.class);
+
+            Throwable thrown = catchThrowable(() -> service.findExpiringApiKeys(Instant.now(), List.of(30), 60_000L));
+
+            assertThat(thrown).isInstanceOf(TechnicalManagementException.class);
         }
     }
 

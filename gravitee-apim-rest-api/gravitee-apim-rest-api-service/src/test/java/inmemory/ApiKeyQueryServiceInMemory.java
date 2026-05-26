@@ -16,9 +16,11 @@
 package inmemory;
 
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
+import io.gravitee.apim.core.api_key.model.ExpiringApiKey;
 import io.gravitee.apim.core.api_key.query_service.ApiKeyQueryService;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -104,6 +106,11 @@ public class ApiKeyQueryServiceInMemory implements ApiKeyQueryService, InMemoryA
     @Override
     public Stream<ApiKeyEntity> findBySubscription(String subscriptionId) {
         return storage.stream().filter(apiKey -> apiKey.getSubscriptions().contains(subscriptionId));
+    }
+
+    @Override
+    public List<ExpiringApiKey> findExpiringApiKeys(Instant now, List<Integer> daysBuckets, long windowMs) {
+        return List.of();
     }
 
     @Override
