@@ -1319,6 +1319,7 @@ components:
                 - LLM
                 - MCP
                 - NATIVE
+                - EDGE
             description: Available API names for analytics queries
             example: "HTTP_PROXY"
 
@@ -1343,6 +1344,7 @@ components:
                 - MESSAGES
                 - MESSAGE_ERRORS
                 - MESSAGE_GATEWAY_LATENCY
+                - EDGE_DETECTION_COUNT
                 - NATIVE_CONNECTIONS_SUMMARY
             description: Available metric names for analytics queries
 
@@ -1378,6 +1380,9 @@ components:
                 - MCP_PROXY_TOOL
                 - MCP_PROXY_RESOURCE
                 - MCP_PROXY_PROMPT
+                - EDGE_PROVIDER
+                - EDGE_PROCESS
+                - EDGE_CLIENT
                 - NATIVE_CONNECTION_STATUS
             description: Available facet names for grouping analytics data
 
@@ -1423,6 +1428,10 @@ components:
                 - MCP_PROXY_PROMPT
                 - API_TYPE
                 - ERROR_KEY
+                - EDGE_PROVIDER
+                - EDGE_PROCESS
+                - EDGE_CLIENT
+                - EDGE_TYPE
                 - NATIVE_CONNECTION_STATUS
             description: Available filter names for filtering analytics data
 
