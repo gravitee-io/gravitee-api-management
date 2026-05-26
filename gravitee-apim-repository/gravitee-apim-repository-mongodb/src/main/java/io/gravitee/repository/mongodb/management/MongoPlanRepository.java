@@ -177,4 +177,16 @@ public class MongoPlanRepository implements PlanRepository {
         throws TechnicalException {
         return internalPlanRepository.findByIdAndReferenceIdAndReferenceType(id, referenceId, planReferenceType.name()).map(this::map);
     }
+
+    @Override
+    public Set<Plan> findByCrossIds(Collection<String> crossIds) throws TechnicalException {
+        if (crossIds == null || crossIds.isEmpty()) {
+            return Set.of();
+        }
+        try {
+            return internalPlanRepository.findByCrossIdIn(crossIds).stream().map(this::map).collect(Collectors.toSet());
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to find plans by crossId list", ex);
+        }
+    }
 }

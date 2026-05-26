@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management.internal.plan;
 
 import io.gravitee.repository.mongodb.management.internal.model.PlanMongo;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -36,4 +37,7 @@ public interface PlanMongoRepository extends MongoRepository<PlanMongo, String>,
 
     @Query(value = "{ 'id': ?0, 'referenceId': ?1, 'referenceType': ?2 }")
     Optional<PlanMongo> findByIdAndReferenceIdAndReferenceType(String id, String referenceId, String referenceType);
+
+    @Query(value = "{ 'crossId': { $in: ?0 } }")
+    List<PlanMongo> findByCrossIdIn(Collection<String> crossIds);
 }
