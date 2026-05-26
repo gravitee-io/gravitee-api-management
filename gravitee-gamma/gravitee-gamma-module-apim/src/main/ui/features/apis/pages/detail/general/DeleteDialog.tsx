@@ -26,7 +26,7 @@ import {
     Label,
 } from '@gravitee/graphene-core';
 import { Trash2Icon } from '@gravitee/graphene-core/icons';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export function DeleteDialog({
     open,
@@ -44,10 +44,11 @@ export function DeleteDialog({
     error?: string | null;
 }>) {
     const [confirm, setConfirm] = useState('');
-
-    useEffect(() => {
+    const [prevOpen, setPrevOpen] = useState(open);
+    if (prevOpen !== open) {
+        setPrevOpen(open);
         if (!open) setConfirm('');
-    }, [open]);
+    }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

@@ -28,7 +28,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@gravitee/graphene-core';
-import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { type FormEvent, useCallback, useMemo, useState } from 'react';
 
 import type { ApiNotifier } from '../../../types/notification';
 import { CHANNEL_ICON } from '../../../utils/notificationFormatters';
@@ -69,16 +69,16 @@ interface AddNotificationDialogProps {
 export function AddNotificationDialog({ open, notifiers, isPending, onClose, onAdd }: Readonly<AddNotificationDialogProps>) {
     const [name, setName] = useState('');
     const [selectedNotifierId, setSelectedNotifierId] = useState('__PORTAL__');
-
-    const channelOptions = useMemo(() => buildChannelOptions(notifiers), [notifiers]);
-
-    // Reset state each time the dialog opens
-    useEffect(() => {
+    const [prevOpen, setPrevOpen] = useState(open);
+    if (prevOpen !== open) {
+        setPrevOpen(open);
         if (open) {
             setName('');
             setSelectedNotifierId('__PORTAL__');
         }
-    }, [open]);
+    }
+
+    const channelOptions = useMemo(() => buildChannelOptions(notifiers), [notifiers]);
 
     const isValid = name.trim().length > 0;
 

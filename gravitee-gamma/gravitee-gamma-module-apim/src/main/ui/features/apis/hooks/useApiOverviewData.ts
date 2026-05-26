@@ -21,7 +21,8 @@ import { listAlerts } from '../services/alerts';
 import { getApiAnalyticsStats } from '../services/analytics';
 import { getExposedEntrypoints } from '../services/entrypoints';
 import { getApiMembers } from '../services/members';
-import { apiAlertKeys, apiAnalyticsKeys, apiEntrypointKeys, apiMemberKeys } from '../utils/queryKeys';
+import { listPlans } from '../services/plans';
+import { apiAlertKeys, apiAnalyticsKeys, apiEntrypointKeys, apiMemberKeys, apiPlanKeys } from '../utils/queryKeys';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const WINDOW_MS = 5 * 60 * 1000;
@@ -41,21 +42,18 @@ export function useApiOverviewData(apiId: string | undefined) {
         queryKey: apiMemberKeys.list(envId, apiId ?? ''),
         queryFn: () => getApiMembers(envId, apiId!),
         enabled,
-        staleTime: 30_000,
     });
 
     const alertsQuery = useQuery({
         queryKey: apiAlertKeys.list(envId, apiId ?? ''),
         queryFn: () => listAlerts(envId, apiId!),
         enabled,
-        staleTime: 60_000,
     });
 
     const exposedEntrypointsQuery = useQuery({
         queryKey: apiEntrypointKeys.exposed(envId, apiId ?? ''),
         queryFn: () => getExposedEntrypoints(envId, apiId!),
         enabled,
-        staleTime: 30_000,
     });
 
     const statsQuery = useQuery({
@@ -65,14 +63,22 @@ export function useApiOverviewData(apiId: string | undefined) {
         staleTime: WINDOW_MS,
     });
 
+    const plansCtx = { type: 'api' as const, entityId: apiId ?? '' };
+    const plansQuery = useQuery({
+        queryKey: apiPlanKeys.list(envId, plansCtx, ['STAGING', 'PUBLISHED', 'DEPRECATED'], 1, 1),
+        queryFn: () => listPlans(envId, plansCtx, ['STAGING', 'PUBLISHED', 'DEPRECATED'], 1, 1),
+        enabled,
+    });
+
     return {
         membersData: membersQuery.data,
         alertsData: alertsQuery.data,
         exposedEntrypoints: exposedEntrypointsQuery.data,
         analyticsStats: statsQuery.data,
+        hasPlans: (plansQuery.data?.pagination?.totalCount ?? 0) > 0,
         isLoadingTraffic: statsQuery.isLoading,
-        isLoadingMembers: membersQuery.isLoading,
-        isLoadingAlerts: alertsQuery.isLoading,
-        isLoadingEntrypoints: exposedEntrypointsQuery.isLoading,
+        isLoadingMembers: membersQuery.isFetching,
+        isLoadingAlerts: alertsQuery.isFetching,
+        isLoadingEntrypoints: exposedEntrypointsQuery.isFetching,
     };
 }

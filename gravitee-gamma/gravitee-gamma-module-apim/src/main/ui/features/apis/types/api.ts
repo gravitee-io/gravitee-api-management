@@ -168,6 +168,75 @@ export interface ApiEndpointGroup {
     endpoints?: ApiHttpEndpoint[];
 }
 
+// ─── Rich endpoint types (used by the Endpoints feature) ─────────────────────
+
+export type LoadBalancerType = 'ROUND_ROBIN' | 'RANDOM' | 'WEIGHTED_RANDOM' | 'WEIGHTED_ROUND_ROBIN';
+
+export interface EndpointGroupProxy {
+    enabled?: boolean;
+    useSystemProxy?: boolean;
+    host?: string;
+    port?: number;
+    username?: string;
+    password?: string;
+    type?: string;
+}
+
+export interface EndpointGroupHttp {
+    keepAlive?: boolean;
+    keepAliveTimeout?: number;
+    readTimeout?: number;
+    idleTimeout?: number;
+    connectTimeout?: number;
+    maxConcurrentConnections?: number;
+    maxHeaderSize?: number;
+    maxChunkSize?: number;
+    useCompression?: boolean;
+    propagateClientAcceptEncoding?: boolean;
+    propagateClientHostHeader?: boolean;
+    pipelining?: boolean;
+    followRedirects?: boolean;
+    version?: 'HTTP_1_1' | 'HTTP_2';
+    clearTextUpgrade?: boolean;
+}
+
+export interface EndpointGroupSsl {
+    hostnameVerifier?: boolean;
+    trustAll?: boolean;
+    clientAuthentication?: 'NONE' | 'REQUIRED' | 'OPTIONAL';
+}
+
+export interface EndpointGroupHeader {
+    name: string;
+    value: string;
+}
+
+export interface EndpointGroupSharedConfiguration {
+    proxy?: EndpointGroupProxy;
+    http?: EndpointGroupHttp;
+    ssl?: EndpointGroupSsl;
+    headers?: EndpointGroupHeader[];
+}
+
+export interface EndpointDto {
+    name: string;
+    type: string;
+    weight?: number;
+    backup?: boolean;
+    inheritConfiguration?: boolean;
+    configuration?: { target?: string; [key: string]: unknown };
+    tenants?: string[];
+    sharedConfigurationOverride?: Record<string, unknown>;
+}
+
+export interface EndpointGroupDto {
+    name: string;
+    type: string;
+    loadBalancer?: { type: LoadBalancerType };
+    sharedConfiguration?: EndpointGroupSharedConfiguration;
+    endpoints?: EndpointDto[];
+}
+
 export interface Failover {
     enabled?: boolean;
     maxRetries?: number;
@@ -213,7 +282,7 @@ export interface ApiDetailDto {
     services?: { dynamicProperty?: DynamicPropertyConfig };
     analytics?: Analytics;
     listeners?: HttpListener[];
-    endpointGroups?: ApiEndpointGroup[];
+    endpointGroups?: EndpointGroupDto[];
     failover?: Failover;
     allowMultiJwtOauth2Subscriptions?: boolean;
     /** Populated for APIs synced from an external source (e.g. Kubernetes operator). */
@@ -277,6 +346,15 @@ export interface DynamicPropertyConfig {
     schedule?: string;
     provider?: DynamicPropertyProvider;
     configuration?: Record<string, unknown>;
+}
+
+// ─── Tenant ───────────────────────────────────────────────────────────────────
+
+export interface Tenant {
+    id: string;
+    key: string;
+    name: string;
+    description?: string;
 }
 
 // ─── Entrypoints types ───────────────────────────────────────────────────────

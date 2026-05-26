@@ -15,7 +15,7 @@
  */
 import { cn } from '@gravitee/graphene-core';
 import { UploadIcon } from '@gravitee/graphene-core/icons';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 const MAX_SIZE_BYTES = 500 * 1024;
 
@@ -48,11 +48,11 @@ export function ImagePicker({
     const inputRef = useRef<HTMLInputElement>(null);
     const [sizeError, setSizeError] = useState<string | null>(null);
     const [imgError, setImgError] = useState(false);
-
-    // Reset error state when preview URL changes (e.g. after upload invalidates the query)
-    useEffect(() => {
+    const [prevPreview, setPrevPreview] = useState(preview);
+    if (prevPreview !== preview) {
+        setPrevPreview(preview);
         setImgError(false);
-    }, [preview]);
+    }
 
     const handleFile = useCallback(
         async (file: File) => {

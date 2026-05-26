@@ -16,42 +16,27 @@
 import {
     Badge,
     Button,
+    DataTable,
+    DataTableColumnHeader,
+    DataTablePagination,
+    type DataTableColumnHeaderProps,
+    type DataTableProps,
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-    Skeleton,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
 } from '@gravitee/graphene-core';
 import { MoreHorizontalIcon } from '@gravitee/graphene-core/icons';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type { ApiProductListItem } from '../../types/apiProduct';
 
-function SkeletonRow() {
-    return (
-        <TableRow>
-            <TableCell>
-                <Skeleton className="h-4 w-36 rounded" />
-            </TableCell>
-            <TableCell>
-                <Skeleton className="h-4 w-10 rounded" />
-            </TableCell>
-            <TableCell>
-                <Skeleton className="h-4 w-16 rounded" />
-            </TableCell>
-            <TableCell>
-                <Skeleton className="h-4 w-24 rounded" />
-            </TableCell>
-            <TableCell />
-        </TableRow>
-    );
-}
+// Column type helpers derived entirely from graphene's exported types
+type ColHeader<T> = { column: DataTableColumnHeaderProps<T, unknown>['column'] };
+type ColCell<T> = { row: { original: T } };
+
+// ─── Actions dropdown ─────────────────────────────────────────────────────────
 
 function ProductActionsMenu({ productId, onNavigate }: { productId: string; onNavigate: (path: string) => void }) {
     return (
@@ -69,71 +54,123 @@ function ProductActionsMenu({ productId, onNavigate }: { productId: string; onNa
     );
 }
 
+// ─── Column definitions ───────────────────────────────────────────────────────
+
+function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<ApiProductListItem>['columns'] {
+    return [
+        {
+            accessorKey: 'name',
+            header: ({ column }: ColHeader<ApiProductListItem>) => <DataTableColumnHeader column={column} title="Product Name" />,
+            cell: ({ row }: ColCell<ApiProductListItem>) => (
+                <button
+                    type="button"
+                    className="font-medium text-left hover:underline"
+                    onClick={() => navigate(`${row.original.id}/overview`)}
+                >
+                    {row.original.name}
+                </button>
+            ),
+        },
+        {
+            id: 'apiCount',
+            header: ({ column }: ColHeader<ApiProductListItem>) => <DataTableColumnHeader column={column} title="Total APIs" />,
+            accessorFn: (row: ApiProductListItem) => row.apiIds?.length ?? 0,
+            cell: ({ row }: ColCell<ApiProductListItem>) => (
+                <Badge variant="secondary" className="text-xs tabular-nums">
+                    {row.original.apiIds?.length ?? 0}
+                </Badge>
+            ),
+        },
+        {
+            accessorKey: 'version',
+            header: ({ column }: ColHeader<ApiProductListItem>) => <DataTableColumnHeader column={column} title="Version" />,
+            cell: ({ row }: ColCell<ApiProductListItem>) => (
+                <Badge variant="outline" className="font-mono text-xs">
+                    {row.original.version}
+                </Badge>
+            ),
+        },
+        {
+            id: 'owner',
+            header: ({ column }: ColHeader<ApiProductListItem>) => <DataTableColumnHeader column={column} title="Owner" />,
+            accessorFn: (row: ApiProductListItem) => row.primaryOwner?.displayName ?? '',
+            cell: ({ row }: ColCell<ApiProductListItem>) => (
+                <span className="text-sm text-muted-foreground">{row.original.primaryOwner?.displayName ?? '—'}</span>
+            ),
+        },
+        {
+            id: 'actions',
+            header: () => <div className="text-right">Actions</div>,
+            size: 56,
+            cell: ({ row }: ColCell<ApiProductListItem>) => (
+                <div className="flex justify-end">
+                    <ProductActionsMenu productId={row.original.id} onNavigate={navigate} />
+                </div>
+            ),
+            enableSorting: false,
+            enableHiding: false,
+        },
+    ];
+}
+
+// ─── Table ────────────────────────────────────────────────────────────────────
+
 interface ApiProductListTableProps {
     products: ApiProductListItem[];
     isLoading: boolean;
     skeletonRowCount?: number;
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    onPageChange: (page: number) => void;
+    onPageSizeChange: (pageSize: number) => void;
+    toolbar?: React.ReactNode;
 }
 
-export function ApiProductListTable({ products, isLoading, skeletonRowCount = 5 }: ApiProductListTableProps) {
+export function ApiProductListTable({
+    products,
+    isLoading,
+    skeletonRowCount = 5,
+    page,
+    pageSize,
+    totalCount,
+    onPageChange,
+    onPageSizeChange,
+    toolbar,
+}: ApiProductListTableProps) {
     const navigate = useNavigate();
+    const [sorting, setSorting] = useState([{ id: 'name', desc: false }]);
+    const columns = buildColumns(navigate);
+
+    const paginationEl = (
+        <DataTablePagination
+            page={page}
+            pageSize={pageSize}
+            totalCount={totalCount}
+            pageSizeOptions={[10, 25, 50, 100]}
+            onPageChange={onPageChange}
+            onPageSizeChange={onPageSizeChange}
+        />
+    );
+
+    const compositeToolbar = (
+        <div className="flex items-center gap-4 flex-1 min-w-0">
+            {toolbar}
+            <div className="ml-auto shrink-0">{paginationEl}</div>
+        </div>
+    );
 
     return (
-        <div className="rounded-lg border">
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Product Name</TableHead>
-                        <TableHead>Total APIs</TableHead>
-                        <TableHead>Version</TableHead>
-                        <TableHead>Owner</TableHead>
-                        <TableHead className="w-10 text-right">Actions</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {isLoading ? (
-                        Array.from({ length: skeletonRowCount }).map((_, i) => <SkeletonRow key={i} />)
-                    ) : products.length === 0 ? (
-                        <TableRow>
-                            <TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">
-                                No API products found.
-                            </TableCell>
-                        </TableRow>
-                    ) : (
-                        products.map(product => (
-                            <TableRow
-                                key={product.id}
-                                className="cursor-pointer hover:bg-accent"
-                                role="button"
-                                tabIndex={0}
-                                onClick={() => navigate(`${product.id}/overview`)}
-                                onKeyDown={e => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        e.preventDefault();
-                                        navigate(`${product.id}/overview`);
-                                    }
-                                }}
-                            >
-                                <TableCell className="font-medium">{product.name}</TableCell>
-                                <TableCell>
-                                    <Badge variant="secondary" className="text-xs tabular-nums">
-                                        {product.apiIds?.length ?? 0}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell>
-                                    <Badge variant="outline" className="font-mono text-xs">
-                                        {product.version}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="text-sm text-muted-foreground">{product.primaryOwner?.displayName ?? '—'}</TableCell>
-                                <TableCell className="text-right">
-                                    <ProductActionsMenu productId={product.id} onNavigate={navigate} />
-                                </TableCell>
-                            </TableRow>
-                        ))
-                    )}
-                </TableBody>
-            </Table>
-        </div>
+        <DataTable
+            columns={columns}
+            data={products}
+            sorting={sorting}
+            onSortingChange={setSorting}
+            enableColumnVisibility
+            loading={isLoading}
+            skeletonCount={skeletonRowCount}
+            toolbar={compositeToolbar}
+            emptyMessage="No API products found."
+        />
     );
 }

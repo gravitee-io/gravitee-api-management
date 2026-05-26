@@ -16,23 +16,26 @@
 import {
     Badge,
     Button,
+    DataTable,
+    DataTableColumnHeader,
+    DataTablePagination,
+    type DataTableColumnHeaderProps,
+    type DataTableProps,
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-    Skeleton,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
 } from '@gravitee/graphene-core';
 import { AlertCircleIcon, CircleCheckIcon, CircleXIcon, MoreHorizontalIcon, RefreshCwIcon } from '@gravitee/graphene-core/icons';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type { ApiDeploymentState, ApiListItem, ApiState } from '../../types';
 import { getApiAccessPath } from '../../utils/apiAccess';
+
+// Column type helpers derived entirely from graphene's exported types
+type ColHeader<T> = { column: DataTableColumnHeaderProps<T, unknown>['column'] };
+type ColCell<T> = { row: { original: T } };
 
 // ─── Status helpers ───────────────────────────────────────────────────────────
 
@@ -80,31 +83,6 @@ function SyncStatusBadge({ deploymentState }: { deploymentState: ApiDeploymentSt
     );
 }
 
-// ─── Skeleton row ─────────────────────────────────────────────────────────────
-
-function SkeletonRow() {
-    return (
-        <TableRow>
-            <TableCell>
-                <Skeleton className="h-4 w-32 rounded" />
-            </TableCell>
-            <TableCell>
-                <Skeleton className="h-5 w-16 rounded-full" />
-            </TableCell>
-            <TableCell>
-                <Skeleton className="h-5 w-14 rounded-full" />
-            </TableCell>
-            <TableCell>
-                <Skeleton className="h-5 w-24 rounded-full" />
-            </TableCell>
-            <TableCell>
-                <Skeleton className="h-4 w-28 rounded" />
-            </TableCell>
-            <TableCell />
-        </TableRow>
-    );
-}
-
 // ─── Actions dropdown ─────────────────────────────────────────────────────────
 
 function ApiActionsMenu({ apiId, onNavigate }: { apiId: string; onNavigate: (path: string) => void }) {
@@ -124,74 +102,132 @@ function ApiActionsMenu({ apiId, onNavigate }: { apiId: string; onNavigate: (pat
     );
 }
 
-// ─── Main table ───────────────────────────────────────────────────────────────
+// ─── Column definitions ───────────────────────────────────────────────────────
+
+function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<ApiListItem>['columns'] {
+    return [
+        {
+            accessorKey: 'name',
+            header: ({ column }: ColHeader<ApiListItem>) => <DataTableColumnHeader column={column} title="API Name" />,
+            cell: ({ row }: ColCell<ApiListItem>) => (
+                <button
+                    type="button"
+                    className="font-medium text-left hover:underline"
+                    onClick={() => navigate(`${row.original.id}/overview`)}
+                >
+                    {row.original.name}
+                </button>
+            ),
+        },
+        {
+            accessorKey: 'state',
+            header: ({ column }: ColHeader<ApiListItem>) => <DataTableColumnHeader column={column} title="Runtime Status" />,
+            cell: ({ row }: ColCell<ApiListItem>) => <RuntimeStatusBadge state={row.original.state} />,
+        },
+        {
+            accessorKey: 'deploymentState',
+            header: ({ column }: ColHeader<ApiListItem>) => <DataTableColumnHeader column={column} title="Sync Status" />,
+            cell: ({ row }: ColCell<ApiListItem>) => <SyncStatusBadge deploymentState={row.original.deploymentState} />,
+        },
+        {
+            id: 'access',
+            header: 'Access',
+            cell: ({ row }: ColCell<ApiListItem>) => {
+                const path = getApiAccessPath(row.original);
+                return path ? (
+                    <Badge variant="outline" className="font-mono text-xs">
+                        {path}
+                    </Badge>
+                ) : (
+                    <span className="text-muted-foreground text-xs">—</span>
+                );
+            },
+            enableSorting: false,
+        },
+        {
+            id: 'owner',
+            header: ({ column }: ColHeader<ApiListItem>) => <DataTableColumnHeader column={column} title="Owner" />,
+            accessorFn: (row: ApiListItem) => row.primaryOwner?.displayName ?? '',
+            cell: ({ row }: ColCell<ApiListItem>) => (
+                <span className="text-sm text-muted-foreground">{row.original.primaryOwner?.displayName ?? '—'}</span>
+            ),
+        },
+        {
+            id: 'actions',
+            header: () => <div className="text-right">Actions</div>,
+            size: 56,
+            cell: ({ row }: ColCell<ApiListItem>) => (
+                <div className="flex justify-end">
+                    <ApiActionsMenu apiId={row.original.id} onNavigate={navigate} />
+                </div>
+            ),
+            enableSorting: false,
+            enableHiding: false,
+        },
+    ];
+}
+
+// ─── Table ────────────────────────────────────────────────────────────────────
 
 interface ApiListTableProps {
     readonly apis: ApiListItem[];
     readonly isLoading: boolean;
     readonly skeletonRowCount?: number;
+    readonly page?: number;
+    readonly pageSize?: number;
+    readonly totalCount?: number;
+    readonly onPageChange?: (page: number) => void;
+    readonly onPageSizeChange?: (pageSize: number) => void;
+    readonly toolbar?: React.ReactNode;
 }
 
-export function ApiListTable({ apis, isLoading, skeletonRowCount = 5 }: ApiListTableProps) {
+export function ApiListTable({
+    apis,
+    isLoading,
+    skeletonRowCount = 5,
+    page = 1,
+    pageSize = 10,
+    totalCount = 0,
+    onPageChange,
+    onPageSizeChange,
+    toolbar,
+}: ApiListTableProps) {
     const navigate = useNavigate();
+    const [sorting, setSorting] = useState([{ id: 'name', desc: false }]);
+    const columns = buildColumns(navigate);
+
+    const paginationEl =
+        onPageChange && onPageSizeChange ? (
+            <DataTablePagination
+                page={page}
+                pageSize={pageSize}
+                totalCount={totalCount}
+                pageSizeOptions={[10, 25, 50, 100]}
+                onPageChange={onPageChange}
+                onPageSizeChange={onPageSizeChange}
+            />
+        ) : null;
+
+    const compositeToolbar = paginationEl ? (
+        <div className="flex items-center gap-4 flex-1 min-w-0">
+            {toolbar}
+            <div className="ml-auto shrink-0">{paginationEl}</div>
+        </div>
+    ) : (
+        toolbar
+    );
 
     return (
-        <div className="rounded-lg border">
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>API Name</TableHead>
-                        <TableHead>Runtime Status</TableHead>
-                        <TableHead>Sync Status</TableHead>
-                        <TableHead>Access</TableHead>
-                        <TableHead>Owner</TableHead>
-                        <TableHead className="w-10 text-right">Actions</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {isLoading ? (
-                        Array.from({ length: skeletonRowCount }).map((_, i) => <SkeletonRow key={i} />)
-                    ) : apis.length === 0 ? (
-                        <TableRow>
-                            <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
-                                No APIs found.
-                            </TableCell>
-                        </TableRow>
-                    ) : (
-                        apis.map(api => {
-                            const accessPath = getApiAccessPath(api);
-                            return (
-                                <TableRow
-                                    key={api.id}
-                                    className="cursor-pointer hover:bg-accent"
-                                    onClick={() => navigate(`${api.id}/overview`)}
-                                >
-                                    <TableCell className="font-medium">{api.name}</TableCell>
-                                    <TableCell>
-                                        <RuntimeStatusBadge state={api.state} />
-                                    </TableCell>
-                                    <TableCell>
-                                        <SyncStatusBadge deploymentState={api.deploymentState} />
-                                    </TableCell>
-                                    <TableCell>
-                                        {accessPath ? (
-                                            <Badge variant="outline" className="font-mono text-xs">
-                                                {accessPath}
-                                            </Badge>
-                                        ) : (
-                                            <span className="text-muted-foreground text-xs">—</span>
-                                        )}
-                                    </TableCell>
-                                    <TableCell className="text-sm text-muted-foreground">{api.primaryOwner?.displayName ?? '—'}</TableCell>
-                                    <TableCell className="text-right">
-                                        <ApiActionsMenu apiId={api.id} onNavigate={navigate} />
-                                    </TableCell>
-                                </TableRow>
-                            );
-                        })
-                    )}
-                </TableBody>
-            </Table>
-        </div>
+        <DataTable
+            columns={columns}
+            data={apis}
+            sorting={sorting}
+            onSortingChange={setSorting}
+            enableColumnVisibility
+            loading={isLoading}
+            skeletonCount={skeletonRowCount}
+            toolbar={compositeToolbar}
+            emptyMessage="No APIs found."
+        />
     );
 }

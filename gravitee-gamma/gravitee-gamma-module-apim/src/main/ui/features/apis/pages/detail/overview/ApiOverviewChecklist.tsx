@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import { ActivityIcon, GlobeIcon, LockIcon, NetworkIcon, UsersIcon, WorkflowIcon } from '@gravitee/graphene-core/icons';
-import { useCallback, useMemo, useState } from 'react';
 
 import { OverviewChecklistCard, type OverviewChecklistItem } from '../../../../../shared/components/OverviewChecklistCard';
+import { useChecklistOverrides } from '../../../../../shared/hooks/useChecklistOverrides';
 import type { AlertTrigger, ApiDetailDto } from '../../../types';
 import type { MembersResponse } from '../../../types/members.types';
 
@@ -24,7 +24,8 @@ function buildChecklistItems(
     api: ApiDetailDto | null,
     membersData: MembersResponse | undefined,
     alertsData: AlertTrigger[] | undefined,
-    manuallyDone: Set<string>,
+    hasPlans: boolean,
+    itemDone: (autoDone: boolean, id: string) => boolean,
 ): OverviewChecklistItem[] {
     const hasEndpointGroup = Boolean(api?.endpointGroups?.[0]?.endpoints?.length);
     const memberCount = membersData?.pagination?.totalCount ?? 0;
@@ -34,13 +35,12 @@ function buildChecklistItems(
     return [
         {
             id: 'endpoint-security',
-            label: 'Configure upstream endpoints',
+            label: 'Configure endpoint groups',
             tooltip: 'Set up load balancing, SSL/TLS, or authentication between the gateway and your upstream service.',
             to: '../endpoints/list',
             icon: NetworkIcon,
             actionLabel: 'Open Endpoints',
-            done: hasEndpointGroup || manuallyDone.has('endpoint-security'),
-            locked: hasEndpointGroup,
+            done: itemDone(hasEndpointGroup, 'endpoint-security'),
         },
         {
             id: 'security-policies',
@@ -49,8 +49,7 @@ function buildChecklistItems(
             to: '../policy-studio',
             icon: WorkflowIcon,
             actionLabel: 'Open Policy Studio',
-            done: manuallyDone.has('security-policies'),
-            locked: false,
+            done: itemDone(false, 'security-policies'),
         },
         {
             id: 'authorization',
@@ -68,8 +67,7 @@ function buildChecklistItems(
             to: '../alerts',
             icon: ActivityIcon,
             actionLabel: 'Open Alerts',
-            done: hasAlerts || manuallyDone.has('alerts'),
-            locked: hasAlerts,
+            done: itemDone(hasAlerts, 'alerts'),
         },
         {
             id: 'team-access',
@@ -78,8 +76,7 @@ function buildChecklistItems(
             to: '../user-permissions',
             icon: UsersIcon,
             actionLabel: 'Manage Access',
-            done: memberCount > 1 || manuallyDone.has('team-access'),
-            locked: memberCount > 1,
+            done: itemDone(memberCount > 1, 'team-access'),
         },
         {
             id: 'publish',
@@ -88,8 +85,7 @@ function buildChecklistItems(
             to: '../general',
             icon: GlobeIcon,
             actionLabel: 'Open General',
-            done: isPublished || manuallyDone.has('publish'),
-            locked: isPublished,
+            done: itemDone(isPublished, 'publish'),
         },
     ];
 }
@@ -98,6 +94,7 @@ interface ApiOverviewChecklistProps {
     api: ApiDetailDto | null;
     membersData: MembersResponse | undefined;
     alertsData: AlertTrigger[] | undefined;
+    hasPlans: boolean;
     isLoadingMembers: boolean;
     isLoadingAlerts: boolean;
 }
@@ -106,33 +103,25 @@ export function ApiOverviewChecklist({
     api,
     membersData,
     alertsData,
+    hasPlans,
     isLoadingMembers,
     isLoadingAlerts,
 }: Readonly<ApiOverviewChecklistProps>) {
+    const { overrideDone, overrideUndone, toggle } = useChecklistOverrides(api?.id);
+
+    // done = (auto-detected && user hasn't manually unchecked) || user manually checked
+    function itemDone(autoDone: boolean, id: string): boolean {
+        return (autoDone && !overrideUndone.has(id)) || overrideDone.has(id);
+    }
+
     const isReady = !isLoadingMembers && !isLoadingAlerts;
-    const [manuallyDone, setManuallyDone] = useState<Set<string>>(new Set());
-
-    const items = useMemo(
-        () => (isReady ? buildChecklistItems(api, membersData, alertsData, manuallyDone) : []),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [api, membersData, alertsData, isReady, manuallyDone],
-    );
-
-    const handleToggle = useCallback((id: string, newDone: boolean) => {
-        setManuallyDone(prev => {
-            const next = new Set(prev);
-            if (newDone) next.add(id);
-            else next.delete(id);
-            return next;
-        });
-    }, []);
 
     return (
         <OverviewChecklistCard
             description="Finish setting up your API proxy. Each row links to the right screen."
-            items={items}
+            items={buildChecklistItems(api, membersData, alertsData, hasPlans, itemDone)}
             isReady={isReady}
-            onToggle={handleToggle}
+            onToggle={toggle}
         />
     );
 }

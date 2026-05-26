@@ -40,8 +40,6 @@ export interface OverviewChecklistItem {
     actionLabel: string;
     done: boolean;
     comingSoon?: boolean;
-    /** When true the done state is driven by a real API condition — the row cannot be unchecked manually. */
-    locked?: boolean;
 }
 
 interface OverviewChecklistCardProps {
@@ -107,13 +105,11 @@ export function OverviewChecklistCard({
                             <TooltipProvider delayDuration={200}>
                                 {items.map(item => {
                                     const ItemIcon = item.icon;
-                                    const isToggleable = !item.locked && !item.comingSoon && Boolean(onToggle);
+                                    const isToggleable = !item.comingSoon && Boolean(onToggle);
                                     return (
                                         <div
                                             key={item.id}
-                                            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors${
-                                                item.done && item.locked ? ' opacity-60' : ''
-                                            }${isToggleable ? ' cursor-pointer hover:bg-accent/50' : ''}`}
+                                            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors${isToggleable ? ' cursor-pointer hover:bg-accent/50' : ''}`}
                                             onClick={isToggleable ? () => onToggle!(item.id, !item.done) : undefined}
                                             role={isToggleable ? 'checkbox' : undefined}
                                             aria-checked={isToggleable ? item.done : undefined}
