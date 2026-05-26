@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static io.gravitee.repository.jdbc.utils.FieldUtils.toSnakeCase;
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -24,6 +25,7 @@ import io.gravitee.repository.jdbc.management.JdbcHelper.CollatingRowMapper;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
+import io.gravitee.repository.management.api.search.ApiKeyCursor;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.ApiKey;
@@ -171,6 +173,125 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         } catch (final Exception ex) {
             log.error("Failed to find API Keys by criteria (unordered):", ex);
             throw new TechnicalException("Failed to find API Keys by criteria", ex);
+        }
+    }
+
+    @Override
+    public List<ApiKey> searchAfter(final ApiKeyCriteria criteria, final Sortable sortable, final ApiKeyCursor after, final int pageSize)
+        throws TechnicalException {
+        boolean sortByUpdatedAt;
+        if (sortable == null || sortable.field() == null || "updatedAt".equals(sortable.field())) {
+            sortByUpdatedAt = true;
+        } else if ("id".equals(sortable.field())) {
+            sortByUpdatedAt = false;
+        } else {
+            throw new TechnicalException("searchAfter supports sort field 'updatedAt' or 'id' only, got: " + sortable.field());
+        }
+
+        final List<Object> argsList = new ArrayList<>();
+        // Apply pageSize LIMIT against the keys table BEFORE the key_subscriptions LEFT JOIN —
+        // otherwise a federated key with multiple key_subscriptions rows consumes more than one
+        // row of the limit (partial subscriptions + false short-page exhaustion). Build the page
+        // of key ids in a subquery, then join key_subscriptions on the outer query.
+        final StringBuilder inner = new StringBuilder("select * from ").append(this.tableName);
+
+        boolean started = false;
+        if (!isEmpty(criteria.getSubscriptions())) {
+            inner.append(" where ");
+            inner
+                .append("id in ( select key_id from ")
+                .append(keySubscriptions)
+                .append(" where subscription_id in ( ")
+                .append(getOrm().buildInClause(criteria.getSubscriptions()))
+                .append(" ) )");
+            argsList.addAll(criteria.getSubscriptions());
+            started = true;
+        }
+        if (!isEmpty(criteria.getEnvironments())) {
+            inner.append(started ? " and " : " where ");
+            inner.append("( environment_id in ( ").append(getOrm().buildInClause(criteria.getEnvironments())).append(" ) )");
+            argsList.addAll(criteria.getEnvironments());
+            started = true;
+        }
+        if (!criteria.isIncludeRevoked()) {
+            inner.append(started ? " and " : " where ");
+            inner.append("revoked = ?");
+            argsList.add(false);
+            started = true;
+        }
+        if (!criteria.isIncludeFederated()) {
+            inner.append(started ? " and " : " where ");
+            inner.append("federated = ?");
+            argsList.add(false);
+            started = true;
+        }
+        if (criteria.getFrom() > 0) {
+            inner.append(started ? " and " : " where ");
+            inner.append("updated_at >= ?");
+            argsList.add(new Date(criteria.getFrom()));
+            started = true;
+        }
+        if (criteria.getTo() > 0) {
+            inner.append(started ? " and " : " where ");
+            inner.append("updated_at <= ?");
+            argsList.add(new Date(criteria.getTo()));
+            started = true;
+        }
+        if (criteria.getExpireAfter() > 0) {
+            inner.append(started ? " and " : " where ");
+            if (criteria.isIncludeWithoutExpiration()) {
+                inner.append("( expire_at is NULL or expire_at >= ? )");
+            } else {
+                inner.append("expire_at >= ?");
+            }
+            argsList.add(new Date(criteria.getExpireAfter()));
+            started = true;
+        }
+        if (criteria.getExpireBefore() > 0) {
+            inner.append(started ? " and " : " where ");
+            if (criteria.isIncludeWithoutExpiration()) {
+                inner.append("( expire_at is NULL or expire_at <= ? )");
+            } else {
+                inner.append("expire_at <= ?");
+            }
+            argsList.add(new Date(criteria.getExpireBefore()));
+            started = true;
+        }
+        if (after != null) {
+            inner.append(started ? " and " : " where ");
+            if (sortByUpdatedAt) {
+                inner.append("( updated_at > ? or ( updated_at = ? and id > ? ) )");
+                Date marker = new Date(after.updatedAt());
+                argsList.add(marker);
+                argsList.add(marker);
+                argsList.add(after.id());
+            } else {
+                inner.append("id > ?");
+                argsList.add(after.id());
+            }
+        }
+
+        if (sortByUpdatedAt) {
+            inner.append(" order by updated_at asc, id asc ");
+        } else {
+            inner.append(" order by id asc ");
+        }
+        inner.append(createPagingClause(pageSize, 0));
+
+        final String query =
+            "select k.*, ks.subscription_id as subscription_id from (" +
+            inner +
+            ") k left join " +
+            keySubscriptions +
+            " ks on ks.key_id = k.id " +
+            (sortByUpdatedAt ? "order by k.updated_at asc, k.id asc" : "order by k.id asc");
+
+        try {
+            CollatingRowMapper<ApiKey> rowMapper = new CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+            jdbcTemplate.query(query, rowMapper, argsList.toArray());
+            return rowMapper.getRows();
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to search API Keys after cursor", ex);
         }
     }
 

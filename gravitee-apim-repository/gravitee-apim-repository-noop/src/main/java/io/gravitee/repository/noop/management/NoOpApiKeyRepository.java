@@ -18,6 +18,7 @@ package io.gravitee.repository.noop.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
+import io.gravitee.repository.management.api.search.ApiKeyCursor;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.ApiKey;
 import java.util.List;
@@ -93,6 +94,12 @@ public class NoOpApiKeyRepository implements ApiKeyRepository {
 
     @Override
     public List<ApiKey> findByCriteriaUnordered(ApiKeyCriteria filter) throws TechnicalException {
+        return List.of();
+    }
+
+    @Override
+    public List<ApiKey> searchAfter(ApiKeyCriteria criteria, Sortable sortable, ApiKeyCursor after, int pageSize)
+        throws TechnicalException {
         return List.of();
     }
 
