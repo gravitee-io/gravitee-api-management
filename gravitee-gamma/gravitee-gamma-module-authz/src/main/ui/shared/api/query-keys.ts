@@ -17,7 +17,15 @@ export const authzQueryKeys = {
     all: ['authz'] as const,
     entities: {
         all: (environmentId: string) => ['authz', 'entities', environmentId] as const,
-        page: (environmentId: string, page: number, perPage: number) => ['authz', 'entities', environmentId, page, perPage] as const,
+        page: (
+            environmentId: string,
+            page: number,
+            perPage: number,
+            kind?: string,
+            source?: string,
+            entityIdPrefix?: string,
+            excludeEntityIdPrefix?: string,
+        ) => ['authz', 'entities', environmentId, page, perPage, kind, source, entityIdPrefix, excludeEntityIdPrefix] as const,
     },
     policies: {
         all: (environmentId: string) => ['authz', 'policies', environmentId] as const,

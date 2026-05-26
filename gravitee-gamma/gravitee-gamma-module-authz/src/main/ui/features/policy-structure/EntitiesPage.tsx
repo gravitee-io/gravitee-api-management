@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import {
     Alert,
     AlertDescription,
@@ -32,14 +33,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@gravitee/graphene-core';
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { BoxesIcon, RefreshCwIcon } from '@gravitee/graphene-core/icons';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useDeferredValue, useMemo, useState } from 'react';
 import { KpiTile } from '../../components/KpiTile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/Tabs';
 import { formatEntityUid, fromBackend } from '../../shared/entity-adapter';
-import { useEntities } from '../../shared/hooks/useEntities';
+import { useEntities, type UseEntitiesResult } from '../../shared/hooks/useEntities';
 import { CATEGORIES, getEntityCategoryId, type EntityInstance } from './entity-types';
 
 type SourceFilter = 'all' | string;
@@ -47,6 +47,7 @@ type TypeFilter = 'all' | string;
 type TabKey = 'principals' | 'resources';
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+const ACTION_PREFIX = 'action.';
 
 const PRINCIPALS_HELP =
     'Principals (users, groups, service accounts, agent identities) live in this environment. Edit and import flows are in a follow-up PR.';
@@ -63,8 +64,7 @@ function displayNameOf(entity: EntityInstance): string {
 }
 
 function sourceLabelOf(entity: EntityInstance): string {
-    if (entity.source === 'scim') return entity.principalProvider ? `SCIM · ${entity.principalProvider}` : 'SCIM';
-    if (entity.source === 'directory') return entity.principalProvider ?? 'User Directory';
+    if (entity.source === 'apim') return 'APIM';
     return 'Local';
 }
 
@@ -252,9 +252,16 @@ function distinctSorted<T extends string>(values: Iterable<T>): T[] {
     return Array.from(new Set(values)).sort();
 }
 
+function pageEntities(query: UseEntitiesResult): readonly EntityInstance[] {
+    if (!query.data) return [];
+    return query.data.data.map(fromBackend);
+}
+
 export function EntitiesPage() {
     const env = useEnvironment();
-    const entities = useEntities(env?.id ?? '');
+    const environmentId = env?.id ?? '';
+    const principalsQuery = useEntities(environmentId, undefined, { kind: 'PRINCIPAL' });
+    const resourcesQuery = useEntities(environmentId, undefined, { kind: 'RESOURCE', excludeEntityIdPrefix: ACTION_PREFIX });
 
     const [principalSearch, setPrincipalSearch] = useState('');
     const [principalTypeFilter, setPrincipalTypeFilter] = useState<TypeFilter>('all');
@@ -266,19 +273,19 @@ export function EntitiesPage() {
     const deferredPrincipalSearch = useDeferredValue(principalSearch);
     const deferredResourceSearch = useDeferredValue(resourceSearch);
 
-    const allEntities = useMemo<readonly EntityInstance[]>(() => {
-        if (!entities.data) return [];
-        return entities.data.data.map(fromBackend).filter(e => e.uid.type !== 'Action');
-    }, [entities.data]);
+    const principals = useMemo(() => pageEntities(principalsQuery), [principalsQuery]);
+    const resources = useMemo(() => pageEntities(resourcesQuery), [resourcesQuery]);
 
-    const principals = useMemo(() => allEntities.filter(e => getEntityCategoryId(e.uid.type) === 'principal'), [allEntities]);
-    const resources = useMemo(() => allEntities.filter(e => getEntityCategoryId(e.uid.type) !== 'principal'), [allEntities]);
+    const principalTotal = principalsQuery.data?.total ?? 0;
+    const resourceTotal = resourcesQuery.data?.total ?? 0;
 
     const principalTypes = useMemo(() => distinctSorted(principals.map(e => e.uid.type)), [principals]);
     const resourceTypes = useMemo(() => distinctSorted(resources.map(e => e.uid.type)), [resources]);
     const principalSources = useMemo(() => distinctSorted(principals.map(sourceLabelOf)), [principals]);
     const resourceSources = useMemo(() => distinctSorted(resources.map(sourceLabelOf)), [resources]);
 
+    // TODO(authz-ui): server-side filters for search/type/source — these stay
+    // client-side and operate on the currently visible page only.
     const filteredPrincipals = useMemo(
         () => applyFilters(principals, deferredPrincipalSearch, principalTypeFilter, principalSourceFilter),
         [principals, deferredPrincipalSearch, principalTypeFilter, principalSourceFilter],
@@ -289,17 +296,24 @@ export function EntitiesPage() {
     );
 
     const kpis = useMemo(() => {
-        const total = principals.length + resources.length;
+        const visibleTypes = new Set<string>();
+        principals.forEach(e => visibleTypes.add(e.uid.type));
+        resources.forEach(e => visibleTypes.add(e.uid.type));
         return {
-            total,
-            types: distinctSorted(allEntities.map(e => e.uid.type)).length,
-            principals: principals.length,
-            resources: resources.length,
+            total: principalTotal + resourceTotal,
+            types: visibleTypes.size,
+            principals: principalTotal,
+            resources: resourceTotal,
         };
-    }, [allEntities, principals.length, resources.length]);
+    }, [principals, resources, principalTotal, resourceTotal]);
 
-    // TODO(authz-ui): backend filter param for kind — per-tab pagination currently uses the global total.
-    const tabTotal = entities.data?.total ?? 0;
+    const isLoading = principalsQuery.isLoading || resourcesQuery.isLoading;
+    const error = principalsQuery.error ?? resourcesQuery.error;
+
+    const reloadAll = () => {
+        principalsQuery.reload();
+        resourcesQuery.reload();
+    };
 
     return (
         <div className="flex flex-col gap-4">
@@ -315,23 +329,23 @@ export function EntitiesPage() {
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button type="button" variant="ghost" size="icon" onClick={entities.reload} aria-label="Refresh">
+                    <Button type="button" variant="ghost" size="icon" onClick={reloadAll} aria-label="Refresh">
                         <RefreshCwIcon aria-hidden className="size-4" />
                     </Button>
                 </div>
             </header>
 
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4" aria-label="Key metrics">
-                <KpiTile label="Total entities" value={kpis.total} loading={entities.isLoading} />
-                <KpiTile label="Entity types" value={kpis.types} loading={entities.isLoading} />
-                <KpiTile label="Principals" value={kpis.principals} loading={entities.isLoading} />
-                <KpiTile label="Resources" value={kpis.resources} loading={entities.isLoading} />
+                <KpiTile label="Total entities" value={kpis.total} loading={isLoading} />
+                <KpiTile label="Entity types" value={kpis.types} loading={isLoading} />
+                <KpiTile label="Principals" value={kpis.principals} loading={isLoading} />
+                <KpiTile label="Resources" value={kpis.resources} loading={isLoading} />
             </div>
 
-            {entities.error !== undefined && (
+            {error !== undefined && (
                 <Alert variant="destructive">
                     <AlertTitle>Could not load entities</AlertTitle>
-                    <AlertDescription>{entities.error}</AlertDescription>
+                    <AlertDescription>{error}</AlertDescription>
                 </Alert>
             )}
 
@@ -340,13 +354,13 @@ export function EntitiesPage() {
                     <TabsTrigger value="principals">
                         Principals
                         <Badge variant="secondary" className="ml-2 h-4 px-1 text-[10px]">
-                            {principals.length}
+                            {principalTotal}
                         </Badge>
                     </TabsTrigger>
                     <TabsTrigger value="resources">
                         Resources
                         <Badge variant="secondary" className="ml-2 h-4 px-1 text-[10px]">
-                            {resources.length}
+                            {resourceTotal}
                         </Badge>
                     </TabsTrigger>
                 </TabsList>
@@ -370,12 +384,12 @@ export function EntitiesPage() {
                         tab="principals"
                         entities={filteredPrincipals}
                         searchValue={deferredPrincipalSearch}
-                        isLoading={entities.isLoading}
-                        page={entities.page}
-                        perPage={entities.perPage}
-                        totalCount={tabTotal}
-                        onPageChange={entities.setPage}
-                        onPerPageChange={entities.setPerPage}
+                        isLoading={principalsQuery.isLoading}
+                        page={principalsQuery.page}
+                        perPage={principalsQuery.perPage}
+                        totalCount={principalTotal}
+                        onPageChange={principalsQuery.setPage}
+                        onPerPageChange={principalsQuery.setPerPage}
                     />
                 </TabsContent>
 
@@ -398,12 +412,12 @@ export function EntitiesPage() {
                         tab="resources"
                         entities={filteredResources}
                         searchValue={deferredResourceSearch}
-                        isLoading={entities.isLoading}
-                        page={entities.page}
-                        perPage={entities.perPage}
-                        totalCount={tabTotal}
-                        onPageChange={entities.setPage}
-                        onPerPageChange={entities.setPerPage}
+                        isLoading={resourcesQuery.isLoading}
+                        page={resourcesQuery.page}
+                        perPage={resourcesQuery.perPage}
+                        totalCount={resourceTotal}
+                        onPageChange={resourcesQuery.setPage}
+                        onPerPageChange={resourcesQuery.setPerPage}
                     />
                 </TabsContent>
             </Tabs>

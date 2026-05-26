@@ -183,6 +183,29 @@ class AuthzEntitiesResourceTest extends AbstractAuthorizationResourceTest {
     }
 
     @Test
+    void get_list_filters_by_excludeEntityIdPrefix() {
+        List<AuthzEntity> page = List.of(entity("api.payments", AuthzEntityKind.RESOURCE, Map.of(), List.of(), "apim"));
+        when(
+            entityService.findPage(
+                eq(ENV),
+                eq(new AuthzEntityFilter(AuthzEntityKind.RESOURCE, null, null, "action.")),
+                any(Pageable.class)
+            )
+        ).thenReturn(new PagedResult<>(page, page.size(), 1, Pageable.DEFAULT_PER_PAGE));
+
+        try (
+            Response response = target("/entities")
+                .queryParam("kind", "RESOURCE")
+                .queryParam("excludeEntityIdPrefix", "action.")
+                .request()
+                .get()
+        ) {
+            PagedResponseDto<AuthzEntityResponse> body = response.readEntity(new GenericType<>() {});
+            assertThat(body.data()).extracting(AuthzEntityResponse::entityId).containsExactly("api.payments");
+        }
+    }
+
+    @Test
     void put_updates_attributes_and_parents_only() {
         AuthzEntity updated = entity("api.123", AuthzEntityKind.RESOURCE, Map.of("k", "v2"), List.of("api.parent"), "apim");
         when(entityService.update(any(), eq("api.123"), any(UpdateAuthzEntityCommand.class))).thenReturn(updated);

@@ -206,6 +206,28 @@ class AuthzEntityServiceImplTest {
     }
 
     @Test
+    void find_excludes_entries_matching_excludeEntityIdPrefix() {
+        entityService.upsert(CALLER, create("api.123", AuthzEntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("action.api.123.read", AuthzEntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("action.api.123.write", AuthzEntityKind.RESOURCE, "apim"));
+
+        assertThat(entityService.find(ENV, new AuthzEntityFilter(null, null, null, "action.")))
+            .extracting(AuthzEntity::entityId)
+            .containsExactly("api.123");
+    }
+
+    @Test
+    void find_combines_kind_and_excludeEntityIdPrefix() {
+        entityService.upsert(CALLER, create("api.payments", AuthzEntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("action.api.payments.charge", AuthzEntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("user.alice", AuthzEntityKind.PRINCIPAL, "scim"));
+
+        assertThat(entityService.find(ENV, new AuthzEntityFilter(AuthzEntityKind.RESOURCE, null, null, "action.")))
+            .extracting(AuthzEntity::entityId)
+            .containsExactly("api.payments");
+    }
+
+    @Test
     void delete_removes_target_entity_and_returns_it_in_cascade_result() {
         entityService.upsert(CALLER, create("api.123", AuthzEntityKind.RESOURCE, "apim"));
 

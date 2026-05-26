@@ -103,6 +103,7 @@ public class AuthzEntitiesResource {
         @QueryParam("kind") AuthzEntityKind kind,
         @QueryParam("source") String source,
         @QueryParam("entityIdPrefix") String entityIdPrefix,
+        @QueryParam("excludeEntityIdPrefix") String excludeEntityIdPrefix,
         @QueryParam("page") Integer page,
         @QueryParam("perPage") Integer perPage
     ) {
@@ -111,7 +112,11 @@ public class AuthzEntitiesResource {
             Pageable pageable = (page == null && perPage == null)
                 ? Pageable.firstPage()
                 : Pageable.of(page == null ? 1 : page, perPage == null ? Pageable.DEFAULT_PER_PAGE : perPage);
-            PagedResult<AuthzEntity> result = service.findPage(env, new AuthzEntityFilter(kind, source, entityIdPrefix), pageable);
+            PagedResult<AuthzEntity> result = service.findPage(
+                env,
+                new AuthzEntityFilter(kind, source, entityIdPrefix, excludeEntityIdPrefix),
+                pageable
+            );
             return PagedResponseDto.from(result, AuthzEntityResponse::from);
         });
     }

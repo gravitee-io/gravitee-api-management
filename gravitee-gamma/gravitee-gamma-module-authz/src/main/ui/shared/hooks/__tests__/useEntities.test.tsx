@@ -18,7 +18,7 @@ import { act, render, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { useEffect } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { useEntities, type UseEntitiesResult } from '../useEntities';
+import { useEntities, type UseEntitiesFilter, type UseEntitiesResult } from '../useEntities';
 
 const listSpy = vi.fn();
 
@@ -65,7 +65,10 @@ describe('useEntities', () => {
         const { getByTestId } = render(<Probe env="env-1" />, { wrapper: makeWrapper() });
 
         await waitFor(() => expect(getByTestId('total').textContent).toBe('0'));
-        expect(listSpy).toHaveBeenCalledWith('env-1', { page: 1, perPage: 10 });
+        expect(listSpy).toHaveBeenCalledWith(
+            'env-1',
+            expect.objectContaining({ page: 1, perPage: 10, kind: undefined, excludeEntityIdPrefix: undefined }),
+        );
     });
 
     it('sets error when listEntities fails', async () => {
@@ -113,8 +116,8 @@ describe('useEntities', () => {
         rerender(<PerPageProbe perPage={50} />);
         await waitFor(() => expect(listSpy).toHaveBeenCalledTimes(2));
 
-        expect(listSpy).toHaveBeenNthCalledWith(1, 'env-pp', { page: 1, perPage: 10 });
-        expect(listSpy).toHaveBeenNthCalledWith(2, 'env-pp', { page: 1, perPage: 50 });
+        expect(listSpy).toHaveBeenNthCalledWith(1, 'env-pp', expect.objectContaining({ page: 1, perPage: 10 }));
+        expect(listSpy).toHaveBeenNthCalledWith(2, 'env-pp', expect.objectContaining({ page: 1, perPage: 50 }));
     });
 
     it('internal setPerPage still works', async () => {
@@ -137,7 +140,24 @@ describe('useEntities', () => {
         });
 
         await waitFor(() => expect(listSpy).toHaveBeenCalledTimes(2));
-        expect(listSpy).toHaveBeenNthCalledWith(2, 'env-set', { page: 1, perPage: 25 });
+        expect(listSpy).toHaveBeenNthCalledWith(2, 'env-set', expect.objectContaining({ page: 1, perPage: 25 }));
+    });
+
+    it('forwards filter options to listEntities', async () => {
+        listSpy.mockResolvedValue({ data: [], total: 0, page: 1, perPage: 10 });
+
+        function FilterProbe({ filter }: { filter: UseEntitiesFilter }) {
+            const state = useEntities('env-f', undefined, filter);
+            return <span data-testid="total">{state.data?.total ?? 'null'}</span>;
+        }
+
+        render(<FilterProbe filter={{ kind: 'RESOURCE', excludeEntityIdPrefix: 'action.' }} />, { wrapper: makeWrapper() });
+
+        await waitFor(() => expect(listSpy).toHaveBeenCalledTimes(1));
+        expect(listSpy).toHaveBeenCalledWith(
+            'env-f',
+            expect.objectContaining({ page: 1, perPage: 10, kind: 'RESOURCE', excludeEntityIdPrefix: 'action.' }),
+        );
     });
 
     it('ignores stale response after env change', async () => {

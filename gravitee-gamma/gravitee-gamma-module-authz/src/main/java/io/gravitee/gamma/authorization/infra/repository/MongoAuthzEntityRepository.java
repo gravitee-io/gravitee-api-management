@@ -155,6 +155,9 @@ public class MongoAuthzEntityRepository implements AuthzEntityRepository {
         if (f.entityIdPrefix() != null) {
             query.addCriteria(Criteria.where("entityId").regex("^" + Pattern.quote(f.entityIdPrefix())));
         }
+        if (f.excludeEntityIdPrefix() != null) {
+            query.addCriteria(Criteria.where("entityId").not().regex("^" + Pattern.quote(f.excludeEntityIdPrefix())));
+        }
         long total = mongo.count(query, AuthzEntityMongo.class);
         query.skip(pageable.skip()).limit(pageable.perPage());
         var data = mongo.find(query, AuthzEntityMongo.class).stream().map(AuthzEntityDocumentMapper::toDomain).toList();

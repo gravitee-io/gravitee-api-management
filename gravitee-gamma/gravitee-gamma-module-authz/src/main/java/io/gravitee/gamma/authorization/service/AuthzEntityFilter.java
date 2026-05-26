@@ -17,8 +17,12 @@ package io.gravitee.gamma.authorization.service;
 
 import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
 
-public record AuthzEntityFilter(AuthzEntityKind kind, String source, String entityIdPrefix) {
+public record AuthzEntityFilter(AuthzEntityKind kind, String source, String entityIdPrefix, String excludeEntityIdPrefix) {
+    public AuthzEntityFilter(AuthzEntityKind kind, String source, String entityIdPrefix) {
+        this(kind, source, entityIdPrefix, null);
+    }
+
     public static AuthzEntityFilter none() {
-        return new AuthzEntityFilter(null, null, null);
+        return new AuthzEntityFilter(null, null, null, null);
     }
 }
