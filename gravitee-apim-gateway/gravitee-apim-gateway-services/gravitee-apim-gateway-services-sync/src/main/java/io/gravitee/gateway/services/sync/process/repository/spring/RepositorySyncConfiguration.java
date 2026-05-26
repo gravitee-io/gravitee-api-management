@@ -140,8 +140,11 @@ public class RepositorySyncConfiguration {
     }
 
     @Bean
-    public ApiKeyFetcher apiKeyFetcher(ApiKeyRepository apiKeyRepository) {
-        return new ApiKeyFetcher(apiKeyRepository);
+    public ApiKeyFetcher apiKeyFetcher(
+        ApiKeyRepository apiKeyRepository,
+        @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems
+    ) {
+        return new ApiKeyFetcher(apiKeyRepository, bulkItems);
     }
 
     @Bean
@@ -336,7 +339,13 @@ public class RepositorySyncConfiguration {
         SubscriptionMapper subscriptionMapper,
         ApiKeyMapper apiKeyMapper,
         SubscriptionService subscriptionService,
-        ApiKeyService apiKeyService
+        ApiKeyService apiKeyService,
+        @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems,
+        @Value(
+            "${services.sync.subscriptions_chunk_size:" +
+                io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_SUBSCRIPTIONS_CHUNK_SIZE +
+                "}"
+        ) int subscriptionsChunkSize
     ) {
         return new ApiProductSubscriptionRefresher(
             subscriptionRepository,
@@ -344,7 +353,9 @@ public class RepositorySyncConfiguration {
             subscriptionMapper,
             apiKeyMapper,
             subscriptionService,
-            apiKeyService
+            apiKeyService,
+            bulkItems,
+            subscriptionsChunkSize
         );
     }
 

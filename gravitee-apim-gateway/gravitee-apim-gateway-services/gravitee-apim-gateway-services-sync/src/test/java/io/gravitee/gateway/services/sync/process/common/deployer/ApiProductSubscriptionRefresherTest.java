@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.process.common.deployer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -78,6 +79,9 @@ class ApiProductSubscriptionRefresherTest {
 
     private ApiProductSubscriptionRefresher cut;
 
+    private static final int BULK_ITEMS = 100;
+    private static final int CHUNK_SIZE = 900;
+
     @BeforeEach
     void setUp() {
         cut = new ApiProductSubscriptionRefresher(
@@ -86,7 +90,9 @@ class ApiProductSubscriptionRefresherTest {
             subscriptionMapper,
             apiKeyMapper,
             subscriptionService,
-            apiKeyService
+            apiKeyService,
+            BULK_ITEMS,
+            CHUNK_SIZE
         );
     }
 
@@ -120,7 +126,7 @@ class ApiProductSubscriptionRefresherTest {
             var gatewayKey = ApiKey.builder().id(KEY_ID).api(API_1).subscription(SUB_1).build();
             when(subscriptionRepository.search(any(), any())).thenReturn(List.of(repoSub));
             when(subscriptionMapper.to(repoSub)).thenReturn(List.of(gatewaySub));
-            when(apiKeyRepository.findByCriteria(any(), any())).thenReturn(List.of(repoKey));
+            when(apiKeyRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(repoKey));
             when(apiKeyMapper.to(repoKey, gatewaySub)).thenReturn(gatewayKey);
 
             cut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
@@ -136,7 +142,7 @@ class ApiProductSubscriptionRefresherTest {
             cut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
 
             verify(subscriptionRepository).search(any(), any());
-            verify(apiKeyRepository, never()).findByCriteria(any(), any());
+            verify(apiKeyRepository, never()).searchAfter(any(), any(), any(), any(int.class));
         }
 
         @Test
@@ -177,7 +183,7 @@ class ApiProductSubscriptionRefresherTest {
 
             when(subscriptionRepository.search(any(), any())).thenReturn(List.of(repoSub));
             when(subscriptionMapper.toSubscriptionForApi(repoSub, "api-removed")).thenReturn(subForRemoved);
-            when(apiKeyRepository.findByCriteria(any(), any())).thenReturn(List.of(repoKey));
+            when(apiKeyRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(repoKey));
             when(apiKeyMapper.to(repoKey, subForRemoved)).thenReturn(gatewayKey);
 
             cut.unregisterRemovedApis(Set.of("api-removed"), Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();

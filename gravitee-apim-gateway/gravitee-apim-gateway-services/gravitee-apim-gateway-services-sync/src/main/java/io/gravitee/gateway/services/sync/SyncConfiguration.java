@@ -77,6 +77,9 @@ public class SyncConfiguration {
 
     public static final int POOL_SIZE = Runtime.getRuntime().availableProcessors() * 2;
     public static final int DEFAULT_BULK_ITEMS = 100;
+    // Conservative default below Oracle's 1000-expression IN-list limit; PostgreSQL/MySQL/Mongo
+    // can be tuned higher via services.sync.subscriptions_chunk_size when DB profile allows it.
+    public static final int DEFAULT_SUBSCRIPTIONS_CHUNK_SIZE = 900;
 
     @Bean("syncFetcherExecutor")
     public ThreadPoolExecutor syncFetcherExecutor(@Value("${services.sync.fetcher:-1}") int syncFetcher) {
@@ -174,8 +177,13 @@ public class SyncConfiguration {
     }
 
     @Bean
-    public ApiKeyAppender apiKeyAppender(ApiKeyRepository apiKeyRepository, ApiKeyMapper apiKeyMapper) {
-        return new ApiKeyAppender(apiKeyRepository, apiKeyMapper);
+    public ApiKeyAppender apiKeyAppender(
+        ApiKeyRepository apiKeyRepository,
+        ApiKeyMapper apiKeyMapper,
+        @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems,
+        @Value("${services.sync.subscriptions_chunk_size:" + DEFAULT_SUBSCRIPTIONS_CHUNK_SIZE + "}") int subscriptionsChunkSize
+    ) {
+        return new ApiKeyAppender(apiKeyRepository, apiKeyMapper, bulkItems, subscriptionsChunkSize);
     }
 
     @Bean
