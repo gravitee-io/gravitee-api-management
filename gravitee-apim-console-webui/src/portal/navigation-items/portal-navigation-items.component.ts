@@ -615,15 +615,17 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
     const action = isPublished ? 'Unpublish' : 'Publish';
     const pastAction = `${action.toLowerCase()}ed`;
-    const warning = isPublished
-      ? `Unpublishing this ${typeLabel} will also unpublish all nested documentation and APIs. This action cannot be undone automatically. Do you want to proceed?`
-      : '';
+    const isContainer = navItem.type === 'FOLDER' || navItem.type === 'API';
+    const warning =
+      isPublished && isContainer
+        ? ` Unpublishing this ${typeLabel} will also unpublish all nested documentation and APIs. This action cannot be undone automatically. Do you want to proceed?`
+        : '';
 
-    const contentScope = navItem.type === 'FOLDER' || navItem.type === 'API' ? ' and its content ' : ' ';
+    const contentScope = isContainer ? ' and its content ' : ' ';
 
     return {
       title: `${action} "${navItem.title}" ${typeLabel}?`,
-      content: `This ${typeLabel}${contentScope}will be ${pastAction}. This change will be visible in the Developer Portal. ${warning}`,
+      content: `This ${typeLabel}${contentScope}will be ${pastAction}. This change will be visible in the Developer Portal.${warning}`,
       confirmButton: action,
     };
   }
