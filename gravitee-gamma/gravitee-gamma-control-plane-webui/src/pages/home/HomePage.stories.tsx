@@ -55,7 +55,7 @@ const ALL_MODULES: readonly GammaModule[] = [
  * AppRoutes, so the only fetches we need to mock are the two count endpoints.
  */
 const APIS_SEARCH_URL_PREFIX = `${TEST_CONFIG.managementBaseURL}/v2/environments/`;
-const AGENTS_URL_PREFIX = `${TEST_CONFIG.gammaBaseURL}/organizations/${TEST_CONFIG.organizationId}/modules/aim/identity/`;
+const AGENTS_CATALOG_URL_PREFIX = `${TEST_CONFIG.gammaBaseURL}/organizations/${TEST_CONFIG.organizationId}/environments/`;
 
 /**
  * Intercepts the two count fetches and returns deterministic responses so badges render
@@ -74,8 +74,8 @@ function installFetchInterceptor(apiCount: number | null, agentCount: number | n
             const body = apiCount === null ? '{}' : JSON.stringify({ pagination: { totalCount: apiCount } });
             return new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' } });
         }
-        if (url.startsWith(AGENTS_URL_PREFIX) && url.includes('/agents')) {
-            const body = agentCount === null ? '{}' : JSON.stringify({ items: [], page: 1, perPage: 1, total: agentCount });
+        if (url.startsWith(AGENTS_CATALOG_URL_PREFIX) && url.includes('/modules/aim/catalog/agents')) {
+            const body = agentCount === null ? '{}' : JSON.stringify({ pagination: { totalCount: agentCount } });
             return new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' } });
         }
         return originalFetch(input, init);
@@ -84,10 +84,6 @@ function installFetchInterceptor(apiCount: number | null, agentCount: number | n
         window.fetch = originalFetch;
     };
 }
-
-/** localStorage keys the decorator writes — tracked here so the teardown can clean
- *  them up and stories don't leak state between renders. */
-const AIM_CONFIG_KEY = 'aim.am-config.v2';
 
 /** Seeds the Zustand stores so the HomePage hooks have what they need to render. */
 function seedStores() {
@@ -104,17 +100,10 @@ function seedStores() {
         error: null,
         initialized: true,
     });
-
-    // useAgentCount only fetches when the AIM module has previously been configured.
-    localStorage.setItem(
-        AIM_CONFIG_KEY,
-        JSON.stringify({ organizationId: TEST_CONFIG.organizationId, environmentId: env.id, domainId: 'demo-domain' }),
-    );
 }
 
 /** Reverts everything `seedStores` set up. */
 function teardownStores() {
-    localStorage.removeItem(AIM_CONFIG_KEY);
     useAuthStore.setState({ user: null });
     useBootstrapStore.setState({ config: null, loading: false, error: null });
     useEnvironmentStore.setState({

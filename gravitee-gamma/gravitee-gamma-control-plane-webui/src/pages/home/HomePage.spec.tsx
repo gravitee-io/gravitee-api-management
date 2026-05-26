@@ -19,7 +19,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { HomePage } from './HomePage';
 import { useAuthStore } from '../../features/auth/auth.store';
 import type { GammaModule } from '../../features/modules';
-import { buildUser, TEST_MANAGEMENT_V2_ENVIRONMENT_BASE } from '../../testing/factories';
+import { buildUser, TEST_GAMMA_BASE, TEST_MANAGEMENT_V2_ENVIRONMENT_BASE } from '../../testing/factories';
 import { respondWith, seedEnvironments } from '../../testing/helpers';
 
 const ALL_MODULES: readonly GammaModule[] = [
@@ -57,9 +57,9 @@ describe('HomePage', () => {
         // default so we don't get an unhandled-request error from MSW. Tests that care
         // about the badge override this with their own handler.
         respondWith('post', `${TEST_MANAGEMENT_V2_ENVIRONMENT_BASE}/env-1-id/apis/_search`, { pagination: { totalCount: 0 } });
-        // `useAgentCount` is gated on `localStorage['aim.am-config.v2']` being present —
-        // we leave the key unset so the fetch short-circuits and we don't need an AIM
-        // handler in tests that aren't about agent counts.
+        // `useAgentCount` hits the catalog endpoint — return 0 by default so we don't get
+        // an unhandled-request error from MSW.
+        respondWith('get', `${TEST_GAMMA_BASE}/environments/env-1-id/modules/aim/catalog/agents`, { pagination: { totalCount: 0 } });
     });
 
     it('should render one Open link per module + the Coming soon card when all modules are present', async () => {
