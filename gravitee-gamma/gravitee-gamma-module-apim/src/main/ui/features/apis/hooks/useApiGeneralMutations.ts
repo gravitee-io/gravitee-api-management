@@ -15,7 +15,7 @@
  */
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 
 import {
@@ -46,7 +46,9 @@ export function useApiGeneralMutations(api: ApiDetailDto | null, sideEffects: Ap
 
     // Keep callbacks in a ref so mutations always call the latest version
     const sideEffectsRef = useRef(sideEffects);
-    sideEffectsRef.current = sideEffects;
+    useLayoutEffect(() => {
+        sideEffectsRef.current = sideEffects;
+    });
 
     const invalidateDetail = () => void queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env?.id ?? '', apiId ?? '') });
 

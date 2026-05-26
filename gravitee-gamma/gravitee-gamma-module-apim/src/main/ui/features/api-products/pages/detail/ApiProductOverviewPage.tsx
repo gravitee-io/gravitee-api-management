@@ -13,81 +13,82 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { Card, CardContent } from '@gravitee/graphene-core';
 import { BoxesIcon, PlugIcon, ShieldIcon, UserCogIcon } from '@gravitee/graphene-core/icons';
-import { useCallback, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 
 import { OverviewChecklistCard, type OverviewChecklistItem } from '../../../../shared/components/OverviewChecklistCard';
+import { useChecklistOverrides } from '../../../../shared/hooks/useChecklistOverrides';
+import { listPlans } from '../../../apis/services/plans';
+import { apiPlanKeys } from '../../../apis/utils/queryKeys';
 import { useApiProductDetailContext } from '../../context/ApiProductDetailContext';
 import { useApiProductMembers } from '../../hooks/useApiProductMembers';
 
 export function ApiProductOverviewPage() {
     const { productId } = useParams<{ productId: string }>();
+    const env = useEnvironment();
     const { product, isLoading } = useApiProductDetailContext();
     const { data: membersData } = useApiProductMembers(productId);
 
+    const { overrideDone, overrideUndone, toggle } = useChecklistOverrides(productId);
+
+    function itemDone(autoDone: boolean, id: string): boolean {
+        return (autoDone && !overrideUndone.has(id)) || overrideDone.has(id);
+    }
+
     const apiCount = product?.apiIds?.length ?? 0;
     const memberCount = membersData?.pagination?.totalCount ?? 0;
-    const [manuallyDone, setManuallyDone] = useState<Set<string>>(new Set());
 
-    const checklistItems = useMemo<OverviewChecklistItem[]>(
-        () => [
-            {
-                id: 'add-apis',
-                label: 'Add APIs',
-                tooltip: 'Attach HTTP API proxies to this product so they share documentation and access through product plans.',
-                to: '../apis',
-                icon: BoxesIcon,
-                actionLabel: 'Open APIs',
-                done: apiCount > 0 || manuallyDone.has('add-apis'),
-                locked: apiCount > 0,
-            },
-            {
-                id: 'add-plans',
-                label: 'Add Plans',
-                tooltip:
-                    'Create subscription plans with security, quotas, and monetization aligned to how consumers access the bundled APIs.',
-                to: '../plans',
-                icon: ShieldIcon,
-                actionLabel: 'Open Plans',
-                done: manuallyDone.has('add-plans'),
-                locked: false,
-            },
-            {
-                id: 'first-subscription',
-                label: 'Create your first subscription',
-                tooltip:
-                    "Applications create a subscription to a published plan to access this product's bundled APIs. Open Consumers to add subscriptions, approve requests, and manage API keys.",
-                to: '../consumers',
-                icon: PlugIcon,
-                actionLabel: 'Open Consumers',
-                done: manuallyDone.has('first-subscription'),
-                locked: false,
-            },
-            {
-                id: 'team-access',
-                label: 'Invite teammates and assign roles',
-                tooltip: 'Collaborate on this product — control who can view, edit, publish plans, or own the product.',
-                to: '../user-permissions',
-                icon: UserCogIcon,
-                actionLabel: 'Manage Access',
-                done: memberCount > 1 || manuallyDone.has('team-access'),
-                locked: memberCount > 1,
-            },
-        ],
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [apiCount, memberCount, manuallyDone],
-    );
+    const plansCtx = { type: 'api-product' as const, entityId: productId ?? '' };
+    const { data: plansData } = useQuery({
+        queryKey: apiPlanKeys.list(env?.id ?? '', plansCtx, ['STAGING', 'PUBLISHED', 'DEPRECATED'], 1, 1),
+        queryFn: () => listPlans(env!.id, plansCtx, ['STAGING', 'PUBLISHED', 'DEPRECATED'], 1, 1),
+        enabled: Boolean(env && productId),
+        staleTime: 60_000,
+    });
+    const hasPlans = (plansData?.pagination?.totalCount ?? 0) > 0;
 
-    const handleToggle = useCallback((id: string, newDone: boolean) => {
-        setManuallyDone(prev => {
-            const next = new Set(prev);
-            if (newDone) next.add(id);
-            else next.delete(id);
-            return next;
-        });
-    }, []);
+    const checklistItems: OverviewChecklistItem[] = [
+        {
+            id: 'add-apis',
+            label: 'Add APIs',
+            tooltip: 'Attach HTTP API proxies to this product so they share documentation and access through product plans.',
+            to: '../apis',
+            icon: BoxesIcon,
+            actionLabel: 'Open APIs',
+            done: itemDone(apiCount > 0, 'add-apis'),
+        },
+        {
+            id: 'add-plans',
+            label: 'Add Plans',
+            tooltip: 'Create subscription plans with security, quotas, and monetization aligned to how consumers access the bundled APIs.',
+            to: '../plans',
+            icon: ShieldIcon,
+            actionLabel: 'Open Plans',
+            done: itemDone(hasPlans, 'add-plans'),
+        },
+        {
+            id: 'first-subscription',
+            label: 'Create your first subscription',
+            tooltip:
+                "Applications create a subscription to a published plan to access this product's bundled APIs. Open Consumers to add subscriptions, approve requests, and manage API keys.",
+            to: '../consumers',
+            icon: PlugIcon,
+            actionLabel: 'Open Consumers',
+            done: itemDone(false, 'first-subscription'),
+        },
+        {
+            id: 'team-access',
+            label: 'Invite teammates and assign roles',
+            tooltip: 'Collaborate on this product — control who can view, edit, publish plans, or own the product.',
+            to: '../user-permissions',
+            icon: UserCogIcon,
+            actionLabel: 'Manage Access',
+            done: itemDone(memberCount > 1, 'team-access'),
+        },
+    ];
 
     if (isLoading)
         return (
@@ -106,7 +107,7 @@ export function ApiProductOverviewPage() {
             <OverviewChecklistCard
                 description="Finish setting up your API product. Each row links to the right screen."
                 items={checklistItems}
-                onToggle={handleToggle}
+                onToggle={toggle}
             />
 
             <div className="space-y-3">

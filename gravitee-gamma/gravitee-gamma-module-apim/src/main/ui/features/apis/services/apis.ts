@@ -21,6 +21,7 @@ import type {
     DuplicateApiOptions,
     Cors,
     DynamicPropertyConfig,
+    EndpointGroupDto,
     Failover,
     Property,
 } from '../types';
@@ -197,6 +198,15 @@ export async function updateAllowMultiJwtOauth2Subscriptions(
         method: 'PUT',
         headers: JSON_HEADERS,
         body: JSON.stringify({ ...current, allowMultiJwtOauth2Subscriptions: allowed }),
+    });
+}
+
+export async function updateApiEndpointGroups(environmentId: string, apiId: string, endpointGroups: EndpointGroupDto[]): Promise<void> {
+    const current = await apimFetchJsonV2<Record<string, unknown>>(environmentId, `/apis/${encodeURIComponent(apiId)}`);
+    await apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}`, {
+        method: 'PUT',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ ...current, endpointGroups }),
     });
 }
 

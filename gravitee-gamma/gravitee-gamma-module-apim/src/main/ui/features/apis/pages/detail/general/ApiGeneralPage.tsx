@@ -31,7 +31,7 @@ import {
     Trash2Icon,
     UserIcon,
 } from '@gravitee/graphene-core/icons';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { CategorySelectInput } from './CategorySelectInput';
@@ -118,14 +118,16 @@ export function ApiGeneralPage() {
     const [promoteOpen, setPromoteOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
 
-    // Seed form once per API identity; re-seeds if the user navigates to a different API.
-    useEffect(() => {
-        if (!api) return;
+    // Seed form once per API identity. Render-phase setState (not inside an effect) is
+    // batched atomically by React 18 — the three calls below are a single update, so
+    // there is no concurrent-mode tear between seededApiId, form, and savedForm.
+    const [seededApiId, setSeededApiId] = useState<string | null>(null);
+    if (api && api.id !== seededApiId) {
+        setSeededApiId(api.id ?? null);
         const seed = formFromApi(api);
         setSavedForm(seed);
         setForm(seed);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [api?.id]);
+    }
 
     const isDirty = useMemo(
         () => form !== null && savedForm !== null && JSON.stringify(form) !== JSON.stringify(savedForm),

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, DataTablePagination, Input } from '@gravitee/graphene-core';
+import { Button, Input } from '@gravitee/graphene-core';
 import { PlusIcon, SearchIcon } from '@gravitee/graphene-core/icons';
 import { useId } from 'react';
 
@@ -52,6 +52,22 @@ export function ApisListView({
 }: ApisListViewProps) {
     const searchInputId = useId();
 
+    const toolbar = (
+        <div className="relative max-w-sm flex-1">
+            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" aria-hidden />
+            <label htmlFor={searchInputId} className="sr-only">
+                Search APIs
+            </label>
+            <Input
+                id={searchInputId}
+                placeholder="Search APIs..."
+                value={search}
+                onChange={e => onSearchChange(e.target.value)}
+                className="pl-9"
+            />
+        </div>
+    );
+
     return (
         <div className="space-y-6">
             {/* Page header */}
@@ -71,48 +87,17 @@ export function ApisListView({
             {/* Stats cards — counts reflect the debounced search to avoid per-keystroke flicker */}
             <ApiStatsCards query={debouncedSearch || undefined} />
 
-            {/* Search + pagination row */}
-            <div className="flex items-center justify-between gap-4">
-                <div className="relative flex-1 max-w-sm">
-                    <SearchIcon
-                        className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none"
-                        aria-hidden
-                    />
-                    <label htmlFor={searchInputId} className="sr-only">
-                        Search APIs
-                    </label>
-                    <Input
-                        id={searchInputId}
-                        placeholder="Search APIs..."
-                        value={search}
-                        onChange={e => onSearchChange(e.target.value)}
-                        className="pl-9"
-                    />
-                </div>
-
-                <DataTablePagination
-                    page={page}
-                    pageSize={perPage}
-                    totalCount={totalCount}
-                    pageSizeOptions={[10, 25, 50, 100]}
-                    onPageChange={onPageChange}
-                    onPageSizeChange={onPerPageChange}
-                />
-            </div>
-
-            <ApiListTable apis={apis} isLoading={isLoading} skeletonRowCount={perPage} />
-
-            {/* Bottom pagination */}
-            <div className="flex justify-end">
-                <DataTablePagination
-                    page={page}
-                    pageSize={perPage}
-                    totalCount={totalCount}
-                    pageSizeOptions={[10, 25, 50, 100]}
-                    onPageChange={onPageChange}
-                    onPageSizeChange={onPerPageChange}
-                />
-            </div>
+            <ApiListTable
+                apis={apis}
+                isLoading={isLoading}
+                skeletonRowCount={perPage}
+                page={page}
+                pageSize={perPage}
+                totalCount={totalCount}
+                onPageChange={onPageChange}
+                onPageSizeChange={onPerPageChange}
+                toolbar={toolbar}
+            />
         </div>
     );
 }

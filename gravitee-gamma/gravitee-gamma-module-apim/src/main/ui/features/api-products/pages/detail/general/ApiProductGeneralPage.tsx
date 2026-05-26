@@ -50,14 +50,16 @@ export function ApiProductGeneralPage() {
     const navigate = useNavigate();
     const { product, isLoading } = useApiProductDetailContext();
 
-    const [name, setName] = useState('');
-    const [version, setVersion] = useState('');
-    const [description, setDescription] = useState('');
+    const [name, setName] = useState(product?.name ?? '');
+    const [version, setVersion] = useState(product?.version ?? '');
+    const [description, setDescription] = useState(product?.description ?? '');
     const [deleteConfirm, setDeleteConfirm] = useState('');
     const [confirmAction, setConfirmAction] = useState<'remove-apis' | 'delete' | null>(null);
     const [debouncedName, setDebouncedName] = useState('');
 
-    useEffect(() => {
+    const [prevProductId, setPrevProductId] = useState(product?.id);
+    if (product?.id !== prevProductId) {
+        setPrevProductId(product?.id);
         if (product) {
             setName(product.name);
             setVersion(product.version);
@@ -65,21 +67,25 @@ export function ApiProductGeneralPage() {
             setDeleteConfirm('');
             setDebouncedName('');
         }
-    }, [product]);
+    }
 
     useEffect(() => {
-        if (!product || name === product.name) {
-            setDebouncedName('');
-            return;
-        }
+        if (!product || name === product.name) return;
         const timer = setTimeout(() => setDebouncedName(name.trim()), 400);
         return () => clearTimeout(timer);
     }, [name, product]);
 
+    // When the name reverts to the saved value, treat debouncedName as empty so the
+    // uniqueness hint clears immediately without a synchronous setState in the effect.
+    const effectiveDebouncedName = name !== product?.name ? debouncedName : '';
+
     const { mutate: updateProduct, isPending: isSaving, error: saveError } = useUpdateApiProduct(productId ?? '');
     const { mutate: deleteProduct, isPending: isDeleting } = useDeleteApiProduct();
-    const { data: verifyResult, isChecking } = useVerifyApiProductName(debouncedName, productId);
-    const nameError = debouncedName && verifyResult && !verifyResult.ok ? (verifyResult.reason ?? 'Name is already taken.') : null;
+    const { data: verifyResult, isChecking } = useVerifyApiProductName(effectiveDebouncedName, productId);
+    const nameError =
+        name !== product?.name && effectiveDebouncedName && verifyResult && !verifyResult.ok
+            ? (verifyResult.reason ?? 'Name is already taken.')
+            : null;
 
     const isDirty = product && (name !== product.name || version !== product.version || description !== (product.description ?? ''));
     const canSave = isDirty && name.trim() && version.trim() && !isSaving && !isChecking && !nameError;
@@ -148,9 +154,9 @@ export function ApiProductGeneralPage() {
                                         />
                                         {nameError ? (
                                             <p className="text-xs text-destructive">{nameError}</p>
-                                        ) : isChecking && debouncedName ? (
+                                        ) : isChecking && effectiveDebouncedName ? (
                                             <p className="text-xs text-muted-foreground">Checking availability…</p>
-                                        ) : verifyResult?.ok && debouncedName ? (
+                                        ) : verifyResult?.ok && effectiveDebouncedName ? (
                                             <p className="text-xs text-success">Name is available.</p>
                                         ) : null}
                                     </div>

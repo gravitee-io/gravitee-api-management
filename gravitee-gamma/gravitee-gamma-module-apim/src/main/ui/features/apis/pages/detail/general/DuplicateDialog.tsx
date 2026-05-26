@@ -26,7 +26,7 @@ import {
     Label,
 } from '@gravitee/graphene-core';
 import { CopyIcon } from '@gravitee/graphene-core/icons';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export function DuplicateDialog({
     open,
@@ -47,13 +47,14 @@ export function DuplicateDialog({
 }>) {
     const [version, setVersion] = useState(initialVersion);
     const [contextPath, setContextPath] = useState('');
-
-    useEffect(() => {
+    const [prevOpen, setPrevOpen] = useState(open);
+    if (prevOpen !== open) {
+        setPrevOpen(open);
         if (open) {
             setVersion(initialVersion);
             setContextPath('');
         }
-    }, [open, initialVersion]);
+    }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

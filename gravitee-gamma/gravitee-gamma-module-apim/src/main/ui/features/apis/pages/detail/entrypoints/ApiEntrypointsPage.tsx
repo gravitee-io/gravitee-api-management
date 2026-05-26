@@ -16,7 +16,7 @@
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Button, Skeleton } from '@gravitee/graphene-core';
 import { CheckIcon, PlusIcon } from '@gravitee/graphene-core/icons';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { ContextPathsCard } from './ContextPathsCard';
 import { EntrypointsLanding } from './EntrypointsLanding';
@@ -104,11 +104,14 @@ export function ApiEntrypointsPage() {
         [], // state setters are stable
     );
 
-    // Initialize form once api data arrives; re-init only when API identity changes
-    useEffect(() => {
+    // Initialize form once api data arrives; re-init only when API identity changes.
+    // Initialized to null (not api?.id) so the condition fires on first render even when
+    // data is already cached (e.g. in tests or when React Query has a warm cache).
+    const [seededApiId, setSeededApiId] = useState<string | null>(null);
+    if (api && api.id !== seededApiId) {
+        setSeededApiId(api.id ?? null);
         initFromApi(api);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [api?.id]);
+    }
 
     // ── validation ──
     const contextPathErrors = contextPaths.map(r => validatePath(r.path));

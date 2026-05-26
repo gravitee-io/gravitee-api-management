@@ -47,6 +47,7 @@ import { ApiConsumersPage } from '../features/apis/pages/detail/consumers/ApiCon
 import { ApiCorsPage } from '../features/apis/pages/detail/cors/ApiCorsPage';
 import { DeploymentConfigurationPage } from '../features/apis/pages/detail/deployment/DeploymentConfigurationPage';
 import { DeploymentHistoryPage } from '../features/apis/pages/detail/deployment/DeploymentHistoryPage';
+import { ApiEndpointsPage } from '../features/apis/pages/detail/endpoints/ApiEndpointsPage';
 import { ApiEntrypointsPage } from '../features/apis/pages/detail/entrypoints/ApiEntrypointsPage';
 import { ApiFailoverPage } from '../features/apis/pages/detail/failover/ApiFailoverPage';
 import { ApiGeneralPage } from '../features/apis/pages/detail/general/ApiGeneralPage';
@@ -103,13 +104,12 @@ export function AppRoutes() {
                             <Route path="overview" element={<ApiDetailOverviewPage />} />
                             <Route path="general" element={<ApiGeneralPage />} />
                             <Route path="properties" element={<ApiPropertiesPage />} />
-                            <Route path="resources" element={<ApiDetailPlaceholderPage title="Resources" />} />
                             <Route path="notifications" element={<ApiNotificationsPage />} />
                             <Route path="entrypoints" element={<ApiEntrypointsPage />} />
                             <Route path="cors" element={<ApiCorsPage />} />
                             <Route path="endpoints">
                                 <Route index element={<Navigate to="list" replace />} />
-                                <Route path="list" element={<ApiDetailPlaceholderPage title="Endpoints" />} />
+                                <Route path="list" element={<ApiEndpointsPage />} />
                                 <Route path="failover" element={<ApiFailoverPage />} />
                                 <Route
                                     path="health-check-dashboard"

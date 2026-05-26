@@ -72,15 +72,16 @@ export function AddApiToProductDialog({ open, existingApiIds, onClose, onAdd, is
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [selectedApis, setSelectedApis] = useState<Map<string, ApiListItem>>(new Map());
-
-    useEffect(() => {
+    const [prevOpen, setPrevOpen] = useState(open);
+    if (prevOpen !== open) {
+        setPrevOpen(open);
         if (!open) {
             setSearch('');
             setDebouncedSearch('');
             setSelectedIds(new Set());
             setSelectedApis(new Map());
         }
-    }, [open]);
+    }
 
     useEffect(() => {
         const timer = setTimeout(() => setDebouncedSearch(search), 300);

@@ -13,23 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { createContext, useContext } from 'react';
+import { apimFetchJsonV1Env } from '../../../shared/api/apimClient';
+import type { Tenant } from '../types';
 
-import type { ApiDetailDto } from '../types';
-
-export type ApiDetailContextValue = {
-    readonly api: ApiDetailDto | null;
-    readonly isLoading: boolean;
-    /** True once the API-scoped permission set has been loaded into `permissionService`. */
-    readonly permissionsReady: boolean;
-};
-
-export const ApiDetailContext = createContext<ApiDetailContextValue>({
-    api: null,
-    isLoading: true,
-    permissionsReady: false,
-});
-
-export function useApiDetailContext(): ApiDetailContextValue {
-    return useContext(ApiDetailContext);
+export async function getTenants(environmentId: string): Promise<Tenant[]> {
+    return apimFetchJsonV1Env<Tenant[]>(environmentId, '/configuration/tenants');
 }

@@ -126,6 +126,11 @@ export const apiPlanKeys = {
         [...apiPlanKeys.all, ctx.type, ctx.entityId, 'count', envId, status] as const,
 };
 
+export const tenantKeys = {
+    all: ['tenants'] as const,
+    list: (envId: string) => [...tenantKeys.all, envId] as const,
+};
+
 // TODO: Subscription query keys — prep for subscriptions feature (no hooks/pages yet)
 export const apiSubscriptionKeys = {
     all: ['api-subscriptions'] as const,

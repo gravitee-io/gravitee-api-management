@@ -294,9 +294,11 @@ export function ApiCorsPage() {
                             onCheckedChange={setRunPolicies}
                         />
 
-                        <div className="space-y-2 max-w-xs">
+                        <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-1.5">
-                                <Label htmlFor="cors-max-age">Max age (seconds)</Label>
+                                <Label htmlFor="cors-max-age" className="text-sm">
+                                    Max age (seconds)
+                                </Label>
                                 <InfoTooltip
                                     content={
                                         <>
@@ -314,6 +316,7 @@ export function ApiCorsPage() {
                                 disabled={fieldsDisabled || !canEdit}
                                 onChange={e => setMaxAge(e.target.value)}
                                 placeholder="e.g. 3600"
+                                className="w-36"
                             />
                         </div>
                     </CardContent>

@@ -99,10 +99,11 @@ describe('OverviewChecklistCard', () => {
             expect(onToggle).toHaveBeenCalledWith('item-1', false);
         });
 
-        it('does not call onToggle when a locked (auto-done) row is clicked', () => {
+        it('calls onToggle with newDone=false when an auto-done row is clicked (all rows are toggleable)', () => {
             const onToggle = jest.fn();
-            wrap(<OverviewChecklistCard description="desc" items={[{ ...BASE_ITEM, done: true, locked: true }]} onToggle={onToggle} />);
-            expect(screen.queryByRole('checkbox', { name: 'Add APIs' })).toBeNull();
+            wrap(<OverviewChecklistCard description="desc" items={[{ ...BASE_ITEM, done: true }]} onToggle={onToggle} />);
+            fireEvent.click(screen.getByRole('checkbox', { name: 'Add APIs' }));
+            expect(onToggle).toHaveBeenCalledWith('item-1', false);
         });
 
         it('does not call onToggle when a comingSoon row is clicked', () => {

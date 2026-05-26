@@ -47,6 +47,8 @@ import { NavLink, useLocation } from 'react-router-dom';
 export interface DetailNavChild {
     path: string;
     label: string;
+    /** When true, renders as a non-navigable item with a lab icon and "Coming soon" tooltip. */
+    comingSoon?: boolean;
 }
 
 export interface DetailNavItem {
@@ -74,7 +76,7 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
             { path: 'overview', label: 'Overview', icon: LayoutDashboardIcon },
             { path: 'general', label: 'General', icon: SlidersHorizontalIcon },
             { path: 'properties', label: 'API Properties', icon: SettingsIcon },
-            { path: 'resources', label: 'Resources', icon: ServerIcon },
+            { path: 'resources', label: 'Resources', icon: ServerIcon, comingSoon: true },
             { path: 'notifications', label: 'Notifications', icon: BellIcon },
             { path: 'api-score', label: 'API Score', icon: SparklesIcon, comingSoon: true },
             { path: 'response-templates', label: 'Response Templates', icon: ScrollTextIcon, comingSoon: true },
@@ -92,7 +94,7 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
                 children: [
                     { path: 'list', label: 'Endpoints' },
                     { path: 'failover', label: 'Failover' },
-                    { path: 'health-check-dashboard', label: 'Health Check Dashboard' },
+                    { path: 'health-check-dashboard', label: 'Health Check Dashboard', comingSoon: true },
                 ],
             },
             { path: 'reporter-settings', label: 'Reporter Settings', icon: ListIcon },
@@ -180,21 +182,38 @@ function CollapsibleNavItem({ item, basePath }: CollapsibleNavItemProps) {
             </button>
             {open && (
                 <div className="ml-4 border-l border-border pl-2 space-y-0.5">
-                    {item.children.map(child => (
-                        <NavLink
-                            end
-                            key={child.path}
-                            to={`${parentPath}/${child.path}`}
-                            className={({ isActive: active }) =>
-                                cn(
-                                    'flex w-full items-center rounded-lg px-3 py-1.5 text-sm transition-colors',
-                                    active ? 'bg-accent text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                                )
-                            }
-                        >
-                            {child.label}
-                        </NavLink>
-                    ))}
+                    {item.children.map(child =>
+                        child.comingSoon ? (
+                            <Tooltip key={child.path}>
+                                <TooltipTrigger asChild>
+                                    <div
+                                        className="flex w-full items-center rounded-lg px-3 py-1.5 text-sm cursor-not-allowed select-none text-muted-foreground/50"
+                                        aria-disabled="true"
+                                    >
+                                        <span className="flex-1">{child.label}</span>
+                                        <FlaskConicalIcon className="size-3.5 shrink-0" aria-hidden />
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent side="right" className="text-xs">
+                                    Coming soon
+                                </TooltipContent>
+                            </Tooltip>
+                        ) : (
+                            <NavLink
+                                end
+                                key={child.path}
+                                to={`${parentPath}/${child.path}`}
+                                className={({ isActive: active }) =>
+                                    cn(
+                                        'flex w-full items-center rounded-lg px-3 py-1.5 text-sm transition-colors',
+                                        active ? 'bg-accent text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                                    )
+                                }
+                            >
+                                {child.label}
+                            </NavLink>
+                        ),
+                    )}
                 </div>
             )}
         </div>

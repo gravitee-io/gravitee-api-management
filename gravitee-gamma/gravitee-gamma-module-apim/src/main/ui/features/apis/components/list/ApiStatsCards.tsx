@@ -33,7 +33,7 @@ function StatCard({ label, value, isLoading }: { label: string; value: number | 
                     <Skeleton className="mt-1.5 h-7 w-10 rounded" />
                 ) : (
                     <p className={`text-2xl font-semibold mt-0.5 transition-opacity duration-200${isLoading ? ' opacity-50' : ''}`}>
-                        {value}
+                        {value.toLocaleString()}
                     </p>
                 )}
             </CardContent>
