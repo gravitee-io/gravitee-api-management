@@ -56,7 +56,7 @@ export interface PolicyListParams extends PaginationParams {
 //       "llm.*"   → LLM
 //       "api.*"   → API
 //       "event.*" → EVENT
-//       anything else (incl. legacy "User::alice" form) → CUSTOM
+//       anything else → CUSTOM
 //   - Entity.entityId ↔ UI uid (string). UI entity-adapter does its own
 //     `_kind` attribute → structured uid.type lookup, so we surface
 //     `kind`/`source` as `_kind`/`_source` attributes when adapting from

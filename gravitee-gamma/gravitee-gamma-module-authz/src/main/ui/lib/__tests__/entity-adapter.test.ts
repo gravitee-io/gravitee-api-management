@@ -39,21 +39,7 @@ describe('parseEntityUid', () => {
         expect(parseEntityUid('mcp.flight-mcp')).toEqual({ type: 'MCPServer', id: 'flight-mcp' });
     });
 
-    // Legacy Type::"id" form — tolerated for backwards compat with test fixtures
-    // and any pre-existing data; the backend would have rejected this on save.
-    it('parses legacy unquoted form', () => {
-        expect(parseEntityUid('User::alice')).toEqual({ type: 'User', id: 'alice' });
-    });
-
-    it('parses legacy quoted form', () => {
-        expect(parseEntityUid('User::"alice"')).toEqual({ type: 'User', id: 'alice' });
-    });
-
-    it('parses legacy quoted id with escaped inner quote', () => {
-        expect(parseEntityUid('User::"alice\\"bob"')).toEqual({ type: 'User', id: 'alice"bob' });
-    });
-
-    it('returns Unknown type when neither dotted nor legacy form matches', () => {
+    it('returns Unknown type for a non-dotted string', () => {
         const result = parseEntityUid('justsomething');
         expect(result.type).toBe('Unknown');
         expect(result.id).toBe('justsomething');
@@ -157,14 +143,6 @@ describe('fromBackend', () => {
 
     it('parses dotted parents', () => {
         const inst = fromBackend({ ...base, parents: ['group.engineering', 'group.ops'] });
-        expect(inst.parents).toEqual([
-            { type: 'Group', id: 'engineering' },
-            { type: 'Group', id: 'ops' },
-        ]);
-    });
-
-    it('parses legacy quoted parents (backwards-compat)', () => {
-        const inst = fromBackend({ ...base, parents: ['Group::"engineering"', 'Group::ops'] });
         expect(inst.parents).toEqual([
             { type: 'Group', id: 'engineering' },
             { type: 'Group', id: 'ops' },
