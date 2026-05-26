@@ -99,6 +99,13 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
     List<ApiKey> findByCriteria(ApiKeyCriteria filter, Sortable sortable) throws TechnicalException;
 
     /**
+     * Same as {@link #findByCriteria(ApiKeyCriteria)} but without the implicit {@code updatedAt} sort.
+     * Use when the caller doesn't need a stable order — allows the planner to pick an ESR-friendly index
+     * (e.g. {@code {revoked:1, expireAt:1}}) instead of being constrained by an unwanted sort field.
+     */
+    List<ApiKey> findByCriteriaUnordered(ApiKeyCriteria filter) throws TechnicalException;
+
+    /**
      *
      * @param id apikey ID
      * @param subscriptionId subscription ID to add to this shared apikey
