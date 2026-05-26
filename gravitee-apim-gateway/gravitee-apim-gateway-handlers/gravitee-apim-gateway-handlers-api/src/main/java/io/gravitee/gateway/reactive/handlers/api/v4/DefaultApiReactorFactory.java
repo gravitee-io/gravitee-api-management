@@ -425,6 +425,17 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
     }
 
     protected TracingContext createTracingContext(final Api api, final String apiType) {
+        return createTracingContext(api, apiType, MODULE);
+    }
+
+    /**
+     * Module-aware variant for subclasses that reactor on top of this factory and emit telemetry under
+     * a different {@code gravitee.module} value (e.g. {@code aim} for the LLM proxy reactor). Kept
+     * separate from the 2-arg overload so existing call sites stay untouched while subclasses opt into
+     * the override without having to duplicate the tracer / redaction wiring (the redaction mapper is
+     * package-private and shouldn't be reached out to from subclasses in other modules).
+     */
+    protected TracingContext createTracingContext(final Api api, final String apiType, final String module) {
         boolean tracingEnabled = isApiTracingEnabled(api);
         if (tracingEnabled) {
             Tracer tracer = openTelemetryFactory.createTracer(
@@ -433,7 +444,7 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
                 "gravitee",
                 Version.RUNTIME_VERSION.MAJOR_VERSION,
                 instrumenterTracerFactories,
-                TracerResourceAttributes.of(MODULE, api.getId(), api.getName(), apiType, api.getOrganizationId(), api.getEnvironmentId()),
+                TracerResourceAttributes.of(module, api.getId(), api.getName(), apiType, api.getOrganizationId(), api.getEnvironmentId()),
                 TracingRedactionMapper.toRedactionConfig(api)
             );
             return new TracingContext(tracer, true, isApiTracingVerboseEnabled(api));
