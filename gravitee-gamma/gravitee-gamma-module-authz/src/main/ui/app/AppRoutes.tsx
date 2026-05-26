@@ -20,11 +20,11 @@ import { useMemo } from 'react';
 import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 import { NAV_GROUPS } from '../config/navigation';
 import { AUTHZ_ROUTE_CONFIG, ROUTES, type RouteKey } from '../config/routes';
+import { ApisPage } from '../features/policy-management/pages/ApisPage';
+import { CustomPoliciesPage } from '../features/policy-management/pages/CustomPoliciesPage';
+import { LlmsPage } from '../features/policy-management/pages/LlmsPage';
+import { McpsPage } from '../features/policy-management/pages/McpsPage';
 import { ModuleErrorBoundary } from './ModuleErrorBoundary';
-import { ApisPage } from './features/policy-management/pages/ApisPage';
-import { CustomPoliciesPage } from './features/policy-management/pages/CustomPoliciesPage';
-import { LlmsPage } from './features/policy-management/pages/LlmsPage';
-import { McpsPage } from './features/policy-management/pages/McpsPage';
 
 const queryClient = new QueryClient();
 
