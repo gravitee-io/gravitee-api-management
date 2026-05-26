@@ -59,6 +59,7 @@ db.getCollection(`${prefix}keys`).createIndex({ plan: 1, revoked: 1, updatedAt: 
 db.getCollection(`${prefix}keys`).createIndex({ key: 1 }, { name: "k1" });
 db.getCollection(`${prefix}keys`).createIndex({ key: 1, api: 1 }, { name: "k1a1" });
 db.getCollection(`${prefix}keys`).createIndex({ subscriptions: 1 }, { name: "s1" });
+db.getCollection(`${prefix}keys`).createIndex({ revoked: 1, expireAt: 1 }, { name: "r1ea1" });
 db.getCollection(`${prefix}keys`).reIndex();
 
 // "pages" collection

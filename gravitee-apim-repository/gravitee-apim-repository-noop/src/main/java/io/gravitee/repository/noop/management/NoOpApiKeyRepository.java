@@ -92,6 +92,11 @@ public class NoOpApiKeyRepository implements ApiKeyRepository {
     }
 
     @Override
+    public List<ApiKey> findByCriteriaUnordered(ApiKeyCriteria filter) throws TechnicalException {
+        return List.of();
+    }
+
+    @Override
     public Optional<ApiKey> addSubscription(String id, String subscriptionId) throws TechnicalException {
         return Optional.empty();
     }

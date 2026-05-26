@@ -16,6 +16,9 @@
 package io.gravitee.apim.core.api_key.query_service;
 
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
+import io.gravitee.apim.core.api_key.model.ExpiringApiKey;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -25,4 +28,12 @@ public interface ApiKeyQueryService {
     Optional<ApiKeyEntity> findByKeyAndApiId(String key, String apiId);
     Stream<ApiKeyEntity> findBySubscription(String subscriptionId);
     Optional<ApiKeyEntity> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType);
+
+    /**
+     * Returns API keys whose {@code expireAt} falls inside any of the per-bucket windows
+     * {@code [now + d*24h, now + d*24h + windowMs)} for each {@code d} in {@code daysBuckets}.
+     * Runs as a single repository query over the outer-union range; callers perform bucket-inference
+     * in memory. Non-revoked keys only. Federated keys included.
+     */
+    List<ExpiringApiKey> findExpiringApiKeys(Instant now, List<Integer> daysBuckets, long windowMs);
 }

@@ -144,74 +144,8 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         log.debug("JdbcApiKeyRepository.findByCriteria({})", criteria);
         try {
             List<Object> args = new ArrayList<>();
+            StringBuilder query = buildCriteriaQuery(criteria, args);
 
-            StringBuilder query = new StringBuilder(getOrm().getSelectAllSql())
-                .append(" k left join ")
-                .append(keySubscriptions)
-                .append(" ks on ks.key_id = k.id");
-
-            boolean first = true;
-
-            if (!isEmpty(criteria.getSubscriptions())) {
-                first = addClause(first, query);
-                query
-                    .append("k.id in ( select key_id from ")
-                    .append(keySubscriptions)
-                    .append(" where subscription_id in ( ")
-                    .append(getOrm().buildInClause(criteria.getSubscriptions()))
-                    .append(" ) )");
-                args.addAll(criteria.getSubscriptions());
-            }
-
-            if (!isEmpty(criteria.getEnvironments())) {
-                first = addClause(first, query);
-                query.append(" ( k.environment_id in ( ").append(getOrm().buildInClause(criteria.getEnvironments())).append(" ) )");
-                args.addAll(criteria.getEnvironments());
-            }
-
-            if (!criteria.isIncludeRevoked()) {
-                first = addClause(first, query);
-                query.append(" ( k.revoked = ? ) ");
-                args.add(false);
-            }
-
-            if (!criteria.isIncludeFederated()) {
-                first = addClause(first, query);
-                query.append(" ( k.federated = ? ) ");
-                args.add(false);
-            }
-
-            if (criteria.getFrom() > 0) {
-                first = addClause(first, query);
-                query.append(" ( k.updated_at >= ? ) ");
-                args.add(new Date(criteria.getFrom()));
-            }
-
-            if (criteria.getTo() > 0) {
-                first = addClause(first, query);
-                query.append(" ( k.updated_at <= ? ) ");
-                args.add(new Date(criteria.getTo()));
-            }
-
-            if (criteria.getExpireAfter() > 0) {
-                first = addClause(first, query);
-                if (criteria.isIncludeWithoutExpiration()) {
-                    query.append(" ( k.expire_at is NULL or k.expire_at >= ? ) ");
-                } else {
-                    query.append("( k.expire_at >= ? )");
-                }
-                args.add(new Date(criteria.getExpireAfter()));
-            }
-
-            if (criteria.getExpireBefore() > 0) {
-                addClause(first, query);
-                if (criteria.isIncludeWithoutExpiration()) {
-                    query.append(" ( k.expire_at is NULL or k.expire_at <= ? ) ");
-                } else {
-                    query.append("( k.expire_at <= ? )");
-                }
-                args.add(new Date(criteria.getExpireBefore()));
-            }
             if (sortable != null && sortable.field() != null && sortable.field().length() > 0) {
                 query.append(" order by k.");
                 query.append(toSnakeCase(sortable.field()));
@@ -220,14 +154,101 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
                 query.append(" order by k.updated_at desc ");
             }
 
-            CollatingRowMapper<ApiKey> rowMapper = new CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
-            jdbcTemplate.query(query.toString(), rowMapper, args.toArray());
-
-            return rowMapper.getRows();
+            return runCriteriaQuery(query, args);
         } catch (final Exception ex) {
             log.error("Failed to find API Keys by criteria:", ex);
             throw new TechnicalException("Failed to find API Keys by criteria", ex);
         }
+    }
+
+    @Override
+    public List<ApiKey> findByCriteriaUnordered(final ApiKeyCriteria criteria) throws TechnicalException {
+        log.debug("JdbcApiKeyRepository.findByCriteriaUnordered({})", criteria);
+        try {
+            List<Object> args = new ArrayList<>();
+            StringBuilder query = buildCriteriaQuery(criteria, args);
+            return runCriteriaQuery(query, args);
+        } catch (final Exception ex) {
+            log.error("Failed to find API Keys by criteria (unordered):", ex);
+            throw new TechnicalException("Failed to find API Keys by criteria", ex);
+        }
+    }
+
+    private StringBuilder buildCriteriaQuery(final ApiKeyCriteria criteria, final List<Object> args) {
+        StringBuilder query = new StringBuilder(getOrm().getSelectAllSql())
+            .append(" k left join ")
+            .append(keySubscriptions)
+            .append(" ks on ks.key_id = k.id");
+
+        boolean first = true;
+
+        if (!isEmpty(criteria.getSubscriptions())) {
+            first = addClause(first, query);
+            query
+                .append("k.id in ( select key_id from ")
+                .append(keySubscriptions)
+                .append(" where subscription_id in ( ")
+                .append(getOrm().buildInClause(criteria.getSubscriptions()))
+                .append(" ) )");
+            args.addAll(criteria.getSubscriptions());
+        }
+
+        if (!isEmpty(criteria.getEnvironments())) {
+            first = addClause(first, query);
+            query.append(" ( k.environment_id in ( ").append(getOrm().buildInClause(criteria.getEnvironments())).append(" ) )");
+            args.addAll(criteria.getEnvironments());
+        }
+
+        if (!criteria.isIncludeRevoked()) {
+            first = addClause(first, query);
+            query.append(" ( k.revoked = ? ) ");
+            args.add(false);
+        }
+
+        if (!criteria.isIncludeFederated()) {
+            first = addClause(first, query);
+            query.append(" ( k.federated = ? ) ");
+            args.add(false);
+        }
+
+        if (criteria.getFrom() > 0) {
+            first = addClause(first, query);
+            query.append(" ( k.updated_at >= ? ) ");
+            args.add(new Date(criteria.getFrom()));
+        }
+
+        if (criteria.getTo() > 0) {
+            first = addClause(first, query);
+            query.append(" ( k.updated_at <= ? ) ");
+            args.add(new Date(criteria.getTo()));
+        }
+
+        if (criteria.getExpireAfter() > 0) {
+            first = addClause(first, query);
+            if (criteria.isIncludeWithoutExpiration()) {
+                query.append(" ( k.expire_at is NULL or k.expire_at >= ? ) ");
+            } else {
+                query.append("( k.expire_at >= ? )");
+            }
+            args.add(new Date(criteria.getExpireAfter()));
+        }
+
+        if (criteria.getExpireBefore() > 0) {
+            addClause(first, query);
+            if (criteria.isIncludeWithoutExpiration()) {
+                query.append(" ( k.expire_at is NULL or k.expire_at <= ? ) ");
+            } else {
+                query.append("( k.expire_at <= ? )");
+            }
+            args.add(new Date(criteria.getExpireBefore()));
+        }
+        return query;
+    }
+
+    private List<ApiKey> runCriteriaQuery(final StringBuilder query, final List<Object> args) {
+        CollatingRowMapper<ApiKey> rowMapper = new CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+        jdbcTemplate.query(query.toString(), rowMapper, args.toArray());
+        return rowMapper.getRows();
     }
 
     @Override
