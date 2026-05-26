@@ -25,6 +25,7 @@ import io.gravitee.apim.core.plan.model.factory.PlanModelFactory;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
+import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +43,7 @@ import lombok.RequiredArgsConstructor;
 public class ValidatePlanDomainService implements Validator<ValidatePlanDomainService.Input> {
 
     private final PlanValidatorDomainService planValidator;
+    private final VerifyPlanPortRangesDomainService verifyPlanPortRangesDomainService;
 
     public record Input(AuditInfo auditInfo, ApiCRDSpec apiCRDSpec, Map<String, PlanCRD> plans, List<Page> pages) implements
         Validator.Input {
@@ -77,6 +79,18 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
                     plan.getPlanSecurity(),
                     input.apiCRDSpec.getListeners().stream().map(AbstractListener::getType).toList()
                 );
+                if (input.apiCRDSpec.isNative()) {
+                    NativePlan nativePlan = plan.getPlanDefinitionNativeV4();
+                    if (nativePlan != null && nativePlan.getBootstrapPort() != null) {
+                        verifyPlanPortRangesDomainService.verify(
+                            input.auditInfo.environmentId(),
+                            plan.getId(),
+                            nativePlan.getBootstrapPort(),
+                            nativePlan.getBrokerRangeStart(),
+                            nativePlan.getBrokerRangeEnd()
+                        );
+                    }
+                }
 
                 sanitizedPlans.put(k, planCRD);
             } catch (Exception e) {

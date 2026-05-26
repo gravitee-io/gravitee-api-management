@@ -287,6 +287,9 @@ public class ApiCRDSpec {
                         nativePlan.setSelectionRule(planCRD.getSelectionRule());
                         nativePlan.setStatus(planCRD.getStatus());
                         nativePlan.setFlows((List<NativeFlow>) planCRD.getFlows());
+                        nativePlan.setBootstrapPort(planCRD.getBootstrapPort());
+                        nativePlan.setBrokerRangeStart(planCRD.getBrokerRangeStart());
+                        nativePlan.setBrokerRangeEnd(planCRD.getBrokerRangeEnd());
 
                         return nativePlan;
                     },

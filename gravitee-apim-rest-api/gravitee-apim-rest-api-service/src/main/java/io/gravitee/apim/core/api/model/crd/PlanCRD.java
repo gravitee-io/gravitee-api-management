@@ -69,4 +69,10 @@ public class PlanCRD {
     private List<? extends AbstractFlow> flows = List.of();
 
     private PlanMode mode;
+
+    private Integer bootstrapPort;
+
+    private Integer brokerRangeStart;
+
+    private Integer brokerRangeEnd;
 }

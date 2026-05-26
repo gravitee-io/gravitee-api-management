@@ -250,10 +250,7 @@ class ImportApiCRDUseCaseTest {
     CategoryQueryServiceInMemory categoryQueryService = new CategoryQueryServiceInMemory();
 
     ValidateApiDomainService validateApiDomainService = mock(ValidateApiDomainService.class);
-    PlanValidatorDomainService planValidatorDomainService = mock(PlanValidatorDomainService.class);
     PlanSynchronizationService planSynchronizationService = mock(PlanSynchronizationService.class);
-    EventCrudService eventCrudService = mock(EventCrudService.class);
-    EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
     PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory(planCrudService);
     IndexerInMemory indexer = new IndexerInMemory();
     UpdateApiDomainService updateApiDomainService;
@@ -265,8 +262,6 @@ class ImportApiCRDUseCaseTest {
     ValidateResourceDomainServiceInMemory validateResourceDomainService = new ValidateResourceDomainServiceInMemory();
     DocumentationValidationDomainService validationDomainService = mock(DocumentationValidationDomainService.class);
     CRDMembersDomainServiceInMemory crdMembersDomainService = new CRDMembersDomainServiceInMemory();
-    MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
-    TriggerNotificationDomainServiceInMemory triggerNotificationDomainService = new TriggerNotificationDomainServiceInMemory();
     CategoryDomainService categoryDomainService = mock(CategoryDomainService.class);
     DataEncryptor dataEncryptor = mock(DataEncryptor.class);
     CreateCategoryApiDomainServiceInMemory createCategoryApiDomainService = new CreateCategoryApiDomainServiceInMemory();
@@ -401,7 +396,7 @@ class ImportApiCRDUseCaseTest {
             new ValidateGroupsDomainService(groupQueryService),
             validateResourceDomainService,
             new ValidatePagesDomainService(pageSourceValidator, accessControlValidator, validationDomainService),
-            new ValidatePlanDomainService(planValidatorDomainService),
+            new ValidatePlanDomainService(planValidatorService, verifyPlanPortRanges),
             new ValidatePortalNotificationDomainService(new ValidateGroupsDomainService(groupQueryService))
         );
 
