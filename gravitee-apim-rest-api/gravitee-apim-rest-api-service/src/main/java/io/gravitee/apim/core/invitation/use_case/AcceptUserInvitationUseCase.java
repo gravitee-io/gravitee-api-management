@@ -75,7 +75,7 @@ public class AcceptUserInvitationUseCase {
             .existingUserId()
             .map(userId -> findAndValidateExistingUser(userId, input.executionContext()))
             .orElseGet(() ->
-                createUserDomainService.createExternalUser(
+                createUserDomainService.createGraviteeUser(
                     input.executionContext(),
                     input.action().email(),
                     input.firstname(),

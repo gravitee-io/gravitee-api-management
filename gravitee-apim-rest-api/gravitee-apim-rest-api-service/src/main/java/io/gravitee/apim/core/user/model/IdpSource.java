@@ -13,17 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.user.domain_service;
+package io.gravitee.apim.core.user.model;
 
-import io.gravitee.apim.core.user.model.BaseUserEntity;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.Optional;
+public record IdpSource(String value) {
+    public static final IdpSource GRAVITEE = new IdpSource("gravitee");
+    public static final IdpSource MEMORY = new IdpSource("memory");
 
-public interface CreateUserDomainService {
-    BaseUserEntity createGraviteeUser(
-        ExecutionContext executionContext,
-        String email,
-        Optional<String> firstname,
-        Optional<String> lastname
-    );
+    private static final java.util.Map<String, IdpSource> CACHE = java.util.Map.of("gravitee", GRAVITEE, "memory", MEMORY);
+
+    public static IdpSource of(String value) {
+        if (value == null) {
+            return null;
+        }
+        return CACHE.getOrDefault(value, new IdpSource(value));
+    }
+
+    public static IdpSource gravitee() {
+        return GRAVITEE;
+    }
 }

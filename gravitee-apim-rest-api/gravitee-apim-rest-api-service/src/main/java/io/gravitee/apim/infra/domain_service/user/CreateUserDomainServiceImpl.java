@@ -13,17 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.user.domain_service;
+package io.gravitee.apim.infra.domain_service.user;
 
+import io.gravitee.apim.core.user.crud_service.UserCrudService;
+import io.gravitee.apim.core.user.domain_service.CreateUserDomainService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.Date;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
-public interface CreateUserDomainService {
-    BaseUserEntity createGraviteeUser(
+@Service
+@RequiredArgsConstructor
+public class CreateUserDomainServiceImpl implements CreateUserDomainService {
+
+    private final UserCrudService userCrudService;
+
+    @Override
+    public BaseUserEntity createGraviteeUser(
         ExecutionContext executionContext,
         String email,
         Optional<String> firstname,
         Optional<String> lastname
-    );
+    ) {
+        var now = Date.from(TimeProvider.now().toInstant());
+        return userCrudService.create(
+            BaseUserEntity.createGraviteeUser(executionContext.getOrganizationId(), email, firstname, lastname, now)
+        );
+    }
 }

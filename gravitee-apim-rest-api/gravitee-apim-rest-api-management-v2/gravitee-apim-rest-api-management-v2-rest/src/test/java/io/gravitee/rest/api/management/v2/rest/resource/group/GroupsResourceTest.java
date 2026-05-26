@@ -30,6 +30,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.apim.core.group.model.crd.GroupCRDStatus;
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.core.user.model.IdpSource;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.v2.rest.mapper.GroupMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.MemberMapper;
@@ -335,7 +336,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
                     BaseUserEntity.builder()
                         .organizationId(ORGANIZATION)
                         .sourceId("api1")
-                        .source("memory")
+                        .source(IdpSource.MEMORY)
                         .id("46f5c533-f083-4885-bbac-7bd9907d9aec")
                         .build()
                 )

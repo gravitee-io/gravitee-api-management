@@ -46,6 +46,7 @@ import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainServi
 import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificationDomainService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.core.user.model.IdpSource;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -139,13 +140,13 @@ public class ApiValidationServiceImplTest {
             List.of(
                 BaseUserEntity.builder()
                     .id(USER_NAME)
-                    .source(USER_SOURCE)
+                    .source(IdpSource.of(USER_SOURCE))
                     .sourceId(USER_NAME)
                     .organizationId(DEFAULT_ORGANIZATION_ID)
                     .build(),
                 BaseUserEntity.builder()
                     .id(ACTOR_USER_NAME)
-                    .source(USER_SOURCE)
+                    .source(IdpSource.of(USER_SOURCE))
                     .sourceId(ACTOR_USER_NAME)
                     .organizationId(DEFAULT_ORGANIZATION_ID)
                     .build()

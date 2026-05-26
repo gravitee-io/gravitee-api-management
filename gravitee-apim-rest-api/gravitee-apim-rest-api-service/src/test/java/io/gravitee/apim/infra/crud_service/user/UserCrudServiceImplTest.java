@@ -23,6 +23,7 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import inmemory.UserRepositoryInMemory;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.core.user.model.EncodedPassword;
+import io.gravitee.apim.core.user.model.IdpSource;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.User;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -102,7 +103,7 @@ public class UserCrudServiceImplTest {
                     BaseUserEntity.builder()
                         .id("1")
                         .organizationId("organization-id")
-                        .source("source-1")
+                        .source(IdpSource.of("source-1"))
                         .sourceId("source-id-1")
                         .email("1@gravitee.io")
                         .firstname("Jane 1")
@@ -113,7 +114,7 @@ public class UserCrudServiceImplTest {
                     BaseUserEntity.builder()
                         .id("2")
                         .organizationId("organization-id")
-                        .source("source-2")
+                        .source(IdpSource.of("source-2"))
                         .sourceId("source-id-2")
                         .email("2@gravitee.io")
                         .firstname("Jane 2")
@@ -158,7 +159,7 @@ public class UserCrudServiceImplTest {
             var userToCreate = BaseUserEntity.builder()
                 .id("user-id")
                 .organizationId("org-id")
-                .source("gravitee")
+                .source(IdpSource.GRAVITEE)
                 .sourceId("jane@example.com")
                 .email("jane@example.com")
                 .firstname("Jane")
@@ -314,7 +315,7 @@ public class UserCrudServiceImplTest {
             SoftAssertions.assertSoftly(softly -> {
                 softly.assertThat(user.getId()).isEqualTo("user-id");
                 softly.assertThat(user.getOrganizationId()).isEqualTo("organization-id");
-                softly.assertThat(user.getSource()).isEqualTo("source");
+                softly.assertThat(user.getSource()).isEqualTo(IdpSource.of("source"));
                 softly.assertThat(user.getSourceId()).isEqualTo("source-id");
                 softly.assertThat(user.getEmail()).isEqualTo("jane.doe@gravitee.io");
                 softly.assertThat(user.getFirstname()).isEqualTo("Jane");
