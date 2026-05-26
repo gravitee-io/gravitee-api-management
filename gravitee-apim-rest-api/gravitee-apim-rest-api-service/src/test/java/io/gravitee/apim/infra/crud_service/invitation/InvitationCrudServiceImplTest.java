@@ -16,18 +16,27 @@
 package io.gravitee.apim.infra.crud_service.invitation;
 
 import static fixtures.core.model.ApplicationInvitationFixtures.anApplicationInvitation;
+import static fixtures.repository.InvitationFixtures.aRepositoryApplicationInvitation;
+import static fixtures.repository.InvitationFixtures.aRepositoryGroupInvitation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
+import io.gravitee.apim.core.invitation.model.GroupInvitation;
+import io.gravitee.apim.core.invitation.model.InvitationId;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.InvitationRepository;
 import io.gravitee.repository.management.model.Invitation;
 import io.gravitee.repository.management.model.InvitationReferenceType;
+import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -86,5 +95,69 @@ class InvitationCrudServiceImplTest {
         );
 
         assertThat(throwable).isInstanceOf(TechnicalDomainException.class).hasMessageContaining("create application invitation");
+    }
+
+    @Nested
+    class FindByEmail {
+
+        private static final String INVITATION_ID_2 = "00000000-0000-0000-0000-000000000002";
+        private static final String INVITATION_ID_3 = "00000000-0000-0000-0000-000000000003";
+
+        @Test
+        void should_return_group_and_application_invitations_for_email() throws TechnicalException {
+            when(invitationRepository.findAll()).thenReturn(
+                Set.of(
+                    aRepositoryGroupInvitation(INVITATION_ID_1, "group-1", "alice@example.com"),
+                    aRepositoryApplicationInvitation(INVITATION_ID_2, APPLICATION_ID, "alice@example.com"),
+                    aRepositoryGroupInvitation(INVITATION_ID_3, "group-2", "bob@example.com")
+                )
+            );
+
+            var result = cut.findByEmail("alice@example.com");
+
+            assertThat(result).hasSize(2);
+            assertThat(result).anySatisfy(i -> assertThat(i).isInstanceOf(GroupInvitation.class));
+            assertThat(result).anySatisfy(i -> assertThat(i).isInstanceOf(ApplicationInvitation.class));
+        }
+
+        @Test
+        void should_return_empty_list_when_no_invitations_match_email() throws TechnicalException {
+            when(invitationRepository.findAll()).thenReturn(
+                Set.of(aRepositoryGroupInvitation(INVITATION_ID_1, "group-1", "bob@example.com"))
+            );
+
+            var result = cut.findByEmail("alice@example.com");
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_throw_technical_domain_exception_when_repository_fails() throws TechnicalException {
+            when(invitationRepository.findAll()).thenThrow(new TechnicalException("error"));
+
+            var throwable = catchThrowable(() -> cut.findByEmail("alice@example.com"));
+
+            assertThat(throwable).isInstanceOf(TechnicalDomainException.class).hasMessageContaining("find invitations by email");
+        }
+    }
+
+    @Nested
+    class Delete {
+
+        @Test
+        void should_delete_invitation_by_id() throws TechnicalException {
+            cut.delete(InvitationId.of(INVITATION_ID_1));
+
+            verify(invitationRepository).delete(INVITATION_ID_1);
+        }
+
+        @Test
+        void should_throw_technical_domain_exception_when_repository_fails() throws TechnicalException {
+            org.mockito.Mockito.doThrow(new TechnicalException("error")).when(invitationRepository).delete(anyString());
+
+            var throwable = catchThrowable(() -> cut.delete(InvitationId.of(INVITATION_ID_1)));
+
+            assertThat(throwable).isInstanceOf(TechnicalDomainException.class).hasMessageContaining("delete invitation");
+        }
     }
 }
