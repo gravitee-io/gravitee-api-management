@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { AttrValue, EntityInstance, EntitySource } from './entity.types';
 import type { EntityRequest, EntityResponse } from './api/authz-api.types';
+import type { AttrValue, EntityInstance, EntitySource } from './entity.types';
 
 export const META_KEYS = new Set(['_source', '_displayName', '_importedAt', '_kind', '_url', '_syncedAt', '_proxyApiId']);
 

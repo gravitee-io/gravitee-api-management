@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { describe, expect, it } from 'vitest';
-import type { EntityInstance } from '../entity.types';
 import type { PolicyResponse } from '../api/authz-api.types';
+import type { EntityInstance } from '../entity.types';
 import { buildPolicyEntityRefs, extractEntityRefsFromPolicyText, type PolicyRef } from '../policy-entity-refs';
 
 function makePolicy(overrides: Partial<PolicyResponse> = {}): PolicyResponse {

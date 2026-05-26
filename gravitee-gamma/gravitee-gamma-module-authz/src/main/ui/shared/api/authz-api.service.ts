@@ -136,7 +136,7 @@ function adaptEntityResponse(c: CanonicalEntity): EntityResponse {
     // entity-adapter (which already speaks _source) doesn't need to know about
     // the canonical shape. An existing _source attribute wins.
     const attrs: Record<string, unknown> = { ...c.attributes };
-    if (c.source && attrs._source == null) {
+    if (c.source && attrs._source === undefined) {
         attrs._source = c.source;
     }
     return {
@@ -172,7 +172,7 @@ function adaptPolicyResponse(c: CanonicalPolicy): PolicyResponse {
 function adaptCreatePolicyRequest(r: PolicyRequest): CanonicalPolicyRequest {
     // Custom → GLOBAL (no target). Anything else → RESOURCE bound to the
     // picked target's entityId.
-    const isGlobal = r.type === 'CUSTOM' || r.target == null;
+    const isGlobal = r.type === 'CUSTOM' || r.target === null;
     return {
         name: r.name,
         kind: isGlobal ? 'GLOBAL' : 'RESOURCE',
