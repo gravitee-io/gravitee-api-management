@@ -17,4 +17,4 @@ package io.gravitee.definition.model.v4.edge;
 
 import java.io.Serializable;
 
-public record EdgeRoute(String pathPrefix, String apiPath) implements Serializable {}
+public record EdgeRoute(String pathPrefix, String apiPath, String provider) implements Serializable {}
