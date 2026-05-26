@@ -95,6 +95,45 @@ describe('MarkdownService', () => {
     renderer = service.renderer(BASE_URL, pageBaseUrl, PAGES);
   };
 
+  describe('Fenced code blocks (APIM-13769)', () => {
+    beforeEach(() => {
+      init();
+    });
+
+    it('should render a JSON code block with `language-json` class and no highlight.js markup', () => {
+      const json = `{
+  "status": 200,
+  "success": [
+    { "id": "CONTRACT_ID1" },
+    { "id": "CONTRACT_ID2" }
+  ]
+}`;
+      const md = ['```json', json, '```'].join('\n');
+
+      const html = service.render(md, BASE_URL, PAGE_BASE_URL, PAGES);
+
+      expect(html).toContain('<pre><code class="language-json">');
+      expect(html).not.toContain('class="hljs language-json"');
+      expect(html).not.toContain('hljs-attr');
+      expect(html).not.toContain('hljs-string');
+      expect(html).not.toContain('hljs-punctuation');
+      // The JSON content must be present verbatim (with HTML entities escaped),
+      // i.e. no hljs spans inserted in between tokens.
+      expect(html).toContain('&quot;status&quot;: 200');
+      expect(html).toContain('&quot;id&quot;: &quot;CONTRACT_ID1&quot;');
+    });
+
+    it('should escape HTML in a fenced code block without highlighting it', () => {
+      const md = ['```html', '<script>alert("x")</script>', '```'].join('\n');
+
+      const html = service.render(md, BASE_URL, PAGE_BASE_URL, PAGES);
+
+      expect(html).toContain('<pre><code class="language-html">');
+      expect(html).toContain('&lt;script&gt;');
+      expect(html).not.toContain('<script>');
+    });
+  });
+
   describe('Legacy support', () => {
     beforeEach(() => {
       init();

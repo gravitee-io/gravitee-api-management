@@ -19,19 +19,46 @@ img {
   max-width: 100%;
 }
 
+code {
+  padding: theme.$markdown-inline-code-padding-vertical theme.$markdown-inline-code-padding-horizontal;
+  border-radius: theme.$container-shape;
+  background-color: #{theme.$markdown-inline-code-background-color};
+  color: #{theme.$error-main-color};
+  font-family: theme.$markdown-code-font-family;
+  font-size: theme.$markdown-inline-code-font-size;
+}
+
 pre {
-  white-space: pre-wrap;
+  display: block;
+  padding: theme.$markdown-pre-padding;
+  border: #{theme.$border-width} solid #{theme.$border-color};
+  border-radius: theme.$container-shape;
+  margin: 0 0 theme.$markdown-pre-margin-bottom;
+  background-color: #{theme.$markdown-pre-background-color};
+  color: #{theme.$default-text-color};
+  font-size: theme.$markdown-pre-font-size;
+  line-height: theme.$markdown-pre-line-height;
+  word-break: break-all;
   word-wrap: break-word;
+}
+
+pre code {
+  padding: 0;
+  border-radius: 0;
+  background-color: transparent;
+  color: inherit;
+  font-size: inherit;
+  white-space: pre-wrap;
 }
 
 table {
   overflow: hidden;
   width: auto;
   box-sizing: border-box;
-  border-radius: 8px;
-  margin: 12px 0 14px;
+  border-radius: theme.$table-border-radius;
+  margin: theme.$markdown-table-margin-top 0 theme.$markdown-table-margin-bottom;
   border-collapse: collapse;
-  box-shadow: 0 0 0 1px #{theme.$table-border-color};
+  box-shadow: 0 0 0 #{theme.$border-width} #{theme.$table-border-color};
   color: #{theme.$paragraph-color};
 
   tbody {
@@ -41,7 +68,7 @@ table {
   th {
     background-color: #{theme.$table-header-background-color};
     color: #{theme.$paragraph-color};
-    font-weight: 300;
+    font-weight: theme.$markdown-table-header-font-weight;
   }
 
   td {
@@ -52,9 +79,10 @@ table {
 
   th,
   td {
-    height: 32px;
-    padding: 5px 14px 5px 12px;
-    border: 1px solid #{theme.$table-border-color};
+    height: theme.$markdown-table-cell-height;
+    padding: theme.$markdown-table-cell-padding-vertical theme.$markdown-table-cell-padding-end theme.$markdown-table-cell-padding-vertical
+      theme.$markdown-table-cell-padding-start;
+    border: #{theme.$border-width} solid #{theme.$table-border-color};
     border-collapse: collapse;
 
     &:first-child {
@@ -77,11 +105,11 @@ table {
 }
 
 .marked-alert-icons {
-  width: var(--gio-marked-alert-icon-width, 24px);
-  height: var(--gio-marked-alert-icon-width, 24px);
-  margin: 0 8px;
-  font-family: 'Material Icons', sans-serif;
-  font-size: var(--gio-marked-alert-icon-width, 24px);
+  width: var(--gio-marked-alert-icon-width, #{theme.$markdown-alert-icon-size});
+  height: var(--gio-marked-alert-icon-width, #{theme.$markdown-alert-icon-size});
+  margin: 0 theme.$markdown-alert-icon-margin-horizontal;
+  font-family: theme.$markdown-alert-icon-font-family;
+  font-size: var(--gio-marked-alert-icon-width, #{theme.$markdown-alert-icon-size});
   vertical-align: middle;
 
   &--note {

@@ -16,7 +16,6 @@
 import { Injectable } from '@angular/core';
 import * as emojiData from '@emoji-mart/data';
 import { Emoji } from '@emoji-mart/data';
-import hljs from 'highlight.js';
 import { marked, Renderer, RendererObject } from 'marked';
 import markedAlert from 'marked-alert';
 import { markedEmoji } from 'marked-emoji';
@@ -24,7 +23,6 @@ import { markedEmoji } from 'marked-emoji';
 // @ts-expect-error Please do not change this import before checking if the issue is fixed in the library.
 import markedExtendedTables from 'marked-extended-tables/src/index';
 import { gfmHeadingId } from 'marked-gfm-heading-id';
-import { markedHighlight } from 'marked-highlight';
 
 import { Page } from '../entities/page/page';
 
@@ -34,15 +32,6 @@ import { Page } from '../entities/page/page';
 export class MarkdownService {
   constructor() {
     marked.use(gfmHeadingId());
-    marked.use(
-      markedHighlight({
-        langPrefix: 'hljs language-',
-        highlight(code, language) {
-          const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
-          return hljs.highlight(validLanguage, code).value;
-        },
-      }),
-    );
     marked.use(markedEmojiExtension());
     marked.use(markedExtendedTables());
     marked.use(markedAlertExtension());
