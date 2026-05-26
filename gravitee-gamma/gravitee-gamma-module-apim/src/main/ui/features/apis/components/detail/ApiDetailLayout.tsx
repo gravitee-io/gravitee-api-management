@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { Alert, AlertDescription, Badge, Button, Skeleton } from '@gravitee/graphene-core';
-import { CircleCheckIcon, CircleStopIcon, CircleXIcon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
+import { Badge, Button, Card, CardContent, Skeleton } from '@gravitee/graphene-core';
+import { CircleCheckIcon, CircleStopIcon, CircleXIcon, MessageSquareWarningIcon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Navigate, Outlet, useParams } from 'react-router-dom';
@@ -29,13 +29,25 @@ import { deployApi } from '../../services/apis';
 import type { ApiDetailDto } from '../../types';
 import { apiDetailKeys } from '../../utils/queryKeys';
 
-function StateIndicator({ state }: { state: ApiDetailDto['state'] }) {
+function StateIndicator({ state, deploymentState }: { state: ApiDetailDto['state']; deploymentState?: string }) {
+    if (state === 'STARTED' && deploymentState === 'NEED_REDEPLOY') {
+        return (
+            <Badge
+                className="gap-1 h-5 px-1.5 text-xs font-medium border-transparent"
+                style={{ backgroundColor: 'color-mix(in oklab, var(--color-warning) 12%, transparent)', color: 'var(--color-warning)' }}
+            >
+                <TriangleAlertIcon className="size-3" />
+                Out of sync
+            </Badge>
+        );
+    }
+
     switch (state) {
         case 'STARTED':
             return (
                 <Badge className="gap-1 h-5 px-1.5 text-xs font-medium bg-success/10 text-success border-transparent">
                     <CircleCheckIcon className="size-3" />
-                    Deployed
+                    Started
                 </Badge>
             );
         case 'STOPPED':
@@ -66,15 +78,20 @@ function ApiAvatar({ api }: { api: ApiDetailDto }) {
 
 function DeployBanner({ onDeploy, isPending }: { onDeploy: () => void; isPending: boolean }) {
     return (
-        <Alert className="rounded-none border-x-0 border-t-0 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-                <TriangleAlertIcon className="size-4 text-warning shrink-0" />
-                <AlertDescription>This API has pending changes. Redeploy to apply them to the gateway.</AlertDescription>
-            </div>
-            <Button size="sm" onClick={onDeploy} disabled={isPending} className="shrink-0">
-                {isPending ? 'Deploying…' : 'Deploy API'}
-            </Button>
-        </Alert>
+        <div className="px-6 pt-4">
+            <Card>
+                <CardContent className="flex items-center justify-between gap-3 py-3">
+                    <div className="flex items-center gap-2">
+                        <MessageSquareWarningIcon className="size-4 text-warning shrink-0" />
+                        <p className="text-sm font-medium">Pending changes</p>
+                        <p className="text-sm text-muted-foreground">— This API is out of sync.</p>
+                    </div>
+                    <Button size="sm" onClick={onDeploy} disabled={isPending} className="shrink-0">
+                        {isPending ? 'Deploying…' : 'Deploy API'}
+                    </Button>
+                </CardContent>
+            </Card>
+        </div>
     );
 }
 
@@ -111,7 +128,7 @@ function ApiInfoHeader({ api, isLoading }: { api: ApiDetailDto | null; isLoading
                     >
                         {api.name}
                     </p>
-                    {api.state ? <StateIndicator state={api.state} /> : null}
+                    {api.state ? <StateIndicator state={api.state} deploymentState={api.deploymentState} /> : null}
                 </div>
             </div>
 

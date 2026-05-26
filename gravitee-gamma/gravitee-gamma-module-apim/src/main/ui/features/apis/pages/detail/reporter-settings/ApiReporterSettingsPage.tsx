@@ -123,7 +123,7 @@ export function ApiReporterSettingsPage() {
     const mutation = useMutation({
         mutationFn: (analytics: Analytics) => updateApiAnalytics(env!.id, apiId!, analytics),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env?.id ?? '', apiId ?? '') });
+            void queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env?.id ?? '', apiId ?? '') });
             initializedForApiIdRef.current = undefined;
             setSaveError(null);
         },

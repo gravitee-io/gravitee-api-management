@@ -28,7 +28,13 @@ import {
     updateSubscriptionEndDate,
 } from '../services/subscriptions';
 import type { ApproveSubscriptionPayload, CreateSubscriptionPayload, SubscriptionContext } from '../types/subscription';
-import { apiSubscriptionKeys } from '../utils/queryKeys';
+import { apiDetailKeys, apiSubscriptionKeys } from '../utils/queryKeys';
+
+function invalidateApiDetail(qc: ReturnType<typeof useQueryClient>, ctx: SubscriptionContext, envId: string) {
+    if (ctx.type === 'api') {
+        qc.invalidateQueries({ queryKey: apiDetailKeys.detail(envId, ctx.entityId) });
+    }
+}
 
 export function useCreateSubscription(ctx: SubscriptionContext) {
     const envId = useEnv();
@@ -38,6 +44,7 @@ export function useCreateSubscription(ctx: SubscriptionContext) {
         mutationFn: (payload: CreateSubscriptionPayload) => createSubscription(envId, ctx, payload),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: [...apiSubscriptionKeys.all, ctx.type, ctx.entityId, 'list'] });
+            invalidateApiDetail(qc, ctx, envId);
         },
     });
 }
@@ -51,6 +58,7 @@ export function useTransferSubscription(ctx: SubscriptionContext, subscriptionId
         onSuccess: sub => {
             qc.setQueryData(apiSubscriptionKeys.detail(envId, ctx, subscriptionId), sub);
             qc.invalidateQueries({ queryKey: [...apiSubscriptionKeys.all, ctx.type, ctx.entityId, 'list'] });
+            invalidateApiDetail(qc, ctx, envId);
         },
     });
 }
@@ -64,6 +72,7 @@ export function usePauseSubscription(ctx: SubscriptionContext, subscriptionId: s
         onSuccess: sub => {
             qc.setQueryData(apiSubscriptionKeys.detail(envId, ctx, subscriptionId), sub);
             qc.invalidateQueries({ queryKey: [...apiSubscriptionKeys.all, ctx.type, ctx.entityId, 'list'] });
+            invalidateApiDetail(qc, ctx, envId);
         },
     });
 }
@@ -77,6 +86,7 @@ export function useResumeSubscription(ctx: SubscriptionContext, subscriptionId: 
         onSuccess: sub => {
             qc.setQueryData(apiSubscriptionKeys.detail(envId, ctx, subscriptionId), sub);
             qc.invalidateQueries({ queryKey: [...apiSubscriptionKeys.all, ctx.type, ctx.entityId, 'list'] });
+            invalidateApiDetail(qc, ctx, envId);
         },
     });
 }
@@ -90,6 +100,7 @@ export function useCloseSubscription(ctx: SubscriptionContext, subscriptionId: s
         onSuccess: sub => {
             qc.setQueryData(apiSubscriptionKeys.detail(envId, ctx, subscriptionId), sub);
             qc.invalidateQueries({ queryKey: [...apiSubscriptionKeys.all, ctx.type, ctx.entityId, 'list'] });
+            invalidateApiDetail(qc, ctx, envId);
         },
     });
 }
@@ -103,6 +114,7 @@ export function useApproveSubscription(ctx: SubscriptionContext, subscriptionId:
         onSuccess: sub => {
             qc.setQueryData(apiSubscriptionKeys.detail(envId, ctx, subscriptionId), sub);
             qc.invalidateQueries({ queryKey: [...apiSubscriptionKeys.all, ctx.type, ctx.entityId, 'list'] });
+            invalidateApiDetail(qc, ctx, envId);
         },
     });
 }
@@ -116,6 +128,7 @@ export function useRejectSubscription(ctx: SubscriptionContext, subscriptionId: 
         onSuccess: sub => {
             qc.setQueryData(apiSubscriptionKeys.detail(envId, ctx, subscriptionId), sub);
             qc.invalidateQueries({ queryKey: [...apiSubscriptionKeys.all, ctx.type, ctx.entityId, 'list'] });
+            invalidateApiDetail(qc, ctx, envId);
         },
     });
 }
@@ -129,6 +142,7 @@ export function useResumeFailedSubscription(ctx: SubscriptionContext, subscripti
         onSuccess: sub => {
             qc.setQueryData(apiSubscriptionKeys.detail(envId, ctx, subscriptionId), sub);
             qc.invalidateQueries({ queryKey: [...apiSubscriptionKeys.all, ctx.type, ctx.entityId, 'list'] });
+            invalidateApiDetail(qc, ctx, envId);
         },
     });
 }

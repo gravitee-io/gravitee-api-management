@@ -59,18 +59,14 @@ jest.mock('../../utils/queryKeys', () => ({
 }));
 
 jest.mock('@gravitee/graphene-core', () => ({
-    Alert: ({ children, className }: { children?: ReactNode; className?: string }) => (
-        <div role="alert" className={className}>
-            {children}
-        </div>
-    ),
-    AlertDescription: ({ children }: { children?: ReactNode }) => <span>{children}</span>,
     Badge: ({ children }: { children?: ReactNode }) => <span>{children}</span>,
     Button: ({ children, onClick, disabled }: { children?: ReactNode; onClick?: () => void; disabled?: boolean }) => (
         <button type="button" onClick={onClick} disabled={disabled}>
             {children}
         </button>
     ),
+    Card: ({ children, className }: { children?: ReactNode; className?: string }) => <div className={className}>{children}</div>,
+    CardContent: ({ children, className }: { children?: ReactNode; className?: string }) => <div className={className}>{children}</div>,
     Skeleton: () => <div />,
 }));
 

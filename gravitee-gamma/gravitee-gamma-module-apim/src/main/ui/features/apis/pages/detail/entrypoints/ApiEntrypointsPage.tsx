@@ -253,13 +253,8 @@ export function ApiEntrypointsPage() {
                             Save changes
                         </Button>
                     )}
-                    {!isReadOnly && !virtualHostMode && (
-                        <Button
-                            variant={showConfig ? 'outline' : 'default'}
-                            size="sm"
-                            onClick={showConfig ? addContextPath : handleAddFirstContextPath}
-                            className="gap-1.5"
-                        >
+                    {!isReadOnly && !virtualHostMode && !showConfig && (
+                        <Button size="sm" onClick={handleAddFirstContextPath} className="gap-1.5">
                             <PlusIcon className="size-3.5" />
                             Add context path
                         </Button>

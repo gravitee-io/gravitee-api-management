@@ -73,7 +73,7 @@ export function ApisListView({
 
             {/* Search + pagination row */}
             <div className="flex items-center justify-between gap-4">
-                <div className="relative w-72 shrink-0">
+                <div className="relative flex-1 max-w-sm">
                     <SearchIcon
                         className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none"
                         aria-hidden
