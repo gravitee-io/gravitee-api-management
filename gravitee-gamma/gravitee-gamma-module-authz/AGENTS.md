@@ -7,7 +7,7 @@ This module follows **Clean Architecture** (Hexagonal) for all backend code. The
 Each domain within the module follows this structure:
 
 ```
-io.gravitee.gamma.module.apim/
+io.gravitee.gamma.authorization/
 ├── rest/
 │   ├── resource/                      # @RestController
 │   ├── exception/                     # Exception handlers
