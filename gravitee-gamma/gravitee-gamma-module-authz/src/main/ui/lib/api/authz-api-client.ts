@@ -79,18 +79,6 @@ export interface AuthzApiClients {
 }
 
 export function createAuthzApiClients(fetchFn: typeof fetch = fetch): AuthzApiClients {
-    // We cache the in-flight PROMISE rather than just the resolved value.
-    //
-    // Caching only the resolved value let parallel callers (6–9 hooks mounting
-    // simultaneously on a fresh page) each fire their own /constants.json +
-    // /ui/bootstrap pair before any of them populated the cache, producing
-    // the bootstrap-thrashing seen in APIM logs. Caching the promise
-    // de-duplicates concurrent calls into a single network round-trip while
-    // keeping the same observable behaviour (every caller still awaits a
-    // BootstrapConfig).
-    //
-    // On error we clear the cache so a transient failure doesn't permanently
-    // poison subsequent calls.
     let cachedPromise: Promise<BootstrapConfig> | null = null;
 
     function loadBootstrapConfig(): Promise<BootstrapConfig> {
@@ -166,7 +154,7 @@ export function createAuthzApiClients(fetchFn: typeof fetch = fetch): AuthzApiCl
                     }
                 }
             } catch {
-                // ignore
+                /* noop */
             }
             throw new ApiError(res.status, validation?.message ?? `${init?.method ?? 'GET'} ${path} failed`, validation);
         }

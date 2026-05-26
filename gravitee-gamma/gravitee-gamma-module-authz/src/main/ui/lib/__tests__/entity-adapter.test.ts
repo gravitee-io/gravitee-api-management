@@ -17,8 +17,6 @@ import { describe, expect, it } from 'vitest';
 import type { EntityResponse } from '../api/authz-api.types';
 import { parseEntityUid, formatEntityUid, fromBackend, toBackend, META_KEYS } from '../entity-adapter';
 
-// ---------- parseEntityUid ---------------------------------------------------
-
 describe('parseEntityUid', () => {
     // Canonical dotted form — what the backend EntityIdValidator accepts.
     it('parses dotted user form', () => {
@@ -50,8 +48,6 @@ describe('parseEntityUid', () => {
     });
 });
 
-// ---------- formatEntityUid --------------------------------------------------
-
 describe('formatEntityUid', () => {
     it('formats to canonical dotted form', () => {
         expect(formatEntityUid({ type: 'User', id: 'alice' })).toBe('user.alice');
@@ -79,8 +75,6 @@ describe('formatEntityUid', () => {
         expect(parsed).toEqual(uid);
     });
 });
-
-// ---------- Meta key separation in fromBackend --------------------------------
 
 describe('fromBackend', () => {
     const base: EntityResponse = {
@@ -149,8 +143,6 @@ describe('fromBackend', () => {
         expect(inst._backendId).toBe('backend-id-1');
     });
 });
-
-// ---------- toBackend --------------------------------------------------------
 
 describe('toBackend', () => {
     it('formats uid in canonical dotted form', () => {

@@ -18,10 +18,6 @@ import type { EntityInstance } from '../entity.types';
 import type { PolicyResponse } from '../api/authz-api.types';
 import { buildPolicyEntityRefs, extractEntityRefsFromPolicyText, type PolicyRef } from '../policy-entity-refs';
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 function makePolicy(overrides: Partial<PolicyResponse> = {}): PolicyResponse {
     return {
         id: overrides.id ?? 'pol-1',
@@ -46,10 +42,6 @@ function makeEntity(type: string, id: string): EntityInstance {
         source: 'local',
     };
 }
-
-// ---------------------------------------------------------------------------
-// extractEntityRefsFromPolicyText
-// ---------------------------------------------------------------------------
 
 describe('extractEntityRefsFromPolicyText', () => {
     it('returns empty array for empty input', () => {
@@ -84,10 +76,6 @@ describe('extractEntityRefsFromPolicyText', () => {
         expect(refs).toEqual([]);
     });
 });
-
-// ---------------------------------------------------------------------------
-// buildPolicyEntityRefs
-// ---------------------------------------------------------------------------
 
 describe('buildPolicyEntityRefs', () => {
     it('returns an empty map when no entities or policies are given', () => {
