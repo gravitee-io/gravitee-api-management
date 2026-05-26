@@ -134,7 +134,7 @@ class ApiSynchronizerTest {
                 org.mockito.Mockito.mock(io.gravitee.gateway.handlers.api.registry.ApiProductRegistry.class),
                 100
             ),
-            new ApiKeyAppender(apiKeyRepository, new ApiKeyMapper()),
+            new ApiKeyAppender(apiKeyRepository, new ApiKeyMapper(), 100, 900),
             deployerFactory,
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
