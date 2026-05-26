@@ -105,8 +105,6 @@ export function AppRoutes() {
                             <Route path="properties" element={<ApiPropertiesPage />} />
                             <Route path="resources" element={<ApiDetailPlaceholderPage title="Resources" />} />
                             <Route path="notifications" element={<ApiNotificationsPage />} />
-                            <Route path="api-score" element={<ApiDetailPlaceholderPage title="API Score" />} />
-                            <Route path="response-templates" element={<ApiDetailPlaceholderPage title="Response Templates" />} />
                             <Route path="entrypoints" element={<ApiEntrypointsPage />} />
                             <Route path="cors" element={<ApiCorsPage />} />
                             <Route path="endpoints">
@@ -131,7 +129,6 @@ export function AppRoutes() {
                                 <Route path=":subscriptionId" element={<ApiConsumerDetailPage />} />
                             </Route>
                             <Route path="broadcasts" element={<ApiBroadcastsPage />} />
-                            <Route path="authorization" element={<ApiDetailPlaceholderPage title="Authorization" />} />
                             <Route path="user-permissions" element={<UserPermissionsPage />} />
                             <Route path="alerts">
                                 <Route index element={<ApiAlertsPage />} />

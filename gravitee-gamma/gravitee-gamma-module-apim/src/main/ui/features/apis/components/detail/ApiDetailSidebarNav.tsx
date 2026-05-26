@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { cn, Skeleton } from '@gravitee/graphene-core';
+import { cn, Skeleton, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@gravitee/graphene-core';
 import {
     ActivityIcon,
     BellIcon,
     ChevronDownIcon,
     ChevronRightIcon,
+    FlaskConicalIcon,
     GlobeIcon,
     LayoutDashboardIcon,
     ListIcon,
@@ -55,6 +56,8 @@ export interface DetailNavItem {
     /** When false, matches any sub-path (prefix match). Defaults to true (exact match). */
     end?: boolean;
     children?: DetailNavChild[];
+    /** When true, renders as a non-navigable item with a lab icon and "Coming soon" tooltip. */
+    comingSoon?: boolean;
 }
 
 export interface DetailNavGroup {
@@ -73,8 +76,8 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
             { path: 'properties', label: 'API Properties', icon: SettingsIcon },
             { path: 'resources', label: 'Resources', icon: ServerIcon },
             { path: 'notifications', label: 'Notifications', icon: BellIcon },
-            { path: 'api-score', label: 'API Score', icon: SparklesIcon },
-            { path: 'response-templates', label: 'Response Templates', icon: ScrollTextIcon },
+            { path: 'api-score', label: 'API Score', icon: SparklesIcon, comingSoon: true },
+            { path: 'response-templates', label: 'Response Templates', icon: ScrollTextIcon, comingSoon: true },
             { path: 'cors', label: 'CORS', icon: ShieldCheckIcon },
         ],
     },
@@ -110,7 +113,7 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
     {
         label: 'Security',
         items: [
-            { path: 'authorization', label: 'Authorization', icon: LockIcon },
+            { path: 'authorization', label: 'Authorization', icon: LockIcon, comingSoon: true },
             { path: 'user-permissions', label: 'User Permissions', icon: UsersIcon },
         ],
     },
@@ -221,42 +224,63 @@ export function ApiDetailSidebarNav({ groups, basePath, permissionsReady = true 
     }
 
     return (
-        <div className="space-y-0.5 px-2 py-2">
-            {groups.map(group => (
-                <div key={group.label} className="pt-4 first:pt-0">
-                    <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{group.label}</p>
-                    {group.items.map(item => {
-                        if (item.children && item.children.length > 0) {
+        <TooltipProvider delayDuration={300}>
+            <div className="space-y-0.5 px-2 py-2">
+                {groups.map(group => (
+                    <div key={group.label} className="pt-4 first:pt-0">
+                        <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{group.label}</p>
+                        {group.items.map(item => {
+                            if (item.children && item.children.length > 0) {
+                                return (
+                                    <CollapsibleNavItem
+                                        key={item.path}
+                                        item={item as DetailNavItem & { children: DetailNavChild[] }}
+                                        basePath={basePath}
+                                    />
+                                );
+                            }
+                            const Icon = item.icon;
+                            if (item.comingSoon) {
+                                return (
+                                    <Tooltip key={item.path}>
+                                        <TooltipTrigger asChild>
+                                            <div
+                                                className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm cursor-not-allowed select-none text-muted-foreground/50"
+                                                aria-disabled="true"
+                                            >
+                                                <Icon className="size-4 shrink-0" aria-hidden />
+                                                <span className="flex-1">{item.label}</span>
+                                                <FlaskConicalIcon className="size-3.5 shrink-0" aria-hidden />
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="right" className="text-xs">
+                                            Coming soon
+                                        </TooltipContent>
+                                    </Tooltip>
+                                );
+                            }
                             return (
-                                <CollapsibleNavItem
+                                <NavLink
+                                    end={item.end !== false}
                                     key={item.path}
-                                    item={item as DetailNavItem & { children: DetailNavChild[] }}
-                                    basePath={basePath}
-                                />
+                                    to={`${basePath}/${item.path}`}
+                                    className={({ isActive }) =>
+                                        cn(
+                                            'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors',
+                                            isActive
+                                                ? 'bg-accent text-foreground font-medium'
+                                                : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                                        )
+                                    }
+                                >
+                                    <Icon className="size-4 shrink-0" aria-hidden />
+                                    {item.label}
+                                </NavLink>
                             );
-                        }
-                        const Icon = item.icon;
-                        return (
-                            <NavLink
-                                end={item.end !== false}
-                                key={item.path}
-                                to={`${basePath}/${item.path}`}
-                                className={({ isActive }) =>
-                                    cn(
-                                        'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors',
-                                        isActive
-                                            ? 'bg-accent text-foreground font-medium'
-                                            : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                                    )
-                                }
-                            >
-                                <Icon className="size-4 shrink-0" aria-hidden />
-                                {item.label}
-                            </NavLink>
-                        );
-                    })}
-                </div>
-            ))}
-        </div>
+                        })}
+                    </div>
+                ))}
+            </div>
+        </TooltipProvider>
     );
 }

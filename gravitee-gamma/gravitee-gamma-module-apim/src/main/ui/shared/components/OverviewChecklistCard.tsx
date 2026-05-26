@@ -40,6 +40,8 @@ export interface OverviewChecklistItem {
     actionLabel: string;
     done: boolean;
     comingSoon?: boolean;
+    /** When true the done state is driven by a real API condition — the row cannot be unchecked manually. */
+    locked?: boolean;
 }
 
 interface OverviewChecklistCardProps {
@@ -49,14 +51,22 @@ interface OverviewChecklistCardProps {
     isReady?: boolean;
     /** Total item count to show while loading. Defaults to items.length. */
     totalCountHint?: number;
+    /** Called when user clicks a non-locked, non-comingSoon row. */
+    onToggle?: (id: string, newDone: boolean) => void;
 }
 
-export function OverviewChecklistCard({ description, items, isReady = true, totalCountHint }: Readonly<OverviewChecklistCardProps>) {
+export function OverviewChecklistCard({
+    description,
+    items,
+    isReady = true,
+    totalCountHint,
+    onToggle,
+}: Readonly<OverviewChecklistCardProps>) {
     const [open, setOpen] = useState(true);
 
     const completedCount = items.filter(i => i.done).length;
     const totalCount = totalCountHint ?? items.length;
-    const completionPct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+    const completionPct = totalCount > 0 ? Math.min(100, Math.round((completedCount / totalCount) * 100)) : 0;
 
     return (
         <Card>
@@ -97,12 +107,28 @@ export function OverviewChecklistCard({ description, items, isReady = true, tota
                             <TooltipProvider delayDuration={200}>
                                 {items.map(item => {
                                     const ItemIcon = item.icon;
+                                    const isToggleable = !item.locked && !item.comingSoon && Boolean(onToggle);
                                     return (
                                         <div
                                             key={item.id}
                                             className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors${
-                                                item.done ? ' opacity-60' : item.comingSoon ? '' : ' hover:bg-accent/50'
-                                            }`}
+                                                item.done && item.locked ? ' opacity-60' : ''
+                                            }${isToggleable ? ' cursor-pointer hover:bg-accent/50' : ''}`}
+                                            onClick={isToggleable ? () => onToggle!(item.id, !item.done) : undefined}
+                                            role={isToggleable ? 'checkbox' : undefined}
+                                            aria-checked={isToggleable ? item.done : undefined}
+                                            aria-label={isToggleable ? item.label : undefined}
+                                            tabIndex={isToggleable ? 0 : undefined}
+                                            onKeyDown={
+                                                isToggleable
+                                                    ? e => {
+                                                          if (e.key === 'Enter' || e.key === ' ') {
+                                                              e.preventDefault();
+                                                              onToggle!(item.id, !item.done);
+                                                          }
+                                                      }
+                                                    : undefined
+                                            }
                                         >
                                             <div className="shrink-0">
                                                 {item.done ? (
@@ -129,6 +155,7 @@ export function OverviewChecklistCard({ description, items, isReady = true, tota
                                                         type="button"
                                                         className="text-muted-foreground/40 hover:text-muted-foreground transition-colors shrink-0"
                                                         aria-label={`Info: ${item.label}`}
+                                                        onClick={e => e.stopPropagation()}
                                                     >
                                                         <InfoIcon className="size-3.5" aria-hidden />
                                                     </button>
@@ -144,6 +171,7 @@ export function OverviewChecklistCard({ description, items, isReady = true, tota
                                                     to={item.to ?? '#'}
                                                     className="shrink-0 inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-xs font-medium text-primary transition-colors"
                                                     aria-label={item.actionLabel}
+                                                    onClick={e => e.stopPropagation()}
                                                 >
                                                     {item.actionLabel}
                                                     <ArrowRightIcon className="size-4 shrink-0" aria-hidden />

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ActivityIcon, GlobeIcon, LockIcon, NetworkIcon, UsersIcon, WorkflowIcon } from '@gravitee/graphene-core/icons';
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { OverviewChecklistCard, type OverviewChecklistItem } from '../../../../../shared/components/OverviewChecklistCard';
 import type { AlertTrigger, ApiDetailDto } from '../../../types';
@@ -24,10 +24,12 @@ function buildChecklistItems(
     api: ApiDetailDto | null,
     membersData: MembersResponse | undefined,
     alertsData: AlertTrigger[] | undefined,
+    manuallyDone: Set<string>,
 ): OverviewChecklistItem[] {
     const hasEndpointGroup = Boolean(api?.endpointGroups?.[0]?.endpoints?.length);
     const memberCount = membersData?.pagination?.totalCount ?? 0;
     const isPublished = api?.lifecycleState === 'PUBLISHED';
+    const hasAlerts = Boolean(alertsData?.length);
 
     return [
         {
@@ -37,7 +39,8 @@ function buildChecklistItems(
             to: '../endpoints/list',
             icon: NetworkIcon,
             actionLabel: 'Open Endpoints',
-            done: hasEndpointGroup,
+            done: hasEndpointGroup || manuallyDone.has('endpoint-security'),
+            locked: hasEndpointGroup,
         },
         {
             id: 'security-policies',
@@ -46,7 +49,8 @@ function buildChecklistItems(
             to: '../policy-studio',
             icon: WorkflowIcon,
             actionLabel: 'Open Policy Studio',
-            done: false,
+            done: manuallyDone.has('security-policies'),
+            locked: false,
         },
         {
             id: 'authorization',
@@ -64,7 +68,8 @@ function buildChecklistItems(
             to: '../alerts',
             icon: ActivityIcon,
             actionLabel: 'Open Alerts',
-            done: Boolean(alertsData?.length),
+            done: hasAlerts || manuallyDone.has('alerts'),
+            locked: hasAlerts,
         },
         {
             id: 'team-access',
@@ -73,7 +78,8 @@ function buildChecklistItems(
             to: '../user-permissions',
             icon: UsersIcon,
             actionLabel: 'Manage Access',
-            done: memberCount > 1,
+            done: memberCount > 1 || manuallyDone.has('team-access'),
+            locked: memberCount > 1,
         },
         {
             id: 'publish',
@@ -82,7 +88,8 @@ function buildChecklistItems(
             to: '../general',
             icon: GlobeIcon,
             actionLabel: 'Open General',
-            done: isPublished,
+            done: isPublished || manuallyDone.has('publish'),
+            locked: isPublished,
         },
     ];
 }
@@ -103,18 +110,29 @@ export function ApiOverviewChecklist({
     isLoadingAlerts,
 }: Readonly<ApiOverviewChecklistProps>) {
     const isReady = !isLoadingMembers && !isLoadingAlerts;
+    const [manuallyDone, setManuallyDone] = useState<Set<string>>(new Set());
 
     const items = useMemo(
-        () => (isReady ? buildChecklistItems(api, membersData, alertsData) : []),
-        [api, membersData, alertsData, isReady],
+        () => (isReady ? buildChecklistItems(api, membersData, alertsData, manuallyDone) : []),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [api, membersData, alertsData, isReady, manuallyDone],
     );
+
+    const handleToggle = useCallback((id: string, newDone: boolean) => {
+        setManuallyDone(prev => {
+            const next = new Set(prev);
+            if (newDone) next.add(id);
+            else next.delete(id);
+            return next;
+        });
+    }, []);
 
     return (
         <OverviewChecklistCard
             description="Finish setting up your API proxy. Each row links to the right screen."
             items={items}
             isReady={isReady}
-            totalCountHint={4}
+            onToggle={handleToggle}
         />
     );
 }

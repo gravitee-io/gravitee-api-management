@@ -83,4 +83,64 @@ describe('OverviewChecklistCard', () => {
             expect(screen.queryByRole('link', { name: 'Open APIs' })).toBeNull();
         });
     });
+
+    describe('manual toggle', () => {
+        it('calls onToggle with newDone=true when an unchecked toggleable row is clicked', () => {
+            const onToggle = jest.fn();
+            wrap(<OverviewChecklistCard description="desc" items={[BASE_ITEM]} onToggle={onToggle} />);
+            fireEvent.click(screen.getByRole('checkbox', { name: 'Add APIs' }));
+            expect(onToggle).toHaveBeenCalledWith('item-1', true);
+        });
+
+        it('calls onToggle with newDone=false when a checked non-locked row is clicked', () => {
+            const onToggle = jest.fn();
+            wrap(<OverviewChecklistCard description="desc" items={[{ ...BASE_ITEM, done: true }]} onToggle={onToggle} />);
+            fireEvent.click(screen.getByRole('checkbox', { name: 'Add APIs' }));
+            expect(onToggle).toHaveBeenCalledWith('item-1', false);
+        });
+
+        it('does not call onToggle when a locked (auto-done) row is clicked', () => {
+            const onToggle = jest.fn();
+            wrap(<OverviewChecklistCard description="desc" items={[{ ...BASE_ITEM, done: true, locked: true }]} onToggle={onToggle} />);
+            expect(screen.queryByRole('checkbox', { name: 'Add APIs' })).toBeNull();
+        });
+
+        it('does not call onToggle when a comingSoon row is clicked', () => {
+            const onToggle = jest.fn();
+            wrap(
+                <OverviewChecklistCard
+                    description="desc"
+                    items={[{ ...BASE_ITEM, to: undefined, comingSoon: true }]}
+                    onToggle={onToggle}
+                />,
+            );
+            expect(screen.queryByRole('checkbox', { name: 'Add APIs' })).toBeNull();
+        });
+
+        it('does not render rows as checkboxes when onToggle is not provided', () => {
+            wrap(<OverviewChecklistCard description="desc" items={[BASE_ITEM]} />);
+            expect(screen.queryByRole('checkbox')).toBeNull();
+        });
+
+        it('calls onToggle via keyboard Enter on a toggleable row', () => {
+            const onToggle = jest.fn();
+            wrap(<OverviewChecklistCard description="desc" items={[BASE_ITEM]} onToggle={onToggle} />);
+            fireEvent.keyDown(screen.getByRole('checkbox', { name: 'Add APIs' }), { key: 'Enter' });
+            expect(onToggle).toHaveBeenCalledWith('item-1', true);
+        });
+
+        it('clicking the info tooltip button does not trigger the row toggle', () => {
+            const onToggle = jest.fn();
+            wrap(<OverviewChecklistCard description="desc" items={[BASE_ITEM]} onToggle={onToggle} />);
+            fireEvent.click(screen.getByRole('button', { name: 'Info: Add APIs' }));
+            expect(onToggle).not.toHaveBeenCalled();
+        });
+
+        it('clicking the action link does not trigger the row toggle', () => {
+            const onToggle = jest.fn();
+            wrap(<OverviewChecklistCard description="desc" items={[BASE_ITEM]} onToggle={onToggle} />);
+            fireEvent.click(screen.getByRole('link', { name: 'Open APIs' }));
+            expect(onToggle).not.toHaveBeenCalled();
+        });
+    });
 });

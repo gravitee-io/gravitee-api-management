@@ -209,6 +209,7 @@ export interface ApiDetailDto {
         backgroundUrl?: string;
     };
     properties?: Property[];
+
     services?: { dynamicProperty?: DynamicPropertyConfig };
     analytics?: Analytics;
     listeners?: HttpListener[];

@@ -19,7 +19,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { createPlan, deletePlan, getPlan, listPlans, transitionPlan, updatePlan } from '../services/plans';
 import type { ManagedPlan, PlanContext, PlanFormValue, PlanStatus, PlanTransitionAction } from '../types/plan';
 import { planFormToPayload } from '../utils/planTransformers';
-import { apiPlanKeys } from '../utils/queryKeys';
+import { apiDetailKeys, apiPlanKeys } from '../utils/queryKeys';
 
 /** Paginated plan list filtered by statuses. */
 export function usePlanList(ctx: PlanContext, statuses: PlanStatus[], page: number, perPage = 10) {
@@ -85,8 +85,11 @@ export function usePlan(ctx: PlanContext, planId: string | undefined) {
     });
 }
 
-function invalidatePlans(qc: ReturnType<typeof useQueryClient>, ctx: PlanContext) {
+function invalidatePlans(qc: ReturnType<typeof useQueryClient>, ctx: PlanContext, envId: string) {
     qc.invalidateQueries({ queryKey: [apiPlanKeys.all[0], ctx.type, ctx.entityId] });
+    if (ctx.type === 'api') {
+        qc.invalidateQueries({ queryKey: apiDetailKeys.detail(envId, ctx.entityId) });
+    }
 }
 
 /** Create a new plan — mutate receives a PlanFormValue and transforms it internally. */
@@ -96,7 +99,7 @@ export function useCreatePlan(ctx: PlanContext) {
     const qc = useQueryClient();
     return useMutation({
         mutationFn: (form: PlanFormValue) => createPlan(envId, ctx, planFormToPayload(form, ctx)),
-        onSuccess: () => invalidatePlans(qc, ctx),
+        onSuccess: () => invalidatePlans(qc, ctx, envId),
     });
 }
 
@@ -110,7 +113,7 @@ export function useUpdatePlan(ctx: PlanContext) {
             updatePlan(envId, ctx, planId, planFormToPayload(form, ctx)),
         onSuccess: updated => {
             qc.setQueryData(apiPlanKeys.detail(envId, ctx, updated.id), updated);
-            invalidatePlans(qc, ctx);
+            invalidatePlans(qc, ctx, envId);
         },
     });
 }
@@ -124,7 +127,7 @@ export function usePlanTransition(ctx: PlanContext) {
         mutationFn: ({ planId, action }: { planId: string; action: PlanTransitionAction }) => transitionPlan(envId, ctx, planId, action),
         onSuccess: updated => {
             qc.setQueryData(apiPlanKeys.detail(envId, ctx, updated.id), updated);
-            invalidatePlans(qc, ctx);
+            invalidatePlans(qc, ctx, envId);
         },
     });
 }
@@ -140,7 +143,7 @@ export function useReorderPlan(ctx: PlanContext) {
             const { id: _id, status: _status, ...planFields } = fullPlan;
             return updatePlan(envId, ctx, planId, { ...planFields, order: newOrder });
         },
-        onSuccess: () => invalidatePlans(qc, ctx),
+        onSuccess: () => invalidatePlans(qc, ctx, envId),
     });
 }
 
@@ -151,6 +154,6 @@ export function useDeletePlan(ctx: PlanContext) {
     const qc = useQueryClient();
     return useMutation({
         mutationFn: (planId: string) => deletePlan(envId, ctx, planId),
-        onSuccess: () => invalidatePlans(qc, ctx),
+        onSuccess: () => invalidatePlans(qc, ctx, envId),
     });
 }

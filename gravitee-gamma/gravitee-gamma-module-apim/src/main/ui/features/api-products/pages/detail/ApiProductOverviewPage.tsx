@@ -15,7 +15,7 @@
  */
 import { Card, CardContent } from '@gravitee/graphene-core';
 import { BoxesIcon, PlugIcon, ShieldIcon, UserCogIcon } from '@gravitee/graphene-core/icons';
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { OverviewChecklistCard, type OverviewChecklistItem } from '../../../../shared/components/OverviewChecklistCard';
@@ -29,6 +29,7 @@ export function ApiProductOverviewPage() {
 
     const apiCount = product?.apiIds?.length ?? 0;
     const memberCount = membersData?.pagination?.totalCount ?? 0;
+    const [manuallyDone, setManuallyDone] = useState<Set<string>>(new Set());
 
     const checklistItems = useMemo<OverviewChecklistItem[]>(
         () => [
@@ -39,7 +40,8 @@ export function ApiProductOverviewPage() {
                 to: '../apis',
                 icon: BoxesIcon,
                 actionLabel: 'Open APIs',
-                done: apiCount > 0,
+                done: apiCount > 0 || manuallyDone.has('add-apis'),
+                locked: apiCount > 0,
             },
             {
                 id: 'add-plans',
@@ -49,7 +51,8 @@ export function ApiProductOverviewPage() {
                 to: '../plans',
                 icon: ShieldIcon,
                 actionLabel: 'Open Plans',
-                done: false,
+                done: manuallyDone.has('add-plans'),
+                locked: false,
             },
             {
                 id: 'first-subscription',
@@ -59,7 +62,8 @@ export function ApiProductOverviewPage() {
                 to: '../consumers',
                 icon: PlugIcon,
                 actionLabel: 'Open Consumers',
-                done: false,
+                done: manuallyDone.has('first-subscription'),
+                locked: false,
             },
             {
                 id: 'team-access',
@@ -68,11 +72,22 @@ export function ApiProductOverviewPage() {
                 to: '../user-permissions',
                 icon: UserCogIcon,
                 actionLabel: 'Manage Access',
-                done: memberCount > 1,
+                done: memberCount > 1 || manuallyDone.has('team-access'),
+                locked: memberCount > 1,
             },
         ],
-        [apiCount, memberCount],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [apiCount, memberCount, manuallyDone],
     );
+
+    const handleToggle = useCallback((id: string, newDone: boolean) => {
+        setManuallyDone(prev => {
+            const next = new Set(prev);
+            if (newDone) next.add(id);
+            else next.delete(id);
+            return next;
+        });
+    }, []);
 
     if (isLoading)
         return (
@@ -91,6 +106,7 @@ export function ApiProductOverviewPage() {
             <OverviewChecklistCard
                 description="Finish setting up your API product. Each row links to the right screen."
                 items={checklistItems}
+                onToggle={handleToggle}
             />
 
             <div className="space-y-3">

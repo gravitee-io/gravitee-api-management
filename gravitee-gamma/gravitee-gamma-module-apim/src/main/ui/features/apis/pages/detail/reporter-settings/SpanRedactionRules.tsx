@@ -346,7 +346,7 @@ export function SpanRedactionRules({ rules, disabled, onChange }: SpanRedactionR
                     </TableHeader>
                     <TableBody>
                         {rules.map((rule, i) => (
-                            <TableRow key={rule.attributeNamePattern}>
+                            <TableRow key={i}>
                                 <TableCell>
                                     <Badge variant="secondary">{i + 1}</Badge>
                                 </TableCell>
