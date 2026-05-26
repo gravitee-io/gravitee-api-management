@@ -1,4 +1,4 @@
-# Coding Guidelines for gravitee-gamma-module-apim
+# Coding Guidelines for gravitee-gamma-module-authz
 
 This module follows **Clean Architecture** (Hexagonal) for all backend code. These rules mirror the patterns established in `gravitee-apim-rest-api-service` from `gravitee-api-management` repository under `io.gravitee.apim.core` / `io.gravitee.apim.infra`, using shared annotations and base classes from `gravitee-apim-common`.
 
