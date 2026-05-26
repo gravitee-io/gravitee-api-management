@@ -22,5 +22,6 @@ public record ApiSpec(Name name, String label) {
         LLM,
         MCP,
         NATIVE,
+        EDGE,
     }
 }
