@@ -37,37 +37,6 @@ export interface PolicyListParams extends PaginationParams {
     readonly status?: PolicyStatus;
 }
 
-// =============================================================================
-// Adapter layer
-// =============================================================================
-//
-// The canonical Gamma authz REST kernel (`/gamma/authz`) speaks a smaller,
-// platform-shared domain (Entity{entityId,kind,source}, Policy{kind,entityId})
-// than the richer shape the UI was originally built for (entity.uid:string,
-// policy.type:'MCP'|'AGENT'|…|'CUSTOM', policy.target:{id,label}). Rather than
-// fork the UI to the canonical shape — which would cascade into every page
-// and component — we map both directions here and keep the UI contract stable.
-//
-// Mapping rules:
-//   - PolicyKind:GLOBAL  ↔ UI type:'CUSTOM' (target = null)
-//   - PolicyKind:RESOURCE ↔ UI type derived from `entityId` prefix:
-//       "mcp.*"   → MCP
-//       "agent.*" → AGENT
-//       "llm.*"   → LLM
-//       "api.*"   → API
-//       "event.*" → EVENT
-//       anything else → CUSTOM
-//   - Entity.entityId ↔ UI uid (string). UI entity-adapter does its own
-//     `_kind` attribute → structured uid.type lookup, so we surface
-//     `kind`/`source` as `_kind`/`_source` attributes when adapting from
-//     canonical → UI, and strip them on the way back.
-//   - Status transitions (DRAFT → DEPLOYED → DISABLED) live on dedicated
-//     canonical endpoints (`/deploy`, `/disable`); UI submits them as part
-//     of the policy payload, so we fan out after the base PUT/POST.
-// =============================================================================
-
-// ---- Canonical shapes (server) ---------------------------------------------
-
 interface CanonicalEntity {
     readonly id: string;
     readonly entityId: string;
@@ -96,11 +65,6 @@ interface CanonicalSchema {
     readonly schema: string;
 }
 
-/**
- * Server-side paged response shape — same wire contract as the legacy UI
- * {@code PagedResponse<T>} so a single deserialise step yields the value
- * we hand back to the hook layer without further restructuring.
- */
 interface CanonicalPagedResponse<T> {
     readonly data: readonly T[];
     readonly total: number;
@@ -108,20 +72,6 @@ interface CanonicalPagedResponse<T> {
     readonly perPage: number;
 }
 
-/**
- * Normalises a list endpoint response to a paged shape regardless of whether
- * the deployed backend speaks the new {@code PagedResponseDto<T>} contract
- * or still returns a bare {@code List<T>}. The platform paging change ships
- * across multiple modules (authz-api, authz-core, authz-rest) and a rolling
- * restart can leave UI and rest-api temporarily out of sync; this guard
- * stops a stale rest-api from blowing up the list pages with
- * "Cannot read properties of undefined (reading 'map')".
- *
- * <p>When the legacy shape is detected we fabricate the paging envelope from
- * what we got: total = array length, page = requested page (or 1), perPage =
- * requested perPage (or the array length). The client paginates the resulting
- * slice locally — same behaviour as pre-migration.
- */
 function adaptPagedListResponse<T>(
     raw: CanonicalPagedResponse<T> | readonly T[],
     requestedPage: number | undefined,
@@ -154,8 +104,6 @@ interface CanonicalUpdatePolicyRequest {
     readonly policyText: string;
 }
 
-// ---- Path builders ----------------------------------------------------------
-
 // Authz is mounted at /gamma/organizations/{org}/environments/{env}/modules/authz
 // by GammaModulesResource (SPI). The client base URL already covers the
 // `/organizations/{org}` prefix, so this builder fills in the env scope and
@@ -163,8 +111,6 @@ interface CanonicalUpdatePolicyRequest {
 function corePath(environmentId: string, suffix: string): string {
     return `/environments/${encodeURIComponent(environmentId)}/modules/authz${suffix}`;
 }
-
-// ---- Derivation helpers ----------------------------------------------------
 
 export function deriveServiceType(entityId: string | null | undefined): PolicyType {
     if (!entityId) return 'CUSTOM';
@@ -185,8 +131,6 @@ export function deriveServiceType(entityId: string | null | undefined): PolicyTy
     }
 }
 
-// ---- Entity adapters --------------------------------------------------------
-
 function adaptEntityResponse(c: CanonicalEntity): EntityResponse {
     // Surface the canonical root-level source as a `_source` attribute so the
     // entity-adapter (which already speaks _source) doesn't need to know about
@@ -205,8 +149,6 @@ function adaptEntityResponse(c: CanonicalEntity): EntityResponse {
         updatedAt: c.updatedAt,
     };
 }
-
-// ---- Policy adapters --------------------------------------------------------
 
 function adaptPolicyResponse(c: CanonicalPolicy): PolicyResponse {
     const type = deriveServiceType(c.entityId);
@@ -270,8 +212,6 @@ async function applyStatusTransition(
     return null;
 }
 
-// ---- Query string helpers ---------------------------------------------------
-
 function pagingQuery(params?: PaginationParams): string {
     const q = new URLSearchParams();
     if (params?.page !== undefined) q.set('page', String(params.page));
@@ -292,18 +232,7 @@ function policyListQuery(params?: PolicyListParams): string {
     return qs ? `?${qs}` : '';
 }
 
-// =============================================================================
-// Public service
-// =============================================================================
-
 export const authzApiService = {
-    // ── Schema ──────────────────────────────────────────────────────────────
-    //
-    // Canonical returns { schema }. UI expects { environmentId, schemaText,
-    // updatedAt }. environmentId is what the caller already knows; updatedAt
-    // is informational only and not surfaced by the canonical endpoint, so we
-    // null it out — pages that show "last edited X ago" gracefully render
-    // nothing when it's null.
     getSchema: async (environmentId: string): Promise<SchemaResponse> => {
         const c = await authzCoreApiClient.get<CanonicalSchema>(corePath(environmentId, '/schema'));
         return {
@@ -313,14 +242,6 @@ export const authzApiService = {
         };
     },
 
-    // ── Policies ────────────────────────────────────────────────────────────
-    //
-    // Server-side paging through ?page/?perPage. Status is forwarded to the
-    // backend as a query filter (?status=…); the UI `type` discriminator
-    // (MCP/AGENT/…) has no canonical equivalent and is derived from the
-    // entityId prefix client-side — for that filter we fetch the matching
-    // page and post-filter what came back. That trades a tiny over-fetch
-    // for keeping the canonical contract narrow.
     listPolicies: async (environmentId: string, params?: PolicyListParams): Promise<PagedResponse<PolicyResponse>> => {
         const path = corePath(environmentId, '/policies') + policyListQuery(params);
         const raw = await authzCoreApiClient.get<CanonicalPagedResponse<CanonicalPolicy> | readonly CanonicalPolicy[]>(path);
@@ -364,11 +285,6 @@ export const authzApiService = {
     deletePolicy: (environmentId: string, id: string) =>
         authzCoreApiClient.delete<void>(corePath(environmentId, `/policies/${encodeURIComponent(id)}`)),
 
-    // ── Entities ────────────────────────────────────────────────────────────
-    //
-    // Server-side paging through ?page/?perPage. The backend slices in
-    // Mongo (skip/limit + count) so a 100k-entity env doesn't drag the
-    // whole result into the UI memory just to render 25 rows.
     listEntities: async (environmentId: string, params?: PaginationParams): Promise<PagedResponse<EntityResponse>> => {
         const path = corePath(environmentId, '/entities') + pagingQuery(params);
         const raw = await authzCoreApiClient.get<CanonicalPagedResponse<CanonicalEntity> | readonly CanonicalEntity[]>(path);

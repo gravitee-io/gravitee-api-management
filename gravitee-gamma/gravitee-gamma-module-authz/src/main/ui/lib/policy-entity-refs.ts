@@ -13,20 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/**
- * Policy ↔ Entity cross-reference utilities.
- *
- * Pure, side-effect-free helpers that scan the GAPL `policyText` of each
- * policy for `Type::"id"` references and group them by the clause they
- * appear in (principal / action / resource). Used by the Entities table
- * to show "which policies reference this entity?" without any backend
- * cross-reference endpoint.
- *
- * The scanner is intentionally lenient: it does NOT validate the policy
- * grammar and never throws on malformed input. If the text cannot be
- * parsed cleanly we simply emit no refs for that policy.
- */
-
 import type { EntityInstance } from './entity.types';
 import type { PolicyResponse } from './api/authz-api.types';
 import { formatEntityUid } from './entity-adapter';
@@ -34,23 +20,15 @@ import { formatEntityUid } from './entity-adapter';
 export type PolicyClause = 'principal' | 'action' | 'resource';
 
 export interface EntityRefInPolicy {
-    /** Entity type, e.g. `User`, `Endpoint`. */
     readonly type: string;
-    /** Entity id, e.g. `alice`. */
     readonly id: string;
-    /** Which top-level GAPL clause the reference appears in. */
     readonly clause: PolicyClause;
 }
 
 export interface PolicyRef {
     readonly policy: PolicyResponse;
-    /** Distinct clauses (principal/action/resource) where the entity appears. */
     readonly clauses: PolicyClause[];
 }
-
-// ---------------------------------------------------------------------------
-// Tokeniser — extract `Type::"id"` references with their surrounding clause.
-// ---------------------------------------------------------------------------
 
 const CLAUSE_KEYWORDS: PolicyClause[] = ['principal', 'action', 'resource'];
 
@@ -66,8 +44,6 @@ export function extractEntityRefsFromPolicyText(text: string): EntityRefInPolicy
 
     const refs: EntityRefInPolicy[] = [];
 
-    // Match either a clause keyword or a Type::"id" token, in order.
-    // We walk through the text linearly and remember the last seen clause.
     // Keyword must NOT be immediately followed by `::` — otherwise it's the
     // type-prefix of a Type::"id" token (e.g. `action::"read"`), not a clause.
     const tokenRe = /\b(principal|action|resource)\b(?!::)|([A-Za-z_][A-Za-z0-9_]*)::"([^"]*)"/g;
@@ -82,10 +58,6 @@ export function extractEntityRefsFromPolicyText(text: string): EntityRefInPolicy
                 continue;
             }
             if (type !== undefined && id !== undefined) {
-                // If there's no clause context yet, fall back to 'resource' — but
-                // tests assume a well-formed policy where principal/action/resource
-                // always precedes refs. If not, default to 'resource' is harmless
-                // because no entity-side filter looks for clause-less refs.
                 if (currentClause && CLAUSE_KEYWORDS.includes(currentClause)) {
                     refs.push({ type, id, clause: currentClause });
                 }
@@ -97,10 +69,6 @@ export function extractEntityRefsFromPolicyText(text: string): EntityRefInPolicy
 
     return refs;
 }
-
-// ---------------------------------------------------------------------------
-// Build map: Type::id -> [PolicyRef, …]
-// ---------------------------------------------------------------------------
 
 function entityKey(type: string, id: string): string {
     return `${type}::${id}`;
@@ -125,7 +93,6 @@ export function buildPolicyEntityRefs(entities: readonly EntityInstance[], polic
     }
     if (entities.length === 0 || policies.length === 0) return result;
 
-    // Pre-extract refs per policy so we don't re-scan the text per entity.
     const policyRefs: Array<{ policy: PolicyResponse; refs: EntityRefInPolicy[] }> = policies.map(p => ({
         policy: p,
         refs: extractEntityRefsFromPolicyText(p.policyText ?? ''),

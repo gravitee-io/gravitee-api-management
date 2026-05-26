@@ -24,18 +24,12 @@ export type EntitySource = 'local' | 'apim';
 
 export interface EntityInstance {
     uid: { type: string; id: string };
-    /** Human-readable display name (falls back to attrs.name). */
     displayName?: string;
     attrs: Record<string, AttrValue>;
     parents: Array<{ type: string; id: string }>;
-    /** Where this record was materialized from. Drives editability. */
     source: EntitySource;
-    /** ISO timestamp of last import (stored as _importedAt in backend attributes). */
     importedAt?: string;
-    /** Backend record id (used for update/delete). Set after fromBackend(). */
     _backendId?: string;
-    /** Backend createdAt ISO. */
     createdAt?: string;
-    /** Backend updatedAt ISO. */
     updatedAt?: string;
 }

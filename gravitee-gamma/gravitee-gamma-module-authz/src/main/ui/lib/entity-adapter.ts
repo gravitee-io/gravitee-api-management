@@ -13,27 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/**
- * Bidirectional adapter between the backend EntityResponse / EntityRequest
- * and the frontend EntityInstance used in all UI components.
- *
- * Canonical backend uid format — dotted: `<lowercase-kind>.<id>` (e.g.
- * `user.alice`, `group.engineering`, `mcpserver.flight-mcp`). Ids may carry
- * extra dotted segments (e.g. `mcp.flight-api.search`); the structured uid
- * keeps the full tail after the kind as `id` so a fromBackend → toBackend
- * round-trip preserves the canonical entityId verbatim.
- *
- * Server-side validation rejects anything outside `[a-z0-9._-]+`
- * (see `EntityIdValidator` in `gravitee-gamma-authorization-core`).
- *
- * Meta fields that have no backend column are stored inside `attributes`
- * under reserved underscore-prefixed keys: `_source`, `_displayName`,
- * `_importedAt`. These are NEVER shown in the visible attributes table.
- */
 import type { AttrValue, EntityInstance, EntitySource } from './entity.types';
 import type { EntityRequest, EntityResponse } from './api/authz-api.types';
-
-// ---------- Meta key constants ------------------------------------------------
 
 export const META_KEYS = new Set([
     '_source',
@@ -70,18 +51,14 @@ function kindToType(kind: unknown): string | undefined {
     return undefined;
 }
 
-/** Inverse of {@link kindToType}: structured uid type → lowercase backend kind segment. */
 function typeToKind(type: string): string {
     const t = type.toLowerCase();
-    // Camel-case structured types collapse into their lowercase canonical name.
     if (t === 'serviceaccount') return 'serviceaccount';
     if (t === 'agentidentity') return 'agent';
     if (t === 'mcpserver') return 'mcp';
     if (t === 'llmroute') return 'llm';
     return t;
 }
-
-// ---------- UID parsing / formatting ------------------------------------------
 
 /**
  * Parse a canonical dotted backend uid (`<kind>.<id>`, e.g. `user.alice`,
@@ -115,8 +92,6 @@ export function formatEntityUid(u: { type: string; id: string }): string {
     return `${typeToKind(u.type)}.${u.id}`;
 }
 
-// ---------- fromBackend -------------------------------------------------------
-
 /**
  * Convert a backend EntityResponse to the richer frontend EntityInstance.
  *
@@ -128,7 +103,6 @@ export function formatEntityUid(u: { type: string; id: string }): string {
  *   (`mcp.flight-api.search`) ids.
  */
 export function fromBackend(e: EntityResponse): EntityInstance {
-    // Separate meta from regular attributes.
     const attrs: Record<string, AttrValue> = {};
     let source: EntitySource = 'local';
     let displayName: string | undefined;
@@ -147,7 +121,6 @@ export function fromBackend(e: EntityResponse): EntityInstance {
         } else if (k === '_url' || k === '_proxyApiId') {
             // meta — drop from visible attrs
         } else {
-            // Only carry over values that are valid AttrValue primitives.
             if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
                 attrs[k] = v;
             }
@@ -188,8 +161,6 @@ function resolveUid(rawUid: string, kindOverride: string | undefined): { type: s
     return { type: kindOverride, id };
 }
 
-// ---------- toBackend ---------------------------------------------------------
-
 /**
  * Convert a frontend EntityInstance back to an EntityRequest for POST/PUT.
  * Packs meta fields back into `attributes` under reserved underscore keys.
@@ -199,7 +170,6 @@ export function toBackend(e: EntityInstance): EntityRequest {
 
     const attributes: Record<string, unknown> = { ...e.attrs };
 
-    // Only store meta keys that have non-default values.
     if (e.source && e.source !== 'local') {
         attributes['_source'] = e.source;
     }
@@ -215,9 +185,6 @@ export function toBackend(e: EntityInstance): EntityRequest {
     return { uid, attributes, parents };
 }
 
-// ---------- Helpers -----------------------------------------------------------
-
-/** Stable key for a ui entity (used as React key and lookup). */
 export function entityKeyOf(uid: { type: string; id: string }): string {
     return `${uid.type}::${uid.id}`;
 }

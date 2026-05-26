@@ -28,7 +28,6 @@ export interface UseEntityOptionsResult {
 }
 
 export interface UseEntityOptionsOpts {
-    /** Optional restrict to specific entity types (e.g. `['User', 'Group']`). */
     readonly typeFilter?: readonly string[];
 }
 

@@ -13,11 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/**
- * Option shape consumed by the chip combobox in the policy editor.
- * Lives in `lib/` (not under `app/features/`) because hooks like
- * `useEntityOptions` build options before any feature code is loaded.
- */
 export interface ChipOption {
     readonly id: string;
     readonly label: string;
