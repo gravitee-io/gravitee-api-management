@@ -41,7 +41,7 @@ export function ApplicationCard({ app, to }: { readonly app: Application; readon
     const titleId = useId();
 
     const inner = (
-        <CardContent className="pt-5 pb-5 space-y-3">
+        <CardContent className="flex h-full flex-col space-y-3">
             <div className="flex items-start justify-between gap-2">
                 <div className={cn('rounded-lg p-2', accentClasses.bg)}>
                     <Icon className={cn('size-5', accentClasses.fg)} aria-hidden />
@@ -65,7 +65,7 @@ export function ApplicationCard({ app, to }: { readonly app: Application; readon
                 <p className="text-xs text-muted-foreground">{description}</p>
             </div>
             {to !== null && (
-                <p className="inline-flex items-center gap-1 text-sm font-medium text-primary">
+                <p className="mt-auto flex items-center justify-end gap-1 text-sm font-medium text-primary">
                     Open
                     <ArrowRightIcon className="size-3.5" aria-hidden />
                 </p>
@@ -79,7 +79,12 @@ export function ApplicationCard({ app, to }: { readonly app: Application; readon
         // `aria-disabled` tells them it's not interactive. The `role="group"` + label
         // also gives tests a stable hook (`getByRole('group', { name })`) — review #2.
         return (
-            <Card role="group" aria-labelledby={titleId} aria-disabled className={cn(comingSoon && 'opacity-60 cursor-not-allowed')}>
+            <Card
+                role="group"
+                aria-labelledby={titleId}
+                aria-disabled
+                className={cn('h-full', comingSoon && 'opacity-60 cursor-not-allowed')}
+            >
                 {inner}
             </Card>
         );

@@ -84,19 +84,18 @@ export const APPLICATIONS: readonly Application[] = [
     },
     {
         kind: 'module',
-        title: 'Catalog',
-        description: 'Browse available APIs, event streams, and MCP tools in a unified, searchable catalog.',
-        moduleId: 'catalog',
-        Icon: ScrollTextIcon,
-        accent: 'accent', // neutral — inventory/listing
-    },
-    {
-        kind: 'module',
         title: 'Authorization',
         description: 'Define fine-grained authorization rules, relationship tuples, and scopes across the platform.',
         moduleId: 'authz', // plugin.properties#id of gravitee-gamma-module-authz
         Icon: KeyIcon,
         accent: 'success', // allows / grants
+    },
+    {
+        kind: 'coming-soon',
+        title: 'Catalog',
+        description: 'Browse available APIs, event streams, and MCP tools in a unified, searchable catalog.',
+        Icon: ScrollTextIcon,
+        accent: 'accent', // neutral — inventory/listing
     },
     {
         kind: 'coming-soon',
