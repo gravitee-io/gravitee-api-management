@@ -15,11 +15,11 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import type { ChipOption } from '../chip-option';
 import { authzApiService } from '../api/authz-api.service';
 import type { EntityResponse } from '../api/authz-api.types';
-import { parseEntityUid } from '../entity-adapter';
 import { authzQueryKeys } from '../api/query-keys';
+import type { ChipOption } from '../chip-option';
+import { parseEntityUid } from '../entity-adapter';
 
 export interface UseEntityOptionsResult {
     readonly options: readonly ChipOption[];

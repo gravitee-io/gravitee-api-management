@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { EntityInstance } from './entity.types';
 import type { PolicyResponse } from './api/authz-api.types';
 import { formatEntityUid } from './entity-adapter';
+import type { EntityInstance } from './entity.types';
 
 export type PolicyClause = 'principal' | 'action' | 'resource';
 
