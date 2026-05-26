@@ -307,6 +307,14 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
                 "entityIdPrefix must be at most " + AuthzEntityIdConstants.MAX_ENTITY_ID_LENGTH + " characters"
             );
         }
+        if (
+            filter.excludeEntityIdPrefix() != null &&
+            filter.excludeEntityIdPrefix().length() > AuthzEntityIdConstants.MAX_ENTITY_ID_LENGTH
+        ) {
+            throw new AuthzInvalidArgumentException(
+                "excludeEntityIdPrefix must be at most " + AuthzEntityIdConstants.MAX_ENTITY_ID_LENGTH + " characters"
+            );
+        }
     }
 
     @Override

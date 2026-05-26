@@ -15,7 +15,7 @@
  */
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
-import { authzApiService, DEFAULT_PER_PAGE } from '../api/authz-api.service';
+import { authzApiService, DEFAULT_PER_PAGE, type EntityKindFilter } from '../api/authz-api.service';
 import type { EntityResponse, PagedResponse } from '../api/authz-api.types';
 import { authzQueryKeys } from '../api/query-keys';
 
@@ -30,7 +30,18 @@ export interface UseEntitiesResult {
     readonly reload: () => void;
 }
 
-export function useEntities(environmentId: string, initialPerPage = DEFAULT_PER_PAGE): UseEntitiesResult {
+export interface UseEntitiesFilter {
+    readonly kind?: EntityKindFilter;
+    readonly source?: string;
+    readonly entityIdPrefix?: string;
+    readonly excludeEntityIdPrefix?: string;
+}
+
+export function useEntities(
+    environmentId: string,
+    initialPerPage: number = DEFAULT_PER_PAGE,
+    filter: UseEntitiesFilter = {},
+): UseEntitiesResult {
     const [page, setPage] = useState(1);
     const [perPage, setPerPage] = useState(initialPerPage);
     const [lastInitialPerPage, setLastInitialPerPage] = useState(initialPerPage);
@@ -42,11 +53,12 @@ export function useEntities(environmentId: string, initialPerPage = DEFAULT_PER_
         setPerPage(initialPerPage);
     }
 
+    const { kind, source, entityIdPrefix, excludeEntityIdPrefix } = filter;
     const queryClient = useQueryClient();
 
     const query = useQuery({
-        queryKey: authzQueryKeys.entities.page(environmentId, page, perPage),
-        queryFn: () => authzApiService.listEntities(environmentId, { page, perPage }),
+        queryKey: authzQueryKeys.entities.page(environmentId, page, perPage, kind, source, entityIdPrefix, excludeEntityIdPrefix),
+        queryFn: () => authzApiService.listEntities(environmentId, { page, perPage, kind, source, entityIdPrefix, excludeEntityIdPrefix }),
         enabled: Boolean(environmentId),
         staleTime: 30_000,
         placeholderData: keepPreviousData,

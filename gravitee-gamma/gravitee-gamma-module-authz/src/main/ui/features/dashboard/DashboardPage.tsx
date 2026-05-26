@@ -89,9 +89,9 @@ function useDashboardCounts(environmentId: string) {
         staleTime: 30_000,
     });
 
-    const entityCount = useQuery({
-        queryKey: authzQueryKeys.entities.page(environmentId, 1, 1),
-        queryFn: () => authzApiService.listEntities(environmentId, { perPage: 1 }),
+    const principalCount = useQuery({
+        queryKey: authzQueryKeys.entities.page(environmentId, 1, 1, 'PRINCIPAL'),
+        queryFn: () => authzApiService.listEntities(environmentId, { perPage: 1, kind: 'PRINCIPAL' }),
         enabled: Boolean(environmentId),
         staleTime: 30_000,
     });
@@ -100,7 +100,7 @@ function useDashboardCounts(environmentId: string) {
         MCP: { total: mcpCount.data?.total, isLoading: mcpCount.isLoading },
         Agents: { total: agentCount.data?.total, isLoading: agentCount.isLoading },
         'AI Models': { total: llmCount.data?.total, isLoading: llmCount.isLoading },
-        'Users and groups': { total: entityCount.data?.total, isLoading: entityCount.isLoading },
+        'Users and groups': { total: principalCount.data?.total, isLoading: principalCount.isLoading },
     };
 }
 

@@ -28,6 +28,13 @@ beforeAll(() => {
     }
 });
 
+interface ListEntitiesParams {
+    readonly page?: number;
+    readonly perPage?: number;
+    readonly kind?: 'PRINCIPAL' | 'RESOURCE';
+    readonly excludeEntityIdPrefix?: string;
+}
+
 const listEntitiesSpy = vi.fn();
 
 vi.mock('@gravitee/gamma-modules-sdk', async importOriginal => ({
@@ -38,7 +45,7 @@ vi.mock('@gravitee/gamma-modules-sdk', async importOriginal => ({
 vi.mock('../../../shared/api/authz-api.service', () => ({
     DEFAULT_PER_PAGE: 10,
     authzApiService: {
-        listEntities: (env: string, params?: unknown) => listEntitiesSpy(env, params),
+        listEntities: (env: string, params?: ListEntitiesParams) => listEntitiesSpy(env, params),
     },
 }));
 
@@ -57,10 +64,29 @@ function makeEntity(overrides: Partial<EntityResponse> = {}): EntityResponse {
 
 function renderPage() {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    const wrapper = ({ children }: { children: ReactNode }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
+    const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
     return render(<EntitiesPage />, { wrapper });
+}
+
+function mockByKind(opts: {
+    readonly principals?: readonly EntityResponse[];
+    readonly resources?: readonly EntityResponse[];
+    readonly principalTotal?: number;
+    readonly resourceTotal?: number;
+}) {
+    const principals = opts.principals ?? [];
+    const resources = opts.resources ?? [];
+    const principalTotal = opts.principalTotal ?? principals.length;
+    const resourceTotal = opts.resourceTotal ?? resources.length;
+    listEntitiesSpy.mockImplementation((_env: string, params?: ListEntitiesParams) => {
+        if (params?.kind === 'PRINCIPAL') {
+            return Promise.resolve({ data: principals, total: principalTotal, page: 1, perPage: 10 });
+        }
+        if (params?.kind === 'RESOURCE') {
+            return Promise.resolve({ data: resources, total: resourceTotal, page: 1, perPage: 10 });
+        }
+        return Promise.resolve({ data: [], total: 0, page: 1, perPage: 10 });
+    });
 }
 
 beforeEach(() => {
@@ -68,8 +94,24 @@ beforeEach(() => {
 });
 
 describe('EntitiesPage', () => {
+    it('issues two server-side queries — PRINCIPAL and RESOURCE excluding action.*', async () => {
+        mockByKind({});
+        renderPage();
+
+        await waitFor(() => expect(listEntitiesSpy).toHaveBeenCalledTimes(2));
+
+        expect(listEntitiesSpy).toHaveBeenCalledWith(
+            'DEFAULT',
+            expect.objectContaining({ kind: 'PRINCIPAL', excludeEntityIdPrefix: undefined }),
+        );
+        expect(listEntitiesSpy).toHaveBeenCalledWith(
+            'DEFAULT',
+            expect.objectContaining({ kind: 'RESOURCE', excludeEntityIdPrefix: 'action.' }),
+        );
+    });
+
     it('shows the empty principals state when the backend returns no entities', async () => {
-        listEntitiesSpy.mockResolvedValue({ data: [], total: 0, page: 1, perPage: 10 });
+        mockByKind({});
         renderPage();
 
         await waitFor(() => {
@@ -77,17 +119,10 @@ describe('EntitiesPage', () => {
         });
     });
 
-    it('renders KPI tiles with correct counts and entity rows', async () => {
-        listEntitiesSpy.mockResolvedValue({
-            data: [
-                makeEntity({ id: 'p1', uid: 'user.alice' }),
-                makeEntity({ id: 'p2', uid: 'group.eng' }),
-                makeEntity({ id: 'r1', uid: 'mcp.flight' }),
-                makeEntity({ id: 'r2', uid: 'api.payments' }),
-            ],
-            total: 4,
-            page: 1,
-            perPage: 10,
+    it('renders KPI tiles using backend totals from both queries', async () => {
+        mockByKind({
+            principals: [makeEntity({ id: 'p1', uid: 'user.alice' }), makeEntity({ id: 'p2', uid: 'group.eng' })],
+            resources: [makeEntity({ id: 'r1', uid: 'mcp.flight' }), makeEntity({ id: 'r2', uid: 'api.payments' })],
         });
         renderPage();
 
@@ -106,17 +141,17 @@ describe('EntitiesPage', () => {
         expect(within(resourcesTile).getByText('2')).toBeInTheDocument();
     });
 
-    it('switches to the Resources tab and shows resource entities', async () => {
-        listEntitiesSpy.mockResolvedValue({
-            data: [makeEntity({ id: 'p1', uid: 'user.alice' }), makeEntity({ id: 'r1', uid: 'mcp.flight' })],
-            total: 2,
-            page: 1,
-            perPage: 10,
+    it('switches to the Resources tab and shows resource entities without refetching principals', async () => {
+        mockByKind({
+            principals: [makeEntity({ id: 'p1', uid: 'user.alice' })],
+            resources: [makeEntity({ id: 'r1', uid: 'mcp.flight' })],
         });
         renderPage();
 
         await waitFor(() => expect(screen.getAllByText('alice').length).toBeGreaterThan(0));
+        await waitFor(() => expect(listEntitiesSpy).toHaveBeenCalledTimes(2));
 
+        const callsBefore = listEntitiesSpy.mock.calls.length;
         const resourcesTab = screen.getByRole('tab', { name: /Resources/i });
         const user = userEvent.setup();
         await user.click(resourcesTab);
@@ -124,14 +159,12 @@ describe('EntitiesPage', () => {
         await waitFor(() => {
             expect(screen.getAllByText('flight').length).toBeGreaterThan(0);
         });
+        expect(listEntitiesSpy.mock.calls.length).toBe(callsBefore);
     });
 
     it('filters principals by search input', async () => {
-        listEntitiesSpy.mockResolvedValue({
-            data: [makeEntity({ id: 'p1', uid: 'user.alice' }), makeEntity({ id: 'p2', uid: 'user.bob' })],
-            total: 2,
-            page: 1,
-            perPage: 10,
+        mockByKind({
+            principals: [makeEntity({ id: 'p1', uid: 'user.alice' }), makeEntity({ id: 'p2', uid: 'user.bob' })],
         });
         renderPage();
 

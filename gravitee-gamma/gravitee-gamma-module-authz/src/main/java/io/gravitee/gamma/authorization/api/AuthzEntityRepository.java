@@ -97,6 +97,7 @@ public interface AuthzEntityRepository {
             .stream()
             .filter(e -> f.kind() == null || e.kind() == f.kind())
             .filter(e -> f.source() == null || f.source().equals(e.source()))
+            .filter(e -> f.excludeEntityIdPrefix() == null || !e.entityId().startsWith(f.excludeEntityIdPrefix()))
             .toList();
         return PagedResult.of(matching, pageable);
     }

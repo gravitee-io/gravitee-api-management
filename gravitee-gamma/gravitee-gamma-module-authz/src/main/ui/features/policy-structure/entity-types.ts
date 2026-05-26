@@ -74,19 +74,4 @@ export function getEntityCategoryId(name: string): EntityCategoryId | undefined 
     return ENTITY_CATEGORIES[name];
 }
 
-export type AttrValue = string | number | boolean;
-
-export type EntitySource = 'local' | 'scim' | 'directory';
-
-export interface EntityInstance {
-    uid: { type: string; id: string };
-    displayName?: string;
-    attrs: Record<string, AttrValue>;
-    parents: Array<{ type: string; id: string }>;
-    source: EntitySource;
-    principalProvider?: string;
-    importedAt?: string;
-    _backendId?: string;
-    createdAt?: string;
-    updatedAt?: string;
-}
+export type { AttrValue, EntityInstance, EntitySource } from '../../shared/entity.types';
