@@ -51,12 +51,7 @@ public class InvitationCrudServiceImpl extends TransactionalService implements I
     @Override
     public List<Invitation> findByEmail(String email) {
         try {
-            return invitationRepository
-                .findAll()
-                .stream()
-                .filter(i -> email.equals(i.getEmail()))
-                .map(InvitationAdapter.INSTANCE::toEntity)
-                .toList();
+            return invitationRepository.findByEmail(email).stream().map(InvitationAdapter.INSTANCE::toEntity).toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find invitations by email", e);
         }
