@@ -114,4 +114,31 @@ public class MembershipDomainServiceInMemory extends AbstractServiceInMemory<Mem
         storage.add(newMembership);
         return newMembership;
     }
+
+    @Override
+    public void addGroupMemberships(
+        ExecutionContext executionContext,
+        String groupId,
+        String userId,
+        String apiRole,
+        String applicationRole
+    ) {
+        addGroupMembershipForScope(groupId, userId, RoleScope.API, apiRole);
+        addGroupMembershipForScope(groupId, userId, RoleScope.APPLICATION, applicationRole);
+    }
+
+    private void addGroupMembershipForScope(String groupId, String userId, RoleScope scope, String roleName) {
+        if (roleName == null) {
+            return;
+        }
+        storage.add(
+            MemberEntity.builder()
+                .referenceType(MembershipReferenceType.GROUP)
+                .referenceId(groupId)
+                .roles(List.of(RoleEntity.builder().scope(scope).name(roleName).build()))
+                .type(MembershipMemberType.USER)
+                .id(userId)
+                .build()
+        );
+    }
 }

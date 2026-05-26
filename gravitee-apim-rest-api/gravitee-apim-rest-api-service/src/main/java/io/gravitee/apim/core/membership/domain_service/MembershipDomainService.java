@@ -40,4 +40,6 @@ public interface MembershipDomainService {
         String externalReference,
         String roleName
     );
+
+    void addGroupMemberships(ExecutionContext executionContext, String groupId, String userId, String apiRole, String applicationRole);
 }

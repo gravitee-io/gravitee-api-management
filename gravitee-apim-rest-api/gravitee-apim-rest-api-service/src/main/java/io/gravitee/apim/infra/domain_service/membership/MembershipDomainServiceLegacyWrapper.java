@@ -99,6 +99,43 @@ public class MembershipDomainServiceLegacyWrapper implements MembershipDomainSer
         );
     }
 
+    @Override
+    public void addGroupMemberships(
+        ExecutionContext executionContext,
+        String groupId,
+        String userId,
+        String apiRole,
+        String applicationRole
+    ) {
+        addRoleToMemberOnGroupReference(executionContext, groupId, userId, RoleScope.API, apiRole);
+        addRoleToMemberOnGroupReference(executionContext, groupId, userId, RoleScope.APPLICATION, applicationRole);
+        addRoleToMemberOnGroupReference(executionContext, groupId, userId, RoleScope.GROUP);
+    }
+
+    private void addRoleToMemberOnGroupReference(
+        ExecutionContext executionContext,
+        String groupId,
+        String userId,
+        RoleScope roleScope,
+        String roleName
+    ) {
+        legacyService.addRoleToMemberOnReference(
+            executionContext,
+            new MembershipService.MembershipReference(MembershipReferenceType.GROUP, groupId),
+            new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+            new MembershipService.MembershipRole(roleScope, roleName)
+        );
+    }
+
+    private void addRoleToMemberOnGroupReference(ExecutionContext executionContext, String groupId, String userId, RoleScope roleScope) {
+        roleService
+            .findDefaultRoleByScopes(executionContext.getOrganizationId(), roleScope)
+            .stream()
+            .findFirst()
+            .map(RoleEntity::getName)
+            .ifPresent(roleName -> addRoleToMemberOnGroupReference(executionContext, groupId, userId, roleScope, roleName));
+    }
+
     private void validateTransferOwnership(TransferOwnership transferOwnership) {
         if ("PRIMARY_OWNER".equals(transferOwnership.getCurrentPrimaryOwnerNewRole())) {
             throw new TransferOwnershipNotAllowedException(transferOwnership.getCurrentPrimaryOwnerNewRole());
