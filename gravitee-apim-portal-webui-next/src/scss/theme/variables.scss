@@ -118,3 +118,25 @@ $select-panel-background-color: color-mix(in srgb, $banner-background-color 12%,
 $calendar-background-color: color-mix(in srgb, $banner-background-color 50%, $card-background-color);
 $primary-highlight-color: color-mix(in srgb, $primary-main-color 8%, white 92%);
 $gmd-viewer-max-width: 1400px;
+
+// -- Markdown --
+$markdown-inline-code-padding-vertical: 2px;
+$markdown-inline-code-padding-horizontal: 4px;
+$markdown-inline-code-background-color: color-mix(in srgb, $error-main-color 12%, $card-background-color);
+$markdown-code-font-family: sfmono-regular, menlo, monaco, consolas, monospace;
+$markdown-inline-code-font-size: 0.9em;
+$markdown-pre-padding: 9.5px;
+$markdown-pre-margin-bottom: 10px;
+$markdown-pre-background-color: color-mix(in srgb, $background-color 50%, $card-background-color);
+$markdown-pre-font-size: 13px;
+$markdown-pre-line-height: 1.4286;
+$markdown-table-margin-top: 12px;
+$markdown-table-margin-bottom: 14px;
+$markdown-table-cell-height: 32px;
+$markdown-table-cell-padding-vertical: 5px;
+$markdown-table-cell-padding-end: 14px;
+$markdown-table-cell-padding-start: 12px;
+$markdown-table-header-font-weight: 300;
+$markdown-alert-icon-size: 24px;
+$markdown-alert-icon-margin-horizontal: 8px;
+$markdown-alert-icon-font-family: 'Material Icons', sans-serif;

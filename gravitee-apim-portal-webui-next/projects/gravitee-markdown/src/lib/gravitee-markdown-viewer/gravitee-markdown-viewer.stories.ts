@@ -28,7 +28,7 @@ export default {
   parameters: {
     docs: {
       description: {
-        component: 'A markdown to html viewer component built using marked.js and highlight.js.',
+        component: 'A markdown to html viewer component built using marked.js.',
       },
     },
   },
