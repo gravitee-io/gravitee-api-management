@@ -36,22 +36,20 @@ public class UserRegistrationEnabledServiceImpl implements UserRegistrationEnabl
     @Override
     public void checkEnabled(ExecutionContext executionContext) {
         var currentContext = executionContext.getReferenceContext();
-        boolean userCreationEnabled;
-        if (currentContext.getReferenceType().equals(ReferenceContext.Type.ORGANIZATION)) {
-            userCreationEnabled = parameterService.findAsBoolean(
+        boolean userCreationEnabled = switch (currentContext.getReferenceType()) {
+            case ORGANIZATION -> parameterService.findAsBoolean(
                 executionContext,
                 Key.CONSOLE_USERCREATION_ENABLED,
                 currentContext.getReferenceId(),
                 ParameterReferenceType.ORGANIZATION
             );
-        } else {
-            userCreationEnabled = parameterService.findAsBoolean(
+            case ENVIRONMENT -> parameterService.findAsBoolean(
                 executionContext,
                 Key.PORTAL_USERCREATION_ENABLED,
                 currentContext.getReferenceId(),
                 ParameterReferenceType.ENVIRONMENT
             );
-        }
+        };
         if (!userCreationEnabled) {
             throw new UserRegistrationUnavailableException();
         }
