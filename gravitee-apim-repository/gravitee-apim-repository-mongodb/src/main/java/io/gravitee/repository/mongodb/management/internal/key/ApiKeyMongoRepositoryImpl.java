@@ -59,6 +59,27 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
 
     @Override
     public List<ApiKeyMongo> search(ApiKeyCriteria filter, final Sortable sortable) {
+        List<Bson> pipeline = buildFilterPipeline(filter);
+
+        if (sortable != null) {
+            if (sortable.order().equals(Order.ASC)) {
+                pipeline.add(sort(Sorts.ascending(FieldUtils.toCamelCase(sortable.field()))));
+            } else {
+                pipeline.add(sort(Sorts.descending(FieldUtils.toCamelCase(sortable.field()))));
+            }
+        } else {
+            pipeline.add(sort(Sorts.descending("updatedAt")));
+        }
+
+        return runAggregate(pipeline);
+    }
+
+    @Override
+    public List<ApiKeyMongo> searchUnordered(ApiKeyCriteria filter) {
+        return runAggregate(buildFilterPipeline(filter));
+    }
+
+    private List<Bson> buildFilterPipeline(ApiKeyCriteria filter) {
         List<Bson> pipeline = new ArrayList<>();
 
         if (!filter.isIncludeRevoked()) {
@@ -102,16 +123,10 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
             pipeline.add(match(in("environmentId", filter.getEnvironments())));
         }
 
-        if (sortable != null) {
-            if (sortable.order().equals(Order.ASC)) {
-                pipeline.add(sort(Sorts.ascending(FieldUtils.toCamelCase(sortable.field()))));
-            } else {
-                pipeline.add(sort(Sorts.descending(FieldUtils.toCamelCase(sortable.field()))));
-            }
-        } else {
-            pipeline.add(sort(Sorts.descending("updatedAt")));
-        }
+        return pipeline;
+    }
 
+    private List<ApiKeyMongo> runAggregate(List<Bson> pipeline) {
         AggregateIterable<Document> aggregate = mongoTemplate
             .getCollection(mongoTemplate.getCollectionName(ApiKeyMongo.class))
             .aggregate(pipeline);
