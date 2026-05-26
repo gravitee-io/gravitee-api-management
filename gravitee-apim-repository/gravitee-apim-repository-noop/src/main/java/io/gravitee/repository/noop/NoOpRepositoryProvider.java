@@ -33,7 +33,7 @@ public class NoOpRepositoryProvider implements RepositoryProvider {
 
     @Override
     public Scope[] scopes() {
-        return new Scope[] { Scope.ANALYTICS, Scope.MANAGEMENT, Scope.RATE_LIMIT };
+        return new Scope[] { Scope.ANALYTICS, Scope.MANAGEMENT, Scope.RATE_LIMIT, Scope.OTEL_TRACES, Scope.OTEL_LOGS };
     }
 
     @Override
@@ -44,6 +44,10 @@ public class NoOpRepositoryProvider implements RepositoryProvider {
             return NoOpManagementRepositoryConfiguration.class;
         } else if (scope == Scope.RATE_LIMIT) {
             return NoOpRateLimitRepositoryConfiguration.class;
+        } else if (scope == Scope.OTEL_TRACES) {
+            return NoOpOtelTracesRepositoryConfiguration.class;
+        } else if (scope == Scope.OTEL_LOGS) {
+            return NoOpOtelLogsRepositoryConfiguration.class;
         }
 
         log.debug("Skipping unhandled repository scope {}", scope);
