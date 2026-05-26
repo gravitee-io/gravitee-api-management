@@ -502,8 +502,13 @@ cloud:
 
 cluster:
   plugins:
+<<<<<<< HEAD
     - https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-8.0.3.zip
     - https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-8.0.3.zip
+=======
+    - https://download.gravitee.io/plugins/node-cache/gravitee-node-cache-plugin-hazelcast/gravitee-node-cache-plugin-hazelcast-7.26.4.zip
+    - https://download.gravitee.io/plugins/node-cluster/gravitee-node-cluster-plugin-hazelcast/gravitee-node-cluster-plugin-hazelcast-7.26.4.zip
+>>>>>>> 3aff34fe10 (chore(deps): bump gravitee-node version 7.26.4)
 
 api:
   enabled: true
