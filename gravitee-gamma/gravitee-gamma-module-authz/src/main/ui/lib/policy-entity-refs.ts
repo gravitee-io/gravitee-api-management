@@ -27,7 +27,7 @@
  * parsed cleanly we simply emit no refs for that policy.
  */
 
-import type { EntityInstance } from '../app/features/policy-structure/entity-types';
+import type { EntityInstance } from './entity.types';
 import type { PolicyResponse } from './api/authz-api.types';
 import { formatEntityUid } from './entity-adapter';
 
