@@ -24,10 +24,13 @@ import io.gravitee.apim.core.plan.domain_service.DeletePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import jakarta.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -59,6 +62,20 @@ class ImportDefinitionPlanDomainService {
 
         var savedPlans = planCrudService.findByApiId(api.getId());
 
+        if (savedPlans.isEmpty()) {
+            List<String> incomingCrossIds = plansWithFlows
+                .stream()
+                .map(Plan::getCrossId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+            if (!incomingCrossIds.isEmpty()) {
+                var legacyPlans = planCrudService.findByCrossIds(incomingCrossIds);
+                if (!legacyPlans.isEmpty()) {
+                    savedPlans = legacyPlans;
+                }
+            }
+        }
+
         // Build indexed lookups once — O(m) — to avoid O(n*m) per-item streaming inside the loop.
         var savedByCrossId = savedPlans
             .stream()
@@ -81,8 +98,9 @@ class ImportDefinitionPlanDomainService {
 
     private void updateMatchedPlan(Plan existing, PlanWithFlows incoming, HashSet<String> unmatchedIds, Api api, AuditInfo auditInfo) {
         incoming.setId(existing.getId());
-        incoming.setReferenceId(existing.getReferenceId());
-        incoming.setReferenceType(existing.getReferenceType());
+        // Always write the authoritative values from the API to heal any legacy plan that had null referenceId.
+        incoming.setReferenceId(api.getId());
+        incoming.setReferenceType(GenericPlanEntity.ReferenceType.API);
         updatePlanDomainService.update(incoming, incoming.getFlows(), Collections.emptyMap(), api, auditInfo);
         unmatchedIds.remove(existing.getId());
     }
