@@ -10,6 +10,8 @@ spec:
           label: MCP
         - name: NATIVE
           label: Native
+        - name: EDGE
+          label: Edge
 
     metrics:
         - name: HTTP_REQUESTS
@@ -1028,6 +1030,36 @@ spec:
               - MCP_PROXY_PROMPT
               - API_PRODUCT
 
+        - name: EDGE_DETECTION_COUNT
+          label: Edge Detection Count
+          apis:
+              - EDGE
+          unit: NUMBER
+          measures:
+              - COUNT
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+              - GATEWAY
+              - TENANT
+              - ZONE
+              - EDGE_PROVIDER
+              - EDGE_PROCESS
+              - EDGE_CLIENT
+          filters:
+              - API
+              - API_TYPE
+              - APPLICATION
+              - PLAN
+              - GATEWAY
+              - TENANT
+              - ZONE
+              - EDGE_PROVIDER
+              - EDGE_PROCESS
+              - EDGE_CLIENT
+              - EDGE_TYPE
+
         - name: NATIVE_CONNECTIONS_SUMMARY
           label: Native Connections
           apis:
@@ -1290,6 +1322,7 @@ spec:
               - MESSAGE
               - MCP
               - NATIVE
+              - EDGE
           operators:
               - EQ
               - IN
@@ -1331,6 +1364,34 @@ spec:
 
         - name: MCP_PROXY_PROMPT
           label: MCP Prompt
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
+        - name: EDGE_PROVIDER
+          label: Edge Provider
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
+        - name: EDGE_PROCESS
+          label: Edge Process
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
+        - name: EDGE_CLIENT
+          label: Edge Client
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
+        - name: EDGE_TYPE
+          label: Edge Type
           type: KEYWORD
           operators:
               - EQ
@@ -1468,6 +1529,18 @@ spec:
 
         - name: MCP_PROXY_PROMPT
           label: MCP Prompt
+          type: KEYWORD
+
+        - name: EDGE_PROVIDER
+          label: Edge Provider
+          type: KEYWORD
+
+        - name: EDGE_PROCESS
+          label: Edge Process
+          type: KEYWORD
+
+        - name: EDGE_CLIENT
+          label: Edge Client
           type: KEYWORD
 
         - name: API_PRODUCT

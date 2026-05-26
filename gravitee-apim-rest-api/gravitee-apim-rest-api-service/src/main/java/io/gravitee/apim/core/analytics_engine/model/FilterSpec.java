@@ -67,6 +67,10 @@ public record FilterSpec(
         MCP_PROXY_TOOL,
         MCP_PROXY_RESOURCE,
         MCP_PROXY_PROMPT,
+        EDGE_PROVIDER,
+        EDGE_PROCESS,
+        EDGE_CLIENT,
+        EDGE_TYPE,
         API_TYPE,
         NATIVE_CONNECTION_STATUS,
     }

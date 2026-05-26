@@ -49,6 +49,9 @@ public record FacetSpec(Name name, String label, String type, List<Object> enumV
         MCP_PROXY_TOOL,
         MCP_PROXY_RESOURCE,
         MCP_PROXY_PROMPT,
+        EDGE_PROVIDER,
+        EDGE_PROCESS,
+        EDGE_CLIENT,
         NATIVE_CONNECTION_STATUS,
     }
 
