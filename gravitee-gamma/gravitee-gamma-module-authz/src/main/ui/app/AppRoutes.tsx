@@ -25,6 +25,7 @@ import { ApisPage } from '../features/policy-management/pages/ApisPage';
 import { CustomPoliciesPage } from '../features/policy-management/pages/CustomPoliciesPage';
 import { LlmsPage } from '../features/policy-management/pages/LlmsPage';
 import { McpsPage } from '../features/policy-management/pages/McpsPage';
+import { EntitiesPage } from '../features/policy-structure/EntitiesPage';
 import { ModuleErrorBoundary } from './ModuleErrorBoundary';
 
 const queryClient = new QueryClient();
@@ -63,6 +64,7 @@ export function AppRoutes() {
                         <Route path="llms" element={<LlmsPage />} />
                         <Route path="apis" element={<ApisPage />} />
                         <Route path="custom-policies" element={<CustomPoliciesPage />} />
+                        <Route path="entities" element={<EntitiesPage />} />
                     </Route>
                 </Routes>
             </ModuleErrorBoundary>

@@ -23,6 +23,8 @@ export const ROUTE_KEYS = [
     'llms',
     'apis',
     'custom-policies',
+    // Policy Structure
+    'entities',
 ] as const;
 export type RouteKey = (typeof ROUTE_KEYS)[number];
 
@@ -32,6 +34,7 @@ export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: s
     llms: { path: 'llms', label: 'AI Models' },
     apis: { path: 'apis', label: 'APIs' },
     'custom-policies': { path: 'custom-policies', label: 'Custom Policies' },
+    entities: { path: 'entities', label: 'Entities' },
 };
 
 export const AUTHZ_ROUTE_CONFIG: ModuleRouteConfig<RouteKey> = {
