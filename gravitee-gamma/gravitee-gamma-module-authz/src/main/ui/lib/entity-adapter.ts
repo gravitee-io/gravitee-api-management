@@ -18,19 +18,17 @@
  * and the frontend EntityInstance used in all UI components.
  *
  * Canonical backend uid format — dotted: `<lowercase-kind>.<id>` (e.g.
- * `user.alice`, `group.engineering`, `mcpserver.flight-mcp`). SCIM-sourced
- * principals carry a 3-segment form `<kind>.<connector>.<slug>` (e.g.
- * `user.okta.alice`); for those the structured uid keeps the full tail
- * (`okta.alice`) as `id` so a fromBackend → toBackend round-trip preserves
- * the canonical entityId verbatim.
+ * `user.alice`, `group.engineering`, `mcpserver.flight-mcp`). Ids may carry
+ * extra dotted segments (e.g. `mcp.flight-api.search`); the structured uid
+ * keeps the full tail after the kind as `id` so a fromBackend → toBackend
+ * round-trip preserves the canonical entityId verbatim.
  *
  * Server-side validation rejects anything outside `[a-z0-9._-]+`
  * (see `EntityIdValidator` in `gravitee-gamma-authorization-core`).
  *
  * Meta fields that have no backend column are stored inside `attributes`
- * under reserved underscore-prefixed keys: `_source`, `_principalProvider`,
- * `_displayName`, `_importedAt`. These are NEVER shown in the visible
- * attributes table.
+ * under reserved underscore-prefixed keys: `_source`, `_displayName`,
+ * `_importedAt`. These are NEVER shown in the visible attributes table.
  */
 import type { AttrValue, EntityInstance, EntitySource } from './entity.types';
 import type { EntityRequest, EntityResponse } from './api/authz-api.types';
@@ -39,14 +37,11 @@ import type { EntityRequest, EntityResponse } from './api/authz-api.types';
 
 export const META_KEYS = new Set([
     '_source',
-    '_principalProvider',
     '_displayName',
     '_importedAt',
     '_kind',
-    '_connector',
     '_url',
     '_syncedAt',
-    '_provider',
     '_proxyApiId',
 ]);
 
@@ -129,14 +124,13 @@ export function formatEntityUid(u: { type: string; id: string }): string {
  * - Parses parents from string form to structured objects.
  * - For dotted entityIds, strips the kind prefix from the structured `id`
  *   when an explicit `_kind` attribute matches the prefix — keeps round-trip
- *   stable for both local (`user.alice`) and SCIM-sourced
- *   (`user.okta.alice`) layouts.
+ *   stable for both single-segment (`user.alice`) and multi-segment
+ *   (`mcp.flight-api.search`) ids.
  */
 export function fromBackend(e: EntityResponse): EntityInstance {
     // Separate meta from regular attributes.
     const attrs: Record<string, AttrValue> = {};
     let source: EntitySource = 'local';
-    let principalProvider: string | undefined;
     let displayName: string | undefined;
     let importedAt: string | undefined;
     let kindOverride: string | undefined;
@@ -144,8 +138,6 @@ export function fromBackend(e: EntityResponse): EntityInstance {
     for (const [k, v] of Object.entries(e.attributes)) {
         if (k === '_source') {
             source = v as string as EntitySource;
-        } else if (k === '_principalProvider' || k === '_provider' || k === '_connector') {
-            principalProvider = v as string;
         } else if (k === '_displayName') {
             displayName = v as string;
         } else if (k === '_importedAt' || k === '_syncedAt') {
@@ -172,7 +164,6 @@ export function fromBackend(e: EntityResponse): EntityInstance {
         attrs,
         parents,
         source,
-        principalProvider,
         importedAt,
         _backendId: e.id,
         createdAt: e.createdAt,
@@ -211,9 +202,6 @@ export function toBackend(e: EntityInstance): EntityRequest {
     // Only store meta keys that have non-default values.
     if (e.source && e.source !== 'local') {
         attributes['_source'] = e.source;
-    }
-    if (e.principalProvider) {
-        attributes['_principalProvider'] = e.principalProvider;
     }
     if (e.displayName) {
         attributes['_displayName'] = e.displayName;
