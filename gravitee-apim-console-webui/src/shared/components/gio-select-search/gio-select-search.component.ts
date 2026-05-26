@@ -150,7 +150,9 @@ export class GioSelectSearchComponent implements ControlValueAccessor, OnDestroy
 
   // CONTROL VALUE ACCESSOR IMPLEMENTATION
   writeValue(value: string[]): void {
-    this._value = value || [];
+    // Parent-supplied array must not be aliased — onSelectionChange builds a fresh array
+    // each toggle, and the parent's FormControl should never observe internal mutation.
+    this._value = value ? [...value] : [];
     this.selectedCount.set(this._value.length);
   }
 
@@ -270,16 +272,12 @@ export class GioSelectSearchComponent implements ControlValueAccessor, OnDestroy
 
   // VALUE MANAGEMENT
   private onSelectionChange(selectedValue: string) {
-    const currentValues = this._value || [];
-
-    const index = currentValues.indexOf(selectedValue);
-    if (index > -1) {
-      currentValues.splice(index, 1);
-    } else {
-      currentValues.push(selectedValue);
-    }
-
-    this.updateValue(currentValues);
+    // New array each toggle. In-place mutation would alias the value the parent FormControl
+    // already holds, so reference-equality checks downstream see prev === curr and swallow
+    // the emission.
+    const current = this._value ?? [];
+    const next = current.includes(selectedValue) ? current.filter(v => v !== selectedValue) : [...current, selectedValue];
+    this.updateValue(next);
   }
 
   private updateValue(value: string[]) {

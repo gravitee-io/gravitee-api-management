@@ -368,6 +368,51 @@ describe('ApiRuntimeLogsNativeComponent', () => {
     expect(publishedRows).toBeGreaterThan(0);
   }));
 
+  it('fires a new search on each successive connection-status toggle (regression: aliased-array swallow)', fakeAsync(async () => {
+    await initComponent();
+    expectApiCalls();
+    expectInitialNativeLogsRequest().flush(fakeNativeApiLogsResponse());
+    flushRowAppResolution();
+    drainSummary();
+    flush();
+    fixture.detectChanges();
+
+    const statusSelect = await harness.connectionStatusFilter();
+
+    await statusSelect.open();
+    flush();
+    fixture.detectChanges();
+
+    await statusSelect.checkOptionByLabel('Connected');
+    flush();
+    fixture.detectChanges();
+
+    httpTestingController
+      .expectOne(
+        r =>
+          r.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native` && r.params.get('connectionStatuses') === 'CONNECTED',
+      )
+      .flush(fakeNativeApiLogsResponse());
+    flushRowAppResolution();
+    drainSummary();
+    flush();
+    fixture.detectChanges();
+
+    await statusSelect.checkOptionByLabel('Failed');
+    flush();
+    fixture.detectChanges();
+
+    httpTestingController
+      .expectOne(
+        r =>
+          r.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native` &&
+          r.params.get('connectionStatuses') === 'CONNECTED,CONNECTION_ERROR',
+      )
+      .flush(fakeNativeApiLogsResponse());
+    flushRowAppResolution();
+    flush();
+  }));
+
   it('navigates to the detail route preserving current query params on view request', fakeAsync(async () => {
     await initComponent({ period: '1h' });
     expectApiCalls();
