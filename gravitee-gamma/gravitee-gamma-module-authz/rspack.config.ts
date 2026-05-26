@@ -23,7 +23,7 @@ export default {
     output: {
         path: join(__dirname, './target/classes/ui'),
         publicPath: 'auto',
-        uniqueName: 'authz',
+        uniqueName: 'gravitee-gamma-module-authz',
     },
     experiments: {
         css: false,
