@@ -361,6 +361,280 @@ class ElasticsearchOtelLogRepositoryTest {
         assertThat(records.get(0).timestamp()).isEqualTo(Instant.ofEpochSecond(1778515640L, 168_675_208L));
     }
 
+    @Test
+    void should_parse_iso_8601_timestamp() {
+        // Older OTel collector versions emit @timestamp as a plain ISO 8601 string — parseInstant tries
+        // ISO first and only falls back to the decimal-epoch-millis form on DateTimeParseException.
+        SearchResponse response = new SearchResponse();
+        SearchHits hits = new SearchHits();
+        hits.setHits(List.of(eventHit("a1b2c3d4", "11223344aabbccdd", "exception", "2026-04-30T10:00:00.100Z", "policy-id-1")));
+        response.setSearchHits(hits);
+        when(client.search(any(), any(), any())).thenReturn(Single.just(response));
+
+        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+
+        assertThat(records.get(0).timestamp()).isEqualTo(Instant.parse("2026-04-30T10:00:00.100Z"));
+    }
+
+    @Test
+    void should_parse_plain_epoch_millis_timestamp_without_sub_ms_digits() {
+        // Plain integer epoch-ms (no decimal point) — fallback path when an older exporter / SDK
+        // version emits the timestamp without sub-millisecond precision.
+        SearchResponse response = new SearchResponse();
+        SearchHits hits = new SearchHits();
+        hits.setHits(List.of(eventHit("a1b2c3d4", "11223344aabbccdd", "exception", "1778515640168", "policy-id-1")));
+        response.setSearchHits(hits);
+        when(client.search(any(), any(), any())).thenReturn(Single.just(response));
+
+        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+
+        assertThat(records.get(0).timestamp()).isEqualTo(Instant.ofEpochMilli(1778515640168L));
+    }
+
+    @Test
+    void should_return_null_timestamp_when_value_is_neither_iso_nor_numeric() {
+        // Malformed timestamp must not crash the read pipeline — degrade to null so the rest of the
+        // record still reaches the consumer (timestamp surfaces in the UI as "unknown").
+        SearchResponse response = new SearchResponse();
+        SearchHits hits = new SearchHits();
+        hits.setHits(List.of(eventHit("a1b2c3d4", "11223344aabbccdd", "exception", "not-a-timestamp", "policy-id-1")));
+        response.setSearchHits(hits);
+        when(client.search(any(), any(), any())).thenReturn(Single.just(response));
+
+        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+
+        assertThat(records).hasSize(1);
+        assertThat(records.get(0).timestamp()).isNull();
+    }
+
+    @Test
+    void should_resolve_envId_placeholder_in_index_template() {
+        // Logs-explorer use cases will template {envId} into a per-env data-stream name; verify the
+        // placeholder is substituted from QueryContext (lowercased — ES data streams require it).
+        ElasticsearchOtelLogRepository perEnvRepo = new ElasticsearchOtelLogRepository("logs-apim.otel-{orgId}-{envId}", client);
+        when(client.search(any(), any(), any())).thenReturn(Single.just(new SearchResponse()));
+
+        perEnvRepo.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+
+        ArgumentCaptor<String> indexCaptor = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(client).search(indexCaptor.capture(), eq(null), any());
+        assertThat(indexCaptor.getValue()).isEqualTo("logs-apim.otel-test-org-test-env");
+    }
+
+    @Test
+    void should_fall_back_to_body_structured_when_top_level_string_and_body_text_are_absent() {
+        // Some collector versions emit a structured body — the reader serialises it to JSON so consumers
+        // can still inspect the payload without having to parse OTel's nested AnyValue shape themselves.
+        SearchResponse response = new SearchResponse();
+        SearchHits hits = new SearchHits();
+        Map<String, Object> source = new HashMap<>();
+        source.put("trace_id", "a1b2c3d4");
+        source.put("span_id", "11223344aabbccdd");
+        source.put("@timestamp", "2026-04-30T10:00:00.100Z");
+        source.put("body", Map.of("structured", Map.of("kind", "request", "ok", true)));
+        SearchHit hit = new SearchHit();
+        hit.setSource(MAPPER.valueToTree(source));
+        hits.setHits(List.of(hit));
+        response.setSearchHits(hits);
+        when(client.search(any(), any(), any())).thenReturn(Single.just(response));
+
+        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+
+        // Structured body is JSON-serialised; assert both expected fragments are present (key order isn't
+        // guaranteed across HashMap iteration).
+        assertThat(records.get(0).body()).contains("\"kind\":\"request\"").contains("\"ok\":true");
+    }
+
+    @Test
+    void should_flatten_nested_attribute_objects_into_dotted_keys() {
+        // Nested attribute objects get dot-flattened on the read side (e.g. http.request.method) so
+        // consumers see a flat key→string map rather than having to walk the JSON tree.
+        SearchResponse response = new SearchResponse();
+        SearchHits hits = new SearchHits();
+        Map<String, Object> source = new HashMap<>();
+        source.put("trace_id", "a1b2c3d4");
+        source.put("span_id", "11223344aabbccdd");
+        source.put("@timestamp", "2026-04-30T10:00:00.100Z");
+        Map<String, Object> http = new HashMap<>();
+        http.put("request", Map.of("method", "POST"));
+        http.put("status_code", 200);
+        source.put("attributes", Map.of("http", http));
+        SearchHit hit = new SearchHit();
+        hit.setSource(MAPPER.valueToTree(source));
+        hits.setHits(List.of(hit));
+        response.setSearchHits(hits);
+        when(client.search(any(), any(), any())).thenReturn(Single.just(response));
+
+        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+
+        assertThat(records.get(0).attributes()).containsEntry("http.request.method", "POST").containsEntry("http.status_code", "200");
+    }
+
+    @Test
+    void should_unwrap_otlp_typed_values_when_attributes_use_array_key_value_shape() {
+        // Older collector / SDK versions emit attributes as an OTLP-shaped array — each element is a
+        // {key, value} pair where the value is itself an object with one of stringValue / intValue /
+        // doubleValue / boolValue set. flattenStringMap walks the array and unwrapOtlpValue extracts
+        // the typed scalar so the consumer sees the same flat key→string contract as the object form.
+        SearchResponse response = new SearchResponse();
+        SearchHits hits = new SearchHits();
+        Map<String, Object> source = new HashMap<>();
+        source.put("trace_id", "a1b2c3d4");
+        source.put("span_id", "11223344aabbccdd");
+        source.put("@timestamp", "2026-04-30T10:00:00.100Z");
+        source.put(
+            "attributes",
+            List.of(
+                Map.of("key", "http.method", "value", Map.of("stringValue", "POST")),
+                Map.of("key", "http.status_code", "value", Map.of("intValue", 200)),
+                Map.of("key", "http.duration_ms", "value", Map.of("doubleValue", 12.5)),
+                Map.of("key", "http.cached", "value", Map.of("boolValue", true))
+            )
+        );
+        SearchHit hit = new SearchHit();
+        hit.setSource(MAPPER.valueToTree(source));
+        hits.setHits(List.of(hit));
+        response.setSearchHits(hits);
+        when(client.search(any(), any(), any())).thenReturn(Single.just(response));
+
+        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+
+        assertThat(records.get(0).attributes())
+            .containsEntry("http.method", "POST")
+            .containsEntry("http.status_code", "200")
+            .containsEntry("http.duration_ms", "12.5")
+            .containsEntry("http.cached", "true");
+    }
+
+    @Test
+    void should_skip_array_attribute_entries_missing_key_or_value() {
+        // Defensive: a malformed OTLP-shape entry (missing key or value field) is skipped rather than
+        // crashing the entire record.
+        SearchResponse response = new SearchResponse();
+        SearchHits hits = new SearchHits();
+        Map<String, Object> source = new HashMap<>();
+        source.put("trace_id", "a1b2c3d4");
+        source.put("span_id", "11223344aabbccdd");
+        source.put("@timestamp", "2026-04-30T10:00:00.100Z");
+        Map<String, Object> withoutValue = new HashMap<>();
+        withoutValue.put("key", "orphan");
+        source.put("attributes", List.of(withoutValue, Map.of("key", "http.method", "value", Map.of("stringValue", "POST"))));
+        SearchHit hit = new SearchHit();
+        hit.setSource(MAPPER.valueToTree(source));
+        hits.setHits(List.of(hit));
+        response.setSearchHits(hits);
+        when(client.search(any(), any(), any())).thenReturn(Single.just(response));
+
+        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+
+        assertThat(records.get(0).attributes()).hasSize(1).containsEntry("http.method", "POST");
+    }
+
+    @Test
+    void should_skip_array_attribute_when_otlp_value_has_no_typed_field() {
+        // Defensive: a value object with no recognised typed field (none of stringValue / intValue /
+        // doubleValue / boolValue) gets skipped — unwrapOtlpValue returns null and the entry is dropped.
+        SearchResponse response = new SearchResponse();
+        SearchHits hits = new SearchHits();
+        Map<String, Object> source = new HashMap<>();
+        source.put("trace_id", "a1b2c3d4");
+        source.put("span_id", "11223344aabbccdd");
+        source.put("@timestamp", "2026-04-30T10:00:00.100Z");
+        source.put(
+            "attributes",
+            List.of(
+                Map.of("key", "weird", "value", Map.of("arrayValue", List.of("a", "b"))),
+                Map.of("key", "http.method", "value", Map.of("stringValue", "POST"))
+            )
+        );
+        SearchHit hit = new SearchHit();
+        hit.setSource(MAPPER.valueToTree(source));
+        hits.setHits(List.of(hit));
+        response.setSearchHits(hits);
+        when(client.search(any(), any(), any())).thenReturn(Single.just(response));
+
+        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+
+        assertThat(records.get(0).attributes()).hasSize(1).containsEntry("http.method", "POST");
+    }
+
+    @Test
+    void should_unwrap_array_attribute_when_value_is_a_bare_scalar() {
+        // Defensive: if a (non-OTel-compliant) writer emits the value as a bare scalar instead of the
+        // typed-object wrapper, unwrapOtlpValue passes it through and the entry still lands in the map.
+        SearchResponse response = new SearchResponse();
+        SearchHits hits = new SearchHits();
+        Map<String, Object> source = new HashMap<>();
+        source.put("trace_id", "a1b2c3d4");
+        source.put("span_id", "11223344aabbccdd");
+        source.put("@timestamp", "2026-04-30T10:00:00.100Z");
+        source.put("attributes", List.of(Map.of("key", "raw", "value", "scalar-value")));
+        SearchHit hit = new SearchHit();
+        hit.setSource(MAPPER.valueToTree(source));
+        hits.setHits(List.of(hit));
+        response.setSearchHits(hits);
+        when(client.search(any(), any(), any())).thenReturn(Single.just(response));
+
+        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+
+        assertThat(records.get(0).attributes()).containsEntry("raw", "scalar-value");
+    }
+
+    @Test
+    void should_parse_resource_attributes_into_the_record() {
+        // Resource attributes (gravitee.module, gravitee.env.id, …) are part of every record returned
+        // by the OTel ES exporter — the reader must surface them so consumers can scope-filter without
+        // re-querying or relying on the resource filter that was sent.
+        SearchResponse response = new SearchResponse();
+        SearchHits hits = new SearchHits();
+        Map<String, Object> source = new HashMap<>();
+        source.put("trace_id", "a1b2c3d4");
+        source.put("span_id", "11223344aabbccdd");
+        source.put("@timestamp", "2026-04-30T10:00:00.100Z");
+        source.put(
+            "resource",
+            Map.of(
+                "attributes",
+                Map.of("gravitee", Map.of("module", "apim", "env", Map.of("id", "test-env"), "api", Map.of("id", "api-1")))
+            )
+        );
+        SearchHit hit = new SearchHit();
+        hit.setSource(MAPPER.valueToTree(source));
+        hits.setHits(List.of(hit));
+        response.setSearchHits(hits);
+        when(client.search(any(), any(), any())).thenReturn(Single.just(response));
+
+        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+
+        assertThat(records.get(0).resourceAttributes())
+            .containsEntry("gravitee.module", "apim")
+            .containsEntry("gravitee.env.id", "test-env")
+            .containsEntry("gravitee.api.id", "api-1");
+    }
+
+    @Test
+    void should_skip_hit_with_null_source() {
+        // SearchHit with no _source field — happens when ES returns just metadata (e.g. for stored_fields
+        // queries). Reader must skip rather than NPE.
+        SearchResponse response = new SearchResponse();
+        SearchHits hits = new SearchHits();
+        SearchHit nullSourceHit = new SearchHit();
+        nullSourceHit.setSource(null);
+        hits.setHits(
+            List.of(
+                nullSourceHit,
+                eventHit("a1b2c3d4", "11223344aabbccdd", "gravitee.policy.pre", "2026-04-30T10:00:00.100Z", "policy-id-1")
+            )
+        );
+        response.setSearchHits(hits);
+        when(client.search(any(), any(), any())).thenReturn(Single.just(response));
+
+        List<OtelLogRecord> records = repository.findLogs(QUERY_CONTEXT, criteriaForTrace("a1b2c3d4")).blockingGet();
+
+        assertThat(records).hasSize(1);
+        assertThat(records.get(0).attributes()).containsEntry("event.name", "gravitee.policy.pre");
+    }
+
     private static OtelLogSearchCriteria criteriaForTrace(String traceId) {
         return new OtelLogSearchCriteria(traceId, Map.of(), Map.of(), null, null, null);
     }
