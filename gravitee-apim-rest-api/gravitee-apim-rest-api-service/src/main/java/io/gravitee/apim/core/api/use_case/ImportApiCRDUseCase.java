@@ -418,6 +418,9 @@ public class ImportApiCRDUseCase {
                     .tags(planCRD.getTags())
                     .mode(planCRD.getMode())
                     .name(planCRD.getName())
+                    .bootstrapPort(planCRD.getBootstrapPort())
+                    .brokerRangeStart(planCRD.getBrokerRangeStart())
+                    .brokerRangeEnd(planCRD.getBrokerRangeEnd())
                     .build()
             );
         } else {

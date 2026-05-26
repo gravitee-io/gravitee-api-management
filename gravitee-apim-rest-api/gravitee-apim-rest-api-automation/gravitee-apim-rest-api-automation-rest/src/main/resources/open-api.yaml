@@ -1484,6 +1484,18 @@ components:
         generalConditionsHrid:
           type: string
           description: API page `hrid` that serves as general conditions documentation of this plan
+        bootstrapPort:
+          type: integer
+          description: Bootstrap port for port-based routing (native Kafka APIs only). Null in host/SNI routing mode.
+          example: 9092
+        brokerRangeStart:
+          type: integer
+          description: Start of broker port range for port-based routing (native Kafka APIs only).
+          example: 9100
+        brokerRangeEnd:
+          type: integer
+          description: End of broker port range for port-based routing (native Kafka APIs only). Must be greater than start port.
+          example: 9102
       required:
         - hrid
         - name

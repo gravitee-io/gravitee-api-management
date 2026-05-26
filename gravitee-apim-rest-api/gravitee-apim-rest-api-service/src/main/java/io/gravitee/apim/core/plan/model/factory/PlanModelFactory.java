@@ -61,6 +61,9 @@ public class PlanModelFactory {
                     .tags(planCRD.getTags())
                     .mode(planCRD.getMode())
                     .name(planCRD.getName())
+                    .bootstrapPort(planCRD.getBootstrapPort())
+                    .brokerRangeStart(planCRD.getBrokerRangeStart())
+                    .brokerRangeEnd(planCRD.getBrokerRangeEnd())
                     .build()
             );
         } else {

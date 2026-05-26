@@ -69,4 +69,10 @@ public class PlanCRD {
 
     @NotNull
     private PlanMode mode;
+
+    private Integer bootstrapPort;
+
+    private Integer brokerRangeStart;
+
+    private Integer brokerRangeEnd;
 }
