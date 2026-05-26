@@ -143,12 +143,7 @@ describe('parseGaplToStatements — multi-statement order preservation', () => {
 
 describe('parseGaplToStatements — comments + blank lines are ignored', () => {
     const seeds = [4, 22, 73, 444];
-    const commentSets = [
-        ['// foo', '// bar'],
-        ['// Policy: test', '// Target: t1', '// noise'],
-        [],
-        ['// just one'],
-    ];
+    const commentSets = [['// foo', '// bar'], ['// Policy: test', '// Target: t1', '// noise'], [], ['// just one']];
     const cases = seeds.flatMap(seed => commentSets.map(comments => [seed, comments] as const));
     it.each(cases)('seed %i, comments %j: random `// ...` lines do not change parse result', (seed, comments) => {
         const stmts = buildBatch(seed, 2);
@@ -171,9 +166,7 @@ describe('parseGaplToStatements — effect alternation', () => {
         ['permit', 'permit', 'forbid', 'permit', 'forbid', 'forbid'],
     ];
     it.each(sequences)('round-trips effect sequence %j with single principal per statement', (...effects) => {
-        const text = effects
-            .map(e => `${e} (principal == User::"u", action == Action::"a", resource == Tool::"t");`)
-            .join('\n');
+        const text = effects.map(e => `${e} (principal == User::"u", action == Action::"a", resource == Tool::"t");`).join('\n');
         const parsed = parseGaplToStatements(text);
         expect(parsed).not.toBeNull();
         expect(parsed!.statements.map(s => s.effect)).toEqual(effects);

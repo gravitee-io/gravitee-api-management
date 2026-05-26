@@ -13,13 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type {
-    ActionRef,
-    PolicyEffect,
-    PolicyStatement,
-    PrincipalRef,
-    ResourceRef,
-} from '../features/policy-management/statement-to-gapl';
+import type { ActionRef, PolicyEffect, PolicyStatement, PrincipalRef, ResourceRef } from '../features/policy-management/statement-to-gapl';
 import { stripLineComments } from './strip-line-comments';
 
 export interface ParsedPolicy {
