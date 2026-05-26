@@ -29,6 +29,12 @@ export interface MemberInput {
   role: string;
 }
 
+export interface TransferOwnershipInput {
+  new_primary_owner_id: string;
+  new_primary_owner_reference?: string;
+  primary_owner_newrole: string;
+}
+
 export interface MembersResponse {
   data?: Member[];
   metadata?: {

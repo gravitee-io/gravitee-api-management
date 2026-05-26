@@ -1,0 +1,204 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<h2 mat-dialog-title i18n="@@transferApplicationOwnershipDialogTitle">Transfer Ownership</h2>
+
+<mat-dialog-content class="application-transfer-ownership-dialog">
+  <p class="application-transfer-ownership-dialog__description next-gen-body" i18n="@@transferApplicationOwnershipDialogDescription">
+    Transfer ownership and grant access to your Application to another user.
+  </p>
+
+  <section class="application-transfer-ownership-dialog__section">
+    <p class="application-transfer-ownership-dialog__hint next-gen-small" i18n="@@transferApplicationOwnershipMethodHint">
+      Select your preferred method for granting complete Application access.
+    </p>
+    <app-button-toggle-group [value]="transferMethod()" (valueChange)="onTransferMethodChange($event)">
+      <app-button-toggle-option
+        value="APPLICATION_MEMBER"
+        icon="groups"
+        label="Application member"
+        i18n-label="@@transferApplicationOwnershipApplicationMemberMethod"
+      />
+      <app-button-toggle-option
+        value="OTHER_USER"
+        icon="person_search"
+        label="Other user"
+        i18n-label="@@transferApplicationOwnershipOtherUserMethod"
+      />
+    </app-button-toggle-group>
+  </section>
+
+  <section class="application-transfer-ownership-dialog__section">
+    @if (isApplicationMemberMethod()) {
+      <mat-form-field appearance="outline" class="application-transfer-ownership-dialog__field">
+        <mat-label i18n="@@transferApplicationOwnershipMemberLabel">Select application member</mat-label>
+        <input
+          matInput
+          type="search"
+          [formControl]="applicationMemberControl"
+          [matAutocomplete]="applicationMemberAutocomplete"
+          (input)="clearTarget()"
+          data-testid="transfer-ownership-application-member-input"
+          aria-label="Select application member"
+          i18n-aria-label="@@transferApplicationOwnershipMemberAriaLabel"
+          placeholder="Name or email..."
+          i18n-placeholder="@@transferApplicationOwnershipMemberPlaceholder"
+        />
+        <mat-autocomplete #applicationMemberAutocomplete="matAutocomplete">
+          @for (option of applicationMemberOptions(); track option.id) {
+            <mat-option [value]="applicationMemberSearchQuery()" (onSelectionChange)="$event.isUserInput && onTargetSelected(option)">
+              <app-user-cell [user]="option.vm" />
+            </mat-option>
+          }
+          @if (noApplicationMembersFound()) {
+            <mat-option disabled data-testid="transfer-ownership-application-member-no-match">
+              <span i18n="@@transferApplicationOwnershipNoMembersFound">No application members found</span>
+            </mat-option>
+          }
+        </mat-autocomplete>
+      </mat-form-field>
+    } @else {
+      <mat-form-field appearance="outline" class="application-transfer-ownership-dialog__field">
+        <mat-label i18n="@@transferApplicationOwnershipOtherUserLabel">Search user</mat-label>
+        <input
+          matInput
+          type="search"
+          [formControl]="otherUserControl"
+          [matAutocomplete]="otherUserAutocomplete"
+          (input)="clearTarget()"
+          data-testid="transfer-ownership-other-user-input"
+          aria-label="Search user"
+          i18n-aria-label="@@transferApplicationOwnershipOtherUserAriaLabel"
+          placeholder="Name or email..."
+          i18n-placeholder="@@transferApplicationOwnershipOtherUserPlaceholder"
+        />
+        <mat-autocomplete #otherUserAutocomplete="matAutocomplete">
+          @if (usersResource.isLoading()) {
+            <mat-option disabled data-testid="transfer-ownership-user-search-loading">
+              <div class="application-transfer-ownership-dialog__option">
+                <mat-progress-spinner diameter="20" mode="indeterminate" />
+                <span class="next-gen-small" i18n="@@transferApplicationOwnershipUserSearchLoading">Searching users...</span>
+              </div>
+            </mat-option>
+          }
+          @for (option of otherUserOptions(); track option.id) {
+            <mat-option
+              [value]="otherUserSearchQuery()"
+              [disabled]="option.isDisabled"
+              (onSelectionChange)="$event.isUserInput && onTargetSelected(option)"
+            >
+              <div class="application-transfer-ownership-dialog__option">
+                <app-user-cell [user]="option.vm" />
+                @if (option.isAlreadyMember) {
+                  <span
+                    class="application-transfer-ownership-dialog__already-member next-gen-small"
+                    data-testid="transfer-ownership-user-already-member"
+                    i18n="@@transferApplicationOwnershipAlreadyMember"
+                  >
+                    Already member
+                  </span>
+                }
+              </div>
+            </mat-option>
+          }
+          @if (noUsersFound()) {
+            <mat-option disabled data-testid="transfer-ownership-user-search-no-match">
+              <span i18n="@@transferApplicationOwnershipNoUsersFound">No users found</span>
+            </mat-option>
+          }
+        </mat-autocomplete>
+        <mat-hint i18n="@@transferApplicationOwnershipOtherUserHint">Search by name or email.</mat-hint>
+      </mat-form-field>
+
+      @if (usersResource.error()) {
+        <p
+          class="application-transfer-ownership-dialog__error next-gen-small"
+          data-testid="transfer-ownership-user-search-error"
+          role="alert"
+          i18n
+        >
+          An error occurred while searching users. Please try again.
+        </p>
+      }
+    }
+  </section>
+
+  <section class="application-transfer-ownership-dialog__section">
+    @if (rolesResource.isLoading()) {
+      <div class="application-transfer-ownership-dialog__loading" aria-live="polite" data-testid="transfer-ownership-roles-loading">
+        <mat-progress-spinner diameter="20" mode="indeterminate" />
+        <span class="next-gen-small" i18n="@@transferApplicationOwnershipRolesLoading">Loading roles...</span>
+      </div>
+    } @else if (rolesResource.error()) {
+      <p
+        class="application-transfer-ownership-dialog__error next-gen-small"
+        role="alert"
+        data-testid="transfer-ownership-roles-error"
+        i18n="@@transferApplicationOwnershipRolesError"
+      >
+        An error occurred while loading application roles. Please try again.
+      </p>
+    } @else {
+      <mat-form-field appearance="outline" class="application-transfer-ownership-dialog__field">
+        <mat-label i18n="@@transferApplicationOwnershipCurrentOwnerRoleLabel">Current owner new role</mat-label>
+        <mat-select
+          [formControl]="roleControl"
+          data-testid="transfer-ownership-role-select"
+          aria-label="Current owner new role"
+          i18n-aria-label="@@transferApplicationOwnershipCurrentOwnerRoleAriaLabel"
+        >
+          @for (role of assignableRoles(); track role.name) {
+            <mat-option [value]="role.name">{{ role.name }}</mat-option>
+          }
+        </mat-select>
+        @if (roleControl.hasError('required') && roleControl.touched) {
+          <mat-error i18n="@@transferApplicationOwnershipRoleRequired">Application role is required.</mat-error>
+        }
+      </mat-form-field>
+    }
+  </section>
+
+  @if (submitError(); as error) {
+    <p class="application-transfer-ownership-dialog__error next-gen-small" data-testid="transfer-ownership-submit-error" role="alert">
+      {{ error }}
+    </p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button
+    mat-stroked-button
+    type="button"
+    [disabled]="isSubmitting()"
+    (click)="onCancel()"
+    data-testid="transfer-ownership-cancel-button"
+    i18n="@@transferApplicationOwnershipCancelButton"
+  >
+    Cancel
+  </button>
+  <button
+    mat-flat-button
+    color="primary"
+    type="button"
+    [disabled]="!canSubmit()"
+    (click)="onSubmit()"
+    data-testid="transfer-ownership-submit-button"
+    i18n="@@transferApplicationOwnershipSubmitButton"
+  >
+    Transfer
+  </button>
+</mat-dialog-actions>

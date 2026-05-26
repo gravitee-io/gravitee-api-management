@@ -18,7 +18,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
-import { Member, MemberInput, MemberSearchFilters, MembersResponse } from '../entities/member/member';
+import { Member, MemberInput, MemberSearchFilters, MembersResponse, TransferOwnershipInput } from '../entities/member/member';
 
 @Injectable({
   providedIn: 'root',
@@ -45,5 +45,9 @@ export class MembershipService {
 
   updateApplicationMember(applicationId: string, memberId: string, memberInput: MemberInput): Observable<Member> {
     return this.http.put<Member>(`${this.configService.baseURL}/applications/${applicationId}/members/${memberId}`, memberInput);
+  }
+
+  transferApplicationOwnership(applicationId: string, input: TransferOwnershipInput): Observable<void> {
+    return this.http.post<void>(`${this.configService.baseURL}/applications/${applicationId}/members/_transfer_ownership`, input);
   }
 }

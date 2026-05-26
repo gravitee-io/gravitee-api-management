@@ -33,6 +33,9 @@ export class ApplicationTabMembersComponentHarness extends ComponentHarness {
   private readonly locateAddMembersButton = this.locatorForOptional(
     MatButtonHarness.with({ selector: '[data-testid="members-add-button"]' }),
   );
+  private readonly locateTransferOwnershipButton = this.locatorForOptional(
+    MatButtonHarness.with({ selector: '[data-testid="members-transfer-ownership-button"]' }),
+  );
 
   public async getLoader(): Promise<LoaderHarness | null> {
     return this.locateLoader();
@@ -60,6 +63,14 @@ export class ApplicationTabMembersComponentHarness extends ComponentHarness {
 
   public async clickAddMembersButton(): Promise<void> {
     return (await this.locateAddMembersButton())!.click();
+  }
+
+  public async getTransferOwnershipButton(): Promise<MatButtonHarness | null> {
+    return this.locateTransferOwnershipButton();
+  }
+
+  public async clickTransferOwnershipButton(): Promise<void> {
+    return (await this.locateTransferOwnershipButton())!.click();
   }
 
   public async getUserCells(): Promise<UserCellHarness[]> {

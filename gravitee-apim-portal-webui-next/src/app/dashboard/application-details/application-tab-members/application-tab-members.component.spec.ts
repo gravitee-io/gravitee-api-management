@@ -28,7 +28,7 @@ import { ApplicationTabMembersComponent } from './application-tab-members.compon
 import { ApplicationTabMembersComponentHarness } from './application-tab-members.component.harness';
 import { ConfirmDialogComponent } from '../../../../components/confirm-dialog/confirm-dialog.component';
 import { ConfirmDialogHarness } from '../../../../components/confirm-dialog/confirm-dialog.harness';
-import { APPLICATION_PRIMARY_OWNER_ROLE_NAME, ApplicationRole } from '../../../../entities/application/application';
+import { APPLICATION_PRIMARY_OWNER_ROLE_NAME, Application, ApplicationRole } from '../../../../entities/application/application';
 import { MembersResponse } from '../../../../entities/member/member';
 import { fakeMember, fakeMembersResponse } from '../../../../entities/member/member.fixtures';
 import { fakeUserApplicationPermissions } from '../../../../entities/permission/permission.fixtures';
@@ -533,4 +533,97 @@ describe('ApplicationTabMembersComponent', () => {
       await fixture.whenStable();
     });
   });
+
+  describe('transfer ownership action', () => {
+    it('should not show transfer ownership button when user lacks MEMBER[U] permission', async () => {
+      fixture.componentRef.setInput('application', fakeApplication(CURRENT_USER_ID));
+      const harness = await flush(fakeMembersResponse([fakeMember()]));
+
+      expect(await harness.getTransferOwnershipButton()).toBeNull();
+    });
+
+    it('should not show transfer ownership button when current user is not the application owner', async () => {
+      fixture.componentRef.setInput('application', fakeApplication('other-owner-id'));
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'U'] }));
+      const harness = await flush(fakeMembersResponse([fakeMember()]));
+
+      expect(await harness.getTransferOwnershipButton()).toBeNull();
+    });
+
+    it('should show transfer ownership button for application owner with MEMBER[U] permission', async () => {
+      fixture.componentRef.setInput('application', fakeApplication(CURRENT_USER_ID));
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'U'] }));
+      const harness = await flush(fakeMembersResponse([fakeMember()]));
+
+      expect(await harness.getTransferOwnershipButton()).not.toBeNull();
+    });
+
+    it('should open transfer ownership dialog', async () => {
+      fixture.componentRef.setInput('application', fakeApplication(CURRENT_USER_ID));
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'U'] }));
+      const harness = await flush(
+        fakeMembersResponse([
+          fakeMember({ id: CURRENT_USER_ID, role: APPLICATION_PRIMARY_OWNER_ROLE_NAME, user: { id: CURRENT_USER_ID, _links: {} } }),
+          fakeMember({ id: 'member-2', user: { id: 'user-2', display_name: 'Bob Martin', _links: {} } }),
+        ]),
+      );
+
+      await harness.clickTransferOwnershipButton();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(TestBed.inject(MatDialog).openDialogs).toHaveLength(1);
+    });
+
+    it('should reload members list after transfer ownership dialog closes with success', async () => {
+      fixture.componentRef.setInput('application', fakeApplication(CURRENT_USER_ID));
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'U'] }));
+      const harness = await flush(fakeMembersResponse([fakeMember()]));
+
+      await harness.clickTransferOwnershipButton();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      TestBed.inject(MatDialog).openDialogs[0].close(true);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      httpTestingController
+        .expectOne(r => r.url === `${TESTING_BASE_URL}/permissions` && r.params.get('applicationId') === applicationId)
+        .flush(fakeUserApplicationPermissions({ MEMBER: ['R'] }));
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      httpTestingController.expectOne(r => r.url.includes('members/_search')).flush(fakeMembersResponse([fakeMember({ id: 'member-2' })]));
+      await fixture.whenStable();
+
+      expect(await harness.getTransferOwnershipButton()).toBeNull();
+    });
+  });
 });
+
+function fakeApplication(ownerId: string): Application {
+  return {
+    id: 'app-1',
+    name: 'Application',
+    owner: {
+      id: ownerId,
+      first_name: 'Current',
+      last_name: 'Owner',
+      display_name: 'Current Owner',
+      email: 'owner@example.com',
+      editable_profile: false,
+      customFields: {
+        city: '',
+        job_position: '',
+      },
+      _links: {
+        avatar: '',
+        notifications: '',
+        self: '',
+      },
+    },
+    settings: {},
+  };
+}
