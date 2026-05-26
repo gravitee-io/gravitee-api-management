@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, DestroyRef, inject, input, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, input, linkedSignal, signal } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -26,11 +26,12 @@ import { PaginatedTableComponent, TableAction, TableColumn } from '../../../../c
 import { TableCellDirective } from '../../../../components/paginated-table/table-cell.directive';
 import { SearchBarComponent } from '../../../../components/search-bar/search-bar.component';
 import { UserCellComponent, UserCellVM } from '../../../../components/user-cell/user-cell.component';
-import { APPLICATION_PRIMARY_OWNER_ROLE_NAME } from '../../../../entities/application/application';
+import { APPLICATION_PRIMARY_OWNER_ROLE_NAME, Application } from '../../../../entities/application/application';
 import { Member, MemberSearchFilters, MembersResponse } from '../../../../entities/member/member';
 import { UserApplicationPermissions } from '../../../../entities/permission/permission';
 import { CurrentUserService } from '../../../../services/current-user.service';
 import { MembershipService } from '../../../../services/membership.service';
+import { PermissionsService } from '../../../../services/permissions.service';
 import {
   ApplicationMemberEditDialogComponent,
   ApplicationMemberEditDialogData,
@@ -39,9 +40,15 @@ import {
   ApplicationMembersAddDialogComponent,
   ApplicationMembersAddDialogData,
 } from '../application-members-add-dialog/application-members-add-dialog.component';
+import {
+  ApplicationTransferOwnershipDialogComponent,
+  ApplicationTransferOwnershipDialogData,
+  ApplicationTransferOwnershipMemberOption,
+} from '../application-transfer-ownership-dialog/application-transfer-ownership-dialog.component';
 
 interface MemberTableRow {
   id: string;
+  reference?: string;
   user: UserCellVM;
   isCurrentUser: boolean;
   role: string;
@@ -76,24 +83,32 @@ export class ApplicationTabMembersComponent {
   private readonly currentUserService = inject(CurrentUserService);
   private readonly matDialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly permissionsService = inject(PermissionsService);
 
   readonly applicationId = input.required<string>();
+  readonly application = input<Application | undefined>(undefined);
   readonly userApplicationPermissions = input.required<UserApplicationPermissions>();
 
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
   readonly searchTerm = signal('');
   readonly error = signal<string | null>(null);
+  readonly effectiveUserApplicationPermissions = linkedSignal(() => this.userApplicationPermissions());
 
   readonly tableColumns: TableColumn[] = [
     { id: 'name', label: $localize`:@@memberColumnName:Name` },
     { id: 'role', label: $localize`:@@memberColumnRole:Role` },
   ];
 
-  readonly canRead = computed(() => this.userApplicationPermissions().MEMBER?.includes('R') ?? false);
-  readonly canCreate = computed(() => this.userApplicationPermissions().MEMBER?.includes('C') ?? false);
-  readonly canUpdate = computed(() => this.userApplicationPermissions().MEMBER?.includes('U') ?? false);
-  readonly canDelete = computed(() => this.userApplicationPermissions().MEMBER?.includes('D') ?? false);
+  readonly canRead = computed(() => this.effectiveUserApplicationPermissions().MEMBER?.includes('R') ?? false);
+  readonly canCreate = computed(() => this.effectiveUserApplicationPermissions().MEMBER?.includes('C') ?? false);
+  readonly canUpdate = computed(() => this.effectiveUserApplicationPermissions().MEMBER?.includes('U') ?? false);
+  readonly canDelete = computed(() => this.effectiveUserApplicationPermissions().MEMBER?.includes('D') ?? false);
+  readonly canTransferOwnership = computed(() => {
+    const currentUserId = this.currentUserService.user()?.id;
+    const ownerId = this.application()?.owner?.id;
+    return this.canUpdate() && !!currentUserId && currentUserId === ownerId;
+  });
 
   readonly actions = computed<TableAction<MemberTableRow>[]>(() => {
     const actions: TableAction<MemberTableRow>[] = [];
@@ -189,6 +204,33 @@ export class ApplicationTabMembersComponent {
       .subscribe();
   }
 
+  openTransferOwnershipDialog(): void {
+    this.error.set(null);
+    this.matDialog
+      .open<ApplicationTransferOwnershipDialogComponent, ApplicationTransferOwnershipDialogData, boolean>(
+        ApplicationTransferOwnershipDialogComponent,
+        {
+          data: {
+            applicationId: this.applicationId(),
+            currentOwnerId: this.application()?.owner?.id,
+            members: this.rows()
+              .filter(row => !!row.id)
+              .map(row => this.toTransferOwnershipMemberOption(row)),
+          },
+          disableClose: true,
+        },
+      )
+      .afterClosed()
+      .pipe(
+        filter((ownershipTransferred): ownershipTransferred is true => ownershipTransferred === true),
+        switchMap(() => this.permissionsService.getApplicationPermissions(this.applicationId())),
+        tap(permissions => this.effectiveUserApplicationPermissions.set(permissions)),
+        tap(() => this.membersResource.reload()),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
   private openEditMemberDialog(member: MemberTableRow): void {
     this.error.set(null);
     this.matDialog
@@ -239,6 +281,7 @@ export class ApplicationTabMembersComponent {
       (user?.first_name || user?.last_name ? `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() : (user?.id ?? ''));
     return {
       id: member.id ?? user?.id ?? '',
+      reference: user?.reference,
       user: {
         displayName,
         email: user?.email,
@@ -248,6 +291,17 @@ export class ApplicationTabMembersComponent {
       isCurrentUser: !!user?.id && user.id === this.currentUserService.user()?.id,
       role: member.role ?? '',
       isPrimaryOwner: member.role === APPLICATION_PRIMARY_OWNER_ROLE_NAME,
+    };
+  }
+
+  private toTransferOwnershipMemberOption(member: MemberTableRow): ApplicationTransferOwnershipMemberOption {
+    return {
+      id: member.id,
+      reference: member.reference,
+      displayName: member.user.displayName,
+      email: member.user.email,
+      avatarUrl: member.user.avatarUrl,
+      initials: member.user.initials,
     };
   }
 

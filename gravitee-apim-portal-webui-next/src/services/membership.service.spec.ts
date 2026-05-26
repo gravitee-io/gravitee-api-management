@@ -120,4 +120,20 @@ describe('MembershipService', () => {
     expect(req.request.body).toEqual({ role: 'OWNER' });
     req.flush(member);
   });
+
+  it('should transfer application ownership', done => {
+    const input = {
+      new_primary_owner_id: 'user-1',
+      new_primary_owner_reference: 'user-reference',
+      primary_owner_newrole: 'OWNER',
+    };
+
+    service.transferApplicationOwnership(applicationId, input).subscribe(() => done());
+
+    const req = httpTestingController.expectOne(
+      r => r.url === `${TESTING_BASE_URL}/applications/${applicationId}/members/_transfer_ownership` && r.method === 'POST',
+    );
+    expect(req.request.body).toEqual(input);
+    req.flush(null, { status: 204, statusText: 'No Content' });
+  });
 });

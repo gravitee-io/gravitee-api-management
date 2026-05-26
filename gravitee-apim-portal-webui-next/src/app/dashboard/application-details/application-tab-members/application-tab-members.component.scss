@@ -24,9 +24,14 @@ app-search-bar {
   &__toolbar {
     display: flex;
     align-items: flex-start;
-    justify-content: space-between;
     gap: 16px;
     margin-bottom: 24px;
+  }
+
+  &__toolbar-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
   }
 
   &__title {
