@@ -2215,6 +2215,7 @@ describe('PortalNavigationItemsComponent', () => {
         })),
         fakePortalNavigationItemsResponse({ items: createdApis }),
       );
+      expectSeedDefaultPages(createdApis.map(api => api.id));
 
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, ...createdApis] }));
     });
@@ -2255,6 +2256,7 @@ describe('PortalNavigationItemsComponent', () => {
         })),
         fakePortalNavigationItemsResponse({ items: createdApis }),
       );
+      expectSeedDefaultPages(createdApis.map(api => api.id));
 
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, ...createdApis] }));
     });
@@ -2296,6 +2298,7 @@ describe('PortalNavigationItemsComponent', () => {
         })),
         fakePortalNavigationItemsResponse({ items: createdApis }),
       );
+      expectSeedDefaultPages(createdApis.map(api => api.id));
 
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [privateFolder, ...createdApis] }));
     });
@@ -2378,6 +2381,54 @@ describe('PortalNavigationItemsComponent', () => {
 
       expect(document.body.textContent).toContain('Failed to create API navigation items');
     });
+
+    it('should keep the create flow successful when seeding default pages fails', async () => {
+      const apiIds = ['api-1', 'api-2'];
+      const createdApis = [
+        fakePortalNavigationApi({ id: 'nav-api-1', apiId: 'api-1', title: '', parentId: folder.id }),
+        fakePortalNavigationApi({ id: 'nav-api-2', apiId: 'api-2', title: '', parentId: folder.id }),
+      ];
+
+      await harness.selectNavigationItemByTitle(folder.title);
+
+      const folderNode = { id: folder.id, label: folder.title, type: folder.type, data: folder } as any;
+      component.onNodeMenuAction({ action: 'create', itemType: 'API', node: folderNode });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      await expectApiSearchResponse(apiIds);
+
+      const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="api-picker-checkbox-"]' }));
+      await checkboxes[0].check();
+      await checkboxes[1].check();
+
+      const dialog = await rootLoader.getHarness(ApiSectionEditorDialogHarness);
+      await dialog.clickSubmitButton();
+
+      expectCreateNavigationItemsInBulk(
+        apiIds.map(apiId => ({
+          title: '',
+          type: 'API',
+          area: 'TOP_NAVBAR',
+          parentId: folder.id,
+          visibility: 'PUBLIC',
+          apiId,
+        })),
+        fakePortalNavigationItemsResponse({ items: createdApis }),
+      );
+      expectSeedDefaultPages(
+        createdApis.map(api => api.id),
+        500,
+      );
+
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, ...createdApis] }));
+
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(document.body.textContent).toContain('Failed to create default API pages');
+      expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdApis[1].id } }));
+    });
   });
 
   function fakeSectionNode(sectionNode: Partial<SectionNode>): SectionNode {
@@ -2429,6 +2480,21 @@ describe('PortalNavigationItemsComponent', () => {
     });
     expect(req.request.body).toEqual({ items: requestItems });
     req.flush(result);
+  }
+
+  function expectSeedDefaultPages(ids: string[], status = 204) {
+    const req = httpTestingController.expectOne({
+      method: 'POST',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/_default-pages`,
+    });
+    expect(req.request.body).toEqual({ ids });
+
+    if (status === 204) {
+      req.flush(null, { status: 204, statusText: 'No Content' });
+      return;
+    }
+
+    req.flush('Server error', { status, statusText: 'Internal Server Error' });
   }
 
   function expectPutPortalNavigationItem(id: string, expectedBody: UpdatePortalNavigationItem, response: PortalNavigationItem) {

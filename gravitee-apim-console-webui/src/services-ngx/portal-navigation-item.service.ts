@@ -47,6 +47,10 @@ export class PortalNavigationItemService {
     return this.http.post<PortalNavigationItemsResponse>(`${this.constants.env.v2BaseURL}/portal-navigation-items/_bulk`, { items });
   }
 
+  public seedDefaultPages(ids: string[]): Observable<void> {
+    return this.http.post<void>(`${this.constants.env.v2BaseURL}/portal-navigation-items/_default-pages`, { ids });
+  }
+
   public updateNavigationItem(
     portalNavigationItemId: string,
     updatePortalNavigationItem: UpdatePortalNavigationItem,

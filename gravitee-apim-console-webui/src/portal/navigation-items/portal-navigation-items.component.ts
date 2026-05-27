@@ -434,6 +434,23 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     }));
 
     return this.portalNavigationItemsService.createNavigationItemsInBulk(items).pipe(
+      switchMap(response => {
+        const createdApiNavigationItemIds = response.items
+          ?.filter((item): item is PortalNavigationApi => item.type === 'API')
+          .map(item => item.id);
+
+        if (!createdApiNavigationItemIds?.length) {
+          return of(response);
+        }
+
+        return this.portalNavigationItemsService.seedDefaultPages(createdApiNavigationItemIds).pipe(
+          map(() => response),
+          catchError(() => {
+            this.snackBarService.error('Failed to create default API pages');
+            return of(response);
+          }),
+        );
+      }),
       map(response => {
         if (response.items && response.items.length > 0) {
           return response.items[response.items.length - 1].id;
