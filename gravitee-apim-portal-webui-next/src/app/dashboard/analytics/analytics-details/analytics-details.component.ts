@@ -14,25 +14,49 @@
  * limitations under the License.
  */
 import { Component, computed, effect, inject, input } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 
-import { BreadcrumbService } from 'src/services/breadcrumb.service';
+import { Dashboard, GraviteeDashboardComponent, timeFrameRangesParams, TimeRange } from '@gravitee/gravitee-dashboard';
 
+import { BannerComponent } from '../../../../components/banner/banner.component';
+import { LoaderComponent } from '../../../../components/loader/loader.component';
+import { AnalyticsDashboardService } from '../../../../services/analytics-dashboard.service';
+import { BreadcrumbService } from '../../../../services/breadcrumb.service';
+import { ConfigService } from '../../../../services/config.service';
 import { analyticsListBreadcrumb } from '../analytics-breadcrumbs';
 
 @Component({
   selector: 'app-analytics-details',
+  imports: [GraviteeDashboardComponent, LoaderComponent, BannerComponent],
   templateUrl: './analytics-details.component.html',
   styleUrl: './analytics-details.component.scss',
 })
 export default class AnalyticsDetailsComponent {
-  readonly breadcrumbService = inject(BreadcrumbService);
+  private readonly configService = inject(ConfigService);
+  private readonly breadcrumbService = inject(BreadcrumbService);
+  private readonly analyticsDashboardService = inject(AnalyticsDashboardService);
+
   readonly dashboardId = input.required<string>();
-  readonly dashboardName = computed(() => `Dummy dashboard name ${this.dashboardId()}`);
+
+  readonly baseURL = this.configService.baseURL;
+
+  readonly dashboardResource = rxResource<Dashboard | undefined, string>({
+    params: () => this.dashboardId(),
+    stream: ({ params }) => this.analyticsDashboardService.getById(params),
+  });
+  readonly dashboard = computed(() => (this.dashboardResource.error() ? undefined : this.dashboardResource.value()));
+  readonly dashboardName = computed(() => this.dashboard()?.name ?? '');
+  readonly timeRange: TimeRange = (() => {
+    const params = timeFrameRangesParams('5m');
+    return { from: new Date(params.from).toISOString(), to: new Date(params.to).toISOString() };
+  })();
+  readonly interval = timeFrameRangesParams('5m').interval;
 
   constructor() {
     effect(() => {
       const id = this.dashboardId();
-      this.breadcrumbService.set([analyticsListBreadcrumb(true), { id: `analytics-${id}`, label: this.dashboardName() }]);
+      const name = this.dashboardName();
+      this.breadcrumbService.set([analyticsListBreadcrumb(true), { id: `analytics-${id}`, label: name || id }]);
     });
   }
 }
