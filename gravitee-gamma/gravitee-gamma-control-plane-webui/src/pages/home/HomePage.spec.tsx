@@ -28,10 +28,10 @@ const ALL_MODULES: readonly GammaModule[] = [
     { id: 'platform', name: 'Platform', version: '1.0.0', remoteName: 'gravitee_gamma_module_platform', exposedModule: 'App' },
     { id: 'catalog', name: 'Catalog', version: '1.0.0', remoteName: 'gravitee_gamma_module_catalog', exposedModule: 'App' },
     {
-        id: 'authorization',
+        id: 'authz',
         name: 'Authorization',
         version: '1.0.0',
-        remoteName: 'gravitee_gamma_module_authorization',
+        remoteName: 'gravitee_gamma_module_authz',
         exposedModule: 'App',
     },
 ];
