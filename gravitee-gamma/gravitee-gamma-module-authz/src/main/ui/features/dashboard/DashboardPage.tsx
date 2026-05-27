@@ -63,23 +63,28 @@ const KPI_CARDS: readonly KpiCardMeta[] = [
 ];
 
 function useDashboardCounts(environmentId: string) {
+    // Backend has no notion of `type` (UI-derived from entityId prefix), so listPolicies
+    // post-filters client-side. perPage must be large enough to capture all rows of any
+    // type — otherwise `total` reflects the global count minus what fell off this page.
+    const POLICY_FETCH_LIMIT = 500;
+
     const mcpCount = useQuery({
-        queryKey: authzQueryKeys.policies.page(environmentId, 1, 1, 'MCP'),
-        queryFn: () => authzApiService.listPolicies(environmentId, { type: 'MCP', perPage: 1 }),
+        queryKey: authzQueryKeys.policies.page(environmentId, 1, POLICY_FETCH_LIMIT, 'MCP'),
+        queryFn: () => authzApiService.listPolicies(environmentId, { type: 'MCP', perPage: POLICY_FETCH_LIMIT }),
         enabled: Boolean(environmentId),
         staleTime: 30_000,
     });
 
     const agentCount = useQuery({
-        queryKey: authzQueryKeys.policies.page(environmentId, 1, 1, 'AGENT'),
-        queryFn: () => authzApiService.listPolicies(environmentId, { type: 'AGENT', perPage: 1 }),
+        queryKey: authzQueryKeys.policies.page(environmentId, 1, POLICY_FETCH_LIMIT, 'AGENT'),
+        queryFn: () => authzApiService.listPolicies(environmentId, { type: 'AGENT', perPage: POLICY_FETCH_LIMIT }),
         enabled: Boolean(environmentId),
         staleTime: 30_000,
     });
 
     const llmCount = useQuery({
-        queryKey: authzQueryKeys.policies.page(environmentId, 1, 1, 'LLM'),
-        queryFn: () => authzApiService.listPolicies(environmentId, { type: 'LLM', perPage: 1 }),
+        queryKey: authzQueryKeys.policies.page(environmentId, 1, POLICY_FETCH_LIMIT, 'LLM'),
+        queryFn: () => authzApiService.listPolicies(environmentId, { type: 'LLM', perPage: POLICY_FETCH_LIMIT }),
         enabled: Boolean(environmentId),
         staleTime: 30_000,
     });
