@@ -36,6 +36,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.kafkaexplorer.spring.KafkaExplorerSpringConfiguration;
 import io.gravitee.rest.api.management.v2.rest.mapper.FlowMapper;
 import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
+import io.gravitee.rest.api.management.v2.rest.resource.api.RemoteApiDefinitionParser;
 import io.gravitee.rest.api.management.v2.rest.utils.SubscriptionExpandHelper;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.UserService;
@@ -71,6 +72,11 @@ public class RestManagementConfiguration {
     @Bean
     public ExpressionLanguageInitializer expressionLanguageInitializer() {
         return new ExpressionLanguageInitializer();
+    }
+
+    @Bean
+    public RemoteApiDefinitionParser remoteApiDefinitionParser(ObjectMapper objectMapper) {
+        return new RemoteApiDefinitionParser(objectMapper);
     }
 
     @Bean

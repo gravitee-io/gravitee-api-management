@@ -32,6 +32,7 @@ import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
+import io.gravitee.apim.core.api.use_case.ImportApiDefinitionFromUrlUseCase;
 import io.gravitee.apim.core.api.use_case.MigrateApiUseCase;
 import io.gravitee.apim.core.api.use_case.OAIToUpdateApiUseCase;
 import io.gravitee.apim.core.api.use_case.PatchApiUseCase;
@@ -137,6 +138,7 @@ import io.gravitee.rest.api.service.exceptions.InvalidLicenseException;
 import io.gravitee.rest.api.service.exceptions.PreconditionFailedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TransferOwnershipNotAllowedException;
+import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.v4.ApiDuplicateService;
 import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
@@ -278,6 +280,15 @@ public class ApiResource extends AbstractResource {
     private UpdateApiDefinitionFromImportUseCase updateApiDefinitionUseCase;
 
     @Inject
+    private ImportApiDefinitionFromUrlUseCase importApiDefinitionFromUrlUseCase;
+
+    @Inject
+    private ImportConfiguration importConfiguration;
+
+    @Inject
+    private RemoteApiDefinitionParser remoteApiDefinitionParser;
+
+    @Inject
     private OAIToUpdateApiUseCase oaiToUpdateApiUseCase;
 
     @Inject
@@ -383,6 +394,23 @@ public class ApiResource extends AbstractResource {
         );
 
         return Response.ok().entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized)).build();
+    }
+
+    @PUT
+    @Path("/_import/definition-url")
+    @Consumes(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    public Response updateApiWithDefinitionFromUrl(@PathParam("apiId") String apiId, @NotNull String apiDefinitionUrl) {
+        var input = new ImportApiDefinitionFromUrlUseCase.Input(
+            apiDefinitionUrl,
+            importConfiguration.getImportWhitelist(),
+            importConfiguration.isAllowImportFromPrivate()
+        );
+        var output = importApiDefinitionFromUrlUseCase.execute(input);
+
+        ExportApiV4 apiToImport = remoteApiDefinitionParser.parseAndValidate(output.apiDefinitionContent());
+        return updateApiWithDefinition(apiId, apiToImport);
     }
 
     @PUT
