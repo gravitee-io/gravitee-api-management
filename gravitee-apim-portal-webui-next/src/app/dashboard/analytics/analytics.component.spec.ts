@@ -91,11 +91,16 @@ describe('AnalyticsComponent', () => {
     });
 
     it('should_navigate_to_dashboard_on_card_select', async () => {
-      await setup();
+      await setup(
+        fakeAnalyticsDashboardsResponse({
+          data: [fakeDashboard({ id: 'dash-1', name: 'HTTP Overview' })],
+        }),
+      );
       const router = TestBed.inject(Router);
-      const navigateSpy = jest.spyOn(router, 'navigate');
+      const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
 
-      fixture.componentInstance.navigateToDashboard('dash-1');
+      const cards = await harness.getGridCards();
+      await cards[0].click();
 
       expect(navigateSpy).toHaveBeenCalledWith(['dash-1'], expect.anything());
     });
@@ -252,14 +257,14 @@ describe('AnalyticsComponent', () => {
   describe('partial response', () => {
     it('should_apply_fallbacks_when_metadata_is_missing', async () => {
       await setup({ data: [] });
-      const vm = fixture.componentInstance['dashboardPaginator']();
-      expect(vm.page).toBe(1);
-      expect(vm.totalResults).toBe(0);
+      expect(await harness.isEmptyStateDisplayed()).toBe(true);
+      expect(await harness.getCards()).toHaveLength(0);
     });
 
     it('should_default_data_to_empty_array_when_field_missing', async () => {
       await setup({});
-      expect(fixture.componentInstance['dashboardPaginator']().data).toEqual([]);
+      expect(await harness.isEmptyStateDisplayed()).toBe(true);
+      expect(await harness.getCards()).toHaveLength(0);
     });
   });
 
