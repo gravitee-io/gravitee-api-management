@@ -23,6 +23,7 @@ import { Dashboard } from '@gravitee/gravitee-dashboard';
 
 import { analyticsListBreadcrumb } from './analytics-breadcrumbs';
 import { AnalyticsDashboardCardComponent } from '../../../components/analytics-dashboard-card/analytics-dashboard-card.component';
+import { BannerComponent } from '../../../components/banner/banner.component';
 import { CardsGridComponent } from '../../../components/cards-grid/cards-grid.component';
 import { LoaderComponent } from '../../../components/loader/loader.component';
 import { PaginationComponent } from '../../../components/pagination/pagination.component';
@@ -43,7 +44,7 @@ export interface DashboardPaginatorVM {
 
 @Component({
   selector: 'app-analytics',
-  imports: [AnalyticsDashboardCardComponent, CardsGridComponent, PaginationComponent, LoaderComponent],
+  imports: [AnalyticsDashboardCardComponent, CardsGridComponent, PaginationComponent, LoaderComponent, BannerComponent],
   templateUrl: './analytics.component.html',
   styleUrl: './analytics.component.scss',
 })
