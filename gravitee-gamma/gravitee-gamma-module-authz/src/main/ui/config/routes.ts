@@ -16,6 +16,8 @@
 import type { ModuleRouteConfig } from '@gravitee/gamma-modules-sdk/routing';
 
 export const ROUTE_KEYS = [
+    // Overview
+    'dashboard',
     // Policy Management
     'mcps',
     'llms',
@@ -25,6 +27,7 @@ export const ROUTE_KEYS = [
 export type RouteKey = (typeof ROUTE_KEYS)[number];
 
 export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: string }> = {
+    dashboard: { path: 'dashboard', label: 'Dashboard' },
     mcps: { path: 'mcps', label: 'MCPs' },
     llms: { path: 'llms', label: 'AI Models' },
     apis: { path: 'apis', label: 'APIs' },
@@ -34,5 +37,5 @@ export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: s
 export const AUTHZ_ROUTE_CONFIG: ModuleRouteConfig<RouteKey> = {
     routeKeys: ROUTE_KEYS,
     routes: ROUTES,
-    defaultRouteKey: 'mcps',
+    defaultRouteKey: 'dashboard',
 } as const;

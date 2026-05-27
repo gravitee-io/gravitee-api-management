@@ -20,6 +20,7 @@ import { useMemo } from 'react';
 import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 import { NAV_GROUPS } from '../config/navigation';
 import { AUTHZ_ROUTE_CONFIG, ROUTES, type RouteKey } from '../config/routes';
+import { DashboardPage } from '../features/dashboard/DashboardPage';
 import { ApisPage } from '../features/policy-management/pages/ApisPage';
 import { CustomPoliciesPage } from '../features/policy-management/pages/CustomPoliciesPage';
 import { LlmsPage } from '../features/policy-management/pages/LlmsPage';
@@ -56,8 +57,8 @@ export function AppRoutes() {
             <ModuleErrorBoundary>
                 <Routes>
                     <Route element={<ModuleLayout />}>
-                        <Route index element={<Navigate to="mcps" replace />} />
-                        <Route path="dashboard" element={<Navigate to="../mcps" replace />} />
+                        <Route index element={<Navigate to="dashboard" replace />} />
+                        <Route path="dashboard" element={<DashboardPage />} />
                         <Route path="mcps" element={<McpsPage />} />
                         <Route path="llms" element={<LlmsPage />} />
                         <Route path="apis" element={<ApisPage />} />
