@@ -82,6 +82,17 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
 
     private static String pagingQuery = DEFAULT_PAGING_QUERY;
 
+    private static String driverType = null;
+
+    /**
+     * Returns {@code true} when the JDBC driver detected from the configured {@code jdbc.url}
+     * is SQL Server. Used by repositories that must skip dialect-specific SQL syntax — notably
+     * ANSI {@code SELECT ... FOR UPDATE}, which SQL Server rejects outside {@code DECLARE CURSOR}.
+     */
+    public static boolean isSqlServer() {
+        return SQLSERVER_DRIVER_TYPE.equals(driverType);
+    }
+
     public static String escapeReservedWord(final String word) {
         return escapeReservedWordsPrefixChar + word + escapeReservedWordsSufixChar;
     }
@@ -177,6 +188,7 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
     }
 
     public static void setEscapeReservedWordFromDatabaseType(String databaseType) {
+        driverType = databaseType;
         switch (databaseType) {
             case POSTGRESQL_DRIVER_TYPE:
                 escapeReservedWordsPrefixChar = '\"';
