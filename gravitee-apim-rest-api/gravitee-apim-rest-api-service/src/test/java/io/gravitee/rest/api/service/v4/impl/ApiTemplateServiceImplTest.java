@@ -19,10 +19,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -31,6 +34,7 @@ import io.gravitee.rest.api.model.ApiModel;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
@@ -38,6 +42,7 @@ import io.gravitee.rest.api.model.v4.nativeapi.NativeApiModel;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
+import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
@@ -71,6 +76,9 @@ public class ApiTemplateServiceImplTest {
     @Mock
     private NotificationTemplateService notificationTemplateService;
 
+    @Mock
+    private ApiEntrypointService apiEntrypointService;
+
     private ApiTemplateService apiTemplateService;
 
     @Before
@@ -79,8 +87,10 @@ public class ApiTemplateServiceImplTest {
             apiSearchService,
             apiMetadataService,
             primaryOwnerService,
-            notificationTemplateService
+            notificationTemplateService,
+            apiEntrypointService
         );
+        when(apiEntrypointService.getApiEntrypoints(any(), any())).thenReturn(List.of());
     }
 
     @Test
@@ -134,6 +144,32 @@ public class ApiTemplateServiceImplTest {
         assertTrue(genericApiModel instanceof io.gravitee.rest.api.model.v4.api.ApiModel);
         assertEquals("value resolved", genericApiModel.getMetadata().get("key"));
         assertEquals("support@gravitee.test", genericApiModel.getMetadata().get("email-support"));
+    }
+
+    @Test
+    public void shouldExposeEntrypointsAndMcpDataForV4ApiTemplates() {
+        io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity = new io.gravitee.rest.api.model.v4.api.ApiEntity();
+        apiEntity.setId("api");
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setListeners(
+            List.of(
+                HttpListener.builder()
+                    .entrypoints(List.of(Entrypoint.builder().type("mcp-proxy").configuration("{\"mcpPath\":\"/mcp\"}").build()))
+                    .build()
+            )
+        );
+
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), "api", false, false, false)).thenReturn(apiEntity);
+        when(apiEntrypointService.getApiEntrypoints(eq(GraviteeContext.getExecutionContext()), eq(apiEntity))).thenReturn(
+            List.of(new ApiEntrypointEntity("https://api.example.com"))
+        );
+
+        GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), "api");
+
+        assertTrue(genericApiModel instanceof io.gravitee.rest.api.model.v4.api.ApiModel);
+        var apiModel = (io.gravitee.rest.api.model.v4.api.ApiModel) genericApiModel;
+        assertEquals(List.of("https://api.example.com"), apiModel.getEntrypoints());
+        assertEquals("/mcp", apiModel.getMcp().get("mcpPath"));
     }
 
     @Test

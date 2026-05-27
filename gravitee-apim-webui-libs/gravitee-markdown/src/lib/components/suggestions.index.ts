@@ -29,9 +29,7 @@ import { radioConfiguration } from './radio/gmd-radio.suggestions';
 import { selectConfiguration } from './select/gmd-select.suggestions';
 import { textareaConfiguration } from './textarea/gmd-textarea.suggestions';
 
-type ComponentSuggestionMap = {
-  [Key in ComponentSelector]: ComponentSuggestionConfiguration;
-};
+type ComponentSuggestionMap = Partial<Record<ComponentSelector, ComponentSuggestionConfiguration>>;
 
 export const componentSuggestionMap: ComponentSuggestionMap = {
   [ComponentSelector.GRID]: gridConfiguration,

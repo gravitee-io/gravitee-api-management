@@ -21,6 +21,7 @@ import { GmdCheckboxComponent } from './checkbox/gmd-checkbox.component';
 import { GmdCheckboxGroupComponent } from './checkbox-group/gmd-checkbox-group.component';
 import { GridComponent } from './grid/grid.component';
 import { GmdInputComponent } from './input/gmd-input.component';
+import { GmdInstallMcpComponent } from './install-mcp/gmd-install-mcp.component';
 import { GmdRadioComponent } from './radio/gmd-radio.component';
 import { GmdSelectComponent } from './select/gmd-select.component';
 import { GmdTextareaComponent } from './textarea/gmd-textarea.component';
@@ -47,6 +48,7 @@ export const componentAttributeNames = [
   ...getComponentInputNames(GmdCardComponent),
   ...getComponentInputNames(GridComponent),
   ...getComponentInputNames(GmdButtonComponent),
+  ...getComponentInputNames(GmdInstallMcpComponent),
   ...getComponentInputNames(GmdInputComponent),
   ...getComponentInputNames(GmdTextareaComponent),
   ...getComponentInputNames(GmdSelectComponent),

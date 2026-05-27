@@ -20,16 +20,11 @@ import static org.junit.Assert.*;
 import org.assertj.core.api.BDDSoftAssertions;
 import org.assertj.core.api.junit.jupiter.InjectSoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.rules.ErrorCollector;
-import org.owasp.html.HtmlPolicyBuilder;
-import org.owasp.html.PolicyFactory;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.mock.env.MockEnvironment;
 
 /**
@@ -244,5 +239,17 @@ public class HtmlSanitizerTest {
         );
         assertFalse(sanitizeInfos.isSafe());
         assertEquals("[Attribute not allowed: [a][download]]", sanitizeInfos.getRejectedMessage());
+    }
+
+    @Test
+    public void shouldAllowGmdInstallMcpComponent() {
+        String content =
+            "<gmd-install-mcp name=\"weather\" transport=\"http\" url=\"https://api.example.com/mcp\" clients=\"cursor\"></gmd-install-mcp>";
+
+        HtmlSanitizer.SanitizeInfos sanitizeInfos = cut.isSafe(content);
+
+        assertTrue(sanitizeInfos.isSafe());
+        assertEquals("[]", sanitizeInfos.getRejectedMessage());
+        assertTrue(cut.sanitize(content).contains("gmd-install-mcp"));
     }
 }

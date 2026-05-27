@@ -21,6 +21,7 @@ export enum ComponentSelector {
   CARD_SUBTITLE = 'gmd-card-subtitle',
   MD_BLOCK = 'gmd-md',
   BUTTON = 'gmd-button',
+  INSTALL_MCP = 'gmd-install-mcp',
   INPUT = 'gmd-input',
   TEXTAREA = 'gmd-textarea',
   SELECT = 'gmd-select',

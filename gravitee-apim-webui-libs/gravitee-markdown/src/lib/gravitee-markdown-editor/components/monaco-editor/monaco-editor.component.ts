@@ -277,6 +277,9 @@ export class MonacoEditorComponent implements OnDestroy {
     }
 
     const componentSuggestionConfig = componentSuggestionMap[componentSelector];
+    if (!componentSuggestionConfig) {
+      return null;
+    }
 
     // Check if hovering over an attribute name with a value
     if (lineText.includes(`${wordText}=`)) {

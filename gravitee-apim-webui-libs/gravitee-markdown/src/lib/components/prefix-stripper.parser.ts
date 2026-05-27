@@ -26,6 +26,7 @@ import { GmdCardComponent } from './card/gmd-card.component';
 import { GmdCheckboxComponent } from './checkbox/gmd-checkbox.component';
 import { GmdCheckboxGroupComponent } from './checkbox-group/gmd-checkbox-group.component';
 import { GmdInputComponent } from './input/gmd-input.component';
+import { GmdInstallMcpComponent } from './install-mcp/gmd-install-mcp.component';
 import { GmdRadioComponent } from './radio/gmd-radio.component';
 import { GmdSelectComponent } from './select/gmd-select.component';
 import { GmdTextareaComponent } from './textarea/gmd-textarea.component';
@@ -58,6 +59,10 @@ export const prefixStripperParser: HookParserEntry[] = [
   {
     component: GmdButtonComponent,
     selector: ComponentSelector.BUTTON,
+  },
+  {
+    component: GmdInstallMcpComponent,
+    selector: ComponentSelector.INSTALL_MCP,
   },
   {
     component: GmdInputComponent,
