@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 import type { NavGroup } from '@gravitee/graphene-core';
-import { BrainIcon, GlobeIcon, ShieldCheckIcon, SlidersHorizontalIcon } from '@gravitee/graphene-core/icons';
+import { BrainIcon, GlobeIcon, LayoutDashboardIcon, ShieldCheckIcon, SlidersHorizontalIcon } from '@gravitee/graphene-core/icons';
 import { ROUTES } from './routes';
 
 /**
- * Sidebar IA. Exposes Policy Management only. Policy structure
+ * Sidebar IA. Dashboard landing + Policy Management. Policy structure
  * (entities · actions · schema) is introduced incrementally by
  * follow-up PRs in the gamma-ui stack.
  */
 export const NAV_GROUPS: NavGroup[] = [
+    {
+        label: 'Authorization',
+        items: [{ key: 'dashboard', title: ROUTES.dashboard.label, icon: LayoutDashboardIcon }],
+    },
     {
         label: 'Policy Management',
         items: [
