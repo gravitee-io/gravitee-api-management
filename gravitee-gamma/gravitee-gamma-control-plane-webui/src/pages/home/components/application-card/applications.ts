@@ -21,7 +21,7 @@ import type { Accent } from '../accents';
 /** Plugin ids of modules we render a card for. Must match `plugin.properties#id` of
  *  the corresponding Gamma module (`gravitee-gamma-module-<id>`). Typed as a literal
  *  union so the badge map (`DynamicBadges`) can key on the same names — review #13. */
-export type ModuleId = 'aim' | 'apim' | 'platform' | 'catalog' | 'authorization';
+export type ModuleId = 'aim' | 'apim' | 'platform' | 'catalog' | 'authz';
 
 export type Application =
     | {
@@ -94,7 +94,7 @@ export const APPLICATIONS: readonly Application[] = [
         kind: 'module',
         title: 'Authorization',
         description: 'Define fine-grained authorization rules, relationship tuples, and scopes across the platform.',
-        moduleId: 'authorization',
+        moduleId: 'authz', // plugin.properties#id of gravitee-gamma-module-authz
         Icon: KeyIcon,
         accent: 'success', // allows / grants
     },

@@ -17,7 +17,7 @@ export interface GammaModuleResponse {
     id: string;
     name: string;
     version: string;
-    /** Module Federation manifest. Absent for backend-only modules that ship no UI (e.g. authz). */
+    /** Module Federation manifest. Absent for backend-only modules that ship no UI. */
     mfManifest?: { name: string; exposes?: Array<{ name: string; [key: string]: unknown }>; [key: string]: unknown };
 }
 
