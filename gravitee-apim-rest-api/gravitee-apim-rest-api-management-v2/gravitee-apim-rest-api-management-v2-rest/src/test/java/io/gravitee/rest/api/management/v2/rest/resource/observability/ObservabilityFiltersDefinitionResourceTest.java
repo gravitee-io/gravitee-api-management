@@ -69,7 +69,7 @@ class ObservabilityFiltersDefinitionResourceTest extends AbstractResourceTest {
             .hasStatus(200)
             .asEntity(FilterSpecsResponse.class)
             .extracting(FilterSpecsResponse::getData)
-            .satisfies(filters -> assertThat(filters).hasSize(38));
+            .satisfies(filters -> assertThat(filters).hasSize(42));
     }
 
     @Test
@@ -110,7 +110,14 @@ class ObservabilityFiltersDefinitionResourceTest extends AbstractResourceTest {
                 assertThat(apiTypeFilter.getLabel()).isEqualTo("API Type");
                 assertThat(apiTypeFilter.getType()).isEqualTo(FilterSpec.TypeEnum.ENUM);
                 assertThat(apiTypeFilter.getOperators()).containsExactlyInAnyOrder(Operator.EQ, Operator.IN);
-                assertThat(apiTypeFilter.getEnumValues()).containsExactlyInAnyOrder("HTTP_PROXY", "LLM", "MESSAGE", "MCP", "NATIVE");
+                assertThat(apiTypeFilter.getEnumValues()).containsExactlyInAnyOrder(
+                    "HTTP_PROXY",
+                    "LLM",
+                    "MESSAGE",
+                    "MCP",
+                    "NATIVE",
+                    "EDGE"
+                );
             });
     }
 
