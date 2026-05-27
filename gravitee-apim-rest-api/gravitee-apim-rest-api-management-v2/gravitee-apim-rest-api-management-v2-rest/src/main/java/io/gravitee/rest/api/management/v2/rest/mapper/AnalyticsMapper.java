@@ -18,9 +18,12 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import io.gravitee.rest.api.management.v2.rest.model.Analytics;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
 @Mapper
 public interface AnalyticsMapper {
+    AnalyticsMapper INSTANCE = Mappers.getMapper(AnalyticsMapper.class);
+
     @Mapping(target = "sampling", source = "messageSampling")
     Analytics toAnalytics(io.gravitee.definition.model.v4.analytics.Analytics analytics);
 
