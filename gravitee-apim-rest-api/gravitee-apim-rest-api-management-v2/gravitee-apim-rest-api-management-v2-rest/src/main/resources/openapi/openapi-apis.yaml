@@ -730,6 +730,39 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/_import/definition-url:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        put:
+            tags:
+                - APIs
+            summary: Update API from a definition fetched from a remote URL
+            description: |-
+                ⚠️ Support only v4 API for the moment. ⚠️<br>
+                Update an existing API by fetching a Gravitee API definition from a remote URL.<br>
+                The URL must be permitted by the configured import whitelist.
+
+                User must have the API_DEFINITION[UPDATE] permission.
+            operationId: updateApiWithDefinitionFromUrl
+            requestBody:
+                content:
+                    text/plain:
+                        schema:
+                            type: string
+                            format: uri
+                            example: https://example.com/api-definition.json
+                required: true
+            responses:
+                "200":
+                    description: API successfully updated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiV4"
+                default:
+                    $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/{apiId}/_import/swagger:
         parameters:
             - $ref: "#/components/parameters/envIdParam"

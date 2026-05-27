@@ -335,6 +335,13 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public io.gravitee.rest.api.management.v2.rest.resource.api.RemoteApiDefinitionParser remoteApiDefinitionParser(
+        ObjectMapper objectMapper
+    ) {
+        return new io.gravitee.rest.api.management.v2.rest.resource.api.RemoteApiDefinitionParser(objectMapper);
+    }
+
+    @Bean
     public ApiRepository apiRepository() {
         return mock(ApiRepository.class);
     }
