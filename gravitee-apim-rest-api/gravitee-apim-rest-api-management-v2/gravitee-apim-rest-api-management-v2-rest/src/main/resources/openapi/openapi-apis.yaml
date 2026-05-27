@@ -1288,6 +1288,21 @@ paths:
             responses:
                 "200":
                     description: An API's plan
+                    headers:
+                        ETag:
+                            description: |-
+                                Entity tag identifying the plan version. Value is the plan's last-updated timestamp expressed as epoch milliseconds (quoted per RFC 7232).
+                                Clients may pass this value back in `If-Match` on subsequent mutating requests to detect concurrent updates.
+                            schema:
+                                type: string
+                                example: '"1705314645123"'
+                        Last-Modified:
+                            description: |-
+                                Plan's last-updated timestamp as an RFC 7231 HTTP-date (one-second resolution). Informational only.
+                                Use the `ETag` value, not `Last-Modified`, for `If-Match` requests — `Last-Modified` loses millisecond precision.
+                            schema:
+                                type: string
+                                example: "Mon, 15 Jan 2024 10:30:45 GMT"
                     content:
                         application/json:
                             schema:

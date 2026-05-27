@@ -74,15 +74,19 @@ import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.Response;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -810,6 +814,99 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             final Response response = target.request().get();
 
             assertThat(response).hasStatus(OK_200).asEntity(PlanV2.class).isEqualTo(PlanMapper.INSTANCE.map(planEntity));
+        }
+
+        @Test
+        public void should_emit_ETag_and_Last_Modified_headers_from_updatedAt_on_GET() {
+            final Date updatedAt = Date.from(Instant.parse("2024-01-15T10:30:45.000Z"));
+            final PlanEntity planEntity = PlanFixtures.aPlanEntityV4()
+                .toBuilder()
+                .id(PLAN)
+                .referenceId(API)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .updatedAt(updatedAt)
+                .build();
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
+
+            final Response response = target.request().get();
+
+            assertThat(response).hasStatus(OK_200).asEntity(PlanV4.class).isEqualTo(PlanMapper.INSTANCE.map(planEntity));
+            Assertions.assertThat(response.getEntityTag()).isEqualTo(new EntityTag(Long.toString(updatedAt.getTime())));
+            Assertions.assertThat(response.getLastModified().getTime() / 1000).isEqualTo(updatedAt.getTime() / 1000);
+        }
+
+        @Test
+        public void should_emit_ETag_and_Last_Modified_headers_for_v2_plan_on_GET() {
+            final Date updatedAt = Date.from(Instant.parse("2024-03-20T08:15:30.000Z"));
+            final io.gravitee.rest.api.model.PlanEntity planEntity = PlanFixtures.aPlanEntityV2()
+                .toBuilder()
+                .id(PLAN)
+                .referenceId(API)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .updatedAt(updatedAt)
+                .build();
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
+
+            final Response response = target.request().get();
+
+            assertThat(response).hasStatus(OK_200).asEntity(PlanV2.class).isEqualTo(PlanMapper.INSTANCE.map(planEntity));
+            Assertions.assertThat(response.getEntityTag()).isEqualTo(new EntityTag(Long.toString(updatedAt.getTime())));
+            Assertions.assertThat(response.getLastModified().getTime() / 1000).isEqualTo(updatedAt.getTime() / 1000);
+        }
+
+        @Test
+        public void should_emit_ETag_and_Last_Modified_headers_for_native_v4_plan_on_GET() {
+            final Date updatedAt = Date.from(Instant.parse("2024-06-10T14:45:00.000Z"));
+            final var planEntity = PlanFixtures.aNativePlanEntityV4()
+                .toBuilder()
+                .id(PLAN)
+                .referenceId(API)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .updatedAt(updatedAt)
+                .build();
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
+
+            final Response response = target.request().get();
+
+            assertThat(response).hasStatus(OK_200).asEntity(PlanV4.class).isEqualTo(PlanMapper.INSTANCE.map(planEntity));
+            Assertions.assertThat(response.getEntityTag()).isEqualTo(new EntityTag(Long.toString(updatedAt.getTime())));
+            Assertions.assertThat(response.getLastModified().getTime() / 1000).isEqualTo(updatedAt.getTime() / 1000);
+        }
+
+        @Test
+        public void should_not_emit_ETag_or_Last_Modified_when_updatedAt_is_null_on_GET() {
+            final PlanEntity planEntity = PlanFixtures.aPlanEntityV4()
+                .toBuilder()
+                .id(PLAN)
+                .referenceId(API)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .updatedAt(null)
+                .build();
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
+
+            final Response response = target.request().get();
+
+            assertThat(response).hasStatus(OK_200).asEntity(PlanV4.class).isEqualTo(PlanMapper.INSTANCE.map(planEntity));
+            Assertions.assertThat(response.getEntityTag()).isNull();
+            Assertions.assertThat(response.getLastModified()).isNull();
+        }
+
+        @Test
+        public void should_not_emit_ETag_or_Last_Modified_when_updatedAt_is_null_on_v2_plan_GET() {
+            final io.gravitee.rest.api.model.PlanEntity planEntity = PlanFixtures.aPlanEntityV2()
+                .toBuilder()
+                .id(PLAN)
+                .referenceId(API)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .updatedAt(null)
+                .build();
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN)).thenReturn(planEntity);
+
+            final Response response = target.request().get();
+
+            assertThat(response).hasStatus(OK_200).asEntity(PlanV2.class).isEqualTo(PlanMapper.INSTANCE.map(planEntity));
+            Assertions.assertThat(response.getEntityTag()).isNull();
+            Assertions.assertThat(response.getLastModified()).isNull();
         }
     }
 
