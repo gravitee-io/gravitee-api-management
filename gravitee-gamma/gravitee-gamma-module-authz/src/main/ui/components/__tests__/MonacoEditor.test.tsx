@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { render } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MonacoEditor } from '../MonacoEditor';
 
 const capturedOnMount: { current: ((editor: unknown, monaco: unknown) => void) | null } = {
@@ -42,6 +42,22 @@ vi.mock('@monaco-editor/react', () => ({
         return <div data-testid="monaco-stub" />;
     },
 }));
+
+function mockMatchMedia(prefersDark: boolean) {
+    Object.defineProperty(window, 'matchMedia', {
+        writable: true,
+        value: (query: string) => ({
+            matches: query === '(prefers-color-scheme: dark)' ? prefersDark : false,
+            media: query,
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+        }),
+    });
+}
+
+function clearMatchMedia() {
+    Object.defineProperty(window, 'matchMedia', { writable: true, value: undefined });
+}
 
 const registerSpy = vi.fn();
 vi.mock('../gapl-language', () => ({
@@ -89,7 +105,7 @@ describe('MonacoEditor', () => {
         expect(capturedTheme.current).toBe('vs');
     });
 
-    it('defaults to vs when no theme is provided', () => {
+    it('falls back to vs when matchMedia is unavailable', () => {
         render(<MonacoEditor value="" />);
         expect(capturedTheme.current).toBe('vs');
     });
@@ -106,5 +122,33 @@ describe('MonacoEditor', () => {
 
         expect(second).toHaveBeenCalledTimes(1);
         expect(first).not.toHaveBeenCalled();
+    });
+});
+
+describe('MonacoEditor — system theme', () => {
+    afterEach(clearMatchMedia);
+
+    it('resolves to vs-dark when OS prefers dark', () => {
+        mockMatchMedia(true);
+        render(<MonacoEditor value="" theme="system" />);
+        expect(capturedTheme.current).toBe('vs-dark');
+    });
+
+    it('resolves to vs when OS prefers light', () => {
+        mockMatchMedia(false);
+        render(<MonacoEditor value="" theme="system" />);
+        expect(capturedTheme.current).toBe('vs');
+    });
+
+    it('inherits OS dark preference when no theme prop is given', () => {
+        mockMatchMedia(true);
+        render(<MonacoEditor value="" />);
+        expect(capturedTheme.current).toBe('vs-dark');
+    });
+
+    it('inherits OS light preference when no theme prop is given', () => {
+        mockMatchMedia(false);
+        render(<MonacoEditor value="" />);
+        expect(capturedTheme.current).toBe('vs');
     });
 });

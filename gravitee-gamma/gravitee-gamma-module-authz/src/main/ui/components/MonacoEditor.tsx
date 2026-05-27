@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useEffect, useState } from 'react';
 import Editor, { type EditorProps, type OnMount } from '@monaco-editor/react';
 import type * as monacoNs from 'monaco-editor';
 import { GAPL_LANGUAGE_ID, registerGaplLanguage } from './gapl-language';
@@ -23,10 +24,32 @@ export interface MonacoEditorProps {
     readonly language?: string;
     readonly readOnly?: boolean;
     readonly height?: string | number;
-    readonly theme?: 'light' | 'vs-dark';
+    readonly theme?: 'light' | 'vs-dark' | 'system';
     readonly options?: EditorProps['options'];
     readonly ariaLabel?: string;
     readonly onMount?: (editor: monacoNs.editor.IStandaloneCodeEditor, monaco: typeof monacoNs) => void;
+}
+
+function useResolvedTheme(theme: 'light' | 'vs-dark' | 'system'): 'vs' | 'vs-dark' {
+    const [isDark, setIsDark] = useState<boolean>(
+        () =>
+            theme === 'system' &&
+            typeof window !== 'undefined' &&
+            typeof window.matchMedia === 'function' &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches,
+    );
+
+    useEffect(() => {
+        if (theme !== 'system' || typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        const handler = (e: MediaQueryListEvent) => setIsDark(e.matches);
+        mq.addEventListener('change', handler);
+        return () => mq.removeEventListener('change', handler);
+    }, [theme]);
+
+    if (theme === 'vs-dark') return 'vs-dark';
+    if (theme === 'light') return 'vs';
+    return isDark ? 'vs-dark' : 'vs';
 }
 
 // TODO(GMA-384): replace Monaco with the Graphene editor component once it lands — https://gravitee.atlassian.net/browse/GMA-384
@@ -36,7 +59,7 @@ export function MonacoEditor({
     language = GAPL_LANGUAGE_ID,
     readOnly = false,
     height = '360px',
-    theme = 'light',
+    theme = 'system',
     options,
     ariaLabel,
     onMount,
@@ -46,7 +69,7 @@ export function MonacoEditor({
         onMount?.(editor, monaco);
     };
 
-    const monacoTheme = theme === 'vs-dark' ? 'vs-dark' : 'vs';
+    const monacoTheme = useResolvedTheme(theme);
 
     return (
         <div aria-label={ariaLabel} role={ariaLabel ? 'group' : undefined}>
