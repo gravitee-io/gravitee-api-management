@@ -26,6 +26,7 @@ import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.repository.management.model.Group;
 import io.gravitee.rest.api.management.v2.rest.mapper.FlowMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.PlanMapper;
@@ -79,6 +80,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -86,6 +88,7 @@ import java.util.stream.Stream;
  */
 public class ApiPlansResource extends AbstractResource {
 
+    private static final Logger log = NodeLoggerFactory.getLogger(ApiPlansResource.class);
     private static final String FLOW = "flow";
 
     private final PlanMapper planMapper = PlanMapper.INSTANCE;
@@ -257,7 +260,8 @@ public class ApiPlansResource extends AbstractResource {
         if (planEntity instanceof io.gravitee.rest.api.model.BasePlanEntity v2Plan) {
             return v2Plan.getUpdatedAt();
         }
-        throw new IllegalStateException("Unexpected plan entity type: " + planEntity.getClass());
+        log.warn("Cannot resolve updatedAt for unknown plan entity type: {}", planEntity.getClass());
+        return null;
     }
 
     @PUT
