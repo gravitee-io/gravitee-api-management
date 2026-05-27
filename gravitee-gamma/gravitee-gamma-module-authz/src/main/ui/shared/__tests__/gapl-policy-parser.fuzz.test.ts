@@ -105,9 +105,9 @@ describe('parseGaplToStatements — roundtrip via statementsToGapl', () => {
         const stmts = buildBatch(seed, 3);
         const text = statementsToGapl('p', stmts, { label: 'Test' });
         const parsed = parseGaplToStatements(text);
-        expect(parsed).not.toBeNull();
-        expect(parsed!.statements).toHaveLength(stmts.length);
-        expect(parsed!.statements.map(shape)).toEqual(stmts.map(shape));
+        expect(parsed.diagnostics).toEqual([]);
+        expect(parsed.statements).toHaveLength(stmts.length);
+        expect(parsed.statements.map(shape)).toEqual(stmts.map(shape));
     });
 });
 
@@ -116,9 +116,9 @@ describe('parseGaplToStatements — slot-only form', () => {
     it.each(effects)('always parses bare `%s (principal, action, resource);` to one empty statement', eff => {
         const text = `${eff} (principal, action, resource);`;
         const parsed = parseGaplToStatements(text);
-        expect(parsed).not.toBeNull();
-        expect(parsed!.statements).toHaveLength(1);
-        const s = parsed!.statements[0];
+        expect(parsed.diagnostics).toEqual([]);
+        expect(parsed.statements).toHaveLength(1);
+        const s = parsed.statements[0];
         expect(s.effect).toBe(eff);
         expect(s.principals).toEqual([]);
         expect(s.actions).toEqual([]);
@@ -136,8 +136,8 @@ describe('parseGaplToStatements — multi-statement order preservation', () => {
     it.each(sequences)('preserves order for sequence %j', (...effects) => {
         const text = effects.map(e => `${e} (principal, action, resource);`).join('\n');
         const parsed = parseGaplToStatements(text);
-        expect(parsed).not.toBeNull();
-        expect(parsed!.statements.map(s => s.effect)).toEqual(effects);
+        expect(parsed.diagnostics).toEqual([]);
+        expect(parsed.statements.map(s => s.effect)).toEqual(effects);
     });
 });
 
@@ -151,9 +151,9 @@ describe('parseGaplToStatements — comments + blank lines are ignored', () => {
         const loose = [...comments, ...stmts.map(statementToGapl), ...comments].join('\n');
         const a = parseGaplToStatements(tight);
         const b = parseGaplToStatements(loose);
-        expect(a).not.toBeNull();
-        expect(b).not.toBeNull();
-        expect(b!.statements.map(shape)).toEqual(a!.statements.map(shape));
+        expect(a.diagnostics).toEqual([]);
+        expect(b.diagnostics).toEqual([]);
+        expect(b.statements.map(shape)).toEqual(a.statements.map(shape));
     });
 });
 
@@ -168,17 +168,18 @@ describe('parseGaplToStatements — effect alternation', () => {
     it.each(sequences)('round-trips effect sequence %j with single principal per statement', (...effects) => {
         const text = effects.map(e => `${e} (principal == User::"u", action == Action::"a", resource == Tool::"t");`).join('\n');
         const parsed = parseGaplToStatements(text);
-        expect(parsed).not.toBeNull();
-        expect(parsed!.statements.map(s => s.effect)).toEqual(effects);
+        expect(parsed.diagnostics).toEqual([]);
+        expect(parsed.statements.map(s => s.effect)).toEqual(effects);
     });
 });
 
-describe('parseGaplToStatements — unsupported syntax returns null', () => {
+describe('parseGaplToStatements — unsupported syntax surfaces diagnostics', () => {
     const unsupportedKeywords = ['unless', 'allow', 'deny', 'rule', 'when', 'else'];
-    it.each(unsupportedKeywords)('returns null for input starting with `%s`', kw => {
+    it.each(unsupportedKeywords)('emits a diagnostic for input starting with `%s`', kw => {
         const text = `${kw} (principal == User::"a", action == Action::"r", resource == Tool::"t");`;
         expect(() => parseGaplToStatements(text)).not.toThrow();
-        expect(parseGaplToStatements(text)).toBeNull();
+        const parsed = parseGaplToStatements(text);
+        expect(parsed.diagnostics.length).toBeGreaterThan(0);
     });
 
     const trailingUnlessCases: Array<[string, string]> = [
@@ -187,8 +188,9 @@ describe('parseGaplToStatements — unsupported syntax returns null', () => {
         ['Group', 'admins'],
         ['Account', 'a_b'],
     ];
-    it.each(trailingUnlessCases)('returns null for `unless { ... }` after valid statement (type=%s, id=%s)', (t, l) => {
+    it.each(trailingUnlessCases)('emits a diagnostic for trailing `unless { ... }` (type=%s, id=%s)', (t, l) => {
         const text = `permit (principal == ${t}::"${l}", action == Action::"r", resource == Tool::"t") unless { false };`;
-        expect(parseGaplToStatements(text)).toBeNull();
+        const parsed = parseGaplToStatements(text);
+        expect(parsed.diagnostics.length).toBeGreaterThan(0);
     });
 });

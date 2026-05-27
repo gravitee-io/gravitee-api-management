@@ -31,9 +31,9 @@ describe('parseGaplToStatements — supported shapes', () => {
     it('parses permit with single principal/action/resource', () => {
         const text = 'permit (principal == user::"alice", action == action::"read", resource == tool::"r1");';
         const result = parseGaplToStatements(text);
-        expect(result).not.toBeNull();
-        expect(result!.statements).toHaveLength(1);
-        const s = result!.statements[0];
+        expect(result.diagnostics).toEqual([]);
+        expect(result.statements).toHaveLength(1);
+        const s = result.statements[0];
         expect(s.effect).toBe('permit');
         expect(s.principals).toEqual([expect.objectContaining({ kind: 'user', label: 'alice' })]);
         expect(s.actions).toEqual([expect.objectContaining({ label: 'read' })]);
@@ -43,13 +43,13 @@ describe('parseGaplToStatements — supported shapes', () => {
     it('parses forbid effect', () => {
         const text = 'forbid (principal == user::"a", action == action::"x", resource == api::"o");';
         const result = parseGaplToStatements(text);
-        expect(result!.statements[0].effect).toBe('forbid');
+        expect(result.statements[0].effect).toBe('forbid');
     });
 
     it('parses `in [ ... ]` for multi-principal', () => {
         const text = 'permit (principal in [user::"a", group::"admins"], action == action::"read", resource == tool::"t");';
         const result = parseGaplToStatements(text);
-        expect(result!.statements[0].principals).toEqual([
+        expect(result.statements[0].principals).toEqual([
             expect.objectContaining({ kind: 'user', label: 'a' }),
             expect.objectContaining({ kind: 'group', label: 'admins' }),
         ]);
@@ -58,7 +58,7 @@ describe('parseGaplToStatements — supported shapes', () => {
     it('parses multi-action and multi-resource', () => {
         const text = 'permit (principal == user::"a", action in [action::"read", action::"write"], resource in [tool::"r1", tool::"r2"]);';
         const result = parseGaplToStatements(text);
-        const s = result!.statements[0];
+        const s = result.statements[0];
         expect(s.actions.map(a => a.label)).toEqual(['read', 'write']);
         expect(s.resources.map(r => r.label)).toEqual(['r1', 'r2']);
     });
@@ -66,8 +66,8 @@ describe('parseGaplToStatements — supported shapes', () => {
     it('parses optional when { ... } block as raw condition', () => {
         const text = 'permit (principal == user::"a", action == action::"r", resource == tool::"t") when { context.time.hour >= 9 };';
         const result = parseGaplToStatements(text);
-        expect(result!.statements[0].condition).toContain('context');
-        expect(result!.statements[0].condition).toContain('hour');
+        expect(result.statements[0].condition).toContain('context');
+        expect(result.statements[0].condition).toContain('hour');
     });
 
     it('parses multiple statements separated by ;', () => {
@@ -76,9 +76,9 @@ describe('parseGaplToStatements — supported shapes', () => {
             forbid (principal == user::"b", action == action::"delete", resource == tool::"t");
         `;
         const result = parseGaplToStatements(text);
-        expect(result!.statements).toHaveLength(2);
-        expect(result!.statements[0].effect).toBe('permit');
-        expect(result!.statements[1].effect).toBe('forbid');
+        expect(result.statements).toHaveLength(2);
+        expect(result.statements[0].effect).toBe('permit');
+        expect(result.statements[1].effect).toBe('forbid');
     });
 
     it('ignores // comment lines', () => {
@@ -88,25 +88,37 @@ describe('parseGaplToStatements — supported shapes', () => {
             permit (principal == user::"a", action == action::"read", resource == tool::"t");
         `;
         const result = parseGaplToStatements(text);
-        expect(result!.statements).toHaveLength(1);
+        expect(result.statements).toHaveLength(1);
     });
 
-    it('returns empty statements for empty input', () => {
+    it('ignores /* block */ comments around and inside a statement', () => {
+        const text = `
+            /* Policy header */
+            permit /* inline */ (principal == user::"a", action == action::"read", resource == tool::"t");
+            /* multi-line
+               trailing
+               note */
+        `;
+        const result = parseGaplToStatements(text);
+        expect(result.statements).toHaveLength(1);
+    });
+
+    it('returns empty result for empty input', () => {
         const result = parseGaplToStatements('');
-        expect(result).toEqual({ statements: [], warnings: [] });
+        expect(result).toEqual({ statements: [], diagnostics: [] });
     });
 
-    it('returns empty statements for whitespace-only input', () => {
+    it('returns empty result for whitespace-only input', () => {
         const result = parseGaplToStatements('   \n\n  ');
-        expect(result).toEqual({ statements: [], warnings: [] });
+        expect(result).toEqual({ statements: [], diagnostics: [] });
     });
 
     it('parses slot-only form with all three clauses empty (Bug B)', () => {
         const text = 'permit (principal, action, resource);';
         const result = parseGaplToStatements(text);
-        expect(result).not.toBeNull();
-        expect(result!.statements).toHaveLength(1);
-        const s = result!.statements[0];
+        expect(result.diagnostics).toEqual([]);
+        expect(result.statements).toHaveLength(1);
+        const s = result.statements[0];
         expect(s.effect).toBe('permit');
         expect(s.principals).toEqual([]);
         expect(s.actions).toEqual([]);
@@ -116,8 +128,8 @@ describe('parseGaplToStatements — supported shapes', () => {
     it('parses mixed slot-only and bound clauses', () => {
         const text = 'permit (principal == User::"alice", action, resource);';
         const result = parseGaplToStatements(text);
-        expect(result).not.toBeNull();
-        const s = result!.statements[0];
+        expect(result.diagnostics).toEqual([]);
+        const s = result.statements[0];
         expect(s.principals).toHaveLength(1);
         expect(s.actions).toEqual([]);
         expect(s.resources).toEqual([]);
@@ -126,7 +138,7 @@ describe('parseGaplToStatements — supported shapes', () => {
     it('tolerates trailing semicolons and blank lines', () => {
         const text = 'permit (principal == user::"a", action == action::"r", resource == tool::"t");;\n\n';
         const result = parseGaplToStatements(text);
-        expect(result!.statements).toHaveLength(1);
+        expect(result.statements).toHaveLength(1);
     });
 });
 
@@ -176,9 +188,9 @@ describe('parseGaplToStatements — roundtrip with statementToGapl', () => {
     it.each(cases)('roundtrips %s', (_label, stmt) => {
         const gapl = statementToGapl(stmt);
         const parsed = parseGaplToStatements(gapl);
-        expect(parsed).not.toBeNull();
-        expect(parsed!.statements).toHaveLength(1);
-        expect(shape(parsed!.statements[0])).toEqual(shape(stmt));
+        expect(parsed.diagnostics).toEqual([]);
+        expect(parsed.statements).toHaveLength(1);
+        expect(shape(parsed.statements[0])).toEqual(shape(stmt));
     });
 
     it('roundtrips a multi-statement document via statementsToGapl', () => {
@@ -202,39 +214,83 @@ describe('parseGaplToStatements — roundtrip with statementToGapl', () => {
         ];
         const text = statementsToGapl('p', stmts, { label: 'Test target' });
         const parsed = parseGaplToStatements(text);
-        expect(parsed).not.toBeNull();
-        expect(parsed!.statements.map(shape)).toEqual(stmts.map(shape));
+        expect(parsed.diagnostics).toEqual([]);
+        expect(parsed.statements.map(shape)).toEqual(stmts.map(shape));
     });
 });
 
-describe('parseGaplToStatements — unsupported / malformed input → null', () => {
-    it('returns null for `unless` (Cedar-only feature)', () => {
+describe('parseGaplToStatements — id is regenerated, not preserved', () => {
+    const stmt: PolicyStatement = {
+        id: 'ui-side-stmt-7',
+        effect: 'permit',
+        principals: [{ id: 'ui-side-u1', kind: 'User', label: 'alice' }],
+        actions: [{ id: 'ui-side-a1', kind: 'Action', label: 'read' }],
+        resources: [{ id: 'ui-side-r1', kind: 'Tool', label: 'orders' }],
+        condition: '',
+    };
+
+    it('replaces surrogate ref ids with canonical `Type::"label"` after round-trip', () => {
+        const gapl = statementToGapl(stmt);
+        const parsed = parseGaplToStatements(gapl);
+        const s = parsed.statements[0];
+        expect(s.principals[0].id).toBe('User::"alice"');
+        expect(s.actions[0].id).toBe('Action::"read"');
+        expect(s.resources[0].id).toBe('Tool::"orders"');
+    });
+
+    it('regenerates statement.id from the parser, dropping any UI-side value', () => {
+        const gapl = statementToGapl(stmt);
+        const parsed = parseGaplToStatements(gapl);
+        expect(parsed.statements[0].id).not.toBe(stmt.id);
+        expect(parsed.statements[0].id).toMatch(/^stmt-\d+$/);
+    });
+});
+
+describe('parseGaplToStatements — unsupported / malformed input → diagnostics', () => {
+    it('reports `unless` (Cedar-only feature) as a diagnostic', () => {
         const text = 'permit (principal == user::"a", action == action::"r", resource == tool::"t") unless { false };';
-        expect(parseGaplToStatements(text)).toBeNull();
+        const result = parseGaplToStatements(text);
+        expect(result.diagnostics.length).toBeGreaterThan(0);
+        expect(result.diagnostics.join(' ')).toMatch(/unless/);
     });
 
-    it('returns null when `==` is missing', () => {
+    it('reports missing `==` with a diagnostic', () => {
         const text = 'permit (principal user::"a", action == action::"r", resource == tool::"t");';
-        expect(parseGaplToStatements(text)).toBeNull();
+        const result = parseGaplToStatements(text);
+        expect(result.diagnostics.length).toBeGreaterThan(0);
     });
 
-    it('returns null when UID is malformed (missing :: or quotes)', () => {
+    it('reports malformed UID (missing :: or quotes) as a diagnostic', () => {
         const text = 'permit (principal == user "a", action == action::"r", resource == tool::"t");';
-        expect(parseGaplToStatements(text)).toBeNull();
+        const result = parseGaplToStatements(text);
+        expect(result.diagnostics.length).toBeGreaterThan(0);
     });
 
-    it('returns null when UID id is not a string literal', () => {
+    it('reports UID id that is not a string literal as a diagnostic', () => {
         const text = 'permit (principal == user::alice, action == action::"r", resource == tool::"t");';
-        expect(parseGaplToStatements(text)).toBeNull();
+        const result = parseGaplToStatements(text);
+        expect(result.diagnostics.length).toBeGreaterThan(0);
     });
 
-    it('returns null on duplicated clause', () => {
+    it('reports a duplicated clause as a diagnostic', () => {
         const text = 'permit (principal == user::"a", principal == user::"b", action == action::"r", resource == tool::"t");';
-        expect(parseGaplToStatements(text)).toBeNull();
+        const result = parseGaplToStatements(text);
+        expect(result.diagnostics.length).toBeGreaterThan(0);
+        expect(result.diagnostics.join(' ')).toMatch(/[Dd]uplicate/);
     });
 
-    it('returns null on unrecognised top-level token', () => {
+    it('reports an unrecognised top-level token as a diagnostic', () => {
         const text = 'allow (principal == user::"a", action == action::"r", resource == tool::"t");';
-        expect(parseGaplToStatements(text)).toBeNull();
+        const result = parseGaplToStatements(text);
+        expect(result.diagnostics.length).toBeGreaterThan(0);
+        expect(result.diagnostics.join(' ')).toMatch(/allow/);
+    });
+
+    it('always returns a ParsedPolicy object — never null', () => {
+        const bad = 'this is not GAPL at all <<<';
+        const result = parseGaplToStatements(bad);
+        expect(result).toBeDefined();
+        expect(result.statements).toEqual([]);
+        expect(result.diagnostics.length).toBeGreaterThan(0);
     });
 });

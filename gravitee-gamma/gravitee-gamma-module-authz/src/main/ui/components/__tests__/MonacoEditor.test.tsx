@@ -25,11 +25,20 @@ const capturedOptions: { current: Record<string, unknown> | null } = {
     current: null,
 };
 
+const capturedTheme: { current: string | null } = {
+    current: null,
+};
+
 vi.mock('@monaco-editor/react', () => ({
     __esModule: true,
-    default: (props: { onMount?: (editor: unknown, monaco: unknown) => void; options?: Record<string, unknown> }) => {
+    default: (props: {
+        onMount?: (editor: unknown, monaco: unknown) => void;
+        options?: Record<string, unknown>;
+        theme?: string;
+    }) => {
         capturedOnMount.current = props.onMount ?? null;
         capturedOptions.current = props.options ?? null;
+        capturedTheme.current = props.theme ?? null;
         return <div data-testid="monaco-stub" />;
     },
 }));
@@ -68,6 +77,21 @@ describe('MonacoEditor', () => {
             automaticLayout: true,
             fontSize: 18,
         });
+    });
+
+    it('forwards vs-dark theme verbatim to Monaco', () => {
+        render(<MonacoEditor value="" theme="vs-dark" />);
+        expect(capturedTheme.current).toBe('vs-dark');
+    });
+
+    it('maps light theme to Monaco vs', () => {
+        render(<MonacoEditor value="" theme="light" />);
+        expect(capturedTheme.current).toBe('vs');
+    });
+
+    it('defaults to vs when no theme is provided', () => {
+        render(<MonacoEditor value="" />);
+        expect(capturedTheme.current).toBe('vs');
     });
 
     it('uses the latest onMount when the prop changes', () => {

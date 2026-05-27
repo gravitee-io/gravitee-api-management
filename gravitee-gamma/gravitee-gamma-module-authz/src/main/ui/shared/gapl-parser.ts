@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { stripLineComments } from './strip-line-comments';
+import { stripGaplComments } from './strip-gapl-comments';
 
 export interface ParsedEntity {
     name: string;
@@ -254,7 +254,7 @@ export function parseGaplSchema(text: string): ParsedSchema {
         return { entities: [], actions: [], diagnostics: [] };
     }
 
-    const stripped = stripLineComments(text);
+    const stripped = stripGaplComments(text);
     const tokens = tokenise(stripped);
 
     const parser = new Parser(tokens);
