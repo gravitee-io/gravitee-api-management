@@ -28,8 +28,10 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.RequestValidation;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.nativeapi.NativeAnalytics;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
@@ -128,6 +130,7 @@ public class ApiModelFactory {
             .flows(spec.getFlows() != null ? (List<NativeFlow>) spec.getFlows() : null)
             .properties(spec.getProperties())
             .allowMultiJwtOauth2Subscriptions(spec.isAllowMultiJwtOauth2Subscriptions())
+            .analytics(spec.getNativeAnalytics())
             .build();
     }
 

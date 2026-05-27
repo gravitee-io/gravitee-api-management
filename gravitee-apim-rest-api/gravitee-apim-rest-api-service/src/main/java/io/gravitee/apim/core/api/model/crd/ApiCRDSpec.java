@@ -37,6 +37,8 @@ import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
+import io.gravitee.definition.model.v4.nativeapi.NativeAnalytics;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
@@ -114,6 +116,8 @@ public class ApiCRDSpec {
     private List<@Valid ? extends AbstractEndpointGroup<? extends AbstractEndpoint>> endpointGroups;
 
     private Analytics analytics;
+
+    private NativeAnalytics nativeAnalytics;
 
     private Failover failover;
 
@@ -205,8 +209,9 @@ public class ApiCRDSpec {
      */
     public io.gravitee.definition.model.v4.nativeapi.NativeApi.NativeApiBuilder<?, ?> toNativeApiDefinitionBuilder() {
         // Currently we can't use MapStruct in core. We will need to discuss as team if we want to introduce a rule to allow MapStruct in core.
-        return io.gravitee.definition.model.v4.nativeapi.NativeApi.builder()
+        return NativeApi.builder()
             .apiVersion(version)
+            .analytics(nativeAnalytics)
             .definitionVersion(DefinitionVersion.V4)
             .endpointGroups(endpointGroups != null ? (List<NativeEndpointGroup>) endpointGroups : null)
             .flows(flows != null ? (List<NativeFlow>) flows : null)
@@ -290,7 +295,6 @@ public class ApiCRDSpec {
                         nativePlan.setBootstrapPort(planCRD.getBootstrapPort());
                         nativePlan.setBrokerRangeStart(planCRD.getBrokerRangeStart());
                         nativePlan.setBrokerRangeEnd(planCRD.getBrokerRangeEnd());
-
                         return nativePlan;
                     },
                     (a, b) -> a,

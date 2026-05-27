@@ -83,6 +83,7 @@ public interface ApiCRDAdapter {
     @Mapping(target = "consoleNotificationConfiguration", source = "portalNotificationConfig")
     @Mapping(target = "groups", source = "apiEntity.groups")
     @Mapping(target = "allowMultiJwtOauth2Subscriptions", source = "apiEntity.allowMultiJwtOauth2Subscriptions")
+    @Mapping(target = "nativeAnalytics", source = "apiEntity.analytics")
     ApiCRDSpec toCRDSpec(ExportApiEntity exportEntity, NativeApiEntity apiEntity, PortalNotificationConfigEntity portalNotificationConfig);
 
     default ApiCRDSpec toCRDSpec(

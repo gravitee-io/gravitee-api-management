@@ -31,8 +31,10 @@ import io.gravitee.definition.model.v4.endpointgroup.AbstractEndpointGroup;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
+import io.gravitee.definition.model.v4.nativeapi.NativeAnalytics;
 import io.gravitee.definition.model.v4.service.AbstractApiServices;
 import io.gravitee.node.logging.NodeLoggerFactory;
+import io.gravitee.rest.api.management.v2.rest.model.Analytics;
 import io.gravitee.rest.api.management.v2.rest.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.ApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.ApiFederatedAgent;
@@ -354,7 +356,10 @@ public interface ApiMapper {
     @Mapping(target = "flows", expression = "java(mapApiCRDFlows(crd))")
     @Mapping(target = "listeners", expression = "java(mapApiCRDListeners(crd))")
     @Mapping(target = "endpointGroups", expression = "java(mapApiCRDEndpointGroups(crd))")
+    @Mapping(target = "nativeAnalytics", source = "analytics")
     ApiCRDSpec map(io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec crd);
+
+    NativeAnalytics map(Analytics analytics);
 
     @Mapping(target = "source.configuration", qualifiedByName = "serializeConfiguration")
     @Mapping(target = "source.configurationMap", source = "source.configuration", qualifiedByName = "convertToMapConfiguration")
