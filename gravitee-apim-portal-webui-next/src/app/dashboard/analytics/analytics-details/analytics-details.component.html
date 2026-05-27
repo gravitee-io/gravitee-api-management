@@ -15,4 +15,12 @@
     limitations under the License.
 
 -->
-<h1 class="next-gen-h3">{{ dashboardName() }}</h1>
+@if (dashboardResource.isLoading()) {
+  <app-loader />
+} @else if (dashboardResource.error()) {
+  <app-banner type="error" role="alert" data-testid="analytics-details-error" i18n="@@analyticsDashboardLoadError">
+    An error occurred while loading the dashboard. Try again later or contact your Portal administrator.
+  </app-banner>
+} @else if (dashboard(); as db) {
+  <gd-dashboard [dashboard]="db" [baseURL]="baseURL" [timeRange]="timeRange" [interval]="interval" />
+}
