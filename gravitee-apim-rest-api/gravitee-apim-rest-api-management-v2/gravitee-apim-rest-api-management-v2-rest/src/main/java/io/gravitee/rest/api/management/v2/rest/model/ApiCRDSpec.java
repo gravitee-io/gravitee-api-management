@@ -20,6 +20,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.nativeapi.NativeAnalytics;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
