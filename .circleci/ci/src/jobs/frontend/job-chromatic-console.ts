@@ -90,6 +90,6 @@ gh pr edit --body "$CLEAN_BODY$PR_BODY_STORYBOOK_SECTION"`,
       new reusable.ReusedCommand(notifyOnFailureCommand),
     ];
 
-    return new Job(ChromaticConsoleJob.jobName, NodeLtsExecutor.create('small'), steps);
+    return new Job(ChromaticConsoleJob.jobName, NodeLtsExecutor.create('medium'), steps);
   }
 }
