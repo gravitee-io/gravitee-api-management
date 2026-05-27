@@ -41,7 +41,6 @@ import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
 import io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType;
 import io.gravitee.rest.api.management.v2.rest.model.PlanType;
 import java.util.List;
-import org.checkerframework.checker.units.qual.A;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -72,18 +71,15 @@ public interface ApiCRDMapper {
     ApiCRDSpec map(io.gravitee.apim.core.api.model.crd.ApiCRDSpec coreSpec);
 
     default Analytics mapAnalytics(io.gravitee.apim.core.api.model.crd.ApiCRDSpec coreSpec) {
-        if (coreSpec.getAnalytics() != null) {
-            if (coreSpec.isNative()) {
-                return mpaNative(coreSpec.getNativeAnalytics());
-            } else {
-                return map(coreSpec.getAnalytics());
-            }
+        if (coreSpec.isNative()) {
+            return mapNative(coreSpec.getNativeAnalytics());
+        } else {
+            return map(coreSpec.getAnalytics());
         }
-        return null;
     }
 
     Analytics map(io.gravitee.definition.model.v4.analytics.Analytics analytics);
-    Analytics mpaNative(io.gravitee.definition.model.v4.nativeapi.NativeAnalytics analytics);
+    Analytics mapNative(io.gravitee.definition.model.v4.nativeapi.NativeAnalytics analytics);
 
     @Mapping(target = "security.type", qualifiedByName = "mapSecurityType")
     @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")

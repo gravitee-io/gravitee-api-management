@@ -171,6 +171,7 @@ import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
+import io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService;
 import io.gravitee.apim.core.plan.use_case.CreateApiProductPlanUseCase;
 import io.gravitee.apim.core.plan.use_case.CreatePlanUseCase;
 import io.gravitee.apim.core.plan.use_case.GetPlansUseCase;
@@ -778,7 +779,8 @@ public class ResourceContextConfiguration {
         ApiQueryServiceInMemory apiQueryService,
         ParametersQueryService parametersQueryService,
         PolicyValidationDomainService policyValidationDomainService,
-        PageCrudService pageCrudService
+        PageCrudService pageCrudService,
+        VerifyPlanPortRangesDomainService verifyPlanPortRangesDomainService
     ) {
         ValidateGroupsDomainService groupsValidator = new ValidateGroupsDomainService(groupQueryService);
         return new ValidateApiCRDUseCase(
@@ -795,7 +797,8 @@ public class ResourceContextConfiguration {
                     validationDomainService
                 ),
                 new ValidatePlanDomainService(
-                    new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService)
+                    new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService),
+                    verifyPlanPortRangesDomainService
                 ),
                 new ValidatePortalNotificationDomainService(groupsValidator)
             )
