@@ -35,6 +35,7 @@ import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiProductsRepository;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.KafkaPortRangeRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Audit;
@@ -185,6 +186,10 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
     @Autowired
     private GroupService groupService;
+
+    @Autowired
+    @Lazy
+    private KafkaPortRangeRepository kafkaPortRangeRepository;
 
     @Override
     public PlanEntity findById(final ExecutionContext executionContext, final String planId) {
@@ -564,6 +569,9 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
             // Delete plan and his flows
             if (plan.getApiType() == ApiType.NATIVE) {
+                if (plan.getBootstrapPort() != null) {
+                    kafkaPortRangeRepository.delete(plan.getId());
+                }
                 flowCrudService.saveNativePlanFlows(planId, null);
             } else {
                 flowCrudService.savePlanFlows(planId, null);
