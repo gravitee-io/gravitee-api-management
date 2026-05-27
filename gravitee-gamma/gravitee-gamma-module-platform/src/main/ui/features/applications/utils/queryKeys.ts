@@ -60,6 +60,8 @@ export const applicationMemberKeys = {
         [...applicationMemberKeys.all, 'group-members', envId, applicationId, groupId] as const,
     associatedGroups: (envId: string, groupIdsKey: string) =>
         [...applicationMemberKeys.all, 'associated-groups', envId, groupIdsKey] as const,
+    userSearch: (query: string) => [...applicationMemberKeys.all, 'user-search', query] as const,
+    userSearchTransfer: (query: string) => [...applicationMemberKeys.all, 'user-search-transfer', query] as const,
 } as const;
 
 export const applicationNotificationKeys = {
@@ -70,21 +72,17 @@ export const applicationNotificationKeys = {
     metadata: (envId: string, applicationId: string) => [...applicationNotificationKeys.all, 'metadata', envId, applicationId] as const,
 } as const;
 
+function subscriptionFiltersKeyParts(filters: ApplicationSubscriptionsFilters | undefined) {
+    return [filters?.apiKey ?? '', sorted(filters?.apis), sorted(filters?.status), sorted(filters?.securityTypes)] as const;
+}
+
 export const applicationSubscriptionKeys = {
     all: ['application-subscriptions'] as const,
+    /** Total count for a filter set; shared by overview metrics and primed when the list query runs. */
+    count: (envId: string, applicationId: string, filters: ApplicationSubscriptionsFilters | undefined) =>
+        [...applicationSubscriptionKeys.all, 'count', envId, applicationId, ...subscriptionFiltersKeyParts(filters)] as const,
     list: (envId: string, applicationId: string, filters: ApplicationSubscriptionsFilters | undefined, page: number, size: number) =>
-        [
-            ...applicationSubscriptionKeys.all,
-            'list',
-            envId,
-            applicationId,
-            filters?.apiKey ?? '',
-            sorted(filters?.apis),
-            sorted(filters?.status),
-            sorted(filters?.securityTypes),
-            page,
-            size,
-        ] as const,
+        [...applicationSubscriptionKeys.all, 'list', envId, applicationId, ...subscriptionFiltersKeyParts(filters), page, size] as const,
     subscribedApis: (envId: string, applicationId: string) =>
         [...applicationSubscriptionKeys.all, 'subscribed-apis', envId, applicationId] as const,
     referenceSearch: (envId: string, query: string, includeApiProducts: boolean) =>

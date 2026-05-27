@@ -81,7 +81,7 @@ function ApplicationActionsMenu({ applicationId, onNavigate }: { applicationId: 
                     <MoreHorizontalIcon className="size-4" aria-hidden />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-auto min-w-[12rem]" onClick={event => event.stopPropagation()}>
+            <DropdownMenuContent align="end" className="w-auto" style={{ minWidth: '12rem' }} onClick={event => event.stopPropagation()}>
                 <DropdownMenuItem className="gap-2" onSelect={navigateTo(`${applicationId}/general`)}>
                     <ExternalLinkIcon className="size-4" aria-hidden />
                     View Details

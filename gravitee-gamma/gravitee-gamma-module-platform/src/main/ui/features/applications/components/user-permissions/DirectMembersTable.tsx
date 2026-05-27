@@ -77,7 +77,7 @@ export function DirectMembersTable({
                 <TableHeader>
                     <TableRow>
                         <TableHead>Name</TableHead>
-                        <TableHead className="w-[32%]">Role</TableHead>
+                        <TableHead style={{ width: '32%' }}>Role</TableHead>
                         <TableHead />
                     </TableRow>
                 </TableHeader>
@@ -95,7 +95,7 @@ export function DirectMembersTable({
                                     </div>
                                 </TableCell>
 
-                                <TableCell className="w-[32%]">
+                                <TableCell style={{ width: '32%' }}>
                                     <RoleBadge roleName={currentRole} isPO={isPO} />
                                 </TableCell>
 
@@ -113,7 +113,7 @@ export function DirectMembersTable({
                                                     <MoreHorizontalIcon className="size-4" />
                                                 </Button>
                                             </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className="w-auto min-w-[12rem]">
+                                            <DropdownMenuContent align="end" className="w-auto" style={{ minWidth: '12rem' }}>
                                                 {canEditRole ? (
                                                     <DropdownMenuItem onSelect={() => onEditRole(member)}>
                                                         <PencilIcon className="size-4" />

@@ -22,6 +22,7 @@ export function useApplicationNotificationPermissions() {
 
     const canCreateNotification = useHasPermission({ anyOf: ['application-notification-c'] });
     const canUpdateNotification = useHasPermission({ anyOf: ['application-notification-u'] });
+    const canDeleteNotification = useHasPermission({ anyOf: ['application-notification-d'] });
     const canCreateMetadata = useHasPermission({ anyOf: ['application-metadata-c'] });
     const canUpdateMetadata = useHasPermission({ anyOf: ['application-metadata-u'] });
     const canDeleteMetadata = useHasPermission({ anyOf: ['application-metadata-d'] });
@@ -30,6 +31,7 @@ export function useApplicationNotificationPermissions() {
         permissionsReady,
         canCreateNotification: permissionsReady && canCreateNotification,
         canUpdateNotification: permissionsReady && canUpdateNotification,
+        canDeleteNotification: permissionsReady && canDeleteNotification,
         canCreateMetadata: permissionsReady && canCreateMetadata,
         canUpdateMetadata: permissionsReady && canUpdateMetadata,
         canDeleteMetadata: permissionsReady && canDeleteMetadata,

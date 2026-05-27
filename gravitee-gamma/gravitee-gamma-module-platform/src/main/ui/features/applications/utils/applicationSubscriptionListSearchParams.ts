@@ -38,6 +38,14 @@ function parseStatusFilters(raw: string | null): SubscriptionStatus[] {
     return values.length > 0 ? values : [...DEFAULT_SUBSCRIPTION_FILTER_STATUSES];
 }
 
+function isDefaultStatusFilters(statusFilters: SubscriptionStatus[]): boolean {
+    if (statusFilters.length !== DEFAULT_SUBSCRIPTION_FILTER_STATUSES.length) {
+        return false;
+    }
+    const defaults = new Set(DEFAULT_SUBSCRIPTION_FILTER_STATUSES);
+    return statusFilters.every(status => defaults.has(status));
+}
+
 /** Reads subscription list filters from the URL (console: page, size, status, apis, apiKey). */
 export function parseApplicationSubscriptionListSearchParams(params: URLSearchParams): ApplicationSubscriptionListUrlState {
     return {
@@ -56,7 +64,10 @@ export function buildApplicationSubscriptionListSearchParams(state: ApplicationS
     if (state.page > 1) next.set('page', String(state.page));
     if (state.pageSize !== DEFAULT_PAGE_SIZE) next.set('size', String(state.pageSize));
     if (state.apiFilters.length > 0) next.set('apis', state.apiFilters.join(','));
-    if (state.statusFilters.length > 0) next.set('status', state.statusFilters.join(','));
+    const sortedStatusFilters = [...state.statusFilters].sort();
+    if (!isDefaultStatusFilters(sortedStatusFilters)) {
+        next.set('status', sortedStatusFilters.join(','));
+    }
     if (state.apiKeyInput.trim()) next.set('apiKey', state.apiKeyInput.trim());
 
     return next;

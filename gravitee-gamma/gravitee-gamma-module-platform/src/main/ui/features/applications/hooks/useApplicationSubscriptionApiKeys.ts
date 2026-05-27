@@ -48,6 +48,7 @@ export function useApplicationSubscriptionApiKeys(applicationId: string | undefi
             return mapApiKeysToRows(entities);
         },
         enabled: Boolean(enabled && envId && applicationId && subscriptionId),
+        staleTime: 30_000,
     });
 }
 

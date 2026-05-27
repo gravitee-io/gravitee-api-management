@@ -84,13 +84,18 @@ export function ManageGroupsDialog({
             <DialogContent className="max-w-md">
                 <DialogHeader>
                     <DialogTitle>Manage groups</DialogTitle>
-                    <DialogDescription>Select the groups that should have access to this API.</DialogDescription>
+                    <DialogDescription>Select the groups that should have access to this application.</DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4">
                     <div className="relative">
                         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-                        <Input className="pl-10" placeholder="Search groups…" value={search} onChange={e => setSearch(e.target.value)} />
+                        <Input
+                            placeholder="Search groups…"
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            style={{ paddingLeft: '2.5rem' }}
+                        />
                     </div>
 
                     <div className="overflow-y-auto rounded-md" style={{ maxHeight: '18rem' }}>

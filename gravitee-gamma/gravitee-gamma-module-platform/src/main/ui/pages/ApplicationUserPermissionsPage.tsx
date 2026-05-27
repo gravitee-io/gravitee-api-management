@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
+import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import {
     Alert,
     AlertDescription,
@@ -42,7 +42,7 @@ import { DirectMembersTable } from '../features/applications/components/user-per
 import { EditRoleDialog } from '../features/applications/components/user-permissions/EditRoleDialog';
 import { GroupMembersSection } from '../features/applications/components/user-permissions/GroupMembersSection';
 import { ManageGroupsDialog } from '../features/applications/components/user-permissions/ManageGroupsDialog';
-import { getApplicationRole } from '../features/applications/components/user-permissions/memberHelpers';
+import { formatAddMembersResultMessage, getApplicationRole } from '../features/applications/components/user-permissions/memberHelpers';
 import { RemoveMemberDialog } from '../features/applications/components/user-permissions/RemoveMemberDialog';
 import { TransferOwnershipDialog } from '../features/applications/components/user-permissions/TransferOwnershipDialog';
 import { useApplicationDetailContext } from '../features/applications/context/ApplicationDetailContext';
@@ -70,12 +70,24 @@ import type {
 import { toApplicationMemberEntity } from '../features/applications/utils/applicationMemberMapper';
 import { applicationDetailKeys, applicationMemberKeys } from '../features/applications/utils/queryKeys';
 
+class AddMembersMutationError extends Error {
+    public readonly succeededCount: number;
+
+    constructor(message: string, succeededCount: number) {
+        super(message);
+        this.name = 'AddMembersMutationError';
+        this.succeededCount = succeededCount;
+    }
+}
+
 export function ApplicationUserPermissionsPage() {
     const { applicationId } = useParams<{ applicationId: string }>();
     const env = useEnvironment();
     const queryClient = useQueryClient();
-    const { application } = useApplicationDetailContext();
+    const { application, permissionsReady } = useApplicationDetailContext();
     const { canCreate, canUpdate, canDelete } = useApplicationMemberPermissions();
+    const canUpdateDefinitionPermission = useHasPermission({ anyOf: ['application-definition-u'] });
+    const canUpdateDefinition = permissionsReady && canUpdateDefinitionPermission;
 
     const isReadOnly = application?.origin === 'KUBERNETES';
 
@@ -117,17 +129,34 @@ export function ApplicationUserPermissionsPage() {
                     }),
                 ),
             );
-            const failure = results.find((result): result is PromiseRejectedResult => result.status === 'rejected');
-            if (failure) {
-                throw failure.reason instanceof Error ? failure.reason : new Error(String(failure.reason));
+
+            let succeededCount = 0;
+            const failed: { user: SearchableUser; reason: string }[] = [];
+
+            results.forEach((result, index) => {
+                if (result.status === 'fulfilled') {
+                    succeededCount += 1;
+                } else {
+                    const reason = result.reason instanceof Error ? result.reason.message : String(result.reason);
+                    failed.push({ user: users[index]!, reason });
+                }
+            });
+
+            if (failed.length > 0) {
+                throw new AddMembersMutationError(formatAddMembersResultMessage(users.length, succeededCount, failed), succeededCount);
             }
         },
-        onSuccess: async () => {
+        onSuccess: () => {
             if (env?.id && applicationId) {
-                await queryClient.invalidateQueries({
+                void queryClient.invalidateQueries({
                     queryKey: applicationMemberKeys.list(env.id, applicationId),
                 });
-                await queryClient.refetchQueries({
+            }
+        },
+        onError: error => {
+            if (error instanceof AddMembersMutationError && error.succeededCount > 0 && env?.id && applicationId) {
+                // Partial success: refresh the list even though the mutation is considered failed.
+                void queryClient.invalidateQueries({
                     queryKey: applicationMemberKeys.list(env.id, applicationId),
                 });
             }
@@ -137,12 +166,9 @@ export function ApplicationUserPermissionsPage() {
     const updateMutation = useMutation({
         mutationFn: ({ member, roleName }: { member: ApplicationUiMember; roleName: string }) =>
             updateApplicationMember(env!.id, applicationId!, toApplicationMemberEntity(member, roleName)),
-        onSuccess: async () => {
+        onSuccess: () => {
             if (env?.id && applicationId) {
-                await queryClient.invalidateQueries({
-                    queryKey: applicationMemberKeys.list(env.id, applicationId),
-                });
-                await queryClient.refetchQueries({
+                void queryClient.invalidateQueries({
                     queryKey: applicationMemberKeys.list(env.id, applicationId),
                 });
             }
@@ -153,7 +179,9 @@ export function ApplicationUserPermissionsPage() {
     const deleteMutation = useMutation({
         mutationFn: (memberId: string) => deleteApplicationMember(env!.id, applicationId!, memberId),
         onSuccess: () => {
-            void queryClient.invalidateQueries({ queryKey: applicationMemberKeys.list(env!.id, applicationId!) });
+            if (env?.id && applicationId) {
+                void queryClient.invalidateQueries({ queryKey: applicationMemberKeys.list(env.id, applicationId) });
+            }
             setMemberToRemove(null);
         },
     });
@@ -161,8 +189,10 @@ export function ApplicationUserPermissionsPage() {
     const transferMutation = useMutation({
         mutationFn: (payload: ApplicationTransferOwnershipPayload) => transferApplicationOwnership(env!.id, applicationId!, payload),
         onSuccess: () => {
-            void queryClient.invalidateQueries({ queryKey: applicationMemberKeys.list(env!.id, applicationId!) });
-            void queryClient.invalidateQueries({ queryKey: applicationDetailKeys.detail(env!.id, applicationId!) });
+            if (env?.id && applicationId) {
+                void queryClient.invalidateQueries({ queryKey: applicationMemberKeys.list(env.id, applicationId) });
+                void queryClient.invalidateQueries({ queryKey: applicationDetailKeys.detail(env.id, applicationId) });
+            }
             setTransferOpen(false);
         },
     });
@@ -173,7 +203,9 @@ export function ApplicationUserPermissionsPage() {
             return updateApplicationGroups(env!.id, application, groupIds);
         },
         onSuccess: () => {
-            void queryClient.invalidateQueries({ queryKey: applicationDetailKeys.detail(env!.id, applicationId!) });
+            if (env?.id && applicationId) {
+                void queryClient.invalidateQueries({ queryKey: applicationDetailKeys.detail(env.id, applicationId) });
+            }
             void queryClient.invalidateQueries({ queryKey: applicationMemberKeys.all });
             setManageGroupsOpen(false);
         },
@@ -185,7 +217,9 @@ export function ApplicationUserPermissionsPage() {
             return updateApplicationMembershipNotifications(env!.id, application, disable);
         },
         onSuccess: () => {
-            void queryClient.invalidateQueries({ queryKey: applicationDetailKeys.detail(env!.id, applicationId!) });
+            if (env?.id && applicationId) {
+                void queryClient.invalidateQueries({ queryKey: applicationDetailKeys.detail(env.id, applicationId) });
+            }
         },
     });
 
@@ -231,7 +265,8 @@ export function ApplicationUserPermissionsPage() {
     const notificationsEnabled = !(application?.disable_membership_notifications ?? false);
     const handleNotificationToggle = useCallback((checked: boolean) => notificationMutation.mutate(!checked), [notificationMutation]);
 
-    const actionsDisabled = isReadOnly || !canUpdate;
+    const memberActionsDisabled = isReadOnly || !canUpdate;
+    const definitionActionsDisabled = isReadOnly || !canUpdateDefinition;
 
     const mutationError =
         addMutation.error ??
@@ -261,13 +296,19 @@ export function ApplicationUserPermissionsPage() {
                         <Switch
                             checked={notificationsEnabled}
                             onCheckedChange={handleNotificationToggle}
-                            disabled={actionsDisabled || notificationMutation.isPending || !application}
+                            disabled={definitionActionsDisabled || notificationMutation.isPending || !application}
                             aria-label="Toggle membership notifications"
                         />
                         <span className="text-sm">Notify members when they are added to the application</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button type="button" variant="outline" size="sm" onClick={() => setTransferOpen(true)} disabled={actionsDisabled}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setTransferOpen(true)}
+                            disabled={memberActionsDisabled}
+                        >
                             <UserCogIcon className="size-4" aria-hidden="true" />
                             Transfer ownership
                         </Button>
@@ -276,7 +317,7 @@ export function ApplicationUserPermissionsPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => setManageGroupsOpen(true)}
-                            disabled={actionsDisabled}
+                            disabled={definitionActionsDisabled}
                         >
                             <UsersIcon className="size-4" aria-hidden="true" />
                             Manage groups

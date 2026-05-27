@@ -60,7 +60,7 @@ export function GroupMembersSection({
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Name</TableHead>
-                                <TableHead className="w-[32%]">Role</TableHead>
+                                <TableHead style={{ width: '32%' }}>Role</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -87,7 +87,7 @@ export function GroupMembersSection({
                                                 <span className="text-sm font-medium">{m.displayName}</span>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="w-[32%]">
+                                        <TableCell style={{ width: '32%' }}>
                                             <Badge variant="secondary" className="font-normal">
                                                 {getGroupMemberRole(m)}
                                             </Badge>

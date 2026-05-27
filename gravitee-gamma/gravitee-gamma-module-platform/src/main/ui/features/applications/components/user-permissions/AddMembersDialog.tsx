@@ -38,6 +38,7 @@ import { MemberAvatar } from './MemberAvatar';
 import { isSameUser } from './memberHelpers';
 import { searchUsers } from '../../services/applicationMembers';
 import type { ApplicationUiMember, SearchableUser } from '../../types/applicationMembers.types';
+import { applicationMemberKeys } from '../../utils/queryKeys';
 
 export function AddMembersDialog({
     open,
@@ -70,7 +71,7 @@ export function AddMembersDialog({
 
     const deferredQuery = useDeferredValue(search);
     const { data: results, isFetching } = useQuery({
-        queryKey: ['user-search', deferredQuery],
+        queryKey: applicationMemberKeys.userSearch(deferredQuery),
         queryFn: () => searchUsers(deferredQuery),
         enabled: deferredQuery.trim().length >= 2,
         staleTime: 30_000,
@@ -106,7 +107,7 @@ export function AddMembersDialog({
 
     return (
         <Dialog open={open} onOpenChange={isOpen => !isOpen && handleClose()}>
-            <DialogContent className="max-w-[480px]">
+            <DialogContent style={{ maxWidth: '30rem' }}>
                 <DialogHeader>
                     <DialogTitle>Add Members</DialogTitle>
                     <DialogDescription>Search for users by name or email and add them to this application.</DialogDescription>
@@ -117,10 +118,10 @@ export function AddMembersDialog({
                         <div className="relative">
                             <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
                             <Input
-                                className="pl-10"
                                 placeholder="Search a user by name or email…"
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
+                                style={{ paddingLeft: '2.5rem' }}
                             />
                         </div>
                         {search.trim().length >= 2 && (

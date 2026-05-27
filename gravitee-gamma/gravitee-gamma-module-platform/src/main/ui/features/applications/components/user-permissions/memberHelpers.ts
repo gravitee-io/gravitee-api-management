@@ -41,3 +41,33 @@ export function isSameUser(userA: SearchableUser, userB: SearchableUser): boolea
 export function getGroupMemberRole(member: { roles: Record<string, string> }): string {
     return member.roles.GROUP ?? member.roles.APPLICATION ?? Object.values(member.roles)[0] ?? '—';
 }
+
+function addMemberUserLabel(user: SearchableUser): string {
+    return user.displayName || user.email || user.reference;
+}
+
+/** User-facing message when one or more bulk member adds fail (including partial success). */
+export function formatAddMembersResultMessage(
+    total: number,
+    succeededCount: number,
+    failed: ReadonlyArray<{ user: SearchableUser; reason: string }>,
+): string {
+    const failedDescriptions = failed.map(({ user, reason }) => {
+        const label = addMemberUserLabel(user);
+        return reason ? `${label} (${reason})` : label;
+    });
+    const failedList = failedDescriptions.join(', ');
+
+    if (succeededCount === 0) {
+        if (total === 1) {
+            const only = failed[0];
+            if (!only) {
+                return 'Failed to add member.';
+            }
+            return only.reason ? `Failed to add member: ${only.reason}` : `Failed to add ${addMemberUserLabel(only.user)}.`;
+        }
+        return `Failed to add ${total} members: ${failedList}.`;
+    }
+
+    return `Added ${succeededCount} of ${total} members. Failed to add: ${failedList}.`;
+}

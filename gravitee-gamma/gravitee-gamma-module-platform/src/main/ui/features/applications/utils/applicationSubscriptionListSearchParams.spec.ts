@@ -52,9 +52,20 @@ describe('applicationSubscriptionListSearchParams', () => {
             statusFilters: ['ACCEPTED', 'PAUSED', 'PENDING', 'RESUMED'],
             apiKeyInput: '',
         });
-        expect(built.get('status')).toBe('ACCEPTED,PAUSED,PENDING,RESUMED');
+        expect(built.get('status')).toBeNull();
         expect(built.get('page')).toBeNull();
         expect(built.get('size')).toBeNull();
+    });
+
+    it('omits default status filters regardless of order', () => {
+        const built = buildApplicationSubscriptionListSearchParams({
+            page: 1,
+            pageSize: 10,
+            apiFilters: [],
+            statusFilters: ['RESUMED', 'PENDING', 'PAUSED', 'ACCEPTED'],
+            apiKeyInput: '',
+        });
+        expect(built.get('status')).toBeNull();
     });
 
     it('serializes non-default filters', () => {
@@ -70,5 +81,16 @@ describe('applicationSubscriptionListSearchParams', () => {
         expect(built.get('apis')).toBe('a1');
         expect(built.get('status')).toBe('CLOSED');
         expect(built.get('apiKey')).toBe('k1');
+    });
+
+    it('sorts status filters when serializing', () => {
+        const built = buildApplicationSubscriptionListSearchParams({
+            page: 1,
+            pageSize: 10,
+            apiFilters: [],
+            statusFilters: ['PENDING', 'ACCEPTED'],
+            apiKeyInput: '',
+        });
+        expect(built.get('status')).toBe('ACCEPTED,PENDING');
     });
 });

@@ -38,7 +38,6 @@ describe('normalizeCrudMapRecord (application permissions)', () => {
 describe('applicationDetailNavigation permissions', () => {
     const hasDefinitionRead = (permissions: string[]) => permissions.includes('application-definition-r');
     const hasMemberRead = (permissions: string[]) => permissions.includes('application-member-r');
-    const hasNotificationRead = (permissions: string[]) => permissions.includes('application-notification-r');
 
     it('maps general tab to application-definition-r', () => {
         expect(getApplicationDetailTabPermissions('general')).toEqual(['application-definition-r']);
@@ -46,10 +45,6 @@ describe('applicationDetailNavigation permissions', () => {
 
     it('maps subscriptions tab to application-subscription-r', () => {
         expect(getApplicationDetailTabPermissions('subscriptions')).toEqual(['application-subscription-r']);
-    });
-
-    it('maps notification settings tab to console notification permissions', () => {
-        expect(getApplicationDetailTabPermissions('notifications')).toEqual(['application-notification-r', 'application-alert-r']);
     });
 
     it('filters nav groups by permission', () => {
@@ -74,13 +69,6 @@ describe('applicationDetailNavigation permissions', () => {
         expect(
             getFirstAccessibleImplementedApplicationDetailPath(APPLICATION_NAV_GROUPS, APPLICATION_IMPLEMENTED_DETAIL_PATHS, hasMemberRead),
         ).toBe('user-permissions');
-        expect(
-            getFirstAccessibleImplementedApplicationDetailPath(
-                APPLICATION_NAV_GROUPS,
-                APPLICATION_IMPLEMENTED_DETAIL_PATHS,
-                hasNotificationRead,
-            ),
-        ).toBe('notifications');
     });
 
     it('returns null when user has no tab permissions', () => {
@@ -90,7 +78,6 @@ describe('applicationDetailNavigation permissions', () => {
     it('resolveApplicationDetailLandingPath prefers implemented tabs then any permitted tab', () => {
         expect(resolveApplicationDetailLandingPath(hasDefinitionRead)).toBe('overview');
         expect(resolveApplicationDetailLandingPath(hasMemberRead)).toBe('user-permissions');
-        expect(resolveApplicationDetailLandingPath(hasNotificationRead)).toBe('notifications');
         expect(resolveApplicationDetailLandingPath(() => false)).toBeNull();
     });
 });

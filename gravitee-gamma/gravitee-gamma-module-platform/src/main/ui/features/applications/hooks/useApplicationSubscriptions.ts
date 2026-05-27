@@ -14,13 +14,37 @@
  * limitations under the License.
  */
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { listApplicationSubscriptions, listSubscribedApis } from '../services/applicationSubscriptions';
 import type { ApiKeyMode } from '../types/application';
 import type { ApplicationSubscriptionsFilters } from '../types/applicationSubscription';
 import { mapSubscriptionsPageToRows } from '../utils/applicationSubscriptionMapper';
 import { applicationSubscriptionKeys } from '../utils/queryKeys';
+
+export const SUBSCRIPTION_COUNT_PAGE = 1;
+export const SUBSCRIPTION_COUNT_SIZE = 1;
+
+/** Paginated total for a filter set; reuses cache primed by {@link useApplicationSubscriptions}. */
+export function useApplicationSubscriptionCount(applicationId: string | undefined, filters: ApplicationSubscriptionsFilters | undefined) {
+    const env = useEnvironment();
+
+    return useQuery({
+        queryKey: applicationSubscriptionKeys.count(env?.id ?? '', applicationId ?? '', filters),
+        queryFn: async () => {
+            const response = await listApplicationSubscriptions(
+                env!.id,
+                applicationId!,
+                filters,
+                SUBSCRIPTION_COUNT_PAGE,
+                SUBSCRIPTION_COUNT_SIZE,
+            );
+            return response.page?.total_elements ?? 0;
+        },
+        enabled: Boolean(env && applicationId),
+        staleTime: 30_000,
+    });
+}
 
 export function useApplicationSubscriptions(
     applicationId: string | undefined,
@@ -30,17 +54,23 @@ export function useApplicationSubscriptions(
     apiKeyMode: ApiKeyMode | undefined,
 ) {
     const env = useEnvironment();
+    const queryClient = useQueryClient();
 
     return useQuery({
         queryKey: applicationSubscriptionKeys.list(env?.id ?? '', applicationId ?? '', filters, page, size),
         queryFn: async () => {
             const response = await listApplicationSubscriptions(env!.id, applicationId!, filters, page, size);
+            const totalCount = response.page?.total_elements ?? 0;
+            if (env?.id && applicationId) {
+                queryClient.setQueryData(applicationSubscriptionKeys.count(env.id, applicationId, filters), totalCount);
+            }
             return {
                 rows: mapSubscriptionsPageToRows(response, apiKeyMode),
-                totalCount: response.page?.total_elements ?? 0,
+                totalCount,
             };
         },
         enabled: Boolean(env && applicationId),
+        staleTime: 30_000,
     });
 }
 

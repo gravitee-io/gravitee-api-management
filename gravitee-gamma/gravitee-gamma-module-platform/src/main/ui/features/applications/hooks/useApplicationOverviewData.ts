@@ -16,14 +16,11 @@
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useQuery } from '@tanstack/react-query';
 
-import { listApplicationMembers } from '../services/applicationMembers';
+import { useApplicationMembers } from './useApplicationMembers';
+import { useApplicationSubscriptionCount } from './useApplicationSubscriptions';
 import { listApplicationNotifications } from '../services/applicationNotifications';
-import { listApplicationSubscriptions } from '../services/applicationSubscriptions';
 import type { ApplicationSubscriptionsFilters } from '../types/applicationSubscription';
-import { applicationMemberKeys, applicationNotificationKeys, applicationSubscriptionKeys } from '../utils/queryKeys';
-
-const OVERVIEW_COUNT_PAGE = 1;
-const OVERVIEW_COUNT_SIZE = 1;
+import { applicationNotificationKeys } from '../utils/queryKeys';
 
 const ACTIVE_SUBSCRIPTIONS_FILTER: ApplicationSubscriptionsFilters = { status: ['ACCEPTED'] };
 const PENDING_SUBSCRIPTIONS_FILTER: ApplicationSubscriptionsFilters = { status: ['PENDING'] };
@@ -42,22 +39,15 @@ export interface ApplicationOverviewData {
     readonly subscriptionCount: number;
 }
 
-function getSubscriptionCount(response: Awaited<ReturnType<typeof listApplicationSubscriptions>> | undefined): number {
-    return response?.page?.total_elements ?? 0;
-}
-
 export function useApplicationOverviewData(applicationId: string | undefined): ApplicationOverviewData {
     const env = useEnvironment();
     const envId = env?.id ?? '';
     const enabled = Boolean(env && applicationId);
 
-    const membersQuery = useQuery({
-        queryKey: applicationMemberKeys.list(envId, applicationId ?? ''),
-        queryFn: () => listApplicationMembers(envId, applicationId!),
-        enabled,
-        staleTime: 30_000,
-    });
+    // Shares React Query cache with Application user permissions (same list key).
+    const membersQuery = useApplicationMembers(applicationId);
 
+    // Shares cache with Notification settings (same list key).
     const notificationsQuery = useQuery({
         queryKey: applicationNotificationKeys.list(envId, applicationId ?? ''),
         queryFn: () => listApplicationNotifications(envId, applicationId!),
@@ -65,57 +55,27 @@ export function useApplicationOverviewData(applicationId: string | undefined): A
         staleTime: 30_000,
     });
 
-    const subscriptionsQuery = useQuery({
-        queryKey: applicationSubscriptionKeys.list(envId, applicationId ?? '', undefined, OVERVIEW_COUNT_PAGE, OVERVIEW_COUNT_SIZE),
-        queryFn: () => listApplicationSubscriptions(envId, applicationId!, undefined, OVERVIEW_COUNT_PAGE, OVERVIEW_COUNT_SIZE),
-        enabled,
-        staleTime: 30_000,
-    });
-
-    const activeSubscriptionsQuery = useQuery({
-        queryKey: applicationSubscriptionKeys.list(
-            envId,
-            applicationId ?? '',
-            ACTIVE_SUBSCRIPTIONS_FILTER,
-            OVERVIEW_COUNT_PAGE,
-            OVERVIEW_COUNT_SIZE,
-        ),
-        queryFn: () =>
-            listApplicationSubscriptions(envId, applicationId!, ACTIVE_SUBSCRIPTIONS_FILTER, OVERVIEW_COUNT_PAGE, OVERVIEW_COUNT_SIZE),
-        enabled,
-        staleTime: 30_000,
-    });
-
-    const pendingSubscriptionsQuery = useQuery({
-        queryKey: applicationSubscriptionKeys.list(
-            envId,
-            applicationId ?? '',
-            PENDING_SUBSCRIPTIONS_FILTER,
-            OVERVIEW_COUNT_PAGE,
-            OVERVIEW_COUNT_SIZE,
-        ),
-        queryFn: () =>
-            listApplicationSubscriptions(envId, applicationId!, PENDING_SUBSCRIPTIONS_FILTER, OVERVIEW_COUNT_PAGE, OVERVIEW_COUNT_SIZE),
-        enabled,
-        staleTime: 30_000,
-    });
+    // Count keys are shared with the subscriptions list (primed on list fetch with matching filters).
+    const subscriptionsCountQuery = useApplicationSubscriptionCount(applicationId, undefined);
+    const activeSubscriptionsCountQuery = useApplicationSubscriptionCount(applicationId, ACTIVE_SUBSCRIPTIONS_FILTER);
+    const pendingSubscriptionsCountQuery = useApplicationSubscriptionCount(applicationId, PENDING_SUBSCRIPTIONS_FILTER);
 
     return {
-        activeSubscriptionCount: getSubscriptionCount(activeSubscriptionsQuery.data),
+        activeSubscriptionCount: activeSubscriptionsCountQuery.data ?? 0,
         isError:
             membersQuery.isError ||
             notificationsQuery.isError ||
-            subscriptionsQuery.isError ||
-            activeSubscriptionsQuery.isError ||
-            pendingSubscriptionsQuery.isError,
-        isLoadingActiveSubscriptions: activeSubscriptionsQuery.isLoading,
+            subscriptionsCountQuery.isError ||
+            activeSubscriptionsCountQuery.isError ||
+            pendingSubscriptionsCountQuery.isError,
+        isLoadingActiveSubscriptions: activeSubscriptionsCountQuery.isLoading,
         isLoadingMembers: membersQuery.isLoading,
         isLoadingNotifications: notificationsQuery.isLoading,
-        isLoadingPendingSubscriptions: pendingSubscriptionsQuery.isLoading,
-        isLoadingSubscriptions: subscriptionsQuery.isLoading,
+        isLoadingPendingSubscriptions: pendingSubscriptionsCountQuery.isLoading,
+        isLoadingSubscriptions: subscriptionsCountQuery.isLoading,
         memberCount: membersQuery.data?.length ?? 0,
         notificationCount: notificationsQuery.data?.length ?? 0,
-        pendingSubscriptionCount: getSubscriptionCount(pendingSubscriptionsQuery.data),
-        subscriptionCount: getSubscriptionCount(subscriptionsQuery.data),
+        pendingSubscriptionCount: pendingSubscriptionsCountQuery.data ?? 0,
+        subscriptionCount: subscriptionsCountQuery.data ?? 0,
     };
 }

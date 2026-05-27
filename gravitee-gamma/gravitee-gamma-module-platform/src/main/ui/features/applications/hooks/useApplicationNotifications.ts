@@ -17,10 +17,12 @@ import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
+import { groupHooksByCategory, mapApplicationNotificationsToRows } from '../components/notifications/notificationHelpers';
 import {
     createApplicationNotification,
     createApplicationMetadata,
     deleteApplicationMetadata,
+    deleteApplicationNotification,
     listApplicationMetadata,
     listApplicationNotificationHooks,
     listApplicationNotifications,
@@ -29,36 +31,13 @@ import {
     updateApplicationMetadata,
 } from '../services/applicationNotifications';
 import type {
-    ApplicationNotificationHook,
-    ApplicationNotificationHookCategory,
     ApplicationNotificationRow,
-    ApplicationNotificationSettings,
-    ApplicationNotifier,
     CreateApplicationNotification,
     NewApplicationMetadata,
     UpdateApplicationNotification,
     UpdateApplicationMetadata,
 } from '../types/applicationNotification';
 import { applicationNotificationKeys } from '../utils/queryKeys';
-
-function resolveNotifierName(notification: ApplicationNotificationSettings, notifiers: ApplicationNotifier[]): string {
-    const notifier = notifiers.find(item => item.id === notification.notifier);
-    if (notifier?.name) {
-        return notifier.name;
-    }
-    if (notification.config_type === 'PORTAL') {
-        return 'Console';
-    }
-    return notification.notifier ?? '—';
-}
-
-function groupHooksByCategory(hooks: ApplicationNotificationHook[]): ApplicationNotificationHookCategory[] {
-    const groups = new Map<string, ApplicationNotificationHook[]>();
-    for (const hook of hooks) {
-        groups.set(hook.category, [...(groups.get(hook.category) ?? []), hook]);
-    }
-    return [...groups.entries()].map(([name, groupedHooks]) => ({ name, hooks: groupedHooks }));
-}
 
 export function useApplicationNotifications(applicationId: string | undefined) {
     const env = useEnvironment();
@@ -86,20 +65,10 @@ export function useApplicationNotifications(applicationId: string | undefined) {
         staleTime: 5 * 60_000,
     });
 
-    const rows = useMemo<ApplicationNotificationRow[]>(() => {
-        const notifications = notificationsQuery.data ?? [];
-        const notifiers = notifiersQuery.data ?? [];
-
-        return notifications.map(notification => ({
-            key: notification.id ?? notification.config_type,
-            name: notification.name,
-            subscribedEvents: (notification.hooks ?? []).length + (notification.groupHooks ?? []).length,
-            notifierName: resolveNotifierName(notification, notifiers),
-            notification,
-            notifier: notifiers.find(item => item.id === notification.notifier),
-            isReadonly: Boolean(notification.origin && notification.origin !== 'MANAGEMENT'),
-        }));
-    }, [notificationsQuery.data, notifiersQuery.data]);
+    const rows = useMemo<ApplicationNotificationRow[]>(
+        () => mapApplicationNotificationsToRows(notificationsQuery.data ?? [], notifiersQuery.data ?? []),
+        [notificationsQuery.data, notifiersQuery.data],
+    );
 
     const hookCategories = useMemo(() => groupHooksByCategory(hooksQuery.data ?? []), [hooksQuery.data]);
 
@@ -133,6 +102,19 @@ export function useUpdateApplicationNotification(applicationId: string | undefin
 
     return useMutation({
         mutationFn: (notification: UpdateApplicationNotification) => updateApplicationNotification(envId, applicationId!, notification),
+        onSuccess: () => {
+            void queryClient.invalidateQueries({ queryKey: applicationNotificationKeys.list(envId, applicationId ?? '') });
+        },
+    });
+}
+
+export function useDeleteApplicationNotification(applicationId: string | undefined) {
+    const env = useEnvironment();
+    const queryClient = useQueryClient();
+    const envId = env?.id ?? '';
+
+    return useMutation({
+        mutationFn: (notificationId: string) => deleteApplicationNotification(envId, applicationId!, notificationId),
         onSuccess: () => {
             void queryClient.invalidateQueries({ queryKey: applicationNotificationKeys.list(envId, applicationId ?? '') });
         },

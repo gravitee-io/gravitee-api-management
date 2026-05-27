@@ -15,10 +15,19 @@
  */
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
+import { useApplicationDetailContext } from '../context/ApplicationDetailContext';
+
 export function useApplicationMemberPermissions() {
+    const { permissionsReady } = useApplicationDetailContext();
+
     const canCreate = useHasPermission({ anyOf: ['application-member-c'] });
     const canUpdate = useHasPermission({ anyOf: ['application-member-u'] });
     const canDelete = useHasPermission({ anyOf: ['application-member-d'] });
 
-    return { canCreate, canUpdate, canDelete };
+    return {
+        permissionsReady,
+        canCreate: permissionsReady && canCreate,
+        canUpdate: permissionsReady && canUpdate,
+        canDelete: permissionsReady && canDelete,
+    };
 }
