@@ -172,6 +172,11 @@ secrets:
 #    proxyProtocol: false
 #    proxyProtocolTimeout: 10000
 
+# Edge Reactor HTTP server
+#edge:
+#  server:
+#    port: 18093
+
 # Gateway Kafka server
 #kafka:
 #  enabled: false
