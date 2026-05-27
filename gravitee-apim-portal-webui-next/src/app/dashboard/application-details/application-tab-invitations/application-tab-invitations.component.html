@@ -16,8 +16,11 @@
 
 -->
 @if (canRead()) {
-  <h4 class="next-gen-h4 invitations__title" data-testid="invitations-section-title" i18n="@@applicationInvitationsTitle">
-    Invitations ({{ totalElements() }})
+  <div class="invitations__toolbar">
+    <app-search-bar (searchTerm)="onSearchTermChange($event)" />
+  </div>
+  <h4 class="next-gen-h4 invitations__title" data-testid="invitations-section-title">
+    {{ sectionTitle() }}
   </h4>
   @if (invitationsResource.isLoading()) {
     <app-loader />
@@ -26,9 +29,15 @@
       An error occurred while loading invitations. Try again later or contact your Portal administrator.
     </div>
   } @else if (totalElements() === 0) {
-    <div class="invitations__empty-state" data-testid="invitations-empty-state">
-      <p class="next-gen-body" i18n="@@invitationsEmptyState">No pending invitations found.</p>
-    </div>
+    @if (hasSearchTerm()) {
+      <div class="invitations__empty-state" data-testid="invitations-search-no-match">
+        <p class="next-gen-body" i18n="@@invitationsSearchNoMatch">No invitations match your search.</p>
+      </div>
+    } @else {
+      <div class="invitations__empty-state" data-testid="invitations-empty-state">
+        <p class="next-gen-body" i18n="@@invitationsEmptyState">No pending invitations found.</p>
+      </div>
+    }
   } @else {
     <app-paginated-table
       [columns]="tableColumns"
