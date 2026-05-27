@@ -166,4 +166,19 @@ describe('PortalNavigationItemService', () => {
       req.flush(fakeResponse);
     });
   });
+
+  describe('seedDefaultPages', () => {
+    it('should call the seed default pages endpoint', done => {
+      const ids = ['nav-api-1', 'nav-api-2'];
+
+      service.seedDefaultPages(ids).subscribe(() => done());
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/_default-pages`,
+      });
+      expect(req.request.body).toEqual({ ids });
+      req.flush(null);
+    });
+  });
 });
