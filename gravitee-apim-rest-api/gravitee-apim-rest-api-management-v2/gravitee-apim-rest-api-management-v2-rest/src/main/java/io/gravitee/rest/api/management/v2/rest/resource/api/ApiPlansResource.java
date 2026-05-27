@@ -74,6 +74,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -241,7 +242,22 @@ public class ApiPlansResource extends AbstractResource {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 
-        return Response.ok(planMapper.mapGenericPlan(planEntity)).build();
+        Response.ResponseBuilder builder = Response.ok(planMapper.mapGenericPlan(planEntity));
+        Date updatedAt = resolvePlanUpdatedAt(planEntity);
+        if (updatedAt != null) {
+            builder.tag(Long.toString(updatedAt.getTime())).lastModified(updatedAt);
+        }
+        return builder.build();
+    }
+
+    private static Date resolvePlanUpdatedAt(GenericPlanEntity planEntity) {
+        if (planEntity instanceof BasePlanEntity v4Plan) {
+            return v4Plan.getUpdatedAt();
+        }
+        if (planEntity instanceof io.gravitee.rest.api.model.BasePlanEntity v2Plan) {
+            return v2Plan.getUpdatedAt();
+        }
+        throw new IllegalStateException("Unexpected plan entity type: " + planEntity.getClass());
     }
 
     @PUT
