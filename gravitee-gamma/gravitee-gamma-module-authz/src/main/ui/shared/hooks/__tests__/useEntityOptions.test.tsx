@@ -77,6 +77,15 @@ beforeEach(() => {
 });
 
 describe('useEntityOptions', () => {
+    it('does not fire the query when environmentId is empty', async () => {
+        listEntitiesSpy.mockResolvedValue(paged([]));
+        render(<Probe env="" />, { wrapper: makeWrapper() });
+
+        await Promise.resolve();
+        await Promise.resolve();
+        expect(listEntitiesSpy).not.toHaveBeenCalled();
+    });
+
     it('returns empty options and no error for an empty list', async () => {
         listEntitiesSpy.mockResolvedValue(paged([]));
 
@@ -91,9 +100,9 @@ describe('useEntityOptions', () => {
     it('groups options by entity type parsed from uid', async () => {
         listEntitiesSpy.mockResolvedValue(
             paged([
-                entity('User::"alice"', { email: 'alice@example.com' }),
-                entity('Group::"admins"'),
-                entity('ServiceAccount::"deploy-bot"', { _source: 'imported', role: 'ci' }),
+                entity('user.alice', { email: 'alice@example.com' }),
+                entity('group.admins'),
+                entity('serviceaccount.deploy-bot', { _source: 'imported', role: 'ci' }),
             ]),
         );
 
@@ -103,7 +112,6 @@ describe('useEntityOptions', () => {
         const items = getByTestId('options').querySelectorAll('li');
         expect(items[0].getAttribute('data-group')).toBe('User');
         expect(items[0].getAttribute('data-label')).toBe('alice');
-        expect(items[0].id || items[0].textContent).toBe('User::"alice"');
         expect(items[0].getAttribute('data-description')).toBe('email=alice@example.com');
         expect(items[1].getAttribute('data-group')).toBe('Group');
         expect(items[1].getAttribute('data-description')).toBe('');
@@ -112,14 +120,21 @@ describe('useEntityOptions', () => {
         expect(items[2].getAttribute('data-description')).toBe('role=ci');
     });
 
-    it('filters options by typeFilter', async () => {
-        listEntitiesSpy.mockResolvedValue(paged([entity('User::"alice"'), entity('Group::"admins"'), entity('AgentIdentity::"agent-1"')]));
+    it('issues kind-scoped fetches when typeFilter is set and returns only matching entities', async () => {
+        listEntitiesSpy.mockImplementation((_env: string, params: { entityIdPrefix?: string } = {}) => {
+            if (params.entityIdPrefix === 'user.') return Promise.resolve(paged([entity('user.alice')]));
+            if (params.entityIdPrefix === 'group.') return Promise.resolve(paged([entity('group.admins')]));
+            return Promise.resolve(paged([]));
+        });
 
         const { getByTestId } = render(<Probe env="env-1" opts={{ typeFilter: ['User'] }} />, { wrapper: makeWrapper() });
 
         await waitFor(() => expect(getByTestId('count').textContent).toBe('1'));
         const items = getByTestId('options').querySelectorAll('li');
         expect(items[0].getAttribute('data-group')).toBe('User');
+        // Single fetch — entityIdPrefix tightens the bucket to the single requested kind.
+        expect(listEntitiesSpy).toHaveBeenCalledTimes(1);
+        expect(listEntitiesSpy).toHaveBeenCalledWith('env-1', { page: 1, perPage: 200, entityIdPrefix: 'user.' });
     });
 
     it('sets error when total exceeds page size and still returns the loaded slice', async () => {
@@ -144,7 +159,7 @@ describe('useEntityOptions', () => {
 
         const { unmount } = render(<Probe env="env-1" />, { wrapper: makeWrapper() });
         unmount();
-        resolveFn(paged([entity('User::"alice"')]));
+        resolveFn(paged([entity('user.alice')]));
         await Promise.resolve();
         await Promise.resolve();
 
@@ -153,25 +168,31 @@ describe('useEntityOptions', () => {
         errorSpy.mockRestore();
     });
 
-    it('refetches when typeFilter changes by value (not reference)', async () => {
-        listEntitiesSpy.mockResolvedValue(paged([entity('User::"alice"'), entity('Group::"admins"')]));
+    it('reuses cached kind-scoped fetches without refetching for the same filter', async () => {
+        listEntitiesSpy.mockImplementation((_env: string, params: { entityIdPrefix?: string } = {}) => {
+            if (params.entityIdPrefix === 'user.') return Promise.resolve(paged([entity('user.alice')]));
+            if (params.entityIdPrefix === 'group.') return Promise.resolve(paged([entity('group.admins')]));
+            return Promise.resolve(paged([]));
+        });
 
         const wrapper = makeWrapper();
         const { rerender, getByTestId } = render(<Probe env="env-1" opts={{ typeFilter: ['User'] }} />, { wrapper });
         await waitFor(() => expect(getByTestId('count').textContent).toBe('1'));
-        const callsAfterFirst = listEntitiesSpy.mock.calls.length;
+        expect(listEntitiesSpy).toHaveBeenCalledTimes(1);
 
-        // Same values, fresh array literal — must NOT refetch.
+        // Same values, fresh array literal — must NOT refetch (kindsKey stable).
         rerender(<Probe env="env-1" opts={{ typeFilter: ['User'] }} />);
         await Promise.resolve();
-        expect(listEntitiesSpy.mock.calls.length).toBe(callsAfterFirst);
+        expect(listEntitiesSpy).toHaveBeenCalledTimes(1);
 
-        // Different filter — must refetch (or at least re-derive options).
+        // Different filter — issues one new kind-scoped fetch (group.*), not a full re-pull.
         rerender(<Probe env="env-1" opts={{ typeFilter: ['Group'] }} />);
         await waitFor(() => {
             const items = getByTestId('options').querySelectorAll('li');
             expect(items.length).toBe(1);
             expect(items[0].getAttribute('data-group')).toBe('Group');
         });
+        expect(listEntitiesSpy).toHaveBeenCalledTimes(2);
+        expect(listEntitiesSpy).toHaveBeenLastCalledWith('env-1', { page: 1, perPage: 200, entityIdPrefix: 'group.' });
     });
 });

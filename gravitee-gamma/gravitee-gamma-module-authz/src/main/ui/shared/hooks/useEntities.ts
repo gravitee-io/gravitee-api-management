@@ -47,6 +47,7 @@ export function useEntities(environmentId: string, initialPerPage = DEFAULT_PER_
     const query = useQuery({
         queryKey: authzQueryKeys.entities.page(environmentId, page, perPage),
         queryFn: () => authzApiService.listEntities(environmentId, { page, perPage }),
+        enabled: Boolean(environmentId),
         staleTime: 30_000,
         placeholderData: keepPreviousData,
     });

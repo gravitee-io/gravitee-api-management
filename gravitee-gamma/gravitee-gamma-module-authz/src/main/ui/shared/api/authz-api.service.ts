@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { deriveServiceType } from '../entity-kind-registry';
 import { authzCoreApiClient } from './authz-api-client';
 import type {
     EntityResponse,
@@ -35,6 +36,10 @@ export interface PaginationParams {
 export interface PolicyListParams extends PaginationParams {
     readonly type?: PolicyType;
     readonly status?: PolicyStatus;
+}
+
+export interface EntityListParams extends PaginationParams {
+    readonly entityIdPrefix?: string;
 }
 
 interface CanonicalEntity {
@@ -72,26 +77,6 @@ interface CanonicalPagedResponse<T> {
     readonly perPage: number;
 }
 
-function adaptPagedListResponse<T>(
-    raw: CanonicalPagedResponse<T> | readonly T[],
-    requestedPage: number | undefined,
-    requestedPerPage: number | undefined,
-): CanonicalPagedResponse<T> {
-    if (Array.isArray(raw)) {
-        const items = raw as readonly T[];
-        const page = requestedPage ?? 1;
-        const perPage = requestedPerPage ?? items.length;
-        const start = Math.max(0, (page - 1) * perPage);
-        return {
-            data: perPage > 0 ? items.slice(start, start + perPage) : items,
-            total: items.length,
-            page,
-            perPage,
-        };
-    }
-    return raw as CanonicalPagedResponse<T>;
-}
-
 interface CanonicalPolicyRequest {
     readonly name: string;
     readonly kind: 'GLOBAL' | 'RESOURCE';
@@ -110,25 +95,6 @@ interface CanonicalUpdatePolicyRequest {
 // the module mount.
 function corePath(environmentId: string, suffix: string): string {
     return `/environments/${encodeURIComponent(environmentId)}/modules/authz${suffix}`;
-}
-
-export function deriveServiceType(entityId: string | null | undefined): PolicyType {
-    if (!entityId) return 'CUSTOM';
-    const prefix = entityId.split('.')[0]?.toLowerCase();
-    switch (prefix) {
-        case 'mcp':
-            return 'MCP';
-        case 'agent':
-            return 'AGENT';
-        case 'llm':
-            return 'LLM';
-        case 'api':
-            return 'API';
-        case 'event':
-            return 'EVENT';
-        default:
-            return 'CUSTOM';
-    }
 }
 
 function adaptEntityResponse(c: CanonicalEntity): EntityResponse {
@@ -212,10 +178,11 @@ async function applyStatusTransition(
     return null;
 }
 
-function pagingQuery(params?: PaginationParams): string {
+function entityListQuery(params?: EntityListParams): string {
     const q = new URLSearchParams();
     if (params?.page !== undefined) q.set('page', String(params.page));
     if (params?.perPage !== undefined) q.set('perPage', String(params.perPage));
+    if (params?.entityIdPrefix !== undefined) q.set('entityIdPrefix', params.entityIdPrefix);
     const qs = q.toString();
     return qs ? `?${qs}` : '';
 }
@@ -244,8 +211,7 @@ export const authzApiService = {
 
     listPolicies: async (environmentId: string, params?: PolicyListParams): Promise<PagedResponse<PolicyResponse>> => {
         const path = corePath(environmentId, '/policies') + policyListQuery(params);
-        const raw = await authzCoreApiClient.get<CanonicalPagedResponse<CanonicalPolicy> | readonly CanonicalPolicy[]>(path);
-        const response = adaptPagedListResponse(raw, params?.page, params?.perPage);
+        const response = await authzCoreApiClient.get<CanonicalPagedResponse<CanonicalPolicy>>(path);
         let mapped = response.data.map(adaptPolicyResponse);
         let total = response.total;
         if (params?.type !== undefined) {
@@ -285,10 +251,9 @@ export const authzApiService = {
     deletePolicy: (environmentId: string, id: string) =>
         authzCoreApiClient.delete<void>(corePath(environmentId, `/policies/${encodeURIComponent(id)}`)),
 
-    listEntities: async (environmentId: string, params?: PaginationParams): Promise<PagedResponse<EntityResponse>> => {
-        const path = corePath(environmentId, '/entities') + pagingQuery(params);
-        const raw = await authzCoreApiClient.get<CanonicalPagedResponse<CanonicalEntity> | readonly CanonicalEntity[]>(path);
-        const response = adaptPagedListResponse(raw, params?.page, params?.perPage);
+    listEntities: async (environmentId: string, params?: EntityListParams): Promise<PagedResponse<EntityResponse>> => {
+        const path = corePath(environmentId, '/entities') + entityListQuery(params);
+        const response = await authzCoreApiClient.get<CanonicalPagedResponse<CanonicalEntity>>(path);
         return {
             data: response.data.map(adaptEntityResponse),
             total: response.total,

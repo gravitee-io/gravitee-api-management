@@ -50,6 +50,15 @@ beforeEach(() => {
 });
 
 describe('useEntities', () => {
+    it('does not fire the query when environmentId is empty', async () => {
+        listSpy.mockResolvedValue({ data: [], total: 0, page: 1, perPage: 10 });
+        render(<Probe env="" />, { wrapper: makeWrapper() });
+
+        await Promise.resolve();
+        await Promise.resolve();
+        expect(listSpy).not.toHaveBeenCalled();
+    });
+
     it('loads entities on mount with default pagination', async () => {
         listSpy.mockResolvedValue({ data: [], total: 0, page: 1, perPage: 10 });
 
