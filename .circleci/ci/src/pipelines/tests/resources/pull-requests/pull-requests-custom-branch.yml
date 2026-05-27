@@ -632,7 +632,7 @@ jobs:
   job-console-webui-chromatic-deployment:
     docker:
       - image: cimg/node:22.12.0
-    resource_class: small
+    resource_class: medium
     steps:
       - checkout
       - attach_workspace:
