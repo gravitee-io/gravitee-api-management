@@ -21,13 +21,13 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext
 import io.gravitee.apim.core.portal_page.use_case.BulkCreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
+import io.gravitee.apim.core.portal_page.use_case.SeedDefaultPagesForApiNavigationItemsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItems;
-import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationItems;
-import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.SeedDefaultPagesRequest;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -48,7 +48,6 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
-import java.util.List;
 import java.util.Optional;
 import lombok.CustomLog;
 
@@ -69,6 +68,9 @@ public class PortalNavigationItemsResource extends AbstractResource {
 
     @Inject
     private ListPortalNavigationItemsUseCase listPortalNavigationItemsUseCase;
+
+    @Inject
+    private SeedDefaultPagesForApiNavigationItemsUseCase seedDefaultPagesForApiNavigationItemsUseCase;
 
     private final PortalNavigationItemsMapper mapper = PortalNavigationItemsMapper.INSTANCE;
 
@@ -137,6 +139,24 @@ public class PortalNavigationItemsResource extends AbstractResource {
         );
 
         return Response.ok(new PortalNavigationItemsResponse().items(mapper.map(output.items()))).build();
+    }
+
+    @Path("_default-pages")
+    @POST
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = { RolePermissionAction.CREATE }) })
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response seedDefaultPages(@Valid @NotNull final SeedDefaultPagesRequest seedDefaultPagesRequest) {
+        final var executionContext = GraviteeContext.getExecutionContext();
+
+        seedDefaultPagesForApiNavigationItemsUseCase.execute(
+            new SeedDefaultPagesForApiNavigationItemsUseCase.Input(
+                executionContext.getOrganizationId(),
+                executionContext.getEnvironmentId(),
+                seedDefaultPagesRequest.getIds().stream().map(PortalNavigationItemId::of).toList()
+            )
+        );
+
+        return Response.noContent().build();
     }
 
     @Path("{navId}")
