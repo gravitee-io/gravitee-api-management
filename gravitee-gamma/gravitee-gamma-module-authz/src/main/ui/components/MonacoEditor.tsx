@@ -29,6 +29,7 @@ export interface MonacoEditorProps {
     readonly onMount?: (editor: monacoNs.editor.IStandaloneCodeEditor, monaco: typeof monacoNs) => void;
 }
 
+// TODO(GMA-384): replace Monaco with the Graphene editor component once it lands — https://gravitee.atlassian.net/browse/GMA-384
 export function MonacoEditor({
     value,
     onChange,
