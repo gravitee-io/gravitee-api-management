@@ -22,7 +22,10 @@ import { provideRouter } from '@angular/router';
 
 import { ApplicationTabInvitationsComponent } from './application-tab-invitations.component';
 import { ApplicationTabInvitationsComponentHarness } from './application-tab-invitations.component.harness';
-import { ApplicationInvitationsResponse } from '../../../../entities/application/application-invitation';
+import {
+  ApplicationInvitationsResponse,
+  ApplicationInvitationsSearchFilters,
+} from '../../../../entities/application/application-invitation';
 import {
   fakeApplicationInvitation,
   fakeApplicationInvitationsResponse,
@@ -60,13 +63,16 @@ describe('ApplicationTabInvitationsComponent', () => {
     return TestbedHarnessEnvironment.harnessForFixture(fixture, ApplicationTabInvitationsComponentHarness);
   }
 
-  async function flush(response: ApplicationInvitationsResponse): Promise<ApplicationTabInvitationsComponentHarness> {
+  async function flush(
+    response: ApplicationInvitationsResponse,
+    expectedFilters: ApplicationInvitationsSearchFilters = {},
+  ): Promise<ApplicationTabInvitationsComponentHarness> {
     fixture.detectChanges();
     const request = httpTestingController.expectOne(req => req.url.includes('invitations/_search'));
     expect(request.request.method).toBe('POST');
     expect(request.request.params.get('page')).toBe(`${fixture.componentInstance.currentPage()}`);
     expect(request.request.params.get('size')).toBe(`${fixture.componentInstance.pageSize()}`);
-    expect(request.request.body).toEqual({ filters: {} });
+    expect(request.request.body).toEqual({ filters: expectedFilters });
     request.flush(response);
     await fixture.whenStable();
     fixture.detectChanges();
@@ -113,6 +119,35 @@ describe('ApplicationTabInvitationsComponent', () => {
     expect((await title!.text())?.replace(/\s+/g, ' ').trim()).toBe('Invitations (0)');
   });
 
+  it('should not show invitation count before the first response is loaded', async () => {
+    fixture.detectChanges();
+    const title = fixture.nativeElement.querySelector('[data-testid="invitations-section-title"]');
+    expect(title).not.toBeNull();
+    expect(title.textContent?.replace(/\s+/g, ' ').trim()).toBe('Invitations');
+
+    httpTestingController.expectOne(req => req.url.includes('invitations/_search')).flush(fakeApplicationInvitationsResponse([]));
+    await fixture.whenStable();
+  });
+
+  it('should keep previous invitation count while a reload is pending', async () => {
+    await flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()], 12));
+
+    fixture.componentInstance.onSearchTermChange('alice@example.com');
+    fixture.detectChanges();
+
+    const title = fixture.nativeElement.querySelector('[data-testid="invitations-section-title"]');
+    expect(title).not.toBeNull();
+    expect(title.textContent?.replace(/\s+/g, ' ').trim()).toBe('Invitations (12)');
+
+    httpTestingController
+      .expectOne(req => req.url.includes('invitations/_search'))
+      .flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()], 3));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(title.textContent?.replace(/\s+/g, ' ').trim()).toBe('Invitations (3)');
+  });
+
   it('should show loader until the first search response', async () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('app-loader')).not.toBeNull();
@@ -144,6 +179,98 @@ describe('ApplicationTabInvitationsComponent', () => {
     httpTestingController.expectNone(req => req.url.includes('invitations/_search'));
     const harness = await getHarness();
     expect(await harness.getPaginatedTable()).toBeNull();
+    expect(await harness.getSearchBar()).toBeNull();
+  });
+
+  describe('search behavior', () => {
+    it('should render search bar when canRead', async () => {
+      const harness = await flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()]));
+      expect(await harness.getSearchBar()).not.toBeNull();
+    });
+
+    it('should send email filter when search term is set', async () => {
+      await flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()]));
+
+      fixture.componentInstance.onSearchTermChange(' alice@example.com ');
+      fixture.detectChanges();
+
+      const request = httpTestingController.expectOne(req => req.url.includes('invitations/_search') && req.params.get('page') === '1');
+      expect(request.request.body).toEqual({ filters: { email: 'alice@example.com' } });
+      request.flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation({ email: 'alice@example.com' })]));
+      await fixture.whenStable();
+    });
+
+    it('should reset page to 1 when search term changes', async () => {
+      await flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()], 25));
+      fixture.componentInstance.onPageChange(2);
+      fixture.detectChanges();
+      httpTestingController
+        .expectOne(req => req.url.includes('invitations/_search') && req.params.get('page') === '2')
+        .flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation({ id: 'invitation-p2' })]));
+      await fixture.whenStable();
+
+      fixture.componentInstance.onSearchTermChange('alice@example.com');
+      fixture.detectChanges();
+
+      const request = httpTestingController.expectOne(req => req.url.includes('invitations/_search'));
+      expect(request.request.params.get('page')).toBe('1');
+      expect(request.request.body).toEqual({ filters: { email: 'alice@example.com' } });
+      request.flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation({ email: 'alice@example.com' })]));
+      await fixture.whenStable();
+    });
+
+    it('should show no-match empty state when search is active and returns no invitations', async () => {
+      await flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()]));
+
+      fixture.componentInstance.onSearchTermChange('missing@example.com');
+      fixture.detectChanges();
+      httpTestingController.expectOne(req => req.url.includes('invitations/_search')).flush(fakeApplicationInvitationsResponse([]));
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const harness = await getHarness();
+      expect(await harness.getSearchNoMatch()).not.toBeNull();
+      expect(await harness.getEmptyState()).toBeNull();
+      expect(await harness.getPaginatedTable()).toBeNull();
+    });
+
+    it('should send no filters after clearing the search term', async () => {
+      await flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()]));
+      fixture.componentInstance.onSearchTermChange('alice@example.com');
+      fixture.detectChanges();
+      httpTestingController
+        .expectOne(req => req.url.includes('invitations/_search'))
+        .flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()]));
+      await fixture.whenStable();
+
+      fixture.componentInstance.onSearchTermChange('');
+      fixture.detectChanges();
+
+      const request = httpTestingController.expectOne(req => req.url.includes('invitations/_search'));
+      expect(request.request.body).toEqual({ filters: {} });
+      request.flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()]));
+      await fixture.whenStable();
+    });
+
+    it('should keep active search filter when page size changes', async () => {
+      await flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()], 25));
+      fixture.componentInstance.onSearchTermChange('alice@example.com');
+      fixture.detectChanges();
+      httpTestingController
+        .expectOne(req => req.url.includes('invitations/_search'))
+        .flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()]));
+      await fixture.whenStable();
+
+      fixture.componentInstance.onPageSizeChange(25);
+      fixture.detectChanges();
+
+      const request = httpTestingController.expectOne(
+        req => req.url.includes('invitations/_search') && req.params.get('page') === '1' && req.params.get('size') === '25',
+      );
+      expect(request.request.body).toEqual({ filters: { email: 'alice@example.com' } });
+      request.flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()]));
+      await fixture.whenStable();
+    });
   });
 
   it('should render invitation email icon, email and role cells', async () => {

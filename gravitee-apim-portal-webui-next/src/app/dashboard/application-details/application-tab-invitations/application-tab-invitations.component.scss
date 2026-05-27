@@ -15,7 +15,20 @@
  */
 @use '../../../../scss/theme/index' as app-theme;
 
+app-search-bar {
+  display: block;
+  max-width: 400px;
+}
+
 .invitations {
+  &__toolbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
   &__title {
     margin: 0 0 16px;
   }

@@ -25,6 +25,8 @@ export class ApplicationTabInvitationsComponentHarness extends ComponentHarness 
   private readonly locateSectionTitle = this.locatorForOptional('[data-testid="invitations-section-title"]');
   private readonly locateErrorMessage = this.locatorForOptional('[data-testid="invitations-list-error"]');
   private readonly locateEmptyState = this.locatorForOptional('[data-testid="invitations-empty-state"]');
+  private readonly locateSearchBar = this.locatorForOptional('app-search-bar');
+  private readonly locateSearchNoMatch = this.locatorForOptional('[data-testid="invitations-search-no-match"]');
   private readonly locatePaginatedTable = this.locatorForOptional(PaginatedTableHarness);
 
   public async getLoader(): Promise<LoaderHarness | null> {
@@ -41,6 +43,14 @@ export class ApplicationTabInvitationsComponentHarness extends ComponentHarness 
 
   public async getEmptyState(): Promise<TestElement | null> {
     return this.locateEmptyState();
+  }
+
+  public async getSearchBar(): Promise<TestElement | null> {
+    return this.locateSearchBar();
+  }
+
+  public async getSearchNoMatch(): Promise<TestElement | null> {
+    return this.locateSearchNoMatch();
   }
 
   public async getPaginatedTable(): Promise<PaginatedTableHarness | null> {
