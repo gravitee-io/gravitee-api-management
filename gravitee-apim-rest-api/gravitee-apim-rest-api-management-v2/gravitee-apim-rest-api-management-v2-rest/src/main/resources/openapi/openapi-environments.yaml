@@ -977,6 +977,25 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  /portal-navigation-items/_default-pages:
+    post:
+      tags:
+        - Portal Navigation Items
+      summary: Seed default pages for API navigation items
+      description: User must have the ENVIRONMENT_DOCUMENTATION[create] permission.
+      operationId: seedDefaultPages
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SeedDefaultPagesRequest"
+        required: true
+      responses:
+        "204":
+          description: Default pages seeded
+        default:
+          $ref: "#/components/responses/Error"
+
   /portal-navigation-items/{navId}:
     put:
       tags:
@@ -2250,6 +2269,17 @@ components:
           items:
             $ref: "#/components/schemas/BaseCreatePortalNavigationItem"
       required: [ items ]
+
+    SeedDefaultPagesRequest:
+      type: object
+      description: Portal navigation API item ids that should receive their default overview page
+      properties:
+        ids:
+          type: array
+          minItems: 1
+          items:
+            type: string
+      required: [ ids ]
 
     BaseUpdatePortalNavigationItem:
       type: object
