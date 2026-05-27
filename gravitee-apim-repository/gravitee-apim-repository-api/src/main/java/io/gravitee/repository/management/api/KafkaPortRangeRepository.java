@@ -51,6 +51,11 @@ public interface KafkaPortRangeRepository extends CrudRepository<KafkaPortRange,
      * transactions (which require a replica-set or sharded cluster plus explicit client-side
      * session management). Deployments that require strict concurrent-save protection on MongoDB
      * must enable multi-document transactions and wire this call through a ClientSession.</p>
+     *
+     * <p><b>SQL Server limitation:</b> the JDBC implementation also delegates to the non-locking
+     * query when the underlying driver is SQL Server, which rejects ANSI {@code SELECT ... FOR UPDATE}
+     * outside {@code DECLARE CURSOR}. Deployments that require strict concurrent-save protection on
+     * SQL Server must run the Management API against MariaDB, MySQL, or PostgreSQL.</p>
      */
     List<KafkaPortRange> findConflictingForUpdate(
         String environmentId,

@@ -16,6 +16,7 @@
 package io.gravitee.repository.jdbc.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.KafkaPortRangeRepository;
 import io.gravitee.repository.management.model.KafkaPortRange;
@@ -90,7 +91,8 @@ public class JdbcKafkaPortRangeRepository extends JdbcAbstractCrudRepository<Kaf
                 .append("  or (bootstrap_port = ?)") // 4. bootstrap port collision
                 .append(")");
 
-            if (forUpdate) {
+            // SQL Server falls back to the non-locking query — see KafkaPortRangeRepository#findConflictingForUpdate javadoc.
+            if (forUpdate && !AbstractJdbcRepositoryConfiguration.isSqlServer()) {
                 // Row-level lock held until transaction commit — prevents TOCTOU between concurrent
                 // plan saves: the second transaction blocks on the first's locks, then re-reads the
                 // freshly-inserted row in its own conflict check and fails cleanly.
