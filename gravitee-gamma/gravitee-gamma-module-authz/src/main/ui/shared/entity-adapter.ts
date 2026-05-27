@@ -14,43 +14,10 @@
  * limitations under the License.
  */
 import type { EntityRequest, EntityResponse } from './api/authz-api.types';
+import { kindToUiType, uiTypeToKind } from './entity-kind-registry';
 import type { AttrValue, EntityInstance, EntitySource } from './entity.types';
 
 export const META_KEYS = new Set(['_source', '_displayName', '_importedAt', '_kind', '_url', '_syncedAt', '_proxyApiId']);
-
-/**
- * Maps a kind hint (lowercased — either the `_kind` attribute or the first
- * dotted segment of the entityId) to the structured uid type the UI's
- * categories table speaks. Returns undefined when the hint is missing or unknown.
- */
-function kindToType(kind: unknown): string | undefined {
-    if (typeof kind !== 'string') return undefined;
-    const k = kind.toLowerCase();
-    if (k === 'user') return 'User';
-    if (k === 'group') return 'Group';
-    if (k === 'serviceaccount' || k === 'service-account' || k === 'service_account') return 'ServiceAccount';
-    if (k === 'agentidentity' || k === 'agent') return 'AgentIdentity';
-    if (k === 'mcp' || k === 'mcpserver') return 'MCPServer';
-    if (k === 'llm' || k === 'llmroute') return 'LLMRoute';
-    // APIM-managed proxies (api.*) live under the schema's API type so the
-    // editor can pre-select them as policy targets. Custom hand-rolled
-    // entities use the `resource.*` prefix and surface under the dedicated
-    // Resource type so the two buckets stay distinct.
-    if (k === 'api') return 'API';
-    if (k === 'resource') return 'Resource';
-    // actions are managed on their own page; tag them so EntitiesPage can hide them
-    if (k === 'action') return 'Action';
-    return undefined;
-}
-
-function typeToKind(type: string): string {
-    const t = type.toLowerCase();
-    if (t === 'serviceaccount') return 'serviceaccount';
-    if (t === 'agentidentity') return 'agent';
-    if (t === 'mcpserver') return 'mcp';
-    if (t === 'llmroute') return 'llm';
-    return t;
-}
 
 /**
  * Parse a canonical dotted backend uid (`<kind>.<id>`, e.g. `user.alice`,
@@ -63,7 +30,7 @@ function typeToKind(type: string): string {
 export function parseEntityUid(uid: string): { type: string; id: string } {
     const dot = uid.indexOf('.');
     if (dot > 0) {
-        const inferred = kindToType(uid.slice(0, dot));
+        const inferred = kindToUiType(uid.slice(0, dot));
         if (inferred) {
             return { type: inferred, id: uid.slice(dot + 1) };
         }
@@ -81,7 +48,7 @@ export function parseEntityUid(uid: string): { type: string; id: string } {
  * silent collision.
  */
 export function formatEntityUid(u: { type: string; id: string }): string {
-    return `${typeToKind(u.type)}.${u.id}`;
+    return `${uiTypeToKind(u.type)}.${u.id}`;
 }
 
 /**
@@ -109,7 +76,7 @@ export function fromBackend(e: EntityResponse): EntityInstance {
         } else if (k === '_importedAt' || k === '_syncedAt') {
             importedAt = v as string;
         } else if (k === '_kind') {
-            kindOverride = kindToType(v);
+            kindOverride = kindToUiType(v);
         } else if (k === '_url' || k === '_proxyApiId') {
             // meta — drop from visible attrs
         } else {
@@ -148,7 +115,7 @@ function resolveUid(rawUid: string, kindOverride: string | undefined): { type: s
     if (!kindOverride) {
         return parsedFromUid;
     }
-    const expectedPrefix = typeToKind(kindOverride) + '.';
+    const expectedPrefix = uiTypeToKind(kindOverride) + '.';
     const id = rawUid.startsWith(expectedPrefix) ? rawUid.slice(expectedPrefix.length) : rawUid;
     return { type: kindOverride, id };
 }
@@ -162,6 +129,10 @@ export function toBackend(e: EntityInstance): EntityRequest {
 
     const attributes: Record<string, unknown> = { ...e.attrs };
 
+    // Surface uid.type back as `_kind` so a fromBackend → toBackend round-trip
+    // preserves the explicit kind that fromBackend may have consumed off the
+    // wire. Without this, kind information is silently dropped on the next PUT.
+    attributes['_kind'] = uiTypeToKind(e.uid.type);
     if (e.source && e.source !== 'local') {
         attributes['_source'] = e.source;
     }

@@ -211,6 +211,26 @@ describe('toBackend', () => {
         expect(req.uid).toBe('group.engineering');
         expect(req.attributes['name']).toBe('Engineering');
         expect(req.attributes['_displayName']).toBe('Engineering Team');
+        // _kind is consumed by fromBackend into the structured uid.type and
+        // must be re-emitted by toBackend so the backend keeps the explicit
+        // kind on the next PUT.
+        expect(req.attributes['_kind']).toBe('group');
+    });
+
+    it('writes _kind back even when the source response did not carry it', () => {
+        const inst = fromBackend({
+            id: 'x',
+            environmentId: 'DEFAULT',
+            uid: 'mcp.flight',
+            attributes: { name: 'Flight MCP' },
+            parents: [],
+            createdAt: '',
+            updatedAt: '',
+        });
+        const req = toBackend(inst);
+        // uid.type was inferred from the dotted prefix (mcp → MCPServer);
+        // toBackend re-emits _kind so the round-trip keeps the kind hint.
+        expect(req.attributes['_kind']).toBe('mcp');
     });
 
     it('round-trips a multi-segment principal without re-wrapping', () => {

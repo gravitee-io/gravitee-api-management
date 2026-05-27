@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
 import { authzApiService, DEFAULT_PER_PAGE, type PolicyListParams } from '../api/authz-api.service';
 import type { PagedResponse, PolicyRequest, PolicyResponse, PolicyStatus, PolicyType } from '../api/authz-api.types';
@@ -36,6 +36,9 @@ export interface UsePoliciesResult {
     readonly create: (request: PolicyRequest) => Promise<PolicyResponse>;
     readonly update: (id: string, request: PolicyRequest) => Promise<PolicyResponse>;
     readonly remove: (id: string) => Promise<void>;
+    readonly isCreating: boolean;
+    readonly isUpdating: boolean;
+    readonly isRemoving: boolean;
     readonly reload: () => void;
 }
 
@@ -58,6 +61,7 @@ export function usePolicies(environmentId: string, options: UsePoliciesOptions =
     const query = useQuery({
         queryKey: authzQueryKeys.policies.page(environmentId, page, perPage, type, status),
         queryFn: () => authzApiService.listPolicies(environmentId, params),
+        enabled: Boolean(environmentId),
         staleTime: 30_000,
         placeholderData: keepPreviousData,
     });
@@ -69,31 +73,24 @@ export function usePolicies(environmentId: string, options: UsePoliciesOptions =
 
     const reload = useCallback(() => void invalidate(), [invalidate]);
 
-    const create = useCallback(
-        async (request: PolicyRequest) => {
-            const created = await authzApiService.createPolicy(environmentId, request);
-            void invalidate();
-            return created;
-        },
-        [environmentId, invalidate],
-    );
+    const createMutation = useMutation({
+        mutationFn: (request: PolicyRequest) => authzApiService.createPolicy(environmentId, request),
+        onSuccess: () => void invalidate(),
+    });
 
-    const update = useCallback(
-        async (id: string, request: PolicyRequest) => {
-            const updated = await authzApiService.updatePolicy(environmentId, id, request);
-            void invalidate();
-            return updated;
-        },
-        [environmentId, invalidate],
-    );
+    const updateMutation = useMutation({
+        mutationFn: ({ id, request }: { id: string; request: PolicyRequest }) => authzApiService.updatePolicy(environmentId, id, request),
+        onSuccess: () => void invalidate(),
+    });
 
-    const remove = useCallback(
-        async (id: string) => {
-            await authzApiService.deletePolicy(environmentId, id);
-            void invalidate();
-        },
-        [environmentId, invalidate],
-    );
+    const removeMutation = useMutation({
+        mutationFn: (id: string) => authzApiService.deletePolicy(environmentId, id),
+        onSuccess: () => void invalidate(),
+    });
+
+    const create = useCallback((request: PolicyRequest) => createMutation.mutateAsync(request), [createMutation]);
+    const update = useCallback((id: string, request: PolicyRequest) => updateMutation.mutateAsync({ id, request }), [updateMutation]);
+    const remove = useCallback((id: string) => removeMutation.mutateAsync(id), [removeMutation]);
 
     return {
         data: query.data ?? null,
@@ -106,6 +103,9 @@ export function usePolicies(environmentId: string, options: UsePoliciesOptions =
         create,
         update,
         remove,
+        isCreating: createMutation.isPending,
+        isUpdating: updateMutation.isPending,
+        isRemoving: removeMutation.isPending,
         reload,
     };
 }

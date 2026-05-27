@@ -51,6 +51,15 @@ beforeEach(() => {
 });
 
 describe('useSchema', () => {
+    it('does not fire the query when environmentId is empty', async () => {
+        getSchemaSpy.mockResolvedValue({ environmentId: '', schemaText: '', updatedAt: null });
+        render(<Probe env="" />, { wrapper: makeWrapper() });
+
+        await Promise.resolve();
+        await Promise.resolve();
+        expect(getSchemaSpy).not.toHaveBeenCalled();
+    });
+
     it('loads schema on mount', async () => {
         getSchemaSpy.mockResolvedValue({
             environmentId: 'env-1',

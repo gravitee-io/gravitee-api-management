@@ -41,6 +41,7 @@ export function useSchema(environmentId: string): UseSchemaResult {
                 throw e;
             }
         },
+        enabled: Boolean(environmentId),
         staleTime: 30_000,
     });
 

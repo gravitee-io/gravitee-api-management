@@ -21,10 +21,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { usePolicies, type UsePoliciesResult } from '../usePolicies';
 
 const listSpy = vi.fn();
+const createSpy = vi.fn();
+const updateSpy = vi.fn();
+const deleteSpy = vi.fn();
 vi.mock('../../api/authz-api.service', () => ({
     DEFAULT_PER_PAGE: 10,
     authzApiService: {
         listPolicies: (env: string, params?: unknown) => listSpy(env, params),
+        createPolicy: (env: string, req: unknown) => createSpy(env, req),
+        updatePolicy: (env: string, id: string, req: unknown) => updateSpy(env, id, req),
+        deletePolicy: (env: string, id: string) => deleteSpy(env, id),
     },
 }));
 
@@ -46,9 +52,22 @@ function Probe({ env, type }: { env: string; type?: 'MCP' | 'AGENT' | 'LLM' | 'A
 
 beforeEach(() => {
     listSpy.mockReset();
+    createSpy.mockReset();
+    updateSpy.mockReset();
+    deleteSpy.mockReset();
 });
 
 describe('usePolicies', () => {
+    it('does not fire the query when environmentId is empty', async () => {
+        listSpy.mockResolvedValue({ data: [], total: 0, page: 1, perPage: 10 });
+        render(<Probe env="" type="MCP" />, { wrapper: makeWrapper() });
+
+        // Give react-query a few ticks to schedule any pending fetch.
+        await Promise.resolve();
+        await Promise.resolve();
+        expect(listSpy).not.toHaveBeenCalled();
+    });
+
     it('calls listPolicies with env + type on mount', async () => {
         listSpy.mockResolvedValue({ data: [], total: 0, page: 1, perPage: 10 });
         const { getByTestId } = render(<Probe env="env-1" type="MCP" />, { wrapper: makeWrapper() });
@@ -146,5 +165,97 @@ describe('usePolicies', () => {
         await Promise.resolve();
         await Promise.resolve();
         expect(getByTestId('total').textContent).toBe('7');
+    });
+
+    it('create() forwards payload + invalidates list', async () => {
+        listSpy.mockResolvedValue({ data: [], total: 0, page: 1, perPage: 10 });
+        createSpy.mockResolvedValue({ id: 'p1', name: 'Allow' });
+
+        const ref: { current: UsePoliciesResult | undefined } = { current: undefined };
+        function CaptureProbe() {
+            const state = usePolicies('env-c', {});
+            useEffect(() => {
+                ref.current = state;
+            });
+            return null;
+        }
+
+        render(<CaptureProbe />, { wrapper: makeWrapper() });
+        await waitFor(() => expect(listSpy).toHaveBeenCalledTimes(1));
+
+        const payload = { name: 'Allow', type: 'MCP', target: null, policyText: '' };
+        await act(async () => {
+            await ref.current?.create(payload as never);
+        });
+
+        expect(createSpy).toHaveBeenCalledWith('env-c', payload);
+        await waitFor(() => expect(listSpy).toHaveBeenCalledTimes(2));
+    });
+
+    it('update() forwards id + payload + invalidates list', async () => {
+        listSpy.mockResolvedValue({ data: [], total: 0, page: 1, perPage: 10 });
+        updateSpy.mockResolvedValue({ id: 'p1', name: 'Updated' });
+
+        const ref: { current: UsePoliciesResult | undefined } = { current: undefined };
+        function CaptureProbe() {
+            const state = usePolicies('env-u', {});
+            useEffect(() => {
+                ref.current = state;
+            });
+            return null;
+        }
+
+        render(<CaptureProbe />, { wrapper: makeWrapper() });
+        await waitFor(() => expect(listSpy).toHaveBeenCalledTimes(1));
+
+        const payload = { name: 'Updated', type: 'MCP', target: null, policyText: '' };
+        await act(async () => {
+            await ref.current?.update('p1', payload as never);
+        });
+
+        expect(updateSpy).toHaveBeenCalledWith('env-u', 'p1', payload);
+        await waitFor(() => expect(listSpy).toHaveBeenCalledTimes(2));
+    });
+
+    it('remove() forwards id + invalidates list', async () => {
+        listSpy.mockResolvedValue({ data: [], total: 0, page: 1, perPage: 10 });
+        deleteSpy.mockResolvedValue(undefined);
+
+        const ref: { current: UsePoliciesResult | undefined } = { current: undefined };
+        function CaptureProbe() {
+            const state = usePolicies('env-r', {});
+            useEffect(() => {
+                ref.current = state;
+            });
+            return null;
+        }
+
+        render(<CaptureProbe />, { wrapper: makeWrapper() });
+        await waitFor(() => expect(listSpy).toHaveBeenCalledTimes(1));
+
+        await act(async () => {
+            await ref.current?.remove('p1');
+        });
+
+        expect(deleteSpy).toHaveBeenCalledWith('env-r', 'p1');
+        await waitFor(() => expect(listSpy).toHaveBeenCalledTimes(2));
+    });
+
+    it('exposes isCreating / isUpdating / isRemoving flags', async () => {
+        listSpy.mockResolvedValue({ data: [], total: 0, page: 1, perPage: 10 });
+        const ref: { current: UsePoliciesResult | undefined } = { current: undefined };
+        function CaptureProbe() {
+            const state = usePolicies('env-flags', {});
+            useEffect(() => {
+                ref.current = state;
+            });
+            return null;
+        }
+        render(<CaptureProbe />, { wrapper: makeWrapper() });
+        await waitFor(() => expect(ref.current).toBeDefined());
+
+        expect(ref.current?.isCreating).toBe(false);
+        expect(ref.current?.isUpdating).toBe(false);
+        expect(ref.current?.isRemoving).toBe(false);
     });
 });
