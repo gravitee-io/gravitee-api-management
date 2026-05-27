@@ -48,6 +48,7 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper(
     uses = {
+        AnalyticsMapper.class,
         DateMapper.class,
         ConfigurationSerializationMapper.class,
         EndpointMapper.class,
@@ -73,12 +74,14 @@ public interface ApiCRDMapper {
     default Analytics mapAnalytics(io.gravitee.apim.core.api.model.crd.ApiCRDSpec coreSpec) {
         if (coreSpec.isNative()) {
             return mapNative(coreSpec.getNativeAnalytics());
-        } else {
-            return map(coreSpec.getAnalytics());
         }
+        return mapAnalytics(coreSpec.getAnalytics());
     }
 
-    Analytics map(io.gravitee.definition.model.v4.analytics.Analytics analytics);
+    default Analytics mapAnalytics(io.gravitee.definition.model.v4.analytics.Analytics analytics) {
+        return AnalyticsMapper.INSTANCE.toAnalytics(analytics);
+    }
+
     Analytics mapNative(io.gravitee.definition.model.v4.nativeapi.NativeAnalytics analytics);
 
     @Mapping(target = "security.type", qualifiedByName = "mapSecurityType")

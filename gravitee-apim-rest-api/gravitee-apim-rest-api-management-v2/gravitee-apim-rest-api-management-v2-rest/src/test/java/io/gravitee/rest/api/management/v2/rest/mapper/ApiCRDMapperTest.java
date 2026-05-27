@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import fixtures.AnalyticsFixtures;
 import fixtures.definition.FlowFixtures;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
@@ -32,6 +33,7 @@ import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLifecycleState;
+import io.gravitee.rest.api.management.v2.rest.model.Sampling;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,6 +60,18 @@ class ApiCRDMapperTest {
             soft.assertThat(restModel.getPlans()).containsKey("keyless-key");
             soft.assertThat(restModel.getLifecycleState()).isEqualTo(ApiLifecycleState.UNPUBLISHED);
             soft.assertThat(restModel.getTags()).contains("tag");
+        });
+    }
+
+    @Test
+    void should_map_message_sampling_to_rest_sampling() {
+        var restModel = ApiCRDMapper.INSTANCE.map(aCoreCRD().type("MESSAGE").analytics(AnalyticsFixtures.anAnalytics()).build());
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(restModel.getAnalytics()).isNotNull();
+            soft.assertThat(restModel.getAnalytics().getSampling()).isNotNull();
+            soft.assertThat(restModel.getAnalytics().getSampling().getType()).isEqualTo(Sampling.TypeEnum.COUNT);
+            soft.assertThat(restModel.getAnalytics().getSampling().getValue()).isEqualTo("10");
         });
     }
 
