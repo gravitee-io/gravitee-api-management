@@ -207,17 +207,6 @@ function policyListQuery(params?: PolicyListParams): string {
     return qs ? `?${qs}` : '';
 }
 
-function entityListQuery(params?: EntityListParams): string {
-    const q = new URLSearchParams();
-    if (params?.page !== undefined) q.set('page', String(params.page));
-    if (params?.perPage !== undefined) q.set('perPage', String(params.perPage));
-    if (params?.kind !== undefined) q.set('kind', params.kind);
-    if (params?.source !== undefined) q.set('source', params.source);
-    if (params?.entityIdPrefix !== undefined) q.set('entityIdPrefix', params.entityIdPrefix);
-    if (params?.excludeEntityIdPrefix !== undefined) q.set('excludeEntityIdPrefix', params.excludeEntityIdPrefix);
-    const qs = q.toString();
-    return qs ? `?${qs}` : '';
-}
 export const authzApiService = {
     getSchema: async (environmentId: string): Promise<SchemaResponse> => {
         const c = await authzCoreApiClient.get<CanonicalSchema>(corePath(environmentId, '/schema'));

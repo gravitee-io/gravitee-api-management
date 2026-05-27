@@ -69,6 +69,14 @@ export function useEntities(
         [environmentId, queryClient],
     );
 
+    // Wrap setPerPage so page resets to 1 — otherwise a switch from perPage=10
+    // while on page=2 leaves page=2&perPage=50 and the backend serves an empty
+    // slice when the new perPage exceeds total rows.
+    const setPerPageAndResetPage = useCallback((next: number) => {
+        setPerPage(next);
+        setPage(1);
+    }, []);
+
     return {
         data: query.data ?? null,
         isLoading: query.isLoading,
@@ -76,7 +84,7 @@ export function useEntities(
         page,
         perPage,
         setPage,
-        setPerPage,
+        setPerPage: setPerPageAndResetPage,
         reload,
     };
 }

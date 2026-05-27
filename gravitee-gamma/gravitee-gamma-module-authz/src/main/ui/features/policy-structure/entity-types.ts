@@ -19,17 +19,16 @@ export type EntityCategoryId = 'principal' | 'mcp' | 'api' | 'agent' | 'llm' | '
 export interface EntityCategory {
     id: EntityCategoryId;
     label: string;
-    textColor: string;
 }
 
 export const CATEGORIES: EntityCategory[] = [
-    { id: 'principal', label: 'Principals', textColor: 'text-blue-600 dark:text-blue-400' },
-    { id: 'mcp', label: 'MCP', textColor: 'text-teal-600 dark:text-teal-400' },
-    { id: 'api', label: 'APIs', textColor: 'text-indigo-600 dark:text-indigo-400' },
-    { id: 'agent', label: 'Agents', textColor: 'text-orange-600 dark:text-orange-400' },
-    { id: 'llm', label: 'LLMs', textColor: 'text-fuchsia-600 dark:text-fuchsia-400' },
-    { id: 'event', label: 'Events', textColor: 'text-cyan-600 dark:text-cyan-400' },
-    { id: 'custom', label: 'Custom', textColor: 'text-slate-600 dark:text-slate-400' },
+    { id: 'principal', label: 'Principals' },
+    { id: 'mcp', label: 'MCP' },
+    { id: 'api', label: 'APIs' },
+    { id: 'agent', label: 'Agents' },
+    { id: 'llm', label: 'LLMs' },
+    { id: 'event', label: 'Events' },
+    { id: 'custom', label: 'Custom' },
 ];
 
 export function getCategory(id: EntityCategoryId): EntityCategory | undefined {
