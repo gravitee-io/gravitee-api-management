@@ -45,9 +45,9 @@
   @if (dashboardsResource.isLoading()) {
     <app-loader class="analytics-list__loader" />
   } @else if (dashboardsResource.error()) {
-    <div class="analytics-list__error next-gen-body" role="alert" data-testid="analytics-list-error" i18n="@@analyticsListError">
+    <app-banner type="error" role="alert" data-testid="analytics-list-error" i18n="@@analyticsListError">
       An error occurred while loading analytics dashboards. Try again later or contact your Portal administrator.
-    </div>
+    </app-banner>
   } @else {
     <app-cards-grid
       class="analytics-list__grid"

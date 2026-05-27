@@ -78,12 +78,4 @@
   &__pagination {
     margin-top: 16px;
   }
-
-  &__error {
-    padding: 12px 16px;
-    margin-bottom: 16px;
-    background: app-theme.$banner-error-background-color;
-    color: app-theme.$banner-error-text-color;
-    border-radius: 4px;
-  }
 }
