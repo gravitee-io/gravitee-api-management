@@ -73,6 +73,16 @@ export async function updateApplicationNotification(
     );
 }
 
+export async function deleteApplicationNotification(environmentId: string, applicationId: string, notificationId: string): Promise<void> {
+    await apimFetchJsonV1Env<void>(
+        environmentId,
+        `${applicationPath(applicationId)}/notificationsettings/${encodeURIComponent(notificationId)}`,
+        {
+            method: 'DELETE',
+        },
+    );
+}
+
 export async function listApplicationMetadata(environmentId: string, applicationId: string): Promise<ApplicationMetadata[]> {
     return apimFetchJsonV1Env<ApplicationMetadata[]>(environmentId, `${applicationPath(applicationId)}/metadata/`);
 }

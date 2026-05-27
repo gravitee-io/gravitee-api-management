@@ -40,6 +40,7 @@ import { MemberAvatar } from './MemberAvatar';
 import { isMemberPrimaryOwner } from './memberHelpers';
 import { searchUsers } from '../../services/applicationMembers';
 import type { ApplicationTransferOwnershipPayload, ApplicationUiMember, SearchableUser } from '../../types/applicationMembers.types';
+import { applicationMemberKeys } from '../../utils/queryKeys';
 
 export function TransferOwnershipDialog({
     open,
@@ -77,7 +78,7 @@ export function TransferOwnershipDialog({
 
     const deferredQuery = useDeferredValue(userSearch);
     const { data: searchResults, isFetching: isSearching } = useQuery({
-        queryKey: ['user-search-transfer', deferredQuery],
+        queryKey: applicationMemberKeys.userSearchTransfer(deferredQuery),
         queryFn: () => searchUsers(deferredQuery),
         enabled: tab === 'user' && deferredQuery.trim().length >= 2,
         staleTime: 30_000,
@@ -188,10 +189,10 @@ export function TransferOwnershipDialog({
                                 <div className="relative">
                                     <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
                                     <Input
-                                        className="pl-10"
                                         placeholder="Type at least 2 characters…"
                                         value={userSearch}
                                         onChange={e => setUserSearch(e.target.value)}
+                                        style={{ paddingLeft: '2.5rem' }}
                                     />
                                     {userSearch.trim().length >= 2 && (
                                         <div className="absolute z-50 w-full top-full mt-1 rounded-lg border shadow-md overflow-hidden bg-background">

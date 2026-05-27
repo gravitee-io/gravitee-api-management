@@ -42,8 +42,8 @@ export async function addApplicationMember(
     environmentId: string,
     applicationId: string,
     payload: { id: string; role: string },
-): Promise<ApplicationUiMember> {
-    const created = await apimFetchJsonV1Env<ApplicationMemberEntity | undefined>(
+): Promise<void> {
+    await apimFetchJsonV1Env<ApplicationMemberEntity | undefined>(
         environmentId,
         `/applications/${encodeURIComponent(applicationId)}/members`,
         {
@@ -52,7 +52,6 @@ export async function addApplicationMember(
             body: JSON.stringify(payload),
         },
     );
-    return mapApplicationMemberToUiMember(created ?? { id: payload.id, displayName: payload.id, role: payload.role });
 }
 
 export async function updateApplicationMember(

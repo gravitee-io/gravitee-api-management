@@ -19,19 +19,7 @@ import { useMemo } from 'react';
 import { OverviewChecklistCard, type OverviewChecklistItem } from './OverviewChecklistCard';
 import type { ApplicationOverviewData } from '../../hooks/useApplicationOverviewData';
 import type { ApplicationListItem } from '../../types/application';
-
-function hasReviewedGeneralSettings(application: ApplicationListItem | null): boolean {
-    if (!application) return false;
-
-    return Boolean(
-        application.description?.trim() ||
-            application.domain?.trim() ||
-            application.settings?.app?.client_id?.trim() ||
-            application.settings?.oauth?.client_id?.trim() ||
-            application.settings?.oauth?.redirect_uris?.length ||
-            application.updated_at > application.created_at,
-    );
-}
+import { hasReviewedGeneralSettings } from '../../utils/applicationOverviewHelpers';
 
 interface ApplicationOverviewChecklistProps {
     readonly application: ApplicationListItem | null;
