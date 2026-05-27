@@ -46,11 +46,14 @@ describe('ApiListTable', () => {
 
     afterEach(() => jest.clearAllMocks());
 
-    it('renders skeleton rows when loading', () => {
+    it('renders skeleton rows when loading', async () => {
         const { container } = renderTable({ isLoading: true, skeletonRowCount: 3 });
-        // Each skeleton row has 5 Skeleton elements
-        const skeletons = container.querySelectorAll('[class*="animate-pulse"]');
-        expect(skeletons.length).toBeGreaterThan(0);
+        // Each skeleton row has 5 Skeleton elements. DataTable defers skeletons by ~200ms (loadingDelay)
+        // to prevent flash on fast requests, so we have to wait for them.
+        await waitFor(() => {
+            const skeletons = container.querySelectorAll('[class*="animate-pulse"]');
+            expect(skeletons.length).toBeGreaterThan(0);
+        });
     });
 
     it('renders the empty state when no APIs are present', () => {
