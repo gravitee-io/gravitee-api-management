@@ -62,19 +62,21 @@ describe('HomePage', () => {
         respondWith('get', `${TEST_GAMMA_BASE}/environments/env-1-id/modules/aim/catalog/agents`, { pagination: { totalCount: 0 } });
     });
 
-    it('should render one Open link per module + the Coming soon card when all modules are present', async () => {
+    it('should render one Open link per active module + the Coming soon cards when all modules are present', async () => {
         renderHome(ALL_MODULES);
 
-        // 5 cards mapped to 5 modules — each renders an "Open →" CTA inside a <Link>.
+        // 4 active module cards (aim, apim, platform, authz) — each renders an "Open →" CTA
+        // inside a <Link>. Catalog and Event API Management are now `coming-soon` so they have
+        // no Open link even though `catalog` is in the backend modules list.
         await waitFor(() => {
-            expect(screen.getAllByText('Open')).toHaveLength(5);
+            expect(screen.getAllByText('Open')).toHaveLength(4);
         });
 
-        // Static "Coming soon" placeholder is always rendered.
-        expect(screen.getByText('Coming soon')).toBeTruthy();
+        // 2 "Coming soon" placeholders are always rendered (Catalog + Event API Management).
+        expect(screen.getAllByText('Coming soon')).toHaveLength(2);
         expect(screen.getByRole('heading', { level: 3, name: 'Event API Management' })).toBeTruthy();
 
-        // Each module card title is an <h3>.
+        // Each card title is an <h3> — coming-soon cards keep their heading.
         for (const name of ['Agent Management', 'API Management', 'Platform', 'Catalog', 'Authorization']) {
             expect(screen.getByRole('heading', { level: 3, name })).toBeTruthy();
         }
@@ -89,9 +91,9 @@ describe('HomePage', () => {
         // No "Open →" CTA inside this specific card.
         expect(within(card).queryByText('Open')).toBeNull();
 
-        // The other 4 modules still get their Open CTA — 4 not 5.
+        // The other 3 active modules (apim, platform, authz) still get their Open CTA.
         await waitFor(() => {
-            expect(screen.getAllByText('Open')).toHaveLength(4);
+            expect(screen.getAllByText('Open')).toHaveLength(3);
         });
     });
 
