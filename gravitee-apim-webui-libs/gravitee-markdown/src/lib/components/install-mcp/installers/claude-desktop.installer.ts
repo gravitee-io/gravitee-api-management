@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@forward './lib/scss/theme' as theme-* show theme-overrides;
+import { buildSnippet } from './mcp-installer.utils';
+import { McpClientInstaller } from '../../../models/mcpClientInstaller';
 
-@forward './lib/gravitee-markdown-editor/public-api';
-@forward './lib/gravitee-markdown-form-editor/public-api';
-@forward './lib/components/grid/public-api';
-@forward './lib/components/card/public-api';
-@forward './lib/components/button/public-api';
-@forward './lib/components/install-mcp/public-api';
-@forward './lib/components/input/public-api';
-@forward './lib/components/textarea/public-api';
-@forward './lib/components/select/public-api';
-@forward './lib/components/checkbox/public-api';
-@forward './lib/components/radio/public-api';
+export const claudeDesktopInstaller: McpClientInstaller = {
+  id: 'claude-desktop',
+  label: 'Claude Desktop',
+  mode: 'snippet-only',
+  snippetFileName: 'claude_desktop_config.json',
+  supports: () => true,
+  buildSnippet: spec => buildSnippet(spec),
+};

@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@forward './lib/scss/theme' as theme-* show theme-overrides;
+export type McpTransport = 'http' | 'sse' | 'stdio';
 
-@forward './lib/gravitee-markdown-editor/public-api';
-@forward './lib/gravitee-markdown-form-editor/public-api';
-@forward './lib/components/grid/public-api';
-@forward './lib/components/card/public-api';
-@forward './lib/components/button/public-api';
-@forward './lib/components/install-mcp/public-api';
-@forward './lib/components/input/public-api';
-@forward './lib/components/textarea/public-api';
-@forward './lib/components/select/public-api';
-@forward './lib/components/checkbox/public-api';
-@forward './lib/components/radio/public-api';
+export interface McpServerSpec {
+  name: string;
+  transport: McpTransport;
+  url?: string;
+  headers?: Record<string, string>;
+  command?: string;
+  args?: string[];
+  env?: Record<string, string>;
+}

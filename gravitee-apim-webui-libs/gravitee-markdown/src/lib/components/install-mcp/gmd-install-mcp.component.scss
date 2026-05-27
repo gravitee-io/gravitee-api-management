@@ -1,0 +1,120 @@
+/*
+ * Copyright (C) 2025 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '../../scss/token-utils' as token-utils;
+@use './overrides' as overrides;
+
+$tokens: overrides.tokens();
+
+.gmd-install-mcp {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid token-utils.slot(container-outline-color, $tokens);
+  border-radius: 12px;
+  background-color: token-utils.slot(container-color, $tokens);
+  color: token-utils.slot(headline-color, $tokens);
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: token-utils.slot(subdued-text-color, $tokens);
+  }
+
+  &__description,
+  &__snippet-file,
+  &__placeholder {
+    color: token-utils.slot(subdued-text-color, $tokens);
+  }
+
+  &__client-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  &__client-tab {
+    padding: 8px 12px;
+    border: 1px solid token-utils.slot(container-outline-color, $tokens);
+    border-radius: 999px;
+    background-color: token-utils.slot(tab-inactive-color, $tokens);
+    color: token-utils.slot(tab-inactive-text-color, $tokens);
+    cursor: pointer;
+
+    &--active {
+      border-color: token-utils.slot(tab-active-color, $tokens);
+      background-color: token-utils.slot(tab-active-color, $tokens);
+      color: token-utils.slot(tab-active-text-color, $tokens);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  &__snippet {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__snippet-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    align-items: center;
+  }
+
+  &__snippet-title {
+    font-weight: 600;
+  }
+
+  &__copy-button {
+    margin-left: auto;
+    padding: 8px 12px;
+    border: 1px solid token-utils.slot(container-outline-color, $tokens);
+    border-radius: 999px;
+    background-color: token-utils.slot(tab-inactive-color, $tokens);
+    color: token-utils.slot(tab-inactive-text-color, $tokens);
+    cursor: pointer;
+  }
+
+  &__snippet-content {
+    overflow-x: auto;
+    margin: 0;
+    padding: 16px;
+    border-radius: 12px;
+    background-color: token-utils.slot(code-background-color, $tokens);
+    color: token-utils.slot(code-text-color, $tokens);
+    white-space: pre-wrap;
+  }
+}
+
+.gmd-install-mcp__placeholder {
+  padding: 16px;
+  border: 1px dashed token-utils.slot(container-outline-color, $tokens);
+  border-radius: 12px;
+}

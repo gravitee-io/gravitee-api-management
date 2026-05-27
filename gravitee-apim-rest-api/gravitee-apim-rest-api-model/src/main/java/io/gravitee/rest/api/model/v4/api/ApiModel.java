@@ -93,6 +93,12 @@ public class ApiModel implements GenericApiModel {
     @Builder.Default
     private Map<String, String> metadata = new HashMap<>();
 
+    @Builder.Default
+    private List<String> entrypoints = new ArrayList<>();
+
+    @Builder.Default
+    private Map<String, Object> mcp = new HashMap<>();
+
     private ApiLifecycleState lifecycleState;
     private boolean disableMembershipNotifications;
     private Failover failover;

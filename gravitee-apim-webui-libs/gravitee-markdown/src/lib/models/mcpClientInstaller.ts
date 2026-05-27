@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@forward './lib/scss/theme' as theme-* show theme-overrides;
+import { McpServerSpec } from './mcpServerSpec';
 
-@forward './lib/gravitee-markdown-editor/public-api';
-@forward './lib/gravitee-markdown-form-editor/public-api';
-@forward './lib/components/grid/public-api';
-@forward './lib/components/card/public-api';
-@forward './lib/components/button/public-api';
-@forward './lib/components/install-mcp/public-api';
-@forward './lib/components/input/public-api';
-@forward './lib/components/textarea/public-api';
-@forward './lib/components/select/public-api';
-@forward './lib/components/checkbox/public-api';
-@forward './lib/components/radio/public-api';
+export type McpInstallMode = 'deep-link' | 'snippet-only';
+
+export interface McpClientInstaller {
+  id: string;
+  label: string;
+  mode: McpInstallMode;
+  snippetFileName: string;
+  supports(spec: McpServerSpec): boolean;
+  buildSnippet(spec: McpServerSpec): string;
+  buildDeepLink?(spec: McpServerSpec): string;
+  buildFallbackLink?(spec: McpServerSpec): string;
+}

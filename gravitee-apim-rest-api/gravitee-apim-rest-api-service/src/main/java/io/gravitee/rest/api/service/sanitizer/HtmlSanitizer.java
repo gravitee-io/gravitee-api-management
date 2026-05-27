@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Getter;
-import lombok.Setter;
 import org.owasp.html.*;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -162,6 +161,11 @@ public final class HtmlSanitizer {
          * Allow a set of HTML tags to support GitHub Flavoured Markdown. Spec is available at: <a href="https://github.github.com/gfm">https://github.github.com/gfm</a>
          */
         PolicyFactory githubFlavouredMarkdownSanitizer = new HtmlPolicyBuilder().allowElements("summary", "details").toFactory();
+        PolicyFactory graviteeMarkdownInstallMcpSanitizer = new HtmlPolicyBuilder()
+            .allowElements("gmd-install-mcp")
+            .allowAttributes("name", "transport", "url", "headers", "command", "args", "env", "clients")
+            .onElements("gmd-install-mcp")
+            .toFactory();
 
         PolicyFactory policyFactory = Sanitizers.BLOCKS.and(Sanitizers.FORMATTING)
             .and(
@@ -178,7 +182,8 @@ public final class HtmlSanitizer {
             .and(new HtmlPolicyBuilder().allowElements("ol").allowAttributes("start").onElements("ol").toFactory())
             .and(htmlImagesSanitizer)
             .and(new HtmlPolicyBuilder().allowElements("code").allowAttributes("class").globally().toFactory())
-            .and(githubFlavouredMarkdownSanitizer);
+            .and(githubFlavouredMarkdownSanitizer)
+            .and(graviteeMarkdownInstallMcpSanitizer);
 
         PolicyFactory additionalElementsSanitizer = configureAdditionalElements(policyFactory, environment);
         if (additionalElementsSanitizer != null) {

@@ -15,9 +15,13 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.ApiModel;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
@@ -27,6 +31,7 @@ import io.gravitee.rest.api.service.MetadataService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
+import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
@@ -36,6 +41,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -47,21 +53,26 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApiTemplateServiceImpl implements ApiTemplateService {
 
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     private final ApiSearchService apiSearchService;
     private final ApiMetadataService apiMetadataService;
     private final PrimaryOwnerService primaryOwnerService;
     private final NotificationTemplateService notificationTemplateService;
+    private final ApiEntrypointService apiEntrypointService;
 
     public ApiTemplateServiceImpl(
         @Lazy final ApiSearchService apiSearchService,
         final ApiMetadataService apiMetadataService,
         final PrimaryOwnerService primaryOwnerService,
-        final NotificationTemplateService notificationTemplateService
+        final NotificationTemplateService notificationTemplateService,
+        @Lazy final ApiEntrypointService apiEntrypointService
     ) {
         this.apiSearchService = apiSearchService;
         this.apiMetadataService = apiMetadataService;
         this.primaryOwnerService = primaryOwnerService;
         this.notificationTemplateService = notificationTemplateService;
+        this.apiEntrypointService = apiEntrypointService;
     }
 
     @Override
@@ -147,6 +158,8 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
                     apiModelEntity.setServices(apiEntity.getServices());
                     apiModelEntity.setListeners(apiEntity.getListeners());
                     apiModelEntity.setEndpointGroups(apiEntity.getEndpointGroups());
+                    apiModelEntity.setEntrypoints(computeApiEntrypoints(executionContext, apiEntity));
+                    apiModelEntity.setMcp(computeMcp(apiEntity));
 
                     apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, apiModelEntity));
                     yield apiModelEntity;
@@ -237,6 +250,35 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
             return decodedMetadata;
         } catch (Exception ex) {
             throw new TechnicalManagementException("An error occurs while evaluating API metadata", ex);
+        }
+    }
+
+    private List<String> computeApiEntrypoints(ExecutionContext executionContext, GenericApiEntity api) {
+        return apiEntrypointService.getApiEntrypoints(executionContext, api).stream().map(ApiEntrypointEntity::getTarget).toList();
+    }
+
+    private Map<String, Object> computeMcp(io.gravitee.rest.api.model.v4.api.ApiEntity api) {
+        if (api.getListeners() == null || api.getListeners().isEmpty() || api.getListeners().getFirst().getEntrypoints() == null) {
+            return Map.of();
+        }
+
+        var mcpEntrypoint = api
+            .getListeners()
+            .getFirst()
+            .getEntrypoints()
+            .stream()
+            .filter(entrypoint -> Objects.equals(entrypoint.getType(), "mcp") || Objects.equals(entrypoint.getType(), "mcp-proxy"))
+            .findFirst()
+            .orElse(null);
+
+        if (mcpEntrypoint == null || mcpEntrypoint.getConfiguration() == null) {
+            return Map.of();
+        }
+
+        try {
+            return MAPPER.readValue(mcpEntrypoint.getConfiguration(), new TypeReference<>() {});
+        } catch (JsonProcessingException e) {
+            return Map.of();
         }
     }
 }
