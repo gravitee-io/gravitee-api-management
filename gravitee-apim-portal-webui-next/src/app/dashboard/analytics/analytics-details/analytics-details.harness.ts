@@ -23,6 +23,7 @@ export class AnalyticsDetailsHarness extends ComponentHarness {
   private readonly locateLoader = this.locatorForOptional(LoaderHarness);
   private readonly locateDashboard = this.locatorForOptional('gd-dashboard');
   private readonly locateError = this.locatorForOptional('[data-testid="analytics-details-error"]');
+  private readonly locateTimeframeSelector = this.locatorForOptional('[data-testid="analytics-details-timeframe"]');
 
   public async getLoader(): Promise<LoaderHarness | null> {
     return this.locateLoader();
@@ -30,6 +31,10 @@ export class AnalyticsDetailsHarness extends ComponentHarness {
 
   public async isDashboardDisplayed(): Promise<boolean> {
     return !!(await this.locateDashboard());
+  }
+
+  public async isTimeframeSelectorDisplayed(): Promise<boolean> {
+    return !!(await this.locateTimeframeSelector());
   }
 
   public async getErrorMessage(): Promise<string | null> {

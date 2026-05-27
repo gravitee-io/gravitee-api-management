@@ -71,6 +71,11 @@ describe('AnalyticsDetailsComponent', () => {
     expect(await harness.isDashboardDisplayed()).toBe(true);
   });
 
+  it('should_display_timeframe_selector', async () => {
+    await setup();
+    expect(await harness.isTimeframeSelectorDisplayed()).toBe(true);
+  });
+
   it('should_show_loader_while_loading', async () => {
     fixture.detectChanges();
     // Read the loader from the DOM, not the harness: harnessForFixture() stabilizes and would
