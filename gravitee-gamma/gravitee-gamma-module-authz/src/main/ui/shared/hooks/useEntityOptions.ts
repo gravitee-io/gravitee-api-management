@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useQueries, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { authzApiService } from '../api/authz-api.service';
-import type { EntityResponse, PagedResponse } from '../api/authz-api.types';
+import { authzApiService, type EntityKindFilter } from '../api/authz-api.service';
+import type { EntityResponse } from '../api/authz-api.types';
 import { authzQueryKeys } from '../api/query-keys';
 import type { ChipOption } from '../chip-option';
 import { parseEntityUid } from '../entity-adapter';
-import { uiTypeToKind } from '../entity-kind-registry';
 
 export interface UseEntityOptionsResult {
     readonly options: readonly ChipOption[];
@@ -32,12 +31,22 @@ export interface UseEntityOptionsOpts {
     readonly typeFilter?: readonly string[];
 }
 
-// Per-kind page size. With typeFilter the picker fans out into N parallel
-// kind-scoped queries (each capped here), so the effective ceiling is
-// PER_PAGE × N kinds rather than PER_PAGE total. Without typeFilter we fall
-// back to a single all-kinds query bounded by the same number, leaving the
-// "consider filtering by type" hint in place for envs that exceed it.
 const PER_PAGE = 200;
+
+// All-PRINCIPAL UI types known to the registry. When a caller's typeFilter is
+// a strict subset of this set we can collapse the fetch to a single
+// kind=PRINCIPAL request — the backend already groups user/group/serviceaccount/agent
+// under that kind, so we don't need N kind-scoped requests.
+const PRINCIPAL_UI_TYPES = new Set(['User', 'Group', 'ServiceAccount', 'AgentIdentity']);
+
+function resolveKind(typeFilter: readonly string[] | undefined): EntityKindFilter | undefined {
+    if (!typeFilter || typeFilter.length === 0) return undefined;
+    const allPrincipals = typeFilter.every(t => PRINCIPAL_UI_TYPES.has(t));
+    if (allPrincipals) return 'PRINCIPAL';
+    // Mixed or pure-resource filters fall back to a no-kind fetch and rely on
+    // client-side filtering. (No current callsite mixes principals + resources.)
+    return undefined;
+}
 
 function summarizeAttributes(attrs: Record<string, unknown>): string | undefined {
     const entries = Object.entries(attrs).filter(([k]) => !k.startsWith('_'));
@@ -62,52 +71,31 @@ function toChipOption(entity: EntityResponse): ChipOption {
 export function useEntityOptions(environmentId: string, opts?: UseEntityOptionsOpts): UseEntityOptionsResult {
     const typeFilter = opts?.typeFilter;
 
-    // Stable, content-addressed list of canonical kinds. With typeFilter present
-    // each entry becomes a kind-scoped fetch via entityIdPrefix; without it we
-    // issue a single non-scoped fetch (kinds = []).
-    const kindsKey = useMemo(() => (typeFilter ? JSON.stringify([...typeFilter].sort()) : ''), [typeFilter]);
-    const kinds = useMemo<readonly string[]>(() => {
-        if (!kindsKey) return [];
-        return (JSON.parse(kindsKey) as readonly string[]).map(uiTypeToKind);
-    }, [kindsKey]);
+    const kind = useMemo(() => resolveKind(typeFilter), [typeFilter]);
 
-    const scopedResults = useQueries({
-        queries: kinds.map(kind => ({
-            queryKey: [...authzQueryKeys.entityOptions(environmentId), kind],
-            queryFn: () => authzApiService.listEntities(environmentId, { page: 1, perPage: PER_PAGE, entityIdPrefix: `${kind}.` }),
-            enabled: Boolean(environmentId),
-            staleTime: 30_000,
-        })),
-    });
+    // Stable key for client-side type filtering (callers can pass fresh arrays).
+    const typeFilterKey = useMemo(() => (typeFilter ? JSON.stringify([...typeFilter].sort()) : ''), [typeFilter]);
 
-    // Only used when typeFilter is absent — falls back to the single all-kinds query.
-    const allKindsQuery = useQuery({
-        queryKey: authzQueryKeys.entityOptions(environmentId),
-        queryFn: () => authzApiService.listEntities(environmentId, { page: 1, perPage: PER_PAGE }),
-        enabled: Boolean(environmentId) && kinds.length === 0,
+    const query = useQuery({
+        queryKey: [...authzQueryKeys.entityOptions(environmentId), kind ?? 'all'],
+        queryFn: () =>
+            authzApiService.listEntities(environmentId, kind ? { page: 1, perPage: PER_PAGE, kind } : { page: 1, perPage: PER_PAGE }),
+        enabled: Boolean(environmentId),
         staleTime: 30_000,
     });
 
-    const pages = useMemo<ReadonlyArray<PagedResponse<EntityResponse> | undefined>>(
-        () => (kinds.length === 0 ? [allKindsQuery.data] : scopedResults.map(r => r.data)),
-        [kinds.length, allKindsQuery.data, scopedResults],
-    );
-
-    const isLoading = kinds.length === 0 ? allKindsQuery.isLoading : scopedResults.some(r => r.isLoading);
-    const firstError = kinds.length === 0 ? allKindsQuery.error : scopedResults.find(r => r.error)?.error;
-    const networkError = firstError instanceof Error ? firstError.message : firstError ? String(firstError) : undefined;
+    const allOptions = useMemo(() => query.data?.data.map(toChipOption) ?? [], [query.data]);
 
     const options = useMemo<readonly ChipOption[]>(() => {
-        const merged: ChipOption[] = [];
-        for (const page of pages) {
-            if (!page) continue;
-            for (const e of page.data) merged.push(toChipOption(e));
-        }
-        return merged;
-    }, [pages]);
+        if (!typeFilterKey) return allOptions;
+        const allow = new Set(JSON.parse(typeFilterKey) as readonly string[]);
+        return allOptions.filter(o => allow.has(o.group));
+    }, [allOptions, typeFilterKey]);
 
-    const tooMany = pages.some(p => (p?.total ?? 0) > PER_PAGE);
-    const error = networkError ?? (tooMany ? 'Too many entities to load; narrow the schema or filter by type.' : undefined);
+    const tooMany = (query.data?.total ?? 0) > (query.data?.data.length ?? 0);
+    const networkError = query.error instanceof Error ? query.error.message : query.error ? String(query.error) : undefined;
+    const error =
+        networkError ?? (tooMany ? 'Too many entities for chip picker; consider refining schema or filtering by type.' : undefined);
 
-    return { options, isLoading, error };
+    return { options, isLoading: query.isLoading, error };
 }

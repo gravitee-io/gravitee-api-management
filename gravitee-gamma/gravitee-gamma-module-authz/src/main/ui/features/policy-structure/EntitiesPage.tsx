@@ -19,7 +19,6 @@ import {
     AlertDescription,
     AlertTitle,
     Badge,
-    Button,
     DataTable,
     DataTablePagination,
     Empty,
@@ -33,18 +32,19 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@gravitee/graphene-core';
-import { BoxesIcon, RefreshCwIcon } from '@gravitee/graphene-core/icons';
+import { BoxesIcon, ShieldIcon, UsersIcon } from '@gravitee/graphene-core/icons';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useDeferredValue, useMemo, useState } from 'react';
 import { KpiTile } from '../../components/KpiTile';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/Tabs';
 import { formatEntityUid, fromBackend } from '../../shared/entity-adapter';
-import { useEntities, type UseEntitiesResult } from '../../shared/hooks/useEntities';
-import { CATEGORIES, getEntityCategoryId, type EntityInstance } from './entity-types';
+import { useEntities } from '../../shared/hooks/useEntities';
+import type { EntityInstance } from './entity-types';
 
 type SourceFilter = 'all' | string;
 type TypeFilter = 'all' | string;
 type TabKey = 'principals' | 'resources';
+type EntityKind = 'PRINCIPAL' | 'RESOURCE';
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 const ACTION_PREFIX = 'action.';
@@ -56,22 +56,84 @@ const RESOURCES_HELP =
 
 function displayNameOf(entity: EntityInstance): string {
     if (entity.displayName) return entity.displayName;
-    const name = entity.attrs.name;
-    if (typeof name === 'string' && name) return name;
-    const displayName = entity.attrs.displayName;
-    if (typeof displayName === 'string' && displayName) return displayName;
+    const attrName = entity.attrs.name;
+    if (typeof attrName === 'string' && attrName) return attrName;
+    const attrDisplayName = entity.attrs.displayName;
+    if (typeof attrDisplayName === 'string' && attrDisplayName) return attrDisplayName;
     return entity.uid.id;
 }
 
 function sourceLabelOf(entity: EntityInstance): string {
-    if (entity.source === 'apim') return 'APIM';
-    return 'Local';
+    return entity.source === 'apim' ? 'APIM' : 'Local';
 }
 
-function categoryTextColorFor(entity: EntityInstance): string | undefined {
-    const id = getEntityCategoryId(entity.uid.type);
-    if (!id) return undefined;
-    return CATEGORIES.find(c => c.id === id)?.textColor;
+function applyFilters(entities: readonly EntityInstance[], search: string, typeFilter: TypeFilter, sourceFilter: SourceFilter) {
+    const needle = search.trim().toLowerCase();
+    return entities.filter(e => {
+        if (typeFilter !== 'all' && e.uid.type !== typeFilter) return false;
+        if (sourceFilter !== 'all' && sourceLabelOf(e) !== sourceFilter) return false;
+        if (!needle) return true;
+        if (e.uid.id.toLowerCase().includes(needle)) return true;
+        if (formatEntityUid(e.uid).toLowerCase().includes(needle)) return true;
+        if (e.uid.type.toLowerCase().includes(needle)) return true;
+        return displayNameOf(e).toLowerCase().includes(needle);
+    });
+}
+
+function distinctSorted<T extends string>(values: Iterable<T>): T[] {
+    return Array.from(new Set(values)).sort();
+}
+
+interface UseEntitiesTabOptions {
+    readonly environmentId: string;
+    readonly kind: EntityKind;
+    readonly excludeEntityIdPrefix?: string;
+}
+
+function useEntitiesTab({ environmentId, kind, excludeEntityIdPrefix }: UseEntitiesTabOptions) {
+    const query = useEntities(environmentId, undefined, { kind, excludeEntityIdPrefix });
+    const [search, setSearch] = useState('');
+    const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
+    const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
+    const deferredSearch = useDeferredValue(search);
+
+    // TODO(authz-ui): server-side filters for search/type/source — these stay
+    // client-side and operate on the currently visible page only. The warning
+    // banner below alerts users when a filtered view may be hiding matches.
+    const entities = useMemo(() => (query.data?.data ?? []).map(fromBackend), [query.data]);
+    const types = useMemo(() => distinctSorted(entities.map(e => e.uid.type)), [entities]);
+    const sources = useMemo(() => distinctSorted(entities.map(sourceLabelOf)), [entities]);
+    const filtered = useMemo(
+        () => applyFilters(entities, deferredSearch, typeFilter, sourceFilter),
+        [entities, deferredSearch, typeFilter, sourceFilter],
+    );
+
+    const total = query.data?.total ?? 0;
+    const isFiltering = deferredSearch.trim() !== '' || typeFilter !== 'all' || sourceFilter !== 'all';
+    const hasMoreThanCurrentPage = total > entities.length;
+
+    return {
+        entities,
+        filtered,
+        total,
+        types,
+        sources,
+        search,
+        setSearch,
+        deferredSearch,
+        typeFilter,
+        setTypeFilter,
+        sourceFilter,
+        setSourceFilter,
+        isFiltering,
+        hasMoreThanCurrentPage,
+        isLoading: query.isLoading,
+        error: query.error,
+        page: query.page,
+        perPage: query.perPage,
+        setPage: query.setPage,
+        setPerPage: query.setPerPage,
+    };
 }
 
 interface EntitiesTableProps {
@@ -97,40 +159,34 @@ function EntitiesTable({
     onPageChange,
     onPerPageChange,
 }: EntitiesTableProps) {
-    const data = useMemo(() => [...entities], [entities]);
-
     const columns = useMemo<ColumnDef<EntityInstance>[]>(
         () => [
             {
                 id: 'type',
                 header: 'Type',
-                cell: ({ row }) => {
-                    const textColor = categoryTextColorFor(row.original);
-                    return (
-                        <Badge variant="outline" className={`font-mono text-[11px] ${textColor ?? ''}`}>
-                            {row.original.uid.type}
-                        </Badge>
-                    );
-                },
+                size: 180,
+                cell: ({ row }) => (
+                    <Badge variant="outline" className="font-mono text-xs">
+                        {row.original.uid.type}
+                    </Badge>
+                ),
             },
             {
                 id: 'entityId',
                 header: 'Entity ID',
-                cell: ({ row }) => (
-                    <div className="font-mono text-xs">
-                        <div className="text-muted-foreground">{row.original.uid.type}</div>
-                        <div className="text-foreground">{row.original.uid.id}</div>
-                    </div>
-                ),
+                size: 360,
+                cell: ({ row }) => <span className="font-mono text-xs text-foreground">{formatEntityUid(row.original.uid)}</span>,
             },
             {
                 id: 'name',
                 header: 'Name',
+                size: 280,
                 cell: ({ row }) => <span className="block truncate font-medium">{displayNameOf(row.original)}</span>,
             },
             {
                 id: 'source',
                 header: 'Source',
+                size: 140,
                 cell: ({ row }) => (
                     <Badge variant="secondary" className="text-xs">
                         {sourceLabelOf(row.original)}
@@ -141,7 +197,7 @@ function EntitiesTable({
         [],
     );
 
-    if (!isLoading && data.length === 0) {
+    if (!isLoading && entities.length === 0) {
         return (
             <Empty>
                 <EmptyHeader>
@@ -160,7 +216,14 @@ function EntitiesTable({
 
     return (
         <>
-            <DataTable<EntityInstance> columns={columns} data={data} serverSide loading={isLoading} skeletonCount={perPage} />
+            <DataTable<EntityInstance>
+                columns={columns}
+                data={entities as EntityInstance[]}
+                serverSide
+                enableColumnResizing
+                loading={isLoading}
+                skeletonCount={perPage}
+            />
             <DataTablePagination
                 page={page}
                 pageSize={perPage}
@@ -235,114 +298,60 @@ function EntitiesFilterBar({
     );
 }
 
-function applyFilters(entities: readonly EntityInstance[], search: string, typeFilter: TypeFilter, sourceFilter: SourceFilter) {
-    const needle = search.trim().toLowerCase();
-    return entities.filter(e => {
-        if (typeFilter !== 'all' && e.uid.type !== typeFilter) return false;
-        if (sourceFilter !== 'all' && sourceLabelOf(e) !== sourceFilter) return false;
-        if (!needle) return true;
-        if (e.uid.id.toLowerCase().includes(needle)) return true;
-        if (formatEntityUid(e.uid).toLowerCase().includes(needle)) return true;
-        if (e.uid.type.toLowerCase().includes(needle)) return true;
-        return displayNameOf(e).toLowerCase().includes(needle);
-    });
-}
-
-function distinctSorted<T extends string>(values: Iterable<T>): T[] {
-    return Array.from(new Set(values)).sort();
-}
-
-function pageEntities(query: UseEntitiesResult): readonly EntityInstance[] {
-    if (!query.data) return [];
-    return query.data.data.map(fromBackend);
+function ClientFilterWarning({ visible, total }: { readonly visible: number; readonly total: number }) {
+    return (
+        <Alert role="status" aria-live="polite">
+            <AlertDescription>
+                Filters apply only to the {visible} entities on this page — {total - visible} more entities are not yet searched. Increase
+                the page size or paginate to broaden the view.
+            </AlertDescription>
+        </Alert>
+    );
 }
 
 export function EntitiesPage() {
     const env = useEnvironment();
     const environmentId = env?.id ?? '';
-    const principalsQuery = useEntities(environmentId, undefined, { kind: 'PRINCIPAL' });
-    const resourcesQuery = useEntities(environmentId, undefined, { kind: 'RESOURCE', excludeEntityIdPrefix: ACTION_PREFIX });
 
-    const [principalSearch, setPrincipalSearch] = useState('');
-    const [principalTypeFilter, setPrincipalTypeFilter] = useState<TypeFilter>('all');
-    const [principalSourceFilter, setPrincipalSourceFilter] = useState<SourceFilter>('all');
-    const [resourceSearch, setResourceSearch] = useState('');
-    const [resourceTypeFilter, setResourceTypeFilter] = useState<TypeFilter>('all');
-    const [resourceSourceFilter, setResourceSourceFilter] = useState<SourceFilter>('all');
+    const principals = useEntitiesTab({ environmentId, kind: 'PRINCIPAL' });
+    const resources = useEntitiesTab({ environmentId, kind: 'RESOURCE', excludeEntityIdPrefix: ACTION_PREFIX });
 
-    const deferredPrincipalSearch = useDeferredValue(principalSearch);
-    const deferredResourceSearch = useDeferredValue(resourceSearch);
-
-    const principals = useMemo(() => pageEntities(principalsQuery), [principalsQuery]);
-    const resources = useMemo(() => pageEntities(resourcesQuery), [resourcesQuery]);
-
-    const principalTotal = principalsQuery.data?.total ?? 0;
-    const resourceTotal = resourcesQuery.data?.total ?? 0;
-
-    const principalTypes = useMemo(() => distinctSorted(principals.map(e => e.uid.type)), [principals]);
-    const resourceTypes = useMemo(() => distinctSorted(resources.map(e => e.uid.type)), [resources]);
-    const principalSources = useMemo(() => distinctSorted(principals.map(sourceLabelOf)), [principals]);
-    const resourceSources = useMemo(() => distinctSorted(resources.map(sourceLabelOf)), [resources]);
-
-    // TODO(authz-ui): server-side filters for search/type/source — these stay
-    // client-side and operate on the currently visible page only.
-    const filteredPrincipals = useMemo(
-        () => applyFilters(principals, deferredPrincipalSearch, principalTypeFilter, principalSourceFilter),
-        [principals, deferredPrincipalSearch, principalTypeFilter, principalSourceFilter],
-    );
-    const filteredResources = useMemo(
-        () => applyFilters(resources, deferredResourceSearch, resourceTypeFilter, resourceSourceFilter),
-        [resources, deferredResourceSearch, resourceTypeFilter, resourceSourceFilter],
-    );
+    const isLoading = principals.isLoading || resources.isLoading;
+    const error = principals.error ?? resources.error;
 
     const kpis = useMemo(() => {
         const visibleTypes = new Set<string>();
-        principals.forEach(e => visibleTypes.add(e.uid.type));
-        resources.forEach(e => visibleTypes.add(e.uid.type));
+        principals.entities.forEach(e => visibleTypes.add(e.uid.type));
+        resources.entities.forEach(e => visibleTypes.add(e.uid.type));
         return {
-            total: principalTotal + resourceTotal,
-            types: visibleTypes.size,
-            principals: principalTotal,
-            resources: resourceTotal,
+            total: principals.total + resources.total,
+            typesOnPage: visibleTypes.size,
+            principals: principals.total,
+            resources: resources.total,
         };
-    }, [principals, resources, principalTotal, resourceTotal]);
-
-    const isLoading = principalsQuery.isLoading || resourcesQuery.isLoading;
-    const error = principalsQuery.error ?? resourcesQuery.error;
-
-    const reloadAll = () => {
-        principalsQuery.reload();
-        resourcesQuery.reload();
-    };
+    }, [principals.entities, resources.entities, principals.total, resources.total]);
 
     return (
         <div className="flex flex-col gap-4">
-            <header className="flex flex-wrap items-start justify-between gap-3">
-                <div className="flex items-start gap-3">
-                    <BoxesIcon className="mt-1 size-5 text-muted-foreground" aria-hidden />
-                    <div>
-                        <h1 className="text-xl font-semibold">Entities</h1>
-                        <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-                            Principals and resources the policy engine evaluates. Resource entities are imported from the Context Catalog so
-                            every policy refers to the same canonical Entity ID.
-                        </p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Button type="button" variant="ghost" size="icon" onClick={reloadAll} aria-label="Refresh">
-                        <RefreshCwIcon aria-hidden className="size-4" />
-                    </Button>
+            <header className="flex items-start gap-3">
+                <BoxesIcon className="mt-1 size-5 text-muted-foreground" aria-hidden />
+                <div>
+                    <h1 className="text-xl font-semibold">Entities</h1>
+                    <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+                        Principals and resources the policy engine evaluates. Resource entities are imported from the Context Catalog so
+                        every policy refers to the same canonical Entity ID.
+                    </p>
                 </div>
             </header>
 
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4" aria-label="Key metrics">
                 <KpiTile label="Total entities" value={kpis.total} loading={isLoading} />
-                <KpiTile label="Entity types" value={kpis.types} loading={isLoading} />
+                <KpiTile label="Types on page" value={kpis.typesOnPage} loading={isLoading} />
                 <KpiTile label="Principals" value={kpis.principals} loading={isLoading} />
                 <KpiTile label="Resources" value={kpis.resources} loading={isLoading} />
             </div>
 
-            {error !== undefined && (
+            {error && (
                 <Alert variant="destructive">
                     <AlertTitle>Could not load entities</AlertTitle>
                     <AlertDescription>{error}</AlertDescription>
@@ -352,16 +361,14 @@ export function EntitiesPage() {
             <Tabs defaultValue="principals" className="flex flex-col gap-3">
                 <TabsList>
                     <TabsTrigger value="principals">
+                        <UsersIcon className="size-4" aria-hidden />
                         Principals
-                        <Badge variant="secondary" className="ml-2 h-4 px-1 text-[10px]">
-                            {principalTotal}
-                        </Badge>
+                        <Badge variant="secondary">{principals.total}</Badge>
                     </TabsTrigger>
                     <TabsTrigger value="resources">
+                        <ShieldIcon className="size-4" aria-hidden />
                         Resources
-                        <Badge variant="secondary" className="ml-2 h-4 px-1 text-[10px]">
-                            {resourceTotal}
-                        </Badge>
+                        <Badge variant="secondary">{resources.total}</Badge>
                     </TabsTrigger>
                 </TabsList>
 
@@ -370,26 +377,29 @@ export function EntitiesPage() {
                         <AlertDescription>{PRINCIPALS_HELP}</AlertDescription>
                     </Alert>
                     <EntitiesFilterBar
-                        search={principalSearch}
-                        onSearch={setPrincipalSearch}
-                        typesPresent={principalTypes}
-                        typeFilter={principalTypeFilter}
-                        onTypeFilter={setPrincipalTypeFilter}
-                        sourcesPresent={principalSources}
-                        sourceFilter={principalSourceFilter}
-                        onSourceFilter={setPrincipalSourceFilter}
+                        search={principals.search}
+                        onSearch={principals.setSearch}
+                        typesPresent={principals.types}
+                        typeFilter={principals.typeFilter}
+                        onTypeFilter={principals.setTypeFilter}
+                        sourcesPresent={principals.sources}
+                        sourceFilter={principals.sourceFilter}
+                        onSourceFilter={principals.setSourceFilter}
                         searchLabel="Search principals"
                     />
+                    {principals.isFiltering && principals.hasMoreThanCurrentPage && (
+                        <ClientFilterWarning visible={principals.entities.length} total={principals.total} />
+                    )}
                     <EntitiesTable
                         tab="principals"
-                        entities={filteredPrincipals}
-                        searchValue={deferredPrincipalSearch}
-                        isLoading={principalsQuery.isLoading}
-                        page={principalsQuery.page}
-                        perPage={principalsQuery.perPage}
-                        totalCount={principalTotal}
-                        onPageChange={principalsQuery.setPage}
-                        onPerPageChange={principalsQuery.setPerPage}
+                        entities={principals.filtered}
+                        searchValue={principals.deferredSearch}
+                        isLoading={principals.isLoading}
+                        page={principals.page}
+                        perPage={principals.perPage}
+                        totalCount={principals.total}
+                        onPageChange={principals.setPage}
+                        onPerPageChange={principals.setPerPage}
                     />
                 </TabsContent>
 
@@ -398,26 +408,29 @@ export function EntitiesPage() {
                         <AlertDescription>{RESOURCES_HELP}</AlertDescription>
                     </Alert>
                     <EntitiesFilterBar
-                        search={resourceSearch}
-                        onSearch={setResourceSearch}
-                        typesPresent={resourceTypes}
-                        typeFilter={resourceTypeFilter}
-                        onTypeFilter={setResourceTypeFilter}
-                        sourcesPresent={resourceSources}
-                        sourceFilter={resourceSourceFilter}
-                        onSourceFilter={setResourceSourceFilter}
+                        search={resources.search}
+                        onSearch={resources.setSearch}
+                        typesPresent={resources.types}
+                        typeFilter={resources.typeFilter}
+                        onTypeFilter={resources.setTypeFilter}
+                        sourcesPresent={resources.sources}
+                        sourceFilter={resources.sourceFilter}
+                        onSourceFilter={resources.setSourceFilter}
                         searchLabel="Search resources"
                     />
+                    {resources.isFiltering && resources.hasMoreThanCurrentPage && (
+                        <ClientFilterWarning visible={resources.entities.length} total={resources.total} />
+                    )}
                     <EntitiesTable
                         tab="resources"
-                        entities={filteredResources}
-                        searchValue={deferredResourceSearch}
-                        isLoading={resourcesQuery.isLoading}
-                        page={resourcesQuery.page}
-                        perPage={resourcesQuery.perPage}
-                        totalCount={resourceTotal}
-                        onPageChange={resourcesQuery.setPage}
-                        onPerPageChange={resourcesQuery.setPerPage}
+                        entities={resources.filtered}
+                        searchValue={resources.deferredSearch}
+                        isLoading={resources.isLoading}
+                        page={resources.page}
+                        perPage={resources.perPage}
+                        totalCount={resources.total}
+                        onPageChange={resources.setPage}
+                        onPerPageChange={resources.setPerPage}
                     />
                 </TabsContent>
             </Tabs>

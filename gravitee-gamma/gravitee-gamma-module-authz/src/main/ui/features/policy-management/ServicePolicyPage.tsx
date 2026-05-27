@@ -84,16 +84,6 @@ export interface ServicePageConfig {
 
 type SheetState = { kind: 'closed' } | { kind: 'create'; target: CatalogEntry | null } | { kind: 'edit'; policy: PolicyResponse };
 
-const PRINCIPAL_KINDS: ReadonlySet<string> = new Set([
-    'user',
-    'group',
-    'serviceaccount',
-    'service-account',
-    'service_account',
-    'agent',
-    'agentidentity',
-]);
-
 const DEFAULT_RESOURCE_GROUPS: readonly { key: string; label: string }[] = [
     { key: 'API', label: 'API' },
     { key: 'MCP', label: 'MCP' },
@@ -119,7 +109,14 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
         status: statusFilter === 'ALL' ? undefined : statusFilter,
     });
     const schema = useSchema(envId);
-    const entities = useEntities(envId, 1000);
+    // Catalog: targets of this policy type (mcp.*, llm.*, api.*). Scoped to the
+    // service prefix instead of "fetch all" so envs with 10k+ entities still load fast.
+    const catalogEntities = useEntities(envId, 200, {
+        kind: 'RESOURCE',
+        entityIdPrefix: `${config.type.toLowerCase()}.`,
+    });
+    // Action chip options. Separate scoped fetch so it never bloats with catalog rows.
+    const actionEntities = useEntities(envId, 200, { kind: 'RESOURCE', entityIdPrefix: 'action.' });
 
     const allPolicies = useMemo<readonly PolicyResponse[]>(() => policies.data?.data ?? [], [policies.data]);
 
@@ -147,29 +144,26 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
         if (!config.hasTarget) {
             return { entries: [] as CatalogEntry[], isLoading: false, error: undefined as string | undefined };
         }
-        const prefix = config.type.toLowerCase() + '.';
-        const all = entities.data?.data ?? [];
-        const entries: CatalogEntry[] = all
-            .filter(e => e.uid.toLowerCase().startsWith(prefix))
-            .map(e => {
-                const attrs = e.attributes ?? {};
-                const name =
-                    typeof attrs.displayName === 'string' && attrs.displayName
-                        ? attrs.displayName
-                        : typeof attrs.name === 'string' && attrs.name
-                          ? attrs.name
-                          : e.uid;
-                const description = typeof attrs.description === 'string' ? attrs.description : '';
-                return {
-                    id: e.uid,
-                    name,
-                    description,
-                    type: toCatalogEntryType(config.type),
-                    subResources: [],
-                };
-            });
-        return { entries, isLoading: entities.isLoading, error: entities.error };
-    }, [config.hasTarget, config.type, entities.data, entities.isLoading, entities.error]);
+        const all = catalogEntities.data?.data ?? [];
+        const entries: CatalogEntry[] = all.map(e => {
+            const attrs = e.attributes ?? {};
+            const name =
+                typeof attrs.displayName === 'string' && attrs.displayName
+                    ? attrs.displayName
+                    : typeof attrs.name === 'string' && attrs.name
+                      ? attrs.name
+                      : e.uid;
+            const description = typeof attrs.description === 'string' ? attrs.description : '';
+            return {
+                id: e.uid,
+                name,
+                description,
+                type: toCatalogEntryType(config.type),
+                subResources: [],
+            };
+        });
+        return { entries, isLoading: catalogEntities.isLoading, error: catalogEntities.error };
+    }, [config.hasTarget, config.type, catalogEntities.data, catalogEntities.isLoading, catalogEntities.error]);
 
     const actionOptions = useMemo((): readonly ChipOption[] => {
         const seen = new Set<string>();
@@ -184,10 +178,7 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
                 }
             }
         }
-        for (const e of entities.data?.data ?? []) {
-            const kind = (e.attributes?._kind ?? '') as string;
-            const isAction = kind.toLowerCase() === 'action' || (typeof e.uid === 'string' && e.uid.startsWith('action.'));
-            if (!isAction) continue;
+        for (const e of actionEntities.data?.data ?? []) {
             const name = (e.attributes?.name as string) || e.uid.replace(/^action\./, '');
             if (!name) continue;
             const id = `Action::"${name}"`;
@@ -197,7 +188,7 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
             merged.push({ id, label: name, group: 'Action', description });
         }
         return merged;
-    }, [schema.schema, entities.data]);
+    }, [schema.schema, actionEntities.data]);
 
     const { options: principalOptions } = useEntityOptions(envId, {
         typeFilter: config.hasTarget ? ['User', 'Group', 'ServiceAccount', 'AgentIdentity'] : undefined,
@@ -214,16 +205,15 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
     }, [principalOptions.length]);
 
     const serviceResourceOptions = useMemo((): readonly ChipOption[] => {
+        // catalogEntities is already scoped server-side to this service prefix
+        // (kind=RESOURCE + entityIdPrefix=<type>.) — no need to re-filter out
+        // principals or other service types here.
         const items: ChipOption[] = [];
         const typePrefix = config.type.toLowerCase();
-        for (const e of entities.data?.data ?? []) {
-            const kindRaw = (e.attributes?._kind as string | undefined) ?? '';
-            const kind = kindRaw.toLowerCase();
-            const firstSeg = e.uid.includes('.') ? e.uid.slice(0, e.uid.indexOf('.')).toLowerCase() : '';
-            if (PRINCIPAL_KINDS.has(kind) || PRINCIPAL_KINDS.has(firstSeg)) continue;
-            if (kind === 'action' || firstSeg === 'action') continue;
-            if (config.hasTarget && firstSeg !== typePrefix) continue;
+        for (const e of catalogEntities.data?.data ?? []) {
             const attrs = e.attributes ?? {};
+            const firstSeg = e.uid.includes('.') ? e.uid.slice(0, e.uid.indexOf('.')).toLowerCase() : '';
+            if (config.hasTarget && firstSeg !== typePrefix) continue;
             const label =
                 typeof attrs.displayName === 'string' && attrs.displayName
                     ? (attrs.displayName as string)
@@ -248,7 +238,7 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
         }
         items.sort((a, b) => (a.group === b.group ? a.label.localeCompare(b.label) : a.group.localeCompare(b.group)));
         return items;
-    }, [config.hasTarget, config.type, entities.data]);
+    }, [config.hasTarget, config.type, catalogEntities.data]);
 
     const effectiveConfig = useMemo<ServicePageConfig>(
         () => ({
@@ -309,8 +299,9 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
 
     const handleReload = useCallback(() => {
         policies.reload();
-        entities.reload();
-    }, [policies, entities]);
+        catalogEntities.reload();
+        actionEntities.reload();
+    }, [policies, catalogEntities, actionEntities]);
 
     const Icon = config.icon;
     const totalCount = policies.data?.total ?? 0;

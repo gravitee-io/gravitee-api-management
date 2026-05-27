@@ -17,6 +17,8 @@ import { cn } from '@gravitee/graphene-core';
 import * as RadixTabs from '@radix-ui/react-tabs';
 import * as React from 'react';
 
+// TODO(GMA-graphene-tabs): graphene-core has no Tabs primitive yet — push this thin Radix
+// wrapper upstream once the design system grows the component.
 export const Tabs = RadixTabs.Root;
 
 export const TabsList = React.forwardRef<React.ElementRef<typeof RadixTabs.List>, React.ComponentPropsWithoutRef<typeof RadixTabs.List>>(
@@ -33,7 +35,7 @@ export const TabsTrigger = React.forwardRef<
     <RadixTabs.Trigger
         ref={ref}
         className={cn(
-            'inline-flex items-center gap-2 border-b-2 border-transparent px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-active:border-ring data-active:font-medium',
+            'inline-flex items-center gap-2 border-b-2 border-transparent px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-active:border-primary data-active:text-foreground data-active:font-medium',
             className,
         )}
         {...props}

@@ -120,10 +120,11 @@ describe('useEntityOptions', () => {
         expect(items[2].getAttribute('data-description')).toBe('role=ci');
     });
 
-    it('issues kind-scoped fetches when typeFilter is set and returns only matching entities', async () => {
-        listEntitiesSpy.mockImplementation((_env: string, params: { entityIdPrefix?: string } = {}) => {
-            if (params.entityIdPrefix === 'user.') return Promise.resolve(paged([entity('user.alice')]));
-            if (params.entityIdPrefix === 'group.') return Promise.resolve(paged([entity('group.admins')]));
+    it('issues a single kind=PRINCIPAL fetch and filters client-side when typeFilter is a principal subset', async () => {
+        listEntitiesSpy.mockImplementation((_env: string, params: { kind?: string } = {}) => {
+            if (params.kind === 'PRINCIPAL') {
+                return Promise.resolve(paged([entity('user.alice'), entity('group.admins')]));
+            }
             return Promise.resolve(paged([]));
         });
 
@@ -132,9 +133,9 @@ describe('useEntityOptions', () => {
         await waitFor(() => expect(getByTestId('count').textContent).toBe('1'));
         const items = getByTestId('options').querySelectorAll('li');
         expect(items[0].getAttribute('data-group')).toBe('User');
-        // Single fetch — entityIdPrefix tightens the bucket to the single requested kind.
+        // One umbrella request — backend already groups principals by kind.
         expect(listEntitiesSpy).toHaveBeenCalledTimes(1);
-        expect(listEntitiesSpy).toHaveBeenCalledWith('env-1', { page: 1, perPage: 200, entityIdPrefix: 'user.' });
+        expect(listEntitiesSpy).toHaveBeenCalledWith('env-1', { page: 1, perPage: 200, kind: 'PRINCIPAL' });
     });
 
     it('sets error when total exceeds page size and still returns the loaded slice', async () => {
@@ -168,31 +169,26 @@ describe('useEntityOptions', () => {
         errorSpy.mockRestore();
     });
 
-    it('reuses cached kind-scoped fetches without refetching for the same filter', async () => {
-        listEntitiesSpy.mockImplementation((_env: string, params: { entityIdPrefix?: string } = {}) => {
-            if (params.entityIdPrefix === 'user.') return Promise.resolve(paged([entity('user.alice')]));
-            if (params.entityIdPrefix === 'group.') return Promise.resolve(paged([entity('group.admins')]));
-            return Promise.resolve(paged([]));
-        });
+    it('does not refetch when typeFilter changes between principal types — same kind=PRINCIPAL cache entry', async () => {
+        listEntitiesSpy.mockResolvedValue(paged([entity('user.alice'), entity('group.admins')]));
 
         const wrapper = makeWrapper();
         const { rerender, getByTestId } = render(<Probe env="env-1" opts={{ typeFilter: ['User'] }} />, { wrapper });
         await waitFor(() => expect(getByTestId('count').textContent).toBe('1'));
         expect(listEntitiesSpy).toHaveBeenCalledTimes(1);
 
-        // Same values, fresh array literal — must NOT refetch (kindsKey stable).
+        // Same filter — no refetch.
         rerender(<Probe env="env-1" opts={{ typeFilter: ['User'] }} />);
         await Promise.resolve();
         expect(listEntitiesSpy).toHaveBeenCalledTimes(1);
 
-        // Different filter — issues one new kind-scoped fetch (group.*), not a full re-pull.
+        // Different principal type — still one cache entry (kind=PRINCIPAL), client-side re-derives.
         rerender(<Probe env="env-1" opts={{ typeFilter: ['Group'] }} />);
         await waitFor(() => {
             const items = getByTestId('options').querySelectorAll('li');
             expect(items.length).toBe(1);
             expect(items[0].getAttribute('data-group')).toBe('Group');
         });
-        expect(listEntitiesSpy).toHaveBeenCalledTimes(2);
-        expect(listEntitiesSpy).toHaveBeenLastCalledWith('env-1', { page: 1, perPage: 200, entityIdPrefix: 'group.' });
+        expect(listEntitiesSpy).toHaveBeenCalledTimes(1);
     });
 });
