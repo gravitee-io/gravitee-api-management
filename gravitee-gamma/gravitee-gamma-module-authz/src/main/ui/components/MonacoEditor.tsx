@@ -23,7 +23,7 @@ export interface MonacoEditorProps {
     readonly language?: string;
     readonly readOnly?: boolean;
     readonly height?: string | number;
-    readonly theme?: 'light' | 'vs-dark' | 'system';
+    readonly theme?: 'light' | 'vs-dark';
     readonly options?: EditorProps['options'];
     readonly ariaLabel?: string;
     readonly onMount?: (editor: monacoNs.editor.IStandaloneCodeEditor, monaco: typeof monacoNs) => void;

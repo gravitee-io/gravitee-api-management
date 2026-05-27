@@ -15,6 +15,14 @@
  */
 export type PolicyEffect = 'permit' | 'forbid';
 
+/**
+ * Entity references and statements carry an `id` for UI bookkeeping
+ * (React keys, drag handles, etc.). GAPL has no slot for a surrogate
+ * id, so parse → serialize → parse round-trips replace it with the
+ * canonical `Type::"label"` form. Callers must not rely on `id`
+ * surviving a round-trip — keep any stable identity outside of these
+ * records.
+ */
 export interface PrincipalRef {
     readonly id: string;
     readonly kind: string;

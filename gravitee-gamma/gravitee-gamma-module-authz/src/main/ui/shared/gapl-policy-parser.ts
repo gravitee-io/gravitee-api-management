@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 import type { ActionRef, PolicyEffect, PolicyStatement, PrincipalRef, ResourceRef } from '../features/policy-management/statement-to-gapl';
-import { stripLineComments } from './strip-line-comments';
+import { stripGaplComments } from './strip-gapl-comments';
 
 export interface ParsedPolicy {
     readonly statements: readonly PolicyStatement[];
-    readonly warnings: readonly string[];
+    readonly diagnostics: readonly string[];
 }
 
 interface Token {
@@ -53,14 +53,22 @@ function findMatchingBrace(text: string, open: number): number {
     return -1;
 }
 
-function tokenise(text: string): Token[] | null {
+interface TokeniseResult {
+    readonly tokens?: Token[];
+    readonly diagnostic?: string;
+}
+
+function tokenise(text: string): TokeniseResult {
     const tokens: Token[] = [];
     const re = /"(?:\\.|[^"\\])*"|==|::|[A-Za-z_][A-Za-z0-9_]*|[(){}\[\],;]/g;
     let m: RegExpExecArray | null;
     let lastIndex = 0;
     while ((m = re.exec(text)) !== null) {
         const between = text.slice(lastIndex, m.index);
-        if (/[^\s]/.test(between)) return null;
+        const stray = between.match(/\S/);
+        if (stray) {
+            return { diagnostic: `Unexpected character '${stray[0]}' at position ${lastIndex + (stray.index ?? 0)}` };
+        }
         lastIndex = re.lastIndex;
         const v = m[0];
         if (v.startsWith('"')) {
@@ -73,7 +81,9 @@ function tokenise(text: string): Token[] | null {
                 while (i < text.length && /\s/.test(text[i])) i++;
                 if (text[i] === '{') {
                     const close = findMatchingBrace(text, i);
-                    if (close < 0) return null;
+                    if (close < 0) {
+                        return { diagnostic: "Unterminated 'when {' block" };
+                    }
                     const raw = text.slice(i + 1, close);
                     tokens.push({ value: 'when', kind: 'word' });
                     tokens.push({ value: '{', kind: 'punct' });
@@ -89,14 +99,17 @@ function tokenise(text: string): Token[] | null {
             tokens.push({ value: v, kind: 'punct' });
         }
     }
-    if (/[^\s]/.test(text.slice(lastIndex))) return null;
-    return tokens;
+    const trailingStray = text.slice(lastIndex).match(/\S/);
+    if (trailingStray) {
+        return { diagnostic: `Unexpected character '${trailingStray[0]}' near end of input` };
+    }
+    return { tokens };
 }
 
 class PolicyParser {
     private pos = 0;
-    readonly statements: PolicyStatement[] = [];
-    readonly warnings: string[] = [];
+    private readonly statements: PolicyStatement[] = [];
+    private readonly diagnostics: string[] = [];
     private failed = false;
 
     constructor(private readonly tokens: readonly Token[]) {}
@@ -108,12 +121,12 @@ class PolicyParser {
         return this.tokens[this.pos++];
     }
     private fail(msg: string): null {
-        this.warnings.push(msg);
+        this.diagnostics.push(msg);
         this.failed = true;
         return null;
     }
 
-    parse(): ParsedPolicy | null {
+    parse(): ParsedPolicy {
         while (this.pos < this.tokens.length && !this.failed) {
             const t = this.peek();
             if (!t) break;
@@ -122,13 +135,13 @@ class PolicyParser {
                 continue;
             }
             if (t.kind === 'word' && (t.value === 'permit' || t.value === 'forbid')) {
-                if (this.parseStatement() === null) return null;
+                if (this.parseStatement() === null) break;
                 continue;
             }
-            return this.fail(`Unexpected token '${t.value}' at top level`) as null;
+            this.fail(`Unexpected token '${t.value}' at top level`);
+            break;
         }
-        if (this.failed) return null;
-        return { statements: this.statements, warnings: this.warnings };
+        return { statements: this.statements, diagnostics: this.diagnostics };
     }
 
     private parseStatement(): PolicyStatement | null {
@@ -188,6 +201,12 @@ class PolicyParser {
             const conditionResult = this.parseWhenBlock();
             if (conditionResult === null) return null;
             condition = conditionResult;
+        }
+
+        // `unless` is valid Cedar but unsupported here — flag it explicitly so the
+        // editor can tell the user what's going on rather than just "unexpected token".
+        if (this.peek()?.value === 'unless') {
+            return this.fail("'unless' clauses are not supported (Cedar feature outside the GAPL visual editor's subset)");
         }
 
         if (this.peek()?.value === ';') this.next();
@@ -252,14 +271,15 @@ class PolicyParser {
     }
 }
 
-export function parseGaplToStatements(text: string): ParsedPolicy | null {
-    if (!text || !text.trim()) return { statements: [], warnings: [] };
+export function parseGaplToStatements(text: string): ParsedPolicy {
+    if (!text || !text.trim()) return { statements: [], diagnostics: [] };
 
-    const stripped = stripLineComments(text);
-    const tokens = tokenise(stripped);
-    if (tokens === null) return null;
-    if (tokens.length === 0) return { statements: [], warnings: [] };
+    const stripped = stripGaplComments(text);
+    const { tokens, diagnostic } = tokenise(stripped);
+    if (diagnostic !== undefined) {
+        return { statements: [], diagnostics: [diagnostic] };
+    }
+    if (!tokens || tokens.length === 0) return { statements: [], diagnostics: [] };
 
-    const parser = new PolicyParser(tokens);
-    return parser.parse();
+    return new PolicyParser(tokens).parse();
 }
