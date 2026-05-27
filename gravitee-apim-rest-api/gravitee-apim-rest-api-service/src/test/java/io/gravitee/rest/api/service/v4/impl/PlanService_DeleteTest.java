@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.KafkaPortRangeRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -75,6 +76,9 @@ public class PlanService_DeleteTest {
 
     @Mock
     private FlowCrudService flowCrudService;
+
+    @Mock
+    private KafkaPortRangeRepository kafkaPortRangeRepository;
 
     @Test(expected = PlanWithSubscriptionsException.class)
     public void shouldNotDeleteBecauseSubscriptionsExist() throws TechnicalException {
@@ -155,11 +159,14 @@ public class PlanService_DeleteTest {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(Collections.emptySet());
         when(plan.getReferenceId()).thenReturn(API_ID);
+        when(plan.getId()).thenReturn(PLAN_ID);
+        when(plan.getBootstrapPort()).thenReturn(9002);
         when(planRepository.findByApi(any())).thenReturn(Collections.emptySet());
 
         planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(planRepository, times(1)).delete(PLAN_ID);
+        verify(kafkaPortRangeRepository, times(1)).delete(PLAN_ID);
         verify(flowCrudService, times(1)).saveNativePlanFlows(PLAN_ID, null);
     }
 }
