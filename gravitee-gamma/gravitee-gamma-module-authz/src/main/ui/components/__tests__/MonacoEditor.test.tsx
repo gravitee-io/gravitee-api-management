@@ -31,11 +31,7 @@ const capturedTheme: { current: string | null } = {
 
 vi.mock('@monaco-editor/react', () => ({
     __esModule: true,
-    default: (props: {
-        onMount?: (editor: unknown, monaco: unknown) => void;
-        options?: Record<string, unknown>;
-        theme?: string;
-    }) => {
+    default: (props: { onMount?: (editor: unknown, monaco: unknown) => void; options?: Record<string, unknown>; theme?: string }) => {
         capturedOnMount.current = props.onMount ?? null;
         capturedOptions.current = props.options ?? null;
         capturedTheme.current = props.theme ?? null;
