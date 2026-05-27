@@ -29,5 +29,5 @@ export default {
         '^.+\\.[tj]sx?$': ['babel-jest', { presets: ['@nx/react/babel'] }],
     },
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
-    coverageDirectory: __dirname + '/coverage',
+    coverageDirectory: '<rootDir>/coverage',
 };
