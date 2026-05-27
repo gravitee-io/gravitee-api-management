@@ -20,6 +20,19 @@
     <mat-card-header>
       <div class="api-access__header-row">
         <div class="next-gen-h5 api-access__header" i18n="@@subscriptionDetailsApiAccessHeader">API access</div>
+        @if (planSecurity === 'API_KEY' && subscription?.status === 'ACCEPTED' && canManageApiKey) {
+          <button
+            mat-stroked-button
+            type="button"
+            matTooltip="Renew API Key"
+            i18n-matTooltip="@@subscriptionDetailsRenewApiKeyTooltip"
+            [disabled]="isRenewingApiKey()"
+            data-testid="renew-api-key-button"
+            (click)="renewApiKey()"
+          >
+            <span class="next-gen-small-bold" i18n="@@subscriptionDetailsRenewApiKey">Renew API Key</span>
+          </button>
+        }
       </div>
     </mat-card-header>
     <mat-card-content class="api-access__copy-code-content">
@@ -42,6 +55,18 @@
         @if (planSecurity === 'API_KEY') {
           <div class="api-access__copy-code-content__api-keys-list">
             <div class="next-gen-h5" i18n="@@subscriptionDetailsApiAccessApiKeysHeader">API keys</div>
+            @if (apiKeyRenewFeedback(); as renewFeedback) {
+              <div
+                class="next-gen-body api-access__renew-feedback"
+                [class.api-access__renew-feedback--error]="renewFeedback.type === 'error'"
+                [class.api-access__renew-feedback--success]="renewFeedback.type === 'success'"
+                [attr.role]="renewFeedback.type === 'error' ? 'alert' : null"
+                [attr.aria-live]="renewFeedback.type === 'success' ? 'polite' : null"
+                data-testid="renew-api-key-feedback"
+              >
+                {{ renewFeedback.message }}
+              </div>
+            }
             @if (apiKeyRows().length > 0) {
               <app-paginated-table
                 [columns]="apiKeysColumns"

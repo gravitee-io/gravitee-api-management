@@ -23,6 +23,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatTabGroupHarness } from '@angular/material/tabs/testing';
+import { MatTooltipHarness } from '@angular/material/tooltip/testing';
 import { By } from '@angular/platform-browser';
 
 import { ApiAccessComponent } from './api-access.component';
@@ -170,6 +171,143 @@ describe('ApiAccessComponent', () => {
           fixture.detectChanges();
 
           expect(await revokeApiKeyButtonShown()).toBeFalsy();
+          expect(await renewApiKeyButtonShown()).toBeFalsy();
+        });
+
+        it('should show renew api key button with tooltip', async () => {
+          component.planSecurity = 'API_KEY';
+          component.subscription = { id: 'subscription-id', status: 'ACCEPTED' } as Subscription;
+          component.entrypointUrls = ['my-entrypoint-url'];
+          component.apiKeys = [{ key: 'api-key', application: { id: 'app-id', name: 'app-name' } }];
+
+          fixture.detectChanges();
+
+          const renewButton = await getRenewApiKeyButton();
+          expect(renewButton).toBeTruthy();
+          expect(await renewButton!.getText()).toContain('Renew API Key');
+
+          const tooltip = await getRenewApiKeyTooltip();
+          expect(tooltip).toBeTruthy();
+          await tooltip!.show();
+          expect(await tooltip!.getTooltipText()).toBe('Renew API Key');
+        });
+
+        it('should open confirmation dialog and call renew service after confirmation', async () => {
+          component.planSecurity = 'API_KEY';
+          component.subscription = { id: 'subscription-id', status: 'ACCEPTED' } as Subscription;
+          component.entrypointUrls = ['my-entrypoint-url'];
+          component.apiKeys = [{ key: 'api-key', application: { id: 'app-id', name: 'app-name' } }];
+          const apiKeyRenewedSpy = jest.spyOn(component.apiKeyRenewed, 'emit');
+
+          fixture.detectChanges();
+
+          const renewButton = await getRenewApiKeyButton();
+          expect(renewButton).toBeTruthy();
+
+          await renewButton!.click();
+          const confirmDialog = await rootLoader.getHarness(ConfirmDialogHarness);
+          expect(await confirmDialog.getTitle()).toContain('Renew API Key?');
+          expect(await confirmDialog.getContent()).toContain('API Key renewal will eventually deprecate the current key');
+          expect(await confirmDialog.getCancelText()).toContain('Cancel');
+          expect(await confirmDialog.getConfirmText()).toContain('Yes, renew');
+
+          await confirmDialog.confirm();
+          expectRenewApiKeyRequest('subscription-id').flush(null);
+          fixture.detectChanges();
+
+          expect(apiKeyRenewedSpy).toHaveBeenCalled();
+          expect(getRenewApiKeyFeedbackText()).toContain('API key renewed successfully. You can now use it to access the API.');
+          expect(getRenewApiKeyFeedbackAttribute('aria-live')).toBe('polite');
+          expect(getRenewApiKeyFeedbackAttribute('role')).toBeNull();
+        });
+
+        it('should not call renew service when dialog is canceled', async () => {
+          component.planSecurity = 'API_KEY';
+          component.subscription = { id: 'subscription-id', status: 'ACCEPTED' } as Subscription;
+          component.entrypointUrls = ['my-entrypoint-url'];
+          component.apiKeys = [{ key: 'api-key', application: { id: 'app-id', name: 'app-name' } }];
+
+          fixture.detectChanges();
+
+          const renewButton = await getRenewApiKeyButton();
+          expect(renewButton).toBeTruthy();
+
+          await renewButton!.click();
+          const confirmDialog = await rootLoader.getHarness(ConfirmDialogHarness);
+          await confirmDialog.cancel();
+
+          expectNoRenewApiKeyRequest();
+        });
+
+        it('should not emit revoke event when renew service fails', async () => {
+          component.planSecurity = 'API_KEY';
+          component.subscription = { id: 'subscription-id', status: 'ACCEPTED' } as Subscription;
+          component.entrypointUrls = ['my-entrypoint-url'];
+          component.apiKeys = [{ key: 'api-key', application: { id: 'app-id', name: 'app-name' } }];
+          const apiKeyRenewedSpy = jest.spyOn(component.apiKeyRenewed, 'emit');
+
+          fixture.detectChanges();
+
+          const renewButton = await getRenewApiKeyButton();
+          expect(renewButton).toBeTruthy();
+
+          await renewButton!.click();
+          const confirmDialog = await rootLoader.getHarness(ConfirmDialogHarness);
+          await confirmDialog.confirm();
+
+          expectRenewApiKeyRequest('subscription-id').flush('Failed to renew API key', {
+            status: 500,
+            statusText: 'Server Error',
+          });
+          fixture.detectChanges();
+
+          expect(apiKeyRenewedSpy).not.toHaveBeenCalled();
+          expect(getRenewApiKeyFeedbackText()).toContain('Failed to renew API key. Please try again.');
+          expect(getRenewApiKeyFeedbackAttribute('role')).toBe('alert');
+          expect(getRenewApiKeyFeedbackAttribute('aria-live')).toBeNull();
+        });
+
+        it('should not call renew service when subscription id is missing', async () => {
+          component.planSecurity = 'API_KEY';
+          component.subscription = { status: 'ACCEPTED' } as Subscription;
+          component.entrypointUrls = ['my-entrypoint-url'];
+          component.apiKeys = [{ key: 'api-key', application: { id: 'app-id', name: 'app-name' } }];
+
+          fixture.detectChanges();
+
+          const renewButton = await getRenewApiKeyButton();
+          expect(renewButton).toBeTruthy();
+          await renewButton!.click();
+
+          expectNoRenewApiKeyRequest();
+        });
+
+        it('should disable renew button while request is in flight', async () => {
+          component.planSecurity = 'API_KEY';
+          component.subscription = { id: 'subscription-id', status: 'ACCEPTED' } as Subscription;
+          component.entrypointUrls = ['my-entrypoint-url'];
+          component.apiKeys = [{ key: 'api-key', application: { id: 'app-id', name: 'app-name' } }];
+
+          fixture.detectChanges();
+
+          const renewButton = await getRenewApiKeyButton();
+          expect(renewButton).toBeTruthy();
+          expect(await renewButton!.isDisabled()).toBeFalsy();
+
+          await renewButton!.click();
+          const confirmDialog = await rootLoader.getHarness(ConfirmDialogHarness);
+          await confirmDialog.confirm();
+          fixture.detectChanges();
+
+          const request = expectRenewApiKeyRequest('subscription-id');
+          const renewButtonWhileLoading = await getRenewApiKeyButton();
+          expect(await renewButtonWhileLoading!.isDisabled()).toBeTruthy();
+
+          request.flush(null);
+          fixture.detectChanges();
+
+          const renewButtonAfterDone = await getRenewApiKeyButton();
+          expect(await renewButtonAfterDone!.isDisabled()).toBeFalsy();
         });
 
         it('should show revoke button only for active api keys', async () => {
@@ -361,6 +499,43 @@ describe('ApiAccessComponent', () => {
           await confirmDialog.cancel();
 
           expectNoRevokeApiKeyRequest();
+        });
+
+        it('should not open another confirmation dialog while one is already open', async () => {
+          component.planSecurity = 'API_KEY';
+          component.subscription = { id: 'subscription-id', status: 'ACCEPTED' } as Subscription;
+          component.apiKeys = [
+            { key: 'api-key-1', application: { id: 'app-id', name: 'app-name' } },
+            { key: 'api-key-2', application: { id: 'app-id', name: 'app-name' } },
+          ];
+          const matDialogOpenSpy = jest.spyOn(TestBed.inject(MatDialog), 'open');
+
+          fixture.detectChanges();
+
+          const revokeButtons = await getRevokeApiKeyButtons();
+          expect(revokeButtons).toHaveLength(2);
+
+          await revokeButtons[0].click();
+          fixture.detectChanges();
+
+          expect(matDialogOpenSpy).toHaveBeenCalledTimes(1);
+          await expect(revokeButtons[0].isDisabled()).resolves.toBeTruthy();
+          await expect(revokeButtons[1].isDisabled()).resolves.toBeTruthy();
+
+          (component as unknown as { revokeApiKeyRow: (apiKey: { isActive: boolean; key: string }) => void }).revokeApiKeyRow({
+            isActive: true,
+            key: 'api-key-2',
+          });
+
+          expect(matDialogOpenSpy).toHaveBeenCalledTimes(1);
+
+          const confirmDialog = await rootLoader.getHarness(ConfirmDialogHarness);
+          await confirmDialog.cancel();
+          fixture.detectChanges();
+
+          const revokeButtonsAfterCancel = await getRevokeApiKeyButtons();
+          await expect(revokeButtonsAfterCancel[0].isDisabled()).resolves.toBeFalsy();
+          await expect(revokeButtonsAfterCancel[1].isDisabled()).resolves.toBeFalsy();
         });
 
         it('should not open another confirmation dialog while one is already open', async () => {
@@ -676,6 +851,18 @@ describe('ApiAccessComponent', () => {
   function expectNoRevokeApiKeyRequest() {
     httpTestingController.expectNone(request => request.url.includes('/_revoke'), 'revoke API key request');
   }
+  function renewApiKeyUrl(subscriptionId: string): string {
+    return `${TESTING_BASE_URL}/subscriptions/${subscriptionId}/keys/_renew`;
+  }
+  function expectRenewApiKeyRequest(subscriptionId: string) {
+    const request = httpTestingController.expectOne(renewApiKeyUrl(subscriptionId));
+    expect(request.request.method).toEqual('POST');
+    expect(request.request.body).toBeNull();
+    return request;
+  }
+  function expectNoRenewApiKeyRequest() {
+    httpTestingController.expectNone(request => request.url.includes('/_renew'), 'renew API key request');
+  }
   function getApiKeyStatusIcons() {
     return fixture.debugElement
       .queryAll(By.css('[data-testid="api-key-status-icon"]'))
@@ -697,6 +884,26 @@ describe('ApiAccessComponent', () => {
   }
   async function revokeApiKeyButtonShown() {
     return !!(await getRevokeApiKeyButton());
+  }
+  async function getRenewApiKeyButton() {
+    return await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid="renew-api-key-button"]' }));
+  }
+  async function renewApiKeyButtonShown() {
+    return !!(await getRenewApiKeyButton());
+  }
+  async function getRenewApiKeyTooltip() {
+    return await harnessLoader.getHarnessOrNull(MatTooltipHarness.with({ selector: '[data-testid="renew-api-key-button"]' }));
+  }
+  function getRenewApiKeyFeedback() {
+    return fixture.debugElement.query(By.css('[data-testid="renew-api-key-feedback"]'));
+  }
+  function getRenewApiKeyFeedbackText() {
+    const element = getRenewApiKeyFeedback()?.nativeElement as HTMLElement | undefined;
+    return element?.textContent?.trim();
+  }
+  function getRenewApiKeyFeedbackAttribute(attribute: string) {
+    const element = getRenewApiKeyFeedback()?.nativeElement as HTMLElement | undefined;
+    return element?.getAttribute(attribute) ?? null;
   }
   function getApiKeyRevokeButtonApiKeys() {
     return fixture.debugElement
