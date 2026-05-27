@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEffect, useState } from 'react';
 import Editor, { type EditorProps, type OnMount } from '@monaco-editor/react';
 import type * as monacoNs from 'monaco-editor';
+import { useEffect, useState } from 'react';
 import { GAPL_LANGUAGE_ID, registerGaplLanguage } from './gapl-language';
 
 export interface MonacoEditorProps {
