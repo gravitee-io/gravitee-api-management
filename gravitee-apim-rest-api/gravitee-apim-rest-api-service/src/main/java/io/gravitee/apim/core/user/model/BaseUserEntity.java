@@ -15,9 +15,9 @@
  */
 package io.gravitee.apim.core.user.model;
 
+import io.gravitee.rest.api.service.common.UuidString;
 import java.util.Date;
 import java.util.Optional;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -50,7 +50,7 @@ public class BaseUserEntity {
         Date now
     ) {
         return BaseUserEntity.builder()
-            .id(UUID.randomUUID().toString())
+            .id(UuidString.generateRandom())
             .organizationId(organizationId)
             .source(IdpSource.GRAVITEE)
             .sourceId(email)
