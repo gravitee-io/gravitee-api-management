@@ -5239,6 +5239,8 @@ components:
                     $ref: "#/components/schemas/ConfigurationReCaptcha"
                 alert:
                     $ref: "#/components/schemas/Enabled"
+                openAPIDocViewer:
+                    $ref: "#/components/schemas/ConfigurationOpenAPIDocViewer"
         ConfigurationPortal:
             properties:
                 title:
@@ -5442,6 +5444,23 @@ components:
                 siteKey:
                     description: reCaptcha site key
                     type: string
+
+        ConfigurationOpenAPIDocViewer:
+            properties:
+                openAPIDocType:
+                    $ref: "#/components/schemas/ConfigurationOpenAPIDocType"
+        ConfigurationOpenAPIDocType:
+            properties:
+                swagger:
+                    $ref: "#/components/schemas/Enabled"
+                redoc:
+                    $ref: "#/components/schemas/Enabled"
+                defaultType:
+                    description: Default OpenAPI viewer type (Swagger or Redoc)
+                    type: string
+                    enum:
+                        - Swagger
+                        - Redoc
 
         CategorizedLinks:
             properties:
