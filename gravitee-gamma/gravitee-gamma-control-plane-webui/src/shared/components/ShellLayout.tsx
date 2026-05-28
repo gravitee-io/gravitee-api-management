@@ -119,9 +119,14 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
                     onEnvironmentChange={handleEnvironmentChange}
                 />
             }
+            contextSidebar={slots.contextSidebar}
+            viewMode={slots.viewMode}
+            contextExpanded={slots.contextExpanded}
+            contentVariant={slots.contentVariant}
             subheader={
                 <ContentHeader
                     breadcrumbs={slots.breadcrumbs}
+                    leading={slots.leading}
                     trailing={user ? <TopNavUser name={user.displayName} email={user.email} onSignOut={handleSignOut} /> : undefined}
                 />
             }
