@@ -35,6 +35,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -437,26 +438,17 @@ public class ApiServiceImplTest {
         );
     }
 
-<<<<<<< HEAD
-    @Test(expected = ApiRunningStateException.class)
-    public void shouldNotDeleteBecauseRunningState() throws TechnicalException {
+    @Test
+    public void should_not_delete_because_running_state() throws TechnicalException {
         Api api = new Api();
         api.setId(API_ID);
         api.setLifecycleState(LifecycleState.STARTED);
         api.setOrigin(ORIGIN_MANAGEMENT);
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-=======
-    @Test
-    public void should_not_delete_because_running_state() throws TechnicalException {
+        ExecutionContext context = GraviteeContext.getExecutionContext();
         assertThrows(ApiRunningStateException.class, () -> {
-            Api api = new Api();
-            api.setId(API_ID);
-            api.setLifecycleState(LifecycleState.STARTED);
-            api.setOrigin(ORIGIN_MANAGEMENT);
-            when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
->>>>>>> 8d06eb7834 (fix(GKO-2822): preserve group HRID on management API update)
-
-        apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
+            apiService.delete(context, API_ID, false);
+        });
     }
 
     @Test
