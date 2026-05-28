@@ -19,11 +19,19 @@
 
 $textColor: map.get(gio.$mat-dove-palette, default);
 
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .settings-navigation {
   height: 100%;
   display: grid;
   grid-template-columns: min-content auto;
   grid-template-areas: 'menu content';
+  overflow: hidden;
 
   a {
     text-decoration: none;
@@ -33,11 +41,21 @@ $textColor: map.get(gio.$mat-dove-palette, default);
     grid-area: menu;
     display: flex;
     flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+
+    &-scroll {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
   }
 
   &__submenu {
     z-index: 70;
-    height: 100%;
+    display: block;
+    height: auto;
     color: $textColor;
   }
 
@@ -54,10 +72,20 @@ $textColor: map.get(gio.$mat-dove-palette, default);
     display: flex;
     flex-direction: column;
     flex: 1 1 auto;
-    height: 100%;
+    min-height: 0;
+    overflow: hidden;
 
     a {
       text-decoration: none;
+    }
+
+    &__view {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      height: 100%;
+      min-height: 0;
+      overflow-y: auto;
     }
   }
 }
