@@ -28,8 +28,7 @@ import { EnvAuditModule } from './env-audit.module';
 
 import { fakeMetadataPageAudit } from '../../entities/audit/Audit.fixture';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../shared/testing';
-import { Api } from '../../entities/api/Api';
-import { fakeApi } from '../../entities/api/Api.fixture';
+import { Api, fakeApiV4 } from '../../entities/management-api-v2';
 import { GioTableWrapperHarness } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 
 describe('EnvAuditComponent', () => {
@@ -100,13 +99,14 @@ describe('EnvAuditComponent', () => {
 
     expectAuditListRequest({ referenceType: 'API' });
 
-    expectApiGetAllByEnvRequest([fakeApi({ id: 'api1', name: 'api1' })]);
+    const v4Api = fakeApiV4({ id: 'v4-api-id', name: 'My V4 API' });
+    expectApiGetAllByEnvRequest([v4Api]);
 
     // 3. Expect API selection works and trigger new AuditListRequest
     const apiIdSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName=apiId]' }));
 
-    await apiIdSelect.clickOptions({ text: 'api1' });
-    expectAuditListRequest({ referenceType: 'API', apiId: 'api1' });
+    await apiIdSelect.clickOptions({ text: 'My V4 API' });
+    expectAuditListRequest({ referenceType: 'API', apiId: 'v4-api-id' });
   });
 
   it('should display audit logs with from & to range', async () => {
@@ -188,8 +188,8 @@ describe('EnvAuditComponent', () => {
   }
 
   function expectApiGetAllByEnvRequest(apis: Api[]) {
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis`);
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis?page=1&perPage=9999`);
     expect(req.request.method).toEqual('GET');
-    req.flush(apis);
+    req.flush({ data: apis });
   }
 });

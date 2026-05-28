@@ -19,8 +19,8 @@ import { isEqual, mapValues } from 'lodash';
 import { BehaviorSubject, EMPTY, forkJoin, Observable, Subject } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, shareReplay, switchMap, takeUntil, tap, throttleTime } from 'rxjs/operators';
 
-import { Api } from '../../../entities/api';
-import { ApiService } from '../../../services-ngx/api.service';
+import { Api } from '../../../entities/management-api-v2';
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { ApplicationService } from '../../../services-ngx/application.service';
 import { AuditService } from '../../../services-ngx/audit.service';
 import { EnvironmentService } from '../../../services-ngx/environment.service';
@@ -74,7 +74,7 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
         envs.reduce(
           (res, env) => ({
             ...res,
-            [env.name]: this.apiService.getAll({
+            [env.name]: this.apiV2Service.getAll({
               environmentId: env.id,
             }),
           }),
@@ -133,7 +133,7 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
 
   constructor(
     private auditService: AuditService,
-    private apiService: ApiService,
+    private readonly apiV2Service: ApiV2Service,
     private applicationService: ApplicationService,
     private environmentService: EnvironmentService,
     private snackBarService: SnackBarService,

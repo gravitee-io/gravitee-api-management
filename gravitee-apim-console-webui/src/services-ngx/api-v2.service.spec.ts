@@ -23,6 +23,7 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import {
   ApiTransferOwnership,
   DuplicateApiOptions,
+  fakeApiV2,
   fakeApiV4,
   fakeBaseApplication,
   fakeCreateApiV4,
@@ -309,6 +310,165 @@ describe('ApiV2Service', () => {
       });
       req.flush({
         data: [fakeApi],
+      });
+    });
+  });
+
+  describe('getAll', () => {
+    it('should call the current environment v2 API in a single request', done => {
+      const fakeApi = fakeApiV4();
+
+      apiV2Service.getAll().subscribe(apis => {
+        expect(apis).toEqual([fakeApi]);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis?page=1&perPage=9999`,
+        method: 'GET',
+      });
+
+      req.flush({ data: [fakeApi] });
+    });
+
+    it('should call the v2 API for a specific environment', done => {
+      const environmentId = 'env-id';
+      const fakeApi = fakeApiV4();
+
+      apiV2Service.getAll({ environmentId }).subscribe(apis => {
+        expect(apis).toEqual([fakeApi]);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.v2BaseURL}/environments/${environmentId}/apis?page=1&perPage=9999`,
+        method: 'GET',
+      });
+
+      req.flush({ data: [fakeApi] });
+    });
+
+    it('should return an empty array when response has no data', done => {
+      apiV2Service.getAll().subscribe(apis => {
+        expect(apis).toEqual([]);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis?page=1&perPage=9999`,
+        method: 'GET',
+      });
+
+      req.flush({});
+    });
+  });
+
+  describe('listAll', () => {
+    it('should call the current environment v2 API', done => {
+      const fakeApi = fakeApiV4();
+
+      apiV2Service.listAll().subscribe(apis => {
+        expect(apis).toEqual([fakeApi]);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis?page=1`,
+        method: 'GET',
+      });
+
+      req.flush({ data: [fakeApi] });
+    });
+
+    it('should call the v2 API for a specific environment', done => {
+      const environmentId = 'env-id';
+      const fakeApi = fakeApiV4();
+
+      apiV2Service.listAll({ environmentId }).subscribe(apis => {
+        expect(apis).toEqual([fakeApi]);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.v2BaseURL}/environments/${environmentId}/apis?page=1`,
+        method: 'GET',
+      });
+
+      req.flush({ data: [fakeApi] });
+    });
+
+    it('should return an empty array when response has no data', done => {
+      apiV2Service.listAll().subscribe(apis => {
+        expect(apis).toEqual([]);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis?page=1`,
+        method: 'GET',
+      });
+
+      req.flush({});
+    });
+
+    it('should return both v2 and v4 APIs when the response contains a mix', done => {
+      const v2Api = fakeApiV2({ id: 'v2-api-id', name: 'My V2 API' });
+      const v4Api = fakeApiV4({ id: 'v4-api-id', name: 'My V4 API' });
+
+      apiV2Service.listAll().subscribe(apis => {
+        expect(apis).toEqual([v2Api, v4Api]);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis?page=1`,
+        method: 'GET',
+      });
+
+      req.flush({ data: [v2Api, v4Api] });
+    });
+
+    it('should paginate through every page until pageCount is reached', done => {
+      const pageOneApis = [fakeApiV2({ id: 'page-1-v2', name: 'page-1-v2' }), fakeApiV4({ id: 'page-1-v4', name: 'page-1-v4' })];
+      const pageTwoApis = [fakeApiV4({ id: 'page-2-v4', name: 'page-2-v4' })];
+
+      apiV2Service.listAll().subscribe(apis => {
+        expect(apis).toEqual([...pageOneApis, ...pageTwoApis]);
+        done();
+      });
+
+      const reqPage1 = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis?page=1`,
+        method: 'GET',
+      });
+      reqPage1.flush({
+        data: pageOneApis,
+        pagination: { page: 1, pageCount: 2, totalCount: 3 },
+      });
+
+      const reqPage2 = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis?page=2`,
+        method: 'GET',
+      });
+      reqPage2.flush({
+        data: pageTwoApis,
+        pagination: { page: 2, pageCount: 2, totalCount: 3 },
+      });
+    });
+
+    it('should stop after one request when pageCount is 1', done => {
+      apiV2Service.listAll().subscribe(apis => {
+        expect(apis).toEqual([]);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis?page=1`,
+        method: 'GET',
+      });
+      req.flush({
+        data: [],
+        pagination: { page: 1, pageCount: 1, totalCount: 0 },
       });
     });
   });
