@@ -46,7 +46,7 @@ public class HttpEndpointInvoker implements HttpInvoker, Invoker {
     private static final String MATCH_GROUP_ENDPOINT = "endpoint";
     private static final String MATCH_GROUP_PATH = "path";
     private static final Pattern ENDPOINT_PATTERN = Pattern.compile(
-        "^(?<" + MATCH_GROUP_ENDPOINT + ">[^:]+):(?<" + MATCH_GROUP_PATH + ">.*)$"
+        "^(?<" + MATCH_GROUP_ENDPOINT + ">[^/:][^:]*):(?<" + MATCH_GROUP_PATH + ">.*)$"
     );
 
     static final Set<String> KNOWN_URL_SCHEMES = Set.of("http", "https", "ws", "wss");
@@ -121,7 +121,6 @@ public class HttpEndpointInvoker implements HttpInvoker, Invoker {
                     ctx.setAttribute(ATTR_REQUEST_ENDPOINT, matcher.group(MATCH_GROUP_PATH));
                 }
             }
-            // No else needed: any string with a colon matches ENDPOINT_PATTERN, including all absolute URIs.
         }
 
         final ManagedEndpoint managedEndpoint = endpointManager.next(endpointCriteria);
