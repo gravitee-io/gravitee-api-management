@@ -126,6 +126,9 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     protected IdentityProviderRepository identityProviderRepository;
 
     @Inject
+    protected AmConnectionRepository amConnectionRepository;
+
+    @Inject
     protected AlertTriggerRepository alertRepository;
 
     @Inject
@@ -282,6 +285,7 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             case ApiHeader apiHeader -> apiHeaderRepository.create(apiHeader);
             case Command command -> commandRepository.create(command);
             case IdentityProvider identityProvider -> identityProviderRepository.create(identityProvider);
+            case AmConnection amConnection -> amConnectionRepository.create(amConnection);
             case AlertTrigger alertTrigger -> alertRepository.create(alertTrigger);
             case Entrypoint entrypoint -> entrypointRepository.create(entrypoint);
             case Invitation invitation -> invitationRepository.create(invitation);

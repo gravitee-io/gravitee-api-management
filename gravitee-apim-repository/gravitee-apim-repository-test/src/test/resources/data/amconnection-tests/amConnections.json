@@ -1,0 +1,20 @@
+[
+  {
+    "organizationId": "org-update",
+    "baseUrl": "https://am.example.com",
+    "serviceAccountAccessTokenEncrypted": "cipher-update",
+    "defaultDomainId": "domain-1",
+    "defaultDomainHrid": "domain-hrid-1",
+    "gatewayUrl": "https://gw.example.com",
+    "updatedAt": 1000000000000
+  },
+  {
+    "organizationId": "org-delete",
+    "baseUrl": "https://am-delete.example.com",
+    "serviceAccountAccessTokenEncrypted": "cipher-delete",
+    "defaultDomainId": "domain-2",
+    "defaultDomainHrid": "domain-hrid-2",
+    "gatewayUrl": "https://gw-delete.example.com",
+    "updatedAt": 1000000000000
+  }
+]
