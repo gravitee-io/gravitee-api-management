@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { Badge, Button, Card, CardContent, Skeleton } from '@gravitee/graphene-core';
-import { CircleCheckIcon, CircleStopIcon, CircleXIcon, MessageSquareWarningIcon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
+import { Badge, Button, ContextSidebar, ContextToggleButton, Skeleton, useLayoutConfig } from '@gravitee/graphene-core';
+import { CircleCheckIcon, CircleStopIcon, CircleXIcon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Navigate, Outlet, useParams } from 'react-router-dom';
@@ -78,19 +78,14 @@ function ApiAvatar({ api }: { api: ApiDetailDto }) {
 
 function DeployBanner({ onDeploy, isPending }: { onDeploy: () => void; isPending: boolean }) {
     return (
-        <div className="px-6 pt-4">
-            <Card>
-                <CardContent className="flex items-center justify-between gap-3 py-3">
-                    <div className="flex items-center gap-2">
-                        <MessageSquareWarningIcon className="size-4 text-warning shrink-0" />
-                        <p className="text-sm font-medium">Pending changes</p>
-                        <p className="text-sm text-muted-foreground">— This API is out of sync.</p>
-                    </div>
-                    <Button size="sm" onClick={onDeploy} disabled={isPending} className="shrink-0">
-                        {isPending ? 'Deploying…' : 'Deploy API'}
-                    </Button>
-                </CardContent>
-            </Card>
+        <div className="flex items-center justify-between border-b px-6 py-2 bg-warning/10">
+            <span className="flex items-center gap-1.5 text-sm text-foreground">
+                <TriangleAlertIcon className="size-3.5 shrink-0 text-warning" />
+                This API has undeployed changes.
+            </span>
+            <Button size="sm" variant="outline" onClick={onDeploy} disabled={isPending}>
+                {isPending ? 'Deploying…' : 'Deploy API'}
+            </Button>
         </div>
     );
 }
@@ -174,6 +169,7 @@ export function ApiDetailLayout() {
     const { permissionsReady } = useApiPermissions(apiId);
     const canDeploy = useHasPermission({ anyOf: ['api-definition-u'] });
     const queryClient = useQueryClient();
+    const [contextExpanded, setContextExpanded] = useState(true);
 
     const deployMutation = useMutation({
         mutationFn: () => {
@@ -187,6 +183,24 @@ export function ApiDetailLayout() {
         },
     });
 
+    useLayoutConfig(
+        {
+            viewMode: 'context',
+            contextExpanded,
+            contextSidebar: (
+                <ContextSidebar header={<ApiInfoHeader api={api ?? null} isLoading={isLoading} />}>
+                    <ApiDetailSidebarNav groups={API_PROXY_NAV_GROUPS} basePath={basePath} permissionsReady={permissionsReady} />
+                </ContextSidebar>
+            ),
+            leading: <ContextToggleButton expanded={contextExpanded} onToggle={() => setContextExpanded(v => !v)} />,
+            breadcrumbs: [
+                { label: 'API Proxies', href: `${basePath.slice(0, basePath.lastIndexOf('/apis/'))}${'/apis'}` },
+                { label: api?.name ?? 'Loading…' },
+            ],
+        },
+        [contextExpanded, api, isLoading, basePath, permissionsReady],
+    );
+
     if (isError) {
         return (
             <div className="flex items-center justify-center p-8">
@@ -199,16 +213,11 @@ export function ApiDetailLayout() {
 
     return (
         <ApiDetailContext.Provider value={{ api: api ?? null, isLoading, permissionsReady }}>
-            <div className="flex" style={{ height: 'calc(100dvh - 5rem)' }}>
-                <aside className="w-56 min-w-0 shrink-0 overflow-y-auto overflow-x-hidden pb-4" style={{ maxWidth: '14rem' }}>
-                    <ApiInfoHeader api={api ?? null} isLoading={isLoading} />
-                    <ApiDetailSidebarNav groups={API_PROXY_NAV_GROUPS} basePath={basePath} permissionsReady={permissionsReady} />
-                </aside>
-                <div className="w-px bg-border shrink-0" />
-                <main className="min-w-0 flex-1 overflow-y-auto">
-                    {showDeployBanner && <DeployBanner onDeploy={() => deployMutation.mutate()} isPending={deployMutation.isPending} />}
+            <div className="flex h-full min-h-0 flex-col">
+                {showDeployBanner && <DeployBanner onDeploy={() => deployMutation.mutate()} isPending={deployMutation.isPending} />}
+                <div className="min-h-0 flex-1">
                     <Outlet />
-                </main>
+                </div>
             </div>
         </ApiDetailContext.Provider>
     );

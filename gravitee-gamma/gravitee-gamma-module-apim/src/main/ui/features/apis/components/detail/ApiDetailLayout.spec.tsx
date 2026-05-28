@@ -15,8 +15,8 @@
  */
 import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { useMutation } from '@tanstack/react-query';
-import { fireEvent, render, screen } from '@testing-library/react';
-import type { ReactNode } from 'react';
+import { fireEvent, render, renderHook, screen } from '@testing-library/react';
+import type { ReactElement, ReactNode } from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
@@ -58,6 +58,8 @@ jest.mock('../../utils/queryKeys', () => ({
     },
 }));
 
+let capturedLayoutConfig: Record<string, unknown> | null = null;
+
 jest.mock('@gravitee/graphene-core', () => ({
     Badge: ({ children }: { children?: ReactNode }) => <span>{children}</span>,
     Button: ({ children, onClick, disabled }: { children?: ReactNode; onClick?: () => void; disabled?: boolean }) => (
@@ -65,19 +67,28 @@ jest.mock('@gravitee/graphene-core', () => ({
             {children}
         </button>
     ),
-    Card: ({ children, className }: { children?: ReactNode; className?: string }) => <div className={className}>{children}</div>,
-    CardContent: ({ children, className }: { children?: ReactNode; className?: string }) => <div className={className}>{children}</div>,
     Skeleton: () => <div />,
+    useLayoutConfig: jest.fn((config: Record<string, unknown>) => {
+        capturedLayoutConfig = config;
+    }),
+    ContextSidebar: ({ children, header }: { children?: ReactNode; header?: ReactNode }) => (
+        <div>
+            {header}
+            {children}
+        </div>
+    ),
+    ContextToggleButton: () => <button />,
 }));
 
 jest.mock('@gravitee/graphene-core/icons', () => new Proxy({}, { get: () => () => null }));
 
 jest.mock('./ApiDetailSidebarNav', () => ({
     API_PROXY_NAV_GROUPS: [],
-    ApiDetailSidebarNav: ({ basePath }: { basePath: string }) => <div data-testid="sidebar" data-basepath={basePath} />,
+    ApiDetailSidebarNav: () => <div />,
 }));
 
 import { ApiDetailIndexRedirect, ApiDetailLayout } from './ApiDetailLayout';
+import { useDetailBasePath } from '../../../../shared/hooks/useDetailBasePath';
 import { useApiDetail } from '../../hooks/useApiDetail';
 import { deployApi } from '../../services/apis';
 
@@ -85,22 +96,6 @@ const mockUseEnvironment = useEnvironment as jest.Mock;
 const mockUseHasPermission = useHasPermission as jest.Mock;
 const mockUseMutation = useMutation as jest.Mock;
 const mockDeployApi = deployApi as jest.Mock;
-
-function renderAt(path: string, routePattern = 'apis/:apiId') {
-    render(
-        <MemoryRouter initialEntries={[path]}>
-            <Routes>
-                <Route path={routePattern} element={<ApiDetailLayout />}>
-                    <Route index element={<ApiDetailIndexRedirect />} />
-                    <Route path="overview" element={<div />} />
-                    <Route path="plans" element={<div />} />
-                    <Route path="endpoints/list" element={<div />} />
-                </Route>
-            </Routes>
-        </MemoryRouter>,
-    );
-    return screen.getByTestId('sidebar').getAttribute('data-basepath') ?? '';
-}
 
 function renderLayout(apiId = 'abc-123') {
     render(
@@ -114,23 +109,29 @@ function renderLayout(apiId = 'abc-123') {
     );
 }
 
-// ─── useApiBasePath ───────────────────────────────────────────────────────────
+// ─── useApiBasePath (via useDetailBasePath) ───────────────────────────────────
 
 describe('useApiBasePath', () => {
+    function hookAt(path: string, id = 'abc-123') {
+        const wrapper = ({ children }: { children: ReactNode }) => <MemoryRouter initialEntries={[path]}>{children}</MemoryRouter>;
+        const { result } = renderHook(() => useDetailBasePath('apis', id), { wrapper });
+        return result.current;
+    }
+
     it('strips the sub-page suffix and returns the API root path', () => {
-        expect(renderAt('/apis/abc-123/overview')).toBe('/apis/abc-123');
+        expect(hookAt('/apis/abc-123/overview')).toBe('/apis/abc-123');
     });
 
     it('produces the same basePath regardless of which sub-page is active', () => {
-        expect(renderAt('/apis/abc-123/plans')).toBe('/apis/abc-123');
+        expect(hookAt('/apis/abc-123/plans')).toBe('/apis/abc-123');
     });
 
     it('handles deeply nested sub-pages', () => {
-        expect(renderAt('/apis/abc-123/endpoints/list')).toBe('/apis/abc-123');
+        expect(hookAt('/apis/abc-123/endpoints/list')).toBe('/apis/abc-123');
     });
 
     it('handles an MF host prefix — extracts only up to /apis/{id}', () => {
-        expect(renderAt('/org/env/apis/abc-123/overview', 'org/env/apis/:apiId')).toBe('/org/env/apis/abc-123');
+        expect(hookAt('/org/env/apis/abc-123/overview')).toBe('/org/env/apis/abc-123');
     });
 });
 
@@ -168,7 +169,7 @@ describe('DeployBanner', () => {
             isLoading: false,
         });
         renderLayout();
-        expect(screen.getByText(/pending changes/i)).toBeInTheDocument();
+        expect(screen.getByText(/undeployed changes/i)).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /deploy api/i })).toBeInTheDocument();
     });
 
@@ -221,13 +222,13 @@ describe('DeployBanner', () => {
             isLoading: false,
         });
         renderLayout();
-        expect(screen.queryByText(/pending changes/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/undeployed changes/i)).not.toBeInTheDocument();
     });
 
     it('hides the banner when deploymentState is absent', () => {
         (useApiDetail as jest.Mock).mockReturnValue({ data: { id: 'abc-123', name: 'My API' }, isLoading: false });
         renderLayout();
-        expect(screen.queryByText(/pending changes/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/undeployed changes/i)).not.toBeInTheDocument();
     });
 
     it('hides the banner when user lacks api-definition-u permission', () => {
@@ -237,11 +238,17 @@ describe('DeployBanner', () => {
             isLoading: false,
         });
         renderLayout();
-        expect(screen.queryByText(/pending changes/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/undeployed changes/i)).not.toBeInTheDocument();
     });
 });
 
 // ─── ApiAvatar ────────────────────────────────────────────────────────────────
+
+function renderSidebar() {
+    if (capturedLayoutConfig?.contextSidebar) {
+        render(capturedLayoutConfig.contextSidebar as ReactElement);
+    }
+}
 
 describe('ApiAvatar', () => {
     afterEach(() => jest.clearAllMocks());
@@ -252,6 +259,7 @@ describe('ApiAvatar', () => {
             isLoading: false,
         });
         renderLayout();
+        renderSidebar();
         const img = screen.getByRole('img', { name: 'My API' });
         expect(img).toHaveAttribute('src', 'https://cdn.example.com/pic.png');
     });
@@ -262,6 +270,7 @@ describe('ApiAvatar', () => {
             isLoading: false,
         });
         renderLayout();
+        renderSidebar();
         const img = screen.getByRole('img', { name: 'My API' });
         fireEvent.error(img);
         expect(screen.queryByRole('img', { name: 'My API' })).not.toBeInTheDocument();
