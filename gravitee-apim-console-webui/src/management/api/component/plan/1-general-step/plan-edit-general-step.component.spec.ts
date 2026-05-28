@@ -199,6 +199,39 @@ describe('PlanEditGeneralStepComponent — Kafka port routing', () => {
     });
   });
 
+  describe('Broker range change warning banner', () => {
+    beforeEach(() => {
+      setupComponent('edit', true);
+      flushDefaultRequests(fakeNativeKafkaApiV4().id);
+    });
+
+    it('should show the broker range change warning banner when showBrokerRangeChangeWarning is true', async () => {
+      component.showBrokerRangeChangeWarning = true;
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.textContent).toContain('Changing the broker port range will cause a brief reconnection');
+    });
+
+    it('should NOT show the broker range change warning banner when showBrokerRangeChangeWarning is false', async () => {
+      component.showBrokerRangeChangeWarning = false;
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.textContent).not.toContain('Changing the broker port range will cause a brief reconnection');
+    });
+
+    it('should NOT show the broker range change warning banner when isNative is false even if showBrokerRangeChangeWarning is true', () => {
+      // The `isNative` flag is true in this describe's beforeEach; toggle it off to simulate non-native.
+      component.isNative = false;
+      component.showBrokerRangeChangeWarning = true;
+      fixture.detectChanges();
+
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.textContent).not.toContain('Changing the broker port range will cause a brief reconnection');
+    });
+  });
+
   describe('Cross-field error display (DOM)', () => {
     beforeEach(() => {
       setupComponent('create', true);
@@ -227,32 +260,6 @@ describe('PlanEditGeneralStepComponent — Kafka port routing', () => {
 
       const bootstrapField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Bootstrap port' }));
       expect((await bootstrapField.getTextErrors()).join(' ')).toContain('must not fall within the broker port range');
-    });
-  });
-
-  describe('Bootstrap port disable in edit mode when API is deployed', () => {
-    it('should disable bootstrapPort control when mode is edit and API has deployedAt', () => {
-      const deployedApi = fakeNativeKafkaApiV4({ deployedAt: new Date() });
-      setupComponent('edit', true, deployedApi);
-      flushDefaultRequests(deployedApi.id);
-
-      expect(component.generalForm.get('bootstrapPort').disabled).toBe(true);
-    });
-
-    it('should keep bootstrapPort enabled in create mode even when API has deployedAt', () => {
-      const deployedApi = fakeNativeKafkaApiV4({ deployedAt: new Date() });
-      setupComponent('create', true, deployedApi);
-      flushDefaultRequests(deployedApi.id);
-
-      expect(component.generalForm.get('bootstrapPort').disabled).toBe(false);
-    });
-
-    it('should keep bootstrapPort enabled when in edit mode but API has no deployedAt', () => {
-      const undeployedApi = fakeNativeKafkaApiV4({ deployedAt: undefined });
-      setupComponent('edit', true, undeployedApi);
-      flushDefaultRequests(undeployedApi.id);
-
-      expect(component.generalForm.get('bootstrapPort').disabled).toBe(false);
     });
   });
 });

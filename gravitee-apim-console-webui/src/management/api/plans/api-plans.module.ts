@@ -32,6 +32,7 @@ import { RouterModule } from '@angular/router';
 
 import { ApiPlanListComponent } from './list/api-plan-list.component';
 import { ApiPlanEditComponent } from './edit/api-plan-edit.component';
+import { KafkaBootstrapPortChangeDialogComponent } from './edit/kafka-bootstrap-port-change-dialog/kafka-bootstrap-port-change-dialog.component';
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { ApiPlanFormModule } from '../component/plan/api-plan-form.module';
@@ -65,6 +66,7 @@ import { PlanListComponent } from '../component/plan/plan-list/plan-list.compone
     ApiPlanFormModule,
     MatMenuModule,
     PlanListComponent,
+    KafkaBootstrapPortChangeDialogComponent,
   ],
 })
 export class ApiPlansModule {}

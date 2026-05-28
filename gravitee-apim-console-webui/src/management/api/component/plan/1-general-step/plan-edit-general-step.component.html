@@ -152,9 +152,6 @@
         ) {
           <mat-error>Bootstrap port must not fall within the broker port range.</mat-error>
         }
-        @if (generalForm.get('bootstrapPort').disabled) {
-          <mat-hint>Bootstrap port cannot be changed after the API has been deployed.</mat-hint>
-        }
       </mat-form-field>
 
       <mat-form-field class="kafka-port-routing__field">
@@ -204,6 +201,13 @@
           <mat-error>Broker range start must be less than or equal to broker range end.</mat-error>
         }
       </mat-form-field>
+
+      @if (showBrokerRangeChangeWarning) {
+        <gio-banner-info
+          >Changing the broker port range will cause a brief reconnection for active consumers. Clients will automatically reconnect on
+          their next metadata refresh — no configuration change required on the client side.</gio-banner-info
+        >
+      }
     }
   </ng-container>
 }

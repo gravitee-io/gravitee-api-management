@@ -354,6 +354,18 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
     this.matStepper.previous();
   }
 
+  get showBrokerRangeChangeWarning(): boolean {
+    if (this.mode !== 'edit' || (this.api as ApiV4)?.deployedAt == null) {
+      return false;
+    }
+    const current = this.planForm?.getRawValue()?.general;
+    const initial = (this.initialPlanFormValue as any)?.general;
+    if (!current || !initial) {
+      return false;
+    }
+    return current.brokerRangeStart !== initial.brokerRangeStart || current.brokerRangeEnd !== initial.brokerRangeEnd;
+  }
+
   private initPlanForm() {
     this.planForm = new UntypedFormGroup({
       general: this.planEditGeneralStepComponent.generalForm,

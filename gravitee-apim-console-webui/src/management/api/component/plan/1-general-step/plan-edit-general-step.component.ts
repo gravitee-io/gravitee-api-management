@@ -104,7 +104,6 @@ export class PlanEditGeneralStepComponent implements OnInit {
   public set api(api: ApiV2 | ApiV4 | ApiFederated) {
     if (api) {
       this.api$.next(api);
-      this._api = api;
     }
   }
 
@@ -127,11 +126,12 @@ export class PlanEditGeneralStepComponent implements OnInit {
   @Input()
   isNative = false;
 
+  @Input()
+  showBrokerRangeChangeWarning = false;
+
   // Surface the cross-field group errors on the individual Kafka port-routing inputs.
   protected readonly bootstrapInRangeErrorMatcher = new GroupErrorStateMatcher('bootstrapInRange');
   protected readonly rangeOrderErrorMatcher = new GroupErrorStateMatcher('rangeOrder');
-
-  private _api?: ApiV2 | ApiV4 | ApiFederated;
 
   conditionPages$ = this.api$.pipe(
     switchMap(api =>
@@ -181,10 +181,5 @@ export class PlanEditGeneralStepComponent implements OnInit {
       .subscribe(value => {
         value ? this.generalForm.get('commentMessage').enable() : this.generalForm.get('commentMessage').disable();
       });
-
-    // Disable bootstrapPort in edit mode when the API has been deployed
-    if (this.mode === 'edit' && (this._api as ApiV4)?.deployedAt != null) {
-      this.generalForm.get('bootstrapPort').disable();
-    }
   }
 }
