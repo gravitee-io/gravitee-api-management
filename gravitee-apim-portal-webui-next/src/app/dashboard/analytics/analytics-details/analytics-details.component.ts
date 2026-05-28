@@ -13,15 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, effect, inject, input, signal } from '@angular/core';
-import { rxResource, toSignal } from '@angular/core/rxjs-interop';
+import { Component, computed, DestroyRef, effect, inject, Injector, input, signal } from '@angular/core';
+import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
+import { MatDialog } from '@angular/material/dialog';
 
 import {
+  AddFilterDialogComponent,
+  AddFilterDialogData,
   BasicTimeframe,
   Dashboard,
+  DynamicFilterBarComponent,
+  FilterCondition,
   GraviteeDashboardComponent,
+  provideFilterDefinitions,
+  provideFilterValues,
   TimeframeSelectorComponent,
   TimeframeValue,
   timeFrameRangesParams,
@@ -29,6 +36,8 @@ import {
   TimeRange,
 } from '@gravitee/gravitee-dashboard';
 
+import { DashboardFiltersStore } from './dashboard-filters.store';
+import { PortalAnalyticsFiltersService } from './portal-analytics-filters.service';
 import { BannerComponent } from '../../../../components/banner/banner.component';
 import { LoaderComponent } from '../../../../components/loader/loader.component';
 import { AnalyticsDashboardService } from '../../../../services/analytics-dashboard.service';
@@ -40,16 +49,26 @@ const DEFAULT_PERIOD: BasicTimeframe = '5m';
 
 @Component({
   selector: 'app-analytics-details',
-  imports: [GraviteeDashboardComponent, LoaderComponent, BannerComponent, TimeframeSelectorComponent, ReactiveFormsModule],
+  imports: [GraviteeDashboardComponent, LoaderComponent, BannerComponent, TimeframeSelectorComponent, ReactiveFormsModule, DynamicFilterBarComponent],
   templateUrl: './analytics-details.component.html',
   styleUrl: './analytics-details.component.scss',
-  providers: [{ provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { appearance: 'outline' } }],
+  providers: [
+    { provide: MAT_FORM_FIELD_DEFAULT_OPTIONS, useValue: { appearance: 'outline' } },
+    DashboardFiltersStore,
+    PortalAnalyticsFiltersService,
+    provideFilterDefinitions(PortalAnalyticsFiltersService),
+    provideFilterValues(PortalAnalyticsFiltersService),
+  ],
 })
 export default class AnalyticsDetailsComponent {
   private readonly configService = inject(ConfigService);
   private readonly breadcrumbService = inject(BreadcrumbService);
   private readonly analyticsDashboardService = inject(AnalyticsDashboardService);
+  private readonly dialog = inject(MatDialog);
+  private readonly injector = inject(Injector);
+  private readonly destroyRef = inject(DestroyRef);
 
+  readonly filtersStore = inject(DashboardFiltersStore);
   readonly dashboardId = input.required<string>();
 
   readonly baseURL = this.configService.baseURL;
@@ -92,5 +111,39 @@ export default class AnalyticsDetailsComponent {
 
   refresh(): void {
     this.refreshTokenSignal.update(token => token + 1);
+  }
+
+  openAddFilter(): void {
+    const params = this.timeframeParams();
+    this.dialog
+      .open<AddFilterDialogComponent, AddFilterDialogData, FilterCondition>(AddFilterDialogComponent, {
+        data: { timeFrom: params.from, timeTo: params.to },
+        injector: this.injector,
+        autoFocus: 'dialog',
+      })
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(condition => {
+        if (condition) {
+          this.filtersStore.add(condition);
+        }
+      });
+  }
+
+  openEditFilter(index: number, condition: FilterCondition): void {
+    const params = this.timeframeParams();
+    this.dialog
+      .open<AddFilterDialogComponent, AddFilterDialogData, FilterCondition>(AddFilterDialogComponent, {
+        data: { existingCondition: condition, timeFrom: params.from, timeTo: params.to },
+        injector: this.injector,
+        autoFocus: 'dialog',
+      })
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(updated => {
+        if (updated) {
+          this.filtersStore.edit(index, updated);
+        }
+      });
   }
 }
