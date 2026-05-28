@@ -30,8 +30,7 @@ import { OrganizationSettingsModule } from '../organization-settings.module';
 import { fakeMetadataPageAudit } from '../../../entities/audit/Audit.fixture';
 import { fakeEnvironment } from '../../../entities/environment/environment.fixture';
 import { Environment } from '../../../entities/environment/environment';
-import { Api } from '../../../entities/api/Api';
-import { fakeApi } from '../../../entities/api/Api.fixture';
+import { Api, fakeApiV4 } from '../../../entities/management-api-v2';
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 
 describe('OrgSettingsAuditComponent', () => {
@@ -117,14 +116,14 @@ describe('OrgSettingsAuditComponent', () => {
     expectAuditListRequest({ referenceType: 'API' });
 
     expectEnvironmentGetAllRequest([fakeEnvironment({ id: 'envA', name: 'envA' }), fakeEnvironment({ id: 'envB', name: 'envB' })]);
-    expectApiGetAllByEnvRequest('envA', [fakeApi({ id: 'envA_api1', name: 'envA_api1' })]);
-    expectApiGetAllByEnvRequest('envB', [fakeApi({ id: 'envB_api1', name: 'envB_api1' })]);
+    expectApiGetAllByEnvRequest('envA', [fakeApiV4({ id: 'envA_api1', name: 'envA_api1' })]);
+    expectApiGetAllByEnvRequest('envB', [fakeApiV4({ id: 'envB_v4_api', name: 'envB V4 API' })]);
 
     // 3. Expect API selection works and trigger new AuditListRequest
     const apiIdSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName=apiId]' }));
 
-    await apiIdSelect.clickOptions({ text: 'envB_api1' });
-    expectAuditListRequest({ referenceType: 'API', apiId: 'envB_api1' });
+    await apiIdSelect.clickOptions({ text: 'envB V4 API' });
+    expectAuditListRequest({ referenceType: 'API', apiId: 'envB_v4_api' });
   });
 
   it('should display audit logs with from & to range', async () => {
@@ -213,8 +212,8 @@ describe('OrgSettingsAuditComponent', () => {
   }
 
   function expectApiGetAllByEnvRequest(envId: string, apis: Api[]) {
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/environments/${envId}/apis`);
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.v2BaseURL}/environments/${envId}/apis?page=1&perPage=9999`);
     expect(req.request.method).toEqual('GET');
-    req.flush(apis);
+    req.flush({ data: apis });
   }
 });

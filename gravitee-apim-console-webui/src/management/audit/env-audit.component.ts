@@ -20,7 +20,7 @@ import { BehaviorSubject, EMPTY, Subject } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil, tap, throttleTime } from 'rxjs/operators';
 import { Moment } from 'moment';
 
-import { ApiService } from '../../services-ngx/api.service';
+import { ApiV2Service } from '../../services-ngx/api-v2.service';
 import { ApplicationService } from '../../services-ngx/application.service';
 import { AuditService } from '../../services-ngx/audit.service';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
@@ -64,7 +64,7 @@ export class EnvAuditComponent implements OnInit, OnDestroy {
 
   public eventsName$ = this.auditService.getAllEventsName();
 
-  public apis$ = this.apiService.getAll();
+  public apis$ = this.apiV2Service.getAll();
 
   public applications$ = this.applicationService.getAll();
 
@@ -98,7 +98,7 @@ export class EnvAuditComponent implements OnInit, OnDestroy {
 
   constructor(
     private auditService: AuditService,
-    private apiService: ApiService,
+    private readonly apiV2Service: ApiV2Service,
     private applicationService: ApplicationService,
     private snackBarService: SnackBarService,
   ) {}
