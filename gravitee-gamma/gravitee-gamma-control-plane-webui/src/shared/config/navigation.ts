@@ -21,8 +21,6 @@ import { HOST_NAV_LABELS } from './routes';
 export const NAV_GROUPS: NavGroup[] = [
     {
         label: 'Overview',
-        items: [
-            { key: 'home', title: HOST_NAV_LABELS.home, icon: Home },
-        ],
+        items: [{ key: 'home', title: HOST_NAV_LABELS.home, icon: Home }],
     },
 ];

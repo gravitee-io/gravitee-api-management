@@ -18,18 +18,10 @@ import { buildPathnameAfterEnvironmentChange, hostNavPath, pathSegmentsAfterEnvi
 describe('hostNavPath', () => {
     it('should build home and about paths under environment', () => {
         expect(hostNavPath('home', 'default')).toBe('/environments/default/home');
-        expect(hostNavPath('about', 'default')).toBe('/environments/default/about');
     });
 });
 
 describe('resolveHostRoute', () => {
-    it('should resolve about for /environments/:envHrid/about', () => {
-        const { activeNavKey, breadcrumbSegments } = resolveHostRoute('/environments/my-env/about', 'my-env');
-        expect(activeNavKey).toBe('about');
-        expect(breadcrumbSegments[0]?.to).toBe('/environments/my-env/home');
-        expect(breadcrumbSegments[1]?.label).toBe('About');
-    });
-
     it('should resolve home for /environments/:envHrid/home', () => {
         const { activeNavKey, breadcrumbSegments } = resolveHostRoute('/environments/my-env/home', 'my-env');
         expect(activeNavKey).toBe('home');
