@@ -287,4 +287,20 @@ export const authzApiService = {
             perPage: response.perPage,
         };
     },
+
+    createEntity: async (environmentId: string, request: CreateEntityRequest): Promise<EntityResponse> => {
+        const created = await authzCoreApiClient.post<CanonicalEntity>(corePath(environmentId, '/entities'), request);
+        return adaptEntityResponse(created);
+    },
+
+    deleteEntity: (environmentId: string, entityId: string): Promise<void> =>
+        authzCoreApiClient.delete<void>(corePath(environmentId, `/entities/${encodeURIComponent(entityId)}`)),
 };
+
+export interface CreateEntityRequest {
+    readonly entityId: string;
+    readonly kind: 'PRINCIPAL' | 'RESOURCE';
+    readonly attributes: Record<string, unknown>;
+    readonly parents: readonly string[];
+    readonly source: string;
+}

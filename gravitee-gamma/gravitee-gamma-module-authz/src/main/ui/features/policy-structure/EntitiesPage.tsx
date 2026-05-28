@@ -19,8 +19,15 @@ import {
     AlertDescription,
     AlertTitle,
     Badge,
+    Button,
     DataTable,
     DataTablePagination,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
     Empty,
     EmptyDescription,
     EmptyHeader,
@@ -35,19 +42,23 @@ import {
     TabsContent,
     TabsList,
     TabsTrigger,
+    toast,
 } from '@gravitee/graphene-core';
-import { BoxesIcon, ShieldIcon, UsersIcon } from '@gravitee/graphene-core/icons';
+import { BoxesIcon, DownloadIcon, ShieldIcon, Trash2Icon, UsersIcon } from '@gravitee/graphene-core/icons';
+import { useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useDeferredValue, useMemo, useState } from 'react';
 import { KpiTile } from '../../components/KpiTile';
+import { authzApiService } from '../../shared/api/authz-api.service';
+import { authzQueryKeys } from '../../shared/api/query-keys';
 import { formatEntityUid, fromBackend } from '../../shared/entity-adapter';
-import { useEntities } from '../../shared/hooks/useEntities';
-import type { EntityInstance } from './entity-types';
+import { useEntities, type UseEntitiesResult } from '../../shared/hooks/useEntities';
+import { CATEGORIES, getEntityCategoryId, type EntityInstance } from './entity-types';
+import { ImportFromCatalogDialog } from './ImportFromCatalogDialog';
 
 type SourceFilter = 'all' | string;
 type TypeFilter = 'all' | string;
 type TabKey = 'principals' | 'resources';
-type EntityKind = 'PRINCIPAL' | 'RESOURCE';
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 const ACTION_PREFIX = 'action.';
@@ -55,88 +66,27 @@ const ACTION_PREFIX = 'action.';
 const PRINCIPALS_HELP =
     'Principals (users, groups, service accounts, agent identities) live in this environment. Edit and import flows are in a follow-up PR.';
 const RESOURCES_HELP =
-    'Resources are imported from the Context Catalog — MCP servers, tools, prompts, APIs, agents, and LLM models. Edit and import flows are in a follow-up PR.';
+    'Resources are imported from the Context Catalog — MCP servers, AI models, and agents keep the same Entity ID in Authorization. Catalog-sourced entries are read-only; you can remove imported instances but cannot edit them here.';
 
 function displayNameOf(entity: EntityInstance): string {
     if (entity.displayName) return entity.displayName;
-    const attrName = entity.attrs.name;
-    if (typeof attrName === 'string' && attrName) return attrName;
-    const attrDisplayName = entity.attrs.displayName;
-    if (typeof attrDisplayName === 'string' && attrDisplayName) return attrDisplayName;
+    const name = entity.attrs.name;
+    if (typeof name === 'string' && name) return name;
+    const displayName = entity.attrs.displayName;
+    if (typeof displayName === 'string' && displayName) return displayName;
     return entity.uid.id;
 }
 
 function sourceLabelOf(entity: EntityInstance): string {
-    return entity.source === 'apim' ? 'APIM' : 'Local';
+    if (entity.source === 'apim') return 'APIM';
+    if (entity.source === 'gravitee-catalog') return 'Gravitee Catalog';
+    return 'Local';
 }
 
-function applyFilters(entities: readonly EntityInstance[], search: string, typeFilter: TypeFilter, sourceFilter: SourceFilter) {
-    const needle = search.trim().toLowerCase();
-    return entities.filter(e => {
-        if (typeFilter !== 'all' && e.uid.type !== typeFilter) return false;
-        if (sourceFilter !== 'all' && sourceLabelOf(e) !== sourceFilter) return false;
-        if (!needle) return true;
-        if (e.uid.id.toLowerCase().includes(needle)) return true;
-        if (formatEntityUid(e.uid).toLowerCase().includes(needle)) return true;
-        if (e.uid.type.toLowerCase().includes(needle)) return true;
-        return displayNameOf(e).toLowerCase().includes(needle);
-    });
-}
-
-function distinctSorted<T extends string>(values: Iterable<T>): T[] {
-    return Array.from(new Set(values)).sort();
-}
-
-interface UseEntitiesTabOptions {
-    readonly environmentId: string;
-    readonly kind: EntityKind;
-    readonly excludeEntityIdPrefix?: string;
-}
-
-function useEntitiesTab({ environmentId, kind, excludeEntityIdPrefix }: UseEntitiesTabOptions) {
-    const query = useEntities(environmentId, undefined, { kind, excludeEntityIdPrefix });
-    const [search, setSearch] = useState('');
-    const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
-    const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
-    const deferredSearch = useDeferredValue(search);
-
-    // TODO(authz-ui): server-side filters for search/type/source — these stay
-    // client-side and operate on the currently visible page only. The warning
-    // banner below alerts users when a filtered view may be hiding matches.
-    const entities = useMemo(() => (query.data?.data ?? []).map(fromBackend), [query.data]);
-    const types = useMemo(() => distinctSorted(entities.map(e => e.uid.type)), [entities]);
-    const sources = useMemo(() => distinctSorted(entities.map(sourceLabelOf)), [entities]);
-    const filtered = useMemo(
-        () => applyFilters(entities, deferredSearch, typeFilter, sourceFilter),
-        [entities, deferredSearch, typeFilter, sourceFilter],
-    );
-
-    const total = query.data?.total ?? 0;
-    const isFiltering = deferredSearch.trim() !== '' || typeFilter !== 'all' || sourceFilter !== 'all';
-    const hasMoreThanCurrentPage = total > entities.length;
-
-    return {
-        entities,
-        filtered,
-        total,
-        types,
-        sources,
-        search,
-        setSearch,
-        deferredSearch,
-        typeFilter,
-        setTypeFilter,
-        sourceFilter,
-        setSourceFilter,
-        isFiltering,
-        hasMoreThanCurrentPage,
-        isLoading: query.isLoading,
-        error: query.error,
-        page: query.page,
-        perPage: query.perPage,
-        setPage: query.setPage,
-        setPerPage: query.setPerPage,
-    };
+function categoryTextColorFor(entity: EntityInstance): string | undefined {
+    const id = getEntityCategoryId(entity.uid.type);
+    if (!id) return undefined;
+    return CATEGORIES.find(c => c.id === id)?.textColor;
 }
 
 interface EntitiesTableProps {
@@ -149,6 +99,8 @@ interface EntitiesTableProps {
     readonly totalCount: number;
     readonly onPageChange: (page: number) => void;
     readonly onPerPageChange: (perPage: number) => void;
+    readonly onDelete?: (entity: EntityInstance) => void;
+    readonly deletingEntityId?: string;
 }
 
 function EntitiesTable({
@@ -161,18 +113,23 @@ function EntitiesTable({
     totalCount,
     onPageChange,
     onPerPageChange,
+    onDelete,
+    deletingEntityId,
 }: EntitiesTableProps) {
-    const columns = useMemo<ColumnDef<EntityInstance>[]>(
-        () => [
+    const columns = useMemo<ColumnDef<EntityInstance>[]>(() => {
+        const baseColumns: ColumnDef<EntityInstance>[] = [
             {
                 id: 'type',
                 header: 'Type',
                 size: 180,
-                cell: ({ row }) => (
-                    <Badge variant="outline" className="font-mono">
-                        {row.original.uid.type}
-                    </Badge>
-                ),
+                cell: ({ row }) => {
+                    const textColor = categoryTextColorFor(row.original);
+                    return (
+                        <Badge variant="outline" className={`font-mono ${textColor ?? ''}`}>
+                            {row.original.uid.type}
+                        </Badge>
+                    );
+                },
             },
             {
                 id: 'entityId',
@@ -192,9 +149,32 @@ function EntitiesTable({
                 size: 140,
                 cell: ({ row }) => <Badge variant="secondary">{sourceLabelOf(row.original)}</Badge>,
             },
-        ],
-        [],
-    );
+        ];
+        if (onDelete) {
+            baseColumns.push({
+                id: 'actions',
+                header: '',
+                size: 60,
+                cell: ({ row }) => {
+                    const uid = formatEntityUid(row.original.uid);
+                    const isDeleting = deletingEntityId === uid;
+                    return (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onDelete(row.original)}
+                            disabled={isDeleting}
+                            aria-label={`Delete ${uid}`}
+                            title="Remove from Authorization"
+                        >
+                            <Trash2Icon className="size-4 text-muted-foreground" aria-hidden />
+                        </Button>
+                    );
+                },
+            });
+        }
+        return baseColumns;
+    }, [onDelete, deletingEntityId]);
 
     if (!isLoading && entities.length === 0) {
         return (
@@ -297,38 +277,109 @@ function EntitiesFilterBar({
     );
 }
 
-function ClientFilterWarning({ visible, total }: { readonly visible: number; readonly total: number }) {
-    return (
-        <Alert role="status" aria-live="polite">
-            <AlertDescription>
-                Filters apply only to the {visible} entities on this page — {total - visible} more entities are not yet searched. Increase
-                the page size or paginate to broaden the view.
-            </AlertDescription>
-        </Alert>
-    );
+function applyFilters(entities: readonly EntityInstance[], search: string, typeFilter: TypeFilter, sourceFilter: SourceFilter) {
+    const needle = search.trim().toLowerCase();
+    return entities.filter(e => {
+        if (typeFilter !== 'all' && e.uid.type !== typeFilter) return false;
+        if (sourceFilter !== 'all' && sourceLabelOf(e) !== sourceFilter) return false;
+        if (!needle) return true;
+        if (e.uid.id.toLowerCase().includes(needle)) return true;
+        if (formatEntityUid(e.uid).toLowerCase().includes(needle)) return true;
+        if (e.uid.type.toLowerCase().includes(needle)) return true;
+        return displayNameOf(e).toLowerCase().includes(needle);
+    });
+}
+
+function distinctSorted<T extends string>(values: Iterable<T>): T[] {
+    return Array.from(new Set(values)).sort();
+}
+
+function pageEntities(query: UseEntitiesResult): readonly EntityInstance[] {
+    if (!query.data) return [];
+    return query.data.data.map(fromBackend);
 }
 
 export function EntitiesPage() {
     const env = useEnvironment();
     const environmentId = env?.id ?? '';
+    const queryClient = useQueryClient();
+    const principalsQuery = useEntities(environmentId, undefined, { kind: 'PRINCIPAL' });
+    const resourcesQuery = useEntities(environmentId, undefined, { kind: 'RESOURCE', excludeEntityIdPrefix: ACTION_PREFIX });
 
-    const principals = useEntitiesTab({ environmentId, kind: 'PRINCIPAL' });
-    const resources = useEntitiesTab({ environmentId, kind: 'RESOURCE', excludeEntityIdPrefix: ACTION_PREFIX });
+    const [principalSearch, setPrincipalSearch] = useState('');
+    const [principalTypeFilter, setPrincipalTypeFilter] = useState<TypeFilter>('all');
+    const [principalSourceFilter, setPrincipalSourceFilter] = useState<SourceFilter>('all');
+    const [resourceSearch, setResourceSearch] = useState('');
+    const [resourceTypeFilter, setResourceTypeFilter] = useState<TypeFilter>('all');
+    const [resourceSourceFilter, setResourceSourceFilter] = useState<SourceFilter>('all');
+    const [importOpen, setImportOpen] = useState(false);
+    const [pendingDelete, setPendingDelete] = useState<EntityInstance | null>(null);
+    const [deletingEntityId, setDeletingEntityId] = useState<string | undefined>();
 
-    const isLoading = principals.isLoading || resources.isLoading;
-    const error = principals.error ?? resources.error;
+    const pendingDeleteUid = pendingDelete ? formatEntityUid(pendingDelete.uid) : '';
+    const pendingDeleteName = pendingDelete ? displayNameOf(pendingDelete) : '';
+
+    async function confirmDeleteResource() {
+        if (!pendingDelete) return;
+        const uid = formatEntityUid(pendingDelete.uid);
+        const friendly = displayNameOf(pendingDelete);
+        setDeletingEntityId(uid);
+        try {
+            await authzApiService.deleteEntity(environmentId, uid);
+            toast.success(`Removed ${friendly}`);
+            setDeletingEntityId(undefined);
+            setPendingDelete(null);
+            void queryClient.invalidateQueries({ queryKey: authzQueryKeys.entities.all(environmentId) });
+            void queryClient.invalidateQueries({ queryKey: authzQueryKeys.importedCatalogIds(environmentId) });
+        } catch (err) {
+            toast.error(`Failed to remove: ${err instanceof Error ? err.message : String(err)}`);
+            setDeletingEntityId(undefined);
+        }
+    }
+
+    function handleImported() {
+        void queryClient.invalidateQueries({ queryKey: authzQueryKeys.entities.all(environmentId) });
+    }
+
+    const deferredPrincipalSearch = useDeferredValue(principalSearch);
+    const deferredResourceSearch = useDeferredValue(resourceSearch);
+
+    const principals = useMemo(() => pageEntities(principalsQuery), [principalsQuery]);
+    const resources = useMemo(() => pageEntities(resourcesQuery), [resourcesQuery]);
+
+    const principalTotal = principalsQuery.data?.total ?? 0;
+    const resourceTotal = resourcesQuery.data?.total ?? 0;
+
+    const principalTypes = useMemo(() => distinctSorted(principals.map(e => e.uid.type)), [principals]);
+    const resourceTypes = useMemo(() => distinctSorted(resources.map(e => e.uid.type)), [resources]);
+    const principalSources = useMemo(() => distinctSorted(principals.map(sourceLabelOf)), [principals]);
+    const resourceSources = useMemo(() => distinctSorted(resources.map(sourceLabelOf)), [resources]);
+
+    // TODO(authz-ui): server-side filters for search/type/source — these stay
+    // client-side and operate on the currently visible page only.
+    const filteredPrincipals = useMemo(
+        () => applyFilters(principals, deferredPrincipalSearch, principalTypeFilter, principalSourceFilter),
+        [principals, deferredPrincipalSearch, principalTypeFilter, principalSourceFilter],
+    );
+    const filteredResources = useMemo(
+        () => applyFilters(resources, deferredResourceSearch, resourceTypeFilter, resourceSourceFilter),
+        [resources, deferredResourceSearch, resourceTypeFilter, resourceSourceFilter],
+    );
 
     const kpis = useMemo(() => {
         const visibleTypes = new Set<string>();
-        principals.entities.forEach(e => visibleTypes.add(e.uid.type));
-        resources.entities.forEach(e => visibleTypes.add(e.uid.type));
+        principals.forEach(e => visibleTypes.add(e.uid.type));
+        resources.forEach(e => visibleTypes.add(e.uid.type));
         return {
-            total: principals.total + resources.total,
-            typesOnPage: visibleTypes.size,
-            principals: principals.total,
-            resources: resources.total,
+            total: principalTotal + resourceTotal,
+            types: visibleTypes.size,
+            principals: principalTotal,
+            resources: resourceTotal,
         };
-    }, [principals.entities, resources.entities, principals.total, resources.total]);
+    }, [principals, resources, principalTotal, resourceTotal]);
+
+    const isLoading = principalsQuery.isLoading || resourcesQuery.isLoading;
+    const error = principalsQuery.error ?? resourcesQuery.error;
 
     return (
         <div className="flex flex-col gap-4">
@@ -345,12 +396,12 @@ export function EntitiesPage() {
 
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4" aria-label="Key metrics">
                 <KpiTile label="Total entities" value={kpis.total} loading={isLoading} />
-                <KpiTile label="Types (this page)" value={kpis.typesOnPage} loading={isLoading} />
+                <KpiTile label="Types (this page)" value={kpis.types} loading={isLoading} />
                 <KpiTile label="Principals" value={kpis.principals} loading={isLoading} />
                 <KpiTile label="Resources" value={kpis.resources} loading={isLoading} />
             </div>
 
-            {error && (
+            {error !== undefined && (
                 <Alert variant="destructive">
                     <AlertTitle>Could not load entities</AlertTitle>
                     <AlertDescription>{error}</AlertDescription>
@@ -362,12 +413,12 @@ export function EntitiesPage() {
                     <TabsTrigger value="principals">
                         <UsersIcon className="size-4" aria-hidden />
                         Principals
-                        <Badge variant="secondary">{principals.total}</Badge>
+                        <Badge variant="secondary">{principalTotal}</Badge>
                     </TabsTrigger>
                     <TabsTrigger value="resources">
                         <ShieldIcon className="size-4" aria-hidden />
                         Resources
-                        <Badge variant="secondary">{resources.total}</Badge>
+                        <Badge variant="secondary">{resourceTotal}</Badge>
                     </TabsTrigger>
                 </TabsList>
 
@@ -376,29 +427,26 @@ export function EntitiesPage() {
                         <AlertDescription>{PRINCIPALS_HELP}</AlertDescription>
                     </Alert>
                     <EntitiesFilterBar
-                        search={principals.search}
-                        onSearch={principals.setSearch}
-                        typesPresent={principals.types}
-                        typeFilter={principals.typeFilter}
-                        onTypeFilter={principals.setTypeFilter}
-                        sourcesPresent={principals.sources}
-                        sourceFilter={principals.sourceFilter}
-                        onSourceFilter={principals.setSourceFilter}
+                        search={principalSearch}
+                        onSearch={setPrincipalSearch}
+                        typesPresent={principalTypes}
+                        typeFilter={principalTypeFilter}
+                        onTypeFilter={setPrincipalTypeFilter}
+                        sourcesPresent={principalSources}
+                        sourceFilter={principalSourceFilter}
+                        onSourceFilter={setPrincipalSourceFilter}
                         searchLabel="Search principals"
                     />
-                    {principals.isFiltering && principals.hasMoreThanCurrentPage && (
-                        <ClientFilterWarning visible={principals.entities.length} total={principals.total} />
-                    )}
                     <EntitiesTable
                         tab="principals"
-                        entities={principals.filtered}
-                        searchValue={principals.deferredSearch}
-                        isLoading={principals.isLoading}
-                        page={principals.page}
-                        perPage={principals.perPage}
-                        totalCount={principals.total}
-                        onPageChange={principals.setPage}
-                        onPerPageChange={principals.setPerPage}
+                        entities={filteredPrincipals}
+                        searchValue={deferredPrincipalSearch}
+                        isLoading={principalsQuery.isLoading}
+                        page={principalsQuery.page}
+                        perPage={principalsQuery.perPage}
+                        totalCount={principalTotal}
+                        onPageChange={principalsQuery.setPage}
+                        onPerPageChange={principalsQuery.setPerPage}
                     />
                 </TabsContent>
 
@@ -406,33 +454,84 @@ export function EntitiesPage() {
                     <Alert>
                         <AlertDescription>{RESOURCES_HELP}</AlertDescription>
                     </Alert>
-                    <EntitiesFilterBar
-                        search={resources.search}
-                        onSearch={resources.setSearch}
-                        typesPresent={resources.types}
-                        typeFilter={resources.typeFilter}
-                        onTypeFilter={resources.setTypeFilter}
-                        sourcesPresent={resources.sources}
-                        sourceFilter={resources.sourceFilter}
-                        onSourceFilter={resources.setSourceFilter}
-                        searchLabel="Search resources"
-                    />
-                    {resources.isFiltering && resources.hasMoreThanCurrentPage && (
-                        <ClientFilterWarning visible={resources.entities.length} total={resources.total} />
-                    )}
+                    <div className="flex flex-wrap items-center gap-2">
+                        <EntitiesFilterBar
+                            search={resourceSearch}
+                            onSearch={setResourceSearch}
+                            typesPresent={resourceTypes}
+                            typeFilter={resourceTypeFilter}
+                            onTypeFilter={setResourceTypeFilter}
+                            sourcesPresent={resourceSources}
+                            sourceFilter={resourceSourceFilter}
+                            onSourceFilter={setResourceSourceFilter}
+                            searchLabel="Search resources"
+                        />
+                        <div className="ml-auto">
+                            <Button onClick={() => setImportOpen(true)}>
+                                <DownloadIcon className="mr-2 size-4" aria-hidden />
+                                Import from Context Catalog
+                            </Button>
+                        </div>
+                    </div>
                     <EntitiesTable
                         tab="resources"
-                        entities={resources.filtered}
-                        searchValue={resources.deferredSearch}
-                        isLoading={resources.isLoading}
-                        page={resources.page}
-                        perPage={resources.perPage}
-                        totalCount={resources.total}
-                        onPageChange={resources.setPage}
-                        onPerPageChange={resources.setPerPage}
+                        entities={filteredResources}
+                        searchValue={deferredResourceSearch}
+                        isLoading={resourcesQuery.isLoading}
+                        page={resourcesQuery.page}
+                        perPage={resourcesQuery.perPage}
+                        totalCount={resourceTotal}
+                        onPageChange={resourcesQuery.setPage}
+                        onPerPageChange={resourcesQuery.setPerPage}
+                        onDelete={setPendingDelete}
+                        deletingEntityId={deletingEntityId}
                     />
                 </TabsContent>
             </Tabs>
+
+            <ImportFromCatalogDialog
+                open={importOpen}
+                environmentId={environmentId}
+                onOpenChange={setImportOpen}
+                onImported={handleImported}
+            />
+
+            <Dialog
+                open={pendingDelete !== null}
+                onOpenChange={open => {
+                    if (!open && !deletingEntityId) setPendingDelete(null);
+                }}
+            >
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Remove entity from Authorization?</DialogTitle>
+                        <DialogDescription>
+                            {pendingDelete
+                                ? `"${pendingDeleteName}" (${pendingDeleteUid}) will be removed from Authorization. This won't delete it from the Context Catalog — you can re-import it later.`
+                                : ''}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setPendingDelete(null)}
+                            disabled={deletingEntityId !== undefined}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={confirmDeleteResource}
+                            disabled={deletingEntityId !== undefined}
+                            aria-label={pendingDelete ? `Confirm remove ${pendingDeleteName}` : 'Confirm remove'}
+                        >
+                            {deletingEntityId !== undefined ? 'Removing…' : 'Remove'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
