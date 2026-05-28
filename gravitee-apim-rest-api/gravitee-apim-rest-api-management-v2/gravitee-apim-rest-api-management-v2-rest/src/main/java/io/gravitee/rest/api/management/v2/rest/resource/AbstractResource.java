@@ -49,6 +49,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
@@ -56,12 +57,14 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.CustomLog;
 import org.glassfish.jersey.message.internal.HttpHeaderReader;
 import org.glassfish.jersey.message.internal.MatchingEntityTag;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -73,6 +76,7 @@ import org.springframework.util.CollectionUtils;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public abstract class AbstractResource {
 
     public static final String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
@@ -275,6 +279,16 @@ public abstract class AbstractResource {
             requestUriBuilder.path(path);
         }
         return requestUriBuilder.build();
+    }
+
+    protected Response.ResponseBuilder applyCacheHeaders(Response.ResponseBuilder builder, Date updatedAt) {
+        if (updatedAt != null) {
+            builder.tag(Long.toString(updatedAt.getTime())).lastModified(updatedAt);
+        } else {
+            log.warn("Record has no updatedAt date set, Last-Modified header won't be added to the response.");
+        }
+
+        return builder;
     }
 
     protected void evaluateIfMatch(final HttpHeaders headers, final String etagValue) {

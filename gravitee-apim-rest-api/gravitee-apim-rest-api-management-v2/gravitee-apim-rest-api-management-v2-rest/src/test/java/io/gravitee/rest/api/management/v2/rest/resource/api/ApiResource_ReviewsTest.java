@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.NO_CONTENT_204;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -190,5 +191,87 @@ public class ApiResource_ReviewsTest extends ApiResourceTest {
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         verify(apiWorkflowStateService, never()).askForReview(any(), any(), any(), any());
+    }
+
+    @Test
+    public void should_emit_ETag_and_Last_Modified_on_ask_review() {
+        ApiReview apiReview = new ApiReview();
+        apiReview.setMessage("My comment");
+
+        var apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).updatedAt(new Date(1000L)).build();
+        when(
+            apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false), eq(false), eq(false))
+        ).thenReturn(apiEntity);
+        when(
+            apiWorkflowStateService.askForReview(eq(GraviteeContext.getExecutionContext()), eq(API), eq(USER_NAME), any(ReviewEntity.class))
+        ).thenReturn(apiEntity);
+
+        final Response response = rootTarget("_ask").request().post(Entity.json(apiReview));
+
+        assertEquals(NO_CONTENT_204, response.getStatus());
+        assertEquals("\"1000\"", response.getHeaderString("ETag"));
+        assertEquals(1000L, response.getLastModified().getTime());
+    }
+
+    @Test
+    public void should_suppress_cache_headers_when_updatedAt_is_null_on_ask_review() {
+        ApiReview apiReview = new ApiReview();
+        apiReview.setMessage("My comment");
+
+        var currentApi = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).updatedAt(new Date(1000L)).build();
+        when(
+            apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false), eq(false), eq(false))
+        ).thenReturn(currentApi);
+
+        var updatedApi = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).updatedAt(null).build();
+        when(
+            apiWorkflowStateService.askForReview(eq(GraviteeContext.getExecutionContext()), eq(API), eq(USER_NAME), any(ReviewEntity.class))
+        ).thenReturn(updatedApi);
+
+        final Response response = rootTarget("_ask").request().post(Entity.json(apiReview));
+
+        assertEquals(NO_CONTENT_204, response.getStatus());
+        assertNull(response.getEntityTag());
+        assertNull(response.getLastModified());
+    }
+
+    @Test
+    public void should_emit_ETag_and_Last_Modified_on_accept_review() {
+        ApiReview apiReview = new ApiReview();
+        apiReview.setMessage("My comment");
+
+        var apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).updatedAt(new Date(1000L)).build();
+        when(
+            apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false), eq(false), eq(false))
+        ).thenReturn(apiEntity);
+        when(
+            apiWorkflowStateService.acceptReview(eq(GraviteeContext.getExecutionContext()), eq(API), eq(USER_NAME), any(ReviewEntity.class))
+        ).thenReturn(apiEntity);
+
+        final Response response = rootTarget("_accept").request().post(Entity.json(apiReview));
+
+        assertEquals(NO_CONTENT_204, response.getStatus());
+        assertEquals("\"1000\"", response.getHeaderString("ETag"));
+        assertEquals(1000L, response.getLastModified().getTime());
+    }
+
+    @Test
+    public void should_emit_ETag_and_Last_Modified_on_reject_review() {
+        ApiReview apiReview = new ApiReview();
+        apiReview.setMessage("My comment");
+
+        var apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).updatedAt(new Date(1000L)).build();
+        when(
+            apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API), eq(false), eq(false), eq(false))
+        ).thenReturn(apiEntity);
+        when(
+            apiWorkflowStateService.rejectReview(eq(GraviteeContext.getExecutionContext()), eq(API), eq(USER_NAME), any(ReviewEntity.class))
+        ).thenReturn(apiEntity);
+
+        final Response response = rootTarget("_reject").request().post(Entity.json(apiReview));
+
+        assertEquals(NO_CONTENT_204, response.getStatus());
+        assertEquals("\"1000\"", response.getHeaderString("ETag"));
+        assertEquals(1000L, response.getLastModified().getTime());
     }
 }

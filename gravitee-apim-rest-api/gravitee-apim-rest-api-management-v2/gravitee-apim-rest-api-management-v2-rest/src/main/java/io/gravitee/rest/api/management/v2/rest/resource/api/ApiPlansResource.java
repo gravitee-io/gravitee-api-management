@@ -247,10 +247,7 @@ public class ApiPlansResource extends AbstractResource {
 
         Response.ResponseBuilder builder = Response.ok(planMapper.mapGenericPlan(planEntity));
         Date updatedAt = resolvePlanUpdatedAt(planEntity);
-        if (updatedAt != null) {
-            builder.tag(Long.toString(updatedAt.getTime())).lastModified(updatedAt);
-        }
-        return builder.build();
+        return applyCacheHeaders(builder, updatedAt).build();
     }
 
     private static Date resolvePlanUpdatedAt(GenericPlanEntity planEntity) {
