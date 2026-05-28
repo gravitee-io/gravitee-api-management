@@ -4524,9 +4524,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/graphene-core@npm:2.25.1":
-  version: 2.25.1
-  resolution: "@gravitee/graphene-core@npm:2.25.1"
+"@gravitee/graphene-core@npm:2.28.0":
+  version: 2.28.0
+  resolution: "@gravitee/graphene-core@npm:2.28.0"
   dependencies:
     "@base-ui/react": "npm:1.4.1"
     "@types/json-schema": "npm:7.0.15"
@@ -4587,7 +4587,7 @@ __metadata:
       optional: true
   bin:
     graphene-sync-ai-rules: scripts/sync-ai-rules.mjs
-  checksum: 10c0/ddc2daf6d304736a891348cd3a2ffe60781fb185389afee2553c85fba015eca30ad041d640ba73e7a9f0ed7f337c46f87e8ed7b799e1c7e2139b2db19dc229ab
+  checksum: 10c0/349f835a529c70e9dec996d6f4da365a6e80f7b4dcb9890ea6a26d3924cc5b942b6a4589b1d75eb89dac9fffd0e7077443272b3d63dfd1a31bcb6fbe3a25f8f7
   languageName: node
   linkType: hard
 
@@ -21361,7 +21361,7 @@ __metadata:
     "@fontsource/montserrat": "npm:5.2.5"
     "@fontsource/roboto": "npm:5.2.5"
     "@gravitee/gamma-modules-sdk": "npm:1.0.0-alpha.2"
-    "@gravitee/graphene-core": "npm:2.25.1"
+    "@gravitee/graphene-core": "npm:2.28.0"
     "@gravitee/ui-analytics": "npm:17.8.0"
     "@gravitee/ui-components": "npm:4.4.0"
     "@gravitee/ui-particles-angular": "npm:17.8.0"
