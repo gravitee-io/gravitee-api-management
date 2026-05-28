@@ -14,3 +14,4 @@
  * limitations under the License.
  */
 export { ApisEmptyLanding } from './ApisEmptyLanding';
+export { CollapsibleSection, SwitchRow } from './CollapsibleSection';
