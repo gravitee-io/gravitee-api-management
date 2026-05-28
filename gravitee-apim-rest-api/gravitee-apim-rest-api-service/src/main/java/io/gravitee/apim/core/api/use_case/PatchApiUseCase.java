@@ -537,6 +537,9 @@ public class PatchApiUseCase {
             return rawPatchNode.get(field).isNull() ? null : patched.get();
         }
         if (patchType == PatchType.JSON_PATCH) {
+            if (!isTargetedByJsonPatch(rawPatchNode, field)) {
+                return existing;
+            }
             if (patchedNode.get(field) == null && isNullifiedByJsonPatch(rawPatchNode, field)) {
                 return null;
             }
@@ -548,6 +551,20 @@ public class PatchApiUseCase {
             }
         }
         return existing;
+    }
+
+    private boolean isTargetedByJsonPatch(JsonNode rawPatchNode, String field) {
+        if (!rawPatchNode.isArray()) {
+            return false;
+        }
+        String fieldPrefix = JSON_PATCH_PATH_PREFIX + field;
+        for (JsonNode op : rawPatchNode) {
+            String path = op.path("path").asText();
+            if (path.equals(fieldPrefix) || path.startsWith(fieldPrefix + "/")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static String extractFailedField(IOException e) {

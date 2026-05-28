@@ -862,6 +862,45 @@ public class ApiResource_PatchApiTest extends ApiResourceTest {
         );
     }
 
+    @Test
+    void json_patch_name_only_preserves_polymorphic_fields() {
+        var fixture = ApiFixtures.aProxyApiV4();
+        apiCrudService.initWith(List.of(fixture));
+
+        var captured = new Api[] { null };
+        doAnswer(inv -> {
+            captured[0] = inv.getArgument(0);
+            return captured[0];
+        })
+            .when(updateApiDomainService)
+            .updateV4(any(), any());
+
+        var response = rootTarget(API)
+            .request()
+            .method("PATCH", Entity.entity("[{\"op\":\"replace\",\"path\":\"/name\",\"value\":\"patched-name\"}]", JSON_PATCH_TYPE));
+
+        assertThat(response).hasStatus(OK_200);
+
+        var persistedDef = captured[0].getApiDefinitionHttpV4();
+        var fixtureDef = fixture.getApiDefinitionHttpV4();
+
+        Assertions.assertThat(persistedDef.getListeners()).hasSameSizeAs(fixtureDef.getListeners());
+        Assertions.assertThat(persistedDef.getListeners().getFirst()).isInstanceOf(
+            io.gravitee.definition.model.v4.listener.http.HttpListener.class
+        );
+        var persistedListener = (io.gravitee.definition.model.v4.listener.http.HttpListener) persistedDef.getListeners().getFirst();
+        var fixtureListener = (io.gravitee.definition.model.v4.listener.http.HttpListener) fixtureDef.getListeners().getFirst();
+        Assertions.assertThat(persistedListener.getPaths()).isEqualTo(fixtureListener.getPaths());
+
+        Assertions.assertThat(persistedDef.getEndpointGroups()).hasSameSizeAs(fixtureDef.getEndpointGroups());
+        Assertions.assertThat(persistedDef.getEndpointGroups().getFirst().getName()).isEqualTo(
+            fixtureDef.getEndpointGroups().getFirst().getName()
+        );
+        Assertions.assertThat(persistedDef.getEndpointGroups().getFirst().getType()).isEqualTo(
+            fixtureDef.getEndpointGroups().getFirst().getType()
+        );
+    }
+
     private static String listenerJson(String path) {
         return (
             "{\"type\":\"HTTP\",\"paths\":[{\"path\":\"" +
