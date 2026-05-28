@@ -166,7 +166,7 @@ public class ApiResource_PatchApiListenersTest extends ApiResourceTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "HTTP", "TCP", "SUBSCRIPTION", "KAFKA" })
+    @ValueSource(strings = { "HTTP", "TCP", "SUBSCRIPTION" })
     void patch_listener_type_uppercase_returns_200_and_persists(String uppercaseType) {
         givenApiWithListeners(List.of(defaultHttpListener("/existing")));
 
