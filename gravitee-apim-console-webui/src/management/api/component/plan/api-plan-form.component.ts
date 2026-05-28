@@ -661,18 +661,9 @@ const internalFormValueToPlanV4 = (
     ];
   };
 
-  const bootstrapPort =
-    value.general.bootstrapPort !== null && value.general.bootstrapPort !== undefined && !isNaN(value.general.bootstrapPort)
-      ? value.general.bootstrapPort
-      : undefined;
-  const brokerRangeStart =
-    value.general.brokerRangeStart !== null && value.general.brokerRangeStart !== undefined && !isNaN(value.general.brokerRangeStart)
-      ? value.general.brokerRangeStart
-      : undefined;
-  const brokerRangeEnd =
-    value.general.brokerRangeEnd !== null && value.general.brokerRangeEnd !== undefined && !isNaN(value.general.brokerRangeEnd)
-      ? value.general.brokerRangeEnd
-      : undefined;
+  const bootstrapPort = Number.isFinite(value.general.bootstrapPort as number) ? value.general.bootstrapPort : undefined;
+  const brokerRangeStart = Number.isFinite(value.general.brokerRangeStart as number) ? value.general.brokerRangeStart : undefined;
+  const brokerRangeEnd = Number.isFinite(value.general.brokerRangeEnd as number) ? value.general.brokerRangeEnd : undefined;
 
   return {
     name: value.general.name,

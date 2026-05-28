@@ -49,9 +49,9 @@ function kafkaPortRoutingValidator(): ValidatorFn {
     const brokerRangeStart: number | null | undefined = group.get('brokerRangeStart')?.value;
     const brokerRangeEnd: number | null | undefined = group.get('brokerRangeEnd')?.value;
 
-    const hasStart = brokerRangeStart !== null && brokerRangeStart !== undefined && !isNaN(brokerRangeStart);
-    const hasEnd = brokerRangeEnd !== null && brokerRangeEnd !== undefined && !isNaN(brokerRangeEnd);
-    const hasBootstrap = bootstrapPort !== null && bootstrapPort !== undefined && !isNaN(bootstrapPort);
+    const hasStart = Number.isFinite(brokerRangeStart as number);
+    const hasEnd = Number.isFinite(brokerRangeEnd as number);
+    const hasBootstrap = Number.isFinite(bootstrapPort as number);
 
     const errors: ValidationErrors = {};
 
