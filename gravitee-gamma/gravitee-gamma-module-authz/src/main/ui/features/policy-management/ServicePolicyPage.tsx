@@ -36,6 +36,7 @@ import {
 import { PlusIcon, RefreshCwIcon } from '@gravitee/graphene-core/icons';
 import { useDeferredValue, useMemo, useState } from 'react';
 import { KpiTile } from '../../components/KpiTile';
+import { ValidationErrorAlert } from '../../components/ValidationErrorAlert';
 import type { PolicyResponse, PolicyStatus, PolicyType } from '../../shared/api/authz-api.types';
 import type { ChipOption } from '../../shared/chip-option';
 import { usePolicies } from '../../shared/hooks/usePolicies';
@@ -64,6 +65,7 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
     const deferredSearch = useDeferredValue(search);
     const [pendingDelete, setPendingDelete] = useState<PolicyResponse | null>(null);
     const [deleting, setDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState<Error | null>(null);
 
     const policies = usePolicies(env?.id ?? '', {
         type: config.type,
@@ -78,25 +80,37 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
         return allPolicies.filter(p => p.name.toLowerCase().includes(needle));
     }, [allPolicies, deferredSearch]);
 
+    const total = policies.data?.total ?? allPolicies.length;
+    const isPaginated = total > allPolicies.length;
+    const pageSuffix = isPaginated ? ' (this page)' : '';
+
     const kpis = useMemo(
         () => ({
-            total: policies.data?.total ?? allPolicies.length,
+            total,
             deployed: allPolicies.filter(p => p.status === 'DEPLOYED').length,
             draft: allPolicies.filter(p => p.status === 'DRAFT').length,
             uniqueTargets: new Set(allPolicies.map(p => p.target?.id).filter(Boolean)).size,
         }),
-        [allPolicies, policies.data?.total],
+        [allPolicies, total],
     );
 
     const confirmDelete = async () => {
         if (!pendingDelete) return;
         setDeleting(true);
+        setDeleteError(null);
         try {
             await policies.remove(pendingDelete.id);
             setPendingDelete(null);
+        } catch (err) {
+            setDeleteError(err instanceof Error ? err : new Error(String(err)));
         } finally {
             setDeleting(false);
         }
+    };
+
+    const closeDeleteDialog = () => {
+        setPendingDelete(null);
+        setDeleteError(null);
     };
 
     const Icon = config.icon;
@@ -127,9 +141,11 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
 
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4" aria-label="Key metrics">
                 <KpiTile label="Policies" value={kpis.total} loading={policies.isLoading} />
-                <KpiTile label="Deployed" value={kpis.deployed} loading={policies.isLoading} tone="success" />
-                <KpiTile label="Draft" value={kpis.draft} loading={policies.isLoading} tone="muted" />
-                {config.hasTarget ? <KpiTile label="Unique targets" value={kpis.uniqueTargets} loading={policies.isLoading} /> : null}
+                <KpiTile label={`Deployed${pageSuffix}`} value={kpis.deployed} loading={policies.isLoading} tone="success" />
+                <KpiTile label={`Draft${pageSuffix}`} value={kpis.draft} loading={policies.isLoading} tone="muted" />
+                {config.hasTarget ? (
+                    <KpiTile label={`Unique targets${pageSuffix}`} value={kpis.uniqueTargets} loading={policies.isLoading} />
+                ) : null}
             </div>
 
             <div className="flex items-center gap-2">
@@ -182,7 +198,7 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
                 />
             )}
 
-            <Dialog open={pendingDelete !== null} onOpenChange={open => !open && setPendingDelete(null)}>
+            <Dialog open={pendingDelete !== null} onOpenChange={open => !open && closeDeleteDialog()}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Delete policy?</DialogTitle>
@@ -190,12 +206,13 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
                             {pendingDelete ? `"${pendingDelete.name}" will be permanently removed. This action cannot be undone.` : ''}
                         </DialogDescription>
                     </DialogHeader>
+                    {deleteError ? <ValidationErrorAlert error={deleteError} title="Delete failed" /> : null}
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setPendingDelete(null)} disabled={deleting}>
+                        <Button variant="outline" onClick={closeDeleteDialog} disabled={deleting}>
                             Cancel
                         </Button>
                         <Button variant="destructive" onClick={confirmDelete} disabled={deleting}>
-                            {deleting ? 'Deleting…' : 'Delete'}
+                            {deleting ? 'Deleting…' : deleteError ? 'Retry' : 'Delete'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
