@@ -19,11 +19,31 @@ import { LoginPage, ProtectedRoute, PublicOnlyRoute } from '../features/auth';
 import { EnvironmentGuard, RootRedirect } from '../features/environment';
 import { type GammaModule, RemoteModuleRoute, useGammaModules } from '../features/modules';
 import { HomePage } from '../pages/home';
+import { ContentSkeleton } from '../shared/components/ContentSkeleton';
 import { RouteLayout } from '../shared/components/RouteLayout';
 import { ShellLayout } from '../shared/components/ShellLayout';
 
 export function AppRoutes() {
     const { modules, loading, error } = useGammaModules();
+
+    if (loading && modules.length === 0) {
+        return (
+            <Routes>
+                <Route element={<PublicOnlyRoute />}>
+                    <Route path="/login" element={<LoginPage />} />
+                </Route>
+                <Route element={<ProtectedRoute />}>
+                    <Route path="/environments/:envHrid" element={<ShellLayout modules={[]} />}>
+                        <Route element={<EnvironmentGuard />}>
+                            <Route path="*" element={<ContentSkeleton />} />
+                        </Route>
+                    </Route>
+                    <Route path="/" element={<RootRedirect />} />
+                    <Route path="*" element={<RootRedirect />} />
+                </Route>
+            </Routes>
+        );
+    }
 
     return (
         <Routes>
