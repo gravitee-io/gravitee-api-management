@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 /** Sidebar / route keys for the host shell area (home, about, …). */
-export type HostNavKey = 'home' | 'about';
+export type HostNavKey = 'home';
 
 export const HOME_NAV_KEY: HostNavKey = 'home';
-export const ABOUT_NAV_KEY: HostNavKey = 'about';
 
 /** Labels for sidebar titles and breadcrumbs (single source of truth). */
 export const HOST_NAV_LABELS: Record<HostNavKey, string> = {
     home: 'Home',
-    about: 'About',
 };
 
 /**
@@ -45,14 +43,6 @@ interface HostNavArea {
 }
 
 const HOST_NAV_AREAS: readonly HostNavArea[] = [
-    {
-        navKey: ABOUT_NAV_KEY,
-        matches: sub => sub === ABOUT_NAV_KEY || sub.startsWith(`${ABOUT_NAV_KEY}/`),
-        breadcrumbSegments: envHrid => [
-            { label: HOST_NAV_LABELS.home, to: hostNavPath(HOME_NAV_KEY, envHrid) },
-            { label: HOST_NAV_LABELS.about },
-        ],
-    },
     {
         navKey: HOME_NAV_KEY,
         matches: sub => sub === HOME_NAV_KEY || sub === '' || sub.startsWith(`${HOME_NAV_KEY}/`),
@@ -117,5 +107,5 @@ export function resolveHostRoute(
 }
 
 export function isHostNavKey(key: string): key is HostNavKey {
-    return key === HOME_NAV_KEY || key === ABOUT_NAV_KEY;
+    return key === HOME_NAV_KEY;
 }

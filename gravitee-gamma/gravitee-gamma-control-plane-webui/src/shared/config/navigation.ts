@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type { NavGroup } from '@gravitee/graphene-core';
-import { Home, Info } from 'lucide-react';
+import { Home } from 'lucide-react';
 
 import { HOST_NAV_LABELS } from './routes';
 
@@ -23,7 +23,6 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Overview',
         items: [
             { key: 'home', title: HOST_NAV_LABELS.home, icon: Home },
-            { key: 'about', title: HOST_NAV_LABELS.about, icon: Info },
         ],
     },
 ];
