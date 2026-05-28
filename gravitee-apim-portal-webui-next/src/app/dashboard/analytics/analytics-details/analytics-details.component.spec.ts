@@ -76,6 +76,26 @@ describe('AnalyticsDetailsComponent', () => {
     expect(await harness.isTimeframeSelectorDisplayed()).toBe(true);
   });
 
+  it('should_recompute_time_range_on_refresh_for_preset_periods', async () => {
+    jest.useFakeTimers({ doNotFake: ['queueMicrotask'] });
+    try {
+      jest.setSystemTime(new Date('2026-01-01T12:00:00Z'));
+      await setup();
+
+      const initialRange = fixture.componentInstance.timeRange();
+
+      jest.setSystemTime(new Date('2026-01-01T12:01:00Z'));
+      fixture.componentInstance.refresh();
+      fixture.detectChanges();
+
+      const refreshedRange = fixture.componentInstance.timeRange();
+      expect(new Date(refreshedRange.from).getTime() - new Date(initialRange.from).getTime()).toBe(60_000);
+      expect(new Date(refreshedRange.to).getTime() - new Date(initialRange.to).getTime()).toBe(60_000);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('should_show_loader_while_loading', async () => {
     fixture.detectChanges();
     // Read the loader from the DOM, not the harness: harnessForFixture() stabilizes and would
