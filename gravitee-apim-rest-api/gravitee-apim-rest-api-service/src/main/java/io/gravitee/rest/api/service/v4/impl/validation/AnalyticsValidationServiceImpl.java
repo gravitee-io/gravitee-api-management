@@ -220,7 +220,7 @@ public class AnalyticsValidationServiceImpl extends TransactionalService impleme
                     String after = formatExpression(matcher, "after");
                     try {
                         final long currentDuration = Long.parseLong(currentDurationAsStr);
-                        if (currentDuration > maxEndDate || (!before.isEmpty() || !after.isEmpty())) {
+                        if (currentDuration > maxEndDate) {
                             return "{" + before + String.format(LOGGING_MAX_DURATION_CONDITION, maxEndDate) + after + "}";
                         }
                     } catch (NumberFormatException nfe) {
