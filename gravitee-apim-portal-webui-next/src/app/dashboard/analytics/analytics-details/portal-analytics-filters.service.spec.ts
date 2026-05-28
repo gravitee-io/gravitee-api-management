@@ -65,13 +65,15 @@ describe('PortalAnalyticsFiltersService', () => {
       done();
     });
 
-    httpTestingController.expectOne(req => req.url === `${TESTING_BASE_URL}/apis/_search`).flush({
-      data: [
-        { id: 'api-1', name: 'My API' },
-        { id: 'api-2', name: 'Other API' },
-      ],
-      metadata: { pagination: { current_page: 1, total_pages: 2 } },
-    });
+    httpTestingController
+      .expectOne(req => req.url === `${TESTING_BASE_URL}/apis/_search`)
+      .flush({
+        data: [
+          { id: 'api-1', name: 'My API' },
+          { id: 'api-2', name: 'Other API' },
+        ],
+        metadata: { pagination: { current_page: 1, total_pages: 2 } },
+      });
   });
 
   it('should_list_applications_for_application_filter_values', done => {
@@ -81,10 +83,12 @@ describe('PortalAnalyticsFiltersService', () => {
       done();
     });
 
-    httpTestingController.expectOne(req => req.url.includes('/applications')).flush({
-      data: [{ id: 'app-1', name: 'My App' }],
-      metadata: { pagination: { current_page: 1, total_pages: 1 } },
-    });
+    httpTestingController
+      .expectOne(req => req.url.includes('/applications'))
+      .flush({
+        data: [{ id: 'app-1', name: 'My App' }],
+        metadata: { pagination: { current_page: 1, total_pages: 1 } },
+      });
   });
 
   it('should_return_static_status_code_groups', done => {

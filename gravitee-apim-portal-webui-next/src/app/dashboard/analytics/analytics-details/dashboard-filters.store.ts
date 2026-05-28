@@ -17,7 +17,14 @@ import { computed, DestroyRef, inject, Injectable, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { decodeViewState, encodeViewState, FilterCondition, RequestFilter, toRequestFilter, ViewStateTimeframe } from '@gravitee/gravitee-dashboard';
+import {
+  decodeViewState,
+  encodeViewState,
+  FilterCondition,
+  RequestFilter,
+  toRequestFilter,
+  ViewStateTimeframe,
+} from '@gravitee/gravitee-dashboard';
 
 @Injectable()
 export class DashboardFiltersStore {

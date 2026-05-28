@@ -16,8 +16,8 @@
 import { Component, computed, DestroyRef, effect, inject, Injector, input, signal } from '@angular/core';
 import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
 import { MatDialog } from '@angular/material/dialog';
+import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
 
 import {
   AddFilterDialogComponent,
@@ -49,7 +49,14 @@ const DEFAULT_PERIOD: BasicTimeframe = '5m';
 
 @Component({
   selector: 'app-analytics-details',
-  imports: [GraviteeDashboardComponent, LoaderComponent, BannerComponent, TimeframeSelectorComponent, ReactiveFormsModule, DynamicFilterBarComponent],
+  imports: [
+    GraviteeDashboardComponent,
+    LoaderComponent,
+    BannerComponent,
+    TimeframeSelectorComponent,
+    ReactiveFormsModule,
+    DynamicFilterBarComponent,
+  ],
   templateUrl: './analytics-details.component.html',
   styleUrl: './analytics-details.component.scss',
   providers: [
@@ -91,6 +98,7 @@ export default class AnalyticsDetailsComponent {
   readonly dashboardName = computed(() => this.dashboard()?.name ?? '');
 
   private readonly timeframeParams = computed(() => {
+    this.refreshToken();
     const id = this.period().period;
     const known = timeFrames.some(timeFrame => timeFrame.id === id);
     return timeFrameRangesParams(known ? (id as BasicTimeframe) : DEFAULT_PERIOD);
