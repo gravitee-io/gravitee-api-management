@@ -2,14 +2,24 @@ openapi: 3.0.3
 info:
     title: Gravitee.io Gamma - Trace Explorer
     description: |
-        Global per-API trace explorer endpoints exposed by gravitee-gamma-rest-api.
-        Every gamma module's UI calls these with its own `module` query parameter
-        (e.g. `aim` for the LLM / MCP proxy reactors, `apim` for the APIM gateway APIs).
+        Per-API trace explorer endpoints exposed by gravitee-gamma-rest-api. Mounted at a
+        non-module-namespaced URL so every gamma module's UI calls the same endpoint — the per-call
+        scope is the `apiId` (required on search + detail) plus the canonical env id from the URL
+        path.
 
-        The `Span` shape is structurally aligned with
-        [`@gravitee/gamma-lib-observability`](https://github.com/gravitee-io/gamma-lib-observability)'s
-        `TraceSpan` so a UI built on the shared lib can consume this response without an adapter
-        layer. See `TRACING_API.md` next to this file for the human-readable narrative.
+        Each API has a type that defines its module (LLM_PROXY → AIM, HTTP_PROXY → APIM, …), so the
+        backend doesn't need a separate `module` parameter on search/detail to scope traces — the
+        `apiId` filter already produces module-correct results. `module` is still a query parameter
+        on the filter-discovery endpoints (`/filters/definition`, `/filters/{name}/values`) because
+        those answer "which filters does this module's contributor expose?" — distinct from query
+        scoping.
+
+        Wire conventions match the apim management v2 analytics + logs surface: filters use
+        `name` (singular) + UPPERCASE `operator` + polymorphic `value`; pagination is 1-based in
+        the query string; responses use a `{ data, pagination }` envelope. See `TRACING_API.md` for
+        the human-readable narrative including a Lib↔Wire translation table — the lib's TS
+        `FilterCondition`/`TraceSpan` types differ from the wire and the lib's HTTP source
+        translates between them.
     contact:
         email: team-apim@graviteesource.com
     license:
@@ -38,22 +48,27 @@ paths:
                 - Traces
             summary: List traces for an API
             description: |
-                Paginated list of traces matching the (`module`, `envId`, `apiId`) scope, ordered
-                by start time descending. The scope dimensions plus pagination + an optional
-                `filters` array travel in the JSON body — POST rather than GET because compound
-                filter sets don't fit URL query syntax cleanly.
+                Paginated list of traces matching the `apiId` + time-window scope, ordered by start
+                time descending. Scope (`apiId`) + time window + optional `filters` array travel in
+                the JSON body; pagination travels in the query string (`?page=&perPage=`) — same
+                convention as the apim management v2 `/logs/search` endpoint.
 
-                Both `module` and `apiId` are required to keep queries bounded. When the time
-                window is not pinned, the use case defaults to the last 24h ending at server-now.
-                When only `endEpochMs` is provided, `startEpochMs` defaults to `endEpochMs - 24h`.
+                `apiId` is required: per-API auth scope means each query stays bounded regardless of
+                how many APIs the caller can see, and the single resource-attribute term is portable
+                across backends (Tempo doesn't efficiently OR over hundreds of api-ids).
 
-                **Slim cut.** Filters are limited to the operators / names listed by the
-                companion `GET /filters/definition` endpoint — today that's `eq` only on
-                `STATUS`, `HTTP_METHOD`, `HTTP_STATUS_CODE`, `HTTP_ROUTE`. An unknown filter
-                name or unsupported operator returns **400** with the
-                `tracing.filter.unknown_name` / `tracing.filter.unsupported_operator`
-                `technicalCode` so the UI can degrade gracefully.
+                When the time window is not pinned, the use case defaults to the last 24h ending at
+                server-now. When only `to` is provided, `from` defaults to `to - 24h`.
+
+                **MVP.** Filters are limited to the operators / names listed by the companion
+                `GET /filters/definition` endpoint — today that's `EQ` only on `HTTP_METHOD`,
+                `HTTP_STATUS_CODE`, `HTTP_ROUTE`. An unknown filter name or unsupported operator
+                returns **400** with the `tracing.filter.unknown_name` /
+                `tracing.filter.unsupported_operator` `technicalCode`.
             operationId: searchTraces
+            parameters:
+                - $ref: "#/components/parameters/pageQueryParam"
+                - $ref: "#/components/parameters/perPageQueryParam"
             requestBody:
                 required: true
                 content:
@@ -62,11 +77,11 @@ paths:
                             $ref: "#/components/schemas/SearchTracesRequest"
             responses:
                 "200":
-                    description: Page of trace summaries.
+                    description: Paginated list of trace summaries.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/PageOfTraceSummary"
+                                $ref: "#/components/schemas/SearchTracesResponse"
                 "400":
                     $ref: "#/components/responses/InvalidSearchRequest"
 
@@ -81,19 +96,18 @@ paths:
             description: |
                 Returns the self-describing list of filter specs the UI uses to build its chip
                 palette. Each `TraceFilterSpec` carries enough metadata (`type`, `operators`,
-                optional `enumValues` / `range`) for a generic filter renderer to display the
-                right input control without hardcoded backend knowledge.
+                optional `enumValues` / `range`) for a generic filter renderer to display the right
+                input control without hardcoded backend knowledge.
 
                 The `module` query parameter is **optional**:
-                  * **omitted** → only cross-module contributions are returned (useful for an
-                    "introspect every always-available filter" UI).
+                  * **omitted** → only cross-module contributions are returned.
                   * **supplied** → cross-module entries plus the module-specific contributor's
                     entries are returned, deduped by `name` with last-write-wins semantics.
 
                 Filters are aggregated server-side via a `ServiceLoader`-based SPI
-                (`TraceFilterContributor`) so each gamma module ships its own filter
-                contributions in its own JAR — `gravitee-gamma-rest-api` itself only ships the
-                common cross-module entries.
+                (`TraceFilterContributor`) so each gamma module ships its own filter contributions
+                in its own JAR — `gravitee-gamma-rest-api` itself only ships the common
+                cross-module entries.
             operationId: getTraceFilterDefinitions
             parameters:
                 - $ref: "#/components/parameters/moduleOptionalQueryParam"
@@ -104,6 +118,68 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/TraceFilterSpecsResponse"
+
+    /organizations/{orgId}/environments/{envId}/observability/traces/filters/{filterName}/values:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/filterNamePathParam"
+        get:
+            tags:
+                - Traces
+            summary: List allowed values for a single filter
+            description: |
+                Returns a paginated list of distinct values for a given filter. Behaviour is
+                **type-driven**, mirroring the apim management v2
+                `GET /observability/filters/{name}/values`:
+
+                  * **`enum`** filters return their static `enumValues` from the spec, optionally
+                    case-insensitive substring-filtered by `query`.
+                  * **`keyword`** filters return distinct values pulled from the tracing data store
+                    via a terms aggregation. *(No keyword filter ships in the MVP, so this
+                    branch returns 400 today — the follow-up PR enables it.)*
+                  * **`number` / `string` / `boolean`** filters have no enumerable value pool and
+                    return **400** with `technicalCode: tracing.filter.value_listing_not_supported`.
+
+                An unknown `filterName` (one not present in the registry for the given `module`)
+                returns **404** — the values endpoint addresses the filter via the URL path so
+                "no such sub-resource" maps cleanly to 404. Distinct from the search endpoint's
+                `400 tracing.filter.unknown_name` which surfaces the same condition inside a body.
+
+                Pagination is 1-based, same envelope as the search endpoint
+                (`{ data, pagination: { totalCount, page, pageCount } }`).
+            operationId: getTraceFilterValues
+            parameters:
+                - $ref: "#/components/parameters/moduleOptionalQueryParam"
+                - name: query
+                  in: query
+                  required: false
+                  description: |
+                      Case-insensitive substring filter applied to the value list. Useful for
+                      chip-autocomplete UIs. Omitted / blank means "return everything".
+                  schema:
+                      type: string
+                - $ref: "#/components/parameters/pageQueryParam"
+                - name: perPage
+                  in: query
+                  required: false
+                  description: Page size. Capped server-side at 100.
+                  schema:
+                      type: integer
+                      default: 10
+                      minimum: 1
+                      maximum: 100
+            responses:
+                "200":
+                    description: Paginated allowed-value list.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/TraceFilterValuesResponse"
+                "400":
+                    $ref: "#/components/responses/UnsupportedFilterType"
+                "404":
+                    $ref: "#/components/responses/TraceFilterNotFound"
 
     /organizations/{orgId}/environments/{envId}/observability/traces/{traceId}:
         parameters:
@@ -118,14 +194,13 @@ paths:
                 Fetches the full span tree for a single trace, with OTel span events and gateway
                 payload logs already stitched onto their parent span by `spanId`.
 
-                **Authorisation note**: `apiId` is also used as a server-side scope filter — a
-                caller asking for a trace whose spans only carry a different `gravitee.api.id`
-                gets **404**, not the trace. The 404 collapses "trace does not exist" and
-                "trace exists but in another API" indistinguishably so cross-API existence can't
-                be probed.
+                `apiId` is required as a security defense: a user with access to API_A can't fetch
+                trace details from API_B by knowing the trace id — the resource-attribute filter on
+                `gravitee.api.id` rejects them, returning **404** (collapsing "trace does not
+                exist" and "trace exists but in another API" indistinguishably so cross-API
+                existence can't be probed).
             operationId: getTrace
             parameters:
-                - $ref: "#/components/parameters/moduleQueryParam"
                 - $ref: "#/components/parameters/apiIdQueryParam"
             responses:
                 "200":
@@ -177,154 +252,190 @@ components:
             schema:
                 type: string
                 example: 8b1f2e7a3c4d5e6f0a1b2c3d4e5f6a7b
-        moduleQueryParam:
-            name: module
-            in: query
-            required: true
-            description: |
-                OTel `gravitee.module` value the calling UI is interested in — e.g. `aim` for the
-                LLM / MCP proxy reactors, `apim` for the APIM gateway APIs. Required: without
-                it the query would fan out across every module's traces, which degrades cache
-                locality on the tracing backend and is rarely what a per-module UI wants.
-            schema:
-                type: string
-                example: aim
         moduleOptionalQueryParam:
             name: module
             in: query
             required: false
             description: |
-                OTel `gravitee.module` value. **Optional** on this endpoint, in contrast to the
-                search / detail endpoints — when omitted, only cross-module filter contributors
-                are returned. Pass it to additionally pull in module-specific filters.
+                OTel `gravitee.module` value identifying the calling module's filter contributor.
+                **Optional.** Omit to get only cross-module filters; supply to also pull in the
+                module-specific contributor's filters. Not used to scope the search/detail
+                queries — each API's type defines its module, so `apiId` alone scopes correctly.
             schema:
                 type: string
                 example: aim
+        filterNamePathParam:
+            name: filterName
+            in: path
+            required: true
+            description: |
+                Name of the filter to list values for. Must match a `TraceFilterSpec.name` from
+                `GET /filters/definition` — otherwise the endpoint returns 404.
+            schema:
+                type: string
+                example: HTTP_METHOD
         apiIdQueryParam:
             name: apiId
             in: query
             required: true
             description: |
-                API id to scope the query on. Required:
-                  * keeps list queries bounded regardless of how many APIs the caller has access
-                    to (no wide OR over the user's API scope).
-                  * defends the detail endpoint against trace-id guessing across APIs — the
-                    server-side resource-attribute filter on `gravitee.api.id` refuses to surface
-                    a trace from another API.
+                API id to scope the detail lookup on. Required as a security defense: a known trace
+                id from API_B cannot be fetched via API_A's scope — the server-side
+                resource-attribute filter on `gravitee.api.id` collapses "not found" and "wrong
+                scope" to 404 so cross-API existence cannot be probed.
             schema:
                 type: string
+        pageQueryParam:
+            name: page
+            in: query
+            required: false
+            description: 1-based page number. Same convention as apim's analytics + logs surface.
+            schema:
+                type: integer
+                default: 1
+                minimum: 1
+
     schemas:
+        # -------- Request shapes --------
+
         SearchTracesRequest:
             type: object
             description: |
-                POST body for the trace list endpoint. Carries the required scope (`module`,
-                `apiId`), an optional time window, pagination, and the (possibly empty) filter
-                conditions to apply.
-            required: [module, apiId]
+                POST body for the trace list endpoint. Carries the API scope, the time window, and
+                a (possibly empty) list of filter conditions. Pagination travels in the URL query
+                string (`?page=&perPage=`), not the body.
+            required: [apiId]
             properties:
-                module:
-                    type: string
-                    description: |
-                        OTel `gravitee.module` value the calling UI is interested in — e.g. `aim`
-                        for the LLM / MCP proxy reactors, `apim` for the APIM gateway APIs.
-                        Required: keeps queries bounded by the per-module data partition.
-                    example: aim
                 apiId:
                     type: string
                     description: |
-                        API id to scope the query on. Required: keeps the result bounded to a
-                        single API regardless of how many APIs the caller can see, and pairs with
-                        the detail endpoint's scope filter to defend against trace-id guessing.
-                startEpochMs:
-                    type: integer
-                    format: int64
-                    description: |
-                        Window lower bound (ms since epoch). When both `startEpochMs` and
-                        `endEpochMs` are omitted, defaults to "last 24h ending at server-now". When
-                        only `endEpochMs` is provided, defaults to `endEpochMs - 24h`.
-                endEpochMs:
-                    type: integer
-                    format: int64
-                    description: Window upper bound (ms since epoch). Defaults to server-now when omitted.
-                page:
-                    type: integer
-                    description: Page index (0-based) for pagination.
-                    default: 0
-                    minimum: 0
-                perPage:
-                    type: integer
-                    description: Page size for pagination.
-                    default: 20
-                    minimum: 1
+                        API id to scope the query on. Required: keeps each query bounded to a
+                        single API regardless of the caller's API-scope size.
+                    example: api-1
+                timeRange:
+                    $ref: "#/components/schemas/TimeRange"
                 filters:
                     type: array
                     description: |
                         Optional filter conditions to apply on top of the scope envelope.
                         Translated server-side to attribute filters before hitting the tracing
-                        backend. Slim cut today: only operators / names listed by
+                        backend. MVP today: only operators / names listed by
                         `GET /filters/definition` are accepted — anything else returns 400.
                     items:
                         $ref: "#/components/schemas/FilterCondition"
             example:
-                module: aim
                 apiId: api-1
-                page: 0
-                perPage: 20
+                timeRange:
+                    from: "2026-05-29T00:00:00Z"
+                    to: "2026-05-30T00:00:00Z"
                 filters:
-                    - name: STATUS
-                      operator: eq
-                      values: [error]
+                    - name: HTTP_STATUS_CODE
+                      operator: EQ
+                      value: "500"
+
+        TimeRange:
+            type: object
+            description: |
+                ISO-8601 absolute time window. Matches apim management v2's analytics + logs
+                `TimeRange` schema for cross-domain consistency.
+            required: [from, to]
+            properties:
+                from:
+                    type: string
+                    format: date-time
+                    description: Window lower bound (inclusive).
+                    example: "2026-05-29T00:00:00Z"
+                to:
+                    type: string
+                    format: date-time
+                    description: Window upper bound (inclusive).
+                    example: "2026-05-30T00:00:00Z"
 
         FilterCondition:
             type: object
             description: |
-                One filter the caller wants applied. References a `TraceFilterSpec` by `name`
-                and pairs it with an `operator` + values to match. Same shape as
-                `@gravitee/gamma-lib-observability`'s `FilterCondition` so a condition built
-                in the lib's UI flows to the backend without translation.
+                One filter the caller wants applied. Mirrors the apim management v2 `Filter` shape
+                discriminated by `operator`: `value` is polymorphic — a single string for `EQ` /
+                `NEQ` / `CONTAINS`, an array for `IN` / `NOT_IN`, a number for `GTE` / `LTE`.
 
-                `values` is always an array — single-value operators like `eq` pass a
-                one-element list. The list shape exists for forward-compat with `in` / `not_in`
-                in the follow-up PR.
-            required: [name, operator, values]
+                `operator` is UPPERCASE on the wire (matches apim's analytics + logs convention).
+                The lib's TS `FilterOperator` union is lowercase; the lib's `toWireFilter`
+                uppercases before sending. See `TRACING_API.md`'s "Lib↔Wire translation" section
+                for the full mapping (`field`↔`name`, polymorphic `value`, label round-tripping).
+            required: [name, operator, value]
             properties:
                 name:
                     type: string
-                    description: Filter spec name, e.g. `STATUS`. Must be in the list returned by `GET /filters/definition`.
-                    example: STATUS
+                    description: Filter spec name, e.g. `HTTP_METHOD`. Must be in the list returned by `GET /filters/definition`.
+                    example: HTTP_METHOD
                 operator:
                     $ref: "#/components/schemas/FilterOperator"
-                values:
-                    type: array
-                    items:
-                        type: string
-                    minItems: 1
-                    description: Values to match. For `eq`, exactly one entry.
-                    example: [error]
+                value:
+                    description: |
+                        Polymorphic per operator: string for `EQ`/`NEQ`/`CONTAINS`, array of
+                        strings for `IN`/`NOT_IN`, number for `GTE`/`LTE`.
+                    oneOf:
+                        - type: string
+                          example: "GET"
+                        - type: array
+                          items:
+                              type: string
+                          example: ["GET", "POST"]
+                        - type: number
+                          example: 200
 
+        # -------- Response shapes --------
 
-        PageOfTraceSummary:
+        SearchTracesResponse:
             type: object
-            description: Paginated list of trace summaries. Pages beyond `totalElements / perPage` return an empty `content` array, not an error.
-            required: [content, pageNumber, pageElements, totalElements]
+            description: |
+                Paginated list of trace summaries. Same envelope as the filter-values endpoint
+                and as apim's `/logs/search` response.
+            required: [data, pagination]
             properties:
-                content:
+                data:
                     type: array
                     items:
                         $ref: "#/components/schemas/TraceSummary"
-                pageNumber:
-                    type: integer
-                    description: 0-based, echoes the requested `page` query parameter.
-                    example: 0
-                pageElements:
-                    type: integer
-                    description: Count of items in this page (≤ `perPage`).
-                    example: 1
-                totalElements:
+                pagination:
+                    $ref: "#/components/schemas/Pagination"
+
+        TraceFilterValuesResponse:
+            type: object
+            description: |
+                Paginated list of filter values. Same envelope as the search endpoint and as
+                apim's analytics surface — single shape lets a generic lib-side paged-query hook
+                consume both responses.
+            required: [data, pagination]
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/TraceFilterValue"
+                pagination:
+                    $ref: "#/components/schemas/Pagination"
+
+        Pagination:
+            type: object
+            description: |
+                Paginated-response metadata. `page` is 1-based. `pageCount` is derived server-side
+                from `totalCount` and the request's `perPage`. Pages beyond `pageCount` return an
+                empty `data` array, not an error.
+            required: [totalCount, page, pageCount]
+            properties:
+                totalCount:
                     type: integer
                     format: int64
-                    description: Total number of traces matching the scope across all pages.
-                    example: 42
+                    description: Total number of items matching the query across all pages.
+                    example: 142
+                page:
+                    type: integer
+                    description: 1-based page number echoed from the request.
+                    example: 1
+                pageCount:
+                    type: integer
+                    description: Total page count (`ceil(totalCount / perPage)`).
+                    example: 8
 
         TraceSummary:
             type: object
@@ -342,7 +453,10 @@ components:
                 durationNanos:
                     type: integer
                     format: int64
-                    description: Total trace duration in nanoseconds. JS `Number` safely represents up to ~104 days of ns.
+                    description: |
+                        Total trace duration in nanoseconds. JS `Number` safely represents up to
+                        ~104 days of ns. Nano precision is deliberate — sub-millisecond spans
+                        (validation hooks, service-mesh ops) are common and would round to 0 in ms.
                     example: 1234000
                 rootServiceName:
                     type: string
@@ -371,7 +485,7 @@ components:
                 durationNanos:
                     type: integer
                     format: int64
-                    description: Root span duration in nanoseconds.
+                    description: Root span duration in nanoseconds (see `TraceSummary.durationNanos` for the precision rationale).
                 rootServiceName:
                     type: string
                     nullable: true
@@ -394,10 +508,26 @@ components:
             type: object
             description: |
                 One span inside a trace, with its events and payload logs already stitched in by
-                `spanId`. Structurally aligned with `@gravitee/gamma-lib-observability`'s
-                `TraceSpan` so the response can be consumed without an adapter.
+                `spanId`.
+
+                **Adapter responsibility on the lib side.** The lib's TS `TraceSpan` uses
+                unsuffixed `startTime` / `endTime` / `duration` and `Record<string, AttributeValue>`
+                for typed attributes; this wire shape uses suffixed `startTimeEpochMs` /
+                `durationNanos` and string-only attributes. The lib's tracing data source is
+                expected to:
+                  * rename `startTimeEpochMs` → `startTime` and `durationNanos` → `duration`
+                  * compute `endTime` as `startTimeEpochMs + durationNanos / 1_000_000` (the
+                    backend deliberately doesn't emit it — it's derivable, and including it would
+                    risk drift between stored and computed values)
+                  * accept the string-only `attributes` (typed `AttributeValue` is a tracked
+                    follow-up; for now numbers/booleans are stringified at the ES read layer).
+
+                `traceId` is duplicated on every span (same value as the envelope) because every
+                OTel transport (OTLP proto, ES OTel-mode docs, Tempo) carries it per-span and the
+                lib's canonical `TraceSpan.traceId` is a required field.
             required:
                 [
+                    traceId,
                     spanId,
                     operationName,
                     serviceName,
@@ -410,6 +540,10 @@ components:
                     payloadLogs,
                 ]
             properties:
+                traceId:
+                    type: string
+                    description: Echoed from the envelope; matches every OTel transport's per-span trace_id.
+                    example: 8b1f2e7a3c4d5e6f0a1b2c3d4e5f6a7b
                 spanId:
                     type: string
                 parentSpanId:
@@ -428,7 +562,7 @@ components:
                 durationNanos:
                     type: integer
                     format: int64
-                    description: Span duration in nanoseconds.
+                    description: Span duration in nanoseconds (sub-millisecond precision intentionally preserved).
                 status:
                     $ref: "#/components/schemas/SpanStatus"
                 kind:
@@ -438,7 +572,8 @@ components:
                     description: |
                         Span attributes as a flat string-keyed map. Backend-emitted values are
                         always strings even when the OTel source had typed values — the lib's
-                        wider `Record<string, AttributeValue>` shape is a structural superset.
+                        wider `Record<string, AttributeValue>` shape is a structural superset and
+                        the lib adapter accepts strings. Typed attributes are a tracked follow-up.
                     additionalProperties:
                         type: string
                     example:
@@ -514,9 +649,11 @@ components:
                 - producer
                 - consumer
 
+        # -------- Filter discovery shapes --------
+
         TraceFilterSpecsResponse:
             type: object
-            description: Envelope for the filter-definitions response. Same shape as the apim management API's `FilterSpecsResponse`.
+            description: Envelope for the filter-definitions response. Single list — not paginated.
             required: [data]
             properties:
                 data:
@@ -531,34 +668,35 @@ components:
                 UI introspects this list and renders a generic chip / multi-select / range input
                 depending on `type` and `operators`.
 
-                `operators` and `type` are emitted lowercase to match
-                `@gravitee/gamma-lib-observability`'s `FilterOperator` and `FilterType`
-                conventions — a `FilterCondition` built by the lib's UI flows straight back to
-                the search endpoint without translation.
+                `type` is emitted lowercase to match `@gravitee/gamma-lib-observability`'s
+                `FilterType` union. `operators` are emitted UPPERCASE to match apim's analytics +
+                logs wire convention.
             required: [name, label, type, operators]
             properties:
                 name:
                     type: string
-                    description: Stable identifier echoed by the UI on filter submission (e.g. as `FilterCondition.field`).
-                    example: STATUS
+                    description: |
+                        Stable identifier echoed by the UI on filter submission. Mapped by the lib
+                        UI to its `FilterCondition.field`.
+                    example: HTTP_METHOD
                 label:
                     type: string
                     description: Human-readable display label.
-                    example: Status
+                    example: HTTP method
                 type:
                     $ref: "#/components/schemas/FilterType"
                 operators:
                     type: array
                     items:
                         $ref: "#/components/schemas/FilterOperator"
-                    description: Comparison operators this filter supports. Non-empty.
-                    example: [eq]
+                    description: Comparison operators this filter supports. Non-empty. UPPERCASE on the wire.
+                    example: [EQ]
                 enumValues:
                     type: array
                     items:
                         type: string
                     description: Allowed values when `type` is `enum` — otherwise omitted.
-                    example: [unset, ok, error]
+                    example: [GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS]
                 range:
                     type: object
                     description: Inclusive min / max bounds when `type` is `number` and a finite range applies — otherwise omitted.
@@ -571,11 +709,39 @@ components:
                         min: 100
                         max: 599
 
+        TraceFilterValue:
+            type: object
+            description: |
+                One value in the response. `label` is optional and only set for opaque-id filters
+                where the stored `value` isn't directly human-readable. No such filter exists in
+                the MVP — forward-compat with keyword filters in the follow-up.
+
+                Label resolution today:
+                  * `enum` filters: lib reads label from the cached `TraceFilterSpec.enumValues`.
+                  * `number` / `string` filters: lib falls back to the raw value
+                    (`@gravitee/gamma-lib-observability`'s `normalize-filter-value.ts` handles this).
+                  * `keyword` filters: would call a `/filters/resolve` endpoint analogous to
+                    apim's analytics one (`POST /observability/filters/resolve`). Not implemented
+                    in the MVP; lib gracefully renders raw values until then. Tracked as a
+                    follow-up alongside the first keyword filter.
+            required: [value]
+            properties:
+                value:
+                    type: string
+                    description: The literal value as it would be sent in a `FilterCondition.value` entry.
+                    example: GET
+                label:
+                    type: string
+                    description: Human-readable label, when `value` itself isn't display-friendly.
+
+        # -------- Shared enums --------
+
         FilterType:
             type: string
             description: |
-                The data shape of a filter, used by the UI to pick the right input renderer.
-                Matches the apim management API's vocabulary so the same renderer can drive both.
+                Data shape of a filter, used by the UI to pick the right input renderer. Matches
+                the apim management v2 vocabulary. Lowercase on the wire (matches the lib's TS
+                `FilterType` union).
             enum:
                 - keyword
                 - string
@@ -586,31 +752,31 @@ components:
         FilterOperator:
             type: string
             description: |
-                Comparison operator a filter supports. Mirrors the `FILTER_OPERATORS` union from
-                `@gravitee/gamma-lib-observability`'s `domain.ts` 1:1 (same set, same lowercase
-                spelling).
+                Comparison operator. UPPERCASE on the wire — matches apim's analytics + logs
+                convention. The lib's TS `FilterOperator` union is lowercase (`eq`, `in`, …); the
+                lib's `toWireFilter` uppercases for transport.
             enum:
-                - eq
-                - neq
-                - contains
-                - not_contains
-                - starts_with
-                - ends_with
-                - gt
-                - gte
-                - lt
-                - lte
-                - in
-                - not_in
-                - exists
-                - not_exists
+                - EQ
+                - NEQ
+                - CONTAINS
+                - NOT_CONTAINS
+                - STARTS_WITH
+                - ENDS_WITH
+                - GT
+                - GTE
+                - LT
+                - LTE
+                - IN
+                - NOT_IN
+                - EXISTS
+                - NOT_EXISTS
 
         Error:
             type: object
             description: |
                 Same error shape used by the apim management API — emitted by the
-                `ValidationDomainExceptionMapper` / `NotFoundDomainExceptionMapper` registered
-                in `GammaModuleApplication`.
+                `ValidationDomainExceptionMapper` / `NotFoundDomainExceptionMapper` registered in
+                `GammaModuleApplication`.
             properties:
                 httpStatus:
                     type: integer
@@ -632,36 +798,37 @@ components:
     responses:
         MissingTracingScope:
             description: |
-                A required scope dimension (`module` or `apiId`) is missing or blank — applies to
-                any endpoint where the dimension can be omitted (query param on the detail
-                endpoint, body field on the search endpoint). Emitted by
-                `MissingTracingScopeException` (`technicalCode: tracing.scope.missing`).
+                The required `apiId` scope is missing or blank (search body field or detail query
+                param). Emitted by `MissingTracingScopeException`
+                (`technicalCode: tracing.scope.missing`).
             content:
                 application/json:
                     schema:
                         $ref: "#/components/schemas/Error"
                     example:
                         httpStatus: 400
-                        message: "Required scope dimension 'module' is missing"
+                        message: "Required scope dimension 'apiId' is missing"
                         technicalCode: tracing.scope.missing
         InvalidSearchRequest:
             description: |
-                The POST `/search` body is invalid. Covers two cases the slim cut surfaces:
-                  * a required scope dimension is missing — same shape as `MissingTracingScope`
+                The POST `/search` body is invalid. Three cases the MVP surfaces:
+                  * the required `apiId` field is missing — same shape as `MissingTracingScope`
                     with `tracing.scope.missing`.
-                  * a filter condition references an unknown filter name or an operator the
-                    translator doesn't handle yet — emitted by `UnsupportedFilterException`
-                    with `tracing.filter.unknown_name` or `tracing.filter.unsupported_operator`.
+                  * a filter condition references an unknown filter name — emitted by
+                    `UnsupportedFilterException` with `tracing.filter.unknown_name`.
+                  * a filter condition uses an operator the translator doesn't handle yet —
+                    emitted by `UnsupportedFilterException` with
+                    `tracing.filter.unsupported_operator`.
             content:
                 application/json:
                     schema:
                         $ref: "#/components/schemas/Error"
                     examples:
-                        missing-scope:
-                            summary: Required scope dimension missing
+                        missing-apiId:
+                            summary: Required apiId missing
                             value:
                                 httpStatus: 400
-                                message: "Required scope dimension 'module' is missing"
+                                message: "Required scope dimension 'apiId' is missing"
                                 technicalCode: tracing.scope.missing
                         unknown-filter-name:
                             summary: Filter name not in the registry
@@ -673,7 +840,7 @@ components:
                             summary: Operator not yet translated
                             value:
                                 httpStatus: 400
-                                message: "Operator 'in' is not supported yet for filter 'STATUS'"
+                                message: "Operator 'IN' is not supported yet for filter 'HTTP_METHOD'"
                                 technicalCode: tracing.filter.unsupported_operator
         TraceNotFound:
             description: |
@@ -687,3 +854,31 @@ components:
                     example:
                         httpStatus: 404
                         message: "Trace 8b1f2e7a3c4d5e6f0a1b2c3d4e5f6a7b not found for API api-1"
+        UnsupportedFilterType:
+            description: |
+                The filter exists but its type doesn't support value listing (`number`, `string`,
+                `boolean`, and — in the MVP — `keyword`). Emitted by
+                `UnsupportedFilterException` (`technicalCode: tracing.filter.value_listing_not_supported`).
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"
+                    example:
+                        httpStatus: 400
+                        message: "Listing values is not supported for filter 'HTTP_STATUS_CODE' (type NUMBER)"
+                        technicalCode: tracing.filter.value_listing_not_supported
+        TraceFilterNotFound:
+            description: |
+                The `filterName` in the URL path does not match any filter in the registry for
+                the requested module. Emitted by `TraceFilterNotFoundException` (subclass of
+                `NotFoundDomainException` — the standard apim 404 envelope, no `technicalCode`).
+                Distinct from `UnsupportedFilterException.unknownName` raised by the search
+                endpoint (which returns 400) because the values endpoint addresses the filter as
+                a sub-resource.
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"
+                    example:
+                        httpStatus: 404
+                        message: "Trace filter 'UNKNOWN' not found"
