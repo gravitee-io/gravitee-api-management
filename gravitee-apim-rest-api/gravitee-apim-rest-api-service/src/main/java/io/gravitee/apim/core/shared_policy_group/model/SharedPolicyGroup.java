@@ -132,11 +132,22 @@ public class SharedPolicyGroup {
             .id(crossId)
             .environmentId(environmentId)
             .policies(steps)
-            .phase(io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.valueOf(phase.name()))
+            .phase(toDefinitionPhase(phase))
             .name(name)
             .version(version != null ? String.valueOf(version) : null)
             .deployedAt(Date.from(deployedAt.toInstant()))
             .build();
+    }
+
+    @SuppressWarnings("deprecation")
+    static io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase toDefinitionPhase(FlowPhase phase) {
+        return switch (phase) {
+            case REQUEST -> io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.REQUEST;
+            case RESPONSE -> io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.RESPONSE;
+            case PUBLISH -> io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.MESSAGE_REQUEST;
+            case SUBSCRIBE -> io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.MESSAGE_RESPONSE;
+            case ENTRYPOINT_CONNECT, INTERACT -> throw new IllegalArgumentException("Unsupported shared policy group phase: " + phase);
+        };
     }
 
     public SharedPolicyGroupBuilder toBuilder() {

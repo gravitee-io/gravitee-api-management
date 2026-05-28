@@ -16,6 +16,7 @@
 package io.gravitee.gateway.handlers.sharedpolicygroup.reactor.impl;
 
 import io.gravitee.common.component.AbstractLifecycleComponent;
+import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.handlers.sharedpolicygroup.SharedPolicyGroupPolicyManager;
 import io.gravitee.gateway.handlers.sharedpolicygroup.policy.SharedPolicyGroupPolicyChainFactory;
@@ -67,8 +68,18 @@ public class DefaultSharedPolicyGroupReactor
             reactableSharedPolicyGroup.getId(),
             reactableSharedPolicyGroup.getEnvironmentId(),
             reactableSharedPolicyGroup.getDefinition().getPolicies(),
-            ExecutionPhase.valueOf(reactableSharedPolicyGroup.getDefinition().getPhase().name())
+            toExecutionPhase(reactableSharedPolicyGroup.getDefinition().getPhase())
         );
+    }
+
+    @SuppressWarnings("deprecation")
+    static ExecutionPhase toExecutionPhase(SharedPolicyGroup.Phase phase) {
+        return switch (phase) {
+            case REQUEST -> ExecutionPhase.REQUEST;
+            case RESPONSE -> ExecutionPhase.RESPONSE;
+            case PUBLISH, MESSAGE_REQUEST -> ExecutionPhase.MESSAGE_REQUEST;
+            case SUBSCRIBE, MESSAGE_RESPONSE -> ExecutionPhase.MESSAGE_RESPONSE;
+        };
     }
 
     @Override
