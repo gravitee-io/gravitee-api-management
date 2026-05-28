@@ -51,6 +51,11 @@ export class ApiPlanFormHarness extends ComponentHarness {
   public getShardingTagsInput = this.locatorForOptional(MatSelectHarness.with({ selector: '[formControlName="shardingTags"]' }));
   public getExcludedGroupsInput = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="excludedGroups"]' }));
 
+  // Kafka port routing
+  public getBootstrapPortInput = this.locatorForOptional(MatInputHarness.with({ selector: '[data-testid="bootstrap_port_field"]' }));
+  public getBrokerRangeStartInput = this.locatorForOptional(MatInputHarness.with({ selector: '[data-testid="broker_range_start_field"]' }));
+  public getBrokerRangeEndInput = this.locatorForOptional(MatInputHarness.with({ selector: '[data-testid="broker_range_end_field"]' }));
+
   // 2- Secure Step
   public getSelectionRuleInput = this.locatorForOptional(MatInputHarness.with({ selector: '[formControlName="selectionRule"]' }));
 

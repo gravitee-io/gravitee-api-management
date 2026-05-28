@@ -31,4 +31,10 @@ export interface PlanV4 extends BasePlan {
   tags?: string[];
   flows?: FlowV4[];
   mode: PlanMode;
+  /** @description Bootstrap port for Kafka port-based routing (1024–65535). Only relevant for NATIVE APIs. */
+  bootstrapPort?: number;
+  /** @description Start of the broker port range for Kafka port-based routing (1024–65535). Only relevant for NATIVE APIs. */
+  brokerRangeStart?: number;
+  /** @description End of the broker port range for Kafka port-based routing (1024–65535). Only relevant for NATIVE APIs. */
+  brokerRangeEnd?: number;
 }

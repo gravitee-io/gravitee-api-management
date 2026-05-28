@@ -80,6 +80,9 @@ export type InternalPlanFormValue = {
     commentMessage: string;
     autoValidation: boolean;
     excludedGroups: string[];
+    bootstrapPort?: number;
+    brokerRangeStart?: number;
+    brokerRangeEnd?: number;
   };
   secure: {
     securityConfig: unknown;
@@ -107,7 +110,15 @@ export type PlanFormValue = Pick<
   | 'validation'
   | 'excludedGroups'
   | 'security'
-> & { mode?: PlanMode; selectionRule?: string; tags?: string[]; flows?: Array<FlowV2 | FlowV4> };
+> & {
+  mode?: PlanMode;
+  selectionRule?: string;
+  tags?: string[];
+  flows?: Array<FlowV2 | FlowV4>;
+  bootstrapPort?: number;
+  brokerRangeStart?: number;
+  brokerRangeEnd?: number;
+};
 
 @Component({
   selector: 'api-plan-form',
@@ -475,6 +486,9 @@ const planToInternalFormValue = (
       commentMessage: plan.commentMessage,
       autoValidation: plan.validation === 'AUTO',
       excludedGroups: plan.excludedGroups,
+      bootstrapPort: plan.bootstrapPort ?? undefined,
+      brokerRangeStart: plan.brokerRangeStart ?? undefined,
+      brokerRangeEnd: plan.brokerRangeEnd ?? undefined,
     },
     secure: {
       securityConfig: plan.security?.configuration,
@@ -635,6 +649,19 @@ const internalFormValueToPlanV4 = (
     ];
   };
 
+  const bootstrapPort =
+    value.general.bootstrapPort !== null && value.general.bootstrapPort !== undefined && !isNaN(value.general.bootstrapPort)
+      ? value.general.bootstrapPort
+      : undefined;
+  const brokerRangeStart =
+    value.general.brokerRangeStart !== null && value.general.brokerRangeStart !== undefined && !isNaN(value.general.brokerRangeStart)
+      ? value.general.brokerRangeStart
+      : undefined;
+  const brokerRangeEnd =
+    value.general.brokerRangeEnd !== null && value.general.brokerRangeEnd !== undefined && !isNaN(value.general.brokerRangeEnd)
+      ? value.general.brokerRangeEnd
+      : undefined;
+
   return {
     name: value.general.name,
     description: value.general.description,
@@ -659,6 +686,11 @@ const internalFormValueToPlanV4 = (
 
     excludedGroups: value.general.excludedGroups,
     selectionRule: value.secure.selectionRule,
+
+    // Kafka port-routing fields (NATIVE APIs only; undefined when not set)
+    bootstrapPort,
+    brokerRangeStart,
+    brokerRangeEnd,
 
     // Restriction (only for create mode)
     ...(mode === 'edit' ? {} : { flows: initFlowsWithRestriction(value.restriction) }),

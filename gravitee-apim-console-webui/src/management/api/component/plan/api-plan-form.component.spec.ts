@@ -40,6 +40,7 @@ import {
   CreatePlanV4,
   fakeApiV2,
   fakeApiV4,
+  fakeNativeKafkaApiV4,
   fakePlanV2,
   fakePlanV4,
   fakeProxyTcpApiV4,
@@ -62,6 +63,7 @@ import { isApiV4 } from '../../../../util';
       [apiType]="apiType"
       [planMenuItem]="planMenuItem"
       [isTcpApi]="isTcpApi"
+      [isNative]="isNative"
     ></api-plan-form>
   `,
   standalone: false,
@@ -75,6 +77,7 @@ class TestComponent {
   apiType?: ApiType;
   plan?: Plan;
   isTcpApi?: boolean = false;
+  isNative?: boolean = false;
 }
 
 const fakeApiKeySchema = {
@@ -95,7 +98,7 @@ describe('ApiPlanFormComponent', () => {
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  const configureTestingModule = (mode: 'create' | 'edit', planFormType: PlanFormType, api?: Api, apiType?: ApiType) => {
+  const configureTestingModule = (mode: 'create' | 'edit', planFormType: PlanFormType, api?: Api, apiType?: ApiType, isNative = false) => {
     TestBed.configureTestingModule({
       declarations: [TestComponent],
       imports: [ReactiveFormsModule, NoopAnimationsModule, GioTestingModule, ApiPlanFormModule, MatIconTestingModule],
@@ -126,6 +129,7 @@ describe('ApiPlanFormComponent', () => {
     testComponent.api = api;
     testComponent.apiType = apiType;
     testComponent.isTcpApi = isApiV4(api) && api.listeners.find(listener => listener.type === 'TCP') != null;
+    testComponent.isNative = isNative;
   };
 
   afterEach(() => {
@@ -1510,6 +1514,76 @@ describe('ApiPlanFormComponent', () => {
       const stepsHarness = await loader.getAllHarnesses(MatStepHarness);
       const steps = await Promise.all(stepsHarness.map(step => step.getLabel()));
       expect(steps).toEqual(['General']);
+    });
+  });
+
+  describe('NATIVE Kafka API — Kafka port routing fields', () => {
+    const NATIVE_API = fakeNativeKafkaApiV4();
+
+    describe('Create mode', () => {
+      beforeEach(() => {
+        configureTestingModule('create', 'KEY_LESS', NATIVE_API, 'NATIVE', true);
+        fixture.detectChanges();
+      });
+
+      it('should round-trip port values through planToInternalFormValue and internalFormValueToPlanV4', async () => {
+        const planWithPorts = fakePlanV4({
+          bootstrapPort: 9092,
+          brokerRangeStart: 9093,
+          brokerRangeEnd: 9095,
+        });
+        testComponent.planControl = new FormControl(planWithPorts);
+        fixture.detectChanges();
+
+        const planForm = await loader.getHarness(ApiPlanFormHarness);
+        planForm.httpRequest(httpTestingController).expectGroupListRequest([]);
+        planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(NATIVE_API.id, []);
+        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([]);
+        planForm.httpRequest(httpTestingController).expectTagsListRequest([]);
+        fixture.detectChanges();
+
+        const bootstrapPortInput = await planForm.getBootstrapPortInput();
+        expect(await bootstrapPortInput.getValue()).toEqual('9092');
+
+        const brokerRangeStartInput = await planForm.getBrokerRangeStartInput();
+        expect(await brokerRangeStartInput.getValue()).toEqual('9093');
+
+        const brokerRangeEndInput = await planForm.getBrokerRangeEndInput();
+        expect(await brokerRangeEndInput.getValue()).toEqual('9095');
+
+        // Change name so form is valid
+        const nameInput = await planForm.getNameInput();
+        await nameInput.setValue('Kafka Plan');
+
+        expect(testComponent.planControl.value.bootstrapPort).toEqual(9092);
+        expect(testComponent.planControl.value.brokerRangeStart).toEqual(9093);
+        expect(testComponent.planControl.value.brokerRangeEnd).toEqual(9095);
+      });
+
+      it('should map empty port inputs to undefined in the emitted plan value', async () => {
+        const planWithoutPorts = fakePlanV4({
+          name: 'Kafka Plan',
+          bootstrapPort: undefined,
+          brokerRangeStart: undefined,
+          brokerRangeEnd: undefined,
+        });
+        testComponent.planControl = new FormControl(planWithoutPorts);
+        fixture.detectChanges();
+
+        const planForm = await loader.getHarness(ApiPlanFormHarness);
+        planForm.httpRequest(httpTestingController).expectGroupListRequest([]);
+        planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(NATIVE_API.id, []);
+        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([]);
+        planForm.httpRequest(httpTestingController).expectTagsListRequest([]);
+        fixture.detectChanges();
+
+        const nameInput = await planForm.getNameInput();
+        await nameInput.setValue('Kafka Plan');
+
+        expect(testComponent.planControl.value.bootstrapPort).toBeUndefined();
+        expect(testComponent.planControl.value.brokerRangeStart).toBeUndefined();
+        expect(testComponent.planControl.value.brokerRangeEnd).toBeUndefined();
+      });
     });
   });
 });

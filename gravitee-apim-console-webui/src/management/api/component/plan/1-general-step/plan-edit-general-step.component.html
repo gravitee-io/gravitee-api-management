@@ -125,5 +125,85 @@
         </mat-select>
       </mat-form-field>
     }
+
+    @if (isNative) {
+      <h2>Kafka port routing</h2>
+      <p class="kafka-port-routing__hint">These ports apply when the gateway is configured for port-based routing.</p>
+
+      <mat-form-field class="kafka-port-routing__field">
+        <mat-label>Bootstrap port</mat-label>
+        <input
+          matInput
+          formControlName="bootstrapPort"
+          type="number"
+          [errorStateMatcher]="bootstrapInRangeErrorMatcher"
+          data-testid="bootstrap_port_field"
+        />
+        @if (generalForm.get('bootstrapPort').hasError('min')) {
+          <mat-error>Bootstrap port must be at least 1024.</mat-error>
+        }
+        @if (generalForm.get('bootstrapPort').hasError('max')) {
+          <mat-error>Bootstrap port must be at most 65535.</mat-error>
+        }
+        @if (
+          generalForm.hasError('bootstrapInRange') &&
+          !generalForm.get('bootstrapPort').hasError('min') &&
+          !generalForm.get('bootstrapPort').hasError('max')
+        ) {
+          <mat-error>Bootstrap port must not fall within the broker port range.</mat-error>
+        }
+        @if (generalForm.get('bootstrapPort').disabled) {
+          <mat-hint>Bootstrap port cannot be changed after the API has been deployed.</mat-hint>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="kafka-port-routing__field">
+        <mat-label>Broker range start</mat-label>
+        <input
+          matInput
+          formControlName="brokerRangeStart"
+          type="number"
+          [errorStateMatcher]="rangeOrderErrorMatcher"
+          data-testid="broker_range_start_field"
+        />
+        @if (generalForm.get('brokerRangeStart').hasError('min')) {
+          <mat-error>Broker range start must be at least 1024.</mat-error>
+        }
+        @if (generalForm.get('brokerRangeStart').hasError('max')) {
+          <mat-error>Broker range start must be at most 65535.</mat-error>
+        }
+        @if (
+          generalForm.hasError('rangeOrder') &&
+          !generalForm.get('brokerRangeStart').hasError('min') &&
+          !generalForm.get('brokerRangeStart').hasError('max')
+        ) {
+          <mat-error>Broker range start must be less than or equal to broker range end.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="kafka-port-routing__field">
+        <mat-label>Broker range end</mat-label>
+        <input
+          matInput
+          formControlName="brokerRangeEnd"
+          type="number"
+          [errorStateMatcher]="rangeOrderErrorMatcher"
+          data-testid="broker_range_end_field"
+        />
+        @if (generalForm.get('brokerRangeEnd').hasError('min')) {
+          <mat-error>Broker range end must be at least 1024.</mat-error>
+        }
+        @if (generalForm.get('brokerRangeEnd').hasError('max')) {
+          <mat-error>Broker range end must be at most 65535.</mat-error>
+        }
+        @if (
+          generalForm.hasError('rangeOrder') &&
+          !generalForm.get('brokerRangeEnd').hasError('min') &&
+          !generalForm.get('brokerRangeEnd').hasError('max')
+        ) {
+          <mat-error>Broker range start must be less than or equal to broker range end.</mat-error>
+        }
+      </mat-form-field>
+    }
   </ng-container>
 }
