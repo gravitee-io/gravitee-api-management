@@ -50,11 +50,15 @@ public class DefaultSharedPolicyGroupReactorFactory implements SharedPolicyGroup
     private final OpenTelemetryConfiguration openTelemetryConfiguration;
 
     @Override
+    @SuppressWarnings("deprecation")
     public boolean canCreate(ReactableSharedPolicyGroup reactableSharedPolicyGroup) {
-        return (
-            SharedPolicyGroup.Phase.REQUEST.equals(reactableSharedPolicyGroup.getDefinition().getPhase()) ||
-            SharedPolicyGroup.Phase.RESPONSE.equals(reactableSharedPolicyGroup.getDefinition().getPhase())
-        );
+        var phase = reactableSharedPolicyGroup.getDefinition().getPhase();
+        if (phase == null) {
+            return false;
+        }
+        return switch (phase) {
+            case REQUEST, RESPONSE, PUBLISH, SUBSCRIBE, MESSAGE_REQUEST, MESSAGE_RESPONSE -> true;
+        };
     }
 
     @Override
