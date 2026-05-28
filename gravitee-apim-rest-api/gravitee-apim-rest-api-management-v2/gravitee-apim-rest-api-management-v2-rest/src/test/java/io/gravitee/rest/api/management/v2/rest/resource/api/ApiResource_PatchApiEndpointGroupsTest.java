@@ -207,6 +207,43 @@ public class ApiResource_PatchApiEndpointGroupsTest extends ApiResourceTest {
     }
 
     @Test
+    void merge_patch_omitting_endpoint_groups_preserves_previous_endpoint_groups() {
+        givenApiWithEndpointGroups(List.of(defaultGroup("group-a")));
+
+        var body = "{\"name\":\"updated-name\"}";
+        var response = rootTarget(API).request().method("PATCH", Entity.entity(body, MERGE_PATCH_TYPE));
+
+        assertThat(response).hasStatus(OK_200);
+
+        var persistedGroups = capturePersistedEndpointGroups();
+        Assertions.assertThat(persistedGroups).hasSize(1);
+        Assertions.assertThat(persistedGroups.getFirst().getType()).isEqualTo("http-proxy");
+        Assertions.assertThat(persistedGroups.getFirst().getName()).isEqualTo("group-a");
+    }
+
+    @Test
+    void merge_patch_endpoint_groups_null_clears_endpoint_groups() {
+        givenApiWithEndpointGroups(List.of(defaultGroup("group-a")));
+
+        var body = "{\"endpointGroups\":null}";
+        var response = rootTarget(API).request().method("PATCH", Entity.entity(body, MERGE_PATCH_TYPE));
+
+        var apiV4 = assertThat(response).hasStatus(OK_200).asEntity(ApiV4.class).actual();
+        Assertions.assertThat(apiV4.getEndpointGroups()).isNullOrEmpty();
+    }
+
+    @Test
+    void json_patch_remove_endpoint_groups_clears_endpoint_groups() {
+        givenApiWithEndpointGroups(List.of(defaultGroup("group-a")));
+
+        var body = "[{\"op\":\"remove\",\"path\":\"/endpointGroups\"}]";
+        var response = rootTarget(API).request().method("PATCH", Entity.entity(body, JSON_PATCH_TYPE));
+
+        var apiV4 = assertThat(response).hasStatus(OK_200).asEntity(ApiV4.class).actual();
+        Assertions.assertThat(apiV4.getEndpointGroups()).isNullOrEmpty();
+    }
+
+    @Test
     void patch_with_empty_endpointGroups_returns_400() {
         givenApiWithEndpointGroups(List.of(defaultGroup("group-a")));
         doThrow(new ValidationDomainException("endpointGroups must not be empty", Map.of("location", "/endpointGroups"), "invalidValue"))
