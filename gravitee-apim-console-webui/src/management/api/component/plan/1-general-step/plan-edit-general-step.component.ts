@@ -133,6 +133,14 @@ export class PlanEditGeneralStepComponent implements OnInit {
   protected readonly bootstrapInRangeErrorMatcher = new GroupErrorStateMatcher('bootstrapInRange');
   protected readonly rangeOrderErrorMatcher = new GroupErrorStateMatcher('rangeOrder');
 
+  // Default broker range size when deriving the range from the bootstrap port (matches the gateway's
+  // kafka.routingPortMode.defaultBrokersRangeSize default of 3).
+  private static readonly DEFAULT_BROKER_RANGE_SIZE = 3;
+  // The last range values we auto-filled, used to keep following the bootstrap port until the user
+  // edits the range themselves.
+  private autoFilledBrokerRangeStart?: number;
+  private autoFilledBrokerRangeEnd?: number;
+
   conditionPages$ = this.api$.pipe(
     switchMap(api =>
       this.documentationService.apiSearch(api.id, {
@@ -180,6 +188,34 @@ export class PlanEditGeneralStepComponent implements OnInit {
       .valueChanges.pipe(startWith(this.generalForm.get('commentRequired').value), takeUntilDestroyed(this.destroyRef))
       .subscribe(value => {
         value ? this.generalForm.get('commentMessage').enable() : this.generalForm.get('commentMessage').disable();
+      });
+
+    // Pre-fill the broker range from the bootstrap port (start = bootstrap + 1, end = bootstrap + size).
+    // The fields stay editable: we only update a range field while it is still empty or still holds the
+    // value we last auto-filled, so a user-entered range (or a loaded one) is never overwritten.
+    this.generalForm
+      .get('bootstrapPort')
+      .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(raw => {
+        const bootstrapPort = Number.isFinite(raw as number) ? (raw as number) : null;
+        if (bootstrapPort == null) {
+          return;
+        }
+        const startControl = this.generalForm.get('brokerRangeStart');
+        const endControl = this.generalForm.get('brokerRangeEnd');
+
+        const isEmpty = (value: unknown) => value === null || value === undefined || (value as unknown) === '';
+        const defaultStart = bootstrapPort + 1;
+        const defaultEnd = bootstrapPort + PlanEditGeneralStepComponent.DEFAULT_BROKER_RANGE_SIZE;
+
+        if (isEmpty(startControl.value) || startControl.value === this.autoFilledBrokerRangeStart) {
+          startControl.setValue(defaultStart);
+          this.autoFilledBrokerRangeStart = defaultStart;
+        }
+        if (isEmpty(endControl.value) || endControl.value === this.autoFilledBrokerRangeEnd) {
+          endControl.setValue(defaultEnd);
+          this.autoFilledBrokerRangeEnd = defaultEnd;
+        }
       });
   }
 }

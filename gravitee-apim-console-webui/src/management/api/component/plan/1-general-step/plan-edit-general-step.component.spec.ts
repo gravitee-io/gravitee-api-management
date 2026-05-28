@@ -262,4 +262,58 @@ describe('PlanEditGeneralStepComponent — Kafka port routing', () => {
       expect((await bootstrapField.getTextErrors()).join(' ')).toContain('must not fall within the broker port range');
     });
   });
+
+  describe('Broker range default from bootstrap port', () => {
+    beforeEach(() => {
+      setupComponent('create', true);
+      flushDefaultRequests(fakeNativeKafkaApiV4().id);
+    });
+
+    it('should pre-fill empty broker range from the bootstrap port (start = port+1, end = port+3)', () => {
+      component.generalForm.get('bootstrapPort').setValue(9092);
+      fixture.detectChanges();
+
+      expect(component.generalForm.get('brokerRangeStart').value).toBe(9093);
+      expect(component.generalForm.get('brokerRangeEnd').value).toBe(9095);
+    });
+
+    it('should keep following the bootstrap port while the range has not been edited', () => {
+      component.generalForm.get('bootstrapPort').setValue(9092);
+      fixture.detectChanges();
+      component.generalForm.get('bootstrapPort').setValue(9100);
+      fixture.detectChanges();
+
+      expect(component.generalForm.get('brokerRangeStart').value).toBe(9101);
+      expect(component.generalForm.get('brokerRangeEnd').value).toBe(9103);
+    });
+
+    it('should not overwrite a range the user has edited', () => {
+      component.generalForm.get('bootstrapPort').setValue(9092);
+      fixture.detectChanges();
+
+      // User overrides the range.
+      component.generalForm.get('brokerRangeStart').setValue(9500);
+      component.generalForm.get('brokerRangeEnd').setValue(9510);
+      fixture.detectChanges();
+
+      // Changing the bootstrap port again must not clobber the user's values.
+      component.generalForm.get('bootstrapPort').setValue(9200);
+      fixture.detectChanges();
+
+      expect(component.generalForm.get('brokerRangeStart').value).toBe(9500);
+      expect(component.generalForm.get('brokerRangeEnd').value).toBe(9510);
+    });
+
+    it('should not overwrite a pre-set (loaded) range', () => {
+      component.generalForm.get('brokerRangeStart').setValue(9200);
+      component.generalForm.get('brokerRangeEnd').setValue(9202);
+      fixture.detectChanges();
+
+      component.generalForm.get('bootstrapPort').setValue(9092);
+      fixture.detectChanges();
+
+      expect(component.generalForm.get('brokerRangeStart').value).toBe(9200);
+      expect(component.generalForm.get('brokerRangeEnd').value).toBe(9202);
+    });
+  });
 });

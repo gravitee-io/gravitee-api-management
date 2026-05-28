@@ -663,6 +663,42 @@ describe('ApiPlanEditComponent', () => {
       req.flush({});
       expect(routerNavigationSpy).toHaveBeenCalled();
     });
+
+    it('should save directly (no dialog) when setting a bootstrap port for the first time (host -> port migration)', async () => {
+      const HOST_MODE_PLAN = fakePlanV4({ apiId: API_ID, security: { type: 'KEY_LESS' } }); // no bootstrapPort
+      configureTestingModule(HOST_MODE_PLAN.id);
+      fixture.detectChanges();
+      expectApiGetRequest(DEPLOYED_NATIVE_API);
+      expectPlanGetRequest(API_ID, HOST_MODE_PLAN);
+
+      const planForm = await loader.getHarness(ApiPlanFormHarness);
+      flushPlanFormRequests(planForm);
+      fixture.detectChanges();
+
+      const nameInput = await planForm.getNameInput();
+      await nameInput.setValue('Updated plan');
+
+      // Set a bootstrap port for the first time — the plan was host mode (no port) before.
+      const bootstrapPortInput = await planForm.getBootstrapPortInput();
+      await bootstrapPortInput.setValue('19092');
+      fixture.detectChanges();
+
+      const matDialog = TestBed.inject(MatDialog);
+      const dialogSpy = jest.spyOn(matDialog, 'open');
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      await saveBar.clickSubmit();
+
+      expect(dialogSpy).not.toHaveBeenCalled();
+
+      expectPlanGetRequest(API_ID, HOST_MODE_PLAN);
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${HOST_MODE_PLAN.id}`,
+        method: 'PUT',
+      });
+      req.flush({});
+      expect(routerNavigationSpy).toHaveBeenCalled();
+    });
   });
 
   describe('With a Federated API', () => {
