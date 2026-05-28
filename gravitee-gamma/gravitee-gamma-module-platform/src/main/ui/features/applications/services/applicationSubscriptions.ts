@@ -47,6 +47,27 @@ export function resolveSubscriptionApiKeyV2Parent(entity: ApplicationSubscriptio
     return apiId ? { kind: 'API', apiId } : null;
 }
 
+/**
+ * Builds the subscriptions list query string the same way as console `ApplicationService.getSubscriptionsPage`
+ * (comma-separated list values, commas not percent-encoded).
+ */
+export function buildApplicationSubscriptionsQuery(page: number, size: number, filters?: ApplicationSubscriptionsFilters): string {
+    const parts = [`page=${page}`, `size=${size}`];
+    if (filters?.status && filters.status.length > 0) {
+        parts.push(`status=${filters.status.join(',')}`);
+    }
+    if (filters?.apis && filters.apis.length > 0) {
+        parts.push(`api=${filters.apis.join(',')}`);
+    }
+    if (filters?.apiKey) {
+        parts.push(`api_key=${encodeURIComponent(filters.apiKey)}`);
+    }
+    if (filters?.securityTypes && filters.securityTypes.length > 0) {
+        parts.push(`security_types=${filters.securityTypes.join(',')}`);
+    }
+    return parts.join('&');
+}
+
 export async function listApplicationSubscriptions(
     environmentId: string,
     applicationId: string,
@@ -54,26 +75,9 @@ export async function listApplicationSubscriptions(
     page: number,
     size: number,
 ): Promise<ApplicationSubscriptionsPagedResponse> {
-    const params = new URLSearchParams({
-        page: String(page),
-        size: String(size),
-    });
-    if (filters?.status && filters.status.length > 0) {
-        params.set('status', filters.status.join(','));
-    }
-    if (filters?.apis && filters.apis.length > 0) {
-        params.set('api', filters.apis.join(','));
-    }
-    if (filters?.apiKey) {
-        params.set('api_key', filters.apiKey);
-    }
-    if (filters?.securityTypes && filters.securityTypes.length > 0) {
-        params.set('security_types', filters.securityTypes.join(','));
-    }
-
     return apimFetchJsonV1Env<ApplicationSubscriptionsPagedResponse>(
         environmentId,
-        `/applications/${applicationId}/subscriptions?${params}`,
+        `/applications/${applicationId}/subscriptions?${buildApplicationSubscriptionsQuery(page, size, filters)}`,
     );
 }
 

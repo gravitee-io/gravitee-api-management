@@ -16,23 +16,21 @@
 import {
     Badge,
     Button,
-    Skeleton,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+    DataTable,
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
+    type DataTableProps,
 } from '@gravitee/graphene-core';
 import { CircleXIcon, EyeIcon } from '@gravitee/graphene-core/icons';
+import { useMemo } from 'react';
 
 import type { ApplicationSubscriptionTableRow } from '../../types/applicationSubscription';
 import { formatApplicationDateTime } from '../../utils/applicationFormatters';
 import { canCloseSubscription } from '../../utils/applicationSubscriptionMapper';
+import { NON_SORTABLE_COLUMN } from '../../utils/dataTableHeaders';
+import type { ColCell } from '../../utils/dataTableTypes';
 
 function SubscriptionStatusBadge({ status }: { status: ApplicationSubscriptionTableRow['status'] }) {
     const variant =
@@ -47,16 +45,140 @@ function SubscriptionStatusBadge({ status }: { status: ApplicationSubscriptionTa
     return <Badge variant={variant}>{status}</Badge>;
 }
 
-function SkeletonRow() {
-    return (
-        <TableRow>
-            {Array.from({ length: 9 }).map((_, index) => (
-                <TableCell key={index}>
-                    <Skeleton className="h-4 w-24 rounded" />
-                </TableCell>
-            ))}
-        </TableRow>
-    );
+function buildColumns({
+    readOnly,
+    canViewDetail,
+    canClose,
+    onView,
+    onClose,
+}: {
+    readOnly: boolean;
+    canViewDetail: boolean;
+    canClose: boolean;
+    onView: (row: ApplicationSubscriptionTableRow) => void;
+    onClose: (row: ApplicationSubscriptionTableRow) => void;
+}): DataTableProps<ApplicationSubscriptionTableRow>['columns'] {
+    return [
+        {
+            accessorKey: 'securityType',
+            header: 'Security type',
+            ...NON_SORTABLE_COLUMN,
+            cell: ({ row }: ColCell<ApplicationSubscriptionTableRow>) => (
+                <>
+                    <span className="text-sm">{row.original.securityType}</span>
+                    {row.original.isSharedApiKey ? (
+                        <Badge variant="outline" className="ml-2 text-[10px]">
+                            Shared
+                        </Badge>
+                    ) : null}
+                </>
+            ),
+        },
+        {
+            accessorKey: 'planName',
+            header: 'Plan',
+            ...NON_SORTABLE_COLUMN,
+            cell: ({ row }: ColCell<ApplicationSubscriptionTableRow>) => <span className="text-sm">{row.original.planName}</span>,
+        },
+        {
+            accessorKey: 'apiName',
+            header: 'API',
+            ...NON_SORTABLE_COLUMN,
+            cell: ({ row }: ColCell<ApplicationSubscriptionTableRow>) => (
+                <>
+                    <p className="text-sm font-medium">{row.original.apiName}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                        {row.original.referenceTypeLabel}
+                        {row.original.apiVersion ? ` · v${row.original.apiVersion}` : ''}
+                    </p>
+                </>
+            ),
+        },
+        {
+            accessorKey: 'createdAt',
+            header: 'Created at',
+            ...NON_SORTABLE_COLUMN,
+            cell: ({ row }: ColCell<ApplicationSubscriptionTableRow>) => (
+                <span className="whitespace-nowrap text-sm text-muted-foreground">{formatApplicationDateTime(row.original.createdAt)}</span>
+            ),
+        },
+        {
+            accessorKey: 'processedAt',
+            header: 'Processed at',
+            ...NON_SORTABLE_COLUMN,
+            cell: ({ row }: ColCell<ApplicationSubscriptionTableRow>) => (
+                <span className="whitespace-nowrap text-sm text-muted-foreground">
+                    {formatApplicationDateTime(row.original.processedAt)}
+                </span>
+            ),
+        },
+        {
+            accessorKey: 'startingAt',
+            header: 'Started at',
+            ...NON_SORTABLE_COLUMN,
+            cell: ({ row }: ColCell<ApplicationSubscriptionTableRow>) => (
+                <span className="whitespace-nowrap text-sm text-muted-foreground">
+                    {formatApplicationDateTime(row.original.startingAt)}
+                </span>
+            ),
+        },
+        {
+            accessorKey: 'endAt',
+            header: 'Ended at',
+            ...NON_SORTABLE_COLUMN,
+            cell: ({ row }: ColCell<ApplicationSubscriptionTableRow>) => (
+                <span className="whitespace-nowrap text-sm text-muted-foreground">{formatApplicationDateTime(row.original.endAt)}</span>
+            ),
+        },
+        {
+            accessorKey: 'status',
+            header: 'Status',
+            ...NON_SORTABLE_COLUMN,
+            cell: ({ row }: ColCell<ApplicationSubscriptionTableRow>) => <SubscriptionStatusBadge status={row.original.status} />,
+        },
+        {
+            id: 'actions',
+            header: () => <span className="sr-only">Actions</span>,
+            size: 88,
+            cell: ({ row }: ColCell<ApplicationSubscriptionTableRow>) => (
+                <div className="flex items-center justify-end gap-0.5">
+                    {canViewDetail ? (
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="size-8"
+                            aria-label="Subscription details"
+                            onClick={() => onView(row.original)}
+                        >
+                            <EyeIcon className="size-4" aria-hidden />
+                        </Button>
+                    ) : null}
+                    {!readOnly && canClose && canCloseSubscription(row.original.status) && row.original.origin !== 'KUBERNETES' ? (
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="size-8 text-destructive hover:text-destructive"
+                                        aria-label="Close subscription"
+                                        onClick={() => onClose(row.original)}
+                                    >
+                                        <CircleXIcon className="size-4" aria-hidden />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Close subscription</TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    ) : null}
+                </div>
+            ),
+            enableSorting: false,
+            enableHiding: false,
+        },
+    ];
 }
 
 export function ApplicationSubscriptionsTable({
@@ -78,105 +200,18 @@ export function ApplicationSubscriptionsTable({
     onView: (row: ApplicationSubscriptionTableRow) => void;
     onClose: (row: ApplicationSubscriptionTableRow) => void;
 }>) {
+    const columns = useMemo(
+        () => buildColumns({ readOnly, canViewDetail, canClose, onView, onClose }),
+        [readOnly, canViewDetail, canClose, onView, onClose],
+    );
+
     return (
-        <div className="overflow-hidden overflow-x-auto rounded-xl border bg-card">
-            <Table aria-label="Subscriptions table">
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Security type</TableHead>
-                        <TableHead>Plan</TableHead>
-                        <TableHead>API</TableHead>
-                        <TableHead>Created at</TableHead>
-                        <TableHead>Processed at</TableHead>
-                        <TableHead>Started at</TableHead>
-                        <TableHead>Ended at</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="w-[88px]" />
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {isLoading ? Array.from({ length: skeletonRowCount }).map((_, index) => <SkeletonRow key={index} />) : null}
-                    {!isLoading && rows.length === 0 ? (
-                        <TableRow>
-                            <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
-                                There is no subscription (yet).
-                            </TableCell>
-                        </TableRow>
-                    ) : null}
-                    {!isLoading
-                        ? rows.map(row => (
-                              <TableRow key={row.id}>
-                                  <TableCell>
-                                      <span className="text-sm">{row.securityType}</span>
-                                      {row.isSharedApiKey ? (
-                                          <Badge variant="outline" className="ml-2 text-[10px]">
-                                              Shared
-                                          </Badge>
-                                      ) : null}
-                                  </TableCell>
-                                  <TableCell className="text-sm">{row.planName}</TableCell>
-                                  <TableCell>
-                                      <p className="text-sm font-medium">{row.apiName}</p>
-                                      <p className="text-[11px] text-muted-foreground">
-                                          {row.referenceTypeLabel}
-                                          {row.apiVersion ? ` · v${row.apiVersion}` : ''}
-                                      </p>
-                                  </TableCell>
-                                  <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
-                                      {formatApplicationDateTime(row.createdAt)}
-                                  </TableCell>
-                                  <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
-                                      {formatApplicationDateTime(row.processedAt)}
-                                  </TableCell>
-                                  <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
-                                      {formatApplicationDateTime(row.startingAt)}
-                                  </TableCell>
-                                  <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
-                                      {formatApplicationDateTime(row.endAt)}
-                                  </TableCell>
-                                  <TableCell>
-                                      <SubscriptionStatusBadge status={row.status} />
-                                  </TableCell>
-                                  <TableCell>
-                                      <div className="flex items-center justify-end gap-0.5">
-                                          {canViewDetail ? (
-                                              <Button
-                                                  type="button"
-                                                  variant="ghost"
-                                                  size="icon"
-                                                  className="size-8"
-                                                  aria-label="Subscription details"
-                                                  onClick={() => onView(row)}
-                                              >
-                                                  <EyeIcon className="size-4" aria-hidden />
-                                              </Button>
-                                          ) : null}
-                                          {!readOnly && canClose && canCloseSubscription(row.status) && row.origin !== 'KUBERNETES' ? (
-                                              <TooltipProvider>
-                                                  <Tooltip>
-                                                      <TooltipTrigger asChild>
-                                                          <Button
-                                                              type="button"
-                                                              variant="ghost"
-                                                              size="icon"
-                                                              className="size-8 text-destructive hover:text-destructive"
-                                                              aria-label="Close subscription"
-                                                              onClick={() => onClose(row)}
-                                                          >
-                                                              <CircleXIcon className="size-4" aria-hidden />
-                                                          </Button>
-                                                      </TooltipTrigger>
-                                                      <TooltipContent>Close subscription</TooltipContent>
-                                                  </Tooltip>
-                                              </TooltipProvider>
-                                          ) : null}
-                                      </div>
-                                  </TableCell>
-                              </TableRow>
-                          ))
-                        : null}
-                </TableBody>
-            </Table>
-        </div>
+        <DataTable
+            columns={columns}
+            data={rows}
+            loading={isLoading}
+            skeletonCount={skeletonRowCount}
+            emptyMessage="There is no subscription (yet)."
+        />
     );
 }

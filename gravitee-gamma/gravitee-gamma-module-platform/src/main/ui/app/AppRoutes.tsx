@@ -17,7 +17,7 @@ import { useModuleRouting } from '@gravitee/gamma-modules-sdk/routing';
 import { buildLinearBreadcrumbs, SidebarNavigation, useLayoutConfig } from '@gravitee/graphene-core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { Outlet, Route, Routes, useNavigate } from 'react-router-dom';
+import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 
 import { APPLICATION_NAV_GROUPS, flattenApplicationDetailNavItems } from '../config/applicationDetailNavigation';
 import { applicationDetailTabElement } from '../config/applicationDetailPages';
@@ -26,7 +26,6 @@ import { PLATFORM_ROUTE_CONFIG } from '../config/routes';
 import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../features/applications/components/detail';
 import { ApplicationDetailSubscriptionPage } from '../pages/ApplicationDetailSubscriptionPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
-import { DashboardPage } from '../pages/DashboardPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
 import { retryTransientRequest } from '../shared/api/queryRetry';
 import { ConsoleSettingsProvider } from '../shared/console-settings';
@@ -74,8 +73,7 @@ export function AppRoutes() {
             <ConsoleSettingsProvider>
                 <Routes>
                     <Route element={<ModuleLayout />}>
-                        <Route index element={<DashboardPage />} />
-                        <Route path="dashboard" element={<DashboardPage />} />
+                        <Route index element={<Navigate to="applications" replace />} />
                         <Route path="applications">
                             <Route index element={<ApplicationsPage />} />
                             <Route path="new" element={<RegisterApplicationPage />} />

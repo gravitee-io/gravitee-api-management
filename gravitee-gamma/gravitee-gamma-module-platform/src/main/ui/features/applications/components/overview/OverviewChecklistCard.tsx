@@ -20,6 +20,7 @@ import {
     CardDescription,
     CardHeader,
     CardTitle,
+    Checkbox,
     Tooltip,
     TooltipContent,
     TooltipProvider,
@@ -47,13 +48,21 @@ interface OverviewChecklistCardProps {
     readonly isReady?: boolean;
     readonly items: OverviewChecklistItem[];
     readonly totalCountHint?: number;
+    /** Called when user clicks a checklist row to toggle completion. */
+    readonly onToggle?: (id: string, newDone: boolean) => void;
 }
 
-export function OverviewChecklistCard({ description, isReady = true, items, totalCountHint }: Readonly<OverviewChecklistCardProps>) {
+export function OverviewChecklistCard({
+    description,
+    isReady = true,
+    items,
+    onToggle,
+    totalCountHint,
+}: Readonly<OverviewChecklistCardProps>) {
     const [open, setOpen] = useState(true);
     const completedCount = items.filter(item => item.done).length;
     const totalCount = totalCountHint ?? items.length;
-    const completionPct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+    const completionPct = totalCount > 0 ? Math.min(100, Math.round((completedCount / totalCount) * 100)) : 0;
 
     return (
         <Card>
@@ -93,20 +102,41 @@ export function OverviewChecklistCard({ description, isReady = true, items, tota
                             <TooltipProvider delayDuration={200}>
                                 {items.map(item => {
                                     const ItemIcon = item.icon;
+                                    const isToggleable = Boolean(onToggle);
 
                                     return (
                                         <div
                                             key={item.id}
                                             className={cn('flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors', {
-                                                'hover:bg-accent/50': !item.done,
+                                                'cursor-pointer hover:bg-accent/50': isToggleable,
                                                 'opacity-60': item.done,
                                             })}
+                                            onClick={isToggleable ? () => onToggle!(item.id, !item.done) : undefined}
+                                            role={isToggleable ? 'checkbox' : undefined}
+                                            aria-checked={isToggleable ? item.done : undefined}
+                                            aria-label={isToggleable ? item.label : undefined}
+                                            tabIndex={isToggleable ? 0 : undefined}
+                                            onKeyDown={
+                                                isToggleable
+                                                    ? event => {
+                                                          if (event.key === 'Enter' || event.key === ' ') {
+                                                              event.preventDefault();
+                                                              onToggle!(item.id, !item.done);
+                                                          }
+                                                      }
+                                                    : undefined
+                                            }
                                         >
                                             <div className="shrink-0">
                                                 {item.done ? (
                                                     <CircleCheckIcon className="size-4 text-success" aria-hidden />
                                                 ) : (
-                                                    <div className="size-4 rounded border-2 border-muted-foreground/30" aria-hidden />
+                                                    <Checkbox
+                                                        checked={false}
+                                                        className="pointer-events-none size-4"
+                                                        aria-hidden
+                                                        tabIndex={-1}
+                                                    />
                                                 )}
                                             </div>
                                             <ItemIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
@@ -126,6 +156,7 @@ export function OverviewChecklistCard({ description, isReady = true, items, tota
                                                         size="icon"
                                                         className="size-7 shrink-0 text-muted-foreground/60"
                                                         aria-label={`Info: ${item.label}`}
+                                                        onClick={event => event.stopPropagation()}
                                                     >
                                                         <InfoIcon className="size-3.5" aria-hidden />
                                                     </Button>
@@ -135,7 +166,7 @@ export function OverviewChecklistCard({ description, isReady = true, items, tota
                                                 </TooltipContent>
                                             </Tooltip>
                                             <Button asChild variant="link" size="sm" className="h-auto shrink-0 px-1.5 py-1 text-primary">
-                                                <Link to={item.to} aria-label={item.actionLabel}>
+                                                <Link to={item.to} aria-label={item.actionLabel} onClick={event => event.stopPropagation()}>
                                                     {item.actionLabel}
                                                     <ArrowRightIcon className="size-4 shrink-0" aria-hidden />
                                                 </Link>

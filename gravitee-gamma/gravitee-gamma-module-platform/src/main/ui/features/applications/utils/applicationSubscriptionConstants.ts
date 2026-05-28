@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { DEFAULT_SUBSCRIPTION_PAGE_SIZE, TABLE_PAGE_SIZE_OPTIONS } from './paginationConstants';
 import type { SubscriptionStatus } from '../types/applicationSubscription';
+
+export { DEFAULT_SUBSCRIPTION_PAGE_SIZE };
 
 export const SUBSCRIPTION_STATUS_OPTIONS: { id: SubscriptionStatus; name: string }[] = [
     { id: 'ACCEPTED', name: 'Accepted' },
@@ -25,3 +28,8 @@ export const SUBSCRIPTION_STATUS_OPTIONS: { id: SubscriptionStatus; name: string
 ];
 
 export const DEFAULT_SUBSCRIPTION_FILTER_STATUSES: SubscriptionStatus[] = ['ACCEPTED', 'PAUSED', 'PENDING', 'RESUMED'];
+
+/** Every status the Management API supports when listing application subscriptions. */
+export const ALL_SUBSCRIPTION_STATUSES: SubscriptionStatus[] = SUBSCRIPTION_STATUS_OPTIONS.map(option => option.id);
+
+export const SUBSCRIPTION_PAGE_SIZE_OPTIONS: number[] = [...TABLE_PAGE_SIZE_OPTIONS];

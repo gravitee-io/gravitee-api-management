@@ -13,14 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { NavGroup } from '@gravitee/graphene-core';
-import { AppWindowIcon } from '@gravitee/graphene-core/icons';
 
-import { ROUTES } from './routes';
-
-export const NAV_GROUPS: NavGroup[] = [
-    {
-        label: 'Overview',
-        items: [{ key: 'applications', title: ROUTES.applications.label, icon: AppWindowIcon }],
-    },
-];
+/** Use on columns that must not be sortable (console parity: plain `<th>` headers). */
+export const NON_SORTABLE_COLUMN = { enableSorting: false } as const;

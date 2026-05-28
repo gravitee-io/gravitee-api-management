@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { BellIcon, PlugIcon, SlidersHorizontalIcon, UsersIcon } from '@gravitee/graphene-core/icons';
-import { useMemo } from 'react';
 
 import { OverviewChecklistCard, type OverviewChecklistItem } from './OverviewChecklistCard';
 import type { ApplicationOverviewData } from '../../hooks/useApplicationOverviewData';
+import { useChecklistOverrides } from '../../hooks/useChecklistOverrides';
 import type { ApplicationListItem } from '../../types/application';
 import { hasReviewedGeneralSettings } from '../../utils/applicationOverviewHelpers';
 
@@ -27,55 +27,60 @@ interface ApplicationOverviewChecklistProps {
 }
 
 export function ApplicationOverviewChecklist({ application, overviewData }: Readonly<ApplicationOverviewChecklistProps>) {
+    const { overrideDone, overrideUndone, toggle } = useChecklistOverrides(application?.id);
+
+    // done = (auto-detected && user hasn't manually unchecked) || user manually checked
+    function itemDone(autoDone: boolean, id: string): boolean {
+        return (autoDone && !overrideUndone.has(id)) || overrideDone.has(id);
+    }
+
     const isReady = !overviewData.isLoadingMembers && !overviewData.isLoadingNotifications && !overviewData.isLoadingSubscriptions;
 
-    const items = useMemo<OverviewChecklistItem[]>(
-        () => [
-            {
-                actionLabel: 'Open General',
-                done: hasReviewedGeneralSettings(application),
-                icon: SlidersHorizontalIcon,
-                id: 'general-settings',
-                label: 'Review general settings',
-                to: '../general',
-                tooltip: 'Review the application profile, security type, OAuth client details, and lifecycle settings.',
-            },
-            {
-                actionLabel: 'Open Subscriptions',
-                done: overviewData.subscriptionCount > 0,
-                icon: PlugIcon,
-                id: 'subscriptions',
-                label: 'Subscribe to an API plan',
-                to: '../subscriptions',
-                tooltip: 'Create a subscription so this application can consume an API or API product plan.',
-            },
-            {
-                actionLabel: 'Manage Access',
-                done: overviewData.memberCount > 1,
-                icon: UsersIcon,
-                id: 'team-access',
-                label: 'Invite teammates and assign roles',
-                to: '../user-permissions',
-                tooltip: 'Collaborate on this application by adding members, groups, and application-scoped roles.',
-            },
-            {
-                actionLabel: 'Open Notifications',
-                done: overviewData.notificationCount > 0,
-                icon: BellIcon,
-                id: 'notifications',
-                label: 'Configure notification settings',
-                to: '../notifications',
-                tooltip: 'Subscribe this application to notifications for subscription, API key, and lifecycle events.',
-            },
-        ],
-        [application, overviewData.memberCount, overviewData.notificationCount, overviewData.subscriptionCount],
-    );
+    const items: OverviewChecklistItem[] = [
+        {
+            actionLabel: 'Open General',
+            done: itemDone(hasReviewedGeneralSettings(application), 'general-settings'),
+            icon: SlidersHorizontalIcon,
+            id: 'general-settings',
+            label: 'Review general settings',
+            to: '../general',
+            tooltip: 'Review the application profile, security type, OAuth client details, and lifecycle settings.',
+        },
+        {
+            actionLabel: 'Open Subscriptions',
+            done: itemDone(overviewData.subscriptionCount > 0, 'subscriptions'),
+            icon: PlugIcon,
+            id: 'subscriptions',
+            label: 'Subscribe to an API plan',
+            to: '../subscriptions',
+            tooltip: 'Create a subscription so this application can consume an API or API product plan.',
+        },
+        {
+            actionLabel: 'Manage Access',
+            done: itemDone(overviewData.memberCount > 1, 'team-access'),
+            icon: UsersIcon,
+            id: 'team-access',
+            label: 'Invite teammates and assign roles',
+            to: '../user-permissions',
+            tooltip: 'Collaborate on this application by adding members, groups, and application-scoped roles.',
+        },
+        {
+            actionLabel: 'Open Notifications',
+            done: itemDone(overviewData.notificationCount > 0, 'notifications'),
+            icon: BellIcon,
+            id: 'notifications',
+            label: 'Configure notification settings',
+            to: '../notifications',
+            tooltip: 'Subscribe this application to notifications for subscription, API key, and lifecycle events.',
+        },
+    ];
 
     return (
         <OverviewChecklistCard
             description="Finish setting up your application. Each row links to the right screen."
             isReady={isReady}
             items={items}
+            onToggle={toggle}
             totalCountHint={4}
         />
     );

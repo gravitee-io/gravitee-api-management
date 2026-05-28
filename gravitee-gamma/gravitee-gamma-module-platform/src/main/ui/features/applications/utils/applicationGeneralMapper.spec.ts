@@ -69,6 +69,37 @@ describe('applicationGeneralMapper', () => {
         expect(payload.settings?.app?.client_id).toBe('new-client');
     });
 
+    it('always includes both images so updating one does not clear the other', () => {
+        const app: ApplicationListItem = {
+            ...baseApplication,
+            picture: 'data:image/png;base64,pic',
+            background: 'data:image/png;base64,bg',
+        };
+        const form = {
+            ...formFromApplication(app),
+            picture: 'data:image/png;base64,new-pic',
+        };
+        const payload = buildUpdatePayload(app, form, undefined);
+        expect(payload.picture).toBe('data:image/png;base64,new-pic');
+        expect(payload.background).toBe('data:image/png;base64,bg');
+    });
+
+    it('sends null only for explicitly removed images', () => {
+        const app: ApplicationListItem = {
+            ...baseApplication,
+            picture: 'data:image/png;base64,pic',
+            background: 'data:image/png;base64,bg',
+        };
+        const form = {
+            ...formFromApplication(app),
+            picture: null,
+            pictureRemoved: true,
+        };
+        const payload = buildUpdatePayload(app, form, undefined);
+        expect(payload.picture).toBeNull();
+        expect(payload.background).toBe('data:image/png;base64,bg');
+    });
+
     it('parses redirect URIs for oauth applications', () => {
         const oauthApp: ApplicationListItem = {
             ...baseApplication,

@@ -36,6 +36,14 @@ export function ApplicationSubscriptionStatusDetails() {
                         credentials to perform operations on the API.
                     </li>
                     <li>
+                        <strong className="text-foreground">Paused</strong> — Subscription is temporarily suspended. The application cannot
+                        consume the API until the subscription is resumed.
+                    </li>
+                    <li>
+                        <strong className="text-foreground">Resumed</strong> — Subscription was resumed after being paused. The application
+                        can consume the API again using its credentials.
+                    </li>
+                    <li>
                         <strong className="text-foreground">Pending</strong> — The application has requested access and is waiting for API
                         owner approval.
                     </li>

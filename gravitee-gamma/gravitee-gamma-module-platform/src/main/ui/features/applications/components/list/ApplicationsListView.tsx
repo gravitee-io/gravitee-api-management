@@ -15,7 +15,7 @@
  */
 import { DataTablePagination, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@gravitee/graphene-core';
 import { SearchIcon } from '@gravitee/graphene-core/icons';
-import { useId, useState } from 'react';
+import { useId, useState, type Dispatch, type SetStateAction } from 'react';
 
 import { ApplicationsPageHeader } from '../ApplicationsPageHeader';
 import { ApplicationListTable } from './ApplicationListTable';
@@ -24,12 +24,16 @@ import { ApplicationStatsCards } from './ApplicationStatsCards';
 import type { ApplicationStats } from '../../hooks/useApplicationStats';
 import { useRestoreApplication } from '../../hooks/useRestoreApplication';
 import type { ApplicationListItem, ApplicationStatus } from '../../types/application';
+import { TABLE_PAGE_SIZE_OPTIONS } from '../../utils/paginationConstants';
+import type { TableSortingState } from '../../utils/tableSort';
+
+/** Search field width (2× former `w-72` / 18rem). */
+const APPLICATIONS_SEARCH_INPUT_WIDTH = '36rem';
 
 const STATUS_OPTIONS: { value: ApplicationStatus; label: string }[] = [
     { value: 'ACTIVE', label: 'Active' },
     { value: 'ARCHIVED', label: 'Archived' },
 ];
-const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
 interface ApplicationsListViewProps {
     readonly applications: ApplicationListItem[];
@@ -42,6 +46,8 @@ interface ApplicationsListViewProps {
     readonly perPage: number;
     readonly onSearchChange: (value: string) => void;
     readonly onStatusChange: (status: ApplicationStatus) => void;
+    readonly sorting: TableSortingState;
+    readonly onSortingChange: Dispatch<SetStateAction<TableSortingState>>;
     readonly onPageChange: (page: number) => void;
     readonly onPerPageChange: (perPage: number) => void;
     readonly onRegisterApplication: () => void;
@@ -61,6 +67,8 @@ export function ApplicationsListView({
     perPage,
     onSearchChange,
     onStatusChange,
+    sorting,
+    onSortingChange,
     onPageChange,
     onPerPageChange,
     onRegisterApplication,
@@ -94,7 +102,7 @@ export function ApplicationsListView({
 
             <div className="flex items-center justify-between gap-4">
                 <div className="flex min-w-0 items-center gap-3">
-                    <div className="relative w-72 shrink-0">
+                    <div className="relative shrink-0" style={{ width: APPLICATIONS_SEARCH_INPUT_WIDTH }}>
                         <SearchIcon
                             className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none"
                             aria-hidden
@@ -131,7 +139,7 @@ export function ApplicationsListView({
                     page={page}
                     pageSize={perPage}
                     totalCount={totalCount}
-                    pageSizeOptions={PAGE_SIZE_OPTIONS}
+                    pageSizeOptions={[...TABLE_PAGE_SIZE_OPTIONS]}
                     onPageChange={onPageChange}
                     onPageSizeChange={onPerPageChange}
                 />
@@ -142,6 +150,8 @@ export function ApplicationsListView({
                 isLoading={isLoading}
                 status={status}
                 skeletonRowCount={perPage}
+                sorting={sorting}
+                onSortingChange={onSortingChange}
                 canRestore={canRestore}
                 onRestore={
                     canRestore
@@ -169,7 +179,7 @@ export function ApplicationsListView({
                     page={page}
                     pageSize={perPage}
                     totalCount={totalCount}
-                    pageSizeOptions={PAGE_SIZE_OPTIONS}
+                    pageSizeOptions={[...TABLE_PAGE_SIZE_OPTIONS]}
                     onPageChange={onPageChange}
                     onPageSizeChange={onPerPageChange}
                 />

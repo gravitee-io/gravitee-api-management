@@ -106,6 +106,23 @@ describe('ApplicationSubscriptionCreateDialog', () => {
         );
     });
 
+    it('caps API search results list height with vertical scroll', async () => {
+        mockUseSearch.mockReturnValue({
+            data: [
+                { type: 'API', value: { id: 'api-1', name: 'Payments API', apiVersion: 'v1' } },
+                { type: 'API', value: { id: 'api-2', name: 'Orders API', apiVersion: 'v1' } },
+            ],
+            isFetching: false,
+        } as ReturnType<typeof useSubscriptionReferenceSearch>);
+
+        renderDialog();
+        fireEvent.change(screen.getByLabelText(/Search an API or API Product/i), { target: { value: 'api' } });
+
+        const list = await screen.findByTestId('subscription-reference-search-results');
+        expect(list.style.maxHeight).toBe('180px');
+        expect(list.style.overflowY).toBe('auto');
+    });
+
     it('sends SHARED apiKeyMode when shared mode is selected', async () => {
         renderDialog();
         await selectApiReference();

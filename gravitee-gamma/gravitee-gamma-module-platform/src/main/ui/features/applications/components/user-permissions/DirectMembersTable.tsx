@@ -16,23 +16,22 @@
 import {
     Badge,
     Button,
+    DataTable,
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+    type DataTableProps,
 } from '@gravitee/graphene-core';
 import { MoreHorizontalIcon, PencilIcon, ShieldCheckIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
+import { useMemo } from 'react';
 
 import { MemberAvatar } from './MemberAvatar';
 import { formatRoleLabel, getApplicationRole, isMemberPrimaryOwner } from './memberHelpers';
 import type { ApplicationUiMember } from '../../types/applicationMembers.types';
+import { NON_SORTABLE_COLUMN } from '../../utils/dataTableHeaders';
+import type { ColCell } from '../../utils/dataTableTypes';
 
 function RoleBadge({ roleName, isPO }: Readonly<{ roleName: string; isPO: boolean }>) {
     if (isPO) {
@@ -48,6 +47,101 @@ function RoleBadge({ roleName, isPO }: Readonly<{ roleName: string; isPO: boolea
             {roleName ? formatRoleLabel(roleName) : '—'}
         </Badge>
     );
+}
+
+function buildColumns({
+    showActionsMenu,
+    canEditRole,
+    canRemoveMember,
+    isRemoving,
+    getRoleName,
+    onEditRole,
+    onRemove,
+}: {
+    showActionsMenu: boolean;
+    canEditRole: boolean;
+    canRemoveMember: boolean;
+    isRemoving: boolean;
+    getRoleName?: (member: ApplicationUiMember) => string;
+    onEditRole: (member: ApplicationUiMember) => void;
+    onRemove: (member: ApplicationUiMember) => void;
+}): DataTableProps<ApplicationUiMember>['columns'] {
+    const columns: DataTableProps<ApplicationUiMember>['columns'] = [
+        {
+            id: 'name',
+            accessorFn: (row: ApplicationUiMember) => row.displayName ?? '',
+            header: 'Name',
+            ...NON_SORTABLE_COLUMN,
+            cell: ({ row }: ColCell<ApplicationUiMember>) => (
+                <div className="flex items-center gap-3">
+                    <MemberAvatar name={row.original.displayName ?? ''} />
+                    <span className="text-sm font-medium">{row.original.displayName}</span>
+                </div>
+            ),
+        },
+        {
+            id: 'role',
+            accessorFn: (row: ApplicationUiMember) => {
+                const roleName = getRoleName ? getRoleName(row) : getApplicationRole(row);
+                return isMemberPrimaryOwner(row) ? 'Primary Owner' : roleName;
+            },
+            header: 'Role',
+            ...NON_SORTABLE_COLUMN,
+            cell: ({ row }: ColCell<ApplicationUiMember>) => {
+                const isPO = isMemberPrimaryOwner(row.original);
+                const currentRole = getRoleName ? getRoleName(row.original) : getApplicationRole(row.original);
+                return <RoleBadge roleName={currentRole} isPO={isPO} />;
+            },
+        },
+    ];
+
+    if (showActionsMenu) {
+        columns.push({
+            id: 'actions',
+            header: () => <span className="sr-only">Actions</span>,
+            size: 56,
+            cell: ({ row }: ColCell<ApplicationUiMember>) => {
+                const member = row.original;
+                const isPO = isMemberPrimaryOwner(member);
+                return (
+                    <div className="flex justify-end">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="size-8" aria-label="Member actions">
+                                    <MoreHorizontalIcon className="size-4" aria-hidden />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                {canEditRole && !isPO ? (
+                                    <DropdownMenuItem onSelect={() => onEditRole(member)}>
+                                        <PencilIcon className="size-4 mr-2" aria-hidden />
+                                        Edit role
+                                    </DropdownMenuItem>
+                                ) : null}
+                                {canRemoveMember && !isPO ? (
+                                    <>
+                                        {canEditRole ? <DropdownMenuSeparator /> : null}
+                                        <DropdownMenuItem
+                                            className="text-destructive focus:text-destructive"
+                                            disabled={isRemoving}
+                                            onSelect={() => onRemove(member)}
+                                        >
+                                            <Trash2Icon className="size-4 mr-2" aria-hidden />
+                                            Remove member
+                                        </DropdownMenuItem>
+                                    </>
+                                ) : null}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                );
+            },
+            enableSorting: false,
+            enableHiding: false,
+        });
+    }
+
+    return columns;
 }
 
 export function DirectMembersTable({
@@ -70,76 +164,19 @@ export function DirectMembersTable({
     canRemoveMember?: boolean;
 }>) {
     const showActionsMenu = canManageMembers && (canEditRole || canRemoveMember);
-
-    return (
-        <div className="rounded-lg border overflow-hidden">
-            <Table className="table-fixed w-full">
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead style={{ width: '32%' }}>Role</TableHead>
-                        <TableHead />
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {members.map(member => {
-                        const isPO = isMemberPrimaryOwner(member);
-                        const currentRole = getRoleName ? getRoleName(member) : getApplicationRole(member);
-
-                        return (
-                            <TableRow key={member.id}>
-                                <TableCell>
-                                    <div className="flex items-center gap-3">
-                                        <MemberAvatar name={member.displayName ?? ''} />
-                                        <span className="text-sm font-medium">{member.displayName}</span>
-                                    </div>
-                                </TableCell>
-
-                                <TableCell style={{ width: '32%' }}>
-                                    <RoleBadge roleName={currentRole} isPO={isPO} />
-                                </TableCell>
-
-                                <TableCell className="text-right">
-                                    {showActionsMenu && !isPO ? (
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="size-8"
-                                                    aria-label={`Actions for ${member.displayName}`}
-                                                >
-                                                    <MoreHorizontalIcon className="size-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className="w-auto" style={{ minWidth: '12rem' }}>
-                                                {canEditRole ? (
-                                                    <DropdownMenuItem onSelect={() => onEditRole(member)}>
-                                                        <PencilIcon className="size-4" />
-                                                        Edit role
-                                                    </DropdownMenuItem>
-                                                ) : null}
-                                                {canEditRole && canRemoveMember ? <DropdownMenuSeparator /> : null}
-                                                {canRemoveMember ? (
-                                                    <DropdownMenuItem
-                                                        onSelect={() => onRemove(member)}
-                                                        disabled={isRemoving}
-                                                        className="text-destructive focus:text-destructive"
-                                                    >
-                                                        <Trash2Icon className="size-4" />
-                                                        Remove member
-                                                    </DropdownMenuItem>
-                                                ) : null}
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    ) : null}
-                                </TableCell>
-                            </TableRow>
-                        );
-                    })}
-                </TableBody>
-            </Table>
-        </div>
+    const columns = useMemo(
+        () =>
+            buildColumns({
+                showActionsMenu,
+                canEditRole,
+                canRemoveMember,
+                isRemoving,
+                getRoleName,
+                onEditRole,
+                onRemove,
+            }),
+        [showActionsMenu, canEditRole, canRemoveMember, isRemoving, getRoleName, onEditRole, onRemove],
     );
+
+    return <DataTable columns={columns} data={members} emptyMessage="No members found." />;
 }

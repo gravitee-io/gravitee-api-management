@@ -13,11 +13,63 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { cn } from '@gravitee/graphene-core';
-import { UploadIcon } from '@gravitee/graphene-core/icons';
-import { useCallback, useRef, useState } from 'react';
+import { cn, FileUploadInput } from '@gravitee/graphene-core';
+import { XIcon } from '@gravitee/graphene-core/icons';
+import { useCallback, useState, type CSSProperties } from 'react';
 
-const MAX_SIZE_BYTES = 500 * 1024;
+const SLOT_SIZE_PX = 114;
+const IMAGE_ACCEPT = { 'image/*': [] } as const;
+/** Inline size: arbitrary Tailwind sizes may be absent from the federated CSS bundle. */
+const SLOT_BORDER_RADIUS_PX = 6;
+const SLOT_DIMENSIONS_STYLE: CSSProperties = {
+    width: SLOT_SIZE_PX,
+    height: SLOT_SIZE_PX,
+    minWidth: SLOT_SIZE_PX,
+    minHeight: SLOT_SIZE_PX,
+    borderWidth: 2,
+    borderStyle: 'dotted',
+    borderColor: 'var(--color-foreground)',
+    borderRadius: SLOT_BORDER_RADIUS_PX,
+    backgroundColor: 'color-mix(in oklab, var(--color-muted) 40%, transparent)',
+};
+const SLOT_CLASS_NAME = 'relative box-border shrink-0 overflow-hidden';
+const PREVIEW_BLUR_STYLE: CSSProperties = { filter: 'blur(6px)' };
+const HOVER_OVERLAY_STYLE: CSSProperties = {
+    backgroundColor: 'color-mix(in oklab, var(--color-background) 45%, transparent)',
+};
+const HOVER_OVERLAY_CLASS_NAME = 'pointer-events-none absolute inset-0 z-[12] flex items-center justify-center px-2';
+
+function UploadHintText({ className }: Readonly<{ className?: string }>) {
+    return (
+        <span className={cn('text-center text-xs leading-[1.8] text-foreground', className)}>
+            Click here or drag an image
+            <br />
+            Max 500KB
+        </span>
+    );
+}
+
+function ImageRemoveButton({
+    label,
+    onRemove,
+}: Readonly<{
+    label: string;
+    onRemove: () => void;
+}>) {
+    return (
+        <button
+            type="button"
+            className="absolute top-1 right-1 z-20 flex size-5 items-center justify-center rounded border border-border bg-background shadow-sm"
+            aria-label={`Remove ${label}`}
+            onClick={e => {
+                e.stopPropagation();
+                onRemove();
+            }}
+        >
+            <XIcon className="size-3.5 text-foreground hover:text-destructive" aria-hidden />
+        </button>
+    );
+}
 
 function fileToDataUrl(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -28,79 +80,92 @@ function fileToDataUrl(file: File): Promise<string> {
     });
 }
 
-function ImageSlot({
-    label,
+function ImageFilePickerSlot({
+    fieldLabel,
+    variant,
     preview,
-    width,
-    height,
     disabled,
     onSelect,
-    onClear,
+    onRemove,
 }: Readonly<{
-    label: string;
+    fieldLabel: string;
+    variant: 'picture' | 'background';
     preview: string | null;
-    width: number;
-    height: number;
     disabled?: boolean;
     onSelect: (dataUrl: string) => void;
-    onClear: () => void;
+    onRemove: () => void;
 }>) {
-    const inputRef = useRef<HTMLInputElement>(null);
-    const [sizeError, setSizeError] = useState<string | null>(null);
+    const [imgError, setImgError] = useState(false);
+    const [hovered, setHovered] = useState(false);
+    const [prevPreview, setPrevPreview] = useState(preview);
+    if (prevPreview !== preview) {
+        setPrevPreview(preview);
+        setImgError(false);
+    }
 
-    const handleFile = useCallback(
-        async (file: File) => {
-            if (file.size > MAX_SIZE_BYTES) {
-                setSizeError('File exceeds 500 KB limit.');
-                return;
-            }
-            setSizeError(null);
+    const handleFilesAccepted = useCallback(
+        async (files: File[]) => {
+            const file = files[0];
+            if (!file) return;
             onSelect(await fileToDataUrl(file));
         },
         [onSelect],
     );
 
+    const hasPreview = Boolean(preview && !imgError);
+    const showHoverOverlay = hovered && !disabled && hasPreview;
+    const uploadLabel = hasPreview ? `Replace ${fieldLabel}` : `Upload ${fieldLabel}`;
+
     return (
-        <div className="space-y-1.5 text-center">
-            <button
-                type="button"
-                disabled={disabled}
-                onClick={() => !disabled && inputRef.current?.click()}
-                onContextMenu={e => {
-                    if (!disabled && preview) {
-                        e.preventDefault();
-                        onClear();
-                    }
-                }}
-                className={cn(
-                    'flex items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-border bg-muted/30 transition-colors',
-                    disabled ? 'cursor-not-allowed opacity-50 pointer-events-none' : 'cursor-pointer hover:border-primary',
-                )}
-                style={{ width, height }}
-                aria-label={`Upload ${label}`}
-                aria-disabled={disabled}
+        <div className="flex shrink-0 flex-col" style={{ width: SLOT_SIZE_PX }}>
+            <span className="mb-1 block text-xs text-foreground">{fieldLabel}</span>
+            <div
+                className={SLOT_CLASS_NAME}
+                style={SLOT_DIMENSIONS_STYLE}
+                onMouseEnter={() => setHovered(true)}
+                onMouseLeave={() => setHovered(false)}
             >
-                {preview ? (
-                    <img src={preview} alt="" className="size-full object-cover" />
-                ) : (
-                    <UploadIcon className="size-6 text-muted-foreground/40" aria-hidden />
-                )}
-            </button>
-            <p className="text-xs text-muted-foreground">{label}</p>
-            {sizeError ? <p className="text-xs text-destructive">{sizeError}</p> : null}
-            <input
-                ref={inputRef}
-                type="file"
-                accept="image/png,image/jpeg,image/svg+xml"
-                className="sr-only"
-                disabled={disabled}
-                tabIndex={-1}
-                onChange={e => {
-                    const file = e.target.files?.[0];
-                    e.target.value = '';
-                    if (file) void handleFile(file);
-                }}
-            />
+                {!hasPreview ? (
+                    <div className="pointer-events-none absolute inset-0 z-[1] flex items-center justify-center px-2">
+                        <UploadHintText />
+                    </div>
+                ) : null}
+
+                {hasPreview ? (
+                    <>
+                        <img
+                            src={preview!}
+                            alt=""
+                            className="absolute inset-0 z-[1] size-full object-cover"
+                            style={showHoverOverlay ? PREVIEW_BLUR_STYLE : undefined}
+                            onError={() => setImgError(true)}
+                        />
+                        {!disabled ? <ImageRemoveButton label={fieldLabel} onRemove={onRemove} /> : null}
+                    </>
+                ) : null}
+
+                {showHoverOverlay ? (
+                    <div className={HOVER_OVERLAY_CLASS_NAME} style={HOVER_OVERLAY_STYLE}>
+                        <UploadHintText className="relative z-[1]" />
+                    </div>
+                ) : null}
+
+                <FileUploadInput
+                    key={variant}
+                    accept={IMAGE_ACCEPT}
+                    className={cn(
+                        'absolute inset-0 z-[15] size-full cursor-pointer rounded-none border-0 bg-transparent p-0 opacity-0 shadow-none',
+                        disabled && 'pointer-events-none',
+                    )}
+                    disabled={disabled}
+                    hint={null}
+                    icon={<span aria-hidden className="sr-only" />}
+                    label={<span className="sr-only">{uploadLabel}</span>}
+                    maxFiles={1}
+                    multiple={false}
+                    onFilesAccepted={files => void handleFilesAccepted(files)}
+                />
+            </div>
         </div>
     );
 }
@@ -119,29 +184,23 @@ export function ApplicationImagePickers({
     onBackgroundChange: (value: string | null) => void;
 }>) {
     return (
-        <div className="space-y-3">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">IMAGES</p>
-            <div className="flex items-start gap-3">
-                <ImageSlot
-                    label="Picture"
-                    preview={picture}
-                    width={72}
-                    height={72}
-                    disabled={disabled}
-                    onSelect={onPictureChange}
-                    onClear={() => onPictureChange(null)}
-                />
-                <ImageSlot
-                    label="Background"
-                    preview={background}
-                    width={112}
-                    height={72}
-                    disabled={disabled}
-                    onSelect={onBackgroundChange}
-                    onClear={() => onBackgroundChange(null)}
-                />
-            </div>
-            <p className="text-xs leading-snug text-muted-foreground">Click to upload. PNG, JPG, SVG. Max 500 KB.</p>
+        <div className="flex items-end gap-1.5">
+            <ImageFilePickerSlot
+                fieldLabel="Application picture"
+                variant="picture"
+                preview={picture}
+                disabled={disabled}
+                onSelect={onPictureChange}
+                onRemove={() => onPictureChange(null)}
+            />
+            <ImageFilePickerSlot
+                fieldLabel="Application background"
+                variant="background"
+                preview={background}
+                disabled={disabled}
+                onSelect={onBackgroundChange}
+                onRemove={() => onBackgroundChange(null)}
+            />
         </div>
     );
 }

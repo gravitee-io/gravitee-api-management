@@ -13,14 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { NavGroup } from '@gravitee/graphene-core';
-import { AppWindowIcon } from '@gravitee/graphene-core/icons';
 
-import { ROUTES } from './routes';
+/** Console `gio-metadata` sortable columns for application metadata (client-side on full list). */
+export const APPLICATION_METADATA_SORTABLE_IDS = new Set(['key', 'name', 'format', 'value']);
 
-export const NAV_GROUPS: NavGroup[] = [
-    {
-        label: 'Overview',
-        items: [{ key: 'applications', title: ROUTES.applications.label, icon: AppWindowIcon }],
-    },
-];
+/** Console `subscription-api-keys` mat-sort-header columns (client-side on full list). */
+export const SUBSCRIPTION_API_KEY_SORTABLE_IDS = new Set(['isValid', 'createdAt', 'endDate']);

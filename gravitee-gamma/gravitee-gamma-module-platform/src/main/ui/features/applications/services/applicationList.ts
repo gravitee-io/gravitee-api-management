@@ -23,11 +23,13 @@ export async function listApplications(
         page,
         size,
         status = 'ACTIVE',
+        order,
     }: {
         query?: string;
         page: number;
         size: number;
         status?: ApplicationStatus;
+        order?: string;
     },
 ): Promise<ApplicationListResponse> {
     const params = new URLSearchParams({
@@ -37,6 +39,9 @@ export async function listApplications(
     });
     if (query) {
         params.set('query', query);
+    }
+    if (order) {
+        params.set('order', order);
     }
     return apimFetchJsonV1Env<ApplicationListResponse>(environmentId, `/applications/_paged?${params}`);
 }

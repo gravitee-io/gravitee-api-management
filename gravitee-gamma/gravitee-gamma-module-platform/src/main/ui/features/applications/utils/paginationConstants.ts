@@ -13,14 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { NavGroup } from '@gravitee/graphene-core';
-import { AppWindowIcon } from '@gravitee/graphene-core/icons';
 
-import { ROUTES } from './routes';
+/** Shared page-size options for application tables (UI-COMP-12). */
+export const TABLE_PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
 
-export const NAV_GROUPS: NavGroup[] = [
-    {
-        label: 'Overview',
-        items: [{ key: 'applications', title: ROUTES.applications.label, icon: AppWindowIcon }],
-    },
-];
+export const DEFAULT_APPLICATION_LIST_PAGE_SIZE = 25;
+
+export const DEFAULT_SUBSCRIPTION_PAGE_SIZE = 10;

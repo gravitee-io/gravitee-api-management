@@ -29,7 +29,11 @@ import { useApplicationSubscriptions, useSubscribedApis } from '../../hooks/useA
 import { useCloseApplicationSubscription } from '../../hooks/useCloseApplicationSubscription';
 import type { ApplicationListItem } from '../../types/application';
 import type { ApplicationSubscriptionTableRow, SubscriptionStatus } from '../../types/applicationSubscription';
-import { DEFAULT_SUBSCRIPTION_FILTER_STATUSES, SUBSCRIPTION_STATUS_OPTIONS } from '../../utils/applicationSubscriptionConstants';
+import {
+    DEFAULT_SUBSCRIPTION_FILTER_STATUSES,
+    SUBSCRIPTION_PAGE_SIZE_OPTIONS,
+    SUBSCRIPTION_STATUS_OPTIONS,
+} from '../../utils/applicationSubscriptionConstants';
 import {
     buildApplicationSubscriptionListSearchParams,
     parseApplicationSubscriptionListSearchParams,
@@ -196,7 +200,7 @@ export function ApplicationSubscriptionsView({ application }: Readonly<{ applica
                     page={page}
                     pageSize={pageSize}
                     totalCount={totalCount}
-                    pageSizeOptions={[10, 25, 50, 100]}
+                    pageSizeOptions={SUBSCRIPTION_PAGE_SIZE_OPTIONS}
                     onPageChange={setPage}
                     onPageSizeChange={handlePageSizeChange}
                 />
@@ -221,7 +225,7 @@ export function ApplicationSubscriptionsView({ application }: Readonly<{ applica
                     page={page}
                     pageSize={pageSize}
                     totalCount={totalCount}
-                    pageSizeOptions={[10, 25, 50, 100]}
+                    pageSizeOptions={SUBSCRIPTION_PAGE_SIZE_OPTIONS}
                     onPageChange={setPage}
                     onPageSizeChange={handlePageSizeChange}
                 />

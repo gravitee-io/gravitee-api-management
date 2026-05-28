@@ -25,21 +25,24 @@ export function useApplicationList({
     status,
     page,
     perPage,
+    order,
 }: {
     query: string;
     status: ApplicationStatus;
     page: number;
     perPage: number;
+    order: string;
 }) {
     const env = useEnvironment();
     return useQuery<ApplicationListResponse>({
-        queryKey: applicationListKeys.search(env?.id ?? '', query, status, page, perPage),
+        queryKey: applicationListKeys.search(env?.id ?? '', query, status, page, perPage, order),
         queryFn: () =>
             listApplications(env!.id, {
                 query: query || undefined,
                 page,
                 size: perPage,
                 status,
+                order,
             }),
         enabled: Boolean(env),
         staleTime: 30_000,
