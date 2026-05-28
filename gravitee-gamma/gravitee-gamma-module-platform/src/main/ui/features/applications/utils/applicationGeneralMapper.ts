@@ -106,26 +106,33 @@ function parseRedirectUris(text: string): string[] {
         .filter(Boolean);
 }
 
+/** Console always sends both images on update; omitting one clears it server-side. */
+function resolveFormPicture(application: ApplicationListItem, form: ApplicationGeneralForm): string | null {
+    if (form.pictureRemoved) {
+        return null;
+    }
+    if (form.picture) {
+        return form.picture;
+    }
+    return application.picture ?? application.picture_url ?? null;
+}
+
+function resolveFormBackground(application: ApplicationListItem, form: ApplicationGeneralForm): string | null {
+    if (form.backgroundRemoved) {
+        return null;
+    }
+    if (form.background) {
+        return form.background;
+    }
+    return application.background ?? null;
+}
+
 export function buildUpdatePayload(
     application: ApplicationListItem,
     form: ApplicationGeneralForm,
     applicationTypeConfig: ApplicationTypeConfig | undefined,
 ): UpdateApplicationPayload {
     const isSimple = application.type === 'SIMPLE';
-
-    let picture: string | null | undefined;
-    if (form.pictureRemoved) {
-        picture = null;
-    } else if (form.picture && form.picture !== application.picture) {
-        picture = form.picture;
-    }
-
-    let background: string | null | undefined;
-    if (form.backgroundRemoved) {
-        background = null;
-    } else if (form.background && form.background !== application.background) {
-        background = form.background;
-    }
 
     const settings = isSimple
         ? {
@@ -150,8 +157,8 @@ export function buildUpdatePayload(
         description: form.description.trim(),
         domain: form.domain.trim() || undefined,
         settings,
-        ...(picture !== undefined ? { picture } : {}),
-        ...(background !== undefined ? { background } : {}),
+        picture: resolveFormPicture(application, form),
+        background: resolveFormBackground(application, form),
     };
 }
 

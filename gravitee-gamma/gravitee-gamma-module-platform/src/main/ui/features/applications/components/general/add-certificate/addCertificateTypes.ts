@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { NavGroup } from '@gravitee/graphene-core';
-import { AppWindowIcon } from '@gravitee/graphene-core/icons';
 
-import { ROUTES } from './routes';
+export interface AddCertificateSubmit {
+    name: string;
+    certificate: string;
+    endsAt?: string;
+    gracePeriodEnd?: string;
+    activeCertificateId?: string;
+}
 
-export const NAV_GROUPS: NavGroup[] = [
-    {
-        label: 'Overview',
-        items: [{ key: 'applications', title: ROUTES.applications.label, icon: AppWindowIcon }],
-    },
-];
+export const PEM_PLACEHOLDER = '-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----';
+
+export const INVALID_CERTIFICATE_MESSAGE = 'Invalid certificate format';
+
+/** Console `GIO_DIALOG_WIDTH.MEDIUM` (~600px); step content uses `min-width: 500px` in add-certificate-dialog. */
+export const ADD_CERTIFICATE_DIALOG_WIDTH = '37.5rem';

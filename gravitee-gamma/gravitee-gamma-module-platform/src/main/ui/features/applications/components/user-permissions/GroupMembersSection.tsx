@@ -20,19 +20,43 @@ import {
     CardDescription,
     CardHeader,
     CardTitle,
+    DataTable,
     Skeleton,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+    type DataTableProps,
 } from '@gravitee/graphene-core';
 import { UsersIcon } from '@gravitee/graphene-core/icons';
 
 import { MemberAvatar } from './MemberAvatar';
 import { getGroupMemberRole } from './memberHelpers';
 import type { GroupMember } from '../../types/applicationMembers.types';
+import { NON_SORTABLE_COLUMN } from '../../utils/dataTableHeaders';
+import type { ColCell } from '../../utils/dataTableTypes';
+
+const GROUP_MEMBER_COLUMNS: DataTableProps<GroupMember>['columns'] = [
+    {
+        id: 'name',
+        accessorFn: (row: GroupMember) => row.displayName ?? '',
+        header: 'Name',
+        ...NON_SORTABLE_COLUMN,
+        cell: ({ row }: ColCell<GroupMember>) => (
+            <div className="flex items-center gap-3">
+                <MemberAvatar name={row.original.displayName ?? ''} />
+                <span className="text-sm font-medium">{row.original.displayName}</span>
+            </div>
+        ),
+    },
+    {
+        id: 'role',
+        accessorFn: (row: GroupMember) => getGroupMemberRole(row),
+        header: 'Role',
+        ...NON_SORTABLE_COLUMN,
+        cell: ({ row }: ColCell<GroupMember>) => (
+            <Badge variant="secondary" className="font-normal">
+                {getGroupMemberRole(row.original)}
+            </Badge>
+        ),
+    },
+];
 
 export function GroupMembersSection({
     groupName,
@@ -40,6 +64,7 @@ export function GroupMembersSection({
     isLoading = false,
 }: Readonly<{ groupName: string; members: GroupMember[]; isLoading?: boolean }>) {
     const count = members.length;
+
     return (
         <Card className="overflow-hidden">
             <CardHeader className="pb-3">
@@ -55,49 +80,15 @@ export function GroupMembersSection({
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="rounded-lg border overflow-hidden">
-                    <Table className="table-fixed w-full">
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead style={{ width: '32%' }}>Role</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {isLoading ? (
-                                Array.from({ length: 2 }).map((_, i) => (
-                                    <TableRow key={`skeleton-${i}`}>
-                                        <TableCell colSpan={2}>
-                                            <Skeleton className="h-10 w-full rounded" />
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            ) : members.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={2} className="text-sm text-muted-foreground">
-                                        No members in this group.
-                                    </TableCell>
-                                </TableRow>
-                            ) : (
-                                members.map(m => (
-                                    <TableRow key={m.id}>
-                                        <TableCell>
-                                            <div className="flex items-center gap-3">
-                                                <MemberAvatar name={m.displayName ?? ''} />
-                                                <span className="text-sm font-medium">{m.displayName}</span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell style={{ width: '32%' }}>
-                                            <Badge variant="secondary" className="font-normal">
-                                                {getGroupMemberRole(m)}
-                                            </Badge>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
+                {isLoading ? (
+                    <div className="space-y-2 rounded-lg border p-3">
+                        {Array.from({ length: 2 }).map((_, index) => (
+                            <Skeleton key={index} className="h-10 w-full rounded" />
+                        ))}
+                    </div>
+                ) : (
+                    <DataTable columns={GROUP_MEMBER_COLUMNS} data={members} emptyMessage="No members in this group." />
+                )}
             </CardContent>
         </Card>
     );

@@ -20,14 +20,10 @@ import {
     CardDescription,
     CardHeader,
     CardTitle,
+    DataTable,
+    DataTableColumnHeader,
     DataTablePagination,
-    Skeleton,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+    type DataTableProps,
     Tooltip,
     TooltipContent,
     TooltipTrigger,
@@ -37,8 +33,32 @@ import { useEffect, useMemo, useState } from 'react';
 
 import type { ApplicationSubscriptionApiKeyRow } from '../../types/applicationSubscription';
 import { formatApplicationDateTime } from '../../utils/applicationFormatters';
+import { DEFAULT_SUBSCRIPTION_PAGE_SIZE, SUBSCRIPTION_PAGE_SIZE_OPTIONS } from '../../utils/applicationSubscriptionConstants';
+import { SUBSCRIPTION_API_KEY_SORTABLE_IDS } from '../../utils/applicationTableSortParity';
+import { NON_SORTABLE_COLUMN } from '../../utils/dataTableHeaders';
+import type { ColCell, ColHeader } from '../../utils/dataTableTypes';
+import type { TableSortingState } from '../../utils/tableSort';
+import { toSortableTimestamp } from '../../utils/tableSort';
 
-const DEFAULT_PAGE_SIZE = 10;
+/** Client-side sort on the full key list (console: gioTableFilterCollection), then paginate. */
+function sortApiKeys(keys: ApplicationSubscriptionApiKeyRow[], sorting: TableSortingState): ApplicationSubscriptionApiKeyRow[] {
+    const active = sorting[0];
+    if (!active?.id || !SUBSCRIPTION_API_KEY_SORTABLE_IDS.has(active.id)) return keys;
+
+    const direction = active.desc ? -1 : 1;
+    return [...keys].sort((left, right) => {
+        switch (active.id) {
+            case 'isValid':
+                return (Number(right.isValid) - Number(left.isValid)) * direction;
+            case 'createdAt':
+                return (toSortableTimestamp(left.createdAt) - toSortableTimestamp(right.createdAt)) * direction;
+            case 'endDate':
+                return (toSortableTimestamp(left.endDate) - toSortableTimestamp(right.endDate)) * direction;
+            default:
+                return 0;
+        }
+    });
+}
 
 function ApiKeyStatusIcon({ isValid }: Readonly<{ isValid: boolean }>) {
     const label = isValid ? 'Valid' : 'Revoked or Expired';
@@ -79,9 +99,10 @@ export function ApplicationSubscriptionApiKeysCard({
     onExpire: (apiKey: ApplicationSubscriptionApiKeyRow) => void;
 }>) {
     const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+    const [pageSize, setPageSize] = useState(DEFAULT_SUBSCRIPTION_PAGE_SIZE);
+    const [sorting, setSorting] = useState<TableSortingState>([{ id: 'isValid', desc: true }]);
 
-    const sortedKeys = useMemo(() => [...apiKeys].sort((a, b) => Number(b.isValid) - Number(a.isValid)), [apiKeys]);
+    const sortedKeys = useMemo(() => sortApiKeys(apiKeys, sorting), [apiKeys, sorting]);
     const totalCount = sortedKeys.length;
     const paginatedKeys = useMemo(() => {
         const start = (page - 1) * pageSize;
@@ -104,6 +125,96 @@ export function ApplicationSubscriptionApiKeysCard({
         setPage(1);
     };
 
+    const handleSortingChange = (updater: TableSortingState | ((prev: TableSortingState) => TableSortingState)) => {
+        setSorting(previous => (typeof updater === 'function' ? updater(previous) : updater));
+        setPage(1);
+    };
+
+    const apiKeyColumns = useMemo((): DataTableProps<ApplicationSubscriptionApiKeyRow>['columns'] => {
+        return [
+            {
+                id: 'isValid',
+                accessorFn: (row: ApplicationSubscriptionApiKeyRow) => Number(row.isValid),
+                header: () => <span className="sr-only">Status</span>,
+                cell: ({ row }: ColCell<ApplicationSubscriptionApiKeyRow>) => <ApiKeyStatusIcon isValid={row.original.isValid} />,
+                enableSorting: true,
+            },
+            {
+                id: 'key',
+                accessorKey: 'maskedKey',
+                header: 'Key',
+                ...NON_SORTABLE_COLUMN,
+                cell: ({ row }: ColCell<ApplicationSubscriptionApiKeyRow>) => {
+                    const apiKey = row.original;
+                    return (
+                        <div className="flex items-center gap-2">
+                            <code className={`rounded px-2 py-1 font-mono text-sm ${apiKey.isValid ? 'bg-muted' : 'bg-muted/50'}`}>
+                                {apiKey.maskedKey}
+                            </code>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="size-7 shrink-0"
+                                aria-label="Copy API key"
+                                onClick={() => void navigator.clipboard?.writeText(apiKey.key)}
+                            >
+                                <CopyIcon className="size-3.5" aria-hidden />
+                            </Button>
+                        </div>
+                    );
+                },
+            },
+            {
+                id: 'createdAt',
+                accessorFn: (row: ApplicationSubscriptionApiKeyRow) => toSortableTimestamp(row.createdAt),
+                header: ({ column }: ColHeader<ApplicationSubscriptionApiKeyRow>) => (
+                    <DataTableColumnHeader column={column} title="Created at" />
+                ),
+                cell: ({ row }: ColCell<ApplicationSubscriptionApiKeyRow>) => (
+                    <span className="whitespace-nowrap text-sm">{formatApplicationDateTime(row.original.createdAt)}</span>
+                ),
+            },
+            {
+                id: 'endDate',
+                accessorFn: (row: ApplicationSubscriptionApiKeyRow) => toSortableTimestamp(row.endDate),
+                header: ({ column }: ColHeader<ApplicationSubscriptionApiKeyRow>) => (
+                    <DataTableColumnHeader column={column} title="Revoked/Expired at" />
+                ),
+                cell: ({ row }: ColCell<ApplicationSubscriptionApiKeyRow>) => (
+                    <span className="whitespace-nowrap text-sm">{formatApplicationDateTime(row.original.endDate)}</span>
+                ),
+            },
+            {
+                id: 'actions',
+                header: () => <div className="text-right">Actions</div>,
+                cell: ({ row }: ColCell<ApplicationSubscriptionApiKeyRow>) => {
+                    const apiKey = row.original;
+                    return !readOnly && apiKey.isValid ? (
+                        <div className="flex justify-end gap-1">
+                            <Button type="button" variant="outline" size="sm" className="text-destructive" onClick={() => onRevoke(apiKey)}>
+                                Revoke
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                disabled={!expireAvailable}
+                                onClick={() => onExpire(apiKey)}
+                                title={!expireAvailable ? 'Cannot resolve API for this subscription.' : undefined}
+                            >
+                                <ClockIcon className="size-3.5" aria-hidden />
+                                Expire
+                            </Button>
+                        </div>
+                    ) : null;
+                },
+                enableSorting: false,
+                enableHiding: false,
+            },
+        ];
+    }, [expireAvailable, onExpire, onRevoke, readOnly]);
+
     return (
         <Card>
             <CardHeader className="pb-3">
@@ -116,98 +227,20 @@ export function ApplicationSubscriptionApiKeysCard({
                         page={page}
                         pageSize={pageSize}
                         totalCount={totalCount}
-                        pageSizeOptions={[10, 25, 50, 100]}
+                        pageSizeOptions={SUBSCRIPTION_PAGE_SIZE_OPTIONS}
                         onPageChange={setPage}
                         onPageSizeChange={handlePageSizeChange}
                     />
                 </div>
-                <Table aria-label="API keys table">
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="w-10" aria-label="Status" />
-                            <TableHead>Key</TableHead>
-                            <TableHead className="w-[200px]">Created at</TableHead>
-                            <TableHead className="w-[200px]">Revoked/Expired at</TableHead>
-                            <TableHead className="w-[180px] text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading ? (
-                            Array.from({ length: pageSize }).map((_, index) => (
-                                <TableRow key={index}>
-                                    <TableCell colSpan={5} className="h-12">
-                                        <Skeleton className="h-4 w-32" />
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        ) : paginatedKeys.length > 0 ? (
-                            paginatedKeys.map(apiKey => (
-                                <TableRow key={apiKey.id} className={apiKey.isValid ? undefined : 'text-muted-foreground'}>
-                                    <TableCell className="w-10">
-                                        <ApiKeyStatusIcon isValid={apiKey.isValid} />
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <code
-                                                className={`rounded px-2 py-1 font-mono text-sm ${
-                                                    apiKey.isValid ? 'bg-muted' : 'bg-muted/50'
-                                                }`}
-                                            >
-                                                {apiKey.maskedKey}
-                                            </code>
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="icon"
-                                                className="size-7 shrink-0"
-                                                aria-label="Copy API key"
-                                                onClick={() => void navigator.clipboard?.writeText(apiKey.key)}
-                                            >
-                                                <CopyIcon className="size-3.5" aria-hidden />
-                                            </Button>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-sm whitespace-nowrap">
-                                        {formatApplicationDateTime(apiKey.createdAt)}
-                                    </TableCell>
-                                    <TableCell className="text-sm whitespace-nowrap">{formatApplicationDateTime(apiKey.endDate)}</TableCell>
-                                    <TableCell className="text-right">
-                                        {!readOnly && apiKey.isValid ? (
-                                            <div className="flex justify-end gap-1">
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="text-destructive"
-                                                    onClick={() => onRevoke(apiKey)}
-                                                >
-                                                    Revoke
-                                                </Button>
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="sm"
-                                                    disabled={!expireAvailable}
-                                                    onClick={() => onExpire(apiKey)}
-                                                    title={!expireAvailable ? 'Cannot resolve API for this subscription.' : undefined}
-                                                >
-                                                    <ClockIcon className="size-3.5" aria-hidden />
-                                                    Expire
-                                                </Button>
-                                            </div>
-                                        ) : null}
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={5} className="h-16 text-center text-sm text-muted-foreground">
-                                    No API keys
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                <DataTable
+                    columns={apiKeyColumns}
+                    data={paginatedKeys}
+                    sorting={sorting}
+                    onSortingChange={handleSortingChange}
+                    loading={isLoading}
+                    skeletonCount={pageSize}
+                    emptyMessage="No API keys"
+                />
 
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     {!readOnly ? (
@@ -228,7 +261,7 @@ export function ApplicationSubscriptionApiKeysCard({
                         page={page}
                         pageSize={pageSize}
                         totalCount={totalCount}
-                        pageSizeOptions={[10, 25, 50, 100]}
+                        pageSizeOptions={SUBSCRIPTION_PAGE_SIZE_OPTIONS}
                         onPageChange={setPage}
                         onPageSizeChange={handlePageSizeChange}
                     />

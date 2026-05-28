@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { ApplicationsEmptyLanding } from '../features/applications/components';
@@ -24,10 +24,17 @@ import { useApplicationStats } from '../features/applications/hooks/useApplicati
 import { useOrganizationAdmin } from '../features/applications/hooks/useOrganizationAdmin';
 import type { ApplicationStatus } from '../features/applications/types/application';
 import type { ApplicationsListLocationState } from '../features/applications/types/navigation';
+import {
+    APPLICATION_LIST_SERVER_SORT_IDS,
+    defaultApplicationListOrder,
+    defaultApplicationListSort,
+} from '../features/applications/utils/applicationListSort';
+import { DEFAULT_APPLICATION_LIST_PAGE_SIZE } from '../features/applications/utils/paginationConstants';
+import { sortToOrder, type TableSortingState } from '../features/applications/utils/tableSort';
 import { SuccessBanner } from '../features/shared/components';
 
 const DEFAULT_PAGE = 1;
-const DEFAULT_PER_PAGE = 25;
+const DEFAULT_PER_PAGE = DEFAULT_APPLICATION_LIST_PAGE_SIZE;
 const DEFAULT_STATUS: ApplicationStatus = 'ACTIVE';
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -43,6 +50,9 @@ export function ApplicationsPage() {
     const [status, setStatus] = useState<ApplicationStatus>(DEFAULT_STATUS);
     const [page, setPage] = useState(DEFAULT_PAGE);
     const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE);
+    const [sorting, setSorting] = useState<TableSortingState>(() => defaultApplicationListSort(DEFAULT_STATUS));
+
+    const order = useMemo(() => sortToOrder(sorting) ?? defaultApplicationListOrder(status), [sorting, status]);
 
     useEffect(() => {
         const timer = setTimeout(() => setDebouncedSearch(search), SEARCH_DEBOUNCE_MS);
@@ -55,6 +65,24 @@ export function ApplicationsPage() {
             setPage(DEFAULT_PAGE);
         }
     }, [canManageArchived, isAdminLoading, status]);
+
+    useEffect(() => {
+        setSorting(defaultApplicationListSort(status));
+        setPage(DEFAULT_PAGE);
+    }, [status]);
+
+    const handleSortingChange = useCallback<Dispatch<SetStateAction<TableSortingState>>>(updater => {
+        let resetPage = false;
+        setSorting(previous => {
+            const next = typeof updater === 'function' ? updater(previous) : updater;
+            const active = next[0];
+            resetPage = Boolean(active?.id && APPLICATION_LIST_SERVER_SORT_IDS.has(active.id));
+            return next;
+        });
+        if (resetPage) {
+            setPage(DEFAULT_PAGE);
+        }
+    }, []);
 
     useEffect(() => {
         const state = location.state as ApplicationsListLocationState | null;
@@ -70,6 +98,7 @@ export function ApplicationsPage() {
         status,
         page,
         perPage,
+        order,
     });
 
     const applications = data?.data ?? [];
@@ -96,7 +125,6 @@ export function ApplicationsPage() {
 
     const handleStatusChange = (nextStatus: ApplicationStatus) => {
         setStatus(nextStatus);
-        setPage(DEFAULT_PAGE);
     };
 
     const handleRegisterApplication = () => {
@@ -130,6 +158,8 @@ export function ApplicationsPage() {
                 perPage={perPage}
                 onSearchChange={handleSearchChange}
                 onStatusChange={handleStatusChange}
+                sorting={sorting}
+                onSortingChange={handleSortingChange}
                 onPageChange={setPage}
                 onPerPageChange={handlePerPageChange}
                 onRegisterApplication={handleRegisterApplication}

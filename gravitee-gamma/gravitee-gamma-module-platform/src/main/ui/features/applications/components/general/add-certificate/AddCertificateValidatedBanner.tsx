@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { NavGroup } from '@gravitee/graphene-core';
-import { AppWindowIcon } from '@gravitee/graphene-core/icons';
+import { Alert, AlertDescription } from '@gravitee/graphene-core';
+import { CircleCheckIcon } from '@gravitee/graphene-core/icons';
 
-import { ROUTES } from './routes';
+import { ADD_CERTIFICATE_TEST_IDS } from './addCertificateTestIds';
 
-export const NAV_GROUPS: NavGroup[] = [
-    {
-        label: 'Overview',
-        items: [{ key: 'applications', title: ROUTES.applications.label, icon: AppWindowIcon }],
-    },
-];
+export function AddCertificateValidatedBanner() {
+    return (
+        <Alert className="border-success/30 bg-success/5" data-testid={ADD_CERTIFICATE_TEST_IDS.validationSuccessBanner}>
+            <CircleCheckIcon className="size-4 text-success" aria-hidden />
+            <AlertDescription className="text-success">Certificate validated successfully</AlertDescription>
+        </Alert>
+    );
+}

@@ -57,13 +57,9 @@ export async function updateApplication(
         settings: payload.settings,
         disable_membership_notifications: payload.disable_membership_notifications ?? application.disable_membership_notifications,
         api_key_mode: application.api_key_mode,
+        picture: payload.picture ?? null,
+        background: payload.background ?? null,
     };
-    if (payload.picture !== undefined) {
-        body.picture = payload.picture;
-    }
-    if (payload.background !== undefined) {
-        body.background = payload.background;
-    }
     return apimFetchJsonV1Env<ApplicationListItem>(environmentId, `/applications/${application.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },

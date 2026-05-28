@@ -13,15 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Card } from '@gravitee/graphene-core';
+import type { DataTableColumnHeaderProps } from '@gravitee/graphene-core';
 
-export function DashboardPage() {
-    return (
-        <div className="space-y-4">
-            <h1>Dashboard</h1>
-            <Card className="p-4">
-                <p className="text-muted-foreground">Platform overview dashboard.</p>
-            </Card>
-        </div>
-    );
-}
+/** Column header render props for Graphene `DataTable` column definitions. */
+export type ColHeader<T> = { column: DataTableColumnHeaderProps<T, unknown>['column'] };
+
+/** Column cell render props for Graphene `DataTable` column definitions. */
+export type ColCell<T> = { row: { original: T } };

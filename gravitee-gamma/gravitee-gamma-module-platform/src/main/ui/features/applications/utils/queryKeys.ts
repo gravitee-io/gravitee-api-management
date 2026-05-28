@@ -43,8 +43,8 @@ export const currentUserKeys = {
 
 export const applicationListKeys = {
     all: ['application-list'] as const,
-    search: (envId: string, query: string, status: string, page: number, perPage: number) =>
-        [...applicationListKeys.all, 'search', envId, query, status, page, perPage] as const,
+    search: (envId: string, query: string, status: string, page: number, perPage: number, order: string) =>
+        [...applicationListKeys.all, 'search', envId, query, status, page, perPage, order] as const,
     count: (envId: string, filter: ApplicationCountFilter) =>
         [...applicationListKeys.all, 'count', envId, filter.status ?? '', filter.query ?? ''] as const,
     types: (envId: string) => [...applicationListKeys.all, 'types', envId] as const,

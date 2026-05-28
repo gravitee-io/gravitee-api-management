@@ -13,7 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { resolveSubscriptionApiKeyV2Parent } from './applicationSubscriptions';
+import { buildApplicationSubscriptionsQuery, resolveSubscriptionApiKeyV2Parent } from './applicationSubscriptions';
+
+describe('buildApplicationSubscriptionsQuery', () => {
+    it('joins status values with commas like console HttpParams', () => {
+        expect(buildApplicationSubscriptionsQuery(1, 10, { status: ['ACCEPTED', 'PAUSED', 'PENDING'] })).toBe(
+            'page=1&size=10&status=ACCEPTED,PAUSED,PENDING',
+        );
+    });
+
+    it('includes all subscription statuses for overview-style totals without encoding commas', () => {
+        expect(
+            buildApplicationSubscriptionsQuery(1, 1, {
+                status: ['ACCEPTED', 'CLOSED', 'PAUSED', 'PENDING', 'REJECTED', 'RESUMED'],
+            }),
+        ).toBe('page=1&size=1&status=ACCEPTED,CLOSED,PAUSED,PENDING,REJECTED,RESUMED');
+    });
+
+    it('omits status when no filters are provided', () => {
+        expect(buildApplicationSubscriptionsQuery(1, 20)).toBe('page=1&size=20');
+    });
+
+    it('serializes api, api_key, and security_types filters', () => {
+        expect(
+            buildApplicationSubscriptionsQuery(2, 50, {
+                apis: ['api-1', 'api-2'],
+                apiKey: 'key-abc',
+                securityTypes: ['API_KEY'],
+            }),
+        ).toBe('page=2&size=50&api=api-1,api-2&api_key=key-abc&security_types=API_KEY');
+    });
+});
 
 describe('resolveSubscriptionApiKeyV2Parent', () => {
     it('resolves API parent from api.id', () => {

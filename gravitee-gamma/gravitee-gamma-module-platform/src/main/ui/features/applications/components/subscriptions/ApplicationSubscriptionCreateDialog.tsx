@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import {
-    Badge,
     Button,
     cn,
     Dialog,
@@ -68,10 +67,6 @@ function toReferenceSelection(item: SubscriptionSearchResultItem): SubscriptionR
     };
 }
 
-function referenceVersionLabel(reference: SubscriptionReferenceSelection): string | undefined {
-    return reference.version;
-}
-
 function referenceTypeLabel(reference: SubscriptionReferenceSelection): string {
     return reference.type === 'API' ? 'API' : 'API Product';
 }
@@ -89,6 +84,7 @@ function searchResultOwner(item: SubscriptionSearchResultItem): string | undefin
 }
 
 const REFERENCE_SEARCH_DEBOUNCE_MS = 400;
+const REFERENCE_SEARCH_RESULTS_MAX_HEIGHT_PX = 180;
 
 function PlanRadioIndicator({ selected }: Readonly<{ selected: boolean }>) {
     return (
@@ -295,7 +291,11 @@ export function ApplicationSubscriptionCreateDialog({
                             />
                         </div>
                         {showResults ? (
-                            <div className="max-h-[180px] overflow-y-auto rounded-md border">
+                            <div
+                                className="rounded-md border"
+                                style={{ maxHeight: `${REFERENCE_SEARCH_RESULTS_MAX_HEIGHT_PX}px`, overflowY: 'auto' }}
+                                data-testid="subscription-reference-search-results"
+                            >
                                 {isSearching ? (
                                     <p className="px-3 py-2 text-sm text-muted-foreground">Searching…</p>
                                 ) : searchResults.length === 0 ? (
@@ -324,13 +324,6 @@ export function ApplicationSubscriptionCreateDialog({
                                     })
                                 )}
                             </div>
-                        ) : null}
-                        {selectedReference ? (
-                            <Badge variant="secondary" className="text-xs">
-                                {selectedReference.name}
-                                {referenceVersionLabel(selectedReference) ? ` — ${referenceVersionLabel(selectedReference)}` : ''}
-                                <span className="text-muted-foreground"> · {referenceTypeLabel(selectedReference)}</span>
-                            </Badge>
                         ) : null}
                     </div>
 
@@ -365,11 +358,11 @@ export function ApplicationSubscriptionCreateDialog({
                                             >
                                                 <PlanRadioIndicator selected={selectedPlan?.id === plan.id} />
                                                 <div className="min-w-0 flex-1">
-                                                    <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+                                                    <div className="flex flex-wrap items-center" style={{ columnGap: 8 }}>
                                                         <span className="text-sm font-medium leading-snug text-foreground">
                                                             {plan.name}
                                                         </span>
-                                                        <span className="text-xs font-normal leading-snug text-muted-foreground">
+                                                        <span className="text-sm font-normal leading-snug text-muted-foreground">
                                                             {securityLabel}
                                                         </span>
                                                     </div>

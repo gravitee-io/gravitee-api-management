@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { DEFAULT_SUBSCRIPTION_FILTER_STATUSES } from './applicationSubscriptionConstants';
+import { DEFAULT_SUBSCRIPTION_PAGE_SIZE } from './paginationConstants';
 import type { SubscriptionStatus } from '../types/applicationSubscription';
 
 export interface ApplicationSubscriptionListUrlState {
@@ -23,8 +24,6 @@ export interface ApplicationSubscriptionListUrlState {
     statusFilters: SubscriptionStatus[];
     apiKeyInput: string;
 }
-
-const DEFAULT_PAGE_SIZE = 10;
 
 function parsePositiveInt(value: string | null, fallback: number): number {
     if (!value) return fallback;
@@ -50,7 +49,7 @@ function isDefaultStatusFilters(statusFilters: SubscriptionStatus[]): boolean {
 export function parseApplicationSubscriptionListSearchParams(params: URLSearchParams): ApplicationSubscriptionListUrlState {
     return {
         page: parsePositiveInt(params.get('page'), 1),
-        pageSize: parsePositiveInt(params.get('size'), DEFAULT_PAGE_SIZE),
+        pageSize: parsePositiveInt(params.get('size'), DEFAULT_SUBSCRIPTION_PAGE_SIZE),
         apiFilters: params.get('apis')?.split(',').filter(Boolean) ?? [],
         statusFilters: parseStatusFilters(params.get('status')),
         apiKeyInput: params.get('apiKey') ?? '',
@@ -62,7 +61,7 @@ export function buildApplicationSubscriptionListSearchParams(state: ApplicationS
     const next = new URLSearchParams();
 
     if (state.page > 1) next.set('page', String(state.page));
-    if (state.pageSize !== DEFAULT_PAGE_SIZE) next.set('size', String(state.pageSize));
+    if (state.pageSize !== DEFAULT_SUBSCRIPTION_PAGE_SIZE) next.set('size', String(state.pageSize));
     if (state.apiFilters.length > 0) next.set('apis', state.apiFilters.join(','));
     const sortedStatusFilters = [...state.statusFilters].sort();
     if (!isDefaultStatusFilters(sortedStatusFilters)) {

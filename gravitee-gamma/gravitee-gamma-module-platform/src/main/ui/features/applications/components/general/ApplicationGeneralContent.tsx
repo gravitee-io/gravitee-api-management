@@ -68,7 +68,7 @@ export function ApplicationGeneralContent({ application }: Readonly<{ applicatio
         setForm(seed);
         setSavedForm(seed);
         setSaveError(null);
-    }, [application]);
+    }, [application.id, application.updated_at]);
 
     const validation = useMemo(() => (form ? validateApplicationGeneralForm(form) : {}), [form]);
     const isDirty = useMemo(() => form !== null && savedForm !== null && isApplicationGeneralFormDirty(form, savedForm), [form, savedForm]);
@@ -110,6 +110,13 @@ export function ApplicationGeneralContent({ application }: Readonly<{ applicatio
         void navigator.clipboard.writeText(value);
     };
 
+    const handleDiscard = () => {
+        if (savedForm) {
+            setForm(savedForm);
+            setSaveError(null);
+        }
+    };
+
     const handleSave = () => {
         if (!form || isFormDisabled || !canSave) return;
         const payload = buildUpdatePayload(application, form, typeConfig);
@@ -140,11 +147,16 @@ export function ApplicationGeneralContent({ application }: Readonly<{ applicatio
                         Application details, OAuth client configuration, certificates, and lifecycle.
                     </p>
                 </div>
-                {!isFormDisabled ? (
-                    <Button type="button" size="sm" className="shrink-0" onClick={handleSave} disabled={!canSave}>
-                        <CheckIcon className="size-4" aria-hidden />
-                        {saveMutation.isPending ? 'Saving…' : 'Save changes'}
-                    </Button>
+                {isDirty && !isFormDisabled ? (
+                    <div className="flex shrink-0 items-center gap-2">
+                        <Button type="button" variant="outline" size="sm" onClick={handleDiscard} disabled={saveMutation.isPending}>
+                            Discard
+                        </Button>
+                        <Button type="button" size="sm" onClick={handleSave} disabled={!canSave}>
+                            <CheckIcon className="size-4" aria-hidden />
+                            {saveMutation.isPending ? 'Saving…' : 'Save changes'}
+                        </Button>
+                    </div>
                 ) : null}
             </div>
 

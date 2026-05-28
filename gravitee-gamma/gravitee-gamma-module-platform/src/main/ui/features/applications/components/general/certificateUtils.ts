@@ -48,3 +48,10 @@ export function readFileAsText(file: File): Promise<string> {
         reader.readAsText(file);
     });
 }
+
+export function isDateInRange(value: Date, min: Date, max?: Date): boolean {
+    if (Number.isNaN(value.getTime())) return false;
+    if (value.getTime() < min.getTime()) return false;
+    if (max && value.getTime() > max.getTime()) return false;
+    return true;
+}

@@ -53,7 +53,7 @@ describe('useApplicationList', () => {
         mockUseEnvironment.mockReturnValue(null);
 
         const { Wrapper } = createTestContext();
-        renderHook(() => useApplicationList({ query: '', status: 'ACTIVE', page: 1, perPage: 25 }), {
+        renderHook(() => useApplicationList({ query: '', status: 'ACTIVE', page: 1, perPage: 25, order: 'name' }), {
             wrapper: Wrapper,
         });
 
@@ -62,7 +62,7 @@ describe('useApplicationList', () => {
 
     it('calls listApplications with env id, page, and perPage', async () => {
         const { Wrapper } = createTestContext();
-        renderHook(() => useApplicationList({ query: 'billing', status: 'ARCHIVED', page: 2, perPage: 50 }), {
+        renderHook(() => useApplicationList({ query: 'billing', status: 'ARCHIVED', page: 2, perPage: 50, order: '-updated_at' }), {
             wrapper: Wrapper,
         });
 
@@ -72,24 +72,25 @@ describe('useApplicationList', () => {
             page: 2,
             size: 50,
             status: 'ARCHIVED',
+            order: '-updated_at',
         });
     });
 
     it('uses a query key scoped by env id, search, status, page, and perPage', async () => {
         const { queryClient, Wrapper } = createTestContext();
-        renderHook(() => useApplicationList({ query: 'billing', status: 'ARCHIVED', page: 2, perPage: 50 }), {
+        renderHook(() => useApplicationList({ query: 'billing', status: 'ARCHIVED', page: 2, perPage: 50, order: '-updated_at' }), {
             wrapper: Wrapper,
         });
 
         await waitFor(() => expect(mockListApplications).toHaveBeenCalledTimes(1));
 
-        const expectedKey = applicationListKeys.search('env-1', 'billing', 'ARCHIVED', 2, 50);
+        const expectedKey = applicationListKeys.search('env-1', 'billing', 'ARCHIVED', 2, 50, '-updated_at');
         expect(queryClient.getQueryCache().find({ queryKey: expectedKey })).toBeDefined();
     });
 
     it('maps an empty query string to undefined in the API request', async () => {
         const { Wrapper } = createTestContext();
-        renderHook(() => useApplicationList({ query: '', status: 'ACTIVE', page: 1, perPage: 25 }), {
+        renderHook(() => useApplicationList({ query: '', status: 'ACTIVE', page: 1, perPage: 25, order: 'name' }), {
             wrapper: Wrapper,
         });
 
@@ -99,6 +100,7 @@ describe('useApplicationList', () => {
             page: 1,
             size: 25,
             status: 'ACTIVE',
+            order: 'name',
         });
     });
 });

@@ -23,17 +23,13 @@ import {
     CardDescription,
     CardHeader,
     CardTitle,
+    DataTable,
     Skeleton,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+    type DataTableProps,
 } from '@gravitee/graphene-core';
 import { FileUpIcon, PlusIcon } from '@gravitee/graphene-core/icons';
 import type { UseMutationResult } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { ApplicationAddCertificateDialog, type AddCertificateSubmit } from './ApplicationAddCertificateDialog';
 import { ApplicationCertificateDetailDialog } from './ApplicationCertificateDetailDialog';
@@ -47,6 +43,8 @@ import {
 } from '../../hooks/useApplicationGeneralMutations';
 import type { ClientCertificate, UpdateClientCertificate } from '../../types/applicationCertificate';
 import { formatApplicationDateTime } from '../../utils/applicationFormatters';
+import { NON_SORTABLE_COLUMN } from '../../utils/dataTableHeaders';
+import type { ColCell } from '../../utils/dataTableTypes';
 
 export interface ApplicationCertificatesSectionProps {
     readonly applicationId: string;
@@ -76,8 +74,77 @@ export function ApplicationCertificatesSection({
     const [certError, setCertError] = useState<string | null>(null);
     const [revokeError, setRevokeError] = useState<string | null>(null);
     const [gracePeriodWarning, setGracePeriodWarning] = useState<GracePeriodUpdateFailure | null>(null);
-
     const actionsDisabled = isMutating || !canManageCertificates;
+
+    const certificateColumns = useMemo((): DataTableProps<ClientCertificate>['columns'] => {
+        return [
+            {
+                accessorKey: 'name',
+                header: 'Name',
+                ...NON_SORTABLE_COLUMN,
+                cell: ({ row }: ColCell<ClientCertificate>) => <span className="font-medium">{row.original.name}</span>,
+            },
+            {
+                accessorKey: 'createdAt',
+                header: 'Uploaded',
+                ...NON_SORTABLE_COLUMN,
+                cell: ({ row }: ColCell<ClientCertificate>) => (
+                    <span className="text-sm text-muted-foreground">{formatApplicationDateTime(row.original.createdAt)}</span>
+                ),
+            },
+            {
+                accessorKey: 'endsAt',
+                header: 'Expiry date and time',
+                ...NON_SORTABLE_COLUMN,
+                cell: ({ row }: ColCell<ClientCertificate>) => (
+                    <span className="text-sm text-muted-foreground">
+                        {row.original.endsAt ? formatApplicationDateTime(row.original.endsAt) : '—'}
+                    </span>
+                ),
+            },
+            {
+                accessorKey: 'status',
+                header: 'Status',
+                ...NON_SORTABLE_COLUMN,
+                cell: ({ row }: ColCell<ClientCertificate>) => (
+                    <Badge variant={certificateStatusVariant(row.original.status)} className="text-xs">
+                        {certificateStatusLabel(row.original.status)}
+                    </Badge>
+                ),
+            },
+            {
+                id: 'actions',
+                header: () => <div className="text-right">Actions</div>,
+                cell: ({ row }: ColCell<ClientCertificate>) => {
+                    const cert = row.original;
+                    return (
+                        <div className="flex justify-end gap-1">
+                            <Button type="button" variant="ghost" size="sm" onClick={() => setViewCert(cert)}>
+                                View
+                            </Button>
+                            {canManageCertificates && cert.status !== 'REVOKED' ? (
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-destructive hover:text-destructive"
+                                    disabled={actionsDisabled}
+                                    onClick={() => {
+                                        setRevokeError(null);
+                                        setRevokeCert(cert);
+                                    }}
+                                >
+                                    Revoke
+                                </Button>
+                            ) : null}
+                        </div>
+                    );
+                },
+                enableSorting: false,
+                enableHiding: false,
+            },
+        ];
+    }, [actionsDisabled, canManageCertificates]);
 
     const openAddDialog = () => {
         setCertError(null);
@@ -212,76 +279,13 @@ export function ApplicationCertificatesSection({
                     ) : certificates.length === 0 ? (
                         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed bg-muted/20 px-4 py-10 text-center">
                             <FileUpIcon className="mb-2 size-8 text-muted-foreground/40" aria-hidden />
-                            <p className="text-sm font-medium">No certificates</p>
+                            <h3 className="text-sm font-medium">No mTLS certificates added</h3>
                             <p className="mt-1 max-w-sm text-xs text-muted-foreground">
-                                Upload a client certificate to enable mutual TLS for this application.
+                                Add your first certificate to secure this application
                             </p>
-                            {canManageCertificates ? (
-                                <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="outline"
-                                    className="mt-4"
-                                    disabled={actionsDisabled}
-                                    onClick={openAddDialog}
-                                >
-                                    <PlusIcon className="size-3.5" aria-hidden />
-                                    Add certificate
-                                </Button>
-                            ) : null}
                         </div>
                     ) : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Uploaded</TableHead>
-                                    <TableHead>Expiry</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {certificates.map(cert => (
-                                    <TableRow key={cert.id}>
-                                        <TableCell className="font-medium">{cert.name}</TableCell>
-                                        <TableCell className="text-sm text-muted-foreground">
-                                            {formatApplicationDateTime(cert.createdAt)}
-                                        </TableCell>
-                                        <TableCell className="text-sm text-muted-foreground">
-                                            {cert.endsAt ? formatApplicationDateTime(cert.endsAt) : '—'}
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge variant={certificateStatusVariant(cert.status)} className="text-xs">
-                                                {certificateStatusLabel(cert.status)}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <div className="flex justify-end gap-1">
-                                                <Button type="button" variant="ghost" size="sm" onClick={() => setViewCert(cert)}>
-                                                    View
-                                                </Button>
-                                                {canManageCertificates && cert.status !== 'REVOKED' ? (
-                                                    <Button
-                                                        type="button"
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="text-destructive hover:text-destructive"
-                                                        disabled={actionsDisabled}
-                                                        onClick={() => {
-                                                            setRevokeError(null);
-                                                            setRevokeCert(cert);
-                                                        }}
-                                                    >
-                                                        Revoke
-                                                    </Button>
-                                                ) : null}
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                        <DataTable columns={certificateColumns} data={certificates} emptyMessage="No certificates" />
                     )}
                 </CardContent>
             </Card>

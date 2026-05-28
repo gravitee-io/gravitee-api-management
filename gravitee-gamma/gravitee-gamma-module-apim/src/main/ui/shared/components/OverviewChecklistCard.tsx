@@ -19,6 +19,7 @@ import {
     CardDescription,
     CardHeader,
     CardTitle,
+    Checkbox,
     Tooltip,
     TooltipContent,
     TooltipProvider,
@@ -130,11 +131,11 @@ export function OverviewChecklistCard({
                                                 {item.done ? (
                                                     <CircleCheckIcon className="size-4 text-success" aria-hidden />
                                                 ) : (
-                                                    <div
-                                                        className="size-4 rounded"
-                                                        style={{
-                                                            border: '2px solid color-mix(in oklab, var(--color-muted-foreground) 30%, transparent)',
-                                                        }}
+                                                    <Checkbox
+                                                        checked={false}
+                                                        className="pointer-events-none size-4"
+                                                        aria-hidden
+                                                        tabIndex={-1}
                                                     />
                                                 )}
                                             </div>

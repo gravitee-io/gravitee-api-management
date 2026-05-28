@@ -20,8 +20,10 @@ import { useApplicationMembers } from './useApplicationMembers';
 import { useApplicationSubscriptionCount } from './useApplicationSubscriptions';
 import { listApplicationNotifications } from '../services/applicationNotifications';
 import type { ApplicationSubscriptionsFilters } from '../types/applicationSubscription';
+import { ALL_SUBSCRIPTION_STATUSES } from '../utils/applicationSubscriptionConstants';
 import { applicationNotificationKeys } from '../utils/queryKeys';
 
+const ALL_SUBSCRIPTIONS_FILTER: ApplicationSubscriptionsFilters = { status: [...ALL_SUBSCRIPTION_STATUSES] };
 const ACTIVE_SUBSCRIPTIONS_FILTER: ApplicationSubscriptionsFilters = { status: ['ACCEPTED'] };
 const PENDING_SUBSCRIPTIONS_FILTER: ApplicationSubscriptionsFilters = { status: ['PENDING'] };
 
@@ -56,7 +58,7 @@ export function useApplicationOverviewData(applicationId: string | undefined): A
     });
 
     // Count keys are shared with the subscriptions list (primed on list fetch with matching filters).
-    const subscriptionsCountQuery = useApplicationSubscriptionCount(applicationId, undefined);
+    const subscriptionsCountQuery = useApplicationSubscriptionCount(applicationId, ALL_SUBSCRIPTIONS_FILTER);
     const activeSubscriptionsCountQuery = useApplicationSubscriptionCount(applicationId, ACTIVE_SUBSCRIPTIONS_FILTER);
     const pendingSubscriptionsCountQuery = useApplicationSubscriptionCount(applicationId, PENDING_SUBSCRIPTIONS_FILTER);
 
