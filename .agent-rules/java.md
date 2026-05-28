@@ -93,7 +93,20 @@ mvn prettier:write -pl <module>
 - **Method names**: Must follow **snake_case** convention (e.g., `should_return_error_when_api_not_found()`).
 - **Prefer real objects over mocks**: In clean/hexagonal architecture, instantiate real domain objects and in-memory adapters instead of mocking. Reserve mocks for external I/O boundaries (HTTP clients, databases) that are costly or impractical to instantiate.
 
-## 5. Common Pitfalls
+## 5. Automation API Sync
+
+The **Automation API** (`gravitee-apim-rest-api/gravitee-apim-rest-api-automation/`) is a separate API surface that partially mirrors the Management API v2 for GitOps/automation use cases. It has its **own OpenAPI spec** and **generated models**, mapped to/from Management v2 models via MapStruct.
+
+**When any of these changes happen, check whether the Automation API needs the same update:**
+
+- Adding/modifying fields on v4 API definition models (`gravitee-apim-definition`)
+- Adding/modifying database entity fields surfaced through Management API v2 (`gravitee-apim-repository`)
+- Adding/changing enum values or schema properties in Management API v2 OpenAPI specs
+- Adding/changing fields in core CRD models (`gravitee-apim-rest-api-service/.../api/model/crd/`)
+
+**What to update** — see the *Automation API sync checklist* section in [`gravitee-apim-rest-api/AGENTS.md`](../gravitee-apim-rest-api/AGENTS.md) for the exact files and steps.
+
+## 6. Common Pitfalls
 
 ### JsonNode vs ObjectNode in Lists
 
