@@ -1,0 +1,8 @@
+{
+  "id": "2868ef55-561e-4b99-a981-450015a248d9",
+  "name": "group with default roles",
+  "members": [],
+  "apiRole": "OWNER",
+  "applicationRole": "OWNER",
+  "apiProductRole": "USER"
+}
