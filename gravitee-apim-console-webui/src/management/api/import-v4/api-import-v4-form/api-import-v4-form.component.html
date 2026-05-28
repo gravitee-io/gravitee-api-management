@@ -112,7 +112,7 @@
               <div class="configure-file-source__col configure-file-source__col--sources">
                 <span class="configure-file-source__col-heading">Source</span>
                 <gio-form-selection-inline formControlName="source" class="configure-file-source__source-selection">
-                  @for (source of sources(); track source.value) {
+                  @for (source of sources; track source.value) {
                     <gio-form-selection-inline-card
                       [value]="source.value"
                       [disabled]="!!source.disabledReason"
