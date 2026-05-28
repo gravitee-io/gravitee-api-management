@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, inject, input, signal } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
+import { Component, computed, DestroyRef, inject, input, signal } from '@angular/core';
+import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
-import { map, of, tap } from 'rxjs';
+import { filter, map, of, tap } from 'rxjs';
 
 import { LoaderComponent } from '../../../../components/loader/loader.component';
 import { PaginatedTableComponent, TableColumn } from '../../../../components/paginated-table/paginated-table.component';
@@ -29,6 +31,10 @@ import {
 } from '../../../../entities/application/application-invitation';
 import { UserApplicationPermissions } from '../../../../entities/permission/permission';
 import { ApplicationInvitationService } from '../../../../services/application-invitation.service';
+import {
+  ApplicationInvitationCreateDialogComponent,
+  ApplicationInvitationCreateDialogData,
+} from '../application-invitation-create-dialog/application-invitation-create-dialog.component';
 
 interface InvitationTableRow {
   id: string;
@@ -51,12 +57,14 @@ interface InvitationsResourceValue {
 @Component({
   selector: 'app-application-tab-invitations',
   standalone: true,
-  imports: [LoaderComponent, MatIcon, PaginatedTableComponent, SearchBarComponent, TableCellDirective],
+  imports: [LoaderComponent, MatButtonModule, MatDialogModule, MatIcon, PaginatedTableComponent, SearchBarComponent, TableCellDirective],
   templateUrl: './application-tab-invitations.component.html',
   styleUrl: './application-tab-invitations.component.scss',
 })
 export class ApplicationTabInvitationsComponent {
   private readonly applicationInvitationService = inject(ApplicationInvitationService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly matDialog = inject(MatDialog);
 
   readonly applicationId = input.required<string>();
   readonly userApplicationPermissions = input.required<UserApplicationPermissions>();
@@ -80,6 +88,7 @@ export class ApplicationTabInvitationsComponent {
   ];
 
   readonly canRead = computed(() => this.userApplicationPermissions().MEMBER?.includes('R') ?? false);
+  readonly canCreate = computed(() => this.userApplicationPermissions().MEMBER?.includes('C') ?? false);
   readonly hasSearchTerm = computed(() => this.searchTerm().trim().length > 0);
   readonly searchFilters = computed<ApplicationInvitationsSearchFilters>(() => {
     const email = this.searchTerm().trim();
@@ -146,6 +155,24 @@ export class ApplicationTabInvitationsComponent {
   onSearchTermChange(term: string): void {
     this.searchTerm.set(term);
     this.currentPage.set(1);
+  }
+
+  openCreateInvitationDialog(): void {
+    this.matDialog
+      .open<ApplicationInvitationCreateDialogComponent, ApplicationInvitationCreateDialogData, boolean>(
+        ApplicationInvitationCreateDialogComponent,
+        {
+          data: { applicationId: this.applicationId() },
+          disableClose: true,
+        },
+      )
+      .afterClosed()
+      .pipe(
+        filter((invitationsCreated): invitationsCreated is true => invitationsCreated === true),
+        tap(() => this.invitationsResource.reload()),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
   private toRow(invitation: ApplicationInvitation): InvitationTableRow {

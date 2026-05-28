@@ -18,7 +18,11 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
-import { ApplicationInvitationsResponse, ApplicationInvitationsSearchFilters } from '../entities/application/application-invitation';
+import {
+  ApplicationInvitationsCreateInput,
+  ApplicationInvitationsResponse,
+  ApplicationInvitationsSearchFilters,
+} from '../entities/application/application-invitation';
 
 @Injectable({
   providedIn: 'root',
@@ -40,5 +44,12 @@ export class ApplicationInvitationService {
         params: { page, size },
       },
     );
+  }
+
+  createApplicationInvitations(
+    applicationId: string,
+    input: ApplicationInvitationsCreateInput,
+  ): Observable<ApplicationInvitationsResponse> {
+    return this.http.post<ApplicationInvitationsResponse>(`${this.configService.baseURL}/applications/${applicationId}/invitations`, input);
   }
 }

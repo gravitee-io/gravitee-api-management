@@ -19,6 +19,16 @@ export interface ApplicationInvitation {
   role: string;
 }
 
+export interface ApplicationInvitationRecipientInput {
+  email: string;
+}
+
+export interface ApplicationInvitationsCreateInput {
+  recipients: ApplicationInvitationRecipientInput[];
+  role: string;
+  notify: boolean;
+}
+
 export interface ApplicationInvitationsSearchFilters {
   email?: string;
 }

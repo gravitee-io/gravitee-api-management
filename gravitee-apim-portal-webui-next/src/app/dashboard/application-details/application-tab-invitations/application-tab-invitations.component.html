@@ -18,6 +18,21 @@
 @if (canRead()) {
   <div class="invitations__toolbar">
     <app-search-bar (searchTerm)="onSearchTermChange($event)" />
+    <div class="invitations__toolbar-actions">
+      @if (canCreate()) {
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          data-testid="create-invitation-button"
+          (click)="openCreateInvitationDialog()"
+          i18n="@@applicationInvitationsCreateButton"
+        >
+          <mat-icon aria-hidden="true">mail_outline</mat-icon>
+          Invite users
+        </button>
+      }
+    </div>
   </div>
   <h4 class="next-gen-h4 invitations__title" data-testid="invitations-section-title">
     {{ sectionTitle() }}

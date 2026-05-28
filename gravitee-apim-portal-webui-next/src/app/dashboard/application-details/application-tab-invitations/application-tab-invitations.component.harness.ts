@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { ComponentHarness, TestElement } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { LoaderHarness } from '../../../../components/loader/loader.harness';
 import { PaginatedTableHarness } from '../../../../components/paginated-table/paginated-table.harness';
@@ -27,6 +28,9 @@ export class ApplicationTabInvitationsComponentHarness extends ComponentHarness 
   private readonly locateEmptyState = this.locatorForOptional('[data-testid="invitations-empty-state"]');
   private readonly locateSearchBar = this.locatorForOptional('app-search-bar');
   private readonly locateSearchNoMatch = this.locatorForOptional('[data-testid="invitations-search-no-match"]');
+  private readonly locateCreateInvitationButton = this.locatorForOptional(
+    MatButtonHarness.with({ selector: '[data-testid="create-invitation-button"]' }),
+  );
   private readonly locatePaginatedTable = this.locatorForOptional(PaginatedTableHarness);
 
   public async getLoader(): Promise<LoaderHarness | null> {
@@ -51,6 +55,14 @@ export class ApplicationTabInvitationsComponentHarness extends ComponentHarness 
 
   public async getSearchNoMatch(): Promise<TestElement | null> {
     return this.locateSearchNoMatch();
+  }
+
+  public async getCreateInvitationButton(): Promise<MatButtonHarness | null> {
+    return this.locateCreateInvitationButton();
+  }
+
+  public async clickCreateInvitation(): Promise<void> {
+    return (await this.locateCreateInvitationButton())!.click();
   }
 
   public async getPaginatedTable(): Promise<PaginatedTableHarness | null> {

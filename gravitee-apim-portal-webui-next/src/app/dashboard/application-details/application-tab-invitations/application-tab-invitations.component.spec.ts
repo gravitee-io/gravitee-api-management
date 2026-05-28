@@ -17,8 +17,10 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
+import { Subject } from 'rxjs';
 
 import { ApplicationTabInvitationsComponent } from './application-tab-invitations.component';
 import { ApplicationTabInvitationsComponentHarness } from './application-tab-invitations.component.harness';
@@ -33,6 +35,7 @@ import {
 import { fakeUserApplicationPermissions } from '../../../../entities/permission/permission.fixtures';
 import { ConfigService } from '../../../../services/config.service';
 import { TESTING_BASE_URL } from '../../../../testing/app-testing.module';
+import { ApplicationInvitationCreateDialogComponent } from '../application-invitation-create-dialog/application-invitation-create-dialog.component';
 
 describe('ApplicationTabInvitationsComponent', () => {
   let fixture: ComponentFixture<ApplicationTabInvitationsComponent>;
@@ -180,6 +183,45 @@ describe('ApplicationTabInvitationsComponent', () => {
     const harness = await getHarness();
     expect(await harness.getPaginatedTable()).toBeNull();
     expect(await harness.getSearchBar()).toBeNull();
+  });
+
+  it('should show create invitation button when user has MEMBER[C] permission', async () => {
+    fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'C'] }));
+
+    const harness = await flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()]));
+
+    expect(await harness.getCreateInvitationButton()).not.toBeNull();
+  });
+
+  it('should hide create invitation button when user lacks MEMBER[C] permission', async () => {
+    const harness = await flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()]));
+
+    expect(await harness.getCreateInvitationButton()).toBeNull();
+  });
+
+  it('should open create invitation dialog and reload invitations after successful creation', async () => {
+    fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'C'] }));
+    const afterClosed = new Subject<boolean>();
+    const openDialogSpy = jest.spyOn(fixture.debugElement.injector.get(MatDialog), 'open').mockReturnValue({
+      afterClosed: () => afterClosed.asObservable(),
+    } as MatDialogRef<ApplicationInvitationCreateDialogComponent, boolean>);
+    const harness = await flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()]));
+
+    await harness.clickCreateInvitation();
+    fixture.detectChanges();
+
+    expect(openDialogSpy).toHaveBeenCalledWith(ApplicationInvitationCreateDialogComponent, {
+      data: { applicationId },
+      disableClose: true,
+    });
+
+    afterClosed.next(true);
+    afterClosed.complete();
+    fixture.detectChanges();
+    httpTestingController
+      .expectOne(req => req.url.includes('invitations/_search'))
+      .flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()], 2));
+    await fixture.whenStable();
   });
 
   describe('search behavior', () => {
