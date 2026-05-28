@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BotIcon, KeyIcon, LayoutDashboardIcon, RadioIcon, ScrollTextIcon, WaypointsIcon } from '@gravitee/graphene-core/icons';
+import { BotIcon, KeyIcon, LayoutDashboardIcon, RadioIcon, WaypointsIcon } from '@gravitee/graphene-core/icons';
 import type { LucideIcon } from '@gravitee/graphene-core/icons';
 
 import type { Accent } from '../accents';
@@ -89,13 +89,6 @@ export const APPLICATIONS: readonly Application[] = [
         moduleId: 'authz', // plugin.properties#id of gravitee-gamma-module-authz
         Icon: KeyIcon,
         accent: 'success', // allows / grants
-    },
-    {
-        kind: 'coming-soon',
-        title: 'Catalog',
-        description: 'Browse available APIs, event streams, and MCP tools in a unified, searchable catalog.',
-        Icon: ScrollTextIcon,
-        accent: 'accent', // neutral — inventory/listing
     },
     {
         kind: 'coming-soon',
