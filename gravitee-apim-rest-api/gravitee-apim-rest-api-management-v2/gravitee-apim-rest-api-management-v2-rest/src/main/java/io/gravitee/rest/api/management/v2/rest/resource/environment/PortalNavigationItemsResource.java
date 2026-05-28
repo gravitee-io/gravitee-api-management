@@ -149,10 +149,10 @@ public class PortalNavigationItemsResource extends AbstractResource {
         final var executionContext = GraviteeContext.getExecutionContext();
 
         seedDefaultPagesForApiNavigationItemsUseCase.execute(
-            new SeedDefaultPagesForApiNavigationItemsUseCase.Input(
+            mapper.mapSeedDefaultPagesInput(
                 executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
-                seedDefaultPagesRequest.getIds().stream().map(PortalNavigationItemId::of).toList()
+                seedDefaultPagesRequest
             )
         );
 

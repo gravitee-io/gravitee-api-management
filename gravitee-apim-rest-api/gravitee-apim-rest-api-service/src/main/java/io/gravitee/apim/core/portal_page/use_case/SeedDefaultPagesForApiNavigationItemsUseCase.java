@@ -16,7 +16,6 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
@@ -26,7 +25,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
-import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.ArrayList;
@@ -82,12 +80,7 @@ public class SeedDefaultPagesForApiNavigationItemsUseCase {
         }
 
         var content = portalPageContentCrudService.create(
-            new GraviteeMarkdownPageContent(
-                PortalPageContentId.random(),
-                organizationId,
-                environmentId,
-                GraviteeMarkdown.of(loadContent(DEFAULT_OVERVIEW_TEMPLATE))
-            )
+            GraviteeMarkdownPageContent.create(organizationId, environmentId, loadContent(DEFAULT_OVERVIEW_TEMPLATE))
         );
 
         portalNavigationItemDomainService.create(
