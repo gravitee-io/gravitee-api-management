@@ -530,17 +530,25 @@ public interface ApiMapper {
     default PatchApiUseCase.ApiV4Fields mapToCoreApi(ApiV4 apiV4) {
         List<Listener> listeners = apiV4.getListeners() == null
             ? null
-            : ListenerMapper.INSTANCE.mapToListenerEntityV4List(apiV4.getListeners()).stream().filter(Objects::nonNull).toList();
+            : rejectNulls(ListenerMapper.INSTANCE.mapToListenerEntityV4List(apiV4.getListeners()), "listeners");
         List<EndpointGroup> endpointGroups = apiV4.getEndpointGroups() == null
             ? null
-            : EndpointMapper.INSTANCE.mapEndpointGroupsHttpV4(apiV4.getEndpointGroups()).stream().filter(Objects::nonNull).toList();
-        List<Flow> flows = apiV4.getFlows() == null
-            ? null
-            : FlowMapper.INSTANCE.mapToHttpV4(apiV4.getFlows()).stream().filter(Objects::nonNull).toList();
+            : rejectNulls(EndpointMapper.INSTANCE.mapEndpointGroupsHttpV4(apiV4.getEndpointGroups()), "endpointGroups");
+        List<Flow> flows = apiV4.getFlows() == null ? null : rejectNulls(FlowMapper.INSTANCE.mapToHttpV4(apiV4.getFlows()), "flows");
         List<Resource> resources = apiV4.getResources() == null
             ? null
-            : apiV4.getResources().stream().map(ResourceMapper.INSTANCE::mapToV4).filter(Objects::nonNull).toList();
+            : rejectNulls(apiV4.getResources().stream().map(ResourceMapper.INSTANCE::mapToV4).toList(), "resources");
         return new PatchApiUseCase.ApiV4Fields(listeners, endpointGroups, flows, resources);
+    }
+
+    private static <T> List<T> rejectNulls(List<T> list, String fieldName) {
+        return list
+            .stream()
+            .map(item -> {
+                if (item == null) throw new IllegalArgumentException(fieldName + " list contains a null element");
+                return item;
+            })
+            .toList();
     }
 
     @Named("computeOriginContext")
