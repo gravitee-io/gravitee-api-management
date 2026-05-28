@@ -16,9 +16,10 @@
 import { AppLayout, AppSidebar, ContentHeader, LayoutSlotsProvider, TopNavUser, useLayoutSlots } from '@gravitee/graphene-core';
 import { Globe } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useCallback, useMemo } from 'react';
+import { Suspense, useCallback, useMemo } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
+import { ContentSkeleton } from './ContentSkeleton';
 import { useLogout, useUser } from '../../features/auth';
 import { useEnvironmentStore } from '../../features/environment/environment.store';
 import { useEnvHrid, getPrimaryHrid } from '../../features/environment/environment.utils';
@@ -138,7 +139,9 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
                 />
             }
         >
-            <Outlet />
+            <Suspense fallback={<ContentSkeleton />}>
+                <Outlet />
+            </Suspense>
         </AppLayout>
     );
 }

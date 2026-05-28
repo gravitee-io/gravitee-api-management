@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ThemeProvider } from '@gravitee/graphene-core';
+import { Spinner, ThemeProvider } from '@gravitee/graphene-core';
 import { StrictMode, Suspense } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
@@ -39,7 +39,13 @@ runApplicationBootstrap().then(() => {
                             </div>
                         )}
                     >
-                        <Suspense fallback={<div>Loading…</div>}>
+                        <Suspense
+                            fallback={
+                                <div className="flex min-h-screen items-center justify-center">
+                                    <Spinner className="size-8" aria-label="Loading application" />
+                                </div>
+                            }
+                        >
                             <AppRoutes />
                         </Suspense>
                     </ErrorBoundary>
