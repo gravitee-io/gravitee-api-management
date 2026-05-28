@@ -74,7 +74,7 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
         envs.reduce(
           (res, env) => ({
             ...res,
-            [env.name]: this.apiV2Service.listAll({
+            [env.name]: this.apiV2Service.getAll({
               environmentId: env.id,
             }),
           }),
