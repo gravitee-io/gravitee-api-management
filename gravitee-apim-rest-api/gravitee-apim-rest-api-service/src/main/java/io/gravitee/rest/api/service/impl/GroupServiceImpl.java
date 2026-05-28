@@ -1069,6 +1069,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
         Group group = new Group();
         group.setId(entity.getId());
+        group.setHrid(entity.getHrid());
         group.setName(entity.getName());
 
         if (entity.getEventRules() != null && !entity.getEventRules().isEmpty()) {

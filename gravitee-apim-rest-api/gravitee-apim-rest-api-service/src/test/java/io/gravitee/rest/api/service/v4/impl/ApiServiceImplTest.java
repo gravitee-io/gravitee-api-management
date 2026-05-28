@@ -437,7 +437,7 @@ public class ApiServiceImplTest {
     }
 
     @Test
-    public void shouldNotDeleteBecauseRunningState() throws TechnicalException {
+    public void should_not_delete_because_running_state() throws TechnicalException {
         assertThrows(ApiRunningStateException.class, () -> {
             Api api = new Api();
             api.setId(API_ID);
@@ -450,7 +450,7 @@ public class ApiServiceImplTest {
     }
 
     @Test
-    public void shouldDeleteWithNoPlan() throws TechnicalException {
+    public void should_delete_with_no_plan() throws TechnicalException {
         Api api = new Api();
         api.setId(API_ID);
         api.setLifecycleState(LifecycleState.STOPPED);
@@ -473,7 +473,7 @@ public class ApiServiceImplTest {
     }
 
     @Test
-    public void shouldRemoveApiFromAllApiProductsWhenDeleting() throws TechnicalException {
+    public void should_remove_api_from_all_api_products_when_deleting() throws TechnicalException {
         Api api = new Api();
         api.setId(API_ID);
         api.setLifecycleState(LifecycleState.STOPPED);
@@ -831,7 +831,7 @@ public class ApiServiceImplTest {
     }
 
     @Test
-    public void shouldPreserveHridWhenUpdateEntityDoesNotProvideOne() throws TechnicalException {
+    public void should_preserve_hrid_when_update_entity_does_not_provide_one() throws TechnicalException {
         prepareUpdate();
         api.setHrid("api-hrid");
         updateApiEntity.setHrid(null);
@@ -839,6 +839,17 @@ public class ApiServiceImplTest {
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
 
         verify(apiRepository).update(argThat(updated -> "api-hrid".equals(updated.getHrid())));
+    }
+
+    @Test
+    public void should_use_hrid_from_update_entity_when_provided() throws TechnicalException {
+        prepareUpdate();
+        api.setHrid("old-hrid");
+        updateApiEntity.setHrid("new-hrid");
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+
+        verify(apiRepository).update(argThat(updated -> "new-hrid".equals(updated.getHrid())));
     }
 
     @Test
