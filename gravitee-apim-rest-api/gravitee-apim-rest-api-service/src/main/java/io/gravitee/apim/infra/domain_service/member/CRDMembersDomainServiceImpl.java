@@ -21,6 +21,7 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.group.model.crd.GroupCRDSpec;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
 import io.gravitee.apim.core.member.model.RoleScope;
+import io.gravitee.apim.core.member.model.SystemRole;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.core.utils.StringUtils;
@@ -83,6 +84,48 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
         deleteOrphans(auditInfo, groupId, RoleScope.API, MembershipReferenceType.GROUP, apiMembers);
         deleteOrphans(auditInfo, groupId, RoleScope.APPLICATION, MembershipReferenceType.GROUP, applicationMembers);
         deleteOrphans(auditInfo, groupId, RoleScope.INTEGRATION, MembershipReferenceType.GROUP, integrationMembers);
+    }
+
+    @Override
+    public void updateGroupDefaultRoles(AuditInfo auditInfo, String groupId, String apiRole, String applicationRole) {
+        var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
+
+        if (!StringUtils.isEmpty(apiRole)) {
+            updateDefaultRole(executionContext, groupId, apiRole, RoleScope.API);
+        }
+
+        if (!StringUtils.isEmpty(applicationRole)) {
+            updateDefaultRole(executionContext, groupId, applicationRole, RoleScope.APPLICATION);
+        }
+    }
+
+    private void updateDefaultRole(ExecutionContext executionContext, String groupId, String roleName, RoleScope roleScope) {
+        if (SystemRole.PRIMARY_OWNER.name().equals(roleName)) {
+            return;
+        }
+
+        var referenceType = MembershipReferenceType.valueOf(roleScope.name());
+        var currentRole = membershipService
+            .getRoles(referenceType, null, MembershipMemberType.GROUP, groupId)
+            .stream()
+            .findFirst()
+            .map(RoleEntity::getName)
+            .orElse(null);
+
+        if (roleName.equals(currentRole)) {
+            return;
+        }
+
+        if (currentRole != null) {
+            membershipService.deleteReferenceMember(executionContext, referenceType, null, MembershipMemberType.GROUP, groupId);
+        }
+
+        membershipService.addRoleToMemberOnReference(
+            executionContext,
+            new MembershipService.MembershipReference(referenceType, null),
+            new MembershipService.MembershipMember(groupId, null, MembershipMemberType.GROUP),
+            new MembershipService.MembershipRole(mapRoleScope(roleScope), roleName)
+        );
     }
 
     private void updateMembers(

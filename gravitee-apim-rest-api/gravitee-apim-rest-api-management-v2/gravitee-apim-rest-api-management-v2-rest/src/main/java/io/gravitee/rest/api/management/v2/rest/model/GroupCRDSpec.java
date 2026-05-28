@@ -40,6 +40,10 @@ public class GroupCRDSpec {
 
     private boolean notifyMembers;
 
+    private String apiRole;
+
+    private String applicationRole;
+
     @AllArgsConstructor
     @NoArgsConstructor
     @Data
