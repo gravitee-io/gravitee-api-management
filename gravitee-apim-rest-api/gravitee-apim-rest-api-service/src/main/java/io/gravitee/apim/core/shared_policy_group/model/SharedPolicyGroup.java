@@ -193,7 +193,7 @@ public class SharedPolicyGroup {
 
     public SharedPolicyGroup update(UpdateSharedPolicyGroup updateSharedPolicyGroup) {
         return this.toBuilder()
-            .hrid(updateSharedPolicyGroup.getHrid())
+            .hrid(updateSharedPolicyGroup.getHrid() == null ? this.getHrid() : updateSharedPolicyGroup.getHrid())
             .crossId(updateSharedPolicyGroup.getCrossId() == null ? this.getCrossId() : updateSharedPolicyGroup.getCrossId())
             .name(updateSharedPolicyGroup.getName() == null ? this.getName() : updateSharedPolicyGroup.getName())
             .description(
