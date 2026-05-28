@@ -2,6 +2,10 @@
 
 This repository contains multiple backend modules in Java (Maven) and multiple frontend applications and libraries in Angular.
 
+## Setup, build, and runtime
+
+For setup, build, and runtime instructions, read `CONTRIBUTING.adoc`, section **AI Agent Context (Docker Compose Full Stack)**. That section is the source of truth for AI tools.
+
 ## Common rules
 
 Shared coding standards live under [`.agent-rules/`](.agent-rules/).
