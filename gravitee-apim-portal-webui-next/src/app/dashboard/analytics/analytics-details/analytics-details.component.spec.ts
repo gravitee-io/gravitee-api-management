@@ -120,4 +120,16 @@ describe('AnalyticsDetailsComponent', () => {
     const breadcrumbs = breadcrumbService.breadcrumbs();
     expect(breadcrumbs[1].label).toBe(DASHBOARD_ID);
   });
+
+  it('should_display_dynamic_filter_bar', async () => {
+    await setup();
+    expect(await harness.isFilterBarDisplayed()).toBe(true);
+  });
+
+  it('should_pass_request_filters_to_gd_dashboard', async () => {
+    await setup();
+    const dashboardElement = fixture.nativeElement.querySelector('gd-dashboard');
+    expect(dashboardElement).not.toBeNull();
+    expect(fixture.componentInstance.filtersStore.requestFilters()).toEqual([]);
+  });
 });

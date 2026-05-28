@@ -18,8 +18,18 @@
   width: 100%;
 }
 
+.analytics-details__toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-right: 32px;
+}
+
 .analytics-details__timeframe {
   display: flex;
   justify-content: flex-end;
-  margin-right: 32px;
+}
+
+.analytics-details__filters {
+  display: flex;
 }

@@ -22,15 +22,35 @@
     An error occurred while loading the dashboard. Try again later or contact your Portal administrator.
   </app-banner>
 } @else if (dashboard(); as db) {
-  <gd-dashboard [dashboard]="db" [baseURL]="baseURL" [timeRange]="timeRange()" [interval]="interval()" [refreshToken]="refreshToken()">
-    <div gdToolbarBelow class="analytics-details__timeframe">
-      <gd-timeframe-selector
-        data-testid="analytics-details-timeframe"
-        [formControl]="periodControl"
-        [timeFrames]="timeFrames"
-        [defaultPeriod]="defaultPeriod"
-        (refresh)="refresh()"
-      />
+  <gd-dashboard
+    [dashboard]="db"
+    [baseURL]="baseURL"
+    [timeRange]="timeRange()"
+    [interval]="interval()"
+    [refreshToken]="refreshToken()"
+    [requestFilters]="filtersStore.requestFilters()"
+  >
+    <div gdToolbarBelow class="analytics-details__toolbar">
+      <div class="analytics-details__timeframe">
+        <gd-timeframe-selector
+          data-testid="analytics-details-timeframe"
+          [formControl]="periodControl"
+          [timeFrames]="timeFrames"
+          [defaultPeriod]="defaultPeriod"
+          (refresh)="refresh()"
+        />
+      </div>
+      <div class="analytics-details__filters">
+        <gd-dynamic-filter-bar
+          data-testid="analytics-details-filters"
+          [conditions]="filtersStore.conditions()"
+          [editable]="true"
+          (addRequested)="openAddFilter()"
+          (editRequested)="openEditFilter($event.index, $event.condition)"
+          (removeRequested)="filtersStore.remove($event)"
+          (clearRequested)="filtersStore.clear()"
+        />
+      </div>
     </div>
   </gd-dashboard>
 }
