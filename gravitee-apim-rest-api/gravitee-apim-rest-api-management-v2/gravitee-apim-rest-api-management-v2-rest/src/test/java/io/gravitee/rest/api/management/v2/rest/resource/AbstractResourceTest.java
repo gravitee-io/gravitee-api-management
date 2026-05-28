@@ -25,6 +25,7 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.ApplicationMetadataCrudServiceInMemory;
 import inmemory.ApplicationMetadataQueryServiceInMemory;
+import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
 import inmemory.GroupCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
@@ -245,6 +246,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected PortalPageContentCrudServiceInMemory portalPageContentCrudService;
+
+    @Autowired
+    protected CRDMembersDomainServiceInMemory crdMembersDomainServiceInMemory;
 
     @BeforeEach
     public void setUp() {
