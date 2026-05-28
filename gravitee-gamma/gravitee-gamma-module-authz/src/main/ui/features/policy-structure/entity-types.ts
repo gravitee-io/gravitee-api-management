@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-export type EntityCategoryId = 'principal' | 'mcp' | 'api' | 'agent' | 'llm' | 'event' | 'custom';
+export type EntityCategoryId = 'principal' | 'mcp' | 'api' | 'agent' | 'model' | 'event' | 'custom';
 
 export interface EntityCategory {
     id: EntityCategoryId;
     label: string;
+    textColor: string;
 }
 
+// chart-1..chart-10 are graphene's categorical palette (designed for distinct categories).
+// We pick a stable mapping per entity category; custom falls back to a neutral muted tone.
 export const CATEGORIES: EntityCategory[] = [
-    { id: 'principal', label: 'Principals' },
-    { id: 'mcp', label: 'MCP' },
-    { id: 'api', label: 'APIs' },
-    { id: 'agent', label: 'Agents' },
-    { id: 'llm', label: 'LLMs' },
-    { id: 'event', label: 'Events' },
-    { id: 'custom', label: 'Custom' },
+    { id: 'principal', label: 'Principals', textColor: 'text-chart-1' },
+    { id: 'mcp', label: 'MCP', textColor: 'text-chart-2' },
+    { id: 'api', label: 'APIs', textColor: 'text-chart-8' },
+    { id: 'agent', label: 'Agents', textColor: 'text-chart-7' },
+    { id: 'model', label: 'AI Models', textColor: 'text-chart-5' },
+    { id: 'event', label: 'Events', textColor: 'text-chart-10' },
+    { id: 'custom', label: 'Custom', textColor: 'text-muted-foreground' },
 ];
 
 export function getCategory(id: EntityCategoryId): EntityCategory | undefined {
@@ -56,9 +59,7 @@ const ENTITY_CATEGORIES: Readonly<Record<string, EntityCategoryId>> = {
     AgentMemory: 'agent',
     AgentKnowledge: 'agent',
 
-    LLMRoute: 'llm',
-    LLMModel: 'llm',
-    LLMProvider: 'llm',
+    Model: 'model',
 
     EventStream: 'event',
     Topic: 'event',

@@ -21,6 +21,26 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { EntityResponse } from '../../../shared/api/authz-api.types';
 import { EntitiesPage } from '../EntitiesPage';
 
+const toastSuccessSpy = vi.fn();
+const toastErrorSpy = vi.fn();
+
+vi.mock('@gravitee/graphene-core', async importOriginal => {
+    const actual = await importOriginal<Record<string, unknown>>();
+    return {
+        ...actual,
+        toast: {
+            success: (msg: string) => toastSuccessSpy(msg),
+            error: (msg: string) => toastErrorSpy(msg),
+        },
+    };
+});
+
+// The dialog itself is unit-tested separately (ImportFromCatalogDialog.test.tsx);
+// here we just need it to render without firing real catalog queries.
+vi.mock('../ImportFromCatalogDialog', () => ({
+    ImportFromCatalogDialog: ({ open }: { open: boolean }) => (open ? <div data-testid="import-dialog-stub" /> : null),
+}));
+
 // jsdom doesn't implement scrollIntoView; Radix Select calls it on item activation.
 beforeAll(() => {
     if (!Element.prototype.scrollIntoView) {
@@ -36,6 +56,7 @@ interface ListEntitiesParams {
 }
 
 const listEntitiesSpy = vi.fn();
+const deleteEntitySpy = vi.fn();
 
 vi.mock('@gravitee/gamma-modules-sdk', async importOriginal => ({
     ...(await importOriginal<object>()),
@@ -46,6 +67,7 @@ vi.mock('../../../shared/api/authz-api.service', () => ({
     DEFAULT_PER_PAGE: 10,
     authzApiService: {
         listEntities: (env: string, params?: ListEntitiesParams) => listEntitiesSpy(env, params),
+        deleteEntity: (env: string, entityId: string) => deleteEntitySpy(env, entityId),
     },
 }));
 
@@ -91,6 +113,9 @@ function mockByKind(opts: {
 
 beforeEach(() => {
     listEntitiesSpy.mockReset();
+    deleteEntitySpy.mockReset();
+    toastSuccessSpy.mockReset();
+    toastErrorSpy.mockReset();
 });
 
 describe('EntitiesPage', () => {
@@ -178,5 +203,121 @@ describe('EntitiesPage', () => {
             expect(screen.queryByText('bob')).not.toBeInTheDocument();
             expect(screen.getAllByText('alice').length).toBeGreaterThan(0);
         });
+    });
+
+    it('exposes the Import-from-Catalog button only on the Resources tab', async () => {
+        mockByKind({
+            principals: [makeEntity({ id: 'p1', uid: 'user.alice' })],
+            resources: [makeEntity({ id: 'r1', uid: 'mcp.flight' })],
+        });
+        renderPage();
+
+        await waitFor(() => expect(screen.getAllByText('alice').length).toBeGreaterThan(0));
+        expect(screen.queryByRole('button', { name: /Import from Context Catalog/i })).not.toBeInTheDocument();
+
+        const user = userEvent.setup();
+        await user.click(screen.getByRole('tab', { name: /Resources/i }));
+
+        await waitFor(() => expect(screen.getByRole('button', { name: /Import from Context Catalog/i })).toBeInTheDocument());
+    });
+
+    it('opens the import dialog stub when the button is clicked', async () => {
+        mockByKind({ resources: [makeEntity({ id: 'r1', uid: 'mcp.flight' })] });
+        renderPage();
+
+        const user = userEvent.setup();
+        await user.click(screen.getByRole('tab', { name: /Resources/i }));
+        await waitFor(() => expect(screen.getByRole('button', { name: /Import from Context Catalog/i })).toBeInTheDocument());
+
+        expect(screen.queryByTestId('import-dialog-stub')).not.toBeInTheDocument();
+        await user.click(screen.getByRole('button', { name: /Import from Context Catalog/i }));
+        expect(screen.getByTestId('import-dialog-stub')).toBeInTheDocument();
+    });
+
+    it('shows the row-level Remove action only on the Resources tab', async () => {
+        mockByKind({
+            principals: [makeEntity({ id: 'p1', uid: 'user.alice' })],
+            resources: [makeEntity({ id: 'r1', uid: 'mcp.flight' })],
+        });
+        renderPage();
+
+        await waitFor(() => expect(screen.getAllByText('alice').length).toBeGreaterThan(0));
+        // Principal rows have no Delete button.
+        expect(screen.queryByLabelText('Delete user.alice')).not.toBeInTheDocument();
+
+        const user = userEvent.setup();
+        await user.click(screen.getByRole('tab', { name: /Resources/i }));
+
+        await waitFor(() => expect(screen.getByLabelText('Delete mcp.flight')).toBeInTheDocument());
+    });
+
+    it('opens the Remove confirmation dialog when the trash icon is clicked', async () => {
+        mockByKind({
+            resources: [makeEntity({ id: 'r1', uid: 'mcp.flight', attributes: { _displayName: 'Flight Status' } })],
+        });
+        renderPage();
+
+        const user = userEvent.setup();
+        await user.click(screen.getByRole('tab', { name: /Resources/i }));
+
+        await waitFor(() => expect(screen.getByLabelText('Delete mcp.flight')).toBeInTheDocument());
+        await user.click(screen.getByLabelText('Delete mcp.flight'));
+
+        const dialog = await screen.findByRole('dialog');
+        expect(within(dialog).getByText('Remove entity from Authorization?')).toBeInTheDocument();
+        expect(within(dialog).getByText(/mcp\.flight/)).toBeInTheDocument();
+        expect(deleteEntitySpy).not.toHaveBeenCalled();
+    });
+
+    it('does not call deleteEntity when the confirmation dialog is cancelled', async () => {
+        mockByKind({ resources: [makeEntity({ id: 'r1', uid: 'mcp.flight' })] });
+        renderPage();
+
+        const user = userEvent.setup();
+        await user.click(screen.getByRole('tab', { name: /Resources/i }));
+        await waitFor(() => expect(screen.getByLabelText('Delete mcp.flight')).toBeInTheDocument());
+        await user.click(screen.getByLabelText('Delete mcp.flight'));
+
+        const dialog = await screen.findByRole('dialog');
+        await user.click(within(dialog).getByRole('button', { name: /^Cancel$/i }));
+
+        await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+        expect(deleteEntitySpy).not.toHaveBeenCalled();
+    });
+
+    it('calls deleteEntity, fires toast.success, and closes the dialog on confirm', async () => {
+        mockByKind({ resources: [makeEntity({ id: 'r1', uid: 'mcp.flight' })] });
+        deleteEntitySpy.mockResolvedValue(undefined);
+        renderPage();
+
+        const user = userEvent.setup();
+        await user.click(screen.getByRole('tab', { name: /Resources/i }));
+        await waitFor(() => expect(screen.getByLabelText('Delete mcp.flight')).toBeInTheDocument());
+        await user.click(screen.getByLabelText('Delete mcp.flight'));
+
+        const dialog = await screen.findByRole('dialog');
+        await user.click(within(dialog).getByRole('button', { name: /Confirm remove/i }));
+
+        await waitFor(() => expect(deleteEntitySpy).toHaveBeenCalledWith('DEFAULT', 'mcp.flight'));
+        await waitFor(() => expect(toastSuccessSpy).toHaveBeenCalled());
+        await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    });
+
+    it('keeps the dialog open and surfaces a toast.error when delete fails', async () => {
+        mockByKind({ resources: [makeEntity({ id: 'r1', uid: 'mcp.flight' })] });
+        deleteEntitySpy.mockRejectedValue(new Error('upstream 500'));
+        renderPage();
+
+        const user = userEvent.setup();
+        await user.click(screen.getByRole('tab', { name: /Resources/i }));
+        await waitFor(() => expect(screen.getByLabelText('Delete mcp.flight')).toBeInTheDocument());
+        await user.click(screen.getByLabelText('Delete mcp.flight'));
+
+        const dialog = await screen.findByRole('dialog');
+        await user.click(within(dialog).getByRole('button', { name: /Confirm remove/i }));
+
+        await waitFor(() => expect(toastErrorSpy).toHaveBeenCalledWith(expect.stringContaining('upstream 500')));
+        // Dialog stays open after a failed delete so the user can retry / cancel.
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
 });

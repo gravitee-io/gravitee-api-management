@@ -17,10 +17,11 @@ export type AttrValue = string | number | boolean;
 
 /**
  * Where an entity record came from.
- *   - `local` : hand-created in Authorization (fully editable).
- *   - `apim`  : derived from an APIM-managed API (read-only).
+ *   - `local`            : hand-created in Authorization (fully editable).
+ *   - `apim`             : derived from an APIM-managed API (read-only).
+ *   - `gravitee-catalog` : imported from the AIM Context Catalog (read-only).
  */
-export type EntitySource = 'local' | 'apim';
+export type EntitySource = 'local' | 'apim' | 'gravitee-catalog';
 
 export interface EntityInstance {
     uid: { type: string; id: string };
