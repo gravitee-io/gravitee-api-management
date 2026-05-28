@@ -16,15 +16,18 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.util.DataEncryptor;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AmConnectionRepository;
 import io.gravitee.repository.management.model.AmConnection;
 import io.gravitee.rest.api.model.AmConnectionEntity;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.security.GeneralSecurityException;
 import java.util.Optional;
 import org.junit.Before;
@@ -32,6 +35,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.mock.env.MockEnvironment;
 
@@ -147,6 +151,44 @@ public class AmConnectionServiceImplTest {
         assertThat(result).isPresent();
         assertThat(result.get().getServiceAccountAccessToken()).isEqualTo("secret-token");
         assertThat(result.get().getBaseUrl()).isEqualTo("https://am.example.com");
+    }
+
+    @Test
+    public void save_throws_when_encryption_fails() throws Exception {
+        DataEncryptor brokenEncryptor = Mockito.mock(DataEncryptor.class);
+        when(brokenEncryptor.encrypt(any())).thenThrow(new GeneralSecurityException("key error"));
+        AmConnectionServiceImpl broken = new AmConnectionServiceImpl(amConnectionRepository, brokenEncryptor);
+
+        when(amConnectionRepository.findByOrganizationId("org-1")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> broken.save("org-1", entity("https://am.example.com", "tok")))
+            .isInstanceOf(TechnicalManagementException.class)
+            .hasMessageContaining("encrypt");
+    }
+
+    @Test
+    public void find_throws_when_decryption_fails() throws Exception {
+        DataEncryptor brokenEncryptor = Mockito.mock(DataEncryptor.class);
+        when(brokenEncryptor.decrypt(any())).thenThrow(new GeneralSecurityException("corrupted"));
+        AmConnectionServiceImpl broken = new AmConnectionServiceImpl(amConnectionRepository, brokenEncryptor);
+
+        AmConnection stored = new AmConnection();
+        stored.setOrganizationId("org-1");
+        stored.setServiceAccountAccessTokenEncrypted("some-cipher");
+        when(amConnectionRepository.findByOrganizationId("org-1")).thenReturn(Optional.of(stored));
+
+        assertThatThrownBy(() -> broken.findByOrganizationId("org-1"))
+            .isInstanceOf(TechnicalManagementException.class)
+            .hasMessageContaining("decrypt");
+    }
+
+    @Test
+    public void find_wraps_repository_exception() throws Exception {
+        when(amConnectionRepository.findByOrganizationId("org-1")).thenThrow(new TechnicalException("DB down"));
+
+        assertThatThrownBy(() -> service.findByOrganizationId("org-1"))
+            .isInstanceOf(TechnicalManagementException.class)
+            .hasMessageContaining("org-1");
     }
 
     @Test

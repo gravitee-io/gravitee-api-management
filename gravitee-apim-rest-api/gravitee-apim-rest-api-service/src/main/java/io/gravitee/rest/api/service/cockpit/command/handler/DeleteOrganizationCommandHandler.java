@@ -52,6 +52,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
 
     private final AccessPointCrudService accessPointService;
     private final AccessPointRepository accessPointRepository;
+    private final AmConnectionRepository amConnectionRepository;
     private final AuditRepository auditRepository;
     private final CommandRepository commandRepository;
     private final CustomUserFieldsRepository customUserFieldsRepository;
@@ -81,6 +82,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
 
     public DeleteOrganizationCommandHandler(
         @Lazy AccessPointRepository accessPointRepository,
+        @Lazy AmConnectionRepository amConnectionRepository,
         @Lazy AuditRepository auditRepository,
         @Lazy CommandRepository commandRepository,
         @Lazy CustomUserFieldsRepository customUserFieldsRepository,
@@ -111,6 +113,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
     ) {
         this.accessPointRepository = accessPointRepository;
         this.accessPointService = accessPointService;
+        this.amConnectionRepository = amConnectionRepository;
         this.auditRepository = auditRepository;
         this.commandRepository = commandRepository;
         this.customUserFieldsRepository = customUserFieldsRepository;
@@ -233,5 +236,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         );
         entrypointRepository.deleteByReferenceIdAndReferenceType(organization.getId(), EntrypointReferenceType.ORGANIZATION);
         clusterRepository.deleteByOrganizationId(organization.getId());
+        log.debug("Deleting am connection for organization [{}]", organization.getId());
+        amConnectionRepository.delete(organization.getId());
     }
 }

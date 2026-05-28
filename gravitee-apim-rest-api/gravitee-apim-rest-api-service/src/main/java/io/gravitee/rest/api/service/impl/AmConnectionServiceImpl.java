@@ -134,8 +134,7 @@ public class AmConnectionServiceImpl implements AmConnectionService {
         try {
             return dataEncryptor.decrypt(ciphertext);
         } catch (GeneralSecurityException | IllegalArgumentException e) {
-            log.warn("Failed to decrypt am service account access token, treating it as absent", e);
-            return null;
+            throw new TechnicalManagementException("Failed to decrypt am service account access token", e);
         }
     }
 
