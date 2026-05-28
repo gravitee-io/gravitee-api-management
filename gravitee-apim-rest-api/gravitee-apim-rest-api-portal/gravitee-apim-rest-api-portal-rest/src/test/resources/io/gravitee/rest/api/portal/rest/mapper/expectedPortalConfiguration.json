@@ -138,5 +138,16 @@
   },
   "alert" : {
     "enabled" : true
+  },
+  "openAPIDocViewer" : {
+    "openAPIDocType" : {
+      "swagger" : {
+        "enabled" : true
+      },
+      "redoc" : {
+        "enabled" : false
+      },
+      "defaultType" : "Swagger"
+    }
   }
 }
