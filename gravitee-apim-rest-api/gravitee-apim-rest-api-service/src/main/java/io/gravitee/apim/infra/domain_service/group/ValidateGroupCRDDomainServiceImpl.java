@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.infra.domain_service.group;
 
+import static io.gravitee.apim.core.member.model.SystemRole.PRIMARY_OWNER;
+
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
 import io.gravitee.apim.core.group.model.crd.GroupCRDSpec;
@@ -35,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +60,7 @@ public class ValidateGroupCRDDomainServiceImpl implements ValidateGroupCRDDomain
 
         validateAndSanitizeId(input.spec().getId()).peek(id -> input.spec().setId(id), errors::addAll);
         validateAndSanitizedName(input.spec().getName()).peek(name -> input.spec().setName(name), errors::addAll);
+        validateAndSanitizeDefaultRoles(input, errors);
         validateAndSanitizeMembers(input).peek(members -> input.spec().setMembers(members), errors::addAll);
 
         return Result.ofBoth(input, errors);
@@ -78,6 +82,49 @@ public class ValidateGroupCRDDomainServiceImpl implements ValidateGroupCRDDomain
             return Result.ofErrors(List.of(Error.severe("property [name] must not be empty")));
         }
         return Result.ofValue(name);
+    }
+
+    private void validateAndSanitizeDefaultRoles(ValidateGroupCRDDomainService.Input input, ArrayList<Error> errors) {
+        validateAndSanitizeDefaultRole(input, input.spec().getApiRole(), RoleScope.API, role -> input.spec().setApiRole(role), errors);
+        validateAndSanitizeDefaultRole(
+            input,
+            input.spec().getApplicationRole(),
+            RoleScope.APPLICATION,
+            role -> input.spec().setApplicationRole(role),
+            errors
+        );
+    }
+
+    private void validateAndSanitizeDefaultRole(
+        ValidateGroupCRDDomainService.Input input,
+        String roleName,
+        RoleScope roleScope,
+        Consumer<String> roleSetter,
+        ArrayList<Error> errors
+    ) {
+        if (StringUtils.isEmpty(roleName)) {
+            return;
+        }
+
+        if (PRIMARY_OWNER.name().equals(roleName)) {
+            errors.add(Error.severe("setting primary owner as default %s role is not allowed", roleScope.name().toLowerCase()));
+            roleSetter.accept(null);
+            return;
+        }
+
+        roleService
+            .findByScopeAndName(
+                io.gravitee.rest.api.model.permissions.RoleScope.valueOf(roleScope.name()),
+                roleName,
+                input.auditInfo().organizationId()
+            )
+            .ifPresentOrElse(
+                role -> roleSetter.accept(role.getName()),
+                () -> {
+                    errors.add(Error.warning("default %s role [%s] doesn't exist", roleScope.name().toLowerCase(), roleName));
+                    roleSetter.accept(null);
+                }
+            );
     }
 
     private Result<Set<GroupCRDSpec.Member>> validateAndSanitizeMembers(ValidateGroupCRDDomainService.Input input) {

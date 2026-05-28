@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.group.use_case;
 
 import static org.assertj.core.api.SoftAssertions.*;
+import static org.mockito.Mockito.when;
 
 import fixtures.core.model.AuditInfoFixtures;
 import inmemory.CRDMembersDomainServiceInMemory;
@@ -28,10 +29,12 @@ import io.gravitee.apim.core.group.model.crd.GroupCRDSpec;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.member.model.RoleScope;
 import io.gravitee.apim.infra.domain_service.group.ValidateGroupCRDDomainServiceImpl;
+import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -102,6 +105,25 @@ public class ImportGroupCRDUseCaseTest {
             soft.assertThat(storage).hasSize(1);
             soft.assertThat(storage.get(GROUP_ID)).isNotNull();
             soft.assertThat(storage.get(GROUP_ID).getOrigin()).isEqualTo(OriginContext.Origin.KUBERNETES.name());
+        });
+    }
+
+    @Test
+    void should_set_default_roles_on_create() {
+        when(roleService.findByScopeAndName(io.gravitee.rest.api.model.permissions.RoleScope.API, "OWNER", ORGANIZATION_ID)).thenReturn(
+            Optional.of(RoleEntity.builder().name("OWNER").build())
+        );
+        when(
+            roleService.findByScopeAndName(io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION, "USER", ORGANIZATION_ID)
+        ).thenReturn(Optional.of(RoleEntity.builder().name("USER").build()));
+
+        var spec = GroupCRDSpec.builder().id(GROUP_ID).name("kubernetes-spec").apiRole("OWNER").applicationRole("USER");
+
+        cut.execute(new ImportGroupCRDUseCase.Input(AUDIT_INFO, spec.build()));
+
+        assertSoftly(soft -> {
+            soft.assertThat(membersService.getGroupApiRole(GROUP_ID)).isEqualTo("OWNER");
+            soft.assertThat(membersService.getGroupApplicationRole(GROUP_ID)).isEqualTo("USER");
         });
     }
 }

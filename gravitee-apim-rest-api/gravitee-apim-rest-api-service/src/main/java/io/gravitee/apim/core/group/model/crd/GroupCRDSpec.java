@@ -44,6 +44,10 @@ public class GroupCRDSpec {
 
     private boolean notifyMembers;
 
+    private String apiRole;
+
+    private String applicationRole;
+
     @Builder.Default
     private String origin = Origin.KUBERNETES.name();
 

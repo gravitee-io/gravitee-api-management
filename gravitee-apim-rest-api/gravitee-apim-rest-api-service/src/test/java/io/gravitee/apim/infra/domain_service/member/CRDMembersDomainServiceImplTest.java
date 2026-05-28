@@ -661,4 +661,76 @@ class CRDMembersDomainServiceImplTest {
             );
         }
     }
+
+    @Nested
+    class GroupDefaultRoles {
+
+        private static final String GROUP_ID = "group-id";
+
+        @BeforeEach
+        void setUp() {
+            reset(membershipService, roleService);
+        }
+
+        @Test
+        void should_set_default_roles() {
+            when(membershipService.getRoles(MembershipReferenceType.API, null, MembershipMemberType.GROUP, GROUP_ID)).thenReturn(Set.of());
+
+            cut.updateGroupDefaultRoles(AUDIT_INFO, GROUP_ID, "OWNER", null);
+
+            verify(membershipService).addRoleToMemberOnReference(
+                eq(new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId())),
+                argThat(ref -> ref.getType() == MembershipReferenceType.API && ref.getId() == null),
+                eq(new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP)),
+                eq(new MembershipService.MembershipRole(RoleScope.API, "OWNER"))
+            );
+        }
+
+        @Test
+        void should_replace_existing_default_role() {
+            when(membershipService.getRoles(MembershipReferenceType.API, null, MembershipMemberType.GROUP, GROUP_ID)).thenReturn(
+                Set.of(RoleEntity.builder().id("api-owner-role").name("OWNER").scope(RoleScope.API).build())
+            );
+
+            cut.updateGroupDefaultRoles(AUDIT_INFO, GROUP_ID, "USER", null);
+
+            verify(membershipService).deleteReferenceMember(
+                new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId()),
+                MembershipReferenceType.API,
+                null,
+                MembershipMemberType.GROUP,
+                GROUP_ID
+            );
+
+            verify(membershipService).addRoleToMemberOnReference(
+                eq(new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId())),
+                argThat(ref -> ref.getType() == MembershipReferenceType.API && ref.getId() == null),
+                eq(new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP)),
+                eq(new MembershipService.MembershipRole(RoleScope.API, "USER"))
+            );
+        }
+
+        @Test
+        void should_not_update_when_role_is_unchanged() {
+            when(membershipService.getRoles(MembershipReferenceType.API, null, MembershipMemberType.GROUP, GROUP_ID)).thenReturn(
+                Set.of(RoleEntity.builder().id("api-owner-role").name("OWNER").scope(RoleScope.API).build())
+            );
+
+            cut.updateGroupDefaultRoles(AUDIT_INFO, GROUP_ID, "OWNER", null);
+
+            verify(membershipService, never()).deleteReferenceMember(
+                any(),
+                eq(MembershipReferenceType.API),
+                eq(null),
+                eq(MembershipMemberType.GROUP),
+                eq(GROUP_ID)
+            );
+            verify(membershipService, never()).addRoleToMemberOnReference(
+                any(ExecutionContext.class),
+                any(MembershipService.MembershipReference.class),
+                any(MembershipService.MembershipMember.class),
+                any(MembershipService.MembershipRole.class)
+            );
+        }
+    }
 }

@@ -28,4 +28,6 @@ public interface CRDMembersDomainService {
     void updateApiMembers(AuditInfo auditInfo, String apiId, Set<MemberCRD> members);
     void updateApplicationMembers(AuditInfo auditInfo, String applicationId, Set<MemberCRD> members);
     void updateGroupMembers(AuditInfo auditInfo, String groupId, Set<GroupCRDSpec.Member> members);
+
+    void updateGroupDefaultRoles(AuditInfo auditInfo, String groupId, String apiRole, String applicationRole);
 }
