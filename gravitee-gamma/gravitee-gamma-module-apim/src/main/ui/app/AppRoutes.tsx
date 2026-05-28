@@ -55,6 +55,7 @@ import { ApiNotificationsPage } from '../features/apis/pages/detail/notification
 import { ApiPlanFormPage } from '../features/apis/pages/detail/plans/ApiPlanFormPage';
 import { ApiPlansPage } from '../features/apis/pages/detail/plans/ApiPlansPage';
 import { ApiPropertiesPage } from '../features/apis/pages/detail/properties/ApiPropertiesPage';
+import { ApiDynamicPropertiesPage } from '../features/apis/pages/detail/properties/dynamic/ApiDynamicPropertiesPage';
 import { ApiReporterSettingsPage } from '../features/apis/pages/detail/reporter-settings/ApiReporterSettingsPage';
 import { UserPermissionsPage } from '../features/apis/pages/detail/user-permissions/UserPermissionsPage';
 import { PolicyStudioPage } from '../features/apis/pages/policy-studio/PolicyStudioPage';
@@ -104,7 +105,10 @@ export function AppRoutes() {
                             <Route index element={<ApiDetailIndexRedirect />} />
                             <Route path="overview" element={<ApiDetailOverviewPage />} />
                             <Route path="general" element={<ApiGeneralPage />} />
-                            <Route path="properties" element={<ApiPropertiesPage />} />
+                            <Route path="properties">
+                                <Route index element={<ApiPropertiesPage />} />
+                                <Route path="dynamic" element={<ApiDynamicPropertiesPage />} />
+                            </Route>
                             <Route path="notifications" element={<ApiNotificationsPage />} />
                             <Route path="entrypoints" element={<ApiEntrypointsPage />} />
                             <Route path="cors" element={<ApiCorsPage />} />

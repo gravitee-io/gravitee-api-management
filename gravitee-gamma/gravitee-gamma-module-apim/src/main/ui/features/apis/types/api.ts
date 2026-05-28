@@ -341,11 +341,68 @@ export interface Property {
 
 export type DynamicPropertyProvider = 'HTTP' | 'CUSTOM';
 
+export interface DynamicPropertyHttpClientOptions {
+    connectTimeout?: number;
+    readTimeout?: number;
+    keepAliveTimeout?: number;
+    idleTimeout?: number;
+    maxConcurrentConnections?: number;
+    keepAlive?: boolean;
+    pipelining?: boolean;
+    useCompression?: boolean;
+    propagateClientAcceptEncoding?: boolean;
+    followRedirects?: boolean;
+}
+
+export interface DynamicPropertyHttpProxyOptions {
+    enabled?: boolean;
+    useSystemProxy?: boolean;
+    type?: string;
+    host?: string;
+    port?: number;
+    username?: string;
+    password?: string;
+}
+
+export interface DynamicPropertySslStore {
+    type: 'PEM' | 'JKS' | 'PKCS12';
+    path?: string;
+    password?: string;
+    alias?: string;
+    /** PEM cert path */
+    certPath?: string;
+    /** PEM key path */
+    keyPath?: string;
+    keyPassword?: string;
+    content?: string;
+    certContent?: string;
+    keyContent?: string;
+}
+
+export interface DynamicPropertySslOptions {
+    hostnameVerifier?: boolean;
+    trustAll?: boolean;
+    trustStore?: DynamicPropertySslStore | null;
+    keyStore?: DynamicPropertySslStore | null;
+}
+
+export interface DynamicPropertyHttpConfiguration {
+    method?: string;
+    url?: string;
+    headers?: { name: string; value: string }[];
+    body?: string;
+    specification?: string;
+    useSystemProxy?: boolean;
+    httpClientOptions?: DynamicPropertyHttpClientOptions;
+    httpProxyOptions?: DynamicPropertyHttpProxyOptions;
+    sslOptions?: DynamicPropertySslOptions;
+}
+
 export interface DynamicPropertyConfig {
     enabled: boolean;
     schedule?: string;
     provider?: DynamicPropertyProvider;
-    configuration?: Record<string, unknown>;
+    configuration?: DynamicPropertyHttpConfiguration;
 }
 
 // ─── Tenant ───────────────────────────────────────────────────────────────────

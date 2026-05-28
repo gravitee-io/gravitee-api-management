@@ -61,7 +61,7 @@ import {
 } from '@gravitee/graphene-core/icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { useApiDetail } from '../../../hooks/useApiDetail';
 import { updateApiProperties } from '../../../services/apis';
@@ -374,6 +374,7 @@ const PAGE_SIZE_OPTIONS = [10, 25, 50];
 
 export function ApiPropertiesPage() {
     const { apiId } = useParams<{ apiId: string }>();
+    const navigate = useNavigate();
     const env = useEnvironment();
     const queryClient = useQueryClient();
 
@@ -520,7 +521,7 @@ export function ApiPropertiesPage() {
                             Import
                         </Button>
                     ) : null}
-                    <Button variant="outline" size="sm" disabled>
+                    <Button variant="outline" size="sm" onClick={() => navigate('dynamic')} disabled={!canEdit}>
                         <ZapIcon className="size-4" />
                         Manage dynamically
                     </Button>
