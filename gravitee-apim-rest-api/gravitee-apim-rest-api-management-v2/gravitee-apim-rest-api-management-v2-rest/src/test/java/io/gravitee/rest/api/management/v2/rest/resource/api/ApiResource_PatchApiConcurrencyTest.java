@@ -57,6 +57,9 @@ public class ApiResource_PatchApiConcurrencyTest extends ApiResourceTest {
 
     private static final String MERGE_PATCH_TYPE = "application/merge-patch+json";
 
+    private static final Instant updatedAt = Instant.parse("2026-06-01T13:45:30Z");
+    private static final String updatedAtStr = String.format("\"%s\"", updatedAt.toEpochMilli());
+
     @Inject
     UpdateApiDomainService updateApiDomainService;
 
@@ -67,7 +70,6 @@ public class ApiResource_PatchApiConcurrencyTest extends ApiResourceTest {
 
     @BeforeEach
     void setUpApiAndPrimaryOwner() {
-        var updatedAt = Instant.ofEpochMilli(1000);
         var existingApi = ApiFixtures.aProxyApiV4()
             .toBuilder()
             .updatedAt(ZonedDateTime.ofInstant(updatedAt, ZoneId.systemDefault()))
@@ -118,7 +120,7 @@ public class ApiResource_PatchApiConcurrencyTest extends ApiResourceTest {
     void should_succeed_when_If_Match_matches_ETag() {
         var response = rootTarget(API)
             .request()
-            .header(HttpHeaders.IF_MATCH, "\"1000\"")
+            .header(HttpHeaders.IF_MATCH, updatedAtStr)
             .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
 
         assertThat(response).hasStatus(OK_200);
@@ -168,7 +170,7 @@ public class ApiResource_PatchApiConcurrencyTest extends ApiResourceTest {
         v2Entity.setId(API);
         v2Entity.setDefinitionVersion(DefinitionVersion.V2);
         v2Entity.setType(ApiType.PROXY);
-        v2Entity.setUpdatedAt(Date.from(Instant.ofEpochMilli(1000)));
+        v2Entity.setUpdatedAt(Date.from(updatedAt));
         when(apiSearchServiceV4.findGenericById(any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class))).thenReturn(
             v2Entity
         );
@@ -218,18 +220,18 @@ public class ApiResource_PatchApiConcurrencyTest extends ApiResourceTest {
     void should_return_new_ETag_and_Last_Modified_on_successful_patch() {
         var response = rootTarget(API)
             .request()
-            .header(HttpHeaders.IF_MATCH, "\"1000\"")
+            .header(HttpHeaders.IF_MATCH, updatedAtStr)
             .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
 
         assertThat(response).hasStatus(OK_200);
-        org.assertj.core.api.Assertions.assertThat(response.getHeaderString(HttpHeaders.ETAG)).isEqualTo("\"1000\"");
+        org.assertj.core.api.Assertions.assertThat(response.getHeaderString(HttpHeaders.ETAG)).isEqualTo(updatedAtStr);
         org.assertj.core.api.Assertions.assertThat(response.getHeaderString(HttpHeaders.LAST_MODIFIED)).isNotNull();
     }
 
     @Test
     void should_round_trip_GET_PATCH_GET_with_consistent_ETag_chain() {
         var firstGetEntity = fixtures.ApiFixtures.aModelHttpApiV4().toBuilder().id(API).name(API).build();
-        firstGetEntity.setUpdatedAt(Date.from(Instant.ofEpochMilli(1000)));
+        firstGetEntity.setUpdatedAt(Date.from(updatedAt));
         when(apiSearchServiceV4.findGenericById(any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class))).thenReturn(
             firstGetEntity
         );
@@ -237,7 +239,7 @@ public class ApiResource_PatchApiConcurrencyTest extends ApiResourceTest {
         var firstGetResponse = rootTarget(API).request().get();
         assertThat(firstGetResponse).hasStatus(OK_200);
         var firstEtag = firstGetResponse.getHeaderString(HttpHeaders.ETAG);
-        org.assertj.core.api.Assertions.assertThat(firstEtag).isEqualTo("\"1000\"");
+        org.assertj.core.api.Assertions.assertThat(firstEtag).isEqualTo(updatedAtStr);
 
         var newUpdatedAt = Instant.ofEpochMilli(2000);
         doAnswer(inv -> {
@@ -271,12 +273,45 @@ public class ApiResource_PatchApiConcurrencyTest extends ApiResourceTest {
     }
 
     @Test
+    void should_suppress_cache_headers_when_updatedAt_is_null_on_patch() {
+        var existingApi = ApiFixtures.aProxyApiV4().toBuilder().updatedAt(null).build();
+        apiCrudService.initWith(List.of(existingApi));
+
+        var apiEntity = new ApiEntity();
+        apiEntity.setId(API);
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setType(ApiType.PROXY);
+        apiEntity.setUpdatedAt(null);
+        when(apiSearchServiceV4.findGenericById(any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class))).thenReturn(
+            apiEntity
+        );
+
+        var response = rootTarget(API).request().method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
+
+        assertThat(response).hasStatus(OK_200);
+        org.assertj.core.api.Assertions.assertThat(response.getEntityTag()).isNull();
+        org.assertj.core.api.Assertions.assertThat(response.getLastModified()).isNull();
+    }
+
+    @Test
+    void should_have_Last_Modified_encoding_same_instant_as_ETag_on_successful_patch() {
+        var response = rootTarget(API)
+            .request()
+            .header(HttpHeaders.IF_MATCH, updatedAtStr)
+            .method("PATCH", Entity.entity("{\"name\":\"patched\"}", MERGE_PATCH_TYPE));
+
+        assertThat(response).hasStatus(OK_200);
+        org.assertj.core.api.Assertions.assertThat(response.getHeaderString(HttpHeaders.ETAG)).isEqualTo(updatedAtStr);
+        org.assertj.core.api.Assertions.assertThat(response.getLastModified().getTime()).isEqualTo(updatedAt.toEpochMilli());
+    }
+
+    @Test
     void should_reject_with_scope_error_for_native_api_even_when_If_Match_is_mismatched() {
         var nativeEntity = new NativeApiEntity();
         nativeEntity.setId(API);
         nativeEntity.setDefinitionVersion(DefinitionVersion.V4);
         nativeEntity.setType(ApiType.NATIVE);
-        nativeEntity.setUpdatedAt(Date.from(Instant.ofEpochMilli(1000)));
+        nativeEntity.setUpdatedAt(Date.from(updatedAt));
         when(apiSearchServiceV4.findGenericById(any(), eq(API), any(boolean.class), any(boolean.class), any(boolean.class))).thenReturn(
             nativeEntity
         );

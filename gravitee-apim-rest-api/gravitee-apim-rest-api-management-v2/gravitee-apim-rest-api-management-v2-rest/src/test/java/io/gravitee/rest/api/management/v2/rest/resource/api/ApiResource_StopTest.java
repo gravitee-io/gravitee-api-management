@@ -131,6 +131,7 @@ public class ApiResource_StopTest extends ApiResourceTest {
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
 
         assertEquals("\"" + updatedEntity.getUpdatedAt().getTime() + "\"", response.getHeaders().get("Etag").get(0));
+        assertEquals(updatedEntity.getUpdatedAt().getTime() / 1000, response.getLastModified().getTime() / 1000);
 
         verify(apiStateServiceV4, times(1)).stop(eq(GraviteeContext.getExecutionContext()), eq(API), eq(USER_NAME));
     }

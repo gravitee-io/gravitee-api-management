@@ -831,8 +831,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             final Response response = target.request().get();
 
             assertThat(response).hasStatus(OK_200).asEntity(PlanV4.class).isEqualTo(PlanMapper.INSTANCE.map(planEntity));
-            Assertions.assertThat(response.getEntityTag()).isEqualTo(new EntityTag(Long.toString(updatedAt.getTime())));
-            Assertions.assertThat(response.getLastModified().getTime() / 1000).isEqualTo(updatedAt.getTime() / 1000);
+            assertCacheHeaders(response, updatedAt);
         }
 
         @Test
@@ -850,8 +849,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             final Response response = target.request().get();
 
             assertThat(response).hasStatus(OK_200).asEntity(PlanV2.class).isEqualTo(PlanMapper.INSTANCE.map(planEntity));
-            Assertions.assertThat(response.getEntityTag()).isEqualTo(new EntityTag(Long.toString(updatedAt.getTime())));
-            Assertions.assertThat(response.getLastModified().getTime() / 1000).isEqualTo(updatedAt.getTime() / 1000);
+            assertCacheHeaders(response, updatedAt);
         }
 
         @Test
@@ -869,8 +867,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             final Response response = target.request().get();
 
             assertThat(response).hasStatus(OK_200).asEntity(PlanV4.class).isEqualTo(PlanMapper.INSTANCE.map(planEntity));
-            Assertions.assertThat(response.getEntityTag()).isEqualTo(new EntityTag(Long.toString(updatedAt.getTime())));
-            Assertions.assertThat(response.getLastModified().getTime() / 1000).isEqualTo(updatedAt.getTime() / 1000);
+            assertCacheHeaders(response, updatedAt);
         }
 
         @Test
@@ -887,8 +884,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             final Response response = target.request().get();
 
             assertThat(response).hasStatus(OK_200).asEntity(PlanV4.class).isEqualTo(PlanMapper.INSTANCE.map(planEntity));
-            Assertions.assertThat(response.getEntityTag()).isNull();
-            Assertions.assertThat(response.getLastModified()).isNull();
+            assertNoCacheHeaders(response);
         }
 
         @Test
@@ -905,6 +901,15 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             final Response response = target.request().get();
 
             assertThat(response).hasStatus(OK_200).asEntity(PlanV2.class).isEqualTo(PlanMapper.INSTANCE.map(planEntity));
+            assertNoCacheHeaders(response);
+        }
+
+        private void assertCacheHeaders(Response response, Date updatedAt) {
+            Assertions.assertThat(response.getEntityTag()).isEqualTo(new EntityTag(Long.toString(updatedAt.getTime())));
+            Assertions.assertThat(response.getLastModified().getTime() / 1000).isEqualTo(updatedAt.getTime() / 1000);
+        }
+
+        private void assertNoCacheHeaders(Response response) {
             Assertions.assertThat(response.getEntityTag()).isNull();
             Assertions.assertThat(response.getLastModified()).isNull();
         }

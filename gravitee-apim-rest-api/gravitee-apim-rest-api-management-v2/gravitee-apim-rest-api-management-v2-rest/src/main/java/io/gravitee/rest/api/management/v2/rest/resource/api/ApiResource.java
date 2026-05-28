@@ -173,6 +173,7 @@ import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -563,12 +564,8 @@ public class ApiResource extends AbstractResource {
         apiV4.primaryOwner(ApiMapper.INSTANCE.map(output.primaryOwner()));
         apiV4.workflowState(output.workflowState() != null ? ApiWorkflowState.valueOf(output.workflowState().name()) : null);
         var rawUpdatedAt = output.api().getUpdatedAt();
-        var updatedAt = rawUpdatedAt != null ? rawUpdatedAt.toInstant() : null;
-        var builder = Response.ok(apiV4);
-        if (updatedAt != null) {
-            builder.tag(Long.toString(updatedAt.toEpochMilli())).lastModified(java.util.Date.from(updatedAt));
-        }
-        return builder.build();
+        var updatedAt = rawUpdatedAt != null ? Date.from(rawUpdatedAt.toInstant()) : null;
+        return applyCacheHeaders(Response.ok(apiV4), updatedAt).build();
     }
 
     @PUT
@@ -677,7 +674,7 @@ public class ApiResource extends AbstractResource {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         apiLicenseService.checkLicense(executionContext, apiId);
         GenericApiEntity apiEntity = apiStateService.deploy(executionContext, apiId, getAuthenticatedUser(), apiDeploymentEntity);
-        return Response.accepted().tag(Long.toString(apiEntity.getUpdatedAt().getTime())).lastModified(apiEntity.getUpdatedAt()).build();
+        return applyCacheHeaders(Response.accepted(), apiEntity.getUpdatedAt()).build();
     }
 
     @GET
@@ -845,7 +842,7 @@ public class ApiResource extends AbstractResource {
         checkApiLifeCycle(genericApiEntity, LifecycleAction.START);
         GenericApiEntity updatedApi = apiStateService.start(executionContext, genericApiEntity.getId(), getAuthenticatedUser());
 
-        return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build();
+        return applyCacheHeaders(Response.noContent(), updatedApi.getUpdatedAt()).build();
     }
 
     @POST
@@ -862,7 +859,7 @@ public class ApiResource extends AbstractResource {
             getAuthenticatedUser()
         );
 
-        return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build();
+        return applyCacheHeaders(Response.noContent(), updatedApi.getUpdatedAt()).build();
     }
 
     @Path("/scoring")
@@ -1021,7 +1018,7 @@ public class ApiResource extends AbstractResource {
             ApiMapper.INSTANCE.map(apiReview)
         );
 
-        return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build();
+        return applyCacheHeaders(Response.noContent(), updatedApi.getUpdatedAt()).build();
     }
 
     @POST
@@ -1039,7 +1036,7 @@ public class ApiResource extends AbstractResource {
             ApiMapper.INSTANCE.map(apiReview)
         );
 
-        return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build();
+        return applyCacheHeaders(Response.noContent(), updatedApi.getUpdatedAt()).build();
     }
 
     @POST
@@ -1057,7 +1054,7 @@ public class ApiResource extends AbstractResource {
             ApiMapper.INSTANCE.map(apiReview)
         );
 
-        return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build();
+        return applyCacheHeaders(Response.noContent(), updatedApi.getUpdatedAt()).build();
     }
 
     @POST
@@ -1345,10 +1342,7 @@ public class ApiResource extends AbstractResource {
 
     private Response apiResponse(GenericApiEntity apiEntity) {
         boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), apiEntity);
-        return Response.ok(ApiMapper.INSTANCE.map(apiEntity, uriInfo, isSynchronized))
-            .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
-            .lastModified(apiEntity.getUpdatedAt())
-            .build();
+        return applyCacheHeaders(Response.ok(ApiMapper.INSTANCE.map(apiEntity, uriInfo, isSynchronized)), apiEntity.getUpdatedAt()).build();
     }
 
     private Error apiInvalid(String apiId) {
