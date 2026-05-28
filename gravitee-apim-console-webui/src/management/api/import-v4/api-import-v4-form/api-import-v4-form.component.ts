@@ -109,22 +109,10 @@ export class ApiImportV4FormComponent {
     { value: 'wsdl', label: 'WSDL', icon: 'gio:language' },
   ];
 
-  /**
-   * Remote source is disabled in update mode until APIM-12142 introduces a backend update-from-URL flow;
-   * the current create endpoint would silently create a new API instead of updating the target.
-   */
-  protected readonly sources = computed(() => {
-    const updateOnlySupportsLocal = !!this.updateTargetApiId();
-    return [
-      { value: 'local', label: 'Local file', icon: 'gio:laptop', disabledReason: null as string | null },
-      {
-        value: 'remote',
-        label: 'Remote source',
-        icon: 'gio:language',
-        disabledReason: updateOnlySupportsLocal ? 'Updating an API from a remote URL is not yet supported' : null,
-      },
-    ];
-  });
+  protected readonly sources = [
+    { value: 'local', label: 'Local file', icon: 'gio:laptop', disabledReason: null as string | null },
+    { value: 'remote', label: 'Remote source', icon: 'gio:language', disabledReason: null as string | null },
+  ];
 
   private readonly importFileContent = signal<string | undefined>(undefined);
 
@@ -203,7 +191,7 @@ export class ApiImportV4FormComponent {
 
   protected readonly selectedSourceLabel = computed(() => {
     const value = this.importSourceMode();
-    return this.sources().find(s => s.value === value)?.label ?? '-';
+    return this.sources.find(s => s.value === value)?.label ?? '-';
   });
 
   protected readonly showImportOptionsStep = computed(() => {
@@ -498,13 +486,7 @@ export class ApiImportV4FormComponent {
     const url = this.configureFileSourceForm.controls.remoteUrl.value?.trim() as string;
 
     if (format === 'gravitee') {
-      // Defense-in-depth: the Remote source card is disabled in update mode (see `sources`), but if the form is
-      // forced to remote programmatically, refuse rather than silently creating a new API via the create endpoint.
-      // APIM-12142 will introduce the backend update-from-URL path.
-      if (updateId) {
-        return null;
-      }
-      return this.apiV2Service.importFromUrl(url);
+      return updateId ? this.apiV2Service.updateFromUrl(updateId, url) : this.apiV2Service.importFromUrl(url);
     }
     if (format === 'wsdl') {
       return updateId

@@ -397,33 +397,32 @@ describe('ApiImportV4FormComponent', () => {
       fixture.detectChanges();
     });
 
-    it('should disable the Remote source card with a tooltip explaining the limitation', () => {
-      // `sources` is a protected signal exposed only to the template; bracket-access keeps the component API clean.
-      const sources = (
-        fixture.componentInstance as unknown as { sources: () => { value: string; disabledReason: string | null }[] }
-      ).sources();
-      const remote = sources.find(s => s.value === 'remote');
-      expect(remote?.disabledReason).toBe('Updating an API from a remote URL is not yet supported');
+    it('should keep both source cards enabled in update mode', () => {
+      // `sources` is a protected field exposed only to the template; bracket-access keeps the component API clean.
+      const sources = (fixture.componentInstance as unknown as { sources: { value: string; disabledReason: string | null }[] }).sources;
+      expect(sources.find(s => s.value === 'remote')?.disabledReason).toBeNull();
       expect(sources.find(s => s.value === 'local')?.disabledReason).toBeNull();
     });
 
-    it('should refuse to call importFromUrl when the form is forced to remote in update mode', () => {
-      const apiV2 = TestBed.inject(ApiV2Service);
-      const importFromUrlSpy = jest.spyOn(apiV2, 'importFromUrl');
-      const snackBarService = TestBed.inject(SnackBarService);
-      const snackBarErrorSpy = jest.spyOn(snackBarService, 'error');
+    it('should PUT the remote URL as text/plain to the update endpoint for Gravitee remote in update mode', async () => {
+      const httpMock = TestBed.inject(HttpTestingController);
 
-      // The UI disables the Remote card in update mode (covered above). Bypass the UI guard by forcing
-      // the form to source=remote programmatically, then trigger the import. The component layer must
-      // also refuse — otherwise we would silently create a new API via the create endpoint.
-      fixture.componentInstance.configureFileSourceForm.controls.source.setValue('remote');
-      fixture.componentInstance.configureFileSourceForm.controls.remoteUrl.setValue('https://cdn.example/def.json');
+      await harness.selectFormat('gravitee');
       fixture.detectChanges();
+      await harness.clickNext();
+      await harness.selectSource('remote');
+      await harness.setRemoteUrl('https://cdn.example/def.json');
+      fixture.detectChanges();
+      await harness.clickNext();
+      await harness.clickImport();
 
-      (fixture.componentInstance as unknown as { importApi: () => void }).importApi();
-
-      expect(importFromUrlSpy).not.toHaveBeenCalled();
-      expect(snackBarErrorSpy).toHaveBeenCalled();
+      const req = httpMock.expectOne(
+        r => r.method === 'PUT' && r.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/existing-api/_import/definition-url`,
+      );
+      expect(req.request.body).toBe('https://cdn.example/def.json');
+      expect(req.request.headers.get('Content-Type')).toBe('text/plain');
+      req.flush(fakeApiV4({ id: 'existing-api' }));
+      httpMock.verify();
     });
   });
 });
@@ -703,6 +702,31 @@ describe('ApiImportV4FormComponent (rest-to-soap policy installed)', () => {
       expect.objectContaining({
         withPolicies: ['rest-to-soap'],
       }),
+    );
+    expect(apiV2.importWsdlApi).not.toHaveBeenCalled();
+  });
+
+  it('should call updateApiFromWsdl with remote URL when updateTargetApiId is set', async () => {
+    const apiV2 = TestBed.inject(ApiV2Service);
+    jest.spyOn(apiV2, 'importWsdlApi');
+    jest.spyOn(apiV2, 'updateApiFromWsdl').mockReturnValue(of(fakeApiV4({ id: 'existing-api' })));
+    fixture.componentRef.setInput('updateTargetApiId', 'existing-api');
+    fixture.detectChanges();
+
+    await harness.selectFormat('wsdl');
+    fixture.detectChanges();
+    await harness.clickNext();
+    await harness.selectSource('remote');
+    await harness.setRemoteUrl('https://example.com/calculator.wsdl');
+    fixture.detectChanges();
+    await harness.clickNext();
+    fixture.detectChanges();
+    await harness.clickNext();
+    await harness.clickImport();
+
+    expect(apiV2.updateApiFromWsdl).toHaveBeenCalledWith(
+      'existing-api',
+      expect.objectContaining({ payload: 'https://example.com/calculator.wsdl', type: 'URL' }),
     );
     expect(apiV2.importWsdlApi).not.toHaveBeenCalled();
   });
