@@ -17,7 +17,7 @@ import { Button } from '@gravitee/graphene-core';
 import { PlusIcon, SparklesIcon } from '@gravitee/graphene-core/icons';
 import type { ChipOption } from '../../shared/chip-option';
 import { PolicyStatementCard } from './PolicyStatementCard';
-import { createEmptyStatement, type PolicyEffect, type PolicyStatement } from './statement-to-gapl';
+import { createEmptyStatement, makeStatementId, type PolicyEffect, type PolicyStatement } from './statement-to-gapl';
 
 export interface PolicyBuilderProps {
     readonly statements: readonly PolicyStatement[];
@@ -52,7 +52,7 @@ export function PolicyBuilder({
         const source = statements[index];
         const copy: PolicyStatement = {
             ...source,
-            id: `stmt-${Math.random().toString(36).slice(2, 9)}`,
+            id: makeStatementId(),
         };
         const next = [...statements];
         next.splice(index + 1, 0, copy);
