@@ -17,7 +17,6 @@ package io.gravitee.gamma.module.authz.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
-import io.gravitee.common.event.EventManager;
 import io.gravitee.gamma.authorization.api.AuthzAuditPort;
 import io.gravitee.gamma.authorization.api.AuthzEntityAdminApi;
 import io.gravitee.gamma.authorization.api.AuthzEntityRepository;
@@ -29,8 +28,6 @@ import io.gravitee.gamma.authorization.audit.ApimAuthzAuditAdapter;
 import io.gravitee.gamma.authorization.event.EventRepositoryAuthzEventPublisher;
 import io.gravitee.gamma.authorization.infra.repository.MongoAuthzEntityRepository;
 import io.gravitee.gamma.authorization.infra.repository.MongoAuthzPolicyRepository;
-import io.gravitee.gamma.authorization.listener.ApiEventListener;
-import io.gravitee.gamma.authorization.listener.EntityIdExtractor;
 import io.gravitee.gamma.authorization.service.AuthzEntityIdValidator;
 import io.gravitee.gamma.authorization.service.AuthzEntityServiceImpl;
 import io.gravitee.gamma.authorization.service.AuthzPolicyServiceImpl;
@@ -67,20 +64,6 @@ public class SpringConfig {
     @Bean
     public AuthzPolicyRepository authzPolicyRepository(@Qualifier("managementMongoTemplate") MongoOperations mongoOperations) {
         return new MongoAuthzPolicyRepository(mongoOperations);
-    }
-
-    @Bean
-    public EntityIdExtractor authzEntityIdExtractor() {
-        return new EntityIdExtractor();
-    }
-
-    @Bean
-    public ApiEventListener authzApiEventListener(
-        EventManager eventManager,
-        AuthzEntityAdminApi entityService,
-        EntityIdExtractor entityIdExtractor
-    ) {
-        return new ApiEventListener(eventManager, entityService, entityIdExtractor);
     }
 
     @Bean
