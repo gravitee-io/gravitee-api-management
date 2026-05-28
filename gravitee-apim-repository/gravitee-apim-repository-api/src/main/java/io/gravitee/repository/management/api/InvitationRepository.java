@@ -28,6 +28,8 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface InvitationRepository extends CrudRepository<Invitation, String> {
+    List<Invitation> findByEmail(String email) throws TechnicalException;
+
     List<Invitation> findByReferenceIdAndReferenceType(String referenceId, InvitationReferenceType referenceType) throws TechnicalException;
 
     Page<Invitation> search(InvitationCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException;

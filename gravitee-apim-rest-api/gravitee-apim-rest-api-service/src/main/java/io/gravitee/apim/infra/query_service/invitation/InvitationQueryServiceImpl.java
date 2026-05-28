@@ -20,7 +20,7 @@ import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
 import io.gravitee.apim.core.invitation.model.InvitationReference;
 import io.gravitee.apim.core.invitation.model.SearchApplicationInvitationsCriteria;
 import io.gravitee.apim.core.invitation.query_service.InvitationQueryService;
-import io.gravitee.apim.infra.adapter.ApplicationInvitationAdapter;
+import io.gravitee.apim.infra.adapter.InvitationAdapter;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.InvitationRepository;
@@ -51,7 +51,7 @@ public class InvitationQueryServiceImpl implements InvitationQueryService {
             return invitationRepository
                 .findByReferenceIdAndReferenceType(reference.id(), InvitationReferenceType.valueOf(reference.type().name()))
                 .stream()
-                .map(ApplicationInvitationAdapter.INSTANCE::toEntity)
+                .map(InvitationAdapter.INSTANCE::toApplicationInvitation)
                 .toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to find invitations by reference", e);
@@ -76,7 +76,7 @@ public class InvitationQueryServiceImpl implements InvitationQueryService {
                 new PageableBuilder().pageNumber(resolvedPageable.getPageNumber() - 1).pageSize(resolvedPageable.getPageSize()).build()
             );
 
-            var content = repositoryPage.getContent().stream().map(ApplicationInvitationAdapter.INSTANCE::toEntity).toList();
+            var content = repositoryPage.getContent().stream().map(InvitationAdapter.INSTANCE::toApplicationInvitation).toList();
 
             return new Page<>(content, resolvedPageable.getPageNumber(), content.size(), repositoryPage.getTotalElements());
         } catch (TechnicalException e) {

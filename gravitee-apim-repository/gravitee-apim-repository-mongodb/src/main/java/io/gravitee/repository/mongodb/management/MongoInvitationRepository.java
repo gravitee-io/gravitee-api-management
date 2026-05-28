@@ -119,6 +119,14 @@ public class MongoInvitationRepository implements InvitationRepository {
     }
 
     @Override
+    public List<Invitation> findByEmail(String email) throws TechnicalException {
+        log.debug("Find invitations by email [{}]", email);
+        final List<Invitation> invitations = internalInvitationRepo.findByEmail(email).stream().map(this::map).toList();
+        log.debug("Find invitations by email [{}] - Done", email);
+        return invitations;
+    }
+
+    @Override
     public List<Invitation> findByReferenceIdAndReferenceType(String referenceId, InvitationReferenceType referenceType) {
         log.debug("Find invitation by reference '{}' / '{}'", referenceId, referenceType);
 

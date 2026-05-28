@@ -27,6 +27,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface InvitationMongoRepository extends MongoRepository<InvitationMongo, String>, InvitationMongoRepositoryCustom {
+    List<InvitationMongo> findByEmail(String email);
+
     List<InvitationMongo> findByReferenceIdAndReferenceType(String referenceId, String referenceType);
 
     @Query(value = "{ 'referenceId': ?0, 'referenceType': ?1 }", fields = "{ _id : 1 }", delete = true)

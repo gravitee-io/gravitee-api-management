@@ -90,6 +90,17 @@ public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitat
     }
 
     @Override
+    public List<Invitation> findByEmail(String email) throws TechnicalException {
+        log.debug("JdbcInvitationRepository.findByEmail({})", email);
+        try {
+            return jdbcTemplate.query(getOrm().getSelectAllSql() + " where email = ?", getOrm().getRowMapper(), email);
+        } catch (final Exception ex) {
+            log.error("Failed to find invitations by email: {}", email, ex);
+            throw new TechnicalException("Failed to find invitations by email", ex);
+        }
+    }
+
+    @Override
     public List<Invitation> findByReferenceIdAndReferenceType(final String referenceId, final InvitationReferenceType referenceType)
         throws TechnicalException {
         log.debug("JdbcInvitationRepository.findByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);

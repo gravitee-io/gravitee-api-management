@@ -15,10 +15,13 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
+import io.gravitee.apim.core.invitation.model.GroupInvitation;
+import io.gravitee.apim.core.invitation.model.Invitation;
 import io.gravitee.apim.core.invitation.model.InvitationId;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.repository.management.model.Invitation;
+import io.gravitee.repository.management.model.InvitationReferenceType;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import org.mapstruct.Mapper;
@@ -26,18 +29,34 @@ import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
-public interface ApplicationInvitationAdapter {
-    ApplicationInvitationAdapter INSTANCE = Mappers.getMapper(ApplicationInvitationAdapter.class);
+public interface InvitationAdapter {
+    InvitationAdapter INSTANCE = Mappers.getMapper(InvitationAdapter.class);
 
     @Mapping(target = "roleName", source = "applicationRole")
     @Mapping(target = "applicationId", source = "referenceId")
-    ApplicationInvitation toEntity(Invitation invitation);
+    ApplicationInvitation toApplicationInvitation(io.gravitee.repository.management.model.Invitation invitation);
+
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "referenceId", source = "referenceId")
+    @Mapping(target = "referenceType", source = "referenceType")
+    @Mapping(target = "email", source = "email")
+    @Mapping(target = "apiRole", source = "apiRole")
+    @Mapping(target = "applicationRole", source = "applicationRole")
+    GroupInvitation toGroupInvitation(io.gravitee.repository.management.model.Invitation invitation);
 
     @Mapping(target = "applicationRole", source = "roleName")
     @Mapping(target = "referenceId", source = "applicationId")
     @Mapping(target = "referenceType", constant = "APPLICATION")
     @Mapping(target = "apiRole", ignore = true)
-    Invitation toRepository(ApplicationInvitation invitation);
+    io.gravitee.repository.management.model.Invitation toRepository(ApplicationInvitation invitation);
+
+    default Invitation toEntity(io.gravitee.repository.management.model.Invitation invitation) {
+        return switch (InvitationReferenceType.valueOf(invitation.getReferenceType())) {
+            case GROUP -> toGroupInvitation(invitation);
+            case APPLICATION -> toApplicationInvitation(invitation);
+            case API -> throw new TechnicalDomainException("Unsupported invitation reference type: API");
+        };
+    }
 
     default InvitationId map(String id) {
         return InvitationId.of(id);

@@ -18,10 +18,13 @@ package io.gravitee.apim.infra.crud_service.invitation;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.invitation.crud_service.InvitationCrudService;
 import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
-import io.gravitee.apim.infra.adapter.ApplicationInvitationAdapter;
+import io.gravitee.apim.core.invitation.model.Invitation;
+import io.gravitee.apim.core.invitation.model.InvitationId;
+import io.gravitee.apim.infra.adapter.InvitationAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.InvitationRepository;
 import io.gravitee.rest.api.service.impl.TransactionalService;
+import java.util.List;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -37,11 +40,29 @@ public class InvitationCrudServiceImpl extends TransactionalService implements I
     @Override
     public ApplicationInvitation create(ApplicationInvitation invitation) {
         try {
-            return ApplicationInvitationAdapter.INSTANCE.toEntity(
-                invitationRepository.create(ApplicationInvitationAdapter.INSTANCE.toRepository(invitation))
+            return InvitationAdapter.INSTANCE.toApplicationInvitation(
+                invitationRepository.create(InvitationAdapter.INSTANCE.toRepository(invitation))
             );
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to create application invitation", e);
+        }
+    }
+
+    @Override
+    public List<Invitation> findByEmail(String email) {
+        try {
+            return invitationRepository.findByEmail(email).stream().map(InvitationAdapter.INSTANCE::toEntity).toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to find invitations by email", e);
+        }
+    }
+
+    @Override
+    public void delete(InvitationId invitationId) {
+        try {
+            invitationRepository.delete(invitationId.toString());
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to delete invitation", e);
         }
     }
 }
