@@ -108,6 +108,10 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
             defaultSidebarMode="hover-expand"
             defaultTheme="system"
             fullHeight
+            viewMode={slots.viewMode}
+            contextExpanded={slots.contextExpanded}
+            contextSidebar={slots.contextSidebar}
+            contentVariant={slots.contentVariant}
             sidebar={
                 <AppSidebar
                     apps={apps}
@@ -119,14 +123,10 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
                     onEnvironmentChange={handleEnvironmentChange}
                 />
             }
-            contextSidebar={slots.contextSidebar}
-            viewMode={slots.viewMode}
-            contextExpanded={slots.contextExpanded}
-            contentVariant={slots.contentVariant}
             subheader={
                 <ContentHeader
-                    breadcrumbs={slots.breadcrumbs}
                     leading={slots.leading}
+                    breadcrumbs={slots.breadcrumbs}
                     trailing={user ? <TopNavUser name={user.displayName} email={user.email} onSignOut={handleSignOut} /> : undefined}
                 />
             }
