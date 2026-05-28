@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest;
 import com.fasterxml.jackson.core.util.JacksonFeature;
 import io.gravitee.gamma.rest.resources.GammaRootResource;
 import io.gravitee.gamma.rest.resources.GammaUIResource;
+import io.gravitee.gamma.rest.resources.tracing.TracingResource;
 import io.gravitee.rest.api.management.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.management.rest.provider.BadRequestExceptionMapper;
 import io.gravitee.rest.api.management.rest.provider.ByteArrayOutputStreamWriter;
@@ -52,6 +53,8 @@ public class GammaModuleApplication extends ResourceConfig {
     public GammaModuleApplication() {
         register(GammaRootResource.class);
         register(GammaUIResource.class);
+        // Global trace explorer — see io.gravitee.gamma.rest.core.tracing + .resources.tracing
+        register(TracingResource.class);
 
         register(MultiPartFeature.class);
         register(PayloadInputBodyReader.class);
