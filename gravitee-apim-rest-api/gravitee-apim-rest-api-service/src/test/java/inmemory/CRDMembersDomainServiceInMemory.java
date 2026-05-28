@@ -31,6 +31,9 @@ public class CRDMembersDomainServiceInMemory implements CRDMembersDomainService 
     private final HashMap<String, Set<MemberCRD>> apiMembers = new HashMap<>();
     private final HashMap<String, Set<MemberCRD>> applicationMembers = new HashMap<>();
     private final HashMap<String, Set<GroupCRDSpec.Member>> groupMembers = new HashMap<>();
+    private final HashMap<String, String> groupApiRoles = new HashMap<>();
+    private final HashMap<String, String> groupApplicationRoles = new HashMap<>();
+    private final HashMap<String, String> groupApiProductRoles = new HashMap<>();
 
     @Override
     public void updateApiMembers(AuditInfo auditInfo, String apiId, Set<MemberCRD> members) {
@@ -47,10 +50,32 @@ public class CRDMembersDomainServiceInMemory implements CRDMembersDomainService 
         groupMembers.put(groupId, members);
     }
 
+    @Override
+    public void updateGroupDefaultRoles(
+        AuditInfo auditInfo,
+        String groupId,
+        String apiRole,
+        String applicationRole,
+        String apiProductRole
+    ) {
+        if (apiRole != null) {
+            groupApiRoles.put(groupId, apiRole);
+        }
+        if (applicationRole != null) {
+            groupApplicationRoles.put(groupId, applicationRole);
+        }
+        if (apiProductRole != null) {
+            groupApiProductRoles.put(groupId, apiProductRole);
+        }
+    }
+
     public void reset() {
         apiMembers.clear();
         applicationMembers.clear();
         groupMembers.clear();
+        groupApiRoles.clear();
+        groupApplicationRoles.clear();
+        groupApiProductRoles.clear();
     }
 
     public Set<MemberCRD> getApiMembers(String id) {
@@ -63,5 +88,17 @@ public class CRDMembersDomainServiceInMemory implements CRDMembersDomainService 
 
     public Set<GroupCRDSpec.Member> getGroupMembers(String id) {
         return groupMembers.getOrDefault(id, Set.of());
+    }
+
+    public String getGroupApiRole(String id) {
+        return groupApiRoles.get(id);
+    }
+
+    public String getGroupApplicationRole(String id) {
+        return groupApplicationRoles.get(id);
+    }
+
+    public String getGroupApiProductRole(String id) {
+        return groupApiProductRoles.get(id);
     }
 }
