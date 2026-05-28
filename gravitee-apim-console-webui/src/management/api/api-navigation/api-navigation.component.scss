@@ -19,11 +19,19 @@
 
 $textColor: map.get(gio.$mat-dove-palette, default);
 
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .api-navigation {
   height: 100%;
   display: grid;
   grid-template-columns: min-content auto;
   grid-template-areas: 'menu content';
+  overflow: hidden;
 
   a {
     text-decoration: none;
@@ -33,14 +41,28 @@ $textColor: map.get(gio.$mat-dove-palette, default);
     grid-area: menu;
     display: flex;
     flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    background: var(--gio-oem-palette--sub-menu);
 
     &__disabled {
       padding-left: 12px;
     }
   }
 
+  &__menu-items-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
   &__submenu {
     z-index: 70;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
     height: 100%;
     color: $textColor;
 
@@ -75,13 +97,17 @@ $textColor: map.get(gio.$mat-dove-palette, default);
     display: flex;
     flex-direction: column;
     flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
 
     &__view {
       display: flex;
       flex-direction: column;
       flex: 1 1 auto;
       height: 100%;
+      min-height: 0;
       margin: 12px 24px 0 24px;
+      overflow-y: auto;
 
       &__ui {
         height: 100%;
@@ -90,7 +116,7 @@ $textColor: map.get(gio.$mat-dove-palette, default);
   }
 }
 
-.tech-preview-banner {
+:host .tech-preview-banner {
   margin-top: 0;
   margin-bottom: 24px;
 }
