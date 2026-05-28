@@ -44,7 +44,7 @@ import {
     TabsTrigger,
     toast,
 } from '@gravitee/graphene-core';
-import { BoxesIcon, DownloadIcon, ShieldIcon, Trash2Icon, UsersIcon } from '@gravitee/graphene-core/icons';
+import { BoxesIcon, DownloadIcon, PlusIcon, ShieldIcon, Trash2Icon, UsersIcon } from '@gravitee/graphene-core/icons';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useDeferredValue, useMemo, useState } from 'react';
@@ -53,8 +53,11 @@ import { authzApiService } from '../../shared/api/authz-api.service';
 import { authzQueryKeys } from '../../shared/api/query-keys';
 import { formatEntityUid, fromBackend } from '../../shared/entity-adapter';
 import { useEntities, type UseEntitiesResult } from '../../shared/hooks/useEntities';
+import { CreateEntityDialog } from './CreateEntityDialog';
 import { CATEGORIES, getEntityCategoryId, type EntityInstance } from './entity-types';
 import { ImportFromCatalogDialog } from './ImportFromCatalogDialog';
+
+type AddingKind = 'PRINCIPAL' | 'RESOURCE';
 
 type SourceFilter = 'all' | string;
 type TypeFilter = 'all' | string;
@@ -313,6 +316,7 @@ export function EntitiesPage() {
     const [resourceTypeFilter, setResourceTypeFilter] = useState<TypeFilter>('all');
     const [resourceSourceFilter, setResourceSourceFilter] = useState<SourceFilter>('all');
     const [importOpen, setImportOpen] = useState(false);
+    const [addingKind, setAddingKind] = useState<AddingKind | null>(null);
     const [pendingDelete, setPendingDelete] = useState<EntityInstance | null>(null);
     const [deletingEntityId, setDeletingEntityId] = useState<string | undefined>();
 
@@ -426,17 +430,25 @@ export function EntitiesPage() {
                     <Alert>
                         <AlertDescription>{PRINCIPALS_HELP}</AlertDescription>
                     </Alert>
-                    <EntitiesFilterBar
-                        search={principalSearch}
-                        onSearch={setPrincipalSearch}
-                        typesPresent={principalTypes}
-                        typeFilter={principalTypeFilter}
-                        onTypeFilter={setPrincipalTypeFilter}
-                        sourcesPresent={principalSources}
-                        sourceFilter={principalSourceFilter}
-                        onSourceFilter={setPrincipalSourceFilter}
-                        searchLabel="Search principals"
-                    />
+                    <div className="flex flex-wrap items-center gap-2">
+                        <EntitiesFilterBar
+                            search={principalSearch}
+                            onSearch={setPrincipalSearch}
+                            typesPresent={principalTypes}
+                            typeFilter={principalTypeFilter}
+                            onTypeFilter={setPrincipalTypeFilter}
+                            sourcesPresent={principalSources}
+                            sourceFilter={principalSourceFilter}
+                            onSourceFilter={setPrincipalSourceFilter}
+                            searchLabel="Search principals"
+                        />
+                        <div className="ml-auto">
+                            <Button onClick={() => setAddingKind('PRINCIPAL')}>
+                                <PlusIcon className="mr-2 size-4" aria-hidden />
+                                Add principal
+                            </Button>
+                        </div>
+                    </div>
                     <EntitiesTable
                         tab="principals"
                         entities={filteredPrincipals}
@@ -466,7 +478,11 @@ export function EntitiesPage() {
                             onSourceFilter={setResourceSourceFilter}
                             searchLabel="Search resources"
                         />
-                        <div className="ml-auto">
+                        <div className="ml-auto flex items-center gap-2">
+                            <Button variant="outline" onClick={() => setAddingKind('RESOURCE')}>
+                                <PlusIcon className="mr-2 size-4" aria-hidden />
+                                Add resource
+                            </Button>
                             <Button onClick={() => setImportOpen(true)}>
                                 <DownloadIcon className="mr-2 size-4" aria-hidden />
                                 Import from Context Catalog
@@ -494,6 +510,16 @@ export function EntitiesPage() {
                 environmentId={environmentId}
                 onOpenChange={setImportOpen}
                 onImported={handleImported}
+            />
+
+            <CreateEntityDialog
+                open={addingKind !== null}
+                kind={addingKind ?? 'PRINCIPAL'}
+                environmentId={environmentId}
+                onOpenChange={open => {
+                    if (!open) setAddingKind(null);
+                }}
+                onCreated={handleImported}
             />
 
             <Dialog

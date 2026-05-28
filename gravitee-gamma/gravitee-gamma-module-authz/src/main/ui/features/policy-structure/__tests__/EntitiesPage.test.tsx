@@ -37,6 +37,11 @@ vi.mock('@gravitee/graphene-core', async importOriginal => {
 
 // The dialog itself is unit-tested separately (ImportFromCatalogDialog.test.tsx);
 // here we just need it to render without firing real catalog queries.
+vi.mock('../CreateEntityDialog', () => ({
+    CreateEntityDialog: ({ open, kind }: { open: boolean; kind: string }) =>
+        open ? <div data-testid="create-entity-dialog-stub" data-kind={kind} /> : null,
+}));
+
 vi.mock('../ImportFromCatalogDialog', () => ({
     ImportFromCatalogDialog: ({ open }: { open: boolean }) => (open ? <div data-testid="import-dialog-stub" /> : null),
 }));
@@ -232,6 +237,34 @@ describe('EntitiesPage', () => {
         expect(screen.queryByTestId('import-dialog-stub')).not.toBeInTheDocument();
         await user.click(screen.getByRole('button', { name: /Import from Context Catalog/i }));
         expect(screen.getByTestId('import-dialog-stub')).toBeInTheDocument();
+    });
+
+    it('opens the create-entity dialog as PRINCIPAL when "Add principal" is clicked', async () => {
+        mockByKind({ principals: [makeEntity({ id: 'p1', uid: 'user.alice' })] });
+        renderPage();
+
+        const user = userEvent.setup();
+        await waitFor(() => expect(screen.getByRole('button', { name: /Add principal/i })).toBeInTheDocument());
+
+        expect(screen.queryByTestId('create-entity-dialog-stub')).not.toBeInTheDocument();
+        await user.click(screen.getByRole('button', { name: /Add principal/i }));
+
+        const stub = screen.getByTestId('create-entity-dialog-stub');
+        expect(stub).toHaveAttribute('data-kind', 'PRINCIPAL');
+    });
+
+    it('opens the create-entity dialog as RESOURCE when "Add resource" is clicked', async () => {
+        mockByKind({ resources: [makeEntity({ id: 'r1', uid: 'mcp.flight' })] });
+        renderPage();
+
+        const user = userEvent.setup();
+        await user.click(screen.getByRole('tab', { name: /Resources/i }));
+        await waitFor(() => expect(screen.getByRole('button', { name: /Add resource/i })).toBeInTheDocument());
+
+        await user.click(screen.getByRole('button', { name: /Add resource/i }));
+
+        const stub = screen.getByTestId('create-entity-dialog-stub');
+        expect(stub).toHaveAttribute('data-kind', 'RESOURCE');
     });
 
     it('shows the row-level Remove action only on the Resources tab', async () => {
