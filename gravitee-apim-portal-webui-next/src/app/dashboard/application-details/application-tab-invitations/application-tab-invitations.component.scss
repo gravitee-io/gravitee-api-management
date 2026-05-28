@@ -29,6 +29,12 @@ app-search-bar {
     margin-bottom: 24px;
   }
 
+  &__toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
   &__title {
     margin: 0 0 16px;
   }

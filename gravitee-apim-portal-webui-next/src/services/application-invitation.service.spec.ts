@@ -17,7 +17,10 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { ApplicationInvitationService } from './application-invitation.service';
-import { fakeApplicationInvitationsResponse } from '../entities/application/application-invitation.fixture';
+import {
+  fakeApplicationInvitationsCreateInput,
+  fakeApplicationInvitationsResponse,
+} from '../entities/application/application-invitation.fixture';
 import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
 
 describe('ApplicationInvitationService', () => {
@@ -62,6 +65,23 @@ describe('ApplicationInvitationService', () => {
     const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/${applicationId}/invitations/_search?page=2&size=25`);
     expect(req.request.method).toEqual('POST');
     expect(req.request.body).toEqual({ filters: { email: 'alice@example.com' } });
+    req.flush(response);
+  });
+
+  it('should create application invitations', done => {
+    const input = fakeApplicationInvitationsCreateInput({
+      recipients: [{ email: 'alice@example.com' }, { email: 'bob@example.com' }],
+    });
+    const response = fakeApplicationInvitationsResponse();
+
+    service.createApplicationInvitations(applicationId, input).subscribe(res => {
+      expect(res).toMatchObject(response);
+      done();
+    });
+
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/applications/${applicationId}/invitations`);
+    expect(req.request.method).toEqual('POST');
+    expect(req.request.body).toEqual(input);
     req.flush(response);
   });
 });
