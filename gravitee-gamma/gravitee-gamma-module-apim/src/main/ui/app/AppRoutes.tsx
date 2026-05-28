@@ -57,6 +57,7 @@ import { ApiPlansPage } from '../features/apis/pages/detail/plans/ApiPlansPage';
 import { ApiPropertiesPage } from '../features/apis/pages/detail/properties/ApiPropertiesPage';
 import { ApiReporterSettingsPage } from '../features/apis/pages/detail/reporter-settings/ApiReporterSettingsPage';
 import { UserPermissionsPage } from '../features/apis/pages/detail/user-permissions/UserPermissionsPage';
+import { PolicyStudioPage } from '../features/apis/pages/policy-studio/PolicyStudioPage';
 import { ScratchWizardPage } from '../features/apis/pages/ScratchWizardPage';
 import { TemplateWizardPage } from '../features/apis/pages/TemplateWizardPage';
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage';
@@ -117,7 +118,7 @@ export function AppRoutes() {
                                 />
                             </Route>
                             <Route path="reporter-settings" element={<ApiReporterSettingsPage />} />
-                            <Route path="policy-studio" element={<ApiDetailPlaceholderPage title="Policy Studio" />} />
+                            <Route path="policy-studio" element={<PolicyStudioPage />} />
                             <Route path="documentation" element={<ApiDetailPlaceholderPage title="Documentation" />} />
                             <Route path="plans">
                                 <Route index element={<ApiPlansPage />} />

@@ -110,6 +110,12 @@ export async function apimFetchJson<T>(organizationId: string, path: string, ini
     return doFetch<T>(`${managementBaseURL}/organizations/${organizationId}${path}`, path, init);
 }
 
+/** Org-scoped v2: `/v2/organizations/{orgId}{path}` */
+export async function apimFetchJsonV2Org<T>(path: string, init?: RequestInit): Promise<T> {
+    const { managementBaseURL, organizationId } = await resolveBootstrap();
+    return doFetch<T>(`${managementBaseURL}/v2/organizations/${organizationId}${path}`, path, init);
+}
+
 /** v2 env-scoped: `/v2/environments/{envId}{path}` */
 export async function apimFetchJsonV2<T>(environmentId: string, path: string, init?: RequestInit): Promise<T> {
     const { managementBaseURL } = await resolveBootstrap();
