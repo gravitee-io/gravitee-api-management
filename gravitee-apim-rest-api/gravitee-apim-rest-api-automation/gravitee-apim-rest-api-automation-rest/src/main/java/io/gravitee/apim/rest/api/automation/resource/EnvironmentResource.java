@@ -52,4 +52,9 @@ public class EnvironmentResource {
     public DictionariesResource getDictionariesResource() {
         return resourceContext.getResource(DictionariesResource.class);
     }
+
+    @Path("/portals")
+    public PortalsResource getPortalsResource() {
+        return resourceContext.getResource(PortalsResource.class);
+    }
 }

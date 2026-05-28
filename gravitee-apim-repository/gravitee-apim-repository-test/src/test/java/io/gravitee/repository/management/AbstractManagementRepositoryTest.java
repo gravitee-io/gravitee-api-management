@@ -228,6 +228,9 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     protected PortalMenuLinkRepository portalMenuLinkRepository;
 
     @Inject
+    protected PortalRepository portalRepository;
+
+    @Inject
     protected ClusterRepository clusterRepository;
 
     @Inject
@@ -327,6 +330,7 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             case ApiCategoryOrder apiCategoryOrder -> apiCategoryOrderRepository.create(apiCategoryOrder);
             case SharedPolicyGroup sharedPolicyGroup -> sharedPolicyGroupRepository.create(sharedPolicyGroup);
             case PortalMenuLink portalMenuLink -> portalMenuLinkRepository.create(portalMenuLink);
+            case Portal portal -> portalRepository.create(portal);
             case Cluster cluster -> clusterRepository.create(cluster);
             case PortalPage portalPage -> portalPageRepository.create(portalPage);
             case PortalPageContext portalPageContext -> portalPageContextRepository.create(portalPageContext);

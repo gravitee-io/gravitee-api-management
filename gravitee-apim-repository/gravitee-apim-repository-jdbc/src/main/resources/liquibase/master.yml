@@ -357,3 +357,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_12_0/08_add_disable_membership_notifications_to_api_products.yml
     - include:
         - file: liquibase/changelogs/v4_12_0/09_add_kafka_port_ranges_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_12_0/10_add_portals_table.yml
