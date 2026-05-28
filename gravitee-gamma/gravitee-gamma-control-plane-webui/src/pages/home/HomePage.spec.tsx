@@ -26,7 +26,6 @@ const ALL_MODULES: readonly GammaModule[] = [
     { id: 'apim', name: 'APIM Module', version: '1.0.0', remoteName: 'gravitee_gamma_module_apim', exposedModule: 'App' },
     { id: 'aim', name: 'AIM Module', version: '1.0.0', remoteName: 'gravitee_gamma_module_aim', exposedModule: 'App' },
     { id: 'platform', name: 'Platform', version: '1.0.0', remoteName: 'gravitee_gamma_module_platform', exposedModule: 'App' },
-    { id: 'catalog', name: 'Catalog', version: '1.0.0', remoteName: 'gravitee_gamma_module_catalog', exposedModule: 'App' },
     {
         id: 'authz',
         name: 'Authorization',
@@ -73,11 +72,11 @@ describe('HomePage', () => {
         });
 
         // 2 "Coming soon" placeholders are always rendered (Catalog + Event API Management).
-        expect(screen.getAllByText('Coming soon')).toHaveLength(2);
+        expect(screen.getAllByText('Coming soon')).toHaveLength(1);
         expect(screen.getByRole('heading', { level: 3, name: 'Event API Management' })).toBeTruthy();
 
         // Each card title is an <h3> — coming-soon cards keep their heading.
-        for (const name of ['Agent Management', 'API Management', 'Platform', 'Catalog', 'Authorization']) {
+        for (const name of ['Agent Management', 'API Management', 'Platform', 'Authorization']) {
             expect(screen.getByRole('heading', { level: 3, name })).toBeTruthy();
         }
     });
