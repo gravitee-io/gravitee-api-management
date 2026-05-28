@@ -299,7 +299,7 @@ public class Plan implements GenericPlanEntity {
             .name(updated.name)
             .description(updated.description)
             .order(updated.order)
-            .hrid(updated.hrid)
+            .hrid(updated.hrid == null ? hrid : updated.hrid)
             .updatedAt(TimeProvider.now())
             .planDefinitionHttpV4(updated.planDefinitionHttpV4)
             .planDefinitionNativeV4(updated.planDefinitionNativeV4)

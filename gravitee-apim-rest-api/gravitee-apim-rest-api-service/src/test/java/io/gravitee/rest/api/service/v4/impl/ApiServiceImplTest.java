@@ -831,6 +831,17 @@ public class ApiServiceImplTest {
     }
 
     @Test
+    public void shouldPreserveHridWhenUpdateEntityDoesNotProvideOne() throws TechnicalException {
+        prepareUpdate();
+        api.setHrid("api-hrid");
+        updateApiEntity.setHrid(null);
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+
+        verify(apiRepository).update(argThat(updated -> "api-hrid".equals(updated.getHrid())));
+    }
+
+    @Test
     public void shouldUpdatePlans() throws TechnicalException {
         prepareUpdate();
 
