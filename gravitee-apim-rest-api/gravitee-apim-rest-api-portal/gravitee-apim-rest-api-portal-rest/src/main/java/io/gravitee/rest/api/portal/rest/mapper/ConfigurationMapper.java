@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.rest.api.model.settings.*;
+import io.gravitee.rest.api.model.settings.OpenAPIDocViewer;
 import io.gravitee.rest.api.model.settings.PlanSettings;
 import io.gravitee.rest.api.model.settings.PortalApplicationSettings;
 import io.gravitee.rest.api.model.settings.PortalNext;
@@ -44,6 +45,7 @@ public class ConfigurationMapper {
         configuration.setScheduler(convert(portalConfigEntity.getScheduler()));
         configuration.setRecaptcha(convert(portalConfigEntity.getReCaptcha()));
         configuration.setAlert(convert(consoleSettingsEntity.getAlert().getEnabled()));
+        configuration.setOpenAPIDocViewer(convert(portalConfigEntity.getOpenAPIDocViewer()));
         return configuration;
     }
 
@@ -255,6 +257,29 @@ public class ConfigurationMapper {
         ConfigurationReCaptcha configuration = new ConfigurationReCaptcha();
         configuration.setEnabled(reCaptcha.getEnabled());
         configuration.setSiteKey(reCaptcha.getSiteKey());
+        return configuration;
+    }
+
+    private ConfigurationOpenAPIDocViewer convert(OpenAPIDocViewer openAPIDocViewer) {
+        ConfigurationOpenAPIDocViewer configuration = new ConfigurationOpenAPIDocViewer();
+        if (openAPIDocViewer != null && openAPIDocViewer.getOpenAPIDocType() != null) {
+            OpenAPIDocViewer.OpenAPIDocType docType = openAPIDocViewer.getOpenAPIDocType();
+            ConfigurationOpenAPIDocType configDocType = new ConfigurationOpenAPIDocType();
+            if (docType.getSwagger() != null) {
+                configDocType.setSwagger(convert(docType.getSwagger()));
+            }
+            if (docType.getRedoc() != null) {
+                configDocType.setRedoc(convert(docType.getRedoc()));
+            }
+            if (docType.getDefaultType() != null) {
+                try {
+                    configDocType.setDefaultType(ConfigurationOpenAPIDocType.DefaultTypeEnum.fromValue(docType.getDefaultType()));
+                } catch (IllegalArgumentException ignored) {
+                    // Unknown value: omit the field rather than crashing
+                }
+            }
+            configuration.setOpenAPIDocType(configDocType);
+        }
         return configuration;
     }
 
