@@ -73,8 +73,8 @@ export function useEntityOptions(environmentId: string, opts?: UseEntityOptionsO
 
     const kind = useMemo(() => resolveKind(typeFilter), [typeFilter]);
 
-    // Stable key for client-side type filtering (callers can pass fresh arrays).
-    const typeFilterKey = useMemo(() => (typeFilter ? JSON.stringify([...typeFilter].sort()) : ''), [typeFilter]);
+    // Stable join-key so callers can pass fresh arrays without re-running the filter memo.
+    const typeFilterKey = useMemo(() => (typeFilter ? [...typeFilter].sort().join('\0') : ''), [typeFilter]);
 
     const query = useQuery({
         queryKey: [...authzQueryKeys.entityOptions(environmentId), kind ?? 'all'],
@@ -86,11 +86,12 @@ export function useEntityOptions(environmentId: string, opts?: UseEntityOptionsO
 
     const allOptions = useMemo(() => query.data?.data.map(toChipOption) ?? [], [query.data]);
 
+    const allowedTypes = useMemo(() => (typeFilterKey ? new Set(typeFilterKey.split('\0')) : null), [typeFilterKey]);
+
     const options = useMemo<readonly ChipOption[]>(() => {
-        if (!typeFilterKey) return allOptions;
-        const allow = new Set(JSON.parse(typeFilterKey) as readonly string[]);
-        return allOptions.filter(o => allow.has(o.group));
-    }, [allOptions, typeFilterKey]);
+        if (!allowedTypes) return allOptions;
+        return allOptions.filter(o => allowedTypes.has(o.group));
+    }, [allOptions, allowedTypes]);
 
     const tooMany = (query.data?.total ?? 0) > (query.data?.data.length ?? 0);
     const networkError = query.error instanceof Error ? query.error.message : query.error ? String(query.error) : undefined;

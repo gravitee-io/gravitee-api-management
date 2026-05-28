@@ -48,9 +48,13 @@ export function useEntities(
 
     // Adjust perPage during render (React recommended pattern) rather than a
     // secondary useEffect, avoiding the extra render cycle that the effect causes.
+    // Reset page too — same empty-slice protection as setPerPageAndResetPage below,
+    // otherwise a prop change from perPage=10 to 50 while paginated to page=3
+    // would request page=3&perPage=50 and serve an empty slice.
     if (initialPerPage !== lastInitialPerPage) {
         setLastInitialPerPage(initialPerPage);
         setPerPage(initialPerPage);
+        setPage(1);
     }
 
     const { kind, source, entityIdPrefix, excludeEntityIdPrefix } = filter;
