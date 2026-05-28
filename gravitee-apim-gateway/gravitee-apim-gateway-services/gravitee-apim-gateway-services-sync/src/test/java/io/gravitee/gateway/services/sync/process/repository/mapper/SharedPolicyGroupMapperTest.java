@@ -34,8 +34,9 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -63,8 +64,9 @@ class SharedPolicyGroupMapperTest {
     }
 
     @SneakyThrows
-    @Test
-    void should_map_shared_policy_group() {
+    @ParameterizedTest
+    @EnumSource(value = SharedPolicyGroup.Phase.class, names = { "REQUEST", "PUBLISH", "SUBSCRIBE" })
+    void should_map_shared_policy_group(SharedPolicyGroup.Phase phase) {
         Organization organization = new Organization();
         organization.setId("orga");
         organization.setHrids(List.of("orga-hrid"));
@@ -80,7 +82,7 @@ class SharedPolicyGroupMapperTest {
         event.setPayload(
             objectMapper.writeValueAsString(
                 SharedPolicyGroup.builder()
-                    .phase(SharedPolicyGroup.Phase.REQUEST)
+                    .phase(phase)
                     .policies(List.of())
                     .id("spg_id")
                     .name("name")
@@ -105,7 +107,7 @@ class SharedPolicyGroupMapperTest {
                     assertThat(definition.getId()).isEqualTo("spg_id");
                     assertThat(definition.getName()).isEqualTo("name");
                     assertThat(definition.getPolicies()).isEmpty();
-                    assertThat(definition.getPhase()).isEqualTo(SharedPolicyGroup.Phase.REQUEST);
+                    assertThat(definition.getPhase()).isEqualTo(phase);
                 });
 
                 return true;

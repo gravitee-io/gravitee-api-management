@@ -80,7 +80,17 @@ public class SharedPolicyGroup implements Serializable {
     public enum Phase {
         REQUEST,
         RESPONSE,
+        PUBLISH,
+        SUBSCRIBE,
+        /**
+         * @deprecated since 4.11.8, use {@link #PUBLISH} instead.
+         */
+        @Deprecated
         MESSAGE_REQUEST,
+        /**
+         * @deprecated since 4.11.8, use {@link #SUBSCRIBE} instead.
+         */
+        @Deprecated
         MESSAGE_RESPONSE,
     }
 }
