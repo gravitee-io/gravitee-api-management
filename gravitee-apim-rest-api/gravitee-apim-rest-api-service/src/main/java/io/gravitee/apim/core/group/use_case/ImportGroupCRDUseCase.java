@@ -75,6 +75,16 @@ public class ImportGroupCRDUseCase {
         var errors = validationResult.errors().map(GroupCRDStatus.Errors::fromErrorList).orElse(GroupCRDStatus.Errors.EMPTY);
 
         crudService.create(input.spec.toGroup(input.auditInfo.environmentId()));
+        return updateGroupDefaultRoles(input, errors);
+    }
+
+    private ImportGroupCRDUseCase.Output updateGroupDefaultRoles(Input input, GroupCRDStatus.Errors errors) {
+        membersService.updateGroupDefaultRoles(
+            input.auditInfo,
+            input.spec.getId(),
+            input.spec.getApiRole(),
+            input.spec.getApplicationRole()
+        );
         membersService.updateGroupMembers(input.auditInfo, input.spec.getId(), input.spec.getMembers());
         return new Output(new GroupCRDStatus(input.spec.getId(), input.spec.getMembers().size(), errors));
     }
@@ -91,7 +101,6 @@ public class ImportGroupCRDUseCase {
         var errors = validationResult.errors().map(GroupCRDStatus.Errors::fromErrorList).orElse(GroupCRDStatus.Errors.EMPTY);
 
         crudService.update(input.spec.toGroup(input.auditInfo.environmentId()));
-        membersService.updateGroupMembers(input.auditInfo, input.spec.getId(), input.spec.getMembers());
-        return new Output(new GroupCRDStatus(input.spec.getId(), input.spec.getMembers().size(), errors));
+        return updateGroupDefaultRoles(input, errors);
     }
 }
