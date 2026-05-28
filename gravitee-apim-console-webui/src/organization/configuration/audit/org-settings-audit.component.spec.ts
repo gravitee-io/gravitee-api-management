@@ -212,8 +212,8 @@ describe('OrgSettingsAuditComponent', () => {
   }
 
   function expectApiGetAllByEnvRequest(envId: string, apis: Api[]) {
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.v2BaseURL}/environments/${envId}/apis?page=1`);
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.v2BaseURL}/environments/${envId}/apis?page=1&perPage=200`);
     expect(req.request.method).toEqual('GET');
-    req.flush({ data: apis });
+    req.flush({ data: apis, pagination: { page: 1, pageCount: 1 } });
   }
 });

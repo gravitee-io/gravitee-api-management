@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 import { HttpTestingController } from '@angular/common/http/testing';
-import { TestBed } from '@angular/core/testing';
-import { take } from 'rxjs/operators';
+import { fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { last, take } from 'rxjs/operators';
 
 import { ApiV2Service } from './api-v2.service';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import {
+  Api,
   ApiTransferOwnership,
   DuplicateApiOptions,
-  fakeApiV2,
   fakeApiV4,
   fakeBaseApplication,
   fakeCreateApiV4,
@@ -336,114 +336,217 @@ describe('ApiV2Service', () => {
     });
   });
 
-  describe('listAll', () => {
-    it('should call the current environment v2 API', done => {
-      const fakeApi = fakeApiV4();
+  describe('getAll', () => {
+    it('should fetch all APIs from the default environment', fakeAsync(() => {
+      const apiOne = fakeApiV4({ id: 'api-1' });
+      const responses: Api[][] = [];
 
-      apiV2Service.listAll().subscribe(apis => {
-        expect(apis).toEqual([fakeApi]);
-        done();
-      });
+      apiV2Service.getAll().subscribe(apis => responses.push(apis));
 
       const req = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis?page=1`,
-        method: 'GET',
-      });
-
-      req.flush({ data: [fakeApi] });
-    });
-
-    it('should call the v2 API for a specific environment', done => {
-      const environmentId = 'env-id';
-      const fakeApi = fakeApiV4();
-
-      apiV2Service.listAll({ environmentId }).subscribe(apis => {
-        expect(apis).toEqual([fakeApi]);
-        done();
-      });
-
-      const req = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.v2BaseURL}/environments/${environmentId}/apis?page=1`,
-        method: 'GET',
-      });
-
-      req.flush({ data: [fakeApi] });
-    });
-
-    it('should return an empty array when response has no data', done => {
-      apiV2Service.listAll().subscribe(apis => {
-        expect(apis).toEqual([]);
-        done();
-      });
-
-      const req = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis?page=1`,
-        method: 'GET',
-      });
-
-      req.flush({});
-    });
-
-    it('should return both v2 and v4 APIs when the response contains a mix', done => {
-      const v2Api = fakeApiV2({ id: 'v2-api-id', name: 'My V2 API' });
-      const v4Api = fakeApiV4({ id: 'v4-api-id', name: 'My V4 API' });
-
-      apiV2Service.listAll().subscribe(apis => {
-        expect(apis).toEqual([v2Api, v4Api]);
-        done();
-      });
-
-      const req = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis?page=1`,
-        method: 'GET',
-      });
-
-      req.flush({ data: [v2Api, v4Api] });
-    });
-
-    it('should paginate through every page until pageCount is reached', done => {
-      const pageOneApis = [fakeApiV2({ id: 'page-1-v2', name: 'page-1-v2' }), fakeApiV4({ id: 'page-1-v4', name: 'page-1-v4' })];
-      const pageTwoApis = [fakeApiV4({ id: 'page-2-v4', name: 'page-2-v4' })];
-
-      apiV2Service.listAll().subscribe(apis => {
-        expect(apis).toEqual([...pageOneApis, ...pageTwoApis]);
-        done();
-      });
-
-      const reqPage1 = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis?page=1`,
-        method: 'GET',
-      });
-      reqPage1.flush({
-        data: pageOneApis,
-        pagination: { page: 1, pageCount: 2, totalCount: 3 },
-      });
-
-      const reqPage2 = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis?page=2`,
-        method: 'GET',
-      });
-      reqPage2.flush({
-        data: pageTwoApis,
-        pagination: { page: 2, pageCount: 2, totalCount: 3 },
-      });
-    });
-
-    it('should stop after one request when pageCount is 1', done => {
-      apiV2Service.listAll().subscribe(apis => {
-        expect(apis).toEqual([]);
-        done();
-      });
-
-      const req = httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis?page=1`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis?page=1&perPage=200`,
         method: 'GET',
       });
       req.flush({
-        data: [],
-        pagination: { page: 1, pageCount: 1, totalCount: 0 },
+        data: [apiOne],
+        pagination: { page: 1, pageCount: 1 },
       });
-    });
+
+      tick();
+
+      expect(responses).toEqual([[apiOne]]);
+    }));
+
+    it('should fetch all APIs for a specific environment', fakeAsync(() => {
+      const environmentId = 'ENV_ID';
+      const apiOne = fakeApiV4({ id: 'api-1' });
+      const responses: Api[][] = [];
+
+      apiV2Service.getAll({ environmentId }).subscribe(apis => responses.push(apis));
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.v2BaseURL}/environments/${environmentId}/apis?page=1&perPage=200`,
+        method: 'GET',
+      });
+      req.flush({
+        data: [apiOne],
+        pagination: { page: 1, pageCount: 1 },
+      });
+
+      tick();
+
+      expect(responses).toEqual([[apiOne]]);
+    }));
+
+    it('should fetch additional pages with delay and accumulate results', fakeAsync(() => {
+      const apiOne = fakeApiV4({ id: 'api-1' });
+      const apiTwo = fakeApiV4({ id: 'api-2' });
+      const responses: Api[][] = [];
+
+      apiV2Service.getAll().subscribe(apis => responses.push(apis));
+
+      const req1 = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis?page=1&perPage=200`,
+        method: 'GET',
+      });
+      req1.flush({
+        data: [apiOne],
+        pagination: { page: 1, pageCount: 2 },
+      });
+
+      tick(300);
+
+      const req2 = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis?page=2&perPage=200`,
+        method: 'GET',
+      });
+      req2.flush({
+        data: [apiTwo],
+        pagination: { page: 2, pageCount: 2 },
+      });
+
+      tick();
+
+      expect(responses).toEqual([[apiOne], [apiOne, apiTwo]]);
+    }));
+
+    it('should handle missing pagination and data', fakeAsync(() => {
+      const responses: Api[][] = [];
+
+      apiV2Service.getAll().subscribe(apis => responses.push(apis));
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis?page=1&perPage=200`,
+        method: 'GET',
+      });
+      req.flush({});
+
+      tick();
+
+      expect(responses).toEqual([[]]);
+    }));
+
+    it('should fetch additional pages for a specific environment', fakeAsync(() => {
+      const environmentId = 'ENV_ID';
+      const apiOne = fakeApiV4({ id: 'api-1' });
+      const apiTwo = fakeApiV4({ id: 'api-2' });
+      let finalResult: Api[] | undefined;
+
+      apiV2Service
+        .getAll({ environmentId })
+        .pipe(last())
+        .subscribe(apis => (finalResult = apis));
+
+      const req1 = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.v2BaseURL}/environments/${environmentId}/apis?page=1&perPage=200`,
+        method: 'GET',
+      });
+      expect(req1.request.params.get('page')).toEqual('1');
+      expect(req1.request.params.get('perPage')).toEqual('200');
+      req1.flush({
+        data: [apiOne],
+        pagination: { page: 1, pageCount: 2 },
+      });
+
+      tick(300);
+
+      const req2 = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.v2BaseURL}/environments/${environmentId}/apis?page=2&perPage=200`,
+        method: 'GET',
+      });
+      expect(req2.request.params.get('page')).toEqual('2');
+      expect(req2.request.params.get('perPage')).toEqual('200');
+      req2.flush({
+        data: [apiTwo],
+        pagination: { page: 2, pageCount: 2 },
+      });
+
+      tick();
+
+      expect(finalResult).toEqual([apiOne, apiTwo]);
+    }));
+
+    it('should fetch all pages when response spans three pages', fakeAsync(() => {
+      const apiOne = fakeApiV4({ id: 'api-1' });
+      const apiTwo = fakeApiV4({ id: 'api-2' });
+      const apiThree = fakeApiV4({ id: 'api-3' });
+      const responses: Api[][] = [];
+
+      apiV2Service.getAll().subscribe(apis => responses.push(apis));
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis?page=1&perPage=200`,
+          method: 'GET',
+        })
+        .flush({
+          data: [apiOne],
+          pagination: { page: 1, pageCount: 3 },
+        });
+
+      tick(300);
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis?page=2&perPage=200`,
+          method: 'GET',
+        })
+        .flush({
+          data: [apiTwo],
+          pagination: { page: 2, pageCount: 3 },
+        });
+
+      tick(300);
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis?page=3&perPage=200`,
+          method: 'GET',
+        })
+        .flush({
+          data: [apiThree],
+          pagination: { page: 3, pageCount: 3 },
+        });
+
+      tick();
+
+      expect(responses).toEqual([[apiOne], [apiOne, apiTwo], [apiOne, apiTwo, apiThree]]);
+    }));
+
+    it('should treat missing data on a paginated page as an empty list', fakeAsync(() => {
+      const apiOne = fakeApiV4({ id: 'api-1' });
+      let finalResult: Api[] | undefined;
+
+      apiV2Service
+        .getAll()
+        .pipe(last())
+        .subscribe(apis => (finalResult = apis));
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis?page=1&perPage=200`,
+          method: 'GET',
+        })
+        .flush({
+          data: [apiOne],
+          pagination: { page: 1, pageCount: 2 },
+        });
+
+      tick(300);
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis?page=2&perPage=200`,
+          method: 'GET',
+        })
+        .flush({
+          pagination: { page: 2, pageCount: 2 },
+        });
+
+      tick();
+
+      expect(finalResult).toEqual([apiOne]);
+    }));
   });
 
   describe('picture', () => {
