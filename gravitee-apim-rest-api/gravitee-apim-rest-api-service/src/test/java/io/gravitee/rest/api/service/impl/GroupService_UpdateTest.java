@@ -104,6 +104,8 @@ public class GroupService_UpdateTest {
         updatedGroupEntity.setSystemInvitation(false);
 
         final Group group = new Group();
+        group.setId(GROUP_ID);
+        group.setHrid("my-group-hrid");
         group.setApiPrimaryOwner("api-primary-owner");
         group.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
 
@@ -133,7 +135,8 @@ public class GroupService_UpdateTest {
                     updatedGroup.getMaxInvitation() == 100 &&
                     updatedGroup.getName().equals("my-group-name") &&
                     !updatedGroup.isSystemInvitation() &&
-                    updatedGroup.getApiPrimaryOwner().equals("api-primary-owner")
+                    updatedGroup.getApiPrimaryOwner().equals("api-primary-owner") &&
+                    "my-group-hrid".equals(updatedGroup.getHrid())
             )
         );
 

@@ -236,6 +236,30 @@ public class UpdateSharedPolicyGroupUseCaseTest {
     }
 
     @Test
+    void should_update_and_keep_hrid() {
+        // Given
+        var existingSharedPolicyGroup = SharedPolicyGroupFixtures.aSharedPolicyGroup().toBuilder().hrid("hrid").build();
+        sharedPolicyGroupCrudService.initWith(List.of(existingSharedPolicyGroup));
+
+        // When
+        var toUpdate = UpdateSharedPolicyGroup.builder().description("new-description").build();
+        var updatedSharedPolicyGroup = updateSharedPolicyGroupUseCase.execute(
+            new UpdateSharedPolicyGroupUseCase.Input(existingSharedPolicyGroup.getId(), toUpdate, AUDIT_INFO)
+        );
+
+        // Then
+        var expected = existingSharedPolicyGroup
+            .toBuilder()
+            .description("new-description")
+            .hrid("hrid")
+            .lifecycleState(SharedPolicyGroup.SharedPolicyGroupLifecycleState.PENDING)
+            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+            .build();
+        assertThat(updatedSharedPolicyGroup.sharedPolicyGroup()).isNotNull();
+        assertThat(updatedSharedPolicyGroup.sharedPolicyGroup()).usingRecursiveComparison().isEqualTo(expected);
+    }
+
+    @Test
     void should_throw_exception_when_sharedPolicyGroup_with_crossId_already_exists() {
         // Given
         var existingSharedPolicyGroup_1 = SharedPolicyGroupFixtures.aSharedPolicyGroup();

@@ -553,6 +553,32 @@ class UpdatePlanDomainServiceTest {
         }
 
         @Test
+        void should_preserve_existing_hrid_when_update_does_not_provide_one() {
+            // Given
+            var plan = givenExistingPlan(PlanFixtures.HttpV4.aKeyless().toBuilder().apiId(API_ID).hrid("my-plan-hrid").build());
+
+            // When
+            var toUpdate = plan.toBuilder().hrid(null).name("updated name").build();
+            var result = service.update(toUpdate, List.of(), null, API_PROXY_V4, AUDIT_INFO);
+
+            // Then
+            assertThat(result.getHrid()).isEqualTo("my-plan-hrid");
+        }
+
+        @Test
+        void should_use_hrid_from_update_when_provided() {
+            // Given
+            var plan = givenExistingPlan(PlanFixtures.HttpV4.aKeyless().toBuilder().apiId(API_ID).hrid("old-hrid").build());
+
+            // When
+            var toUpdate = plan.toBuilder().hrid("new-hrid").name("updated name").build();
+            var result = service.update(toUpdate, List.of(), null, API_PROXY_V4, AUDIT_INFO);
+
+            // Then
+            assertThat(result.getHrid()).isEqualTo("new-hrid");
+        }
+
+        @Test
         void should_reorder_all_plans_when_order_is_updated() {
             // Given
             var plans = givenExistingPlans(
