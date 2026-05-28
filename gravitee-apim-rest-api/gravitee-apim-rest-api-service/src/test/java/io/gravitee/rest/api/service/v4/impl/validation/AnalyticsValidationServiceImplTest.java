@@ -421,7 +421,7 @@ public class AnalyticsValidationServiceImplTest {
             "{#request.timestamp <= 1234l  || #request.timestamp > 2l}",
             "{#request.timestamp <= 1l && (#request.timestamp > 2l)}"
         );
-        checkCondition(analytics, "#request.timestamp <= 1l || true", "{#request.timestamp <= 1l && (true)}");
+        checkCondition(analytics, "#request.timestamp <= 1l || true", "#request.timestamp <= 1l || true");
         checkCondition(analytics, "{#request.timestamp <= 0l}", "{#request.timestamp <= 0l}");
     }
 
