@@ -15,19 +15,6 @@
  */
 import type { PolicyType } from './api/authz-api.types';
 
-/**
- * Single source of truth for the kind ↔ UI type ↔ policy type mapping.
- *
- * The canonical backend speaks lowercase kinds (`user`, `mcp`, `llm`, …) that
- * appear both as the first dotted segment of an entityId (`mcp.flight-status`)
- * and as the `_kind` attribute. The UI uses richer camel-case types
- * (`MCPServer`, `LLMRoute`) and a smaller policy taxonomy
- * (`MCP | AGENT | LLM | API | EVENT | CUSTOM`).
- *
- * Each entry maps one kind to one UI type and (optionally) one policy type.
- * `aliases` lets older or longer forms (`mcpserver`, `service-account`) resolve
- * to the same UI type without polluting the canonical form used on the wire.
- */
 export interface EntityKindEntry {
     readonly canonical: string;
     readonly uiType: string;
@@ -39,13 +26,13 @@ export const ENTITY_KIND_REGISTRY: readonly EntityKindEntry[] = [
     { canonical: 'user', uiType: 'User' },
     { canonical: 'group', uiType: 'Group' },
     { canonical: 'serviceaccount', uiType: 'ServiceAccount', aliases: ['service-account', 'service_account'] },
-    { canonical: 'agent', uiType: 'AgentIdentity', aliases: ['agentidentity'], policyType: 'AGENT' },
+    { canonical: 'agent-identity', uiType: 'AgentIdentity', aliases: ['agentidentity'], policyType: 'AGENT' },
     { canonical: 'mcp', uiType: 'MCPServer', aliases: ['mcpserver'], policyType: 'MCP' },
-    { canonical: 'llm', uiType: 'LLMRoute', aliases: ['llmroute'], policyType: 'LLM' },
+    { canonical: 'model', uiType: 'Model', aliases: ['llm', 'llmmodel', 'llmroute'], policyType: 'MODEL' },
+    { canonical: 'agent', uiType: 'Agent', aliases: ['a2a', 'a2aagent'], policyType: 'AGENT' },
     { canonical: 'api', uiType: 'API', policyType: 'API' },
     { canonical: 'event', uiType: 'Event', policyType: 'EVENT' },
     { canonical: 'resource', uiType: 'Resource' },
-    // `action` entities live on their own page; mapped here so EntitiesPage can hide them.
     { canonical: 'action', uiType: 'Action' },
 ];
 

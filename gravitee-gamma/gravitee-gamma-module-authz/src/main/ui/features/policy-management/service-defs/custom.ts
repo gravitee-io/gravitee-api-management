@@ -27,7 +27,7 @@ export const customServiceConfig: ServicePageConfig = {
     type: 'CUSTOM',
     title: 'Custom Policies',
     description:
-        'Write policies against anything that is not already routed as an MCP, API, Agent, LLM or Event — internal applications, data assets, and bespoke resources.',
+        'Write policies against anything that is not already routed as an MCP, API, Agent, AI Model or Event — internal applications, data assets, and bespoke resources.',
     createButtonLabel: 'Create Custom Policy',
     searchPlaceholder: 'Search custom policies…',
     icon: SlidersHorizontalIcon,

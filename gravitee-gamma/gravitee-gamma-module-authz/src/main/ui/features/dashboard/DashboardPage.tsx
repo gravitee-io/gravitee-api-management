@@ -49,7 +49,7 @@ const KPI_CARDS: readonly KpiCardMeta[] = [
     {
         label: 'AI Models',
         description: 'Manage access to providers and models — tailor who can use which model, in which environment, and when.',
-        to: '../llms',
+        to: '../models',
         linkLabel: 'Manage AI models',
         Icon: BrainIcon,
         iconClassName: 'bg-primary/10 text-primary',
@@ -82,9 +82,9 @@ function useDashboardCounts(environmentId: string) {
         staleTime: 30_000,
     });
 
-    const llmCount = useQuery({
-        queryKey: authzQueryKeys.policies.page(environmentId, 1, POLICY_FETCH_LIMIT, 'LLM'),
-        queryFn: () => authzApiService.listPolicies(environmentId, { type: 'LLM', perPage: POLICY_FETCH_LIMIT }),
+    const modelCount = useQuery({
+        queryKey: authzQueryKeys.policies.page(environmentId, 1, POLICY_FETCH_LIMIT, 'MODEL'),
+        queryFn: () => authzApiService.listPolicies(environmentId, { type: 'MODEL', perPage: POLICY_FETCH_LIMIT }),
         enabled: Boolean(environmentId),
         staleTime: 30_000,
     });
@@ -99,7 +99,7 @@ function useDashboardCounts(environmentId: string) {
     return {
         MCP: { total: mcpCount.data?.total, isLoading: mcpCount.isLoading },
         Agents: { total: agentCount.data?.total, isLoading: agentCount.isLoading },
-        'AI Models': { total: llmCount.data?.total, isLoading: llmCount.isLoading },
+        'AI Models': { total: modelCount.data?.total, isLoading: modelCount.isLoading },
         'Users and groups': { total: principalCount.data?.total, isLoading: principalCount.isLoading },
     };
 }

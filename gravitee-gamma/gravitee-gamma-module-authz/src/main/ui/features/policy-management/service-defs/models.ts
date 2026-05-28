@@ -23,8 +23,8 @@ const conditionSnippets: readonly { label: string; snippet: string }[] = [
     { label: 'Model size small', snippet: 'resource.size in ["small", "medium"]' },
 ];
 
-export const llmsServiceConfig: ServicePageConfig = {
-    type: 'LLM',
+export const modelsServiceConfig: ServicePageConfig = {
+    type: 'MODEL',
     title: 'AI Model Policies',
     description: 'Control who can invoke each AI Provider or specific Model, and under what usage or cost ceilings.',
     createButtonLabel: 'Create Policy for AI Models',
@@ -34,7 +34,7 @@ export const llmsServiceConfig: ServicePageConfig = {
     serviceLabel: 'AI Model',
     resourceGroups: [
         { key: 'LLMProvider', label: 'AI Provider' },
-        { key: 'LLMModel', label: 'Model' },
+        { key: 'Model', label: 'Model' },
     ],
     conditionSnippets,
 };
