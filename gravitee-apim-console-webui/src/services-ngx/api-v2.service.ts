@@ -15,8 +15,8 @@
  */
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { BehaviorSubject, EMPTY, from, mergeMap, Observable, of } from 'rxjs';
-import { distinctUntilChanged, expand, filter, map, reduce, shareReplay, switchMap, tap } from 'rxjs/operators';
+import { BehaviorSubject, EMPTY, from, mergeMap, Observable, of, timer } from 'rxjs';
+import { distinctUntilChanged, expand, filter, map, scan, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { isEqual } from 'lodash';
 
 import { Constants } from '../entities/Constants';
@@ -50,6 +50,10 @@ export interface HostValidatorParams {
   currentHost?: string;
   apiId?: string;
 }
+
+/** Delay between paginated API list requests when loading additional pages in {@link ApiV2Service.getAll}. */
+const GET_ALL_LOAD_MORE_DELAY_MS = 300;
+const GET_ALL_PAGE_SIZE = 200;
 
 @Injectable({
   providedIn: 'root',
@@ -241,31 +245,35 @@ export class ApiV2Service {
   }
 
   /**
-   * Lists every API in an environment regardless of definition version (v1, v2, v4, federated, federated agent).
+   * Lists every API in an environment for dropdowns/filters.
    *
-   * Use this instead of `ApiService.getAll()`, which relies on the legacy Management v1 endpoint and
-   * silently omits v4+ APIs.
+   * Fetches the first page immediately, then loads remaining pages with a short delay between
+   * requests. Emits the accumulated list after each page so callers can render partial results
+   * while the rest loads. Includes all definition versions (v1, v2, v4, federated, federated agent).
    *
-   * The method paginates through the v2 endpoint using the `pageCount` returned in the response and
-   * emits a single aggregated `Api[]` once every page has been fetched.
    */
-  listAll(params: { environmentId?: string } = {}): Observable<Api[]> {
+  getAll(params: { environmentId?: string } = {}): Observable<Api[]> {
     const baseURL = params.environmentId
       ? `${this.constants.v2BaseURL}/environments/${params.environmentId}`
       : this.constants.env.v2BaseURL;
 
     const fetchPage = (page: number): Observable<ApisResponse> =>
       this.http.get<ApisResponse>(`${baseURL}/apis`, {
-        params: { page },
+        params: { page, perPage: GET_ALL_PAGE_SIZE },
       });
 
     return fetchPage(1).pipe(
       expand(response => {
         const currentPage = response.pagination?.page ?? 1;
         const pageCount = response.pagination?.pageCount ?? 1;
-        return currentPage < pageCount ? fetchPage(currentPage + 1) : EMPTY;
+
+        if (currentPage >= pageCount) {
+          return EMPTY;
+        }
+
+        return timer(GET_ALL_LOAD_MORE_DELAY_MS).pipe(switchMap(() => fetchPage(currentPage + 1)));
       }),
-      reduce((acc, response) => acc.concat(response.data ?? []), [] as Api[]),
+      scan((accumulated, response) => accumulated.concat(response.data ?? []), [] as Api[]),
     );
   }
 
