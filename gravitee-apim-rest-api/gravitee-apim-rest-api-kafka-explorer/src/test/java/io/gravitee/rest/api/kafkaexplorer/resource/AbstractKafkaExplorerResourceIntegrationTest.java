@@ -59,8 +59,6 @@ abstract class AbstractKafkaExplorerResourceIntegrationTest {
             .withExposedService(BROKER_SERVICE, SASL_PLAINTEXT_PORT);
         kafka.start();
 
-        GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
-
         try {
             resource = new KafkaExplorerResource();
             clusterCrudService = new ClusterCrudServiceInMemory();
@@ -95,6 +93,7 @@ abstract class AbstractKafkaExplorerResourceIntegrationTest {
     @BeforeEach
     void resetClusterCrudService() {
         clusterCrudService.reset();
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
     }
 
     protected static String plaintextBootstrapServers() {

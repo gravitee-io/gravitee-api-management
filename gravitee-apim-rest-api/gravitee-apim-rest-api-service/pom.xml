@@ -438,6 +438,10 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<forkCount>2</forkCount>
+					<reuseForks>true</reuseForks>
+				</configuration>
 				<executions>
 					<execution>
 						<id>default-test</id>
