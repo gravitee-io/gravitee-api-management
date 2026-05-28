@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Badge, Button, Skeleton } from '@gravitee/graphene-core';
+import { Badge, Button, ContextSidebar, ContextToggleButton, Skeleton, useLayoutConfig } from '@gravitee/graphene-core';
+import { useState } from 'react';
 import { Navigate, Outlet, useNavigate, useParams } from 'react-router-dom';
 
 import { ApiProductDetailContext } from '../../context/ApiProductDetailContext';
@@ -90,6 +91,25 @@ export function ApiProductDetailLayout() {
     const basePath = useDetailBasePath('api-products', productId);
     const { data: product, isLoading, isError } = useApiProductDetail(productId);
     const { permissionsReady } = useApiProductPermissions(productId);
+    const [contextExpanded, setContextExpanded] = useState(true);
+
+    useLayoutConfig(
+        {
+            viewMode: 'context',
+            contextExpanded,
+            contextSidebar: (
+                <ContextSidebar header={<ProductInfoHeader product={product ?? null} isLoading={isLoading} />}>
+                    <ApiProductSidebarNav basePath={basePath} />
+                </ContextSidebar>
+            ),
+            leading: <ContextToggleButton expanded={contextExpanded} onToggle={() => setContextExpanded(v => !v)} />,
+            breadcrumbs: [
+                { label: 'API Products', href: `${basePath.slice(0, basePath.lastIndexOf('/api-products/'))}${'/api-products'}` },
+                { label: product?.name ?? 'Loading…' },
+            ],
+        },
+        [contextExpanded, product, isLoading, basePath],
+    );
 
     if (isError) {
         return (
@@ -106,16 +126,7 @@ export function ApiProductDetailLayout() {
 
     return (
         <ApiProductDetailContext.Provider value={{ product: product ?? null, isLoading, permissionsReady }}>
-            <div className="flex" style={{ height: 'calc(100dvh - 5rem)' }}>
-                <aside className="shrink-0 min-w-0 w-56 overflow-y-auto overflow-x-hidden pb-4" style={{ maxWidth: '14rem' }}>
-                    <ProductInfoHeader product={product ?? null} isLoading={isLoading} />
-                    <ApiProductSidebarNav basePath={basePath} />
-                </aside>
-                <div className="w-px bg-border shrink-0" />
-                <main className="min-w-0 flex-1 pl-6 overflow-y-auto">
-                    <Outlet />
-                </main>
-            </div>
+            <Outlet />
         </ApiProductDetailContext.Provider>
     );
 }
