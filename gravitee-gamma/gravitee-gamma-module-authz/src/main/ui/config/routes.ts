@@ -20,7 +20,7 @@ export const ROUTE_KEYS = [
     'dashboard',
     // Policy Management
     'mcps',
-    'llms',
+    'models',
     'apis',
     'custom-policies',
     // Policy Structure
@@ -31,7 +31,7 @@ export type RouteKey = (typeof ROUTE_KEYS)[number];
 export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: string }> = {
     dashboard: { path: 'dashboard', label: 'Dashboard' },
     mcps: { path: 'mcps', label: 'MCPs' },
-    llms: { path: 'llms', label: 'AI Models' },
+    models: { path: 'models', label: 'AI Models' },
     apis: { path: 'apis', label: 'APIs' },
     'custom-policies': { path: 'custom-policies', label: 'Custom Policies' },
     entities: { path: 'entities', label: 'Entities' },

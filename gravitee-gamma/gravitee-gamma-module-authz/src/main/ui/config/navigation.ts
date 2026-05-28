@@ -33,7 +33,7 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Policy Management',
         items: [
             { key: 'mcps', title: ROUTES.mcps.label, icon: ShieldCheckIcon },
-            { key: 'llms', title: ROUTES.llms.label, icon: BrainIcon },
+            { key: 'models', title: ROUTES.models.label, icon: BrainIcon },
             { key: 'apis', title: ROUTES.apis.label, icon: GlobeIcon },
             { key: 'custom-policies', title: ROUTES['custom-policies'].label, icon: SlidersHorizontalIcon },
         ],

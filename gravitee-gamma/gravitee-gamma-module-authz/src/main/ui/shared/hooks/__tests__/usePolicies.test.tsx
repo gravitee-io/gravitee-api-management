@@ -39,7 +39,7 @@ function makeWrapper() {
     return ({ children }: { children: ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 }
 
-function Probe({ env, type }: { env: string; type?: 'MCP' | 'AGENT' | 'LLM' | 'API' | 'EVENT' | 'CUSTOM' }) {
+function Probe({ env, type }: { env: string; type?: 'MCP' | 'AGENT' | 'MODEL' | 'API' | 'EVENT' | 'CUSTOM' }) {
     const state = usePolicies(env, { type });
     return (
         <div>

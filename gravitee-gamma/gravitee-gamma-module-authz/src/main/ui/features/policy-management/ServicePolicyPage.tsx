@@ -50,7 +50,7 @@ import { useSchema } from '../../shared/hooks/useSchema';
 import { PolicyEditorSheet } from './PolicyEditorSheet';
 import { PolicyListTable } from './PolicyListTable';
 
-export type CatalogEntryType = 'MCP' | 'AGENT' | 'LLM' | 'API' | 'EVENT';
+export type CatalogEntryType = 'MCP' | 'AGENT' | 'MODEL' | 'API' | 'EVENT';
 
 export type CatalogEntry = {
     readonly id: string;
@@ -60,7 +60,7 @@ export type CatalogEntry = {
     readonly subResources: readonly never[];
 };
 
-const CATALOG_ENTRY_TYPES: readonly CatalogEntryType[] = ['MCP', 'AGENT', 'LLM', 'API', 'EVENT'];
+const CATALOG_ENTRY_TYPES: readonly CatalogEntryType[] = ['MCP', 'AGENT', 'MODEL', 'API', 'EVENT'];
 
 function toCatalogEntryType(type: PolicyType): CatalogEntryType {
     return CATALOG_ENTRY_TYPES.includes(type as CatalogEntryType) ? (type as CatalogEntryType) : 'API';
@@ -87,7 +87,7 @@ type SheetState = { kind: 'closed' } | { kind: 'create'; target: CatalogEntry | 
 const DEFAULT_RESOURCE_GROUPS: readonly { key: string; label: string }[] = [
     { key: 'API', label: 'API' },
     { key: 'MCP', label: 'MCP' },
-    { key: 'LLM', label: 'LLM' },
+    { key: 'Model', label: 'Model' },
     { key: 'Agent', label: 'Agent' },
     { key: 'Resource', label: 'Resource' },
 ];
@@ -225,8 +225,8 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
             const group =
                 firstSeg === 'mcp'
                     ? 'MCP'
-                    : firstSeg === 'llm'
-                      ? 'LLM'
+                    : firstSeg === 'model' || firstSeg === 'llm'
+                      ? 'Model'
                       : firstSeg === 'agent'
                         ? 'Agent'
                         : firstSeg === 'api'

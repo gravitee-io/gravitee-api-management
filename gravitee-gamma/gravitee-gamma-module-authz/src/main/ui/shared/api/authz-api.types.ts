@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type PolicyType = 'MCP' | 'AGENT' | 'LLM' | 'API' | 'EVENT' | 'CUSTOM';
+export type PolicyType = 'MCP' | 'AGENT' | 'MODEL' | 'API' | 'EVENT' | 'CUSTOM';
 export type PolicyStatus = 'DRAFT' | 'DEPLOYED' | 'DISABLED';
 
 export interface PolicyTarget {

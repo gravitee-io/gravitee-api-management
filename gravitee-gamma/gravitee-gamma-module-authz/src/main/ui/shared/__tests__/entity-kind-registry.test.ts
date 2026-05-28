@@ -21,16 +21,21 @@ describe('kindToUiType', () => {
         expect(kindToUiType('user')).toBe('User');
         expect(kindToUiType('group')).toBe('Group');
         expect(kindToUiType('mcp')).toBe('MCPServer');
-        expect(kindToUiType('llm')).toBe('LLMRoute');
-        expect(kindToUiType('agent')).toBe('AgentIdentity');
+        expect(kindToUiType('llm')).toBe('Model');
+        expect(kindToUiType('model')).toBe('Model');
+        expect(kindToUiType('agent')).toBe('Agent');
+        expect(kindToUiType('agent-identity')).toBe('AgentIdentity');
         expect(kindToUiType('api')).toBe('API');
         expect(kindToUiType('serviceaccount')).toBe('ServiceAccount');
     });
 
     it('honours aliases', () => {
         expect(kindToUiType('mcpserver')).toBe('MCPServer');
-        expect(kindToUiType('llmroute')).toBe('LLMRoute');
+        expect(kindToUiType('llmroute')).toBe('Model');
+        expect(kindToUiType('llmmodel')).toBe('Model');
         expect(kindToUiType('agentidentity')).toBe('AgentIdentity');
+        expect(kindToUiType('a2a')).toBe('Agent');
+        expect(kindToUiType('a2aagent')).toBe('Agent');
         expect(kindToUiType('service-account')).toBe('ServiceAccount');
         expect(kindToUiType('service_account')).toBe('ServiceAccount');
     });
@@ -51,8 +56,9 @@ describe('uiTypeToKind', () => {
     it('maps UI types to canonical lowercase kinds', () => {
         expect(uiTypeToKind('User')).toBe('user');
         expect(uiTypeToKind('MCPServer')).toBe('mcp');
-        expect(uiTypeToKind('LLMRoute')).toBe('llm');
-        expect(uiTypeToKind('AgentIdentity')).toBe('agent');
+        expect(uiTypeToKind('Model')).toBe('model');
+        expect(uiTypeToKind('AgentIdentity')).toBe('agent-identity');
+        expect(uiTypeToKind('Agent')).toBe('agent');
         expect(uiTypeToKind('ServiceAccount')).toBe('serviceaccount');
     });
 
@@ -71,7 +77,8 @@ describe('deriveServiceType', () => {
     it('maps known prefixes to their policy type', () => {
         expect(deriveServiceType('mcp.flight')).toBe('MCP');
         expect(deriveServiceType('agent.deploy')).toBe('AGENT');
-        expect(deriveServiceType('llm.gpt')).toBe('LLM');
+        expect(deriveServiceType('llm.gpt')).toBe('MODEL');
+        expect(deriveServiceType('model.openai.gpt-4o')).toBe('MODEL');
         expect(deriveServiceType('api.products')).toBe('API');
         expect(deriveServiceType('event.user-signup')).toBe('EVENT');
     });

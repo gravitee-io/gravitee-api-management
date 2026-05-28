@@ -23,7 +23,7 @@ import { AUTHZ_ROUTE_CONFIG, ROUTES, type RouteKey } from '../config/routes';
 import { DashboardPage } from '../features/dashboard/DashboardPage';
 import { ApisPage } from '../features/policy-management/pages/ApisPage';
 import { CustomPoliciesPage } from '../features/policy-management/pages/CustomPoliciesPage';
-import { LlmsPage } from '../features/policy-management/pages/LlmsPage';
+import { ModelsPage } from '../features/policy-management/pages/ModelsPage';
 import { McpsPage } from '../features/policy-management/pages/McpsPage';
 import { EntitiesPage } from '../features/policy-structure/EntitiesPage';
 import { ModuleErrorBoundary } from './ModuleErrorBoundary';
@@ -61,7 +61,7 @@ export function AppRoutes() {
                         <Route index element={<Navigate to="dashboard" replace />} />
                         <Route path="dashboard" element={<DashboardPage />} />
                         <Route path="mcps" element={<McpsPage />} />
-                        <Route path="llms" element={<LlmsPage />} />
+                        <Route path="models" element={<ModelsPage />} />
                         <Route path="apis" element={<ApisPage />} />
                         <Route path="custom-policies" element={<CustomPoliciesPage />} />
                         <Route path="entities" element={<EntitiesPage />} />

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { ServicePolicyPage } from '../ServicePolicyPage';
-import { llmsServiceConfig } from '../service-defs/llms';
+import { modelsServiceConfig } from '../service-defs/models';
 
-export function LlmsPage() {
-    return <ServicePolicyPage config={llmsServiceConfig} />;
+export function ModelsPage() {
+    return <ServicePolicyPage config={modelsServiceConfig} />;
 }
