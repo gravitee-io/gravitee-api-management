@@ -55,6 +55,40 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <!-- TracingRepository / OtelLogRepository SPIs (OTEL_TRACES / OTEL_LOGS scopes) — backing
+                 store for the global trace explorer. Beans wired by the repository plugin handler in
+                 the parent rest-api context — provided scope. -->
+            <groupId>io.gravitee.apim.repository</groupId>
+            <artifactId>gravitee-apim-repository-api</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <!-- RxJava3 — the TracingRepository / OtelLogRepository SPIs expose Single / Maybe. -->
+            <groupId>io.reactivex.rxjava3</groupId>
+            <artifactId>rxjava</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <!-- For GraviteeContext.getExecutionContext() to source the current org / env. -->
+            <groupId>io.gravitee.apim.rest.api</groupId>
+            <artifactId>gravitee-apim-rest-api-service</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <!-- Lombok @RequiredArgsConstructor / @AllArgsConstructor on adapters and use cases. -->
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <!-- Spring @Configuration / @Bean for the tracing wiring. -->
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
             <scope>provided</scope>
@@ -91,6 +125,12 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <!-- Architecture tests — enforce Hexagonal layout + naming + dependency direction. -->
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

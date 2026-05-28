@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.resources;
 
+import io.gravitee.gamma.rest.resources.tracing.TracingResource;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
@@ -36,5 +37,14 @@ public class GammaRootResource {
     @Path("/organizations/{orgId}/environments/{envId}/modules")
     public GammaModulesResource getModulesResourceFromEnvironment() {
         return resourceContext.getResource(GammaModulesResource.class);
+    }
+
+    /**
+     * Global trace explorer mounted outside the per-module namespace so every gamma module's UI can call
+     * it with its own {@code module} query parameter. See {@link TracingResource} for the contract.
+     */
+    @Path("/organizations/{orgId}/environments/{envId}/observability/traces")
+    public TracingResource getTracingResource() {
+        return resourceContext.getResource(TracingResource.class);
     }
 }
