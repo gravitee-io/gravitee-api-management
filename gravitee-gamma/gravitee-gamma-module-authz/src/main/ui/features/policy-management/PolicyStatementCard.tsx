@@ -13,12 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, Label, Textarea, ToggleGroup, ToggleGroupItem, cn } from '@gravitee/graphene-core';
-import { ChevronDownIcon, ChevronUpIcon, CopyIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
-import { useState } from 'react';
-import { ChipCombobox, GAPL_UID_PATTERN } from '../../components/ChipCombobox';
+import {
+    Button,
+    Combobox,
+    ComboboxChip,
+    ComboboxChips,
+    ComboboxChipsInput,
+    ComboboxContent,
+    ComboboxEmpty,
+    ComboboxGroup,
+    ComboboxItem,
+    ComboboxLabel,
+    ComboboxList,
+    Label,
+    Textarea,
+    ToggleGroup,
+    ToggleGroupItem,
+    cn,
+    useComboboxAnchor,
+} from '@gravitee/graphene-core';
+import { ChevronDownIcon, ChevronUpIcon, CopyIcon, Trash2Icon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
+import { useMemo, useState } from 'react';
 import type { ChipOption } from '../../shared/chip-option';
 import type { ActionRef, PolicyEffect, PolicyStatement, PrincipalRef, ResourceRef } from './statement-to-gapl';
+
+const GAPL_UID_PATTERN = /^([^:]+)::"(.+)"$/;
 
 export interface PolicyStatementCardProps {
     readonly index: number;
@@ -180,7 +199,7 @@ export function PolicyStatementCard({
 
             <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-3">
                 <ChipField label="Principal">
-                    <ChipCombobox
+                    <ChipMultiCombobox
                         placeholder="Add principal"
                         options={principalOptions}
                         selectedIds={statement.principals.map(p => p.id)}
@@ -191,7 +210,7 @@ export function PolicyStatementCard({
                 </ChipField>
 
                 <ChipField label="Action">
-                    <ChipCombobox
+                    <ChipMultiCombobox
                         placeholder="Add action"
                         options={actionOptions}
                         selectedIds={statement.actions.map(a => a.id)}
@@ -202,7 +221,7 @@ export function PolicyStatementCard({
                 </ChipField>
 
                 <ChipField label="Resource">
-                    <ChipCombobox
+                    <ChipMultiCombobox
                         placeholder="Add resource"
                         options={resourceOptions}
                         selectedIds={statement.resources.map(r => r.id)}
@@ -242,7 +261,7 @@ export function PolicyStatementCard({
                                     key={s.label}
                                     type="button"
                                     onClick={() => appendCondition(s.snippet)}
-                                    className="rounded border border-dashed px-1.5 py-0.5 text-xs text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+                                    className="rounded border border-dashed px-1.5 py-0.5 text-xs text-muted-foreground hover:border-foreground/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                                 >
                                     + {s.label}
                                 </button>
@@ -261,5 +280,113 @@ function ChipField({ label, children }: { label: string; children: React.ReactNo
             <Label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</Label>
             {children}
         </div>
+    );
+}
+
+interface ChipMultiComboboxProps {
+    readonly placeholder: string;
+    readonly options: readonly ChipOption[];
+    readonly selectedIds: readonly string[];
+    readonly onChange: (ids: string[]) => void;
+    readonly groupOrder?: readonly string[];
+    readonly emptyHint?: string;
+}
+
+function ChipMultiCombobox({ placeholder, options, selectedIds, onChange, groupOrder, emptyHint }: ChipMultiComboboxProps) {
+    const anchorRef = useComboboxAnchor();
+    const [query, setQuery] = useState('');
+
+    const matchesQuery = (option: ChipOption, needle: string): boolean => {
+        if (!needle) return true;
+        return (
+            option.label.toLowerCase().includes(needle) ||
+            option.id.toLowerCase().includes(needle) ||
+            (option.description?.toLowerCase().includes(needle) ?? false)
+        );
+    };
+
+    const grouped = useMemo(() => {
+        const needle = query.trim().toLowerCase();
+        const matching = needle ? options.filter(o => matchesQuery(o, needle)) : options;
+        const ordered = groupOrder ?? [...new Set(matching.map(o => o.group))];
+        const seen = new Set<string>();
+        const groups: Array<{ key: string; items: ChipOption[] }> = [];
+        for (const group of ordered) {
+            const items = matching.filter(o => o.group === group);
+            if (items.length > 0) {
+                groups.push({ key: group, items });
+                seen.add(group);
+            }
+        }
+        for (const o of matching) {
+            if (!seen.has(o.group)) {
+                seen.add(o.group);
+                groups.push({ key: o.group, items: matching.filter(x => x.group === o.group) });
+            }
+        }
+        return groups;
+    }, [options, groupOrder, query]);
+
+    const hasVisibleItems = grouped.some(g => g.items.length > 0);
+
+    const labelOf = (id: string): { label: string; ghost: boolean } => {
+        const opt = options.find(o => o.id === id);
+        if (opt) return { label: opt.label, ghost: false };
+        const m = id.match(GAPL_UID_PATTERN);
+        return { label: m ? m[2]! : id, ghost: true };
+    };
+
+    const values = selectedIds as string[];
+
+    return (
+        <Combobox
+            multiple
+            value={values}
+            onValueChange={next => onChange(next as string[])}
+            inputValue={query}
+            onInputValueChange={setQuery}
+            autoComplete="none"
+        >
+            <ComboboxChips ref={anchorRef}>
+                {values.map(id => {
+                    const { label, ghost } = labelOf(id);
+                    return (
+                        <ComboboxChip
+                            key={id}
+                            removeAriaLabel={`Remove ${label}`}
+                            className={cn(ghost && 'border border-dashed border-warning bg-warning/10 text-warning')}
+                        >
+                            {ghost ? <TriangleAlertIcon className="size-3" aria-hidden /> : null}
+                            {label}
+                        </ComboboxChip>
+                    );
+                })}
+                <ComboboxChipsInput placeholder={values.length === 0 ? placeholder : 'Type to filter…'} aria-label={placeholder} />
+            </ComboboxChips>
+            <ComboboxContent anchor={anchorRef} className="max-h-64 min-w-60" style={{ pointerEvents: 'auto' }}>
+                <ComboboxList>
+                    {!hasVisibleItems && (
+                        <ComboboxEmpty>
+                            {options.length === 0 && emptyHint ? emptyHint : query.trim() ? 'No matches.' : 'No options.'}
+                        </ComboboxEmpty>
+                    )}
+                    {grouped.map(group => (
+                        <ComboboxGroup key={group.key}>
+                            <ComboboxLabel>{group.key}</ComboboxLabel>
+                            {group.items.map(item => (
+                                <ComboboxItem key={item.id} value={item.id}>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="truncate text-sm">{item.label}</p>
+                                        {item.description ? (
+                                            <p className="truncate text-xs text-muted-foreground">{item.description}</p>
+                                        ) : null}
+                                    </div>
+                                </ComboboxItem>
+                            ))}
+                        </ComboboxGroup>
+                    ))}
+                </ComboboxList>
+            </ComboboxContent>
+        </Combobox>
     );
 }
