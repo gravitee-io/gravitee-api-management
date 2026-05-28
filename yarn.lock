@@ -13195,12 +13195,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jquery@npm:3.5.33":
-  version: 3.5.33
-  resolution: "@types/jquery@npm:3.5.33"
+"@types/jquery@npm:3.5.34":
+  version: 3.5.34
+  resolution: "@types/jquery@npm:3.5.34"
   dependencies:
     "@types/sizzle": "npm:*"
-  checksum: 10c0/d96c42762b7370ddf3b81cdad436a79d275e0ff09e2f4d7fbf2bbd8f97acef4110a11f1c3cb683195a1eba4fd9959e59d73f84d56ce2c010907a2bea696eb057
+  checksum: 10c0/c85eec82531912cc497c34daad3509cf54875a0457c64d82b4fe17a4a27a313150c0882b7dd345b7e98c9116e0bae64c3942b7a76f6edcd664efa701cd1f2d81
   languageName: node
   linkType: hard
 
@@ -21499,7 +21499,7 @@ __metadata:
     "@types/angular-sanitize": "npm:1.8.4"
     "@types/diff": "npm:5.2.3"
     "@types/jest": "npm:29.5.14"
-    "@types/jquery": "npm:3.5.33"
+    "@types/jquery": "npm:3.5.34"
     "@types/js-yaml": "npm:4.0.9"
     "@types/lodash": "npm:4.17.21"
     "@types/node": "npm:20.17.30"
