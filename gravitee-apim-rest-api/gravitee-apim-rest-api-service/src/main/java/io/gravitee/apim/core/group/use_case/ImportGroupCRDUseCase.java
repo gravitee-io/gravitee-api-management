@@ -83,12 +83,22 @@ public class ImportGroupCRDUseCase {
 
     private GroupCRDStatus create(Input input) {
         crudService.create(input.spec.toGroup(input.auditInfo.environmentId()));
-        membersService.updateGroupMembers(input.auditInfo, input.spec.getId(), input.spec.getMembers());
-        return GroupCRDStatus.builder().id(input.spec.getId()).members(input.spec.getMembers().size()).build();
+        return syncGroupMemberships(input);
     }
 
     private GroupCRDStatus update(Input input) {
         crudService.update(input.spec.toGroup(input.auditInfo.environmentId()));
+        return syncGroupMemberships(input);
+    }
+
+    private GroupCRDStatus syncGroupMemberships(Input input) {
+        membersService.updateGroupDefaultRoles(
+            input.auditInfo,
+            input.spec.getId(),
+            input.spec.getApiRole(),
+            input.spec.getApplicationRole(),
+            input.spec.getApiProductRole()
+        );
         membersService.updateGroupMembers(input.auditInfo, input.spec.getId(), input.spec.getMembers());
         return GroupCRDStatus.builder().id(input.spec.getId()).members(input.spec.getMembers().size()).build();
     }

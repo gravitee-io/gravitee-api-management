@@ -60,6 +60,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.apache.commons.io.IOUtils;
@@ -307,6 +308,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
             groupCrudServiceInMemory.reset();
             userDomainServiceInMemory.reset();
             userCrudService.reset();
+            crdMembersDomainServiceInMemory.reset();
 
             when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.API, RoleScope.APPLICATION, RoleScope.INTEGRATION)).thenReturn(
                 List.of(
@@ -450,6 +452,42 @@ public class GroupsResourceTest extends AbstractResourceTest {
                     );
 
                 soft.assertThat(groupCrudServiceInMemory.storage()).hasSize(1);
+            });
+        }
+
+        @Test
+        void should_set_default_roles() {
+            when(roleService.findByScopeAndName(RoleScope.API, "OWNER", ORGANIZATION)).thenReturn(
+                Optional.of(RoleEntity.builder().name("OWNER").build())
+            );
+            when(roleService.findByScopeAndName(RoleScope.APPLICATION, "OWNER", ORGANIZATION)).thenReturn(
+                Optional.of(RoleEntity.builder().name("OWNER").build())
+            );
+            when(roleService.findByScopeAndName(RoleScope.API_PRODUCT, "USER", ORGANIZATION)).thenReturn(
+                Optional.of(RoleEntity.builder().name("USER").build())
+            );
+
+            var crdStatus = doImport("/crd/group/with-default-roles.json", false);
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft
+                    .assertThat(crdStatus)
+                    .isEqualTo(
+                        GroupCRDStatus.builder()
+                            .id("2868ef55-561e-4b99-a981-450015a248d9")
+                            .errors(GroupCRDStatus.Errors.EMPTY)
+                            .members(0)
+                            .build()
+                    );
+
+                soft.assertThat(groupCrudServiceInMemory.storage()).hasSize(1);
+                soft.assertThat(crdMembersDomainServiceInMemory.getGroupApiRole("2868ef55-561e-4b99-a981-450015a248d9")).isEqualTo("OWNER");
+                soft
+                    .assertThat(crdMembersDomainServiceInMemory.getGroupApplicationRole("2868ef55-561e-4b99-a981-450015a248d9"))
+                    .isEqualTo("OWNER");
+                soft
+                    .assertThat(crdMembersDomainServiceInMemory.getGroupApiProductRole("2868ef55-561e-4b99-a981-450015a248d9"))
+                    .isEqualTo("USER");
             });
         }
 
