@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.use_case.SeedDefaultPagesForApiNavigationItemsUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
@@ -25,6 +26,7 @@ import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPageContentType;
+import io.gravitee.rest.api.management.v2.rest.model.SeedDefaultPagesRequest;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApi;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationLink;
@@ -121,6 +123,18 @@ public interface PortalNavigationItemsMapper {
         List<io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem> createPortalNavigationItems
     ) {
         return createPortalNavigationItems.stream().map(this::map).toList();
+    }
+
+    default SeedDefaultPagesForApiNavigationItemsUseCase.Input mapSeedDefaultPagesInput(
+        String organizationId,
+        String environmentId,
+        SeedDefaultPagesRequest request
+    ) {
+        return new SeedDefaultPagesForApiNavigationItemsUseCase.Input(
+            organizationId,
+            environmentId,
+            request.getIds().stream().map(this::map).toList()
+        );
     }
 
     default PortalNavigationItemId map(UUID id) {

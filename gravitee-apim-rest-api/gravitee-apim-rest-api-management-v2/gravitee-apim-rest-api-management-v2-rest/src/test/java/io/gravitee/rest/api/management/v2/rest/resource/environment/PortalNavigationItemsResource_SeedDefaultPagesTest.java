@@ -39,6 +39,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -93,7 +94,7 @@ class PortalNavigationItemsResource_SeedDefaultPagesTest extends AbstractResourc
 
     @Test
     void should_not_seed_default_pages_when_no_permission() {
-        var request = new SeedDefaultPagesRequest().ids(List.of(API1_ID));
+        var request = new SeedDefaultPagesRequest().ids(List.of(UUID.fromString(API1_ID)));
         when(
             permissionService.hasPermission(
                 GraviteeContext.getExecutionContext(),
@@ -110,7 +111,7 @@ class PortalNavigationItemsResource_SeedDefaultPagesTest extends AbstractResourc
 
     @Test
     void should_seed_default_pages() {
-        var request = new SeedDefaultPagesRequest().ids(List.of(API1_ID, API2_ID));
+        var request = new SeedDefaultPagesRequest().ids(List.of(UUID.fromString(API1_ID), UUID.fromString(API2_ID)));
         when(seedDefaultPagesForApiNavigationItemsUseCase.execute(any())).thenReturn(
             new SeedDefaultPagesForApiNavigationItemsUseCase.Output(List.of())
         );
