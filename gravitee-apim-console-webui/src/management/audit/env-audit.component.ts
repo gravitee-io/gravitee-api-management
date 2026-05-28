@@ -64,7 +64,7 @@ export class EnvAuditComponent implements OnInit, OnDestroy {
 
   public eventsName$ = this.auditService.getAllEventsName();
 
-  public apis$ = this.apiV2Service.listAll();
+  public apis$ = this.apiV2Service.getAll();
 
   public applications$ = this.applicationService.getAll();
 
