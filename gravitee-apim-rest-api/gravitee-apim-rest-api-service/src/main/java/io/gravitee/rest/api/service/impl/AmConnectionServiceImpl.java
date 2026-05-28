@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.Optional;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -41,7 +42,7 @@ public class AmConnectionServiceImpl implements AmConnectionService {
     private final DataEncryptor dataEncryptor;
 
     public AmConnectionServiceImpl(
-        AmConnectionRepository amConnectionRepository,
+        @Lazy AmConnectionRepository amConnectionRepository,
         @Qualifier("apiPropertiesEncryptor") DataEncryptor dataEncryptor
     ) {
         this.amConnectionRepository = amConnectionRepository;
