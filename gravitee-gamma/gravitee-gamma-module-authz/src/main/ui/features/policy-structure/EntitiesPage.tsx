@@ -31,12 +31,15 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
 } from '@gravitee/graphene-core';
 import { BoxesIcon, ShieldIcon, UsersIcon } from '@gravitee/graphene-core/icons';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useDeferredValue, useMemo, useState } from 'react';
 import { KpiTile } from '../../components/KpiTile';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/Tabs';
 import { formatEntityUid, fromBackend } from '../../shared/entity-adapter';
 import { useEntities } from '../../shared/hooks/useEntities';
 import type { EntityInstance } from './entity-types';
@@ -138,7 +141,7 @@ function useEntitiesTab({ environmentId, kind, excludeEntityIdPrefix }: UseEntit
 
 interface EntitiesTableProps {
     readonly tab: TabKey;
-    readonly entities: readonly EntityInstance[];
+    readonly entities: EntityInstance[];
     readonly searchValue: string;
     readonly isLoading: boolean;
     readonly page: number;
@@ -166,7 +169,7 @@ function EntitiesTable({
                 header: 'Type',
                 size: 180,
                 cell: ({ row }) => (
-                    <Badge variant="outline" className="font-mono text-xs">
+                    <Badge variant="outline" className="font-mono">
                         {row.original.uid.type}
                     </Badge>
                 ),
@@ -187,11 +190,7 @@ function EntitiesTable({
                 id: 'source',
                 header: 'Source',
                 size: 140,
-                cell: ({ row }) => (
-                    <Badge variant="secondary" className="text-xs">
-                        {sourceLabelOf(row.original)}
-                    </Badge>
-                ),
+                cell: ({ row }) => <Badge variant="secondary">{sourceLabelOf(row.original)}</Badge>,
             },
         ],
         [],
@@ -218,7 +217,7 @@ function EntitiesTable({
         <>
             <DataTable<EntityInstance>
                 columns={columns}
-                data={entities as EntityInstance[]}
+                data={entities}
                 serverSide
                 enableColumnResizing
                 loading={isLoading}
@@ -346,7 +345,7 @@ export function EntitiesPage() {
 
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4" aria-label="Key metrics">
                 <KpiTile label="Total entities" value={kpis.total} loading={isLoading} />
-                <KpiTile label="Types on page" value={kpis.typesOnPage} loading={isLoading} />
+                <KpiTile label="Types (this page)" value={kpis.typesOnPage} loading={isLoading} />
                 <KpiTile label="Principals" value={kpis.principals} loading={isLoading} />
                 <KpiTile label="Resources" value={kpis.resources} loading={isLoading} />
             </div>
@@ -359,7 +358,7 @@ export function EntitiesPage() {
             )}
 
             <Tabs defaultValue="principals" className="flex flex-col gap-3">
-                <TabsList>
+                <TabsList variant="line">
                     <TabsTrigger value="principals">
                         <UsersIcon className="size-4" aria-hidden />
                         Principals
