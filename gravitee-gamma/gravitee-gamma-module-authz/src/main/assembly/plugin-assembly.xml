@@ -29,6 +29,26 @@
         </file>
     </files>
 
+    <!-- Bundle runtime deps that APIM rest-api doesn't already provide on the plugin
+         classpath. The AM SDK (and its jsr310 datatype) back the AM user-sync feature;
+         without these the authz Spring context fails to refresh (NoClassDefFoundError:
+         io/gravitee/am/sdk/management/api/UserApi) and every sync REST path 404s.
+         gravitee-gamma-definition-model carries io.gravitee.gamma.definition.authz.AuthzEntity,
+         used on the entity-upsert path; core ships gravitee-apim-definition-model but not this
+         gamma artifact, so without it the user sync fails with NoClassDefFoundError at runtime. -->
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>lib</outputDirectory>
+            <scope>runtime</scope>
+            <useProjectArtifact>false</useProjectArtifact>
+            <includes>
+                <include>io.gravitee.am:gravitee-am-management-api-sdk-java</include>
+                <include>com.fasterxml.jackson.datatype:jackson-datatype-jsr310</include>
+                <include>io.gravitee.gamma.definition:gravitee-gamma-definition-model</include>
+            </includes>
+        </dependencySet>
+    </dependencySets>
+
     <!-- Include UI assets (mf-manifest.json + compiled JS/CSS) so the
          backend can serve them under /gamma/.../modules/authz/assets/
          and so the modules endpoint returns a full `mfManifest` payload
