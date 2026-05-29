@@ -89,6 +89,30 @@ public class FlowValidationDomainServiceTest {
         }
 
         @Test
+        public void should_reject_http_selector_with_null_path_operator() {
+            HttpSelector selector = new HttpSelector();
+            selector.setPath("/calls");
+            selector.setPathOperator(null);
+            var flow = Flow.builder().name("plan-flow").selectors(List.of(selector)).build();
+
+            var throwable = catchThrowable(() -> service.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(flow)));
+
+            assertThat(throwable).isInstanceOf(InvalidFlowException.class);
+        }
+
+        @Test
+        public void should_reject_http_selector_with_null_path_operator_when_flow_has_no_name() {
+            HttpSelector selector = new HttpSelector();
+            selector.setPath("/calls");
+            selector.setPathOperator(null);
+            var flow = Flow.builder().selectors(List.of(selector)).build();
+
+            var throwable = catchThrowable(() -> service.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(flow)));
+
+            assertThat(throwable).isInstanceOf(InvalidFlowException.class);
+        }
+
+        @Test
         public void should_accept_flow_with_only_selectors() {
             var flow = Flow.builder()
                 .selectors(List.of(HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).build()))

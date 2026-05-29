@@ -116,6 +116,7 @@ import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
+import io.gravitee.apim.core.flow.exception.InvalidFlowException;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
@@ -157,6 +158,7 @@ import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -666,6 +668,54 @@ class ImportApiCRDUseCaseTest {
                 .extracting(Plan::getId, Plan::getName, Plan::getPublishedAt)
                 .containsExactly(tuple(KEYLESS_PLAN_ID, "Keyless", INSTANT_NOW.atZone(ZoneId.systemDefault())));
             assertThat(flowCrudService.storage()).extracting(AbstractFlow::getName).containsExactly("plan-flow");
+        }
+
+        @Test
+        void should_reject_crd_import_when_plan_flow_has_null_path_operator() {
+            var corruptFlow = Flow.builder()
+                .name("plan-flow")
+                .selectors(List.of(HttpSelector.builder().path("/calls").pathOperator(null).build()))
+                .build();
+            var crd = aCRD()
+                .plans(
+                    Map.of(
+                        "keyless-key",
+                        PlanCRD.builder()
+                            .id("keyless-id")
+                            .name("Keyless")
+                            .security(PlanSecurity.builder().type("KEY_LESS").build())
+                            .mode(PlanMode.STANDARD)
+                            .validation(Plan.PlanValidationType.AUTO)
+                            .status(PlanStatus.PUBLISHED)
+                            .type(Plan.PlanType.API)
+                            .flows(List.of(corruptFlow))
+                            .build()
+                    )
+                )
+                .build();
+
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, crd)));
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(throwable).isInstanceOf(InvalidFlowException.class);
+                soft.assertThat(flowCrudService.storage()).extracting(AbstractFlow::getName).doesNotContain("plan-flow");
+            });
+        }
+
+        @Test
+        void should_reject_crd_import_when_api_flow_has_null_path_operator() {
+            var corruptFlow = Flow.builder()
+                .name("api-flow")
+                .selectors(List.of(HttpSelector.builder().path("/calls").pathOperator(null).build()))
+                .build();
+            var crd = aCRD().flows(List.of(corruptFlow)).build();
+
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, crd)));
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(throwable).isInstanceOf(InvalidFlowException.class);
+                soft.assertThat(flowCrudService.storage()).extracting(AbstractFlow::getName).doesNotContain("api-flow");
+            });
         }
 
         @Test
