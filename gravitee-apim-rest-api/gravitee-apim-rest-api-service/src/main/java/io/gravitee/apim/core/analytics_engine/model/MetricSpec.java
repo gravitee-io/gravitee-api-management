@@ -46,6 +46,9 @@ public record MetricSpec(
         MESSAGE_ERRORS,
         MESSAGE_GATEWAY_LATENCY,
         EDGE_DETECTION_COUNT,
+        EDGE_TOKENS_IN,
+        EDGE_TOKENS_OUT,
+        EDGE_HEARTBEAT_COUNT,
         NATIVE_CONNECTIONS_SUMMARY,
     }
 

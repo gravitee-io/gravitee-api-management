@@ -39,6 +39,9 @@ public class HTTPFieldResolver implements FieldResolver {
             case LLM_PROMPT_TOKEN_SENT_COST -> "additional-metrics.double_llm-proxy_sent-cost";
             case LLM_PROMPT_TOKEN_RECEIVED_COST -> "additional-metrics.double_llm-proxy_received-cost";
             case EDGE_DETECTION_COUNT -> "additional-metrics.long_edge_count";
+            case EDGE_TOKENS_IN -> "additional-metrics.long_edge_tokens_in";
+            case EDGE_TOKENS_OUT -> "additional-metrics.long_edge_tokens_out";
+            case EDGE_HEARTBEAT_COUNT -> "@timestamp";
             default -> throw new UnsupportedOperationException("not an HTTP metric");
         };
     }
@@ -74,6 +77,9 @@ public class HTTPFieldResolver implements FieldResolver {
             case Filter.Name.EDGE_PROCESS -> "additional-metrics.keyword_edge_process";
             case Filter.Name.EDGE_CLIENT -> "client-identifier";
             case Filter.Name.EDGE_TYPE -> "additional-metrics.keyword_edge_type";
+            case Filter.Name.EDGE_VERSION -> "additional-metrics.keyword_edge_version";
+            case Filter.Name.EDGE_MODEL -> "additional-metrics.keyword_edge_model";
+            case Filter.Name.EDGE_TOOL -> "additional-metrics.keyword_edge_tool";
             case Filter.Name.API_PRODUCT -> "api-product-id";
             default -> throw new UnsupportedOperationException("not an HTTP filter");
         };
@@ -109,6 +115,10 @@ public class HTTPFieldResolver implements FieldResolver {
             case EDGE_PROVIDER -> "additional-metrics.keyword_edge_provider";
             case EDGE_PROCESS -> "additional-metrics.keyword_edge_process";
             case EDGE_CLIENT -> "client-identifier";
+            case EDGE_TYPE -> "additional-metrics.keyword_edge_type";
+            case EDGE_VERSION -> "additional-metrics.keyword_edge_version";
+            case EDGE_MODEL -> "additional-metrics.keyword_edge_model";
+            case EDGE_TOOL -> "additional-metrics.keyword_edge_tool";
             case API_PRODUCT -> "api-product-id";
             default -> throw new UnsupportedOperationException("not an HTTP facet");
         };

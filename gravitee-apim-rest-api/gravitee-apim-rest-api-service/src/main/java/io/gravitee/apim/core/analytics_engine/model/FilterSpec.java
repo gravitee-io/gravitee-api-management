@@ -71,6 +71,9 @@ public record FilterSpec(
         EDGE_PROCESS,
         EDGE_CLIENT,
         EDGE_TYPE,
+        EDGE_VERSION,
+        EDGE_MODEL,
+        EDGE_TOOL,
         API_TYPE,
         NATIVE_CONNECTION_STATUS,
     }
