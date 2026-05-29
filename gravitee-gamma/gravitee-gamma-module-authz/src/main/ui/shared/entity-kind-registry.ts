@@ -55,6 +55,19 @@ export function uiTypeToKind(type: string): string {
     return BY_UI_TYPE.get(type.toLowerCase())?.canonical ?? type.toLowerCase();
 }
 
+/**
+ * Resolve a GAPL/Cedar type token to its canonical lowercase kind, accepting
+ * either a UI type (`MCPServer`), the canonical kind (`mcp`), or any alias
+ * (`mcpserver`, `llm`). Falls back to the lowercased token when unknown.
+ *
+ * Use this — not a raw `toLowerCase()` — when deriving a canonical entityId
+ * from policy text so `MCPServer::"x"` and `mcp.x` resolve to the same id.
+ */
+export function canonicalKindOf(token: string): string {
+    const lower = token.toLowerCase();
+    return BY_KIND.get(lower)?.canonical ?? BY_UI_TYPE.get(lower)?.canonical ?? lower;
+}
+
 /** EntityId (`<kind>.<id>`) → policy type. Anything without a registered policy
  *  type — including null/undefined entityIds — falls back to `CUSTOM`. */
 export function deriveServiceType(entityId: string | null | undefined): PolicyType {

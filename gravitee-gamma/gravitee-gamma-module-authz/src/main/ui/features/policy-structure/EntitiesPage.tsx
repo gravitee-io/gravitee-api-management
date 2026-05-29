@@ -47,12 +47,12 @@ import {
 import { BoxesIcon, DownloadIcon, PlusIcon, ShieldIcon, Trash2Icon, UsersIcon } from '@gravitee/graphene-core/icons';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
-import { useDeferredValue, useMemo, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { KpiTile } from '../../components/KpiTile';
-import { authzApiService } from '../../shared/api/authz-api.service';
+import { authzApiService, DEFAULT_PER_PAGE } from '../../shared/api/authz-api.service';
 import { authzQueryKeys } from '../../shared/api/query-keys';
 import { formatEntityUid, fromBackend } from '../../shared/entity-adapter';
-import { useEntities, type UseEntitiesResult } from '../../shared/hooks/useEntities';
+import { useAllEntities } from '../../shared/hooks/useAllEntities';
 import { CreateEntityDialog } from './CreateEntityDialog';
 import { CATEGORIES, getEntityCategoryId, type EntityInstance } from './entity-types';
 import { ImportFromCatalogDialog } from './ImportFromCatalogDialog';
@@ -297,24 +297,28 @@ function distinctSorted<T extends string>(values: Iterable<T>): T[] {
     return Array.from(new Set(values)).sort();
 }
 
-function pageEntities(query: UseEntitiesResult): readonly EntityInstance[] {
-    if (!query.data) return [];
-    return query.data.data.map(fromBackend);
+function paginate<T>(items: readonly T[], page: number, perPage: number): T[] {
+    const start = (page - 1) * perPage;
+    return items.slice(start, start + perPage);
 }
 
 export function EntitiesPage() {
     const env = useEnvironment();
     const environmentId = env?.id ?? '';
     const queryClient = useQueryClient();
-    const principalsQuery = useEntities(environmentId, undefined, { kind: 'PRINCIPAL' });
-    const resourcesQuery = useEntities(environmentId, undefined, { kind: 'RESOURCE', excludeEntityIdPrefix: ACTION_PREFIX });
+    const principalsQuery = useAllEntities(environmentId, { kind: 'PRINCIPAL' });
+    const resourcesQuery = useAllEntities(environmentId, { kind: 'RESOURCE', excludeEntityIdPrefix: ACTION_PREFIX });
 
     const [principalSearch, setPrincipalSearch] = useState('');
     const [principalTypeFilter, setPrincipalTypeFilter] = useState<TypeFilter>('all');
     const [principalSourceFilter, setPrincipalSourceFilter] = useState<SourceFilter>('all');
+    const [principalPage, setPrincipalPage] = useState(1);
+    const [principalPerPage, setPrincipalPerPage] = useState(DEFAULT_PER_PAGE);
     const [resourceSearch, setResourceSearch] = useState('');
     const [resourceTypeFilter, setResourceTypeFilter] = useState<TypeFilter>('all');
     const [resourceSourceFilter, setResourceSourceFilter] = useState<SourceFilter>('all');
+    const [resourcePage, setResourcePage] = useState(1);
+    const [resourcePerPage, setResourcePerPage] = useState(DEFAULT_PER_PAGE);
     const [importOpen, setImportOpen] = useState(false);
     const [addingKind, setAddingKind] = useState<AddingKind | null>(null);
     const [pendingDelete, setPendingDelete] = useState<EntityInstance | null>(null);
@@ -348,19 +352,19 @@ export function EntitiesPage() {
     const deferredPrincipalSearch = useDeferredValue(principalSearch);
     const deferredResourceSearch = useDeferredValue(resourceSearch);
 
-    const principals = useMemo(() => pageEntities(principalsQuery), [principalsQuery]);
-    const resources = useMemo(() => pageEntities(resourcesQuery), [resourcesQuery]);
+    // Full sets (every page) so search/filter/paginate operate over all entities,
+    // not just one server page.
+    const principals = useMemo(() => principalsQuery.data.map(fromBackend), [principalsQuery.data]);
+    const resources = useMemo(() => resourcesQuery.data.map(fromBackend), [resourcesQuery.data]);
 
-    const principalTotal = principalsQuery.data?.total ?? 0;
-    const resourceTotal = resourcesQuery.data?.total ?? 0;
+    const principalTotal = principalsQuery.total;
+    const resourceTotal = resourcesQuery.total;
 
     const principalTypes = useMemo(() => distinctSorted(principals.map(e => e.uid.type)), [principals]);
     const resourceTypes = useMemo(() => distinctSorted(resources.map(e => e.uid.type)), [resources]);
     const principalSources = useMemo(() => distinctSorted(principals.map(sourceLabelOf)), [principals]);
     const resourceSources = useMemo(() => distinctSorted(resources.map(sourceLabelOf)), [resources]);
 
-    // TODO(authz-ui): server-side filters for search/type/source — these stay
-    // client-side and operate on the currently visible page only.
     const filteredPrincipals = useMemo(
         () => applyFilters(principals, deferredPrincipalSearch, principalTypeFilter, principalSourceFilter),
         [principals, deferredPrincipalSearch, principalTypeFilter, principalSourceFilter],
@@ -370,13 +374,35 @@ export function EntitiesPage() {
         [resources, deferredResourceSearch, resourceTypeFilter, resourceSourceFilter],
     );
 
+    // Reset to page 1 whenever the filtered result set changes shape, so we never
+    // sit on a now-empty page after filtering, resizing, or deleting.
+    useEffect(() => {
+        setPrincipalPage(1);
+    }, [deferredPrincipalSearch, principalTypeFilter, principalSourceFilter, principalPerPage]);
+    useEffect(() => {
+        setResourcePage(1);
+    }, [deferredResourceSearch, resourceTypeFilter, resourceSourceFilter, resourcePerPage]);
+
+    const principalPageCount = Math.max(1, Math.ceil(filteredPrincipals.length / principalPerPage));
+    const resourcePageCount = Math.max(1, Math.ceil(filteredResources.length / resourcePerPage));
+    const safePrincipalPage = Math.min(principalPage, principalPageCount);
+    const safeResourcePage = Math.min(resourcePage, resourcePageCount);
+    const pagedPrincipals = useMemo(
+        () => paginate(filteredPrincipals, safePrincipalPage, principalPerPage),
+        [filteredPrincipals, safePrincipalPage, principalPerPage],
+    );
+    const pagedResources = useMemo(
+        () => paginate(filteredResources, safeResourcePage, resourcePerPage),
+        [filteredResources, safeResourcePage, resourcePerPage],
+    );
+
     const kpis = useMemo(() => {
-        const visibleTypes = new Set<string>();
-        principals.forEach(e => visibleTypes.add(e.uid.type));
-        resources.forEach(e => visibleTypes.add(e.uid.type));
+        const types = new Set<string>();
+        principals.forEach(e => types.add(e.uid.type));
+        resources.forEach(e => types.add(e.uid.type));
         return {
             total: principalTotal + resourceTotal,
-            types: visibleTypes.size,
+            types: types.size,
             principals: principalTotal,
             resources: resourceTotal,
         };
@@ -400,7 +426,7 @@ export function EntitiesPage() {
 
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4" aria-label="Key metrics">
                 <KpiTile label="Total entities" value={kpis.total} loading={isLoading} />
-                <KpiTile label="Types (this page)" value={kpis.types} loading={isLoading} />
+                <KpiTile label="Types" value={kpis.types} loading={isLoading} />
                 <KpiTile label="Principals" value={kpis.principals} loading={isLoading} />
                 <KpiTile label="Resources" value={kpis.resources} loading={isLoading} />
             </div>
@@ -451,14 +477,14 @@ export function EntitiesPage() {
                     </div>
                     <EntitiesTable
                         tab="principals"
-                        entities={filteredPrincipals}
+                        entities={pagedPrincipals}
                         searchValue={deferredPrincipalSearch}
                         isLoading={principalsQuery.isLoading}
-                        page={principalsQuery.page}
-                        perPage={principalsQuery.perPage}
-                        totalCount={principalTotal}
-                        onPageChange={principalsQuery.setPage}
-                        onPerPageChange={principalsQuery.setPerPage}
+                        page={safePrincipalPage}
+                        perPage={principalPerPage}
+                        totalCount={filteredPrincipals.length}
+                        onPageChange={setPrincipalPage}
+                        onPerPageChange={setPrincipalPerPage}
                     />
                 </TabsContent>
 
@@ -491,14 +517,14 @@ export function EntitiesPage() {
                     </div>
                     <EntitiesTable
                         tab="resources"
-                        entities={filteredResources}
+                        entities={pagedResources}
                         searchValue={deferredResourceSearch}
                         isLoading={resourcesQuery.isLoading}
-                        page={resourcesQuery.page}
-                        perPage={resourcesQuery.perPage}
-                        totalCount={resourceTotal}
-                        onPageChange={resourcesQuery.setPage}
-                        onPerPageChange={resourcesQuery.setPerPage}
+                        page={safeResourcePage}
+                        perPage={resourcePerPage}
+                        totalCount={filteredResources.length}
+                        onPageChange={setResourcePage}
+                        onPerPageChange={setResourcePerPage}
                         onDelete={setPendingDelete}
                         deletingEntityId={deletingEntityId}
                     />

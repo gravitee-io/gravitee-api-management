@@ -191,8 +191,19 @@ describe('deriveTargetEntityId', () => {
     });
 
     it('binds LLM and API resources to their service entity', () => {
-        expect(deriveTargetEntityId('permit ( principal, action, resource == LLM::"gpt-4o" );')).toBe('llm.gpt-4o');
+        // `LLM` is an alias of the `model` kind — the derived id is canonicalised.
+        expect(deriveTargetEntityId('permit ( principal, action, resource == LLM::"gpt-4o" );')).toBe('model.gpt-4o');
         expect(deriveTargetEntityId('forbid ( principal, action, resource == API::"orders.items" );')).toBe('api.orders');
+    });
+
+    it('canonicalises UI-type and alias tokens to the canonical kind', () => {
+        // The visual builder emits the UI type (`MCPServer`); code authors may use
+        // the kind or an alias. All must reduce to the same canonical entityId so
+        // the target matches the resource entity (`mcp.bookings`), not `mcpserver.*`.
+        expect(deriveTargetEntityId('permit ( principal, action, resource == MCPServer::"bookings" );')).toBe('mcp.bookings');
+        expect(deriveTargetEntityId('permit ( principal, action, resource == mcpserver::"bookings" );')).toBe('mcp.bookings');
+        expect(deriveTargetEntityId('permit ( principal, action, resource == Model::"gpt-4o" );')).toBe('model.gpt-4o');
+        expect(deriveTargetEntityId('permit ( principal, action, resource == AgentIdentity::"svc" );')).toBe('agent-identity.svc');
     });
 
     it('returns null for generic/custom resources (stays GLOBAL → Custom)', () => {

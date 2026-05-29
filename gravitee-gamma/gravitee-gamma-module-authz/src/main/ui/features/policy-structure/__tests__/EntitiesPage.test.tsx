@@ -70,6 +70,7 @@ vi.mock('@gravitee/gamma-modules-sdk', async importOriginal => ({
 
 vi.mock('../../../shared/api/authz-api.service', () => ({
     DEFAULT_PER_PAGE: 10,
+    MAX_PER_PAGE: 100,
     authzApiService: {
         listEntities: (env: string, params?: ListEntitiesParams) => listEntitiesSpy(env, params),
         deleteEntity: (env: string, entityId: string) => deleteEntitySpy(env, entityId),

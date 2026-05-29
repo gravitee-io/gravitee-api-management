@@ -17,6 +17,8 @@ export const authzQueryKeys = {
     all: ['authz'] as const,
     entities: {
         all: (environmentId: string) => ['authz', 'entities', environmentId] as const,
+        list: (environmentId: string, kind?: string, entityIdPrefix?: string, excludeEntityIdPrefix?: string) =>
+            ['authz', 'entities', environmentId, 'list', kind, entityIdPrefix, excludeEntityIdPrefix] as const,
         page: (
             environmentId: string,
             page: number,
