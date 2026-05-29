@@ -305,6 +305,16 @@ export const authzApiService = {
         return adaptEntityResponse(created);
     },
 
+    // Update is a full replace of attributes + parents (entityId/kind/source are immutable).
+    // Callers must send the complete attributes map, not a partial patch.
+    updateEntity: async (environmentId: string, entityId: string, request: UpdateEntityRequest): Promise<EntityResponse> => {
+        const updated = await authzCoreApiClient.put<CanonicalEntity>(
+            corePath(environmentId, `/entities/${encodeURIComponent(entityId)}`),
+            request,
+        );
+        return adaptEntityResponse(updated);
+    },
+
     deleteEntity: (environmentId: string, entityId: string): Promise<void> =>
         authzCoreApiClient.delete<void>(corePath(environmentId, `/entities/${encodeURIComponent(entityId)}`)),
 };
@@ -315,4 +325,9 @@ export interface CreateEntityRequest {
     readonly attributes: Record<string, unknown>;
     readonly parents: readonly string[];
     readonly source: string;
+}
+
+export interface UpdateEntityRequest {
+    readonly attributes: Record<string, unknown>;
+    readonly parents: readonly string[];
 }

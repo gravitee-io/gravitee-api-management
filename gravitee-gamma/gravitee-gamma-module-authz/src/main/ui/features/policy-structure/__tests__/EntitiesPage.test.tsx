@@ -42,6 +42,11 @@ vi.mock('../CreateEntityDialog', () => ({
         open ? <div data-testid="create-entity-dialog-stub" data-kind={kind} /> : null,
 }));
 
+vi.mock('../EditEntityDialog', () => ({
+    EditEntityDialog: ({ open, kind, entity }: { open: boolean; kind: string; entity: { uid: { id: string } } | null }) =>
+        open ? <div data-testid="edit-entity-dialog-stub" data-kind={kind} data-entity={entity?.uid.id ?? ''} /> : null,
+}));
+
 vi.mock('../ImportFromCatalogDialog', () => ({
     ImportFromCatalogDialog: ({ open }: { open: boolean }) => (open ? <div data-testid="import-dialog-stub" /> : null),
 }));
@@ -266,6 +271,46 @@ describe('EntitiesPage', () => {
 
         const stub = screen.getByTestId('create-entity-dialog-stub');
         expect(stub).toHaveAttribute('data-kind', 'RESOURCE');
+    });
+
+    it('opens the edit dialog (kind=PRINCIPAL) for a local principal row', async () => {
+        mockByKind({ principals: [makeEntity({ id: 'p1', uid: 'user.alice' })] });
+        renderPage();
+
+        const user = userEvent.setup();
+        await waitFor(() => expect(screen.getByLabelText('Edit user.alice')).toBeInTheDocument());
+        expect(screen.queryByTestId('edit-entity-dialog-stub')).not.toBeInTheDocument();
+        await user.click(screen.getByLabelText('Edit user.alice'));
+
+        const stub = screen.getByTestId('edit-entity-dialog-stub');
+        expect(stub).toHaveAttribute('data-kind', 'PRINCIPAL');
+        expect(stub).toHaveAttribute('data-entity', 'alice');
+    });
+
+    it('hides the edit action for non-local (read-only) entities', async () => {
+        mockByKind({ resources: [makeEntity({ id: 'r1', uid: 'mcp.flight', attributes: { _source: 'gravitee-catalog' } })] });
+        renderPage();
+
+        const user = userEvent.setup();
+        await user.click(screen.getByRole('tab', { name: /Resources/i }));
+        await waitFor(() => expect(screen.getByText('mcp.flight')).toBeInTheDocument());
+        // Catalog-sourced → no edit, but still removable.
+        expect(screen.queryByLabelText('Edit mcp.flight')).not.toBeInTheDocument();
+        expect(screen.getByLabelText('Delete mcp.flight')).toBeInTheDocument();
+    });
+
+    it('opens the edit dialog (kind=RESOURCE) for a local resource row', async () => {
+        mockByKind({ resources: [makeEntity({ id: 'r1', uid: 'mcp.flight' })] });
+        renderPage();
+
+        const user = userEvent.setup();
+        await user.click(screen.getByRole('tab', { name: /Resources/i }));
+        await waitFor(() => expect(screen.getByLabelText('Edit mcp.flight')).toBeInTheDocument());
+        await user.click(screen.getByLabelText('Edit mcp.flight'));
+
+        const stub = screen.getByTestId('edit-entity-dialog-stub');
+        expect(stub).toHaveAttribute('data-kind', 'RESOURCE');
+        expect(stub).toHaveAttribute('data-entity', 'flight');
     });
 
     it('shows the row-level Remove action only on the Resources tab', async () => {

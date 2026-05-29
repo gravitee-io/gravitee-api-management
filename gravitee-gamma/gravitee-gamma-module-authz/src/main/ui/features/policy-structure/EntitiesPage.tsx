@@ -44,7 +44,7 @@ import {
     TabsTrigger,
     toast,
 } from '@gravitee/graphene-core';
-import { BoxesIcon, DownloadIcon, PlusIcon, ShieldIcon, Trash2Icon, UsersIcon } from '@gravitee/graphene-core/icons';
+import { BoxesIcon, DownloadIcon, PencilIcon, PlusIcon, ShieldIcon, Trash2Icon, UsersIcon } from '@gravitee/graphene-core/icons';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
@@ -54,6 +54,7 @@ import { authzQueryKeys } from '../../shared/api/query-keys';
 import { formatEntityUid, fromBackend } from '../../shared/entity-adapter';
 import { useAllEntities } from '../../shared/hooks/useAllEntities';
 import { CreateEntityDialog } from './CreateEntityDialog';
+import { EditEntityDialog } from './EditEntityDialog';
 import { ImportFromCatalogDialog } from './ImportFromCatalogDialog';
 import { CATEGORIES, getEntityCategoryId, type EntityInstance } from './entity-types';
 
@@ -102,6 +103,7 @@ interface EntitiesTableProps {
     readonly totalCount: number;
     readonly onPageChange: (page: number) => void;
     readonly onPerPageChange: (perPage: number) => void;
+    readonly onEdit?: (entity: EntityInstance) => void;
     readonly onDelete?: (entity: EntityInstance) => void;
     readonly deletingEntityId?: string;
 }
@@ -116,6 +118,7 @@ function EntitiesTable({
     totalCount,
     onPageChange,
     onPerPageChange,
+    onEdit,
     onDelete,
     deletingEntityId,
 }: EntitiesTableProps) {
@@ -153,31 +156,48 @@ function EntitiesTable({
                 cell: ({ row }) => <Badge variant="secondary">{sourceLabelOf(row.original)}</Badge>,
             },
         ];
-        if (onDelete) {
+        if (onEdit || onDelete) {
             baseColumns.push({
                 id: 'actions',
                 header: '',
-                size: 60,
+                size: 96,
                 cell: ({ row }) => {
                     const uid = formatEntityUid(row.original.uid);
                     const isDeleting = deletingEntityId === uid;
+                    // Only local entities are editable; catalog/APIM-sourced are read-only.
+                    const canEdit = onEdit && row.original.source === 'local';
                     return (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onDelete(row.original)}
-                            disabled={isDeleting}
-                            aria-label={`Delete ${uid}`}
-                            title="Remove from Authorization"
-                        >
-                            <Trash2Icon className="size-4 text-muted-foreground" aria-hidden />
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                            {canEdit && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => onEdit(row.original)}
+                                    aria-label={`Edit ${uid}`}
+                                    title="Edit"
+                                >
+                                    <PencilIcon className="size-4 text-muted-foreground" aria-hidden />
+                                </Button>
+                            )}
+                            {onDelete && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => onDelete(row.original)}
+                                    disabled={isDeleting}
+                                    aria-label={`Delete ${uid}`}
+                                    title="Remove from Authorization"
+                                >
+                                    <Trash2Icon className="size-4 text-muted-foreground" aria-hidden />
+                                </Button>
+                            )}
+                        </div>
                     );
                 },
             });
         }
         return baseColumns;
-    }, [onDelete, deletingEntityId]);
+    }, [onEdit, onDelete, deletingEntityId]);
 
     if (!isLoading && entities.length === 0) {
         return (
@@ -321,6 +341,7 @@ export function EntitiesPage() {
     const [resourcePerPage, setResourcePerPage] = useState(DEFAULT_PER_PAGE);
     const [importOpen, setImportOpen] = useState(false);
     const [addingKind, setAddingKind] = useState<AddingKind | null>(null);
+    const [editing, setEditing] = useState<{ entity: EntityInstance; kind: AddingKind } | null>(null);
     const [pendingDelete, setPendingDelete] = useState<EntityInstance | null>(null);
     const [deletingEntityId, setDeletingEntityId] = useState<string | undefined>();
 
@@ -485,6 +506,7 @@ export function EntitiesPage() {
                         totalCount={filteredPrincipals.length}
                         onPageChange={setPrincipalPage}
                         onPerPageChange={setPrincipalPerPage}
+                        onEdit={entity => setEditing({ entity, kind: 'PRINCIPAL' })}
                     />
                 </TabsContent>
 
@@ -525,6 +547,7 @@ export function EntitiesPage() {
                         totalCount={filteredResources.length}
                         onPageChange={setResourcePage}
                         onPerPageChange={setResourcePerPage}
+                        onEdit={entity => setEditing({ entity, kind: 'RESOURCE' })}
                         onDelete={setPendingDelete}
                         deletingEntityId={deletingEntityId}
                     />
@@ -546,6 +569,17 @@ export function EntitiesPage() {
                     if (!open) setAddingKind(null);
                 }}
                 onCreated={handleImported}
+            />
+
+            <EditEntityDialog
+                open={editing !== null}
+                entity={editing?.entity ?? null}
+                kind={editing?.kind ?? 'PRINCIPAL'}
+                environmentId={environmentId}
+                onOpenChange={open => {
+                    if (!open) setEditing(null);
+                }}
+                onUpdated={handleImported}
             />
 
             <Dialog
