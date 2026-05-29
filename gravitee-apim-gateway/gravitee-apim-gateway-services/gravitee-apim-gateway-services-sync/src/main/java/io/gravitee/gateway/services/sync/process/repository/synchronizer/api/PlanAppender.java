@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.edge.EdgeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.plan.AbstractPlan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -66,6 +67,8 @@ public class PlanAppender {
                     hasPlan = v4Api.getPlans() != null && !v4Api.getPlans().isEmpty();
                 } else if (reactableApi.getDefinition() instanceof NativeApi nativeApi) {
                     hasPlan = nativeApi.getPlans() != null && !nativeApi.getPlans().isEmpty();
+                } else if (reactableApi.getDefinition() instanceof EdgeApi edgeApi) {
+                    hasPlan = edgeApi.getPlans() != null && !edgeApi.getPlans().isEmpty();
                 } else if (reactableApi.getDefinition() instanceof io.gravitee.definition.model.Api api) {
                     hasPlan = api.getPlans() != null && !api.getPlans().isEmpty();
                 }
@@ -101,17 +104,20 @@ public class PlanAppender {
     private void filterPlanForApiV4(final ReactableApi<?> reactableApi) {
         io.gravitee.definition.model.v4.AbstractApi abstractApiDefinition =
             (io.gravitee.definition.model.v4.AbstractApi) reactableApi.getDefinition();
-        if (ApiType.NATIVE != abstractApiDefinition.getType()) {
-            var apiDefinition = (io.gravitee.definition.model.v4.Api) abstractApiDefinition;
+        if (abstractApiDefinition instanceof io.gravitee.definition.model.v4.Api apiDefinition) {
             var plans = apiDefinition.getPlans();
             if (plans != null) {
                 apiDefinition.setPlans(filterPlans(plans.stream(), reactableApi.getName()).collect(Collectors.toList()));
             }
-        } else {
-            var apiDefinition = (NativeApi) abstractApiDefinition;
-            var plans = apiDefinition.getPlans();
+        } else if (abstractApiDefinition instanceof NativeApi nativeApi) {
+            var plans = nativeApi.getPlans();
             if (plans != null) {
-                apiDefinition.setPlans(filterPlans(plans.stream(), reactableApi.getName()).collect(Collectors.toList()));
+                nativeApi.setPlans(filterPlans(plans.stream(), reactableApi.getName()).collect(Collectors.toList()));
+            }
+        } else if (abstractApiDefinition instanceof EdgeApi edgeApi) {
+            var plans = edgeApi.getPlans();
+            if (plans != null) {
+                edgeApi.setPlans(filterPlans(plans.stream(), reactableApi.getName()).collect(Collectors.toList()));
             }
         }
     }
