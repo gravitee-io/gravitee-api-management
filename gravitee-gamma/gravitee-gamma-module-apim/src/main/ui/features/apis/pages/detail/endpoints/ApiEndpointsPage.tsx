@@ -17,27 +17,37 @@ import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Alert, AlertDescription, Button, Skeleton, TooltipProvider } from '@gravitee/graphene-core';
 import { PlusIcon } from '@gravitee/graphene-core/icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
 
 import { EndpointForm } from './endpoint-form/EndpointForm';
 import { EndpointGroupList } from './EndpointGroupList';
 import { EndpointsLanding } from './EndpointsLanding';
 import { EndpointGroupForm } from './group-form/EndpointGroupForm';
-import type { EndpointFormState, EndpointGroupFormState, SharedConfigFormState } from './types';
-import { DEFAULT_GROUP_FORM, DEFAULT_SHARED_CONFIG, parseSharedConfigDto } from './types';
+import type { EndpointFormState, EndpointGroupFormState } from './types';
+import { buildDefaultEndpointForGroup, DEFAULT_GROUP_FORM, DEFAULT_SHARED_CONFIG, newEndpointRow, parseSharedConfigDto } from './types';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import { updateApiEndpointGroups } from '../../../services/apis';
 import type { EndpointGroupDto, EndpointGroupSharedConfiguration } from '../../../types';
+import { isHttpProxyApi } from '../../../utils/apiHttpProxy';
+import { serializeSharedConfiguration, serializeSharedConfigurationOverride } from '../../../utils/endpointSharedConfiguration';
+import {
+    buildEndpointHealthCheckService,
+    buildGroupHealthCheckService,
+    healthCheckFromEndpoint,
+    healthCheckFromGroup,
+} from '../../../utils/healthCheckForm';
 import { apiDetailKeys } from '../../../utils/queryKeys';
 
 // ─── DTO ↔ form conversion ────────────────────────────────────────────────────
 
 function dtoToFormState(group: EndpointGroupDto): EndpointGroupFormState {
+    const groupHealth = group.services?.healthCheck;
     return {
         name: group.name,
         loadBalancerType: group.loadBalancer?.type ?? 'ROUND_ROBIN',
         sharedConfig: parseSharedConfigDto(group.sharedConfiguration ?? {}),
+        healthCheck: healthCheckFromGroup(groupHealth),
         endpoints: (group.endpoints ?? []).map(ep => ({
             _id: Math.random().toString(36).slice(2, 10),
             name: ep.name,
@@ -50,56 +60,30 @@ function dtoToFormState(group: EndpointGroupDto): EndpointGroupFormState {
             _configOverride: ep.sharedConfigurationOverride
                 ? parseSharedConfigDto(ep.sharedConfigurationOverride as EndpointGroupSharedConfiguration)
                 : undefined,
+            healthCheck: healthCheckFromEndpoint(ep.services?.healthCheck, groupHealth),
         })),
     };
 }
 
-function serializeSharedConfigOverride(config: SharedConfigFormState | undefined): Record<string, unknown> {
-    if (!config) return {};
-    const proxyPort = config.proxy.port !== '' ? parseInt(config.proxy.port, 10) : undefined;
-    return {
-        http: config.http,
-        proxy: {
-            enabled: config.proxy.enabled,
-            useSystemProxy: config.proxy.useSystemProxy,
-            host: config.proxy.host || undefined,
-            port: proxyPort,
-            username: config.proxy.username || undefined,
-            password: config.proxy.password || undefined,
-            type: config.proxy.type,
-        },
-        ssl: config.ssl,
-        headers: config.headers.map(h => ({ name: h.name, value: h.value })),
-    };
-}
-
-function formStateToDto(form: EndpointGroupFormState, existingGroup?: EndpointGroupDto): EndpointGroupDto {
-    const proxyPort = form.sharedConfig.proxy.port !== '' ? parseInt(form.sharedConfig.proxy.port, 10) : undefined;
+function formStateToDto(form: EndpointGroupFormState, existingGroup?: EndpointGroupDto, includeHealthCheck = false): EndpointGroupDto {
+    const healthCheckService = includeHealthCheck ? buildGroupHealthCheckService(form.healthCheck) : existingGroup?.services?.healthCheck;
     return {
         ...(existingGroup ?? {}),
         name: form.name,
         type: existingGroup?.type ?? 'http-proxy',
         loadBalancer: { type: form.loadBalancerType },
-        sharedConfiguration: {
-            ...(existingGroup?.sharedConfiguration ?? {}),
-            http: form.sharedConfig.http,
-            proxy: {
-                enabled: form.sharedConfig.proxy.enabled,
-                useSystemProxy: form.sharedConfig.proxy.useSystemProxy,
-                host: form.sharedConfig.proxy.host || undefined,
-                port: proxyPort,
-                username: form.sharedConfig.proxy.username || undefined,
-                password: form.sharedConfig.proxy.password || undefined,
-                type: form.sharedConfig.proxy.type,
-            },
-            ssl: form.sharedConfig.ssl,
-            headers: form.sharedConfig.headers.map(h => ({ name: h.name, value: h.value })),
-        },
+        services: includeHealthCheck
+            ? {
+                  ...(existingGroup?.services ?? {}),
+                  healthCheck: healthCheckService,
+              }
+            : existingGroup?.services,
+        sharedConfiguration: serializeSharedConfiguration(form.sharedConfig, existingGroup?.sharedConfiguration),
         endpoints: form.endpoints.map(ep => {
             const orig = ep._originalDto;
             return {
                 ...(orig ?? {}),
-                name: ep.name,
+                name: ep.name.trim(),
                 type: orig?.type ?? 'http-proxy',
                 weight: ep.weight,
                 backup: ep.backup || undefined,
@@ -114,8 +98,12 @@ function formStateToDto(form: EndpointGroupFormState, existingGroup?: EndpointGr
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function getExistingGroupNames(groups: EndpointGroupDto[], excludeGroupIndex: number | null): string[] {
-    return groups.filter((_, i) => i !== excludeGroupIndex).map(g => g.name);
+/** Group + endpoint names across the API (classic `isEndpointNameUnique` parity). */
+function getExistingEndpointResourceNames(groups: EndpointGroupDto[], excludeGroupIndex: number | null): string[] {
+    return groups.flatMap((g, i) => {
+        if (i === excludeGroupIndex) return [];
+        return [g.name, ...(g.endpoints ?? []).map(e => e.name)];
+    });
 }
 
 function getExistingEndpointNames(groups: EndpointGroupDto[], groupIdx: number, excludeEpIdx: number | null): string[] {
@@ -123,17 +111,10 @@ function getExistingEndpointNames(groups: EndpointGroupDto[], groupIdx: number, 
 }
 
 function endpointDtoToFormState(groups: EndpointGroupDto[], groupIdx: number, epIdx: number): EndpointFormState {
-    const ep = groups[groupIdx]?.endpoints?.[epIdx];
-    if (!ep)
-        return {
-            _id: Math.random().toString(36).slice(2, 10),
-            name: '',
-            target: '',
-            weight: 1,
-            backup: false,
-            inheritConfiguration: true,
-            tenants: [],
-        };
+    const group = groups[groupIdx];
+    const groupHealth = group?.services?.healthCheck;
+    const ep = group?.endpoints?.[epIdx];
+    if (!ep) return newEndpointRow(healthCheckFromGroup(groupHealth));
     return {
         _id: Math.random().toString(36).slice(2, 10),
         name: ep.name,
@@ -146,6 +127,7 @@ function endpointDtoToFormState(groups: EndpointGroupDto[], groupIdx: number, ep
         _configOverride: ep.sharedConfigurationOverride
             ? parseSharedConfigDto(ep.sharedConfigurationOverride as EndpointGroupSharedConfiguration)
             : undefined,
+        healthCheck: healthCheckFromEndpoint(ep.services?.healthCheck, groupHealth),
     };
 }
 
@@ -153,11 +135,13 @@ function endpointDtoToFormState(groups: EndpointGroupDto[], groupIdx: number, ep
 
 type GroupFormMode = 'hidden' | 'add' | 'edit';
 type EndpointFormMode = 'hidden' | 'add' | 'edit';
+type GroupFormStep = 'general' | 'configuration' | 'health-check';
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function ApiEndpointsPage() {
     const { apiId } = useParams<{ apiId: string }>();
+    const [searchParams, setSearchParams] = useSearchParams();
     const env = useEnvironment();
     const queryClient = useQueryClient();
 
@@ -170,6 +154,8 @@ export function ApiEndpointsPage() {
     // Group form state
     const [groupFormMode, setGroupFormMode] = useState<GroupFormMode>('hidden');
     const [editingGroupIndex, setEditingGroupIndex] = useState<number | null>(null);
+    const [groupFormInitialStep, setGroupFormInitialStep] = useState<GroupFormStep>('general');
+    const [consumedDeepLink, setConsumedDeepLink] = useState<string | null>(null);
 
     // Endpoint form state
     const [endpointFormMode, setEndpointFormMode] = useState<EndpointFormMode>('hidden');
@@ -181,6 +167,30 @@ export function ApiEndpointsPage() {
 
     const groups: EndpointGroupDto[] = api?.endpointGroups ?? [];
     const hasGroups = groups.length > 0;
+    const httpProxyApi = isHttpProxyApi(api);
+
+    const editGroupParam = searchParams.get('editGroup');
+    const stepParam = searchParams.get('step');
+    const deepLinkKey = editGroupParam !== null || stepParam !== null ? `${editGroupParam ?? ''}|${stepParam ?? ''}` : null;
+
+    // Apply checklist/overview deep links during render once API data is ready (avoids setState in useEffect).
+    if (!isLoading && deepLinkKey !== null && consumedDeepLink !== deepLinkKey) {
+        setConsumedDeepLink(deepLinkKey);
+
+        const groupIndex = editGroupParam === '0' || editGroupParam === 'default' ? 0 : Number.parseInt(editGroupParam ?? '', 10);
+
+        if (Number.isFinite(groupIndex) && groupIndex >= 0 && groupIndex < groups.length) {
+            setEditingGroupIndex(groupIndex);
+            setGroupFormMode('edit');
+            setGroupFormInitialStep(stepParam === 'configuration' ? 'configuration' : 'general');
+        }
+    }
+
+    useEffect(() => {
+        if (consumedDeepLink !== null && deepLinkKey !== null) {
+            setSearchParams({}, { replace: true });
+        }
+    }, [consumedDeepLink, deepLinkKey, setSearchParams]);
 
     const mutation = useMutation({
         mutationFn: (updated: EndpointGroupDto[]) => updateApiEndpointGroups(env!.id, apiId!, updated),
@@ -203,35 +213,47 @@ export function ApiEndpointsPage() {
         mutation.reset();
         setSaveError(null);
         setEditingGroupIndex(null);
+        setGroupFormInitialStep('general');
         setGroupFormMode('add');
+    }
+
+    function buildAddGroupInitialForm(): EndpointGroupFormState {
+        return {
+            ...DEFAULT_GROUP_FORM,
+            sharedConfig: { ...DEFAULT_SHARED_CONFIG },
+        };
     }
 
     function openEditGroup(idx: number) {
         mutation.reset();
         setSaveError(null);
         setEditingGroupIndex(idx);
+        setGroupFormInitialStep('general');
         setGroupFormMode('edit');
     }
 
     function handleGroupCancel() {
         setGroupFormMode('hidden');
         setEditingGroupIndex(null);
+        setGroupFormInitialStep('general');
         setSaveError(null);
     }
 
     function handleGroupSave(form: EndpointGroupFormState) {
+        const trimmedForm = { ...form, name: form.name.trim() };
         const updated = [...groups];
         if (groupFormMode === 'add') {
-            // New group gets one empty endpoint placeholder to satisfy the API
+            const groupType = 'http-proxy';
+            const target = trimmedForm.defaultEndpointTarget?.trim() ?? '';
             updated.push({
-                ...formStateToDto(form),
-                endpoints: [],
+                ...formStateToDto(trimmedForm, undefined, httpProxyApi),
+                endpoints: [buildDefaultEndpointForGroup(trimmedForm.name, target, groupType)],
             });
         } else if (groupFormMode === 'edit' && editingGroupIndex !== null) {
             // Preserve existing endpoints — group form no longer manages them
             const existing = groups[editingGroupIndex];
             updated[editingGroupIndex] = {
-                ...formStateToDto(form, existing),
+                ...formStateToDto(trimmedForm, existing, httpProxyApi),
                 endpoints: existing.endpoints ?? [],
             };
         }
@@ -272,14 +294,22 @@ export function ApiEndpointsPage() {
             const orig = ep._originalDto;
             const newEp = {
                 ...(orig ?? {}),
-                name: ep.name,
+                name: ep.name.trim(),
                 type: orig?.type ?? 'http-proxy',
                 weight: ep.weight,
                 backup: ep.backup || undefined,
                 inheritConfiguration: ep.inheritConfiguration,
                 configuration: { ...(orig?.configuration ?? {}), target: ep.target },
                 tenants: ep.tenants.length > 0 ? ep.tenants : undefined,
-                sharedConfigurationOverride: ep.inheritConfiguration ? {} : serializeSharedConfigOverride(ep._configOverride),
+                sharedConfigurationOverride: ep.inheritConfiguration ? {} : serializeSharedConfigurationOverride(ep._configOverride),
+                ...(httpProxyApi
+                    ? {
+                          services: {
+                              ...(orig?.services ?? {}),
+                              healthCheck: buildEndpointHealthCheckService(ep.healthCheck),
+                          },
+                      }
+                    : {}),
             };
             if (endpointFormMode === 'add') {
                 endpoints.push(newEp);
@@ -316,7 +346,7 @@ export function ApiEndpointsPage() {
         return (
             <div className="space-y-6 p-6">
                 <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                         <Skeleton className="h-7 w-36 rounded" />
                         <Skeleton className="h-4 w-72 rounded" />
                     </div>
@@ -332,12 +362,10 @@ export function ApiEndpointsPage() {
     const showList = !showGroupForm && !showEndpointForm;
 
     // Derived name sets for validation
-    const existingGroupNames = getExistingGroupNames(groups, groupFormMode === 'edit' ? editingGroupIndex : null);
+    const existingGroupNames = getExistingEndpointResourceNames(groups, groupFormMode === 'edit' ? editingGroupIndex : null);
 
     const groupInitialForm: EndpointGroupFormState =
-        groupFormMode === 'edit' && editingGroupIndex !== null
-            ? dtoToFormState(groups[editingGroupIndex])
-            : { ...DEFAULT_GROUP_FORM, sharedConfig: { ...DEFAULT_SHARED_CONFIG }, endpoints: [] };
+        groupFormMode === 'edit' && editingGroupIndex !== null ? dtoToFormState(groups[editingGroupIndex]) : buildAddGroupInitialForm();
 
     // Endpoint form data
     const endpointExistingNames =
@@ -355,7 +383,11 @@ export function ApiEndpointsPage() {
                             {showGroupForm
                                 ? groupFormMode === 'add'
                                     ? 'Add endpoint group'
-                                    : 'Edit endpoint group'
+                                    : editingGroupIndex === 0 && groupFormInitialStep === 'configuration'
+                                      ? 'Default endpoint group configuration'
+                                      : editingGroupIndex === 0
+                                        ? 'Edit default endpoint group'
+                                        : 'Edit endpoint group'
                                 : showEndpointForm
                                   ? endpointFormMode === 'add'
                                       ? 'Add endpoint'
@@ -398,9 +430,13 @@ export function ApiEndpointsPage() {
                 {/* ── Group form view ── */}
                 {showGroupForm && (
                     <EndpointGroupForm
-                        key={`${groupFormMode}-${editingGroupIndex ?? 'new'}`}
+                        key={`${groupFormMode}-${editingGroupIndex ?? 'new'}-${groupFormInitialStep}`}
                         initialForm={groupInitialForm}
                         existingGroupNames={existingGroupNames}
+                        initialStep={groupFormInitialStep}
+                        showHealthCheck={httpProxyApi}
+                        isCreateMode={groupFormMode === 'add' && httpProxyApi}
+                        isReadOnly={isReadOnly}
                         isSaving={mutation.isPending}
                         saveError={saveError}
                         onSave={handleGroupSave}
@@ -421,6 +457,9 @@ export function ApiEndpointsPage() {
                             isEdit={endpointFormMode === 'edit'}
                             initial={endpointInitialForm}
                             existingNames={endpointExistingNames}
+                            showHealthCheck={httpProxyApi}
+                            groupHealthCheck={endpointGroupIndex !== null ? groupInitialForm.healthCheck : undefined}
+                            isReadOnly={isReadOnly}
                             isSaving={mutation.isPending}
                             onSave={handleEndpointSave}
                             onCancel={handleEndpointCancel}

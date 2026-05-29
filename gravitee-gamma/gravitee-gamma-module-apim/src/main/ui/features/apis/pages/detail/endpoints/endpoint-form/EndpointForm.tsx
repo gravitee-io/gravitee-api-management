@@ -16,11 +16,14 @@
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { Button, Input, Label } from '@gravitee/graphene-core';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { TenantSelectInput } from './TenantSelectInput';
 import { getTenants } from '../../../../services/tenants';
 import type { Tenant } from '../../../../types';
+import { validateHttpProxyOptions } from '../../../../utils/endpointSharedConfiguration';
+import type { HealthCheckConfigFormState, HealthCheckFormState } from '../../../../utils/healthCheckForm';
+import { validateHealthCheckForm } from '../../../../utils/healthCheckForm';
 import { tenantKeys } from '../../../../utils/queryKeys';
 import { ConfigurationStep } from '../group-form/ConfigurationStep';
 import { HealthCheckStep } from '../group-form/HealthCheckStep';
@@ -28,17 +31,15 @@ import type { EndpointFormState, SharedConfigFormState } from '../types';
 import { DEFAULT_SHARED_CONFIG, newEndpointRow, validateEndpointName } from '../types';
 import { WizardStepIndicator } from '../WizardStepIndicator';
 
-// ─── Steps ────────────────────────────────────────────────────────────────────
-
-const STEPS = [
+const BASE_STEPS = [
     { id: 'general', label: 'General' },
     { id: 'configuration', label: 'Configuration' },
-    { id: 'health-check', label: 'Health-check', comingSoon: true },
 ] as const;
 
-type StepId = (typeof STEPS)[number]['id'];
+const HEALTH_CHECK_STEP = { id: 'health-check', label: 'Health-check' } as const;
 
-// ─── General step ─────────────────────────────────────────────────────────────
+type BaseStepId = (typeof BASE_STEPS)[number]['id'];
+type StepId = BaseStepId | 'health-check';
 
 interface GeneralStepProps {
     form: EndpointFormState;
@@ -66,17 +67,16 @@ function EndpointGeneralStep({ form, existingNames, tenantsLoading, availableTen
 
     return (
         <div className="space-y-4">
-            {/* Name */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
                 <Label htmlFor="ep-name" className="text-sm">
                     Name <span className="text-destructive">*</span>
                 </Label>
                 <Input id="ep-name" value={form.name} onChange={e => onChange('name', e.target.value)} placeholder="my-endpoint" />
                 {nameError && <p className="text-xs text-destructive">{nameError}</p>}
+                <p className="text-xs text-muted-foreground">Must be unique in this group. Colons are not allowed.</p>
             </div>
 
-            {/* Target URL */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
                 <Label htmlFor="ep-target" className="text-sm">
                     Target URL <span className="text-destructive">*</span>
                 </Label>
@@ -89,8 +89,7 @@ function EndpointGeneralStep({ form, existingNames, tenantsLoading, availableTen
                 {targetError && <p className="text-xs text-destructive">{targetError}</p>}
             </div>
 
-            {/* Weight */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
                 <Label htmlFor="ep-weight" className="text-sm">
                     Weight
                 </Label>
@@ -108,8 +107,7 @@ function EndpointGeneralStep({ form, existingNames, tenantsLoading, availableTen
                 <p className="text-xs text-muted-foreground">Used by weighted load balancers. Must be at least 1.</p>
             </div>
 
-            {/* Tenants */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
                 <Label className="text-sm">Tenants</Label>
                 <p className="text-xs text-muted-foreground">Restrict this endpoint to requests from specific gateway tenants.</p>
                 <TenantSelectInput
@@ -123,32 +121,76 @@ function EndpointGeneralStep({ form, existingNames, tenantsLoading, availableTen
     );
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
-
 interface EndpointFormProps {
     isEdit: boolean;
     initial?: EndpointFormState;
     existingNames: string[];
+    showHealthCheck?: boolean;
+    groupHealthCheck?: HealthCheckFormState;
+    isReadOnly?: boolean;
     isSaving?: boolean;
     onSave: (ep: EndpointFormState) => void;
     onCancel: () => void;
 }
 
-export function EndpointForm({ isEdit, initial, existingNames, isSaving = false, onSave, onCancel }: Readonly<EndpointFormProps>) {
+export function EndpointForm({
+    isEdit,
+    initial,
+    existingNames,
+    showHealthCheck = false,
+    groupHealthCheck,
+    isReadOnly = false,
+    isSaving = false,
+    onSave,
+    onCancel,
+}: Readonly<EndpointFormProps>) {
     const env = useEnvironment();
+    const steps = useMemo(() => (showHealthCheck ? [...BASE_STEPS, HEALTH_CHECK_STEP] : [...BASE_STEPS]), [showHealthCheck]);
+
     const [currentStep, setCurrentStep] = useState<StepId>('general');
-    const [form, setForm] = useState<EndpointFormState>(initial ?? newEndpointRow());
+    const [form, setForm] = useState<EndpointFormState>(initial ?? newEndpointRow(groupHealthCheck));
     const [configOverride, setConfigOverride] = useState<SharedConfigFormState>(initial?._configOverride ?? DEFAULT_SHARED_CONFIG);
+    const [healthCheckErrors, setHealthCheckErrors] = useState<Record<string, string>>({});
+    const [proxyError, setProxyError] = useState<string | null>(null);
 
     const { data: availableTenants = [], isLoading: tenantsLoading } = useQuery({
         queryKey: tenantKeys.list(env?.id ?? ''),
         queryFn: () => getTenants(env!.id),
         enabled: !!env?.id,
-        staleTime: 5 * 60 * 1000,
+        staleTime: 5 * 60_000,
     });
 
-    function set<K extends keyof EndpointFormState>(key: K, value: EndpointFormState[K]) {
+    function setField<K extends keyof EndpointFormState>(key: K, value: EndpointFormState[K]) {
         setForm(prev => ({ ...prev, [key]: value }));
+    }
+
+    function patchHealthCheck(patch: Partial<HealthCheckFormState>) {
+        setForm(prev => {
+            const next = { ...prev.healthCheck, ...patch };
+            if (patch.inherit === true && groupHealthCheck) {
+                return {
+                    ...prev,
+                    healthCheck: {
+                        enabled: groupHealthCheck.enabled,
+                        inherit: true,
+                        configuration: { ...groupHealthCheck.configuration },
+                    },
+                };
+            }
+            return { ...prev, healthCheck: next };
+        });
+        setHealthCheckErrors({});
+    }
+
+    function patchHealthCheckConfig(patch: Partial<HealthCheckConfigFormState>) {
+        setForm(prev => ({
+            ...prev,
+            healthCheck: {
+                ...prev.healthCheck,
+                configuration: { ...prev.healthCheck.configuration, ...patch },
+            },
+        }));
+        setHealthCheckErrors({});
     }
 
     const nameError = (() => {
@@ -160,36 +202,67 @@ export function EndpointForm({ isEdit, initial, existingNames, isSaving = false,
     })();
 
     const generalValid = !nameError && form.target.trim().length > 0 && !/\s/.test(form.target) && form.weight >= 1;
+    const configurationValid = form.inheritConfiguration || validateHttpProxyOptions(configOverride.proxy) === null;
+    const healthCheckValid = !showHealthCheck || Object.keys(validateHealthCheckForm(form.healthCheck)).length === 0;
 
-    const currentStepIndex = STEPS.findIndex(s => s.id === currentStep);
-    const isLastStep = currentStep === 'health-check';
+    const currentStepIndex = steps.findIndex(s => s.id === currentStep);
+    const isLastStep = currentStepIndex === steps.length - 1;
     const canGoBack = currentStepIndex > 0;
 
     function goNext() {
-        const next = STEPS[currentStepIndex + 1];
+        if (currentStep === 'configuration' && !form.inheritConfiguration) {
+            const err = validateHttpProxyOptions(configOverride.proxy);
+            setProxyError(err);
+            if (err) return;
+        }
+        if (currentStep === 'health-check') {
+            const errors = validateHealthCheckForm(form.healthCheck);
+            setHealthCheckErrors(errors);
+            if (Object.keys(errors).length > 0) return;
+        }
+        const next = steps[currentStepIndex + 1];
         if (next) setCurrentStep(next.id);
     }
 
     function goBack() {
-        const prev = STEPS[currentStepIndex - 1];
+        const prev = steps[currentStepIndex - 1];
         if (prev) setCurrentStep(prev.id);
     }
 
     function handleSave() {
+        if (!form.inheritConfiguration) {
+            const proxyErr = validateHttpProxyOptions(configOverride.proxy);
+            setProxyError(proxyErr);
+            if (proxyErr) {
+                setCurrentStep('configuration');
+                return;
+            }
+        }
+        if (showHealthCheck) {
+            const errors = validateHealthCheckForm(form.healthCheck);
+            setHealthCheckErrors(errors);
+            if (Object.keys(errors).length > 0) {
+                setCurrentStep('health-check');
+                return;
+            }
+        }
         onSave({ ...form, _configOverride: configOverride });
     }
 
+    const nextDisabled =
+        (currentStep === 'general' && !generalValid) ||
+        (currentStep === 'configuration' && !configurationValid) ||
+        (currentStep === 'health-check' && !healthCheckValid);
+
     return (
         <div className="space-y-6">
-            {/* ── Stepper ── */}
             <WizardStepIndicator
-                steps={STEPS}
+                steps={steps}
                 currentStepId={currentStep}
                 onStepClick={id => setCurrentStep(id as StepId)}
                 ariaLabel="Endpoint form steps"
             />
 
-            {/* ── Step content ── */}
             <div>
                 {currentStep === 'general' && (
                     <EndpointGeneralStep
@@ -197,16 +270,32 @@ export function EndpointForm({ isEdit, initial, existingNames, isSaving = false,
                         existingNames={existingNames}
                         tenantsLoading={tenantsLoading}
                         availableTenants={availableTenants}
-                        onChange={set}
+                        onChange={setField}
                     />
                 )}
                 {currentStep === 'configuration' && (
-                    <ConfigurationStep config={configOverride} onChange={patch => setConfigOverride(prev => ({ ...prev, ...patch }))} />
+                    <ConfigurationStep
+                        config={configOverride}
+                        proxyError={proxyError}
+                        onChange={patch => {
+                            setConfigOverride(prev => ({ ...prev, ...patch }));
+                            setProxyError(null);
+                        }}
+                    />
                 )}
-                {currentStep === 'health-check' && <HealthCheckStep />}
+                {currentStep === 'health-check' && showHealthCheck && (
+                    <HealthCheckStep
+                        mode="endpoint"
+                        healthCheck={form.healthCheck}
+                        groupHealthCheck={groupHealthCheck}
+                        errors={healthCheckErrors}
+                        readOnly={isReadOnly}
+                        onChange={patchHealthCheck}
+                        onConfigChange={patchHealthCheckConfig}
+                    />
+                )}
             </div>
 
-            {/* ── Navigation ── */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     {canGoBack && (
@@ -221,11 +310,16 @@ export function EndpointForm({ isEdit, initial, existingNames, isSaving = false,
 
                 <div className="flex items-center gap-2">
                     {!isLastStep ? (
-                        <Button type="button" size="sm" onClick={goNext} disabled={currentStep === 'general' && !generalValid}>
+                        <Button type="button" size="sm" onClick={goNext} disabled={nextDisabled}>
                             Next
                         </Button>
                     ) : (
-                        <Button type="button" size="sm" onClick={handleSave} disabled={!generalValid || isSaving}>
+                        <Button
+                            type="button"
+                            size="sm"
+                            onClick={handleSave}
+                            disabled={!generalValid || !configurationValid || isSaving || (showHealthCheck && !healthCheckValid)}
+                        >
                             {isSaving ? 'Saving…' : isEdit ? 'Save endpoint' : 'Add endpoint'}
                         </Button>
                     )}
