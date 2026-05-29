@@ -18,11 +18,11 @@ import { Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectV
 import type { EndpointGroupFormState, LoadBalancerType } from '../types';
 import { validateGroupName } from '../types';
 
-const LB_OPTIONS: { value: LoadBalancerType; label: string; description: string }[] = [
-    { value: 'ROUND_ROBIN', label: 'Round robin', description: 'Distributes requests evenly across all endpoints.' },
-    { value: 'RANDOM', label: 'Random', description: 'Picks an endpoint at random for each request.' },
-    { value: 'WEIGHTED_ROUND_ROBIN', label: 'Weighted round robin', description: 'Round robin respecting endpoint weights.' },
-    { value: 'WEIGHTED_RANDOM', label: 'Weighted random', description: 'Random selection respecting endpoint weights.' },
+const LB_OPTIONS: { value: LoadBalancerType; label: string }[] = [
+    { value: 'ROUND_ROBIN', label: 'Round robin' },
+    { value: 'RANDOM', label: 'Random' },
+    { value: 'WEIGHTED_ROUND_ROBIN', label: 'Weighted round robin' },
+    { value: 'WEIGHTED_RANDOM', label: 'Weighted random' },
 ];
 
 interface GeneralStepProps {
@@ -42,10 +42,9 @@ export function GeneralStep({ form, existingGroupNames, onFormChange }: Readonly
 
     return (
         <div className="space-y-6">
-            {/* Group name */}
             <div className="space-y-2">
                 <Label htmlFor="group-name" className="text-sm">
-                    Group name <span className="text-destructive">*</span>
+                    Name <span className="text-destructive">*</span>
                 </Label>
                 <Input
                     id="group-name"
@@ -54,13 +53,18 @@ export function GeneralStep({ form, existingGroupNames, onFormChange }: Readonly
                     placeholder="default-group"
                 />
                 {nameError && <p className="text-xs text-destructive">{nameError}</p>}
-                <p className="text-xs text-muted-foreground">Must be unique. Colons are not allowed.</p>
+                <p className="text-xs text-muted-foreground">
+                    Must be unique across all endpoint groups and endpoints. Colons are not allowed.
+                </p>
             </div>
 
-            {/* Load balancer */}
             <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                    You can configure load balancing by creating a logical group of endpoints and specifying a load balancing algorithm for
+                    them.
+                </p>
                 <Label htmlFor="lb-type" className="text-sm">
-                    Load balancer
+                    Load balancing algorithm <span className="text-destructive">*</span>
                 </Label>
                 <Select value={form.loadBalancerType} onValueChange={v => onFormChange({ loadBalancerType: v as LoadBalancerType })}>
                     <SelectTrigger id="lb-type" className="w-full">
@@ -74,7 +78,6 @@ export function GeneralStep({ form, existingGroupNames, onFormChange }: Readonly
                         ))}
                     </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground">{LB_OPTIONS.find(o => o.value === form.loadBalancerType)?.description}</p>
             </div>
         </div>
     );

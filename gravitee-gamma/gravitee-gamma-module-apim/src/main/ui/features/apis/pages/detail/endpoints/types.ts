@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import type { EndpointDto, EndpointGroupSharedConfiguration, LoadBalancerType } from '../../../types';
+import type { HealthCheckFormState } from '../../../utils/healthCheckForm';
+import { healthCheckFromGroup } from '../../../utils/healthCheckForm';
 
 export type { LoadBalancerType };
 
@@ -37,6 +39,7 @@ export interface EndpointFormState {
      * Configuration step in EndpointForm.
      */
     _configOverride?: SharedConfigFormState;
+    healthCheck: HealthCheckFormState;
 }
 
 export interface ProxyFormState {
@@ -56,15 +59,18 @@ export interface HttpFormState {
     idleTimeout: number;
     connectTimeout: number;
     maxConcurrentConnections: number;
-    maxHeaderSize: number;
-    maxChunkSize: number;
     useCompression: boolean;
     propagateClientAcceptEncoding: boolean;
-    propagateClientHostHeader: boolean;
+    /** V4 schema field name (`propagateClientHost`, not `propagateClientHostHeader`). */
+    propagateClientHost: boolean;
     pipelining: boolean;
     followRedirects: boolean;
     version: 'HTTP_1_1' | 'HTTP_2';
     clearTextUpgrade: boolean;
+    http2MultiplexingLimit: number;
+    http2ConnectionWindowSize: number;
+    http2StreamWindowSize: number;
+    http2MaxFrameSize: number;
 }
 
 export interface SslFormState {
@@ -90,7 +96,10 @@ export interface EndpointGroupFormState {
     name: string;
     loadBalancerType: LoadBalancerType;
     sharedConfig: SharedConfigFormState;
+    healthCheck: HealthCheckFormState;
     endpoints: EndpointFormState[];
+    /** Required when creating a group — seeds the default endpoint (classic configuration.target). */
+    defaultEndpointTarget?: string;
 }
 
 export const DEFAULT_HTTP: HttpFormState = {
@@ -99,16 +108,18 @@ export const DEFAULT_HTTP: HttpFormState = {
     readTimeout: 10000,
     idleTimeout: 60000,
     connectTimeout: 5000,
-    maxConcurrentConnections: 100,
-    maxHeaderSize: 8192,
-    maxChunkSize: 8192,
+    maxConcurrentConnections: 20,
     useCompression: true,
     propagateClientAcceptEncoding: false,
-    propagateClientHostHeader: false,
+    propagateClientHost: false,
     pipelining: false,
     followRedirects: false,
     version: 'HTTP_1_1',
-    clearTextUpgrade: false,
+    clearTextUpgrade: true,
+    http2MultiplexingLimit: -1,
+    http2ConnectionWindowSize: -1,
+    http2StreamWindowSize: -1,
+    http2MaxFrameSize: 16384,
 };
 
 export const DEFAULT_PROXY: ProxyFormState = {
@@ -138,6 +149,7 @@ export const DEFAULT_GROUP_FORM: EndpointGroupFormState = {
     name: '',
     loadBalancerType: 'ROUND_ROBIN',
     sharedConfig: DEFAULT_SHARED_CONFIG,
+    healthCheck: healthCheckFromGroup(undefined),
     endpoints: [],
 };
 
@@ -153,16 +165,19 @@ export function parseSharedConfigDto(sc: EndpointGroupSharedConfiguration): Shar
             readTimeout: http.readTimeout ?? 10000,
             idleTimeout: http.idleTimeout ?? 60000,
             connectTimeout: http.connectTimeout ?? 5000,
-            maxConcurrentConnections: http.maxConcurrentConnections ?? 100,
-            maxHeaderSize: http.maxHeaderSize ?? 8192,
-            maxChunkSize: http.maxChunkSize ?? 8192,
+            maxConcurrentConnections: http.maxConcurrentConnections ?? 20,
             useCompression: http.useCompression ?? true,
             propagateClientAcceptEncoding: http.propagateClientAcceptEncoding ?? false,
-            propagateClientHostHeader: http.propagateClientHostHeader ?? false,
+            propagateClientHost:
+                http.propagateClientHost ?? (http as { propagateClientHostHeader?: boolean }).propagateClientHostHeader ?? false,
             pipelining: http.pipelining ?? false,
             followRedirects: http.followRedirects ?? false,
             version: http.version ?? 'HTTP_1_1',
-            clearTextUpgrade: http.clearTextUpgrade ?? false,
+            clearTextUpgrade: http.clearTextUpgrade ?? true,
+            http2MultiplexingLimit: http.http2MultiplexingLimit ?? -1,
+            http2ConnectionWindowSize: http.http2ConnectionWindowSize ?? -1,
+            http2StreamWindowSize: http.http2StreamWindowSize ?? -1,
+            http2MaxFrameSize: http.http2MaxFrameSize ?? 16384,
         },
         proxy: {
             enabled: proxy.enabled ?? false,
@@ -186,7 +201,8 @@ export function parseSharedConfigDto(sc: EndpointGroupSharedConfiguration): Shar
     };
 }
 
-export function newEndpointRow(): EndpointFormState {
+export function newEndpointRow(groupHealthCheck?: HealthCheckFormState): EndpointFormState {
+    const groupHc = groupHealthCheck ?? healthCheckFromGroup(undefined);
     return {
         _id: Math.random().toString(36).slice(2, 10),
         name: '',
@@ -195,6 +211,11 @@ export function newEndpointRow(): EndpointFormState {
         backup: false,
         inheritConfiguration: true,
         tenants: [],
+        healthCheck: {
+            enabled: groupHc.enabled,
+            inherit: true,
+            configuration: { ...groupHc.configuration },
+        },
     };
 }
 
@@ -202,16 +223,35 @@ export function newHeaderRow(): HeaderEntry {
     return { _id: Math.random().toString(36).slice(2, 10), name: '', value: '' };
 }
 
-/** Validate group name: required, no colons. Returns error string or null. */
+/** Validate group name — classic console: required, no colons (Validators.pattern /^[^:]*$/). */
 export function validateGroupName(name: string): string | null {
     if (!name.trim()) return 'Name is required.';
     if (name.includes(':')) return 'Name must not contain colons.';
     return null;
 }
 
-/** Validate endpoint name: required, no colons. Returns error string or null. */
+/** Validate endpoint name — classic console: required, no colons. */
 export function validateEndpointName(name: string): string | null {
     if (!name.trim()) return 'Name is required.';
     if (name.includes(':')) return 'Name must not contain colons.';
     return null;
+}
+
+/** http-proxy endpoint configuration requires a non-empty target (plugin schema). */
+export function validateEndpointTarget(value: string): string | null {
+    if (!value.trim()) return 'Target URL is required.';
+    if (/\s/.test(value)) return 'Target URL must not contain whitespace.';
+    return null;
+}
+
+/** Default endpoint for a new group — classic adds `configuration: { target }` on create. */
+export function buildDefaultEndpointForGroup(groupName: string, target: string, type = 'http-proxy'): EndpointDto {
+    const cleanName = groupName.trim();
+    return {
+        name: `${cleanName} default endpoint`,
+        type,
+        inheritConfiguration: true,
+        weight: 1,
+        configuration: { target: target.trim() },
+    };
 }

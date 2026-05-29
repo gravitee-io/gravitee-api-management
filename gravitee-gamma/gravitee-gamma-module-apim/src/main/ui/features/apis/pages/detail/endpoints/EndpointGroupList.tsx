@@ -33,6 +33,7 @@ import { ArrowDownIcon, ArrowUpIcon, PencilIcon, PlusIcon, Trash2Icon } from '@g
 import { useState } from 'react';
 
 import type { EndpointGroupDto } from '../../../types';
+import { getEndpointHealthCheckBadge } from '../../../utils/healthCheckForm';
 
 const LB_LABELS: Record<string, string> = {
     ROUND_ROBIN: 'Round robin',
@@ -243,7 +244,23 @@ export function EndpointGroupList({
                                                         </>
                                                     )}
                                                 </div>
-                                                <span className="text-sm font-medium truncate">{ep.name}</span>
+                                                <div className="flex items-center gap-2 min-w-0">
+                                                    <span className="text-sm font-medium truncate">{ep.name}</span>
+                                                    {(() => {
+                                                        const hc = getEndpointHealthCheckBadge(group, ep);
+                                                        if (!hc) return null;
+                                                        return (
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <Badge variant="secondary" className="shrink-0 text-xs font-normal">
+                                                                        {hc.label}
+                                                                    </Badge>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>{hc.tooltip}</TooltipContent>
+                                                            </Tooltip>
+                                                        );
+                                                    })()}
+                                                </div>
                                                 <span className="text-xs text-muted-foreground truncate font-mono">
                                                     {ep.configuration?.target ?? '—'}
                                                 </span>

@@ -13,40 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Switch } from '@gravitee/graphene-core';
-import { ChevronDownIcon, ChevronUpIcon, PlusIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
-import { useState } from 'react';
+import {
+    Alert,
+    AlertDescription,
+    Button,
+    Input,
+    Label,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@gravitee/graphene-core';
+import { PlusIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 
+import { CollapsibleSection, SwitchRow } from '../../../../components/CollapsibleSection';
 import type { HeaderEntry, HttpFormState, ProxyFormState, SharedConfigFormState, SslFormState } from '../types';
 import { newHeaderRow } from '../types';
 
 interface ConfigurationStepProps {
     config: SharedConfigFormState;
+    proxyError?: string | null;
     onChange: (patch: Partial<SharedConfigFormState>) => void;
-}
-
-// ─── Collapsible section wrapper ──────────────────────────────────────────────
-
-function CollapsibleSection({ title, defaultOpen = false, children }: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
-    const [open, setOpen] = useState(defaultOpen);
-    return (
-        <div className="rounded-lg border">
-            <button
-                type="button"
-                className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium hover:bg-accent/50 transition-colors rounded-lg"
-                onClick={() => setOpen(o => !o)}
-                aria-expanded={open}
-            >
-                {title}
-                {open ? (
-                    <ChevronUpIcon className="size-4 shrink-0" aria-hidden />
-                ) : (
-                    <ChevronDownIcon className="size-4 shrink-0" aria-hidden />
-                )}
-            </button>
-            {open && <div className="border-t px-4 pb-4 pt-4 space-y-4">{children}</div>}
-        </div>
-    );
+    /** Create-group flow: endpoint-level target URL (classic `configuration` schema), then group shared config below. */
+    showDefaultEndpointTarget?: boolean;
+    defaultEndpointTarget?: string;
+    targetError?: string | null;
+    onTargetChange?: (value: string) => void;
 }
 
 // ─── Number input helper ───────────────────────────────────────────────────────
@@ -67,7 +60,7 @@ function NumInput({
     hint?: string;
 }) {
     return (
-        <div className="space-y-1.5">
+        <div className="space-y-2">
             <Label htmlFor={id} className="text-sm">
                 {label}
             </Label>
@@ -82,41 +75,6 @@ function NumInput({
                 }}
             />
             {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
-        </div>
-    );
-}
-
-// ─── Toggle row helper ────────────────────────────────────────────────────────
-
-function SwitchRow({
-    id,
-    label,
-    desc,
-    checked,
-    onChange,
-    disabled,
-    note,
-}: {
-    id: string;
-    label: string;
-    desc: string;
-    checked: boolean;
-    onChange: (v: boolean) => void;
-    disabled?: boolean;
-    note?: string;
-}) {
-    return (
-        <div className="space-y-1">
-            <div className="flex items-start justify-between gap-4">
-                <div className="space-y-0.5">
-                    <Label htmlFor={id} className={`text-sm${disabled ? ' text-muted-foreground' : ''}`}>
-                        {label}
-                    </Label>
-                    <p className="text-xs text-muted-foreground">{desc}</p>
-                </div>
-                <Switch id={id} checked={checked} onCheckedChange={onChange} disabled={disabled} />
-            </div>
-            {note && <p className="text-xs text-warning">{note}</p>}
         </div>
     );
 }
@@ -168,21 +126,7 @@ function HttpSection({ http, onChange }: { http: HttpFormState; onChange: (p: Pa
                     onChange={v => onChange({ maxConcurrentConnections: v })}
                     hint="Maximum pool size for connections. For HTTP/2, this is the maximum number of multiplexed connections to the upstream server."
                 />
-                <NumInput
-                    id="http-max-header-size"
-                    label="Max header size (bytes)"
-                    value={http.maxHeaderSize}
-                    min={1}
-                    onChange={v => onChange({ maxHeaderSize: v })}
-                />
-                <NumInput
-                    id="http-max-chunk-size"
-                    label="Max chunk size (bytes)"
-                    value={http.maxChunkSize}
-                    min={1}
-                    onChange={v => onChange({ maxChunkSize: v })}
-                />
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                     <Label htmlFor="http-version" className="text-sm">
                         HTTP version
                     </Label>
@@ -241,8 +185,8 @@ function HttpSection({ http, onChange }: { http: HttpFormState; onChange: (p: Pa
                     id="http-propagate-host"
                     label="Propagate client Host header"
                     desc="If activated, the host header propagated by the gateway to the backend is the value specified by the client request, possibly changed by policy execution. If not activated (default), the Gateway uses the endpoint target host unless the host header was changed by a policy."
-                    checked={http.propagateClientHostHeader}
-                    onChange={v => onChange({ propagateClientHostHeader: v })}
+                    checked={http.propagateClientHost}
+                    onChange={v => onChange({ propagateClientHost: v })}
                 />
                 {http.version === 'HTTP_2' && (
                     <SwitchRow
@@ -260,7 +204,15 @@ function HttpSection({ http, onChange }: { http: HttpFormState; onChange: (p: Pa
 
 // ─── Proxy section ────────────────────────────────────────────────────────────
 
-function ProxySection({ proxy, onChange }: { proxy: ProxyFormState; onChange: (p: Partial<ProxyFormState>) => void }) {
+function ProxySection({
+    proxy,
+    proxyError,
+    onChange,
+}: {
+    proxy: ProxyFormState;
+    proxyError?: string | null;
+    onChange: (p: Partial<ProxyFormState>) => void;
+}) {
     return (
         <CollapsibleSection title="Proxy">
             <SwitchRow
@@ -283,7 +235,7 @@ function ProxySection({ proxy, onChange }: { proxy: ProxyFormState; onChange: (p
 
                     {!proxy.useSystemProxy && (
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="col-span-2 space-y-1.5">
+                            <div className="col-span-2 space-y-2">
                                 <Label htmlFor="proxy-type" className="text-sm">
                                     Proxy type
                                 </Label>
@@ -298,7 +250,7 @@ function ProxySection({ proxy, onChange }: { proxy: ProxyFormState; onChange: (p
                                     </SelectContent>
                                 </Select>
                             </div>
-                            <div className="space-y-1.5">
+                            <div className="space-y-2">
                                 <Label htmlFor="proxy-host" className="text-sm">
                                     Host
                                 </Label>
@@ -309,7 +261,7 @@ function ProxySection({ proxy, onChange }: { proxy: ProxyFormState; onChange: (p
                                     onChange={e => onChange({ host: e.target.value })}
                                 />
                             </div>
-                            <div className="space-y-1.5">
+                            <div className="space-y-2">
                                 <Label htmlFor="proxy-port" className="text-sm">
                                     Port
                                 </Label>
@@ -321,7 +273,7 @@ function ProxySection({ proxy, onChange }: { proxy: ProxyFormState; onChange: (p
                                     onChange={e => onChange({ port: e.target.value })}
                                 />
                             </div>
-                            <div className="space-y-1.5">
+                            <div className="space-y-2">
                                 <Label htmlFor="proxy-username" className="text-sm">
                                     Username
                                 </Label>
@@ -332,7 +284,7 @@ function ProxySection({ proxy, onChange }: { proxy: ProxyFormState; onChange: (p
                                     onChange={e => onChange({ username: e.target.value })}
                                 />
                             </div>
-                            <div className="space-y-1.5">
+                            <div className="space-y-2">
                                 <Label htmlFor="proxy-password" className="text-sm">
                                     Password
                                 </Label>
@@ -348,6 +300,7 @@ function ProxySection({ proxy, onChange }: { proxy: ProxyFormState; onChange: (p
                     )}
                 </>
             )}
+            {proxyError && <p className="text-xs text-destructive">{proxyError}</p>}
         </CollapsibleSection>
     );
 }
@@ -373,7 +326,7 @@ function SslSection({ ssl, onChange }: { ssl: SslFormState; onChange: (p: Partia
                     onChange={v => onChange({ trustAll: v })}
                 />
 
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                     <Label htmlFor="ssl-client-auth" className="text-sm">
                         Client authentication
                     </Label>
@@ -452,13 +405,53 @@ function HeadersSection({ headers, onChange }: { headers: HeaderEntry[]; onChang
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
-export function ConfigurationStep({ config, onChange }: Readonly<ConfigurationStepProps>) {
+export function ConfigurationStep({
+    config,
+    proxyError,
+    onChange,
+    showDefaultEndpointTarget = false,
+    defaultEndpointTarget = '',
+    targetError,
+    onTargetChange,
+}: Readonly<ConfigurationStepProps>) {
     return (
-        <div className="space-y-3">
-            <HttpSection http={config.http} onChange={p => onChange({ http: { ...config.http, ...p } })} />
-            <ProxySection proxy={config.proxy} onChange={p => onChange({ proxy: { ...config.proxy, ...p } })} />
-            <SslSection ssl={config.ssl} onChange={p => onChange({ ssl: { ...config.ssl, ...p } })} />
-            <HeadersSection headers={config.headers} onChange={h => onChange({ headers: h })} />
+        <div className="space-y-6">
+            {showDefaultEndpointTarget && (
+                <div className="space-y-4">
+                    <Alert>
+                        <AlertDescription>
+                            <span className="font-medium">Inherited configuration</span>
+                            <span className="block text-muted-foreground">
+                                Endpoints associated to this endpoint group will automatically inherit its configuration.
+                            </span>
+                        </AlertDescription>
+                    </Alert>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="endpoint-target" className="text-sm">
+                            Target url <span className="text-destructive">*</span>
+                        </Label>
+                        <Input
+                            id="endpoint-target"
+                            value={defaultEndpointTarget}
+                            onChange={e => onTargetChange?.(e.target.value)}
+                            placeholder="https://api.example.com"
+                        />
+                        {targetError && <p className="text-xs text-destructive">{targetError}</p>}
+                        <p className="text-xs text-muted-foreground">
+                            The target url to use to contact the backend. Supports EL and secrets.
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            <div className="space-y-3">
+                {showDefaultEndpointTarget && <p className="text-sm font-medium">Shared configuration</p>}
+                <HttpSection http={config.http} onChange={p => onChange({ http: { ...config.http, ...p } })} />
+                <ProxySection proxy={config.proxy} proxyError={proxyError} onChange={p => onChange({ proxy: { ...config.proxy, ...p } })} />
+                <SslSection ssl={config.ssl} onChange={p => onChange({ ssl: { ...config.ssl, ...p } })} />
+                <HeadersSection headers={config.headers} onChange={h => onChange({ headers: h })} />
+            </div>
         </div>
     );
 }

@@ -146,6 +146,10 @@ jest.mock('../../../services/tenants', () => ({
     getTenants: jest.fn(() => Promise.resolve([])),
 }));
 
+jest.mock('./group-form/HealthCheckStep', () => ({
+    HealthCheckStep: () => <div data-testid="health-check-step" />,
+}));
+
 jest.mock('../../../utils/queryKeys', () => ({
     apiDetailKeys: {
         all: ['api-detail'],
@@ -215,10 +219,12 @@ const GROUP_TWO_ENDPOINTS: EndpointGroupDto = {
     endpoints: [ENDPOINT_A, ENDPOINT_B],
 };
 
-const API_WITH_GROUPS = { id: 'api-1', endpointGroups: [GROUP_1] };
-const API_TWO_GROUPS = { id: 'api-1', endpointGroups: [GROUP_1, GROUP_2] };
-const API_NO_GROUPS = { id: 'api-1', endpointGroups: [] };
-const API_TWO_ENDPOINTS = { id: 'api-1', endpointGroups: [GROUP_TWO_ENDPOINTS] };
+const HTTP_PROXY_API_BASE = { id: 'api-1', type: 'PROXY' as const, listeners: [{ type: 'HTTP' as const }] };
+
+const API_WITH_GROUPS = { ...HTTP_PROXY_API_BASE, endpointGroups: [GROUP_1] };
+const API_TWO_GROUPS = { ...HTTP_PROXY_API_BASE, endpointGroups: [GROUP_1, GROUP_2] };
+const API_NO_GROUPS = { ...HTTP_PROXY_API_BASE, endpointGroups: [] };
+const API_TWO_ENDPOINTS = { ...HTTP_PROXY_API_BASE, endpointGroups: [GROUP_TWO_ENDPOINTS] };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -233,6 +239,19 @@ function renderPage() {
             </Routes>
         </MemoryRouter>,
     );
+}
+
+function advanceGroupWizardPastGeneral() {
+    fireEvent.click(screen.getByRole('button', { name: /validate general information/i }));
+}
+
+/** Advance past Configuration (fill target on create before calling). HTTP proxy APIs then land on Health-check. */
+function advanceGroupWizardPastConfiguration(targetUrl?: string) {
+    advanceGroupWizardPastGeneral();
+    if (targetUrl) {
+        fireEvent.change(screen.getByLabelText(/^target url/i), { target: { value: targetUrl } });
+    }
+    fireEvent.click(screen.getByRole('button', { name: /^next$/i }));
 }
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -307,25 +326,40 @@ describe('ApiEndpointsPage', () => {
             renderPage();
             fireEvent.click(screen.getByRole('button', { name: /add endpoint group/i }));
 
-            // General step — enter a valid name
             fireEvent.change(screen.getByPlaceholderText('default-group'), { target: { value: 'my-new-group' } });
+            advanceGroupWizardPastConfiguration('https://backend.example.com');
 
-            // Advance to Configuration step
-            fireEvent.click(screen.getByRole('button', { name: /next/i }));
-
-            // Save
             fireEvent.click(screen.getByRole('button', { name: /save endpoint group/i }));
 
             expect(mockMutate).toHaveBeenCalledTimes(1);
             const savedGroups: EndpointGroupDto[] = mockMutate.mock.calls[0][0];
-            expect(savedGroups).toContainEqual(expect.objectContaining({ name: 'my-new-group' }));
+            expect(savedGroups).toContainEqual(
+                expect.objectContaining({
+                    name: 'my-new-group',
+                    sharedConfiguration: expect.objectContaining({
+                        proxy: { enabled: false, useSystemProxy: false },
+                        http: expect.objectContaining({
+                            version: 'HTTP_1_1',
+                            propagateClientHost: false,
+                        }),
+                    }),
+                    endpoints: [
+                        expect.objectContaining({
+                            name: 'my-new-group default endpoint',
+                            type: 'http-proxy',
+                            inheritConfiguration: true,
+                            configuration: { target: 'https://backend.example.com' },
+                        }),
+                    ],
+                }),
+            );
         });
 
         it('preserves the existing groups when adding a new one', () => {
             renderPage();
             fireEvent.click(screen.getByRole('button', { name: /add endpoint group/i }));
             fireEvent.change(screen.getByPlaceholderText('default-group'), { target: { value: 'another-group' } });
-            fireEvent.click(screen.getByRole('button', { name: /next/i }));
+            advanceGroupWizardPastConfiguration('https://backend.example.com');
             fireEvent.click(screen.getByRole('button', { name: /save endpoint group/i }));
 
             const savedGroups: EndpointGroupDto[] = mockMutate.mock.calls[0][0];
@@ -337,17 +371,23 @@ describe('ApiEndpointsPage', () => {
             renderPage();
             fireEvent.click(screen.getByRole('button', { name: /add endpoint group/i }));
             // Name input is empty by default
-            expect(screen.getByRole('button', { name: /next/i })).toBeDisabled();
+            expect(screen.getByRole('button', { name: /validate general information/i })).toBeDisabled();
+        });
+
+        it('shows Validate general information on the General step (classic console parity)', () => {
+            renderPage();
+            fireEvent.click(screen.getByRole('button', { name: /add endpoint group/i }));
+            expect(screen.getByRole('button', { name: /validate general information/i })).toBeInTheDocument();
         });
     });
 
     // ── Edit endpoint group ────────────────────────────────────────────────────
 
     describe('edit endpoint group', () => {
-        it('switches to the group form with "Edit endpoint group" heading when Edit is clicked', () => {
+        it('switches to the group form with "Edit default endpoint group" heading when the default group is edited', () => {
             renderPage();
             fireEvent.click(screen.getByRole('button', { name: 'Edit group default-group' }));
-            expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Edit endpoint group');
+            expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Edit default endpoint group');
         });
 
         it('returns to the list view when Cancel is clicked in the edit form', () => {
@@ -360,8 +400,7 @@ describe('ApiEndpointsPage', () => {
         it('preserves existing endpoints when saving a group edit', () => {
             renderPage();
             fireEvent.click(screen.getByRole('button', { name: 'Edit group default-group' }));
-            // Name is pre-filled — advance and save
-            fireEvent.click(screen.getByRole('button', { name: /next/i }));
+            advanceGroupWizardPastConfiguration();
             fireEvent.click(screen.getByRole('button', { name: /save endpoint group/i }));
 
             const savedGroups: EndpointGroupDto[] = mockMutate.mock.calls[0][0];
@@ -510,7 +549,7 @@ describe('ApiEndpointsPage', () => {
         renderPage();
         fireEvent.click(screen.getByRole('button', { name: /add endpoint group/i }));
         fireEvent.change(screen.getByPlaceholderText('default-group'), { target: { value: 'test-group' } });
-        fireEvent.click(screen.getByRole('button', { name: /next/i }));
+        advanceGroupWizardPastConfiguration('https://backend.example.com');
 
         const saveBtn = screen.getByRole('button', { name: /saving/i });
         expect(saveBtn).toBeDisabled();
