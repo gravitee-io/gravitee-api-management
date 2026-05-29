@@ -76,7 +76,10 @@ public class AmSyncJobManager {
         try {
             AmUserSyncOrchestrator.Result result = orchestrator.run(caller, connection);
             jobs.put(organizationId, running.completed(result.usersFetched(), result.entitiesUpserted(), Instant.now()));
-        } catch (RuntimeException e) {
+        } catch (Throwable e) {
+            // Catch Throwable, not just RuntimeException: an Error (e.g. NoClassDefFoundError from the
+            // AM SDK) would otherwise escape this worker, be swallowed by the thread pool, and strand
+            // the job at RUNNING forever with no trace.
             log.warn("AM user sync failed for organization {}", organizationId, e);
             jobs.put(organizationId, running.failed(e.getMessage(), Instant.now()));
         }
