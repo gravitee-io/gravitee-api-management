@@ -32,6 +32,7 @@ import io.gravitee.cockpit.api.command.v1.organization.DeleteOrganizationReply;
 import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AccessPointRepository;
+import io.gravitee.repository.management.api.AmConnectionRepository;
 import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.api.ClusterRepository;
 import io.gravitee.repository.management.api.CommandRepository;
@@ -97,6 +98,9 @@ public class DeleteOrganizationCommandHandlerTest {
 
     @Mock
     private AccessPointRepository accessPointRepository;
+
+    @Mock
+    private AmConnectionRepository amConnectionRepository;
 
     @Mock
     private FlowRepository flowRepository;
@@ -197,6 +201,7 @@ public class DeleteOrganizationCommandHandlerTest {
 
         cut = new DeleteOrganizationCommandHandler(
             accessPointRepository,
+            amConnectionRepository,
             auditRepository,
             commandRepository,
             customUserFieldsRepository,
@@ -360,6 +365,7 @@ public class DeleteOrganizationCommandHandlerTest {
             EntrypointReferenceType.ORGANIZATION
         );
         verify(clusterRepository).deleteByOrganizationId(executionContext.getOrganizationId());
+        verify(amConnectionRepository).delete(executionContext.getOrganizationId());
     }
 
     private void verifyDisableOrganization(ExecutionContext context) {
