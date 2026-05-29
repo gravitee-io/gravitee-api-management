@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
@@ -27,6 +28,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import io.gravitee.definition.model.v4.ApiType;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.CustomLog;
@@ -39,10 +41,12 @@ public class SeedDefaultPagesForApiNavigationItemsUseCase {
 
     private static final String DEFAULT_PAGE_TITLE = "Overview";
     private static final String DEFAULT_OVERVIEW_TEMPLATE = "api-overview-page-content.md";
+    private static final String MCP_PROXY_OVERVIEW_TEMPLATE = "api-overview-mcp-proxy-page-content.md";
 
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
     private final PortalNavigationItemDomainService portalNavigationItemDomainService;
     private final PortalPageContentCrudService portalPageContentCrudService;
+    private final ApiCrudService apiCrudService;
 
     public Output execute(Input input) {
         var seededNavigationItemIds = new ArrayList<PortalNavigationItemId>();
@@ -79,8 +83,14 @@ public class SeedDefaultPagesForApiNavigationItemsUseCase {
             return false;
         }
 
+        var templatePath = apiCrudService
+            .findById(apiNavigationItem.getApiId())
+            .filter(api -> ApiType.MCP_PROXY == api.getType())
+            .map(api -> MCP_PROXY_OVERVIEW_TEMPLATE)
+            .orElse(DEFAULT_OVERVIEW_TEMPLATE);
+
         var content = portalPageContentCrudService.create(
-            GraviteeMarkdownPageContent.create(organizationId, environmentId, loadContent(DEFAULT_OVERVIEW_TEMPLATE))
+            GraviteeMarkdownPageContent.create(organizationId, environmentId, loadContent(templatePath))
         );
 
         portalNavigationItemDomainService.create(

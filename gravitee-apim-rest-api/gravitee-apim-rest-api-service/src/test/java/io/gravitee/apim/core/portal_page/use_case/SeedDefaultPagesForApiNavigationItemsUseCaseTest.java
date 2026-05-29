@@ -46,6 +46,7 @@ import org.junit.jupiter.api.Test;
 class SeedDefaultPagesForApiNavigationItemsUseCaseTest {
 
     private SeedDefaultPagesForApiNavigationItemsUseCase useCase;
+    private ApiCrudServiceInMemory apiCrudService;
     private PortalNavigationItemsCrudServiceInMemory portalNavigationItemsCrudService;
     private PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService;
     private PortalPageContentCrudServiceInMemory portalPageContentCrudService;
@@ -57,7 +58,7 @@ class SeedDefaultPagesForApiNavigationItemsUseCaseTest {
         portalNavigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory(storage);
         portalPageContentCrudService = new PortalPageContentCrudServiceInMemory();
 
-        var apiCrudService = new ApiCrudServiceInMemory();
+        apiCrudService = new ApiCrudServiceInMemory();
         apiCrudService.initWith(List.of(Api.builder().id("api-1").name("API 1").version("1.0.0").type(ApiType.PROXY).build()));
 
         portalNavigationItemsQueryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
@@ -70,7 +71,8 @@ class SeedDefaultPagesForApiNavigationItemsUseCaseTest {
                 portalPageContentCrudService,
                 apiCrudService
             ),
-            portalPageContentCrudService
+            portalPageContentCrudService,
+            apiCrudService
         );
     }
 
@@ -116,6 +118,22 @@ class SeedDefaultPagesForApiNavigationItemsUseCaseTest {
 
         assertThat(output.seededNavigationItemIds()).isEmpty();
         assertThat(portalPageContentCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_seed_mcp_proxy_overview_page_for_mcp_proxy_api() {
+        apiCrudService.initWith(List.of(Api.builder().id("api-1").name("MCP API").version("1.0.0").type(ApiType.MCP_PROXY).build()));
+
+        var output = useCase.execute(
+            new SeedDefaultPagesForApiNavigationItemsUseCase.Input(ORG_ID, ENV_ID, List.of(PortalNavigationItemId.of(API1_ID)))
+        );
+
+        assertThat(output.seededNavigationItemIds()).containsExactly(PortalNavigationItemId.of(API1_ID));
+        assertThat(portalPageContentCrudService.storage())
+            .singleElement()
+            .isInstanceOfSatisfying(GraviteeMarkdownPageContent.class, content ->
+                assertThat(content.getContent().value()).isEqualTo(loadTemplate("api-overview-mcp-proxy-page-content.md"))
+            );
     }
 
     @Test
