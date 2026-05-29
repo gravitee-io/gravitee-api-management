@@ -39,10 +39,17 @@ export class PortalAnalyticsFiltersService implements FilterDefinitionProvider, 
       { name: 'APPLICATION', label: $localize`:@@analyticsFilterApplication:Application`, type: 'KEYWORD', operators: ['EQ', 'IN'] },
       {
         name: 'HTTP_STATUS_CODE_GROUP',
-        label: $localize`:@@analyticsFilterStatusCode:Status Code`,
+        label: $localize`:@@analyticsFilterStatusCodeGroup:Status Code Group`,
         type: 'ENUM',
         operators: ['EQ', 'IN'],
-        values: ['2xx', '4xx', '5xx'],
+        values: ['1XX', '2XX', '3XX', '4XX', '5XX'],
+      },
+      {
+        name: 'HTTP_STATUS',
+        label: $localize`:@@analyticsFilterStatusCode:Status Code`,
+        type: 'NUMBER',
+        range: { min: 100, max: 599 },
+        operators: ['EQ', 'LTE', 'GTE'],
       },
     ]);
   }
@@ -63,15 +70,6 @@ export class PortalAnalyticsFiltersService implements FilterDefinitionProvider, 
             hasNextPage: (response.metadata?.pagination?.current_page ?? 1) < (response.metadata?.pagination?.total_pages ?? 1),
           })),
         );
-      case 'HTTP_STATUS_CODE_GROUP':
-        return of({
-          data: [
-            { value: '2xx', label: '2xx' },
-            { value: '4xx', label: '4xx' },
-            { value: '5xx', label: '5xx' },
-          ],
-          hasNextPage: false,
-        });
       default:
         return of({ data: [], hasNextPage: false });
     }
