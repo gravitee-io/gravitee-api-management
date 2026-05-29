@@ -161,6 +161,7 @@ describe('ApiImportV4FormComponent', () => {
     expect(req.request.body).toEqual(
       expect.objectContaining({
         payload: yaml,
+        type: 'INLINE',
         withDocumentation: true,
         withOASValidationPolicy: false,
       }),
@@ -264,6 +265,7 @@ describe('ApiImportV4FormComponent', () => {
     expect(apiV2.importSwaggerApi).toHaveBeenCalledWith(
       expect.objectContaining({
         payload: 'https://example.com/openapi.yaml',
+        type: 'URL',
         withDocumentation: true,
         withOASValidationPolicy: false,
       }),
@@ -291,6 +293,7 @@ describe('ApiImportV4FormComponent', () => {
       'same-api',
       expect.objectContaining({
         payload: 'https://example.com/openapi.yaml',
+        type: 'URL',
         withDocumentation: true,
         withOASValidationPolicy: false,
       }),
@@ -422,6 +425,56 @@ describe('ApiImportV4FormComponent', () => {
       expect(req.request.body).toBe('https://cdn.example/def.json');
       expect(req.request.headers.get('Content-Type')).toBe('text/plain');
       req.flush(fakeApiV4({ id: 'existing-api' }));
+      httpMock.verify();
+    });
+
+    it('should PUT to _import/swagger with type URL for remote OpenAPI in update mode', async () => {
+      const httpMock = TestBed.inject(HttpTestingController);
+
+      await harness.selectFormat('openapi');
+      fixture.detectChanges();
+      await harness.clickNext();
+      await harness.selectSource('remote');
+      await harness.setRemoteUrl('https://example.com/openapi.yaml');
+      fixture.detectChanges();
+      await harness.clickNext();
+      await harness.clickNext();
+      await harness.clickImport();
+
+      const req = httpMock.expectOne(
+        r => r.method === 'PUT' && r.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/existing-api/_import/swagger`,
+      );
+      expect(req.request.body).toEqual(
+        expect.objectContaining({
+          payload: 'https://example.com/openapi.yaml',
+          type: 'URL',
+        }),
+      );
+      req.flush(fakeApiV4({ id: 'existing-api' }));
+      httpMock.verify();
+    });
+
+    it('should surface the backend message when the swagger update endpoint returns an error', async () => {
+      const snackBarService = TestBed.inject(SnackBarService);
+      const snackBarErrorSpy = jest.spyOn(snackBarService, 'error');
+      const httpMock = TestBed.inject(HttpTestingController);
+
+      await harness.selectFormat('openapi');
+      fixture.detectChanges();
+      await harness.clickNext();
+      await harness.selectSource('remote');
+      await harness.setRemoteUrl('https://example.com/broken.yaml');
+      fixture.detectChanges();
+      await harness.clickNext();
+      await harness.clickNext();
+      await harness.clickImport();
+
+      const req = httpMock.expectOne(
+        r => r.method === 'PUT' && r.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/existing-api/_import/swagger`,
+      );
+      req.flush({ message: 'Unable to fetch the OpenAPI descriptor from the provided URL' }, { status: 400, statusText: 'error' });
+
+      expect(snackBarErrorSpy).toHaveBeenCalledWith('Unable to fetch the OpenAPI descriptor from the provided URL');
       httpMock.verify();
     });
   });
