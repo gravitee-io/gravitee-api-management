@@ -25,6 +25,7 @@ import { ApisPage } from '../features/policy-management/pages/ApisPage';
 import { CustomPoliciesPage } from '../features/policy-management/pages/CustomPoliciesPage';
 import { ModelsPage } from '../features/policy-management/pages/ModelsPage';
 import { McpsPage } from '../features/policy-management/pages/McpsPage';
+import { ActionsPage } from '../features/policy-structure/ActionsPage';
 import { EntitiesPage } from '../features/policy-structure/EntitiesPage';
 import { ModuleErrorBoundary } from './ModuleErrorBoundary';
 
@@ -65,6 +66,7 @@ export function AppRoutes() {
                         <Route path="apis" element={<ApisPage />} />
                         <Route path="custom-policies" element={<CustomPoliciesPage />} />
                         <Route path="entities" element={<EntitiesPage />} />
+                        <Route path="actions" element={<ActionsPage />} />
                     </Route>
                 </Routes>
             </ModuleErrorBoundary>

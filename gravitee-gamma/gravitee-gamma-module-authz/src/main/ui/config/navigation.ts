@@ -21,6 +21,7 @@ import {
     LayoutDashboardIcon,
     ShieldCheckIcon,
     SlidersHorizontalIcon,
+    ZapIcon,
 } from '@gravitee/graphene-core/icons';
 import { ROUTES } from './routes';
 
@@ -40,6 +41,9 @@ export const NAV_GROUPS: NavGroup[] = [
     },
     {
         label: 'Policy Structure',
-        items: [{ key: 'entities', title: ROUTES.entities.label, icon: BoxesIcon }],
+        items: [
+            { key: 'entities', title: ROUTES.entities.label, icon: BoxesIcon },
+            { key: 'actions', title: ROUTES.actions.label, icon: ZapIcon },
+        ],
     },
 ];
