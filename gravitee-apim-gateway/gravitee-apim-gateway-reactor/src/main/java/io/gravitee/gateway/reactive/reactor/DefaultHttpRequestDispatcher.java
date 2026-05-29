@@ -19,6 +19,7 @@ import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_SERVER_ID;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_TRACING_ERROR;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_TRACING_ROOT_SPAN;
+import static io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest.NETTY_ATTR_REQUEST_CONTEXT;
 
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.http.MediaType;
@@ -56,6 +57,7 @@ import io.gravitee.node.api.opentelemetry.Span;
 import io.gravitee.node.api.opentelemetry.http.ObservableHttpServerRequest;
 import io.gravitee.node.api.opentelemetry.http.ObservableHttpServerResponse;
 import io.gravitee.reporter.api.v4.metric.Metrics;
+import io.netty.util.AttributeKey;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableEmitter;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -63,6 +65,7 @@ import io.smallrye.common.vertx.VertxContext;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpVersion;
+import io.vertx.core.http.impl.HttpServerConnection;
 import io.vertx.rxjava3.core.http.HttpHeaders;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import java.util.List;
@@ -84,6 +87,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
 
     private static final String ATTR_INTERNAL_VERTX_TIMER_ID = ContextAttributes.ATTR_PREFIX + "vertx-timer-id";
     public static final String ATTR_ENTRYPOINT = ContextAttributes.ATTR_PREFIX + "entrypoint";
+    private static final AttributeKey<Object> REQUEST_CONTEXT_ATTR_KEY = AttributeKey.valueOf(NETTY_ATTR_REQUEST_CONTEXT);
     private final GatewayConfiguration gatewayConfiguration;
     private final HttpAcceptorResolver httpAcceptorResolver;
     private final IdGenerator idGenerator;
@@ -262,6 +266,12 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         ctx.componentProvider(globalComponentProvider);
         ctx.setInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE, ListenerType.HTTP);
         ctx.setInternalAttribute(ATTR_INTERNAL_SERVER_ID, serverId);
+
+        // Stash the in-flight context on the connection so the Vert.x connection exception/close handler
+        // (HttpProtocolVerticle) can classify a client-side close (RST, broken pipe, idle timeout, …) onto the
+        // in-flight request before the dispose chain reaches the endpoint connector and emits a generic 499
+        // (APIM-12769).
+        ((HttpServerConnection) httpServerRequest.connection().getDelegate()).channel().attr(REQUEST_CONTEXT_ATTR_KEY).set(ctx);
 
         return ctx;
     }

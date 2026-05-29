@@ -17,6 +17,7 @@ package io.gravitee.gateway.reactive.reactor;
 
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_TRACING_ROOT_SPAN;
 import static io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest.NETTY_ATTR_CONNECTION_TIME;
+import static io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest.NETTY_ATTR_REQUEST_CONTEXT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -229,6 +230,7 @@ class DefaultHttpRequestDispatcherTest {
         lenient().when(httpConnection.getDelegate()).thenReturn(httpServerConnection);
         lenient().when(httpServerConnection.channel()).thenReturn(channel);
         lenient().when(channel.attr(AttributeKey.valueOf(NETTY_ATTR_CONNECTION_TIME))).thenReturn(attribute);
+        lenient().when(channel.attr(AttributeKey.valueOf(NETTY_ATTR_REQUEST_CONTEXT))).thenReturn(attribute);
         lenient().when(attribute.get()).thenReturn(System.currentTimeMillis());
     }
 

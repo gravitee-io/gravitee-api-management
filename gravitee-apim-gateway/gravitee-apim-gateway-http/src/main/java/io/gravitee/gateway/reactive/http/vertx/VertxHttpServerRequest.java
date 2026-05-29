@@ -45,6 +45,17 @@ import javax.net.ssl.SSLSession;
 public class VertxHttpServerRequest extends AbstractRequest {
 
     public static final String NETTY_ATTR_CONNECTION_TIME = "connectionTime";
+
+    /**
+     * Netty channel attribute carrying the in-flight {@code MutableExecutionContext} so the
+     * Vert.x connection-level exception handler can lazily populate {@code metrics.errorKey} /
+     * {@code metrics.errorMessage} with the classified client-close reason before the dispose
+     * chain reaches the endpoint connector. The {@code Metrics} object on the context is set by
+     * the {@code MetricsProcessor} pre-processor, which runs after dispatch starts — so we stash
+     * the context (not the metrics directly) and read its current metrics at exception time.
+     * <p>Used by {@code HttpProtocolVerticle.configureConnectionHandlers}.</p>
+     */
+    public static final String NETTY_ATTR_REQUEST_CONTEXT = "requestContext";
     protected final HttpServerRequest nativeRequest;
     private Boolean isWebSocket = null;
     private Boolean isStreaming = null;

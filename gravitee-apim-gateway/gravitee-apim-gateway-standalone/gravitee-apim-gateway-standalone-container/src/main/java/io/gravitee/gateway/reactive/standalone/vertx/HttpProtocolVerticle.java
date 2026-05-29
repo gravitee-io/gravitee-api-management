@@ -16,11 +16,24 @@
 package io.gravitee.gateway.reactive.standalone.vertx;
 
 import static io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest.NETTY_ATTR_CONNECTION_TIME;
+import static io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest.NETTY_ATTR_REQUEST_CONTEXT;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.gateway.reactive.api.ExecutionFailure;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
+import io.gravitee.gateway.reactive.core.context.ComponentScope;
+import io.gravitee.gateway.reactive.core.context.diagnostic.DiagnosticReportHelper;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
 import io.gravitee.node.api.server.ServerManager;
 import io.gravitee.node.vertx.server.http.VertxHttpServer;
+import io.gravitee.reporter.api.v4.metric.Diagnostic;
+import io.gravitee.reporter.api.v4.metric.Metrics;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelPipeline;
+import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.AttributeKey;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
@@ -33,6 +46,7 @@ import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpServer;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.core.http.HttpServerResponse;
+import java.nio.channels.ClosedChannelException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -167,13 +181,202 @@ public class HttpProtocolVerticle extends AbstractVerticle {
         }
     }
 
+    static final String CLIENT_ABORTED_TCP_RESET = "CLIENT_ABORTED_TCP_RESET";
+    static final String CLIENT_ABORTED_BROKEN_PIPE = "CLIENT_ABORTED_BROKEN_PIPE";
+    static final String CLIENT_ABORTED_IDLE_TIMEOUT = "CLIENT_ABORTED_IDLE_TIMEOUT";
+    static final String CLIENT_ABORTED_CHANNEL_CLOSED = "CLIENT_ABORTED_CHANNEL_CLOSED";
+    static final String CLIENT_ABORTED_TCP_RESET_MESSAGE = "The client reset the connection";
+    static final String CLIENT_ABORTED_BROKEN_PIPE_MESSAGE = "The client closed the connection while the response was being written";
+    static final String CLIENT_ABORTED_IDLE_TIMEOUT_MESSAGE = "The connection was closed after the client idle timeout elapsed";
+    static final String CLIENT_ABORTED_CHANNEL_CLOSED_MESSAGE = "The client closed the connection";
+
+    /** Name of the inbound handler we install to capture {@link IdleStateEvent} before Vert.x closes the channel. */
+    private static final String IDLE_REASON_HANDLER_NAME = "gravitee-client-close-reason";
+    /** Name Vert.x 4.5 gives the {@code IdleStateHandler} it installs when {@code http.idleTimeout} is configured. */
+    private static final String VERTX_IDLE_HANDLER_NAME = "idle";
+    /** Marker stored on the channel so {@code closeHandler} can tell an idle-timeout close apart from a plain FIN. */
+    private static final String IDLE_CLOSE_REASON = "IDLE_TIMEOUT";
+    private static final AttributeKey<Object> REQUEST_CONTEXT_ATTR_KEY = AttributeKey.valueOf(NETTY_ATTR_REQUEST_CONTEXT);
+    private static final AttributeKey<Object> CLIENT_CLOSE_REASON_ATTR_KEY = AttributeKey.valueOf("graviteeClientCloseReason");
+
     private void configureConnectionHandlers(HttpServerRequest request, Disposable dispatchDisposable) {
+        installIdleCloseReasonHandler(request);
         request
             .connection()
             // Must be added to ensure closed connection or error disposes underlying subscription.
-            .exceptionHandler(event -> gracefulDispose(dispatchDisposable))
-            .closeHandler(event -> gracefulDispose(dispatchDisposable));
+            .exceptionHandler(event -> {
+                recordClientCloseReason(request, event);
+                gracefulDispose(dispatchDisposable);
+            })
+            .closeHandler(event -> {
+                // A Vert.x server idle-timeout close arrives here with no Throwable (it never reaches the
+                // exceptionHandler), so we rely on the marker set by IdleCloseReasonHandler to identify it.
+                recordIdleCloseReason(request);
+                gracefulDispose(dispatchDisposable);
+            });
     }
+
+    /**
+     * Install, once per connection, a tiny inbound handler right after Vert.x's {@code IdleStateHandler}
+     * (named {@value #VERTX_IDLE_HANDLER_NAME}) so we can observe the {@link IdleStateEvent} it fires and
+     * record an idle marker on the channel <em>before</em> Vert.x reacts to that event by closing the
+     * connection.
+     * <p>
+     * Without this, a server {@code http.idleTimeout} close is indistinguishable from a normal client FIN at
+     * {@code closeHandler} time, and {@link #CLIENT_ABORTED_IDLE_TIMEOUT} would be unreachable (APIM-12769).
+     * Only installed when the idle handler is present (i.e. {@code http.idleTimeout} is configured).
+     */
+    private void installIdleCloseReasonHandler(HttpServerRequest request) {
+        try {
+            Channel channel = ((HttpServerConnection) request.connection().getDelegate()).channel();
+            ChannelPipeline pipeline = channel.pipeline();
+            if (pipeline.get(IDLE_REASON_HANDLER_NAME) == null && pipeline.get(VERTX_IDLE_HANDLER_NAME) != null) {
+                pipeline.addAfter(VERTX_IDLE_HANDLER_NAME, IDLE_REASON_HANDLER_NAME, new IdleCloseReasonHandler());
+            }
+        } catch (Exception e) {
+            log.debug("Unable to install idle-close-reason handler", e);
+        }
+    }
+
+    /**
+     * Inbound handler that records an idle marker on the channel when Netty's {@code IdleStateHandler} signals
+     * inactivity, then forwards the event so Vert.x still closes the connection as it normally would.
+     */
+    private static class IdleCloseReasonHandler extends ChannelInboundHandlerAdapter {
+
+        @Override
+        public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+            if (evt instanceof IdleStateEvent) {
+                ctx.channel().attr(CLIENT_CLOSE_REASON_ATTR_KEY).set(IDLE_CLOSE_REASON);
+            }
+            super.userEventTriggered(ctx, evt);
+        }
+    }
+
+    /**
+     * If the connection was closed because of a server idle timeout (flagged by {@link IdleCloseReasonHandler}),
+     * decorate the in-flight request metrics with {@link #CLIENT_ABORTED_IDLE_TIMEOUT}.
+     */
+    private void recordIdleCloseReason(HttpServerRequest request) {
+        try {
+            Channel channel = ((HttpServerConnection) request.connection().getDelegate()).channel();
+            if (IDLE_CLOSE_REASON.equals(channel.attr(CLIENT_CLOSE_REASON_ATTR_KEY).get())) {
+                decorateClientClose(request, CLIENT_ABORTED_IDLE_TIMEOUT, CLIENT_ABORTED_IDLE_TIMEOUT_MESSAGE, null);
+            }
+        } catch (Exception e) {
+            log.debug("Unable to record idle close reason", e);
+        }
+    }
+
+    /**
+     * Best-effort: classify the Vert.x connection-level {@link Throwable} that signaled a client-side close
+     * (RST, broken pipe, …) and surface it on the request {@link Metrics} so it appears in access logs and
+     * analytics — instead of the generic "CLIENT_ABORTED_DURING_RESPONSE_ERROR" fallback (APIM-12769).
+     */
+    private void recordClientCloseReason(HttpServerRequest request, Throwable cause) {
+        if (cause == null) {
+            return;
+        }
+        ClientCloseReason reason = classifyClientClose(cause);
+        decorateClientClose(request, reason.key(), reason.message(), cause);
+    }
+
+    /**
+     * Decorate the in-flight request {@link Metrics} with a client-close failure, going through
+     * {@link DiagnosticReportHelper} — the same path {@code AbstractExecutionContext.interruptWith} uses for
+     * upstream errors — so the {@link Diagnostic} written here is shape-compatible with every other V4 failure
+     * path. No-op when there is no in-flight context/metrics, or when a more specific failure was already set.
+     */
+    private void decorateClientClose(HttpServerRequest request, String key, String message, Throwable cause) {
+        try {
+            Object stashed = ((HttpServerConnection) request.connection().getDelegate()).channel().attr(REQUEST_CONTEXT_ATTR_KEY).get();
+            if (stashed instanceof HttpBaseExecutionContext ctx) {
+                decorateContext(ctx, key, message, cause);
+            }
+        } catch (Exception classificationError) {
+            log.debug("Failed to classify client close reason", classificationError);
+        }
+    }
+
+    private void decorateContext(HttpBaseExecutionContext ctx, String key, String message, Throwable cause) {
+        Metrics metrics = ctx.metrics();
+        if (metrics == null) {
+            // MetricsProcessor hasn't run yet (extremely early abort) — nothing to decorate.
+            return;
+        }
+        if (metrics.getFailure() != null || metrics.getErrorKey() != null) {
+            // A more specific classifier (e.g. the upstream connector), or another close handler, already set it.
+            return;
+        }
+        ExecutionFailure failure = new ExecutionFailure(499).key(key).message(message);
+        if (cause != null) {
+            failure.cause(cause);
+        }
+        ComponentScope.ComponentEntry component = ComponentScope.peek((BaseExecutionContext) ctx);
+        Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionFailure(
+            component,
+            metrics.getErrorKey(),
+            metrics.getErrorMessage(),
+            failure
+        );
+        metrics.setFailure(diagnostic);
+        // Legacy fields kept in sync so dashboards reading the flat error-key/error-message still work.
+        metrics.setErrorKey(diagnostic.getKey());
+        metrics.setErrorMessage(diagnostic.getMessage());
+        log.debug("Classified client close reason as {}", key);
+    }
+
+    static ClientCloseReason classifyClientClose(Throwable cause) {
+        if (hasCause(cause, ClosedChannelException.class)) {
+            return new ClientCloseReason(CLIENT_ABORTED_CHANNEL_CLOSED, CLIENT_ABORTED_CHANNEL_CLOSED_MESSAGE);
+        }
+        // Scan the whole cause chain: the close cause is sometimes wrapped, so the top-level message alone is not
+        // enough (consistent with the upstream connector's classification).
+        String message = collectChainMessages(cause);
+        if (message != null) {
+            if (message.contains("Connection reset")) {
+                return new ClientCloseReason(CLIENT_ABORTED_TCP_RESET, CLIENT_ABORTED_TCP_RESET_MESSAGE);
+            }
+            if (message.contains("Broken pipe")) {
+                return new ClientCloseReason(CLIENT_ABORTED_BROKEN_PIPE, CLIENT_ABORTED_BROKEN_PIPE_MESSAGE);
+            }
+        }
+        // Default for any other IO/connection error reaching the exception handler.
+        return new ClientCloseReason(CLIENT_ABORTED_CHANNEL_CLOSED, CLIENT_ABORTED_CHANNEL_CLOSED_MESSAGE);
+    }
+
+    /** Walk the cause chain looking for a given exception type (the close cause may be wrapped). */
+    private static boolean hasCause(Throwable t, Class<? extends Throwable> type) {
+        Throwable current = t;
+        while (current != null) {
+            if (type.isInstance(current)) {
+                return true;
+            }
+            if (current.getCause() == current) {
+                break;
+            }
+            current = current.getCause();
+        }
+        return false;
+    }
+
+    /** Concatenate the messages along the cause chain so message-based detection survives wrapping. */
+    private static String collectChainMessages(Throwable t) {
+        StringBuilder sb = new StringBuilder();
+        Throwable current = t;
+        while (current != null) {
+            if (current.getMessage() != null) {
+                sb.append(current.getMessage()).append('\n');
+            }
+            if (current.getCause() == current) {
+                break;
+            }
+            current = current.getCause();
+        }
+        return sb.isEmpty() ? null : sb.toString();
+    }
+
+    record ClientCloseReason(String key, String message) {}
 
     private void gracefulDispose(Disposable dispatchDisposable) {
         if (!dispatchDisposable.isDisposed()) {

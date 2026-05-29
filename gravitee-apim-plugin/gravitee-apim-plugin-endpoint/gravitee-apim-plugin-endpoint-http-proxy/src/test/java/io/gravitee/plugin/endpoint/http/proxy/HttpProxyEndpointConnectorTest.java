@@ -19,6 +19,22 @@ import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.
 import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.CLIENT_ABORTED_DURING_RESPONSE_MESSAGE;
 import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.GATEWAY_CLIENT_CONNECTION_ERROR;
 import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.REQUEST_TIMEOUT;
+import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.UPSTREAM_BROKEN_PIPE;
+import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.UPSTREAM_BROKEN_PIPE_MESSAGE;
+import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.UPSTREAM_CONNECTION_CLOSED;
+import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.UPSTREAM_CONNECTION_CLOSED_MESSAGE;
+import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.UPSTREAM_CONNECTION_REFUSED;
+import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.UPSTREAM_CONNECTION_REFUSED_MESSAGE;
+import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.UPSTREAM_CONNECTION_RESET;
+import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.UPSTREAM_CONNECTION_RESET_MESSAGE;
+import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.UPSTREAM_CONNECT_TIMEOUT;
+import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.UPSTREAM_CONNECT_TIMEOUT_MESSAGE;
+import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.UPSTREAM_DNS_FAILURE;
+import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.UPSTREAM_DNS_FAILURE_MESSAGE;
+import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.UPSTREAM_IDLE_TIMEOUT;
+import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.UPSTREAM_IDLE_TIMEOUT_MESSAGE;
+import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.UPSTREAM_TLS_FAILURE;
+import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.UPSTREAM_TLS_FAILURE_MESSAGE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
@@ -45,6 +61,7 @@ import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailur
 import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.gravitee.plugin.endpoint.http.proxy.client.GrpcHttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
+import io.gravitee.plugin.endpoint.http.proxy.client.UpstreamIdleTimeoutException;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.connector.ProxyConnector;
@@ -58,9 +75,12 @@ import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.core.impl.NoStackTraceTimeoutException;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.io.IOException;
+import java.net.ConnectException;
+import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
+import javax.net.ssl.SSLException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -144,11 +164,9 @@ class HttpProxyEndpointConnectorTest {
     }
 
     static Stream<Throwable> timeoutExceptionsProvider() {
-        return Stream.of(
-            new NoStackTraceTimeoutException("Vertx no stack trace timeout"),
-            ReadTimeoutException.INSTANCE,
-            new ConnectTimeoutException("Netty connect timeout")
-        );
+        // ConnectTimeoutException intentionally excluded: it now maps to its own UPSTREAM_CONNECT_TIMEOUT key
+        // (APIM-12769), asserted by should_classify_connect_timeout_as_upstream_connect_timeout below.
+        return Stream.of(new NoStackTraceTimeoutException("Vertx no stack trace timeout"), ReadTimeoutException.INSTANCE);
     }
 
     @Test
@@ -388,6 +406,123 @@ class HttpProxyEndpointConnectorTest {
                 .assertComplete();
             verify(spyHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
             verify(spyGrpcHttpClientFactory, never()).getOrBuildHttpClient(any(), any(), any());
+        }
+    }
+
+    @Nested
+    class UpstreamFailureClassification {
+
+        private void assertClassifiedAs(Throwable thrown, int expectedStatus, String expectedKey, String expectedMessage) {
+            Map<String, ProxyConnector> mockConnectors = new ConcurrentHashMap<>();
+            mockConnectors.put("http", proxyConnector);
+            ReflectionTestUtils.setField(cut, "connectors", mockConnectors);
+            when(proxyConnector.connect(ctx)).thenReturn(Completable.error(thrown));
+            when(ctx.interruptWith(any(ExecutionFailure.class))).thenReturn(Completable.complete());
+
+            TestObserver<Void> testObserver = cut.connect(ctx).test();
+
+            verify(ctx).interruptWith(failureCaptor.capture());
+            ExecutionFailure failure = failureCaptor.getValue();
+            assertThat(failure.statusCode()).isEqualTo(expectedStatus);
+            assertThat(failure.key()).isEqualTo(expectedKey);
+            if (expectedMessage != null) {
+                assertThat(failure.message()).isEqualTo(expectedMessage);
+            }
+            // The original cause must always be preserved for logging/debugging.
+            assertThat(failure.cause()).isSameAs(thrown);
+            testObserver.assertComplete().assertNoErrors();
+        }
+
+        @Test
+        void should_classify_connect_timeout_as_upstream_connect_timeout() {
+            assertClassifiedAs(
+                new ConnectTimeoutException("connection timed out"),
+                HttpStatusCode.GATEWAY_TIMEOUT_504,
+                UPSTREAM_CONNECT_TIMEOUT,
+                UPSTREAM_CONNECT_TIMEOUT_MESSAGE
+            );
+        }
+
+        @Test
+        void should_classify_upstream_idle_timeout() {
+            assertClassifiedAs(
+                new UpstreamIdleTimeoutException("Upstream idle timeout"),
+                HttpStatusCode.GATEWAY_TIMEOUT_504,
+                UPSTREAM_IDLE_TIMEOUT,
+                UPSTREAM_IDLE_TIMEOUT_MESSAGE
+            );
+        }
+
+        @Test
+        void should_classify_unknown_host_as_dns_failure() {
+            assertClassifiedAs(
+                new UnknownHostException("api.invalid"),
+                HttpStatusCode.BAD_GATEWAY_502,
+                UPSTREAM_DNS_FAILURE,
+                UPSTREAM_DNS_FAILURE_MESSAGE
+            );
+        }
+
+        @Test
+        void should_classify_connection_refused_as_upstream_connection_refused() {
+            assertClassifiedAs(
+                new ConnectException("Connection refused"),
+                HttpStatusCode.BAD_GATEWAY_502,
+                UPSTREAM_CONNECTION_REFUSED,
+                UPSTREAM_CONNECTION_REFUSED_MESSAGE
+            );
+        }
+
+        @Test
+        void should_classify_ssl_exception_as_tls_failure() {
+            assertClassifiedAs(
+                new SSLException("Received fatal alert: handshake_failure"),
+                HttpStatusCode.BAD_GATEWAY_502,
+                UPSTREAM_TLS_FAILURE,
+                UPSTREAM_TLS_FAILURE_MESSAGE
+            );
+        }
+
+        @Test
+        void should_classify_connection_reset_message_as_upstream_connection_reset() {
+            // Vert.x wraps low-level IO failures in VertxException (not an IOException), so the default switch
+            // branch must also classify by message — exercise it here with a non-IOException carrying the message.
+            assertClassifiedAs(
+                new RuntimeException("Connection reset by peer"),
+                HttpStatusCode.BAD_GATEWAY_502,
+                UPSTREAM_CONNECTION_RESET,
+                UPSTREAM_CONNECTION_RESET_MESSAGE
+            );
+        }
+
+        @Test
+        void should_classify_broken_pipe_message_as_upstream_broken_pipe() {
+            assertClassifiedAs(
+                new IOException("Broken pipe"),
+                HttpStatusCode.BAD_GATEWAY_502,
+                UPSTREAM_BROKEN_PIPE,
+                UPSTREAM_BROKEN_PIPE_MESSAGE
+            );
+        }
+
+        @Test
+        void should_classify_connection_closed_message_as_upstream_connection_closed() {
+            assertClassifiedAs(
+                new RuntimeException("Connection was closed"),
+                HttpStatusCode.BAD_GATEWAY_502,
+                UPSTREAM_CONNECTION_CLOSED,
+                UPSTREAM_CONNECTION_CLOSED_MESSAGE
+            );
+        }
+
+        @Test
+        void should_fallback_to_gateway_client_connection_error_for_unrecognised_failure() {
+            assertClassifiedAs(
+                new RuntimeException("something totally unexpected"),
+                HttpStatusCode.BAD_GATEWAY_502,
+                GATEWAY_CLIENT_CONNECTION_ERROR,
+                null
+            );
         }
     }
 }

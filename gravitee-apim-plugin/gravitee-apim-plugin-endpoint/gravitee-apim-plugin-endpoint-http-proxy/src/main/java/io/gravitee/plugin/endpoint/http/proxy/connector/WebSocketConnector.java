@@ -29,6 +29,7 @@ import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
 import io.gravitee.gateway.reactive.http.vertx.ws.VertxWebSocket;
 import io.gravitee.node.api.opentelemetry.Span;
 import io.gravitee.node.api.opentelemetry.http.ObservableHttpClientRequest;
+import io.gravitee.plugin.endpoint.http.proxy.client.ConnectionFailureClassifier;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
@@ -133,17 +134,22 @@ public class WebSocketConnector extends HttpConnector {
                                 )
                             );
                     }
-                    return request
-                        .webSocket()
-                        .close(HttpStatusCode.INTERNAL_SERVER_ERROR_500)
-                        .andThen(
-                            ctx.interruptWith(
-                                new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500)
-                                    .key(HTTP_PROXY_WEBSOCKET_FAILURE)
-                                    .cause(throwable)
-                                    .message("Endpoint Websocket connection in error")
-                            )
-                        );
+                    // Reclassify upstream connection failures (DNS/refused/TLS/reset/timeout) to the shared taxonomy
+                    // (502/504 + UPSTREAM_* keys), consistent with the HTTP path; keep the WebSocket-specific key
+                    // only for failures that aren't recognised connection errors (APIM-12769).
+                    final ConnectionFailureClassifier.Classification classification = ConnectionFailureClassifier.classify(throwable);
+                    final ExecutionFailure failure = ConnectionFailureClassifier.GATEWAY_CLIENT_CONNECTION_ERROR.equals(
+                            classification.key()
+                        )
+                        ? new ExecutionFailure(HttpStatusCode.INTERNAL_SERVER_ERROR_500)
+                            .key(HTTP_PROXY_WEBSOCKET_FAILURE)
+                            .cause(throwable)
+                            .message("Endpoint Websocket connection in error")
+                        : new ExecutionFailure(classification.statusCode())
+                            .key(classification.key())
+                            .cause(throwable)
+                            .message(classification.message());
+                    return request.webSocket().close(failure.statusCode()).andThen(ctx.interruptWith(failure));
                 })
                 .doFinally(() -> ctx.getTracer().end(httpRequestSpan));
         } catch (Exception e) {

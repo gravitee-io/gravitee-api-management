@@ -15,7 +15,6 @@
  */
 package io.gravitee.plugin.endpoint.http.proxy;
 
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.api.ConnectorMode;
@@ -24,6 +23,7 @@ import io.gravitee.gateway.reactive.api.connector.endpoint.sync.HttpEndpointSync
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpRequest;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
+import io.gravitee.plugin.endpoint.http.proxy.client.ConnectionFailureClassifier;
 import io.gravitee.plugin.endpoint.http.proxy.client.GrpcHttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
@@ -32,12 +32,8 @@ import io.gravitee.plugin.endpoint.http.proxy.connector.GrpcConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.HttpConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.ProxyConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.WebSocketConnector;
-import io.netty.channel.ConnectTimeoutException;
-import io.netty.handler.timeout.ReadTimeoutException;
 import io.reactivex.rxjava3.core.Completable;
-import io.vertx.circuitbreaker.TimeoutException;
 import io.vertx.core.impl.NoStackTraceTimeoutException;
-import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -52,8 +48,26 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
 
     private static final String ENDPOINT_ID = "http-proxy";
     private final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.REQUEST_RESPONSE);
-    static final String GATEWAY_CLIENT_CONNECTION_ERROR = "GATEWAY_CLIENT_CONNECTION_ERROR";
-    static final String REQUEST_TIMEOUT = "REQUEST_TIMEOUT";
+    // Connection-failure keys/messages are owned by ConnectionFailureClassifier (single source of truth, shared
+    // with the WebSocket and gRPC connectors). Re-exported here for callers/tests that reference the connector.
+    static final String GATEWAY_CLIENT_CONNECTION_ERROR = ConnectionFailureClassifier.GATEWAY_CLIENT_CONNECTION_ERROR;
+    static final String REQUEST_TIMEOUT = ConnectionFailureClassifier.REQUEST_TIMEOUT;
+    static final String UPSTREAM_CONNECT_TIMEOUT = ConnectionFailureClassifier.UPSTREAM_CONNECT_TIMEOUT;
+    static final String UPSTREAM_IDLE_TIMEOUT = ConnectionFailureClassifier.UPSTREAM_IDLE_TIMEOUT;
+    static final String UPSTREAM_DNS_FAILURE = ConnectionFailureClassifier.UPSTREAM_DNS_FAILURE;
+    static final String UPSTREAM_CONNECTION_REFUSED = ConnectionFailureClassifier.UPSTREAM_CONNECTION_REFUSED;
+    static final String UPSTREAM_TLS_FAILURE = ConnectionFailureClassifier.UPSTREAM_TLS_FAILURE;
+    static final String UPSTREAM_CONNECTION_RESET = ConnectionFailureClassifier.UPSTREAM_CONNECTION_RESET;
+    static final String UPSTREAM_BROKEN_PIPE = ConnectionFailureClassifier.UPSTREAM_BROKEN_PIPE;
+    static final String UPSTREAM_CONNECTION_CLOSED = ConnectionFailureClassifier.UPSTREAM_CONNECTION_CLOSED;
+    static final String UPSTREAM_CONNECT_TIMEOUT_MESSAGE = ConnectionFailureClassifier.UPSTREAM_CONNECT_TIMEOUT_MESSAGE;
+    static final String UPSTREAM_IDLE_TIMEOUT_MESSAGE = ConnectionFailureClassifier.UPSTREAM_IDLE_TIMEOUT_MESSAGE;
+    static final String UPSTREAM_DNS_FAILURE_MESSAGE = ConnectionFailureClassifier.UPSTREAM_DNS_FAILURE_MESSAGE;
+    static final String UPSTREAM_CONNECTION_REFUSED_MESSAGE = ConnectionFailureClassifier.UPSTREAM_CONNECTION_REFUSED_MESSAGE;
+    static final String UPSTREAM_TLS_FAILURE_MESSAGE = ConnectionFailureClassifier.UPSTREAM_TLS_FAILURE_MESSAGE;
+    static final String UPSTREAM_CONNECTION_RESET_MESSAGE = ConnectionFailureClassifier.UPSTREAM_CONNECTION_RESET_MESSAGE;
+    static final String UPSTREAM_BROKEN_PIPE_MESSAGE = ConnectionFailureClassifier.UPSTREAM_BROKEN_PIPE_MESSAGE;
+    static final String UPSTREAM_CONNECTION_CLOSED_MESSAGE = ConnectionFailureClassifier.UPSTREAM_CONNECTION_CLOSED_MESSAGE;
     private static final String SERVER_NULL_PATTERN = " for server null";
     static final String CLIENT_ABORTED_DURING_RESPONSE_ERROR = "CLIENT_ABORTED_DURING_RESPONSE_ERROR";
     static final String CLIENT_ABORTED_DURING_RESPONSE_MESSAGE = "The response cannot be sent to the client because the client has aborted";
@@ -105,12 +119,18 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
     /**
      * Handle client abort by setting appropriate error status and metrics.
      * This is called when the client disconnects before the response is fully delivered.
+     * <p>
+     * If the Vert.x connection-level exception handler already classified the close reason
+     * (TCP reset, broken pipe, idle timeout, …), keep that more specific information instead
+     * of overwriting it with the generic fallback (APIM-12769).
      */
     private void handleClientAbort(final HttpExecutionContext ctx) {
         if (ctx.response().status() == 0) {
             ctx.response().status(499);
-            ctx.metrics().setErrorKey(CLIENT_ABORTED_DURING_RESPONSE_ERROR);
-            ctx.metrics().setErrorMessage(CLIENT_ABORTED_DURING_RESPONSE_MESSAGE);
+            if (ctx.metrics().getFailure() == null && ctx.metrics().getErrorKey() == null) {
+                ctx.metrics().setErrorKey(CLIENT_ABORTED_DURING_RESPONSE_ERROR);
+                ctx.metrics().setErrorMessage(CLIENT_ABORTED_DURING_RESPONSE_MESSAGE);
+            }
         }
     }
 
@@ -151,24 +171,17 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
     }
 
     private Completable handleException(Throwable throwable, HttpExecutionContext ctx) {
-        return switch (throwable) {
-            case InterruptionFailureException e -> Completable.error(e);
-            case TimeoutException e -> ctx.interruptWith(
-                new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT).cause(throwable)
-            );
-            case NoStackTraceTimeoutException e -> ctx.interruptWith(
-                new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT).cause(rewriteServerNull(e, ctx))
-            );
-            case ReadTimeoutException e -> ctx.interruptWith(
-                new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT).cause(throwable)
-            );
-            case ConnectTimeoutException e -> ctx.interruptWith(
-                new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT).cause(throwable)
-            );
-            default -> ctx.interruptWith(
-                new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502).key(GATEWAY_CLIENT_CONNECTION_ERROR).cause(throwable)
-            );
-        };
+        if (throwable instanceof InterruptionFailureException) {
+            return Completable.error(throwable);
+        }
+        ConnectionFailureClassifier.Classification classification = ConnectionFailureClassifier.classify(throwable);
+        // Preserve the rewritten "for endpoint …" message for the NoStackTrace request-timeout case.
+        Throwable cause = throwable instanceof NoStackTraceTimeoutException nst ? rewriteServerNull(nst, ctx) : throwable;
+        ExecutionFailure executionFailure = new ExecutionFailure(classification.statusCode()).key(classification.key()).cause(cause);
+        if (classification.message() != null) {
+            executionFailure.message(classification.message());
+        }
+        return ctx.interruptWith(executionFailure);
     }
 
     private Throwable rewriteServerNull(NoStackTraceTimeoutException e, HttpExecutionContext ctx) {
