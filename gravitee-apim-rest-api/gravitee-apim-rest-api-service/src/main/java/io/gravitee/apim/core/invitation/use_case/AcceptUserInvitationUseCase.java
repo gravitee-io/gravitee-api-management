@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.invitation.use_case;
 
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditProperties;
@@ -41,6 +42,7 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
+@UseCase
 @RequiredArgsConstructor
 public class AcceptUserInvitationUseCase {
 

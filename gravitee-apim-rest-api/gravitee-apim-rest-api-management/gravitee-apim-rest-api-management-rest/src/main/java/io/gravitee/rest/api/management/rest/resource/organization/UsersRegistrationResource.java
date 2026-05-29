@@ -17,6 +17,12 @@ package io.gravitee.rest.api.management.rest.resource.organization;
 
 import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
 
+import io.gravitee.apim.core.invitation.use_case.AcceptUserInvitationUseCase;
+import io.gravitee.apim.core.invitation.use_case.AcceptUserInvitationUseCase.GroupInvitationAction;
+import io.gravitee.apim.core.invitation.use_case.AcceptUserInvitationUseCase.UserRegistrationAction;
+import io.gravitee.apim.core.user.model.RawPassword;
+import io.gravitee.apim.core.user.service_provider.TokenService;
+import io.gravitee.apim.infra.adapter.UserAdapter;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.NewExternalUserEntity;
@@ -24,6 +30,8 @@ import io.gravitee.rest.api.model.RegisterUserEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.JWTHelper;
+import io.gravitee.rest.api.service.exceptions.UserStateConflictException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -38,6 +46,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import java.util.Optional;
 
 /**
  * Defines the REST resources to manage users registration.
@@ -55,6 +64,12 @@ public class UsersRegistrationResource extends AbstractResource {
 
     @Inject
     private UserService userService;
+
+    @Inject
+    private TokenService tokenService;
+
+    @Inject
+    private AcceptUserInvitationUseCase acceptUserInvitationUseCase;
 
     /**
      * Register a new user.
@@ -91,11 +106,27 @@ public class UsersRegistrationResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response finalizeUserRegistration(@Valid RegisterUserEntity registerUserEntity) {
-        UserEntity newUser = userService.finalizeRegistration(GraviteeContext.getExecutionContext(), registerUserEntity);
-        if (newUser != null) {
-            return Response.ok().entity(newUser).build();
+        var decoded = tokenService.decode(registerUserEntity.getToken());
+
+        if (JWTHelper.ACTION.RESET_PASSWORD.name().equals(decoded.action())) {
+            throw new UserStateConflictException("Reset password forbidden on this resource");
         }
 
-        return Response.serverError().build();
+        var executionContext = GraviteeContext.getExecutionContext();
+        var action = JWTHelper.ACTION.GROUP_INVITATION.name().equals(decoded.action())
+            ? new GroupInvitationAction(decoded.email(), decoded.subject())
+            : new UserRegistrationAction(decoded.email(), decoded.subject());
+
+        var password = Optional.ofNullable(registerUserEntity.getPassword()).map(RawPassword::new);
+        var input = new AcceptUserInvitationUseCase.Input(
+            executionContext,
+            action,
+            password,
+            Optional.ofNullable(registerUserEntity.getFirstname()),
+            Optional.ofNullable(registerUserEntity.getLastname())
+        );
+
+        var output = acceptUserInvitationUseCase.execute(input);
+        return Response.ok().entity(UserAdapter.INSTANCE.toUserEntity(output.user())).build();
     }
 }
