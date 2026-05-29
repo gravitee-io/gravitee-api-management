@@ -81,7 +81,9 @@ class ElasticsearchTracingRepositoryTest {
         ArgumentCaptor<String> bodyCaptor = ArgumentCaptor.forClass(String.class);
         Mockito.verify(client).search(indexCaptor.capture(), eq(null), bodyCaptor.capture());
 
-        assertThat(indexCaptor.getValue()).isEqualTo("traces-apim.otel-test-org");
+        // Hyphen in orgId converted to underscore by the OTel-mode dataset normalisation — matches
+        // the data stream the collector wrote (see OtelDataStreamIndexUtils javadoc).
+        assertThat(indexCaptor.getValue()).isEqualTo("traces-apim.otel-test_org");
 
         JsonNode body = MAPPER.readTree(bodyCaptor.getValue());
         JsonNode filter = body.path("query").path("bool").path("filter");
