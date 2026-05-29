@@ -29,6 +29,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.edge.EdgeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -493,7 +494,24 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         if (api.getType() == ApiType.NATIVE) {
             return extractV4NativeApiDefinition(api);
         }
+        if (api.getType() == ApiType.EDGE) {
+            return extractV4EdgeApiDefinition(api);
+        }
         return extractV4ApiDefinition(executionContext, api);
+    }
+
+    private EdgeApi extractV4EdgeApiDefinition(Api api) throws JsonProcessingException {
+        var edgeApi = objectMapper.readValue(api.getDefinition(), EdgeApi.class);
+
+        var plans = planQueryService
+            .findAllByApiId(api.getId())
+            .stream()
+            .filter(p -> p.getPlanStatus() != PlanStatus.CLOSED && p.getPlanDefinitionHttpV4() != null)
+            .map(io.gravitee.apim.core.plan.model.Plan::getPlanDefinitionHttpV4)
+            .toList();
+
+        edgeApi.setPlans(plans);
+        return edgeApi;
     }
 
     /**

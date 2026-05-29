@@ -37,6 +37,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.edge.EdgeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -727,6 +728,37 @@ public class EventServiceTest {
 
         assertEquals(Set.of(ENVIRONMENT_ID), eventCaptured.getEnvironments());
         assertEquals(Set.of(ORGANIZATION_ID), eventCaptured.getOrganizations());
+    }
+
+    @Test
+    public void create_edge_api_event_with_definition_in_payload() throws TechnicalException, JsonProcessingException {
+        ObjectMapper realObjectMapper = new ObjectMapper();
+        ReflectionTestUtils.setField(eventService, "objectMapper", realObjectMapper);
+        when(eventRepository.create(any())).thenAnswer(i -> i.getArguments()[0]);
+
+        Api api = new Api();
+        api.setId(API_ID);
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.EDGE);
+        api.setDefinition("{ \"type\": \"edge\" }");
+
+        eventService.createApiEvent(
+            GraviteeContext.getExecutionContext(),
+            Set.of(ENVIRONMENT_ID),
+            ORGANIZATION_ID,
+            io.gravitee.rest.api.model.EventType.PUBLISH_API,
+            api,
+            Map.of()
+        );
+
+        ArgumentCaptor<Event> createdEvent = ArgumentCaptor.forClass(Event.class);
+        verify(eventRepository).create(createdEvent.capture());
+
+        Event eventCaptured = createdEvent.getValue();
+        assertNotNull(eventCaptured.getPayload());
+        Api payloadApi = realObjectMapper.readValue(eventCaptured.getPayload(), Api.class);
+        var payloadApiDefinition = realObjectMapper.readValue(payloadApi.getDefinition(), EdgeApi.class);
+        assertEquals(ApiType.EDGE, payloadApiDefinition.getType());
     }
 
     private PlanEntity buildPlanEntity(String id, PlanStatus status) {
