@@ -21,15 +21,22 @@
 .analytics-details__toolbar {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-right: 32px;
+  gap: 16px;
+  padding-top: 8px;
 }
 
 .analytics-details__timeframe {
   display: flex;
   justify-content: flex-end;
+  margin-left: 32px;
+  margin-right: 32px;
 }
 
 .analytics-details__filters {
-  display: flex;
+  box-sizing: border-box;
+  margin-left: 32px;
+  margin-right: 32px;
+  padding: 10px 12px;
+  border: 1px solid var(--mat-form-field-outlined-outline-color);
+  border-radius: 4px;
 }
