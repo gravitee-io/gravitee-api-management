@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { deriveServiceType } from '../entity-kind-registry';
+import { deriveTargetEntityId } from '../policy-entity-refs';
 import { authzCoreApiClient } from './authz-api-client';
 import type {
     EntityResponse,
@@ -141,13 +142,16 @@ function adaptPolicyResponse(c: CanonicalPolicy): PolicyResponse {
 }
 
 function adaptCreatePolicyRequest(r: PolicyRequest): CanonicalPolicyRequest {
-    // Custom → GLOBAL (no target). Anything else → RESOURCE bound to the
-    // picked target's entityId.
-    const isGlobal = r.type === 'CUSTOM' || r.target === null;
+    // Prefer an explicitly picked target; otherwise derive the binding from the
+    // first service-typed resource in the policy text. A policy referencing
+    // `mcp.*`/`llm.*`/`api.*`/… binds as RESOURCE and surfaces on that service
+    // page; one with only generic/custom resources stays GLOBAL → Custom.
+    const entityId = r.target?.id ?? deriveTargetEntityId(r.policyText);
+    const isGlobal = entityId === null;
     return {
         name: r.name,
         kind: isGlobal ? 'GLOBAL' : 'RESOURCE',
-        entityId: isGlobal ? null : (r.target?.id ?? null),
+        entityId,
         policyText: r.policyText,
     };
 }
@@ -218,21 +222,35 @@ export const authzApiService = {
     },
 
     listPolicies: async (environmentId: string, params?: PolicyListParams): Promise<PagedResponse<PolicyResponse>> => {
+        // The canonical backend has no concept of the UI 'type' (MCP/LLM/API/…);
+        // it derives only from the entityId prefix on the client. Filtering a single
+        // backend page client-side silently drops policies that live on other pages
+        // (their backend total/order doesn't align with the type), so a freshly
+        // created policy can vanish from its service list.
+        //
+        // Until the backend grows an entityId-prefix filter, fetch the full set
+        // (capped at MAX_PER_PAGE), filter by type, then paginate locally so the
+        // count and rows stay consistent. Status stays a server-side filter.
+        if (params?.type !== undefined) {
+            const page = params.page ?? 1;
+            const perPage = params.perPage ?? DEFAULT_PER_PAGE;
+            const fetchPath =
+                corePath(environmentId, '/policies') + policyListQuery({ status: params.status, page: 1, perPage: MAX_PER_PAGE });
+            const response = await authzCoreApiClient.get<CanonicalPagedResponse<CanonicalPolicy>>(fetchPath);
+            const filtered = response.data.map(adaptPolicyResponse).filter(p => p.type === params.type);
+            const start = (page - 1) * perPage;
+            return {
+                data: filtered.slice(start, start + perPage),
+                total: filtered.length,
+                page,
+                perPage,
+            };
+        }
         const path = corePath(environmentId, '/policies') + policyListQuery(params);
         const response = await authzCoreApiClient.get<CanonicalPagedResponse<CanonicalPolicy>>(path);
-        let mapped = response.data.map(adaptPolicyResponse);
-        let total = response.total;
-        if (params?.type !== undefined) {
-            const before = mapped.length;
-            mapped = mapped.filter(p => p.type === params.type);
-            // total is approximate when we post-filter; downsize by what
-            // we dropped on this page so the UI doesn't enable a "next"
-            // for a page-load that already came back partial.
-            total = Math.max(0, total - (before - mapped.length));
-        }
         return {
-            data: mapped,
-            total,
+            data: response.data.map(adaptPolicyResponse),
+            total: response.total,
             page: response.page,
             perPage: response.perPage,
         };
