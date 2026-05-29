@@ -72,8 +72,9 @@ public class JdbcAmConnectionRepository extends JdbcAbstractRepository<AmConnect
         log.debug("JdbcAmConnectionRepository.create({})", amConnection.getOrganizationId());
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(amConnection));
-            return findByOrganizationId(amConnection.getOrganizationId())
-                .orElseThrow(() -> new TechnicalException("Failed to retrieve inserted am connection " + amConnection.getOrganizationId()));
+            return findByOrganizationId(amConnection.getOrganizationId()).orElseThrow(() ->
+                new TechnicalException("Failed to retrieve inserted am connection " + amConnection.getOrganizationId())
+            );
         } catch (final Exception ex) {
             log.error("Failed to create am connection:", ex);
             throw new TechnicalException("Failed to create am connection", ex);
@@ -91,8 +92,9 @@ public class JdbcAmConnectionRepository extends JdbcAbstractRepository<AmConnect
             if (rows == 0) {
                 throw new IllegalStateException("Unable to update am connection " + amConnection.getOrganizationId());
             }
-            return findByOrganizationId(amConnection.getOrganizationId())
-                .orElseThrow(() -> new TechnicalException("Failed to retrieve updated am connection " + amConnection.getOrganizationId()));
+            return findByOrganizationId(amConnection.getOrganizationId()).orElseThrow(() ->
+                new TechnicalException("Failed to retrieve updated am connection " + amConnection.getOrganizationId())
+            );
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
