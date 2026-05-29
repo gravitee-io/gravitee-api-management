@@ -43,14 +43,17 @@ describe('PortalAnalyticsFiltersService', () => {
     httpTestingController.verify();
   });
 
-  it('should_return_three_filter_definitions', done => {
+  it('should_return_four_filter_definitions', done => {
     service.getDefinitions().subscribe(definitions => {
-      expect(definitions).toHaveLength(3);
-      expect(definitions.map(d => d.name)).toEqual(['API', 'APPLICATION', 'HTTP_STATUS_CODE_GROUP']);
+      expect(definitions).toHaveLength(4);
+      expect(definitions.map(d => d.name)).toEqual(['API', 'APPLICATION', 'HTTP_STATUS_CODE_GROUP', 'HTTP_STATUS']);
       expect(definitions[0].type).toBe('KEYWORD');
       expect(definitions[1].type).toBe('KEYWORD');
       expect(definitions[2].type).toBe('ENUM');
-      expect(definitions[2].values).toEqual(['2xx', '4xx', '5xx']);
+      expect(definitions[2].values).toEqual(['1XX', '2XX', '3XX', '4XX', '5XX']);
+      expect(definitions[3].type).toBe('NUMBER');
+      expect(definitions[3].range).toEqual({ min: 100, max: 599 });
+      expect(definitions[3].operators).toEqual(['EQ', 'LTE', 'GTE']);
       done();
     });
   });
@@ -91,13 +94,10 @@ describe('PortalAnalyticsFiltersService', () => {
       });
   });
 
-  it('should_return_static_status_code_groups', done => {
+  it('should_return_empty_for_enum_status_code_group_filter', done => {
+    // ENUM filters source their options from the definition's `values`, not getValues().
     service.getValues({ filterName: 'HTTP_STATUS_CODE_GROUP', page: 1, perPage: 10 }).subscribe(result => {
-      expect(result.data).toEqual([
-        { value: '2xx', label: '2xx' },
-        { value: '4xx', label: '4xx' },
-        { value: '5xx', label: '5xx' },
-      ]);
+      expect(result.data).toEqual([]);
       expect(result.hasNextPage).toBe(false);
       done();
     });
