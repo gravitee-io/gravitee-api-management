@@ -23,10 +23,12 @@ import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 import io.gravitee.gamma.authorization.api.AuthzEntityAdminApi;
 import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
 import io.gravitee.gamma.authorization.service.CreateOrReplaceAuthzEntityCommand;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Pages every user out of the AM domain on the connection and upserts each as a PRINCIPAL authz
@@ -112,6 +114,18 @@ public class AmUserSyncOrchestrator {
         if (user.getEnabled() != null) {
             attributes.put("enabled", user.getEnabled());
         }
-        return new CreateOrReplaceAuthzEntityCommand(environmentId, user.getId(), AuthzEntityKind.PRINCIPAL, attributes, List.of(), SOURCE);
+        return new CreateOrReplaceAuthzEntityCommand(environmentId, computeSub(user), AuthzEntityKind.PRINCIPAL, attributes, List.of(), SOURCE);
+    }
+
+    // Mirrors AM's SubjectManagerV2: the token `sub` a V2 domain issues is an MD5-based UUID of
+    // "source:externalId", not the user id. PRINCIPAL entities must be keyed on that `sub` for the
+    // PEP's Principal::"<sub>" to match at eval time. When source is absent (extension-grant users,
+    // and V1 domains) AM falls back to the user id.
+    static String computeSub(User user) {
+        if (user.getSource() == null) {
+            return user.getId();
+        }
+        String internalSub = user.getSource() + ":" + user.getExternalId();
+        return UUID.nameUUIDFromBytes(internalSub.getBytes(StandardCharsets.UTF_8)).toString();
     }
 }

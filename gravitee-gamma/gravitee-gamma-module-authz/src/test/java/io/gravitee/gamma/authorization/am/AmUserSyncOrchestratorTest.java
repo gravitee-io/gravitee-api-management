@@ -104,6 +104,19 @@ class AmUserSyncOrchestratorTest {
     }
 
     @Test
+    void keys_the_entity_on_the_token_sub_when_source_is_present() {
+        // AM V2 issues sub = MD5-UUID("source:externalId"); the entity must be keyed on that, not the user id.
+        User user = user("internal-id", "alice", null, null, null).externalId("ext-42").source("github");
+        stubPage(0, page(1, user));
+
+        orchestrator.run(CALLER, CONNECTION);
+
+        String expectedSub = java.util.UUID.nameUUIDFromBytes("github:ext-42".getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString();
+        List<CreateOrReplaceAuthzEntityCommand> commands = captureSingleBulkUpsert();
+        assertThat(commands.get(0).entityId()).isEqualTo(expectedSub);
+    }
+
+    @Test
     void omits_attributes_that_am_did_not_populate() {
         stubPage(0, page(1, user("sub-1", "alice", null, null, null)));
 
