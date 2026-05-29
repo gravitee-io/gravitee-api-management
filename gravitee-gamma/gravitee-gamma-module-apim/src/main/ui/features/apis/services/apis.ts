@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
+import { apimFetchBlobV2, apimFetchJsonV2 } from '../../../shared/api/apimClient';
 import type {
     Analytics,
     ApiDetailDto,
@@ -32,10 +32,11 @@ export async function getApiV4(environmentId: string, apiId: string): Promise<Ap
     return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/${encodeURIComponent(apiId)}?expands=deploymentState`);
 }
 
-export async function deployApi(environmentId: string, apiId: string): Promise<void> {
+export async function deployApi(environmentId: string, apiId: string, deploymentLabel?: string): Promise<void> {
+    const trimmed = deploymentLabel?.trim();
     await apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}/deployments`, {
         method: 'POST',
-        body: JSON.stringify({}),
+        body: JSON.stringify(trimmed ? { deploymentLabel: trimmed } : {}),
     });
 }
 
@@ -109,9 +110,20 @@ export async function duplicateApi(environmentId: string, apiId: string, options
     });
 }
 
-export async function exportApiDefinition(environmentId: string, apiId: string): Promise<Blob> {
-    const definition = await apimFetchJsonV2<unknown>(environmentId, `/apis/${encodeURIComponent(apiId)}`);
-    return new Blob([JSON.stringify(definition, null, 2)], { type: 'application/json' });
+export async function exportApiDefinition(environmentId: string, apiId: string, excludeAdditionalData: string[] = []): Promise<Blob> {
+    const params = new URLSearchParams();
+    if (excludeAdditionalData.length > 0) {
+        params.set('excludeAdditionalData', excludeAdditionalData.join(','));
+    }
+    const query = params.toString();
+    const path = `/apis/${encodeURIComponent(apiId)}/_export/definition${query ? `?${query}` : ''}`;
+    const blob = await apimFetchBlobV2(environmentId, path);
+    const text = await blob.text();
+    return new Blob([JSON.stringify(JSON.parse(text), undefined, 2)], { type: 'application/json' });
+}
+
+export async function exportApiCrd(environmentId: string, apiId: string): Promise<Blob> {
+    return apimFetchBlobV2(environmentId, `/apis/${encodeURIComponent(apiId)}/_export/crd`);
 }
 
 export async function updateApiFromDefinition(environmentId: string, apiId: string, definition: unknown): Promise<ApiDetailDto> {

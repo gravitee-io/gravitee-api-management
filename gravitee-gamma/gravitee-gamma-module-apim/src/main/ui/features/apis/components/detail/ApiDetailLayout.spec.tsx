@@ -78,6 +78,16 @@ jest.mock('@gravitee/graphene-core', () => ({
         </div>
     ),
     ContextToggleButton: () => <button />,
+    Dialog: ({ children, open }: { children?: ReactNode; open?: boolean }) => (open ? <div>{children}</div> : null),
+    DialogClose: ({ children }: { children?: ReactNode }) => <span>{children}</span>,
+    DialogContent: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+    DialogDescription: ({ children }: { children?: ReactNode }) => <p>{children}</p>,
+    DialogFooter: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+    DialogHeader: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+    DialogTitle: ({ children }: { children?: ReactNode }) => <h2>{children}</h2>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    Input: (props: any) => <input {...props} />,
+    Label: ({ children, htmlFor }: { children?: ReactNode; htmlFor?: string }) => <label htmlFor={htmlFor}>{children}</label>,
 }));
 
 jest.mock('@gravitee/graphene-core/icons', () => new Proxy({}, { get: () => () => null }));
@@ -186,7 +196,53 @@ describe('DeployBanner', () => {
         });
         renderLayout();
         await capturedMutationFn!();
-        expect(mockDeployApi).toHaveBeenCalledWith('DEFAULT', 'abc-123');
+        expect(mockDeployApi).toHaveBeenCalledWith('DEFAULT', 'abc-123', undefined);
+    });
+
+    it('passes the deployment label to deployApi when the mutationFn receives one', async () => {
+        let capturedMutationFn: ((label?: string) => Promise<void>) | undefined;
+        mockUseMutation.mockImplementation(({ mutationFn }: { mutationFn: (label?: string) => Promise<void> }) => {
+            capturedMutationFn = mutationFn;
+            return { mutate: jest.fn(), isPending: false };
+        });
+        mockDeployApi.mockResolvedValue(undefined);
+        (useApiDetail as jest.Mock).mockReturnValue({
+            data: { id: 'abc-123', name: 'My API', deploymentState: 'NEED_REDEPLOY' },
+            isLoading: false,
+        });
+        renderLayout();
+        await capturedMutationFn!('v2.1-release');
+        expect(mockDeployApi).toHaveBeenCalledWith('DEFAULT', 'abc-123', 'v2.1-release');
+    });
+
+    it('opens the deployment label dialog when "Deploy API" is clicked', () => {
+        const mutate = jest.fn();
+        mockUseMutation.mockReturnValue({ mutate, isPending: false });
+        (useApiDetail as jest.Mock).mockReturnValue({
+            data: { id: 'abc-123', name: 'My API', deploymentState: 'NEED_REDEPLOY' },
+            isLoading: false,
+        });
+        renderLayout();
+
+        expect(screen.queryByText(/deploy your api/i)).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: /deploy api/i }));
+        expect(screen.getByText(/deploy your api/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/deployment label/i)).toBeInTheDocument();
+    });
+
+    it('deploys with the entered label from the dialog', () => {
+        const mutate = jest.fn();
+        mockUseMutation.mockReturnValue({ mutate, isPending: false });
+        (useApiDetail as jest.Mock).mockReturnValue({
+            data: { id: 'abc-123', name: 'My API', deploymentState: 'NEED_REDEPLOY' },
+            isLoading: false,
+        });
+        renderLayout();
+
+        fireEvent.click(screen.getByRole('button', { name: /deploy api/i }));
+        fireEvent.change(screen.getByLabelText(/deployment label/i), { target: { value: 'hotfix-cors' } });
+        fireEvent.click(screen.getByRole('button', { name: /^deploy$/i }));
+        expect(mutate).toHaveBeenCalledWith('hotfix-cors');
     });
 
     it('does not call deployApi when env is null (null-env guard)', async () => {
