@@ -336,6 +336,8 @@ databaseChangeLog:
     - include:
         - file: liquibase/changelogs/v4_11_8/02_add_keys_environment_id_updated_at_id_index.yml
     - include:
+        - file: liquibase/changelogs/v4_11_8/03_add_plans_cross_id_index.yml
+    - include:
         - file: liquibase/changelogs/v4_12_0/00_add_tags_key_column.yml
     - include:
         - file: liquibase/changelogs/v4_12_0/01_add_tenants_key_column.yml
