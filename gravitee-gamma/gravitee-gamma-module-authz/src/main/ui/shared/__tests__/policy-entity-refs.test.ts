@@ -16,7 +16,7 @@
 import { describe, expect, it } from 'vitest';
 import type { PolicyResponse } from '../api/authz-api.types';
 import type { EntityInstance } from '../entity.types';
-import { buildPolicyEntityRefs, extractEntityRefsFromPolicyText, type PolicyRef } from '../policy-entity-refs';
+import { buildPolicyEntityRefs, deriveTargetEntityId, extractEntityRefsFromPolicyText, type PolicyRef } from '../policy-entity-refs';
 
 function makePolicy(overrides: Partial<PolicyResponse> = {}): PolicyResponse {
     return {
@@ -178,5 +178,42 @@ describe('buildPolicyEntityRefs', () => {
         const map = buildPolicyEntityRefs(entities, policies);
         expect((map.get('Endpoint::a') as PolicyRef[])[0].policy.id).toBe('p1');
         expect((map.get('Endpoint::b') as PolicyRef[])[0].policy.id).toBe('p1');
+    });
+});
+
+describe('deriveTargetEntityId', () => {
+    it('binds to an MCP server when the resource is the server itself', () => {
+        expect(deriveTargetEntityId('permit ( principal, action, resource == MCP::"bookings" );')).toBe('mcp.bookings');
+    });
+
+    it('reduces an MCP tool resource to its owning server', () => {
+        expect(deriveTargetEntityId('permit ( principal, action, resource == MCP::"bookings.cancel-booking" );')).toBe('mcp.bookings');
+    });
+
+    it('binds LLM and API resources to their service entity', () => {
+        expect(deriveTargetEntityId('permit ( principal, action, resource == LLM::"gpt-4o" );')).toBe('llm.gpt-4o');
+        expect(deriveTargetEntityId('forbid ( principal, action, resource == API::"orders.items" );')).toBe('api.orders');
+    });
+
+    it('returns null for generic/custom resources (stays GLOBAL → Custom)', () => {
+        expect(deriveTargetEntityId('permit ( principal, action, resource == Resource::"thing" );')).toBeNull();
+        expect(deriveTargetEntityId('permit ( principal, action, resource );')).toBeNull();
+    });
+
+    it('ignores principal/action clauses and only binds on a resource token', () => {
+        // An MCP token in the principal clause must not be mistaken for the target.
+        expect(deriveTargetEntityId('permit ( principal == MCP::"bookings", action == Action::"read", resource );')).toBeNull();
+    });
+
+    it('takes the first service-typed resource when several are present', () => {
+        const text = 'permit ( principal, action, resource in [MCP::"bookings", MCP::"customers"] );';
+        expect(deriveTargetEntityId(text)).toBe('mcp.bookings');
+    });
+
+    it('returns null for empty, nullish, or malformed text', () => {
+        expect(deriveTargetEntityId('')).toBeNull();
+        expect(deriveTargetEntityId(null)).toBeNull();
+        expect(deriveTargetEntityId(undefined)).toBeNull();
+        expect(deriveTargetEntityId('garbage {{{ no tokens')).toBeNull();
     });
 });

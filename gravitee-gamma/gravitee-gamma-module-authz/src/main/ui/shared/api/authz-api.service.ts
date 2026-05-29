@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { deriveServiceType } from '../entity-kind-registry';
+import { deriveTargetEntityId } from '../policy-entity-refs';
 import { authzCoreApiClient } from './authz-api-client';
 import type {
     EntityResponse,
@@ -136,13 +137,16 @@ function adaptPolicyResponse(c: CanonicalPolicy): PolicyResponse {
 }
 
 function adaptCreatePolicyRequest(r: PolicyRequest): CanonicalPolicyRequest {
-    // Custom → GLOBAL (no target). Anything else → RESOURCE bound to the
-    // picked target's entityId.
-    const isGlobal = r.type === 'CUSTOM' || r.target === null;
+    // Prefer an explicitly picked target; otherwise derive the binding from the
+    // first service-typed resource in the policy text. A policy referencing
+    // `mcp.*`/`llm.*`/`api.*`/… binds as RESOURCE and surfaces on that service
+    // page; one with only generic/custom resources stays GLOBAL → Custom.
+    const entityId = r.target?.id ?? deriveTargetEntityId(r.policyText);
+    const isGlobal = entityId === null;
     return {
         name: r.name,
         kind: isGlobal ? 'GLOBAL' : 'RESOURCE',
-        entityId: isGlobal ? null : (r.target?.id ?? null),
+        entityId,
         policyText: r.policyText,
     };
 }

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import type { PolicyResponse } from './api/authz-api.types';
+import { deriveServiceType } from './entity-kind-registry';
 import { formatEntityUid } from './entity-adapter';
 import type { EntityInstance } from './entity.types';
 
@@ -68,6 +69,30 @@ export function extractEntityRefsFromPolicyText(text: string): EntityRefInPolicy
     }
 
     return refs;
+}
+
+/**
+ * Derive the service entity a policy should bind to from its text. Scans for the
+ * first `resource` clause token whose kind maps to a service type
+ * (mcp/llm/api/agent/event) and reduces it to the owning service entity — the
+ * first two dotted segments, e.g. `mcp.bookings.cancel-booking` → `mcp.bookings`.
+ *
+ * This is what lands a policy on its service page: the page filters by the
+ * entityId prefix (see `deriveServiceType`). Returns null when the policy only
+ * references generic/custom resources (or none), leaving it unbound → Custom.
+ */
+export function deriveTargetEntityId(policyText: string | null | undefined): string | null {
+    if (!policyText) return null;
+    for (const ref of extractEntityRefsFromPolicyText(policyText)) {
+        if (ref.clause !== 'resource') continue;
+        const entityId = `${ref.type.toLowerCase()}.${ref.id}`;
+        if (deriveServiceType(entityId) === 'CUSTOM') continue;
+        // entityId always carries the kind prefix + a literal dot, so split
+        // yields at least [kind, server] — reduce to the owning service entity.
+        const [kind, server] = entityId.split('.');
+        return `${kind}.${server}`;
+    }
+    return null;
 }
 
 function entityKey(type: string, id: string): string {
