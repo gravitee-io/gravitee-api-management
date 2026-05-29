@@ -15,7 +15,7 @@
  */
 import type { PolicyResponse } from './api/authz-api.types';
 import { formatEntityUid } from './entity-adapter';
-import { deriveServiceType } from './entity-kind-registry';
+import { canonicalKindOf, deriveServiceType } from './entity-kind-registry';
 import type { EntityInstance } from './entity.types';
 
 export type PolicyClause = 'principal' | 'action' | 'resource';
@@ -85,7 +85,7 @@ export function deriveTargetEntityId(policyText: string | null | undefined): str
     if (!policyText) return null;
     for (const ref of extractEntityRefsFromPolicyText(policyText)) {
         if (ref.clause !== 'resource') continue;
-        const entityId = `${ref.type.toLowerCase()}.${ref.id}`;
+        const entityId = `${canonicalKindOf(ref.type)}.${ref.id}`;
         if (deriveServiceType(entityId) === 'CUSTOM') continue;
         // entityId always carries the kind prefix + a literal dot, so split
         // yields at least [kind, server] — reduce to the owning service entity.

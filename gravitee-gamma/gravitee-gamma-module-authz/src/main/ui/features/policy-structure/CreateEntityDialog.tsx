@@ -187,6 +187,14 @@ export function CreateEntityDialog({ open, kind, environmentId, onOpenChange, on
         };
         if (trimmedDescription) attributes.description = trimmedDescription;
         try {
+            // The backend "save" is create-or-replace (upsert), shared with the
+            // import/sync flows. The Add dialog means *create*, so guard against
+            // silently overwriting an existing entity with the same Entity ID.
+            const existing = await authzApiService.getEntity(environmentId, entityId);
+            if (existing) {
+                setSubmitError(`An entity with ID "${entityId}" already exists. Pick a different slug or prefix.`);
+                return;
+            }
             await authzApiService.createEntity(environmentId, {
                 entityId,
                 kind,
@@ -303,6 +311,11 @@ export function CreateEntityDialog({ open, kind, environmentId, onOpenChange, on
                                 onChange={e => {
                                     setSlug(e.target.value);
                                     setSlugTouched(true);
+                                }}
+                                onFocus={e => {
+                                    // First focus on an auto-derived slug selects it, so typing
+                                    // replaces the suggestion instead of appending to it.
+                                    if (!slugTouched) e.currentTarget.select();
                                 }}
                                 placeholder="e.g. alice"
                                 aria-invalid={slugError !== null}

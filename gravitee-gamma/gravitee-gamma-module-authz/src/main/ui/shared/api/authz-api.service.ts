@@ -15,7 +15,7 @@
  */
 import { deriveServiceType } from '../entity-kind-registry';
 import { deriveTargetEntityId } from '../policy-entity-refs';
-import { authzCoreApiClient } from './authz-api-client';
+import { ApiError, authzCoreApiClient } from './authz-api-client';
 import type {
     EntityResponse,
     PagedResponse,
@@ -286,6 +286,18 @@ export const authzApiService = {
             page: response.page,
             perPage: response.perPage,
         };
+    },
+
+    getEntity: async (environmentId: string, entityId: string): Promise<EntityResponse | null> => {
+        try {
+            const entity = await authzCoreApiClient.get<CanonicalEntity>(
+                corePath(environmentId, `/entities/${encodeURIComponent(entityId)}`),
+            );
+            return adaptEntityResponse(entity);
+        } catch (err) {
+            if (err instanceof ApiError && err.status === 404) return null;
+            throw err;
+        }
     },
 
     createEntity: async (environmentId: string, request: CreateEntityRequest): Promise<EntityResponse> => {

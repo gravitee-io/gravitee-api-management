@@ -27,6 +27,7 @@ beforeAll(() => {
 });
 
 const listEntitiesSpy = vi.fn();
+const getEntitySpy = vi.fn();
 const createEntitySpy = vi.fn();
 const toastSuccessSpy = vi.fn();
 
@@ -34,6 +35,7 @@ vi.mock('../../../shared/api/authz-api.service', () => ({
     DEFAULT_PER_PAGE: 200,
     authzApiService: {
         listEntities: (env: string, params?: unknown) => listEntitiesSpy(env, params),
+        getEntity: (env: string, id: string) => getEntitySpy(env, id),
         createEntity: (env: string, req: unknown) => createEntitySpy(env, req),
     },
 }));
@@ -73,9 +75,11 @@ function seedParents(uids: readonly string[]) {
 
 beforeEach(() => {
     listEntitiesSpy.mockReset();
+    getEntitySpy.mockReset();
     createEntitySpy.mockReset();
     toastSuccessSpy.mockReset();
     seedParents([]);
+    getEntitySpy.mockResolvedValue(null);
     createEntitySpy.mockResolvedValue({
         id: 'new-1',
         environmentId: 'DEFAULT',
@@ -192,8 +196,35 @@ describe('CreateEntityDialog', () => {
         expect(attrs.description).toBeUndefined();
     });
 
-    it('renders the duplicate-id message on 409 and keeps the dialog open', async () => {
+    it('blocks the create when an entity with the same Entity ID already exists', async () => {
         const user = userEvent.setup();
+        // Pre-check finds an existing entity → must not call the upsert endpoint,
+        // which would silently overwrite it (data loss).
+        getEntitySpy.mockResolvedValue({
+            id: 'existing-1',
+            environmentId: 'DEFAULT',
+            uid: 'user.alice',
+            attributes: { _displayName: 'Original Alice', department: 'engineering' },
+            parents: [],
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+        });
+        const { onOpenChange } = renderDialog({ kind: 'PRINCIPAL' });
+
+        await user.type(screen.getByLabelText(/Display name/i), 'Alice');
+        await user.click(screen.getByRole('button', { name: /Create Principal/i }));
+
+        await waitFor(() => expect(getEntitySpy).toHaveBeenCalledWith('DEFAULT', 'user.alice'));
+        await waitFor(() => expect(screen.getByText(/An entity with ID "user\.alice" already exists/i)).toBeInTheDocument());
+        expect(createEntitySpy).not.toHaveBeenCalled();
+        // Dialog stays open; onOpenChange is only called by the caller closing it.
+        expect(onOpenChange).not.toHaveBeenCalled();
+    });
+
+    it('still maps a backend 409 (race) to the duplicate-id message', async () => {
+        const user = userEvent.setup();
+        // Pre-check passes (null) but a concurrent create lands first → backend 409.
+        getEntitySpy.mockResolvedValue(null);
         createEntitySpy.mockRejectedValueOnce(new Error('HTTP 409 entity already exists'));
         const { onOpenChange } = renderDialog({ kind: 'PRINCIPAL' });
 
@@ -201,7 +232,6 @@ describe('CreateEntityDialog', () => {
         await user.click(screen.getByRole('button', { name: /Create Principal/i }));
 
         await waitFor(() => expect(screen.getByText(/An entity with ID "user\.alice" already exists/i)).toBeInTheDocument());
-        // Dialog stays open; onOpenChange called only by the caller closing it, not by the error path.
         expect(onOpenChange).not.toHaveBeenCalled();
     });
 
