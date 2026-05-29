@@ -17,6 +17,11 @@ package io.gravitee.gamma.module.authz.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
+import io.gravitee.apim.plugin.gamma.api.identity.AmConnectionRepository;
+import io.gravitee.apim.plugin.gamma.api.identity.ApimAmConnectionRepository;
+import io.gravitee.gamma.authorization.am.AmSdkUserClientFactory;
+import io.gravitee.gamma.authorization.am.AmSyncJobManager;
+import io.gravitee.gamma.authorization.am.AmUserSyncOrchestrator;
 import io.gravitee.gamma.authorization.api.AuthzAuditPort;
 import io.gravitee.gamma.authorization.api.AuthzEntityAdminApi;
 import io.gravitee.gamma.authorization.api.AuthzEntityRepository;
@@ -34,6 +39,8 @@ import io.gravitee.gamma.authorization.service.AuthzPolicyServiceImpl;
 import io.gravitee.gamma.authorization.service.AuthzSchemaServiceImpl;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.rest.api.service.AmConnectionService;
+import io.vertx.core.Vertx;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -129,5 +136,28 @@ public class SpringConfig {
             auditPort,
             cascadeHardLimit
         );
+    }
+
+    @Bean
+    public AmConnectionRepository amConnectionRepository(@Lazy AmConnectionService amConnectionService) {
+        return new ApimAmConnectionRepository(amConnectionService);
+    }
+
+    @Bean
+    public AmSdkUserClientFactory amSdkUserClientFactory(Vertx vertx) {
+        return new AmSdkUserClientFactory(vertx);
+    }
+
+    @Bean
+    public AmUserSyncOrchestrator amUserSyncOrchestrator(
+        AmSdkUserClientFactory amSdkUserClientFactory,
+        @Lazy @Qualifier("entityService") AuthzEntityAdminApi entityService
+    ) {
+        return new AmUserSyncOrchestrator(amSdkUserClientFactory, entityService);
+    }
+
+    @Bean
+    public AmSyncJobManager amSyncJobManager(AmUserSyncOrchestrator amUserSyncOrchestrator) {
+        return new AmSyncJobManager(amUserSyncOrchestrator);
     }
 }

@@ -34,6 +34,7 @@
 
     <properties>
         <skip.ui.build>false</skip.ui.build>
+        <gravitee-am-management-api-sdk-java.version>4.12.0-alpha.4</gravitee-am-management-api-sdk-java.version>
     </properties>
 
     <dependencyManagement>
@@ -53,6 +54,11 @@
             <groupId>io.gravitee.gamma.plugin.module</groupId>
             <artifactId>gravitee-gamma-plugin-module-api</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.am</groupId>
+            <artifactId>gravitee-am-management-api-sdk-java</artifactId>
+            <version>${gravitee-am-management-api-sdk-java.version}</version>
         </dependency>
         <dependency>
             <groupId>io.gravitee.gamma.definition</groupId>

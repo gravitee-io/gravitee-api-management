@@ -48,7 +48,8 @@ class AuthzPermissionContractTest {
     private static final List<Class<?>> AUTHZ_REST_RESOURCES = List.of(
         AuthzPoliciesResource.class,
         AuthzEntitiesResource.class,
-        AuthzSchemaResource.class
+        AuthzSchemaResource.class,
+        AuthzAmUserSyncResource.class
     );
 
     @Test
@@ -101,6 +102,8 @@ class AuthzPermissionContractTest {
         m.put("AuthzEntitiesResource.update", Set.of(RolePermissionAction.UPDATE));
         m.put("AuthzEntitiesResource.delete", Set.of(RolePermissionAction.DELETE));
         m.put("AuthzSchemaResource.currentSchema", Set.of(RolePermissionAction.READ));
+        m.put("AuthzAmUserSyncResource.sync", Set.of(RolePermissionAction.CREATE, RolePermissionAction.UPDATE));
+        m.put("AuthzAmUserSyncResource.status", Set.of(RolePermissionAction.READ));
         EXPECTED_ACLS_BY_METHOD = Map.copyOf(m);
     }
 
