@@ -137,7 +137,8 @@ class ApiSynchronizerTest {
             new ApiKeyAppender(apiKeyRepository, new ApiKeyMapper(), 100, 900),
             deployerFactory,
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
-            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
+            new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
+            1 // appenderParallelism: sequential for test determinism
         );
         when(eventsFetcher.bulkItems()).thenReturn(1);
         lenient().when(deployerFactory.createApiDeployer()).thenReturn(apiDeployer);

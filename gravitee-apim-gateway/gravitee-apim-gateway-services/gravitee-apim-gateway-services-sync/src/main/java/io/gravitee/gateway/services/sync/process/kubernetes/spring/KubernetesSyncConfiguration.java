@@ -89,7 +89,10 @@ public class KubernetesSyncConfiguration {
         ApiKeyAppender apiKeyAppender,
         DeployerFactory deployerFactory,
         @Qualifier("syncKubernetesExecutor") ThreadPoolExecutor syncKubernetesExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+        @Value(
+            "${services.sync.appender.parallelism:" + io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_APPENDER_PARALLELISM + "}"
+        ) int appenderParallelism
     ) {
         return new KubernetesApiSynchronizer(
             configMapEventFetcher,
@@ -100,7 +103,8 @@ public class KubernetesSyncConfiguration {
             apiKeyAppender,
             deployerFactory,
             syncKubernetesExecutor,
-            syncDeployerExecutor
+            syncDeployerExecutor,
+            appenderParallelism
         );
     }
 

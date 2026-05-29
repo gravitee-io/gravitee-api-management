@@ -77,10 +77,23 @@ public class SyncConfiguration {
 
     public static final int POOL_SIZE = Runtime.getRuntime().availableProcessors() * 2;
     public static final int DEFAULT_BULK_ITEMS = 100;
+    // Subscription cursor page size — appender warmup at customer scale showed 100-row pages
+    // bottleneck on round-trip overhead. 1000 cuts page count 10× without breaching planner sweet
+    // spots. Tune via services.sync.subscription.bulk_items (falls back to services.sync.bulk_items).
+    public static final int DEFAULT_SUBSCRIPTION_BULK_ITEMS = 1000;
+    // ApiKey cursor page size — appender warmup loads per-chunk via this page size. Customer
+    // workloads vary; 500 is a reasonable midpoint between JWT-heavy (low key volume) and
+    // apikey-heavy. Tune via services.sync.apikey.bulk_items (falls back to services.sync.bulk_items).
+    public static final int DEFAULT_APIKEY_BULK_ITEMS = 500;
     // Chunk size for the `subscriptions IN (...)` filter applied when loading ApiKeys (appender
     // + refresher). Conservative default below common DB IN-list parameter limits; tune higher via
     // services.sync.apikey.subscriptions_chunk_size only after validating the target DB's parameter ceiling.
     public static final int DEFAULT_APIKEY_SUBSCRIPTIONS_CHUNK_SIZE = 900;
+    // Per-batch appender concurrency. The sync pipeline buffers APIs into batches of bulk_events
+    // and runs (plan+subscription+apikey) appenders per batch. Default 1 preserves current
+    // sequential behavior; bump to 4 to parallelize warmup at scale. Tune via
+    // services.sync.appender.parallelism.
+    public static final int DEFAULT_APPENDER_PARALLELISM = 1;
 
     @Bean("syncFetcherExecutor")
     public ThreadPoolExecutor syncFetcherExecutor(@Value("${services.sync.fetcher:-1}") int syncFetcher) {
@@ -172,7 +185,7 @@ public class SyncConfiguration {
         SubscriptionRepository subscriptionRepository,
         SubscriptionMapper subscriptionMapper,
         ApiProductRegistry apiProductRegistry,
-        @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems
+        @Value("${services.sync.subscription.bulk_items:${services.sync.bulk_items:" + DEFAULT_SUBSCRIPTION_BULK_ITEMS + "}}") int bulkItems
     ) {
         return new SubscriptionAppender(subscriptionRepository, subscriptionMapper, apiProductRegistry, bulkItems);
     }
@@ -181,7 +194,7 @@ public class SyncConfiguration {
     public ApiKeyAppender apiKeyAppender(
         ApiKeyRepository apiKeyRepository,
         ApiKeyMapper apiKeyMapper,
-        @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems,
+        @Value("${services.sync.apikey.bulk_items:${services.sync.bulk_items:" + DEFAULT_APIKEY_BULK_ITEMS + "}}") int bulkItems,
         @Value(
             "${services.sync.apikey.subscriptions_chunk_size:" + DEFAULT_APIKEY_SUBSCRIPTIONS_CHUNK_SIZE + "}"
         ) int subscriptionsChunkSize
