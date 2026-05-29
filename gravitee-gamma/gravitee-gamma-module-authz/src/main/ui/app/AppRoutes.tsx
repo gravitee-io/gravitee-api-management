@@ -27,6 +27,7 @@ import { McpsPage } from '../features/policy-management/pages/McpsPage';
 import { ModelsPage } from '../features/policy-management/pages/ModelsPage';
 import { ActionsPage } from '../features/policy-structure/ActionsPage';
 import { EntitiesPage } from '../features/policy-structure/EntitiesPage';
+import { UserSyncPage } from '../features/user-sync/UserSyncPage';
 import { ModuleErrorBoundary } from './ModuleErrorBoundary';
 
 // Lazy-loaded so the ~600KB (gzip) Monaco bundle only ships when the read-only Schema viewer is opened.
@@ -75,6 +76,7 @@ export function AppRoutes() {
                                 </Suspense>
                             }
                         />
+                        <Route path="user-sync" element={<UserSyncPage />} />
                     </Route>
                 </Routes>
             </ModuleErrorBoundary>

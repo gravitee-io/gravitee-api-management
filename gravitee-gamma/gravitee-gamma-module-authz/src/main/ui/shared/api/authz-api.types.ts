@@ -77,3 +77,19 @@ export interface ValidationErrorResponse {
     readonly status: number;
     readonly errors: readonly string[];
 }
+
+export type AmSyncStatus = 'RUNNING' | 'COMPLETED' | 'FAILED';
+
+export interface AmSyncStartResponse {
+    readonly jobId: string;
+    readonly status: string;
+}
+
+export interface AmSyncStatusResponse {
+    readonly jobId: string;
+    readonly status: AmSyncStatus;
+    readonly usersFetched: number;
+    readonly entitiesUpserted: number;
+    readonly error: string | null;
+    readonly completedAt: string | null;
+}

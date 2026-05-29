@@ -28,10 +28,8 @@ import io.gravitee.apim.plugin.gamma.api.identity.AmNotConfiguredException;
 import io.gravitee.gamma.authorization.am.AmSyncConflictException;
 import io.gravitee.gamma.authorization.am.AmSyncJobManager;
 import io.gravitee.gamma.authorization.am.AmSyncJobState;
-import io.gravitee.gamma.authorization.rest.dto.AmSyncManualRequest;
 import io.gravitee.gamma.authorization.rest.dto.AmSyncStartResponse;
 import io.gravitee.gamma.authorization.rest.dto.AmSyncStatusResponse;
-import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Application;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
@@ -130,29 +128,6 @@ class AuthzAmUserSyncResourceTest extends JerseyTest {
 
         try (Response response = target("/users/sync").request().get()) {
             assertThat(response.getStatus()).isEqualTo(404);
-        }
-    }
-
-    @Test
-    void run_starts_a_sync_and_returns_202() {
-        when(jobManager.start(any(), any())).thenReturn(AmSyncJobState.running("job-2", Instant.now()));
-        AmSyncManualRequest request = new AmSyncManualRequest("http://am:8093", "token", ORG, "domain-1");
-
-        try (Response response = target("/users/sync/run").request().post(Entity.json(request))) {
-            assertThat(response.getStatus()).isEqualTo(202);
-            AmSyncStartResponse body = response.readEntity(AmSyncStartResponse.class);
-            assertThat(body.jobId()).isEqualTo("job-2");
-            assertThat(body.status()).isEqualTo("RUNNING");
-        }
-    }
-
-    @Test
-    void run_returns_409_when_a_sync_is_already_running() {
-        when(jobManager.start(any(), any())).thenThrow(new AmSyncConflictException(ORG));
-        AmSyncManualRequest request = new AmSyncManualRequest("http://am:8093", "token", ORG, "domain-1");
-
-        try (Response response = target("/users/sync/run").request().post(Entity.json(request))) {
-            assertThat(response.getStatus()).isEqualTo(409);
         }
     }
 }

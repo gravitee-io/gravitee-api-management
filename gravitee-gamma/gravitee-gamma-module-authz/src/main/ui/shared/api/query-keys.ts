@@ -37,6 +37,7 @@ export const authzQueryKeys = {
     schema: (environmentId: string) => ['authz', 'schema', environmentId] as const,
     entityOptions: (environmentId: string) => ['authz', 'entity-options', environmentId] as const,
     importedCatalogIds: (environmentId: string) => ['authz', 'imported-catalog-ids', environmentId] as const,
+    userSync: (environmentId: string) => ['authz', 'user-sync', environmentId] as const,
 } as const;
 
 export const aimQueryKeys = {
