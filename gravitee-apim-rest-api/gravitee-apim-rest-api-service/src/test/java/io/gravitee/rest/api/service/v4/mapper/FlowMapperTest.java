@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.v4.mapper;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -29,6 +30,7 @@ import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.management.model.flow.selector.FlowHttpSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowMcpSelector;
 import io.gravitee.repository.management.model.flow.selector.FlowOperator;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.List;
 import java.util.Set;
 import org.junit.Test;
@@ -134,6 +136,36 @@ public class FlowMapperTest {
         assertEquals("ip-filtering", mappedStep.getPolicy());
         assertEquals(POLICY_CONDITION, mappedStep.getCondition());
         assertEquals("{\"blacklistIps\":[\"127.0.0.1\"]}", mappedStep.getConfiguration());
+    }
+
+    @Test
+    public void toRepositoryShouldRejectNullPathOperator() {
+        HttpSelector httpSelector = new HttpSelector();
+        httpSelector.setPath("/calls");
+        httpSelector.setPathOperator(null);
+
+        Flow flowDefinition = new Flow();
+        flowDefinition.setName("plan-flow");
+        flowDefinition.setSelectors(List.of(httpSelector));
+
+        assertThrows(InvalidDataException.class, () -> flowMapper.toRepository(flowDefinition, FlowReferenceType.PLAN, "plan-id", 0));
+    }
+
+    @Test
+    public void toDefinitionShouldDefaultNullPathOperatorToStartsWith() {
+        var flow = new io.gravitee.repository.management.model.flow.Flow();
+        FlowHttpSelector flowHttpSelector = new FlowHttpSelector();
+        flowHttpSelector.setPath("/calls");
+        flowHttpSelector.setPathOperator(null);
+        flow.setSelectors(List.of(flowHttpSelector));
+        flow.setTags(Set.of());
+
+        Flow flowDefinition = flowMapper.toDefinition(flow);
+
+        assertNotNull(flowDefinition.getSelectors());
+        assertEquals(1, flowDefinition.getSelectors().size());
+        HttpSelector mappedSelector = (HttpSelector) flowDefinition.getSelectors().get(0);
+        assertEquals(Operator.STARTS_WITH, mappedSelector.getPathOperator());
     }
 
     @Test

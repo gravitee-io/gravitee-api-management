@@ -17,6 +17,7 @@ package io.gravitee.apim.core.flow.exception;
 
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.definition.model.v4.ApiType;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,21 +30,37 @@ public class InvalidFlowException extends ValidationDomainException {
     public static InvalidFlowException invalidEntrypoint(String flowName, Set<String> invalidEntrypoints) {
         return new InvalidFlowException(
             "The flow [" + flowName + "] contains channel selector with invalid entrypoints",
-            Map.of("flowName", flowName, "invalidEntrypoints", String.join(",", invalidEntrypoints))
+            withFlowName(flowName, Map.of("invalidEntrypoints", String.join(",", invalidEntrypoints)))
         );
     }
 
     public static InvalidFlowException invalidSelector(String flowName, ApiType apiType, Set<String> invalidSelectors) {
         return new InvalidFlowException(
             "The flow [" + flowName + "] contains selectors that couldn't apply to " + apiType.getLabel() + " API",
-            Map.of("flowName", flowName, "invalidSelectors", String.join(",", invalidSelectors))
+            withFlowName(flowName, Map.of("invalidSelectors", String.join(",", invalidSelectors)))
+        );
+    }
+
+    public static InvalidFlowException missingPathOperator(String flowName) {
+        return new InvalidFlowException(
+            "The flow [" + flowName + "] contains an HTTP selector with a missing pathOperator",
+            withFlowName(flowName, Map.of())
         );
     }
 
     public static InvalidFlowException duplicatedSelector(String flowName, Set<String> duplicatedSelectors) {
         return new InvalidFlowException(
             "The flow [" + flowName + "] contains duplicated selectors type",
-            Map.of("flowName", flowName, "duplicatedSelectors", String.join(",", duplicatedSelectors))
+            withFlowName(flowName, Map.of("duplicatedSelectors", String.join(",", duplicatedSelectors)))
         );
+    }
+
+    private static Map<String, String> withFlowName(String flowName, Map<String, String> parameters) {
+        if (flowName == null) {
+            return parameters;
+        }
+        var withName = new HashMap<>(parameters);
+        withName.put("flowName", flowName);
+        return withName;
     }
 }
