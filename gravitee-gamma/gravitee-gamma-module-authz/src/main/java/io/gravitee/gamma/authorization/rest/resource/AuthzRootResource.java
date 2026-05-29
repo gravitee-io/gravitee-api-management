@@ -38,4 +38,9 @@ public class AuthzRootResource {
     public AuthzSchemaResource schema() {
         return resourceContext.getResource(AuthzSchemaResource.class);
     }
+
+    @Path("/users/sync")
+    public AuthzAmUserSyncResource usersSync() {
+        return resourceContext.getResource(AuthzAmUserSyncResource.class);
+    }
 }
