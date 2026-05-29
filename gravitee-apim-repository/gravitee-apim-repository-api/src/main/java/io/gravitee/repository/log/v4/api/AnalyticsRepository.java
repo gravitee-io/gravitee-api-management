@@ -68,6 +68,8 @@ public interface AnalyticsRepository {
 
     FacetsResult searchHTTPFacets(QueryContext queryContext, FacetsQuery query);
 
+    FacetsResult searchEdgeFacets(QueryContext queryContext, FacetsQuery query);
+
     FacetsResult searchNativeApiFacets(QueryContext queryContext, FacetsQuery query);
 
     TimeSeriesResult searchHTTPTimeSeries(QueryContext queryContext, TimeSeriesQuery query);

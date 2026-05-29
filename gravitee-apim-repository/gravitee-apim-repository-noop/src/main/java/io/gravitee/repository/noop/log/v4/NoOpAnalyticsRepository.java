@@ -127,6 +127,11 @@ public class NoOpAnalyticsRepository implements AnalyticsRepository {
     }
 
     @Override
+    public FacetsResult searchEdgeFacets(QueryContext queryContext, FacetsQuery query) {
+        return null;
+    }
+
+    @Override
     public FacetsResult searchNativeApiFacets(QueryContext queryContext, FacetsQuery query) {
         return new FacetsResult(Collections.emptyList());
     }

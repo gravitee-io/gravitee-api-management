@@ -273,6 +273,19 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     }
 
     @Override
+    public FacetsResult searchEdgeFacets(QueryContext queryContext, FacetsQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var esQuery = httpFacetsQueryAdapter.adaptEdge(query);
+
+        log.debug("Edge facets query: {}", esQuery);
+
+        return client
+            .search(index, null, esQuery)
+            .map(response -> facetsResponseAdapter.adapt(response, query))
+            .blockingGet();
+    }
+
+    @Override
     public FacetsResult searchNativeApiFacets(QueryContext queryContext, FacetsQuery query) {
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
         var esQuery = nativeFacetsQueryAdapter.adapt(query);

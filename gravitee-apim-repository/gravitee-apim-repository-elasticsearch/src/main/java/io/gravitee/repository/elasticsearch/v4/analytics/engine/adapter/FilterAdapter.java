@@ -34,6 +34,7 @@ public class FilterAdapter {
     static final String HTTP_PROXY_ENTRYPOINT_ID = "http-proxy";
     static final String LLM_PROXY_ENTRYPOINT_ID = "llm-proxy";
     static final String MCP_PROXY_ENTRYPOINT_ID = "mcp-proxy";
+    static final String EDGE_ENTRYPOINT_ID = "edge";
 
     private static final Map<String, StatusCodeRange> STATUS_CODE_GROUP_RANGES = Map.of(
         "1XX",
@@ -90,6 +91,20 @@ public class FilterAdapter {
         Filter.Name.NATIVE_CONNECTION_STATUS
     );
 
+    static final List<Filter.Name> EDGE_FILTER_NAMES = List.of(
+        Filter.Name.API,
+        Filter.Name.GATEWAY,
+        Filter.Name.TENANT,
+        Filter.Name.ZONE,
+        Filter.Name.EDGE_TYPE,
+        Filter.Name.EDGE_PROVIDER,
+        Filter.Name.EDGE_PROCESS,
+        Filter.Name.EDGE_CLIENT,
+        Filter.Name.EDGE_VERSION,
+        Filter.Name.EDGE_MODEL,
+        Filter.Name.EDGE_TOOL
+    );
+
     private final FieldResolver fieldResolver;
 
     public FilterAdapter(FieldResolver fieldResolver) {
@@ -136,6 +151,16 @@ public class FilterAdapter {
         return jsonFilters;
     }
 
+    public JsonArray adaptForEdge(Query query) {
+        var jsonFilters = JsonArray.of(TimeRangeAdapter.adapt(query));
+        for (var filter : query.filters()) {
+            if (shouldAdaptForEdge(filter)) {
+                jsonFilters.add(filter(filter));
+            }
+        }
+        return jsonFilters.add(edgeFilter());
+    }
+
     public boolean shouldAdaptForHTTP(Filter filter) {
         return HTTP_FILTER_NAMES.contains(filter.name());
     }
@@ -150,6 +175,10 @@ public class FilterAdapter {
 
     public boolean shouldAdaptForNative(Filter filter) {
         return NATIVE_FILTER_NAMES.contains(filter.name());
+    }
+
+    public boolean shouldAdaptForEdge(Filter filter) {
+        return EDGE_FILTER_NAMES.contains(filter.name());
     }
 
     public JsonObject httpFilter() {
@@ -177,6 +206,10 @@ public class FilterAdapter {
             must.add(filter(f));
         }
         return JsonObject.of("bool", JsonObject.of("must", must));
+    }
+
+    public JsonObject edgeFilter() {
+        return JsonObject.of("term", JsonObject.of(ENTRYPOINT_FIELD, EDGE_ENTRYPOINT_ID));
     }
 
     public JsonObject messageFilter() {

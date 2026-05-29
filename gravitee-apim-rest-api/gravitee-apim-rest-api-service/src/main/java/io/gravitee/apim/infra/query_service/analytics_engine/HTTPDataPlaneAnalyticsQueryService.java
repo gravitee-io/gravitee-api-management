@@ -29,6 +29,7 @@ import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQuery
 import io.gravitee.apim.infra.adapter.AnalyticsMeasuresAdapter;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.List;
 import java.util.Set;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,8 @@ public class HTTPDataPlaneAnalyticsQueryService implements AnalyticsEngineQueryS
     public HTTPDataPlaneAnalyticsQueryService(@Lazy AnalyticsRepository analyticsRepository) {
         this.analyticsRepository = analyticsRepository;
     }
+
+    private static final Set<Name> EDGE_METRICS = Set.of(EDGE_DETECTION_COUNT, EDGE_TOKENS_IN, EDGE_TOKENS_OUT, EDGE_HEARTBEAT_COUNT);
 
     @Override
     public Set<Name> metrics() {
@@ -80,8 +83,19 @@ public class HTTPDataPlaneAnalyticsQueryService implements AnalyticsEngineQueryS
     @Override
     public FacetsResponse searchFacets(ExecutionContext context, FacetsRequest request) {
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
-        var result = analyticsRepository.searchHTTPFacets(context.getQueryContext(), query);
+        var result = isEdgeRequest(request)
+            ? analyticsRepository.searchEdgeFacets(context.getQueryContext(), query)
+            : analyticsRepository.searchHTTPFacets(context.getQueryContext(), query);
         return AnalyticsMeasuresAdapter.INSTANCE.fromResult(result);
+    }
+
+    private boolean isEdgeRequest(FacetsRequest request) {
+        List<Name> metricNames = request
+            .metrics()
+            .stream()
+            .map(m -> m.name())
+            .toList();
+        return !metricNames.isEmpty() && EDGE_METRICS.containsAll(metricNames);
     }
 
     @Override
