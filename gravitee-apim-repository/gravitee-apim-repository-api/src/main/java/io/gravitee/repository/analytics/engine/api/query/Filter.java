@@ -62,6 +62,9 @@ public record Filter(Filter.Name name, Operator operator, Object value) {
         EDGE_PROCESS,
         EDGE_CLIENT,
         EDGE_TYPE,
+        EDGE_VERSION,
+        EDGE_MODEL,
+        EDGE_TOOL,
         NATIVE_CONNECTION_STATUS,
     }
 
