@@ -61,21 +61,15 @@ describe('HomePage', () => {
         respondWith('get', `${TEST_GAMMA_BASE}/environments/env-1-id/modules/aim/catalog/agents`, { pagination: { totalCount: 0 } });
     });
 
-    it('should render one Open link per active module + the Coming soon cards when all modules are present', async () => {
+    it('should render one Open link per active module when all modules are present', async () => {
         renderHome(ALL_MODULES);
 
-        // 4 active module cards (aim, apim, platform, authz) — each renders an "Open →" CTA
-        // inside a <Link>. Catalog and Event API Management are now `coming-soon` so they have
-        // no Open link even though `catalog` is in the backend modules list.
         await waitFor(() => {
             expect(screen.getAllByText('Open')).toHaveLength(4);
         });
 
-        // 2 "Coming soon" placeholders are always rendered (Catalog + Event API Management).
-        expect(screen.getAllByText('Coming soon')).toHaveLength(1);
-        expect(screen.getByRole('heading', { level: 3, name: 'Event API Management' })).toBeTruthy();
+        expect(screen.queryByText('Coming soon')).toBeNull();
 
-        // Each card title is an <h3> — coming-soon cards keep their heading.
         for (const name of ['Agent Management', 'API Management', 'Platform', 'Authorization']) {
             expect(screen.getByRole('heading', { level: 3, name })).toBeTruthy();
         }
@@ -84,13 +78,9 @@ describe('HomePage', () => {
     it('should render the Agent Management card without an Open CTA when aim is missing from /modules', async () => {
         renderHome(ALL_MODULES.filter(m => m.id !== 'aim'));
 
-        // The non-clickable card variant exposes `role="group"` + the card title as its
-        // accessible name — query by role+name so we don't depend on DOM ancestry.
         const card = screen.getByRole('group', { name: 'Agent Management' });
-        // No "Open →" CTA inside this specific card.
         expect(within(card).queryByText('Open')).toBeNull();
 
-        // The other 3 active modules (apim, platform, authz) still get their Open CTA.
         await waitFor(() => {
             expect(screen.getAllByText('Open')).toHaveLength(3);
         });
@@ -102,15 +92,12 @@ describe('HomePage', () => {
     });
 
     it('should render the live API count badge on the API Management card', async () => {
-        // Override the default 0-count handler from beforeEach with a non-zero value so we
-        // exercise `formatCountBadge` AND verify the hook→props→badge wiring end-to-end.
         respondWith('post', `${TEST_MANAGEMENT_V2_ENVIRONMENT_BASE}/env-1-id/apis/_search`, {
             pagination: { totalCount: 24 },
         });
 
         renderHome(ALL_MODULES);
 
-        // The only "24 APIs" string in the page lives inside the API Management card.
         expect(await screen.findByText('24 APIs')).toBeTruthy();
     });
 
@@ -138,5 +125,19 @@ describe('HomePage', () => {
 
         const alert = screen.getByRole('alert');
         expect(alert.textContent).toContain('Failed to load modules: boom');
+    });
+
+    describe('Get Started section', () => {
+        it('should render the three Get Started cards with linked CTAs', async () => {
+            renderHome(ALL_MODULES);
+
+            await waitFor(() => {
+                expect(screen.getAllByText('Get started')).toHaveLength(3);
+            });
+
+            for (const name of ['Add Integration', 'Create MCP Proxy', 'Protect with FGA']) {
+                expect(screen.getByRole('heading', { level: 3, name })).toBeTruthy();
+            }
+        });
     });
 });

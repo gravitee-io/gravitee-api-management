@@ -13,89 +13,58 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BotIcon, KeyIcon, LayoutDashboardIcon, RadioIcon, WaypointsIcon } from '@gravitee/graphene-core/icons';
+import { BotIcon, KeyIcon, LayoutDashboardIcon, RadioIcon } from '@gravitee/graphene-core/icons';
 import type { LucideIcon } from '@gravitee/graphene-core/icons';
 
 import type { Accent } from '../accents';
 
 /** Plugin ids of modules we render a card for. Must match `plugin.properties#id` of
- *  the corresponding Gamma module (`gravitee-gamma-module-<id>`). Typed as a literal
- *  union so the badge map (`DynamicBadges`) can key on the same names — review #13. */
-export type ModuleId = 'aim' | 'apim' | 'platform' | 'catalog' | 'authz';
+ *  the corresponding Gamma module (`gravitee-gamma-module-<id>`). */
+export type ModuleId = 'aim' | 'apim' | 'platform' | 'authz';
 
-export type Application =
-    | {
-          readonly kind: 'module';
-          readonly title: string;
-          readonly description: string;
-          /**
-           * Optional summary computed from a live API call (e.g. "24 APIs"). When undefined,
-           * the badge slot is omitted entirely — no mock numbers, no placeholder.
-           */
-          readonly badge?: string;
-          readonly moduleId: ModuleId;
-          readonly Icon: LucideIcon;
-          readonly accent: Accent;
-      }
-    | {
-          readonly kind: 'coming-soon';
-          readonly title: string;
-          readonly description: string;
-          readonly Icon: LucideIcon;
-          readonly accent: Accent;
-      };
-
-export const COMING_SOON_BADGE = 'Coming soon';
+export interface Application {
+    readonly title: string;
+    readonly description: string;
+    /** Optional live count badge (e.g. "24 APIs"). Omitted when null. */
+    readonly badge?: string;
+    readonly moduleId: ModuleId;
+    readonly Icon: LucideIcon;
+    readonly accent: Accent;
+}
 
 /**
- * Static catalog of application cards. Module cards reference the backend plugin id
+ * Static catalog of application cards. Each entry references the backend plugin id
  * directly — same source the app switcher consumes from `GET /organizations/{orgId}/modules`.
- * Cards whose `moduleId` is absent from that response are not rendered (matching the
- * app switcher behavior: missing license / missing deployment / unknown id all collapse
- * to "not shown"). Counts (`badge`) come from live hooks at render time.
- *
- * "Coming soon" cards are always rendered — they advertise upcoming products that have
- * no backend representation yet.
+ * Cards whose `moduleId` is absent from that response render without a link or "Open →" CTA.
  */
 export const APPLICATIONS: readonly Application[] = [
     {
-        kind: 'module',
         title: 'Agent Management',
         description: 'Discover, secure, build, and observe AI agents, MCP servers, and LLM integrations.',
-        moduleId: 'aim', // plugin.properties#id of gravitee-gamma-module-aim
+        moduleId: 'aim',
         Icon: BotIcon,
-        accent: 'highlight', // AI/agentic — pairs with "Build an Agent"
+        accent: 'highlight',
     },
     {
-        kind: 'module',
         title: 'API Management',
         description: 'Design, deploy, and manage your HTTP APIs with full lifecycle governance.',
-        moduleId: 'apim', // plugin.properties#id of gravitee-gamma-module-apim
+        moduleId: 'apim',
         Icon: RadioIcon,
-        accent: 'primary', // brand core — pairs with "Expose APIs to Agents"
+        accent: 'primary',
     },
     {
-        kind: 'module',
         title: 'Platform',
         description: 'Manage applications, subscribe to APIs, and monitor consumption from a single dashboard.',
-        moduleId: 'platform', // plugin.properties#id of gravitee-gamma-module-platform
+        moduleId: 'platform',
         Icon: LayoutDashboardIcon,
-        accent: 'accent', // neutral — operational management surface
+        accent: 'accent',
     },
     {
-        kind: 'module',
         title: 'Authorization',
         description: 'Define fine-grained authorization rules, relationship tuples, and scopes across the platform.',
-        moduleId: 'authz', // plugin.properties#id of gravitee-gamma-module-authz
+        moduleId: 'authz',
         Icon: KeyIcon,
-        accent: 'success', // allows / grants
-    },
-    {
-        kind: 'coming-soon',
-        title: 'Event API Management',
-        description: 'Manage event-driven architectures with Kafka clusters, topics, and streaming protocols.',
-        Icon: WaypointsIcon,
-        accent: 'muted', // neutral (already opacity-60)
+        accent: 'success',
     },
 ];
 

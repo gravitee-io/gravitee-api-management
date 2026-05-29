@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Card, CardContent } from '@gravitee/graphene-core';
-import { SparklesIcon } from '@gravitee/graphene-core/icons';
 import { useMemo } from 'react';
 
 import { ApplicationCard } from './components/application-card/ApplicationCard';
 import { APPLICATIONS, buildModulePath, type ModuleId } from './components/application-card/applications';
-import { NEXT_STEPS } from './components/next-steps/next-steps';
-import { NextStepCard } from './components/next-steps/NextStepCard';
+import { GET_STARTED_STEPS } from './components/get-started/get-started';
+import { GetStartedCard } from './components/get-started/GetStartedCard';
 import { useAgentCount, useApiCount } from './useModuleCounts';
 import { useUser } from '../../features/auth';
+import { useEnvironmentStore } from '../../features/environment/environment.store';
 import { useEnvHrid } from '../../features/environment/environment.utils';
 import type { GammaModule } from '../../features/modules';
 
@@ -41,6 +40,7 @@ interface HomePageProps {
 export function HomePage({ modules, loading, error }: HomePageProps) {
     const user = useUser();
     const envHrid = useEnvHrid();
+    const envName = useEnvironmentStore(s => s.currentEnvironment?.name);
     const firstName = user?.firstname?.trim() || user?.displayName?.split(' ')[0] || '';
 
     const availableModuleIds = useMemo(() => new Set(modules.map(m => m.id)), [modules]);
@@ -54,73 +54,50 @@ export function HomePage({ modules, loading, error }: HomePageProps) {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8">
             <div className="space-y-1">
                 <h1 className="text-2xl font-semibold tracking-tight">Welcome back{firstName ? `, ${firstName}` : ''}</h1>
-                <p className="text-sm text-muted-foreground">
-                    Your Gravitee platform overview — manage APIs, events, agent access, and more from one place.
-                </p>
+                <h4 className="text-muted-foreground">Your {envName || 'current'} environment overview</h4>
             </div>
 
-            <aside aria-labelledby="suggested-next-steps-heading">
-                <Card className="bg-highlight/5 border-highlight/20">
-                    <CardContent className="pt-5 pb-5 space-y-4">
-                        <div className="flex items-start gap-3">
-                            <div className="rounded-lg bg-highlight/10 p-2 shrink-0">
-                                <SparklesIcon className="size-5 text-highlight" aria-hidden />
-                            </div>
-                            <div className="space-y-0.5">
-                                <h2 id="suggested-next-steps-heading" className="text-sm font-semibold leading-tight">
-                                    Suggested next steps
-                                </h2>
-                                <p className="text-xs text-muted-foreground">
-                                    Based on your recent activity, here are some actions you might want to take.
-                                </p>
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-                            {NEXT_STEPS.map(step => (
-                                <NextStepCard key={step.title} step={step} />
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-            </aside>
+            <section aria-labelledby="get-started-heading" className="space-y-3">
+                <h5 id="get-started-heading" className="text-sm font-semibold tracking-tight">
+                    Get Started with Gravitee
+                </h5>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {GET_STARTED_STEPS.map(step => (
+                        <GetStartedCard
+                            key={step.title}
+                            step={step}
+                            to={`${buildModulePath(envHrid, step.moduleId)}/${step.subPath}`}
+                        />
+                    ))}
+                </div>
+            </section>
 
-            <div className="space-y-3">
+            <section aria-labelledby="applications-heading" className="space-y-3">
                 <div className="space-y-0.5">
-                    <h2 className="text-xl font-semibold tracking-tight">Applications</h2>
-                    <p className="text-sm text-muted-foreground">Navigate to any Gravitee product</p>
+                    <h5 id="applications-heading" className="text-sm font-semibold tracking-tight">
+                        Applications
+                    </h5>
+                    <p className="text-xs text-muted-foreground">Navigate to any Gravitee product</p>
                 </div>
 
-                {/* Loading / error / data states (review #5). While `useGammaModules` is in
-                    flight, render a skeleton grid instead of "every card disabled" so the
-                    UI doesn't flicker from "all locked" to "all active" once the fetch
-                    resolves. */}
                 {error ? (
                     <p role="alert" className="text-sm text-destructive">
                         Failed to load modules: {error.message}
                     </p>
                 ) : loading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" aria-busy="true">
+                    <div className="grid grid-cols-1 gap-4 grid-cols-2 md:grid-cols-4" aria-busy="true">
                         {APPLICATIONS.map(app => (
-                            <Card key={app.title} className="opacity-60">
-                                <CardContent className="pt-5 pb-5">
-                                    <div className="h-24 animate-pulse rounded bg-muted" aria-hidden />
-                                </CardContent>
-                            </Card>
+                            <div key={app.title} className="rounded-xl border bg-card p-5 opacity-60">
+                                <div className="h-24 animate-pulse rounded bg-muted" aria-hidden />
+                            </div>
                         ))}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 gap-4 grid-cols-2 md:grid-cols-4">
                         {APPLICATIONS.map(app => {
-                            // Coming-soon and modules not returned by /modules render the same
-                            // card visual but without a link or "Open →" CTA. The list itself
-                            // stays static — the home is a product showcase, navigation comes
-                            // from whatever the backend returns (same source as the app switcher).
-                            if (app.kind === 'coming-soon') {
-                                return <ApplicationCard key={app.title} app={app} to={null} />;
-                            }
                             const to = isAvailable(app.moduleId) ? buildModulePath(envHrid, app.moduleId) : null;
                             const liveBadge = dynamicBadges[app.moduleId];
                             const resolvedApp = liveBadge !== undefined ? { ...app, badge: liveBadge } : app;
@@ -128,7 +105,7 @@ export function HomePage({ modules, loading, error }: HomePageProps) {
                         })}
                     </div>
                 )}
-            </div>
+            </section>
         </div>
     );
 }
