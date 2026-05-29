@@ -49,7 +49,8 @@ public class KubernetesApiSynchronizer extends AbstractApiSynchronizer implement
         final AuthzAppender authzAppender,
         final DeployerFactory deployerFactory,
         final ThreadPoolExecutor syncKubernetesExecutor,
-        final ThreadPoolExecutor syncDeployerExecutor
+        final ThreadPoolExecutor syncDeployerExecutor,
+        final int appenderParallelism
     ) {
         super(
             apiManager,
@@ -60,7 +61,8 @@ public class KubernetesApiSynchronizer extends AbstractApiSynchronizer implement
             authzAppender,
             deployerFactory,
             syncKubernetesExecutor,
-            syncDeployerExecutor
+            syncDeployerExecutor,
+            appenderParallelism
         );
         this.configMapEventFetcher = configMapEventFetcher;
     }

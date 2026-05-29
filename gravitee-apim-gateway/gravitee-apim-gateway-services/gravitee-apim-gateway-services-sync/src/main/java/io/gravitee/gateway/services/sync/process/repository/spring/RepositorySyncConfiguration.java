@@ -149,7 +149,11 @@ public class RepositorySyncConfiguration {
     @Bean
     public SubscriptionFetcher subscriptionFetcher(
         SubscriptionRepository subscriptionRepository,
-        @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems
+        @Value(
+            "${services.sync.subscription.bulk_items:${services.sync.bulk_items:" +
+                io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_SUBSCRIPTION_BULK_ITEMS +
+                "}}"
+        ) int bulkItems
     ) {
         return new SubscriptionFetcher(subscriptionRepository, bulkItems);
     }
@@ -157,7 +161,11 @@ public class RepositorySyncConfiguration {
     @Bean
     public ApiKeyFetcher apiKeyFetcher(
         ApiKeyRepository apiKeyRepository,
-        @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems
+        @Value(
+            "${services.sync.apikey.bulk_items:${services.sync.bulk_items:" +
+                io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_APIKEY_BULK_ITEMS +
+                "}}"
+        ) int bulkItems
     ) {
         return new ApiKeyFetcher(apiKeyRepository, bulkItems);
     }
@@ -209,7 +217,10 @@ public class RepositorySyncConfiguration {
         AuthzAppender authzAppender,
         DeployerFactory deployerFactory,
         @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+        @Value(
+            "${services.sync.appender.parallelism:" + io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_APPENDER_PARALLELISM + "}"
+        ) int appenderParallelism
     ) {
         return new ApiSynchronizer(
             eventsFetcher,
@@ -221,7 +232,8 @@ public class RepositorySyncConfiguration {
             authzAppender,
             deployerFactory,
             syncFetcherExecutor,
-            syncDeployerExecutor
+            syncDeployerExecutor,
+            appenderParallelism
         );
     }
 
@@ -424,7 +436,11 @@ public class RepositorySyncConfiguration {
         ApiKeyMapper apiKeyMapper,
         SubscriptionService subscriptionService,
         ApiKeyService apiKeyService,
-        @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems,
+        @Value(
+            "${services.sync.apikey.bulk_items:${services.sync.bulk_items:" +
+                io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_APIKEY_BULK_ITEMS +
+                "}}"
+        ) int bulkItems,
         @Value(
             "${services.sync.apikey.subscriptions_chunk_size:" +
                 io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_APIKEY_SUBSCRIPTIONS_CHUNK_SIZE +
