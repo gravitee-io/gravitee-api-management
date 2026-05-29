@@ -342,7 +342,7 @@
 
         <!-- Authz plugins -->
         <gravitee-service-authz-pdp.version>1.0.0-alpha.1</gravitee-service-authz-pdp.version>
-        <gravitee-policy-authz-pep.version>1.0.0-alpha.1</gravitee-policy-authz-pep.version>
+        <gravitee-policy-authz-pep.version>1.0.0-alpha.3</gravitee-policy-authz-pep.version>
     </properties>
 
     <scm>
