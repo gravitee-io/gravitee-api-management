@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-/**
- * Card accents map to the documented Graphene semantic intent tokens
- * (see the Graphene Storybook `Core / Overview / Theme` story for the live token reference).
- */
+/** Card accents — maps to Graphene semantic tokens. */
 export type Accent = 'primary' | 'success' | 'highlight' | 'accent' | 'muted';
 
-export const ACCENT_CLASSES: Record<Accent, { readonly bg: string; readonly fg: string }> = {
-    primary: { bg: 'bg-primary/10', fg: 'text-primary' },
-    success: { bg: 'bg-success/10', fg: 'text-success' },
-    highlight: { bg: 'bg-highlight/10', fg: 'text-highlight' },
-    accent: { bg: 'bg-accent', fg: 'text-accent-foreground' },
-    muted: { bg: 'bg-muted', fg: 'text-muted-foreground' },
+/**
+ * `hoverColor` is a CSS variable reference applied via inline style on mouseenter/leave.
+ * Graphene's pre-built CSS only ships hover:border-primary, so we drive the other
+ * accent border colors through JS rather than adding a separate CSS file.
+ */
+export const ACCENT_CLASSES: Record<Accent, { readonly bg: string; readonly fg: string; readonly hoverColor: string }> = {
+    primary: { bg: 'bg-primary/10', fg: 'text-primary', hoverColor: 'var(--color-primary)' },
+    success: { bg: 'bg-success/10', fg: 'text-success', hoverColor: 'var(--color-success)' },
+    highlight: { bg: 'bg-highlight/10', fg: 'text-highlight', hoverColor: 'var(--color-highlight)' },
+    accent: { bg: 'bg-accent', fg: 'text-accent-foreground', hoverColor: 'var(--color-foreground)' },
+    muted: { bg: 'bg-muted', fg: 'text-muted-foreground', hoverColor: 'var(--color-muted-foreground)' },
 };

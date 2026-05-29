@@ -13,93 +13,89 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useId, useRef } from 'react';
+
 import { Badge, Card, CardContent, cn } from '@gravitee/graphene-core';
 import { ArrowRightIcon } from '@gravitee/graphene-core/icons';
-import { useId } from 'react';
 import { Link } from 'react-router-dom';
 
-import { COMING_SOON_BADGE, type Application } from './applications';
+import { type Application } from './applications';
 import { ACCENT_CLASSES } from '../accents';
 
 /**
- * Renders a single app card.
- *
- * Three visual states:
- *  - **Active module** (`to !== null`): full card with "Open →" CTA, wrapped in a
- *    `<Link>` to `/environments/{env}/{moduleId}`. Hover effects.
- *  - **Module not loaded** (`kind: 'module'` but `to === null`): same card minus the
- *    "Open →" CTA. No link wrapper, no hover. The home stays a fixed product showcase
- *    while keeping navigation honest: only modules returned by `GET /…/modules` (the
- *    same source the app switcher consumes) are clickable.
- *  - **Coming soon** (`kind: 'coming-soon'`): card rendered at opacity-60 with a
- *    "Coming soon" badge instead of a count, no "Open →".
+ * Two visual states:
+ *  - **Active module** (`to !== null`): clickable card with hover ring, elevation and animated CTA.
+ *  - **Module not loaded** (`to === null`): same Card, no hover, no CTA.
  */
 export function ApplicationCard({ app, to }: { readonly app: Application; readonly to: string | null }) {
     const { Icon, title, description, accent } = app;
-    const comingSoon = app.kind === 'coming-soon';
     const accentClasses = ACCENT_CLASSES[accent];
     const titleId = useId();
+    const hoverRing = `0 0 0 1px color-mix(in oklab, var(--color-muted-foreground) 40%, transparent), 0 4px 16px 0 rgb(0 0 0 / 0.08)`;
+    const ctaRef = useRef<HTMLParagraphElement>(null);
+    const arrowRef = useRef<SVGSVGElement>(null);
+
+    const onHover = (e: React.MouseEvent<HTMLAnchorElement>, enter: boolean) => {
+        const card = e.currentTarget.firstElementChild as HTMLElement | null;
+        if (card) card.style.boxShadow = enter ? hoverRing : '';
+        if (ctaRef.current) ctaRef.current.style.color = enter ? 'var(--color-foreground)' : '';
+        if (arrowRef.current) arrowRef.current.style.transform = enter ? 'translateX(3px)' : '';
+    };
 
     const inner = (
-        <CardContent className="flex h-full flex-col space-y-3">
+        <CardContent className="flex h-full flex-col gap-3">
             <div className="flex items-start justify-between gap-2">
                 <div className={cn('rounded-lg p-2', accentClasses.bg)}>
                     <Icon className={cn('size-5', accentClasses.fg)} aria-hidden />
                 </div>
-                {comingSoon ? (
-                    <Badge variant="outline" className="font-normal">
-                        {COMING_SOON_BADGE}
+                {app.badge && (
+                    <Badge variant="secondary" className="font-normal">
+                        {app.badge}
                     </Badge>
-                ) : (
-                    app.badge && (
-                        <Badge variant="secondary" className="font-normal">
-                            {app.badge}
-                        </Badge>
-                    )
                 )}
             </div>
             <div className="space-y-1">
-                <h3 id={titleId} className="text-base font-semibold leading-tight">
+                <h3 id={titleId} className="text-sm font-semibold leading-tight">
                     {title}
                 </h3>
                 <p className="text-xs text-muted-foreground">{description}</p>
             </div>
             {to !== null && (
-                <p className="mt-auto flex items-center justify-end gap-1 text-sm font-medium text-primary">
+                <p
+                    ref={ctaRef}
+                    className="mt-auto flex items-center gap-1 text-xs font-medium text-muted-foreground"
+                    style={{ transition: 'color 150ms ease' }}
+                >
                     Open
-                    <ArrowRightIcon className="size-3.5" aria-hidden />
+                    <ArrowRightIcon
+                        ref={arrowRef}
+                        className="size-3"
+                        aria-hidden
+                        style={{ transition: 'transform 150ms ease' }}
+                    />
                 </p>
             )}
         </CardContent>
     );
 
-    if (comingSoon || to === null) {
-        // Non-clickable variant: announce as a labelled group so screen-reader users get
-        // a named region ("Agent Management group") rather than just a styled box, and
-        // `aria-disabled` tells them it's not interactive. The `role="group"` + label
-        // also gives tests a stable hook (`getByRole('group', { name })`) — review #2.
+    if (to === null) {
         return (
-            <Card
-                role="group"
-                aria-labelledby={titleId}
-                aria-disabled
-                className={cn('h-full', comingSoon && 'opacity-60 cursor-not-allowed')}
-            >
+            <Card role="group" aria-labelledby={titleId} aria-disabled className="h-full">
                 {inner}
             </Card>
         );
     }
 
-    // Clickable variant: the wrapping <Link> already carries the accessible name from the
-    // card title (via inner text), so no explicit role here.
-    // `focus-visible:outline-none` strips the browser default; we restore visibility with
-    // a ring on the <Link> so keyboard navigation stays usable.
     return (
         <Link
             to={to}
-            className="group block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="cursor-pointer rounded-xl"
+            onMouseEnter={e => onHover(e, true)}
+            onMouseLeave={e => onHover(e, false)}
         >
-            <Card className="h-full transition-all group-hover:border-primary/40 group-hover:shadow-sm">{inner}</Card>
+            <Card className="h-full" style={{ transition: 'box-shadow 150ms ease' }}>
+                {inner}
+            </Card>
         </Link>
     );
 }
