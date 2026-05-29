@@ -45,8 +45,10 @@ import { PromoteDialog } from './PromoteDialog';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import { useApiGeneralMutations } from '../../../hooks/useApiGeneralMutations';
 import { useEnvCategories } from '../../../hooks/useEnvCategories';
-import { exportApiDefinition } from '../../../services/apis';
+import { exportApiCrd, exportApiDefinition } from '../../../services/apis';
 import type { ApiDetailDto } from '../../../types';
+import { extractContextPathPlaceholder, extractHostPlaceholder, getDuplicateEntryMode } from '../../../utils/apiGeneralDuplicate';
+import { buildExcludeAdditionalData, buildExportFileName, downloadBlob, type ExportIncludeKey } from '../../../utils/apiGeneralExport';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -76,6 +78,9 @@ function formatDate(iso?: string): string {
     if (!iso) return '—';
     return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
+
+/** Import and promote flows are stubbed — keep disabled until post–2 June release. */
+const IMPORT_AND_PROMOTE_UNAVAILABLE = true;
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -113,6 +118,8 @@ export function ApiGeneralPage() {
     const [saveError, setSaveError] = useState<string | null>(null);
 
     const [exportOpen, setExportOpen] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
+    const [exportError, setExportError] = useState<string | null>(null);
     const [importOpen, setImportOpen] = useState(false);
     const [duplicateOpen, setDuplicateOpen] = useState(false);
     const [promoteOpen, setPromoteOpen] = useState(false);
@@ -190,15 +197,30 @@ export function ApiGeneralPage() {
         );
     }, [form, saveMutation]);
 
-    const handleExport = useCallback(async () => {
-        const blob = await exportApiDefinition(env!.id, apiId!);
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${form?.name ?? apiId}-definition.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-    }, [env, apiId, form?.name]);
+    const handleExport = useCallback(
+        async (tab: 'gravitee' | 'crd' | 'terraform', include: Record<ExportIncludeKey, boolean>) => {
+            if (tab === 'terraform' || !env || !apiId) return;
+            setIsExporting(true);
+            setExportError(null);
+            try {
+                if (tab === 'gravitee') {
+                    const blob = await exportApiDefinition(env.id, apiId, buildExcludeAdditionalData(include));
+                    downloadBlob(blob, `${buildExportFileName(api)}.json`);
+                } else {
+                    const blob = await exportApiCrd(env.id, apiId);
+                    downloadBlob(blob, `${buildExportFileName(api, '-crd')}.yml`);
+                }
+                setExportOpen(false);
+            } catch (e: unknown) {
+                setExportError(e instanceof Error ? e.message : 'An error occurred while exporting the API.');
+            } finally {
+                setIsExporting(false);
+            }
+        },
+        [api, apiId, env],
+    );
+
+    const duplicateEntryMode = getDuplicateEntryMode(api);
 
     const apiStarted = api?.state === 'STARTED';
 
@@ -509,7 +531,7 @@ export function ApiGeneralPage() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => setImportOpen(true)}
-                                disabled={isKubernetesManaged}
+                                disabled={IMPORT_AND_PROMOTE_UNAVAILABLE || isKubernetesManaged}
                             >
                                 <FileUpIcon className="size-3.5" /> Import
                             </Button>
@@ -531,7 +553,7 @@ export function ApiGeneralPage() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => setPromoteOpen(true)}
-                                disabled={isKubernetesManaged || api?.lifecycleState === 'DEPRECATED'}
+                                disabled={IMPORT_AND_PROMOTE_UNAVAILABLE || isKubernetesManaged || api?.lifecycleState === 'DEPRECATED'}
                             >
                                 <ExternalLinkIcon className="size-3.5" /> Promote
                             </Button>
@@ -620,7 +642,16 @@ export function ApiGeneralPage() {
             )}
 
             {/* ── Dialogs ─────────────────────────────────────────────────── */}
-            <ExportDialog open={exportOpen} onOpenChange={setExportOpen} onExport={() => void handleExport()} />
+            <ExportDialog
+                open={exportOpen}
+                onOpenChange={open => {
+                    setExportOpen(open);
+                    if (!open) setExportError(null);
+                }}
+                onExport={(tab, include) => void handleExport(tab, include)}
+                isExporting={isExporting}
+                error={exportError}
+            />
             <ImportDialog
                 open={importOpen}
                 onOpenChange={setImportOpen}
@@ -631,8 +662,10 @@ export function ApiGeneralPage() {
             <DuplicateDialog
                 open={duplicateOpen}
                 onOpenChange={setDuplicateOpen}
-                initialName={api?.name ?? ''}
                 initialVersion={api?.apiVersion ?? ''}
+                entryMode={duplicateEntryMode}
+                contextPathPlaceholder={extractContextPathPlaceholder(api)}
+                hostPlaceholder={extractHostPlaceholder(api)}
                 onDuplicate={opts => duplicateMutation.mutate(opts)}
                 isLoading={duplicateMutation.isPending}
                 error={duplicateError}

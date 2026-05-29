@@ -15,7 +15,7 @@
  */
 import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
@@ -40,13 +40,16 @@ jest.mock('@gravitee/graphene-core', () => ({
         checked,
         onCheckedChange,
         disabled,
+        id,
     }: {
         checked?: boolean;
         onCheckedChange?: (v: boolean) => void;
         disabled?: boolean;
+        id?: string;
     }) => (
         <input
             type="checkbox"
+            id={id}
             checked={checked}
             onChange={e => onCheckedChange?.(e.target.checked)}
             disabled={disabled}
@@ -121,20 +124,6 @@ jest.mock('../../../context/ApiDetailContext', () => ({
     useApiDetailContext: jest.fn(),
 }));
 
-jest.mock('../../../services/apis', () => ({
-    updateApiGeneral: jest.fn(),
-    startApi: jest.fn(),
-    stopApi: jest.fn(),
-    deleteApi: jest.fn(),
-    duplicateApi: jest.fn(),
-    exportApiDefinition: jest.fn(),
-    updateApiFromDefinition: jest.fn(),
-    updateApiPicture: jest.fn(),
-    deleteApiPicture: jest.fn(),
-    updateApiBackground: jest.fn(),
-    deleteApiBackground: jest.fn(),
-}));
-
 jest.mock('../../../utils/queryKeys', () => ({
     apiDetailKeys: {
         all: ['api-detail'],
@@ -150,23 +139,25 @@ jest.mock('../../../hooks/useEnvCategories', () => ({
     useEnvCategories: jest.fn(() => ({ data: [], isLoading: false })),
 }));
 
+jest.mock('../../../services/apiProxy', () => ({
+    verifyContextPath: jest.fn(() => Promise.resolve({ ok: true })),
+    verifyApiHosts: jest.fn(() => Promise.resolve({ ok: true })),
+}));
+
 import { ApiGeneralPage } from './ApiGeneralPage';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
-import { updateApiGeneral, startApi, stopApi, deleteApi } from '../../../services/apis';
+import * as apiServices from '../../../services/apis';
 
 const mockUseEnvironment = useEnvironment as jest.Mock;
 const mockUseApiDetailContext = useApiDetailContext as jest.Mock;
 const mockUseHasPermission = useHasPermission as jest.Mock;
-const mockUpdateApiGeneral = updateApiGeneral as jest.Mock;
-const mockStartApi = startApi as jest.Mock;
-const mockStopApi = stopApi as jest.Mock;
-const mockDeleteApi = deleteApi as jest.Mock;
 
 // lifecycleState: 'CREATED' so the delete button is not blocked by cannotDelete
 const STUB_API = {
     id: 'api-1',
     name: 'My Test API',
     apiVersion: 'v1.0',
+    listeners: [{ type: 'HTTP', paths: [{ path: '/testVisibility/', host: '' }] }],
     description: 'A test API',
     labels: ['alpha'],
     categories: ['Ops'],
@@ -206,13 +197,22 @@ describe('ApiGeneralPage', () => {
         mockUseEnvironment.mockReturnValue({ id: 'DEFAULT' });
         mockUseApiDetailContext.mockReturnValue({ api: STUB_API, isLoading: false, permissionsReady: true });
         mockUseHasPermission.mockReturnValue(true);
-        mockUpdateApiGeneral.mockResolvedValue({ ...STUB_API, name: 'Updated API' });
-        mockStartApi.mockResolvedValue(undefined);
-        mockStopApi.mockResolvedValue(undefined);
-        mockDeleteApi.mockResolvedValue(undefined);
+
+        jest.spyOn(apiServices, 'updateApiGeneral').mockResolvedValue({ ...STUB_API, name: 'Updated API' });
+        jest.spyOn(apiServices, 'startApi').mockResolvedValue(undefined);
+        jest.spyOn(apiServices, 'stopApi').mockResolvedValue(undefined);
+        jest.spyOn(apiServices, 'deleteApi').mockResolvedValue(undefined);
     });
 
-    afterEach(() => jest.clearAllMocks());
+    beforeAll(() => {
+        Object.defineProperty(URL, 'createObjectURL', { value: jest.fn(() => 'blob:test'), writable: true });
+        Object.defineProperty(URL, 'revokeObjectURL', { value: jest.fn(), writable: true });
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+        jest.restoreAllMocks();
+    });
 
     // ── Loading & initial render ─────────────────────────────────────────────
 
@@ -257,9 +257,9 @@ describe('ApiGeneralPage', () => {
         renderPage();
         fireEvent.change(screen.getByRole('textbox', { name: /name/i }), { target: { value: 'Renamed API' } });
         fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
-        await waitFor(() => expect(mockUpdateApiGeneral).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(apiServices.updateApiGeneral).toHaveBeenCalledTimes(1));
         // Signature is now (envId, apiId, current, patch)
-        expect(mockUpdateApiGeneral).toHaveBeenCalledWith(
+        expect(apiServices.updateApiGeneral).toHaveBeenCalledWith(
             'DEFAULT',
             'api-1',
             expect.objectContaining({ id: 'api-1' }),
@@ -287,7 +287,7 @@ describe('ApiGeneralPage', () => {
     it('calls startApi when Start button is clicked', async () => {
         renderPage();
         fireEvent.click(screen.getByRole('button', { name: /start/i }));
-        await waitFor(() => expect(mockStartApi).toHaveBeenCalledWith('DEFAULT', 'api-1'));
+        await waitFor(() => expect(apiServices.startApi).toHaveBeenCalledWith('DEFAULT', 'api-1'));
     });
 
     it('calls stopApi when Stop button is clicked', async () => {
@@ -298,7 +298,7 @@ describe('ApiGeneralPage', () => {
         });
         renderPage();
         fireEvent.click(screen.getByRole('button', { name: /stop/i }));
-        await waitFor(() => expect(mockStopApi).toHaveBeenCalledWith('DEFAULT', 'api-1'));
+        await waitFor(() => expect(apiServices.stopApi).toHaveBeenCalledWith('DEFAULT', 'api-1'));
     });
 
     // ── Delete ───────────────────────────────────────────────────────────────
@@ -324,7 +324,7 @@ describe('ApiGeneralPage', () => {
         fireEvent.click(screen.getByRole('button', { name: /delete this api/i }));
         fireEvent.change(screen.getByPlaceholderText('My Test API'), { target: { value: 'My Test API' } });
         fireEvent.click(screen.getByRole('button', { name: /delete permanently/i }));
-        await waitFor(() => expect(mockDeleteApi).toHaveBeenCalledWith('DEFAULT', 'api-1'));
+        await waitFor(() => expect(apiServices.deleteApi).toHaveBeenCalledWith('DEFAULT', 'api-1'));
         await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     });
 
@@ -358,18 +358,47 @@ describe('ApiGeneralPage', () => {
         expect(screen.getByRole('button', { name: /promote/i })).toBeInTheDocument();
     });
 
-    it('opens Export dialog when Export is clicked', () => {
+    it('disables Import and Promote until fully implemented', () => {
         renderPage();
-        fireEvent.click(screen.getByRole('button', { name: /export/i }));
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
-        expect(screen.getByText(/export api definition/i)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /import/i })).toBeDisabled();
+        expect(screen.getByRole('button', { name: /promote/i })).toBeDisabled();
     });
 
-    it('opens Duplicate dialog when Duplicate is clicked', () => {
+    it('calls exportApiDefinition with unchecked exclude options from the export dialog', async () => {
+        const exportSpy = jest.spyOn(apiServices, 'exportApiDefinition').mockResolvedValue(new Blob(['{}'], { type: 'application/json' }));
+        renderPage();
+        fireEvent.click(screen.getByRole('button', { name: /export/i }));
+        const dialog = screen.getByRole('dialog');
+        fireEvent.click(within(dialog).getByLabelText('Members'));
+        fireEvent.click(within(dialog).getByRole('button', { name: /^export$/i }));
+
+        await waitFor(() => expect(exportSpy).toHaveBeenCalledWith('DEFAULT', 'api-1', ['members']));
+        exportSpy.mockRestore();
+    });
+
+    it('calls duplicateApi with context path, version, and filtered fields from the duplicate dialog', async () => {
+        const duplicateSpy = jest.spyOn(apiServices, 'duplicateApi').mockResolvedValue({ id: 'api-2', name: 'My Test API copy' });
         renderPage();
         fireEvent.click(screen.getByRole('button', { name: /duplicate/i }));
-        expect(screen.getByRole('dialog')).toBeInTheDocument();
-        expect(screen.getByText(/duplicate api/i)).toBeInTheDocument();
+        const dialog = screen.getByRole('dialog');
+        fireEvent.change(within(dialog).getByPlaceholderText('/testVisibility/'), { target: { value: '/duplicate' } });
+        fireEvent.change(within(dialog).getByPlaceholderText('v1.0'), { target: { value: 'v2' } });
+        fireEvent.click(within(dialog).getByLabelText('Members'));
+
+        const duplicateBtn = within(dialog).getByRole('button', { name: /^duplicate$/i });
+        await waitFor(() => expect(duplicateBtn).not.toBeDisabled());
+        await act(async () => {
+            fireEvent.click(duplicateBtn);
+        });
+
+        await waitFor(() =>
+            expect(duplicateSpy).toHaveBeenCalledWith('DEFAULT', 'api-1', {
+                version: 'v2',
+                contextPath: '/duplicate',
+                filteredFields: ['MEMBERS'],
+            }),
+        );
+        duplicateSpy.mockRestore();
     });
 
     // ── Permission-gated rendering ────────────────────────────────────────────

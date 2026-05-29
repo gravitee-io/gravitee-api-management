@@ -29,7 +29,6 @@ export function useApiProductGroupMembers(productId: string | undefined, groups:
             queryKey: apiProductKeys.groupMembers(env?.id ?? '', productId ?? '', g.id),
             queryFn: () => getGroupMembers(env!.id, g.id),
             enabled: Boolean(env && productId),
-            staleTime: 30_000,
             retry: false,
         })),
     });

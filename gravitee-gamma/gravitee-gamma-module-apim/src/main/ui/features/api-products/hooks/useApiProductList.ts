@@ -26,7 +26,6 @@ export function useApiProductList({ query, page, perPage }: { query: string; pag
         queryKey: apiProductKeys.list(env?.id ?? '', query, page, perPage),
         queryFn: () => searchApiProducts(env!.id, { query: query || undefined }, page, perPage, query ? undefined : 'name'),
         enabled: Boolean(env),
-        staleTime: 30_000,
         placeholderData: keepPreviousData,
     });
 }

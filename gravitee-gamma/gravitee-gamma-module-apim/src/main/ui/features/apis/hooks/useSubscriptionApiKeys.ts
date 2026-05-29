@@ -27,7 +27,6 @@ export function useApiKeyList(ctx: SubscriptionContext, subscriptionId: string, 
         queryKey: apiSubscriptionKeys.apiKeys(envId, ctx, subscriptionId, page),
         queryFn: () => listApiKeys(envId, ctx, subscriptionId, page, perPage),
         enabled: Boolean(envId && ctx.entityId && subscriptionId),
-        staleTime: 30_000,
     });
 }
 

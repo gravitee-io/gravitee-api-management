@@ -46,7 +46,6 @@ export function ApiProductOverviewPage() {
         queryKey: apiPlanKeys.list(env?.id ?? '', plansCtx, ['STAGING', 'PUBLISHED', 'DEPRECATED'], 1, 1),
         queryFn: () => listPlans(env!.id, plansCtx, ['STAGING', 'PUBLISHED', 'DEPRECATED'], 1, 1),
         enabled: Boolean(env && productId),
-        staleTime: 60_000,
     });
     const hasPlans = (plansData?.pagination?.totalCount ?? 0) > 0;
 

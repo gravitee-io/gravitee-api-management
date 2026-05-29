@@ -75,3 +75,33 @@ export function respondWith(method: 'get' | 'post' | 'put' | 'delete', url: stri
 export function respondWithError(method: 'get' | 'post' | 'put' | 'delete', url: string, status: number) {
     server.use(http[method](url, () => HttpResponse.json({ message: `Error ${status}` }, { status })));
 }
+
+/** Records GET requests and returns a JSON body as a blob (for export endpoints). */
+export function trackBlobGet(path: string, body: string | Record<string, unknown> = '{}'): RequestTracker {
+    const requests: TrackedRequest[] = [];
+    const payload = typeof body === 'string' ? body : JSON.stringify(body);
+
+    server.use(
+        http.get(path, async ({ request }) => {
+            requests.push({
+                url: request.url,
+                method: request.method,
+                headers: new Headers(request.headers),
+                body: null,
+            });
+            return new HttpResponse(payload, { headers: { 'Content-Type': 'application/json' } });
+        }),
+    );
+
+    return {
+        get calls() {
+            return requests;
+        },
+        get callCount() {
+            return requests.length;
+        },
+        get lastCall() {
+            return requests[requests.length - 1] ?? null;
+        },
+    };
+}

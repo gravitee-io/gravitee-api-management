@@ -16,7 +16,6 @@
 import { Card, CardContent, Skeleton } from '@gravitee/graphene-core';
 
 import { useApiStats } from '../../hooks/useApiStats';
-import { useEnvironmentTotalCalls } from '../../hooks/useEnvironmentTotalCalls';
 
 const STAT_CARDS = [
     { key: 'total' as const, label: 'Total APIs' },
@@ -43,14 +42,12 @@ function StatCard({ label, value, isLoading }: { label: string; value: number | 
 
 export function ApiStatsCards({ query }: { query?: string }) {
     const stats = useApiStats(query);
-    const calls = useEnvironmentTotalCalls();
 
     return (
         <div className="flex gap-4">
             {STAT_CARDS.map(({ key, label }) => (
                 <StatCard key={key} label={label} value={stats[key]} isLoading={stats.isLoading} />
             ))}
-            <StatCard label="Total Calls (24h)" value={calls.total} isLoading={calls.isLoading} />
         </div>
     );
 }

@@ -32,7 +32,6 @@ export function useApiEntrypoints(showConfig: boolean) {
         queryKey: apiEntrypointKeys.exposed(env?.id ?? '', apiId ?? ''),
         queryFn: () => getExposedEntrypoints(env!.id, apiId!),
         enabled: Boolean(env && apiId && showConfig),
-        staleTime: 30_000,
     });
 
     const saveMutation = useMutation({

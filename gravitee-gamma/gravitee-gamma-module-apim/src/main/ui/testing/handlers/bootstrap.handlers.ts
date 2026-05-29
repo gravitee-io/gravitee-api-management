@@ -19,5 +19,10 @@ import { TEST_CONFIG } from '../factories';
 
 export const bootstrapHandlers = [
     http.get('/constants.json', () => HttpResponse.json({ gammaBaseURL: TEST_CONFIG.gammaBaseURL })),
-    http.get(`${TEST_CONFIG.gammaBaseURL}/ui/bootstrap`, () => HttpResponse.json({ managementBaseURL: TEST_CONFIG.managementBaseURL })),
+    http.get(`${TEST_CONFIG.gammaBaseURL}/ui/bootstrap`, () =>
+        HttpResponse.json({
+            managementBaseURL: TEST_CONFIG.managementBaseURL,
+            organizationId: TEST_CONFIG.organizationId,
+        }),
+    ),
 ];

@@ -25,6 +25,5 @@ export function useApiGroupMembers(apiId: string | undefined) {
         queryKey: apiMemberKeys.groups(env?.id ?? '', apiId ?? ''),
         queryFn: () => getApiGroupMembers(env!.id, apiId!),
         enabled: Boolean(env && apiId),
-        staleTime: 30_000,
     });
 }

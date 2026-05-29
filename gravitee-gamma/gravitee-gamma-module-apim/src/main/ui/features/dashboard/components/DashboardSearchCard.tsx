@@ -76,14 +76,12 @@ export function DashboardSearchCard({ onNavigateToApi, onNavigateToProduct }: Da
         queryKey: apiListKeys.search(envId, query, 1, MAX_RESULTS),
         queryFn: () => searchApis(envId, { query }, 1, MAX_RESULTS),
         enabled: enabled && hasQuery,
-        staleTime: 30_000,
     });
 
     const productsQuery = useQuery({
         queryKey: apiProductKeys.list(envId, query, 1, MAX_RESULTS),
         queryFn: () => searchApiProducts(envId, { query }, 1, MAX_RESULTS),
         enabled: enabled && hasQuery,
-        staleTime: 30_000,
     });
 
     const apis: ApiListItem[] = apisQuery.data?.data ?? [];

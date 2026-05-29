@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { cn, Skeleton, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@gravitee/graphene-core';
+import { cn, Skeleton } from '@gravitee/graphene-core';
 import {
     ActivityIcon,
     BellIcon,
     ChevronDownIcon,
     ChevronRightIcon,
-    FlaskConicalIcon,
     GlobeIcon,
     LayoutDashboardIcon,
     ListIcon,
@@ -182,23 +181,10 @@ function CollapsibleNavItem({ item, basePath }: CollapsibleNavItemProps) {
             </button>
             {open && (
                 <div className="ml-4 border-l border-border pl-2 space-y-0.5">
-                    {item.children.map(child =>
-                        child.comingSoon ? (
-                            <Tooltip key={child.path}>
-                                <TooltipTrigger asChild>
-                                    <div
-                                        className="flex w-full items-center rounded-lg px-3 py-1.5 text-sm cursor-not-allowed select-none text-muted-foreground/50"
-                                        aria-disabled="true"
-                                    >
-                                        <span className="flex-1">{child.label}</span>
-                                        <FlaskConicalIcon className="size-3.5 shrink-0" aria-hidden />
-                                    </div>
-                                </TooltipTrigger>
-                                <TooltipContent side="right" className="text-xs">
-                                    Coming soon
-                                </TooltipContent>
-                            </Tooltip>
-                        ) : (
+                    {/* "Coming soon" children are hidden until their feature ships. */}
+                    {item.children
+                        .filter(child => !child.comingSoon)
+                        .map(child => (
                             <NavLink
                                 end
                                 key={child.path}
@@ -212,8 +198,7 @@ function CollapsibleNavItem({ item, basePath }: CollapsibleNavItemProps) {
                             >
                                 {child.label}
                             </NavLink>
-                        ),
-                    )}
+                        ))}
                 </div>
             )}
         </div>
@@ -243,12 +228,14 @@ export function ApiDetailSidebarNav({ groups, basePath, permissionsReady = true 
     }
 
     return (
-        <TooltipProvider delayDuration={300}>
-            <div className="space-y-0.5 px-2 py-2">
-                {groups.map(group => (
-                    <div key={group.label} className="pt-4 first:pt-0">
-                        <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{group.label}</p>
-                        {group.items.map(item => {
+        <div className="space-y-0.5 px-2 py-2">
+            {groups.map(group => (
+                <div key={group.label} className="pt-4 first:pt-0">
+                    <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{group.label}</p>
+                    {/* "Coming soon" items are hidden until their feature ships. */}
+                    {group.items
+                        .filter(item => !item.comingSoon)
+                        .map(item => {
                             if (item.children && item.children.length > 0) {
                                 return (
                                     <CollapsibleNavItem
@@ -259,25 +246,6 @@ export function ApiDetailSidebarNav({ groups, basePath, permissionsReady = true 
                                 );
                             }
                             const Icon = item.icon;
-                            if (item.comingSoon) {
-                                return (
-                                    <Tooltip key={item.path}>
-                                        <TooltipTrigger asChild>
-                                            <div
-                                                className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm cursor-not-allowed select-none text-muted-foreground/50"
-                                                aria-disabled="true"
-                                            >
-                                                <Icon className="size-4 shrink-0" aria-hidden />
-                                                <span className="flex-1">{item.label}</span>
-                                                <FlaskConicalIcon className="size-3.5 shrink-0" aria-hidden />
-                                            </div>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="right" className="text-xs">
-                                            Coming soon
-                                        </TooltipContent>
-                                    </Tooltip>
-                                );
-                            }
                             return (
                                 <NavLink
                                     end={item.end !== false}
@@ -297,9 +265,8 @@ export function ApiDetailSidebarNav({ groups, basePath, permissionsReady = true 
                                 </NavLink>
                             );
                         })}
-                    </div>
-                ))}
-            </div>
-        </TooltipProvider>
+                </div>
+            ))}
+        </div>
     );
 }

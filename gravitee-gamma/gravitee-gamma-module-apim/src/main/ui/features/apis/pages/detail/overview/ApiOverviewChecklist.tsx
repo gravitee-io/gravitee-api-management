@@ -13,34 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ActivityIcon, GlobeIcon, LockIcon, NetworkIcon, UsersIcon, WorkflowIcon } from '@gravitee/graphene-core/icons';
+import { ActivityIcon, LockIcon, UsersIcon, WorkflowIcon } from '@gravitee/graphene-core/icons';
 
 import { OverviewChecklistCard, type OverviewChecklistItem } from '../../../../../shared/components/OverviewChecklistCard';
 import { useChecklistOverrides } from '../../../../../shared/hooks/useChecklistOverrides';
 import type { AlertTrigger, ApiDetailDto } from '../../../types';
 import type { MembersResponse } from '../../../types/members.types';
+import { hasDefaultEndpointGroupBackendSecurityConfigured } from '../../../utils/endpointGroupBackendSecurity';
 
 function buildChecklistItems(
     api: ApiDetailDto | null,
     membersData: MembersResponse | undefined,
     alertsData: AlertTrigger[] | undefined,
-    hasPlans: boolean,
     itemDone: (autoDone: boolean, id: string) => boolean,
 ): OverviewChecklistItem[] {
-    const hasEndpointGroup = Boolean(api?.endpointGroups?.[0]?.endpoints?.length);
+    const hasBackendSecurity = hasDefaultEndpointGroupBackendSecurityConfigured(api);
     const memberCount = membersData?.pagination?.totalCount ?? 0;
-    const isPublished = api?.lifecycleState === 'PUBLISHED';
     const hasAlerts = Boolean(alertsData?.length);
 
     return [
         {
             id: 'endpoint-security',
-            label: 'Configure endpoint groups',
-            tooltip: 'Set up load balancing, SSL/TLS, or authentication between the gateway and your upstream service.',
-            to: '../endpoints/list',
-            icon: NetworkIcon,
-            actionLabel: 'Open Endpoints',
-            done: itemDone(hasEndpointGroup, 'endpoint-security'),
+            label: 'Configure backend security on your endpoint group',
+            tooltip: 'Set up SSL/TLS, proxy authentication, or upstream headers on the default endpoint group shared configuration.',
+            to: '../endpoints/list?editGroup=0&step=configuration',
+            icon: LockIcon,
+            actionLabel: 'Open configuration',
+            done: itemDone(hasBackendSecurity, 'endpoint-security'),
         },
         {
             id: 'security-policies',
@@ -50,15 +49,6 @@ function buildChecklistItems(
             icon: WorkflowIcon,
             actionLabel: 'Open Policy Studio',
             done: itemDone(false, 'security-policies'),
-        },
-        {
-            id: 'authorization',
-            label: 'Apply authorization',
-            tooltip: 'Configure OAuth2, JWT, or API-key based authorization plans.',
-            icon: LockIcon,
-            actionLabel: 'Coming soon',
-            done: false,
-            comingSoon: true,
         },
         {
             id: 'alerts',
@@ -78,15 +68,6 @@ function buildChecklistItems(
             actionLabel: 'Manage Access',
             done: itemDone(memberCount > 1, 'team-access'),
         },
-        {
-            id: 'publish',
-            label: 'Publish API',
-            tooltip: 'Set your API lifecycle state to Published so consumers can discover and subscribe to it.',
-            to: '../general',
-            icon: GlobeIcon,
-            actionLabel: 'Open General',
-            done: itemDone(isPublished, 'publish'),
-        },
     ];
 }
 
@@ -94,7 +75,6 @@ interface ApiOverviewChecklistProps {
     api: ApiDetailDto | null;
     membersData: MembersResponse | undefined;
     alertsData: AlertTrigger[] | undefined;
-    hasPlans: boolean;
     isLoadingMembers: boolean;
     isLoadingAlerts: boolean;
 }
@@ -103,7 +83,6 @@ export function ApiOverviewChecklist({
     api,
     membersData,
     alertsData,
-    hasPlans,
     isLoadingMembers,
     isLoadingAlerts,
 }: Readonly<ApiOverviewChecklistProps>) {
@@ -119,7 +98,7 @@ export function ApiOverviewChecklist({
     return (
         <OverviewChecklistCard
             description="Finish setting up your API proxy. Each row links to the right screen."
-            items={buildChecklistItems(api, membersData, alertsData, hasPlans, itemDone)}
+            items={buildChecklistItems(api, membersData, alertsData, itemDone)}
             isReady={isReady}
             onToggle={toggle}
         />

@@ -29,7 +29,6 @@ export function usePlanList(ctx: PlanContext, statuses: PlanStatus[], page: numb
         queryKey: apiPlanKeys.list(envId, ctx, statuses, page, perPage),
         queryFn: () => listPlans(envId, ctx, statuses, page, perPage),
         enabled: Boolean(envId && ctx.entityId),
-        staleTime: 30_000,
         placeholderData: keepPreviousData,
     });
 }
@@ -42,7 +41,6 @@ export function usePlanStatusCount(ctx: PlanContext, status: PlanStatus) {
         queryKey: apiPlanKeys.count(envId, ctx, status),
         queryFn: () => listPlans(envId, ctx, [status], 1, 1),
         enabled: Boolean(envId && ctx.entityId),
-        staleTime: 30_000,
         select: data => data.pagination.totalCount,
     });
 }
@@ -81,7 +79,6 @@ export function usePlan(ctx: PlanContext, planId: string | undefined) {
         queryKey: apiPlanKeys.detail(envId, ctx, planId ?? ''),
         queryFn: () => getPlan(envId, ctx, planId!),
         enabled: Boolean(envId && ctx.entityId && planId),
-        staleTime: 30_000,
     });
 }
 

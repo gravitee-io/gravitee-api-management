@@ -20,16 +20,30 @@ import type {
     CreateApiPlanRequest,
     CreateApiProxyRequest,
     PathToVerify,
+    VerifyApiHostsResponse,
     VerifyApiPathResponse,
 } from '../types';
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
-export async function verifyContextPath(environmentId: string, paths: PathToVerify[]): Promise<VerifyApiPathResponse> {
+export async function verifyContextPath(environmentId: string, paths: PathToVerify[], apiId?: string): Promise<VerifyApiPathResponse> {
     return apimFetchJsonV2<VerifyApiPathResponse>(environmentId, `/apis/_verify/paths`, {
         method: 'POST',
         headers: JSON_HEADERS,
-        body: JSON.stringify({ paths }),
+        body: JSON.stringify({ paths, ...(apiId ? { apiId } : {}) }),
+    });
+}
+
+export async function verifyApiHosts(
+    environmentId: string,
+    listenerType: 'TCP',
+    hosts: string[],
+    apiId?: string,
+): Promise<VerifyApiHostsResponse> {
+    return apimFetchJsonV2<VerifyApiHostsResponse>(environmentId, `/apis/_verify/hosts`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ listenerType, hosts, ...(apiId ? { apiId } : {}) }),
     });
 }
 

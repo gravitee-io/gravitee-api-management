@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import { Button, Checkbox, Input, Label, Switch } from '@gravitee/graphene-core';
-import { ChevronDownIcon, ChevronRightIcon, PlusIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
-import { useState } from 'react';
+import { PlusIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 
+import { CollapsibleSection } from '../../../../../components/CollapsibleSection';
 import type { ResourceFilteringRule } from '../../../../../types/plan';
 import { ALL_HTTP_METHODS } from '../../../../../types/plan';
 
@@ -28,25 +28,6 @@ interface ResourceFilteringFieldsProps {
     onNormalizeChange: (v: boolean) => void;
     onDecodeSlashChange: (v: boolean) => void;
     readOnly?: boolean;
-}
-
-// ─── Collapsible section ──────────────────────────────────────────────────────
-
-function CollapsibleSection({ title, children }: { title: string; children: React.ReactNode }) {
-    const [open, setOpen] = useState(true);
-    return (
-        <div className="rounded-lg border">
-            <button type="button" className="flex w-full items-center justify-between px-4 py-3 text-left" onClick={() => setOpen(v => !v)}>
-                <span className="text-sm font-medium">{title}</span>
-                {open ? (
-                    <ChevronDownIcon className="size-4 text-muted-foreground" aria-hidden />
-                ) : (
-                    <ChevronRightIcon className="size-4 text-muted-foreground" aria-hidden />
-                )}
-            </button>
-            {open && <div className="border-t px-4 py-3 space-y-3">{children}</div>}
-        </div>
-    );
 }
 
 // ─── Rule list inside a section ───────────────────────────────────────────────
@@ -145,7 +126,7 @@ export function ResourceFilteringFields({
 
     return (
         <div className="space-y-4">
-            <CollapsibleSection title="Whitelist">
+            <CollapsibleSection title="Whitelist" defaultOpen>
                 <RuleList
                     sectionRules={whitelist}
                     readOnly={readOnly}
@@ -155,7 +136,7 @@ export function ResourceFilteringFields({
                 />
             </CollapsibleSection>
 
-            <CollapsibleSection title="Blacklist">
+            <CollapsibleSection title="Blacklist" defaultOpen>
                 <RuleList
                     sectionRules={blacklist}
                     readOnly={readOnly}

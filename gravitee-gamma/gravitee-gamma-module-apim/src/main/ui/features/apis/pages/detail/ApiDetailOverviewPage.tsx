@@ -30,7 +30,6 @@ export function ApiDetailOverviewPage() {
         alertsData,
         exposedEntrypoints,
         analyticsStats,
-        hasPlans,
         isLoadingTraffic,
         isLoadingMembers,
         isLoadingAlerts,
@@ -53,7 +52,6 @@ export function ApiDetailOverviewPage() {
                 api={api}
                 membersData={membersData}
                 alertsData={alertsData}
-                hasPlans={hasPlans}
                 isLoadingMembers={isLoadingMembers}
                 isLoadingAlerts={isLoadingAlerts}
             />

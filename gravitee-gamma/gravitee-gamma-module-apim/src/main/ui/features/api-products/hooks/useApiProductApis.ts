@@ -26,7 +26,6 @@ export function useApiProductApis(productId: string | undefined, page: number, p
         queryKey: apiProductKeys.apis(env?.id ?? '', productId ?? '', page, perPage, query),
         queryFn: () => getApiProductApis(env!.id, productId!, page, perPage, query),
         enabled: Boolean(env) && Boolean(productId),
-        staleTime: 30_000,
         placeholderData: keepPreviousData,
     });
 }
@@ -37,7 +36,7 @@ export function useApisAvailableForProduct(query: string, page: number, perPage:
         queryKey: apiProductKeys.availableApis(env?.id ?? '', query, page, perPage),
         queryFn: () => searchApisAllowedInProducts(env!.id, query, page, perPage),
         enabled: Boolean(env) && query.trim().length > 0,
-        staleTime: 15_000,
+        staleTime: 0,
         placeholderData: keepPreviousData,
     });
 }

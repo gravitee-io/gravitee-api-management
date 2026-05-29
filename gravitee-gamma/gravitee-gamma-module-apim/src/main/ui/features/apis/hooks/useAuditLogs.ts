@@ -26,6 +26,5 @@ export function useAuditLogs(apiId: string | undefined, params: AuditSearchParam
         queryKey: apiAuditKeys.list(env?.id ?? '', apiId ?? '', params),
         queryFn: () => searchAuditLogs(env!.id, apiId!, params),
         enabled: Boolean(env && apiId),
-        staleTime: 30_000,
     });
 }

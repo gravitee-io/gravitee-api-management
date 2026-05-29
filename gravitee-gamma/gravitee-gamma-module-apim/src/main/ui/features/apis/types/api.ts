@@ -27,6 +27,11 @@ export interface VerifyApiPathResponse {
     reason?: string;
 }
 
+export interface VerifyApiHostsResponse {
+    ok: boolean;
+    reason?: string;
+}
+
 export interface HttpPath {
     path: string;
     overrideAccess?: boolean;
@@ -106,10 +111,13 @@ export type ApiDeploymentState = 'NEED_REDEPLOY' | 'DEPLOYED';
 export type ApiLifecycleState = 'ARCHIVED' | 'CREATED' | 'DEPRECATED' | 'PUBLISHED' | 'UNPUBLISHED';
 export type ApiVisibility = 'PUBLIC' | 'PRIVATE';
 
+export type DuplicateFilteredField = 'GROUPS' | 'MEMBERS' | 'PAGES' | 'PLANS';
+
 export interface DuplicateApiOptions {
     contextPath?: string;
+    host?: string;
     version: string;
-    filteredFields?: ('GROUPS' | 'MEMBERS' | 'PAGES' | 'PLANS')[];
+    filteredFields?: DuplicateFilteredField[];
 }
 export type ApiType = 'PROXY' | 'MESSAGE' | 'NATIVE';
 
@@ -189,21 +197,26 @@ export interface EndpointGroupHttp {
     idleTimeout?: number;
     connectTimeout?: number;
     maxConcurrentConnections?: number;
-    maxHeaderSize?: number;
-    maxChunkSize?: number;
     useCompression?: boolean;
     propagateClientAcceptEncoding?: boolean;
-    propagateClientHostHeader?: boolean;
+    propagateClientHost?: boolean;
     pipelining?: boolean;
     followRedirects?: boolean;
     version?: 'HTTP_1_1' | 'HTTP_2';
     clearTextUpgrade?: boolean;
+    http2MultiplexingLimit?: number;
+    http2ConnectionWindowSize?: number;
+    http2StreamWindowSize?: number;
+    http2MaxFrameSize?: number;
 }
 
 export interface EndpointGroupSsl {
     hostnameVerifier?: boolean;
     trustAll?: boolean;
+    /** Legacy / UI-only; not sent on save (V4 ssl schema uses trustStore/keyStore). */
     clientAuthentication?: 'NONE' | 'REQUIRED' | 'OPTIONAL';
+    trustStore?: Record<string, unknown>;
+    keyStore?: Record<string, unknown>;
 }
 
 export interface EndpointGroupHeader {
@@ -218,6 +231,33 @@ export interface EndpointGroupSharedConfiguration {
     headers?: EndpointGroupHeader[];
 }
 
+export interface HealthCheckHeader {
+    name: string;
+    value: string;
+}
+
+export interface HealthCheckConfiguration {
+    schedule?: string;
+    method?: string;
+    target?: string;
+    overrideEndpointPath?: boolean;
+    headers?: HealthCheckHeader[];
+    assertion?: string;
+    successThreshold?: number;
+    failureThreshold?: number;
+}
+
+export interface HealthCheckService {
+    enabled?: boolean;
+    type?: string;
+    configuration?: HealthCheckConfiguration;
+    overrideConfiguration?: boolean;
+}
+
+export interface EndpointServices {
+    healthCheck?: HealthCheckService;
+}
+
 export interface EndpointDto {
     name: string;
     type: string;
@@ -227,6 +267,11 @@ export interface EndpointDto {
     configuration?: { target?: string; [key: string]: unknown };
     tenants?: string[];
     sharedConfigurationOverride?: Record<string, unknown>;
+    services?: EndpointServices;
+}
+
+export interface EndpointGroupServices {
+    healthCheck?: HealthCheckService;
 }
 
 export interface EndpointGroupDto {
@@ -235,6 +280,7 @@ export interface EndpointGroupDto {
     loadBalancer?: { type: LoadBalancerType };
     sharedConfiguration?: EndpointGroupSharedConfiguration;
     endpoints?: EndpointDto[];
+    services?: EndpointGroupServices;
 }
 
 export interface Failover {

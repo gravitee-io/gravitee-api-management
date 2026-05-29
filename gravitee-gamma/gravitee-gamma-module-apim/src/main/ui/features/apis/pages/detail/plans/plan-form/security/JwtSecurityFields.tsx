@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 import { Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Switch } from '@gravitee/graphene-core';
-import { ChevronDownIcon, ChevronRightIcon, XIcon } from '@gravitee/graphene-core/icons';
+import { XIcon } from '@gravitee/graphene-core/icons';
 import { useRef, useState } from 'react';
+
+import { CollapsibleSection } from '../../../../../components/CollapsibleSection';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -128,23 +130,6 @@ const RESOLVER_PLACEHOLDERS: Partial<Record<JwtPublicKeyResolver, string>> = {
 };
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
-
-function CollapsibleSection({ title, children }: { title: string; children: React.ReactNode }) {
-    const [open, setOpen] = useState(false);
-    return (
-        <div className="rounded-lg border">
-            <button type="button" className="flex w-full items-center justify-between px-4 py-3 text-left" onClick={() => setOpen(v => !v)}>
-                <span className="text-sm font-medium">{title}</span>
-                {open ? (
-                    <ChevronDownIcon className="size-4 text-muted-foreground" aria-hidden />
-                ) : (
-                    <ChevronRightIcon className="size-4 text-muted-foreground" aria-hidden />
-                )}
-            </button>
-            {open && <div className="border-t px-4 py-4 space-y-4">{children}</div>}
-        </div>
-    );
-}
 
 function SwitchRow({
     id,

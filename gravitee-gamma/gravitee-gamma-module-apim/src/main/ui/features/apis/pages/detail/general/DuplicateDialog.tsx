@@ -13,90 +13,212 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-    Button,
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    Input,
-    Label,
-} from '@gravitee/graphene-core';
+import { Button, Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Label } from '@gravitee/graphene-core';
 import { CopyIcon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
+
+import {
+    API_ACTION_DIALOG_CONTENT_CLASS,
+    API_ACTION_DIALOG_CONTENT_STYLE,
+    API_ACTION_DIALOG_VERSION_FIELD_CLASS,
+} from './apiActionDialogLayout';
+import { DialogCheckboxOptions } from './DialogCheckboxOptions';
+import { useDuplicateEntryValidation } from '../../../hooks/useDuplicateEntryValidation';
+import type { DuplicateFilteredField } from '../../../types';
+import { DUPLICATE_INCLUDE_OPTIONS, type DuplicateEntryMode, buildDuplicateFilteredFields } from '../../../utils/apiGeneralDuplicate';
+import { validateDuplicateVersion } from '../../../utils/duplicateDialogValidation';
 
 export function DuplicateDialog({
     open,
     onOpenChange,
-    initialName,
     initialVersion,
+    entryMode,
+    contextPathPlaceholder,
+    hostPlaceholder,
     onDuplicate,
     isLoading,
     error,
 }: Readonly<{
     open: boolean;
     onOpenChange: (v: boolean) => void;
-    initialName: string;
     initialVersion: string;
-    onDuplicate: (opts: { version: string; contextPath: string }) => void;
+    entryMode: DuplicateEntryMode;
+    contextPathPlaceholder: string;
+    hostPlaceholder: string;
+    onDuplicate: (opts: { version: string; contextPath?: string; host?: string; filteredFields: DuplicateFilteredField[] }) => void;
     isLoading: boolean;
     error?: string | null;
 }>) {
-    const [version, setVersion] = useState(initialVersion);
+    const [version, setVersion] = useState('');
     const [contextPath, setContextPath] = useState('');
+    const [host, setHost] = useState('');
+    const [include, setInclude] = useState<Record<DuplicateFilteredField, boolean>>(
+        () => Object.fromEntries(DUPLICATE_INCLUDE_OPTIONS.map(o => [o.id, true])) as Record<DuplicateFilteredField, boolean>,
+    );
+    const [versionError, setVersionError] = useState<string | null>(null);
+    const [showValidation, setShowValidation] = useState(false);
+    const [submitInFlight, setSubmitInFlight] = useState(false);
     const [prevOpen, setPrevOpen] = useState(open);
+
+    const {
+        contextPathError,
+        hostError,
+        verifying,
+        entryValid,
+        resetValidation,
+        scheduleContextPathValidation,
+        scheduleHostValidation,
+        verifyContextPathNow,
+        verifyHostNow,
+        setContextPathError,
+        setHostError,
+    } = useDuplicateEntryValidation(entryMode);
+
     if (prevOpen !== open) {
         setPrevOpen(open);
         if (open) {
-            setVersion(initialVersion);
+            setVersion('');
             setContextPath('');
+            setHost('');
+            setInclude(Object.fromEntries(DUPLICATE_INCLUDE_OPTIONS.map(o => [o.id, true])) as Record<DuplicateFilteredField, boolean>);
+            setVersionError(null);
+            setShowValidation(false);
+            resetValidation();
         }
     }
 
+    const versionValid = validateDuplicateVersion(version) === null;
+    const entryFilled =
+        entryMode === 'none' ||
+        (entryMode === 'contextPath' && contextPath.trim().length > 0) ||
+        (entryMode === 'host' && host.trim().length > 0);
+    const canSubmit = versionValid && entryValid && entryFilled && !verifying && !submitInFlight && !isLoading;
+
+    async function handleSubmit() {
+        setShowValidation(true);
+        const vError = validateDuplicateVersion(version);
+        setVersionError(vError);
+        if (vError || !entryFilled || isLoading || submitInFlight) return;
+
+        setSubmitInFlight(true);
+        try {
+            if (entryMode === 'contextPath') {
+                const pathErr = await verifyContextPathNow(contextPath);
+                setContextPathError(pathErr);
+                if (pathErr) return;
+            }
+
+            if (entryMode === 'host') {
+                const hostErr = await verifyHostNow(host);
+                setHostError(hostErr);
+                if (hostErr) return;
+            }
+
+            onDuplicate({
+                version: version.trim(),
+                ...(entryMode === 'contextPath' ? { contextPath: contextPath.trim() } : {}),
+                ...(entryMode === 'host' ? { host: host.trim() } : {}),
+                filteredFields: buildDuplicateFilteredFields(include),
+            });
+        } finally {
+            setSubmitInFlight(false);
+        }
+    }
+
+    const displayVersionError = showValidation ? versionError : null;
+    const displayContextPathError = showValidation || contextPath.length > 0 ? contextPathError : null;
+    const displayHostError = showValidation || host.length > 0 ? hostError : null;
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent style={{ maxWidth: '512px' }}>
+            <DialogContent className={API_ACTION_DIALOG_CONTENT_CLASS} style={API_ACTION_DIALOG_CONTENT_STYLE}>
                 <DialogHeader>
                     <DialogTitle>Duplicate API</DialogTitle>
-                    <DialogDescription>
-                        Create a copy of <strong>{initialName}</strong>. Subscriptions are not copied.
-                    </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-3 py-2">
-                    <div className="space-y-1">
-                        <Label htmlFor="dup-version">
-                            Version <span className="text-destructive">*</span>
-                        </Label>
-                        <Input id="dup-version" value={version} onChange={e => setVersion(e.target.value)} placeholder="v1.0.0" />
+
+                <div className="space-y-6 py-2">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto] sm:items-start sm:gap-3">
+                        {entryMode === 'contextPath' && (
+                            <div className="space-y-2 min-w-0">
+                                <Label htmlFor="dup-path">
+                                    Context path <span className="text-destructive">*</span>
+                                </Label>
+                                <Input
+                                    id="dup-path"
+                                    value={contextPath}
+                                    onChange={e => {
+                                        setContextPath(e.target.value);
+                                        scheduleContextPathValidation(e.target.value);
+                                    }}
+                                    placeholder={contextPathPlaceholder}
+                                    aria-invalid={Boolean(displayContextPathError)}
+                                />
+                                {displayContextPathError && <p className="text-xs text-destructive">{displayContextPathError}</p>}
+                                {verifying && !displayContextPathError && (
+                                    <p className="text-xs text-muted-foreground">Checking availability…</p>
+                                )}
+                            </div>
+                        )}
+                        {entryMode === 'host' && (
+                            <div className="space-y-2 min-w-0">
+                                <Label htmlFor="dup-host">
+                                    Host <span className="text-destructive">*</span>
+                                </Label>
+                                <Input
+                                    id="dup-host"
+                                    value={host}
+                                    onChange={e => {
+                                        setHost(e.target.value);
+                                        scheduleHostValidation(e.target.value);
+                                    }}
+                                    placeholder={hostPlaceholder}
+                                    aria-invalid={Boolean(displayHostError)}
+                                />
+                                {displayHostError && <p className="text-xs text-destructive">{displayHostError}</p>}
+                                {verifying && !displayHostError && <p className="text-xs text-muted-foreground">Checking availability…</p>}
+                            </div>
+                        )}
+                        <div className={`space-y-2 ${API_ACTION_DIALOG_VERSION_FIELD_CLASS}`}>
+                            <Label htmlFor="dup-version">
+                                Version <span className="text-destructive">*</span>
+                            </Label>
+                            <Input
+                                id="dup-version"
+                                value={version}
+                                onChange={e => {
+                                    setVersion(e.target.value);
+                                    if (showValidation) setVersionError(validateDuplicateVersion(e.target.value));
+                                }}
+                                placeholder={initialVersion}
+                                maxLength={32}
+                                aria-invalid={Boolean(displayVersionError)}
+                            />
+                            {displayVersionError && <p className="text-xs text-destructive">{displayVersionError}</p>}
+                        </div>
                     </div>
-                    <div className="space-y-1">
-                        <Label htmlFor="dup-path">
-                            Context Path <span className="text-muted-foreground text-xs font-normal">(optional)</span>
-                        </Label>
-                        <Input
-                            id="dup-path"
-                            value={contextPath}
-                            onChange={e => setContextPath(e.target.value)}
-                            placeholder="/my-api/v1-copy"
+
+                    <div className="space-y-2">
+                        <p className="text-sm font-medium">Include additional data</p>
+                        <DialogCheckboxOptions
+                            idPrefix="dup"
+                            options={DUPLICATE_INCLUDE_OPTIONS}
+                            values={include}
+                            onChange={(id, checked) => setInclude(prev => ({ ...prev, [id]: checked }))}
                         />
                     </div>
+
                     {error && <p className="text-sm text-destructive">{error}</p>}
                 </div>
+
                 <DialogFooter>
                     <DialogClose asChild>
                         <Button type="button" variant="outline">
                             Cancel
                         </Button>
                     </DialogClose>
-                    <Button
-                        type="button"
-                        disabled={!version.trim() || isLoading}
-                        onClick={() => onDuplicate({ version: version.trim(), contextPath: contextPath.trim() })}
-                    >
-                        <CopyIcon className="size-4" /> {isLoading ? 'Duplicating…' : 'Duplicate'}
+                    <Button type="button" disabled={!canSubmit} onClick={() => void handleSubmit()}>
+                        <CopyIcon className="size-4" aria-hidden />
+                        {isLoading ? 'Duplicating…' : 'Duplicate'}
                     </Button>
                 </DialogFooter>
             </DialogContent>

@@ -30,7 +30,7 @@ import {
     updateApiGeneral,
     updateApiPicture,
 } from '../services/apis';
-import type { ApiDetailDto } from '../types';
+import type { ApiDetailDto, DuplicateApiOptions } from '../types';
 import { apiDetailKeys } from '../utils/queryKeys';
 
 interface ApiGeneralSideEffects {
@@ -73,11 +73,7 @@ export function useApiGeneralMutations(api: ApiDetailDto | null, sideEffects: Ap
     });
 
     const duplicateMutation = useMutation({
-        mutationFn: (opts: { version: string; contextPath: string }) =>
-            duplicateApi(env!.id, apiId!, {
-                version: opts.version,
-                ...(opts.contextPath ? { contextPath: opts.contextPath } : {}),
-            }),
+        mutationFn: (opts: DuplicateApiOptions) => duplicateApi(env!.id, apiId!, opts),
         onSuccess: newApi => sideEffectsRef.current.onDuplicateSuccess?.(newApi),
     });
 

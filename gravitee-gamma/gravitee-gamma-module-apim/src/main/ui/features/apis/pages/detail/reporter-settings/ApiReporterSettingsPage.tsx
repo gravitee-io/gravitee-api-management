@@ -29,7 +29,7 @@ import {
 } from '@gravitee/graphene-core';
 import { ActivityIcon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { SpanRedactionRules } from './SpanRedactionRules';
@@ -91,7 +91,30 @@ export function ApiReporterSettingsPage() {
     const [tracingVerbose, setTracingVerbose] = useState(false);
     const [otelLogsEnabled, setOtelLogsEnabled] = useState(false);
     const [redactionRules, setRedactionRules] = useState<RedactionRule[]>([]);
+    const [isDirty, setIsDirty] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
+
+    const applyAnalyticsToForm = useCallback((analytics: Analytics | undefined) => {
+        setEnabled(analytics?.enabled ?? false);
+        setEntrypoint(analytics?.logging?.mode?.entrypoint ?? false);
+        setEndpoint(analytics?.logging?.mode?.endpoint ?? false);
+        setRequest(analytics?.logging?.phase?.request ?? false);
+        setResponse(analytics?.logging?.phase?.response ?? false);
+        setHeaders(analytics?.logging?.content?.headers ?? false);
+        setPayload(analytics?.logging?.content?.payload ?? false);
+        setCondition(analytics?.logging?.condition ?? '');
+        setTracingEnabled(analytics?.tracing?.enabled ?? false);
+        setTracingVerbose(analytics?.tracing?.verbose ?? false);
+        setOtelLogsEnabled(analytics?.otelLogs?.enabled ?? false);
+        setRedactionRules(analytics?.tracing?.redaction?.rules ?? []);
+        setIsDirty(false);
+        setSaveError(null);
+    }, []);
+
+    function markDirty() {
+        setIsDirty(true);
+        setSaveError(null);
+    }
 
     // Initialize form once per apiId — prevents background refetches from wiping in-progress edits
     const initializedForApiIdRef = useRef<string | undefined>(undefined);
@@ -99,20 +122,12 @@ export function ApiReporterSettingsPage() {
     useEffect(() => {
         if (!api || initializedForApiIdRef.current === apiId) return;
         initializedForApiIdRef.current = apiId;
-        const a = api.analytics;
-        setEnabled(a?.enabled ?? false);
-        setEntrypoint(a?.logging?.mode?.entrypoint ?? false);
-        setEndpoint(a?.logging?.mode?.endpoint ?? false);
-        setRequest(a?.logging?.phase?.request ?? false);
-        setResponse(a?.logging?.phase?.response ?? false);
-        setHeaders(a?.logging?.content?.headers ?? false);
-        setPayload(a?.logging?.content?.payload ?? false);
-        setCondition(a?.logging?.condition ?? '');
-        setTracingEnabled(a?.tracing?.enabled ?? false);
-        setTracingVerbose(a?.tracing?.verbose ?? false);
-        setOtelLogsEnabled(a?.otelLogs?.enabled ?? false);
-        setRedactionRules(a?.tracing?.redaction?.rules ?? []);
-    }, [api, apiId]);
+        applyAnalyticsToForm(api.analytics);
+    }, [api, apiId, applyAnalyticsToForm]);
+
+    function handleDiscard() {
+        applyAnalyticsToForm(api?.analytics);
+    }
 
     // ─── Derived disabled states ───────────────────────────────────────────────
     const loggingFieldsDisabled = !enabled || (!entrypoint && !endpoint);
@@ -125,6 +140,7 @@ export function ApiReporterSettingsPage() {
         onSuccess: () => {
             void queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env?.id ?? '', apiId ?? '') });
             initializedForApiIdRef.current = undefined;
+            setIsDirty(false);
             setSaveError(null);
         },
         onError: (e: Error) => {
@@ -198,10 +214,15 @@ export function ApiReporterSettingsPage() {
                         Control how request and response data is reported for logs and analytics pipelines.
                     </p>
                 </div>
-                {canEdit && (
-                    <Button size="sm" onClick={handleSave} disabled={mutation.isPending}>
-                        {mutation.isPending ? 'Saving…' : 'Save changes'}
-                    </Button>
+                {canEdit && isDirty && (
+                    <div className="flex items-center gap-2 shrink-0">
+                        <Button size="sm" variant="outline" onClick={handleDiscard} aria-label="Discard changes">
+                            Discard
+                        </Button>
+                        <Button size="sm" onClick={handleSave} disabled={mutation.isPending}>
+                            {mutation.isPending ? 'Saving…' : 'Save changes'}
+                        </Button>
+                    </div>
                 )}
             </div>
 
@@ -232,7 +253,10 @@ export function ApiReporterSettingsPage() {
                         <Switch
                             id="reporter-enabled"
                             checked={enabled}
-                            onCheckedChange={setEnabled}
+                            onCheckedChange={v => {
+                                setEnabled(v);
+                                markDirty();
+                            }}
                             disabled={!canEdit}
                             aria-label="Enable analytics"
                         />
@@ -253,7 +277,10 @@ export function ApiReporterSettingsPage() {
                             description="Client → gateway"
                             checked={entrypoint}
                             disabled={!enabled || !canEdit}
-                            onCheckedChange={setEntrypoint}
+                            onCheckedChange={v => {
+                                setEntrypoint(v);
+                                markDirty();
+                            }}
                         />
                         <SettingRow
                             id="reporter-endpoint"
@@ -261,7 +288,10 @@ export function ApiReporterSettingsPage() {
                             description="Gateway → upstream"
                             checked={endpoint}
                             disabled={!enabled || !canEdit}
-                            onCheckedChange={setEndpoint}
+                            onCheckedChange={v => {
+                                setEndpoint(v);
+                                markDirty();
+                            }}
                         />
                     </div>
 
@@ -276,14 +306,20 @@ export function ApiReporterSettingsPage() {
                             label="Request"
                             checked={request}
                             disabled={loggingFieldsDisabled || !canEdit}
-                            onCheckedChange={setRequest}
+                            onCheckedChange={v => {
+                                setRequest(v);
+                                markDirty();
+                            }}
                         />
                         <SettingRow
                             id="reporter-response"
                             label="Response"
                             checked={response}
                             disabled={loggingFieldsDisabled || !canEdit}
-                            onCheckedChange={setResponse}
+                            onCheckedChange={v => {
+                                setResponse(v);
+                                markDirty();
+                            }}
                         />
                     </div>
 
@@ -300,14 +336,20 @@ export function ApiReporterSettingsPage() {
                             label="Headers"
                             checked={headers}
                             disabled={loggingFieldsDisabled || !canEdit}
-                            onCheckedChange={setHeaders}
+                            onCheckedChange={v => {
+                                setHeaders(v);
+                                markDirty();
+                            }}
                         />
                         <SettingRow
                             id="reporter-payload"
                             label="Payload"
                             checked={payload}
                             disabled={loggingFieldsDisabled || !canEdit}
-                            onCheckedChange={setPayload}
+                            onCheckedChange={v => {
+                                setPayload(v);
+                                markDirty();
+                            }}
                         />
                     </div>
 
@@ -326,7 +368,10 @@ export function ApiReporterSettingsPage() {
                             <Input
                                 id="reporter-condition"
                                 value={condition}
-                                onChange={e => setCondition(e.target.value)}
+                                onChange={e => {
+                                    setCondition(e.target.value);
+                                    markDirty();
+                                }}
                                 disabled={loggingFieldsDisabled || !canEdit}
                                 placeholder="{#request.headers['Content-Type'][0] == 'application/json'}"
                             />
@@ -352,7 +397,10 @@ export function ApiReporterSettingsPage() {
                         description="Enable OpenTelemetry tracing for this API. Captures execution spans and conditions."
                         checked={tracingEnabled}
                         disabled={!enabled || !canEdit}
-                        onCheckedChange={setTracingEnabled}
+                        onCheckedChange={v => {
+                            setTracingEnabled(v);
+                            markDirty();
+                        }}
                     />
                     <SettingRow
                         id="reporter-tracing-verbose"
@@ -360,7 +408,10 @@ export function ApiReporterSettingsPage() {
                         description="Adds detailed span events with headers, context attributes, and policy execution details. Enable only for deep debugging — increases trace size significantly."
                         checked={tracingVerbose}
                         disabled={tracingVerboseDisabled || !canEdit}
-                        onCheckedChange={setTracingVerbose}
+                        onCheckedChange={v => {
+                            setTracingVerbose(v);
+                            markDirty();
+                        }}
                     />
                     {tracingEnabled && tracingVerbose && (
                         <Alert variant="destructive">
@@ -376,12 +427,23 @@ export function ApiReporterSettingsPage() {
                         description="Emit request and response payloads as OTel log records correlated to the active trace. Enables log-to-trace linking in Grafana and other OTel-compatible backends."
                         checked={otelLogsEnabled}
                         disabled={otelLogsDisabled || !canEdit}
-                        onCheckedChange={setOtelLogsEnabled}
+                        onCheckedChange={v => {
+                            setOtelLogsEnabled(v);
+                            markDirty();
+                        }}
                     />
 
                     {tracingEnabled && tracingVerbose && (
                         <div className="pt-2 border-t border-border">
-                            <SpanRedactionRules key={apiId} rules={redactionRules} disabled={!canEdit} onChange={setRedactionRules} />
+                            <SpanRedactionRules
+                                key={apiId}
+                                rules={redactionRules}
+                                disabled={!canEdit}
+                                onChange={rules => {
+                                    setRedactionRules(rules);
+                                    markDirty();
+                                }}
+                            />
                         </div>
                     )}
                 </CardContent>

@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { diffLines } from 'diff';
-
 import type { SideLine, UnifiedLine } from './types';
+import { diffLines } from '../../../../../shared/utils/lineDiff';
 import type { ApiEvent } from '../../../types';
 
 export function formatDate(iso: string): string {
