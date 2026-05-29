@@ -494,8 +494,8 @@ export class ApiImportV4FormComponent {
         : this.apiV2Service.importWsdlApi(this.buildImportWsdlDescriptor(url, 'URL'));
     }
     return updateId
-      ? this.apiV2Service.updateApiFromSwagger(updateId, this.buildImportSwaggerDescriptor(url))
-      : this.apiV2Service.importSwaggerApi(this.buildImportSwaggerDescriptor(url));
+      ? this.apiV2Service.updateApiFromSwagger(updateId, this.buildImportSwaggerDescriptor(url, 'URL'))
+      : this.apiV2Service.importSwaggerApi(this.buildImportSwaggerDescriptor(url, 'URL'));
   }
 
   private resolveFileImport$(): Observable<ApiV4> | null {
@@ -511,8 +511,8 @@ export class ApiImportV4FormComponent {
     }
     if (format === 'openapi' && pickedType === 'SWAGGER') {
       return updateId
-        ? this.apiV2Service.updateApiFromSwagger(updateId, this.buildImportSwaggerDescriptor(fileContent))
-        : this.apiV2Service.importSwaggerApi(this.buildImportSwaggerDescriptor(fileContent));
+        ? this.apiV2Service.updateApiFromSwagger(updateId, this.buildImportSwaggerDescriptor(fileContent, 'INLINE'))
+        : this.apiV2Service.importSwaggerApi(this.buildImportSwaggerDescriptor(fileContent, 'INLINE'));
     }
     if (format === 'wsdl' && pickedType === 'WSDL') {
       return updateId
@@ -523,10 +523,11 @@ export class ApiImportV4FormComponent {
   }
 
   /** Builds the OpenAPI/Swagger import descriptor sent to the Management API. */
-  private buildImportSwaggerDescriptor(payload: string): ImportSwaggerDescriptor {
+  private buildImportSwaggerDescriptor(payload: string, type: 'INLINE' | 'URL'): ImportSwaggerDescriptor {
     const rawOptions = this.optionsForm.getRawValue();
     return {
       payload,
+      type,
       withDocumentation: rawOptions.withDocumentation,
       withOASValidationPolicy: rawOptions.withOASValidationPolicy,
     };

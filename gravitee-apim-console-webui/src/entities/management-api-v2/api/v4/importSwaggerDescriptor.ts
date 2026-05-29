@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 export interface ImportSwaggerDescriptor {
+  /** The raw OpenAPI/Swagger content (INLINE) or the URL to fetch it from (URL). */
   payload: string;
+  /** Whether the payload is an inline OpenAPI string or a remote URL. Defaults to INLINE. */
+  type?: 'INLINE' | 'URL';
   withDocumentation?: boolean;
   withOASValidationPolicy?: boolean;
 }
