@@ -1466,6 +1466,7 @@ components:
                 - P99
                 - COUNT
                 - PERCENTAGE
+                - SUM
             description: Measure name identifier. Represents the type of measure/aggregation applied to a metric.
             example: "COUNT"
 

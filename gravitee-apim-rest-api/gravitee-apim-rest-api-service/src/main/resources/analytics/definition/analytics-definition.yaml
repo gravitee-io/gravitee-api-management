@@ -1060,6 +1060,68 @@ spec:
               - EDGE_CLIENT
               - EDGE_TYPE
 
+        - name: EDGE_HEARTBEAT_COUNT
+          label: Edge Heartbeat Count
+          apis:
+              - EDGE
+          unit: NUMBER
+          measures:
+              - COUNT
+          facets:
+              - API
+              - EDGE_CLIENT
+              - EDGE_VERSION
+          filters:
+              - API
+              - API_TYPE
+              - EDGE_CLIENT
+              - EDGE_TYPE
+              - EDGE_VERSION
+
+        - name: EDGE_TOKENS_IN
+          label: Edge Tokens In
+          apis:
+              - EDGE
+          unit: NUMBER
+          measures:
+              - SUM
+          facets:
+              - API
+              - EDGE_CLIENT
+              - EDGE_PROVIDER
+              - EDGE_MODEL
+              - EDGE_TOOL
+          filters:
+              - API
+              - API_TYPE
+              - EDGE_CLIENT
+              - EDGE_PROVIDER
+              - EDGE_MODEL
+              - EDGE_TOOL
+              - EDGE_TYPE
+
+        - name: EDGE_TOKENS_OUT
+          label: Edge Tokens Out
+          apis:
+              - EDGE
+          unit: NUMBER
+          measures:
+              - SUM
+          facets:
+              - API
+              - EDGE_CLIENT
+              - EDGE_PROVIDER
+              - EDGE_MODEL
+              - EDGE_TOOL
+          filters:
+              - API
+              - API_TYPE
+              - EDGE_CLIENT
+              - EDGE_PROVIDER
+              - EDGE_MODEL
+              - EDGE_TOOL
+              - EDGE_TYPE
+
         - name: NATIVE_CONNECTIONS_SUMMARY
           label: Native Connections
           apis:

@@ -33,6 +33,7 @@ import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.Simp
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleP90Builder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleP95Builder;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleP99Builder;
+import io.gravitee.repository.elasticsearch.v4.analytics.engine.aggregation.SimpleSUMBuilder;
 import io.vertx.core.json.JsonObject;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +54,7 @@ public class HTTPMeasuresQueryAdapter {
     private final SimpleCountBuilder simpleCountBuilder = new SimpleCountBuilder();
     private final CountBuilder countWithSumBuilder = new CountWithSumBuilder();
     private final SimpleAVGBuilder avgBuilder = new SimpleAVGBuilder();
+    private final SimpleSUMBuilder sumBuilder = new SimpleSUMBuilder();
     private final HttpErrorRateBuilder errorRateBuilder = new HttpErrorRateBuilder();
     private final LLMTotalTokenBuilder llmTotalTokenBuilder = new LLMTotalTokenBuilder();
     private final LLMTotalCostBuilder llmTotalCostBuilder = new LLMTotalCostBuilder();
@@ -149,6 +151,7 @@ public class HTTPMeasuresQueryAdapter {
             case P90 -> p90().map(p90 -> p90.build(aggName, field));
             case P95 -> p95().map(p95 -> p95.build(aggName, field));
             case P99 -> p99().map(p99 -> p99.build(aggName, field));
+            case SUM -> Optional.of(sumBuilder.build(aggName, field));
             default -> Optional.empty();
         };
     }

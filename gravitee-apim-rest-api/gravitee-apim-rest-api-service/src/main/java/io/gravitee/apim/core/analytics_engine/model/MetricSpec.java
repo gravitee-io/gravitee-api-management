@@ -69,5 +69,6 @@ public record MetricSpec(
         P99,
         P95,
         P90,
+        SUM,
     }
 }
