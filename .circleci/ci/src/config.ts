@@ -54,6 +54,7 @@ const components = {
   gamma: {
     project: 'gravitee-gamma-control-plane-webui',
     workdir: 'gravitee-gamma/gravitee-gamma-control-plane-webui',
+    rootDir: 'gravitee-gamma',
     image: 'gamma-ui',
   },
 };

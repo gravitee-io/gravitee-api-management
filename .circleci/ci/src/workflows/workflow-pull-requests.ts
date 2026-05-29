@@ -779,7 +779,7 @@ function shouldBuildPortal(changedFiles: string[]): boolean {
 }
 
 function shouldBuildGammaUI(changedFiles: string[]): boolean {
-  return shouldBuildAllFront(changedFiles) || changedFiles.some((file) => file.includes(config.components.gamma.workdir));
+  return shouldBuildAllFront(changedFiles) || changedFiles.some((file) => file.includes(config.components.gamma.rootDir));
 }
 
 function shouldBuildBackend(changedFiles: string[]): boolean {
