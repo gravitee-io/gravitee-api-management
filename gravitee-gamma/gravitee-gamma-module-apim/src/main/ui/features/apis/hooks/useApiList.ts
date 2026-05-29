@@ -34,7 +34,6 @@ export function useApiList({
         queryKey: apiListKeys.search(env?.id ?? '', query, page, perPage),
         queryFn: () => searchApis(env!.id, { query: query || undefined }, page, perPage, query ? undefined : 'name'),
         enabled: Boolean(env),
-        staleTime: 30_000,
         placeholderData: keepPreviousData,
     });
 }

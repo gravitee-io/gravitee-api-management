@@ -65,7 +65,7 @@ export function ApiProductListView({
     );
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             {/* Page header */}
             <div className="flex items-start justify-between">
                 <div className="space-y-1">

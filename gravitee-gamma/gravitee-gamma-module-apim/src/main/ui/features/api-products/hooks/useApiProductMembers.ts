@@ -26,7 +26,6 @@ export function useApiProductMembers(productId: string | undefined) {
         queryKey: apiProductKeys.members(env?.id ?? '', productId ?? ''),
         queryFn: () => getApiProductMembers(env!.id, productId!),
         enabled: Boolean(env) && Boolean(productId),
-        staleTime: 30_000,
     });
 }
 

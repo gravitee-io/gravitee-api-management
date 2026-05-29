@@ -18,13 +18,10 @@ import { MemoryRouter } from 'react-router-dom';
 
 import { ApisListView } from './ApisListView';
 import { useApiStats } from '../../hooks/useApiStats';
-import { useEnvironmentTotalCalls } from '../../hooks/useEnvironmentTotalCalls';
 
 jest.mock('../../hooks/useApiStats');
-jest.mock('../../hooks/useEnvironmentTotalCalls');
 
 const mockUseApiStats = useApiStats as jest.Mock;
-const mockUseEnvironmentTotalCalls = useEnvironmentTotalCalls as jest.Mock;
 
 const STUB_STATS = { total: 5, private: 2, published: 3, isLoading: false };
 
@@ -55,7 +52,6 @@ function renderView(overrides: Partial<typeof DEFAULT_PROPS> = {}) {
 describe('ApisListView', () => {
     beforeEach(() => {
         mockUseApiStats.mockReturnValue(STUB_STATS);
-        mockUseEnvironmentTotalCalls.mockReturnValue({ total: null, isLoading: false });
     });
 
     afterEach(() => jest.clearAllMocks());

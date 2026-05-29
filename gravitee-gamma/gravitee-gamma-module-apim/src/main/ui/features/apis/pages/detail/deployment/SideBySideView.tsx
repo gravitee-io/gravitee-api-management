@@ -13,9 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { cn } from '@gravitee/graphene-core';
+import { Badge, cn } from '@gravitee/graphene-core';
 
+import {
+    DEPLOYMENT_DIFF,
+    DIFF_NBSP,
+    diffPaneToneClasses,
+    resolveDiffPaneTone,
+    resolveDiffPaneVariant,
+    type DiffPaneSide,
+} from './deploymentDiffStyles';
 import type { SideLine } from './types';
+import { formatDate } from './utils';
+import type { ApiEvent } from '../../../types';
 
 type NumberedSideLine = SideLine & { leftNum: number | null; rightNum: number | null };
 
@@ -31,100 +41,93 @@ function computeLineNumbers(lines: SideLine[]): NumberedSideLine[] {
     });
 }
 
-function PaneCell({
-    lineNum,
-    text,
-    isChanged,
-    side,
-}: {
+interface PaneCellProps {
     lineNum: number | null;
     text: string | null;
     isChanged: boolean;
-    side: 'left' | 'right';
-}) {
+    side: DiffPaneSide;
+}
+
+function PaneCell({ lineNum, text, isChanged, side }: PaneCellProps) {
     const isEmpty = text === null;
-    const symbol = side === 'left' ? '-' : '+';
+    const variant = resolveDiffPaneVariant(isEmpty, isChanged);
+    const tone = resolveDiffPaneTone(side, variant);
+    const toneClasses = diffPaneToneClasses(tone);
+    const gutterSymbol = side === 'left' ? '-' : '+';
+    const gutterContent = !isEmpty && isChanged ? gutterSymbol : DIFF_NBSP;
 
     return (
-        <div className="flex items-stretch h-full min-h-[1.25rem]">
-            {/* Line number */}
-            <span
-                className={cn(
-                    'select-none shrink-0 w-10 text-right pr-2 pl-1 tabular-nums text-[10px] leading-5 border-r',
-                    isChanged &&
-                        side === 'left' &&
-                        'bg-red-100 text-red-400 border-red-200 dark:bg-red-950/50 dark:text-red-500 dark:border-red-800',
-                    isChanged &&
-                        side === 'right' &&
-                        'bg-green-100 text-green-500 border-green-200 dark:bg-green-950/50 dark:text-green-400 dark:border-green-800',
-                    !isChanged && 'bg-muted/40 text-muted-foreground/40 border-border/50',
-                )}
-            >
-                {lineNum ?? ''}
-            </span>
-            {/* Gutter */}
-            <span
-                className={cn(
-                    'select-none shrink-0 w-5 text-center leading-5 font-bold text-xs border-r',
-                    isChanged &&
-                        side === 'left' &&
-                        'bg-red-200 text-red-700 border-red-300 dark:bg-red-900/60 dark:text-red-300 dark:border-red-700',
-                    isChanged &&
-                        side === 'right' &&
-                        'bg-green-200 text-green-800 border-green-300 dark:bg-green-900/60 dark:text-green-200 dark:border-green-700',
-                    !isChanged && 'bg-muted/40 text-transparent border-border/50',
-                )}
-            >
-                {!isEmpty && isChanged ? symbol : ' '}
-            </span>
-            {/* Content */}
-            <pre
-                className={cn(
-                    'flex-1 px-3 leading-5 text-xs overflow-hidden text-ellipsis',
-                    isEmpty && 'bg-muted/20',
-                    isChanged && side === 'left' && !isEmpty && 'bg-red-50 text-red-900 dark:bg-red-950/30 dark:text-red-100',
-                    isChanged && side === 'right' && !isEmpty && 'bg-green-50 text-green-900 dark:bg-green-950/30 dark:text-green-100',
-                )}
-            >
-                {text ?? ''}
-            </pre>
+        <div className={DEPLOYMENT_DIFF.pane.row}>
+            <span className={cn(DEPLOYMENT_DIFF.pane.lineNum, toneClasses.lineNum)}>{lineNum ?? DIFF_NBSP}</span>
+            <span className={cn(DEPLOYMENT_DIFF.pane.gutter, toneClasses.gutter)}>{gutterContent}</span>
+            <pre className={cn(DEPLOYMENT_DIFF.pane.content, toneClasses.content)}>{text ?? DIFF_NBSP}</pre>
         </div>
     );
 }
 
-export function SideBySideView({ lines }: { lines: SideLine[] }) {
+function MetaCell({ event, version, label }: { event: ApiEvent; version: string; label: string }) {
+    return (
+        <div className="px-4 py-2.5 space-y-0.5">
+            <div className="flex items-center gap-2">
+                <Badge variant="outline" className={DEPLOYMENT_DIFF.versionBadge}>
+                    v{version}
+                </Badge>
+                <span className="text-xs font-semibold">{label}</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+                {formatDate(event.createdAt)}
+                <span className="mx-1">·</span>
+                {event.initiator.displayName}
+                {event.properties.DEPLOYMENT_LABEL ? (
+                    <>
+                        <span className="mx-1">·</span>
+                        <span className="italic">{event.properties.DEPLOYMENT_LABEL}</span>
+                    </>
+                ) : null}
+            </p>
+        </div>
+    );
+}
+
+interface SideBySideViewProps {
+    lines: SideLine[];
+    leftEvent: ApiEvent;
+    rightEvent: ApiEvent;
+    leftVersion: string;
+    rightVersion: string;
+}
+
+export function SideBySideView({ lines, leftEvent, rightEvent, leftVersion, rightVersion }: SideBySideViewProps) {
     const numbered = computeLineNumbers(lines);
 
     return (
-        <div className="overflow-x-auto">
-            <table className="min-w-full border-collapse font-mono text-xs" style={{ tableLayout: 'fixed', minWidth: '900px' }}>
-                <colgroup>
-                    <col style={{ width: '50%' }} />
-                    <col style={{ width: '50%' }} />
-                </colgroup>
-                <thead>
-                    <tr className="border-b bg-muted/60">
-                        <th className="text-left px-3 py-1.5 text-xs font-medium text-muted-foreground border-r">Before</th>
-                        <th className="text-left px-3 py-1.5 text-xs font-medium text-muted-foreground">After</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {numbered.map((line, i) => {
-                        const leftChanged = line.kind !== 'equal' && line.left !== null;
-                        const rightChanged = line.kind !== 'equal' && line.right !== null;
-                        return (
-                            <tr key={i}>
-                                <td className="px-0 py-0 align-top border-r border-border/50">
-                                    <PaneCell lineNum={line.leftNum} text={line.left} isChanged={leftChanged} side="left" />
-                                </td>
-                                <td className="px-0 py-0 align-top">
-                                    <PaneCell lineNum={line.rightNum} text={line.right} isChanged={rightChanged} side="right" />
-                                </td>
-                            </tr>
-                        );
-                    })}
-                </tbody>
-            </table>
-        </div>
+        <table className={DEPLOYMENT_DIFF.table}>
+            <thead>
+                <tr className={DEPLOYMENT_DIFF.headerRow}>
+                    <th className={cn(DEPLOYMENT_DIFF.headerCell, DEPLOYMENT_DIFF.bodyCellDivider)}>
+                        <MetaCell event={leftEvent} version={leftVersion} label="Before" />
+                    </th>
+                    <th className={DEPLOYMENT_DIFF.headerCell}>
+                        <MetaCell event={rightEvent} version={rightVersion} label="After" />
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {numbered.map((line, i) => {
+                    const leftChanged = line.kind !== 'equal' && line.left !== null;
+                    const rightChanged = line.kind !== 'equal' && line.right !== null;
+                    return (
+                        <tr key={i}>
+                            <td className={cn(DEPLOYMENT_DIFF.bodyCell, DEPLOYMENT_DIFF.bodyCellDivider)}>
+                                <PaneCell lineNum={line.leftNum} text={line.left} isChanged={leftChanged} side="left" />
+                            </td>
+                            <td className={DEPLOYMENT_DIFF.bodyCell}>
+                                <PaneCell lineNum={line.rightNum} text={line.right} isChanged={rightChanged} side="right" />
+                            </td>
+                        </tr>
+                    );
+                })}
+            </tbody>
+        </table>
     );
 }

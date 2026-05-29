@@ -104,6 +104,31 @@ async function doFetch<T>(url: string, path: string, init?: RequestInit): Promis
     return text ? (JSON.parse(text) as T) : (undefined as T);
 }
 
+async function doFetchBlob(url: string, path: string, init?: RequestInit): Promise<Blob> {
+    const headers = new Headers(init?.headers);
+    headers.set('X-Requested-With', 'XMLHttpRequest');
+    const csrf = localStorage.getItem('XSRF-TOKEN');
+    if (csrf) headers.set('X-Xsrf-Token', csrf);
+
+    const res = await fetch(url, { ...init, headers, credentials: 'include' });
+
+    const newCsrf = res.headers.get('X-Xsrf-Token');
+    if (newCsrf) localStorage.setItem('XSRF-TOKEN', newCsrf);
+
+    if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        let parsed: unknown;
+        try {
+            parsed = JSON.parse(text);
+        } catch {
+            parsed = undefined;
+        }
+        const message = (parsed as Record<string, string> | undefined)?.message ?? text ?? `${path} → ${res.status}`;
+        throw new ApimApiError(res.status, message, parsed);
+    }
+    return res.blob();
+}
+
 /** Org-scoped v1: `/organizations/{orgId}{path}` */
 export async function apimFetchJson<T>(organizationId: string, path: string, init?: RequestInit): Promise<T> {
     const { managementBaseURL } = await resolveBootstrap();
@@ -122,6 +147,12 @@ export async function apimFetchJsonV2<T>(environmentId: string, path: string, in
     return doFetch<T>(`${managementBaseURL}/v2/environments/${environmentId}${path}`, path, init);
 }
 
+/** v2 env-scoped binary response (e.g. API export). */
+export async function apimFetchBlobV2(environmentId: string, path: string, init?: RequestInit): Promise<Blob> {
+    const { managementBaseURL } = await resolveBootstrap();
+    return doFetchBlob(`${managementBaseURL}/v2/environments/${environmentId}${path}`, path, init);
+}
+
 /** v1 env-scoped (auto-resolves orgId): `/organizations/{orgId}/environments/{envId}{path}` */
 export async function apimFetchJsonV1Env<T>(environmentId: string, path: string, init?: RequestInit): Promise<T> {
     const { managementBaseURL, organizationId } = await resolveBootstrap();
@@ -132,4 +163,10 @@ export async function apimFetchJsonV1Env<T>(environmentId: string, path: string,
 export async function apimFetchJsonOrg<T>(path: string, init?: RequestInit): Promise<T> {
     const { organizationId } = await resolveBootstrap();
     return apimFetchJson<T>(organizationId, path, init);
+}
+
+/** Clears cached bootstrap config between tests (MSW / fetch interception). */
+export function resetApimClientForTests(): void {
+    _bootstrap = undefined;
+    _bootstrapPromise = undefined;
 }

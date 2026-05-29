@@ -30,7 +30,6 @@ export function useVerifyApiProductName(
         queryKey: apiProductKeys.verify(env?.id ?? '', name, productId),
         queryFn: () => verifyApiProductName(env!.id, name, productId),
         enabled: Boolean(env) && name.length >= 1,
-        staleTime: 60_000,
     });
 
     return { data, isChecking: isFetching };

@@ -25,6 +25,5 @@ export function useApiDetail(apiId: string | undefined) {
         queryKey: apiDetailKeys.detail(env?.id ?? '', apiId ?? ''),
         queryFn: () => getApiV4(env!.id, apiId!),
         enabled: Boolean(env && apiId),
-        staleTime: 60_000,
     });
 }

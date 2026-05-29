@@ -14,37 +14,36 @@
  * limitations under the License.
  */
 import { Card, CardContent, Skeleton } from '@gravitee/graphene-core';
+import { FlaskConicalIcon } from '@gravitee/graphene-core/icons';
 
-interface StatsCardProps {
-    label: string;
-    value: number | null;
+interface ApiProductStatsCardsProps {
+    totalProducts: number | null;
 }
 
-function StatsCard({ label, value }: StatsCardProps) {
+function StatCard({ label, value, isLab = false }: { label: string; value: number | null; isLab?: boolean }) {
     return (
-        <Card className="flex-1">
+        <Card style={{ flex: 1 }}>
             <CardContent className="pt-5 pb-4">
-                <p className="text-sm font-medium text-muted-foreground">{label}</p>
+                <div className="flex items-center gap-1.5">
+                    <p className="text-sm font-medium text-muted-foreground">{label}</p>
+                    {isLab && <FlaskConicalIcon className="size-3.5 shrink-0 text-muted-foreground/60" aria-label="Coming soon" />}
+                </div>
                 {value === null ? (
                     <Skeleton className="mt-1.5 h-7 w-10 rounded" />
                 ) : (
-                    <p className="text-2xl font-semibold mt-0.5">{value}</p>
+                    <p className="text-2xl font-semibold mt-0.5">{value.toLocaleString()}</p>
                 )}
             </CardContent>
         </Card>
     );
 }
 
-interface ApiProductStatsCardsProps {
-    totalProducts: number | null;
-}
-
 export function ApiProductStatsCards({ totalProducts }: ApiProductStatsCardsProps) {
     return (
         <div className="flex gap-4">
-            <StatsCard label="Total Products" value={totalProducts} />
-            <StatsCard label="Published" value={0} />
-            <StatsCard label="Subscribers" value={0} />
+            <StatCard label="Total API Products" value={totalProducts} />
+            <StatCard label="Published" value={0} isLab />
+            <StatCard label="Deployed" value={0} isLab />
         </div>
     );
 }

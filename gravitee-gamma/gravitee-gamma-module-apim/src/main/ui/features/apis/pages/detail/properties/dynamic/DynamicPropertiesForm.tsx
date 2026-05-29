@@ -16,7 +16,6 @@
 import { Alert, AlertDescription, Button, Card, CardContent, Label, Switch } from '@gravitee/graphene-core';
 import { useEffect, useRef, useState } from 'react';
 
-import { CronScheduleInput, validateCron } from './CronScheduleInput';
 import { HttpClientSection } from './sections/HttpClientSection';
 import { HttpRequestSection } from './sections/HttpRequestSection';
 import { ProxySection } from './sections/ProxySection';
@@ -24,6 +23,7 @@ import { SetupGuideBanner } from './sections/SetupGuideBanner';
 import { SslSection } from './sections/SslSection';
 import type { DynamicPropertiesFormState, FormErrors } from './types';
 import { hasErrors, validateForm } from './types';
+import { CronScheduleInput, validateCron } from '../../../../components/CronScheduleInput';
 
 // ─── Export ───────────────────────────────────────────────────────────────────
 
@@ -128,6 +128,7 @@ export function DynamicPropertiesForm({ initialState, onSave, isSaving, saveErro
             <Card>
                 <CardContent className="pt-4 pb-3 px-4">
                     <CronScheduleInput
+                        idPrefix="dp"
                         value={form.schedule}
                         error={cronError}
                         onChange={v => patch({ schedule: v })}

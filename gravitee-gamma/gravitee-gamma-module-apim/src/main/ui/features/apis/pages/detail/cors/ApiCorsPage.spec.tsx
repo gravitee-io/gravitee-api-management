@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
@@ -97,6 +97,13 @@ beforeEach(() => {
     mockUpdateApiCors.mockResolvedValue(undefined);
 });
 
+/** Save / Discard bar is shown only after the user edits the form (isDirty). */
+async function revealSaveBar(user: ReturnType<typeof userEvent.setup>) {
+    const maxAgeInput = screen.getByLabelText(/max age/i);
+    await user.clear(maxAgeInput);
+    await user.type(maxAgeInput, '7200');
+}
+
 // ─── 1. Permission: read-only hides Save and disables Enable toggle ───────────
 
 it('hides Save button and disables Enable CORS switch when user lacks api-definition-u', () => {
@@ -162,6 +169,7 @@ it('removes an origin chip when its Remove button is clicked', async () => {
 it('calls updateApiCors with the current CORS form state when Save is clicked', async () => {
     const user = userEvent.setup();
     renderPage(ENABLED_CORS);
+    await revealSaveBar(user);
 
     await user.click(screen.getByRole('button', { name: /save changes/i }));
 
@@ -171,7 +179,7 @@ it('calls updateApiCors with the current CORS form state when Save is clicked', 
     expect(sentCors.enabled).toBe(true);
     expect(sentCors.allowOrigin).toEqual(['https://app.company.com']);
     expect(sentCors.allowMethods).toEqual(['GET', 'POST']);
-    expect(sentCors.maxAge).toBe(3600);
+    expect(sentCors.maxAge).toBe(7200);
 });
 
 // ─── 8. Fields disabled when CORS master toggle is off ───────────────────────
@@ -181,4 +189,47 @@ it('disables chip inputs when CORS is disabled (enabled: false)', () => {
 
     expect(screen.getByRole('textbox', { name: /access-control-allow-origin/i })).toBeDisabled();
     expect(screen.getByRole('textbox', { name: /access-control-allow-methods/i })).toBeDisabled();
+});
+
+// ─── 9. Save / Discard bar (isDirty) ─────────────────────────────────────────
+
+it('does not show Save or Discard when the form is clean', () => {
+    renderPage(ENABLED_CORS);
+
+    expect(screen.queryByRole('button', { name: /save changes/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /discard/i })).toBeNull();
+});
+
+it('shows Save and Discard after the form is edited', async () => {
+    const user = userEvent.setup();
+    renderPage(ENABLED_CORS);
+    await revealSaveBar(user);
+
+    expect(screen.getByRole('button', { name: /save changes/i })).not.toBeNull();
+    expect(screen.getByRole('button', { name: /discard/i })).not.toBeNull();
+});
+
+it('restores saved values and hides Save and Discard when Discard is clicked', async () => {
+    const user = userEvent.setup();
+    renderPage(ENABLED_CORS);
+
+    const enableSwitch = screen.getByRole('switch', { name: /enable cors/i });
+    await user.click(enableSwitch);
+    expect(enableSwitch).not.toBeChecked();
+
+    fireEvent.click(screen.getByRole('button', { name: /discard/i }));
+
+    expect(screen.getByRole('switch', { name: /enable cors/i })).toBeChecked();
+    expect(screen.queryByRole('button', { name: /save changes/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /discard/i })).toBeNull();
+});
+
+it('does not show Discard for read-only users even after edits', async () => {
+    mockUseHasPermission.mockReturnValue(false);
+    const user = userEvent.setup();
+    renderPage(ENABLED_CORS);
+
+    await user.click(screen.getByRole('switch', { name: /enable cors/i }));
+
+    expect(screen.queryByRole('button', { name: /discard/i })).toBeNull();
 });

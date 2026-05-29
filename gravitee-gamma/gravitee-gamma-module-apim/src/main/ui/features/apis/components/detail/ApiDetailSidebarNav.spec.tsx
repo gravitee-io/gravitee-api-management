@@ -73,6 +73,14 @@ describe('ApiDetailSidebarNav — flat links', () => {
             expect(screen.getAllByText(group.label).length).toBeGreaterThanOrEqual(1);
         }
     });
+
+    it('hides "coming soon" items (Resources, API Score, Response Templates, Authorization)', () => {
+        renderNav(`${BASE}/overview`);
+        expect(screen.queryByText('Resources')).not.toBeInTheDocument();
+        expect(screen.queryByText('API Score')).not.toBeInTheDocument();
+        expect(screen.queryByText('Response Templates')).not.toBeInTheDocument();
+        expect(screen.queryByText('Authorization')).not.toBeInTheDocument();
+    });
 });
 
 // ─── Collapsible items ────────────────────────────────────────────────────────
@@ -86,7 +94,8 @@ describe('ApiDetailSidebarNav — collapsible items', () => {
     it('is open by default when current URL matches a child path', () => {
         renderNav(`${BASE}/endpoints/list`);
         expect(screen.getByRole('link', { name: /failover/i })).toBeInTheDocument();
-        expect(screen.getByText(/health check dashboard/i)).toBeInTheDocument();
+        // "Health Check Dashboard" is a coming-soon child and is hidden.
+        expect(screen.queryByText(/health check dashboard/i)).not.toBeInTheDocument();
     });
 
     it('is open by default when current URL matches the parent path exactly', () => {

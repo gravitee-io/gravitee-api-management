@@ -81,7 +81,6 @@ export function TransferOwnershipDialog({
         queryKey: ['user-search-transfer', deferredQuery],
         queryFn: () => searchUsers(deferredQuery),
         enabled: tab === 'user' && deferredQuery.trim().length >= 2,
-        staleTime: 30_000,
     });
 
     const nonOwnerMembers = useMemo(() => members.filter(m => !isMemberPrimaryOwner(m)), [members]);

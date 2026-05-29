@@ -75,7 +75,6 @@ export function AddMembersDialog({
         queryKey: ['user-search', deferredQuery],
         queryFn: () => searchUsers(deferredQuery),
         enabled: deferredQuery.trim().length >= 2,
-        staleTime: 30_000,
     });
 
     const filteredResults = useMemo(

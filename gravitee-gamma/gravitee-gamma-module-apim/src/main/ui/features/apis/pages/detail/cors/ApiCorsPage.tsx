@@ -17,7 +17,7 @@ import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Skeleton, Switch, TooltipProvider } from '@gravitee/graphene-core';
 import { GlobeIcon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { Chips } from './Chips';
@@ -57,29 +57,47 @@ export function ApiCorsPage() {
     const [allowCredentials, setAllowCredentials] = useState(false);
     const [runPolicies, setRunPolicies] = useState(false);
     const [maxAge, setMaxAge] = useState('');
+    const [isDirty, setIsDirty] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
+
+    const applyCorsToForm = useCallback((cors: Cors | null | undefined) => {
+        setEnabled(cors?.enabled ?? false);
+        setOrigins(cors?.allowOrigin ?? []);
+        setMethods(cors?.allowMethods ?? []);
+        setAllowHeaders(cors?.allowHeaders ?? []);
+        setExposeHeaders(cors?.exposeHeaders ?? []);
+        setAllowCredentials(cors?.allowCredentials ?? false);
+        setRunPolicies(cors?.runPolicies ?? false);
+        setMaxAge(cors?.maxAge !== undefined ? String(cors.maxAge) : '');
+        setIsDirty(false);
+        setSaveError(null);
+    }, []);
+
+    function markDirty() {
+        setIsDirty(true);
+        setSaveError(null);
+    }
 
     // Initialize form once per apiId — prevents background refetches from wiping in-progress edits
     const initializedForApiIdRef = useRef<string | undefined>(undefined);
 
     useEffect(() => {
-        if (!savedCors || initializedForApiIdRef.current === apiId) return;
+        if (initializedForApiIdRef.current === apiId) return;
         initializedForApiIdRef.current = apiId;
-        setEnabled(savedCors.enabled ?? false);
-        setOrigins(savedCors.allowOrigin ?? []);
-        setMethods(savedCors.allowMethods ?? []);
-        setAllowHeaders(savedCors.allowHeaders ?? []);
-        setExposeHeaders(savedCors.exposeHeaders ?? []);
-        setAllowCredentials(savedCors.allowCredentials ?? false);
-        setRunPolicies(savedCors.runPolicies ?? false);
-        setMaxAge(savedCors.maxAge !== undefined ? String(savedCors.maxAge) : '');
-    }, [savedCors, apiId]);
+        applyCorsToForm(savedCors);
+    }, [savedCors, apiId, applyCorsToForm]);
+
+    function handleDiscard() {
+        applyCorsToForm(savedCors);
+    }
 
     // ─── Mutation ─────────────────────────────────────────────────────────────
     const mutation = useMutation({
         mutationFn: (cors: Cors) => updateApiCors(env!.id, apiId!, cors),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env?.id ?? '', apiId ?? '') });
+            initializedForApiIdRef.current = undefined;
+            setIsDirty(false);
             setSaveError(null);
         },
         onError: (e: Error) => {
@@ -142,10 +160,15 @@ export function ApiCorsPage() {
                         <h1 className="text-2xl font-semibold">CORS</h1>
                         <p className="text-sm text-muted-foreground">Configure cross-origin access for this API.</p>
                     </div>
-                    {canEdit && (
-                        <Button size="sm" onClick={handleSave} disabled={mutation.isPending}>
-                            {mutation.isPending ? 'Saving…' : 'Save changes'}
-                        </Button>
+                    {canEdit && isDirty && (
+                        <div className="flex items-center gap-2 shrink-0">
+                            <Button size="sm" variant="outline" onClick={handleDiscard} aria-label="Discard changes">
+                                Discard
+                            </Button>
+                            <Button size="sm" onClick={handleSave} disabled={mutation.isPending}>
+                                {mutation.isPending ? 'Saving…' : 'Save changes'}
+                            </Button>
+                        </div>
                     )}
                 </div>
 
@@ -175,7 +198,15 @@ export function ApiCorsPage() {
                                     }
                                 />
                             </CardTitle>
-                            <Switch checked={enabled} onCheckedChange={setEnabled} disabled={!canEdit} />
+                            <Switch
+                                checked={enabled}
+                                onCheckedChange={v => {
+                                    setEnabled(v);
+                                    markDirty();
+                                }}
+                                disabled={!canEdit}
+                                aria-label="Enable CORS"
+                            />
                         </div>
                     </CardHeader>
                 </Card>
@@ -202,7 +233,10 @@ export function ApiCorsPage() {
                             values={origins}
                             disabled={fieldsDisabled || !canEdit}
                             placeholder="https://app.example.com or *"
-                            onChange={setOrigins}
+                            onChange={v => {
+                                setOrigins(v);
+                                markDirty();
+                            }}
                         />
 
                         {origins.includes('*') && (
@@ -231,7 +265,10 @@ export function ApiCorsPage() {
                             disabled={fieldsDisabled || !canEdit}
                             suggestions={HTTP_METHODS}
                             placeholder="GET, POST, …"
-                            onChange={setMethods}
+                            onChange={v => {
+                                setMethods(v);
+                                markDirty();
+                            }}
                         />
 
                         <Chips
@@ -241,7 +278,10 @@ export function ApiCorsPage() {
                             disabled={fieldsDisabled || !canEdit}
                             suggestions={COMMON_ALLOW_HEADERS}
                             placeholder="Content-Type, Authorization, …"
-                            onChange={setAllowHeaders}
+                            onChange={v => {
+                                setAllowHeaders(v);
+                                markDirty();
+                            }}
                         />
 
                         <Chips
@@ -251,7 +291,10 @@ export function ApiCorsPage() {
                             disabled={fieldsDisabled || !canEdit}
                             suggestions={COMMON_EXPOSE_HEADERS}
                             placeholder="X-Request-Id, …"
-                            onChange={setExposeHeaders}
+                            onChange={v => {
+                                setExposeHeaders(v);
+                                markDirty();
+                            }}
                         />
                     </CardContent>
                 </Card>
@@ -276,7 +319,10 @@ export function ApiCorsPage() {
                             }
                             checked={allowCredentials}
                             disabled={fieldsDisabled || !canEdit}
-                            onCheckedChange={setAllowCredentials}
+                            onCheckedChange={v => {
+                                setAllowCredentials(v);
+                                markDirty();
+                            }}
                         />
 
                         <ToggleRow
@@ -291,7 +337,10 @@ export function ApiCorsPage() {
                             }
                             checked={runPolicies}
                             disabled={fieldsDisabled || !canEdit}
-                            onCheckedChange={setRunPolicies}
+                            onCheckedChange={v => {
+                                setRunPolicies(v);
+                                markDirty();
+                            }}
                         />
 
                         <div className="flex items-center justify-between gap-4">
@@ -314,7 +363,10 @@ export function ApiCorsPage() {
                                 min={-1}
                                 value={maxAge}
                                 disabled={fieldsDisabled || !canEdit}
-                                onChange={e => setMaxAge(e.target.value)}
+                                onChange={e => {
+                                    setMaxAge(e.target.value);
+                                    markDirty();
+                                }}
                                 placeholder="e.g. 3600"
                                 className="w-36"
                             />

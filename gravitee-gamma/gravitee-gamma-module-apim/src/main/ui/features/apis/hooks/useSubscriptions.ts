@@ -48,7 +48,6 @@ export function useSubscriptionList(ctx: SubscriptionContext | null, filters: Pa
                 perPage,
             }),
         enabled: Boolean(env && ctx?.entityId),
-        staleTime: 30_000,
     });
 }
 
@@ -61,7 +60,6 @@ export function useSubscriptionDetail(ctx: SubscriptionContext | null, subscript
         queryKey: apiSubscriptionKeys.detail(envId, safeCtx, subscriptionId ?? ''),
         queryFn: () => getSubscription(envId, ctx!, subscriptionId!),
         enabled: Boolean(env && ctx?.entityId && subscriptionId),
-        staleTime: 30_000,
     });
 }
 
@@ -87,7 +85,6 @@ export function useSubscriptionCount(ctx: SubscriptionContext | null, statuses: 
         queryKey: apiSubscriptionKeys.list(envId, safeCtx, { statuses, page: 1, perPage: 1 }),
         queryFn: () => listSubscriptions(envId, ctx!, { statuses, page: 1, perPage: 1 }),
         enabled: Boolean(env && ctx?.entityId),
-        staleTime: 30_000,
         select: data => data.pagination.totalCount,
     });
 }
@@ -101,7 +98,6 @@ export function useApplicationSearch(query: string) {
         queryKey: apiSubscriptionKeys.applications(envId, trimmed),
         queryFn: () => searchApplications(envId, trimmed),
         enabled: Boolean(env && trimmed.length > 0),
-        staleTime: 30_000,
         select: data => data.data,
     });
 }

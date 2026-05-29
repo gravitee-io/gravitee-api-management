@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
@@ -94,6 +94,11 @@ beforeEach(() => {
     mockUpdateApiAnalytics.mockResolvedValue(undefined);
 });
 
+/** Save / Discard bar is shown only after the user edits the form (isDirty). */
+async function revealSaveBar(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(screen.getByRole('switch', { name: /enable analytics/i }));
+}
+
 // ─── 1. Renders page heading ──────────────────────────────────────────────────
 
 it('renders the Reporter Settings page heading', () => {
@@ -133,6 +138,7 @@ it('shows the verbose warning banner when tracing and verbose are both enabled',
 it('calls updateApiAnalytics with sampling preserved from the loaded API', async () => {
     const user = userEvent.setup();
     renderPage();
+    await revealSaveBar(user);
 
     await user.click(screen.getByRole('button', { name: /save changes/i }));
 
@@ -149,4 +155,46 @@ it('keeps the OTel Logs switch disabled when tracing is off', () => {
 
     const otelSwitch = screen.getByRole('switch', { name: /otel logs/i });
     expect(otelSwitch).toBeDisabled();
+});
+
+// ─── 7. Save / Discard bar (isDirty) ─────────────────────────────────────────
+
+it('does not show Save or Discard when the form is clean', () => {
+    renderPage();
+
+    expect(screen.queryByRole('button', { name: /save changes/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /discard/i })).toBeNull();
+});
+
+it('shows Save and Discard after the form is edited', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await revealSaveBar(user);
+
+    expect(screen.getByRole('button', { name: /save changes/i })).not.toBeNull();
+    expect(screen.getByRole('button', { name: /discard/i })).not.toBeNull();
+});
+
+it('restores saved values and hides Save and Discard when Discard is clicked', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await revealSaveBar(user);
+
+    expect(screen.getByRole('switch', { name: /enable analytics/i })).not.toBeChecked();
+
+    fireEvent.click(screen.getByRole('button', { name: /discard/i }));
+
+    expect(screen.getByRole('switch', { name: /enable analytics/i })).toBeChecked();
+    expect(screen.queryByRole('button', { name: /save changes/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /discard/i })).toBeNull();
+});
+
+it('does not show Discard for read-only users even after edits', async () => {
+    mockUseHasPermission.mockReturnValue(false);
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(screen.getByRole('switch', { name: /enable analytics/i }));
+
+    expect(screen.queryByRole('button', { name: /discard/i })).toBeNull();
 });

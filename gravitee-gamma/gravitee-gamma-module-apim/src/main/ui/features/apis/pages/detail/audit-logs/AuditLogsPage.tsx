@@ -129,9 +129,9 @@ export function AuditLogsPage() {
 
                 {/* Single toolbar row: filters on the left, pagination on the right */}
                 <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-2">
                         <Select value={selectedEvent || ALL_EVENTS} onValueChange={handleEventChange}>
-                            <SelectTrigger className="w-52" aria-label="Filter by event type">
+                            <SelectTrigger className="w-44" aria-label="Filter by event type">
                                 <SelectValue placeholder="All events" />
                             </SelectTrigger>
                             <SelectContent position="popper" className="max-h-72 overflow-y-auto">

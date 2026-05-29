@@ -91,16 +91,10 @@ function AllowMultiSubscriptionsToggle({ apiId, canUpdate }: { apiId: string; ca
                 />
             </div>
 
-            {mutation.error && (
-                <Alert variant="destructive">
-                    <AlertDescription>{(mutation.error as Error).message}</AlertDescription>
-                </Alert>
-            )}
-
             <Dialog
                 open={confirmOpen}
                 onOpenChange={open => {
-                    if (!open) setConfirmOpen(false);
+                    if (!open && !mutation.isPending) setConfirmOpen(false);
                 }}
             >
                 <DialogContent>
@@ -112,11 +106,16 @@ function AllowMultiSubscriptionsToggle({ apiId, canUpdate }: { apiId: string; ca
                             it cannot be predicted which plan will be used to secure requests.
                         </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setConfirmOpen(false)} disabled={mutation.isPending}>
+                    {mutation.error && (
+                        <Alert variant="destructive">
+                            <AlertDescription>{(mutation.error as Error).message}</AlertDescription>
+                        </Alert>
+                    )}
+                    <DialogFooter className="sm:justify-end gap-2">
+                        <Button size="sm" variant="outline" onClick={() => setConfirmOpen(false)} disabled={mutation.isPending}>
                             Cancel
                         </Button>
-                        <Button onClick={() => mutation.mutate(true)} disabled={mutation.isPending}>
+                        <Button size="sm" onClick={() => mutation.mutate(true)} disabled={mutation.isPending}>
                             {mutation.isPending ? 'Saving…' : 'Enable'}
                         </Button>
                     </DialogFooter>

@@ -82,7 +82,6 @@ export function useApiNotifications(apiId: string | undefined) {
         queryKey: apiNotificationKeys.list(envId, apiId ?? ''),
         queryFn: () => listNotifications(envId, apiId!),
         enabled,
-        staleTime: 30_000,
     });
 
     const notifiersQuery = useQuery({

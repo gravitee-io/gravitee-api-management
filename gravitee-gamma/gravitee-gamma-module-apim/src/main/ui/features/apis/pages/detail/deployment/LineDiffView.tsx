@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { cn } from '@gravitee/graphene-core';
+import { Badge, cn } from '@gravitee/graphene-core';
 
+import { DEPLOYMENT_DIFF, diffPaneToneClasses } from './deploymentDiffStyles';
 import type { UnifiedLine } from './types';
+import { formatDate } from './utils';
+import type { ApiEvent } from '../../../types';
 
 type NumberedLine = UnifiedLine & { leftNum: number | null; rightNum: number | null };
 
@@ -31,74 +34,69 @@ function computeLineNumbers(lines: UnifiedLine[]): NumberedLine[] {
     });
 }
 
-export function LineDiffView({ lines }: { lines: UnifiedLine[] }) {
+interface LineDiffViewProps {
+    lines: UnifiedLine[];
+    leftEvent: ApiEvent;
+    rightEvent: ApiEvent;
+    leftVersion: string;
+    rightVersion: string;
+}
+
+export function LineDiffView({ lines, leftEvent, rightEvent, leftVersion, rightVersion }: LineDiffViewProps) {
     const numbered = computeLineNumbers(lines);
+    const removedTone = diffPaneToneClasses('removed');
+    const addedTone = diffPaneToneClasses('added');
+    const neutralTone = diffPaneToneClasses('neutral');
 
     return (
-        <div className="overflow-x-auto">
-            <table className="min-w-full border-collapse font-mono text-xs">
-                <colgroup>
-                    <col style={{ width: '3rem' }} />
-                    <col style={{ width: '3rem' }} />
-                    <col style={{ width: '1.5rem' }} />
-                    <col />
-                </colgroup>
-                <tbody>
-                    {numbered.map((line, i) => {
-                        const added = line.type === '+';
-                        const removed = line.type === '-';
-                        return (
-                            <tr key={i} className="group">
-                                {/* Left line number */}
-                                <td
-                                    className={cn(
-                                        'select-none text-right pr-3 pl-2 tabular-nums leading-5 align-top border-r text-[10px]',
-                                        removed
-                                            ? 'bg-red-100 text-red-500 dark:bg-red-950/50 dark:text-red-400 border-red-200 dark:border-red-800'
-                                            : 'bg-muted/40 text-muted-foreground/40 border-border/50',
-                                    )}
-                                >
-                                    {line.leftNum ?? ''}
-                                </td>
-                                {/* Right line number */}
-                                <td
-                                    className={cn(
-                                        'select-none text-right pr-3 pl-2 tabular-nums leading-5 align-top border-r text-[10px]',
-                                        added
-                                            ? 'bg-green-100 text-green-500 dark:bg-green-950/50 dark:text-green-400 border-green-200 dark:border-green-800'
-                                            : 'bg-muted/40 text-muted-foreground/40 border-border/50',
-                                    )}
-                                >
-                                    {line.rightNum ?? ''}
-                                </td>
-                                {/* Gutter symbol */}
-                                <td
-                                    className={cn(
-                                        'select-none text-center leading-5 align-top border-r font-bold',
-                                        added &&
-                                            'bg-green-200 text-green-800 dark:bg-green-900/60 dark:text-green-300 border-green-300 dark:border-green-700',
-                                        removed &&
-                                            'bg-red-200 text-red-700 dark:bg-red-900/60 dark:text-red-300 border-red-300 dark:border-red-700',
-                                        !added && !removed && 'bg-muted/40 text-muted-foreground/30 border-border/50',
-                                    )}
-                                >
-                                    {added ? '+' : removed ? '-' : ''}
-                                </td>
-                                {/* Content */}
-                                <td
-                                    className={cn(
-                                        'px-3 py-0 leading-5 whitespace-pre align-top',
-                                        added && 'bg-green-50 text-green-900 dark:bg-green-950/30 dark:text-green-100',
-                                        removed && 'bg-red-50 text-red-900 dark:bg-red-950/30 dark:text-red-100',
-                                    )}
-                                >
-                                    {line.text || ' '}
-                                </td>
-                            </tr>
-                        );
-                    })}
-                </tbody>
-            </table>
-        </div>
+        <table className={DEPLOYMENT_DIFF.table}>
+            <thead>
+                <tr className={DEPLOYMENT_DIFF.headerRow}>
+                    <th colSpan={4} className="px-4 py-2.5 text-left font-normal">
+                        <div className="flex flex-wrap items-center gap-4">
+                            <div className="flex items-center gap-2">
+                                <Badge variant="outline" className={DEPLOYMENT_DIFF.versionBadge}>
+                                    v{leftVersion}
+                                </Badge>
+                                <span className="text-xs font-semibold">Before</span>
+                                <span className="text-xs text-muted-foreground">
+                                    {formatDate(leftEvent.createdAt)} · {leftEvent.initiator.displayName}
+                                </span>
+                            </div>
+                            <span className="text-muted-foreground/40">→</span>
+                            <div className="flex items-center gap-2">
+                                <Badge variant="outline" className={DEPLOYMENT_DIFF.versionBadge}>
+                                    v{rightVersion}
+                                </Badge>
+                                <span className="text-xs font-semibold">After</span>
+                                <span className="text-xs text-muted-foreground">
+                                    {formatDate(rightEvent.createdAt)} · {rightEvent.initiator.displayName}
+                                </span>
+                            </div>
+                        </div>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {numbered.map((line, i) => {
+                    const added = line.type === '+';
+                    const removed = line.type === '-';
+                    const leftTone = removed ? removedTone : neutralTone;
+                    const rightTone = added ? addedTone : neutralTone;
+                    const gutterTone = added ? addedTone : removed ? removedTone : neutralTone;
+
+                    return (
+                        <tr key={i}>
+                            <td className={cn(DEPLOYMENT_DIFF.unified.lineNum, leftTone.lineNum)}>{line.leftNum ?? ''}</td>
+                            <td className={cn(DEPLOYMENT_DIFF.unified.lineNum, rightTone.lineNum)}>{line.rightNum ?? ''}</td>
+                            <td className={cn(DEPLOYMENT_DIFF.unified.gutter, gutterTone.gutter)}>{added ? '+' : removed ? '-' : ''}</td>
+                            <td className={cn(DEPLOYMENT_DIFF.unified.content, added && addedTone.content, removed && removedTone.content)}>
+                                {line.text || ' '}
+                            </td>
+                        </tr>
+                    );
+                })}
+            </tbody>
+        </table>
     );
 }

@@ -26,6 +26,5 @@ export function useApiProductDetail(productId: string | undefined) {
         queryKey: apiProductKeys.detail(env?.id ?? '', productId ?? ''),
         queryFn: () => getApiProductById(env!.id, productId!),
         enabled: Boolean(env) && Boolean(productId),
-        staleTime: 30_000,
     });
 }
