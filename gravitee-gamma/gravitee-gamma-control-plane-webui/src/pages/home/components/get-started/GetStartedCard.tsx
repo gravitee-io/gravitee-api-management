@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useRef } from 'react';
 
 import { Card, CardContent, cn } from '@gravitee/graphene-core';
 import { ArrowRightIcon } from '@gravitee/graphene-core/icons';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import type { GetStartedStep } from './get-started';
@@ -27,24 +27,16 @@ export function GetStartedCard({ step, to }: { readonly step: GetStartedStep; re
     const { Icon, title, description, accent } = step;
     const { bg, fg, hoverColor } = ACCENT_CLASSES[accent];
     const hoverRing = `0 0 0 1px color-mix(in oklab, ${hoverColor} 40%, transparent), 0 4px 16px 0 rgb(0 0 0 / 0.08)`;
-    const ctaRef = useRef<HTMLParagraphElement>(null);
-    const arrowRef = useRef<SVGSVGElement>(null);
-
-    const onHover = (e: React.MouseEvent<HTMLAnchorElement>, enter: boolean) => {
-        const card = e.currentTarget.firstElementChild as HTMLElement | null;
-        if (card) card.style.boxShadow = enter ? hoverRing : '';
-        if (ctaRef.current) ctaRef.current.style.color = enter ? 'var(--color-foreground)' : '';
-        if (arrowRef.current) arrowRef.current.style.transform = enter ? 'translateX(3px)' : '';
-    };
+    const [isHovered, setIsHovered] = useState(false);
 
     return (
         <Link
             to={to}
             className="cursor-pointer rounded-xl"
-            onMouseEnter={e => onHover(e, true)}
-            onMouseLeave={e => onHover(e, false)}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
         >
-            <Card className="h-full" style={{ transition: 'box-shadow 150ms ease' }}>
+            <Card className="h-full transition-shadow duration-150" style={{ boxShadow: isHovered ? hoverRing : undefined }}>
                 <CardContent className="flex h-full flex-col gap-3">
                     <div className={cn('w-fit rounded-lg p-2', bg)}>
                         <Icon className={cn('size-5', fg)} aria-hidden />
@@ -54,16 +46,14 @@ export function GetStartedCard({ step, to }: { readonly step: GetStartedStep; re
                         <p className="text-xs text-muted-foreground">{description}</p>
                     </div>
                     <p
-                        ref={ctaRef}
-                        className="mt-auto flex items-center gap-1 text-xs font-medium text-muted-foreground"
-                        style={{ transition: 'color 150ms ease' }}
+                        className="mt-auto flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors duration-150"
+                        style={{ color: isHovered ? 'var(--color-foreground)' : undefined }}
                     >
                         Get started
                         <ArrowRightIcon
-                            ref={arrowRef}
-                            className="size-3"
+                            className="size-3 transition-transform duration-150"
                             aria-hidden
-                            style={{ transition: 'transform 150ms ease' }}
+                            style={{ transform: isHovered ? 'translateX(3px)' : undefined }}
                         />
                     </p>
                 </CardContent>

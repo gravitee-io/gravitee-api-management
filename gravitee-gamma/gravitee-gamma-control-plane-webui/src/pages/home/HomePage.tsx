@@ -66,11 +66,7 @@ export function HomePage({ modules, loading, error }: HomePageProps) {
                 </h5>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {GET_STARTED_STEPS.map(step => (
-                        <GetStartedCard
-                            key={step.title}
-                            step={step}
-                            to={`${buildModulePath(envHrid, step.moduleId)}/${step.subPath}`}
-                        />
+                        <GetStartedCard key={step.title} step={step} to={`${buildModulePath(envHrid, step.moduleId)}/${step.subPath}`} />
                     ))}
                 </div>
             </section>
@@ -88,7 +84,7 @@ export function HomePage({ modules, loading, error }: HomePageProps) {
                         Failed to load modules: {error.message}
                     </p>
                 ) : loading ? (
-                    <div className="grid grid-cols-1 gap-4 grid-cols-2 md:grid-cols-4" aria-busy="true">
+                    <div className="grid grid-cols-1 gap-4 grid-cols-4" aria-busy="true">
                         {APPLICATIONS.map(app => (
                             <div key={app.title} className="rounded-xl border bg-card p-5 opacity-60">
                                 <div className="h-24 animate-pulse rounded bg-muted" aria-hidden />
@@ -96,7 +92,7 @@ export function HomePage({ modules, loading, error }: HomePageProps) {
                         ))}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 gap-4 grid-cols-2 md:grid-cols-4">
+                    <div className="grid grid-cols-1 gap-4 grid-cols-4">
                         {APPLICATIONS.map(app => {
                             const to = isAvailable(app.moduleId) ? buildModulePath(envHrid, app.moduleId) : null;
                             const liveBadge = dynamicBadges[app.moduleId];

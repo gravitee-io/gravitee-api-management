@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BotIcon, KeyIcon, LayoutDashboardIcon, RadioIcon } from '@gravitee/graphene-core/icons';
 import type { LucideIcon } from '@gravitee/graphene-core/icons';
 
+import { MODULE_ICONS } from '../../../../features/modules';
 import type { Accent } from '../accents';
 
 /** Plugin ids of modules we render a card for. Must match `plugin.properties#id` of
@@ -42,28 +42,28 @@ export const APPLICATIONS: readonly Application[] = [
         title: 'Agent Management',
         description: 'Discover, secure, build, and observe AI agents, MCP servers, and LLM integrations.',
         moduleId: 'aim',
-        Icon: BotIcon,
+        Icon: MODULE_ICONS['aim'],
         accent: 'highlight',
     },
     {
         title: 'API Management',
         description: 'Design, deploy, and manage your HTTP APIs with full lifecycle governance.',
         moduleId: 'apim',
-        Icon: RadioIcon,
+        Icon: MODULE_ICONS['apim'],
         accent: 'primary',
     },
     {
         title: 'Platform',
         description: 'Manage applications, subscribe to APIs, and monitor consumption from a single dashboard.',
         moduleId: 'platform',
-        Icon: LayoutDashboardIcon,
+        Icon: MODULE_ICONS['platform'],
         accent: 'accent',
     },
     {
         title: 'Authorization',
         description: 'Define fine-grained authorization rules, relationship tuples, and scopes across the platform.',
         moduleId: 'authz',
-        Icon: KeyIcon,
+        Icon: MODULE_ICONS['authz'],
         accent: 'success',
     },
 ];

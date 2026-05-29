@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { AppLayout, AppSidebar, ContentHeader, LayoutSlotsProvider, TopNavUser, useLayoutSlots } from '@gravitee/graphene-core';
-import { Globe, Home } from 'lucide-react';
+import { Globe } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useCallback, useMemo } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
@@ -22,6 +23,7 @@ import { useLogout, useUser } from '../../features/auth';
 import { useEnvironmentStore } from '../../features/environment/environment.store';
 import { useEnvHrid, getPrimaryHrid } from '../../features/environment/environment.utils';
 import type { GammaModule } from '../../features/modules';
+import { HOME_ICON, MODULE_ICONS } from '../../features/modules';
 import { buildPathnameAfterEnvironmentChange, pathSegmentsAfterEnvironment } from '../config/routes';
 
 const GAMMA_APP_KEY = 'gamma-console';
@@ -30,8 +32,13 @@ const hostAppDefinition = {
     key: GAMMA_APP_KEY,
     label: 'Home',
     description: 'Gamma control plane',
-    icon: <Home size={20} />,
+    icon: <HOME_ICON className="size-5" />,
 };
+
+function moduleIcon(moduleId: string): ReactNode {
+    const Icon = MODULE_ICONS[moduleId];
+    return Icon ? <Icon className="size-5" /> : <Globe size={20} />;
+}
 
 function buildAppDefinitions(modules: readonly GammaModule[]) {
     return [
@@ -40,7 +47,7 @@ function buildAppDefinitions(modules: readonly GammaModule[]) {
             key: m.id,
             label: m.name,
             description: `v${m.version}`,
-            icon: <Globe size={20} />,
+            icon: moduleIcon(m.id),
         })),
     ];
 }
