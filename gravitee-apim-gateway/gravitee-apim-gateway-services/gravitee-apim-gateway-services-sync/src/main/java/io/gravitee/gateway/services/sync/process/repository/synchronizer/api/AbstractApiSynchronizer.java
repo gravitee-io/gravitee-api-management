@@ -50,6 +50,9 @@ public abstract class AbstractApiSynchronizer {
     protected final DeployerFactory deployerFactory;
     protected final ThreadPoolExecutor syncFetcherExecutor;
     protected final ThreadPoolExecutor syncDeployerExecutor;
+    // Max concurrent batches running plan+subscription+apikey appenders. 1 = sequential (current);
+    // higher = batch-level parallel warmup. Driven by services.sync.appender.parallelism.
+    protected final int appenderParallelism;
 
     protected abstract int bulkEvents();
 
@@ -115,9 +118,16 @@ public abstract class AbstractApiSynchronizer {
                                 .build()
                         )
                         .buffer(bulkEvents())
-                        .map(deployables -> planAppender.appends(deployables, environments))
-                        .map(deployables -> subscriptionAppender.appends(initialSync, deployables, environments))
-                        .map(deployables -> apiKeyAppender.appends(initialSync, deployables, environments))
+                        .flatMap(
+                            deployables ->
+                                Flowable.fromCallable(() -> {
+                                    planAppender.appends(deployables, environments);
+                                    subscriptionAppender.appends(initialSync, deployables, environments);
+                                    apiKeyAppender.appends(initialSync, deployables, environments);
+                                    return deployables;
+                                }).subscribeOn(Schedulers.from(syncFetcherExecutor)),
+                            appenderParallelism
+                        )
                         .flatMapIterable(d -> d);
                 } else if (reactableByAction.getKey() == ActionOnApi.UNDEPLOY) {
                     return reactableByAction.map(reactableApi ->

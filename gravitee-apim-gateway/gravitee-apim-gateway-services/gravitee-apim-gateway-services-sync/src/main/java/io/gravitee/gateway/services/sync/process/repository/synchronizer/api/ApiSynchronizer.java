@@ -57,7 +57,8 @@ public class ApiSynchronizer extends AbstractApiSynchronizer implements Reposito
         final ApiKeyAppender apiKeyAppender,
         final DeployerFactory deployerFactory,
         final ThreadPoolExecutor syncFetcherExecutor,
-        final ThreadPoolExecutor syncDeployerExecutor
+        final ThreadPoolExecutor syncDeployerExecutor,
+        final int appenderParallelism
     ) {
         super(
             apiManager,
@@ -67,7 +68,8 @@ public class ApiSynchronizer extends AbstractApiSynchronizer implements Reposito
             apiKeyAppender,
             deployerFactory,
             syncFetcherExecutor,
-            syncDeployerExecutor
+            syncDeployerExecutor,
+            appenderParallelism
         );
         this.eventsFetcher = eventsFetcher;
     }
