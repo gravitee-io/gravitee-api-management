@@ -23,8 +23,8 @@ import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchHit;
 import io.gravitee.elasticsearch.model.SearchResponse;
-import io.gravitee.elasticsearch.utils.IndexNameUtils;
 import io.gravitee.repository.common.query.QueryContext;
+import io.gravitee.repository.elasticsearch.utils.OtelDataStreamIndexUtils;
 import io.gravitee.repository.tracing.api.TracingRepository;
 import io.gravitee.repository.tracing.model.Trace;
 import io.gravitee.repository.tracing.model.TraceSearchCriteria;
@@ -103,11 +103,12 @@ public class ElasticsearchTracingRepository implements TracingRepository {
     }
 
     private String resolveIndex(String template, QueryContext queryContext) {
-        // Mirrors the analytics plugin's index-naming convention: IndexNameUtils.format substitutes
-        // {orgId} / {envId} with the lowercased values from QueryContext.placeholder(). ES data streams
-        // require lowercase names — the OTel collector writes to lowercase too, so a caller orgId of
-        // "DEFAULT" resolves to traces-apim.otel-default, not -DEFAULT.
-        return IndexNameUtils.format(template, queryContext.placeholder());
+        // Substitution mirrors the OTel collector ES exporter's dataset normalisation —
+        // disallowed runes (including the hyphen) become '_', other characters are lowercased,
+        // truncated to 100 bytes. A caller orgId of "my-org-1" thus resolves to
+        // traces-gamma_my_org_1.otel-<namespace>, matching what the collector wrote with
+        // mapping.mode: otel. See OtelDataStreamIndexUtils' javadoc for the upstream reference.
+        return OtelDataStreamIndexUtils.format(template, queryContext.placeholder());
     }
 
     /**
