@@ -51,7 +51,9 @@ public class ApiTypeFilterTransformer implements QueryFilterTransformer {
         "MCP",
         ApiType.MCP_PROXY,
         "KAFKA",
-        ApiType.NATIVE
+        ApiType.NATIVE,
+        "EDGE",
+        ApiType.EDGE
     );
 
     @Override

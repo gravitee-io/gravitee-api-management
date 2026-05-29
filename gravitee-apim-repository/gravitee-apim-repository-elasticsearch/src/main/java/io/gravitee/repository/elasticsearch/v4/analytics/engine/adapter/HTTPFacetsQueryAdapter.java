@@ -42,13 +42,17 @@ public class HTTPFacetsQueryAdapter {
     private final HTTPMeasuresQueryAdapter measuresAdapter = new HTTPMeasuresQueryAdapter();
 
     public String adapt(FacetsQuery query) {
-        return json(query).toString();
+        return json(query, boolAdapter.adaptForHTTP(query)).toString();
     }
 
-    private JsonObject json(FacetsQuery query) {
+    public String adaptEdge(FacetsQuery query) {
+        return json(query, boolAdapter.adaptForEdge(query)).toString();
+    }
+
+    private JsonObject json(FacetsQuery query, JsonObject boolQuery) {
         return new JsonObject()
             .put("size", 0)
-            .put("query", boolAdapter.adaptForHTTP(query))
+            .put("query", boolQuery)
             .put("aggs", adaptFacets(query.metrics(), query.facets(), query.limit(), query.ranges()));
     }
 
