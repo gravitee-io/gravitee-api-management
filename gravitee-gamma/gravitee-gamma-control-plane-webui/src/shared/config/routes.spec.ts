@@ -16,7 +16,7 @@
 import { buildPathnameAfterEnvironmentChange, hostNavPath, pathSegmentsAfterEnvironment, resolveHostRoute } from './routes';
 
 describe('hostNavPath', () => {
-    it('should build home and about paths under environment', () => {
+    it('should build home path under environment', () => {
         expect(hostNavPath('home', 'default')).toBe('/environments/default/home');
     });
 });
@@ -56,7 +56,7 @@ describe('buildPathnameAfterEnvironmentChange', () => {
         expect(buildPathnameAfterEnvironmentChange('/environments/env-1', 'env-1', 'env-2')).toBe('/environments/env-2/home');
     });
 
-    it('should keep host home and about when switching', () => {
-        expect(buildPathnameAfterEnvironmentChange('/environments/a/about', 'a', 'b')).toBe('/environments/b/about');
+    it('should keep host home when switching', () => {
+        expect(buildPathnameAfterEnvironmentChange('/environments/a/home', 'a', 'b')).toBe('/environments/b/home');
     });
 });
