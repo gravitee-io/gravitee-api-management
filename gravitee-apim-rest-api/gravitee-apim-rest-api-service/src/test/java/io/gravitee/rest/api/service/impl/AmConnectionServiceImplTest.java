@@ -79,10 +79,11 @@ public class AmConnectionServiceImplTest {
 
     @Test
     public void save_with_null_token_preserves_existing_ciphertext() throws Exception {
+        String existingCipher = dataEncryptor.encrypt("existing-token");
         AmConnection existing = new AmConnection();
         existing.setOrganizationId("org-1");
         existing.setBaseUrl("https://old.example.com");
-        existing.setServiceAccountAccessTokenEncrypted("existing-cipher");
+        existing.setServiceAccountAccessTokenEncrypted(existingCipher);
         when(amConnectionRepository.findByOrganizationId("org-1")).thenReturn(Optional.of(existing));
         when(amConnectionRepository.update(any())).thenAnswer(i -> i.getArgument(0));
 
@@ -90,7 +91,7 @@ public class AmConnectionServiceImplTest {
 
         ArgumentCaptor<AmConnection> captor = ArgumentCaptor.forClass(AmConnection.class);
         verify(amConnectionRepository).update(captor.capture());
-        assertThat(captor.getValue().getServiceAccountAccessTokenEncrypted()).isEqualTo("existing-cipher");
+        assertThat(captor.getValue().getServiceAccountAccessTokenEncrypted()).isEqualTo(existingCipher);
     }
 
     @Test
