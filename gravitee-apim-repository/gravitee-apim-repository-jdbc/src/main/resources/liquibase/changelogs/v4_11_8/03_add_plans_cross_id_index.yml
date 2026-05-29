@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.11.8_03_add_plans_cross_id_index
+      author: GraviteeSource Team
+      changes:
+        - createIndex:
+            indexName: idx_${gravitee_prefix}plans_cross_id
+            tableName: ${gravitee_prefix}plans
+            columns:
+              - column:
+                  name: cross_id

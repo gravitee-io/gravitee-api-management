@@ -336,3 +336,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_11_8/01_add_subscriptions_environment_id_updated_at_id_index.yml
     - include:
         - file: liquibase/changelogs/v4_11_8/02_add_keys_environment_id_updated_at_id_index.yml
+    - include:
+        - file: liquibase/changelogs/v4_11_8/03_add_plans_cross_id_index.yml
