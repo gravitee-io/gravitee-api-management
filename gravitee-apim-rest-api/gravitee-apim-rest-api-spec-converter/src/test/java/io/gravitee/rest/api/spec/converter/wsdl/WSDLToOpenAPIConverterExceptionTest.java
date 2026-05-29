@@ -15,15 +15,17 @@
  */
 package io.gravitee.rest.api.spec.converter.wsdl;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import io.gravitee.rest.api.spec.converter.wsdl.exception.WsdlDescriptorException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class WSDLToOpenAPIConverterExceptionTest {
 
     private WSDLToOpenAPIConverter converter = new WSDLToOpenAPIConverter();
 
-    @Test(expected = WsdlDescriptorException.class)
+    @Test
     public void convertWsdlWithException() {
-        converter.toOpenAPI(this.getClass().getResourceAsStream("/root_pwd.wsdl"));
+        assertThrows(WsdlDescriptorException.class, () -> converter.toOpenAPI(this.getClass().getResourceAsStream("/root_pwd.wsdl")));
     }
 }
