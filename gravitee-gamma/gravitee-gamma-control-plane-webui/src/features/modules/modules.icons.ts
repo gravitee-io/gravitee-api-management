@@ -13,7 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type { GammaModule, GammaModuleResponse } from './modules.types';
-export { HOME_ICON, MODULE_ICONS } from './modules.icons';
-export { useGammaModules } from './hooks/useGammaModules';
-export { RemoteModuleRoute } from './components/RemoteModuleRoute';
+import {
+    GioAgentManagementIcon,
+    GioApiManagementIcon,
+    GioAuthorizationIcon,
+    GioHomeIcon,
+    GioPlatformIcon,
+} from '@gravitee/graphene-core/icons';
+import type { LucideIcon } from '@gravitee/graphene-core/icons';
+
+/**
+ * Canonical mapping from module id to its product icon.
+ * Shared by the app switcher (ShellLayout) and the home page cards.
+ */
+export const HOME_ICON = GioHomeIcon;
+
+export const MODULE_ICONS: Record<string, LucideIcon> = {
+    aim: GioAgentManagementIcon,
+    apim: GioApiManagementIcon,
+    platform: GioPlatformIcon,
+    authz: GioAuthorizationIcon,
+};

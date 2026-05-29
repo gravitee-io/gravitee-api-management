@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import type { PolicyResponse } from './api/authz-api.types';
-import { deriveServiceType } from './entity-kind-registry';
 import { formatEntityUid } from './entity-adapter';
+import { deriveServiceType } from './entity-kind-registry';
 import type { EntityInstance } from './entity.types';
 
 export type PolicyClause = 'principal' | 'action' | 'resource';

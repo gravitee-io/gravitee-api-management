@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { PlugIcon, ShieldCheckIcon, WaypointsIcon } from '@gravitee/graphene-core/icons';
+import { PlugZapIcon, PuzzleIcon, ShieldCheckIcon } from '@gravitee/graphene-core/icons';
 import type { LucideIcon } from '@gravitee/graphene-core/icons';
 
 import type { Accent } from '../accents';
@@ -32,7 +32,7 @@ export const GET_STARTED_STEPS: readonly GetStartedStep[] = [
     {
         title: 'Add Integration',
         description: 'Connect to any platform like OpenAI or AWS Bedrock to import models, tools and agents.',
-        Icon: PlugIcon,
+        Icon: PlugZapIcon,
         accent: 'success',
         moduleId: 'aim',
         subPath: 'import/models',
@@ -40,7 +40,7 @@ export const GET_STARTED_STEPS: readonly GetStartedStep[] = [
     {
         title: 'Create MCP Proxy',
         description: 'Create a MCP proxy to expose and govern your tool servers.',
-        Icon: WaypointsIcon,
+        Icon: PuzzleIcon,
         accent: 'highlight',
         moduleId: 'aim',
         subPath: 'mcp-proxy/new',
