@@ -64,7 +64,9 @@ class ElasticsearchOtelLogRepositoryTest {
         ArgumentCaptor<String> bodyCaptor = ArgumentCaptor.forClass(String.class);
         Mockito.verify(client).search(indexCaptor.capture(), eq(null), bodyCaptor.capture());
 
-        assertThat(indexCaptor.getValue()).isEqualTo("logs-apim.otel-test-org");
+        // Hyphen in orgId converted to underscore by the OTel-mode dataset normalisation — matches
+        // the data stream the collector wrote (see OtelDataStreamIndexUtils javadoc).
+        assertThat(indexCaptor.getValue()).isEqualTo("logs-apim.otel-test_org");
 
         JsonNode body = MAPPER.readTree(bodyCaptor.getValue());
         JsonNode filter = body.path("query").path("bool").path("filter");
@@ -418,7 +420,9 @@ class ElasticsearchOtelLogRepositoryTest {
 
         ArgumentCaptor<String> indexCaptor = ArgumentCaptor.forClass(String.class);
         Mockito.verify(client).search(indexCaptor.capture(), eq(null), any());
-        assertThat(indexCaptor.getValue()).isEqualTo("logs-apim.otel-test-org-test-env");
+        // Both placeholders go through the same dataset normalisation, so hyphens in either
+        // value become underscores.
+        assertThat(indexCaptor.getValue()).isEqualTo("logs-apim.otel-test_org-test_env");
     }
 
     @Test
