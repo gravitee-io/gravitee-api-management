@@ -68,7 +68,7 @@ export default {
             main: './src/main.ts',
             index: './src/index.html',
             baseHref: '/',
-            assets: ['./src/assets', './src/constants.json'],
+            assets: ['./src/favicon.ico', './src/assets', './src/constants.json'],
             styles: [],
             outputHashing: process.env['NODE_ENV'] === 'production' ? 'all' : 'none',
             optimization: process.env['NODE_ENV'] === 'production',
