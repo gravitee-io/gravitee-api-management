@@ -22,6 +22,7 @@ import io.gravitee.definition.model.ApiDefinition;
 import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.edge.EdgeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.model.context.OriginContext;
@@ -55,9 +56,11 @@ public interface ApiAdapter {
 
     default ApiDefinition toApiDefinition(io.gravitee.repository.management.model.Api source) {
         return switch (source.getDefinitionVersion()) {
-            case V4 -> source.getType() != ApiType.NATIVE
-                ? deserialize(source, io.gravitee.definition.model.v4.Api.class)
-                : deserialize(source, NativeApi.class);
+            case V4 -> ApiType.NATIVE == source.getType()
+                ? deserialize(source, NativeApi.class)
+                : ApiType.EDGE == source.getType()
+                    ? deserialize(source, EdgeApi.class)
+                    : deserialize(source, io.gravitee.definition.model.v4.Api.class);
             case FEDERATED -> deserialize(source, FederatedApi.class);
             case FEDERATED_AGENT -> null; // TODO ???
             case V2 -> deserialize(source, io.gravitee.definition.model.Api.class);
@@ -192,6 +195,7 @@ public interface ApiAdapter {
         return switch (api.getApiDefinitionValue()) {
             case io.gravitee.definition.model.Api v2 -> serialize(v2, "V2 API");
             case NativeApi nativeApi -> serialize(nativeApi, "V4 Native API");
+            case EdgeApi edgeApi -> serialize(edgeApi, "V4 Edge API");
             case io.gravitee.definition.model.v4.Api v4 -> serialize(v4, "V4 API");
             case FederatedApi federatedApi -> serialize(federatedApi, "Federated API");
             case FederatedAgent federatedAgent -> serialize(federatedAgent, "Federated Agent");

@@ -23,6 +23,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.edge.EdgeApi;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
@@ -236,6 +237,25 @@ class ApiAdapterTest {
         }
 
         @Test
+        void should_convert_from_edge_v4_repository_to_core_model() {
+            var repository = apiV4().type(ApiType.EDGE).definition("{ \"type\": \"edge\" }").build();
+
+            var api = ApiAdapter.INSTANCE.toCoreModel(repository);
+
+            assertThat(api.getApiDefinitionValue()).isInstanceOf(EdgeApi.class);
+            assertThat(((EdgeApi) api.getApiDefinitionValue()).getType()).isEqualTo(ApiType.EDGE);
+        }
+
+        @Test
+        void should_not_fail_when_converting_v4_repository_with_null_type() {
+            var repository = apiV4().type(null).build();
+
+            var api = ApiAdapter.INSTANCE.toCoreModel(repository);
+
+            assertThat(api.getApiDefinitionValue()).isInstanceOf(io.gravitee.definition.model.v4.Api.class);
+        }
+
+        @Test
         void should_convert_origin_context() {
             var apiWithManagementContext = ApiAdapter.INSTANCE.toCoreModel(apiV4().origin("management").build());
             assertThat(apiWithManagementContext).hasOriginContext(new OriginContext.Management());
@@ -356,6 +376,22 @@ class ApiAdapterTest {
                 soft.assertThat(apiWithKubernetesContext.getOrigin()).isEqualTo("kubernetes");
                 soft.assertThat(apiWithKubernetesContext.getMode()).isEqualTo("fully_managed");
             });
+        }
+
+        @Test
+        void should_convert_edge_api_to_repository() throws JsonProcessingException {
+            var edgeDefinition = EdgeApi.builder().build();
+            var model = io.gravitee.apim.core.api.model.Api.builder()
+                .id("my-api")
+                .definitionVersion(DefinitionVersion.V4)
+                .type(ApiType.EDGE)
+                .apiDefinitionValue(edgeDefinition)
+                .build();
+
+            var api = ApiAdapter.INSTANCE.toRepository(model);
+
+            assertThat(api.getType()).isEqualTo(ApiType.EDGE);
+            assertThat(api.getDefinition()).isEqualTo(GraviteeJacksonMapper.getInstance().writeValueAsString(edgeDefinition));
         }
     }
 
