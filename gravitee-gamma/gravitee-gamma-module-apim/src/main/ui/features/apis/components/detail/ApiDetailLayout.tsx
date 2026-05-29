@@ -14,10 +14,26 @@
  * limitations under the License.
  */
 import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { Badge, Button, ContextSidebar, ContextToggleButton, Skeleton, useLayoutConfig } from '@gravitee/graphene-core';
+import {
+    Badge,
+    Button,
+    ContextSidebar,
+    ContextToggleButton,
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    Input,
+    Label,
+    Skeleton,
+    useLayoutConfig,
+} from '@gravitee/graphene-core';
 import { CircleCheckIcon, CircleStopIcon, CircleXIcon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Navigate, Outlet, useParams } from 'react-router-dom';
 
 import { API_PROXY_NAV_GROUPS, ApiDetailSidebarNav } from './ApiDetailSidebarNav';
@@ -28,6 +44,9 @@ import { useApiPermissions } from '../../hooks/useApiPermissions';
 import { deployApi } from '../../services/apis';
 import type { ApiDetailDto } from '../../types';
 import { apiDetailKeys } from '../../utils/queryKeys';
+
+/** Classic console caps the deployment label at 32 characters. */
+const DEPLOYMENT_LABEL_MAX_LENGTH = 32;
 
 function StateIndicator({ state, deploymentState }: { state: ApiDetailDto['state']; deploymentState?: string }) {
     if (state === 'STARTED' && deploymentState === 'NEED_REDEPLOY') {
@@ -87,6 +106,65 @@ function DeployBanner({ onDeploy, isPending }: { onDeploy: () => void; isPending
                 {isPending ? 'Deploying…' : 'Deploy API'}
             </Button>
         </div>
+    );
+}
+
+/** Collects an optional deployment label before deploying — mirrors the classic console deploy dialog. */
+function DeployConfirmDialog({
+    open,
+    isPending,
+    onConfirm,
+    onOpenChange,
+}: {
+    open: boolean;
+    isPending: boolean;
+    onConfirm: (label: string) => void;
+    onOpenChange: (open: boolean) => void;
+}) {
+    const labelId = useId();
+    const [label, setLabel] = useState('');
+
+    const handleConfirm = () => onConfirm(label.trim());
+
+    return (
+        <Dialog
+            open={open}
+            onOpenChange={next => {
+                if (!next) setLabel('');
+                onOpenChange(next);
+            }}
+        >
+            <DialogContent className="max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Deploy your API</DialogTitle>
+                    <DialogDescription>Provide a label to identify your deployment.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-2">
+                    <Label htmlFor={labelId}>Deployment label (optional)</Label>
+                    <Input
+                        id={labelId}
+                        maxLength={DEPLOYMENT_LABEL_MAX_LENGTH}
+                        placeholder="e.g. hotfix-cors, v2.1-release"
+                        value={label}
+                        onChange={e => setLabel(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && handleConfirm()}
+                    />
+                    <p className="text-right text-xs text-muted-foreground">
+                        {label.length}/{DEPLOYMENT_LABEL_MAX_LENGTH}
+                    </p>
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild>
+                        <Button variant="outline" size="sm">
+                            Cancel
+                        </Button>
+                    </DialogClose>
+                    <Button size="sm" onClick={handleConfirm} disabled={isPending}>
+                        {isPending ? 'Deploying…' : 'Deploy'}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 }
 
@@ -170,13 +248,15 @@ export function ApiDetailLayout() {
     const canDeploy = useHasPermission({ anyOf: ['api-definition-u'] });
     const queryClient = useQueryClient();
     const [contextExpanded, setContextExpanded] = useState(true);
+    const [showDeployDialog, setShowDeployDialog] = useState(false);
 
     const deployMutation = useMutation({
-        mutationFn: () => {
+        mutationFn: (deploymentLabel?: string) => {
             if (!env || !apiId) return Promise.resolve();
-            return deployApi(env.id, apiId);
+            return deployApi(env.id, apiId, deploymentLabel);
         },
         onSuccess: () => {
+            setShowDeployDialog(false);
             if (env && apiId) {
                 queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env.id, apiId) });
             }
@@ -214,11 +294,17 @@ export function ApiDetailLayout() {
     return (
         <ApiDetailContext.Provider value={{ api: api ?? null, isLoading, permissionsReady }}>
             <div className="flex h-full min-h-0 flex-col">
-                {showDeployBanner && <DeployBanner onDeploy={() => deployMutation.mutate()} isPending={deployMutation.isPending} />}
+                {showDeployBanner && <DeployBanner onDeploy={() => setShowDeployDialog(true)} isPending={deployMutation.isPending} />}
                 <div className="min-h-0 flex-1">
                     <Outlet />
                 </div>
             </div>
+            <DeployConfirmDialog
+                open={showDeployDialog}
+                isPending={deployMutation.isPending}
+                onConfirm={label => deployMutation.mutate(label || undefined)}
+                onOpenChange={setShowDeployDialog}
+            />
         </ApiDetailContext.Provider>
     );
 }
