@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { authzApiService } from '../authz-api.service';
 
 const get = vi.fn();
 vi.mock('../authz-api-client', () => ({
@@ -25,8 +26,6 @@ vi.mock('../authz-api-client', () => ({
     },
     ApiError: class ApiError extends Error {},
 }));
-
-import { authzApiService } from '../authz-api.service';
 
 function policy(name: string, entityId: string | null) {
     return {
@@ -66,11 +65,7 @@ describe('authzApiService.listPolicies — type filtering across pages', () => {
     });
 
     it('paginates the filtered set locally', async () => {
-        const data = [
-            policy('mcp-1', 'mcp.a'),
-            policy('mcp-2', 'mcp.b'),
-            policy('mcp-3', 'mcp.c'),
-        ];
+        const data = [policy('mcp-1', 'mcp.a'), policy('mcp-2', 'mcp.b'), policy('mcp-3', 'mcp.c')];
         get.mockResolvedValue({ data, total: data.length, page: 1, perPage: 100 });
 
         const res = await authzApiService.listPolicies('DEFAULT', { type: 'MCP', page: 2, perPage: 2 });

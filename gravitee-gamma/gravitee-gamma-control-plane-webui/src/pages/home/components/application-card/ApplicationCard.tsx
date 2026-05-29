@@ -36,7 +36,7 @@ export function ApplicationCard({ app, to }: { readonly app: Application; readon
         <CardContent className="flex h-full flex-col gap-3">
             <div className="flex items-start justify-between gap-2">
                 <div className="rounded-lg p-2 bg-accent/20">
-                    <Icon className="size-12" aria-hidden />
+                    <Icon className="size-8" aria-hidden />
                 </div>
                 {app.badge && (
                     <Badge variant="secondary" className="font-normal">
