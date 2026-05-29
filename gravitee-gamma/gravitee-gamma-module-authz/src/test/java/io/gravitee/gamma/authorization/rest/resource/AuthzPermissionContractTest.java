@@ -103,7 +103,6 @@ class AuthzPermissionContractTest {
         m.put("AuthzEntitiesResource.delete", Set.of(RolePermissionAction.DELETE));
         m.put("AuthzSchemaResource.currentSchema", Set.of(RolePermissionAction.READ));
         m.put("AuthzAmUserSyncResource.sync", Set.of(RolePermissionAction.CREATE, RolePermissionAction.UPDATE));
-        m.put("AuthzAmUserSyncResource.run", Set.of(RolePermissionAction.CREATE, RolePermissionAction.UPDATE));
         m.put("AuthzAmUserSyncResource.status", Set.of(RolePermissionAction.READ));
         EXPECTED_ACLS_BY_METHOD = Map.copyOf(m);
     }

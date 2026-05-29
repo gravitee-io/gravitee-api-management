@@ -17,6 +17,8 @@ import { deriveServiceType } from '../entity-kind-registry';
 import { deriveTargetEntityId } from '../policy-entity-refs';
 import { ApiError, authzCoreApiClient } from './authz-api-client';
 import type {
+    AmSyncStartResponse,
+    AmSyncStatusResponse,
     EntityResponse,
     PagedResponse,
     PolicyRequest,
@@ -317,6 +319,12 @@ export const authzApiService = {
 
     deleteEntity: (environmentId: string, entityId: string): Promise<void> =>
         authzCoreApiClient.delete<void>(corePath(environmentId, `/entities/${encodeURIComponent(entityId)}`)),
+
+    startUserSync: (environmentId: string): Promise<AmSyncStartResponse> =>
+        authzCoreApiClient.post<AmSyncStartResponse>(corePath(environmentId, '/users/sync')),
+
+    getUserSyncStatus: (environmentId: string): Promise<AmSyncStatusResponse> =>
+        authzCoreApiClient.get<AmSyncStatusResponse>(corePath(environmentId, '/users/sync')),
 };
 
 export interface CreateEntityRequest {
