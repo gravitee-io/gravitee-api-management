@@ -28,6 +28,7 @@
   width: min(560px, calc(100vw - 32px));
   max-width: 100%;
   font-family: inherit;
+  overflow-y: auto;
 }
 
 :host > h2[mat-dialog-title] {
@@ -44,11 +45,7 @@
   width: 100%;
   max-width: 100%;
   font-family: inherit;
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  // Extra top padding so outline floating labels are not clipped at the scroll edge.
-  padding-top: 12px;
+  overflow: visible;
   padding-bottom: 4px;
   box-sizing: border-box;
   // Let the host flex chain own vertical bounds; Material’s default max-height on
