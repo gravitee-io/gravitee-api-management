@@ -48,12 +48,16 @@ describe('PortalAnalyticsFiltersService', () => {
       expect(definitions).toHaveLength(4);
       expect(definitions.map(d => d.name)).toEqual(['API', 'APPLICATION', 'HTTP_STATUS_CODE_GROUP', 'HTTP_STATUS']);
       expect(definitions[0].type).toBe('KEYWORD');
+      expect(definitions[0].apiTypes).toEqual(['HTTP_PROXY', 'MESSAGE', 'LLM', 'MCP', 'NATIVE', 'EDGE']);
       expect(definitions[1].type).toBe('KEYWORD');
+      expect(definitions[1].apiTypes).toEqual(['HTTP_PROXY', 'MESSAGE', 'LLM', 'MCP', 'NATIVE', 'EDGE']);
       expect(definitions[2].type).toBe('ENUM');
       expect(definitions[2].values).toEqual(['1XX', '2XX', '3XX', '4XX', '5XX']);
+      expect(definitions[2].apiTypes).toEqual(['HTTP_PROXY', 'MESSAGE', 'LLM', 'MCP']);
       expect(definitions[3].type).toBe('NUMBER');
       expect(definitions[3].range).toEqual({ min: 100, max: 599 });
       expect(definitions[3].operators).toEqual(['EQ', 'LTE', 'GTE']);
+      expect(definitions[3].apiTypes).toEqual(['HTTP_PROXY', 'MESSAGE', 'LLM', 'MCP']);
       done();
     });
   });

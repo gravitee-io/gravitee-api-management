@@ -35,14 +35,27 @@ export class PortalAnalyticsFiltersService implements FilterDefinitionProvider, 
 
   getDefinitions(): Observable<FilterDefinition[]> {
     return of([
-      { name: 'API', label: $localize`:@@analyticsFilterApi:API`, type: 'KEYWORD', operators: ['EQ', 'IN'] },
-      { name: 'APPLICATION', label: $localize`:@@analyticsFilterApplication:Application`, type: 'KEYWORD', operators: ['EQ', 'IN'] },
+      {
+        name: 'API',
+        label: $localize`:@@analyticsFilterApi:API`,
+        type: 'KEYWORD',
+        operators: ['EQ', 'IN'],
+        apiTypes: ['HTTP_PROXY', 'MESSAGE', 'LLM', 'MCP', 'NATIVE', 'EDGE'],
+      },
+      {
+        name: 'APPLICATION',
+        label: $localize`:@@analyticsFilterApplication:Application`,
+        type: 'KEYWORD',
+        operators: ['EQ', 'IN'],
+        apiTypes: ['HTTP_PROXY', 'MESSAGE', 'LLM', 'MCP', 'NATIVE', 'EDGE'],
+      },
       {
         name: 'HTTP_STATUS_CODE_GROUP',
         label: $localize`:@@analyticsFilterStatusCodeGroup:Status Code Group`,
         type: 'ENUM',
         operators: ['EQ', 'IN'],
         values: ['1XX', '2XX', '3XX', '4XX', '5XX'],
+        apiTypes: ['HTTP_PROXY', 'MESSAGE', 'LLM', 'MCP'],
       },
       {
         name: 'HTTP_STATUS',
@@ -50,6 +63,7 @@ export class PortalAnalyticsFiltersService implements FilterDefinitionProvider, 
         type: 'NUMBER',
         range: { min: 100, max: 599 },
         operators: ['EQ', 'LTE', 'GTE'],
+        apiTypes: ['HTTP_PROXY', 'MESSAGE', 'LLM', 'MCP'],
       },
     ]);
   }
