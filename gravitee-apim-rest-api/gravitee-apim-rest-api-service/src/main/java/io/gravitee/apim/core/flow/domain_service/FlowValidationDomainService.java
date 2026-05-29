@@ -41,6 +41,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -62,6 +63,9 @@ public class FlowValidationDomainService {
         this.policyValidationDomainService = policyValidationDomainService;
         this.entrypointConnectorPluginService = entrypointConnectorPluginService;
     }
+
+    public static final Predicate<Selector> HTTP_SELECTOR_WITH_NULL_PATH_OPERATOR = selector ->
+        selector instanceof HttpSelector httpSelector && httpSelector.getPathOperator() == null;
 
     private static final Function<Flow, Optional<String>> HTTP_PATH_EXTRACTOR = flow ->
         flow
@@ -97,6 +101,9 @@ public class FlowValidationDomainService {
                 // Check selectors according to api type
                 checkSelectorsForType(apiType, flow);
 
+                // Check HTTP selectors carry a non-null pathOperator
+                checkHttpSelectorsPathOperator(flow);
+
                 // Validate policy
                 var steps = Stream.of(flow.getRequest(), flow.getResponse(), flow.getPublish(), flow.getSubscribe())
                     .filter(Objects::nonNull)
@@ -125,6 +132,15 @@ public class FlowValidationDomainService {
             });
         }
         return flows;
+    }
+
+    private void checkHttpSelectorsPathOperator(final Flow flow) {
+        if (flow.getSelectors() != null) {
+            boolean hasNullPathOperator = flow.getSelectors().stream().anyMatch(HTTP_SELECTOR_WITH_NULL_PATH_OPERATOR);
+            if (hasNullPathOperator) {
+                throw InvalidFlowException.missingPathOperator(flow.getName());
+            }
+        }
     }
 
     private void checkSelectorsForType(final ApiType apiType, final Flow flow) {

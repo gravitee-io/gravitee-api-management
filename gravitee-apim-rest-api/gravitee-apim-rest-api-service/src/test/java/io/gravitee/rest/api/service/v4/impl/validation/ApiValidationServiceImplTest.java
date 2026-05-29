@@ -21,12 +21,14 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -35,8 +37,14 @@ import static org.mockito.Mockito.when;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
+import io.gravitee.apim.core.flow.exception.InvalidFlowException;
+import io.gravitee.apim.core.plugin.query_service.EntrypointPluginQueryService;
+import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
@@ -472,6 +480,54 @@ public class ApiValidationServiceImplTest {
         apiValidationService.validateAndSanitizeNewApi(GraviteeContext.getExecutionContext(), newApiEntity, primaryOwnerEntity);
 
         assertEquals("\"A Description\"", newApiEntity.getDescription());
+    }
+
+    @Test
+    public void shouldThrowWhenUpdateV4HttpFlowHasNullPathOperator() {
+        ApiValidationService apiValidationServiceWithRealFlowValidation = new ApiValidationServiceImpl(
+            tagsValidationService,
+            groupValidationService,
+            listenerValidationService,
+            endpointGroupsValidationService,
+            flowValidationService,
+            resourcesValidationService,
+            loggingValidationService,
+            planSearchService,
+            planValidationService,
+            apiServicePluginService,
+            new FlowValidationDomainService(mock(PolicyValidationDomainService.class), mock(EntrypointPluginQueryService.class)),
+            apiProductQueryService
+        );
+
+        HttpSelector httpSelector = new HttpSelector();
+        httpSelector.setPath("/");
+        httpSelector.setPathOperator(null);
+
+        Flow flow = new Flow();
+        flow.setName("my-flow");
+        flow.setSelectors(List.<Selector>of(httpSelector));
+
+        UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+        updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        updateApiEntity.setType(ApiType.PROXY);
+        updateApiEntity.setLifecycleState(null);
+        updateApiEntity.setFlows(List.of(flow));
+
+        ApiEntity existingApiEntity = new ApiEntity();
+        existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        existingApiEntity.setType(ApiType.PROXY);
+        existingApiEntity.setLifecycleState(CREATED);
+
+        assertThatThrownBy(() ->
+            apiValidationServiceWithRealFlowValidation.validateAndSanitizeUpdateApi(
+                GraviteeContext.getExecutionContext(),
+                updateApiEntity,
+                new PrimaryOwnerEntity(),
+                existingApiEntity
+            )
+        )
+            .isInstanceOf(InvalidFlowException.class)
+            .hasMessageContaining("missing pathOperator");
     }
 
     private void assertUpdate(
