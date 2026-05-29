@@ -27,6 +27,7 @@ import { McpsPage } from '../features/policy-management/pages/McpsPage';
 import { ModelsPage } from '../features/policy-management/pages/ModelsPage';
 import { ActionsPage } from '../features/policy-structure/ActionsPage';
 import { EntitiesPage } from '../features/policy-structure/EntitiesPage';
+import { SchemaPage } from '../features/policy-structure/SchemaPage';
 import { ModuleErrorBoundary } from './ModuleErrorBoundary';
 
 const queryClient = new QueryClient();
@@ -67,6 +68,7 @@ export function AppRoutes() {
                         <Route path="custom-policies" element={<CustomPoliciesPage />} />
                         <Route path="entities" element={<EntitiesPage />} />
                         <Route path="actions" element={<ActionsPage />} />
+                        <Route path="schema" element={<SchemaPage />} />
                     </Route>
                 </Routes>
             </ModuleErrorBoundary>
