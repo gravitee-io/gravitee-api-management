@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.model;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -31,7 +31,7 @@ public class UserEntityTest {
         userEntity.setLastname(null);
         userEntity.setEmail(null);
 
-        Assert.assertEquals("user", userEntity.getDisplayName());
+        Assertions.assertEquals("user", userEntity.getDisplayName());
     }
 
     @Test
@@ -41,7 +41,7 @@ public class UserEntityTest {
         userEntity.setLastname("");
         userEntity.setEmail(null);
 
-        Assert.assertEquals("user", userEntity.getDisplayName());
+        Assertions.assertEquals("user", userEntity.getDisplayName());
     }
 
     @Test
@@ -51,7 +51,7 @@ public class UserEntityTest {
         userEntity.setLastname("lastname");
         userEntity.setEmail(null);
 
-        Assert.assertEquals("lastname", userEntity.getDisplayName());
+        Assertions.assertEquals("lastname", userEntity.getDisplayName());
     }
 
     @Test
@@ -61,7 +61,7 @@ public class UserEntityTest {
         userEntity.setLastname("lastname");
         userEntity.setEmail(null);
 
-        Assert.assertEquals("lastname", userEntity.getDisplayName());
+        Assertions.assertEquals("lastname", userEntity.getDisplayName());
     }
 
     @Test
@@ -71,7 +71,7 @@ public class UserEntityTest {
         userEntity.setLastname(null);
         userEntity.setEmail("test@test.com");
 
-        Assert.assertEquals("test@test.com", userEntity.getDisplayName());
+        Assertions.assertEquals("test@test.com", userEntity.getDisplayName());
     }
 
     @Test
@@ -81,7 +81,7 @@ public class UserEntityTest {
         userEntity.setLastname("");
         userEntity.setEmail("test@test.com");
 
-        Assert.assertEquals("test@test.com", userEntity.getDisplayName());
+        Assertions.assertEquals("test@test.com", userEntity.getDisplayName());
     }
 
     @Test
@@ -92,7 +92,7 @@ public class UserEntityTest {
         userEntity.setEmail(null);
         userEntity.setSourceId("username");
 
-        Assert.assertEquals("username", userEntity.getDisplayName());
+        Assertions.assertEquals("username", userEntity.getDisplayName());
     }
 
     @Test
@@ -103,6 +103,6 @@ public class UserEntityTest {
         userEntity.setEmail("");
         userEntity.setSourceId("username");
 
-        Assert.assertEquals("username", userEntity.getDisplayName());
+        Assertions.assertEquals("username", userEntity.getDisplayName());
     }
 }

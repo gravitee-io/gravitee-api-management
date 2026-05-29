@@ -15,11 +15,11 @@
  */
 package io.gravitee.rest.api.model;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.definition.model.Properties;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class PropertiesEntityTest {
 
