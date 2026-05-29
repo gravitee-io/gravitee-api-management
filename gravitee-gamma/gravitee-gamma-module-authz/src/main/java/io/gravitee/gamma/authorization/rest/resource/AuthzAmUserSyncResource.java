@@ -22,6 +22,7 @@ import io.gravitee.gamma.authorization.am.AmSyncConflictException;
 import io.gravitee.gamma.authorization.am.AmSyncJobManager;
 import io.gravitee.gamma.authorization.am.AmSyncJobState;
 import io.gravitee.gamma.authorization.api.AuthzCallerContext;
+import io.gravitee.gamma.authorization.rest.dto.AmSyncManualRequest;
 import io.gravitee.gamma.authorization.rest.dto.AmSyncStartResponse;
 import io.gravitee.gamma.authorization.rest.dto.AmSyncStatusResponse;
 import io.gravitee.gamma.authorization.rest.exception.ErrorBody;
@@ -31,6 +32,8 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -83,6 +86,38 @@ public class AuthzAmUserSyncResource {
                 .type(MediaType.APPLICATION_JSON)
                 .entity(new ErrorBody(AmNotConfiguredException.CODE, e.getMessage()))
                 .build();
+        } catch (AmSyncConflictException e) {
+            return Response.status(Response.Status.CONFLICT)
+                .type(MediaType.APPLICATION_JSON)
+                .entity(new ErrorBody("SyncAlreadyRunning", e.getMessage()))
+                .build();
+        }
+    }
+
+    // Dev/smoke-test trigger: starts an async sync against connection details supplied inline,
+    // bypassing the stored AmConnection. Returns 202 with the job id; poll GET /users/sync (keyed
+    // by the caller's organization) for progress.
+    @POST
+    @Path("/run")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Permissions(
+        {
+            @Permission(
+                value = RolePermission.ENVIRONMENT_AUTHORIZATION,
+                acls = { RolePermissionAction.CREATE, RolePermissionAction.UPDATE }
+            ),
+        }
+    )
+    public Response run(@Valid AmSyncManualRequest request) {
+        AuthzCallerContext caller = AuthzCallerContext.ofUser(
+            request.organizationId(),
+            GraviteeContext.getCurrentEnvironment(),
+            securityContext.getUserPrincipal().getName()
+        );
+        AmConnection connection = new AmConnection(request.amUrl(), request.serviceToken(), request.domainId(), null, null);
+        try {
+            AmSyncJobState state = jobManager.start(caller, connection);
+            return Response.status(Response.Status.ACCEPTED).entity(AmSyncStartResponse.from(state)).build();
         } catch (AmSyncConflictException e) {
             return Response.status(Response.Status.CONFLICT)
                 .type(MediaType.APPLICATION_JSON)
