@@ -193,7 +193,11 @@ public class FlowMapper {
             HttpSelector definitionHttpSelector = new HttpSelector();
             definitionHttpSelector.setMethods(repositoryFlowHttpSelector.getMethods());
             definitionHttpSelector.setPath(repositoryFlowHttpSelector.getPath());
-            definitionHttpSelector.setPathOperator(Operator.valueOf(repositoryFlowHttpSelector.getPathOperator().name()));
+            definitionHttpSelector.setPathOperator(
+                repositoryFlowHttpSelector.getPathOperator() == null
+                    ? Operator.STARTS_WITH
+                    : Operator.valueOf(repositoryFlowHttpSelector.getPathOperator().name())
+            );
             return definitionHttpSelector;
         } else if (repositoryFlowSelector instanceof FlowChannelSelector) {
             FlowChannelSelector repositoryFlowChannelSelector = (FlowChannelSelector) repositoryFlowSelector;
