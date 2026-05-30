@@ -23,11 +23,6 @@ import {
     CardHeader,
     CardTitle,
     DataTablePagination,
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -35,6 +30,12 @@ import {
     DropdownMenuTrigger,
     Input,
     Label,
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
     Skeleton,
     Switch,
     Table,
@@ -204,13 +205,13 @@ function PropertyDialog({ state, existingKeys, isSaving, onClose, onSave }: Prop
     const saveLabel = isAdd ? 'Add property' : 'Save';
 
     return (
-        <Dialog open onOpenChange={open => !open && onClose()}>
-            <DialogContent className="max-w-md w-full" aria-describedby={undefined}>
-                <DialogHeader>
-                    <DialogTitle>{title}</DialogTitle>
-                </DialogHeader>
+        <Sheet open onOpenChange={open => !open && onClose()}>
+            <SheetContent side="right" aria-describedby={undefined}>
+                <SheetHeader>
+                    <SheetTitle>{title}</SheetTitle>
+                </SheetHeader>
 
-                <div className="space-y-5 pt-3">
+                <div className="flex-1 space-y-5 overflow-y-auto px-4">
                     {isAdd ? (
                         <div className="space-y-2">
                             <Label htmlFor="prop-key">Key</Label>
@@ -253,16 +254,16 @@ function PropertyDialog({ state, existingKeys, isSaving, onClose, onSave }: Prop
                     ) : null}
                 </div>
 
-                <DialogFooter>
+                <SheetFooter className="flex-row justify-end border-t">
                     <Button variant="outline" size="sm" onClick={onClose} disabled={isSaving}>
                         Cancel
                     </Button>
                     <Button size="sm" onClick={handleSave} disabled={isSaving || !canSave}>
                         {isSaving ? 'Saving…' : saveLabel}
                     </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </SheetFooter>
+            </SheetContent>
+        </Sheet>
     );
 }
 
@@ -302,18 +303,17 @@ function ImportPropertiesDialog({ existingProperties, isSaving, onClose, onImpor
     };
 
     return (
-        <Dialog open onOpenChange={open => !open && onClose()}>
-            <DialogContent className="max-w-xl w-full" aria-describedby={undefined}>
-                <DialogHeader>
-                    <DialogTitle>Import properties</DialogTitle>
-                </DialogHeader>
-
-                <div className="space-y-4 pt-1">
-                    <p className="text-sm text-muted-foreground">
+        <Sheet open onOpenChange={open => !open && onClose()}>
+            <SheetContent side="right" style={{ maxWidth: '36rem' }}>
+                <SheetHeader>
+                    <SheetTitle>Import properties</SheetTitle>
+                    <SheetDescription>
                         Easily import your API property list. If the properties already exist, their values will be overwritten. If the
                         properties already exist and are encrypted, the import will be skipped.
-                    </p>
+                    </SheetDescription>
+                </SheetHeader>
 
+                <div className="flex-1 space-y-4 overflow-y-auto px-4">
                     <Textarea
                         value={raw}
                         onChange={e => setRaw(e.target.value)}
@@ -355,16 +355,16 @@ function ImportPropertiesDialog({ existingProperties, isSaving, onClose, onImpor
                     ) : null}
                 </div>
 
-                <DialogFooter>
+                <SheetFooter className="flex-row justify-end border-t">
                     <Button variant="outline" size="sm" onClick={onClose} disabled={isSaving}>
                         Cancel
                     </Button>
                     <Button size="sm" onClick={handleImport} disabled={isSaving || hasErrors || !hasValidProperties}>
                         {isSaving ? 'Importing…' : 'Import properties'}
                     </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </SheetFooter>
+            </SheetContent>
+        </Sheet>
     );
 }
 

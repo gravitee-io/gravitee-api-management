@@ -18,11 +18,6 @@ import {
     AlertDescription,
     Badge,
     Button,
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
     Label,
     Select,
     SelectContent,
@@ -30,6 +25,12 @@ import {
     SelectTrigger,
     SelectValue,
     Separator,
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
 } from '@gravitee/graphene-core';
 import { PlusIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useState } from 'react';
@@ -51,37 +52,43 @@ function SubscriptionSummary({ app, plan }: { app: Application; plan: Plan }) {
     return (
         <div className="rounded-lg border p-4 space-y-3">
             <p className="text-sm font-medium">Subscription Summary</p>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-                <div>
-                    <p className="text-xs text-muted-foreground">Application</p>
-                    <p className="font-medium">{app.name}</p>
+            <dl className="space-y-3 text-sm">
+                <div className="min-w-0">
+                    <dt className="text-xs text-muted-foreground">Application</dt>
+                    <dd className="font-medium" style={{ overflowWrap: 'anywhere' }}>
+                        {app.name}
+                    </dd>
                 </div>
-                <div>
-                    <p className="text-xs text-muted-foreground">Plan</p>
-                    <div className="flex items-center gap-1.5">
-                        <p className="font-medium">{plan.name}</p>
+                <div className="min-w-0">
+                    <dt className="text-xs text-muted-foreground">Plan</dt>
+                    <dd className="flex min-w-0 flex-wrap items-center gap-1.5">
+                        <span className="min-w-0 font-medium" style={{ overflowWrap: 'anywhere' }}>
+                            {plan.name}
+                        </span>
                         {plan.security?.type && (
-                            <Badge variant="secondary" className="text-xs">
+                            <Badge variant="secondary" className="shrink-0 text-xs">
                                 {plan.security.type}
                             </Badge>
                         )}
-                    </div>
+                    </dd>
                 </div>
                 {app.primaryOwner?.displayName && (
-                    <div>
-                        <p className="text-xs text-muted-foreground">Owner</p>
-                        <p>{app.primaryOwner.displayName}</p>
+                    <div className="min-w-0">
+                        <dt className="text-xs text-muted-foreground">Owner</dt>
+                        <dd style={{ overflowWrap: 'anywhere' }}>{app.primaryOwner.displayName}</dd>
                     </div>
                 )}
                 {app.type && (
-                    <div>
-                        <p className="text-xs text-muted-foreground">Type</p>
-                        <Badge variant="secondary" className="text-xs">
-                            {app.type}
-                        </Badge>
+                    <div className="min-w-0">
+                        <dt className="text-xs text-muted-foreground">Type</dt>
+                        <dd>
+                            <Badge variant="secondary" className="text-xs">
+                                {app.type}
+                            </Badge>
+                        </dd>
                     </div>
                 )}
-            </div>
+            </dl>
         </div>
     );
 }
@@ -109,16 +116,16 @@ export function CreateSubscriptionDialog({ ctx, open, isPending, error, onConfir
     }, [canSubmit, selectedApp, selectedPlanId, onConfirm]);
 
     return (
-        <Dialog open={open} onOpenChange={open ? handleClose : undefined}>
-            <DialogContent style={{ maxWidth: '480px', width: '90vw', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}>
-                <DialogHeader>
-                    <DialogTitle>Create Subscription</DialogTitle>
-                    <p className="text-sm text-muted-foreground">
+        <Sheet open={open} onOpenChange={open ? handleClose : undefined}>
+            <SheetContent side="right" style={{ maxWidth: '480px' }}>
+                <SheetHeader>
+                    <SheetTitle>Create Subscription</SheetTitle>
+                    <SheetDescription>
                         Select an environment-level application and assign a plan to subscribe it to this {entityLabel}.
-                    </p>
-                </DialogHeader>
+                    </SheetDescription>
+                </SheetHeader>
 
-                <div className="space-y-5 py-2" style={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
+                <div className="space-y-5 px-4" style={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
                     <div className="space-y-2">
                         <Label>Select Application</Label>
                         <ApplicationSearchList selected={selectedApp} onSelect={app => setSelectedApp(app)} />
@@ -166,7 +173,7 @@ export function CreateSubscriptionDialog({ ctx, open, isPending, error, onConfir
                     )}
                 </div>
 
-                <DialogFooter>
+                <SheetFooter className="flex-row justify-end border-t">
                     <Button type="button" variant="outline" onClick={handleClose} disabled={isPending}>
                         Cancel
                     </Button>
@@ -174,8 +181,8 @@ export function CreateSubscriptionDialog({ ctx, open, isPending, error, onConfir
                         {!isPending && <PlusIcon className="size-4" aria-hidden />}
                         {isPending ? 'Creating…' : 'Create subscription'}
                     </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </SheetFooter>
+            </SheetContent>
+        </Sheet>
     );
 }

@@ -16,12 +16,6 @@
 import {
     Button,
     cn,
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
     Input,
     Label,
     ScrollArea,
@@ -30,6 +24,12 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
     Skeleton,
 } from '@gravitee/graphene-core';
 import { SearchIcon, TriangleAlertIcon, XIcon } from '@gravitee/graphene-core/icons';
@@ -110,14 +110,14 @@ export function TransferOwnershipDialog({
     }
 
     return (
-        <Dialog open={open} onOpenChange={isOpen => !isOpen && handleClose()}>
-            <DialogContent className="overflow-visible" style={{ width: 'min(90vw, 38rem)', maxWidth: 'min(90vw, 38rem)' }}>
-                <DialogHeader>
-                    <DialogTitle>Transfer ownership</DialogTitle>
-                    <DialogDescription>Transfer primary ownership of this API to another user.</DialogDescription>
-                </DialogHeader>
+        <Sheet open={open} onOpenChange={isOpen => !isOpen && handleClose()}>
+            <SheetContent side="right" style={{ maxWidth: '32rem' }}>
+                <SheetHeader>
+                    <SheetTitle>Transfer ownership</SheetTitle>
+                    <SheetDescription>Transfer primary ownership of this API to another user.</SheetDescription>
+                </SheetHeader>
 
-                <div className="space-y-8">
+                <div className="flex-1 space-y-8 overflow-y-auto px-4">
                     <div className="flex rounded-lg border overflow-hidden">
                         <button
                             type="button"
@@ -261,15 +261,15 @@ export function TransferOwnershipDialog({
                     </div>
                 </div>
 
-                <DialogFooter className="border-t px-6 py-4 gap-2">
+                <SheetFooter className="flex-row justify-end border-t">
                     <Button type="button" variant="outline" onClick={handleClose} disabled={isTransferring}>
                         Cancel
                     </Button>
                     <Button type="button" onClick={handleSubmit} disabled={!canSubmit || isTransferring}>
                         Transfer
                     </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </SheetFooter>
+            </SheetContent>
+        </Sheet>
     );
 }

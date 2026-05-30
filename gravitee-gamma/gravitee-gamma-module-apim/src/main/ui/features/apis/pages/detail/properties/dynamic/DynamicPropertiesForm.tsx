@@ -91,6 +91,18 @@ export function DynamicPropertiesForm({ initialState, onSave, isSaving, saveErro
 
     return (
         <div className="space-y-4 pb-4">
+            {/* ─── Save / Discard bar — pinned at the top, only when there are unsaved changes ─── */}
+            {!isReadOnly && isDirty && (
+                <div className="flex items-center justify-end gap-2 border-b pb-4">
+                    <Button variant="outline" size="sm" onClick={handleDiscard} disabled={isSaving}>
+                        Discard
+                    </Button>
+                    <Button size="sm" onClick={handleSave} disabled={isSaving}>
+                        {isSaving ? 'Saving…' : 'Save changes'}
+                    </Button>
+                </div>
+            )}
+
             {/* ─── Setup guide ────────────────────────────────────────────────── */}
             <SetupGuideBanner />
 
@@ -170,18 +182,6 @@ export function DynamicPropertiesForm({ initialState, onSave, isSaving, saveErro
                 <Alert variant="destructive">
                     <AlertDescription>Please fix the errors above before saving.</AlertDescription>
                 </Alert>
-            )}
-
-            {/* ─── Save / Discard bar — only when there are unsaved changes ─────── */}
-            {!isReadOnly && isDirty && (
-                <div className="flex items-center justify-end gap-2 pt-2">
-                    <Button variant="outline" size="sm" onClick={handleDiscard} disabled={isSaving}>
-                        Discard
-                    </Button>
-                    <Button size="sm" onClick={handleSave} disabled={isSaving}>
-                        {isSaving ? 'Saving…' : 'Save changes'}
-                    </Button>
-                </div>
             )}
         </div>
     );

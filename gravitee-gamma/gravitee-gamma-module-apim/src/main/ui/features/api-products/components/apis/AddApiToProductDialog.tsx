@@ -13,7 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Badge, Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Skeleton } from '@gravitee/graphene-core';
+import {
+    Badge,
+    Button,
+    Input,
+    ScrollArea,
+    Sheet,
+    SheetContent,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
+    Skeleton,
+} from '@gravitee/graphene-core';
 import { GlobeIcon, InfoIcon, SearchIcon, XIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -118,13 +129,13 @@ export function AddApiToProductDialog({ open, existingApiIds, onClose, onAdd, is
     );
 
     return (
-        <Dialog open={open} onOpenChange={handleOpenChange}>
-            <DialogContent aria-describedby={undefined}>
-                <DialogHeader>
-                    <DialogTitle>Add API</DialogTitle>
-                </DialogHeader>
+        <Sheet open={open} onOpenChange={handleOpenChange}>
+            <SheetContent side="right" aria-describedby={undefined} style={{ maxWidth: '480px' }}>
+                <SheetHeader>
+                    <SheetTitle>Add API</SheetTitle>
+                </SheetHeader>
 
-                <div className="space-y-4">
+                <div className="flex min-h-0 flex-1 flex-col gap-4 px-4">
                     {/* Visibility hint */}
                     <div className="flex items-start gap-2 rounded-lg border bg-muted/40 px-3 py-2.5">
                         <InfoIcon className="size-4 text-muted-foreground shrink-0 mt-0.5" aria-hidden />
@@ -151,15 +162,15 @@ export function AddApiToProductDialog({ open, existingApiIds, onClose, onAdd, is
                         </div>
                     </div>
 
-                    {/* API list */}
-                    <div className="overflow-y-auto pr-1" style={{ maxHeight: '18rem' }}>
+                    {/* API list — fills remaining height and scrolls */}
+                    <ScrollArea className="min-h-0 flex-1">
                         {!hasSearch ? (
                             <div className="flex flex-col items-center gap-2 py-8 text-center">
                                 <SearchIcon className="size-6 text-muted-foreground opacity-50" aria-hidden />
                                 <p className="text-sm text-muted-foreground">Type a name or path to find APIs</p>
                             </div>
                         ) : isLoading ? (
-                            <div className="space-y-1.5">
+                            <div className="space-y-1.5 pr-3">
                                 {Array.from({ length: 4 }).map((_, i) => (
                                     <Skeleton key={i} className="h-12 w-full rounded-lg" />
                                 ))}
@@ -169,13 +180,13 @@ export function AddApiToProductDialog({ open, existingApiIds, onClose, onAdd, is
                                 No APIs found for &ldquo;{debouncedSearch}&rdquo;.
                             </p>
                         ) : (
-                            <div className="space-y-1.5">
+                            <div className="space-y-1.5 pr-3">
                                 {availableApis.map(api => (
                                     <ApiRow key={api.id} api={api} selected={selectedIds.has(api.id)} onToggle={() => toggleApi(api)} />
                                 ))}
                             </div>
                         )}
-                    </div>
+                    </ScrollArea>
 
                     {/* Selected chips */}
                     {selectedIds.size > 0 ? (
@@ -189,15 +200,15 @@ export function AddApiToProductDialog({ open, existingApiIds, onClose, onAdd, is
                     ) : null}
                 </div>
 
-                <DialogFooter>
+                <SheetFooter className="flex-row justify-end border-t">
                     <Button type="button" variant="outline" onClick={onClose}>
                         Cancel
                     </Button>
                     <Button type="button" onClick={handleAdd} disabled={selectedIds.size === 0 || isAdding}>
                         {isAdding ? 'Adding…' : `Add${selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}`}
                     </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </SheetFooter>
+            </SheetContent>
+        </Sheet>
     );
 }

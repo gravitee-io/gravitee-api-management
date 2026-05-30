@@ -17,13 +17,14 @@ import {
     Badge,
     Button,
     Checkbox,
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
     Input,
+    ScrollArea,
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
 } from '@gravitee/graphene-core';
 import { SearchIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useMemo, useState } from 'react';
@@ -80,26 +81,26 @@ export function ManageGroupsDialog({
     }
 
     return (
-        <Dialog open={open} onOpenChange={handleOpen}>
-            <DialogContent className="max-w-md">
-                <DialogHeader>
-                    <DialogTitle>Manage groups</DialogTitle>
-                    <DialogDescription>Select the groups that should have access to this API.</DialogDescription>
-                </DialogHeader>
+        <Sheet open={open} onOpenChange={handleOpen}>
+            <SheetContent side="right" style={{ maxWidth: '28rem' }}>
+                <SheetHeader>
+                    <SheetTitle>Manage groups</SheetTitle>
+                    <SheetDescription>Select the groups that should have access to this API.</SheetDescription>
+                </SheetHeader>
 
-                <div className="space-y-4">
+                <div className="flex min-h-0 flex-1 flex-col gap-4 px-4">
                     <div className="relative">
                         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
                         <Input className="pl-10" placeholder="Search groups…" value={search} onChange={e => setSearch(e.target.value)} />
                     </div>
 
-                    <div className="overflow-y-auto rounded-md" style={{ maxHeight: '18rem' }}>
+                    <ScrollArea className="min-h-0 flex-1 rounded-md">
                         {filtered.length === 0 ? (
                             <p className="p-3 text-sm text-muted-foreground">
                                 {search.trim() ? 'No groups match your search.' : 'No groups found in this environment.'}
                             </p>
                         ) : (
-                            <div className="space-y-1">
+                            <div className="space-y-1 pr-3">
                                 {filtered.map(group => {
                                     const isAssociated = currentGroupIds.includes(group.id);
                                     const isChecked = selected.has(group.id);
@@ -125,22 +126,22 @@ export function ManageGroupsDialog({
                                 })}
                             </div>
                         )}
-                    </div>
+                    </ScrollArea>
 
                     <p className="text-xs text-muted-foreground">
                         {selected.size} group{selected.size !== 1 ? 's' : ''} selected
                     </p>
                 </div>
 
-                <DialogFooter className="border-t px-6 py-4 gap-2">
+                <SheetFooter className="flex-row justify-end border-t">
                     <Button type="button" variant="outline" onClick={() => handleOpen(false)} disabled={isSaving}>
                         Cancel
                     </Button>
                     <Button type="button" onClick={() => onSave([...selected])} disabled={isSaving}>
                         Save
                     </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </SheetFooter>
+            </SheetContent>
+        </Sheet>
     );
 }

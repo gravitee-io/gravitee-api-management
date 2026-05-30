@@ -142,7 +142,7 @@ export function ApiProductListTable({
     const [sorting, setSorting] = useState([{ id: 'name', desc: false }]);
     const columns = buildColumns(navigate);
 
-    const paginationEl = (
+    const renderPagination = () => (
         <DataTablePagination
             page={page}
             pageSize={pageSize}
@@ -156,7 +156,7 @@ export function ApiProductListTable({
     const compositeToolbar = (
         <div className="flex items-center gap-4 flex-1 min-w-0">
             {toolbar}
-            <div className="ml-auto shrink-0">{paginationEl}</div>
+            <div className="ml-auto shrink-0">{renderPagination()}</div>
         </div>
     );
 
@@ -170,6 +170,7 @@ export function ApiProductListTable({
             loading={isLoading}
             skeletonCount={skeletonRowCount}
             toolbar={compositeToolbar}
+            footer={renderPagination()}
             emptyMessage="No API products found."
         />
     );
