@@ -16,6 +16,7 @@
 package io.gravitee.gamma.authorization.infra.service_provider;
 
 import io.gravitee.am.sdk.management.api.UserApi;
+import io.gravitee.am.sdk.management.api.UserApiImpl;
 import io.gravitee.am.sdk.management.model.User;
 import io.gravitee.am.sdk.management.model.UserPage;
 import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
@@ -42,14 +43,41 @@ public class AmSdkUserClient implements AmUserClient {
     }
 
     @Override
-    public AmUserPage fetchUsers(AmConnection connection, int page, int size) {
-        UserApi userApi = clientFactory.userApi(connection);
-        UserPage userPage = AmSdkInvocations.await(
-            userApi.listUsers(AM_DEFAULT_ORGANIZATION, AM_DEFAULT_ENVIRONMENT, connection.defaultDomainId(), null, null, page, size)
-        );
-        List<AmUser> users = (userPage.getData() == null ? List.<User>of() : userPage.getData()).stream().map(AmSdkUserClient::toAmUser).toList();
-        long totalCount = userPage.getTotalCount() == null ? 0 : userPage.getTotalCount();
-        return new AmUserPage(users, totalCount);
+    public Session openSession(AmConnection connection) {
+        // One SDK client (and its Vert.x WebClient connection pool) for the whole run, closed below.
+        return new SdkSession(clientFactory.userApi(connection), connection.defaultDomainId());
+    }
+
+    private static final class SdkSession implements Session {
+
+        private final UserApi userApi;
+        private final String domainId;
+
+        private SdkSession(UserApi userApi, String domainId) {
+            this.userApi = userApi;
+            this.domainId = domainId;
+        }
+
+        @Override
+        public AmUserPage fetchUsers(int page, int size) {
+            UserPage userPage = AmSdkInvocations.await(
+                userApi.listUsers(AM_DEFAULT_ORGANIZATION, AM_DEFAULT_ENVIRONMENT, domainId, null, null, page, size)
+            );
+            List<AmUser> users = (userPage.getData() == null ? List.<User>of() : userPage.getData())
+                .stream()
+                .map(AmSdkUserClient::toAmUser)
+                .toList();
+            long totalCount = userPage.getTotalCount() == null ? 0 : userPage.getTotalCount();
+            return new AmUserPage(users, totalCount);
+        }
+
+        @Override
+        public void close() {
+            // Release the underlying Vert.x WebClient pool; building one per page would leak it.
+            if (userApi instanceof UserApiImpl impl) {
+                impl.getApiClient().getWebClient().close();
+            }
+        }
     }
 
     private static AmUser toAmUser(User user) {

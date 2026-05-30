@@ -32,7 +32,8 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
 /**
- * Builds an AM management {@link UserApi} from a stored {@link AmConnection}. No caching — an
+ * Builds an AM management {@link UserApi} from a stored {@link AmConnection}. No caching — a sync
+ * opens one client per run (see {@code AmSdkUserClient.openSession}) and closes it when done, so an
  * updated connection takes effect on the next sync. Mirrors the AIM module's {@code AmSdkClientFactory}.
  */
 public class AmSdkUserClientFactory {

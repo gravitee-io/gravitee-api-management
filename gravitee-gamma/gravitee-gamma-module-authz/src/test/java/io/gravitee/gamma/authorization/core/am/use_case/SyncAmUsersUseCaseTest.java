@@ -49,12 +49,15 @@ class SyncAmUsersUseCaseTest {
     private static final AmConnection CONNECTION = new AmConnection("http://am:8093", "token", "domain-1", "domain-hrid", null);
 
     private AmUserClient amUserClient;
+    private AmUserClient.Session session;
     private AuthzEntityAdminApi authzEntityAdminApi;
     private SyncAmUsersUseCase useCase;
 
     @BeforeEach
     void setUp() {
         amUserClient = mock(AmUserClient.class);
+        session = mock(AmUserClient.Session.class);
+        when(amUserClient.openSession(CONNECTION)).thenReturn(session);
         authzEntityAdminApi = mock(AuthzEntityAdminApi.class);
         useCase = new SyncAmUsersUseCase(amUserClient, authzEntityAdminApi);
     }
@@ -64,7 +67,7 @@ class SyncAmUsersUseCaseTest {
     }
 
     private void stubPage(int page, AmUserPage userPage) {
-        when(amUserClient.fetchUsers(eq(CONNECTION), eq(page), eq(1000))).thenReturn(userPage);
+        when(session.fetchUsers(eq(page), eq(1000))).thenReturn(userPage);
     }
 
     private static AmUser user(String id, String username, String email, String displayName, Boolean enabled) {
@@ -151,8 +154,11 @@ class SyncAmUsersUseCaseTest {
         SyncAmUsersUseCase.Output result = run();
 
         assertThat(result.usersFetched()).isEqualTo(3);
-        verify(amUserClient).fetchUsers(eq(CONNECTION), eq(0), eq(1000));
-        verify(amUserClient).fetchUsers(eq(CONNECTION), eq(1), eq(1000));
+        verify(session).fetchUsers(eq(0), eq(1000));
+        verify(session).fetchUsers(eq(1), eq(1000));
+        // The per-run client is opened once and closed when the run completes.
+        verify(amUserClient).openSession(CONNECTION);
+        verify(session).close();
     }
 
     @Test
@@ -184,9 +190,18 @@ class SyncAmUsersUseCaseTest {
 
     @Test
     void surfaces_an_upstream_failure_as_an_am_sync_exception() {
-        when(amUserClient.fetchUsers(eq(CONNECTION), eq(0), eq(1000)))
+        when(session.fetchUsers(eq(0), eq(1000)))
             .thenThrow(new AmSyncException("Access Management request failed: boom", new RuntimeException("boom")));
 
         assertThatThrownBy(this::run).isInstanceOf(AmSyncException.class);
+    }
+
+    @Test
+    void closes_the_session_even_when_the_fetch_fails() {
+        when(session.fetchUsers(eq(0), eq(1000)))
+            .thenThrow(new AmSyncException("Access Management request failed: boom", new RuntimeException("boom")));
+
+        assertThatThrownBy(this::run).isInstanceOf(AmSyncException.class);
+        verify(session).close();
     }
 }

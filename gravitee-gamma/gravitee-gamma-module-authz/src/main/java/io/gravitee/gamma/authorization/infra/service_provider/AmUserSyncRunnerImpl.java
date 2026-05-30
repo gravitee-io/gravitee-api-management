@@ -24,6 +24,7 @@ import io.gravitee.gamma.authorization.core.am.use_case.SyncAmUsersUseCase;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import lombok.CustomLog;
+import org.springframework.beans.factory.DisposableBean;
 
 /**
  * Runs the AM user sync on a daemon worker pool and records the outcome on the persisted
@@ -31,7 +32,7 @@ import lombok.CustomLog;
  * in-process (there is no external agent for it), but its lifecycle lives in the AsyncJob store.
  */
 @CustomLog
-public class AmUserSyncRunnerImpl implements AmUserSyncRunner {
+public class AmUserSyncRunnerImpl implements AmUserSyncRunner, DisposableBean {
 
     private final SyncAmUsersUseCase syncAmUsersUseCase;
     private final AsyncJobCrudService asyncJobCrudService;
@@ -59,6 +60,13 @@ public class AmUserSyncRunnerImpl implements AmUserSyncRunner {
     @Override
     public void runAsync(AsyncJob job, AuthzCallerContext caller, AmConnection connection) {
         executor.submit(() -> run(job, caller, connection));
+    }
+
+    @Override
+    public void destroy() {
+        // Stop the worker pool on context close / plugin unload so its threads don't pin the
+        // plugin classloader. Daemon threads + in-flight syncs are left to finish on their own.
+        executor.shutdown();
     }
 
     private void run(AsyncJob job, AuthzCallerContext caller, AmConnection connection) {
