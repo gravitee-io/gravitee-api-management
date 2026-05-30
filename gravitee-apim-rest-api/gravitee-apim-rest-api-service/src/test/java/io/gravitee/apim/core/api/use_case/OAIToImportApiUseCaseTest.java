@@ -49,6 +49,7 @@ import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.impl.swagger.policy.impl.PolicyOperationVisitorManagerImpl;
+import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -118,13 +119,18 @@ class OAIToImportApiUseCaseTest {
             )
         ).thenAnswer(invocation -> invocation.getArgument(0));
 
+        var importConfiguration = mock(ImportConfiguration.class);
+        when(importConfiguration.isAllowImportFromPrivate()).thenReturn(true);
+        when(importConfiguration.getImportWhitelist()).thenReturn(List.of());
+
         useCase = new OAIToImportApiUseCase(
             new OAIDomainServiceImpl(
                 policyOperationVisitorManager,
                 groupQueryService,
                 tagQueryService,
                 endpointConnectorPluginService,
-                policyPluginCrudService
+                policyPluginCrudService,
+                importConfiguration
             ),
             importDefinitionCreateDomainServiceTestInitializer.initialize()
         );
@@ -188,6 +194,23 @@ class OAIToImportApiUseCaseTest {
             .hasSize(1)
             .extracting(EndpointGroup::getSharedConfiguration)
             .containsExactly(SHARED_CONFIGURATION);
+    }
+
+    @Test
+    @SneakyThrows
+    void should_import_when_payload_is_a_remote_url() {
+        // Given a payload that is a remote location (a file: URL the parser fetches) — import-from-private is allowed in this test
+        var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
+        var resourceUrl = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json").toString();
+        importSwaggerDescriptor.setPayload(resourceUrl);
+
+        // When
+        var output = useCase.execute(new OAIToImportApiUseCase.Input(importSwaggerDescriptor, AUDIT_INFO));
+
+        // Then the spec is fetched from the URL and imported
+        assertThat(output).isNotNull();
+        assertThat(output.apiWithFlows()).isNotNull();
+        assertThat(output.apiWithFlows().getTags()).containsExactly("tag1");
     }
 
     @Nested

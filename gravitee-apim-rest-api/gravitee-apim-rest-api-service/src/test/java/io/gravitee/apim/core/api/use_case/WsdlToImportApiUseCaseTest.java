@@ -114,7 +114,8 @@ class WsdlToImportApiUseCaseTest {
                 new GroupQueryServiceInMemory(),
                 new TagQueryServiceInMemory(),
                 endpointConnectorPluginService,
-                policyPluginCrudService
+                policyPluginCrudService,
+                importConfiguration
             ),
             importDefinitionCreateDomainServiceTestInitializer.initialize()
         );

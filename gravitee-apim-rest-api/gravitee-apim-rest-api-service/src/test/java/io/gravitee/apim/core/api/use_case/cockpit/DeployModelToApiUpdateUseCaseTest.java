@@ -58,6 +58,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.impl.swagger.policy.impl.PolicyOperationVisitorManagerImpl;
+import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.v4.ApiService;
 import java.io.IOException;
 import java.net.URL;
@@ -172,7 +173,8 @@ public class DeployModelToApiUpdateUseCaseTest {
             groupQueryService,
             tagQueryService,
             endpointConnectorPluginService,
-            policyPluginCrudService
+            policyPluginCrudService,
+            mock(ImportConfiguration.class)
         );
 
         final var updateApiDomainService = new UpdateApiDomainServiceImpl(delegateApiService, apiCrudService);

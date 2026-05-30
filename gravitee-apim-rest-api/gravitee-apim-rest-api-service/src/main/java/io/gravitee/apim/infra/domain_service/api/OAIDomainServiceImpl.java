@@ -40,6 +40,8 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.swagger.parser.OAIParser;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIOperationVisitor;
+import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
+import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import java.util.Collection;
@@ -62,6 +64,7 @@ public class OAIDomainServiceImpl implements OAIDomainService {
     private final TagQueryService tagsQueryService;
     private final EndpointConnectorPluginDomainService endpointConnectorPluginService;
     private final PolicyPluginCrudService policyPluginCrudService;
+    private final ImportConfiguration importConfiguration;
 
     @Override
     public ImportDefinition convert(
@@ -72,6 +75,15 @@ public class OAIDomainServiceImpl implements OAIDomainService {
         boolean withOASValidationPolicy
     ) {
         var payload = importSwaggerDescriptor.getPayload();
+        // When the payload is a URL, the swagger parser fetches it server-side. Guard that fetch against SSRF
+        // (import whitelist + private-address blocking), consistent with the v2 swagger import (SwaggerServiceImpl).
+        if (UrlSanitizerUtils.isUrl(payload)) {
+            UrlSanitizerUtils.checkAllowed(
+                payload,
+                importConfiguration.getImportWhitelist(),
+                importConfiguration.isAllowImportFromPrivate()
+            );
+        }
         var descriptor = toOAIDescriptor(payload);
         var visitors = getVisitors(importSwaggerDescriptor);
 
