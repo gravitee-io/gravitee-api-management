@@ -255,6 +255,25 @@ describe('CreateEntityDialog', () => {
         expect((req as { entityId: string }).entityId).toBe('webhook.slack-hook');
     });
 
+    it('includes a typed integer attribute in the create payload', async () => {
+        const user = userEvent.setup();
+        renderDialog({ kind: 'PRINCIPAL' });
+
+        await user.type(screen.getByLabelText(/Display name/i), 'Alice');
+        await user.click(screen.getByRole('button', { name: /Add attribute/i }));
+        await user.type(screen.getByLabelText(/Attribute key/i), 'clearance');
+        await user.click(screen.getByLabelText(/Attribute type/i));
+        await user.click(await screen.findByRole('option', { name: 'Integer' }));
+        await user.type(screen.getByLabelText(/Attribute value/i), '3');
+        await user.click(screen.getByRole('button', { name: /Create Principal/i }));
+
+        await waitFor(() => expect(createEntitySpy).toHaveBeenCalledTimes(1));
+        const [, req] = createEntitySpy.mock.calls[0];
+        const attrs = (req as { attributes: Record<string, unknown> }).attributes;
+        expect(attrs.clearance).toBe(3);
+        expect(attrs._displayName).toBe('Alice');
+    });
+
     it('warns when a custom prefix collides with a preset canonical', async () => {
         const user = userEvent.setup();
         renderDialog({ kind: 'RESOURCE' });
