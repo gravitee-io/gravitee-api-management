@@ -148,7 +148,7 @@ export function EditEntityDialog({ open, entity, kind, environmentId, onOpenChan
                 <div className="border-b px-6 py-4">
                     <SheetTitle className="text-lg font-semibold">Edit entity</SheetTitle>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        Update this local entity's display name, description, and parents. The Entity ID is immutable.
+                        Update the display name, description, and parents of this local entity. The Entity ID is immutable.
                     </p>
                 </div>
 
