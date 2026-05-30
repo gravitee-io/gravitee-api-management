@@ -68,7 +68,14 @@ function renderDialog(entity: EntityInstance | null = aliceEntity()) {
     const onOpenChange = vi.fn();
     const onUpdated = vi.fn();
     render(
-        <EditEntityDialog open entity={entity} kind="PRINCIPAL" environmentId="DEFAULT" onOpenChange={onOpenChange} onUpdated={onUpdated} />,
+        <EditEntityDialog
+            open
+            entity={entity}
+            kind="PRINCIPAL"
+            environmentId="DEFAULT"
+            onOpenChange={onOpenChange}
+            onUpdated={onUpdated}
+        />,
         { wrapper },
     );
     return { onOpenChange, onUpdated };
@@ -150,5 +157,49 @@ describe('EditEntityDialog', () => {
 
         await waitFor(() => expect(screen.getByText('entity not found')).toBeInTheDocument());
         expect(onOpenChange).not.toHaveBeenCalled();
+    });
+
+    it('disables Save while the update is in flight', async () => {
+        const user = userEvent.setup();
+        let resolveUpdate: (value: unknown) => void = () => undefined;
+        updateEntitySpy.mockReturnValue(new Promise(resolve => (resolveUpdate = resolve)));
+        renderDialog();
+
+        const save = screen.getByRole('button', { name: /Save changes/i });
+        await user.click(save);
+
+        await waitFor(() => expect(save).toBeDisabled());
+        resolveUpdate({}); // settle the pending request
+    });
+
+    it('re-seeds name, description, and Entity ID when reopened with a different entity', async () => {
+        const { rerender } = render(
+            <EditEntityDialog
+                open
+                entity={aliceEntity()}
+                kind="PRINCIPAL"
+                environmentId="DEFAULT"
+                onOpenChange={vi.fn()}
+                onUpdated={vi.fn()}
+            />,
+            { wrapper },
+        );
+        expect((screen.getByLabelText(/Display name/i) as HTMLInputElement).value).toBe('Alice');
+        expect(screen.getByText('user.alice')).toBeInTheDocument();
+
+        const bob: EntityInstance = {
+            uid: { type: 'User', id: 'bob' },
+            displayName: 'Bob',
+            attrs: { description: 'QA pipeline owner' },
+            parents: [],
+            source: 'local',
+        };
+        rerender(
+            <EditEntityDialog open entity={bob} kind="PRINCIPAL" environmentId="DEFAULT" onOpenChange={vi.fn()} onUpdated={vi.fn()} />,
+        );
+
+        await waitFor(() => expect((screen.getByLabelText(/Display name/i) as HTMLInputElement).value).toBe('Bob'));
+        expect((screen.getByLabelText(/Description/i) as HTMLTextAreaElement).value).toBe('QA pipeline owner');
+        expect(screen.getByText('user.bob')).toBeInTheDocument();
     });
 });

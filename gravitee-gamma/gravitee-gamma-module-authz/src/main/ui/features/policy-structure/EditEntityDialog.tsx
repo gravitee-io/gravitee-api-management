@@ -152,7 +152,7 @@ export function EditEntityDialog({ open, entity, kind, environmentId, onOpenChan
                     </p>
                 </div>
 
-                <form className="flex min-h-0 flex-1 flex-col overflow-y-auto" onSubmit={handleSubmit}>
+                <form id="edit-entity-form" className="flex min-h-0 flex-1 flex-col overflow-y-auto" onSubmit={handleSubmit}>
                     <div className="flex flex-col gap-4 px-6 py-4">
                         {submitError && (
                             <Alert variant="destructive">
@@ -162,7 +162,10 @@ export function EditEntityDialog({ open, entity, kind, environmentId, onOpenChan
 
                         <div className="flex flex-col gap-1.5">
                             <Label htmlFor="edit-entity-id">Entity ID</Label>
-                            <code id="edit-entity-id" className="rounded-md border bg-muted/40 px-3 py-2 font-mono text-sm text-muted-foreground">
+                            <code
+                                id="edit-entity-id"
+                                className="rounded-md border bg-muted/40 px-3 py-2 font-mono text-sm text-muted-foreground"
+                            >
                                 {entityUid || '—'}
                             </code>
                         </div>
@@ -235,7 +238,7 @@ export function EditEntityDialog({ open, entity, kind, environmentId, onOpenChan
                     <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
                         Cancel
                     </Button>
-                    <Button type="button" onClick={handleSubmit as unknown as () => void} disabled={!canSubmit}>
+                    <Button type="submit" form="edit-entity-form" disabled={!canSubmit}>
                         {submitting ? <Spinner className="mr-2 size-4" aria-hidden /> : <CheckIcon className="mr-2 size-4" aria-hidden />}
                         Save changes
                     </Button>
