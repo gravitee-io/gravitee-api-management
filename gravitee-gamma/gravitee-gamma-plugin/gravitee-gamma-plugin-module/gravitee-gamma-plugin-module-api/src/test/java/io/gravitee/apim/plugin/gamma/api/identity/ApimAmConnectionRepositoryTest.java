@@ -121,4 +121,16 @@ class ApimAmConnectionRepositoryTest {
         repository().deleteByOrg("org-1");
         verify(amConnectionService).delete("org-1");
     }
+
+    @Test
+    void toString_redacts_the_token() {
+        AmConnection connection = new AmConnection(
+            "https://am.example.com",
+            "plain-token",
+            "dom-1",
+            "dom-hrid-1",
+            "https://gw.example.com"
+        );
+        assertThat(connection.toString()).doesNotContain("plain-token").contains("***").contains("https://am.example.com");
+    }
 }

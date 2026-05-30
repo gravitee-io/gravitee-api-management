@@ -32,4 +32,22 @@ public record AmConnection(
     public boolean isConfigured() {
         return baseUrl != null && !baseUrl.isBlank() && serviceAccountAccessToken != null && !serviceAccountAccessToken.isBlank();
     }
+
+    // Redact the token so it never leaks into logs or exception messages via the record's toString().
+    @Override
+    public String toString() {
+        return (
+            "AmConnection[baseUrl=" +
+            baseUrl +
+            ", serviceAccountAccessToken=" +
+            (serviceAccountAccessToken == null ? "null" : "***") +
+            ", defaultDomainId=" +
+            defaultDomainId +
+            ", defaultDomainHrid=" +
+            defaultDomainHrid +
+            ", gatewayUrl=" +
+            gatewayUrl +
+            "]"
+        );
+    }
 }
