@@ -14,8 +14,6 @@
 # limitations under the License.
 #
 
-version: '3.8'
-
 networks:
     frontend:
         name: frontend
@@ -33,6 +31,11 @@ volumes:
     data-elasticsearch:
     data-mongo:
     data-kafka:
+    apim-mongodb-logs:
+    apim-gateway-logs:
+    apim-management-api-logs:
+    apim-management-ui-logs:
+    apim-portal-ui-logs:
 
 services:
     mongodb:
@@ -41,7 +44,7 @@ services:
         restart: always
         volumes:
             - data-mongo:/data/db
-            - ./.logs/apim-mongodb:/var/log/mongodb
+            - apim-mongodb-logs:/var/log/mongodb
         healthcheck:
             test: mongosh --eval 'db.runCommand({serverStatus:1}).ok' --quiet | grep 1
             interval: 5s
@@ -80,12 +83,15 @@ services:
             - storage
 
     kibana:
-        image: docker.elastic.co/kibana/kibana:8.8.1-arm64
+        image: docker.elastic.co/kibana/kibana:${ELASTIC_VERSION:-8.17.2}
         container_name: kibana
         environment:
             - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
         ports:
             - '5601:5601'
+        depends_on:
+            elasticsearch:
+                condition: service_healthy
         networks:
             - storage
 
@@ -102,7 +108,7 @@ services:
             elasticsearch:
                 condition: service_healthy
         volumes:
-            - ./.logs/apim-gateway:/opt/graviteeio-gateway/logs
+            - apim-gateway-logs:/opt/graviteeio-gateway/logs
             - ./.license:/opt/graviteeio-gateway/license
             - ./.ssl:/opt/graviteeio-gateway/ssl
             #      - ./.hosts:/etc/hosts
@@ -117,6 +123,7 @@ services:
             - gravitee_kafka_ssl_keystore_path=$${gravitee.home}/ssl/server.keystore.jks
             - gravitee_kafka_ssl_keystore_type=jks
             - 'gravitee_kafka_routingHostMode_defaultDomain=kafka.local'
+            - 'license.key=${LICENSE_KEY}'
         networks:
             storage:
             frontend:
@@ -146,7 +153,7 @@ services:
             elasticsearch:
                 condition: service_healthy
         volumes:
-            - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
+            - apim-management-api-logs:/opt/graviteeio-management-api/logs
             - ./.license:/opt/graviteeio-management-api/license
         environment:
             - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
@@ -156,6 +163,7 @@ services:
             - gravitee_email_port=1025
             - gravitee_email_subject="TEST"
             - gravitee_email_from="user@my.domain"
+            - 'license.key=${LICENSE_KEY}'
         networks:
             - storage
             - frontend
@@ -172,7 +180,7 @@ services:
         environment:
             - MGMT_API_URL=http://localhost:8083/management/
         volumes:
-            - ./.logs/apim-management-ui:/var/log/nginx
+            - apim-management-ui-logs:/var/log/nginx
         networks:
             - frontend
 
@@ -187,7 +195,7 @@ services:
         environment:
             - PORTAL_API_URL=http://localhost:8083/portal
         volumes:
-            - ./.logs/apim-portal-ui:/var/log/nginx
+            - apim-portal-ui-logs:/var/log/nginx
         networks:
             - frontend
 
@@ -247,6 +255,13 @@ services:
 
         command: >
             /opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/kraft/server.properties
+
+        healthcheck:
+            test: ['CMD', '/opt/kafka/bin/kafka-broker-api-versions.sh', '--bootstrap-server', 'localhost:9091']
+            interval: 10s
+            timeout: 5s
+            retries: 10
+            start_period: 30s
 
     kafka-ui:
         container_name: gio_apim_kafka-ui

@@ -100,6 +100,23 @@ docker exec -it gio_apim_kafka-client bash -c "/opt/kafka/bin/kafka-console-prod
 docker exec -it gio_apim_kafka-client bash -c "/opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server foo.kafka.local:9092 --consumer.config config/kafka-keyless-plan-ssl.properties --topic client-topic-1"`
 ```
 
+**In current 4.12.0 SNAPSHOT the command above does not work. Basically the consumer is not able to pull messages.**
+Most probably the issue is something like this: the gateway correctly rewrites broker addresses in METADATA_RESPONSE (kafka:9091 → broker-0-foo.kafka.local:9092), but FIND_COORDINATOR_RESPONSE is not rewritten — the client receives the raw broker address kafka:9091, tries to open a TCP connection directly to the broker, fails
+(the kafka-client container is on the gateway network, not the kafka network), and loops. That's the endless METADATA → FIND_COORDINATOR cycle visible in the gateway logs without any JOIN_GROUP ever happening.
+The issue will be somewhere in kafka reactor native component.
+
+As a workaround, the one below works fine:  --partition + --offset, the consumer uses static partition assignment and skips FIND_COORDINATOR / JOIN_GROUP / SYNC_GROUP entirely — it goes straight to FETCH.
+
+```bash
+docker exec -it gio_apim_kafka-client bash -c \
+    "/opt/kafka/bin/kafka-console-consumer.sh \
+      --bootstrap-server foo.kafka.local:9092 \
+      --consumer.config config/kafka-keyless-plan-ssl.properties \
+      --topic test.client-topic-1 \
+      --partition 0 --offset 0 \
+      --max-messages 10"
+```
+
 ### See the API in the portal (next)
 
 Activate the new portal in the environment settings (Settings > Settings > Enable the New Developer Portal)
