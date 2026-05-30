@@ -19,6 +19,7 @@ import {
     BrainIcon,
     GlobeIcon,
     LayoutDashboardIcon,
+    NetworkIcon,
     ShieldCheckIcon,
     SlidersHorizontalIcon,
     ZapIcon,
@@ -44,6 +45,7 @@ export const NAV_GROUPS: NavGroup[] = [
         items: [
             { key: 'entities', title: ROUTES.entities.label, icon: BoxesIcon },
             { key: 'actions', title: ROUTES.actions.label, icon: ZapIcon },
+            { key: 'schema', title: ROUTES.schema.label, icon: NetworkIcon },
         ],
     },
 ];
