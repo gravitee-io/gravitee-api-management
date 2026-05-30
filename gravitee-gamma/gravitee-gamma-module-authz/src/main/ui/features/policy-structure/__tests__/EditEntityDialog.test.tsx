@@ -135,6 +135,18 @@ describe('EditEntityDialog', () => {
         expect(onOpenChange).toHaveBeenCalledWith(false);
     });
 
+    it('sends parents=[] after the existing parent chip is removed', async () => {
+        const user = userEvent.setup();
+        renderDialog();
+
+        // Alice starts parented to group.developers; remove that chip.
+        await user.click(screen.getByRole('button', { name: /Remove group\.developers/i }));
+        await user.click(screen.getByRole('button', { name: /Save changes/i }));
+
+        await waitFor(() => expect(updateEntitySpy).toHaveBeenCalledTimes(1));
+        expect((updateEntitySpy.mock.calls[0][2] as { parents: string[] }).parents).toEqual([]);
+    });
+
     it('drops the description attribute when the field is cleared', async () => {
         const user = userEvent.setup();
         renderDialog();

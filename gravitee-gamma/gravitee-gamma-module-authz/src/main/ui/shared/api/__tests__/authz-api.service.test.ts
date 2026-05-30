@@ -18,12 +18,13 @@ import { authzApiService } from '../authz-api.service';
 
 const get = vi.fn();
 const put = vi.fn();
+const del = vi.fn();
 vi.mock('../authz-api-client', () => ({
     authzCoreApiClient: {
         get: (path: string) => get(path),
         post: vi.fn(),
         put: (path: string, body: unknown) => put(path, body),
-        delete: vi.fn(),
+        delete: (path: string) => del(path),
     },
     ApiError: class ApiError extends Error {},
 }));
@@ -128,5 +129,26 @@ describe('authzApiService.updateEntity', () => {
         await authzApiService.updateEntity('DEFAULT', 'custom prefix.id', { attributes: {}, parents: [] });
 
         expect(put.mock.calls[0][0]).toContain('/entities/custom%20prefix.id');
+    });
+});
+
+describe('authzApiService.deleteEntity', () => {
+    beforeEach(() => del.mockReset());
+
+    it('DELETEs the url-encoded entity path', async () => {
+        del.mockResolvedValue(undefined);
+
+        await authzApiService.deleteEntity('DEFAULT', 'user.alice');
+
+        expect(del).toHaveBeenCalledTimes(1);
+        expect(del.mock.calls[0][0]).toContain('/environments/DEFAULT/modules/authz/entities/user.alice');
+    });
+
+    it('url-encodes the entityId in the path', async () => {
+        del.mockResolvedValue(undefined);
+
+        await authzApiService.deleteEntity('DEFAULT', 'custom prefix.id');
+
+        expect(del.mock.calls[0][0]).toContain('/entities/custom%20prefix.id');
     });
 });
