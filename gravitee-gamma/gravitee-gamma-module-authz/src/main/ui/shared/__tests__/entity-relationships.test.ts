@@ -15,8 +15,8 @@
  */
 import { describe, expect, it } from 'vitest';
 import type { PolicyResponse } from '../api/authz-api.types';
-import type { EntityInstance } from '../entity.types';
 import { childrenByType, policiesFor, referencedBy } from '../entity-relationships';
+import type { EntityInstance } from '../entity.types';
 
 const mcp = (id: string, parents: { type: string; id: string }[] = []): EntityInstance => ({
     uid: { type: 'MCPServer', id },
