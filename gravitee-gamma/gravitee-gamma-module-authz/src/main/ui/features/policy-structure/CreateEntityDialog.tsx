@@ -50,6 +50,8 @@ import { authzQueryKeys } from '../../shared/api/query-keys';
 import { formatEntityUid, fromBackend } from '../../shared/entity-adapter';
 import { ENTITY_KIND_REGISTRY } from '../../shared/entity-kind-registry';
 import { useEntities } from '../../shared/hooks/useEntities';
+import { AttributeEditor, type AttributeRow } from './AttributeEditor';
+import { attrsFromRows } from './attribute-rows';
 
 type EntityKind = 'PRINCIPAL' | 'RESOURCE';
 
@@ -112,6 +114,7 @@ export function CreateEntityDialog({ open, kind, environmentId, onOpenChange, on
     const [displayName, setDisplayName] = useState('');
     const [description, setDescription] = useState('');
     const [parentIds, setParentIds] = useState<string[]>([]);
+    const [attrRows, setAttrRows] = useState<AttributeRow[]>([]);
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -126,6 +129,7 @@ export function CreateEntityDialog({ open, kind, environmentId, onOpenChange, on
             setDisplayName('');
             setDescription('');
             setParentIds([]);
+            setAttrRows([]);
             setSubmitError(null);
             setSubmitting(false);
         }
@@ -181,8 +185,15 @@ export function CreateEntityDialog({ open, kind, environmentId, onOpenChange, on
         if (!canSubmit) return;
         setSubmitting(true);
         setSubmitError(null);
+        const rowsResult = attrsFromRows(attrRows);
+        if (rowsResult.error) {
+            setSubmitError(rowsResult.error);
+            setSubmitting(false);
+            return;
+        }
         const trimmedDescription = description.trim();
         const attributes: Record<string, unknown> = {
+            ...rowsResult.attributes,
             _displayName: displayName.trim(),
         };
         if (trimmedDescription) attributes.description = trimmedDescription;
@@ -396,6 +407,13 @@ export function CreateEntityDialog({ open, kind, environmentId, onOpenChange, on
                                     </ComboboxList>
                                 </ComboboxContent>
                             </Combobox>
+                        </div>
+
+                        <div className="flex flex-col gap-1.5">
+                            <Label>
+                                Attributes <span className="text-xs text-muted-foreground">(optional)</span>
+                            </Label>
+                            <AttributeEditor value={attrRows} onChange={setAttrRows} keySuggestions={[]} />
                         </div>
                     </div>
                 </form>
