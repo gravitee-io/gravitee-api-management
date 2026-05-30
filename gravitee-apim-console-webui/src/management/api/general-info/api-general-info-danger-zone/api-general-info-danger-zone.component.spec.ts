@@ -290,6 +290,22 @@ describe('ApiGeneralInfoDangerZoneComponent', () => {
     expect(component.reloadDetails.emit).toHaveBeenCalled();
   });
 
+  it('should hide detach action when api origin context is updated', async () => {
+    const api = fakeApiV2({
+      id: API_ID,
+      originContext: { origin: 'KUBERNETES' },
+    });
+    createComponent(api);
+
+    expect(await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Detach the API' }))).toHaveLength(1);
+
+    component.api = fakeApiV2({ id: API_ID, originContext: { origin: 'MANAGEMENT' } });
+    component.ngOnChanges({ api: new SimpleChange(api, component.api, false) });
+    fixture.detectChanges();
+
+    expect(await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Detach the API' }))).toHaveLength(0);
+  });
+
   it('should show detach action', async () => {
     const api = fakeApiV2({
       id: API_ID,
