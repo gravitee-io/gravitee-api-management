@@ -313,21 +313,48 @@ describe('EntitiesPage', () => {
         expect(stub).toHaveAttribute('data-entity', 'flight');
     });
 
-    it('shows the row-level Remove action only on the Resources tab', async () => {
+    it('shows the Remove action on local principal rows but not on synced ones', async () => {
         mockByKind({
-            principals: [makeEntity({ id: 'p1', uid: 'user.alice' })],
-            resources: [makeEntity({ id: 'r1', uid: 'mcp.flight' })],
+            principals: [
+                makeEntity({ id: 'p1', uid: 'user.alice' }),
+                makeEntity({ id: 'p2', uid: 'user.bob', attributes: { _source: 'apim' } }),
+            ],
         });
         renderPage();
 
-        await waitFor(() => expect(screen.getAllByText('alice').length).toBeGreaterThan(0));
-        // Principal rows have no Delete button.
-        expect(screen.queryByLabelText('Delete user.alice')).not.toBeInTheDocument();
+        await waitFor(() => expect(screen.getByLabelText('Delete user.alice')).toBeInTheDocument());
+        // Synced (APIM-sourced) principals are read-only — no remove.
+        expect(screen.queryByLabelText('Delete user.bob')).not.toBeInTheDocument();
+    });
+
+    it('warns about permanent removal when deleting a local principal', async () => {
+        mockByKind({
+            principals: [makeEntity({ id: 'p1', uid: 'user.alice', attributes: { _displayName: 'Alice' } })],
+        });
+        renderPage();
 
         const user = userEvent.setup();
-        await user.click(screen.getByRole('tab', { name: /Resources/i }));
+        await waitFor(() => expect(screen.getByLabelText('Delete user.alice')).toBeInTheDocument());
+        await user.click(screen.getByLabelText('Delete user.alice'));
 
-        await waitFor(() => expect(screen.getByLabelText('Delete mcp.flight')).toBeInTheDocument());
+        const dialog = await screen.findByRole('dialog');
+        expect(within(dialog).getByText(/permanently removed/i)).toBeInTheDocument();
+    });
+
+    it('deletes a local principal on confirm', async () => {
+        mockByKind({ principals: [makeEntity({ id: 'p1', uid: 'user.alice' })] });
+        deleteEntitySpy.mockResolvedValue(undefined);
+        renderPage();
+
+        const user = userEvent.setup();
+        await waitFor(() => expect(screen.getByLabelText('Delete user.alice')).toBeInTheDocument());
+        await user.click(screen.getByLabelText('Delete user.alice'));
+
+        const dialog = await screen.findByRole('dialog');
+        await user.click(within(dialog).getByRole('button', { name: /Confirm remove/i }));
+
+        await waitFor(() => expect(deleteEntitySpy).toHaveBeenCalledWith('DEFAULT', 'user.alice'));
+        await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
 
     it('opens the Remove confirmation dialog when the trash icon is clicked', async () => {

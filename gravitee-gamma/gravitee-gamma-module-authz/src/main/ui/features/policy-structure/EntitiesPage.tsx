@@ -68,7 +68,7 @@ const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 const ACTION_PREFIX = 'action.';
 
 const PRINCIPALS_HELP =
-    'Principals (users, groups, service accounts, agent identities) live in this environment. Edit and import flows are in a follow-up PR.';
+    'Principals (users, groups, service accounts, agent identities) live in this environment. Local principals can be edited or removed; synced ones are read-only.';
 const RESOURCES_HELP =
     'Resources are imported from the Context Catalog — MCP servers, AI models, and agents keep the same Entity ID in Authorization. Catalog-sourced entries are read-only; you can remove imported instances but cannot edit them here.';
 
@@ -105,6 +105,7 @@ interface EntitiesTableProps {
     readonly onPerPageChange: (perPage: number) => void;
     readonly onEdit?: (entity: EntityInstance) => void;
     readonly onDelete?: (entity: EntityInstance) => void;
+    readonly canDelete?: (entity: EntityInstance) => boolean;
     readonly deletingEntityId?: string;
 }
 
@@ -120,6 +121,7 @@ function EntitiesTable({
     onPerPageChange,
     onEdit,
     onDelete,
+    canDelete,
     deletingEntityId,
 }: EntitiesTableProps) {
     const columns = useMemo<ColumnDef<EntityInstance>[]>(() => {
@@ -166,6 +168,7 @@ function EntitiesTable({
                     const isDeleting = deletingEntityId === uid;
                     // Only local entities are editable; catalog/APIM-sourced are read-only.
                     const canEdit = onEdit && row.original.source === 'local';
+                    const showDelete = onDelete && (!canDelete || canDelete(row.original));
                     return (
                         <div className="flex items-center justify-end gap-1">
                             {canEdit && (
@@ -179,7 +182,7 @@ function EntitiesTable({
                                     <PencilIcon className="size-4 text-muted-foreground" aria-hidden />
                                 </Button>
                             )}
-                            {onDelete && (
+                            {showDelete && (
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -197,7 +200,7 @@ function EntitiesTable({
             });
         }
         return baseColumns;
-    }, [onEdit, onDelete, deletingEntityId]);
+    }, [onEdit, onDelete, canDelete, deletingEntityId]);
 
     if (!isLoading && entities.length === 0) {
         return (
@@ -347,8 +350,9 @@ export function EntitiesPage() {
 
     const pendingDeleteUid = pendingDelete ? formatEntityUid(pendingDelete.uid) : '';
     const pendingDeleteName = pendingDelete ? displayNameOf(pendingDelete) : '';
+    const pendingDeleteIsLocal = pendingDelete?.source === 'local';
 
-    async function confirmDeleteResource() {
+    async function confirmDelete() {
         if (!pendingDelete) return;
         const uid = formatEntityUid(pendingDelete.uid);
         const friendly = displayNameOf(pendingDelete);
@@ -507,6 +511,9 @@ export function EntitiesPage() {
                         onPageChange={setPrincipalPage}
                         onPerPageChange={setPrincipalPerPage}
                         onEdit={entity => setEditing({ entity, kind: 'PRINCIPAL' })}
+                        onDelete={setPendingDelete}
+                        canDelete={entity => entity.source === 'local'}
+                        deletingEntityId={deletingEntityId}
                     />
                 </TabsContent>
 
@@ -592,9 +599,11 @@ export function EntitiesPage() {
                     <DialogHeader>
                         <DialogTitle>Remove entity from Authorization?</DialogTitle>
                         <DialogDescription>
-                            {pendingDelete
-                                ? `"${pendingDeleteName}" (${pendingDeleteUid}) will be removed from Authorization. This won't delete it from the Context Catalog — you can re-import it later.`
-                                : ''}
+                            {!pendingDelete
+                                ? ''
+                                : pendingDeleteIsLocal
+                                  ? `"${pendingDeleteName}" (${pendingDeleteUid}) will be permanently removed from Authorization. This can't be undone.`
+                                  : `"${pendingDeleteName}" (${pendingDeleteUid}) will be removed from Authorization. This won't delete it from the Context Catalog — you can re-import it later.`}
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -609,7 +618,7 @@ export function EntitiesPage() {
                         <Button
                             type="button"
                             variant="destructive"
-                            onClick={confirmDeleteResource}
+                            onClick={confirmDelete}
                             disabled={deletingEntityId !== undefined}
                             aria-label={pendingDelete ? `Confirm remove ${pendingDeleteName}` : 'Confirm remove'}
                         >
