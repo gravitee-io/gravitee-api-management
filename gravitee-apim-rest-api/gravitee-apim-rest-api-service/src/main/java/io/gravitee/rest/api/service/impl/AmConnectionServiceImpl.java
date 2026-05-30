@@ -74,6 +74,8 @@ public class AmConnectionServiceImpl implements AmConnectionService {
     @Override
     public AmConnectionEntity save(String organizationId, AmConnectionEntity entity) {
         try {
+            // find-then-create/update is not atomic; two concurrent first saves for the same org can
+            // both take the create path and hit a PK violation. Acceptable for this rare admin endpoint.
             Optional<AmConnection> existing = amConnectionRepository.findByOrganizationId(organizationId);
 
             AmConnection model = new AmConnection();
