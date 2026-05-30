@@ -80,6 +80,15 @@ public class AmConnectionRepositoryTest extends AbstractManagementRepositoryTest
         assertTrue("Invalid updatedAt", compareDate(new Date(1486771200000L), updated.getUpdatedAt()));
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void shouldThrowWhenUpdatingUnknownOrganization() throws Exception {
+        final AmConnection amConnection = new AmConnection();
+        amConnection.setOrganizationId("unknown-org");
+        amConnection.setBaseUrl("https://am-unknown.example.com");
+
+        amConnectionRepository.update(amConnection);
+    }
+
     @Test
     public void shouldDelete() throws Exception {
         assertTrue(amConnectionRepository.findByOrganizationId("org-delete").isPresent());
