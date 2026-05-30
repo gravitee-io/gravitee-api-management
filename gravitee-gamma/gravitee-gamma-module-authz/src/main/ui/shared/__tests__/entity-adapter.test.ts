@@ -250,3 +250,39 @@ describe('toBackend', () => {
         expect(req.attributes['_source']).toBe('apim');
     });
 });
+
+function res(attributes: Record<string, unknown>): EntityResponse {
+    return {
+        id: 'e1',
+        environmentId: 'DEFAULT',
+        uid: 'user.alice',
+        attributes,
+        parents: [],
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-02T00:00:00Z',
+    };
+}
+
+describe('entity-adapter round-trip', () => {
+    it('preserves unmapped meta keys (_url, _proxyApiId) across fromBackend → toBackend', () => {
+        const entity = fromBackend(res({ _displayName: 'Alice', _url: 'https://x', _proxyApiId: 'api-7', dept: 'eng' }));
+        const back = toBackend(entity);
+        expect(back.attributes._url).toBe('https://x');
+        expect(back.attributes._proxyApiId).toBe('api-7');
+        expect(back.attributes._displayName).toBe('Alice');
+        expect(back.attributes.dept).toBe('eng');
+    });
+
+    it('keeps string-array attributes (sets) on the visible attrs and round-trips them', () => {
+        const entity = fromBackend(res({ _displayName: 'Alice', regions: ['us', 'eu'] }));
+        expect(entity.attrs.regions).toEqual(['us', 'eu']);
+        const back = toBackend(entity);
+        expect(back.attributes.regions).toEqual(['us', 'eu']);
+    });
+
+    it('does not leak reservedMeta into visible attrs', () => {
+        const entity = fromBackend(res({ _url: 'https://x', dept: 'eng' }));
+        expect('_url' in entity.attrs).toBe(false);
+        expect(entity.reservedMeta?._url).toBe('https://x');
+    });
+});

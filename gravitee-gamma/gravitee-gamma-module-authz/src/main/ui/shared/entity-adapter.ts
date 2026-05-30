@@ -74,6 +74,7 @@ export function formatEntityUid(u: { type: string; id: string }): string {
  */
 export function fromBackend(e: EntityResponse): EntityInstance {
     const attrs: Record<string, AttrValue> = {};
+    const reservedMeta: Record<string, unknown> = {};
     let source: EntitySource = 'local';
     let displayName: string | undefined;
     let importedAt: string | undefined;
@@ -88,12 +89,13 @@ export function fromBackend(e: EntityResponse): EntityInstance {
             importedAt = v as string;
         } else if (k === '_kind') {
             kindOverride = kindToUiType(v);
-        } else if (k === '_url' || k === '_proxyApiId') {
-            // meta — drop from visible attrs
-        } else {
-            if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
-                attrs[k] = v;
-            }
+        } else if (k.startsWith('_')) {
+            // Unmapped reserved meta (e.g. _url, _proxyApiId) — keep verbatim for round-trip.
+            reservedMeta[k] = v;
+        } else if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
+            attrs[k] = v;
+        } else if (Array.isArray(v) && v.every(x => typeof x === 'string')) {
+            attrs[k] = v as string[];
         }
     }
 
@@ -105,6 +107,7 @@ export function fromBackend(e: EntityResponse): EntityInstance {
         uid,
         displayName,
         attrs,
+        reservedMeta: Object.keys(reservedMeta).length > 0 ? reservedMeta : undefined,
         parents,
         source,
         importedAt,
@@ -138,7 +141,7 @@ function resolveUid(rawUid: string, kindOverride: string | undefined): { type: s
 export function toBackend(e: EntityInstance): EntityRequest {
     const uid = formatEntityUid(e.uid);
 
-    const attributes: Record<string, unknown> = { ...e.attrs };
+    const attributes: Record<string, unknown> = { ...(e.reservedMeta ?? {}), ...e.attrs };
 
     // Surface uid.type back as `_kind` so a fromBackend → toBackend round-trip
     // preserves the explicit kind that fromBackend may have consumed off the
