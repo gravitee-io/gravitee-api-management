@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import { useModuleRouting } from '@gravitee/gamma-modules-sdk/routing';
-import { SidebarNavigation, buildLinearBreadcrumbs, useLayoutConfig } from '@gravitee/graphene-core';
+import { SidebarNavigation, Skeleton, buildLinearBreadcrumbs, useLayoutConfig } from '@gravitee/graphene-core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { Suspense, lazy, useMemo } from 'react';
 import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 import { NAV_GROUPS } from '../config/navigation';
 import { AUTHZ_ROUTE_CONFIG, ROUTES, type RouteKey } from '../config/routes';
@@ -27,8 +27,10 @@ import { McpsPage } from '../features/policy-management/pages/McpsPage';
 import { ModelsPage } from '../features/policy-management/pages/ModelsPage';
 import { ActionsPage } from '../features/policy-structure/ActionsPage';
 import { EntitiesPage } from '../features/policy-structure/EntitiesPage';
-import { SchemaPage } from '../features/policy-structure/SchemaPage';
 import { ModuleErrorBoundary } from './ModuleErrorBoundary';
+
+// Lazy-loaded so the ~600KB (gzip) Monaco bundle only ships when the read-only Schema viewer is opened.
+const SchemaPage = lazy(() => import('../features/policy-structure/SchemaPage').then(m => ({ default: m.SchemaPage })));
 
 const queryClient = new QueryClient();
 
@@ -68,7 +70,14 @@ export function AppRoutes() {
                         <Route path="custom-policies" element={<CustomPoliciesPage />} />
                         <Route path="entities" element={<EntitiesPage />} />
                         <Route path="actions" element={<ActionsPage />} />
-                        <Route path="schema" element={<SchemaPage />} />
+                        <Route
+                            path="schema"
+                            element={
+                                <Suspense fallback={<Skeleton className="h-[560px] w-full" />}>
+                                    <SchemaPage />
+                                </Suspense>
+                            }
+                        />
                     </Route>
                 </Routes>
             </ModuleErrorBoundary>
