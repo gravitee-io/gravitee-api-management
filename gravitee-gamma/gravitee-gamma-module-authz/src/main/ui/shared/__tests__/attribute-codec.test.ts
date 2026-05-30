@@ -56,11 +56,14 @@ describe('attribute-codec coerce', () => {
     it('ip validates IPv4/IPv6 and stores a string', () => {
         expect(coerce('ip', '10.0.0.1')).toEqual({ ok: true, value: '10.0.0.1' });
         expect(coerce('ip', '::1')).toEqual({ ok: true, value: '::1' });
+        expect(coerce('ip', '2001:db8::1')).toEqual({ ok: true, value: '2001:db8::1' });
+        expect(coerce('ip', 'fe80::1')).toEqual({ ok: true, value: 'fe80::1' });
         expect(coerce('ip', '999.1.1.1').ok).toBe(false);
     });
 
     it('cidr validates a network/mask and stores a string', () => {
         expect(coerce('cidr', '10.0.0.0/24')).toEqual({ ok: true, value: '10.0.0.0/24' });
+        expect(coerce('cidr', '2001:db8::/32')).toEqual({ ok: true, value: '2001:db8::/32' });
         expect(coerce('cidr', '10.0.0.0').ok).toBe(false);
     });
 

@@ -202,6 +202,20 @@ describe('EditEntityDialog', () => {
         resolveUpdate({}); // settle the pending request
     });
 
+    it('renders attributes read-only for a catalog-sourced entity', () => {
+        const catalogEntity: EntityInstance = {
+            uid: { type: 'User', id: 'carol' },
+            displayName: 'Carol',
+            attrs: { region: 'eu' },
+            parents: [],
+            source: 'gravitee-catalog',
+        };
+        renderDialog(catalogEntity);
+
+        expect(screen.getByText('Attributes are managed by the source and are read-only.')).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /Add attribute/i })).not.toBeInTheDocument();
+    });
+
     it('re-seeds name, description, and Entity ID when reopened with a different entity', async () => {
         const { rerender } = render(
             <EditEntityDialog
