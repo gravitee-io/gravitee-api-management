@@ -15,7 +15,7 @@
  */
 import { Button } from '@gravitee/graphene-core';
 import { CheckIcon, CopyIcon } from '@gravitee/graphene-core/icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toGaplJson } from '../../../shared/entity-gapl-shape';
 import type { EntityInstance } from '../../../shared/entity.types';
 
@@ -23,11 +23,16 @@ export function EntityGaplShapeTab({ entity }: { entity: EntityInstance }) {
     const json = toGaplJson(entity);
     const [copied, setCopied] = useState(false);
 
+    useEffect(() => {
+        if (!copied) return;
+        const timer = setTimeout(() => setCopied(false), 1500);
+        return () => clearTimeout(timer);
+    }, [copied]);
+
     async function copy() {
         try {
             await navigator.clipboard?.writeText(json);
             setCopied(true);
-            setTimeout(() => setCopied(false), 1500);
         } catch {
             // clipboard unavailable — the JSON stays visible for manual copy
         }

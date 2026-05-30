@@ -53,6 +53,12 @@ export function EntityDetailSheet({ entity, allEntities, policies, open, onOpenC
         setCopied(false);
     }, [entityUid]);
 
+    useEffect(() => {
+        if (!copied) return;
+        const timer = setTimeout(() => setCopied(false), 1500);
+        return () => clearTimeout(timer);
+    }, [copied]);
+
     const counts = useMemo(() => {
         if (!entity) return { attrs: 0, parents: 0, refs: 0, policies: 0 };
         return {
@@ -67,7 +73,6 @@ export function EntityDetailSheet({ entity, allEntities, policies, open, onOpenC
         try {
             await navigator.clipboard?.writeText(entityUid);
             setCopied(true);
-            setTimeout(() => setCopied(false), 1500);
         } catch {
             // clipboard unavailable
         }

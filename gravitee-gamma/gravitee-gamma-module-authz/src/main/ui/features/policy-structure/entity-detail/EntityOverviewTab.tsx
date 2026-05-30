@@ -24,6 +24,7 @@ function sourceLabel(source: EntityInstance['source']): string {
 }
 
 function renderValue(value: unknown): string {
+    if (value === null || value === undefined) return '—';
     if (Array.isArray(value)) return value.join(', ');
     return String(value);
 }
