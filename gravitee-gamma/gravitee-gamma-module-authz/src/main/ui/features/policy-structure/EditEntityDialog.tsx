@@ -44,6 +44,8 @@ import { authzQueryKeys } from '../../shared/api/query-keys';
 import { formatEntityUid, fromBackend, toBackend } from '../../shared/entity-adapter';
 import type { EntityInstance } from '../../shared/entity.types';
 import { useEntities } from '../../shared/hooks/useEntities';
+import { AttributeEditor, type AttributeRow } from './AttributeEditor';
+import { attrsFromRows, rowsFromAttrs } from './attribute-rows';
 
 type EntityKind = 'PRINCIPAL' | 'RESOURCE';
 
@@ -73,6 +75,7 @@ export function EditEntityDialog({ open, entity, kind, environmentId, onOpenChan
     const [displayName, setDisplayName] = useState('');
     const [description, setDescription] = useState('');
     const [parentIds, setParentIds] = useState<string[]>([]);
+    const [attrRows, setAttrRows] = useState<AttributeRow[]>([]);
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -82,6 +85,7 @@ export function EditEntityDialog({ open, entity, kind, environmentId, onOpenChan
             setDisplayName(displayNameOf(entity));
             setDescription(descriptionOf(entity));
             setParentIds(entity.parents.map(formatEntityUid));
+            setAttrRows(rowsFromAttrs(entity.attrs));
             setSubmitError(null);
             setSubmitting(false);
         }
@@ -115,10 +119,20 @@ export function EditEntityDialog({ open, entity, kind, environmentId, onOpenChan
         if (!canSubmit || !entity) return;
         setSubmitting(true);
         setSubmitError(null);
-        // Full replace: start from the entity's complete attribute map so unknown
-        // attributes (department, email, _kind, _source, …) are preserved, then
-        // override only the edited fields.
+        const rowsResult = attrsFromRows(attrRows);
+        if (rowsResult.error) {
+            setSubmitError(rowsResult.error);
+            setSubmitting(false);
+            return;
+        }
+        // Full replace: start from the entity's complete attribute map so meta
+        // (_kind, _source, …) and description are preserved, drop the old editable
+        // attrs, then apply the editor's set and override the edited fields.
         const attributes: Record<string, unknown> = { ...toBackend(entity).attributes };
+        for (const k of Object.keys(attributes)) {
+            if (!k.startsWith('_') && k !== 'description') delete attributes[k];
+        }
+        Object.assign(attributes, rowsResult.attributes);
         attributes._displayName = displayName.trim();
         const trimmedDescription = description.trim();
         if (trimmedDescription) attributes.description = trimmedDescription;
@@ -230,6 +244,21 @@ export function EditEntityDialog({ open, entity, kind, environmentId, onOpenChan
                                     </ComboboxList>
                                 </ComboboxContent>
                             </Combobox>
+                        </div>
+
+                        <div className="flex flex-col gap-1.5">
+                            <Label>
+                                Attributes <span className="text-xs text-muted-foreground">(optional)</span>
+                            </Label>
+                            <AttributeEditor
+                                value={attrRows}
+                                onChange={setAttrRows}
+                                readOnly={entity?.source !== 'local'}
+                                keySuggestions={[]}
+                            />
+                            {entity?.source !== 'local' && (
+                                <p className="text-xs text-muted-foreground">Attributes are managed by the source and are read-only.</p>
+                            )}
                         </div>
                     </div>
                 </form>
