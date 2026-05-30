@@ -6,6 +6,21 @@
  * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
  */
 import {
     Alert,
@@ -166,7 +181,11 @@ export function ImportFromCatalogDialog({ open, environmentId, onOpenChange, onI
     const mcpQuery = useAimCatalogItems<McpServerCatalogItem>(environmentId, 'mcp-server', { enabled: open });
     const modelQuery = useAimCatalogItems<ModelCatalogItem>(environmentId, 'model', { enabled: open });
     const agentQuery = useAimCatalogItems<AgentCatalogItem>(environmentId, 'agent', { enabled: open });
-    const { catalogIds: importedCatalogIds, truncated: importedTruncated, markImported } = useImportedCatalogIds(environmentId, {
+    const {
+        catalogIds: importedCatalogIds,
+        truncated: importedTruncated,
+        markImported,
+    } = useImportedCatalogIds(environmentId, {
         enabled: open,
     });
 
@@ -223,7 +242,6 @@ export function ImportFromCatalogDialog({ open, environmentId, onOpenChange, onI
         let doneCount = 0;
 
         const tasks = items.map(item => async () => {
-            const tab = TABS.find(t => t.key === item.kind)!;
             const entityId = buildEntityId(item);
             const displayName = deriveDisplayName(item);
             const description = deriveDescription(item);
@@ -423,11 +441,7 @@ export function ImportFromCatalogDialog({ open, environmentId, onOpenChange, onI
                     </p>
                 </div>
 
-                <Tabs
-                    value={activeTab}
-                    onValueChange={value => setActiveTab(value as TabKey)}
-                    className="flex min-h-0 flex-1 flex-col"
-                >
+                <Tabs value={activeTab} onValueChange={value => setActiveTab(value as TabKey)} className="flex min-h-0 flex-1 flex-col">
                     <TabsList className="flex-none gap-1 border-b px-6 pt-2">
                         {TABS.map(tab => (
                             <TabsTrigger key={tab.key} value={tab.key}>

@@ -29,10 +29,7 @@ export interface UseAimCatalogItemsResult<T extends CatalogItem = CatalogItem> {
     readonly truncated: boolean;
 }
 
-async function fetchAllPages<T extends CatalogItem>(
-    environmentId: string,
-    kind: CatalogItemKind,
-): Promise<CatalogItemPage<T>> {
+async function fetchAllPages<T extends CatalogItem>(environmentId: string, kind: CatalogItemKind): Promise<CatalogItemPage<T>> {
     const accumulated: T[] = [];
     let page = 1;
     let total = 0;

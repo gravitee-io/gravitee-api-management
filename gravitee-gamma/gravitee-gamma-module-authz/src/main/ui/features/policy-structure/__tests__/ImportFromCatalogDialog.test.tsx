@@ -18,12 +18,7 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import type {
-    AgentCatalogItem,
-    CatalogItemKind,
-    McpServerCatalogItem,
-    ModelCatalogItem,
-} from '../../../shared/api/aim-catalog.types';
+import type { AgentCatalogItem, CatalogItemKind, McpServerCatalogItem, ModelCatalogItem } from '../../../shared/api/aim-catalog.types';
 import { ImportFromCatalogDialog } from '../ImportFromCatalogDialog';
 
 beforeAll(() => {
@@ -166,9 +161,7 @@ interface RenderOptions {
 
 function renderDialog(opts: RenderOptions = {}) {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    const wrapper = ({ children }: { children: ReactNode }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
+    const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
     return render(
         <ImportFromCatalogDialog
             open={true}
@@ -522,9 +515,7 @@ describe('ImportFromCatalogDialog', () => {
 
             const dialog = getDialog();
             await waitFor(() => expect(within(dialog).getByText('flight-status server')).toBeInTheDocument());
-            await waitFor(() =>
-                expect(within(dialog).getByLabelText('flight-status server already imported')).toBeDisabled(),
-            );
+            await waitFor(() => expect(within(dialog).getByLabelText('flight-status server already imported')).toBeDisabled());
             expect(within(dialog).getByText('Imported')).toBeInTheDocument();
         });
 
@@ -535,9 +526,7 @@ describe('ImportFromCatalogDialog', () => {
             await waitForList();
 
             const dialog = getDialog();
-            await waitFor(() =>
-                expect(within(dialog).getByLabelText('flight-status server already imported')).toBeDisabled(),
-            );
+            await waitFor(() => expect(within(dialog).getByLabelText('flight-status server already imported')).toBeDisabled());
             const user = userEvent.setup();
             // userEvent skips disabled controls, so just confirm the counter never changes
             // and Import stays disabled — we don't want a side door via keyboard either.
@@ -555,9 +544,7 @@ describe('ImportFromCatalogDialog', () => {
             await waitForList();
 
             const dialog = getDialog();
-            await waitFor(() =>
-                expect(within(dialog).getByLabelText('flight-status server already imported')).toBeDisabled(),
-            );
+            await waitFor(() => expect(within(dialog).getByLabelText('flight-status server already imported')).toBeDisabled());
             const user = userEvent.setup();
             await user.click(within(dialog).getByRole('button', { name: /Select visible/i }));
 

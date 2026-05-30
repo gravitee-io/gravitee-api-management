@@ -91,14 +91,7 @@ function renderDialog(props: Partial<Parameters<typeof CreateEntityDialog>[0]> =
     const onOpenChange = vi.fn();
     const onCreated = vi.fn();
     render(
-        <CreateEntityDialog
-            open
-            kind="PRINCIPAL"
-            environmentId="DEFAULT"
-            onOpenChange={onOpenChange}
-            onCreated={onCreated}
-            {...props}
-        />,
+        <CreateEntityDialog open kind="PRINCIPAL" environmentId="DEFAULT" onOpenChange={onOpenChange} onCreated={onCreated} {...props} />,
         { wrapper },
     );
     return { onOpenChange, onCreated };
