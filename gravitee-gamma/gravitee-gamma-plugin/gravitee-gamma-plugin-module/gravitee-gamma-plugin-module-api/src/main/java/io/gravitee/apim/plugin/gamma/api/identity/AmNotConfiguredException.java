@@ -18,7 +18,9 @@ package io.gravitee.apim.plugin.gamma.api.identity;
 import io.gravitee.apim.core.exception.AbstractDomainException;
 
 // APIM's plugin SPI does not allow registering a plugin-local JAX-RS exception mapper, so each
-// module's REST boundary translates this explicitly to 503 {"code": "am_not_configured", ...}.
+// module's REST boundary translates this explicitly to 409 {"code": "am_not_configured", ...}.
+// AbstractDomainException carries no status, so a missing AM connection is a client-side config gap
+// (409 Conflict), not a transient outage (503).
 public class AmNotConfiguredException extends AbstractDomainException {
 
     public static final String CODE = "am_not_configured";
