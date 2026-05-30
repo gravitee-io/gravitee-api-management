@@ -92,8 +92,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
   ) {}
 
   ngOnInit(): void {
-    this.isReadOnly = this.api.definitionVersion === 'V1' || this.api.originContext?.origin === 'KUBERNETES';
-    this.canDetach = this.api.originContext?.origin === 'KUBERNETES';
+    this.updateOriginContextState();
     this.license$ = this.licenseService.getLicense$();
     this.isOEM$ = this.licenseService.isOEM$();
 
@@ -109,6 +108,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.api) {
+      this.updateOriginContextState();
       this.dangerActions = {
         canAskForReview:
           this.constants.env?.settings?.apiReview?.enabled &&
@@ -341,6 +341,11 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
+  }
+
+  private updateOriginContextState(): void {
+    this.isReadOnly = this.api?.definitionVersion === 'V1' || this.api?.originContext?.origin === 'KUBERNETES';
+    this.canDetach = this.api?.originContext?.origin === 'KUBERNETES';
   }
 
   private canChangeApiLifecycle(api: Api): boolean {
