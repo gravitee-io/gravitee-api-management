@@ -29,7 +29,9 @@ import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
+import io.gravitee.rest.api.service.exceptions.UrlForbiddenException;
 import io.gravitee.rest.api.service.impl.swagger.policy.impl.PolicyOperationVisitorManagerImpl;
+import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -48,10 +50,26 @@ class OAIDomainServiceImplTest {
 
     private OAIDomainServiceImpl oaiDomainService;
     private final PolicyOperationVisitorManagerImpl policyOperationVisitorManager = new PolicyOperationVisitorManagerImpl();
+    private ImportConfiguration importConfiguration;
 
     @BeforeEach
     void setUp() {
-        oaiDomainService = new OAIDomainServiceImpl(policyOperationVisitorManager, null, null, null, null);
+        importConfiguration = mock(ImportConfiguration.class);
+        when(importConfiguration.getImportWhitelist()).thenReturn(List.of());
+        when(importConfiguration.isAllowImportFromPrivate()).thenReturn(false);
+        oaiDomainService = new OAIDomainServiceImpl(policyOperationVisitorManager, null, null, null, null, importConfiguration);
+    }
+
+    @Test
+    void should_throw_when_remote_url_payload_targets_a_private_address() {
+        // Given a payload that is a URL resolving to a private/link-local address (SSRF attempt)
+        var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
+        importSwaggerDescriptor.setPayload("http://169.254.169.254/latest/meta-data/");
+
+        // When / Then the URL is rejected before any fetch happens
+        assertThatThrownBy(() ->
+            oaiDomainService.convert(ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor, false, false)
+        ).isInstanceOf(UrlForbiddenException.class);
     }
 
     @ParameterizedTest
@@ -112,7 +130,8 @@ class OAIDomainServiceImplTest {
                 new GroupQueryServiceInMemory(),
                 new TagQueryServiceInMemory(),
                 endpointConnectorPluginService,
-                policyPluginCrudService
+                policyPluginCrudService,
+                mock(ImportConfiguration.class)
             );
         }
 

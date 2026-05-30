@@ -103,7 +103,8 @@ class WsdlToUpdateApiUseCaseIntegrationTest {
             new GroupQueryServiceInMemory(),
             new TagQueryServiceInMemory(),
             endpointConnectorPluginService,
-            policyPluginCrudService
+            policyPluginCrudService,
+            importConfiguration
         );
 
         var updateApiDefinitionUseCase = new UpdateApiDefinitionFromImportUseCase(
