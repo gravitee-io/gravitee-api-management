@@ -44,7 +44,16 @@ import {
     TabsTrigger,
     toast,
 } from '@gravitee/graphene-core';
-import { BoxesIcon, DownloadIcon, PencilIcon, PlusIcon, RefreshCwIcon, ShieldIcon, Trash2Icon, UsersIcon } from '@gravitee/graphene-core/icons';
+import {
+    BoxesIcon,
+    DownloadIcon,
+    PencilIcon,
+    PlusIcon,
+    RefreshCwIcon,
+    ShieldIcon,
+    Trash2Icon,
+    UsersIcon,
+} from '@gravitee/graphene-core/icons';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
