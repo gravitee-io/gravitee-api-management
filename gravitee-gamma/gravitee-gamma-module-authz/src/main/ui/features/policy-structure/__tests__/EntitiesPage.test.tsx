@@ -478,4 +478,33 @@ describe('EntitiesPage', () => {
 
         await waitFor(() => expect(within(screen.getByLabelText('Policy-Linked')).getByText('1')).toBeInTheDocument());
     });
+
+    it('renders an "in N" relationships badge for an entity with parents', async () => {
+        mockByKind({ principals: [makeEntity({ id: 'p1', uid: 'user.alice', parents: ['group.devs'] })] });
+        renderPage();
+
+        await waitFor(() => expect(screen.getByText('in 1')).toBeInTheDocument());
+    });
+
+    it('opens a generated entities.json blob from the settings menu', async () => {
+        mockByKind({ principals: [makeEntity({ id: 'p1', uid: 'user.alice' })] });
+        const createObjectURL = vi.fn(() => 'blob:entities');
+        Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: createObjectURL });
+        Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: vi.fn() });
+        const openSpy = vi.fn();
+        const originalOpen = window.open;
+        window.open = openSpy;
+        try {
+            renderPage();
+            const user = userEvent.setup();
+            await waitFor(() => expect(screen.getByRole('button', { name: /Entities settings/i })).toBeInTheDocument());
+            await user.click(screen.getByRole('button', { name: /Entities settings/i }));
+            await user.click(await screen.findByRole('menuitem', { name: /Open entities\.json/i }));
+
+            expect(createObjectURL).toHaveBeenCalledTimes(1);
+            expect(openSpy).toHaveBeenCalledWith('blob:entities', '_blank', 'noopener');
+        } finally {
+            window.open = originalOpen;
+        }
+    });
 });
