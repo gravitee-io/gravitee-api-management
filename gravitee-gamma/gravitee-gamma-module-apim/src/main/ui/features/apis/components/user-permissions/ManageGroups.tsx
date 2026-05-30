@@ -31,7 +31,7 @@ import { useCallback, useMemo, useState } from 'react';
 
 import type { Group } from '../../types/members.types';
 
-export function ManageGroupsDialog({
+export function ManageGroups({
     open,
     allGroups,
     currentGroupIds,

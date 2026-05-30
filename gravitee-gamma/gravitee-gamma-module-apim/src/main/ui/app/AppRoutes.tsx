@@ -51,6 +51,7 @@ import { ApiEndpointsPage } from '../features/apis/pages/detail/endpoints/ApiEnd
 import { ApiEntrypointsPage } from '../features/apis/pages/detail/entrypoints/ApiEntrypointsPage';
 import { ApiFailoverPage } from '../features/apis/pages/detail/failover/ApiFailoverPage';
 import { ApiGeneralPage } from '../features/apis/pages/detail/general/ApiGeneralPage';
+import { ApiNotificationFormPage } from '../features/apis/pages/detail/notifications/ApiNotificationFormPage';
 import { ApiNotificationsPage } from '../features/apis/pages/detail/notifications/ApiNotificationsPage';
 import { ApiPlanFormPage } from '../features/apis/pages/detail/plans/ApiPlanFormPage';
 import { ApiPlansPage } from '../features/apis/pages/detail/plans/ApiPlansPage';
@@ -109,7 +110,11 @@ export function AppRoutes() {
                                 <Route index element={<ApiPropertiesPage />} />
                                 <Route path="dynamic" element={<ApiDynamicPropertiesPage />} />
                             </Route>
-                            <Route path="notifications" element={<ApiNotificationsPage />} />
+                            <Route path="notifications">
+                                <Route index element={<ApiNotificationsPage />} />
+                                <Route path="new" element={<ApiNotificationFormPage />} />
+                                <Route path=":notificationKey" element={<ApiNotificationFormPage />} />
+                            </Route>
                             <Route path="entrypoints" element={<ApiEntrypointsPage />} />
                             <Route path="cors" element={<ApiCorsPage />} />
                             <Route path="endpoints">

@@ -15,25 +15,20 @@
  */
 import { cn } from '@gravitee/graphene-core';
 
-export interface DialogTabItem<T extends string> {
+export interface SegmentedTabItem<T extends string> {
     id: T;
     label: string;
 }
 
-interface DialogSegmentedTabsProps<T extends string> {
-    tabs: readonly DialogTabItem<T>[];
+interface SegmentedTabsProps<T extends string> {
+    tabs: readonly SegmentedTabItem<T>[];
     activeId: T;
     onChange: (id: T) => void;
     ariaLabel?: string;
 }
 
-/** Equal-width tab strip for compact action dialogs (Export API, etc.). */
-export function DialogSegmentedTabs<T extends string>({
-    tabs,
-    activeId,
-    onChange,
-    ariaLabel = 'Dialog sections',
-}: Readonly<DialogSegmentedTabsProps<T>>) {
+/** Equal-width tab strip for compact action sheets (Export API, etc.). */
+export function SegmentedTabs<T extends string>({ tabs, activeId, onChange, ariaLabel = 'Sections' }: Readonly<SegmentedTabsProps<T>>) {
     return (
         <div
             className="grid gap-1 border-b pb-0"

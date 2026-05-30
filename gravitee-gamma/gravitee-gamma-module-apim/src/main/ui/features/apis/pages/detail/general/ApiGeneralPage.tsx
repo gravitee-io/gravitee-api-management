@@ -37,8 +37,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { CategorySelectInput } from './CategorySelectInput';
 import { ChipInput } from './ChipInput';
 import { DeleteDialog } from './DeleteDialog';
-import { DuplicateDialog } from './DuplicateDialog';
-import { ExportDialog } from './ExportDialog';
+import { DuplicateApi } from './DuplicateApi';
+import { ExportApi } from './ExportApi';
 import { ImagePicker } from './ImagePicker';
 import { ImportDialog } from './ImportDialog';
 import { PromoteDialog } from './PromoteDialog';
@@ -641,8 +641,8 @@ export function ApiGeneralPage() {
                 </Card>
             )}
 
-            {/* ── Dialogs ─────────────────────────────────────────────────── */}
-            <ExportDialog
+            {/* ── Action sheets & dialogs ─────────────────────────────────── */}
+            <ExportApi
                 open={exportOpen}
                 onOpenChange={open => {
                     setExportOpen(open);
@@ -659,7 +659,7 @@ export function ApiGeneralPage() {
                 isLoading={importMutation.isPending}
                 error={importError}
             />
-            <DuplicateDialog
+            <DuplicateApi
                 open={duplicateOpen}
                 onOpenChange={setDuplicateOpen}
                 initialVersion={api?.apiVersion ?? ''}

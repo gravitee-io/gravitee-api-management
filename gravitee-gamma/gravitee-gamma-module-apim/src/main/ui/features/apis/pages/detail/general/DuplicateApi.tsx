@@ -13,22 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Label } from '@gravitee/graphene-core';
+import { Button, Input, Label, Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@gravitee/graphene-core';
 import { CopyIcon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
 
-import {
-    API_ACTION_DIALOG_CONTENT_CLASS,
-    API_ACTION_DIALOG_CONTENT_STYLE,
-    API_ACTION_DIALOG_VERSION_FIELD_CLASS,
-} from './apiActionDialogLayout';
-import { DialogCheckboxOptions } from './DialogCheckboxOptions';
+import { CheckboxOptionList } from './CheckboxOptionList';
 import { useDuplicateEntryValidation } from '../../../hooks/useDuplicateEntryValidation';
 import type { DuplicateFilteredField } from '../../../types';
 import { DUPLICATE_INCLUDE_OPTIONS, type DuplicateEntryMode, buildDuplicateFilteredFields } from '../../../utils/apiGeneralDuplicate';
 import { validateDuplicateVersion } from '../../../utils/duplicateDialogValidation';
 
-export function DuplicateDialog({
+export function DuplicateApi({
     open,
     onOpenChange,
     initialVersion,
@@ -130,13 +125,14 @@ export function DuplicateDialog({
     const displayHostError = showValidation || host.length > 0 ? hostError : null;
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className={API_ACTION_DIALOG_CONTENT_CLASS} style={API_ACTION_DIALOG_CONTENT_STYLE}>
-                <DialogHeader>
-                    <DialogTitle>Duplicate API</DialogTitle>
-                </DialogHeader>
+        <Sheet open={open} onOpenChange={onOpenChange}>
+            <SheetContent side="right" style={{ maxWidth: '32rem' }}>
+                <SheetHeader>
+                    <SheetTitle>Duplicate API</SheetTitle>
+                    <SheetDescription>Create a copy of this API with a new context path and version.</SheetDescription>
+                </SheetHeader>
 
-                <div className="space-y-6 py-2">
+                <div className="flex-1 space-y-6 overflow-y-auto px-4">
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto] sm:items-start sm:gap-3">
                         {entryMode === 'contextPath' && (
                             <div className="space-y-2 min-w-0">
@@ -178,7 +174,7 @@ export function DuplicateDialog({
                                 {verifying && !displayHostError && <p className="text-xs text-muted-foreground">Checking availability…</p>}
                             </div>
                         )}
-                        <div className={`space-y-2 ${API_ACTION_DIALOG_VERSION_FIELD_CLASS}`}>
+                        <div className="space-y-2 w-full sm:w-32 shrink-0">
                             <Label htmlFor="dup-version">
                                 Version <span className="text-destructive">*</span>
                             </Label>
@@ -199,7 +195,7 @@ export function DuplicateDialog({
 
                     <div className="space-y-2">
                         <p className="text-sm font-medium">Include additional data</p>
-                        <DialogCheckboxOptions
+                        <CheckboxOptionList
                             idPrefix="dup"
                             options={DUPLICATE_INCLUDE_OPTIONS}
                             values={include}
@@ -210,18 +206,16 @@ export function DuplicateDialog({
                     {error && <p className="text-sm text-destructive">{error}</p>}
                 </div>
 
-                <DialogFooter>
-                    <DialogClose asChild>
-                        <Button type="button" variant="outline">
-                            Cancel
-                        </Button>
-                    </DialogClose>
+                <SheetFooter className="flex-row justify-end border-t">
+                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                        Cancel
+                    </Button>
                     <Button type="button" disabled={!canSubmit} onClick={() => void handleSubmit()}>
                         <CopyIcon className="size-4" aria-hidden />
                         {isLoading ? 'Duplicating…' : 'Duplicate'}
                     </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </SheetFooter>
+            </SheetContent>
+        </Sheet>
     );
 }

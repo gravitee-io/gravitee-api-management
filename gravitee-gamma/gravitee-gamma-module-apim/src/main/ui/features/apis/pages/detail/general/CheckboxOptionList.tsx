@@ -15,7 +15,7 @@
  */
 import { Checkbox, Label } from '@gravitee/graphene-core';
 
-export function DialogCheckboxOptions<T extends string>({
+export function CheckboxOptionList<T extends string>({
     idPrefix,
     options,
     values,

@@ -59,7 +59,11 @@ function ProductActionsMenu({ productId, onNavigate }: { productId: string; onNa
 function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<ApiProductListItem>['columns'] {
     return [
         {
-            accessorKey: 'name',
+            // Column id doubles as the label shown in the DataTable "View" (column visibility)
+            // menu, which falls back to the id for non-string headers — keep it identical to
+            // the visible header title so both read the same (incl. casing).
+            id: 'Product Name',
+            accessorFn: (row: ApiProductListItem) => row.name,
             header: ({ column }: ColHeader<ApiProductListItem>) => <DataTableColumnHeader column={column} title="Product Name" />,
             cell: ({ row }: ColCell<ApiProductListItem>) => (
                 <button
@@ -72,7 +76,7 @@ function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<
             ),
         },
         {
-            id: 'apiCount',
+            id: 'Total APIs',
             header: ({ column }: ColHeader<ApiProductListItem>) => <DataTableColumnHeader column={column} title="Total APIs" />,
             accessorFn: (row: ApiProductListItem) => row.apiIds?.length ?? 0,
             cell: ({ row }: ColCell<ApiProductListItem>) => (
@@ -82,7 +86,8 @@ function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<
             ),
         },
         {
-            accessorKey: 'version',
+            id: 'Version',
+            accessorFn: (row: ApiProductListItem) => row.version,
             header: ({ column }: ColHeader<ApiProductListItem>) => <DataTableColumnHeader column={column} title="Version" />,
             cell: ({ row }: ColCell<ApiProductListItem>) => (
                 <Badge variant="outline" className="font-mono text-xs">
@@ -91,7 +96,7 @@ function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<
             ),
         },
         {
-            id: 'owner',
+            id: 'Owner',
             header: ({ column }: ColHeader<ApiProductListItem>) => <DataTableColumnHeader column={column} title="Owner" />,
             accessorFn: (row: ApiProductListItem) => row.primaryOwner?.displayName ?? '',
             cell: ({ row }: ColCell<ApiProductListItem>) => (
@@ -139,7 +144,7 @@ export function ApiProductListTable({
     toolbar,
 }: ApiProductListTableProps) {
     const navigate = useNavigate();
-    const [sorting, setSorting] = useState([{ id: 'name', desc: false }]);
+    const [sorting, setSorting] = useState([{ id: 'Product Name', desc: false }]);
     const columns = buildColumns(navigate);
 
     const renderPagination = () => (
