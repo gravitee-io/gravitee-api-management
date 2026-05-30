@@ -94,8 +94,15 @@ public class SyncAmUsersUseCase {
     }
 
     private CreateOrReplaceAuthzEntityCommand toCommand(String environmentId, AmUser user) {
+        String sub = computeSub(user);
         // Map.copyOf (inside the command) rejects null values, so only put attributes AM populated.
         Map<String, Object> attributes = new LinkedHashMap<>();
+        // Present synced principals as the "user" kind in the UI (Type column + user.<sub> entity id)
+        // without changing the stored entityId, which stays the bare sub so the PEP's
+        // Principal::"<sub>" still matches at eval time.
+        attributes.put("_kind", "user");
+        // Surface the resolved token sub as a visible property too (it is also the entityId).
+        attributes.put("sub", sub);
         if (user.email() != null) {
             attributes.put("email", user.email());
         }
@@ -108,7 +115,7 @@ public class SyncAmUsersUseCase {
         if (user.enabled() != null) {
             attributes.put("enabled", user.enabled());
         }
-        return new CreateOrReplaceAuthzEntityCommand(environmentId, computeSub(user), AuthzEntityKind.PRINCIPAL, attributes, List.of(), SOURCE);
+        return new CreateOrReplaceAuthzEntityCommand(environmentId, sub, AuthzEntityKind.PRINCIPAL, attributes, List.of(), SOURCE);
     }
 
     // Mirrors AM's SubjectManagerV2: the token `sub` a V2 domain issues is an MD5-based UUID of

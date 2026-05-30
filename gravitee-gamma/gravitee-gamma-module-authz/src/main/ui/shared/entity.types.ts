@@ -21,7 +21,7 @@ export type AttrValue = string | number | boolean;
  *   - `apim`             : derived from an APIM-managed API (read-only).
  *   - `gravitee-catalog` : imported from the AIM Context Catalog (read-only).
  */
-export type EntitySource = 'local' | 'apim' | 'gravitee-catalog';
+export type EntitySource = 'local' | 'apim' | 'gravitee-catalog' | 'gravitee_am';
 
 export interface EntityInstance {
     uid: { type: string; id: string };

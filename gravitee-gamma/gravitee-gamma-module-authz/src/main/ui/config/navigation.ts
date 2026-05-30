@@ -20,7 +20,6 @@ import {
     GlobeIcon,
     LayoutDashboardIcon,
     NetworkIcon,
-    RefreshCwIcon,
     ShieldCheckIcon,
     SlidersHorizontalIcon,
     ZapIcon,
@@ -48,9 +47,5 @@ export const NAV_GROUPS: NavGroup[] = [
             { key: 'actions', title: ROUTES.actions.label, icon: ZapIcon },
             { key: 'schema', title: ROUTES.schema.label, icon: NetworkIcon },
         ],
-    },
-    {
-        label: 'Identity',
-        items: [{ key: 'user-sync', title: ROUTES['user-sync'].label, icon: RefreshCwIcon }],
     },
 ];
