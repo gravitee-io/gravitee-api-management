@@ -168,6 +168,31 @@ describe('ApiV2Service', () => {
     });
   });
 
+  describe('detach', () => {
+    it('should call the API and refresh the last api fetch', done => {
+      const fakeApi = fakeApiV4();
+
+      apiV2Service.get(fakeApi.id).subscribe();
+      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${fakeApi.id}`, method: 'GET' }).flush(fakeApi);
+
+      apiV2Service.detach(fakeApi.id).subscribe(() => {
+        done();
+      });
+
+      const detachReq = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${fakeApi.id}/_detach`,
+        method: 'POST',
+      });
+      detachReq.flush(null);
+
+      const refreshReq = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${fakeApi.id}`,
+        method: 'GET',
+      });
+      refreshReq.flush({ ...fakeApi, originContext: { origin: 'MANAGEMENT' } });
+    });
+  });
+
   describe('deploy', () => {
     it('should call the API', done => {
       const fakeApi = fakeApiV4();
