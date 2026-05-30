@@ -57,7 +57,7 @@ import { CATEGORIES, getEntityCategoryId, type EntityCategoryId } from './entity
 type SchemaTab = 'code' | 'entities';
 type IconType = ComponentType<SVGProps<SVGSVGElement>>;
 
-const CATEGORY_ICONS: Record<EntityCategoryId, IconType> = {
+const CATEGORY_ICONS = {
     principal: UsersIcon,
     mcp: ServerIcon,
     api: GlobeIcon,
@@ -65,7 +65,7 @@ const CATEGORY_ICONS: Record<EntityCategoryId, IconType> = {
     model: BrainIcon,
     event: RadioIcon,
     custom: BoxesIcon,
-};
+} as const satisfies Record<EntityCategoryId, IconType>;
 
 interface CategoryGroup {
     readonly id: EntityCategoryId;
@@ -98,8 +98,18 @@ export function SchemaPage() {
     const parsed = useMemo(() => parseGaplSchema(schemaText), [schemaText]);
     const groups = useMemo(() => groupByCategory(parsed.entities), [parsed.entities]);
 
-    const principalKinds = useMemo(() => parsed.entities.filter(e => getEntityCategoryId(e.name) === 'principal').length, [parsed.entities]);
-    const resourceKinds = parsed.entities.length - principalKinds;
+    const principalKinds = useMemo(
+        () => parsed.entities.filter(e => getEntityCategoryId(e.name) === 'principal').length,
+        [parsed.entities],
+    );
+    const resourceKinds = useMemo(
+        () =>
+            parsed.entities.filter(e => {
+                const category = getEntityCategoryId(e.name);
+                return category !== undefined && category !== 'principal';
+            }).length,
+        [parsed.entities],
+    );
 
     const [activeTab, setActiveTab] = useState<SchemaTab>('code');
     const [focused, setFocused] = useState<string | null>(null);
@@ -175,6 +185,21 @@ export function SchemaPage() {
 
             {!isLoading && error === undefined && !isEmpty && (
                 <>
+                    {parsed.diagnostics.length > 0 && (
+                        <Alert variant="destructive">
+                            <AlertTitle>Schema could not be fully parsed</AlertTitle>
+                            <AlertDescription>
+                                <ul className="list-disc pl-4">
+                                    {parsed.diagnostics.map((diagnostic, index) => (
+                                        <li key={`${index}-${diagnostic}`} className="font-mono text-xs">
+                                            {diagnostic}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </AlertDescription>
+                        </Alert>
+                    )}
+
                     <div className="flex flex-wrap gap-2" aria-label="Schema summary">
                         <Badge variant="outline" className="gap-1.5">
                             <BoxesIcon className="size-3.5" aria-hidden />
@@ -196,60 +221,62 @@ export function SchemaPage() {
 
                     <div className="flex flex-col gap-4 md:flex-row md:items-start">
                         <div className="shrink-0" style={{ width: 240, maxWidth: '100%' }}>
-                        <Card className="w-full overflow-hidden p-0">
-                            <div className="border-b px-3 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                                Outline
-                            </div>
-                            <div className="p-2">
-                                {groups.map(group => {
-                                    const Icon = CATEGORY_ICONS[group.id];
-                                    const isCollapsed = collapsed.has(group.id);
-                                    return (
-                                        <div key={group.id} className="mb-1 last:mb-0">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => toggleCategory(group.id)}
-                                                className="h-auto w-full justify-start gap-1.5 px-1 py-1"
-                                                aria-expanded={!isCollapsed}
-                                            >
-                                                {isCollapsed ? (
-                                                    <ChevronRightIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
-                                                ) : (
-                                                    <ChevronDownIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
-                                                )}
-                                                <Icon className={cn('size-3.5 shrink-0', group.textColor)} aria-hidden />
-                                                <span className={cn('text-xs font-semibold uppercase tracking-wide', group.textColor)}>
-                                                    {group.label}
-                                                </span>
-                                                <span className="ml-auto text-xs font-normal text-muted-foreground">{group.entities.length}</span>
-                                            </Button>
-                                            {!isCollapsed &&
-                                                group.entities.map(entity => (
-                                                    <Button
-                                                        key={entity.name}
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => selectEntity(entity.name)}
-                                                        className={cn(
-                                                            'h-auto w-full justify-start gap-2 py-1 pl-6 pr-2 font-normal',
-                                                            focused === entity.name && 'bg-muted',
-                                                        )}
-                                                    >
-                                                        <CircleIcon className="size-2 shrink-0 text-muted-foreground/50" aria-hidden />
-                                                        <span className="truncate font-mono text-sm">{entity.name}</span>
-                                                        {parentLabel(entity) && (
-                                                            <span className="ml-auto shrink-0 font-mono text-xs text-muted-foreground">
-                                                                {parentLabel(entity)}
-                                                            </span>
-                                                        )}
-                                                    </Button>
-                                                ))}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </Card>
+                            <Card className="w-full overflow-hidden p-0">
+                                <div className="border-b px-3 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                                    Outline
+                                </div>
+                                <div className="p-2">
+                                    {groups.map(group => {
+                                        const Icon = CATEGORY_ICONS[group.id];
+                                        const isCollapsed = collapsed.has(group.id);
+                                        return (
+                                            <div key={group.id} className="mb-1 last:mb-0">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => toggleCategory(group.id)}
+                                                    className="h-auto w-full justify-start gap-1.5 px-1 py-1"
+                                                    aria-expanded={!isCollapsed}
+                                                >
+                                                    {isCollapsed ? (
+                                                        <ChevronRightIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+                                                    ) : (
+                                                        <ChevronDownIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+                                                    )}
+                                                    <Icon className={cn('size-3.5 shrink-0', group.textColor)} aria-hidden />
+                                                    <span className={cn('text-xs font-semibold uppercase tracking-wide', group.textColor)}>
+                                                        {group.label}
+                                                    </span>
+                                                    <span className="ml-auto text-xs font-normal text-muted-foreground">
+                                                        {group.entities.length}
+                                                    </span>
+                                                </Button>
+                                                {!isCollapsed &&
+                                                    group.entities.map(entity => (
+                                                        <Button
+                                                            key={entity.name}
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => selectEntity(entity.name)}
+                                                            className={cn(
+                                                                'h-auto w-full justify-start gap-2 py-1 pl-6 pr-2 font-normal',
+                                                                focused === entity.name && 'bg-muted',
+                                                            )}
+                                                        >
+                                                            <CircleIcon className="size-2 shrink-0 text-muted-foreground/50" aria-hidden />
+                                                            <span className="truncate font-mono text-sm">{entity.name}</span>
+                                                            {parentLabel(entity) && (
+                                                                <span className="ml-auto shrink-0 font-mono text-xs text-muted-foreground">
+                                                                    {parentLabel(entity)}
+                                                                </span>
+                                                            )}
+                                                        </Button>
+                                                    ))}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </Card>
                         </div>
 
                         <Tabs
@@ -296,7 +323,10 @@ export function SchemaPage() {
                                                         ref={el => {
                                                             cardRefs.current[entity.name] = el;
                                                         }}
-                                                        className={cn('p-3 transition-shadow', focused === entity.name && 'ring-2 ring-ring')}
+                                                        className={cn(
+                                                            'p-3 transition-shadow',
+                                                            focused === entity.name && 'ring-2 ring-ring',
+                                                        )}
                                                     >
                                                         <div className="flex flex-wrap items-center gap-2">
                                                             <span className="font-mono text-xs text-muted-foreground">{'{}'}</span>
@@ -310,7 +340,11 @@ export function SchemaPage() {
                                                         {entity.attributes.length > 0 ? (
                                                             <div className="mt-2 flex flex-wrap gap-1.5">
                                                                 {entity.attributes.map(attr => (
-                                                                    <Badge key={attr.name} variant="secondary" className="font-mono text-xs">
+                                                                    <Badge
+                                                                        key={attr.name}
+                                                                        variant="secondary"
+                                                                        className="font-mono text-xs"
+                                                                    >
                                                                         {attr.name}: {attr.type}
                                                                     </Badge>
                                                                 ))}

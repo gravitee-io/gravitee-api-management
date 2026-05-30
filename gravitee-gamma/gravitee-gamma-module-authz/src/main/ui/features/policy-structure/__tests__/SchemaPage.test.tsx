@@ -88,6 +88,17 @@ describe('SchemaPage', () => {
         expect(summary).toHaveTextContent('1 resource kinds');
     });
 
+    it('surfaces parser diagnostics instead of silently looking empty', () => {
+        useSchemaMock.mockReturnValue(loaded('entity {'));
+        render(<SchemaPage />);
+        expect(screen.getByText('Schema could not be fully parsed')).toBeInTheDocument();
+    });
+
+    it('does not show the diagnostics alert for a well-formed schema', () => {
+        render(<SchemaPage />);
+        expect(screen.queryByText('Schema could not be fully parsed')).not.toBeInTheDocument();
+    });
+
     it('shows the raw schema in the code tab by default (read-only)', () => {
         render(<SchemaPage />);
         expect(screen.getByTestId('monaco')).toHaveTextContent('entity User in [Group]');
