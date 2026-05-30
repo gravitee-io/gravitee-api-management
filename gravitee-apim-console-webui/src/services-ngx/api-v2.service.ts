@@ -89,7 +89,10 @@ export class ApiV2Service {
   }
 
   detach(apiId: string): Observable<void> {
-    return this.http.post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_detach`, {});
+    return this.http.post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_detach`, {}).pipe(
+      switchMap(() => this.refreshLastApiFetch()),
+      map(() => void 0),
+    );
   }
 
   start(apiId: string): Observable<void> {
