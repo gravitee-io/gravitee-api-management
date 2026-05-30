@@ -28,6 +28,10 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
     Empty,
     EmptyDescription,
     EmptyHeader,
@@ -46,10 +50,12 @@ import {
 } from '@gravitee/graphene-core';
 import {
     BoxesIcon,
+    CopyIcon,
     DownloadIcon,
     PencilIcon,
     PlusIcon,
     RefreshCwIcon,
+    SettingsIcon,
     ShieldIcon,
     Trash2Icon,
     UsersIcon,
@@ -58,14 +64,19 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { KpiTile } from '../../components/KpiTile';
-import { authzApiService, DEFAULT_PER_PAGE } from '../../shared/api/authz-api.service';
+import { authzApiService, DEFAULT_PER_PAGE, MAX_PER_PAGE } from '../../shared/api/authz-api.service';
+import type { PolicyResponse } from '../../shared/api/authz-api.types';
 import { authzQueryKeys } from '../../shared/api/query-keys';
+import { buildEntitiesJson } from '../../shared/entities-json';
 import { formatEntityUid, fromBackend } from '../../shared/entity-adapter';
+import { childrenByType, policiesFor } from '../../shared/entity-relationships';
 import { useAllEntities } from '../../shared/hooks/useAllEntities';
+import { usePolicies } from '../../shared/hooks/usePolicies';
 import { useUserSync } from '../../shared/hooks/useUserSync';
 import { CreateEntityDialog } from './CreateEntityDialog';
 import { EditEntityDialog } from './EditEntityDialog';
 import { ImportFromCatalogDialog } from './ImportFromCatalogDialog';
+import { EntityDetailSheet } from './entity-detail/EntityDetailSheet';
 import { CATEGORIES, getEntityCategoryId, type EntityInstance } from './entity-types';
 
 type AddingKind = 'PRINCIPAL' | 'RESOURCE';
@@ -107,6 +118,8 @@ function categoryTextColorFor(entity: EntityInstance): string | undefined {
 interface EntitiesTableProps {
     readonly tab: TabKey;
     readonly entities: EntityInstance[];
+    readonly allEntities: readonly EntityInstance[];
+    readonly allPolicies: readonly PolicyResponse[];
     readonly searchValue: string;
     readonly isLoading: boolean;
     readonly page: number;
@@ -114,15 +127,22 @@ interface EntitiesTableProps {
     readonly totalCount: number;
     readonly onPageChange: (page: number) => void;
     readonly onPerPageChange: (perPage: number) => void;
+    readonly onView?: (entity: EntityInstance) => void;
     readonly onEdit?: (entity: EntityInstance) => void;
     readonly onDelete?: (entity: EntityInstance) => void;
     readonly canDelete?: (entity: EntityInstance) => boolean;
     readonly deletingEntityId?: string;
 }
 
+function copyToClipboard(text: string) {
+    void navigator.clipboard?.writeText(text);
+}
+
 function EntitiesTable({
     tab,
     entities,
+    allEntities,
+    allPolicies,
     searchValue,
     isLoading,
     page,
@@ -130,6 +150,7 @@ function EntitiesTable({
     totalCount,
     onPageChange,
     onPerPageChange,
+    onView,
     onEdit,
     onDelete,
     canDelete,
@@ -153,14 +174,77 @@ function EntitiesTable({
             {
                 id: 'entityId',
                 header: 'Entity ID',
-                size: 360,
-                cell: ({ row }) => <span className="font-mono text-xs text-foreground">{formatEntityUid(row.original.uid)}</span>,
+                size: 320,
+                cell: ({ row }) => {
+                    const uid = formatEntityUid(row.original.uid);
+                    return (
+                        <span className="flex items-center gap-1.5">
+                            <span className="font-mono text-xs text-foreground">{uid}</span>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="size-6 shrink-0 p-0"
+                                aria-label={`Copy ${uid}`}
+                                title="Copy Entity ID"
+                                onClick={() => copyToClipboard(uid)}
+                            >
+                                <CopyIcon className="size-3.5 text-muted-foreground" aria-hidden />
+                            </Button>
+                        </span>
+                    );
+                },
             },
             {
                 id: 'name',
                 header: 'Name',
-                size: 280,
-                cell: ({ row }) => <span className="block truncate font-medium">{displayNameOf(row.original)}</span>,
+                size: 220,
+                cell: ({ row }) =>
+                    onView ? (
+                        <button
+                            type="button"
+                            className="block truncate text-left font-medium hover:underline"
+                            onClick={() => onView(row.original)}
+                        >
+                            {displayNameOf(row.original)}
+                        </button>
+                    ) : (
+                        <span className="block truncate font-medium">{displayNameOf(row.original)}</span>
+                    ),
+            },
+            {
+                id: 'relationships',
+                header: 'Relationships',
+                size: 220,
+                cell: ({ row }) => {
+                    const groups = childrenByType(row.original, allEntities);
+                    const parentCount = row.original.parents.length;
+                    if (groups.length === 0 && parentCount === 0) {
+                        return <span className="text-muted-foreground">—</span>;
+                    }
+                    return (
+                        <div className="flex flex-wrap gap-1">
+                            {parentCount > 0 && (
+                                <Badge variant="outline" className="text-xs">
+                                    in {parentCount}
+                                </Badge>
+                            )}
+                            {groups.map(group => (
+                                <Badge key={group.type} variant="secondary" className="text-xs">
+                                    contains {group.count} {group.type}
+                                </Badge>
+                            ))}
+                        </div>
+                    );
+                },
+            },
+            {
+                id: 'policies',
+                header: 'Policies',
+                size: 100,
+                cell: ({ row }) => {
+                    const count = policiesFor(row.original, allPolicies).length;
+                    return count === 0 ? <span className="text-muted-foreground">—</span> : <Badge variant="secondary">{count}</Badge>;
+                },
             },
             {
                 id: 'source',
@@ -211,7 +295,7 @@ function EntitiesTable({
             });
         }
         return baseColumns;
-    }, [onEdit, onDelete, canDelete, deletingEntityId]);
+    }, [onView, onEdit, onDelete, canDelete, deletingEntityId, allEntities, allPolicies]);
 
     if (!isLoading && entities.length === 0) {
         return (
@@ -348,6 +432,8 @@ export function EntitiesPage() {
     // (the backend writes them in batches), rather than only when the sync completes.
     const principalsQuery = useAllEntities(environmentId, { kind: 'PRINCIPAL' }, { refetchInterval: isSyncing ? 2500 : false });
     const resourcesQuery = useAllEntities(environmentId, { kind: 'RESOURCE', excludeEntityIdPrefix: ACTION_PREFIX });
+    const policiesQuery = usePolicies(environmentId, { initialPerPage: MAX_PER_PAGE });
+
     // Reload the principals list once a sync finishes (PENDING → SUCCESS), so the freshly
     // upserted AM users appear without a manual refresh. Fires only on the transition, so a
     // page that loads with an already-completed sync doesn't trigger a spurious refetch.
@@ -384,6 +470,7 @@ export function EntitiesPage() {
     const [editing, setEditing] = useState<{ entity: EntityInstance; kind: AddingKind } | null>(null);
     const [pendingDelete, setPendingDelete] = useState<EntityInstance | null>(null);
     const [deletingEntityId, setDeletingEntityId] = useState<string | undefined>();
+    const [viewing, setViewing] = useState<EntityInstance | null>(null);
 
     const pendingDeleteUid = pendingDelete ? formatEntityUid(pendingDelete.uid) : '';
     const pendingDeleteName = pendingDelete ? displayNameOf(pendingDelete) : '';
@@ -411,6 +498,13 @@ export function EntitiesPage() {
         void queryClient.invalidateQueries({ queryKey: authzQueryKeys.entities.all(environmentId) });
     }
 
+    function openEntitiesJson() {
+        const url = URL.createObjectURL?.(new Blob([buildEntitiesJson(allEntities)], { type: 'application/json' }));
+        if (!url) return;
+        window.open?.(url, '_blank', 'noopener');
+        setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    }
+
     const deferredPrincipalSearch = useDeferredValue(principalSearch);
     const deferredResourceSearch = useDeferredValue(resourceSearch);
 
@@ -418,6 +512,12 @@ export function EntitiesPage() {
     // not just one server page.
     const principals = useMemo(() => principalsQuery.data.map(fromBackend), [principalsQuery.data]);
     const resources = useMemo(() => resourcesQuery.data.map(fromBackend), [resourcesQuery.data]);
+    const allEntities = useMemo(() => [...principals, ...resources], [principals, resources]);
+    const allPolicies = useMemo(() => policiesQuery.data?.data ?? [], [policiesQuery.data]);
+    const policyLinkedCount = useMemo(
+        () => allEntities.filter(e => policiesFor(e, allPolicies).length > 0).length,
+        [allEntities, allPolicies],
+    );
 
     const principalTotal = principalsQuery.total;
     const resourceTotal = resourcesQuery.total;
@@ -475,22 +575,38 @@ export function EntitiesPage() {
 
     return (
         <div className="flex flex-col gap-4">
-            <header className="flex items-start gap-3">
-                <BoxesIcon className="mt-1 size-5 text-muted-foreground" aria-hidden />
-                <div>
-                    <h1 className="text-xl font-semibold">Entities</h1>
-                    <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-                        Principals and resources the policy engine evaluates. Resource entities are imported from the Context Catalog so
-                        every policy refers to the same canonical Entity ID.
-                    </p>
+            <header className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                    <BoxesIcon className="mt-1 size-5 text-muted-foreground" aria-hidden />
+                    <div>
+                        <h1 className="text-xl font-semibold">Entities</h1>
+                        <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+                            Principals and resources the policy engine evaluates. Resource entities are imported from the Context Catalog so
+                            every policy refers to the same canonical Entity ID.
+                        </p>
+                    </div>
                 </div>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" aria-label="Entities settings">
+                            <SettingsIcon className="size-4" aria-hidden />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={openEntitiesJson}>
+                            <BoxesIcon className="mr-2 size-4" aria-hidden />
+                            Open entities.json
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </header>
 
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4" aria-label="Key metrics">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-5" aria-label="Key metrics">
                 <KpiTile label="Total entities" value={kpis.total} loading={isLoading} />
                 <KpiTile label="Types" value={kpis.types} loading={isLoading} />
                 <KpiTile label="Principals" value={kpis.principals} loading={isLoading} />
                 <KpiTile label="Resources" value={kpis.resources} loading={isLoading} />
+                <KpiTile label="Policy-Linked" value={policyLinkedCount} loading={isLoading} />
             </div>
 
             {error !== undefined && (
@@ -556,6 +672,8 @@ export function EntitiesPage() {
                     <EntitiesTable
                         tab="principals"
                         entities={pagedPrincipals}
+                        allEntities={allEntities}
+                        allPolicies={allPolicies}
                         searchValue={deferredPrincipalSearch}
                         isLoading={principalsQuery.isLoading}
                         page={safePrincipalPage}
@@ -563,6 +681,7 @@ export function EntitiesPage() {
                         totalCount={filteredPrincipals.length}
                         onPageChange={setPrincipalPage}
                         onPerPageChange={setPrincipalPerPage}
+                        onView={setViewing}
                         onEdit={entity => setEditing({ entity, kind: 'PRINCIPAL' })}
                         onDelete={setPendingDelete}
                         canDelete={entity => entity.source === 'local'}
@@ -600,6 +719,8 @@ export function EntitiesPage() {
                     <EntitiesTable
                         tab="resources"
                         entities={pagedResources}
+                        allEntities={allEntities}
+                        allPolicies={allPolicies}
                         searchValue={deferredResourceSearch}
                         isLoading={resourcesQuery.isLoading}
                         page={safeResourcePage}
@@ -607,6 +728,7 @@ export function EntitiesPage() {
                         totalCount={filteredResources.length}
                         onPageChange={setResourcePage}
                         onPerPageChange={setResourcePerPage}
+                        onView={setViewing}
                         onEdit={entity => setEditing({ entity, kind: 'RESOURCE' })}
                         onDelete={setPendingDelete}
                         deletingEntityId={deletingEntityId}
@@ -640,6 +762,20 @@ export function EntitiesPage() {
                     if (!open) setEditing(null);
                 }}
                 onUpdated={handleImported}
+            />
+
+            <EntityDetailSheet
+                entity={viewing}
+                allEntities={allEntities}
+                policies={allPolicies}
+                open={viewing !== null}
+                onOpenChange={open => {
+                    if (!open) setViewing(null);
+                }}
+                onEdit={entity => {
+                    setViewing(null);
+                    setEditing({ entity, kind: principals.includes(entity) ? 'PRINCIPAL' : 'RESOURCE' });
+                }}
             />
 
             <Dialog
