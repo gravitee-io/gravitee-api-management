@@ -201,7 +201,7 @@
     <api-general-info-quality class="api-quality" [apiId]="apiId" />
   }
 
-  <api-general-info-danger-zone class="danger-zone" [api]="api" (reloadDetails)="ngOnInit()" />
+  <api-general-info-danger-zone class="danger-zone" [api]="api" (reloadDetails)="reloadDetails()" />
 
   <gio-save-bar
     [form]="parentForm"
