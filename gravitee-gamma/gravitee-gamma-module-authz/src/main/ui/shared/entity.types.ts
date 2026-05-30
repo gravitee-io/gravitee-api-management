@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type AttrValue = string | number | boolean;
+export type AttrValue = string | number | boolean | string[];
 
 /**
  * Where an entity record came from.
@@ -27,6 +27,8 @@ export interface EntityInstance {
     uid: { type: string; id: string };
     displayName?: string;
     attrs: Record<string, AttrValue>;
+    /** Reserved `_`-prefixed meta keys not mapped to structured fields, preserved verbatim for round-trip. */
+    reservedMeta?: Record<string, unknown>;
     parents: Array<{ type: string; id: string }>;
     source: EntitySource;
     importedAt?: string;
