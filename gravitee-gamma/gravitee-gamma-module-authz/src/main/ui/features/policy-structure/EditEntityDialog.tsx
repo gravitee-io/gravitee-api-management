@@ -100,10 +100,14 @@ export function EditEntityDialog({ open, entity, kind, environmentId, onOpenChan
     // Parents come from the same kind, mirroring the create flow.
     const { schema } = useSchema(environmentId);
     const keySuggestions = useMemo(() => {
-        const parsed = parseGaplSchema(schema?.schemaText ?? '');
-        const names = new Set<string>();
-        for (const ent of parsed.entities) for (const a of ent.attributes) if (!a.name.startsWith('_')) names.add(a.name);
-        return Array.from(names).sort();
+        try {
+            const parsed = parseGaplSchema(schema?.schemaText ?? '');
+            const names = new Set<string>();
+            for (const ent of parsed.entities) for (const a of ent.attributes) if (!a.name.startsWith('_')) names.add(a.name);
+            return Array.from(names).sort();
+        } catch {
+            return [];
+        }
     }, [schema?.schemaText]);
 
     const parentsQuery = useEntities(environmentId, 200, { kind });

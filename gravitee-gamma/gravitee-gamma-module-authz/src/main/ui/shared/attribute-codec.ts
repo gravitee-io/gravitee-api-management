@@ -126,7 +126,12 @@ export function coerce(type: AttrType, raw: string | readonly string[]): CoerceR
         case 'cidr': {
             const [addr, mask, extra] = s.split('/');
             const m = Number(mask);
-            const ok = extra === undefined && mask !== undefined && Number.isInteger(m) && m >= 0 && m <= 128 && isIp(addr);
+            const ok =
+                extra === undefined &&
+                mask !== undefined &&
+                INT_RE.test(mask) &&
+                m >= 0 &&
+                ((IPV4_RE.test(addr) && m <= 32) || (IPV6_RE.test(addr) && m <= 128));
             return ok ? { ok: true, value: s } : { ok: false, error: 'Must be CIDR like 10.0.0.0/24.' };
         }
     }
