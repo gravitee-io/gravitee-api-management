@@ -94,4 +94,11 @@ class AmUserSyncRunnerImplTest {
         assertThat(updated.getStatus()).isEqualTo(AsyncJob.Status.ERROR);
         assertThat(updated.getErrorMessage()).isEqualTo("upstream down");
     }
+
+    @Test
+    void shuts_the_worker_pool_down_on_destroy() {
+        runner.destroy();
+
+        assertThat(executor.isShutdown()).isTrue();
+    }
 }

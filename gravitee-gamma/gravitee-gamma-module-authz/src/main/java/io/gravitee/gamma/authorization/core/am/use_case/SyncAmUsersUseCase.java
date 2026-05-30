@@ -62,22 +62,24 @@ public class SyncAmUsersUseCase {
         int entitiesUpserted = 0;
         List<CreateOrReplaceAuthzEntityCommand> batch = new ArrayList<>();
 
-        while (true) {
-            AmUserPage userPage = amUserClient.fetchUsers(connection, page, PAGE_SIZE);
-            if (userPage.users().isEmpty()) {
-                break;
-            }
-            for (AmUser user : userPage.users()) {
-                usersFetched++;
-                batch.add(toCommand(caller.environmentId(), user));
-                if (batch.size() >= BATCH_SIZE) {
-                    entitiesUpserted += flush(caller, batch);
+        try (AmUserClient.Session session = amUserClient.openSession(connection)) {
+            while (true) {
+                AmUserPage userPage = session.fetchUsers(page, PAGE_SIZE);
+                if (userPage.users().isEmpty()) {
+                    break;
                 }
+                for (AmUser user : userPage.users()) {
+                    usersFetched++;
+                    batch.add(toCommand(caller.environmentId(), user));
+                    if (batch.size() >= BATCH_SIZE) {
+                        entitiesUpserted += flush(caller, batch);
+                    }
+                }
+                if (usersFetched >= userPage.totalCount()) {
+                    break;
+                }
+                page++;
             }
-            if (usersFetched >= userPage.totalCount()) {
-                break;
-            }
-            page++;
         }
         entitiesUpserted += flush(caller, batch);
         return new Output(usersFetched, entitiesUpserted);

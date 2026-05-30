@@ -23,5 +23,18 @@ import io.gravitee.gamma.authorization.core.am.model.AmUserPage;
  * (client construction, default org/env scoping, timestamp handling).
  */
 public interface AmUserClient {
-    AmUserPage fetchUsers(AmConnection connection, int page, int size);
+    /**
+     * Opens a paging session bound to one AM connection. The implementation builds a single
+     * underlying SDK client and reuses it across every page of the run; the caller must
+     * {@link Session#close()} it (try-with-resources) to release the HTTP client.
+     */
+    Session openSession(AmConnection connection);
+
+    /** A connection-bound cursor over an AM domain's users. Not thread-safe; use within one run. */
+    interface Session extends AutoCloseable {
+        AmUserPage fetchUsers(int page, int size);
+
+        @Override
+        void close();
+    }
 }
