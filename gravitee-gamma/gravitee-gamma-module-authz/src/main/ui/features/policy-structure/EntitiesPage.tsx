@@ -532,6 +532,12 @@ export function EntitiesPage() {
                                 <AlertDescription>{sync.startError}</AlertDescription>
                             </Alert>
                         ) : null}
+                        {sync.statusError ? (
+                            <Alert variant="destructive" className="w-full">
+                                <AlertTitle>Could not load AM sync status</AlertTitle>
+                                <AlertDescription>{sync.statusError}</AlertDescription>
+                            </Alert>
+                        ) : null}
                     </div>
                     <EntitiesTable
                         tab="principals"
