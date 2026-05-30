@@ -27,6 +27,10 @@ public interface AmConnectionRepository {
 
     AmConnection create(AmConnection amConnection) throws TechnicalException;
 
+    /**
+     * Updates an existing connection. Throws if no connection exists for the organization (it does not
+     * upsert) so the JDBC and Mongo adapters behave the same way.
+     */
     AmConnection update(AmConnection amConnection) throws TechnicalException;
 
     void delete(String organizationId) throws TechnicalException;

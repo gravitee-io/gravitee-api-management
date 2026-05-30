@@ -48,18 +48,23 @@ public class MongoAmConnectionRepository implements AmConnectionRepository {
             return map(internalAmConnectionRepository.insert(map(amConnection)));
         } catch (Exception e) {
             log.error("An error occurs when creating am connection [{}]", amConnection.getOrganizationId(), e);
-            throw new TechnicalException("An error occurs when creating am connection");
+            throw new TechnicalException("An error occurs when creating am connection", e);
         }
     }
 
     @Override
     public AmConnection update(AmConnection amConnection) throws TechnicalException {
         log.debug("Update am connection [{}]", amConnection.getOrganizationId());
+        // Match the JDBC adapter's SPI contract: updating a connection that does not exist throws
+        // rather than silently upserting (internal.save() would otherwise create it).
+        if (!internalAmConnectionRepository.existsById(amConnection.getOrganizationId())) {
+            throw new IllegalStateException("Unable to update am connection " + amConnection.getOrganizationId());
+        }
         try {
             return map(internalAmConnectionRepository.save(map(amConnection)));
         } catch (Exception e) {
             log.error("An error occurs when updating am connection [{}]", amConnection.getOrganizationId(), e);
-            throw new TechnicalException("An error occurs when updating am connection");
+            throw new TechnicalException("An error occurs when updating am connection", e);
         }
     }
 
@@ -70,7 +75,7 @@ public class MongoAmConnectionRepository implements AmConnectionRepository {
             internalAmConnectionRepository.deleteById(organizationId);
         } catch (Exception e) {
             log.error("An error occurs when deleting am connection [{}]", organizationId, e);
-            throw new TechnicalException("An error occurs when deleting am connection");
+            throw new TechnicalException("An error occurs when deleting am connection", e);
         }
     }
 
