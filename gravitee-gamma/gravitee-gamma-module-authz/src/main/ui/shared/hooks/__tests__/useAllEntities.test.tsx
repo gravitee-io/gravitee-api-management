@@ -92,9 +92,24 @@ describe('useAllEntities', () => {
 
     it('walks every page until the accumulated set covers the reported total', async () => {
         listSpy
-            .mockResolvedValueOnce({ data: Array.from({ length: 100 }, (_, i) => makeEntity(`p1-${i}`)), total: 250, page: 1, perPage: 100 })
-            .mockResolvedValueOnce({ data: Array.from({ length: 100 }, (_, i) => makeEntity(`p2-${i}`)), total: 250, page: 2, perPage: 100 })
-            .mockResolvedValueOnce({ data: Array.from({ length: 50 }, (_, i) => makeEntity(`p3-${i}`)), total: 250, page: 3, perPage: 100 });
+            .mockResolvedValueOnce({
+                data: Array.from({ length: 100 }, (_, i) => makeEntity(`p1-${i}`)),
+                total: 250,
+                page: 1,
+                perPage: 100,
+            })
+            .mockResolvedValueOnce({
+                data: Array.from({ length: 100 }, (_, i) => makeEntity(`p2-${i}`)),
+                total: 250,
+                page: 2,
+                perPage: 100,
+            })
+            .mockResolvedValueOnce({
+                data: Array.from({ length: 50 }, (_, i) => makeEntity(`p3-${i}`)),
+                total: 250,
+                page: 3,
+                perPage: 100,
+            });
 
         const { getByTestId } = render(<Probe env="env-1" />, { wrapper: makeWrapper() });
 

@@ -42,6 +42,11 @@ vi.mock('../CreateEntityDialog', () => ({
         open ? <div data-testid="create-entity-dialog-stub" data-kind={kind} /> : null,
 }));
 
+vi.mock('../EditEntityDialog', () => ({
+    EditEntityDialog: ({ open, kind, entity }: { open: boolean; kind: string; entity: { uid: { id: string } } | null }) =>
+        open ? <div data-testid="edit-entity-dialog-stub" data-kind={kind} data-entity={entity?.uid.id ?? ''} /> : null,
+}));
+
 vi.mock('../ImportFromCatalogDialog', () => ({
     ImportFromCatalogDialog: ({ open }: { open: boolean }) => (open ? <div data-testid="import-dialog-stub" /> : null),
 }));
@@ -268,21 +273,88 @@ describe('EntitiesPage', () => {
         expect(stub).toHaveAttribute('data-kind', 'RESOURCE');
     });
 
-    it('shows the row-level Remove action only on the Resources tab', async () => {
-        mockByKind({
-            principals: [makeEntity({ id: 'p1', uid: 'user.alice' })],
-            resources: [makeEntity({ id: 'r1', uid: 'mcp.flight' })],
-        });
+    it('opens the edit dialog (kind=PRINCIPAL) for a local principal row', async () => {
+        mockByKind({ principals: [makeEntity({ id: 'p1', uid: 'user.alice' })] });
         renderPage();
 
-        await waitFor(() => expect(screen.getAllByText('alice').length).toBeGreaterThan(0));
-        // Principal rows have no Delete button.
-        expect(screen.queryByLabelText('Delete user.alice')).not.toBeInTheDocument();
+        const user = userEvent.setup();
+        await waitFor(() => expect(screen.getByLabelText('Edit user.alice')).toBeInTheDocument());
+        expect(screen.queryByTestId('edit-entity-dialog-stub')).not.toBeInTheDocument();
+        await user.click(screen.getByLabelText('Edit user.alice'));
+
+        const stub = screen.getByTestId('edit-entity-dialog-stub');
+        expect(stub).toHaveAttribute('data-kind', 'PRINCIPAL');
+        expect(stub).toHaveAttribute('data-entity', 'alice');
+    });
+
+    it('hides the edit action for non-local (read-only) entities', async () => {
+        mockByKind({ resources: [makeEntity({ id: 'r1', uid: 'mcp.flight', attributes: { _source: 'gravitee-catalog' } })] });
+        renderPage();
 
         const user = userEvent.setup();
         await user.click(screen.getByRole('tab', { name: /Resources/i }));
+        await waitFor(() => expect(screen.getByText('mcp.flight')).toBeInTheDocument());
+        // Catalog-sourced → no edit, but still removable.
+        expect(screen.queryByLabelText('Edit mcp.flight')).not.toBeInTheDocument();
+        expect(screen.getByLabelText('Delete mcp.flight')).toBeInTheDocument();
+    });
 
-        await waitFor(() => expect(screen.getByLabelText('Delete mcp.flight')).toBeInTheDocument());
+    it('opens the edit dialog (kind=RESOURCE) for a local resource row', async () => {
+        mockByKind({ resources: [makeEntity({ id: 'r1', uid: 'mcp.flight' })] });
+        renderPage();
+
+        const user = userEvent.setup();
+        await user.click(screen.getByRole('tab', { name: /Resources/i }));
+        await waitFor(() => expect(screen.getByLabelText('Edit mcp.flight')).toBeInTheDocument());
+        await user.click(screen.getByLabelText('Edit mcp.flight'));
+
+        const stub = screen.getByTestId('edit-entity-dialog-stub');
+        expect(stub).toHaveAttribute('data-kind', 'RESOURCE');
+        expect(stub).toHaveAttribute('data-entity', 'flight');
+    });
+
+    it('shows the Remove action on local principal rows but not on synced ones', async () => {
+        mockByKind({
+            principals: [
+                makeEntity({ id: 'p1', uid: 'user.alice' }),
+                makeEntity({ id: 'p2', uid: 'user.bob', attributes: { _source: 'apim' } }),
+            ],
+        });
+        renderPage();
+
+        await waitFor(() => expect(screen.getByLabelText('Delete user.alice')).toBeInTheDocument());
+        // Synced (APIM-sourced) principals are read-only — no remove.
+        expect(screen.queryByLabelText('Delete user.bob')).not.toBeInTheDocument();
+    });
+
+    it('warns about permanent removal when deleting a local principal', async () => {
+        mockByKind({
+            principals: [makeEntity({ id: 'p1', uid: 'user.alice', attributes: { _displayName: 'Alice' } })],
+        });
+        renderPage();
+
+        const user = userEvent.setup();
+        await waitFor(() => expect(screen.getByLabelText('Delete user.alice')).toBeInTheDocument());
+        await user.click(screen.getByLabelText('Delete user.alice'));
+
+        const dialog = await screen.findByRole('dialog');
+        expect(within(dialog).getByText(/permanently removed/i)).toBeInTheDocument();
+    });
+
+    it('deletes a local principal on confirm', async () => {
+        mockByKind({ principals: [makeEntity({ id: 'p1', uid: 'user.alice' })] });
+        deleteEntitySpy.mockResolvedValue(undefined);
+        renderPage();
+
+        const user = userEvent.setup();
+        await waitFor(() => expect(screen.getByLabelText('Delete user.alice')).toBeInTheDocument());
+        await user.click(screen.getByLabelText('Delete user.alice'));
+
+        const dialog = await screen.findByRole('dialog');
+        await user.click(within(dialog).getByRole('button', { name: /Confirm remove/i }));
+
+        await waitFor(() => expect(deleteEntitySpy).toHaveBeenCalledWith('DEFAULT', 'user.alice'));
+        await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     });
 
     it('opens the Remove confirmation dialog when the trash icon is clicked', async () => {
