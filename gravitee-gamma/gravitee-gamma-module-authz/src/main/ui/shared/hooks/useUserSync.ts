@@ -64,7 +64,8 @@ export function useUserSync(environmentId: string): UseUserSyncResult {
     // A 409 just means a sync is already running — not a failure worth surfacing as an
     // error; the polling status card already reflects the in-flight job.
     const startErr = startMutation.error;
-    const startError = startErr instanceof ApiError && startErr.status === 409 ? undefined : startErr instanceof Error ? startErr.message : undefined;
+    const startError =
+        startErr instanceof ApiError && startErr.status === 409 ? undefined : startErr instanceof Error ? startErr.message : undefined;
 
     return {
         status: statusQuery.data ?? null,
