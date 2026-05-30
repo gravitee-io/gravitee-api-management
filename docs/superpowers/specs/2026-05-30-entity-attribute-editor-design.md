@@ -22,9 +22,9 @@ representations the PDP actually understands, so "saved == evaluable".
 ## Non-goals (explicit)
 
 - No backend changes. `Map<String, Object>` already stores everything we need.
-- **No type-safety guarantee across instances.** The schema is *derived* from stored
+- **No type-safety guarantee across instances.** The schema is _derived_ from stored
   attributes (`AuthzSchemaServiceImpl.typeByAttribute`), not authored. This editor
-  guarantees a coherent type *within a single write*; it does NOT prevent two entities from
+  guarantees a coherent type _within a single write_; it does NOT prevent two entities from
   giving the same attribute key different types. True cross-instance type safety requires an
   authored per-type schema — tracked separately as **Phase 2** and out of scope here.
 - No editing of catalog-sourced attributes (they are owned by the catalog and overwritten
@@ -36,18 +36,18 @@ The PDP entity-staging path uses only `ValueConverter.attributesToValues` → `n
 it never calls the engine's `EntityJsonParser`, so schema-typed coercion and the `__extn`
 envelope are unreachable. Only `ValueConverter.toValue` governs what an attribute becomes:
 
-| Editor type   | PDP `toValue` result        | Stored JSON form                  | Policy usage / note |
-|---------------|-----------------------------|-----------------------------------|---------------------|
-| String        | `ofString`                  | JSON string                       | direct |
-| Integer       | `ofLong` (Integer/Long)     | JSON integer number               | safe for `>= 3` |
-| Boolean       | `ofBool`                    | JSON boolean                      | direct |
-| Set\<String\> | `ofSet` (always a Set)      | JSON array of strings             | duplicates collapse — warn |
-| Decimal       | none — **Double is dropped**| JSON **string**                   | wrap in `decimal(...)` |
-| Timestamp     | none                        | JSON **string**                   | wrap in `datetime(...)` |
-| Duration      | none                        | JSON **string**                   | wrap in `duration(...)` |
-| IP            | none                        | JSON **string**                   | wrap in `ip(...)` |
-| CIDR          | none                        | JSON **string**                   | `ip(...)` / `isInRange` |
-| Enum          | `StringValue`               | JSON **string**                   | constrained only by derived schema |
+| Editor type   | PDP `toValue` result         | Stored JSON form      | Policy usage / note                |
+| ------------- | ---------------------------- | --------------------- | ---------------------------------- |
+| String        | `ofString`                   | JSON string           | direct                             |
+| Integer       | `ofLong` (Integer/Long)      | JSON integer number   | safe for `>= 3`                    |
+| Boolean       | `ofBool`                     | JSON boolean          | direct                             |
+| Set\<String\> | `ofSet` (always a Set)       | JSON array of strings | duplicates collapse — warn         |
+| Decimal       | none — **Double is dropped** | JSON **string**       | wrap in `decimal(...)`             |
+| Timestamp     | none                         | JSON **string**       | wrap in `datetime(...)`            |
+| Duration      | none                         | JSON **string**       | wrap in `duration(...)`            |
+| IP            | none                         | JSON **string**       | wrap in `ip(...)`                  |
+| CIDR          | none                         | JSON **string**       | `ip(...)` / `isInRange`            |
+| Enum          | `StringValue`                | JSON **string**       | constrained only by derived schema |
 
 Two load-bearing rules derived from this:
 
@@ -68,16 +68,17 @@ operators are not misled.
 Two new units plus edits to two existing dialogs and the adapter.
 
 ### `attribute-codec.ts` (pure, no React) — single source of truth for types
+
 - `type AttrType = 'string'|'integer'|'boolean'|'set'|'decimal'|'timestamp'|'duration'|'ip'|'cidr'|'enum'`
 - `coerce(type, raw): { ok: true; value: AttrValue } | { ok: false; error: string }`
-  - integer → JSON number, reject non-integer / overflow
-  - boolean → `true|false`
-  - set → `string[]` (dedup, warn surfaced separately)
-  - decimal → validated decimal **string**
-  - timestamp → validated ISO-8601 **string**
-  - ip → validated IPv4/IPv6 **string**; cidr → validated CIDR **string**
-  - duration → validated duration **string**; enum/string → string
-  - **Never returns a JS number for decimal** (guards the Double-drop trap).
+    - integer → JSON number, reject non-integer / overflow
+    - boolean → `true|false`
+    - set → `string[]` (dedup, warn surfaced separately)
+    - decimal → validated decimal **string**
+    - timestamp → validated ISO-8601 **string**
+    - ip → validated IPv4/IPv6 **string**; cidr → validated CIDR **string**
+    - duration → validated duration **string**; enum/string → string
+    - **Never returns a JS number for decimal** (guards the Double-drop trap).
 - `inferType(jsonValue): AttrType` — for seeding rows from existing attributes
   (boolean→boolean, integer number→integer, array→set, else string).
 - `isReservedKey(key)` — blocks `_`-prefix (meta) and `id` / `type` (engine throws).
@@ -85,6 +86,7 @@ Two new units plus edits to two existing dialogs and the adapter.
 - Fully unit-tested in isolation; holds ALL knowledge of the PDP serialization contract.
 
 ### `AttributeEditor.tsx` (UI only) — rows of `key · type · value · remove`
+
 - Props: `value: AttributeRow[]`, `onChange`, `readOnly?`, `keySuggestions` (from derived
   schema for this entity kind, with inferred types), `entityKindLabel`.
 - Per-type value widget (text / integer input / toggle / chips for set / format-validated
@@ -94,6 +96,7 @@ Two new units plus edits to two existing dialogs and the adapter.
 - Knows nothing about the API.
 
 ### Dialog integration
+
 - `CreateEntityDialog.tsx` and `EditEntityDialog.tsx` hold `AttributeRow[]` state, render an
   "Attributes" section under parents, and merge coerced rows into the attribute map on submit.
 - Catalog/APIM-sourced entities (`source !== 'local'`): editor rendered `readOnly` with a
@@ -102,6 +105,7 @@ Two new units plus edits to two existing dialogs and the adapter.
   read-only catalog entities) untouched catalog attributes. Must not clobber unknown attrs.
 
 ### `entity-adapter.ts` fix (bundled)
+
 - `toBackend` currently drops `_url` / `_proxyApiId` / `_syncedAt` (they are in `META_KEYS`
   but never re-emitted) → lost on every edit. Fix the round-trip as part of this work since
   the editor exercises the same path. Add a regression test.

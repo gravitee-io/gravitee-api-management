@@ -13,18 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-    Badge,
-    Button,
-    Input,
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-    Switch,
-    cn,
-} from '@gravitee/graphene-core';
+import { Badge, Button, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Switch, cn } from '@gravitee/graphene-core';
 import { PlusIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 import { useId } from 'react';
 import { ATTR_TYPES, ATTR_TYPE_LABELS, coerce, policyFnHint, validateKey, type AttrType } from '../../shared/attribute-codec';
