@@ -196,7 +196,7 @@ export function ApiListTable({
     const [sorting, setSorting] = useState([{ id: 'name', desc: false }]);
     const columns = buildColumns(navigate);
 
-    const paginationEl =
+    const renderPagination = () =>
         onPageChange && onPageSizeChange ? (
             <DataTablePagination
                 page={page}
@@ -208,10 +208,12 @@ export function ApiListTable({
             />
         ) : null;
 
-    const compositeToolbar = paginationEl ? (
+    const hasPagination = Boolean(onPageChange && onPageSizeChange);
+
+    const compositeToolbar = hasPagination ? (
         <div className="flex items-center gap-4 flex-1 min-w-0">
             {toolbar}
-            <div className="ml-auto shrink-0">{paginationEl}</div>
+            <div className="ml-auto shrink-0">{renderPagination()}</div>
         </div>
     ) : (
         toolbar
@@ -227,6 +229,7 @@ export function ApiListTable({
             loading={isLoading}
             skeletonCount={skeletonRowCount}
             toolbar={compositeToolbar}
+            footer={renderPagination()}
             emptyMessage="No APIs found."
         />
     );

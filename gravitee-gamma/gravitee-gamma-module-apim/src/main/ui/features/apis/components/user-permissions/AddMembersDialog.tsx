@@ -15,19 +15,20 @@
  */
 import {
     Button,
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
     Input,
     Label,
+    ScrollArea,
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
     Skeleton,
 } from '@gravitee/graphene-core';
 import { PlusIcon, SearchIcon, XIcon } from '@gravitee/graphene-core/icons';
@@ -106,14 +107,14 @@ export function AddMembersDialog({
     const addLabel = selectedUsers.length > 1 ? `Add ${selectedUsers.length} members` : 'Add member';
 
     return (
-        <Dialog open={open} onOpenChange={isOpen => !isOpen && handleClose()}>
-            <DialogContent className="max-w-[480px]">
-                <DialogHeader>
-                    <DialogTitle>Add Members</DialogTitle>
-                    <DialogDescription>Search for users by name or email and add them to this API.</DialogDescription>
-                </DialogHeader>
+        <Sheet open={open} onOpenChange={isOpen => !isOpen && handleClose()}>
+            <SheetContent side="right" style={{ maxWidth: '480px' }}>
+                <SheetHeader>
+                    <SheetTitle>Add Members</SheetTitle>
+                    <SheetDescription>Search for users by name or email and add them to this API.</SheetDescription>
+                </SheetHeader>
 
-                <div className="space-y-6">
+                <div className="flex-1 space-y-6 overflow-y-auto px-4">
                     <div className="space-y-1">
                         <div className="relative">
                             <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
@@ -125,7 +126,7 @@ export function AddMembersDialog({
                             />
                         </div>
                         {search.trim().length >= 2 && (
-                            <div className="rounded-lg border shadow-md bg-background overflow-y-auto" style={{ maxHeight: '12rem' }}>
+                            <div className="rounded-lg border shadow-md bg-background overflow-hidden">
                                 {isFetching || search !== deferredQuery ? (
                                     <div className="p-3 space-y-2">
                                         <Skeleton className="h-10 rounded" />
@@ -134,20 +135,24 @@ export function AddMembersDialog({
                                 ) : filteredResults.length === 0 ? (
                                     <p className="px-3 py-4 text-sm text-center text-muted-foreground">No users found.</p>
                                 ) : (
-                                    filteredResults.map(user => (
-                                        <button
-                                            key={user.reference}
-                                            type="button"
-                                            onClick={() => handleSelectUser(user)}
-                                            className="w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted/50"
-                                        >
-                                            <MemberAvatar name={user.displayName} />
-                                            <div className="min-w-0">
-                                                <p className="font-medium truncate">{user.displayName}</p>
-                                                {user.email ? <p className="text-xs text-muted-foreground truncate">{user.email}</p> : null}
-                                            </div>
-                                        </button>
-                                    ))
+                                    <ScrollArea className="max-h-48">
+                                        {filteredResults.map(user => (
+                                            <button
+                                                key={user.reference}
+                                                type="button"
+                                                onClick={() => handleSelectUser(user)}
+                                                className="w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted/50"
+                                            >
+                                                <MemberAvatar name={user.displayName} />
+                                                <div className="min-w-0">
+                                                    <p className="font-medium truncate">{user.displayName}</p>
+                                                    {user.email ? (
+                                                        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                                                    ) : null}
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </ScrollArea>
                                 )}
                             </div>
                         )}
@@ -196,7 +201,7 @@ export function AddMembersDialog({
                     </div>
                 </div>
 
-                <DialogFooter className="border-t px-6 py-4 gap-2">
+                <SheetFooter className="flex-row justify-end border-t">
                     <Button type="button" variant="outline" onClick={handleClose} disabled={isAdding}>
                         Cancel
                     </Button>
@@ -204,8 +209,8 @@ export function AddMembersDialog({
                         <PlusIcon className="size-4" />
                         {addLabel}
                     </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </SheetFooter>
+            </SheetContent>
+        </Sheet>
     );
 }

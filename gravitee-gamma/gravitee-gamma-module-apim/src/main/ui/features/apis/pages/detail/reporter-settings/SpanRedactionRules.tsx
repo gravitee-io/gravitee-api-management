@@ -18,11 +18,6 @@ import {
     AlertDescription,
     Badge,
     Button,
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
     Input,
     Label,
     Select,
@@ -30,6 +25,11 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
+    Sheet,
+    SheetContent,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
     Table,
     TableBody,
     TableCell,
@@ -120,13 +120,13 @@ function RuleDialog({ open, isEdit, form, onFormChange, onSave, onClose }: RuleD
     const preview = isPartial ? buildPartialPreview(form.prefixLength, form.suffixLength, form.maskChar) : null;
 
     return (
-        <Dialog open={open} onOpenChange={open => !open && onClose()}>
-            <DialogContent showCloseButton>
-                <DialogHeader>
-                    <DialogTitle>{isEdit ? 'Edit redaction rule' : 'New redaction rule'}</DialogTitle>
-                </DialogHeader>
+        <Sheet open={open} onOpenChange={open => !open && onClose()}>
+            <SheetContent side="right" showCloseButton>
+                <SheetHeader>
+                    <SheetTitle>{isEdit ? 'Edit redaction rule' : 'New redaction rule'}</SheetTitle>
+                </SheetHeader>
 
-                <div className="space-y-2 py-1">
+                <div className="flex-1 space-y-2 overflow-y-auto px-4">
                     {/* Attribute name pattern */}
                     <div className="space-y-2">
                         <Label htmlFor="rd-pattern">
@@ -232,14 +232,14 @@ function RuleDialog({ open, isEdit, form, onFormChange, onSave, onClose }: RuleD
                     </div>
                 </div>
 
-                <DialogFooter>
+                <SheetFooter className="flex-row justify-end border-t">
                     <Button variant="ghost" onClick={onClose}>
                         Cancel
                     </Button>
                     <Button onClick={onSave}>{isEdit ? 'Save' : 'Add'}</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </SheetFooter>
+            </SheetContent>
+        </Sheet>
     );
 }
 

@@ -15,11 +15,6 @@
  */
 import {
     Button,
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
     Input,
     Label,
     Select,
@@ -27,6 +22,11 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
+    Sheet,
+    SheetContent,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
 } from '@gravitee/graphene-core';
 import { type FormEvent, useCallback, useMemo, useState } from 'react';
 
@@ -92,61 +92,63 @@ export function AddNotificationDialog({ open, notifiers, isPending, onClose, onA
     );
 
     return (
-        <Dialog
+        <Sheet
             open={open}
             onOpenChange={isOpen => {
                 if (!isOpen) onClose();
             }}
         >
-            <DialogContent style={{ maxWidth: '28rem' }}>
-                <DialogHeader>
-                    <DialogTitle>Add notification</DialogTitle>
-                </DialogHeader>
+            <SheetContent side="right">
+                <SheetHeader>
+                    <SheetTitle>Add notification</SheetTitle>
+                </SheetHeader>
 
-                <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-                    <div className="space-y-2">
-                        <Label htmlFor="notif-name">Name</Label>
-                        <Input
-                            id="notif-name"
-                            value={name}
-                            onChange={e => setName(e.target.value)}
-                            placeholder="e.g. Ops webhook"
-                            required
-                        />
+                <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+                    <div className="flex-1 space-y-4 overflow-y-auto px-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="notif-name">Name</Label>
+                            <Input
+                                id="notif-name"
+                                value={name}
+                                onChange={e => setName(e.target.value)}
+                                placeholder="e.g. Ops webhook"
+                                required
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="notif-channel">Channel</Label>
+                            <Select value={selectedNotifierId} onValueChange={setSelectedNotifierId}>
+                                <SelectTrigger id="notif-channel" className="w-full">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {channelOptions.map(opt => {
+                                        const Icon = CHANNEL_ICON[opt.type];
+                                        return (
+                                            <SelectItem key={opt.notifierId} value={opt.notifierId}>
+                                                <span className="flex items-center gap-2">
+                                                    <Icon className="size-3.5" />
+                                                    {opt.label}
+                                                </span>
+                                            </SelectItem>
+                                        );
+                                    })}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="notif-channel">Channel</Label>
-                        <Select value={selectedNotifierId} onValueChange={setSelectedNotifierId}>
-                            <SelectTrigger id="notif-channel" className="w-full">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {channelOptions.map(opt => {
-                                    const Icon = CHANNEL_ICON[opt.type];
-                                    return (
-                                        <SelectItem key={opt.notifierId} value={opt.notifierId}>
-                                            <span className="flex items-center gap-2">
-                                                <Icon className="size-3.5" />
-                                                {opt.label}
-                                            </span>
-                                        </SelectItem>
-                                    );
-                                })}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <DialogFooter>
+                    <SheetFooter className="flex-row justify-end border-t">
                         <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>
                             Cancel
                         </Button>
                         <Button type="submit" disabled={!isValid || isPending}>
                             {isPending ? 'Adding…' : 'Add'}
                         </Button>
-                    </DialogFooter>
+                    </SheetFooter>
                 </form>
-            </DialogContent>
-        </Dialog>
+            </SheetContent>
+        </Sheet>
     );
 }
