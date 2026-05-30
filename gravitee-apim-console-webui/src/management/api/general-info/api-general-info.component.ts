@@ -119,6 +119,10 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
 
   private refresh$ = new Subject<void>();
 
+  reloadDetails(): void {
+    this.refresh$.next();
+  }
+
   ngOnInit(): void {
     this.labelsAutocompleteOptions = this.constants.env?.settings?.api?.labelsDictionary ?? [];
 
