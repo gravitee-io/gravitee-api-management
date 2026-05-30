@@ -43,4 +43,11 @@ describe('attribute-rows', () => {
         const bad = attrsFromRows([{ id: 'a', key: '1bad', type: 'string', raw: 'x' }]);
         expect(bad.error).toMatch(/1bad|key/i);
     });
+
+    it('attrsFromRows trims the key before storing it', () => {
+        const res = attrsFromRows([{ id: 'a', key: '  dept  ', type: 'string', raw: 'eng' }]);
+        expect(res.error).toBeNull();
+        expect(res.attributes).toEqual({ dept: 'eng' });
+        expect(' dept ' in res.attributes).toBe(false);
+    });
 });

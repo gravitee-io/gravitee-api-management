@@ -39,12 +39,13 @@ export function attrsFromRows(rows: readonly AttributeRow[]): AttrsFromRowsResul
     const attributes: Record<string, AttrValue> = {};
     const seenKeys: string[] = [];
     for (const r of rows) {
-        const keyError = validateKey(r.key, seenKeys);
-        if (keyError) return { attributes: {}, error: `Attribute "${r.key || '(empty)'}": ${keyError}` };
+        const trimmedKey = r.key.trim();
+        const keyError = validateKey(trimmedKey, seenKeys);
+        if (keyError) return { attributes: {}, error: `Attribute "${trimmedKey || '(empty)'}": ${keyError}` };
         const coerced = coerce(r.type, r.raw);
-        if (!coerced.ok) return { attributes: {}, error: `Attribute "${r.key}": ${coerced.error}` };
-        attributes[r.key] = coerced.value;
-        seenKeys.push(r.key);
+        if (!coerced.ok) return { attributes: {}, error: `Attribute "${trimmedKey}": ${coerced.error}` };
+        attributes[trimmedKey] = coerced.value;
+        seenKeys.push(trimmedKey);
     }
     return { attributes, error: null };
 }

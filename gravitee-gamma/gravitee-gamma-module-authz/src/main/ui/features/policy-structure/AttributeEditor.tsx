@@ -158,11 +158,11 @@ function AttributeValueInput({
         );
     }
     if (row.type === 'set') {
-        const text = Array.isArray(row.raw) ? row.raw.join(', ') : row.raw;
+        const text = Array.isArray(row.raw) ? row.raw.join(',') : row.raw;
         return (
             <Input
                 value={text}
-                onChange={e => onRawChange(e.target.value.split(',').map(s => s.trim()))}
+                onChange={e => onRawChange(e.target.value.split(','))}
                 placeholder="comma,separated"
                 aria-label="Attribute value"
                 aria-invalid={invalid}

@@ -63,8 +63,13 @@ describe('attribute-codec coerce', () => {
 
     it('cidr validates a network/mask and stores a string', () => {
         expect(coerce('cidr', '10.0.0.0/24')).toEqual({ ok: true, value: '10.0.0.0/24' });
-        expect(coerce('cidr', '2001:db8::/32')).toEqual({ ok: true, value: '2001:db8::/32' });
+        expect(coerce('cidr', '2001:db8::/128')).toEqual({ ok: true, value: '2001:db8::/128' });
         expect(coerce('cidr', '10.0.0.0').ok).toBe(false);
+        // empty mask: Number('') is 0 — must still be rejected
+        expect(coerce('cidr', '10.0.0.0/').ok).toBe(false);
+        // IPv4 mask is capped at 32, not 128
+        expect(coerce('cidr', '10.0.0.0/33').ok).toBe(false);
+        expect(coerce('cidr', '10.0.0.0/-1').ok).toBe(false);
     });
 
     it('duration validates a unit form and stores a string', () => {
