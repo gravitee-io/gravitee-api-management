@@ -120,10 +120,10 @@ public class SyncAmUsersUseCase {
 
     // Mirrors AM's SubjectManagerV2: the token `sub` a V2 domain issues is an MD5-based UUID of
     // "source:externalId", not the user id. PRINCIPAL entities must be keyed on that `sub` for the
-    // PEP's Principal::"<sub>" to match at eval time. When source is absent (extension-grant users,
-    // and V1 domains) AM falls back to the user id.
+    // PEP's Principal::"<sub>" to match at eval time. When either source or externalId is absent
+    // (extension-grant users, and V1 domains) AM falls back to the user id.
     static String computeSub(AmUser user) {
-        if (user.source() == null) {
+        if (user.source() == null || user.externalId() == null) {
             return user.id();
         }
         String internalSub = user.source() + ":" + user.externalId();

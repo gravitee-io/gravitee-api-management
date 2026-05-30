@@ -103,16 +103,27 @@ public class AuthzAmUserSyncResource {
     @GET
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.READ }) })
     public Response status() {
-        var input = new GetAmUserSyncStatusUseCase.Input(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment());
-        return getAmUserSyncStatusUseCase
-            .execute(input)
-            .job()
-            .map(job -> Response.ok(AmSyncStatusResponse.from(job)).build())
-            .orElseGet(() ->
-                Response.status(Response.Status.NOT_FOUND)
-                    .type(MediaType.APPLICATION_JSON)
-                    .entity(new ErrorBody("SyncNotFound", "No user sync has run for this organization"))
-                    .build()
+        try {
+            var input = new GetAmUserSyncStatusUseCase.Input(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment()
             );
+            return getAmUserSyncStatusUseCase
+                .execute(input)
+                .job()
+                .map(job -> Response.ok(AmSyncStatusResponse.from(job)).build())
+                .orElseGet(() ->
+                    Response.status(Response.Status.NOT_FOUND)
+                        .type(MediaType.APPLICATION_JSON)
+                        .entity(new ErrorBody("SyncNotFound", "No user sync has run for this organization"))
+                        .build()
+                );
+        } catch (RuntimeException e) {
+            log.error("Unexpected error retrieving AM user sync status", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .type(MediaType.APPLICATION_JSON)
+                .entity(new ErrorBody("SyncStatusFailed", "Could not retrieve the AM user sync status"))
+                .build();
+        }
     }
 }

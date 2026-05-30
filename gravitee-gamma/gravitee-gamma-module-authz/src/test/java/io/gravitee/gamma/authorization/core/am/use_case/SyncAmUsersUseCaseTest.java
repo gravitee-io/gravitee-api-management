@@ -120,6 +120,19 @@ class SyncAmUsersUseCaseTest {
     }
 
     @Test
+    void falls_back_to_the_user_id_when_external_id_is_absent() {
+        // Source present but no externalId (e.g. a misconfigured provider): AM can't build
+        // "source:externalId", so the sub falls back to the user id. The entity must follow.
+        AmUser user = new AmUser("internal-id", "github", null, null, "alice", null, null);
+        stubPage(0, page(1, user));
+
+        run();
+
+        List<CreateOrReplaceAuthzEntityCommand> commands = captureSingleBulkUpsert();
+        assertThat(commands.get(0).entityId()).isEqualTo("internal-id");
+    }
+
+    @Test
     void omits_attributes_that_am_did_not_populate() {
         stubPage(0, page(1, user("sub-1", "alice", null, null, null)));
 
