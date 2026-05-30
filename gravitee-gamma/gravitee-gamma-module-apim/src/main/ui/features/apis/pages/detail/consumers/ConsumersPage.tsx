@@ -21,7 +21,7 @@ import { ConsumersEmptyState } from './ConsumersEmptyState';
 import { ConsumersFilterBar } from './ConsumersFilterBar';
 import { ConsumersSummaryCards } from './ConsumersSummaryCards';
 import { ConsumersTable } from './ConsumersTable';
-import { CreateSubscriptionDialog } from './CreateSubscriptionDialog';
+import { CreateSubscription } from './CreateSubscription';
 import { useCreateSubscription } from '../../../hooks/useSubscriptionActions';
 import { isSubscriptionFiltersDirty, useApiPlans, useSubscriptionCount, useSubscriptionList } from '../../../hooks/useSubscriptions';
 import type { SubscriptionContext, SubscriptionFilters } from '../../../types/subscription';
@@ -124,7 +124,7 @@ export function ConsumersPage({ ctx, canCreate, canRead }: ConsumersPageProps) {
             )}
 
             {canCreate && (
-                <CreateSubscriptionDialog
+                <CreateSubscription
                     ctx={ctx}
                     open={dialogOpen}
                     isPending={createMutation.isPending}

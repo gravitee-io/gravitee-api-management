@@ -16,7 +16,7 @@
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useParams } from 'react-router-dom';
 
 import { ApiNotificationsPage } from './ApiNotificationsPage';
 import {
@@ -97,11 +97,21 @@ function buildMutationMock(overrides?: Partial<{ mutate: jest.Mock; isPending: b
     return { mutate: jest.fn(), isPending: false, ...overrides };
 }
 
+/** Sentinel rendered by the form route so navigation targets can be asserted. */
+function FormStub() {
+    const { notificationKey } = useParams<{ notificationKey: string }>();
+    return <div data-testid="form-stub">edit:{notificationKey}</div>;
+}
+
 function renderPage() {
     render(
         <MemoryRouter initialEntries={['/apis/api-1/notifications']}>
             <Routes>
-                <Route path="apis/:apiId/notifications" element={<ApiNotificationsPage />} />
+                <Route path="apis/:apiId/notifications">
+                    <Route index element={<ApiNotificationsPage />} />
+                    <Route path="new" element={<div data-testid="new-stub">new</div>} />
+                    <Route path=":notificationKey" element={<FormStub />} />
+                </Route>
             </Routes>
         </MemoryRouter>,
     );
@@ -177,38 +187,27 @@ it('hides Add notification button when user lacks api-notification-c', () => {
     expect(screen.queryByRole('button', { name: /add notification/i })).toBeNull();
 });
 
-// ─── 5. Inline editor opens on Edit click ────────────────────────────────────
+// ─── 5. Edit navigates to the form page ──────────────────────────────────────
 
-it('opens the inline event editor when Edit events is selected from the dropdown', async () => {
+it('navigates to the edit form when Edit events is selected from the dropdown', async () => {
     const user = userEvent.setup();
     renderPage();
 
     await user.click(screen.getByRole('button', { name: /actions for default console/i }));
     await user.click(screen.getByText(/edit events/i));
 
-    // The editor renders a Save/Close button when the editor is open
-    await waitFor(() => expect(screen.getByRole('button', { name: /save events/i })).not.toBeNull());
+    await waitFor(() => expect(screen.getByTestId('form-stub')).toHaveTextContent('edit:PORTAL'));
 });
 
-// ─── 6. Save events calls updateMutation ─────────────────────────────────────
+// ─── 6. Add navigates to the new form page ───────────────────────────────────
 
-it('calls updateNotification with the selected hooks when Save events is clicked', async () => {
-    const mutateFn = jest.fn((_payload: unknown, opts: { onSuccess?: () => void }) => opts.onSuccess?.());
-    mockUseUpdateNotification.mockReturnValue({ mutate: mutateFn, isPending: false });
+it('navigates to the add form when Add notification is clicked', async () => {
     const user = userEvent.setup();
     renderPage();
 
-    // Open editor
-    await user.click(screen.getByRole('button', { name: /actions for default console/i }));
-    await user.click(screen.getByText(/edit events/i));
+    await user.click(screen.getByRole('button', { name: /add notification/i }));
 
-    // Toggle a hook checkbox
-    await user.click(screen.getByLabelText(/api started/i));
-    await user.click(screen.getByRole('button', { name: /save events/i }));
-
-    await waitFor(() => expect(mutateFn).toHaveBeenCalledTimes(1));
-    const [payload] = mutateFn.mock.calls[0];
-    expect(payload.hooks).toContain('API_STARTED');
+    await waitFor(() => expect(screen.getByTestId('new-stub')).toBeInTheDocument());
 });
 
 // ─── 7. Delete: PORTAL row shows no Delete option ────────────────────────────

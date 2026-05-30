@@ -26,12 +26,12 @@ jest.mock('@gravitee/graphene-core', () => ({
             {children}
         </button>
     ),
-    Dialog: ({ children, open }: { children?: React.ReactNode; open?: boolean }) => (open ? <div role="dialog">{children}</div> : null),
-    DialogClose: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
-    DialogContent: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    DialogFooter: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    DialogHeader: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
-    DialogTitle: ({ children }: { children?: React.ReactNode }) => <h2>{children}</h2>,
+    Sheet: ({ children, open }: { children?: React.ReactNode; open?: boolean }) => (open ? <div role="dialog">{children}</div> : null),
+    SheetContent: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    SheetDescription: ({ children }: { children?: React.ReactNode }) => <p>{children}</p>,
+    SheetFooter: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    SheetHeader: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+    SheetTitle: ({ children }: { children?: React.ReactNode }) => <h2>{children}</h2>,
     Input: ({
         id,
         value,
@@ -48,8 +48,8 @@ jest.mock('@gravitee/graphene-core', () => ({
 
 jest.mock('@gravitee/graphene-core/icons', () => new Proxy({}, { get: () => () => null }));
 
-jest.mock('./DialogCheckboxOptions', () => ({
-    DialogCheckboxOptions: () => null,
+jest.mock('./CheckboxOptionList', () => ({
+    CheckboxOptionList: () => null,
 }));
 
 jest.mock('../../../services/apiProxy', () => ({
@@ -57,12 +57,12 @@ jest.mock('../../../services/apiProxy', () => ({
     verifyApiHosts: jest.fn(() => Promise.resolve({ ok: true })),
 }));
 
-import { DuplicateDialog } from './DuplicateDialog';
+import { DuplicateApi } from './DuplicateApi';
 import { verifyContextPath } from '../../../services/apiProxy';
 
 const mockVerifyContextPath = jest.mocked(verifyContextPath);
 
-describe('DuplicateDialog', () => {
+describe('DuplicateApi', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockVerifyContextPath.mockResolvedValue({ ok: true });
@@ -76,7 +76,7 @@ describe('DuplicateDialog', () => {
 
         const onDuplicate = jest.fn();
         render(
-            <DuplicateDialog
+            <DuplicateApi
                 open
                 onOpenChange={() => {}}
                 initialVersion="1.0.0"
@@ -102,7 +102,7 @@ describe('DuplicateDialog', () => {
 
     it('calls verify API without apiId when context path differs from source', async () => {
         render(
-            <DuplicateDialog
+            <DuplicateApi
                 open
                 onOpenChange={() => {}}
                 initialVersion="1.0.0"

@@ -31,7 +31,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ApiListItem } from '../../../apis/types';
 import { useApisAvailableForProduct } from '../../hooks/useApiProductApis';
 
-interface AddApiToProductDialogProps {
+interface AddApiToProductProps {
     open: boolean;
     existingApiIds: string[];
     onClose: () => void;
@@ -78,7 +78,7 @@ function SelectedChip({ name, onRemove }: { name: string; onRemove: () => void }
     );
 }
 
-export function AddApiToProductDialog({ open, existingApiIds, onClose, onAdd, isAdding }: AddApiToProductDialogProps) {
+export function AddApiToProduct({ open, existingApiIds, onClose, onAdd, isAdding }: AddApiToProductProps) {
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());

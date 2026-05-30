@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@gravitee/graphene-core';
+import { Button, Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@gravitee/graphene-core';
 import { DownloadIcon, ExternalLinkIcon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
 
-import { API_ACTION_DIALOG_CONTENT_CLASS, API_ACTION_DIALOG_CONTENT_STYLE } from './apiActionDialogLayout';
-import { DialogCheckboxOptions } from './DialogCheckboxOptions';
-import { DialogSegmentedTabs } from './DialogSegmentedTabs';
+import { CheckboxOptionList } from './CheckboxOptionList';
+import { SegmentedTabs } from './SegmentedTabs';
 import { EXPORT_INCLUDE_OPTIONS, type ExportIncludeKey } from '../../../utils/apiGeneralExport';
 
 type ExportTab = 'gravitee' | 'crd' | 'terraform';
@@ -32,7 +31,7 @@ const TABS: { id: ExportTab; label: string }[] = [
 
 const DEFAULT_INCLUDE = Object.fromEntries(EXPORT_INCLUDE_OPTIONS.map(o => [o.id, true])) as Record<ExportIncludeKey, boolean>;
 
-export function ExportDialog({
+export function ExportApi({
     open,
     onOpenChange,
     onExport,
@@ -60,19 +59,20 @@ export function ExportDialog({
     const canExport = tab !== 'terraform' && !isExporting;
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className={API_ACTION_DIALOG_CONTENT_CLASS} style={API_ACTION_DIALOG_CONTENT_STYLE}>
-                <DialogHeader>
-                    <DialogTitle>Export API</DialogTitle>
-                </DialogHeader>
+        <Sheet open={open} onOpenChange={onOpenChange}>
+            <SheetContent side="right" style={{ maxWidth: '32rem' }}>
+                <SheetHeader>
+                    <SheetTitle>Export API</SheetTitle>
+                    <SheetDescription>Download this API definition in the format that fits your workflow.</SheetDescription>
+                </SheetHeader>
 
-                <DialogSegmentedTabs tabs={TABS} activeId={tab} onChange={setTab} ariaLabel="Export format" />
+                <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4">
+                    <SegmentedTabs tabs={TABS} activeId={tab} onChange={setTab} ariaLabel="Export format" />
 
-                <div className="min-h-[10rem] py-2">
                     {tab === 'gravitee' && (
                         <div className="space-y-2">
                             <p className="text-sm font-medium">Include additional data</p>
-                            <DialogCheckboxOptions
+                            <CheckboxOptionList
                                 idPrefix="export"
                                 options={EXPORT_INCLUDE_OPTIONS}
                                 values={include}
@@ -112,24 +112,22 @@ export function ExportDialog({
                             </a>
                         </div>
                     )}
+
+                    {error && <p className="text-sm text-destructive">{error}</p>}
                 </div>
 
-                {error && <p className="text-sm text-destructive">{error}</p>}
-
-                <DialogFooter>
-                    <DialogClose asChild>
-                        <Button type="button" variant="outline">
-                            Cancel
-                        </Button>
-                    </DialogClose>
+                <SheetFooter className="flex-row justify-end border-t">
+                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                        Cancel
+                    </Button>
                     {canExport && (
                         <Button type="button" disabled={isExporting} onClick={() => onExport(tab, include)}>
                             <DownloadIcon className="size-4" aria-hidden />
                             {isExporting ? 'Exporting…' : 'Export'}
                         </Button>
                     )}
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </SheetFooter>
+            </SheetContent>
+        </Sheet>
     );
 }

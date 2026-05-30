@@ -40,7 +40,7 @@ import { isSameUser } from './memberHelpers';
 import { searchUsers } from '../../services/members';
 import type { Member, SearchableUser } from '../../types/members.types';
 
-export function AddMembersDialog({
+export function AddMembers({
     open,
     roles,
     existingMembers,

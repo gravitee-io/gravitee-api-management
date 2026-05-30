@@ -41,7 +41,7 @@ import { isMemberPrimaryOwner } from './memberHelpers';
 import { searchUsers } from '../../services/members';
 import type { Member, SearchableUser, TransferOwnershipPayload } from '../../types/members.types';
 
-export function TransferOwnershipDialog({
+export function TransferOwnership({
     open,
     members,
     roles,

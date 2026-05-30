@@ -39,7 +39,7 @@ import { ApplicationSearchList } from './ApplicationSearchList';
 import { useApiPlans } from '../../../hooks/useSubscriptions';
 import type { Application, Plan, SubscriptionContext } from '../../../types/subscription';
 
-interface CreateSubscriptionDialogProps {
+interface CreateSubscriptionProps {
     ctx: SubscriptionContext;
     open: boolean;
     isPending: boolean;
@@ -93,7 +93,7 @@ function SubscriptionSummary({ app, plan }: { app: Application; plan: Plan }) {
     );
 }
 
-export function CreateSubscriptionDialog({ ctx, open, isPending, error, onConfirm, onClose }: Readonly<CreateSubscriptionDialogProps>) {
+export function CreateSubscription({ ctx, open, isPending, error, onConfirm, onClose }: Readonly<CreateSubscriptionProps>) {
     const [selectedApp, setSelectedApp] = useState<Application | null>(null);
     const [selectedPlanId, setSelectedPlanId] = useState('');
 

@@ -83,6 +83,12 @@ jest.mock('@gravitee/graphene-core', () => ({
     DialogFooter: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
     DialogHeader: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
     DialogTitle: ({ children }: { children?: ReactNode }) => <h2>{children}</h2>,
+    Sheet: ({ children, open }: { children?: ReactNode; open?: boolean }) => (open ? <div role="dialog">{children}</div> : null),
+    SheetContent: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+    SheetDescription: ({ children }: { children?: ReactNode }) => <p>{children}</p>,
+    SheetFooter: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+    SheetHeader: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+    SheetTitle: ({ children }: { children?: ReactNode }) => <h2>{children}</h2>,
     Input: ({
         id,
         value,

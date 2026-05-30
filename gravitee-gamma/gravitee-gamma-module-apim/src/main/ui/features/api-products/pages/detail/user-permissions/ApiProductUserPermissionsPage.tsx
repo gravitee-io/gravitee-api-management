@@ -32,13 +32,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { AddMembersDialog } from '../../../../apis/components/user-permissions/AddMembersDialog';
+import { AddMembers } from '../../../../apis/components/user-permissions/AddMembers';
 import { DirectMembersTable } from '../../../../apis/components/user-permissions/DirectMembersTable';
 import { GroupMembersSection } from '../../../../apis/components/user-permissions/GroupMembersSection';
-import { ManageGroupsDialog } from '../../../../apis/components/user-permissions/ManageGroupsDialog';
+import { ManageGroups } from '../../../../apis/components/user-permissions/ManageGroups';
 import { type EditState, getApiProductRole } from '../../../../apis/components/user-permissions/memberHelpers';
 import { RemoveMemberDialog } from '../../../../apis/components/user-permissions/RemoveMemberDialog';
-import { TransferOwnershipDialog } from '../../../../apis/components/user-permissions/TransferOwnershipDialog';
+import { TransferOwnership } from '../../../../apis/components/user-permissions/TransferOwnership';
 import { useGroups } from '../../../../apis/hooks/useGroups';
 import type { Member, SearchableUser, TransferOwnershipPayload } from '../../../../apis/types/members.types';
 import { useApiProductDetailContext } from '../../../context/ApiProductDetailContext';
@@ -290,7 +290,7 @@ export function ApiProductUserPermissionsPage() {
                 onConfirm={handleRemoveConfirm}
                 onCancel={handleRemoveCancel}
             />
-            <AddMembersDialog
+            <AddMembers
                 open={addMembersOpen}
                 roles={roleNames}
                 existingMembers={members}
@@ -298,7 +298,7 @@ export function ApiProductUserPermissionsPage() {
                 onAdd={(users, roleName) => addMutation.mutate({ users, roleName })}
                 isAdding={addMutation.isPending}
             />
-            <TransferOwnershipDialog
+            <TransferOwnership
                 open={transferOpen}
                 members={members}
                 roles={roleNames}
@@ -306,7 +306,7 @@ export function ApiProductUserPermissionsPage() {
                 onTransfer={payload => transferMutation.mutate(payload)}
                 isTransferring={transferMutation.isPending}
             />
-            <ManageGroupsDialog
+            <ManageGroups
                 open={manageGroupsOpen}
                 allGroups={allGroups}
                 currentGroupIds={currentGroupIds}

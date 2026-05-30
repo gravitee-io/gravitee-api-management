@@ -107,7 +107,11 @@ function ApiActionsMenu({ apiId, onNavigate }: { apiId: string; onNavigate: (pat
 function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<ApiListItem>['columns'] {
     return [
         {
-            accessorKey: 'name',
+            // Column id doubles as the label shown in the DataTable "View" (column visibility)
+            // menu, which falls back to the id for non-string headers — keep it identical to
+            // the visible header title so both read the same (incl. casing).
+            id: 'API Name',
+            accessorFn: (row: ApiListItem) => row.name,
             header: ({ column }: ColHeader<ApiListItem>) => <DataTableColumnHeader column={column} title="API Name" />,
             cell: ({ row }: ColCell<ApiListItem>) => (
                 <button
@@ -120,12 +124,14 @@ function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<
             ),
         },
         {
-            accessorKey: 'state',
+            id: 'Runtime Status',
+            accessorFn: (row: ApiListItem) => row.state,
             header: ({ column }: ColHeader<ApiListItem>) => <DataTableColumnHeader column={column} title="Runtime Status" />,
             cell: ({ row }: ColCell<ApiListItem>) => <RuntimeStatusBadge state={row.original.state} />,
         },
         {
-            accessorKey: 'deploymentState',
+            id: 'Sync Status',
+            accessorFn: (row: ApiListItem) => row.deploymentState,
             header: ({ column }: ColHeader<ApiListItem>) => <DataTableColumnHeader column={column} title="Sync Status" />,
             cell: ({ row }: ColCell<ApiListItem>) => <SyncStatusBadge deploymentState={row.original.deploymentState} />,
         },
@@ -145,7 +151,7 @@ function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<
             enableSorting: false,
         },
         {
-            id: 'owner',
+            id: 'Owner',
             header: ({ column }: ColHeader<ApiListItem>) => <DataTableColumnHeader column={column} title="Owner" />,
             accessorFn: (row: ApiListItem) => row.primaryOwner?.displayName ?? '',
             cell: ({ row }: ColCell<ApiListItem>) => (
@@ -193,7 +199,7 @@ export function ApiListTable({
     toolbar,
 }: ApiListTableProps) {
     const navigate = useNavigate();
-    const [sorting, setSorting] = useState([{ id: 'name', desc: false }]);
+    const [sorting, setSorting] = useState([{ id: 'API Name', desc: false }]);
     const columns = buildColumns(navigate);
 
     const renderPagination = () =>

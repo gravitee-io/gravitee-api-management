@@ -27,20 +27,13 @@ import {
 } from '@gravitee/graphene-core';
 import { PlusIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
-import { AddNotificationDialog } from './AddNotificationDialog';
-import { NotificationEventEditor } from './NotificationEventEditor';
 import { NotificationsEmptyState } from './NotificationsEmptyState';
 import { NotificationsSummaryCards } from './NotificationsSummaryCards';
 import { NotificationsTable } from './NotificationsTable';
 import type { NotificationRow } from '../../../hooks/useApiNotifications';
-import {
-    useApiNotifications,
-    useCreateNotification,
-    useDeleteNotification,
-    useUpdateNotification,
-} from '../../../hooks/useApiNotifications';
+import { useApiNotifications, useDeleteNotification } from '../../../hooks/useApiNotifications';
 
 // ─── Delete confirm dialog ────────────────────────────────────────────────────
 
@@ -83,94 +76,31 @@ function DeleteConfirmDialog({ row, isPending, onConfirm, onCancel }: Readonly<D
 
 export function ApiNotificationsPage() {
     const { apiId } = useParams<{ apiId: string }>();
+    const navigate = useNavigate();
 
     const canCreate = useHasPermission({ anyOf: ['api-notification-c'] });
     const canUpdate = useHasPermission({ anyOf: ['api-notification-u'] });
     const canDelete = useHasPermission({ anyOf: ['api-notification-d'] });
 
-    const { rows, notifiers, hookCategories, isLoading, isLoadingHooks, isError } = useApiNotifications(apiId);
+    const { rows, isLoading, isError } = useApiNotifications(apiId);
 
-    const createMutation = useCreateNotification(apiId ?? '');
-    const updateMutation = useUpdateNotification(apiId ?? '');
     const deleteMutation = useDeleteNotification(apiId ?? '');
 
-    const [addDialogOpen, setAddDialogOpen] = useState(false);
-    const [editingKey, setEditingKey] = useState<string | null>(null);
     const [deletingRow, setDeletingRow] = useState<NotificationRow | null>(null);
-    const [saveError, setSaveError] = useState<string | null>(null);
-
-    const editingRow = editingKey !== null ? (rows.find(r => r.key === editingKey) ?? null) : null;
+    const [deleteError, setDeleteError] = useState<string | null>(null);
 
     // ─── Handlers ──────────────────────────────────────────────────────────────
-
-    const handleAdd = useCallback(
-        (name: string, notifierId: string) => {
-            if (!apiId) return;
-            const isPortal = notifierId === '__PORTAL__';
-
-            if (isPortal) {
-                // The PORTAL notification always exists — just open the editor
-                const portalRow = rows.find(r => r.notification.config_type === 'PORTAL');
-                setAddDialogOpen(false);
-                if (portalRow && canUpdate) setEditingKey(portalRow.key);
-                return;
-            }
-
-            createMutation.mutate(
-                {
-                    name,
-                    notifier: notifierId,
-                    config_type: 'GENERIC',
-                    hooks: [],
-                    referenceType: 'API',
-                    referenceId: apiId,
-                },
-                {
-                    onSuccess: created => {
-                        setAddDialogOpen(false);
-                        setSaveError(null);
-                        if (canUpdate) setEditingKey(created.id ?? 'PORTAL');
-                    },
-                    onError: (err: unknown) => {
-                        const message = err instanceof Error ? err.message : 'Failed to create notification.';
-                        setSaveError(message);
-                    },
-                },
-            );
-        },
-        [apiId, rows, canUpdate, createMutation],
-    );
-
-    const handleSaveEvents = useCallback(
-        (hooks: string[], config: string) => {
-            if (!editingRow) return;
-            updateMutation.mutate(
-                { ...editingRow.notification, hooks, config },
-                {
-                    onSuccess: () => {
-                        setSaveError(null);
-                        setEditingKey(null);
-                    },
-                    onError: (err: unknown) => {
-                        const message = err instanceof Error ? err.message : 'Failed to save notification events.';
-                        setSaveError(message);
-                    },
-                },
-            );
-        },
-        [editingRow, updateMutation],
-    );
 
     const handleDeleteConfirm = useCallback(() => {
         if (!deletingRow?.notification.id) return;
         deleteMutation.mutate(deletingRow.notification.id, {
             onSuccess: () => {
-                setSaveError(null);
+                setDeleteError(null);
                 setDeletingRow(null);
             },
             onError: (err: unknown) => {
                 const message = err instanceof Error ? err.message : 'Failed to delete notification.';
-                setSaveError(message);
+                setDeleteError(message);
             },
         });
     }, [deletingRow, deleteMutation]);
@@ -200,17 +130,17 @@ export function ApiNotificationsPage() {
                     </p>
                 </div>
                 {canCreate && (
-                    <Button type="button" size="sm" onClick={() => setAddDialogOpen(true)}>
+                    <Button type="button" size="sm" onClick={() => navigate('new')}>
                         <PlusIcon className="size-4" aria-hidden="true" />
                         Add notification
                     </Button>
                 )}
             </div>
 
-            {/* Mutation error banner */}
-            {saveError && (
+            {/* Delete error banner */}
+            {deleteError && (
                 <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3">
-                    <p className="text-sm text-destructive">{saveError}</p>
+                    <p className="text-sm text-destructive">{deleteError}</p>
                 </div>
             )}
 
@@ -225,35 +155,15 @@ export function ApiNotificationsPage() {
                 <NotificationsTable
                     rows={rows}
                     isLoading={isLoading}
-                    editingKey={editingKey}
+                    editingKey={null}
                     canUpdate={canUpdate}
                     canDelete={canDelete}
-                    onEdit={setEditingKey}
+                    onEdit={key => navigate(key)}
                     onDelete={setDeletingRow}
                 />
             )}
 
-            {/* Inline event editor */}
-            {editingRow && (
-                <NotificationEventEditor
-                    key={editingRow.key}
-                    row={editingRow}
-                    hookCategories={hookCategories}
-                    isLoadingHooks={isLoadingHooks}
-                    isPending={updateMutation.isPending}
-                    onSave={handleSaveEvents}
-                    onCancel={() => setEditingKey(null)}
-                />
-            )}
-
-            {/* Dialogs */}
-            <AddNotificationDialog
-                open={addDialogOpen}
-                notifiers={notifiers}
-                isPending={createMutation.isPending}
-                onClose={() => setAddDialogOpen(false)}
-                onAdd={handleAdd}
-            />
+            {/* Delete confirmation */}
             <DeleteConfirmDialog
                 row={deletingRow}
                 isPending={deleteMutation.isPending}

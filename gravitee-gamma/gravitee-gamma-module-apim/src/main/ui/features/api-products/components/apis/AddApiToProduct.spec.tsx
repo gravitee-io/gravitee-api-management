@@ -15,7 +15,7 @@
  */
 import { act, fireEvent, render, screen } from '@testing-library/react';
 
-import { AddApiToProductDialog } from './AddApiToProductDialog';
+import { AddApiToProduct } from './AddApiToProduct';
 import { useApisAvailableForProduct } from '../../hooks/useApiProductApis';
 
 jest.mock('../../hooks/useApiProductApis', () => ({
@@ -44,9 +44,7 @@ interface RenderProps {
 }
 
 function renderDialog({ open = true, existingApiIds = [], onClose = jest.fn(), onAdd = jest.fn(), isAdding = false }: RenderProps = {}) {
-    return render(
-        <AddApiToProductDialog open={open} existingApiIds={existingApiIds} onClose={onClose} onAdd={onAdd} isAdding={isAdding} />,
-    );
+    return render(<AddApiToProduct open={open} existingApiIds={existingApiIds} onClose={onClose} onAdd={onAdd} isAdding={isAdding} />);
 }
 
 // Types in the search box and advances past the 300 ms debounce.
@@ -57,7 +55,7 @@ function typeSearch(text: string) {
     });
 }
 
-describe('AddApiToProductDialog', () => {
+describe('AddApiToProduct', () => {
     beforeEach(() => {
         jest.useFakeTimers();
         // Default: returns results so tests that need a list don't have to re-mock
@@ -116,9 +114,9 @@ describe('AddApiToProductDialog', () => {
         expect(screen.queryByRole('button', { name: /Add \(1\)/i })).not.toBeNull();
 
         // Close → useEffect clears state
-        rerender(<AddApiToProductDialog open={false} existingApiIds={[]} onClose={jest.fn()} onAdd={jest.fn()} isAdding={false} />);
+        rerender(<AddApiToProduct open={false} existingApiIds={[]} onClose={jest.fn()} onAdd={jest.fn()} isAdding={false} />);
         // Reopen
-        rerender(<AddApiToProductDialog open={true} existingApiIds={[]} onClose={jest.fn()} onAdd={jest.fn()} isAdding={false} />);
+        rerender(<AddApiToProduct open={true} existingApiIds={[]} onClose={jest.fn()} onAdd={jest.fn()} isAdding={false} />);
         // Selection is gone — Add shows no count
         expect(screen.queryByRole('button', { name: /Add \(1\)/i })).toBeNull();
         // Search is reset — the placeholder prompt is visible again

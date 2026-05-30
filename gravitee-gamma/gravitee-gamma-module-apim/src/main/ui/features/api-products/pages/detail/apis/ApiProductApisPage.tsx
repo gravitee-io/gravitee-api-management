@@ -55,7 +55,7 @@ import { useEffect, useId, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import type { ApiListItem } from '../../../../apis/types';
-import { AddApiToProductDialog } from '../../../components/apis/AddApiToProductDialog';
+import { AddApiToProduct } from '../../../components/apis/AddApiToProduct';
 import { useApiProductDetailContext } from '../../../context/ApiProductDetailContext';
 import { useApiProductApis } from '../../../hooks/useApiProductApis';
 import { useUpdateApiProduct } from '../../../hooks/useUpdateApiProduct';
@@ -369,7 +369,7 @@ export function ApiProductApisPage() {
                 </>
             )}
 
-            <AddApiToProductDialog
+            <AddApiToProduct
                 open={dialogOpen}
                 existingApiIds={product?.apiIds ?? []}
                 onClose={() => setDialogOpen(false)}

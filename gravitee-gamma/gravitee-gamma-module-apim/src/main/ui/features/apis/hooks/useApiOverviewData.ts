@@ -59,7 +59,7 @@ export function useApiOverviewData(apiId: string | undefined) {
         queryKey: apiAnalyticsKeys.stats(envId, apiId ?? '', timeRange.window),
         queryFn: () => getApiAnalyticsStats(envId, apiId!, timeRange.from, timeRange.to, INTERVAL_MS),
         enabled,
-        staleTime: WINDOW_MS,
+        staleTime: 0,
     });
 
     return {

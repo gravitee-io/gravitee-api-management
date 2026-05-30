@@ -72,8 +72,8 @@ jest.mock('../../../hooks/useUpdateApiProduct', () => ({
 }));
 // Simplified stand-in — calls onAdd with a preset list so we can test the page's merge logic
 // without exercising the dialog's own internals.
-jest.mock('../../../components/apis/AddApiToProductDialog', () => ({
-    AddApiToProductDialog: ({
+jest.mock('../../../components/apis/AddApiToProduct', () => ({
+    AddApiToProduct: ({
         onAdd,
         open,
     }: {
