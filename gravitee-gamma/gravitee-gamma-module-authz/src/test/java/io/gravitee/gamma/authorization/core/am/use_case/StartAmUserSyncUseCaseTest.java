@@ -30,14 +30,17 @@ import io.gravitee.apim.core.async_job.query_service.AsyncJobQueryService;
 import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
 import io.gravitee.apim.plugin.gamma.api.identity.AmConnectionRepository;
 import io.gravitee.apim.plugin.gamma.api.identity.AmNotConfiguredException;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 import io.gravitee.gamma.authorization.core.am.exception.AmSyncConflictException;
 import io.gravitee.gamma.authorization.core.am.service_provider.AmUserSyncRunner;
-import java.util.Optional;
+import java.time.ZonedDateTime;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class StartAmUserSyncUseCaseTest {
@@ -60,9 +63,14 @@ class StartAmUserSyncUseCaseTest {
         useCase = new StartAmUserSyncUseCase(asyncJobQueryService, asyncJobCrudService, amConnectionRepository, runner);
     }
 
+    private void stubPendingJobs(AsyncJob... jobs) {
+        when(asyncJobQueryService.listAsyncJobs(any(), any())).thenReturn(new Page<>(List.of(jobs), 1, jobs.length, jobs.length));
+    }
+
     @Test
-    void rejects_when_a_sync_is_already_pending_for_the_organization() {
-        when(asyncJobQueryService.findPendingJobFor("org-1")).thenReturn(Optional.of(AsyncJob.builder().id("running").build()));
+    void rejects_when_a_sync_is_already_pending_for_the_org_and_environment() {
+        // A live (not past-deadline) PENDING job in the same scope blocks a new start.
+        stubPendingJobs(AsyncJob.builder().id("running").status(AsyncJob.Status.PENDING).build());
 
         assertThatThrownBy(() -> useCase.execute(new StartAmUserSyncUseCase.Input(CALLER))).isInstanceOf(AmSyncConflictException.class);
 
@@ -71,8 +79,43 @@ class StartAmUserSyncUseCaseTest {
     }
 
     @Test
+    void scopes_the_conflict_check_to_org_environment_and_am_user_sync() {
+        stubPendingJobs();
+        when(amConnectionRepository.requireByOrg("org-1")).thenReturn(CONNECTION);
+        when(asyncJobCrudService.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        useCase.execute(new StartAmUserSyncUseCase.Input(CALLER));
+
+        ArgumentCaptor<AsyncJobQueryService.ListQuery> captor = ArgumentCaptor.forClass(AsyncJobQueryService.ListQuery.class);
+        verify(asyncJobQueryService).listAsyncJobs(captor.capture(), any());
+        AsyncJobQueryService.ListQuery query = captor.getValue();
+        assertThat(query.environmentId()).isEqualTo("env-1");
+        assertThat(query.sourceId()).contains("org-1");
+        assertThat(query.type()).contains(AsyncJob.Type.AM_USER_SYNC);
+        assertThat(query.status()).contains(AsyncJob.Status.PENDING);
+    }
+
+    @Test
+    void does_not_block_on_a_stranded_pending_job_past_its_deadline() {
+        // listAsyncJobs doesn't apply the deadline, so a past-deadline PENDING row must be ignored.
+        AsyncJob stranded = AsyncJob
+            .builder()
+            .id("stranded")
+            .status(AsyncJob.Status.PENDING)
+            .deadLine(ZonedDateTime.now().minusMinutes(1))
+            .build();
+        stubPendingJobs(stranded);
+        when(amConnectionRepository.requireByOrg("org-1")).thenReturn(CONNECTION);
+        when(asyncJobCrudService.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        useCase.execute(new StartAmUserSyncUseCase.Input(CALLER));
+
+        verify(runner).runAsync(any(), eq(CALLER), eq(CONNECTION));
+    }
+
+    @Test
     void propagates_when_am_is_not_configured() {
-        when(asyncJobQueryService.findPendingJobFor("org-1")).thenReturn(Optional.empty());
+        stubPendingJobs();
         when(amConnectionRepository.requireByOrg("org-1")).thenThrow(new AmNotConfiguredException());
 
         assertThatThrownBy(() -> useCase.execute(new StartAmUserSyncUseCase.Input(CALLER))).isInstanceOf(AmNotConfiguredException.class);
@@ -83,7 +126,7 @@ class StartAmUserSyncUseCaseTest {
 
     @Test
     void creates_a_pending_job_and_hands_it_to_the_runner() {
-        when(asyncJobQueryService.findPendingJobFor("org-1")).thenReturn(Optional.empty());
+        stubPendingJobs();
         when(amConnectionRepository.requireByOrg("org-1")).thenReturn(CONNECTION);
         when(asyncJobCrudService.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 

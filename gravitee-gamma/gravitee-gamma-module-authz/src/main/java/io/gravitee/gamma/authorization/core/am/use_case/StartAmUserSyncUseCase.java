@@ -24,14 +24,17 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 import io.gravitee.gamma.authorization.core.am.exception.AmSyncConflictException;
 import io.gravitee.gamma.authorization.core.am.service_provider.AmUserSyncRunner;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import java.time.Duration;
 import java.time.ZonedDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Starts an asynchronous AM user sync for the caller's organization. Persists the job as an
- * {@link AsyncJob} (PENDING) so its lifecycle survives restarts and is queryable, then hands the
- * work to {@link AmUserSyncRunner}. Rejects a start when one is already running for the org.
+ * Starts an asynchronous AM user sync for the caller's organization and environment. Persists the
+ * job as an {@link AsyncJob} (PENDING) so its lifecycle survives restarts and is queryable, then
+ * hands the work to {@link AmUserSyncRunner}. Rejects a start when one is already running for the
+ * same org + environment (the scope the sync writes into and that the status endpoint reports on).
  */
 public class StartAmUserSyncUseCase {
 
@@ -64,7 +67,23 @@ public class StartAmUserSyncUseCase {
         AuthzCallerContext caller = input.caller();
         String organizationId = caller.organizationId();
 
-        if (asyncJobQueryService.findPendingJobFor(organizationId).isPresent()) {
+        // Scope the conflict check to org + environment + AM_USER_SYNC, matching where the sync
+        // writes and what GetAmUserSyncStatusUseCase reports, so a sync in one environment doesn't
+        // 409 a start in another that can't see it. listAsyncJobs doesn't apply the deadline, so
+        // drop timed-out jobs here as findPendingJobFor does — a stranded job must not block forever.
+        var pendingQuery = new AsyncJobQueryService.ListQuery(
+            caller.environmentId(),
+            Optional.empty(),
+            Optional.of(AsyncJob.Type.AM_USER_SYNC),
+            Optional.of(AsyncJob.Status.PENDING),
+            Optional.of(organizationId)
+        );
+        boolean alreadyRunning = asyncJobQueryService
+            .listAsyncJobs(pendingQuery, new PageableImpl(1, 1))
+            .getContent()
+            .stream()
+            .anyMatch(job -> !job.isTimedOut());
+        if (alreadyRunning) {
             throw new AmSyncConflictException(organizationId);
         }
         // Throws AmNotConfiguredException when no AM connection is configured for the org.
