@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { authzCoreApiClient } from './authz-api-client';
 import type { AimPagedResponse, CatalogItem, CatalogItemKind, CatalogItemPage } from './aim-catalog.types';
+import { authzCoreApiClient } from './authz-api-client';
 
 /**
  * AIM catalog client. The AIM module is mounted next to authz under the same

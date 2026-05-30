@@ -264,12 +264,7 @@ export function ActionsPage() {
                 </>
             )}
 
-            <CreateActionDialog
-                open={addOpen}
-                environmentId={environmentId}
-                onOpenChange={setAddOpen}
-                onCreated={handleChanged}
-            />
+            <CreateActionDialog open={addOpen} environmentId={environmentId} onOpenChange={setAddOpen} onCreated={handleChanged} />
 
             <Dialog
                 open={pendingDelete !== null}
@@ -287,7 +282,12 @@ export function ActionsPage() {
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => setPendingDelete(null)} disabled={deletingEntityId !== undefined}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setPendingDelete(null)}
+                            disabled={deletingEntityId !== undefined}
+                        >
                             Cancel
                         </Button>
                         <Button

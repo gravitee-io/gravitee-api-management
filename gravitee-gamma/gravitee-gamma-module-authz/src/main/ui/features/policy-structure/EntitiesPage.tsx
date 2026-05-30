@@ -54,8 +54,8 @@ import { authzQueryKeys } from '../../shared/api/query-keys';
 import { formatEntityUid, fromBackend } from '../../shared/entity-adapter';
 import { useEntities, type UseEntitiesResult } from '../../shared/hooks/useEntities';
 import { CreateEntityDialog } from './CreateEntityDialog';
-import { CATEGORIES, getEntityCategoryId, type EntityInstance } from './entity-types';
 import { ImportFromCatalogDialog } from './ImportFromCatalogDialog';
+import { CATEGORIES, getEntityCategoryId, type EntityInstance } from './entity-types';
 
 type AddingKind = 'PRINCIPAL' | 'RESOURCE';
 

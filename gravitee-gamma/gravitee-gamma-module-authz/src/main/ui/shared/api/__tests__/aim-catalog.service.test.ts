@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { aimCatalogService } from '../aim-catalog.service';
 
 const get = vi.fn();
 vi.mock('../authz-api-client', () => ({
@@ -25,8 +26,6 @@ vi.mock('../authz-api-client', () => ({
     },
     ApiError: class ApiError extends Error {},
 }));
-
-import { aimCatalogService } from '../aim-catalog.service';
 
 describe('aimCatalogService.listItems', () => {
     beforeEach(() => get.mockReset());

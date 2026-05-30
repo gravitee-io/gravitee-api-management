@@ -277,7 +277,7 @@ export function CreateEntityDialog({ open, kind, environmentId, onOpenChange, on
                                 )}
                                 {!customPrefixError && isKnownCanonical(canonicalPrefix) && customPrefix.length > 0 && (
                                     <p className="text-xs text-warning">
-                                        "{canonicalPrefix}" is a preset type — pick it from the dropdown instead.
+                                        &quot;{canonicalPrefix}&quot; is a preset type — pick it from the dropdown instead.
                                     </p>
                                 )}
                             </div>
@@ -348,12 +348,7 @@ export function CreateEntityDialog({ open, kind, environmentId, onOpenChange, on
                             <Label>
                                 Parents <span className="text-xs text-muted-foreground">(optional)</span>
                             </Label>
-                            <Combobox
-                                multiple
-                                value={parentIds}
-                                onValueChange={next => setParentIds(next as string[])}
-                                autoComplete="list"
-                            >
+                            <Combobox multiple value={parentIds} onValueChange={next => setParentIds(next as string[])} autoComplete="list">
                                 <ComboboxChips ref={parentAnchorRef}>
                                     {parentIds.map(pid => {
                                         const opt = parentOptions.find(o => o.uid === pid);
@@ -368,11 +363,7 @@ export function CreateEntityDialog({ open, kind, environmentId, onOpenChange, on
                                         aria-label="Add parent"
                                     />
                                 </ComboboxChips>
-                                <ComboboxContent
-                                    anchor={parentAnchorRef}
-                                    className="max-h-64 min-w-60"
-                                    style={{ pointerEvents: 'auto' }}
-                                >
+                                <ComboboxContent anchor={parentAnchorRef} className="max-h-64 min-w-60" style={{ pointerEvents: 'auto' }}>
                                     <ComboboxList>
                                         <ComboboxEmpty>
                                             {parentOptions.length === 0
