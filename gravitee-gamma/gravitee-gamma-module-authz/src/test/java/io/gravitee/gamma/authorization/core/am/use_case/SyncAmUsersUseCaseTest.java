@@ -98,6 +98,8 @@ class SyncAmUsersUseCaseTest {
         assertThat(first.source()).isEqualTo("gravitee_am");
         assertThat(first.parents()).isEmpty();
         assertThat(first.attributes())
+            .containsEntry("_kind", "user")
+            .containsEntry("sub", "sub-1")
             .containsEntry("username", "alice")
             .containsEntry("email", "alice@corp.io")
             .containsEntry("displayName", "Alice")
@@ -124,7 +126,8 @@ class SyncAmUsersUseCaseTest {
         run();
 
         List<CreateOrReplaceAuthzEntityCommand> commands = captureSingleBulkUpsert();
-        assertThat(commands.get(0).attributes()).containsOnlyKeys("username");
+        // _kind + sub are always set; only the AM-populated profile attributes (here: username) carry through.
+        assertThat(commands.get(0).attributes()).containsOnlyKeys("_kind", "sub", "username");
     }
 
     @Test

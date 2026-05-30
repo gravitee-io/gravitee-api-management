@@ -79,6 +79,8 @@ vi.mock('../../../shared/api/authz-api.service', () => ({
     authzApiService: {
         listEntities: (env: string, params?: ListEntitiesParams) => listEntitiesSpy(env, params),
         deleteEntity: (env: string, entityId: string) => deleteEntitySpy(env, entityId),
+        getUserSyncStatus: () => Promise.resolve(null),
+        startUserSync: () => Promise.resolve({ jobId: 'job-1', status: 'PENDING' }),
     },
 }));
 

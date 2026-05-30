@@ -44,15 +44,16 @@ import {
     TabsTrigger,
     toast,
 } from '@gravitee/graphene-core';
-import { BoxesIcon, DownloadIcon, PencilIcon, PlusIcon, ShieldIcon, Trash2Icon, UsersIcon } from '@gravitee/graphene-core/icons';
+import { BoxesIcon, DownloadIcon, PencilIcon, PlusIcon, RefreshCwIcon, ShieldIcon, Trash2Icon, UsersIcon } from '@gravitee/graphene-core/icons';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
-import { useDeferredValue, useEffect, useMemo, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { KpiTile } from '../../components/KpiTile';
 import { authzApiService, DEFAULT_PER_PAGE } from '../../shared/api/authz-api.service';
 import { authzQueryKeys } from '../../shared/api/query-keys';
 import { formatEntityUid, fromBackend } from '../../shared/entity-adapter';
 import { useAllEntities } from '../../shared/hooks/useAllEntities';
+import { useUserSync } from '../../shared/hooks/useUserSync';
 import { CreateEntityDialog } from './CreateEntityDialog';
 import { EditEntityDialog } from './EditEntityDialog';
 import { ImportFromCatalogDialog } from './ImportFromCatalogDialog';
@@ -84,6 +85,7 @@ function displayNameOf(entity: EntityInstance): string {
 function sourceLabelOf(entity: EntityInstance): string {
     if (entity.source === 'apim') return 'APIM';
     if (entity.source === 'gravitee-catalog') return 'Gravitee Catalog';
+    if (entity.source === 'gravitee_am') return 'AM';
     return 'Local';
 }
 
@@ -332,6 +334,27 @@ export function EntitiesPage() {
     const principalsQuery = useAllEntities(environmentId, { kind: 'PRINCIPAL' });
     const resourcesQuery = useAllEntities(environmentId, { kind: 'RESOURCE', excludeEntityIdPrefix: ACTION_PREFIX });
 
+    const sync = useUserSync(environmentId);
+    const isSyncing = sync.isStarting || sync.status?.status === 'PENDING';
+    // Reload the principals list once a sync finishes (PENDING → SUCCESS), so the freshly
+    // upserted AM users appear without a manual refresh. Fires only on the transition, so a
+    // page that loads with an already-completed sync doesn't trigger a spurious refetch.
+    const prevSyncStatus = useRef<string | undefined>(undefined);
+    useEffect(() => {
+        const current = sync.status?.status;
+        if (current === 'SUCCESS' && prevSyncStatus.current === 'PENDING') {
+            void queryClient.invalidateQueries({ queryKey: authzQueryKeys.entities.all(environmentId) });
+            toast.success(`Synced ${sync.status?.entitiesUpserted ?? 0} principals from AM`);
+        }
+        prevSyncStatus.current = current;
+    }, [sync.status?.status, sync.status?.entitiesUpserted, environmentId, queryClient]);
+
+    const onSync = () => {
+        // A 409 (sync already running) rejects the mutation; the hook suppresses it and the
+        // status reflects the in-flight job, so swallow the rejection here.
+        void sync.start().catch(() => {});
+    };
+
     const [principalSearch, setPrincipalSearch] = useState('');
     const [principalTypeFilter, setPrincipalTypeFilter] = useState<TypeFilter>('all');
     const [principalSourceFilter, setPrincipalSourceFilter] = useState<SourceFilter>('all');
@@ -493,12 +516,22 @@ export function EntitiesPage() {
                             onSourceFilter={setPrincipalSourceFilter}
                             searchLabel="Search principals"
                         />
-                        <div className="ml-auto">
+                        <div className="ml-auto flex items-center gap-2">
+                            <Button variant="outline" onClick={onSync} disabled={isSyncing}>
+                                <RefreshCwIcon className={`mr-2 size-4 ${isSyncing ? 'animate-spin' : ''}`} aria-hidden />
+                                {isSyncing ? 'Syncing from AM…' : 'Sync from AM'}
+                            </Button>
                             <Button onClick={() => setAddingKind('PRINCIPAL')}>
                                 <PlusIcon className="mr-2 size-4" aria-hidden />
                                 Add principal
                             </Button>
                         </div>
+                        {sync.startError ? (
+                            <Alert variant="destructive" className="w-full">
+                                <AlertTitle>Could not start AM sync</AlertTitle>
+                                <AlertDescription>{sync.startError}</AlertDescription>
+                            </Alert>
+                        ) : null}
                     </div>
                     <EntitiesTable
                         tab="principals"
