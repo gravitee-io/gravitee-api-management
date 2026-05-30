@@ -17,7 +17,18 @@ import type { AttrValue } from './entity.types';
 
 export type AttrType = 'string' | 'integer' | 'boolean' | 'set' | 'decimal' | 'timestamp' | 'duration' | 'ip' | 'cidr' | 'enum';
 
-export const ATTR_TYPES: readonly AttrType[] = ['string', 'integer', 'boolean', 'set', 'decimal', 'timestamp', 'duration', 'ip', 'cidr', 'enum'];
+export const ATTR_TYPES: readonly AttrType[] = [
+    'string',
+    'integer',
+    'boolean',
+    'set',
+    'decimal',
+    'timestamp',
+    'duration',
+    'ip',
+    'cidr',
+    'enum',
+];
 
 export const ATTR_TYPE_LABELS: Record<AttrType, string> = {
     string: 'String',
@@ -98,11 +109,17 @@ export function coerce(type: AttrType, raw: string | readonly string[]): CoerceR
         }
         case 'decimal':
             // Stored as a STRING: PDP toValue has no Double branch and would drop a JS number.
-            return DECIMAL_RE.test(s) ? { ok: true, value: s } : { ok: false, error: 'Must be a decimal number; use decimal(...) in policies.' };
+            return DECIMAL_RE.test(s)
+                ? { ok: true, value: s }
+                : { ok: false, error: 'Must be a decimal number; use decimal(...) in policies.' };
         case 'timestamp':
-            return ISO_TS_RE.test(s) ? { ok: true, value: s } : { ok: false, error: 'Must be ISO-8601 (e.g. 2026-05-30T12:00:00Z); wrap with datetime(...).' };
+            return ISO_TS_RE.test(s)
+                ? { ok: true, value: s }
+                : { ok: false, error: 'Must be ISO-8601 (e.g. 2026-05-30T12:00:00Z); wrap with datetime(...).' };
         case 'duration':
-            return DURATION_RE.test(s) ? { ok: true, value: s } : { ok: false, error: 'Must be a duration like 30s, 5m, 2h; wrap with duration(...).' };
+            return DURATION_RE.test(s)
+                ? { ok: true, value: s }
+                : { ok: false, error: 'Must be a duration like 30s, 5m, 2h; wrap with duration(...).' };
         case 'ip':
             return isIp(s) ? { ok: true, value: s } : { ok: false, error: 'Must be a valid IPv4/IPv6 address; wrap with ip(...).' };
         case 'cidr': {

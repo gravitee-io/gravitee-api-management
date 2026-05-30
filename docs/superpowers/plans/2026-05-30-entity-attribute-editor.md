@@ -11,11 +11,13 @@
 **Reference spec:** `docs/superpowers/specs/2026-05-30-entity-attribute-editor-design.md` — especially the PDP serialization table.
 
 **Key invariants (from the spec):**
+
 - Never emit a JSON floating-point number — PDP `ValueConverter.toValue` has no Double branch and silently drops it. `decimal` serializes as a **string**.
 - A JSON array always becomes a **Set** in the engine (dedup). Label it `Set<String>`, warn on duplicates.
 - `decimal/timestamp/duration/ip/cidr/enum` are stored as **strings**; they only get typed via a GAPL function (`decimal()/datetime()/duration()/ip()`) inside a condition.
 
 **Conventions in this codebase (follow them):**
+
 - Test runner: from module root `npx vitest run <pattern>`. Typecheck: from `src/main/ui` `npx tsc --noEmit`. Lint: from repo root `npx nx lint gravitee-gamma-module-authz`. Format: `npx prettier --check <files>` (printWidth 140, tabWidth 4, singleQuote, semi, trailingComma all, arrowParens avoid).
 - Every source file starts with the Apache license header (copy it from any sibling file, e.g. `entity.types.ts` lines 1-15). The lint target `lint-license` enforces it.
 - graphene-core: named imports only, semantic tokens, `cn()` to merge classes, no `as` casts in new code.
@@ -41,6 +43,7 @@
 ## Task 1: Extend `AttrValue` and `EntityInstance`
 
 **Files:**
+
 - Modify: `src/main/ui/shared/entity.types.ts`
 
 - [ ] **Step 1: Widen `AttrValue` and add `reservedMeta`**
@@ -88,6 +91,7 @@ git commit -m "feat(authz-ui): widen AttrValue to sets and add reservedMeta"
 Today `fromBackend` drops `_url`/`_proxyApiId` and never keeps arrays; `toBackend` re-emits only a fixed set of meta keys, so `_url`/`_proxyApiId` are lost on every edit. Fix both: stash unmapped `_`-keys in `reservedMeta`, keep arrays of strings in `attrs`, and re-emit `reservedMeta` first on save.
 
 **Files:**
+
 - Modify: `src/main/ui/shared/entity-adapter.ts`
 - Test: `src/main/ui/shared/__tests__/entity-adapter.test.ts` (create if missing)
 
@@ -147,48 +151,48 @@ Expected: FAIL — `_url`/`_proxyApiId` are `undefined` on `back.attributes`; `r
 In `entity-adapter.ts`, replace the loop body in `fromBackend` (lines 65-87) with:
 
 ```ts
-    const attrs: Record<string, AttrValue> = {};
-    const reservedMeta: Record<string, unknown> = {};
-    let source: EntitySource = 'local';
-    let displayName: string | undefined;
-    let importedAt: string | undefined;
-    let kindOverride: string | undefined;
+const attrs: Record<string, AttrValue> = {};
+const reservedMeta: Record<string, unknown> = {};
+let source: EntitySource = 'local';
+let displayName: string | undefined;
+let importedAt: string | undefined;
+let kindOverride: string | undefined;
 
-    for (const [k, v] of Object.entries(e.attributes)) {
-        if (k === '_source') {
-            source = v as string as EntitySource;
-        } else if (k === '_displayName') {
-            displayName = v as string;
-        } else if (k === '_importedAt' || k === '_syncedAt') {
-            importedAt = v as string;
-        } else if (k === '_kind') {
-            kindOverride = kindToUiType(v);
-        } else if (k.startsWith('_')) {
-            // Unmapped reserved meta (e.g. _url, _proxyApiId) — keep verbatim for round-trip.
-            reservedMeta[k] = v;
-        } else if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
-            attrs[k] = v;
-        } else if (Array.isArray(v) && v.every(x => typeof x === 'string')) {
-            attrs[k] = v as string[];
-        }
+for (const [k, v] of Object.entries(e.attributes)) {
+    if (k === '_source') {
+        source = v as string as EntitySource;
+    } else if (k === '_displayName') {
+        displayName = v as string;
+    } else if (k === '_importedAt' || k === '_syncedAt') {
+        importedAt = v as string;
+    } else if (k === '_kind') {
+        kindOverride = kindToUiType(v);
+    } else if (k.startsWith('_')) {
+        // Unmapped reserved meta (e.g. _url, _proxyApiId) — keep verbatim for round-trip.
+        reservedMeta[k] = v;
+    } else if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
+        attrs[k] = v;
+    } else if (Array.isArray(v) && v.every(x => typeof x === 'string')) {
+        attrs[k] = v as string[];
     }
+}
 ```
 
 Then add `reservedMeta` to the returned object (after `attrs`):
 
 ```ts
-    return {
-        uid,
-        displayName,
-        attrs,
-        reservedMeta: Object.keys(reservedMeta).length > 0 ? reservedMeta : undefined,
-        parents,
-        source,
-        importedAt,
-        _backendId: e.id,
-        createdAt: e.createdAt,
-        updatedAt: e.updatedAt,
-    };
+return {
+    uid,
+    displayName,
+    attrs,
+    reservedMeta: Object.keys(reservedMeta).length > 0 ? reservedMeta : undefined,
+    parents,
+    source,
+    importedAt,
+    _backendId: e.id,
+    createdAt: e.createdAt,
+    updatedAt: e.updatedAt,
+};
 ```
 
 - [ ] **Step 4: Update `toBackend` to re-emit reservedMeta first**
@@ -196,7 +200,7 @@ Then add `reservedMeta` to the returned object (after `attrs`):
 In `toBackend` (line 130), change the attribute seed so reserved meta is restored before structured meta and visible attrs:
 
 ```ts
-    const attributes: Record<string, unknown> = { ...(e.reservedMeta ?? {}), ...e.attrs };
+const attributes: Record<string, unknown> = { ...(e.reservedMeta ?? {}), ...e.attrs };
 ```
 
 Leave the rest of `toBackend` (the `_kind`/`_source`/`_displayName`/`_importedAt` assignments) unchanged.
@@ -225,6 +229,7 @@ git commit -m "fix(authz-ui): preserve unmapped meta keys and set attributes on 
 This module is the single source of truth for the PDP serialization contract. It is pure (no React) and fully unit-tested.
 
 **Files:**
+
 - Create: `src/main/ui/shared/attribute-codec.ts`
 - Test: `src/main/ui/shared/__tests__/attribute-codec.test.ts`
 
@@ -338,7 +343,18 @@ import type { AttrValue } from './entity.types';
 
 export type AttrType = 'string' | 'integer' | 'boolean' | 'set' | 'decimal' | 'timestamp' | 'duration' | 'ip' | 'cidr' | 'enum';
 
-export const ATTR_TYPES: readonly AttrType[] = ['string', 'integer', 'boolean', 'set', 'decimal', 'timestamp', 'duration', 'ip', 'cidr', 'enum'];
+export const ATTR_TYPES: readonly AttrType[] = [
+    'string',
+    'integer',
+    'boolean',
+    'set',
+    'decimal',
+    'timestamp',
+    'duration',
+    'ip',
+    'cidr',
+    'enum',
+];
 
 export const ATTR_TYPE_LABELS: Record<AttrType, string> = {
     string: 'String',
@@ -419,11 +435,17 @@ export function coerce(type: AttrType, raw: string | readonly string[]): CoerceR
         }
         case 'decimal':
             // Stored as a STRING: PDP toValue has no Double branch and would drop a JS number.
-            return DECIMAL_RE.test(s) ? { ok: true, value: s } : { ok: false, error: 'Must be a decimal number; use decimal(...) in policies.' };
+            return DECIMAL_RE.test(s)
+                ? { ok: true, value: s }
+                : { ok: false, error: 'Must be a decimal number; use decimal(...) in policies.' };
         case 'timestamp':
-            return ISO_TS_RE.test(s) ? { ok: true, value: s } : { ok: false, error: 'Must be ISO-8601 (e.g. 2026-05-30T12:00:00Z); wrap with datetime(...).' };
+            return ISO_TS_RE.test(s)
+                ? { ok: true, value: s }
+                : { ok: false, error: 'Must be ISO-8601 (e.g. 2026-05-30T12:00:00Z); wrap with datetime(...).' };
         case 'duration':
-            return DURATION_RE.test(s) ? { ok: true, value: s } : { ok: false, error: 'Must be a duration like 30s, 5m, 2h; wrap with duration(...).' };
+            return DURATION_RE.test(s)
+                ? { ok: true, value: s }
+                : { ok: false, error: 'Must be a duration like 30s, 5m, 2h; wrap with duration(...).' };
         case 'ip':
             return isIp(s) ? { ok: true, value: s } : { ok: false, error: 'Must be a valid IPv4/IPv6 address; wrap with ip(...).' };
         case 'cidr': {
@@ -474,6 +496,7 @@ git commit -m "feat(authz-ui): add attribute-codec with PDP-safe type coercion"
 Presentational. Owns no API. Receives rows + `onChange`; validates via the codec; renders a value widget per type; supports read-only (catalog) mode.
 
 **Files:**
+
 - Create: `src/main/ui/features/policy-structure/AttributeEditor.tsx`
 - Test: `src/main/ui/features/policy-structure/__tests__/AttributeEditor.test.tsx`
 
@@ -625,7 +648,10 @@ export function AttributeEditor({ value, onChange, readOnly = false, keySuggesti
                 ))}
             </datalist>
             {value.map(r => {
-                const keyError = validateKey(r.key, value.filter(o => o.id !== r.id).map(o => o.key));
+                const keyError = validateKey(
+                    r.key,
+                    value.filter(o => o.id !== r.id).map(o => o.key),
+                );
                 const coerced = coerce(r.type, r.raw);
                 const valueError = !coerced.ok ? coerced.error : null;
                 const warning = coerced.ok ? coerced.warning : undefined;
@@ -687,7 +713,15 @@ export function AttributeEditor({ value, onChange, readOnly = false, keySuggesti
     );
 }
 
-function AttributeValueInput({ row, onRawChange, invalid }: { row: AttributeRow; onRawChange: (raw: string | string[]) => void; invalid: boolean }) {
+function AttributeValueInput({
+    row,
+    onRawChange,
+    invalid,
+}: {
+    row: AttributeRow;
+    onRawChange: (raw: string | string[]) => void;
+    invalid: boolean;
+}) {
     if (row.type === 'boolean') {
         const checked = row.raw === 'true' || row.raw === true.toString();
         return (
@@ -749,6 +783,7 @@ git commit -m "feat(authz-ui): add typed AttributeEditor component"
 Add a helper to convert between `AttributeRow[]` and the backend attribute map, seed rows on open, render the editor (read-only for non-local), and merge coerced rows on submit while preserving meta + unknown attrs.
 
 **Files:**
+
 - Create: `src/main/ui/features/policy-structure/attribute-rows.ts` (shared row↔map helpers)
 - Test: `src/main/ui/features/policy-structure/__tests__/attribute-rows.test.ts`
 - Modify: `src/main/ui/features/policy-structure/EditEntityDialog.tsx`
@@ -849,23 +884,23 @@ Expected: PASS.
 Append to `__tests__/EditEntityDialog.test.tsx` a test inside the existing `describe('EditEntityDialog', ...)` block. The existing `aliceEntity()` has `attrs: { department: 'engineering', email: 'alice@example.io', description: 'Eng lead' }`. Add:
 
 ```tsx
-    it('edits an attribute value and sends the typed map (preserving others)', async () => {
-        const user = userEvent.setup();
-        renderDialog();
+it('edits an attribute value and sends the typed map (preserving others)', async () => {
+    const user = userEvent.setup();
+    renderDialog();
 
-        // department is an existing string attribute → edit it via the attribute editor.
-        const deptValue = screen.getAllByLabelText(/Attribute value/i).find(el => (el as HTMLInputElement).value === 'engineering');
-        expect(deptValue).toBeTruthy();
-        await user.clear(deptValue as HTMLElement);
-        await user.type(deptValue as HTMLElement, 'platform');
-        await user.click(screen.getByRole('button', { name: /Save changes/i }));
+    // department is an existing string attribute → edit it via the attribute editor.
+    const deptValue = screen.getAllByLabelText(/Attribute value/i).find(el => (el as HTMLInputElement).value === 'engineering');
+    expect(deptValue).toBeTruthy();
+    await user.clear(deptValue as HTMLElement);
+    await user.type(deptValue as HTMLElement, 'platform');
+    await user.click(screen.getByRole('button', { name: /Save changes/i }));
 
-        await waitFor(() => expect(updateEntitySpy).toHaveBeenCalledTimes(1));
-        const attrs = (updateEntitySpy.mock.calls[0][2] as { attributes: Record<string, unknown> }).attributes;
-        expect(attrs.department).toBe('platform');
-        expect(attrs.email).toBe('alice@example.io');
-        expect(attrs._displayName).toBe('Alice');
-    });
+    await waitFor(() => expect(updateEntitySpy).toHaveBeenCalledTimes(1));
+    const attrs = (updateEntitySpy.mock.calls[0][2] as { attributes: Record<string, unknown> }).attributes;
+    expect(attrs.department).toBe('platform');
+    expect(attrs.email).toBe('alice@example.io');
+    expect(attrs._displayName).toBe('Alice');
+});
 ```
 
 - [ ] **Step 6: Run to verify failure**
@@ -878,24 +913,29 @@ Expected: FAIL — no "Attribute value" inputs yet (editor not embedded).
 In `EditEntityDialog.tsx`:
 
 1. Add imports:
+
 ```ts
 import { AttributeEditor, type AttributeRow } from './AttributeEditor';
 import { attrsFromRows, rowsFromAttrs } from './attribute-rows';
 import { useEntities } from '../../shared/hooks/useEntities';
 ```
+
 (If `useEntities` is already imported for parents, do not duplicate.)
 
 2. Add state next to the other `useState` hooks:
+
 ```ts
 const [attrRows, setAttrRows] = useState<AttributeRow[]>([]);
 ```
 
 3. In the re-seed `useEffect([open, entity])`, after the existing seeds, add:
+
 ```ts
 setAttrRows(rowsFromAttrs(entity.attrs));
 ```
 
 4. Replace the submit attribute construction. The current `handleSubmit` builds `attributes` from `toBackend(entity).attributes` then overrides `_displayName`/`description`. Change it to also merge the editor rows and to fail closed on a bad row:
+
 ```ts
 const rowsResult = attrsFromRows(attrRows);
 if (rowsResult.error) {
@@ -914,23 +954,18 @@ const trimmedDescription = description.trim();
 if (trimmedDescription) attributes.description = trimmedDescription;
 else delete attributes.description;
 ```
+
 Keep the rest of `handleSubmit` (the `updateEntity` call, toast, error handling) unchanged.
 
 5. Render the editor in the form, after the Parents block:
+
 ```tsx
 <div className="flex flex-col gap-1.5">
     <Label>
         Attributes <span className="text-xs text-muted-foreground">(optional)</span>
     </Label>
-    <AttributeEditor
-        value={attrRows}
-        onChange={setAttrRows}
-        readOnly={entity?.source !== 'local'}
-        keySuggestions={[]}
-    />
-    {entity?.source !== 'local' && (
-        <p className="text-xs text-muted-foreground">Attributes are managed by the source and are read-only.</p>
-    )}
+    <AttributeEditor value={attrRows} onChange={setAttrRows} readOnly={entity?.source !== 'local'} keySuggestions={[]} />
+    {entity?.source !== 'local' && <p className="text-xs text-muted-foreground">Attributes are managed by the source and are read-only.</p>}
 </div>
 ```
 
@@ -955,6 +990,7 @@ git commit -m "feat(authz-ui): edit entity attributes via typed editor"
 ## Task 6: Integrate into `CreateEntityDialog`
 
 **Files:**
+
 - Modify: `src/main/ui/features/policy-structure/CreateEntityDialog.tsx`
 - Modify: `src/main/ui/features/policy-structure/__tests__/CreateEntityDialog.test.tsx`
 
@@ -963,23 +999,23 @@ git commit -m "feat(authz-ui): edit entity attributes via typed editor"
 Append to the existing `CreateEntityDialog` test describe a test that fills name + slug, adds an attribute, and asserts the create payload. Match the existing test file's render helper and mocks (it mocks `authzApiService.createEntity` and `getEntity`). Add:
 
 ```tsx
-    it('includes a typed attribute in the create payload', async () => {
-        const user = userEvent.setup();
-        renderDialog('PRINCIPAL'); // existing helper; adjust name to match the file
+it('includes a typed attribute in the create payload', async () => {
+    const user = userEvent.setup();
+    renderDialog('PRINCIPAL'); // existing helper; adjust name to match the file
 
-        await user.type(screen.getByLabelText(/Display name/i), 'Alice');
-        // slug auto-derives to "alice"
-        await user.click(screen.getByRole('button', { name: /Add attribute/i }));
-        await user.type(screen.getByLabelText(/Attribute key/i), 'clearance');
-        await user.selectOptions(screen.getByLabelText(/Attribute type/i), 'integer'); // if Select is native; else open + click 'Integer'
-        await user.type(screen.getByLabelText(/Attribute value/i), '3');
-        await user.click(screen.getByRole('button', { name: /Create Principal/i }));
+    await user.type(screen.getByLabelText(/Display name/i), 'Alice');
+    // slug auto-derives to "alice"
+    await user.click(screen.getByRole('button', { name: /Add attribute/i }));
+    await user.type(screen.getByLabelText(/Attribute key/i), 'clearance');
+    await user.selectOptions(screen.getByLabelText(/Attribute type/i), 'integer'); // if Select is native; else open + click 'Integer'
+    await user.type(screen.getByLabelText(/Attribute value/i), '3');
+    await user.click(screen.getByRole('button', { name: /Create Principal/i }));
 
-        await waitFor(() => expect(createEntitySpy).toHaveBeenCalledTimes(1));
-        const payload = createEntitySpy.mock.calls[0][1] as { attributes: Record<string, unknown> };
-        expect(payload.attributes.clearance).toBe(3);
-        expect(payload.attributes._displayName).toBe('Alice');
-    });
+    await waitFor(() => expect(createEntitySpy).toHaveBeenCalledTimes(1));
+    const payload = createEntitySpy.mock.calls[0][1] as { attributes: Record<string, unknown> };
+    expect(payload.attributes.clearance).toBe(3);
+    expect(payload.attributes._displayName).toBe('Alice');
+});
 ```
 
 > The graphene `Select` is not a native `<select>`, so `selectOptions` will not work. Instead open it and click the option: `await user.click(screen.getByLabelText(/Attribute type/i)); await user.click(screen.getByRole('option', { name: 'Integer' }));`. Use whichever the existing tests in this file already use for the Type select, to stay consistent.
@@ -992,12 +1028,14 @@ Expected: FAIL — no attribute editor present.
 - [ ] **Step 3: Embed the editor in `CreateEntityDialog`**
 
 1. Add imports:
+
 ```ts
 import { AttributeEditor, type AttributeRow } from './AttributeEditor';
 import { attrsFromRows } from './attribute-rows';
 ```
 
 2. Add state with the other hooks:
+
 ```ts
 const [attrRows, setAttrRows] = useState<AttributeRow[]>([]);
 ```
@@ -1005,6 +1043,7 @@ const [attrRows, setAttrRows] = useState<AttributeRow[]>([]);
 3. In the reset `useEffect(!open)`, add: `setAttrRows([]);`
 
 4. In `handleSubmit`, replace the attribute construction (lines 184-188) with:
+
 ```ts
 const rowsResult = attrsFromRows(attrRows);
 if (rowsResult.error) {
@@ -1021,6 +1060,7 @@ if (trimmedDescription) attributes.description = trimmedDescription;
 ```
 
 5. Render the editor after the Parents block (before the closing `</div>` of the scroll area):
+
 ```tsx
 <div className="flex flex-col gap-1.5">
     <Label>
@@ -1049,11 +1089,13 @@ git commit -m "feat(authz-ui): set entity attributes when creating an entity"
 Give the editor real key/type hints from the schema viewer's derived attributes for the entity's kind, so operators reuse existing names.
 
 **Files:**
+
 - Modify: `src/main/ui/features/policy-structure/EditEntityDialog.tsx` and `CreateEntityDialog.tsx`
 
 - [ ] **Step 1: Derive suggestions from `useSchema`**
 
 In each dialog, read the schema and compute the attribute-key list for the current entity kind:
+
 ```ts
 import { useSchema } from '../../shared/hooks/useSchema';
 import { parseGaplSchema } from '../../shared/gapl-parser';
@@ -1066,6 +1108,7 @@ const keySuggestions = useMemo(() => {
     return Array.from(names).sort();
 }, [schema?.schemaText]);
 ```
+
 Pass `keySuggestions={keySuggestions}` to `<AttributeEditor>` in both dialogs.
 
 > Verify the `useSchema` return shape and `parseGaplSchema` export against `src/main/ui/shared/hooks/useSchema.ts` and `src/main/ui/shared/gapl-parser.ts` (used by `SchemaPage.tsx`). If `ParsedEntity.attributes` items are not `{ name }`, adjust the accessor to match the parser's type.
