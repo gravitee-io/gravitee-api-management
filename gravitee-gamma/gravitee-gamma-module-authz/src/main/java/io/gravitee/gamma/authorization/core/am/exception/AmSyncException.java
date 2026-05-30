@@ -13,10 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.authorization.am;
+package io.gravitee.gamma.authorization.core.am.exception;
 
-public enum AmSyncStatus {
-    RUNNING,
-    COMPLETED,
-    FAILED,
+import io.gravitee.apim.core.exception.TechnicalDomainException;
+
+/**
+ * Wraps a failure contacting AM's management API during a user sync. The sync runs on a worker
+ * thread, so this surfaces as a FAILED {@code AmSyncJobState} rather than an HTTP error.
+ */
+public class AmSyncException extends TechnicalDomainException {
+
+    public AmSyncException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

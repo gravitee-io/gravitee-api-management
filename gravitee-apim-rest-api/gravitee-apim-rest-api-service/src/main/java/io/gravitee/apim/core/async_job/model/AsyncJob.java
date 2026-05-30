@@ -79,6 +79,7 @@ public class AsyncJob {
     public enum Type {
         FEDERATED_APIS_INGESTION,
         SCORING_REQUEST,
+        AM_USER_SYNC,
     }
 
     public AsyncJob complete() {

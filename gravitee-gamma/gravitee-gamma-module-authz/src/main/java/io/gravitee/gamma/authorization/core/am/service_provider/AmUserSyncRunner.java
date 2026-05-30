@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.authorization.rest.dto;
+package io.gravitee.gamma.authorization.core.am.service_provider;
 
 import io.gravitee.apim.core.async_job.model.AsyncJob;
+import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
+import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 
-public record AmSyncStartResponse(String jobId, String status) {
-    public static AmSyncStartResponse from(AsyncJob job) {
-        return new AmSyncStartResponse(job.getId(), job.getStatus().name());
-    }
+/**
+ * Port that runs a created (PENDING) AM user-sync {@link AsyncJob} on a background worker and
+ * transitions it to SUCCESS/ERROR when done. The infra implementation owns the worker pool; the
+ * sync work itself stays in the core use case it invokes.
+ */
+public interface AmUserSyncRunner {
+    void runAsync(AsyncJob job, AuthzCallerContext caller, AmConnection connection);
 }

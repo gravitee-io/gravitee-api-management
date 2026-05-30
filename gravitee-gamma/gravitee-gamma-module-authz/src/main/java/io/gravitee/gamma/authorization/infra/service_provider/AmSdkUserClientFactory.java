@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.authorization.am;
+package io.gravitee.gamma.authorization.infra.service_provider;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
 import io.gravitee.am.sdk.management.api.UserApi;
 import io.gravitee.am.sdk.management.api.UserApiImpl;
 import io.gravitee.am.sdk.management.invoker.ApiClient;
+import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import java.io.IOException;

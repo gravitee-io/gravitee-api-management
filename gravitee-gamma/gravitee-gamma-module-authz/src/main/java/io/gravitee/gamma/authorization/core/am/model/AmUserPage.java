@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.authorization.rest.dto;
+package io.gravitee.gamma.authorization.core.am.model;
 
-import io.gravitee.apim.core.async_job.model.AsyncJob;
+import java.util.List;
 
-public record AmSyncStartResponse(String jobId, String status) {
-    public static AmSyncStartResponse from(AsyncJob job) {
-        return new AmSyncStartResponse(job.getId(), job.getStatus().name());
-    }
-}
+/** One page of AM users plus the domain's total user count, used to drive pagination. */
+public record AmUserPage(List<AmUser> users, long totalCount) {}

@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.authorization.am;
+package io.gravitee.gamma.authorization.core.am.service_provider;
+
+import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
+import io.gravitee.gamma.authorization.core.am.model.AmUserPage;
 
 /**
- * Thrown when a user sync is requested for an organization that already has one running.
- * The REST boundary translates this to {@code 409 Conflict}.
+ * Port for paging users out of an AM domain. The infra implementation owns the AM SDK details
+ * (client construction, default org/env scoping, timestamp handling).
  */
-public class AmSyncConflictException extends RuntimeException {
-
-    public AmSyncConflictException(String organizationId) {
-        super("A user sync is already running for organization " + organizationId);
-    }
+public interface AmUserClient {
+    AmUserPage fetchUsers(AmConnection connection, int page, int size);
 }

@@ -49,7 +49,7 @@ export function useUserSync(environmentId: string): UseUserSyncResult {
         },
         enabled: Boolean(environmentId),
         // Poll while a sync is in flight; stop once it settles.
-        refetchInterval: query => (query.state.data?.status === 'RUNNING' ? 2000 : false),
+        refetchInterval: query => (query.state.data?.status === 'PENDING' ? 2000 : false),
     });
 
     const startMutation = useMutation({

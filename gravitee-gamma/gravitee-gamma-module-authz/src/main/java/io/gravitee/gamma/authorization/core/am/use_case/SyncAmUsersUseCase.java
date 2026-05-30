@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.authorization.am;
+package io.gravitee.gamma.authorization.core.am.use_case;
 
 import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
-import io.gravitee.am.sdk.management.api.UserApi;
-import io.gravitee.am.sdk.management.model.User;
-import io.gravitee.am.sdk.management.model.UserPage;
 import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 import io.gravitee.gamma.authorization.api.AuthzEntityAdminApi;
+import io.gravitee.gamma.authorization.core.am.model.AmUser;
+import io.gravitee.gamma.authorization.core.am.model.AmUserPage;
+import io.gravitee.gamma.authorization.core.am.service_provider.AmUserClient;
 import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
 import io.gravitee.gamma.authorization.service.CreateOrReplaceAuthzEntityCommand;
 import java.nio.charset.StandardCharsets;
@@ -33,31 +33,29 @@ import java.util.UUID;
 /**
  * Pages every user out of the AM domain on the connection and upserts each as a PRINCIPAL authz
  * entity via {@link AuthzEntityAdminApi#bulkUpsert}. Upsert-only: users removed in AM are left as
- * stale entities. Runs on a worker thread (see {@link AmSyncJobManager}).
+ * stale entities. Invoked on a worker thread by the infra job manager.
  */
-public class AmUserSyncOrchestrator {
+public class SyncAmUsersUseCase {
 
-    // AM resolves the domain by id alone; org/env only scope the service-account permission check,
-    // so the well-known default AM org/env are used (see plan: AM UsersResource#list).
-    static final String AM_DEFAULT_ORGANIZATION = "DEFAULT";
-    static final String AM_DEFAULT_ENVIRONMENT = "DEFAULT";
     static final String SOURCE = "gravitee_am";
     static final int PAGE_SIZE = 1000;
     static final int BATCH_SIZE = 500;
 
-    private final AmSdkUserClientFactory clientFactory;
+    private final AmUserClient amUserClient;
     private final AuthzEntityAdminApi authzEntityAdminApi;
 
-    public AmUserSyncOrchestrator(AmSdkUserClientFactory clientFactory, AuthzEntityAdminApi authzEntityAdminApi) {
-        this.clientFactory = clientFactory;
+    public SyncAmUsersUseCase(AmUserClient amUserClient, AuthzEntityAdminApi authzEntityAdminApi) {
+        this.amUserClient = amUserClient;
         this.authzEntityAdminApi = authzEntityAdminApi;
     }
 
-    public record Result(int usersFetched, int entitiesUpserted) {}
+    public record Input(AuthzCallerContext caller, AmConnection connection) {}
 
-    public Result run(AuthzCallerContext caller, AmConnection connection) {
-        UserApi userApi = clientFactory.userApi(connection);
-        String domainId = connection.defaultDomainId();
+    public record Output(int usersFetched, int entitiesUpserted) {}
+
+    public Output execute(Input input) {
+        AuthzCallerContext caller = input.caller();
+        AmConnection connection = input.connection();
 
         int page = 0;
         int usersFetched = 0;
@@ -65,28 +63,24 @@ public class AmUserSyncOrchestrator {
         List<CreateOrReplaceAuthzEntityCommand> batch = new ArrayList<>();
 
         while (true) {
-            UserPage userPage = AmSdkInvocations.await(
-                userApi.listUsers(AM_DEFAULT_ORGANIZATION, AM_DEFAULT_ENVIRONMENT, domainId, null, null, page, PAGE_SIZE)
-            );
-            List<User> data = userPage.getData() == null ? List.of() : userPage.getData();
-            if (data.isEmpty()) {
+            AmUserPage userPage = amUserClient.fetchUsers(connection, page, PAGE_SIZE);
+            if (userPage.users().isEmpty()) {
                 break;
             }
-            for (User user : data) {
+            for (AmUser user : userPage.users()) {
                 usersFetched++;
                 batch.add(toCommand(caller.environmentId(), user));
                 if (batch.size() >= BATCH_SIZE) {
                     entitiesUpserted += flush(caller, batch);
                 }
             }
-            long totalCount = userPage.getTotalCount() == null ? 0 : userPage.getTotalCount();
-            if (usersFetched >= totalCount) {
+            if (usersFetched >= userPage.totalCount()) {
                 break;
             }
             page++;
         }
         entitiesUpserted += flush(caller, batch);
-        return new Result(usersFetched, entitiesUpserted);
+        return new Output(usersFetched, entitiesUpserted);
     }
 
     private int flush(AuthzCallerContext caller, List<CreateOrReplaceAuthzEntityCommand> batch) {
@@ -99,20 +93,20 @@ public class AmUserSyncOrchestrator {
         return count;
     }
 
-    private CreateOrReplaceAuthzEntityCommand toCommand(String environmentId, User user) {
+    private CreateOrReplaceAuthzEntityCommand toCommand(String environmentId, AmUser user) {
         // Map.copyOf (inside the command) rejects null values, so only put attributes AM populated.
         Map<String, Object> attributes = new LinkedHashMap<>();
-        if (user.getEmail() != null) {
-            attributes.put("email", user.getEmail());
+        if (user.email() != null) {
+            attributes.put("email", user.email());
         }
-        if (user.getUsername() != null) {
-            attributes.put("username", user.getUsername());
+        if (user.username() != null) {
+            attributes.put("username", user.username());
         }
-        if (user.getDisplayName() != null) {
-            attributes.put("displayName", user.getDisplayName());
+        if (user.displayName() != null) {
+            attributes.put("displayName", user.displayName());
         }
-        if (user.getEnabled() != null) {
-            attributes.put("enabled", user.getEnabled());
+        if (user.enabled() != null) {
+            attributes.put("enabled", user.enabled());
         }
         return new CreateOrReplaceAuthzEntityCommand(environmentId, computeSub(user), AuthzEntityKind.PRINCIPAL, attributes, List.of(), SOURCE);
     }
@@ -121,11 +115,11 @@ public class AmUserSyncOrchestrator {
     // "source:externalId", not the user id. PRINCIPAL entities must be keyed on that `sub` for the
     // PEP's Principal::"<sub>" to match at eval time. When source is absent (extension-grant users,
     // and V1 domains) AM falls back to the user id.
-    static String computeSub(User user) {
-        if (user.getSource() == null) {
-            return user.getId();
+    static String computeSub(AmUser user) {
+        if (user.source() == null) {
+            return user.id();
         }
-        String internalSub = user.getSource() + ":" + user.getExternalId();
+        String internalSub = user.source() + ":" + user.externalId();
         return UUID.nameUUIDFromBytes(internalSub.getBytes(StandardCharsets.UTF_8)).toString();
     }
 }

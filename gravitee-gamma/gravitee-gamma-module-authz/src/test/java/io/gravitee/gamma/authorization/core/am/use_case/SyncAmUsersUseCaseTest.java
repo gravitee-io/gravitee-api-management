@@ -13,26 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.authorization.am;
+package io.gravitee.gamma.authorization.core.am.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.am.sdk.management.api.UserApi;
-import io.gravitee.am.sdk.management.model.User;
-import io.gravitee.am.sdk.management.model.UserPage;
 import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
 import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 import io.gravitee.gamma.authorization.api.AuthzEntityAdminApi;
+import io.gravitee.gamma.authorization.core.am.exception.AmSyncException;
+import io.gravitee.gamma.authorization.core.am.model.AmUser;
+import io.gravitee.gamma.authorization.core.am.model.AmUserPage;
+import io.gravitee.gamma.authorization.core.am.service_provider.AmUserClient;
 import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
 import io.gravitee.gamma.authorization.service.CreateOrReplaceAuthzEntityCommand;
-import io.vertx.core.Future;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,36 +43,36 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class AmUserSyncOrchestratorTest {
+class SyncAmUsersUseCaseTest {
 
     private static final AuthzCallerContext CALLER = AuthzCallerContext.ofUser("org-1", "env-1", "user-1");
     private static final AmConnection CONNECTION = new AmConnection("http://am:8093", "token", "domain-1", "domain-hrid", null);
 
-    private AmSdkUserClientFactory clientFactory;
-    private UserApi userApi;
+    private AmUserClient amUserClient;
     private AuthzEntityAdminApi authzEntityAdminApi;
-    private AmUserSyncOrchestrator orchestrator;
+    private SyncAmUsersUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        clientFactory = mock(AmSdkUserClientFactory.class);
-        userApi = mock(UserApi.class);
+        amUserClient = mock(AmUserClient.class);
         authzEntityAdminApi = mock(AuthzEntityAdminApi.class);
-        when(clientFactory.userApi(CONNECTION)).thenReturn(userApi);
-        orchestrator = new AmUserSyncOrchestrator(clientFactory, authzEntityAdminApi);
+        useCase = new SyncAmUsersUseCase(amUserClient, authzEntityAdminApi);
     }
 
-    private void stubPage(int page, UserPage userPage) {
-        when(userApi.listUsers(eq("DEFAULT"), eq("DEFAULT"), eq("domain-1"), isNull(), isNull(), eq(page), eq(1000)))
-            .thenReturn(Future.succeededFuture(userPage));
+    private SyncAmUsersUseCase.Output run() {
+        return useCase.execute(new SyncAmUsersUseCase.Input(CALLER, CONNECTION));
     }
 
-    private static User user(String id, String username, String email, String displayName, Boolean enabled) {
-        return new User().id(id).username(username).email(email).displayName(displayName).enabled(enabled);
+    private void stubPage(int page, AmUserPage userPage) {
+        when(amUserClient.fetchUsers(eq(CONNECTION), eq(page), eq(1000))).thenReturn(userPage);
     }
 
-    private static UserPage page(long totalCount, User... users) {
-        return new UserPage().data(List.of(users)).totalCount(totalCount).currentPage(0);
+    private static AmUser user(String id, String username, String email, String displayName, Boolean enabled) {
+        return new AmUser(id, null, null, email, username, displayName, enabled);
+    }
+
+    private static AmUserPage page(long totalCount, AmUser... users) {
+        return new AmUserPage(List.of(users), totalCount);
     }
 
     @SuppressWarnings("unchecked")
@@ -85,9 +86,9 @@ class AmUserSyncOrchestratorTest {
     void maps_each_am_user_to_a_principal_entity() {
         stubPage(0, page(2, user("sub-1", "alice", "alice@corp.io", "Alice", true), user("sub-2", "bob", "bob@corp.io", "Bob", false)));
 
-        AmUserSyncOrchestrator.Result result = orchestrator.run(CALLER, CONNECTION);
+        SyncAmUsersUseCase.Output result = run();
 
-        assertThat(result).isEqualTo(new AmUserSyncOrchestrator.Result(2, 2));
+        assertThat(result).isEqualTo(new SyncAmUsersUseCase.Output(2, 2));
         List<CreateOrReplaceAuthzEntityCommand> commands = captureSingleBulkUpsert();
         assertThat(commands).hasSize(2);
         CreateOrReplaceAuthzEntityCommand first = commands.get(0);
@@ -106,10 +107,10 @@ class AmUserSyncOrchestratorTest {
     @Test
     void keys_the_entity_on_the_token_sub_when_source_is_present() {
         // AM V2 issues sub = MD5-UUID("source:externalId"); the entity must be keyed on that, not the user id.
-        User user = user("internal-id", "alice", null, null, null).externalId("ext-42").source("github");
+        AmUser user = new AmUser("internal-id", "github", "ext-42", null, "alice", null, null);
         stubPage(0, page(1, user));
 
-        orchestrator.run(CALLER, CONNECTION);
+        run();
 
         String expectedSub = java.util.UUID.nameUUIDFromBytes("github:ext-42".getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString();
         List<CreateOrReplaceAuthzEntityCommand> commands = captureSingleBulkUpsert();
@@ -120,7 +121,7 @@ class AmUserSyncOrchestratorTest {
     void omits_attributes_that_am_did_not_populate() {
         stubPage(0, page(1, user("sub-1", "alice", null, null, null)));
 
-        orchestrator.run(CALLER, CONNECTION);
+        run();
 
         List<CreateOrReplaceAuthzEntityCommand> commands = captureSingleBulkUpsert();
         assertThat(commands.get(0).attributes()).containsOnlyKeys("username");
@@ -128,49 +129,48 @@ class AmUserSyncOrchestratorTest {
 
     @Test
     void pages_through_all_users_until_total_count_is_reached() {
-        stubPage(0, new UserPage().data(List.of(user("sub-1", "a", null, null, null), user("sub-2", "b", null, null, null))).totalCount(3L));
-        stubPage(1, new UserPage().data(List.of(user("sub-3", "c", null, null, null))).totalCount(3L));
+        stubPage(0, new AmUserPage(List.of(user("sub-1", "a", null, null, null), user("sub-2", "b", null, null, null)), 3L));
+        stubPage(1, new AmUserPage(List.of(user("sub-3", "c", null, null, null)), 3L));
 
-        AmUserSyncOrchestrator.Result result = orchestrator.run(CALLER, CONNECTION);
+        SyncAmUsersUseCase.Output result = run();
 
         assertThat(result.usersFetched()).isEqualTo(3);
-        verify(userApi).listUsers(eq("DEFAULT"), eq("DEFAULT"), eq("domain-1"), isNull(), isNull(), eq(0), eq(1000));
-        verify(userApi).listUsers(eq("DEFAULT"), eq("DEFAULT"), eq("domain-1"), isNull(), isNull(), eq(1), eq(1000));
+        verify(amUserClient).fetchUsers(eq(CONNECTION), eq(0), eq(1000));
+        verify(amUserClient).fetchUsers(eq(CONNECTION), eq(1), eq(1000));
     }
 
     @Test
     void stops_and_upserts_nothing_when_the_domain_has_no_users() {
         stubPage(0, page(0));
 
-        AmUserSyncOrchestrator.Result result = orchestrator.run(CALLER, CONNECTION);
+        SyncAmUsersUseCase.Output result = run();
 
-        assertThat(result).isEqualTo(new AmUserSyncOrchestrator.Result(0, 0));
+        assertThat(result).isEqualTo(new SyncAmUsersUseCase.Output(0, 0));
         verify(authzEntityAdminApi, never()).bulkUpsert(any(), any());
     }
 
     @Test
     void flushes_in_batches_of_500() {
-        List<User> users = new ArrayList<>();
+        List<AmUser> users = new ArrayList<>();
         for (int i = 0; i < 600; i++) {
             users.add(user("sub-" + i, "user-" + i, null, null, null));
         }
-        when(userApi.listUsers(eq("DEFAULT"), eq("DEFAULT"), eq("domain-1"), isNull(), isNull(), eq(0), eq(1000)))
-            .thenReturn(Future.succeededFuture(new UserPage().data(users).totalCount(600L)));
+        stubPage(0, new AmUserPage(users, 600L));
 
-        AmUserSyncOrchestrator.Result result = orchestrator.run(CALLER, CONNECTION);
+        SyncAmUsersUseCase.Output result = run();
 
-        assertThat(result).isEqualTo(new AmUserSyncOrchestrator.Result(600, 600));
+        assertThat(result).isEqualTo(new SyncAmUsersUseCase.Output(600, 600));
         ArgumentCaptor<List<CreateOrReplaceAuthzEntityCommand>> captor = ArgumentCaptor.forClass(List.class);
-        verify(authzEntityAdminApi, org.mockito.Mockito.times(2)).bulkUpsert(eq(CALLER), captor.capture());
+        verify(authzEntityAdminApi, times(2)).bulkUpsert(eq(CALLER), captor.capture());
         assertThat(captor.getAllValues().get(0)).hasSize(500);
         assertThat(captor.getAllValues().get(1)).hasSize(100);
     }
 
     @Test
     void surfaces_an_upstream_failure_as_an_am_sync_exception() {
-        when(userApi.listUsers(eq("DEFAULT"), eq("DEFAULT"), eq("domain-1"), isNull(), isNull(), eq(0), eq(1000)))
-            .thenReturn(Future.failedFuture(new RuntimeException("boom")));
+        when(amUserClient.fetchUsers(eq(CONNECTION), eq(0), eq(1000)))
+            .thenThrow(new AmSyncException("Access Management request failed: boom", new RuntimeException("boom")));
 
-        org.assertj.core.api.Assertions.assertThatThrownBy(() -> orchestrator.run(CALLER, CONNECTION)).isInstanceOf(AmSyncException.class);
+        assertThatThrownBy(this::run).isInstanceOf(AmSyncException.class);
     }
 }

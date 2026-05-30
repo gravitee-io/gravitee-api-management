@@ -78,18 +78,18 @@ export interface ValidationErrorResponse {
     readonly errors: readonly string[];
 }
 
-export type AmSyncStatus = 'RUNNING' | 'COMPLETED' | 'FAILED';
+// Mirrors io.gravitee.apim.core.async_job.model.AsyncJob.Status. PENDING is in-flight.
+export type AmSyncStatus = 'PENDING' | 'SUCCESS' | 'ERROR' | 'TIMEOUT';
 
 export interface AmSyncStartResponse {
     readonly jobId: string;
-    readonly status: string;
+    readonly status: AmSyncStatus;
 }
 
 export interface AmSyncStatusResponse {
     readonly jobId: string;
     readonly status: AmSyncStatus;
-    readonly usersFetched: number;
-    readonly entitiesUpserted: number;
+    readonly entitiesUpserted: number | null;
     readonly error: string | null;
     readonly completedAt: string | null;
 }
