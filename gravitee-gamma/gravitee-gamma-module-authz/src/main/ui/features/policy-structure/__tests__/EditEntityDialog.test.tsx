@@ -160,6 +160,24 @@ describe('EditEntityDialog', () => {
         expect(attrs._displayName).toBe('Alice');
     });
 
+    it('edits an attribute value and sends the typed map (preserving others)', async () => {
+        const user = userEvent.setup();
+        renderDialog();
+
+        // department is an existing string attribute → edit it via the attribute editor.
+        const deptValue = screen.getAllByLabelText(/Attribute value/i).find(el => (el as HTMLInputElement).value === 'engineering');
+        expect(deptValue).toBeTruthy();
+        await user.clear(deptValue as HTMLElement);
+        await user.type(deptValue as HTMLElement, 'platform');
+        await user.click(screen.getByRole('button', { name: /Save changes/i }));
+
+        await waitFor(() => expect(updateEntitySpy).toHaveBeenCalledTimes(1));
+        const attrs = (updateEntitySpy.mock.calls[0][2] as { attributes: Record<string, unknown> }).attributes;
+        expect(attrs.department).toBe('platform');
+        expect(attrs.email).toBe('alice@example.io');
+        expect(attrs._displayName).toBe('Alice');
+    });
+
     it('surfaces a backend error and keeps the dialog open', async () => {
         const user = userEvent.setup();
         updateEntitySpy.mockRejectedValueOnce(new Error('entity not found'));
