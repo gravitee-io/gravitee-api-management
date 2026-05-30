@@ -16,12 +16,11 @@
 package io.gravitee.gamma.module.authz.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.async_job.crud_service.AsyncJobCrudService;
+import io.gravitee.apim.core.async_job.query_service.AsyncJobQueryService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.plugin.gamma.api.identity.AmConnectionRepository;
 import io.gravitee.apim.plugin.gamma.api.identity.ApimAmConnectionRepository;
-import io.gravitee.gamma.authorization.am.AmSdkUserClientFactory;
-import io.gravitee.gamma.authorization.am.AmSyncJobManager;
-import io.gravitee.gamma.authorization.am.AmUserSyncOrchestrator;
 import io.gravitee.gamma.authorization.api.AuthzAuditPort;
 import io.gravitee.gamma.authorization.api.AuthzEntityAdminApi;
 import io.gravitee.gamma.authorization.api.AuthzEntityRepository;
@@ -30,9 +29,17 @@ import io.gravitee.gamma.authorization.api.AuthzPolicyAdminApi;
 import io.gravitee.gamma.authorization.api.AuthzPolicyRepository;
 import io.gravitee.gamma.authorization.api.AuthzSchemaAdminApi;
 import io.gravitee.gamma.authorization.audit.ApimAuthzAuditAdapter;
+import io.gravitee.gamma.authorization.core.am.service_provider.AmUserClient;
+import io.gravitee.gamma.authorization.core.am.service_provider.AmUserSyncRunner;
+import io.gravitee.gamma.authorization.core.am.use_case.GetAmUserSyncStatusUseCase;
+import io.gravitee.gamma.authorization.core.am.use_case.StartAmUserSyncUseCase;
+import io.gravitee.gamma.authorization.core.am.use_case.SyncAmUsersUseCase;
 import io.gravitee.gamma.authorization.event.EventRepositoryAuthzEventPublisher;
 import io.gravitee.gamma.authorization.infra.repository.MongoAuthzEntityRepository;
 import io.gravitee.gamma.authorization.infra.repository.MongoAuthzPolicyRepository;
+import io.gravitee.gamma.authorization.infra.service_provider.AmSdkUserClient;
+import io.gravitee.gamma.authorization.infra.service_provider.AmSdkUserClientFactory;
+import io.gravitee.gamma.authorization.infra.service_provider.AmUserSyncRunnerImpl;
 import io.gravitee.gamma.authorization.service.AuthzEntityIdValidator;
 import io.gravitee.gamma.authorization.service.AuthzEntityServiceImpl;
 import io.gravitee.gamma.authorization.service.AuthzPolicyServiceImpl;
@@ -149,15 +156,35 @@ public class SpringConfig {
     }
 
     @Bean
-    public AmUserSyncOrchestrator amUserSyncOrchestrator(
-        AmSdkUserClientFactory amSdkUserClientFactory,
-        @Lazy @Qualifier("entityService") AuthzEntityAdminApi entityService
-    ) {
-        return new AmUserSyncOrchestrator(amSdkUserClientFactory, entityService);
+    public AmUserClient amUserClient(AmSdkUserClientFactory amSdkUserClientFactory) {
+        return new AmSdkUserClient(amSdkUserClientFactory);
     }
 
     @Bean
-    public AmSyncJobManager amSyncJobManager(AmUserSyncOrchestrator amUserSyncOrchestrator) {
-        return new AmSyncJobManager(amUserSyncOrchestrator);
+    public SyncAmUsersUseCase syncAmUsersUseCase(
+        AmUserClient amUserClient,
+        @Lazy @Qualifier("entityService") AuthzEntityAdminApi entityService
+    ) {
+        return new SyncAmUsersUseCase(amUserClient, entityService);
+    }
+
+    @Bean
+    public AmUserSyncRunner amUserSyncRunner(SyncAmUsersUseCase syncAmUsersUseCase, AsyncJobCrudService asyncJobCrudService) {
+        return new AmUserSyncRunnerImpl(syncAmUsersUseCase, asyncJobCrudService);
+    }
+
+    @Bean
+    public StartAmUserSyncUseCase startAmUserSyncUseCase(
+        AsyncJobQueryService asyncJobQueryService,
+        AsyncJobCrudService asyncJobCrudService,
+        @Lazy @Qualifier("amConnectionRepository") AmConnectionRepository amConnectionRepository,
+        AmUserSyncRunner amUserSyncRunner
+    ) {
+        return new StartAmUserSyncUseCase(asyncJobQueryService, asyncJobCrudService, amConnectionRepository, amUserSyncRunner);
+    }
+
+    @Bean
+    public GetAmUserSyncStatusUseCase getAmUserSyncStatusUseCase(AsyncJobQueryService asyncJobQueryService) {
+        return new GetAmUserSyncStatusUseCase(asyncJobQueryService);
     }
 }

@@ -17,22 +17,20 @@ package io.gravitee.gamma.authorization.rest.resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
-import io.gravitee.apim.plugin.gamma.api.identity.AmConnectionRepository;
+import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.plugin.gamma.api.identity.AmNotConfiguredException;
-import io.gravitee.gamma.authorization.am.AmSyncConflictException;
-import io.gravitee.gamma.authorization.am.AmSyncJobManager;
-import io.gravitee.gamma.authorization.am.AmSyncJobState;
+import io.gravitee.gamma.authorization.core.am.exception.AmSyncConflictException;
+import io.gravitee.gamma.authorization.core.am.use_case.GetAmUserSyncStatusUseCase;
+import io.gravitee.gamma.authorization.core.am.use_case.StartAmUserSyncUseCase;
 import io.gravitee.gamma.authorization.rest.dto.AmSyncStartResponse;
 import io.gravitee.gamma.authorization.rest.dto.AmSyncStatusResponse;
 import jakarta.ws.rs.core.Application;
 import jakarta.ws.rs.core.Response;
-import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -46,25 +44,24 @@ class AuthzAmUserSyncResourceTest extends JerseyTest {
 
     // TestGraviteeContextFilter pins the caller organization to this value.
     private static final String ORG = "test-org";
-    private static final AmConnection CONNECTION = new AmConnection("http://am:8093", "token", "domain-1", "domain-hrid", null);
 
-    private AmConnectionRepository amConnectionRepository;
-    private AmSyncJobManager jobManager;
+    private StartAmUserSyncUseCase startAmUserSyncUseCase;
+    private GetAmUserSyncStatusUseCase getAmUserSyncStatusUseCase;
 
     @BeforeEach
     void resetMocks() {
-        reset(amConnectionRepository, jobManager);
+        reset(startAmUserSyncUseCase, getAmUserSyncStatusUseCase);
     }
 
     @Override
     protected Application configure() {
-        amConnectionRepository = mock(AmConnectionRepository.class);
-        jobManager = mock(AmSyncJobManager.class);
+        startAmUserSyncUseCase = mock(StartAmUserSyncUseCase.class);
+        getAmUserSyncStatusUseCase = mock(GetAmUserSyncStatusUseCase.class);
         GenericApplicationContext emptySpringContext = new GenericApplicationContext();
         emptySpringContext.refresh();
         ResourceConfig config = new ResourceConfig()
             .register(TestGraviteeContextFilter.class)
-            .register(new AuthzAmUserSyncResource(amConnectionRepository, jobManager))
+            .register(new AuthzAmUserSyncResource(startAmUserSyncUseCase, getAmUserSyncStatusUseCase))
             .register(JacksonFeature.class);
         config.property("contextConfig", emptySpringContext);
         return config;
@@ -75,23 +72,25 @@ class AuthzAmUserSyncResourceTest extends JerseyTest {
         config.register(JacksonFeature.class);
     }
 
+    private static AsyncJob job(String id, AsyncJob.Status status) {
+        return AsyncJob.builder().id(id).sourceId(ORG).type(AsyncJob.Type.AM_USER_SYNC).status(status).build();
+    }
+
     @Test
     void post_starts_a_sync_and_returns_202() {
-        when(amConnectionRepository.requireByOrg(ORG)).thenReturn(CONNECTION);
-        when(jobManager.start(any(), eq(CONNECTION))).thenReturn(AmSyncJobState.running("job-1", Instant.now()));
+        when(startAmUserSyncUseCase.execute(any())).thenReturn(new StartAmUserSyncUseCase.Output(job("job-1", AsyncJob.Status.PENDING)));
 
         try (Response response = target("/users/sync").request().post(null)) {
             assertThat(response.getStatus()).isEqualTo(202);
             AmSyncStartResponse body = response.readEntity(AmSyncStartResponse.class);
             assertThat(body.jobId()).isEqualTo("job-1");
-            assertThat(body.status()).isEqualTo("RUNNING");
+            assertThat(body.status()).isEqualTo("PENDING");
         }
     }
 
     @Test
     void post_returns_409_when_a_sync_is_already_running() {
-        when(amConnectionRepository.requireByOrg(ORG)).thenReturn(CONNECTION);
-        when(jobManager.start(any(), any())).thenThrow(new AmSyncConflictException(ORG));
+        when(startAmUserSyncUseCase.execute(any())).thenThrow(new AmSyncConflictException(ORG));
 
         try (Response response = target("/users/sync").request().post(null)) {
             assertThat(response.getStatus()).isEqualTo(409);
@@ -100,7 +99,7 @@ class AuthzAmUserSyncResourceTest extends JerseyTest {
 
     @Test
     void post_returns_503_when_am_is_not_configured() {
-        when(amConnectionRepository.requireByOrg(ORG)).thenThrow(new AmNotConfiguredException());
+        when(startAmUserSyncUseCase.execute(any())).thenThrow(new AmNotConfiguredException());
 
         try (Response response = target("/users/sync").request().post(null)) {
             assertThat(response.getStatus()).isEqualTo(503);
@@ -109,22 +108,34 @@ class AuthzAmUserSyncResourceTest extends JerseyTest {
 
     @Test
     void get_returns_the_current_status() {
-        AmSyncJobState completed = AmSyncJobState.running("job-1", Instant.now()).completed(4, 4, Instant.now());
-        when(jobManager.getStatus(ORG)).thenReturn(Optional.of(completed));
+        AsyncJob completed = job("job-1", AsyncJob.Status.SUCCESS).toBuilder().upperLimit(4L).updatedAt(ZonedDateTime.now()).build();
+        when(getAmUserSyncStatusUseCase.execute(any())).thenReturn(new GetAmUserSyncStatusUseCase.Output(Optional.of(completed)));
 
         try (Response response = target("/users/sync").request().get()) {
             assertThat(response.getStatus()).isEqualTo(200);
             AmSyncStatusResponse body = response.readEntity(AmSyncStatusResponse.class);
             assertThat(body.jobId()).isEqualTo("job-1");
-            assertThat(body.status()).isEqualTo("COMPLETED");
-            assertThat(body.usersFetched()).isEqualTo(4);
-            assertThat(body.entitiesUpserted()).isEqualTo(4);
+            assertThat(body.status()).isEqualTo("SUCCESS");
+            assertThat(body.entitiesUpserted()).isEqualTo(4L);
+        }
+    }
+
+    @Test
+    void get_returns_the_failed_status_with_error_message() {
+        AsyncJob failed = job("job-1", AsyncJob.Status.ERROR).toBuilder().errorMessage("AM unreachable").updatedAt(ZonedDateTime.now()).build();
+        when(getAmUserSyncStatusUseCase.execute(any())).thenReturn(new GetAmUserSyncStatusUseCase.Output(Optional.of(failed)));
+
+        try (Response response = target("/users/sync").request().get()) {
+            assertThat(response.getStatus()).isEqualTo(200);
+            AmSyncStatusResponse body = response.readEntity(AmSyncStatusResponse.class);
+            assertThat(body.status()).isEqualTo("ERROR");
+            assertThat(body.error()).isEqualTo("AM unreachable");
         }
     }
 
     @Test
     void get_returns_404_when_no_sync_has_run() {
-        when(jobManager.getStatus(ORG)).thenReturn(Optional.empty());
+        when(getAmUserSyncStatusUseCase.execute(any())).thenReturn(new GetAmUserSyncStatusUseCase.Output(Optional.empty()));
 
         try (Response response = target("/users/sync").request().get()) {
             assertThat(response.getStatus()).isEqualTo(404);

@@ -15,13 +15,12 @@
  */
 package io.gravitee.gamma.authorization.rest.resource;
 
-import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
-import io.gravitee.apim.plugin.gamma.api.identity.AmConnectionRepository;
+import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.plugin.gamma.api.identity.AmNotConfiguredException;
-import io.gravitee.gamma.authorization.am.AmSyncConflictException;
-import io.gravitee.gamma.authorization.am.AmSyncJobManager;
-import io.gravitee.gamma.authorization.am.AmSyncJobState;
 import io.gravitee.gamma.authorization.api.AuthzCallerContext;
+import io.gravitee.gamma.authorization.core.am.exception.AmSyncConflictException;
+import io.gravitee.gamma.authorization.core.am.use_case.GetAmUserSyncStatusUseCase;
+import io.gravitee.gamma.authorization.core.am.use_case.StartAmUserSyncUseCase;
 import io.gravitee.gamma.authorization.rest.dto.AmSyncStartResponse;
 import io.gravitee.gamma.authorization.rest.dto.AmSyncStatusResponse;
 import io.gravitee.gamma.authorization.rest.exception.ErrorBody;
@@ -40,6 +39,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import java.util.Objects;
+import lombok.CustomLog;
 
 /**
  * Triggers and reports an asynchronous sync of AM users into FGA PRINCIPAL entities, scoped to the
@@ -47,18 +47,22 @@ import java.util.Objects;
  */
 @Path("/users/sync")
 @Produces(MediaType.APPLICATION_JSON)
+@CustomLog
 public class AuthzAmUserSyncResource {
 
-    private final AmConnectionRepository amConnectionRepository;
-    private final AmSyncJobManager jobManager;
+    private final StartAmUserSyncUseCase startAmUserSyncUseCase;
+    private final GetAmUserSyncStatusUseCase getAmUserSyncStatusUseCase;
 
     @Context
     private SecurityContext securityContext;
 
     @Inject
-    public AuthzAmUserSyncResource(AmConnectionRepository amConnectionRepository, AmSyncJobManager jobManager) {
-        this.amConnectionRepository = Objects.requireNonNull(amConnectionRepository, "amConnectionRepository must not be null");
-        this.jobManager = Objects.requireNonNull(jobManager, "jobManager must not be null");
+    public AuthzAmUserSyncResource(
+        StartAmUserSyncUseCase startAmUserSyncUseCase,
+        GetAmUserSyncStatusUseCase getAmUserSyncStatusUseCase
+    ) {
+        this.startAmUserSyncUseCase = Objects.requireNonNull(startAmUserSyncUseCase, "startAmUserSyncUseCase must not be null");
+        this.getAmUserSyncStatusUseCase = Objects.requireNonNull(getAmUserSyncStatusUseCase, "getAmUserSyncStatusUseCase must not be null");
     }
 
     @POST
@@ -71,13 +75,12 @@ public class AuthzAmUserSyncResource {
         }
     )
     public Response sync() {
-        // Resolve the caller and connection on the request thread — the worker thread has no
-        // GraviteeContext thread-locals.
-        AuthzCallerContext caller = AuthzCallerResolver.resolve(securityContext);
         try {
-            AmConnection connection = amConnectionRepository.requireByOrg(caller.organizationId());
-            AmSyncJobState state = jobManager.start(caller, connection);
-            return Response.status(Response.Status.ACCEPTED).entity(AmSyncStartResponse.from(state)).build();
+            // Resolve the caller on the request thread — the worker thread has no GraviteeContext
+            // thread-locals. The use case resolves the AM connection (synchronously) from there.
+            AuthzCallerContext caller = AuthzCallerResolver.resolve(securityContext);
+            AsyncJob job = startAmUserSyncUseCase.execute(new StartAmUserSyncUseCase.Input(caller)).job();
+            return Response.status(Response.Status.ACCEPTED).entity(AmSyncStartResponse.from(job)).build();
         } catch (AmNotConfiguredException e) {
             return Response.status(Response.Status.SERVICE_UNAVAILABLE)
                 .type(MediaType.APPLICATION_JSON)
@@ -88,15 +91,23 @@ public class AuthzAmUserSyncResource {
                 .type(MediaType.APPLICATION_JSON)
                 .entity(new ErrorBody("SyncAlreadyRunning", e.getMessage()))
                 .build();
+        } catch (RuntimeException e) {
+            log.error("Unexpected error starting AM user sync", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .type(MediaType.APPLICATION_JSON)
+                .entity(new ErrorBody("SyncStartFailed", "Could not start the AM user sync"))
+                .build();
         }
     }
 
     @GET
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.READ }) })
     public Response status() {
-        return jobManager
-            .getStatus(GraviteeContext.getCurrentOrganization())
-            .map(state -> Response.ok(AmSyncStatusResponse.from(state)).build())
+        var input = new GetAmUserSyncStatusUseCase.Input(GraviteeContext.getCurrentOrganization(), GraviteeContext.getCurrentEnvironment());
+        return getAmUserSyncStatusUseCase
+            .execute(input)
+            .job()
+            .map(job -> Response.ok(AmSyncStatusResponse.from(job)).build())
             .orElseGet(() ->
                 Response.status(Response.Status.NOT_FOUND)
                     .type(MediaType.APPLICATION_JSON)

@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.authorization.am;
+package io.gravitee.gamma.authorization.infra.service_provider;
 
+import io.gravitee.gamma.authorization.core.am.exception.AmSyncException;
 import io.vertx.core.Future;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
@@ -41,7 +42,8 @@ final class AmSdkInvocations {
         } catch (TimeoutException e) {
             throw new AmSyncException("Access Management did not respond within " + DEFAULT_TIMEOUT.toMillis() + "ms", e);
         } catch (ExecutionException e) {
-            throw new AmSyncException("Access Management request failed: " + e.getCause().getMessage(), e.getCause());
+            Throwable cause = e.getCause() == null ? e : e.getCause();
+            throw new AmSyncException("Access Management request failed: " + cause.getMessage(), cause);
         }
     }
 }

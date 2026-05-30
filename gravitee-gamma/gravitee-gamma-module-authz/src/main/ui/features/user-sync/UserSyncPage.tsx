@@ -22,9 +22,10 @@ import { useUserSync } from '../../shared/hooks/useUserSync';
 type BadgeVariant = NonNullable<ComponentProps<typeof Badge>['variant']>;
 
 const STATUS_PRESENTATION: Record<AmSyncStatus, { readonly label: string; readonly variant: BadgeVariant }> = {
-    RUNNING: { label: 'Running', variant: 'highlight' },
-    COMPLETED: { label: 'Completed', variant: 'success' },
-    FAILED: { label: 'Failed', variant: 'destructive' },
+    PENDING: { label: 'Running', variant: 'highlight' },
+    SUCCESS: { label: 'Completed', variant: 'success' },
+    ERROR: { label: 'Failed', variant: 'destructive' },
+    TIMEOUT: { label: 'Timed out', variant: 'destructive' },
 };
 
 export function UserSyncPage() {
@@ -32,7 +33,7 @@ export function UserSyncPage() {
     const environmentId = env?.id ?? '';
     const { status, isLoadingStatus, statusError, start, isStarting, startError } = useUserSync(environmentId);
 
-    const isRunning = status?.status === 'RUNNING';
+    const isRunning = status?.status === 'PENDING';
 
     const onSync = () => {
         // A 409 (sync already running) rejects the mutation; the hook suppresses it and
@@ -90,16 +91,12 @@ export function UserSyncPage() {
                     <p className="text-sm text-muted-foreground">No sync has run for this organization yet.</p>
                 ) : (
                     <div className="flex flex-col gap-3">
-                        <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}>
-                            <div className="flex flex-col gap-0.5">
-                                <div className="text-3xl font-semibold leading-none">{status.usersFetched}</div>
-                                <div className="text-sm text-muted-foreground">Users fetched</div>
-                            </div>
+                        {status.entitiesUpserted !== null ? (
                             <div className="flex flex-col gap-0.5">
                                 <div className="text-3xl font-semibold leading-none">{status.entitiesUpserted}</div>
-                                <div className="text-sm text-muted-foreground">Entities upserted</div>
+                                <div className="text-sm text-muted-foreground">Principals synced</div>
                             </div>
-                        </div>
+                        ) : null}
                         {status.error ? (
                             <Alert variant="destructive">
                                 <AlertTitle>Sync failed</AlertTitle>

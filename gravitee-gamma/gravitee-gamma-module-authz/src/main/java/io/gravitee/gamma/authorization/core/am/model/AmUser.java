@@ -13,12 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.authorization.rest.dto;
+package io.gravitee.gamma.authorization.core.am.model;
 
-import io.gravitee.apim.core.async_job.model.AsyncJob;
-
-public record AmSyncStartResponse(String jobId, String status) {
-    public static AmSyncStartResponse from(AsyncJob job) {
-        return new AmSyncStartResponse(job.getId(), job.getStatus().name());
-    }
-}
+/**
+ * An AM user as the sync needs it, decoupled from the AM SDK so the core layer stays free of the
+ * SDK dependency. The infra {@code AmUserClient} adapter maps the SDK model onto this record.
+ * Nullable fields ({@code source}, {@code externalId}, {@code email}, {@code username},
+ * {@code displayName}, {@code enabled}) reflect what AM populated.
+ */
+public record AmUser(
+    String id,
+    String source,
+    String externalId,
+    String email,
+    String username,
+    String displayName,
+    Boolean enabled
+) {}

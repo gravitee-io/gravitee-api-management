@@ -8785,6 +8785,7 @@ components:
                     enum:
                         - FEDERATED_APIS_INGESTION
                         - SCORING_REQUEST
+                        - AM_USER_SYNC
                 status:
                     $ref: "#/components/schemas/AsyncJobStatus"
                 errorMessage:

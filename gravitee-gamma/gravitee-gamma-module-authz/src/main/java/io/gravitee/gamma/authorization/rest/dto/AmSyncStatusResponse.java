@@ -15,25 +15,23 @@
  */
 package io.gravitee.gamma.authorization.rest.dto;
 
-import io.gravitee.gamma.authorization.am.AmSyncJobState;
-import java.time.Instant;
+import io.gravitee.apim.core.async_job.model.AsyncJob;
+import java.time.ZonedDateTime;
 
-public record AmSyncStatusResponse(
-    String jobId,
-    String status,
-    int usersFetched,
-    int entitiesUpserted,
-    String error,
-    Instant completedAt
-) {
-    public static AmSyncStatusResponse from(AmSyncJobState state) {
+/**
+ * Status of an AM user-sync job. {@code status} is the {@link AsyncJob.Status} name
+ * (PENDING / SUCCESS / ERROR / TIMEOUT). {@code entitiesUpserted} is the count of PRINCIPAL
+ * entities synced (populated on success). {@code completedAt} is set once the job is final.
+ */
+public record AmSyncStatusResponse(String jobId, String status, Long entitiesUpserted, String error, ZonedDateTime completedAt) {
+    public static AmSyncStatusResponse from(AsyncJob job) {
+        boolean isFinal = job.getStatus().isFinal();
         return new AmSyncStatusResponse(
-            state.jobId(),
-            state.status().name(),
-            state.usersFetched(),
-            state.entitiesUpserted(),
-            state.error(),
-            state.completedAt()
+            job.getId(),
+            job.getStatus().name(),
+            job.getUpperLimit(),
+            job.getErrorMessage(),
+            isFinal ? job.getUpdatedAt() : null
         );
     }
 }

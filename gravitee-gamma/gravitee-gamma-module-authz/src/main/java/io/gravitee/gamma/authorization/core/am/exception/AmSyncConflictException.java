@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.authorization.am;
+package io.gravitee.gamma.authorization.core.am.exception;
+
+import io.gravitee.apim.core.exception.ValidationDomainException;
 
 /**
- * Wraps a failure contacting AM's management API during a user sync. The sync runs on a worker
- * thread, so this surfaces as a FAILED {@link AmSyncJobState} rather than an HTTP error.
+ * Thrown when a user sync is requested for an organization that already has one running.
+ * The REST boundary translates this to {@code 409 Conflict}.
  */
-public class AmSyncException extends RuntimeException {
+public class AmSyncConflictException extends ValidationDomainException {
 
-    public AmSyncException(String message, Throwable cause) {
-        super(message, cause);
+    public AmSyncConflictException(String organizationId) {
+        super("A user sync is already running for organization " + organizationId);
     }
 }
