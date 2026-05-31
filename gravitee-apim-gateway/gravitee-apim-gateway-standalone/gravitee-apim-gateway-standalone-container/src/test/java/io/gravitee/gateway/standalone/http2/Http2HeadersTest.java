@@ -16,7 +16,7 @@
 package io.gravitee.gateway.standalone.http2;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
@@ -25,8 +25,8 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
 import java.util.List;
 import org.apache.http.HttpStatus;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team
@@ -52,12 +52,12 @@ public class Http2HeadersTest extends AbstractWiremockGatewayTest {
         httpClient
             .request(HttpMethod.GET, "https://localhost:8082/test/my_team")
             .onComplete(event -> {
-                Assert.assertTrue(event.succeeded());
+                Assertions.assertTrue(event.succeeded());
                 event
                     .result()
                     .send()
                     .onComplete(responseEvent -> {
-                        Assert.assertTrue(responseEvent.succeeded());
+                        Assertions.assertTrue(responseEvent.succeeded());
 
                         HttpClientResponse response = responseEvent.result();
 
@@ -79,12 +79,12 @@ public class Http2HeadersTest extends AbstractWiremockGatewayTest {
         httpClient
             .request(HttpMethod.GET, "https://localhost:8082/test/my_team")
             .onComplete(event -> {
-                Assert.assertTrue(event.succeeded());
+                Assertions.assertTrue(event.succeeded());
                 event
                     .result()
                     .send()
                     .onComplete(responseEvent -> {
-                        Assert.assertTrue(responseEvent.succeeded());
+                        Assertions.assertTrue(responseEvent.succeeded());
 
                         HttpClientResponse response = responseEvent.result();
 

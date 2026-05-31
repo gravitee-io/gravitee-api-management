@@ -16,7 +16,7 @@
 package io.gravitee.gateway.standalone.http;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
@@ -29,7 +29,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.utils.URIBuilder;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team

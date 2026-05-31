@@ -29,7 +29,7 @@ import io.gravitee.plugin.policy.PolicyPlugin;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Slf4JLoggerFactory;
 import java.util.Collections;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -43,7 +43,7 @@ public abstract class AbstractGatewayTest implements PluginRegister, ApiLoaderIn
     protected Api api;
     protected ApplicationContext context;
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         InternalLoggerFactory.setDefaultFactory(Slf4JLoggerFactory.INSTANCE);
     }

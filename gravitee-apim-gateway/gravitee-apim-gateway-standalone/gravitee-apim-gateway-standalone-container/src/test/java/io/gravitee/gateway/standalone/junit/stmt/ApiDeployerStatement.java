@@ -18,7 +18,6 @@ package io.gravitee.gateway.standalone.junit.stmt;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Api;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.Plan;
@@ -42,7 +41,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Date;
 import java.util.function.Supplier;
-import org.junit.runners.model.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -53,19 +51,25 @@ import org.springframework.core.ResolvableType;
 import org.springframework.core.env.Environment;
 
 /**
+ * Deploys an API on a fresh embedded gateway before a test and tears it down afterwards.
+ * Formerly a JUnit 4 {@code Statement}; now driven by the {@code ApiDeployer} JUnit 5 extension
+ * through {@link #deploy()} / {@link #undeploy()}.
+ *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiDeployerStatement extends Statement {
+public class ApiDeployerStatement {
 
     private final Logger logger = LoggerFactory.getLogger(ApiDeployerStatement.class);
 
-    private final Statement base;
     private final Object target;
     private ApplicationContext applicationContext;
+    private GatewayTestContainer container;
+    private VertxEmbeddedContainer vertxContainer;
+    private ApiManager apiManager;
+    private Api api;
 
-    public ApiDeployerStatement(Statement base, Object target) {
-        this.base = base;
+    public ApiDeployerStatement(Object target) {
         this.target = target;
     }
 
@@ -73,15 +77,14 @@ public class ApiDeployerStatement extends Statement {
         return () -> applicationContext;
     }
 
-    @Override
-    public void evaluate() throws Throwable {
+    public void deploy() throws Throwable {
         final String homeFolder = target.getClass().getAnnotation(ApiDescriptor.class).configFolder();
         URL home = ApiDeployerStatement.class.getResource(homeFolder);
         String graviteeHome = URLDecoder.decode(home.getPath(), StandardCharsets.UTF_8.name());
         System.setProperty("gravitee.home", graviteeHome);
         System.setProperty("gravitee.conf", graviteeHome + File.separator + "config" + File.separator + "gravitee.yml");
 
-        GatewayTestContainer container = new GatewayTestContainer();
+        container = new GatewayTestContainer();
         container.initialize();
         applicationContext = container.applicationContext();
         final Environment environment = applicationContext.getBean(Environment.class);
@@ -133,10 +136,10 @@ public class ApiDeployerStatement extends Statement {
             beanFactory.registerSingleton(oldBeanName, target);
         }
 
-        final VertxEmbeddedContainer vertxContainer = startServer(container);
+        vertxContainer = startServer(container);
 
-        ApiManager apiManager = applicationContext.getBean(ApiManager.class);
-        Api api = loadApi(target.getClass().getAnnotation(ApiDescriptor.class).value());
+        apiManager = applicationContext.getBean(ApiManager.class);
+        api = loadApi(target.getClass().getAnnotation(ApiDescriptor.class).value());
 
         if (api.getPlans() == null || api.getPlans().isEmpty()) {
             Plan defaultPlan = new Plan();
@@ -160,13 +163,27 @@ public class ApiDeployerStatement extends Statement {
             apiToRegister.setDeployedAt(new Date());
             apiManager.register(apiToRegister);
             api.setExecutionMode(apiToRegister.getDefinition().getExecutionMode());
-            base.evaluate();
         } catch (Exception e) {
             logger.error("An error occurred", e);
+            // Make sure the embedded gateway is stopped if the API could not be deployed.
+            try {
+                stopServer(container, vertxContainer);
+            } catch (Exception stopError) {
+                logger.error("An error occurred while stopping the server after a deployment failure", stopError);
+            }
             throw e;
+        }
+    }
+
+    public void undeploy() throws Exception {
+        try {
+            if (apiManager != null && api != null) {
+                apiManager.unregister(api.getId());
+            }
         } finally {
-            apiManager.unregister(api.getId());
-            stopServer(container, vertxContainer);
+            if (container != null && vertxContainer != null) {
+                stopServer(container, vertxContainer);
+            }
         }
     }
 

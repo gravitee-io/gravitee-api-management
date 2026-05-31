@@ -17,10 +17,10 @@ package io.gravitee.gateway.standalone.http;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import io.gravitee.connector.http.endpoint.HttpEndpoint;
 import io.gravitee.connector.http.endpoint.jks.JKSKeyStore;
 import io.gravitee.connector.http.endpoint.jks.JKSTrustStore;
@@ -33,7 +33,7 @@ import io.gravitee.gateway.standalone.wiremock.ResourceUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * JKS has been generated with the following commands:
@@ -56,17 +56,19 @@ public class ClientAuthenticationJKSTest extends AbstractWiremockGatewayTest {
     ObjectMapper mapper = new GraviteeMapper();
 
     @Override
-    protected WireMockRule getWiremockRule() {
-        return new WireMockRule(
-            wireMockConfig()
-                .dynamicPort()
-                .dynamicHttpsPort()
-                .needClientAuth(true)
-                .trustStorePath(ResourceUtils.toPath("io/gravitee/gateway/standalone/truststore01.jks"))
-                .trustStorePassword("password")
-                .keystorePath(ResourceUtils.toPath("io/gravitee/gateway/standalone/keystore01.jks"))
-                .keystorePassword("password")
-        );
+    protected WireMockExtension getWiremockRule() {
+        return WireMockExtension.newInstance()
+            .options(
+                wireMockConfig()
+                    .dynamicPort()
+                    .dynamicHttpsPort()
+                    .needClientAuth(true)
+                    .trustStorePath(ResourceUtils.toPath("io/gravitee/gateway/standalone/truststore01.jks"))
+                    .trustStorePassword("password")
+                    .keystorePath(ResourceUtils.toPath("io/gravitee/gateway/standalone/keystore01.jks"))
+                    .keystorePassword("password")
+            )
+            .build();
     }
 
     @Test
@@ -75,19 +77,19 @@ public class ClientAuthenticationJKSTest extends AbstractWiremockGatewayTest {
 
         // First call is calling an HTTPS endpoint without ssl configuration => 502
         HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
-        assertEquals("without ssl configuration => 502", HttpStatus.SC_BAD_GATEWAY, response.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.SC_BAD_GATEWAY, response.getStatusLine().getStatusCode(), "without ssl configuration => 502");
 
         // Second call is calling an endpoint where trustAll = false, without truststore => 502
         response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
-        assertEquals("trustAll = false, without truststore => 502", HttpStatus.SC_BAD_GATEWAY, response.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.SC_BAD_GATEWAY, response.getStatusLine().getStatusCode(), "trustAll = false, without truststore => 502");
 
         // Third call is calling an endpoint where trustAll = false, with truststore => 200
         response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
-        assertEquals("trustAll = false, with truststore => 200", HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode(), "trustAll = false, with truststore => 200");
 
         // Fourth call is calling an endpoint where trustAll = true, without truststore => 200
         response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
-        assertEquals("trustAll = true, with keystore => 200", HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode(), "trustAll = true, with keystore => 200");
 
         // Check that the stub has been successfully invoked by the gateway
         wireMockRule.verify(2, getRequestedFor(urlPathEqualTo("/team/my_team")));
@@ -99,7 +101,7 @@ public class ClientAuthenticationJKSTest extends AbstractWiremockGatewayTest {
 
         try {
             for (Endpoint endpoint : api.getProxy().getGroups().iterator().next().getEndpoints()) {
-                endpoint.setTarget(exchangePort(endpoint.getTarget(), wireMockRule.httpsPort()));
+                endpoint.setTarget(exchangePort(endpoint.getTarget(), wireMockRule.getHttpsPort()));
 
                 HttpEndpoint httpEndpoint = mapper.readValue(endpoint.getConfiguration(), HttpEndpoint.class);
                 if (httpEndpoint.getHttpClientSslOptions() != null && httpEndpoint.getHttpClientSslOptions().getKeyStore() != null) {

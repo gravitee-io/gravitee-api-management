@@ -15,10 +15,10 @@
  */
 package io.gravitee.gateway.standalone.spring;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.gateway.repository.plugins.GatewayRepositoryScopeProvider;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class StandaloneConfigurationTest {
 

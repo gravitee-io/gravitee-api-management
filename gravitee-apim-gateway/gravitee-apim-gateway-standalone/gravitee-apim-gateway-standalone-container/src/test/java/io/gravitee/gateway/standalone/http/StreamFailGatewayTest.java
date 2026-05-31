@@ -16,7 +16,7 @@
 package io.gravitee.gateway.standalone.http;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
@@ -31,30 +31,28 @@ import java.util.Arrays;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(Parameterized.class)
 @ApiDescriptor(value = "/io/gravitee/gateway/standalone/http/stream-fail.json")
 public class StreamFailGatewayTest extends AbstractWiremockGatewayTest {
 
     private static final String BODY_CONTENT = "Content to transform:";
 
-    @Parameterized.Parameters(name = "{index}: Flow path={0}")
     public static Iterable<Object> data() {
         return Arrays.asList(new Object[][] { { "/two-flows" }, { "/one-flow-two-policies" } });
     }
 
-    @Parameterized.Parameter(0)
     public String flowPath;
 
-    @Test
-    public void shouldNotProcessPolicyAfterStreamFail() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest(name = "{index}: Flow path={0}")
+    public void shouldNotProcessPolicyAfterStreamFail(String flowPath) throws Exception {
+        initStreamFailGatewayTest(flowPath);
         wireMockRule.stubFor(post("/api" + flowPath).willReturn(ok()));
 
         org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post(
@@ -73,8 +71,10 @@ public class StreamFailGatewayTest extends AbstractWiremockGatewayTest {
         //    wireMockRule.verify(0, postRequestedFor(urlPathEqualTo("/api")));
     }
 
-    @Test
-    public void shouldNotProcessPolicyAfterStreamFail_plainText() throws Exception {
+    @MethodSource("data")
+    @ParameterizedTest(name = "{index}: Flow path={0}")
+    public void shouldNotProcessPolicyAfterStreamFail_plainText(String flowPath) throws Exception {
+        initStreamFailGatewayTest(flowPath);
         wireMockRule.stubFor(post("/api" + flowPath).willReturn(ok()));
 
         org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post("http://localhost:8082/api" + flowPath);
@@ -100,5 +100,9 @@ public class StreamFailGatewayTest extends AbstractWiremockGatewayTest {
 
         PolicyPlugin streamFail2Policy = PolicyBuilder.build("stream-fail-2", StreamFailer2Policy.class);
         policyPluginManager.register(streamFail2Policy);
+    }
+
+    public void initStreamFailGatewayTest(String flowPath) {
+        this.flowPath = flowPath;
     }
 }

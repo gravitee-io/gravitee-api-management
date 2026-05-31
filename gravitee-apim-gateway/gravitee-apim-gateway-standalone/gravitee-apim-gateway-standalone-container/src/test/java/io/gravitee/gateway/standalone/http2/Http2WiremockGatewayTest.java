@@ -22,7 +22,7 @@ import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -36,7 +36,7 @@ public abstract class Http2WiremockGatewayTest extends AbstractWiremockGatewayTe
         System.setProperty("http.ssl.keystore.type", "self-signed");
     }
 
-    @Before
+    @BeforeEach
     public void initExecutor() throws Exception {
         // Create a dedicated HttpClient for each test with no pooling to avoid side effects.
         final SSLContextBuilder builder = new SSLContextBuilder();
