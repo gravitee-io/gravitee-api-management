@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.mapper;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.flow.Flow;
@@ -30,7 +30,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
 /**

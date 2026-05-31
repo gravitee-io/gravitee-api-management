@@ -31,8 +31,8 @@ import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class MongoSubscriptionRepositoryTest {
 
@@ -40,7 +40,7 @@ public class MongoSubscriptionRepositoryTest {
     private SubscriptionMongoRepository internalSubscriptionRepository;
     private GraviteeMapper mapper;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         internalSubscriptionRepository = mock(SubscriptionMongoRepository.class);
         mapper = mock(GraviteeMapper.class);

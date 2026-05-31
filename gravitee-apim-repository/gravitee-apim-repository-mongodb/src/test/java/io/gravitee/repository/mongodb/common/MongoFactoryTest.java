@@ -24,8 +24,8 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.connection.*;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.mock.env.MockEnvironment;
@@ -38,7 +38,7 @@ public class MongoFactoryTest {
     private MongoFactory mongoFactory;
     private MockEnvironment environment;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         environment = new MockEnvironment();
         mongoFactory = new MongoFactory(environment, "management");
