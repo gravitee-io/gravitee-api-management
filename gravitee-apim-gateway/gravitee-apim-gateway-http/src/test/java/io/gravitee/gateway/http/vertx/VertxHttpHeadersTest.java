@@ -23,8 +23,8 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -41,7 +41,7 @@ public class VertxHttpHeadersTest {
 
     private DefaultHttpHeaders defaultHttpHeaders;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         cut = new VertxHttpHeaders(HeadersMultiMap.httpHeaders());
         cut.add(FIRST_HEADER, FIRST_HEADER_VALUE_1);
