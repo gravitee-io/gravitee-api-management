@@ -93,3 +93,9 @@ CLAUDE.md
 .worktrees
 .specs
 .c4
+
+# Impeccable
+*/**/impeccable/*
+DESIGN.md
+PRODUCT.md
+/.impeccable/*
