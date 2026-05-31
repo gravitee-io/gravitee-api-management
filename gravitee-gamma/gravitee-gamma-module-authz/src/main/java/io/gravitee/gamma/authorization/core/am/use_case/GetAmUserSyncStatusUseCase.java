@@ -24,18 +24,16 @@ import java.util.Optional;
  * Returns the most recent AM user-sync job for an organization, or empty when none has run.
  * Backed by {@link AsyncJobQueryService}, which orders by {@code updatedAt} descending and
  * auto-transitions late jobs to TIMEOUT.
+ *
+ * @author GraviteeSource Team
  */
 public class GetAmUserSyncStatusUseCase {
 
-    private final AsyncJobQueryService asyncJobQueryService;
+    private final AsyncJobQueryService queryService;
 
-    public GetAmUserSyncStatusUseCase(AsyncJobQueryService asyncJobQueryService) {
-        this.asyncJobQueryService = asyncJobQueryService;
+    public GetAmUserSyncStatusUseCase(AsyncJobQueryService queryService) {
+        this.queryService = queryService;
     }
-
-    public record Input(String organizationId, String environmentId) {}
-
-    public record Output(Optional<AsyncJob> job) {}
 
     public Output execute(Input input) {
         var query = new AsyncJobQueryService.ListQuery(
@@ -45,7 +43,11 @@ public class GetAmUserSyncStatusUseCase {
             Optional.empty(),
             Optional.of(input.organizationId())
         );
-        Optional<AsyncJob> latest = asyncJobQueryService.listAsyncJobs(query, new PageableImpl(1, 1)).getContent().stream().findFirst();
+        Optional<AsyncJob> latest = queryService.listAsyncJobs(query, new PageableImpl(1, 1)).getContent().stream().findFirst();
         return new Output(latest);
     }
+
+    public record Input(String organizationId, String environmentId) {}
+
+    public record Output(Optional<AsyncJob> job) {}
 }

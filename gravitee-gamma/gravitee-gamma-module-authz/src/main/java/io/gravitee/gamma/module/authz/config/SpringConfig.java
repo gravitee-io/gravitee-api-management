@@ -178,9 +178,10 @@ public class SpringConfig {
         AsyncJobQueryService asyncJobQueryService,
         AsyncJobCrudService asyncJobCrudService,
         @Lazy @Qualifier("amConnectionRepository") AmConnectionRepository amConnectionRepository,
+        AmUserClient amUserClient,
         AmUserSyncRunner amUserSyncRunner
     ) {
-        return new StartAmUserSyncUseCase(asyncJobQueryService, asyncJobCrudService, amConnectionRepository, amUserSyncRunner);
+        return new StartAmUserSyncUseCase(asyncJobQueryService, asyncJobCrudService, amConnectionRepository, amUserClient, amUserSyncRunner);
     }
 
     @Bean

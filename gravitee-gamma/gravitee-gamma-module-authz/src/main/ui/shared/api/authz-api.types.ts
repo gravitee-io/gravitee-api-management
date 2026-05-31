@@ -84,6 +84,7 @@ export type AmSyncStatus = 'PENDING' | 'SUCCESS' | 'ERROR' | 'TIMEOUT';
 export interface AmSyncStartResponse {
     readonly jobId: string;
     readonly status: AmSyncStatus;
+    readonly totalUsers: number;
 }
 
 export interface AmSyncStatusResponse {

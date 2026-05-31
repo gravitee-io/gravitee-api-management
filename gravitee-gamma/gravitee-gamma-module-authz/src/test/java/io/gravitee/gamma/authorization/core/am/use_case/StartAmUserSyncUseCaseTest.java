@@ -33,6 +33,8 @@ import io.gravitee.apim.plugin.gamma.api.identity.AmNotConfiguredException;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 import io.gravitee.gamma.authorization.core.am.exception.AmSyncConflictException;
+import io.gravitee.gamma.authorization.core.am.model.AmUserPage;
+import io.gravitee.gamma.authorization.core.am.service_provider.AmUserClient;
 import io.gravitee.gamma.authorization.core.am.service_provider.AmUserSyncRunner;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -51,6 +53,8 @@ class StartAmUserSyncUseCaseTest {
     private AsyncJobQueryService asyncJobQueryService;
     private AsyncJobCrudService asyncJobCrudService;
     private AmConnectionRepository amConnectionRepository;
+    private AmUserClient amUserClient;
+    private AmUserClient.Session session;
     private AmUserSyncRunner runner;
     private StartAmUserSyncUseCase useCase;
 
@@ -59,8 +63,13 @@ class StartAmUserSyncUseCaseTest {
         asyncJobQueryService = mock(AsyncJobQueryService.class);
         asyncJobCrudService = mock(AsyncJobCrudService.class);
         amConnectionRepository = mock(AmConnectionRepository.class);
+        amUserClient = mock(AmUserClient.class);
+        session = mock(AmUserClient.Session.class);
+        when(amUserClient.openSession(CONNECTION)).thenReturn(session);
+        // One minimal page read at start time, used only for its total count.
+        when(session.fetchUsers(0, 1)).thenReturn(new AmUserPage(List.of(), 42L));
         runner = mock(AmUserSyncRunner.class);
-        useCase = new StartAmUserSyncUseCase(asyncJobQueryService, asyncJobCrudService, amConnectionRepository, runner);
+        useCase = new StartAmUserSyncUseCase(asyncJobQueryService, asyncJobCrudService, amConnectionRepository, amUserClient, runner);
     }
 
     private void stubPendingJobs(AsyncJob... jobs) {
@@ -130,8 +139,11 @@ class StartAmUserSyncUseCaseTest {
         when(amConnectionRepository.requireByOrg("org-1")).thenReturn(CONNECTION);
         when(asyncJobCrudService.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        AsyncJob job = useCase.execute(new StartAmUserSyncUseCase.Input(CALLER)).job();
+        StartAmUserSyncUseCase.Output output = useCase.execute(new StartAmUserSyncUseCase.Input(CALLER));
+        AsyncJob job = output.job();
 
+        // The start reports the AM domain's user count (read up front) so the UI can show it.
+        assertThat(output.totalUsers()).isEqualTo(42L);
         assertThat(job.getStatus()).isEqualTo(AsyncJob.Status.PENDING);
         assertThat(job.getType()).isEqualTo(AsyncJob.Type.AM_USER_SYNC);
         assertThat(job.getSourceId()).isEqualTo("org-1");

@@ -78,13 +78,15 @@ class AuthzAmUserSyncResourceTest extends JerseyTest {
 
     @Test
     void post_starts_a_sync_and_returns_202() {
-        when(startAmUserSyncUseCase.execute(any())).thenReturn(new StartAmUserSyncUseCase.Output(job("job-1", AsyncJob.Status.PENDING)));
+        when(startAmUserSyncUseCase.execute(any()))
+            .thenReturn(new StartAmUserSyncUseCase.Output(job("job-1", AsyncJob.Status.PENDING), 2000L));
 
         try (Response response = target("/users/sync").request().post(null)) {
             assertThat(response.getStatus()).isEqualTo(202);
             AmSyncStartResponse body = response.readEntity(AmSyncStartResponse.class);
             assertThat(body.jobId()).isEqualTo("job-1");
             assertThat(body.status()).isEqualTo("PENDING");
+            assertThat(body.totalUsers()).isEqualTo(2000L);
         }
     }
 
