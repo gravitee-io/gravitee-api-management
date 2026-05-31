@@ -69,11 +69,11 @@ const queryClient = new QueryClient();
 
 function ModuleLayout() {
     const navigate = useNavigate();
-    const { activeNavKey, navigateToKey, rootPath } = useModuleRouting(APIM_ROUTE_CONFIG);
+    const { activeNavKey, navigateToKey } = useModuleRouting(APIM_ROUTE_CONFIG);
 
     const breadcrumbs = useMemo(
-        () => buildLinearBreadcrumbs(navigate, [{ label: 'APIM', to: rootPath }, { label: APIM_ROUTE_CONFIG.routes[activeNavKey].label }]),
-        [activeNavKey, navigate, rootPath],
+        () => buildLinearBreadcrumbs(navigate, [{ label: APIM_ROUTE_CONFIG.routes[activeNavKey].label }]),
+        [activeNavKey, navigate],
     );
 
     useLayoutConfig(

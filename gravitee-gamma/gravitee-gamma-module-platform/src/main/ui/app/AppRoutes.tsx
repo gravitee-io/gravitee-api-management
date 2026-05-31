@@ -44,15 +44,11 @@ function ModuleLayout() {
     useEnvironmentPermissions();
 
     const navigate = useNavigate();
-    const { activeNavKey, navigateToKey, rootPath } = useModuleRouting(PLATFORM_ROUTE_CONFIG);
+    const { activeNavKey, navigateToKey } = useModuleRouting(PLATFORM_ROUTE_CONFIG);
 
     const breadcrumbs = useMemo(
-        () =>
-            buildLinearBreadcrumbs(navigate, [
-                { label: 'Platform', to: rootPath },
-                { label: PLATFORM_ROUTE_CONFIG.routes[activeNavKey].label },
-            ]),
-        [activeNavKey, navigate, rootPath],
+        () => buildLinearBreadcrumbs(navigate, [{ label: PLATFORM_ROUTE_CONFIG.routes[activeNavKey].label }]),
+        [activeNavKey, navigate],
     );
 
     useLayoutConfig(

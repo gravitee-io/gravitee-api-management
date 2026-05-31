@@ -87,7 +87,7 @@ describe('HomePage', () => {
         renderHome(ALL_MODULES);
 
         await waitFor(() => {
-            for (const name of ['Agent Management', 'API Management', 'Platform Management', 'Authorization']) {
+            for (const name of ['Agent Management', 'API Management', 'Platform Management', 'Authorization Management']) {
                 expect(screen.getByRole('heading', { level: 3, name })).toBeTruthy();
             }
         });
@@ -140,7 +140,7 @@ describe('HomePage', () => {
         seedMetricHandlers({ apiCount: 0, agentCount: 0, appCount: 0, policyCount: 0 });
         renderHome(ALL_MODULES);
 
-        const appsSection = screen.getByRole('region', { name: /applications/i }) ?? screen.getByLabelText(/applications/i);
+        const appsSection = screen.getByRole('region', { name: /applications/i });
 
         await waitFor(() => {
             expect(within(appsSection).getAllByText('Add Integration')).toHaveLength(1);

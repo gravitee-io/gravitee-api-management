@@ -65,7 +65,7 @@ export const APPLICATIONS: readonly Application[] = [
         emptyState: { cta: 'Register an application', ctaPath: 'applications/new' },
     },
     {
-        title: 'Authorization',
+        title: 'Authorization Management',
         description: 'Define fine-grained authorization rules, relationship tuples, and scopes across the platform.',
         moduleId: 'authz',
         Icon: MODULE_ICONS['authz'],

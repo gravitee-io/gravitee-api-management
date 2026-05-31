@@ -13,7 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AppLayout, AppSidebar, ContentHeader, LayoutSlotsProvider, TopNavUser, useLayoutSlots } from '@gravitee/graphene-core';
+import {
+    AppContextBar,
+    AppLayout,
+    AppSidebar,
+    ContentHeader,
+    LayoutSlotsProvider,
+    TopNavUser,
+    useLayoutSlots,
+} from '@gravitee/graphene-core';
 import { Globe } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Suspense, useCallback, useMemo } from 'react';
@@ -32,7 +40,7 @@ const GAMMA_APP_KEY = 'gamma-console';
 const hostAppDefinition = {
     key: GAMMA_APP_KEY,
     label: 'Home',
-    description: 'Gamma control plane',
+    description: 'Overview and quick actions',
     icon: <HOME_ICON className="size-5" />,
 };
 
@@ -41,13 +49,20 @@ function moduleIcon(moduleId: string): ReactNode {
     return Icon ? <Icon className="size-5" /> : <Globe size={20} />;
 }
 
+const MODULE_DESCRIPTIONS: Record<string, { label: string; description: string }> = {
+    aim: { label: 'Agent Management', description: 'Govern AI agents, MCPs, and LLMs' },
+    apim: { label: 'API Management', description: 'Design, deploy, and govern HTTP APIs' },
+    platform: { label: 'Platform Management', description: 'Apps, subscriptions, and usage' },
+    authz: { label: 'Authorization Management', description: 'Fine-grained authorization policies' },
+};
+
 function buildAppDefinitions(modules: readonly GammaModule[]) {
     return [
         hostAppDefinition,
         ...modules.map(m => ({
             key: m.id,
-            label: m.name,
-            description: `v${m.version}`,
+            label: MODULE_DESCRIPTIONS[m.id]?.label ?? m.name,
+            description: MODULE_DESCRIPTIONS[m.id]?.description ?? m.name,
             icon: moduleIcon(m.id),
         })),
     ];
@@ -120,19 +135,19 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
             contextExpanded={slots.contextExpanded}
             contextSidebar={slots.contextSidebar}
             contentVariant={slots.contentVariant}
-            sidebar={
-                <AppSidebar
-                    apps={apps}
-                    activeAppKey={activeAppKey}
-                    onAppChange={handleAppChange}
-                    renderNavigation={() => slots.navigation}
-                    environments={envItems}
-                    activeEnvironmentKey={envHrid}
-                    onEnvironmentChange={handleEnvironmentChange}
-                />
-            }
+            sidebar={<AppSidebar onLogoClick={() => navigate('/')} renderNavigation={() => slots.navigation} />}
             subheader={
                 <ContentHeader
+                    appContext={
+                        <AppContextBar
+                            apps={apps}
+                            activeAppKey={activeAppKey}
+                            onAppChange={handleAppChange}
+                            environments={envItems}
+                            activeEnvironmentKey={envHrid}
+                            onEnvironmentChange={handleEnvironmentChange}
+                        />
+                    }
                     leading={slots.leading}
                     breadcrumbs={slots.breadcrumbs}
                     trailing={user ? <TopNavUser name={user.displayName} email={user.email} onSignOut={handleSignOut} /> : undefined}
