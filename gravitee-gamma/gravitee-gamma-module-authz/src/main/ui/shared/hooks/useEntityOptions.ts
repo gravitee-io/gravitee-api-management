@@ -48,6 +48,20 @@ function resolveKind(typeFilter: readonly string[] | undefined): EntityKindFilte
     return undefined;
 }
 
+// Synced principals carry an unreadable entity id (the AM token `sub`, a UUID). Prefer a
+// human attribute for the chip label, falling back to the id. The id stays visible via the
+// description (it leads the attribute summary as `sub=...`) and is unchanged in the chip's
+// `id` — the GAPL ref the PEP matches on.
+const LABEL_ATTRS = ['displayName', 'email', 'username'] as const;
+
+function readableLabel(attrs: Record<string, unknown>, fallbackId: string): string {
+    for (const key of LABEL_ATTRS) {
+        const value = attrs[key];
+        if (typeof value === 'string' && value.trim().length > 0) return value;
+    }
+    return fallbackId;
+}
+
 function summarizeAttributes(attrs: Record<string, unknown>): string | undefined {
     const entries = Object.entries(attrs).filter(([k]) => !k.startsWith('_'));
     if (entries.length === 0) return undefined;
@@ -62,7 +76,7 @@ function toChipOption(entity: EntityResponse): ChipOption {
     const { type, id } = parseEntityUid(entity.uid);
     return {
         id: `${type}::"${id}"`,
-        label: id,
+        label: readableLabel(entity.attributes, id),
         group: type,
         description: summarizeAttributes(entity.attributes),
     };
