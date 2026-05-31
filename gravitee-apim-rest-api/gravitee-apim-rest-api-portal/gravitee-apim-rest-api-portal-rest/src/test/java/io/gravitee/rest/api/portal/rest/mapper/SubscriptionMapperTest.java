@@ -16,9 +16,7 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,7 +29,7 @@ import io.gravitee.rest.api.portal.rest.model.SubscriptionConsumerConfiguration;
 import java.time.Instant;
 import java.util.Date;
 import lombok.SneakyThrows;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
 /**

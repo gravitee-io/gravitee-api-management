@@ -17,7 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import fixtures.core.model.PortalMenuLinkFixtures;
 import inmemory.PortalMenuLinkCrudServiceInMemory;

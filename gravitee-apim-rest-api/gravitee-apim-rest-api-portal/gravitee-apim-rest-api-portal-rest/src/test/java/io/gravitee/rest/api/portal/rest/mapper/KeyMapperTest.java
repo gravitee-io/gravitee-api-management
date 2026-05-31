@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.rest.api.model.ApiKeyEntity;
 import io.gravitee.rest.api.model.ApiKeyMode;
@@ -26,7 +26,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)

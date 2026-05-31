@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import io.gravitee.rest.api.model.configuration.identity.am.AMIdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.github.GitHubIdentityProviderEntity;
@@ -27,7 +27,7 @@ import io.gravitee.rest.api.portal.rest.model.IdentityProviderType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)

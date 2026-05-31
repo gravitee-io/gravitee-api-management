@@ -15,11 +15,11 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.rest.api.model.NewTicketEntity;
 import io.gravitee.rest.api.portal.rest.model.TicketInput;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)

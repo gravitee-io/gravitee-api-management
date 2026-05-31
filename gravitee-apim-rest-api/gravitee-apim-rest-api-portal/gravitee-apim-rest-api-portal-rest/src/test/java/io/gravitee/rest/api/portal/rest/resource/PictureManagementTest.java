@@ -17,8 +17,8 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.NOT_MODIFIED_304;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 

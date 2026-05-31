@@ -16,8 +16,8 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -95,10 +95,10 @@ public class TicketsResourceTest extends AbstractResourceTest {
 
         TicketQuery query = queryCaptor.getValue();
         SortableImpl sortable = sortableCaptor.getValue();
-        assertEquals("Criteria user", USER_NAME, query.getFromUser());
-        assertEquals("Criteria api", "apiId", query.getApi());
-        assertEquals("Query sort field", "subject", sortable.getField());
-        assertEquals("Query sort order", false, sortable.isAscOrder());
+        assertEquals(USER_NAME, query.getFromUser(), "Criteria user");
+        assertEquals("apiId", query.getApi(), "Criteria api");
+        assertEquals("subject", sortable.getField(), "Query sort field");
+        assertEquals(false, sortable.isAscOrder(), "Query sort order");
 
         verify(ticketService, Mockito.times(1)).search(
             eq(GraviteeContext.getExecutionContext()),
@@ -108,7 +108,7 @@ public class TicketsResourceTest extends AbstractResourceTest {
         );
 
         TicketsResponse ticketsResponse = response.readEntity(TicketsResponse.class);
-        assertEquals("Ticket list had not the good size", 1, ticketsResponse.getData().size());
+        assertEquals(1, ticketsResponse.getData().size(), "Ticket list had not the good size");
     }
 
     @Test
@@ -129,8 +129,8 @@ public class TicketsResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         TicketQuery query = queryCaptor.getValue();
-        assertEquals("Criteria user", USER_NAME, query.getFromUser());
-        assertEquals("Criteria api", "apiId", query.getApi());
+        assertEquals(USER_NAME, query.getFromUser(), "Criteria user");
+        assertEquals("apiId", query.getApi(), "Criteria api");
 
         verify(ticketService, Mockito.times(1)).search(
             eq(GraviteeContext.getExecutionContext()),
@@ -140,6 +140,6 @@ public class TicketsResourceTest extends AbstractResourceTest {
         );
 
         TicketsResponse ticketsResponse = response.readEntity(TicketsResponse.class);
-        assertEquals("Ticket list had not the good size", 1, ticketsResponse.getData().size());
+        assertEquals(1, ticketsResponse.getData().size(), "Ticket list had not the good size");
     }
 }

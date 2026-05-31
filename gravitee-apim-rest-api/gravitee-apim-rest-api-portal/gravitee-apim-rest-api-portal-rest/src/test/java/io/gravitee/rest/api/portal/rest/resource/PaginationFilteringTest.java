@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.rest.api.service.exceptions.PaginationInvalidException;
 import java.util.Collections;

@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.gravitee.rest.api.portal.rest.model.Info;
 import jakarta.ws.rs.core.Response;

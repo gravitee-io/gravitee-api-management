@@ -15,13 +15,13 @@
  */
 package io.gravitee.rest.api.portal.rest.params;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.portal.rest.resource.param.LogsParam;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.Response;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)

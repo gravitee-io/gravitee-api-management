@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.gravitee.rest.api.model.ApplicationMetadataEntity;
 import io.gravitee.rest.api.model.MetadataFormat;
@@ -25,7 +25,7 @@ import io.gravitee.rest.api.model.UpdateApplicationMetadataEntity;
 import io.gravitee.rest.api.portal.rest.model.ReferenceMetadata;
 import io.gravitee.rest.api.portal.rest.model.ReferenceMetadataFormatType;
 import io.gravitee.rest.api.portal.rest.model.ReferenceMetadataInput;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)

@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;

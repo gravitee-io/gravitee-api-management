@@ -15,13 +15,13 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import fixtures.core.model.PortalMenuLinkFixtures;
 import io.gravitee.rest.api.portal.rest.model.PortalMenuLink;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team

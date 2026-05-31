@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -36,16 +36,19 @@ import io.gravitee.rest.api.portal.rest.model.Plan.ValidationEnum;
 import io.gravitee.rest.api.portal.rest.model.PlanMode;
 import java.time.Instant;
 import java.util.*;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@MockitoSettings(strictness = Strictness.WARN)
+@ExtendWith(MockitoExtension.class)
 public class PlanMapperTest {
 
     private static final String PLAN_API = "my-plan-api";
@@ -80,7 +83,7 @@ public class PlanMapperTest {
 
     private final PlanMapper planMapper = new PlanMapper();
 
-    @Before
+    @BeforeEach
     public void init() {
         this.preparePlanEntityV2();
         this.preparePlanEntityV4();
