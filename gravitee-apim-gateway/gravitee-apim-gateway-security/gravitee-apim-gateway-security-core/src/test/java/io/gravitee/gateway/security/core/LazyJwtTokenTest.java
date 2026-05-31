@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.security.core;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.nimbusds.jose.Header;
@@ -25,19 +25,22 @@ import com.nimbusds.jwt.JWTParser;
 import java.text.ParseException;
 import java.util.Map;
 import net.minidev.json.JSONObject;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class LazyJwtTokenTest {
 
     public static final String MY_JWT_TOKEN = "myJwtToken";
@@ -47,13 +50,13 @@ public class LazyJwtTokenTest {
 
     MockedStatic<JWTParser> mockedStaticJwtParser;
 
-    @Before
+    @BeforeEach
     public void setUp() throws ParseException {
         mockedStaticJwtParser = mockStatic(JWTParser.class);
         mockedStaticJwtParser.when(() -> JWTParser.parse(MY_JWT_TOKEN)).thenReturn(jwt);
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
         mockedStaticJwtParser.close();
     }
