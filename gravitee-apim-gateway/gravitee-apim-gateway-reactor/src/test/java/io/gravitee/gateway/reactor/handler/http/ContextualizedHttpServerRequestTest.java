@@ -18,25 +18,24 @@ package io.gravitee.gateway.reactor.handler.http;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.api.Request;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ContextualizedHttpServerRequestTest {
 
     @Mock
     private Request request;
-
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
-    }
 
     @Test
     public void shouldSplitContextPath() {
@@ -44,8 +43,8 @@ public class ContextualizedHttpServerRequestTest {
 
         Request request = new ContextualizedHttpServerRequest("/", this.request);
 
-        Assert.assertEquals("/path/to/resource", request.pathInfo());
-        Assert.assertEquals("/", request.contextPath());
+        Assertions.assertEquals("/path/to/resource", request.pathInfo());
+        Assertions.assertEquals("/", request.contextPath());
     }
 
     @Test
@@ -54,7 +53,7 @@ public class ContextualizedHttpServerRequestTest {
 
         Request request = new ContextualizedHttpServerRequest("/context-path/", this.request);
 
-        Assert.assertEquals("/path/to/resource", request.pathInfo());
-        Assert.assertEquals("/context-path/", request.contextPath());
+        Assertions.assertEquals("/path/to/resource", request.pathInfo());
+        Assertions.assertEquals("/context-path/", request.contextPath());
     }
 }

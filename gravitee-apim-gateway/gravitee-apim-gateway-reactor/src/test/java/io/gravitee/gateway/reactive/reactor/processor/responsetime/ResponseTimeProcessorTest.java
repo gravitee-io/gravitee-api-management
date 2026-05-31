@@ -16,7 +16,6 @@
 package io.gravitee.gateway.reactive.reactor.processor.responsetime;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableRequest;
@@ -25,7 +24,6 @@ import io.gravitee.gateway.reactive.reactor.processor.AbstractProcessorTest;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**

@@ -27,17 +27,22 @@ import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.reporter.api.http.Metrics;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class TraceContextProcessorTest {
 
     private MutableExecutionContext context;
@@ -48,9 +53,8 @@ public class TraceContextProcessorTest {
     @Mock
     private Response response;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
         context = new SimpleExecutionContext(request, response);
         Mockito.when(request.headers()).thenReturn(HttpHeaders.create());
         Mockito.when(response.headers()).thenReturn(HttpHeaders.create());
@@ -67,9 +71,9 @@ public class TraceContextProcessorTest {
         request.headers().set(HEADER_TRACE_PARENT, traceparent);
         new TraceContextProcessor()
             .handler(context -> {
-                Assert.assertEquals(traceparent, context.request().headers().getFirst(HEADER_TRACE_PARENT));
-                Assert.assertEquals(traceparent, context.response().headers().getFirst(HEADER_TRACE_PARENT));
-                Assert.assertEquals(
+                Assertions.assertEquals(traceparent, context.request().headers().getFirst(HEADER_TRACE_PARENT));
+                Assertions.assertEquals(traceparent, context.response().headers().getFirst(HEADER_TRACE_PARENT));
+                Assertions.assertEquals(
                     "congo=ucfJifl5GOE,rojo=00f067aa0ba902b7",
                     context.request().headers().getFirst(TraceContextProcessor.HEADER_TRACE_STATE)
                 );
@@ -78,7 +82,7 @@ public class TraceContextProcessorTest {
             })
             .handle(context);
 
-        Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
+        Assertions.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
     }
 
     @Test
@@ -92,15 +96,15 @@ public class TraceContextProcessorTest {
 
         new TraceContextProcessor()
             .handler(context -> {
-                Assert.assertNotEquals(traceparent, context.request().headers().getFirst(HEADER_TRACE_PARENT));
-                Assert.assertNotEquals(traceparent, context.response().headers().getFirst(HEADER_TRACE_PARENT));
+                Assertions.assertNotEquals(traceparent, context.request().headers().getFirst(HEADER_TRACE_PARENT));
+                Assertions.assertNotEquals(traceparent, context.response().headers().getFirst(HEADER_TRACE_PARENT));
 
-                Assert.assertNull(context.request().headers().getFirst(HEADER_TRACE_STATE));
+                Assertions.assertNull(context.request().headers().getFirst(HEADER_TRACE_STATE));
                 lock.countDown();
             })
             .handle(context);
 
-        Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
+        Assertions.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
     }
 
     @Test
@@ -114,15 +118,15 @@ public class TraceContextProcessorTest {
 
         new TraceContextProcessor()
             .handler(context -> {
-                Assert.assertNotEquals(traceparent, context.request().headers().getFirst(HEADER_TRACE_PARENT));
-                Assert.assertNotEquals(traceparent, context.response().headers().getFirst(HEADER_TRACE_PARENT));
+                Assertions.assertNotEquals(traceparent, context.request().headers().getFirst(HEADER_TRACE_PARENT));
+                Assertions.assertNotEquals(traceparent, context.response().headers().getFirst(HEADER_TRACE_PARENT));
 
-                Assert.assertNull(context.request().headers().getFirst(HEADER_TRACE_STATE));
+                Assertions.assertNull(context.request().headers().getFirst(HEADER_TRACE_STATE));
                 lock.countDown();
             })
             .handle(context);
 
-        Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
+        Assertions.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
     }
 
     @Test
@@ -136,15 +140,15 @@ public class TraceContextProcessorTest {
 
         new TraceContextProcessor()
             .handler(context -> {
-                Assert.assertNotEquals(traceparent, context.request().headers().getFirst(HEADER_TRACE_PARENT));
-                Assert.assertNotEquals(traceparent, context.response().headers().getFirst(HEADER_TRACE_PARENT));
+                Assertions.assertNotEquals(traceparent, context.request().headers().getFirst(HEADER_TRACE_PARENT));
+                Assertions.assertNotEquals(traceparent, context.response().headers().getFirst(HEADER_TRACE_PARENT));
 
-                Assert.assertNull(context.request().headers().getFirst(HEADER_TRACE_STATE));
+                Assertions.assertNull(context.request().headers().getFirst(HEADER_TRACE_STATE));
                 lock.countDown();
             })
             .handle(context);
 
-        Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
+        Assertions.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
     }
 
     @Test
@@ -158,15 +162,15 @@ public class TraceContextProcessorTest {
 
         new TraceContextProcessor()
             .handler(context -> {
-                Assert.assertNotEquals(traceparent, context.request().headers().getFirst(HEADER_TRACE_PARENT));
-                Assert.assertNotEquals(traceparent, context.response().headers().getFirst(HEADER_TRACE_PARENT));
+                Assertions.assertNotEquals(traceparent, context.request().headers().getFirst(HEADER_TRACE_PARENT));
+                Assertions.assertNotEquals(traceparent, context.response().headers().getFirst(HEADER_TRACE_PARENT));
 
-                Assert.assertNull(context.request().headers().getFirst(HEADER_TRACE_STATE));
+                Assertions.assertNull(context.request().headers().getFirst(HEADER_TRACE_STATE));
                 lock.countDown();
             })
             .handle(context);
 
-        Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
+        Assertions.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
     }
 
     @Test
@@ -180,15 +184,15 @@ public class TraceContextProcessorTest {
 
         new TraceContextProcessor()
             .handler(context -> {
-                Assert.assertNotEquals(traceparent, context.request().headers().getFirst(HEADER_TRACE_PARENT));
-                Assert.assertNotEquals(traceparent, context.response().headers().getFirst(HEADER_TRACE_PARENT));
+                Assertions.assertNotEquals(traceparent, context.request().headers().getFirst(HEADER_TRACE_PARENT));
+                Assertions.assertNotEquals(traceparent, context.response().headers().getFirst(HEADER_TRACE_PARENT));
 
-                Assert.assertNull(context.request().headers().getFirst(HEADER_TRACE_STATE));
+                Assertions.assertNull(context.request().headers().getFirst(HEADER_TRACE_STATE));
                 lock.countDown();
             })
             .handle(context);
 
-        Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
+        Assertions.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
     }
 
     @Test
@@ -201,15 +205,15 @@ public class TraceContextProcessorTest {
         request.headers().set(TraceContextProcessor.HEADER_TRACE_STATE, "congo=ucfJifl5GOE,rojo=00f067aa0ba902b7");
         new TraceContextProcessor()
             .handler(context -> {
-                Assert.assertTrue(context.request().headers().getFirst(HEADER_TRACE_PARENT).matches(traceparent_regex));
-                Assert.assertTrue(context.response().headers().getFirst(HEADER_TRACE_PARENT).matches(traceparent_regex));
+                Assertions.assertTrue(context.request().headers().getFirst(HEADER_TRACE_PARENT).matches(traceparent_regex));
+                Assertions.assertTrue(context.response().headers().getFirst(HEADER_TRACE_PARENT).matches(traceparent_regex));
 
                 // if TRACESTATE provided witout traceparent, tracestate is removed
-                Assert.assertNull(context.request().headers().getFirst(HEADER_TRACE_STATE));
+                Assertions.assertNull(context.request().headers().getFirst(HEADER_TRACE_STATE));
                 lock.countDown();
             })
             .handle(context);
 
-        Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
+        Assertions.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
     }
 }

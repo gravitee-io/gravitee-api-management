@@ -21,11 +21,16 @@ import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ReactorEventListenerTest {
 
     private ReactorEventListener reactorEventListener;
@@ -36,10 +41,8 @@ public class ReactorEventListenerTest {
     @Mock
     private EventManager eventManager;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
-
         reactorEventListener = new ReactorEventListener(eventManager, reactorHandlerRegistry);
         reactorEventListener.start();
     }

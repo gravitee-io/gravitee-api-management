@@ -18,8 +18,6 @@ package io.gravitee.gateway.reactive.reactor.processor.tracing;
 import static io.gravitee.gateway.reactive.reactor.processor.tracing.TraceContextProcessor.HEADER_TRACE_PARENT;
 import static io.gravitee.gateway.reactive.reactor.processor.tracing.TraceContextProcessor.HEADER_TRACE_STATE;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
 
 import io.gravitee.gateway.reactive.reactor.processor.AbstractProcessorTest;
 import io.gravitee.gateway.reactive.reactor.processor.tracing.TraceContextProcessor;
