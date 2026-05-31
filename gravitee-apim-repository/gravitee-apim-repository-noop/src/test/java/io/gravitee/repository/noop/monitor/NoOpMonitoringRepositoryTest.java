@@ -21,8 +21,8 @@ import io.gravitee.repository.monitoring.MonitoringRepository;
 import io.gravitee.repository.monitoring.model.MonitoringResponse;
 import io.gravitee.repository.noop.AbstractNoOpRepositoryTest;
 import java.io.IOException;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -36,13 +36,13 @@ public class NoOpMonitoringRepositoryTest extends AbstractNoOpRepositoryTest {
 
     @Test
     public void testQuery() throws AnalyticsException, IOException {
-        Assert.assertNotNull(monitoringRepository);
+        Assertions.assertNotNull(monitoringRepository);
 
         final MonitoringResponse monitoringResponse = monitoringRepository.query(
             new QueryContext("org#1", "env#1"),
             "1876c024-c6a2-409a-b6c0-24c6a2e09a5f"
         );
 
-        Assert.assertNull(monitoringResponse);
+        Assertions.assertNull(monitoringResponse);
     }
 }

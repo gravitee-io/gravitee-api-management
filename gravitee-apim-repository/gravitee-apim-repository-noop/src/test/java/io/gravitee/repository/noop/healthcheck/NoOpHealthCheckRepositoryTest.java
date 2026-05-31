@@ -23,8 +23,8 @@ import io.gravitee.repository.healthcheck.api.HealthCheckRepository;
 import io.gravitee.repository.healthcheck.query.log.ExtendedLog;
 import io.gravitee.repository.healthcheck.query.response.histogram.DateHistogramResponse;
 import io.gravitee.repository.noop.AbstractNoOpRepositoryTest;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -40,19 +40,19 @@ public class NoOpHealthCheckRepositoryTest extends AbstractNoOpRepositoryTest {
 
     @Test
     public void testQuery() throws AnalyticsException {
-        Assert.assertNotNull(healthCheckRepository);
+        Assertions.assertNotNull(healthCheckRepository);
 
         DateHistogramResponse response = healthCheckRepository.query(queryContext, dateHistogram().query("any_query").build());
 
-        Assert.assertNull(response);
+        Assertions.assertNull(response);
     }
 
     @Test
     public void testFindById() throws AnalyticsException {
-        Assert.assertNotNull(healthCheckRepository);
+        Assertions.assertNotNull(healthCheckRepository);
 
         ExtendedLog response = healthCheckRepository.findById(queryContext, "any_id");
 
-        Assert.assertNull(response);
+        Assertions.assertNull(response);
     }
 }

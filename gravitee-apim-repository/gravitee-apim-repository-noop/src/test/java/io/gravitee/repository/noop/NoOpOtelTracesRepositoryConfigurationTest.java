@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.repository.noop.tracing.NoOpTracingRepository;
 import io.gravitee.repository.tracing.api.TracingRepository;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class NoOpOtelTracesRepositoryConfigurationTest {
 

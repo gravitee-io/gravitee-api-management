@@ -16,8 +16,8 @@
 package io.gravitee.repository.noop.log.v4;
 
 import static io.gravitee.definition.model.DefinitionVersion.V4;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
@@ -41,8 +41,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class NoOpAnalyticsRepositoryTest extends AbstractNoOpRepositoryTest {
@@ -55,7 +55,7 @@ public class NoOpAnalyticsRepositoryTest extends AbstractNoOpRepositoryTest {
 
     @Test
     public void testSearchRequestsCount() throws Exception {
-        Assert.assertNotNull(analyticsRepository);
+        Assertions.assertNotNull(analyticsRepository);
 
         var result = analyticsRepository.searchRequestsCount(queryContext, new RequestsCountQuery(API_ID));
 
@@ -146,7 +146,7 @@ public class NoOpAnalyticsRepositoryTest extends AbstractNoOpRepositoryTest {
 
     @Test
     public void testSearchRequestsCountByEvent() throws Exception {
-        Assert.assertNotNull(analyticsRepository);
+        Assertions.assertNotNull(analyticsRepository);
 
         var now = Instant.now();
         var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);

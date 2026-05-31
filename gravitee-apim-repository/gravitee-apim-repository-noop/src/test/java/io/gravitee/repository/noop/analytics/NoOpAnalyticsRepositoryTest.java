@@ -23,8 +23,8 @@ import io.gravitee.repository.analytics.api.AnalyticsRepository;
 import io.gravitee.repository.analytics.query.response.histogram.DateHistogramResponse;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.noop.AbstractNoOpRepositoryTest;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -38,13 +38,13 @@ public class NoOpAnalyticsRepositoryTest extends AbstractNoOpRepositoryTest {
 
     @Test
     public void testQuery() throws Exception {
-        Assert.assertNotNull(analyticsRepository);
+        Assertions.assertNotNull(analyticsRepository);
 
         DateHistogramResponse response = analyticsRepository.query(
             new QueryContext("org#1", "env#1"),
             dateHistogram().timeRange(lastDays(30), hours(1)).build()
         );
 
-        Assert.assertNull(response);
+        Assertions.assertNull(response);
     }
 }
