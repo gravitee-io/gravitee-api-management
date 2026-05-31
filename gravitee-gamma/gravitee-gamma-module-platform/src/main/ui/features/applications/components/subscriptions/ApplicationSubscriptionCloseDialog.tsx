@@ -31,13 +31,11 @@ export function ApplicationSubscriptionCloseDialog({
     onClose,
     onConfirm,
     isLoading,
-    error,
 }: Readonly<{
     subscription: ApplicationSubscriptionCloseTarget | null;
     onClose: () => void;
     onConfirm: () => void;
     isLoading: boolean;
-    error?: string | null;
 }>) {
     const referenceLabel = subscription?.referenceTypeLabel === 'API Product' ? 'API product' : 'API';
     let description = subscription
@@ -55,7 +53,6 @@ export function ApplicationSubscriptionCloseDialog({
                     <DialogTitle>Close subscription</DialogTitle>
                     <DialogDescription>{description}</DialogDescription>
                 </DialogHeader>
-                {error ? <p className="text-sm text-destructive">{error}</p> : null}
                 <DialogFooter>
                     <DialogClose asChild>
                         <Button type="button" variant="outline" disabled={isLoading}>

@@ -13,5 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { ChipInput } from './ChipInput';
-export { FeatureTile } from './FeatureTile';
+import { Toaster } from '@gravitee/graphene-core';
+
+/** Platform module toast host (standalone and federated). */
+export function PlatformToaster() {
+    return <Toaster position="bottom-right" richColors closeButton />;
+}

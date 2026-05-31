@@ -21,6 +21,7 @@ import { ApplicationsPageHeader } from '../ApplicationsPageHeader';
 import { ApplicationListTable } from './ApplicationListTable';
 import { ApplicationRestoreDialog } from './ApplicationRestoreDialog';
 import { ApplicationStatsCards } from './ApplicationStatsCards';
+import { notify } from '../../../../shared/notify';
 import type { ApplicationStats } from '../../hooks/useApplicationStats';
 import { useRestoreApplication } from '../../hooks/useRestoreApplication';
 import type { ApplicationListItem, ApplicationStatus } from '../../types/application';
@@ -78,15 +79,16 @@ export function ApplicationsListView({
 }: ApplicationsListViewProps) {
     const searchInputId = useId();
     const [restoreTarget, setRestoreTarget] = useState<ApplicationListItem | null>(null);
-    const [restoreError, setRestoreError] = useState<string | null>(null);
     const restoreMutation = useRestoreApplication();
 
     const handleRestore = () => {
         if (!restoreTarget) return;
-        setRestoreError(null);
         restoreMutation.mutate(restoreTarget.id, {
-            onSuccess: () => setRestoreTarget(null),
-            onError: (e: unknown) => setRestoreError(e instanceof Error ? e.message : 'Failed to restore application.'),
+            onSuccess: () => {
+                notify.success(`Application ${restoreTarget.name} has been restored`);
+                setRestoreTarget(null);
+            },
+            onError: error => notify.error(error, 'Failed to restore application.'),
         });
     };
 
@@ -156,7 +158,6 @@ export function ApplicationsListView({
                 onRestore={
                     canRestore
                         ? application => {
-                              setRestoreError(null);
                               setRestoreTarget(application);
                           }
                         : undefined
@@ -165,13 +166,9 @@ export function ApplicationsListView({
 
             <ApplicationRestoreDialog
                 application={restoreTarget}
-                onClose={() => {
-                    setRestoreTarget(null);
-                    setRestoreError(null);
-                }}
+                onClose={() => setRestoreTarget(null)}
                 onConfirm={handleRestore}
                 isLoading={restoreMutation.isPending}
-                error={restoreError}
             />
 
             <div className="flex justify-end">

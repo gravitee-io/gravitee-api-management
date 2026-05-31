@@ -23,6 +23,8 @@ import { ApplicationCertificatesSection } from './ApplicationCertificatesSection
 import { ApplicationDetailsSection } from './ApplicationDetailsSection';
 import { ApplicationLifecycleSection } from './ApplicationLifecycleSection';
 import { ApplicationOAuthSection } from './ApplicationOAuthSection';
+import { copyTextToClipboardWithNotifyHandler } from '../../../../shared/copyToClipboard';
+import { notify } from '../../../../shared/notify';
 import { useDetailBasePath } from '../../../shared/hooks/useDetailBasePath';
 import { useApplicationDetailContext } from '../../context/ApplicationDetailContext';
 import { useApplicationGeneralMutations } from '../../hooks/useApplicationGeneralMutations';
@@ -48,12 +50,17 @@ export function ApplicationGeneralContent({ application }: Readonly<{ applicatio
     const canDelete = useHasPermission({ anyOf: ['application-definition-d'] });
 
     const isSimple = application.type === 'SIMPLE';
+    const needsTypeConfig = !isSimple;
     const isArchivedOrKubernetes = isApplicationGeneralReadOnly(application);
     const isFormDisabled = !permissionsReady || isArchivedOrKubernetes || !canUpdate;
     const showSubscribeToApis = permissionsReady && !isArchivedOrKubernetes && canUpdate;
     const canManageCertificates = permissionsReady && !isArchivedOrKubernetes && canUpdate;
 
-    const { data: typeConfig } = useApplicationTypeConfiguration(applicationId, !isSimple);
+    const {
+        data: typeConfig,
+        isError: isTypeConfigError,
+        error: typeConfigError,
+    } = useApplicationTypeConfiguration(applicationId, needsTypeConfig);
     const { saveMutation, deleteMutation, addCertificateWithGraceMutation, updateCertificateMutation, isMutating } =
         useApplicationGeneralMutations(application, applicationId, {
             onDeleteSuccess: () => navigate('../..', { relative: 'route' }),
@@ -61,23 +68,34 @@ export function ApplicationGeneralContent({ application }: Readonly<{ applicatio
 
     const [form, setForm] = useState<ApplicationGeneralForm | null>(null);
     const [savedForm, setSavedForm] = useState<ApplicationGeneralForm | null>(null);
-    const [saveError, setSaveError] = useState<string | null>(null);
+    const [metadataFieldKey, setMetadataFieldKey] = useState(0);
+    const [metadataHasDuplicateKeys, setMetadataHasDuplicateKeys] = useState(false);
 
     useEffect(() => {
         const seed = formFromApplication(application);
         setForm(seed);
         setSavedForm(seed);
-        setSaveError(null);
+        setMetadataHasDuplicateKeys(false);
+        setMetadataFieldKey(key => key + 1);
     }, [application.id, application.updated_at]);
 
-    const validation = useMemo(() => (form ? validateApplicationGeneralForm(form) : {}), [form]);
+    const validation = useMemo(
+        () =>
+            form
+                ? validateApplicationGeneralForm(form, {
+                      isOAuthApplication: !isSimple,
+                      typeConfig,
+                      metadataHasDuplicateKeys,
+                  })
+                : {},
+        [form, isSimple, typeConfig, metadataHasDuplicateKeys],
+    );
     const isDirty = useMemo(() => form !== null && savedForm !== null && isApplicationGeneralFormDirty(form, savedForm), [form, savedForm]);
     const hasValidationErrors = hasApplicationGeneralValidationErrors(validation);
     const canSave = isDirty && !hasValidationErrors && !isMutating;
 
     const setField = useCallback(<K extends keyof ApplicationGeneralForm>(key: K, value: ApplicationGeneralForm[K]) => {
         setForm(prev => (prev ? { ...prev, [key]: value } : prev));
-        setSaveError(null);
     }, []);
 
     const handlePictureChange = useCallback((value: string | null) => {
@@ -90,7 +108,6 @@ export function ApplicationGeneralContent({ application }: Readonly<{ applicatio
                   }
                 : prev,
         );
-        setSaveError(null);
     }, []);
 
     const handleBackgroundChange = useCallback((value: string | null) => {
@@ -103,17 +120,17 @@ export function ApplicationGeneralContent({ application }: Readonly<{ applicatio
                   }
                 : prev,
         );
-        setSaveError(null);
     }, []);
 
     const copyToClipboard = (value: string) => {
-        void navigator.clipboard.writeText(value);
+        copyTextToClipboardWithNotifyHandler(value, 'Copied to clipboard');
     };
 
     const handleDiscard = () => {
         if (savedForm) {
             setForm(savedForm);
-            setSaveError(null);
+            setMetadataHasDuplicateKeys(false);
+            setMetadataFieldKey(key => key + 1);
         }
     };
 
@@ -123,19 +140,38 @@ export function ApplicationGeneralContent({ application }: Readonly<{ applicatio
         saveMutation.mutate(payload, {
             onSuccess: () => {
                 setSavedForm(form);
-                setSaveError(null);
+                notify.success('Application details successfully updated!');
             },
-            onError: (e: unknown) => setSaveError(e instanceof Error ? e.message : 'Failed to save changes.'),
+            onError: error => notify.error(error, 'Failed to save changes.'),
         });
     };
 
-    if (!form || !applicationId) {
+    const pageSkeleton = (
+        <div className="space-y-5">
+            <Skeleton className="h-10 w-64" />
+            <Skeleton className="h-64 w-full" />
+        </div>
+    );
+
+    if (!applicationId) {
+        return pageSkeleton;
+    }
+
+    if (needsTypeConfig && isTypeConfigError) {
         return (
             <div className="space-y-5">
-                <Skeleton className="h-10 w-64" />
-                <Skeleton className="h-64 w-full" />
+                <Card className="border-destructive/30 bg-destructive/5 p-4">
+                    <p className="text-sm text-destructive">
+                        {typeConfigError instanceof Error ? typeConfigError.message : 'Failed to load application type configuration.'}
+                    </p>
+                </Card>
             </div>
         );
+    }
+
+    // Console waits for application + type config before rendering the form.
+    if (!form || (needsTypeConfig && !typeConfig)) {
+        return pageSkeleton;
     }
 
     return (
@@ -160,12 +196,6 @@ export function ApplicationGeneralContent({ application }: Readonly<{ applicatio
                 ) : null}
             </div>
 
-            {saveError ? (
-                <Card className="border-destructive/30 bg-destructive/5 p-4">
-                    <p className="text-sm text-destructive">{saveError}</p>
-                </Card>
-            ) : null}
-
             <ApplicationDetailsSection
                 application={application}
                 form={form}
@@ -182,8 +212,11 @@ export function ApplicationGeneralContent({ application }: Readonly<{ applicatio
                 isSimple={isSimple}
                 form={form}
                 typeConfig={typeConfig}
+                validation={validation}
+                metadataFieldKey={metadataFieldKey}
                 isFormDisabled={isFormDisabled || isMutating}
                 onFieldChange={setField}
+                onMetadataDuplicateKeysChange={setMetadataHasDuplicateKeys}
                 onCopy={copyToClipboard}
             />
 

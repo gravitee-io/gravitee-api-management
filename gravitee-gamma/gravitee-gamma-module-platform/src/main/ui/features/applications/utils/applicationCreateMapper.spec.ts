@@ -15,6 +15,8 @@
  */
 import {
     defaultGrantTypesForType,
+    getDuplicateMetadataKeys,
+    hasDuplicateMetadataRowKeys,
     isMandatoryGrantType,
     isRegisterApplicationFormValid,
     mapDraftToCreateRequest,
@@ -103,6 +105,23 @@ describe('isRegisterApplicationFormValid', () => {
             ),
         ).toBe(true);
     });
+
+    it('rejects oauth drafts when additional client metadata keys are duplicated', () => {
+        const webType = APPLICATION_TYPES_FIXTURE[2]!;
+
+        expect(
+            isRegisterApplicationFormValid(
+                {
+                    ...BASE_DRAFT,
+                    typeId: 'web',
+                    grantTypes: ['authorization_code'],
+                    redirectUris: ['https://app.example.com/callback'],
+                },
+                webType,
+                { requireUserGroups: false, metadataHasDuplicateKeys: true },
+            ),
+        ).toBe(false);
+    });
 });
 
 describe('rowsToAdditionalClientMetadata', () => {
@@ -117,6 +136,38 @@ describe('rowsToAdditionalClientMetadata', () => {
                 { key: '', value: '' },
             ]),
         ).toEqual({ policy_uri: 'https://example.com/policy' });
+    });
+});
+
+describe('getDuplicateMetadataKeys', () => {
+    it('returns the repeated trimmed keys', () => {
+        expect(
+            getDuplicateMetadataKeys([
+                { key: 'scope', value: 'openid' },
+                { key: 'scope', value: 'profile' },
+                { key: 'audience', value: 'api' },
+            ]),
+        ).toEqual(new Set(['scope']));
+    });
+});
+
+describe('hasDuplicateMetadataRowKeys', () => {
+    it('returns true when trimmed keys repeat', () => {
+        expect(
+            hasDuplicateMetadataRowKeys([
+                { key: 'scope', value: 'openid' },
+                { key: 'scope', value: 'profile' },
+            ]),
+        ).toBe(true);
+    });
+
+    it('returns false when keys are unique', () => {
+        expect(
+            hasDuplicateMetadataRowKeys([
+                { key: 'scope', value: 'openid' },
+                { key: 'audience', value: 'api' },
+            ]),
+        ).toBe(false);
     });
 });
 

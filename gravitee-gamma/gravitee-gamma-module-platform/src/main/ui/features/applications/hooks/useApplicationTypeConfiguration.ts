@@ -17,13 +17,14 @@ import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useQuery } from '@tanstack/react-query';
 
 import { getApplicationTypeConfiguration } from '../services/applicationDetail';
+import { normalizeApplicationType } from '../utils/applicationTypeLabels';
 import { applicationDetailKeys } from '../utils/queryKeys';
 
 export function useApplicationTypeConfiguration(applicationId: string | undefined, enabled: boolean) {
     const env = useEnvironment();
     return useQuery({
         queryKey: applicationDetailKeys.typeConfig(env?.id ?? '', applicationId ?? ''),
-        queryFn: () => getApplicationTypeConfiguration(env!.id, applicationId!),
+        queryFn: async () => normalizeApplicationType(await getApplicationTypeConfiguration(env!.id, applicationId!)),
         enabled: Boolean(env && applicationId && enabled),
         staleTime: 60_000,
     });
