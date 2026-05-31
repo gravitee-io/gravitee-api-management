@@ -69,6 +69,7 @@ import type {
 } from '../features/applications/types/applicationMembers.types';
 import { toApplicationMemberEntity } from '../features/applications/utils/applicationMemberMapper';
 import { applicationDetailKeys, applicationMemberKeys } from '../features/applications/utils/queryKeys';
+import { notify } from '../shared/notify';
 
 class AddMembersMutationError extends Error {
     public readonly succeededCount: number;
@@ -154,6 +155,7 @@ export function ApplicationUserPermissionsPage() {
             }
         },
         onError: error => {
+            notify.error(error);
             if (error instanceof AddMembersMutationError && error.succeededCount > 0 && env?.id && applicationId) {
                 // Partial success: refresh the list even though the mutation is considered failed.
                 void queryClient.invalidateQueries({
@@ -233,7 +235,13 @@ export function ApplicationUserPermissionsPage() {
     const handleSaveEditRole = useCallback(
         (roleName: string) => {
             if (!memberToEdit || !canUpdate || isReadOnly) return;
-            updateMutation.mutate({ member: memberToEdit, roleName });
+            updateMutation.mutate(
+                { member: memberToEdit, roleName },
+                {
+                    onSuccess: () => notify.success('Changes successfully saved!'),
+                    onError: error => notify.error(error),
+                },
+            );
         },
         [canUpdate, isReadOnly, memberToEdit, updateMutation],
     );
@@ -246,7 +254,12 @@ export function ApplicationUserPermissionsPage() {
         [canDelete, isReadOnly],
     );
     const handleRemoveConfirm = useCallback(() => {
-        if (memberToRemove) deleteMutation.mutate(memberToRemove.id);
+        if (!memberToRemove) return;
+        const displayName = memberToRemove.displayName;
+        deleteMutation.mutate(memberToRemove.id, {
+            onSuccess: () => notify.success(`"${displayName}" has been deleted`),
+            onError: error => notify.error(error),
+        });
     }, [memberToRemove, deleteMutation]);
     const handleRemoveCancel = useCallback(() => setMemberToRemove(null), []);
 
@@ -254,37 +267,30 @@ export function ApplicationUserPermissionsPage() {
         async (users: SearchableUser[], roleName: string) => {
             try {
                 await addMutation.mutateAsync({ users, roleName });
+                notify.success('Changes successfully saved!');
                 setAddMembersOpen(false);
             } catch {
-                // Error is surfaced via mutationErrorMessage
+                // Error is surfaced via notify in addMutation.onError
             }
         },
         [addMutation],
     );
 
     const notificationsEnabled = !(application?.disable_membership_notifications ?? false);
-    const handleNotificationToggle = useCallback((checked: boolean) => notificationMutation.mutate(!checked), [notificationMutation]);
+    const handleNotificationToggle = useCallback(
+        (checked: boolean) =>
+            notificationMutation.mutate(!checked, {
+                onSuccess: () => notify.success('Changes successfully saved!'),
+                onError: error => notify.error(error),
+            }),
+        [notificationMutation],
+    );
 
     const memberActionsDisabled = isReadOnly || !canUpdate;
     const definitionActionsDisabled = isReadOnly || !canUpdateDefinition;
 
-    const mutationError =
-        addMutation.error ??
-        updateMutation.error ??
-        deleteMutation.error ??
-        transferMutation.error ??
-        groupsMutation.error ??
-        notificationMutation.error;
-
-    const mutationErrorMessage = mutationError instanceof Error ? mutationError.message : mutationError ? String(mutationError) : null;
-
     return (
         <div className="space-y-6 p-6">
-            {mutationErrorMessage ? (
-                <Alert variant="destructive">
-                    <AlertDescription>{mutationErrorMessage}</AlertDescription>
-                </Alert>
-            ) : null}
             <div className="space-y-1">
                 <h1 className="text-2xl font-semibold tracking-tight">User Permissions</h1>
                 <p className="text-sm text-muted-foreground">Manage who can access and administer this application in the console.</p>
@@ -441,7 +447,12 @@ export function ApplicationUserPermissionsPage() {
                 members={members}
                 roles={roleNames}
                 onClose={() => setTransferOpen(false)}
-                onTransfer={payload => transferMutation.mutate(payload)}
+                onTransfer={payload =>
+                    transferMutation.mutate(payload, {
+                        onSuccess: () => notify.success('Transfer ownership done.'),
+                        onError: error => notify.error(error),
+                    })
+                }
                 isTransferring={transferMutation.isPending}
             />
             <ManageGroupsDialog
@@ -449,7 +460,12 @@ export function ApplicationUserPermissionsPage() {
                 allGroups={allGroups}
                 currentGroupIds={currentGroupIds}
                 onClose={() => setManageGroupsOpen(false)}
-                onSave={groupIds => groupsMutation.mutate(groupIds)}
+                onSave={groupIds =>
+                    groupsMutation.mutate(groupIds, {
+                        onSuccess: () => notify.success('Changes successfully saved!'),
+                        onError: error => notify.error(error),
+                    })
+                }
                 isSaving={groupsMutation.isPending}
             />
         </div>

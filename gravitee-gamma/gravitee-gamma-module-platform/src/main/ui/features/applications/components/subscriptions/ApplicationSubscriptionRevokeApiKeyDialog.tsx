@@ -31,13 +31,11 @@ export function ApplicationSubscriptionRevokeApiKeyDialog({
     onClose,
     onConfirm,
     isLoading,
-    error,
 }: Readonly<{
     apiKey: ApplicationSubscriptionApiKeyRow | null;
     onClose: () => void;
     onConfirm: () => void;
     isLoading: boolean;
-    error?: string | null;
 }>) {
     return (
         <Dialog open={Boolean(apiKey)} onOpenChange={open => !open && onClose()}>
@@ -53,7 +51,6 @@ export function ApplicationSubscriptionRevokeApiKeyDialog({
                         ) : null}
                     </DialogDescription>
                 </DialogHeader>
-                {error ? <p className="text-sm text-destructive">{error}</p> : null}
                 <DialogFooter>
                     <DialogClose asChild>
                         <Button type="button" variant="outline" disabled={isLoading}>

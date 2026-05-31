@@ -30,6 +30,7 @@ import { SearchIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { notify } from '../../../../shared/notify';
 import {
     useApplicationApiKeySubscriptions,
     useCreateApplicationSubscription,
@@ -236,12 +237,13 @@ export function ApplicationSubscriptionCreateDialog({
                 planId: selectedPlan.id,
                 payload: buildSubscriptionCreatePayload(request, showApiKeyModeChoice, apiKeyMode),
             });
+            notify.success('Subscription successfully created');
             handleOpenChange(false);
             if (created.id) {
                 navigate(`${basePath}/subscriptions/${created.id}`);
             }
-        } catch {
-            setError('Failed to create subscription. Please try again.');
+        } catch (error) {
+            notify.error(error, 'An error occurred during subscription creation');
         }
     };
 

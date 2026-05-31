@@ -36,6 +36,7 @@ import { ApplicationGroupsField } from './ApplicationGroupsField';
 import { ApplicationTypeSelector } from './ApplicationTypeSelector';
 import { OAuthSecurityFields } from './OAuthSecurityFields';
 import { SimpleSecurityFields } from './SimpleSecurityFields';
+import { notify } from '../../../../shared/notify';
 import { useApplicationGroups } from '../../hooks/useApplicationGroups';
 import { useApplicationTypes } from '../../hooks/useApplicationTypes';
 import { useCreateApplication } from '../../hooks/useCreateApplication';
@@ -65,6 +66,7 @@ export function RegisterApplicationForm() {
     const createApplication = useCreateApplication();
 
     const [draft, setDraft] = useState<RegisterApplicationDraft>(EMPTY_DRAFT);
+    const [metadataHasDuplicateKeys, setMetadataHasDuplicateKeys] = useState(false);
 
     const selectedType = applicationTypes.find(type => type.id === draft.typeId) ?? applicationTypes[0];
 
@@ -87,6 +89,7 @@ export function RegisterApplicationForm() {
     const handleTypeChange = (typeId: string) => {
         const nextType = applicationTypes.find(type => type.id === typeId);
         if (!nextType) return;
+        setMetadataHasDuplicateKeys(false);
         updateDraft({
             typeId,
             grantTypes: defaultGrantTypesForType(nextType),
@@ -103,8 +106,8 @@ export function RegisterApplicationForm() {
     const showGroupsField = hasGroupsToAdd || requireUserGroups;
 
     const isFormValid = useMemo(
-        () => isRegisterApplicationFormValid(draft, selectedType, { requireUserGroups }),
-        [draft, selectedType, requireUserGroups],
+        () => isRegisterApplicationFormValid(draft, selectedType, { requireUserGroups, metadataHasDuplicateKeys }),
+        [draft, selectedType, requireUserGroups, metadataHasDuplicateKeys],
     );
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -116,10 +119,11 @@ export function RegisterApplicationForm() {
         createApplication.mutate(
             { draft, selectedType },
             {
-                onSuccess: created =>
-                    navigate(`../${created.id}/general`, {
-                        state: { created: true, applicationName: created.name },
-                    }),
+                onSuccess: created => {
+                    notify.success('Application created');
+                    navigate(`../${created.id}/general`);
+                },
+                onError: error => notify.error(error, 'An error occurred while creating the application!'),
             },
         );
     };
@@ -135,12 +139,6 @@ export function RegisterApplicationForm() {
 
     return (
         <form className="space-y-6" onSubmit={handleSubmit} noValidate>
-            {createApplication.isError && (
-                <Alert variant="destructive">
-                    <AlertDescription>{createApplication.error.message}</AlertDescription>
-                </Alert>
-            )}
-
             <Card>
                 <CardHeader>
                     <CardTitle className="text-lg">General</CardTitle>
@@ -237,6 +235,7 @@ export function RegisterApplicationForm() {
                                 onRedirectUrisChange={redirectUris => updateDraft({ redirectUris })}
                                 onClientCertificateChange={clientCertificate => updateDraft({ clientCertificate })}
                                 onAdditionalClientMetadataChange={additionalClientMetadata => updateDraft({ additionalClientMetadata })}
+                                onMetadataDuplicateKeysChange={setMetadataHasDuplicateKeys}
                             />
                         )}
 

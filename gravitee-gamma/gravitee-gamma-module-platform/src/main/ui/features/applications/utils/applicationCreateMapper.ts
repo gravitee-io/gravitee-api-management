@@ -21,9 +21,45 @@ import type {
     RegisterApplicationDraft,
 } from '../types/applicationCreate';
 
-interface MetadataRow {
+export interface MetadataRow {
     key: string;
     value: string;
+}
+
+export function getDuplicateMetadataKeys(rows: MetadataRow[]): ReadonlySet<string> {
+    const keyCounts = new Map<string, number>();
+
+    for (const row of rows) {
+        const key = row.key.trim();
+        if (!key) {
+            continue;
+        }
+        keyCounts.set(key, (keyCounts.get(key) ?? 0) + 1);
+    }
+
+    const duplicates = new Set<string>();
+    for (const [key, count] of keyCounts) {
+        if (count > 1) {
+            duplicates.add(key);
+        }
+    }
+
+    return duplicates;
+}
+
+export function hasDuplicateMetadataRowKeys(rows: MetadataRow[]): boolean {
+    return getDuplicateMetadataKeys(rows).size > 0;
+}
+
+export function additionalClientMetadataRecordsEqual(left: Record<string, string> | null, right: Record<string, string> | null): boolean {
+    const leftRecord = left ?? {};
+    const rightRecord = right ?? {};
+    const leftKeys = Object.keys(leftRecord).sort();
+    const rightKeys = Object.keys(rightRecord).sort();
+    if (leftKeys.length !== rightKeys.length) {
+        return false;
+    }
+    return leftKeys.every(key => leftRecord[key] === rightRecord[key]);
 }
 
 export function rowsToAdditionalClientMetadata(rows: MetadataRow[]): Record<string, string> | null {
@@ -87,6 +123,7 @@ export function isOAuthApplicationType(typeId: string): boolean {
 
 export interface RegisterApplicationFormValidationContext {
     requireUserGroups: boolean;
+    metadataHasDuplicateKeys?: boolean;
 }
 
 export function isRegisterApplicationFormValid(
@@ -120,6 +157,10 @@ export function isRegisterApplicationFormValid(
     }
 
     if (selectedType.requires_redirect_uris && draft.redirectUris.length === 0) {
+        return false;
+    }
+
+    if (validation?.metadataHasDuplicateKeys) {
         return false;
     }
 

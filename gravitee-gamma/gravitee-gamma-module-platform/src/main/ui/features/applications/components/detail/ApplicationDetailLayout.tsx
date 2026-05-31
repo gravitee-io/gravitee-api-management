@@ -58,7 +58,6 @@ function ApplicationInfoHeader({ application, isLoading }: { application: Applic
                         <Skeleton className="h-6 w-14 rounded-md" />
                     </div>
                 </div>
-                <Skeleton className="h-3 w-full rounded" />
                 <div className="flex gap-1.5">
                     <Skeleton className="h-5 w-14 rounded-md" />
                     <Skeleton className="h-5 w-24 rounded-md" />
@@ -84,11 +83,6 @@ function ApplicationInfoHeader({ application, isLoading }: { application: Applic
                     <StatusBadge status={application.status} />
                 </div>
             </div>
-            {application.description ? (
-                <p className="line-clamp-2 break-all text-xs leading-relaxed text-muted-foreground" title={application.description}>
-                    {application.description}
-                </p>
-            ) : null}
             <div className="flex flex-wrap items-center gap-1.5">
                 <span className="inline-flex h-5 items-center border border-border bg-background px-1.5 text-xs font-normal text-foreground">
                     {formatApplicationSecurityTypeLabel(application)}

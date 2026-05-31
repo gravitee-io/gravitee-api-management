@@ -31,6 +31,7 @@ import {
 import { CircleCheckIcon, CircleXIcon, ClockIcon, CopyIcon, RefreshCwIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useMemo, useState } from 'react';
 
+import { copyTextToClipboardWithNotifyHandler } from '../../../../shared/copyToClipboard';
 import type { ApplicationSubscriptionApiKeyRow } from '../../types/applicationSubscription';
 import { formatApplicationDateTime } from '../../utils/applicationFormatters';
 import { DEFAULT_SUBSCRIPTION_PAGE_SIZE, SUBSCRIPTION_PAGE_SIZE_OPTIONS } from '../../utils/applicationSubscriptionConstants';
@@ -157,7 +158,7 @@ export function ApplicationSubscriptionApiKeysCard({
                                 size="icon"
                                 className="size-7 shrink-0"
                                 aria-label="Copy API key"
-                                onClick={() => void navigator.clipboard?.writeText(apiKey.key)}
+                                onClick={() => copyTextToClipboardWithNotifyHandler(apiKey.key, 'API Key has been copied to clipboard')}
                             >
                                 <CopyIcon className="size-3.5" aria-hidden />
                             </Button>

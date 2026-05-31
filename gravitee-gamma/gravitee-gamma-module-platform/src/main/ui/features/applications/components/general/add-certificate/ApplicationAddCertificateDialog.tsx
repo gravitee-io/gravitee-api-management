@@ -34,7 +34,6 @@ export function ApplicationAddCertificateDialog({
     certificates,
     onSubmit,
     isSubmitting,
-    error,
 }: Readonly<{
     open: boolean;
     onOpenChange: (open: boolean) => void;
@@ -42,7 +41,6 @@ export function ApplicationAddCertificateDialog({
     certificates: ClientCertificate[];
     onSubmit: (payload: AddCertificateSubmit) => void;
     isSubmitting: boolean;
-    error?: string | null;
 }>) {
     const wizard = useAddCertificateWizard({ open, applicationId, certificates, onSubmit });
 
@@ -100,7 +98,6 @@ export function ApplicationAddCertificateDialog({
                             />
                         ) : null}
                     </div>
-                    {error ? <p className="mt-4 text-sm text-destructive">{error}</p> : null}
                 </div>
 
                 <AddCertificateDialogFooter
