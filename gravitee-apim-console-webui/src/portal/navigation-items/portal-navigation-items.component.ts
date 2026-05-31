@@ -192,7 +192,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   private readonly ngZone = inject(NgZone);
   private readonly MIN_PANEL_WIDTH = 280;
   private readonly MAX_PANEL_WIDTH = 600;
-  panelWidth = signal(350);
+  panelWidth = signal(400);
   initialContent = signal('');
 
   readonly currentPageContentType = signal<PortalPageContentType | null>(null);
