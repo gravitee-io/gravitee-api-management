@@ -21,9 +21,9 @@ import io.gravitee.rest.api.fetcher.impl.FetcherConfigurationFactoryImpl;
 import java.io.IOException;
 import java.io.InputStream;
 import org.apache.commons.io.IOUtils;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud [at] graviteesource [dot] com)
@@ -33,7 +33,7 @@ public class FetcherConfigurationFactoryTest {
 
     private FetcherConfigurationFactory fetcherConfigurationFactory;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         fetcherConfigurationFactory = new FetcherConfigurationFactoryImpl();
     }
@@ -42,14 +42,14 @@ public class FetcherConfigurationFactoryTest {
     public void createFetcherWithConfigurationAndWithoutConfigurationData() {
         FetcherConfiguration fetcherConfiguration = fetcherConfigurationFactory.create(DummyFetcherConfiguration.class, null);
 
-        Assert.assertNull(fetcherConfiguration);
+        Assertions.assertNull(fetcherConfiguration);
     }
 
     @Test
     public void createFetcherWithConfigurationAndEmptyConfigurationData() {
         FetcherConfiguration fetcherConfiguration = fetcherConfigurationFactory.create(DummyFetcherConfiguration.class, "");
 
-        Assert.assertNull(fetcherConfiguration);
+        Assertions.assertNull(fetcherConfiguration);
     }
 
     @Test
@@ -61,10 +61,10 @@ public class FetcherConfigurationFactoryTest {
                 configuration
             );
 
-            Assert.assertNotNull(fetcherConfiguration);
+            Assertions.assertNotNull(fetcherConfiguration);
         } catch (IOException e) {
             e.printStackTrace();
-            Assert.fail(e.getMessage());
+            Assertions.fail(e.getMessage());
         }
     }
 
@@ -77,10 +77,10 @@ public class FetcherConfigurationFactoryTest {
                 configuration
             );
 
-            Assert.assertNotNull(fetcherConfiguration);
+            Assertions.assertNotNull(fetcherConfiguration);
         } catch (IOException e) {
             e.printStackTrace();
-            Assert.fail(e.getMessage());
+            Assertions.fail(e.getMessage());
         }
     }
 }
