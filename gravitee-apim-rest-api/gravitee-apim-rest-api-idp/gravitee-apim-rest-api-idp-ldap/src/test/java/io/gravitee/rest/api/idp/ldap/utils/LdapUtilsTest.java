@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.idp.ldap.utils;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -27,42 +27,42 @@ public class LdapUtilsTest {
     @Test
     public void shouldNotExtractAttribute_nullParameter() {
         String attribute = LdapUtils.extractAttribute(null);
-        Assert.assertNull(attribute);
+        Assertions.assertNull(attribute);
     }
 
     @Test
     public void shouldNotExtractAttribute_emptyParameter() {
         String attribute = LdapUtils.extractAttribute("");
-        Assert.assertNull(attribute);
+        Assertions.assertNull(attribute);
     }
 
     @Test
     public void shouldNotExtractAttribute_invalidFilter() {
         String attribute = LdapUtils.extractAttribute("(&(objectClass=Person)(uid=");
-        Assert.assertNull(attribute);
+        Assertions.assertNull(attribute);
     }
 
     @Test
     public void shouldExtractAttribute() {
         String attribute = LdapUtils.extractAttribute("(&(objectClass=Person)(uid={0})(&(ou=People)(ou=Payroll)))");
-        Assert.assertEquals("uid", attribute);
+        Assertions.assertEquals("uid", attribute);
     }
 
     @Test
     public void shouldExtractAttribute2() {
         String attribute = LdapUtils.extractAttribute("uid={0},ou=people");
-        Assert.assertEquals("uid", attribute);
+        Assertions.assertEquals("uid", attribute);
     }
 
     @Test
     public void shouldExtractAttribute3() {
         String attribute = LdapUtils.extractAttribute("ou=people,uid={0}");
-        Assert.assertEquals("uid", attribute);
+        Assertions.assertEquals("uid", attribute);
     }
 
     @Test
     public void shouldExtractAttribute4() {
         String attribute = LdapUtils.extractAttribute("(ou=people,uid={0})");
-        Assert.assertEquals("uid", attribute);
+        Assertions.assertEquals("uid", attribute);
     }
 }
