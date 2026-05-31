@@ -16,12 +16,11 @@
 package io.gravitee.rest.api.services.dictionary.provider.http;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import io.gravitee.node.api.Node;
 import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.services.dictionary.model.DynamicProperty;
@@ -36,20 +35,22 @@ import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
 public class HttpProviderTest {
 
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
+    @RegisterExtension
+    public WireMockExtension wireMockRule = WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
 
     @Mock
     private HttpProviderConfiguration configuration;
@@ -63,15 +64,14 @@ public class HttpProviderTest {
     @Mock
     private HttpClientService httpClientService;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
         when(httpClientService.createHttpClient(anyString(), anyBoolean())).thenReturn(Vertx.vertx().createHttpClient());
     }
 
     @Test
     public void shouldGetProperties() throws IOException {
-        when(configuration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/success");
+        when(configuration.getUrl()).thenReturn("http://localhost:" + wireMockRule.getPort() + "/success");
         when(configuration.getSpecification()).thenReturn(
             IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset())
         );
@@ -91,7 +91,7 @@ public class HttpProviderTest {
 
     @Test
     public void shouldGetPropertiesWithoutMethod() throws IOException {
-        when(configuration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/success_post");
+        when(configuration.getUrl()).thenReturn("http://localhost:" + wireMockRule.getPort() + "/success_post");
         when(configuration.getSpecification()).thenReturn(
             IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset())
         );
@@ -111,7 +111,7 @@ public class HttpProviderTest {
 
     @Test
     public void shouldGetPropertiesFromPOST() throws IOException {
-        when(configuration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/success_post");
+        when(configuration.getUrl()).thenReturn("http://localhost:" + wireMockRule.getPort() + "/success_post");
         when(configuration.getSpecification()).thenReturn(
             IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset())
         );
@@ -132,7 +132,7 @@ public class HttpProviderTest {
 
     @Test
     public void shouldGetNullPropertiesBecauseHttpError() throws IOException {
-        when(configuration.getUrl()).thenReturn("http://localhost:" + wireMockRule.port() + "/error");
+        when(configuration.getUrl()).thenReturn("http://localhost:" + wireMockRule.getPort() + "/error");
         when(configuration.getSpecification()).thenReturn(
             IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset())
         );
@@ -150,20 +150,22 @@ public class HttpProviderTest {
         verify(mapper, never()).map(anyString());
     }
 
-    @Test(expected = CompletionException.class)
+    @Test
     public void shouldCallUnknownUri() throws IOException {
-        when(configuration.getUrl()).thenReturn("http://unknown_host:" + wireMockRule.port());
-        when(configuration.getSpecification()).thenReturn(
-            IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset())
-        );
-        when(configuration.getMethod()).thenReturn(HttpMethod.GET);
+        assertThrows(CompletionException.class, () -> {
+            when(configuration.getUrl()).thenReturn("http://unknown_host:" + wireMockRule.getPort());
+            when(configuration.getSpecification()).thenReturn(
+                IOUtils.toString(read("/jolt/specification-key-value-simple.json"), Charset.defaultCharset())
+            );
+            when(configuration.getMethod()).thenReturn(HttpMethod.GET);
 
-        HttpProvider provider = new HttpProvider(configuration);
-        provider.setMapper(mapper);
-        provider.setHttpClientService(httpClientService);
+            HttpProvider provider = new HttpProvider(configuration);
+            provider.setMapper(mapper);
+            provider.setHttpClientService(httpClientService);
 
-        CompletableFuture<Collection<DynamicProperty>> future = provider.get();
-        future.join();
+            CompletableFuture<Collection<DynamicProperty>> future = provider.get();
+            future.join();
+        });
     }
 
     private InputStream read(String resource) throws IOException {
