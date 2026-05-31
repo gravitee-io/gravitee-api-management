@@ -36,12 +36,9 @@ const queryClient = new QueryClient();
 
 function ModuleLayout() {
     const navigate = useNavigate();
-    const { activeNavKey, navigateToKey, rootPath } = useModuleRouting(AUTHZ_ROUTE_CONFIG);
+    const { activeNavKey, navigateToKey } = useModuleRouting(AUTHZ_ROUTE_CONFIG);
 
-    const breadcrumbs = useMemo(
-        () => buildLinearBreadcrumbs(navigate, [{ label: 'Authorization', to: rootPath }, { label: ROUTES[activeNavKey].label }]),
-        [activeNavKey, navigate, rootPath],
-    );
+    const breadcrumbs = useMemo(() => buildLinearBreadcrumbs(navigate, [{ label: ROUTES[activeNavKey].label }]), [activeNavKey, navigate]);
 
     useLayoutConfig(
         {

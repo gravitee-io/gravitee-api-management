@@ -68,7 +68,7 @@ export function ApplicationCard({
 
     const hasData = metrics?.primary.value !== null && metrics?.primary.value !== undefined && metrics.primary.value > 0;
     const isEmptyState = to !== null && !hasData && metrics?.primary.value !== null;
-    const ctaLabel = 'Open';
+    const ctaLabel = isEmptyState ? emptyState.cta : 'Open';
     const ctaTarget = isEmptyState ? `${to}/${emptyState.ctaPath}` : to;
 
     const inner = (

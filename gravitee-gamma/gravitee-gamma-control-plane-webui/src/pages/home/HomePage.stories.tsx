@@ -52,51 +52,36 @@ interface MetricOverrides {
     requestsTotal?: number | null;
 }
 
-/**
- * Intercepts all metric fetches and returns deterministic responses.
- * Falls through to the real fetch for anything else.
- */
-function installFetchInterceptor(overrides: MetricOverrides): () => void {
-    const {
-        apiCount = null,
-        agentCount = null,
-        appCount = null,
-        policyCount = null,
-        principalCount = null,
-        mcpServerCount = null,
-        requestsTotal = null,
-    } = overrides;
+interface RouteMatch {
+    readonly prefix: string;
+    readonly path: string;
+    readonly key: keyof MetricOverrides;
+    readonly toBody: (value: number) => unknown;
+}
 
+const ROUTES: readonly RouteMatch[] = [
+    { prefix: MANAGEMENT_V2_ENV_PREFIX, path: '/apis/_search', key: 'apiCount', toBody: n => ({ pagination: { totalCount: n } }) },
+    { prefix: GAMMA_ORG_PREFIX, path: '/modules/aim/catalog/agents', key: 'agentCount', toBody: n => ({ pagination: { totalCount: n } }) },
+    { prefix: MANAGEMENT_V1_ORG_PREFIX, path: '/applications/_paged', key: 'appCount', toBody: n => ({ page: { total_elements: n } }) },
+    { prefix: GAMMA_ORG_PREFIX, path: '/modules/authz/policies', key: 'policyCount', toBody: n => ({ total: n }) },
+    { prefix: GAMMA_ORG_PREFIX, path: '/modules/authz/entities', key: 'principalCount', toBody: n => ({ total: n }) },
+    { prefix: GAMMA_ORG_PREFIX, path: '/modules/aim/catalog/items', key: 'mcpServerCount', toBody: n => ({ total: n }) },
+    {
+        prefix: MANAGEMENT_V2_ENV_PREFIX,
+        path: '/analytics/request-response-time',
+        key: 'requestsTotal',
+        toBody: n => ({ requestsTotal: n }),
+    },
+];
+
+function installFetchInterceptor(overrides: MetricOverrides): () => void {
     const originalFetch = window.fetch;
     window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
         const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
-
-        if (url.startsWith(MANAGEMENT_V2_ENV_PREFIX) && url.includes('/apis/_search')) {
-            const body = apiCount === null ? '{}' : JSON.stringify({ pagination: { totalCount: apiCount } });
-            return new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' } });
-        }
-        if (url.startsWith(GAMMA_ORG_PREFIX) && url.includes('/modules/aim/catalog/agents')) {
-            const body = agentCount === null ? '{}' : JSON.stringify({ pagination: { totalCount: agentCount } });
-            return new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' } });
-        }
-        if (url.startsWith(MANAGEMENT_V1_ORG_PREFIX) && url.includes('/applications/_paged')) {
-            const body = appCount === null ? '{}' : JSON.stringify({ page: { total_elements: appCount } });
-            return new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' } });
-        }
-        if (url.startsWith(GAMMA_ORG_PREFIX) && url.includes('/modules/authz/policies')) {
-            const body = policyCount === null ? '{}' : JSON.stringify({ total: policyCount });
-            return new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' } });
-        }
-        if (url.startsWith(GAMMA_ORG_PREFIX) && url.includes('/modules/authz/entities')) {
-            const body = principalCount === null ? '{}' : JSON.stringify({ total: principalCount });
-            return new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' } });
-        }
-        if (url.startsWith(GAMMA_ORG_PREFIX) && url.includes('/modules/aim/catalog/items')) {
-            const body = mcpServerCount === null ? '{}' : JSON.stringify({ total: mcpServerCount });
-            return new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' } });
-        }
-        if (url.startsWith(MANAGEMENT_V2_ENV_PREFIX) && url.includes('/analytics/request-response-time')) {
-            const body = requestsTotal === null ? '{}' : JSON.stringify({ requestsTotal });
+        const match = ROUTES.find(r => url.startsWith(r.prefix) && url.includes(r.path));
+        if (match) {
+            const value = overrides[match.key] ?? null;
+            const body = value === null ? '{}' : JSON.stringify(match.toBody(value));
             return new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' } });
         }
         return originalFetch(input, init);
@@ -137,6 +122,7 @@ function teardownStores() {
 }
 
 function Decorator({ children, metrics }: { children: React.ReactNode; metrics: MetricOverrides }) {
+    const metricsKey = JSON.stringify(metrics);
     useEffect(() => {
         seedStores();
         const restoreFetch = installFetchInterceptor(metrics);
@@ -144,7 +130,7 @@ function Decorator({ children, metrics }: { children: React.ReactNode; metrics: 
             restoreFetch();
             teardownStores();
         };
-    }, [metrics]);
+    }, [metricsKey]); // eslint-disable-line react-hooks/exhaustive-deps -- stable key avoids teardown loop on object recreation
 
     return (
         <MemoryRouter initialEntries={['/environments/production']}>

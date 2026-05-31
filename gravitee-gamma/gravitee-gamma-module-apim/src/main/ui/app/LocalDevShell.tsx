@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 import { AppLayout, AppSidebar, ContentHeader, useLayoutSlots } from '@gravitee/graphene-core';
-import { AppWindowIcon } from '@gravitee/graphene-core/icons';
 import type { ReactNode } from 'react';
-
-const localDevApp = {
-    key: 'module-local',
-    label: 'API Management',
-    description: 'Local dev',
-    icon: <AppWindowIcon size={20} />,
-};
+import { useNavigate } from 'react-router-dom';
 
 /** Minimal app chrome for standalone `nx serve` only; the host provides the real shell when federated. */
 export function LocalDevShell({ children }: { readonly children: ReactNode }) {
     const { slots } = useLayoutSlots();
-    const breadcrumbs = slots.breadcrumbs.length > 0 ? slots.breadcrumbs : [{ label: 'APIM' }];
+    const navigate = useNavigate();
 
     return (
         <AppLayout
@@ -38,8 +31,8 @@ export function LocalDevShell({ children }: { readonly children: ReactNode }) {
             contextExpanded={slots.contextExpanded}
             contextSidebar={slots.contextSidebar}
             contentVariant={slots.contentVariant}
-            sidebar={<AppSidebar apps={[localDevApp]} activeAppKey={localDevApp.key} renderNavigation={() => slots.navigation} />}
-            subheader={<ContentHeader leading={slots.leading} breadcrumbs={breadcrumbs} />}
+            sidebar={<AppSidebar onLogoClick={() => navigate('/')} renderNavigation={() => slots.navigation} />}
+            subheader={<ContentHeader leading={slots.leading} breadcrumbs={slots.breadcrumbs} />}
         >
             {children}
         </AppLayout>

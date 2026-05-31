@@ -14,28 +14,21 @@
  * limitations under the License.
  */
 import { AppLayout, AppSidebar, ContentHeader, Toaster, useLayoutSlots } from '@gravitee/graphene-core';
-import { BoxesIcon } from '@gravitee/graphene-core/icons';
 import type { ReactNode } from 'react';
-
-const localDevApp = {
-    key: 'module-local',
-    label: 'Authorization',
-    description: 'Local dev',
-    icon: <BoxesIcon size={20} />,
-};
+import { useNavigate } from 'react-router-dom';
 
 /** Minimal app chrome for standalone `nx serve` only; the host provides the real shell when federated. */
 export function LocalDevShell({ children }: { readonly children: ReactNode }) {
     const { slots } = useLayoutSlots();
-    const breadcrumbs = slots.breadcrumbs.length > 0 ? slots.breadcrumbs : [{ label: 'APIM' }];
+    const navigate = useNavigate();
 
     return (
         <AppLayout
             defaultSidebarMode="hover-expand"
             defaultTheme="system"
             fullHeight
-            sidebar={<AppSidebar apps={[localDevApp]} activeAppKey={localDevApp.key} renderNavigation={() => slots.navigation} />}
-            subheader={<ContentHeader breadcrumbs={breadcrumbs} />}
+            sidebar={<AppSidebar onLogoClick={() => navigate('/')} renderNavigation={() => slots.navigation} />}
+            subheader={<ContentHeader breadcrumbs={slots.breadcrumbs} />}
         >
             {children}
             <Toaster position="top-right" richColors closeButton />
