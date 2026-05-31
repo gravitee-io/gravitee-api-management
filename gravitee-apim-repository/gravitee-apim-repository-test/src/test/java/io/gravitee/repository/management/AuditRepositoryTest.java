@@ -17,7 +17,7 @@ package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.TimeProvider;
@@ -30,8 +30,8 @@ import io.gravitee.repository.management.model.Plan;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -57,20 +57,20 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         audit.setCreatedAt(new Date(1486771200000L));
 
         final Audit createdAudit = auditRepository.create(audit);
-        assertEquals("id", createdAudit.getId(), audit.getId());
-        assertEquals("organizationId", createdAudit.getOrganizationId(), audit.getOrganizationId());
-        assertEquals("environmentId", createdAudit.getEnvironmentId(), audit.getEnvironmentId());
-        assertEquals("referenceId", createdAudit.getReferenceId(), audit.getReferenceId());
-        assertEquals("referenceType", createdAudit.getReferenceType(), audit.getReferenceType());
-        assertEquals("event", createdAudit.getEvent(), audit.getEvent());
-        assertEquals("properties", createdAudit.getProperties(), audit.getProperties());
-        assertEquals("user", createdAudit.getUser(), audit.getUser());
-        assertEquals("createdAt", createdAudit.getCreatedAt(), audit.getCreatedAt());
-        assertEquals("patch", createdAudit.getPatch(), audit.getPatch());
+        assertEquals(createdAudit.getId(), audit.getId(), "id");
+        assertEquals(createdAudit.getOrganizationId(), audit.getOrganizationId(), "organizationId");
+        assertEquals(createdAudit.getEnvironmentId(), audit.getEnvironmentId(), "environmentId");
+        assertEquals(createdAudit.getReferenceId(), audit.getReferenceId(), "referenceId");
+        assertEquals(createdAudit.getReferenceType(), audit.getReferenceType(), "referenceType");
+        assertEquals(createdAudit.getEvent(), audit.getEvent(), "event");
+        assertEquals(createdAudit.getProperties(), audit.getProperties(), "properties");
+        assertEquals(createdAudit.getUser(), audit.getUser(), "user");
+        assertEquals(createdAudit.getCreatedAt(), audit.getCreatedAt(), "createdAt");
+        assertEquals(createdAudit.getPatch(), audit.getPatch(), "patch");
 
         Optional<Audit> optionalAudit = auditRepository.findById("createdAudit");
-        Assert.assertTrue("Audit saved not found", optionalAudit.isPresent());
-        assertEquals("id", optionalAudit.get().getId(), audit.getId());
+        Assertions.assertTrue(optionalAudit.isPresent(), "Audit saved not found");
+        assertEquals(optionalAudit.get().getId(), audit.getId(), "id");
     }
 
     @Test
@@ -79,16 +79,16 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertTrue(auditOptional.isPresent());
         Audit audit = auditOptional.get();
-        assertEquals("id", "new", audit.getId());
-        assertEquals("organizationId", "DEFAULT", audit.getOrganizationId());
-        assertEquals("environmentId", "DEFAULT", audit.getEnvironmentId());
-        assertEquals("referenceId", "1", audit.getReferenceId());
-        assertEquals("referenceType", Audit.AuditReferenceType.API, audit.getReferenceType());
-        assertEquals("event", Plan.AuditEvent.PLAN_CREATED.name(), audit.getEvent());
-        assertEquals("properties", Collections.singletonMap(Audit.AuditProperties.PLAN.name(), "123"), audit.getProperties());
-        assertEquals("user", "JohnDoe", audit.getUser());
-        assertTrue("createdAt", compareDate(new Date(1486771200000L), audit.getCreatedAt()));
-        assertEquals("patch", "diff", audit.getPatch());
+        assertEquals("new", audit.getId(), "id");
+        assertEquals("DEFAULT", audit.getOrganizationId(), "organizationId");
+        assertEquals("DEFAULT", audit.getEnvironmentId(), "environmentId");
+        assertEquals("1", audit.getReferenceId(), "referenceId");
+        assertEquals(Audit.AuditReferenceType.API, audit.getReferenceType(), "referenceType");
+        assertEquals(Plan.AuditEvent.PLAN_CREATED.name(), audit.getEvent(), "event");
+        assertEquals(Collections.singletonMap(Audit.AuditProperties.PLAN.name(), "123"), audit.getProperties(), "properties");
+        assertEquals("JohnDoe", audit.getUser(), "user");
+        assertTrue(compareDate(new Date(1486771200000L), audit.getCreatedAt()), "createdAt");
+        assertEquals("diff", audit.getPatch(), "patch");
     }
 
     @Test
@@ -99,10 +99,10 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
 
         assertNotNull(auditPage);
-        assertEquals("total elements", 2, auditPage.getTotalElements());
-        assertEquals("page elements", 1, auditPage.getPageElements());
-        assertEquals("page number", 0, auditPage.getPageNumber());
-        assertEquals("find audit with id 'searchable2'", "searchable2", auditPage.getContent().getFirst().getId());
+        assertEquals(2, auditPage.getTotalElements(), "total elements");
+        assertEquals(1, auditPage.getPageElements(), "page elements");
+        assertEquals(0, auditPage.getPageNumber(), "page number");
+        assertEquals("searchable2", auditPage.getContent().getFirst().getId(), "find audit with id 'searchable2'");
     }
 
     @Test
@@ -113,10 +113,10 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
 
         assertNotNull(auditPage);
-        assertEquals("total elements", 1, auditPage.getTotalElements());
-        assertEquals("page elements", 1, auditPage.getPageElements());
-        assertEquals("page number", 0, auditPage.getPageNumber());
-        assertEquals("find audit with id 'searchable2'", "searchable2", auditPage.getContent().getFirst().getId());
+        assertEquals(1, auditPage.getTotalElements(), "total elements");
+        assertEquals(1, auditPage.getPageElements(), "page elements");
+        assertEquals(0, auditPage.getPageNumber(), "page number");
+        assertEquals("searchable2", auditPage.getContent().getFirst().getId(), "find audit with id 'searchable2'");
     }
 
     @Test
@@ -127,12 +127,12 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
 
         assertNotNull(auditPage);
-        assertEquals("total elements", 5, auditPage.getTotalElements());
-        assertEquals("page elements", 5, auditPage.getPageElements());
-        assertEquals("page number", 0, auditPage.getPageNumber());
-        assertEquals("find audit with id 'searchable2'", "searchable2", auditPage.getContent().get(2).getId());
-        assertEquals("find audit with id 'new'", "new", auditPage.getContent().get(3).getId());
-        assertEquals("find audit with id 'searchable1'", "searchable1", auditPage.getContent().get(4).getId());
+        assertEquals(5, auditPage.getTotalElements(), "total elements");
+        assertEquals(5, auditPage.getPageElements(), "page elements");
+        assertEquals(0, auditPage.getPageNumber(), "page number");
+        assertEquals("searchable2", auditPage.getContent().get(2).getId(), "find audit with id 'searchable2'");
+        assertEquals("new", auditPage.getContent().get(3).getId(), "find audit with id 'new'");
+        assertEquals("searchable1", auditPage.getContent().get(4).getId(), "find audit with id 'searchable1'");
     }
 
     @Test
@@ -143,10 +143,10 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
 
         assertNotNull(auditPage);
-        assertEquals("total elements", 1, auditPage.getTotalElements());
-        assertEquals("page elements", 1, auditPage.getPageElements());
-        assertEquals("page number", 0, auditPage.getPageNumber());
-        assertEquals("find audit with id 'searchable2'", "searchable2", auditPage.getContent().getFirst().getId());
+        assertEquals(1, auditPage.getTotalElements(), "total elements");
+        assertEquals(1, auditPage.getPageElements(), "page elements");
+        assertEquals(0, auditPage.getPageNumber(), "page number");
+        assertEquals("searchable2", auditPage.getContent().getFirst().getId(), "find audit with id 'searchable2'");
     }
 
     @Test
@@ -156,16 +156,16 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         Page<Audit> auditPage = auditRepository.search(auditCriteria, new PageableBuilder().pageNumber(0).pageSize(3).build());
 
         assertNotNull(auditPage);
-        assertEquals("total elements", 5, auditPage.getTotalElements());
-        assertEquals("page elements", 3, auditPage.getPageElements());
-        assertEquals("page number", 0, auditPage.getPageNumber());
+        assertEquals(5, auditPage.getTotalElements(), "total elements");
+        assertEquals(3, auditPage.getPageElements(), "page elements");
+        assertEquals(0, auditPage.getPageNumber(), "page number");
 
         auditPage = auditRepository.search(auditCriteria, new PageableBuilder().pageNumber(1).pageSize(2).build());
 
         assertNotNull(auditPage);
-        assertEquals("total elements", 5, auditPage.getTotalElements());
-        assertEquals("page elements", 2, auditPage.getPageElements());
-        assertEquals("page number", 1, auditPage.getPageNumber());
+        assertEquals(5, auditPage.getTotalElements(), "total elements");
+        assertEquals(2, auditPage.getPageElements(), "page elements");
+        assertEquals(1, auditPage.getPageNumber(), "page number");
     }
 
     @Test
@@ -176,9 +176,9 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
 
         assertNotNull(auditPage);
-        assertEquals("total elements", 1, auditPage.getTotalElements());
-        assertEquals("page elements", 1, auditPage.getPageElements());
-        assertEquals("page number", 0, auditPage.getPageNumber());
+        assertEquals(1, auditPage.getTotalElements(), "total elements");
+        assertEquals(1, auditPage.getPageElements(), "page elements");
+        assertEquals(0, auditPage.getPageNumber(), "page number");
     }
 
     @Test
@@ -189,10 +189,10 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
 
         assertNotNull(auditPage);
-        assertEquals("total elements", 1, auditPage.getTotalElements());
-        assertEquals("page elements", 1, auditPage.getPageElements());
-        assertEquals("page number", 0, auditPage.getPageNumber());
-        assertEquals("find audit with id 'new'", "new", auditPage.getContent().getFirst().getId());
+        assertEquals(1, auditPage.getTotalElements(), "total elements");
+        assertEquals(1, auditPage.getPageElements(), "page elements");
+        assertEquals(0, auditPage.getPageNumber(), "page number");
+        assertEquals("new", auditPage.getContent().getFirst().getId(), "find audit with id 'new'");
     }
 
     @Test
@@ -203,10 +203,10 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
 
         assertNotNull(auditPage);
-        assertEquals("total elements", 1, auditPage.getTotalElements());
-        assertEquals("page elements", 1, auditPage.getPageElements());
-        assertEquals("page number", 0, auditPage.getPageNumber());
-        assertEquals("find audit with id 'new'", "new", auditPage.getContent().getFirst().getId());
+        assertEquals(1, auditPage.getTotalElements(), "total elements");
+        assertEquals(1, auditPage.getPageElements(), "page elements");
+        assertEquals(0, auditPage.getPageNumber(), "page number");
+        assertEquals("new", auditPage.getContent().getFirst().getId(), "find audit with id 'new'");
     }
 
     @Test
@@ -217,9 +217,9 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
 
         assertNotNull(auditPage);
-        assertEquals("total elements", 5, auditPage.getTotalElements());
-        assertEquals("page elements", 5, auditPage.getPageElements());
-        assertEquals("page number", 0, auditPage.getPageNumber());
+        assertEquals(5, auditPage.getTotalElements(), "total elements");
+        assertEquals(5, auditPage.getPageElements(), "page elements");
+        assertEquals(0, auditPage.getPageNumber(), "page number");
     }
 
     @Test

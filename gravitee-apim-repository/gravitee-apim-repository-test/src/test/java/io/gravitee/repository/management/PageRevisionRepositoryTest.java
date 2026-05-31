@@ -16,8 +16,8 @@
 package io.gravitee.repository.management;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -28,7 +28,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.AutoCloseableSoftAssertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)

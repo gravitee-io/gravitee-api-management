@@ -17,6 +17,7 @@ package io.gravitee.repository.management;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Fail.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -27,8 +28,8 @@ import io.gravitee.repository.management.model.SharedPolicyGroup;
 import io.gravitee.repository.management.model.SharedPolicyGroupLifecycleState;
 import java.util.Date;
 import java.util.Optional;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -37,7 +38,7 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
         return "/data/sharedPolicyGroup-tests/";
     }
 
-    @Before
+    @BeforeEach
     public void before() throws TechnicalException {
         for (int i = 0; i < 10; i++) {
             var date = new Date(new Date(172321739410L).getTime() + i * 1000);
@@ -172,10 +173,12 @@ public class SharedPolicyGroupRepositoryTest extends AbstractManagementRepositor
         assertThat(optional).as("SharedPolicyGroup to delete has not been deleted").isNotPresent();
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void should_findAll() throws Exception {
-        sharedPolicyGroupRepository.findAll();
-        fail("An exception must be thrown");
+        assertThrows(IllegalStateException.class, () -> {
+            sharedPolicyGroupRepository.findAll();
+            fail("An exception must be thrown");
+        });
     }
 
     @Test

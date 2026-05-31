@@ -17,7 +17,7 @@ package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.PageCriteria;
@@ -25,7 +25,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
 import java.util.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -96,57 +96,57 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     private void assertFindPage(Page page) {
-        assertEquals("id", "FindApiPage", page.getId());
-        assertEquals("name", "Find apiPage by apiId or Id", page.getName());
-        assertEquals("content", "Content of the page", page.getContent());
-        assertEquals("reference id", "my-api", page.getReferenceId());
-        assertEquals("reference type", PageReferenceType.API, page.getReferenceType());
-        assertEquals("type", "MARKDOWN", page.getType());
-        assertEquals("last contributor", "john_doe", page.getLastContributor());
-        assertEquals("order", 2, page.getOrder());
-        assertTrue("published", page.isPublished());
+        assertEquals("FindApiPage", page.getId(), "id");
+        assertEquals("Find apiPage by apiId or Id", page.getName(), "name");
+        assertEquals("Content of the page", page.getContent(), "content");
+        assertEquals("my-api", page.getReferenceId(), "reference id");
+        assertEquals(PageReferenceType.API, page.getReferenceType(), "reference type");
+        assertEquals("MARKDOWN", page.getType(), "type");
+        assertEquals("john_doe", page.getLastContributor(), "last contributor");
+        assertEquals(2, page.getOrder(), "order");
+        assertTrue(page.isPublished(), "published");
 
-        assertEquals("source type", "sourceType", page.getSource().getType());
-        assertEquals("source configuration", "sourceConfiguration", page.getSource().getConfiguration());
+        assertEquals("sourceType", page.getSource().getType(), "source type");
+        assertEquals("sourceConfiguration", page.getSource().getConfiguration(), "source configuration");
 
-        assertEquals("configuration try it", "true", page.getConfiguration().get("tryIt"));
-        assertEquals("configuration disable syntax highlight", "false", page.getConfiguration().get("disableSyntaxHighlight"));
-        assertEquals("configuration try it URL", "http://company.com", page.getConfiguration().get("tryItURL"));
-        assertEquals("configuration show URL", "true", page.getConfiguration().get("showURL"));
-        assertEquals("configuration display operation id", "true", page.getConfiguration().get("displayOperationId"));
-        assertEquals("configuration doc expansion", "FULL", page.getConfiguration().get("docExpansion"));
-        assertEquals("configuration enable filtering", "true", page.getConfiguration().get("enableFiltering"));
-        assertEquals("configuration show extensions", "true", page.getConfiguration().get("showExtensions"));
-        assertEquals("configuration show common extensions", "true", page.getConfiguration().get("showCommonExtensions"));
-        assertEquals("configuration maxDisplayedTags", "1234", page.getConfiguration().get("maxDisplayedTags"));
-        assertEquals("metadata edit_url", "http://provider.com/edit/page", page.getMetadata().get("edit_url"));
-        assertEquals("metadata size", "256", page.getMetadata().get("size"));
+        assertEquals("true", page.getConfiguration().get("tryIt"), "configuration try it");
+        assertEquals("false", page.getConfiguration().get("disableSyntaxHighlight"), "configuration disable syntax highlight");
+        assertEquals("http://company.com", page.getConfiguration().get("tryItURL"), "configuration try it URL");
+        assertEquals("true", page.getConfiguration().get("showURL"), "configuration show URL");
+        assertEquals("true", page.getConfiguration().get("displayOperationId"), "configuration display operation id");
+        assertEquals("FULL", page.getConfiguration().get("docExpansion"), "configuration doc expansion");
+        assertEquals("true", page.getConfiguration().get("enableFiltering"), "configuration enable filtering");
+        assertEquals("true", page.getConfiguration().get("showExtensions"), "configuration show extensions");
+        assertEquals("true", page.getConfiguration().get("showCommonExtensions"), "configuration show common extensions");
+        assertEquals("1234", page.getConfiguration().get("maxDisplayedTags"), "configuration maxDisplayedTags");
+        assertEquals("http://provider.com/edit/page", page.getMetadata().get("edit_url"), "metadata edit_url");
+        assertEquals("256", page.getMetadata().get("size"), "metadata size");
 
-        assertTrue("homepage", page.isHomepage());
-        assertEquals("excluded access controls", true, page.isExcludedAccessControls());
+        assertTrue(page.isHomepage(), "homepage");
+        assertEquals(true, page.isExcludedAccessControls(), "excluded access controls");
         assertEquals(
-            "access controls",
             new HashSet<>(
                 asList(new AccessControl("grp1", "GROUP"), new AccessControl("grp2", "GROUP"), new AccessControl("role1", "ROLE"))
             ),
-            page.getAccessControls()
+            page.getAccessControls(),
+            "access controls"
         );
 
         final List<PageMedia> attachedMedia = page.getAttachedMedia();
         assertNotNull(attachedMedia);
-        assertEquals("attachedMedia", 2, attachedMedia.size());
+        assertEquals(2, attachedMedia.size(), "attachedMedia");
         assertEquals(
-            "attachedMedia",
             asList(
                 new PageMedia("media_id_1", "media_name_1", new Date(1586771200000L)),
                 new PageMedia("media_id_2", "media_name_2", new Date(1587771200000L))
             ),
-            attachedMedia
+            attachedMedia,
+            "attachedMedia"
         );
 
-        assertTrue("created at", compareDate(new Date(1486771200000L), page.getCreatedAt()));
-        assertTrue("updated at", compareDate(new Date(1486771200000L), page.getUpdatedAt()));
-        assertTrue("no autofetch", page.getUseAutoFetch().booleanValue());
+        assertTrue(compareDate(new Date(1486771200000L), page.getCreatedAt()), "created at");
+        assertTrue(compareDate(new Date(1486771200000L), page.getUpdatedAt()), "updated at");
+        assertTrue(page.getUseAutoFetch().booleanValue(), "no autofetch");
     }
 
     @Test
@@ -187,20 +187,20 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
         Optional<Page> optionalBefore = pageRepository.findById("new-page");
         pageRepository.create(page);
         Optional<Page> optionalAfter = pageRepository.findById("new-page");
-        assertFalse("Page not found before", optionalBefore.isPresent());
-        assertTrue("Page saved not found", optionalAfter.isPresent());
+        assertFalse(optionalBefore.isPresent(), "Page not found before");
+        assertTrue(optionalAfter.isPresent(), "Page saved not found");
 
         final Page pageSaved = optionalAfter.get();
-        assertEquals("Invalid saved page name.", page.getName(), pageSaved.getName());
-        assertEquals("Invalid page content.", page.getContent(), pageSaved.getContent());
-        assertEquals("Invalid page order.", page.getOrder(), pageSaved.getOrder());
-        assertEquals("Invalid page type.", page.getType(), pageSaved.getType());
-        assertEquals("Invalid homepage flag.", page.isHomepage(), pageSaved.isHomepage());
-        assertEquals("Invalid parentId.", page.getParentId(), pageSaved.getParentId());
-        assertNull("Invalid page source.", page.getSource());
-        assertEquals("Invalid configuration.", page.getConfiguration(), pageSaved.getConfiguration());
-        assertEquals("Invalid metadata.", page.getMetadata(), pageSaved.getMetadata());
-        assertEquals("Invalid useAutoFetch.", page.getUseAutoFetch().booleanValue(), pageSaved.getUseAutoFetch().booleanValue());
+        assertEquals(page.getName(), pageSaved.getName(), "Invalid saved page name.");
+        assertEquals(page.getContent(), pageSaved.getContent(), "Invalid page content.");
+        assertEquals(page.getOrder(), pageSaved.getOrder(), "Invalid page order.");
+        assertEquals(page.getType(), pageSaved.getType(), "Invalid page type.");
+        assertEquals(page.isHomepage(), pageSaved.isHomepage(), "Invalid homepage flag.");
+        assertEquals(page.getParentId(), pageSaved.getParentId(), "Invalid parentId.");
+        assertNull(page.getSource(), "Invalid page source.");
+        assertEquals(page.getConfiguration(), pageSaved.getConfiguration(), "Invalid configuration.");
+        assertEquals(page.getMetadata(), pageSaved.getMetadata(), "Invalid metadata.");
+        assertEquals(page.getUseAutoFetch().booleanValue(), pageSaved.getUseAutoFetch().booleanValue(), "Invalid useAutoFetch.");
     }
 
     @Test
@@ -221,16 +221,16 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
         Optional<Page> optionalBefore = pageRepository.findById("new-page-folder");
         pageRepository.create(page);
         Optional<Page> optionalAfter = pageRepository.findById("new-page-folder");
-        assertFalse("Page not found before", optionalBefore.isPresent());
-        assertTrue("Page saved not found", optionalAfter.isPresent());
+        assertFalse(optionalBefore.isPresent(), "Page not found before");
+        assertTrue(optionalAfter.isPresent(), "Page saved not found");
 
         final Page pageSaved = optionalAfter.get();
-        assertEquals("Invalid saved page name.", page.getName(), pageSaved.getName());
-        assertEquals("Invalid page content.", page.getContent(), pageSaved.getContent());
-        assertEquals("Invalid page order.", page.getOrder(), pageSaved.getOrder());
-        assertEquals("Invalid page type.", page.getType(), pageSaved.getType());
-        assertEquals("Invalid ParentId.", page.getParentId(), pageSaved.getParentId());
-        assertNull("Invalid page source.", page.getSource());
+        assertEquals(page.getName(), pageSaved.getName(), "Invalid saved page name.");
+        assertEquals(page.getContent(), pageSaved.getContent(), "Invalid page content.");
+        assertEquals(page.getOrder(), pageSaved.getOrder(), "Invalid page order.");
+        assertEquals(page.getType(), pageSaved.getType(), "Invalid page type.");
+        assertEquals(page.getParentId(), pageSaved.getParentId(), "Invalid ParentId.");
+        assertNull(page.getSource(), "Invalid page source.");
     }
 
     @Test
@@ -269,19 +269,19 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
         Optional<Page> optionalBefore = pageRepository.findById("new-portal-page");
         pageRepository.create(page);
         Optional<Page> optionalAfter = pageRepository.findById("new-portal-page");
-        assertFalse("Page not found before", optionalBefore.isPresent());
-        assertTrue("Page saved not found", optionalAfter.isPresent());
+        assertFalse(optionalBefore.isPresent(), "Page not found before");
+        assertTrue(optionalAfter.isPresent(), "Page saved not found");
 
         final Page pageSaved = optionalAfter.get();
-        assertEquals("Invalid saved page name.", page.getName(), pageSaved.getName());
-        assertEquals("Invalid page content.", page.getContent(), pageSaved.getContent());
-        assertEquals("Invalid page order.", page.getOrder(), pageSaved.getOrder());
-        assertEquals("Invalid page type.", page.getType(), pageSaved.getType());
-        assertEquals("Invalid parentId.", page.getParentId(), pageSaved.getParentId());
-        assertEquals("Invalid homepage flag.", page.isHomepage(), pageSaved.isHomepage());
-        assertNull("Invalid page source.", page.getSource());
-        assertEquals("Invalid configuration.", page.getConfiguration(), pageSaved.getConfiguration());
-        assertEquals("Invalid metadata.", page.getMetadata(), pageSaved.getMetadata());
+        assertEquals(page.getName(), pageSaved.getName(), "Invalid saved page name.");
+        assertEquals(page.getContent(), pageSaved.getContent(), "Invalid page content.");
+        assertEquals(page.getOrder(), pageSaved.getOrder(), "Invalid page order.");
+        assertEquals(page.getType(), pageSaved.getType(), "Invalid page type.");
+        assertEquals(page.getParentId(), pageSaved.getParentId(), "Invalid parentId.");
+        assertEquals(page.isHomepage(), pageSaved.isHomepage(), "Invalid homepage flag.");
+        assertNull(page.getSource(), "Invalid page source.");
+        assertEquals(page.getConfiguration(), pageSaved.getConfiguration(), "Invalid configuration.");
+        assertEquals(page.getMetadata(), pageSaved.getMetadata(), "Invalid metadata.");
     }
 
     @Test
@@ -303,25 +303,25 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
         Optional<Page> optionalBefore = pageRepository.findById("new-portal-page-folder");
         pageRepository.create(page);
         Optional<Page> optionalAfter = pageRepository.findById("new-portal-page-folder");
-        assertFalse("Page not found before", optionalBefore.isPresent());
-        assertTrue("Page saved not found", optionalAfter.isPresent());
+        assertFalse(optionalBefore.isPresent(), "Page not found before");
+        assertTrue(optionalAfter.isPresent(), "Page saved not found");
 
         final Page pageSaved = optionalAfter.get();
-        assertEquals("Invalid saved page name.", page.getName(), pageSaved.getName());
-        assertEquals("Invalid page content.", page.getContent(), pageSaved.getContent());
-        assertEquals("Invalid page order.", page.getOrder(), pageSaved.getOrder());
-        assertEquals("Invalid page type.", page.getType(), pageSaved.getType());
-        assertEquals("Invalid ParentId.", page.getParentId(), pageSaved.getParentId());
-        assertNull("Invalid page source.", page.getSource());
-        assertFalse("Invalid useAutoFetch.", page.getUseAutoFetch());
+        assertEquals(page.getName(), pageSaved.getName(), "Invalid saved page name.");
+        assertEquals(page.getContent(), pageSaved.getContent(), "Invalid page content.");
+        assertEquals(page.getOrder(), pageSaved.getOrder(), "Invalid page order.");
+        assertEquals(page.getType(), pageSaved.getType(), "Invalid page type.");
+        assertEquals(page.getParentId(), pageSaved.getParentId(), "Invalid ParentId.");
+        assertNull(page.getSource(), "Invalid page source.");
+        assertFalse(page.getUseAutoFetch(), "Invalid useAutoFetch.");
     }
 
     @Test
     public void shouldUpdate() throws Exception {
         Optional<Page> optionalBefore = pageRepository.findById("updatePage");
-        assertTrue("Page to update not found", optionalBefore.isPresent());
-        assertEquals("Invalid page name.", "Update Page", optionalBefore.get().getName());
-        assertEquals("Invalid page content.", "Content of the update page", optionalBefore.get().getContent());
+        assertTrue(optionalBefore.isPresent(), "Page to update not found");
+        assertEquals("Update Page", optionalBefore.get().getName(), "Invalid page name.");
+        assertEquals("Content of the update page", optionalBefore.get().getContent(), "Invalid page content.");
         final Page page = optionalBefore.get();
         page.setId("updatePage");
         page.setHrid("updatePage-hrid");
@@ -367,38 +367,38 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     private void assertUpdatedPage(final Page updatedPage) {
-        assertNotNull("Page to update not found", updatedPage);
-        assertEquals("Invalid parent id.", "updatePage-hrid", updatedPage.getHrid());
-        assertEquals("Invalid saved page name.", "New name", updatedPage.getName());
-        assertEquals("Invalid page content.", "New content", updatedPage.getContent());
-        assertEquals("Invalid reference id.", "my-api-2", updatedPage.getReferenceId());
-        assertEquals("Invalid reference type.", PageReferenceType.API, updatedPage.getReferenceType());
-        assertEquals("Invalid type.", "SWAGGER", updatedPage.getType());
-        assertEquals("Invalid order.", 1, updatedPage.getOrder());
-        assertTrue("Invalid updatedAt.", compareDate(new Date(1486771200000L), updatedPage.getUpdatedAt()));
-        assertTrue("Invalid createdAt.", compareDate(new Date(1486772200000L), updatedPage.getCreatedAt()));
-        assertEquals("Invalid parent id.", "parent-123", updatedPage.getParentId());
-        assertEquals("Invalid parent id.", "parent-123-hrid", updatedPage.getParentHrid());
-        assertTrue("Invalid homepage.", updatedPage.isHomepage());
-        assertTrue("Invalid ACL excluded value.", updatedPage.isExcludedAccessControls());
-        assertTrue("Invalid ACL controls.", !updatedPage.getAccessControls().isEmpty());
-        assertEquals("Invalid ACL size", 3, updatedPage.getAccessControls().size());
-        assertTrue("Invalid attached media.", !updatedPage.getAttachedMedia().isEmpty());
-        assertEquals("Invalid last contributor.", "me", updatedPage.getLastContributor());
-        assertTrue("Invalid published.", updatedPage.isPublished());
+        assertNotNull(updatedPage, "Page to update not found");
+        assertEquals("updatePage-hrid", updatedPage.getHrid(), "Invalid parent id.");
+        assertEquals("New name", updatedPage.getName(), "Invalid saved page name.");
+        assertEquals("New content", updatedPage.getContent(), "Invalid page content.");
+        assertEquals("my-api-2", updatedPage.getReferenceId(), "Invalid reference id.");
+        assertEquals(PageReferenceType.API, updatedPage.getReferenceType(), "Invalid reference type.");
+        assertEquals("SWAGGER", updatedPage.getType(), "Invalid type.");
+        assertEquals(1, updatedPage.getOrder(), "Invalid order.");
+        assertTrue(compareDate(new Date(1486771200000L), updatedPage.getUpdatedAt()), "Invalid updatedAt.");
+        assertTrue(compareDate(new Date(1486772200000L), updatedPage.getCreatedAt()), "Invalid createdAt.");
+        assertEquals("parent-123", updatedPage.getParentId(), "Invalid parent id.");
+        assertEquals("parent-123-hrid", updatedPage.getParentHrid(), "Invalid parent id.");
+        assertTrue(updatedPage.isHomepage(), "Invalid homepage.");
+        assertTrue(updatedPage.isExcludedAccessControls(), "Invalid ACL excluded value.");
+        assertTrue(!updatedPage.getAccessControls().isEmpty(), "Invalid ACL controls.");
+        assertEquals(3, updatedPage.getAccessControls().size(), "Invalid ACL size");
+        assertTrue(!updatedPage.getAttachedMedia().isEmpty(), "Invalid attached media.");
+        assertEquals("me", updatedPage.getLastContributor(), "Invalid last contributor.");
+        assertTrue(updatedPage.isPublished(), "Invalid published.");
 
-        assertEquals("configuration try it", "true", updatedPage.getConfiguration().get("tryIt"));
-        assertEquals("configuration disable syntax highlight", "false", updatedPage.getConfiguration().get("disableSyntaxHighlight"));
-        assertEquals("configuration try it URL", "http://company.com", updatedPage.getConfiguration().get("tryItURL"));
-        assertEquals("configuration show URL", "true", updatedPage.getConfiguration().get("showURL"));
-        assertEquals("configuration display operation id", "true", updatedPage.getConfiguration().get("displayOperationId"));
-        assertEquals("configuration doc expansion", "FULL", updatedPage.getConfiguration().get("docExpansion"));
-        assertEquals("configuration enable filtering", "true", updatedPage.getConfiguration().get("enableFiltering"));
-        assertEquals("configuration show extensions", "true", updatedPage.getConfiguration().get("showExtensions"));
-        assertEquals("configuration show common extensions", "true", updatedPage.getConfiguration().get("showCommonExtensions"));
-        assertEquals("configuration maxDisplayedTags", "1234", updatedPage.getConfiguration().get("maxDisplayedTags"));
-        assertEquals("metadata edit_url", "url", updatedPage.getMetadata().get("edit_url"));
-        assertEquals("metadata size", "10", updatedPage.getMetadata().get("size"));
+        assertEquals("true", updatedPage.getConfiguration().get("tryIt"), "configuration try it");
+        assertEquals("false", updatedPage.getConfiguration().get("disableSyntaxHighlight"), "configuration disable syntax highlight");
+        assertEquals("http://company.com", updatedPage.getConfiguration().get("tryItURL"), "configuration try it URL");
+        assertEquals("true", updatedPage.getConfiguration().get("showURL"), "configuration show URL");
+        assertEquals("true", updatedPage.getConfiguration().get("displayOperationId"), "configuration display operation id");
+        assertEquals("FULL", updatedPage.getConfiguration().get("docExpansion"), "configuration doc expansion");
+        assertEquals("true", updatedPage.getConfiguration().get("enableFiltering"), "configuration enable filtering");
+        assertEquals("true", updatedPage.getConfiguration().get("showExtensions"), "configuration show extensions");
+        assertEquals("true", updatedPage.getConfiguration().get("showCommonExtensions"), "configuration show common extensions");
+        assertEquals("1234", updatedPage.getConfiguration().get("maxDisplayedTags"), "configuration maxDisplayedTags");
+        assertEquals("url", updatedPage.getMetadata().get("edit_url"), "metadata edit_url");
+        assertEquals("10", updatedPage.getMetadata().get("size"), "metadata size");
     }
 
     @Test
@@ -416,10 +416,10 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldUpdateFolderPage() throws Exception {
         Optional<Page> optionalBefore = pageRepository.findById("updatePageFolder");
-        assertTrue("Page to update not found", optionalBefore.isPresent());
-        assertEquals("Invalid page name.", "Update Page Folder", optionalBefore.get().getName());
-        assertEquals("Invalid page content.", "Content of the update page folder", optionalBefore.get().getContent());
-        assertEquals("Invalid page parentId.", "2", optionalBefore.get().getParentId());
+        assertTrue(optionalBefore.isPresent(), "Page to update not found");
+        assertEquals("Update Page Folder", optionalBefore.get().getName(), "Invalid page name.");
+        assertEquals("Content of the update page folder", optionalBefore.get().getContent(), "Invalid page content.");
+        assertEquals("2", optionalBefore.get().getParentId(), "Invalid page parentId.");
 
         final Page page = optionalBefore.get();
         page.setId("updatePageFolder");
@@ -432,12 +432,12 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     private void assertUpdatePageFolder(final Page updatedPage) {
-        assertNotNull("Page to update not found", updatedPage);
-        assertEquals("Invalid saved page name.", "New name page folder", updatedPage.getName());
-        assertEquals("Invalid page content.", "New content page folder", updatedPage.getContent());
-        assertEquals("Invalid page parentId.", "3", updatedPage.getParentId());
-        assertEquals("Invalid page reference type.", PageReferenceType.API, updatedPage.getReferenceType());
-        assertEquals("Invalid page reference id.", "my-api-3", updatedPage.getReferenceId());
+        assertNotNull(updatedPage, "Page to update not found");
+        assertEquals("New name page folder", updatedPage.getName(), "Invalid saved page name.");
+        assertEquals("New content page folder", updatedPage.getContent(), "Invalid page content.");
+        assertEquals("3", updatedPage.getParentId(), "Invalid page parentId.");
+        assertEquals(PageReferenceType.API, updatedPage.getReferenceType(), "Invalid page reference type.");
+        assertEquals("my-api-3", updatedPage.getReferenceId(), "Invalid page reference id.");
     }
 
     @Test
@@ -446,24 +446,28 @@ public class PageRepositoryTest extends AbstractManagementRepositoryTest {
         pageRepository.delete("page-to-be-deleted");
         Optional<Page> pageShouldNotExists = pageRepository.findById("page-to-be-deleted");
 
-        assertTrue("should exists before delete", pageShouldExists.isPresent());
-        assertFalse("should not exists after delete", pageShouldNotExists.isPresent());
+        assertTrue(pageShouldExists.isPresent(), "should exists before delete");
+        assertFalse(pageShouldNotExists.isPresent(), "should not exists after delete");
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownPage() throws Exception {
-        Page unknownPage = new Page();
-        unknownPage.setId("unknown");
-        unknownPage.setReferenceId("DEFAULT");
-        unknownPage.setReferenceType(PageReferenceType.ENVIRONMENT);
-        pageRepository.update(unknownPage);
-        fail("An unknown page should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            Page unknownPage = new Page();
+            unknownPage.setId("unknown");
+            unknownPage.setReferenceId("DEFAULT");
+            unknownPage.setReferenceType(PageReferenceType.ENVIRONMENT);
+            pageRepository.update(unknownPage);
+            fail("An unknown page should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        pageRepository.update(null);
-        fail("A null page should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            pageRepository.update(null);
+            fail("A null page should not be updated");
+        });
     }
 
     @Test

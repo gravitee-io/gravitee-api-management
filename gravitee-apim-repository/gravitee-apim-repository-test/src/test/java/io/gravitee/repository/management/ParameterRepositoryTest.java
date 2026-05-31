@@ -15,14 +15,14 @@
  */
 package io.gravitee.repository.management;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ParameterRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -42,65 +42,69 @@ public class ParameterRepositoryTest extends AbstractManagementRepositoryTest {
         parameter.setReferenceId(REFERENCE_ID);
         parameter.setReferenceType(REFERENCE_TYPE);
 
-        assertFalse("Parameter already exists", parameterRepository.findById("new-parameter", REFERENCE_ID, REFERENCE_TYPE).isPresent());
+        assertFalse(parameterRepository.findById("new-parameter", REFERENCE_ID, REFERENCE_TYPE).isPresent(), "Parameter already exists");
         parameterRepository.create(parameter);
-        assertTrue("Parameter not created", parameterRepository.findById("new-parameter", REFERENCE_ID, REFERENCE_TYPE).isPresent());
+        assertTrue(parameterRepository.findById("new-parameter", REFERENCE_ID, REFERENCE_TYPE).isPresent(), "Parameter not created");
 
         Optional<Parameter> optional = parameterRepository.findById("new-parameter", REFERENCE_ID, REFERENCE_TYPE);
-        assertTrue("Parameter saved not found", optional.isPresent());
+        assertTrue(optional.isPresent(), "Parameter saved not found");
 
         final Parameter parameterSaved = optional.get();
-        assertEquals("Invalid saved parameter value.", parameter.getValue(), parameterSaved.getValue());
-        assertEquals("Invalid saved parameter referenceId.", parameter.getReferenceId(), parameterSaved.getReferenceId());
-        assertEquals("Invalid saved parameter referenceType.", parameter.getReferenceType(), parameterSaved.getReferenceType());
+        assertEquals(parameter.getValue(), parameterSaved.getValue(), "Invalid saved parameter value.");
+        assertEquals(parameter.getReferenceId(), parameterSaved.getReferenceId(), "Invalid saved parameter referenceId.");
+        assertEquals(parameter.getReferenceType(), parameterSaved.getReferenceType(), "Invalid saved parameter referenceType.");
     }
 
     @Test
     public void shouldUpdate() throws Exception {
         Optional<Parameter> optional = parameterRepository.findById("portal.top-apis", REFERENCE_ID, REFERENCE_TYPE);
-        assertTrue("Parameter to update not found", optional.isPresent());
-        assertEquals("Invalid saved parameter value.", "api1;api2;api2", optional.get().getValue());
+        assertTrue(optional.isPresent(), "Parameter to update not found");
+        assertEquals("api1;api2;api2", optional.get().getValue(), "Invalid saved parameter value.");
 
         final Parameter parameter = optional.get();
         parameter.setValue("New value");
 
-        assertTrue("Parameter does not exist", parameterRepository.findById("portal.top-apis", REFERENCE_ID, REFERENCE_TYPE).isPresent());
+        assertTrue(parameterRepository.findById("portal.top-apis", REFERENCE_ID, REFERENCE_TYPE).isPresent(), "Parameter does not exist");
         parameterRepository.update(parameter);
 
         Optional<Parameter> optionalUpdated = parameterRepository.findById("portal.top-apis", REFERENCE_ID, REFERENCE_TYPE);
-        assertTrue("Parameter to update not found", optionalUpdated.isPresent());
+        assertTrue(optionalUpdated.isPresent(), "Parameter to update not found");
 
         final Parameter parameterUpdated = optionalUpdated.get();
-        assertEquals("Invalid saved parameter name.", "New value", parameterUpdated.getValue());
+        assertEquals("New value", parameterUpdated.getValue(), "Invalid saved parameter name.");
     }
 
     @Test
     public void shouldDelete() throws Exception {
         assertTrue(
-            "Parameter to delete does not exist",
-            parameterRepository.findById("management.oAuth.clientId", REFERENCE_ID, REFERENCE_TYPE).isPresent()
+            parameterRepository.findById("management.oAuth.clientId", REFERENCE_ID, REFERENCE_TYPE).isPresent(),
+            "Parameter to delete does not exist"
         );
         parameterRepository.delete("management.oAuth.clientId", REFERENCE_ID, REFERENCE_TYPE);
         assertFalse(
-            "Parameter not deleted",
-            parameterRepository.findById("management.oAuth.clientId", REFERENCE_ID, REFERENCE_TYPE).isPresent()
+            parameterRepository.findById("management.oAuth.clientId", REFERENCE_ID, REFERENCE_TYPE).isPresent(),
+            "Parameter not deleted"
         );
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownParameter() throws Exception {
-        Parameter unknownParameter = new Parameter();
-        unknownParameter.setKey("unknown");
-        unknownParameter.setReferenceId("unknown");
-        unknownParameter.setReferenceType(REFERENCE_TYPE);
-        parameterRepository.update(unknownParameter);
-        fail("An unknown parameter should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            Parameter unknownParameter = new Parameter();
+            unknownParameter.setKey("unknown");
+            unknownParameter.setReferenceId("unknown");
+            unknownParameter.setReferenceType(REFERENCE_TYPE);
+            parameterRepository.update(unknownParameter);
+            fail("An unknown parameter should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        parameterRepository.update(null);
-        fail("A null parameter should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            parameterRepository.update(null);
+            fail("A null parameter should not be updated");
+        });
     }
 
     @Test

@@ -20,7 +20,7 @@ import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

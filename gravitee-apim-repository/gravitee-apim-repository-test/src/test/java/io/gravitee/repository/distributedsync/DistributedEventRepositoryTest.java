@@ -27,7 +27,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Set;
 import lombok.CustomLog;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**

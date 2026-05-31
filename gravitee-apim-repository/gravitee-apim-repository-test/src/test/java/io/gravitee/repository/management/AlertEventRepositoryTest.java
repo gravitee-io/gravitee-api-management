@@ -16,7 +16,7 @@
 package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.AlertEventCriteria;
@@ -24,8 +24,8 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.AlertEvent;
 import java.util.Date;
 import java.util.Optional;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class AlertEventRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -47,7 +47,7 @@ public class AlertEventRepositoryTest extends AbstractManagementRepositoryTest {
         alertEventRepository.create(event);
 
         Optional<AlertEvent> optional = alertEventRepository.findById("new-alert-event");
-        Assert.assertTrue("Alert event saved not found", optional.isPresent());
+        Assertions.assertTrue(optional.isPresent(), "Alert event saved not found");
         final AlertEvent fetchedAlert = optional.get();
         assertEquals(event.getId(), fetchedAlert.getId());
         assertEquals(event.getAlert(), fetchedAlert.getAlert());
@@ -59,8 +59,8 @@ public class AlertEventRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldUpdate() throws Exception {
         Optional<AlertEvent> optional = alertEventRepository.findById("an-alert-to-update");
-        Assert.assertTrue("Alert event to update not found", optional.isPresent());
-        assertEquals("Invalid saved alert name.", "an-alert-to-update", optional.get().getId());
+        Assertions.assertTrue(optional.isPresent(), "Alert event to update not found");
+        assertEquals("an-alert-to-update", optional.get().getId(), "Invalid saved alert name.");
 
         final AlertEvent event = optional.get();
         event.setMessage("An updated message");
@@ -71,7 +71,7 @@ public class AlertEventRepositoryTest extends AbstractManagementRepositoryTest {
         alertEventRepository.update(event);
 
         Optional<AlertEvent> optionalUpdated = alertEventRepository.findById("an-alert-to-update");
-        Assert.assertTrue("Alert event to update not found", optionalUpdated.isPresent());
+        Assertions.assertTrue(optionalUpdated.isPresent(), "Alert event to update not found");
         final AlertEvent fetchedAlert = optionalUpdated.get();
         assertEquals(event.getId(), fetchedAlert.getId());
         assertEquals(event.getAlert(), fetchedAlert.getAlert());
@@ -106,18 +106,22 @@ public class AlertEventRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(1, pageEvents.getTotalElements());
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownAlert() throws Exception {
-        AlertEvent unknownAlertEvent = new AlertEvent();
-        unknownAlertEvent.setId("unknown");
-        alertEventRepository.update(unknownAlertEvent);
-        fail("An unknown alert event should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            AlertEvent unknownAlertEvent = new AlertEvent();
+            unknownAlertEvent.setId("unknown");
+            alertEventRepository.update(unknownAlertEvent);
+            fail("An unknown alert event should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        alertEventRepository.update(null);
-        fail("A null alert event should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            alertEventRepository.update(null);
+            fail("A null alert event should not be updated");
+        });
     }
 
     @Test
@@ -138,8 +142,8 @@ public class AlertEventRepositoryTest extends AbstractManagementRepositoryTest {
             )
             .getTotalElements();
 
-        assertEquals("2 before", 2, before);
-        assertEquals("0 after", 0, after);
+        assertEquals(2, before, "2 before");
+        assertEquals(0, after, "0 after");
     }
 
     @Test

@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.repository.management.model.KafkaPortRange;
 import java.time.Instant;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class KafkaPortRangeRepositoryTest extends AbstractManagementRepositoryTest {
 

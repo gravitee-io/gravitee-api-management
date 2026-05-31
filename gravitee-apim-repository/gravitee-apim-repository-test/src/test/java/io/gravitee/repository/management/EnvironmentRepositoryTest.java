@@ -15,15 +15,16 @@
  */
 package io.gravitee.repository.management;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.gravitee.repository.management.model.Environment;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class EnvironmentRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -52,7 +53,7 @@ public class EnvironmentRepositoryTest extends AbstractManagementRepositoryTest 
         assertEquals(environment.getOrganizationId(), createdEnv.getOrganizationId());
 
         Optional<Environment> optionalEnv = environmentRepository.findById("DEFAULT-create");
-        Assert.assertTrue("Environment to create not found", optionalEnv.isPresent());
+        Assertions.assertTrue(optionalEnv.isPresent(), "Environment to create not found");
         assertEquals(environment.getId(), optionalEnv.get().getId());
         assertEquals(environment.getCockpitId(), optionalEnv.get().getCockpitId());
         assertEquals(environment.getHrids(), optionalEnv.get().getHrids());
@@ -64,8 +65,8 @@ public class EnvironmentRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void shouldUpdate() throws Exception {
         Optional<Environment> optional = environmentRepository.findById("DEFAULT-update");
-        Assert.assertTrue("Environment to update not found", optional.isPresent());
-        assertEquals("Invalid saved Environment name.", "Default env for update", optional.get().getName());
+        Assertions.assertTrue(optional.isPresent(), "Environment to update not found");
+        assertEquals("Default env for update", optional.get().getName(), "Invalid saved Environment name.");
 
         final Environment env = optional.get();
         env.setName("New name");
@@ -76,35 +77,35 @@ public class EnvironmentRepositoryTest extends AbstractManagementRepositoryTest 
         assertEquals(env.getCockpitId(), fetchedEnvironment.getCockpitId());
 
         optional = environmentRepository.findById("DEFAULT-update");
-        Assert.assertTrue("Environment to update not found", optional.isPresent());
+        Assertions.assertTrue(optional.isPresent(), "Environment to update not found");
     }
 
     @Test
     public void shouldDelete() throws Exception {
         Optional<Environment> optional = environmentRepository.findById("DEFAULT-delete");
-        Assert.assertTrue("Environment to delete not found", optional.isPresent());
+        Assertions.assertTrue(optional.isPresent(), "Environment to delete not found");
         environmentRepository.delete("DEFAULT-delete");
         optional = environmentRepository.findById("DEFAULT-delete");
-        Assert.assertFalse("Environment to delete has not been deleted", optional.isPresent());
+        Assertions.assertFalse(optional.isPresent(), "Environment to delete has not been deleted");
     }
 
     @Test
     public void shouldFindById() throws Exception {
         Optional<Environment> optional = environmentRepository.findById("DEFAULT-findById");
-        Assert.assertTrue("Environment to find not found", optional.isPresent());
+        Assertions.assertTrue(optional.isPresent(), "Environment to find not found");
     }
 
     @Test
     public void shouldFindAll() throws Exception {
         Set<Environment> allEnvironments = environmentRepository.findAll();
-        Assert.assertTrue("No environment found", !allEnvironments.isEmpty());
+        Assertions.assertTrue(!allEnvironments.isEmpty(), "No environment found");
     }
 
     @Test
     public void shouldFindByOrganization() throws Exception {
         Set<Environment> orgEnvironments = environmentRepository.findByOrganization("DEFAULT-ORG");
-        Assert.assertTrue("No environment found", !orgEnvironments.isEmpty());
-        Assert.assertEquals(1, orgEnvironments.size());
+        Assertions.assertTrue(!orgEnvironments.isEmpty(), "No environment found");
+        Assertions.assertEquals(1, orgEnvironments.size());
     }
 
     @Test
@@ -116,8 +117,8 @@ public class EnvironmentRepositoryTest extends AbstractManagementRepositoryTest 
         hrids.add("def");
         hrids.add("find");
         Set<Environment> environments = environmentRepository.findByOrganizationsAndHrids(organizations, hrids);
-        Assert.assertTrue("No environment found", !environments.isEmpty());
-        Assert.assertEquals(2, environments.size());
+        Assertions.assertTrue(!environments.isEmpty(), "No environment found");
+        Assertions.assertEquals(2, environments.size());
     }
 
     @Test
@@ -127,8 +128,8 @@ public class EnvironmentRepositoryTest extends AbstractManagementRepositoryTest 
         hrids.add("def");
         hrids.add("find");
         Set<Environment> environments = environmentRepository.findByOrganizationsAndHrids(organizations, hrids);
-        Assert.assertTrue("No environment found", !environments.isEmpty());
-        Assert.assertEquals(2, environments.size());
+        Assertions.assertTrue(!environments.isEmpty(), "No environment found");
+        Assertions.assertEquals(2, environments.size());
     }
 
     @Test
@@ -137,8 +138,8 @@ public class EnvironmentRepositoryTest extends AbstractManagementRepositoryTest 
         organizations.add("DEFAULT-ORG");
         Set<String> hrids = new HashSet<>();
         Set<Environment> environments = environmentRepository.findByOrganizationsAndHrids(organizations, hrids);
-        Assert.assertTrue("No environment found", !environments.isEmpty());
-        Assert.assertEquals(1, environments.size());
+        Assertions.assertTrue(!environments.isEmpty(), "No environment found");
+        Assertions.assertEquals(1, environments.size());
     }
 
     @Test
@@ -146,19 +147,19 @@ public class EnvironmentRepositoryTest extends AbstractManagementRepositoryTest 
         Set<String> organizations = new HashSet<>();
         Set<String> hrids = new HashSet<>();
         Set<Environment> environments = environmentRepository.findByOrganizationsAndHrids(organizations, hrids);
-        Assert.assertTrue("Environment found", environments.isEmpty());
+        Assertions.assertTrue(environments.isEmpty(), "Environment found");
     }
 
     @Test
     public void shouldFindByCockpitId() throws Exception {
         Optional<Environment> orgEnvironments = environmentRepository.findByCockpitId("cockpitId-findById");
-        Assert.assertTrue("No environment found for cockpitId: cockpitId-findById", orgEnvironments.isPresent());
+        Assertions.assertTrue(orgEnvironments.isPresent(), "No environment found for cockpitId: cockpitId-findById");
     }
 
     @Test
     public void shouldFindOrganizationIdsByEmptyEnvironments() throws Exception {
         Set<String> organizationIds = environmentRepository.findOrganizationIdsByEnvironments(Set.of());
-        assertTrue("No organization ids found", organizationIds.isEmpty());
+        assertTrue(organizationIds.isEmpty(), "No organization ids found");
     }
 
     @Test
@@ -172,6 +173,6 @@ public class EnvironmentRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void shouldNotFindOrganizationIdsByWrongEnvironments() throws Exception {
         Set<String> organizationIds = environmentRepository.findOrganizationIdsByEnvironments(Set.of("wrong"));
-        assertTrue("No organization ids found", organizationIds.isEmpty());
+        assertTrue(organizationIds.isEmpty(), "No organization ids found");
     }
 }

@@ -27,8 +27,8 @@ import io.gravitee.repository.management.model.SharedPolicyGroup;
 import io.gravitee.repository.management.model.SharedPolicyGroupLifecycleState;
 import java.util.Date;
 import lombok.CustomLog;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 @CustomLog
 public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRepositoryTest {
@@ -40,7 +40,7 @@ public class SharedPolicyGroupHistoryRepositoryTest extends AbstractManagementRe
         return null;
     }
 
-    @Before
+    @BeforeEach
     public void before() throws TechnicalException {
         for (int i = 0; i < 10; i++) {
             var date = new Date(new Date(172321739410L).getTime() + i * 1000);

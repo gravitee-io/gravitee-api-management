@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.management;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.management.model.Metadata;
@@ -24,8 +24,8 @@ import io.gravitee.repository.management.model.MetadataReferenceType;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class MetadataRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -98,22 +98,22 @@ public class MetadataRepositoryTest extends AbstractManagementRepositoryTest {
         metadataRepository.create(metadata);
         int nbMetadataListAfterCreation = metadataRepository.findByReferenceType(MetadataReferenceType.ENVIRONMENT).size();
 
-        Assert.assertEquals(nbMetadataListBeforeCreation + 1, nbMetadataListAfterCreation);
+        Assertions.assertEquals(nbMetadataListBeforeCreation + 1, nbMetadataListAfterCreation);
 
         Optional<Metadata> optional = metadataRepository.findById("new-metadata", ENV_ID, MetadataReferenceType.ENVIRONMENT);
-        Assert.assertTrue("Metadata saved not found", optional.isPresent());
+        Assertions.assertTrue(optional.isPresent(), "Metadata saved not found");
 
         final Metadata metadataSaved = optional.get();
-        Assert.assertEquals("Invalid saved metadata name.", metadata.getName(), metadataSaved.getName());
-        Assert.assertEquals("Invalid metadata format.", metadata.getFormat(), metadataSaved.getFormat());
-        Assert.assertEquals("Invalid metadata value.", metadata.getValue(), metadataSaved.getValue());
+        Assertions.assertEquals(metadata.getName(), metadataSaved.getName(), "Invalid saved metadata name.");
+        Assertions.assertEquals(metadata.getFormat(), metadataSaved.getFormat(), "Invalid metadata format.");
+        Assertions.assertEquals(metadata.getValue(), metadataSaved.getValue(), "Invalid metadata value.");
     }
 
     @Test
     public void shouldUpdate() throws Exception {
         Optional<Metadata> optional = metadataRepository.findById("boolean", ENV_ID, MetadataReferenceType.ENVIRONMENT);
-        Assert.assertTrue("Metadata to update not found", optional.isPresent());
-        Assert.assertEquals("Invalid saved metadata name.", "Boolean", optional.get().getName());
+        Assertions.assertTrue(optional.isPresent(), "Metadata to update not found");
+        Assertions.assertEquals("Boolean", optional.get().getName(), "Invalid saved metadata name.");
 
         Date updatedDate = new Date();
 
@@ -127,16 +127,16 @@ public class MetadataRepositoryTest extends AbstractManagementRepositoryTest {
         metadataRepository.update(metadata);
         int nbMetadataListAfterUpdate = metadataRepository.findByReferenceType(MetadataReferenceType.ENVIRONMENT).size();
 
-        Assert.assertEquals(nbMetadataListBeforeUpdate, nbMetadataListAfterUpdate);
+        Assertions.assertEquals(nbMetadataListBeforeUpdate, nbMetadataListAfterUpdate);
 
         Optional<Metadata> optionalUpdated = metadataRepository.findById("boolean", ENV_ID, MetadataReferenceType.ENVIRONMENT);
-        Assert.assertTrue("Metadata to update not found", optionalUpdated.isPresent());
+        Assertions.assertTrue(optionalUpdated.isPresent(), "Metadata to update not found");
 
         final Metadata metadataUpdated = optionalUpdated.get();
-        Assert.assertEquals("Invalid saved metadata name.", "New metadata", metadataUpdated.getName());
-        Assert.assertEquals("Invalid metadata value.", "New value", metadataUpdated.getValue());
-        Assert.assertEquals("Invalid metadata format.", MetadataFormat.URL, metadataUpdated.getFormat());
-        Assert.assertEquals("Invalid metadata update date.", updatedDate, metadataUpdated.getUpdatedAt());
+        Assertions.assertEquals("New metadata", metadataUpdated.getName(), "Invalid saved metadata name.");
+        Assertions.assertEquals("New value", metadataUpdated.getValue(), "Invalid metadata value.");
+        Assertions.assertEquals(MetadataFormat.URL, metadataUpdated.getFormat(), "Invalid metadata format.");
+        Assertions.assertEquals(updatedDate, metadataUpdated.getUpdatedAt(), "Invalid metadata update date.");
     }
 
     @Test
@@ -149,45 +149,51 @@ public class MetadataRepositoryTest extends AbstractManagementRepositoryTest {
             .findByReferenceTypeAndReferenceId(MetadataReferenceType.APPLICATION, "applicationId")
             .size();
 
-        Assert.assertEquals(nbMetadataListBeforeDeletion - 1, nbMetadataListAfterDeletion);
+        Assertions.assertEquals(nbMetadataListBeforeDeletion - 1, nbMetadataListAfterDeletion);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownMetadata() throws Exception {
-        Metadata unknownMetadata = new Metadata();
-        unknownMetadata.setKey("unknown");
-        unknownMetadata.setReferenceId("unknown");
-        unknownMetadata.setReferenceType(MetadataReferenceType.ENVIRONMENT);
-        metadataRepository.update(unknownMetadata);
-        fail("An unknown metadata should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            Metadata unknownMetadata = new Metadata();
+            unknownMetadata.setKey("unknown");
+            unknownMetadata.setReferenceId("unknown");
+            unknownMetadata.setReferenceType(MetadataReferenceType.ENVIRONMENT);
+            metadataRepository.update(unknownMetadata);
+            fail("An unknown metadata should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        metadataRepository.update(null);
-        fail("A null metadata should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            metadataRepository.update(null);
+            fail("A null metadata should not be updated");
+        });
     }
 
     @Test
     public void should_delete_by_reference_type_and_reference_id() throws Exception {
-        Assert.assertEquals(2, metadataRepository.findByReferenceTypeAndReferenceId(MetadataReferenceType.API, "api-delete").size());
+        Assertions.assertEquals(2, metadataRepository.findByReferenceTypeAndReferenceId(MetadataReferenceType.API, "api-delete").size());
 
         List<String> metadataIds = metadataRepository.deleteByReferenceIdAndReferenceType("api-delete", MetadataReferenceType.API);
 
         assertEquals(2, metadataIds.size());
-        Assert.assertEquals(0, metadataRepository.findByReferenceTypeAndReferenceId(MetadataReferenceType.API, "api-delete").size());
+        Assertions.assertEquals(0, metadataRepository.findByReferenceTypeAndReferenceId(MetadataReferenceType.API, "api-delete").size());
     }
 
-    @Test(expected = DuplicateKeyException.class)
+    @Test
     public void should_not_create_an_existing_key() throws Exception {
-        metadataRepository.create(
-            Metadata.builder()
-                .key("boolean")
-                .referenceId("DEFAULT")
-                .referenceType(MetadataReferenceType.ENVIRONMENT)
-                .format(MetadataFormat.BOOLEAN)
-                .name("boolean")
-                .build()
+        assertThrows(DuplicateKeyException.class, () ->
+            metadataRepository.create(
+                Metadata.builder()
+                    .key("boolean")
+                    .referenceId("DEFAULT")
+                    .referenceType(MetadataReferenceType.ENVIRONMENT)
+                    .format(MetadataFormat.BOOLEAN)
+                    .name("boolean")
+                    .build()
+            )
         );
     }
 }

@@ -24,7 +24,7 @@ import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.*;
 import java.util.Date;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class PromotionRepositoryTest extends AbstractManagementRepositoryTest {
 

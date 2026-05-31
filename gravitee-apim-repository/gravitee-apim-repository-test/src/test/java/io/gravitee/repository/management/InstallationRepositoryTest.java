@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.management;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Installation;
@@ -24,7 +24,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -113,17 +113,21 @@ public class InstallationRepositoryTest extends AbstractManagementRepositoryTest
         assertFalse(optInstallation.isPresent());
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownInstallation() throws Exception {
-        Installation unknownInstallation = new Installation();
-        unknownInstallation.setId("unknown");
-        installationRepository.update(unknownInstallation);
-        fail("An unknown installation should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            Installation unknownInstallation = new Installation();
+            unknownInstallation.setId("unknown");
+            installationRepository.update(unknownInstallation);
+            fail("An unknown installation should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        installationRepository.update(null);
-        fail("A null installation should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            installationRepository.update(null);
+            fail("A null installation should not be updated");
+        });
     }
 }

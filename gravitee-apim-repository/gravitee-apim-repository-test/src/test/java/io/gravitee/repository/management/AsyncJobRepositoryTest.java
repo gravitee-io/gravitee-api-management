@@ -27,7 +27,7 @@ import io.gravitee.repository.management.model.AsyncJob;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class AsyncJobRepositoryTest extends AbstractManagementRepositoryTest {
 

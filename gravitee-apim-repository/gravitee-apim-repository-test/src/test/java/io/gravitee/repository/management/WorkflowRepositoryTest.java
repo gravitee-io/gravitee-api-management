@@ -16,15 +16,15 @@
 package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.management.model.Workflow;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class WorkflowRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -71,7 +71,7 @@ public class WorkflowRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(nbWorkflowsBeforeCreation + 1, nbWorkflowsAfterCreation);
 
         Optional<Workflow> optional = workflowRepository.findById("new-workflow");
-        Assert.assertTrue("Workflow saved not found", optional.isPresent());
+        Assertions.assertTrue(optional.isPresent(), "Workflow saved not found");
         final Workflow fetchedWorkflow = optional.get();
         assertEquals(workflow.getReferenceType(), fetchedWorkflow.getReferenceType());
         assertEquals(workflow.getReferenceId(), fetchedWorkflow.getReferenceId());
@@ -84,7 +84,7 @@ public class WorkflowRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldUpdate() throws Exception {
         Optional<Workflow> optional = workflowRepository.findById("workflow");
-        Assert.assertTrue("Workflow to update not found", optional.isPresent());
+        Assertions.assertTrue(optional.isPresent(), "Workflow to update not found");
 
         final Workflow workflow = optional.get();
         workflow.setReferenceType("New reference type");
@@ -102,7 +102,7 @@ public class WorkflowRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(nbWorkflowsBeforeUpdate, nbWorkflowsAfterUpdate);
 
         Optional<Workflow> optionalUpdated = workflowRepository.findById("workflow");
-        Assert.assertTrue("Workflow to update not found", optionalUpdated.isPresent());
+        Assertions.assertTrue(optionalUpdated.isPresent(), "Workflow to update not found");
         final Workflow fetchedWorkflow = optionalUpdated.get();
         assertEquals(workflow.getReferenceType(), fetchedWorkflow.getReferenceType());
         assertEquals(workflow.getReferenceId(), fetchedWorkflow.getReferenceId());
@@ -159,17 +159,21 @@ public class WorkflowRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(0, workflows.size());
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownWorkflow() throws Exception {
-        Workflow unknownWorkflow = new Workflow();
-        unknownWorkflow.setId("unknown");
-        workflowRepository.update(unknownWorkflow);
-        fail("An unknown workflow should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            Workflow unknownWorkflow = new Workflow();
+            unknownWorkflow.setId("unknown");
+            workflowRepository.update(unknownWorkflow);
+            fail("An unknown workflow should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        workflowRepository.update(null);
-        fail("A null workflow should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            workflowRepository.update(null);
+            fail("A null workflow should not be updated");
+        });
     }
 }

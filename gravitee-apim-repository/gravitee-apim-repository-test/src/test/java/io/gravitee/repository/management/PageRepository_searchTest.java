@@ -17,13 +17,13 @@ package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.*;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -46,41 +46,41 @@ public class PageRepository_searchTest extends AbstractManagementRepositoryTest 
     }
 
     private void assertFindPage(Page page) {
-        assertEquals("id", "FindApiPage", page.getId());
-        assertEquals("name", "Find apiPage by apiId or Id", page.getName());
-        assertEquals("content", "Content of the page", page.getContent());
-        assertEquals("reference id", "my-api", page.getReferenceId());
-        assertEquals("reference type", PageReferenceType.API, page.getReferenceType());
-        assertEquals("type", "MARKDOWN", page.getType());
-        assertEquals("last contributor", "john_doe", page.getLastContributor());
-        assertEquals("order", 2, page.getOrder());
-        assertTrue("published", page.isPublished());
+        assertEquals("FindApiPage", page.getId(), "id");
+        assertEquals("Find apiPage by apiId or Id", page.getName(), "name");
+        assertEquals("Content of the page", page.getContent(), "content");
+        assertEquals("my-api", page.getReferenceId(), "reference id");
+        assertEquals(PageReferenceType.API, page.getReferenceType(), "reference type");
+        assertEquals("MARKDOWN", page.getType(), "type");
+        assertEquals("john_doe", page.getLastContributor(), "last contributor");
+        assertEquals(2, page.getOrder(), "order");
+        assertTrue(page.isPublished(), "published");
 
-        assertEquals("source type", "sourceType", page.getSource().getType());
-        assertEquals("source configuration", "sourceConfiguration", page.getSource().getConfiguration());
+        assertEquals("sourceType", page.getSource().getType(), "source type");
+        assertEquals("sourceConfiguration", page.getSource().getConfiguration(), "source configuration");
 
-        assertEquals("configuration try it", "true", page.getConfiguration().get("tryIt"));
-        assertEquals("configuration try it URL", "http://company.com", page.getConfiguration().get("tryItURL"));
-        assertEquals("configuration show URL", "true", page.getConfiguration().get("showURL"));
-        assertEquals("configuration display operation id", "true", page.getConfiguration().get("displayOperationId"));
-        assertEquals("configuration doc expansion", "FULL", page.getConfiguration().get("docExpansion"));
-        assertEquals("configuration enable filtering", "true", page.getConfiguration().get("enableFiltering"));
-        assertEquals("configuration show extensions", "true", page.getConfiguration().get("showExtensions"));
-        assertEquals("configuration show common extensions", "true", page.getConfiguration().get("showCommonExtensions"));
-        assertEquals("configuration maxDisplayedTags", "1234", page.getConfiguration().get("maxDisplayedTags"));
+        assertEquals("true", page.getConfiguration().get("tryIt"), "configuration try it");
+        assertEquals("http://company.com", page.getConfiguration().get("tryItURL"), "configuration try it URL");
+        assertEquals("true", page.getConfiguration().get("showURL"), "configuration show URL");
+        assertEquals("true", page.getConfiguration().get("displayOperationId"), "configuration display operation id");
+        assertEquals("FULL", page.getConfiguration().get("docExpansion"), "configuration doc expansion");
+        assertEquals("true", page.getConfiguration().get("enableFiltering"), "configuration enable filtering");
+        assertEquals("true", page.getConfiguration().get("showExtensions"), "configuration show extensions");
+        assertEquals("true", page.getConfiguration().get("showCommonExtensions"), "configuration show common extensions");
+        assertEquals("1234", page.getConfiguration().get("maxDisplayedTags"), "configuration maxDisplayedTags");
 
-        assertTrue("homepage", page.isHomepage());
+        assertTrue(page.isHomepage(), "homepage");
 
         assertEquals(
-            "access control list",
             new HashSet<>(
                 asList(new AccessControl("grp1", "GROUP"), new AccessControl("grp2", "GROUP"), new AccessControl("role1", "ROLE"))
             ),
-            page.getAccessControls()
+            page.getAccessControls(),
+            "access control list"
         );
 
-        assertTrue("created at", compareDate(new Date(1486771200000L), page.getCreatedAt()));
-        assertTrue("updated at", compareDate(new Date(1486771200000L), page.getUpdatedAt()));
+        assertTrue(compareDate(new Date(1486771200000L), page.getCreatedAt()), "created at");
+        assertTrue(compareDate(new Date(1486771200000L), page.getUpdatedAt()), "updated at");
     }
 
     @Test
@@ -106,8 +106,8 @@ public class PageRepository_searchTest extends AbstractManagementRepositoryTest 
     public void shouldReturnPageWithAutoFetch() throws Exception {
         List<Page> autofetchPages = pageRepository.search(new PageCriteria.Builder().withAutoFetch().build());
         assertNotNull(autofetchPages);
-        assertEquals("Should have One page with autofetch", 1, autofetchPages.size());
-        assertEquals("AutoFetch Page should be FindApiPage", "FindApiPage", autofetchPages.get(0).getId());
+        assertEquals(1, autofetchPages.size(), "Should have One page with autofetch");
+        assertEquals("FindApiPage", autofetchPages.get(0).getId(), "AutoFetch Page should be FindApiPage");
     }
 
     @Test

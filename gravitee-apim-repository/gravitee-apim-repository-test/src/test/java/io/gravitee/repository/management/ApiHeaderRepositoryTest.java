@@ -17,13 +17,13 @@ package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.management.model.ApiHeader;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)

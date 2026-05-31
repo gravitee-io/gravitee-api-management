@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import lombok.SneakyThrows;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team

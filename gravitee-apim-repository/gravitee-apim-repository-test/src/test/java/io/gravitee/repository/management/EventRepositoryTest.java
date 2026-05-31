@@ -18,7 +18,8 @@ package io.gravitee.repository.management;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.utils.UUID;
@@ -37,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class EventRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -441,23 +442,27 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(events).hasSize(1).extracting(Event::getId).contains("event02");
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownEvent() throws Exception {
-        Event unknownEvent = new Event();
-        unknownEvent.setId("unknown");
-        eventRepository.update(unknownEvent);
-        fail("An unknown event should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            Event unknownEvent = new Event();
+            unknownEvent.setId("unknown");
+            eventRepository.update(unknownEvent);
+            fail("An unknown event should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        eventRepository.update(null);
-        fail("A null event should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            eventRepository.update(null);
+            fail("A null event should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void createOrUpdateShouldThrowIllegalStateException() throws TechnicalException {
-        eventRepository.createOrPatch(null);
+        assertThrows(IllegalStateException.class, () -> eventRepository.createOrPatch(null));
     }
 
     @Test

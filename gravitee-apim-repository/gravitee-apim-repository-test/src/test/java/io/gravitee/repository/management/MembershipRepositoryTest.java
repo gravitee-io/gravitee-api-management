@@ -24,7 +24,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.*;
 import java.time.Instant;
 import java.util.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)

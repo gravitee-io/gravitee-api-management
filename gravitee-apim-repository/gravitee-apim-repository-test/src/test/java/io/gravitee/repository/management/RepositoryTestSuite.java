@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.management;
 
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
@@ -23,7 +23,7 @@ import org.junit.runners.Suite;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Ignore
+@Disabled
 @RunWith(Suite.class)
 @Suite.SuiteClasses(
     {

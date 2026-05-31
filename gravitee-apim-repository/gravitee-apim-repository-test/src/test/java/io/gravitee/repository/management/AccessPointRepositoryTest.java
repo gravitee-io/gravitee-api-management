@@ -16,9 +16,7 @@
 package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.management.api.search.AccessPointCriteria;
 import io.gravitee.repository.management.model.AccessPoint;
@@ -29,7 +27,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -55,7 +53,7 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
         accessPointRepository.create(accessPoint);
 
         Optional<AccessPoint> optional = accessPointRepository.findById("id");
-        assertTrue("AccessPoint not found", optional.isPresent());
+        assertTrue(optional.isPresent(), "AccessPoint not found");
 
         AccessPoint accessPointFound = optional.get();
 
@@ -66,7 +64,7 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
     public void should_return_empty_optional_if_id_not_found() throws Exception {
         Optional<AccessPoint> optional = accessPointRepository.findById("not found");
 
-        assertFalse("AccessPoint shouldn't be found", optional.isPresent());
+        assertFalse(optional.isPresent(), "AccessPoint shouldn't be found");
     }
 
     @Test
@@ -221,11 +219,11 @@ public class AccessPointRepositoryTest extends AbstractManagementRepositoryTest 
         accessPointRepository.create(accessPoint);
 
         Optional<AccessPoint> optionalCreated = accessPointRepository.findById("id3");
-        assertTrue("AccessPoint not found", optionalCreated.isPresent());
+        assertTrue(optionalCreated.isPresent(), "AccessPoint not found");
 
         accessPointRepository.delete("id3");
 
         Optional<AccessPoint> optionalDeleted = accessPointRepository.findById("id3");
-        assertFalse("AccessPoint not deleted", optionalDeleted.isPresent());
+        assertFalse(optionalDeleted.isPresent(), "AccessPoint not deleted");
     }
 }

@@ -29,22 +29,22 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
 /**
  * @author GraviteeSource Team
  */
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(loader = AnnotationConfigContextLoader.class, initializers = { PropertySourceRepositoryInitializer.class })
 @ActiveProfiles("test")
 public abstract class AbstractRepositoryTest {
@@ -63,7 +63,7 @@ public abstract class AbstractRepositoryTest {
 
     protected abstract void createModel(Object object) throws TechnicalException;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         testRepositoryInitializer.setUp();
 
@@ -86,7 +86,7 @@ public abstract class AbstractRepositoryTest {
         }
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         testRepositoryInitializer.tearDown();
     }

@@ -20,11 +20,7 @@ import static io.gravitee.repository.management.model.Plan.PlanSecurityType.OAUT
 import static io.gravitee.repository.management.model.Subscription.Status.PENDING;
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static java.util.Collections.singleton;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -42,7 +38,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -63,39 +59,39 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
-        assertEquals("Subscriptions size", 1, subscriptions.size());
+        assertEquals(1, subscriptions.size(), "Subscriptions size");
         final Subscription subscription = subscriptions.getFirst();
-        assertEquals("Subscription id", "sub1", subscription.getId());
-        assertEquals("Subscription plan", "plan1", subscription.getPlan());
-        assertEquals("Subscription application", "app1", subscription.getApplication());
-        assertEquals("Subscription application name", "app1 name", subscription.getApplicationName());
-        assertEquals("Subscription api", "api1", subscription.getApi());
-        assertEquals("Subscription reason", "reason", subscription.getReason());
-        assertEquals("Subscription request", "request", subscription.getRequest());
-        assertEquals("Subscription status", PENDING, subscription.getStatus());
-        assertEquals("Subscription consumer status", Subscription.ConsumerStatus.STARTED, subscription.getConsumerStatus());
-        assertEquals("Subscription processed by", "user1", subscription.getProcessedBy());
-        assertEquals("Subscription subscribed by", "user2", subscription.getSubscribedBy());
-        assertTrue("Subscription starting at", compareDate(1439022010883L, subscription.getStartingAt().getTime()));
-        assertTrue("Subscription ending at", compareDate(1449022010883L, subscription.getEndingAt().getTime()));
-        assertTrue("Subscription created at", compareDate(1459022010883L, subscription.getCreatedAt().getTime()));
-        assertTrue("Subscription updated at", compareDate(1469022010883L, subscription.getUpdatedAt().getTime()));
-        assertTrue("Subscription processed at", compareDate(1479022010883L, subscription.getProcessedAt().getTime()));
-        assertTrue("Subscription paused at", compareDate(1479022010883L, subscription.getPausedAt().getTime()));
-        assertTrue("Subscription consumer paused at", compareDate(1479022010883L, subscription.getConsumerPausedAt().getTime()));
-        assertEquals("Subscription client id", "my-client-id", subscription.getClientId());
-        assertEquals("Subscription client certficate", "my-client-certificate", subscription.getClientCertificate());
-        assertTrue("Subscription GCU accepted", subscription.getGeneralConditionsAccepted());
-        assertEquals("Subscription GCU content pageId", "ref", subscription.getGeneralConditionsContentPageId());
-        assertEquals("Subscription GCU content revision", Integer.valueOf(2), subscription.getGeneralConditionsContentRevision());
-        assertTrue("Subscription metadata", subscription.getMetadata().containsKey("key"));
-        assertEquals("Subscription metadata", "value", subscription.getMetadata().get("key"));
-        assertEquals("Subscription configuration", "{}", subscription.getConfiguration());
-        assertEquals("Subscription type", Subscription.Type.STANDARD, subscription.getType());
+        assertEquals("sub1", subscription.getId(), "Subscription id");
+        assertEquals("plan1", subscription.getPlan(), "Subscription plan");
+        assertEquals("app1", subscription.getApplication(), "Subscription application");
+        assertEquals("app1 name", subscription.getApplicationName(), "Subscription application name");
+        assertEquals("api1", subscription.getApi(), "Subscription api");
+        assertEquals("reason", subscription.getReason(), "Subscription reason");
+        assertEquals("request", subscription.getRequest(), "Subscription request");
+        assertEquals(PENDING, subscription.getStatus(), "Subscription status");
+        assertEquals(Subscription.ConsumerStatus.STARTED, subscription.getConsumerStatus(), "Subscription consumer status");
+        assertEquals("user1", subscription.getProcessedBy(), "Subscription processed by");
+        assertEquals("user2", subscription.getSubscribedBy(), "Subscription subscribed by");
+        assertTrue(compareDate(1439022010883L, subscription.getStartingAt().getTime()), "Subscription starting at");
+        assertTrue(compareDate(1449022010883L, subscription.getEndingAt().getTime()), "Subscription ending at");
+        assertTrue(compareDate(1459022010883L, subscription.getCreatedAt().getTime()), "Subscription created at");
+        assertTrue(compareDate(1469022010883L, subscription.getUpdatedAt().getTime()), "Subscription updated at");
+        assertTrue(compareDate(1479022010883L, subscription.getProcessedAt().getTime()), "Subscription processed at");
+        assertTrue(compareDate(1479022010883L, subscription.getPausedAt().getTime()), "Subscription paused at");
+        assertTrue(compareDate(1479022010883L, subscription.getConsumerPausedAt().getTime()), "Subscription consumer paused at");
+        assertEquals("my-client-id", subscription.getClientId(), "Subscription client id");
+        assertEquals("my-client-certificate", subscription.getClientCertificate(), "Subscription client certficate");
+        assertTrue(subscription.getGeneralConditionsAccepted(), "Subscription GCU accepted");
+        assertEquals("ref", subscription.getGeneralConditionsContentPageId(), "Subscription GCU content pageId");
+        assertEquals(Integer.valueOf(2), subscription.getGeneralConditionsContentRevision(), "Subscription GCU content revision");
+        assertTrue(subscription.getMetadata().containsKey("key"), "Subscription metadata");
+        assertEquals("value", subscription.getMetadata().get("key"), "Subscription metadata");
+        assertEquals("{}", subscription.getConfiguration(), "Subscription configuration");
+        assertEquals(Subscription.Type.STANDARD, subscription.getType(), "Subscription type");
         assertEquals(
-            "Subscription days to expiration on last notification",
             Integer.valueOf(30),
-            subscription.getDaysToExpirationOnLastNotification()
+            subscription.getDaysToExpirationOnLastNotification(),
+            "Subscription days to expiration on last notification"
         );
     }
 
@@ -117,11 +113,11 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
-        assertEquals("Subscriptions size", 3, subscriptions.size());
+        assertEquals(3, subscriptions.size(), "Subscriptions size");
         final Iterator<Subscription> iterator = subscriptions.iterator();
-        assertEquals("Subscription id", "sub3", iterator.next().getId());
-        assertEquals("Subscription id", "sub4", iterator.next().getId());
-        assertEquals("Subscription id", "sub1", iterator.next().getId());
+        assertEquals("sub3", iterator.next().getId(), "Subscription id");
+        assertEquals("sub4", iterator.next().getId(), "Subscription id");
+        assertEquals("sub1", iterator.next().getId(), "Subscription id");
     }
 
     @Test
@@ -142,11 +138,11 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
-        assertEquals("Subscriptions size", 3, subscriptions.size());
+        assertEquals(3, subscriptions.size(), "Subscriptions size");
         final Iterator<Subscription> iterator = subscriptions.iterator();
-        assertEquals("Subscription id", "sub3", iterator.next().getId());
-        assertEquals("Subscription id", "sub2", iterator.next().getId());
-        assertEquals("Subscription id", "sub1", iterator.next().getId());
+        assertEquals("sub3", iterator.next().getId(), "Subscription id");
+        assertEquals("sub2", iterator.next().getId(), "Subscription id");
+        assertEquals("sub1", iterator.next().getId(), "Subscription id");
     }
 
     @Test
@@ -167,11 +163,11 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
-        assertEquals("Subscriptions size", 3, subscriptions.size());
+        assertEquals(3, subscriptions.size(), "Subscriptions size");
         final Iterator<Subscription> iterator = subscriptions.iterator();
-        assertEquals("Subscription id", "sub3", iterator.next().getId());
-        assertEquals("Subscription id", "sub4", iterator.next().getId());
-        assertEquals("Subscription id", "sub1", iterator.next().getId());
+        assertEquals("sub3", iterator.next().getId(), "Subscription id");
+        assertEquals("sub4", iterator.next().getId(), "Subscription id");
+        assertEquals("sub1", iterator.next().getId(), "Subscription id");
     }
 
     @Test
@@ -191,21 +187,21 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         assertNotNull(optionalSubscription);
         assertTrue(optionalSubscription.isPresent());
         final Subscription subscription = optionalSubscription.get();
-        assertEquals("Subscription id", "sub1", subscription.getId());
-        assertEquals("Subscription plan", "plan1", subscription.getPlan());
-        assertEquals("Subscription application", "app1", subscription.getApplication());
-        assertEquals("Subscription api", "api1", subscription.getApi());
-        assertEquals("Subscription reason", "reason", subscription.getReason());
-        assertEquals("Subscription status", PENDING, subscription.getStatus());
-        assertEquals("Subscription processed by", "user1", subscription.getProcessedBy());
-        assertEquals("Subscription subscribed by", "user2", subscription.getSubscribedBy());
-        assertTrue("Subscription starting at", compareDate(1439022010883L, subscription.getStartingAt().getTime()));
-        assertTrue("Subscription ending at", compareDate(1449022010883L, subscription.getEndingAt().getTime()));
-        assertTrue("Subscription created at", compareDate(1459022010883L, subscription.getCreatedAt().getTime()));
-        assertTrue("Subscription updated at", compareDate(1469022010883L, subscription.getUpdatedAt().getTime()));
-        assertTrue("Subscription processed at", compareDate(1479022010883L, subscription.getProcessedAt().getTime()));
-        assertEquals("Subscription client id", "my-client-id", subscription.getClientId());
-        assertEquals("Subscription client certificate", "my-client-certificate", subscription.getClientCertificate());
+        assertEquals("sub1", subscription.getId(), "Subscription id");
+        assertEquals("plan1", subscription.getPlan(), "Subscription plan");
+        assertEquals("app1", subscription.getApplication(), "Subscription application");
+        assertEquals("api1", subscription.getApi(), "Subscription api");
+        assertEquals("reason", subscription.getReason(), "Subscription reason");
+        assertEquals(PENDING, subscription.getStatus(), "Subscription status");
+        assertEquals("user1", subscription.getProcessedBy(), "Subscription processed by");
+        assertEquals("user2", subscription.getSubscribedBy(), "Subscription subscribed by");
+        assertTrue(compareDate(1439022010883L, subscription.getStartingAt().getTime()), "Subscription starting at");
+        assertTrue(compareDate(1449022010883L, subscription.getEndingAt().getTime()), "Subscription ending at");
+        assertTrue(compareDate(1459022010883L, subscription.getCreatedAt().getTime()), "Subscription created at");
+        assertTrue(compareDate(1469022010883L, subscription.getUpdatedAt().getTime()), "Subscription updated at");
+        assertTrue(compareDate(1479022010883L, subscription.getProcessedAt().getTime()), "Subscription processed at");
+        assertEquals("my-client-id", subscription.getClientId(), "Subscription client id");
+        assertEquals("my-client-certificate", subscription.getClientCertificate(), "Subscription client certificate");
     }
 
     @Test
@@ -213,10 +209,10 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         List<Subscription> subscriptions = subscriptionRepository.findByIdIn(Set.of("sub1", "unknown-id"));
         assertEquals(1, subscriptions.size());
         Subscription subscription = subscriptions.getFirst();
-        assertEquals("Subscription id", "sub1", subscription.getId());
-        assertEquals("Subscription plan", "plan1", subscription.getPlan());
-        assertEquals("Subscription application", "app1", subscription.getApplication());
-        assertEquals("Subscription api", "api1", subscription.getApi());
+        assertEquals("sub1", subscription.getId(), "Subscription id");
+        assertEquals("plan1", subscription.getPlan(), "Subscription plan");
+        assertEquals("app1", subscription.getApplication(), "Subscription application");
+        assertEquals("api1", subscription.getApi(), "Subscription api");
     }
 
     @Test
@@ -253,18 +249,22 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         assertFalse(subscription.isPresent());
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownSubscription() throws Exception {
-        Subscription unknownSubscription = new Subscription();
-        unknownSubscription.setId("unknown");
-        subscriptionRepository.update(unknownSubscription);
-        fail("An unknown subscription should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            Subscription unknownSubscription = new Subscription();
+            unknownSubscription.setId("unknown");
+            subscriptionRepository.update(unknownSubscription);
+            fail("An unknown subscription should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        subscriptionRepository.update(null);
-        fail("A null subscription should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            subscriptionRepository.update(null);
+            fail("A null subscription should not be updated");
+        });
     }
 
     @Test
@@ -275,27 +275,27 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
-        assertEquals("Subscriptions size", 1, subscriptions.size());
-        assertEquals("Subscription id", "sub1", subscriptions.getFirst().getId());
+        assertEquals(1, subscriptions.size(), "Subscriptions size");
+        assertEquals("sub1", subscriptions.getFirst().getId(), "Subscription id");
     }
 
     @Test
     public void shouldFindAfterFromDate() throws TechnicalException {
         List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder().from(1469022010883L).build());
 
-        assertEquals("Subscriptions size", 4, subscriptions.size());
+        assertEquals(4, subscriptions.size(), "Subscriptions size");
         Set<String> subscriptionIds = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
-        assertTrue("Should contain sub3", subscriptionIds.contains("sub3"));
-        assertTrue("Should contain sub1", subscriptionIds.contains("sub1"));
-        assertTrue("Should contain sub-api-product-1", subscriptionIds.contains("sub-api-product-1"));
-        assertTrue("Should contain sub-api-product-2", subscriptionIds.contains("sub-api-product-2"));
+        assertTrue(subscriptionIds.contains("sub3"), "Should contain sub3");
+        assertTrue(subscriptionIds.contains("sub1"), "Should contain sub1");
+        assertTrue(subscriptionIds.contains("sub-api-product-1"), "Should contain sub-api-product-1");
+        assertTrue(subscriptionIds.contains("sub-api-product-2"), "Should contain sub-api-product-2");
     }
 
     @Test
     public void shouldFindBeforeToDate() throws TechnicalException {
         List<Subscription> subscriptions = this.subscriptionRepository.search(SubscriptionCriteria.builder().to(1569022010883L).build());
 
-        assertEquals("Subscriptions size", 13, subscriptions.size());
+        assertEquals(13, subscriptions.size(), "Subscriptions size");
         Set<String> subscriptionIds = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
         assertTrue(subscriptionIds.contains("sub1"));
         assertTrue(
@@ -353,8 +353,8 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
             SubscriptionCriteria.builder().endingAtAfter(1449022010880L).endingAtBefore(1569022010883L).build()
         );
 
-        assertEquals("Subscriptions size", 1, subscriptions.size());
-        assertEquals("Subscription id", "sub1", subscriptions.getFirst().getId());
+        assertEquals(1, subscriptions.size(), "Subscriptions size");
+        assertEquals("sub1", subscriptions.getFirst().getId(), "Subscription id");
     }
 
     @Test
@@ -363,8 +363,8 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
             SubscriptionCriteria.builder().endingAtAfter(1449022010880L).build()
         );
 
-        assertEquals("Subscriptions size", 1, subscriptions.size());
-        assertEquals("Subscription id", "sub1", subscriptions.getFirst().getId());
+        assertEquals(1, subscriptions.size(), "Subscriptions size");
+        assertEquals("sub1", subscriptions.getFirst().getId(), "Subscription id");
     }
 
     @Test
@@ -373,9 +373,8 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
             SubscriptionCriteria.builder().endingAtAfter(1449022010880L).includeWithoutEnd(true).build()
         );
 
-        assertEquals("Subscriptions size", 21, subscriptions.size());
+        assertEquals(21, subscriptions.size(), "Subscriptions size");
         assertTrue(
-            "Subscription id",
             List.of(
                 "sub3",
                 "sub2",
@@ -398,7 +397,8 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
                 "sub-sa-4-b",
                 "sub-sa-4-c",
                 "sub-sa-4-d"
-            ).containsAll(subscriptions.stream().map(Subscription::getId).toList())
+            ).containsAll(subscriptions.stream().map(Subscription::getId).toList()),
+            "Subscription id"
         );
     }
 
@@ -408,11 +408,11 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
             SubscriptionCriteria.builder().endingAtBefore(1569022010883L).build()
         );
 
-        assertEquals("Subscriptions size", 3, subscriptions.size());
+        assertEquals(3, subscriptions.size(), "Subscriptions size");
         Set<String> subscriptionIds = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
-        assertTrue("Should contain sub1", subscriptionIds.contains("sub1"));
-        assertTrue("Should contain sub-api-product-1", subscriptionIds.contains("sub-api-product-1"));
-        assertTrue("Should contain sub-api-product-2", subscriptionIds.contains("sub-api-product-2"));
+        assertTrue(subscriptionIds.contains("sub1"), "Should contain sub1");
+        assertTrue(subscriptionIds.contains("sub-api-product-1"), "Should contain sub-api-product-1");
+        assertTrue(subscriptionIds.contains("sub-api-product-2"), "Should contain sub-api-product-2");
     }
 
     @Test
@@ -421,10 +421,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
             SubscriptionCriteria.builder().endingAtBefore(1569022010883L).includeWithoutEnd(true).build()
         );
 
-        assertEquals("Subscriptions size", 23, subscriptions.size());
+        assertEquals(23, subscriptions.size(), "Subscriptions size");
         Set<String> subscriptionIds = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
         assertTrue(
-            "Should contain expected subscriptions",
             subscriptionIds.containsAll(
                 List.of(
                     "sub3",
@@ -439,7 +438,8 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
                     "sub-api-product-2",
                     "sub-legacy-push"
                 )
-            )
+            ),
+            "Should contain expected subscriptions"
         );
     }
 
@@ -450,8 +450,8 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
             Order.DESC
         );
 
-        assertEquals("Ranking size", 1, ranking.size());
-        assertEquals("Ranking", "api1", ranking.iterator().next());
+        assertEquals(1, ranking.size(), "Ranking size");
+        assertEquals("api1", ranking.iterator().next(), "Ranking");
     }
 
     @Test
@@ -466,8 +466,8 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         );
 
         assertNotNull(ranking);
-        assertEquals("Ranking size", 1, ranking.size());
-        assertEquals("Ranking", "api1", ranking.iterator().next());
+        assertEquals(1, ranking.size(), "Ranking size");
+        assertEquals("api1", ranking.iterator().next(), "Ranking");
     }
 
     @Test
@@ -480,8 +480,8 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
         assertNotNull(subscriptions);
         Set<String> ids = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
-        assertTrue("Should include migrated subscription (referenceId/referenceType set)", ids.contains("sub1"));
-        assertTrue("Should include legacy subscription with only api field set", ids.contains("sub-legacy-push"));
+        assertTrue(ids.contains("sub1"), "Should include migrated subscription (referenceId/referenceType set)");
+        assertTrue(ids.contains("sub-legacy-push"), "Should include legacy subscription with only api field set");
     }
 
     @Test
@@ -491,10 +491,10 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
             Order.DESC
         );
 
-        assertEquals("Ranking size", 2, ranking.size());
+        assertEquals(2, ranking.size(), "Ranking size");
         Iterator<String> iterator = ranking.iterator();
-        assertEquals("First", "app1", iterator.next());
-        assertEquals("Second", "app2", iterator.next());
+        assertEquals("app1", iterator.next(), "First");
+        assertEquals("app2", iterator.next(), "Second");
     }
 
     @Test
@@ -507,11 +507,11 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         assertEquals(5, subscriptions.size());
         // Results may be in different order, so check that all expected subscriptions are present
         Set<String> subscriptionIds = subscriptions.stream().map(Subscription::getId).collect(java.util.stream.Collectors.toSet());
-        assertTrue("Should contain sub5", subscriptionIds.contains("sub5"));
-        assertTrue("Should contain sub4", subscriptionIds.contains("sub4"));
-        assertTrue("Should contain sub1", subscriptionIds.contains("sub1"));
-        assertTrue("Should contain sub-api-product-1", subscriptionIds.contains("sub-api-product-1"));
-        assertTrue("Should contain sub-api-product-2", subscriptionIds.contains("sub-api-product-2"));
+        assertTrue(subscriptionIds.contains("sub5"), "Should contain sub5");
+        assertTrue(subscriptionIds.contains("sub4"), "Should contain sub4");
+        assertTrue(subscriptionIds.contains("sub1"), "Should contain sub1");
+        assertTrue(subscriptionIds.contains("sub-api-product-1"), "Should contain sub-api-product-1");
+        assertTrue(subscriptionIds.contains("sub-api-product-2"), "Should contain sub-api-product-2");
     }
 
     @Test
@@ -527,9 +527,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         assertEquals(3, subscriptions.size());
         // Results may be in different order, so check that all expected subscriptions are present
         Set<String> subscriptionIds = subscriptions.stream().map(Subscription::getId).collect(java.util.stream.Collectors.toSet());
-        assertTrue("Should contain sub1", subscriptionIds.contains("sub1"));
-        assertTrue("Should contain sub4", subscriptionIds.contains("sub4"));
-        assertTrue("Should contain sub-api-product-2", subscriptionIds.contains("sub-api-product-2"));
+        assertTrue(subscriptionIds.contains("sub1"), "Should contain sub1");
+        assertTrue(subscriptionIds.contains("sub4"), "Should contain sub4");
+        assertTrue(subscriptionIds.contains("sub-api-product-2"), "Should contain sub-api-product-2");
     }
 
     @Test
@@ -541,11 +541,11 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
-        assertEquals("Subscriptions size", 3, subscriptions.size());
+        assertEquals(3, subscriptions.size(), "Subscriptions size");
         final Iterator<Subscription> iterator = subscriptions.iterator();
-        assertEquals("Subscription id", "sub1", iterator.next().getId());
-        assertEquals("Subscription id", "sub3", iterator.next().getId());
-        assertEquals("Subscription id", "sub4", iterator.next().getId());
+        assertEquals("sub1", iterator.next().getId(), "Subscription id");
+        assertEquals("sub3", iterator.next().getId(), "Subscription id");
+        assertEquals("sub4", iterator.next().getId(), "Subscription id");
     }
 
     @Test
@@ -557,11 +557,11 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
-        assertEquals("Subscriptions size", 3, subscriptions.size());
+        assertEquals(3, subscriptions.size(), "Subscriptions size");
         final Iterator<Subscription> iterator = subscriptions.iterator();
-        assertEquals("Subscription id", "sub1", iterator.next().getId());
-        assertEquals("Subscription id", "sub4", iterator.next().getId());
-        assertEquals("Subscription id", "sub3", iterator.next().getId());
+        assertEquals("sub1", iterator.next().getId(), "Subscription id");
+        assertEquals("sub4", iterator.next().getId(), "Subscription id");
+        assertEquals("sub3", iterator.next().getId(), "Subscription id");
     }
 
     @Test
@@ -596,12 +596,12 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         assertFalse(subscriptions.isEmpty());
         subscriptions.forEach(sub ->
             assertTrue(
-                "Each result must be API or legacy (null) referenceType",
-                sub.getReferenceType() == null || sub.getReferenceType() == SubscriptionReferenceType.API
+                sub.getReferenceType() == null || sub.getReferenceType() == SubscriptionReferenceType.API,
+                "Each result must be API or legacy (null) referenceType"
             )
         );
         Set<String> ids = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
-        assertTrue("Should include API subscription sub1", ids.contains("sub1"));
+        assertTrue(ids.contains("sub1"), "Should include API subscription sub1");
     }
 
     @Test
@@ -628,8 +628,8 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
         assertNotNull(subscriptions);
         Set<String> ids = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
-        assertTrue("Should include migrated subscription", ids.contains("sub1"));
-        assertTrue("Should include legacy subscription (only api field set)", ids.contains("sub-legacy-push"));
+        assertTrue(ids.contains("sub1"), "Should include migrated subscription");
+        assertTrue(ids.contains("sub-legacy-push"), "Should include legacy subscription (only api field set)");
     }
 
     @Test
@@ -641,8 +641,8 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
         assertNotNull(subscriptions);
         Set<String> ids = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
-        assertTrue("Should include migrated subscription", ids.contains("sub1"));
-        assertTrue("Should include legacy subscription with only api field set", ids.contains("sub-legacy-push"));
+        assertTrue(ids.contains("sub1"), "Should include migrated subscription");
+        assertTrue(ids.contains("sub-legacy-push"), "Should include legacy subscription with only api field set");
     }
 
     @Test
@@ -656,15 +656,15 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
-        assertEquals("Subscriptions size", 2, subscriptions.size());
+        assertEquals(2, subscriptions.size(), "Subscriptions size");
 
         Set<String> subscriptionIds = subscriptions.stream().map(Subscription::getId).collect(Collectors.toSet());
-        assertTrue("Should contain sub-api-product-1", subscriptionIds.contains("sub-api-product-1"));
-        assertTrue("Should contain sub-api-product-2", subscriptionIds.contains("sub-api-product-2"));
+        assertTrue(subscriptionIds.contains("sub-api-product-1"), "Should contain sub-api-product-1");
+        assertTrue(subscriptionIds.contains("sub-api-product-2"), "Should contain sub-api-product-2");
 
         subscriptions.forEach(subscription -> {
-            assertEquals("API Product ID", "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88", subscription.getReferenceId());
-            assertEquals("Reference Type", SubscriptionReferenceType.API_PRODUCT, subscription.getReferenceType());
+            assertEquals("c45b8e66-4d2a-47ad-9b8e-664d2a97ad88", subscription.getReferenceId(), "API Product ID");
+            assertEquals(SubscriptionReferenceType.API_PRODUCT, subscription.getReferenceType(), "Reference Type");
         });
     }
 
@@ -677,12 +677,12 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
         assertNotNull(subscriptions);
         assertFalse(subscriptions.isEmpty());
-        assertEquals("Subscriptions size", 2, subscriptions.size());
+        assertEquals(2, subscriptions.size(), "Subscriptions size");
 
         // Verify all subscriptions belong to the api-product
         subscriptions.forEach(subscription -> {
-            assertEquals("API Product ID", "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88", subscription.getReferenceId());
-            assertEquals("Reference Type", SubscriptionReferenceType.API_PRODUCT, subscription.getReferenceType());
+            assertEquals("c45b8e66-4d2a-47ad-9b8e-664d2a97ad88", subscription.getReferenceId(), "API Product ID");
+            assertEquals(SubscriptionReferenceType.API_PRODUCT, subscription.getReferenceType(), "Reference Type");
         });
     }
 
@@ -707,9 +707,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
         assertNotNull(subscription);
         assertTrue(subscription.isPresent());
-        assertEquals("Subscription id", "sub-api-product-1", subscription.get().getId());
-        assertEquals("API Product ID", "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88", subscription.get().getReferenceId());
-        assertEquals("Reference Type", SubscriptionReferenceType.API_PRODUCT, subscription.get().getReferenceType());
+        assertEquals("sub-api-product-1", subscription.get().getId(), "Subscription id");
+        assertEquals("c45b8e66-4d2a-47ad-9b8e-664d2a97ad88", subscription.get().getReferenceId(), "API Product ID");
+        assertEquals(SubscriptionReferenceType.API_PRODUCT, subscription.get().getReferenceType(), "Reference Type");
     }
 
     @Test
@@ -744,10 +744,10 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         List<Subscription> unordered = subscriptionRepository.searchUnordered(criteria);
 
         assertNotNull(unordered);
-        assertEquals("Subscriptions size", sorted.size(), unordered.size());
+        assertEquals(sorted.size(), unordered.size(), "Subscriptions size");
         Set<String> sortedIds = sorted.stream().map(Subscription::getId).collect(Collectors.toSet());
         Set<String> unorderedIds = unordered.stream().map(Subscription::getId).collect(Collectors.toSet());
-        assertEquals("Subscription id set", sortedIds, unorderedIds);
+        assertEquals(sortedIds, unorderedIds, "Subscription id set");
     }
 
     @Test
@@ -780,7 +780,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
                 break;
             }
             for (Subscription s : page) {
-                assertTrue("Duplicate id across pages: " + s.getId(), collected.add(s.getId()));
+                assertTrue(collected.add(s.getId()), "Duplicate id across pages: " + s.getId());
             }
             Subscription last = page.getLast();
             cursor = SubscriptionCursor.byPlanAndId(last.getPlan(), last.getId());
@@ -790,9 +790,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         }
 
         assertEquals(
-            "plan3 subs returned exactly — no leak from unrelated plans",
             Set.of("sub-legacy-push", "sub2", "sub3", "sub6", "sub7", "sub8"),
-            collected
+            collected,
+            "plan3 subs returned exactly — no leak from unrelated plans"
         );
     }
 
@@ -870,9 +870,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         Set<String> viaLegacySearch = subscriptionRepository.search(criteria).stream().map(Subscription::getId).collect(Collectors.toSet());
 
         assertEquals(
-            "searchAfter and legacy search() must return identical set for endingAtAfter+includeWithoutEnd",
             viaLegacySearch,
-            viaSearchAfter
+            viaSearchAfter,
+            "searchAfter and legacy search() must return identical set for endingAtAfter+includeWithoutEnd"
         );
     }
 
@@ -937,7 +937,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
             SubscriptionCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId()),
             pageSize
         );
-        assertTrue("Page after exact-multiple total must be empty", page3.isEmpty());
+        assertTrue(page3.isEmpty(), "Page after exact-multiple total must be empty");
     }
 
     @Test
@@ -955,7 +955,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
                 break;
             }
             for (Subscription s : page) {
-                assertTrue("Duplicate id across pages: " + s.getId(), collected.add(s.getId()));
+                assertTrue(collected.add(s.getId()), "Duplicate id across pages: " + s.getId());
             }
             Subscription last = page.getLast();
             cursor = SubscriptionCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId());
@@ -965,9 +965,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         }
 
         assertEquals(
-            "All 5 same-ms subs returned exactly once",
             Set.of("sub-sa-3-a", "sub-sa-3-b", "sub-sa-3-c", "sub-sa-3-d", "sub-sa-3-e"),
-            collected
+            collected,
+            "All 5 same-ms subs returned exactly once"
         );
     }
 

@@ -17,13 +17,12 @@ package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.QualityRule;
 import java.util.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -135,20 +134,24 @@ public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest 
         assertThat(nbQualityRulesAfterDeletion).isEqualTo(nbQualityRulesBeforeDeletion - 1);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownQualityRule() throws Exception {
-        QualityRule unknownQualityRule = new QualityRule();
-        unknownQualityRule.setId("unknown");
-        qualityRuleRepository.update(unknownQualityRule);
+        assertThrows(IllegalStateException.class, () -> {
+            QualityRule unknownQualityRule = new QualityRule();
+            unknownQualityRule.setId("unknown");
+            qualityRuleRepository.update(unknownQualityRule);
 
-        qualityRuleRepository.update(unknownQualityRule);
-        fail("An unknown qualityRule should not be updated");
+            qualityRuleRepository.update(unknownQualityRule);
+            fail("An unknown qualityRule should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        qualityRuleRepository.update(null);
-        fail("A null qualityRule should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            qualityRuleRepository.update(null);
+            fail("A null qualityRule should not be updated");
+        });
     }
 
     @Test

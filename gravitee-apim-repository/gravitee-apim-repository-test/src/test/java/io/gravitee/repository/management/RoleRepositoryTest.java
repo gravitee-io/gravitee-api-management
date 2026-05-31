@@ -16,11 +16,7 @@
 package io.gravitee.repository.management;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Role;
@@ -32,7 +28,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -90,13 +86,13 @@ public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
         Role newRole = roleRepository.create(role);
         boolean presentAfter = roleRepository.findById("API_to_create").isPresent();
 
-        assertFalse("must not exists before creation", presentBefore);
-        assertTrue("must exists after creation", presentAfter);
-        assertEquals("Invalid name", role.getName(), newRole.getName());
-        assertEquals("Invalid reference id", role.getReferenceId(), newRole.getReferenceId());
-        assertEquals("Invalid reference type", role.getReferenceType(), newRole.getReferenceType());
-        assertEquals("Invalid scope", role.getScope(), newRole.getScope());
-        assertEquals("Invalid permissions", role.getPermissions()[0], newRole.getPermissions()[0]);
+        assertFalse(presentBefore, "must not exists before creation");
+        assertTrue(presentAfter, "must exists after creation");
+        assertEquals(role.getName(), newRole.getName(), "Invalid name");
+        assertEquals(role.getReferenceId(), newRole.getReferenceId(), "Invalid reference id");
+        assertEquals(role.getReferenceType(), newRole.getReferenceType(), "Invalid reference type");
+        assertEquals(role.getScope(), newRole.getScope(), "Invalid scope");
+        assertEquals(role.getPermissions()[0], newRole.getPermissions()[0], "Invalid permissions");
     }
 
     @Test
@@ -114,16 +110,16 @@ public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
         Role update = roleRepository.update(role);
 
         assertNotNull(update);
-        assertEquals("invalid name", role.getName(), update.getName());
-        assertEquals("invalid scope", role.getScope(), update.getScope());
-        assertEquals("invalid reference id", role.getReferenceId(), update.getReferenceId());
-        assertEquals("invalid reference type", role.getReferenceType(), update.getReferenceType());
-        assertEquals("invalid description", role.getDescription(), update.getDescription());
-        assertEquals("invalid default role", role.isDefaultRole(), update.isDefaultRole());
-        assertEquals("invalid system attribute", role.isSystem(), update.isSystem());
+        assertEquals(role.getName(), update.getName(), "invalid name");
+        assertEquals(role.getScope(), update.getScope(), "invalid scope");
+        assertEquals(role.getReferenceId(), update.getReferenceId(), "invalid reference id");
+        assertEquals(role.getReferenceType(), update.getReferenceType(), "invalid reference type");
+        assertEquals(role.getDescription(), update.getDescription(), "invalid description");
+        assertEquals(role.isDefaultRole(), update.isDefaultRole(), "invalid default role");
+        assertEquals(role.isSystem(), update.isSystem(), "invalid system attribute");
         List<Integer> updatePermissions = IntStream.of(update.getPermissions()).boxed().collect(Collectors.toList());
-        assertTrue("invalid permission", updatePermissions.contains(4));
-        assertTrue("invalid permission", updatePermissions.contains(5));
+        assertTrue(updatePermissions.contains(4), "invalid permission");
+        assertTrue(updatePermissions.contains(5), "invalid permission");
     }
 
     @Test
@@ -132,8 +128,8 @@ public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
         roleRepository.delete("ORGANIZATION_to_delete");
         boolean presentAfter = roleRepository.findById("ORGANIZATION_to_delete").isPresent();
 
-        assertTrue("must exists before creation", presentBefore);
-        assertFalse("must not exists after creation", presentAfter);
+        assertTrue(presentBefore, "must exists before creation");
+        assertFalse(presentAfter, "must not exists after creation");
     }
 
     @Test
@@ -145,48 +141,52 @@ public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
             REFERENCE_TYPE
         );
         assertNotNull(role);
-        assertTrue("No roles found", role.isPresent());
-        assertTrue("not contains scope1", "find by scope 1".equals(role.get().getName()));
+        assertTrue(role.isPresent(), "No roles found");
+        assertTrue("find by scope 1".equals(role.get().getName()), "not contains scope1");
     }
 
     @Test
     public void shouldFindByScopeAndRef() throws Exception {
         Set<Role> roles = roleRepository.findByScopeAndReferenceIdAndReferenceType(RoleScope.API, REFERENCE_ID, REFERENCE_TYPE);
         assertNotNull(roles);
-        assertFalse("No roles found", roles.isEmpty());
-        assertEquals("invalid roles count", 1, roles.size());
+        assertFalse(roles.isEmpty(), "No roles found");
+        assertEquals(1, roles.size(), "invalid roles count");
         List<String> names = roles.stream().map(Role::getName).collect(Collectors.toList());
-        assertTrue("not contains scope1", names.contains("find by scope 1"));
+        assertTrue(names.contains("find by scope 1"), "not contains scope1");
     }
 
     @Test
     public void shouldFindById() throws Exception {
         Optional<Role> role = roleRepository.findById("an_api_organisation_role");
-        assertTrue("role not found", role.isPresent());
-        assertEquals("invalid name", "find by scope 1", role.get().getName());
-        assertEquals("invalid description", "role description", role.get().getDescription());
-        assertEquals("invalid scope", RoleScope.API, role.get().getScope());
-        assertTrue("invalid defaultRole", role.get().isDefaultRole());
-        assertTrue("invalid system attribute", role.get().isSystem());
-        assertEquals("invalid permissions", 1, role.get().getPermissions().length);
-        assertEquals("invalid permissions", 1, role.get().getPermissions()[0]);
+        assertTrue(role.isPresent(), "role not found");
+        assertEquals("find by scope 1", role.get().getName(), "invalid name");
+        assertEquals("role description", role.get().getDescription(), "invalid description");
+        assertEquals(RoleScope.API, role.get().getScope(), "invalid scope");
+        assertTrue(role.get().isDefaultRole(), "invalid defaultRole");
+        assertTrue(role.get().isSystem(), "invalid system attribute");
+        assertEquals(1, role.get().getPermissions().length, "invalid permissions");
+        assertEquals(1, role.get().getPermissions()[0], "invalid permissions");
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownRole() throws Exception {
-        Role unknownRole = new Role();
-        unknownRole.setId("unknown");
-        unknownRole.setName("unknown");
-        unknownRole.setReferenceId("unknown");
-        unknownRole.setReferenceType(REFERENCE_TYPE);
-        roleRepository.update(unknownRole);
-        fail("An unknown role should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            Role unknownRole = new Role();
+            unknownRole.setId("unknown");
+            unknownRole.setName("unknown");
+            unknownRole.setReferenceId("unknown");
+            unknownRole.setReferenceType(REFERENCE_TYPE);
+            roleRepository.update(unknownRole);
+            fail("An unknown role should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        roleRepository.update(null);
-        fail("A null role should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            roleRepository.update(null);
+            fail("A null role should not be updated");
+        });
     }
 
     @Test

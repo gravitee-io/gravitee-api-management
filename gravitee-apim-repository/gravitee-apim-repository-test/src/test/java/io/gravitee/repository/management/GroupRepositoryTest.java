@@ -18,12 +18,7 @@ package io.gravitee.repository.management;
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -33,7 +28,7 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Group;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -139,7 +134,7 @@ public class GroupRepositoryTest extends AbstractManagementRepositoryTest {
         Set<Group> groups = groupRepository.findAll();
 
         assertNotNull(groups);
-        assertFalse("not empty", groups.isEmpty());
+        assertFalse(groups.isEmpty(), "not empty");
         assertEquals(14, groups.size());
     }
 
@@ -148,7 +143,7 @@ public class GroupRepositoryTest extends AbstractManagementRepositoryTest {
         Set<Group> groups = groupRepository.findAllByEnvironment("DEFAULT");
 
         assertNotNull(groups);
-        assertFalse("not empty", groups.isEmpty());
+        assertFalse(groups.isEmpty(), "not empty");
         assertEquals(7, groups.size());
     }
 
@@ -157,7 +152,7 @@ public class GroupRepositoryTest extends AbstractManagementRepositoryTest {
         Set<Group> groups = groupRepository.findAllByOrganization("ORGANIZATION_1");
 
         assertNotNull(groups);
-        assertFalse("not empty", groups.isEmpty());
+        assertFalse(groups.isEmpty(), "not empty");
         assertEquals(2, groups.size());
     }
 
@@ -229,18 +224,22 @@ public class GroupRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(groups).isEmpty();
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownGroup() throws Exception {
-        Group unknownGroup = new Group();
-        unknownGroup.setId("unknown");
-        groupRepository.update(unknownGroup);
-        fail("An unknown group should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            Group unknownGroup = new Group();
+            unknownGroup.setId("unknown");
+            groupRepository.update(unknownGroup);
+            fail("An unknown group should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        groupRepository.update(null);
-        fail("A null group should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            groupRepository.update(null);
+            fail("A null group should not be updated");
+        });
     }
 
     @Test

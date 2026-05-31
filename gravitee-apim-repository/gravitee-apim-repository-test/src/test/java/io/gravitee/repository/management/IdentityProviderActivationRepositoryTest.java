@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.management;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.management.model.IdentityProviderActivation;
 import io.gravitee.repository.management.model.IdentityProviderActivationReferenceType;
@@ -23,16 +23,16 @@ import io.gravitee.repository.utils.DateUtils;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.MethodOrderer.MethodName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@TestMethodOrder(MethodName.class)
 public class IdentityProviderActivationRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Override
@@ -52,35 +52,35 @@ public class IdentityProviderActivationRepositoryTest extends AbstractManagement
         identityProviderActivationRepository.create(identityProviderActivation);
         int nbIdentityProviderActivationsAfterCreation = identityProviderActivationRepository.findAll().size();
 
-        Assert.assertEquals(nbIdentityProviderActivationsBeforeCreation + 1, nbIdentityProviderActivationsAfterCreation);
+        Assertions.assertEquals(nbIdentityProviderActivationsBeforeCreation + 1, nbIdentityProviderActivationsAfterCreation);
 
         Set<IdentityProviderActivation> identityProviderActivations = identityProviderActivationRepository.findAllByIdentityProviderId(
             "new-idp-act"
         );
-        Assert.assertTrue(
-            "Identity provider activation saved not found",
-            identityProviderActivations != null && !identityProviderActivations.isEmpty()
+        Assertions.assertTrue(
+            identityProviderActivations != null && !identityProviderActivations.isEmpty(),
+            "Identity provider activation saved not found"
         );
 
         final IdentityProviderActivation identityProviderActivationSaved = identityProviderActivations.iterator().next();
-        Assert.assertEquals(
-            "Invalid saved identity provider id.",
+        Assertions.assertEquals(
             identityProviderActivationSaved.getIdentityProviderId(),
-            identityProviderActivation.getIdentityProviderId()
+            identityProviderActivation.getIdentityProviderId(),
+            "Invalid saved identity provider id."
         );
-        Assert.assertEquals(
-            "Invalid saved reference id.",
+        Assertions.assertEquals(
             identityProviderActivationSaved.getReferenceId(),
-            identityProviderActivation.getReferenceId()
+            identityProviderActivation.getReferenceId(),
+            "Invalid saved reference id."
         );
-        Assert.assertEquals(
-            "Invalid saved reference type.",
+        Assertions.assertEquals(
             identityProviderActivationSaved.getReferenceType(),
-            identityProviderActivation.getReferenceType()
+            identityProviderActivation.getReferenceType(),
+            "Invalid saved reference type."
         );
-        Assert.assertTrue(
-            "Invalid saved created date.",
-            DateUtils.compareDate(new Date(1000000000000L), identityProviderActivation.getCreatedAt())
+        Assertions.assertTrue(
+            DateUtils.compareDate(new Date(1000000000000L), identityProviderActivation.getCreatedAt()),
+            "Invalid saved created date."
         );
     }
 
@@ -90,7 +90,7 @@ public class IdentityProviderActivationRepositoryTest extends AbstractManagement
         identityProviderActivationRepository.delete("google_DEV", "DEV", IdentityProviderActivationReferenceType.ENVIRONMENT);
         int nbIdentityProviderActivationsAfterDeletion = identityProviderActivationRepository.findAll().size();
 
-        Assert.assertEquals(nbIdentityProviderActivationsBeforeDeletion - 1, nbIdentityProviderActivationsAfterDeletion);
+        Assertions.assertEquals(nbIdentityProviderActivationsBeforeDeletion - 1, nbIdentityProviderActivationsAfterDeletion);
     }
 
     @Test
@@ -99,7 +99,7 @@ public class IdentityProviderActivationRepositoryTest extends AbstractManagement
         identityProviderActivationRepository.deleteByIdentityProviderId("oidc");
         int nbIdentityProviderActivationsAfterDeletion = identityProviderActivationRepository.findAll().size();
 
-        Assert.assertEquals(nbIdentityProviderActivationsBeforeDeletion - 2, nbIdentityProviderActivationsAfterDeletion);
+        Assertions.assertEquals(nbIdentityProviderActivationsBeforeDeletion - 2, nbIdentityProviderActivationsAfterDeletion);
     }
 
     @Test
@@ -111,7 +111,7 @@ public class IdentityProviderActivationRepositoryTest extends AbstractManagement
         );
         int nbIdentityProviderActivationsAfterDeletion = identityProviderActivationRepository.findAll().size();
 
-        Assert.assertEquals(nbIdentityProviderActivationsBeforeDeletion - 3, nbIdentityProviderActivationsAfterDeletion);
+        Assertions.assertEquals(nbIdentityProviderActivationsBeforeDeletion - 3, nbIdentityProviderActivationsAfterDeletion);
     }
 
     @Test
@@ -152,16 +152,16 @@ public class IdentityProviderActivationRepositoryTest extends AbstractManagement
 
         assertTrue(optIdentityProviderActivation.isPresent());
         IdentityProviderActivation identityProviderActivation = optIdentityProviderActivation.get();
-        Assert.assertEquals("Invalid identity provider id.", "github", identityProviderActivation.getIdentityProviderId());
-        Assert.assertEquals("Invalid reference id.", "DEFAULT", identityProviderActivation.getReferenceId());
-        Assert.assertEquals(
-            "Invalid reference type.",
+        Assertions.assertEquals("github", identityProviderActivation.getIdentityProviderId(), "Invalid identity provider id.");
+        Assertions.assertEquals("DEFAULT", identityProviderActivation.getReferenceId(), "Invalid reference id.");
+        Assertions.assertEquals(
             IdentityProviderActivationReferenceType.ENVIRONMENT,
-            identityProviderActivation.getReferenceType()
+            identityProviderActivation.getReferenceType(),
+            "Invalid reference type."
         );
-        Assert.assertTrue(
-            "Invalid created date.",
-            DateUtils.compareDate(new Date(1000000000000L), identityProviderActivation.getCreatedAt())
+        Assertions.assertTrue(
+            DateUtils.compareDate(new Date(1000000000000L), identityProviderActivation.getCreatedAt()),
+            "Invalid created date."
         );
     }
 }

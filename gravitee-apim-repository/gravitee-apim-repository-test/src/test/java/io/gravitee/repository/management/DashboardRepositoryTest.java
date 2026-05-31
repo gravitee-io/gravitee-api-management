@@ -18,12 +18,13 @@ package io.gravitee.repository.management;
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Fail.fail;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.gravitee.repository.management.model.Dashboard;
 import io.gravitee.repository.management.model.DashboardReferenceType;
 import java.util.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class DashboardRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -183,17 +184,21 @@ public class DashboardRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(0, nbAfterDeletion);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownDashboard() throws Exception {
-        Dashboard unknownDashboard = new Dashboard();
-        unknownDashboard.setId("unknown");
-        dashboardRepository.update(unknownDashboard);
-        fail("An unknown dashboard should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            Dashboard unknownDashboard = new Dashboard();
+            unknownDashboard.setId("unknown");
+            dashboardRepository.update(unknownDashboard);
+            fail("An unknown dashboard should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        dashboardRepository.update(null);
-        fail("A null dashboard should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            dashboardRepository.update(null);
+            fail("A null dashboard should not be updated");
+        });
     }
 }

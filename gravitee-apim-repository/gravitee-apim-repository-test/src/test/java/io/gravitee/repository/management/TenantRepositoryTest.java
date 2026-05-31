@@ -16,14 +16,15 @@
 package io.gravitee.repository.management;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import io.gravitee.repository.management.model.Tenant;
 import io.gravitee.repository.management.model.TenantReferenceType;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class TenantRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -99,18 +100,22 @@ public class TenantRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(nbTenantsAfterDeletion).isEqualTo(nbTenantsBeforeDeletion - 1);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownTenant() throws Exception {
-        Tenant unknownTenant = new Tenant();
-        unknownTenant.setId("unknown");
-        tenantRepository.update(unknownTenant);
-        fail("An unknown tenant should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            Tenant unknownTenant = new Tenant();
+            unknownTenant.setId("unknown");
+            tenantRepository.update(unknownTenant);
+            fail("An unknown tenant should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        tenantRepository.update(null);
-        fail("A null tenant should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            tenantRepository.update(null);
+            fail("A null tenant should not be updated");
+        });
     }
 
     @Test
