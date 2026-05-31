@@ -18,21 +18,24 @@ package io.gravitee.gateway.reactive.flow;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.gateway.flow.BestMatchFlowSelector;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainRequest;
 import io.gravitee.gateway.reactive.v4.flow.AbstractBestMatchFlowSelector;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import java.util.List;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(Parameterized.class)
+@ExtendWith(MockitoExtension.class)
 public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
 
     @Mock
@@ -43,8 +46,17 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
 
     private AbstractBestMatchFlowSelector bestMatchFlowSelector = new BestMatchFlowSelector();
 
-    @Test
-    public void shouldResolveBestMatchFlowApiResolver() {
+    @ParameterizedTest
+    @MethodSource("io.gravitee.gateway.reactive.flow.FlowBaseTest#data")
+    public void shouldResolveBestMatchFlowApiResolver(
+        List<String> flowPaths,
+        Operator operator,
+        String expectedBestMatchResult,
+        String requestPath
+    ) {
+        initFlowBaseTest(flowPaths, operator, expectedBestMatchResult, requestPath);
+        init();
+
         BestMatchFlowResolver cut = new BestMatchFlowResolver(flowResolver, bestMatchFlowSelector);
         when(executionContext.request()).thenReturn(request);
         when(request.pathInfo()).thenReturn(requestPath);

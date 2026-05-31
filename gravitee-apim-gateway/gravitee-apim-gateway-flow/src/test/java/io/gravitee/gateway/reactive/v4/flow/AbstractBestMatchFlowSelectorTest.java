@@ -18,9 +18,8 @@ package io.gravitee.gateway.reactive.v4.flow;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
@@ -28,18 +27,18 @@ import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
 import java.util.List;
 import java.util.Optional;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(Parameterized.class)
+@ExtendWith(MockitoExtension.class)
 public class AbstractBestMatchFlowSelectorTest extends BestMatchFlowBaseTest {
 
     @Mock
@@ -50,8 +49,12 @@ public class AbstractBestMatchFlowSelectorTest extends BestMatchFlowBaseTest {
 
     private BestMatchFlowSelector cut = new BestMatchFlowSelector();
 
-    @Test
-    public void should_select_bestMatchFlow() {
+    @ParameterizedTest
+    @MethodSource("io.gravitee.gateway.reactive.flow.FlowBaseTest#data")
+    public void should_select_bestMatchFlow(List<String> flowPaths, Operator operator, String expectedBestMatchResult, String requestPath) {
+        initFlowBaseTest(flowPaths, operator, expectedBestMatchResult, requestPath);
+        init();
+
         when(executionContext.request()).thenReturn(request);
         when(request.pathInfo()).thenReturn(requestPath);
 

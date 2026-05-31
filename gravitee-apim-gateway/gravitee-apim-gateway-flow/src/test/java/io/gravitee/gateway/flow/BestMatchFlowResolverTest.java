@@ -19,20 +19,22 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.reactive.flow.BestMatchFlowBaseTest;
 import java.util.List;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(Parameterized.class)
+@ExtendWith(MockitoExtension.class)
 public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
 
     @Mock
@@ -41,8 +43,17 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
     @Mock
     public Request request;
 
-    @Test
-    public void shouldResolveBestMatchFlowApiResolver() {
+    @ParameterizedTest
+    @MethodSource("io.gravitee.gateway.reactive.flow.FlowBaseTest#data")
+    public void shouldResolveBestMatchFlowApiResolver(
+        List<String> flowPaths,
+        Operator operator,
+        String expectedBestMatchResult,
+        String requestPath
+    ) {
+        initFlowBaseTest(flowPaths, operator, expectedBestMatchResult, requestPath);
+        init();
+
         BestMatchFlowResolver cut = new BestMatchFlowResolver(flowResolver, new BestMatchFlowSelector());
 
         when(executionContext.request()).thenReturn(request);

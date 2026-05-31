@@ -28,7 +28,6 @@ import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapt
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.junit.Before;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -41,8 +40,8 @@ public abstract class BestMatchFlowBaseTest extends FlowBaseTest {
 
     public TestFlowResolver flowResolver;
 
-    @Before
-    public void setUp() {
+    // Called from each @ParameterizedTest after initFlowBaseTest(...) sets the parameter fields.
+    protected void init() {
         flowResolver = new TestFlowResolver(evaluator, buildFlows());
     }
 

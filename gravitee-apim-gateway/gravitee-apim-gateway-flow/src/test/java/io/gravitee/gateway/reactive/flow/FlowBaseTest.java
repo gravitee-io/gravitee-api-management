@@ -18,31 +18,23 @@ package io.gravitee.gateway.reactive.flow;
 import io.gravitee.definition.model.flow.Operator;
 import java.util.Arrays;
 import java.util.List;
-import org.junit.Rule;
-import org.junit.runners.Parameterized;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public abstract class FlowBaseTest {
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
-    @Parameterized.Parameter(0)
     public List<String> flowPaths;
-
-    @Parameterized.Parameter(1)
     public Operator operator;
-
-    @Parameterized.Parameter(2)
     public String expectedBestMatchResult;
-
-    @Parameterized.Parameter(3)
     public String requestPath;
 
     /**
@@ -50,7 +42,6 @@ public abstract class FlowBaseTest {
      * @return Tests parameter objects with this structure:
      * { list of flow paths, expected path result, path used by request}
      */
-    @Parameterized.Parameters(name = "{index}: Configured flows={0}, Request={3}, Operator={1}, Expected BestMatch={2}")
     public static Iterable<Object> data() {
         return Arrays.asList(
             new Object[][] {
@@ -273,5 +264,12 @@ public abstract class FlowBaseTest {
                 },
             }
         );
+    }
+
+    public void initFlowBaseTest(List<String> flowPaths, Operator operator, String expectedBestMatchResult, String requestPath) {
+        this.flowPaths = flowPaths;
+        this.operator = operator;
+        this.expectedBestMatchResult = expectedBestMatchResult;
+        this.requestPath = requestPath;
     }
 }

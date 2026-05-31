@@ -20,8 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -31,7 +31,7 @@ public class BestMatchFlowSelectorTest {
 
     private BestMatchFlowSelector cut;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         cut = new BestMatchFlowSelector();
     }

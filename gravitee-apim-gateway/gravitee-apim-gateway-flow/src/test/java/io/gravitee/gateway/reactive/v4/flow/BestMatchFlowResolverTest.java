@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -31,19 +32,23 @@ import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainRequest;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
+import java.util.List;
 import java.util.Optional;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.slf4j.helpers.NOPLogger;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(Parameterized.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
 
     @Mock
@@ -57,13 +62,18 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
 
     public AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector = new BestMatchFlowSelector();
 
-    @Before
-    public void prepareLogger() {
-        when(executionContext.withLogger(any())).thenReturn(NOPLogger.NOP_LOGGER);
-    }
+    @ParameterizedTest
+    @MethodSource("io.gravitee.gateway.reactive.flow.FlowBaseTest#data")
+    public void should_resolve_bestMatchFlow_with_api_sync(
+        List<String> flowPaths,
+        Operator operator,
+        String expectedBestMatchResult,
+        String requestPath
+    ) {
+        initFlowBaseTest(flowPaths, operator, expectedBestMatchResult, requestPath);
+        init();
 
-    @Test
-    public void should_resolve_bestMatchFlow_with_api_sync() {
+        when(executionContext.withLogger(any())).thenReturn(NOPLogger.NOP_LOGGER);
         BestMatchFlowResolver cut = new BestMatchFlowResolver(flowResolver, bestMatchFlowSelector);
         when(executionContext.request()).thenReturn(request);
         when(request.pathInfo()).thenReturn(requestPath);
@@ -88,8 +98,18 @@ public class BestMatchFlowResolverTest extends BestMatchFlowBaseTest {
         }
     }
 
-    @Test
-    public void should_resolve_bestMatchFlow_with_api_async() {
+    @ParameterizedTest
+    @MethodSource("io.gravitee.gateway.reactive.flow.FlowBaseTest#data")
+    public void should_resolve_bestMatchFlow_with_api_async(
+        List<String> flowPaths,
+        Operator operator,
+        String expectedBestMatchResult,
+        String requestPath
+    ) {
+        initFlowBaseTest(flowPaths, operator, expectedBestMatchResult, requestPath);
+        init();
+
+        when(executionContext.withLogger(any())).thenReturn(NOPLogger.NOP_LOGGER);
         BestMatchFlowResolver cut = new BestMatchFlowResolver(flowResolver, bestMatchFlowSelector);
         when(executionContext.request()).thenReturn(request);
         when(request.pathInfo()).thenReturn(requestPath);
