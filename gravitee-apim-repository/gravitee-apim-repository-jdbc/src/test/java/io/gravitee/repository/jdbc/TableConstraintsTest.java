@@ -15,8 +15,8 @@
  */
 package io.gravitee.repository.jdbc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -25,14 +25,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import javax.sql.DataSource;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-@RunWith(SpringJUnit4ClassRunner.class)
 public class TableConstraintsTest extends AbstractRepositoryTest {
 
     @Inject
@@ -50,9 +47,9 @@ public class TableConstraintsTest extends AbstractRepositoryTest {
         // test reports as SKIPPED on other engines rather than vacuously passing.
         String image = jdbcDatabaseContainer.getDockerImageName();
         assumeTrue(
-            "TableConstraintsTest only runs on MySQL / MariaDB",
             image.contains(DatabaseConfigurationEnum.MYSQL.getDockerImageName()) ||
-                image.contains(DatabaseConfigurationEnum.MARIADB.getDockerImageName())
+                image.contains(DatabaseConfigurationEnum.MARIADB.getDockerImageName()),
+            "TableConstraintsTest only runs on MySQL / MariaDB"
         );
 
         String prefix = graviteeProperties.getProperty("management.jdbc.prefix", "");
@@ -77,9 +74,9 @@ public class TableConstraintsTest extends AbstractRepositoryTest {
             prefix + "users"
         );
         assertEquals(
-            "Bootstrap is missing one or more core tables (apis, subscriptions, plans, users) — Liquibase setup likely failed",
             Integer.valueOf(4),
-            coreTableCount
+            coreTableCount,
+            "Bootstrap is missing one or more core tables (apis, subscriptions, plans, users) — Liquibase setup likely failed"
         );
 
         // (select database()) reads the connection's current database so the test does not depend
@@ -109,7 +106,7 @@ public class TableConstraintsTest extends AbstractRepositoryTest {
             }
         );
 
-        assertEquals("Following tables are missing a primary key:\n" + String.join("\n", tables), 0, tables.size());
+        assertEquals(0, tables.size(), "Following tables are missing a primary key:\n" + String.join("\n", tables));
     }
 
     @Override
