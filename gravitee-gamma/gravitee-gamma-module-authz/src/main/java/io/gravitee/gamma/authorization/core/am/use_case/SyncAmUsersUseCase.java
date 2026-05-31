@@ -25,9 +25,12 @@ import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
 import io.gravitee.gamma.authorization.service.CreateOrReplaceAuthzEntityCommand;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 /**
@@ -53,34 +56,62 @@ public class SyncAmUsersUseCase {
 
     public Output execute(Input input) {
         AuthzCallerContext caller = input.caller();
-        AmConnection connection = input.connection();
 
-        int page = 0;
         int usersFetched = 0;
         int entitiesUpserted = 0;
         List<CreateOrReplaceAuthzEntityCommand> batch = new ArrayList<>();
 
-        try (AmUserClient.Session session = userClient.openSession(connection)) {
-            while (true) {
-                AmUserPage userPage = session.fetchUsers(page, PAGE_SIZE);
-                if (userPage.users().isEmpty()) {
-                    break;
+        // Fetching (paging the AM domain) is encapsulated in the cursor below; this loop only owns the
+        // business logic of mapping each user to a command and flushing in batches.
+        try (AmUserClient.Session session = userClient.openSession(input.connection())) {
+            for (AmUser user : pageThrough(session)) {
+                usersFetched++;
+                batch.add(toCommand(caller.environmentId(), user));
+                if (batch.size() >= BATCH_SIZE) {
+                    entitiesUpserted += flush(caller, batch);
                 }
-                for (AmUser user : userPage.users()) {
-                    usersFetched++;
-                    batch.add(toCommand(caller.environmentId(), user));
-                    if (batch.size() >= BATCH_SIZE) {
-                        entitiesUpserted += flush(caller, batch);
-                    }
-                }
-                if (usersFetched >= userPage.totalCount()) {
-                    break;
-                }
-                page++;
             }
         }
         entitiesUpserted += flush(caller, batch);
         return new Output(usersFetched, entitiesUpserted);
+    }
+
+    /**
+     * Lazily pages users out of the session and flattens them into a single iteration. Termination is
+     * bounded — not an open {@code while (true)}: it stops once AM returns an empty page or once every
+     * user reported by {@code totalCount} has been handed out, so it never fetches a page it doesn't
+     * need.
+     */
+    private static Iterable<AmUser> pageThrough(AmUserClient.Session session) {
+        return () ->
+            new Iterator<>() {
+                private int page = 0;
+                private int fetched = 0;
+                private long totalCount = Long.MAX_VALUE;
+                private Iterator<AmUser> current = Collections.emptyIterator();
+
+                @Override
+                public boolean hasNext() {
+                    while (!current.hasNext() && fetched < totalCount) {
+                        AmUserPage userPage = session.fetchUsers(page++, PAGE_SIZE);
+                        totalCount = userPage.totalCount();
+                        if (userPage.users().isEmpty()) {
+                            return false;
+                        }
+                        current = userPage.users().iterator();
+                    }
+                    return current.hasNext();
+                }
+
+                @Override
+                public AmUser next() {
+                    if (!hasNext()) {
+                        throw new NoSuchElementException();
+                    }
+                    fetched++;
+                    return current.next();
+                }
+            };
     }
 
     private int flush(AuthzCallerContext caller, List<CreateOrReplaceAuthzEntityCommand> batch) {

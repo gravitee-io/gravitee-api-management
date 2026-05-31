@@ -27,9 +27,10 @@ import lombok.CustomLog;
 import org.springframework.beans.factory.DisposableBean;
 
 /**
- * Runs the AM user sync on a daemon worker pool and records the outcome on the persisted
- * {@link AsyncJob}: SUCCESS with the synced count, or ERROR with the failure message. The work runs
- * in-process (there is no external agent for it), but its lifecycle lives in the AsyncJob store.
+ * Runs the AM user sync on a virtual-thread-per-task executor and records the outcome on the
+ * persisted {@link AsyncJob}: SUCCESS with the synced count, or ERROR with the failure message. The
+ * work runs in-process (there is no external agent for it), but its lifecycle lives in the AsyncJob
+ * store.
  */
 @CustomLog
 public class AmUserSyncRunnerImpl implements AmUserSyncRunner, DisposableBean {
@@ -42,11 +43,10 @@ public class AmUserSyncRunnerImpl implements AmUserSyncRunner, DisposableBean {
         this(
             syncAmUsersUseCase,
             asyncJobCrudService,
-            Executors.newCachedThreadPool(runnable -> {
-                Thread thread = new Thread(runnable, "am-user-sync");
-                thread.setDaemon(true);
-                return thread;
-            })
+            // A sync run is one long, mostly IO-bound task (paging the AM API, upserting entities), so a
+            // virtual thread per task fits better than a pooled platform thread — it parks cheaply while
+            // waiting on AM. Virtual threads are daemon, so they don't pin the JVM on shutdown either.
+            Executors.newThreadPerTaskExecutor(Thread.ofVirtual().name("am-user-sync-", 0).factory())
         );
     }
 
