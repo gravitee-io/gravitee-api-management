@@ -340,11 +340,14 @@ export function EntitiesPage() {
     const env = useEnvironment();
     const environmentId = env?.id ?? '';
     const queryClient = useQueryClient();
-    const principalsQuery = useAllEntities(environmentId, { kind: 'PRINCIPAL' });
-    const resourcesQuery = useAllEntities(environmentId, { kind: 'RESOURCE', excludeEntityIdPrefix: ACTION_PREFIX });
 
     const sync = useUserSync(environmentId);
     const isSyncing = sync.isStarting || sync.status?.status === 'PENDING';
+
+    // While a sync runs, poll the principals list so AM users appear as they're upserted
+    // (the backend writes them in batches), rather than only when the sync completes.
+    const principalsQuery = useAllEntities(environmentId, { kind: 'PRINCIPAL' }, { refetchInterval: isSyncing ? 2500 : false });
+    const resourcesQuery = useAllEntities(environmentId, { kind: 'RESOURCE', excludeEntityIdPrefix: ACTION_PREFIX });
     // Reload the principals list once a sync finishes (PENDING → SUCCESS), so the freshly
     // upserted AM users appear without a manual refresh. Fires only on the transition, so a
     // page that loads with an already-completed sync doesn't trigger a spurious refetch.
@@ -353,7 +356,7 @@ export function EntitiesPage() {
         const current = sync.status?.status;
         if (current === 'SUCCESS' && prevSyncStatus.current === 'PENDING') {
             void queryClient.invalidateQueries({ queryKey: authzQueryKeys.entities.all(environmentId) });
-            toast.success(`Synced ${sync.status?.entitiesUpserted ?? 0} principals from AM`);
+            toast.success(`Sync finished, synced ${sync.status?.entitiesUpserted ?? 0} users`);
         }
         prevSyncStatus.current = current;
     }, [sync.status?.status, sync.status?.entitiesUpserted, environmentId, queryClient]);
@@ -361,7 +364,9 @@ export function EntitiesPage() {
     const onSync = () => {
         // A 409 (sync already running) rejects the mutation; the hook suppresses it and the
         // status reflects the in-flight job, so swallow the rejection here.
-        void sync.start().catch(() => {});
+        sync.start()
+            .then(res => toast.info(`Syncing ${res.totalUsers} users...`))
+            .catch(() => {});
     };
 
     const [principalSearch, setPrincipalSearch] = useState('');

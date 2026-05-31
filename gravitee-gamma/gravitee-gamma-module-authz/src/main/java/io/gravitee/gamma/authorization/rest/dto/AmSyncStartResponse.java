@@ -17,8 +17,8 @@ package io.gravitee.gamma.authorization.rest.dto;
 
 import io.gravitee.apim.core.async_job.model.AsyncJob;
 
-public record AmSyncStartResponse(String jobId, String status) {
-    public static AmSyncStartResponse from(AsyncJob job) {
-        return new AmSyncStartResponse(job.getId(), job.getStatus().name());
+public record AmSyncStartResponse(String jobId, String status, long totalUsers) {
+    public static AmSyncStartResponse from(AsyncJob job, long totalUsers) {
+        return new AmSyncStartResponse(job.getId(), job.getStatus().name(), totalUsers);
     }
 }

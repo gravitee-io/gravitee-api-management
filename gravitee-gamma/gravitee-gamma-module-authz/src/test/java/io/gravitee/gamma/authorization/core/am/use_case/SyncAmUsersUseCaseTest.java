@@ -67,7 +67,7 @@ class SyncAmUsersUseCaseTest {
     }
 
     private void stubPage(int page, AmUserPage userPage) {
-        when(session.fetchUsers(eq(page), eq(1000))).thenReturn(userPage);
+        when(session.fetchUsers(eq(page), eq(50))).thenReturn(userPage);
     }
 
     private static AmUser user(String id, String username, String email, String displayName, Boolean enabled) {
@@ -154,8 +154,8 @@ class SyncAmUsersUseCaseTest {
         SyncAmUsersUseCase.Output result = run();
 
         assertThat(result.usersFetched()).isEqualTo(3);
-        verify(session).fetchUsers(eq(0), eq(1000));
-        verify(session).fetchUsers(eq(1), eq(1000));
+        verify(session).fetchUsers(eq(0), eq(50));
+        verify(session).fetchUsers(eq(1), eq(50));
         // The per-run client is opened once and closed when the run completes.
         verify(amUserClient).openSession(CONNECTION);
         verify(session).close();
@@ -172,25 +172,26 @@ class SyncAmUsersUseCaseTest {
     }
 
     @Test
-    void flushes_in_batches_of_500() {
+    void flushes_in_batches_of_50() {
         List<AmUser> users = new ArrayList<>();
-        for (int i = 0; i < 600; i++) {
+        for (int i = 0; i < 120; i++) {
             users.add(user("sub-" + i, "user-" + i, null, null, null));
         }
-        stubPage(0, new AmUserPage(users, 600L));
+        stubPage(0, new AmUserPage(users, 120L));
 
         SyncAmUsersUseCase.Output result = run();
 
-        assertThat(result).isEqualTo(new SyncAmUsersUseCase.Output(600, 600));
+        assertThat(result).isEqualTo(new SyncAmUsersUseCase.Output(120, 120));
         ArgumentCaptor<List<CreateOrReplaceAuthzEntityCommand>> captor = ArgumentCaptor.forClass(List.class);
-        verify(authzEntityAdminApi, times(2)).bulkUpsert(eq(CALLER), captor.capture());
-        assertThat(captor.getAllValues().get(0)).hasSize(500);
-        assertThat(captor.getAllValues().get(1)).hasSize(100);
+        verify(authzEntityAdminApi, times(3)).bulkUpsert(eq(CALLER), captor.capture());
+        assertThat(captor.getAllValues().get(0)).hasSize(50);
+        assertThat(captor.getAllValues().get(1)).hasSize(50);
+        assertThat(captor.getAllValues().get(2)).hasSize(20);
     }
 
     @Test
     void surfaces_an_upstream_failure_as_an_am_sync_exception() {
-        when(session.fetchUsers(eq(0), eq(1000)))
+        when(session.fetchUsers(eq(0), eq(50)))
             .thenThrow(new AmSyncException("Access Management request failed: boom", new RuntimeException("boom")));
 
         assertThatThrownBy(this::run).isInstanceOf(AmSyncException.class);
@@ -198,7 +199,7 @@ class SyncAmUsersUseCaseTest {
 
     @Test
     void closes_the_session_even_when_the_fetch_fails() {
-        when(session.fetchUsers(eq(0), eq(1000)))
+        when(session.fetchUsers(eq(0), eq(50)))
             .thenThrow(new AmSyncException("Access Management request failed: boom", new RuntimeException("boom")));
 
         assertThatThrownBy(this::run).isInstanceOf(AmSyncException.class);

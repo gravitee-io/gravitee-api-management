@@ -23,6 +23,7 @@ import io.gravitee.apim.plugin.gamma.api.identity.AmConnectionRepository;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 import io.gravitee.gamma.authorization.core.am.exception.AmSyncConflictException;
+import io.gravitee.gamma.authorization.core.am.service_provider.AmUserClient;
 import io.gravitee.gamma.authorization.core.am.service_provider.AmUserSyncRunner;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import java.time.Duration;
@@ -35,42 +36,39 @@ import java.util.UUID;
  * job as an {@link AsyncJob} (PENDING) so its lifecycle survives restarts and is queryable, then
  * hands the work to {@link AmUserSyncRunner}. Rejects a start when one is already running for the
  * same org + environment (the scope the sync writes into and that the status endpoint reports on).
+ *
+ * @author GraviteeSource Team
  */
 public class StartAmUserSyncUseCase {
 
-    // Bounds a stranded job (e.g. a node that died mid-sync): once past the deadline the persisted
-    // job auto-transitions to TIMEOUT on the next query, so it stops blocking new syncs.
     private static final Duration JOB_DEADLINE = Duration.ofMinutes(30);
 
-    private final AsyncJobQueryService asyncJobQueryService;
-    private final AsyncJobCrudService asyncJobCrudService;
-    private final AmConnectionRepository amConnectionRepository;
-    private final AmUserSyncRunner runner;
+    private final AsyncJobQueryService queryService;
+    private final AsyncJobCrudService crudService;
+    private final AmConnectionRepository connectionRepository;
+    private final AmUserClient userClient;
+    private final AmUserSyncRunner syncRunner;
 
     public StartAmUserSyncUseCase(
-        AsyncJobQueryService asyncJobQueryService,
-        AsyncJobCrudService asyncJobCrudService,
-        AmConnectionRepository amConnectionRepository,
-        AmUserSyncRunner runner
+        AsyncJobQueryService queryService,
+        AsyncJobCrudService crudService,
+        AmConnectionRepository connectionRepository,
+        AmUserClient userClient,
+        AmUserSyncRunner syncRunner
     ) {
-        this.asyncJobQueryService = asyncJobQueryService;
-        this.asyncJobCrudService = asyncJobCrudService;
-        this.amConnectionRepository = amConnectionRepository;
-        this.runner = runner;
+        this.queryService = queryService;
+        this.crudService = crudService;
+        this.connectionRepository = connectionRepository;
+        this.userClient = userClient;
+        this.syncRunner = syncRunner;
     }
 
-    public record Input(AuthzCallerContext caller) {}
-
-    public record Output(AsyncJob job) {}
 
     public Output execute(Input input) {
         AuthzCallerContext caller = input.caller();
         String organizationId = caller.organizationId();
 
-        // Scope the conflict check to org + environment + AM_USER_SYNC, matching where the sync
-        // writes and what GetAmUserSyncStatusUseCase reports, so a sync in one environment doesn't
-        // 409 a start in another that can't see it. listAsyncJobs doesn't apply the deadline, so
-        // drop timed-out jobs here as findPendingJobFor does — a stranded job must not block forever.
+        // Scope the conflict check to org + environment + AM_USER_SYNC
         var pendingQuery = new AsyncJobQueryService.ListQuery(
             caller.environmentId(),
             Optional.empty(),
@@ -78,19 +76,26 @@ public class StartAmUserSyncUseCase {
             Optional.of(AsyncJob.Status.PENDING),
             Optional.of(organizationId)
         );
-        boolean alreadyRunning = asyncJobQueryService
+
+        boolean alreadyRunning = queryService
             .listAsyncJobs(pendingQuery, new PageableImpl(1, 1))
             .getContent()
             .stream()
             .anyMatch(job -> !job.isTimedOut());
+
         if (alreadyRunning) {
             throw new AmSyncConflictException(organizationId);
         }
-        // Throws AmNotConfiguredException when no AM connection is configured for the org.
-        AmConnection connection = amConnectionRepository.requireByOrg(organizationId);
+
+        AmConnection connection = connectionRepository.requireByOrg(organizationId);
+
+        long totalUsers;
+        try (AmUserClient.Session session = userClient.openSession(connection)) {
+            totalUsers = session.fetchUsers(0, 1).totalCount();
+        }
 
         ZonedDateTime now = TimeProvider.now();
-        AsyncJob job = asyncJobCrudService.create(
+        AsyncJob job = crudService.create(
             AsyncJob
                 .builder()
                 .id(UUID.randomUUID().toString())
@@ -105,7 +110,11 @@ public class StartAmUserSyncUseCase {
                 .build()
         );
 
-        runner.runAsync(job, caller, connection);
-        return new Output(job);
+        syncRunner.runAsync(job, caller, connection);
+        return new Output(job, totalUsers);
     }
+
+    public record Input(AuthzCallerContext caller) {}
+
+    public record Output(AsyncJob job, long totalUsers) {}
 }

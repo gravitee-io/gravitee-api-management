@@ -22,7 +22,6 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
  * The REST boundary translates this to {@code 409 Conflict}.
  */
 public class AmSyncConflictException extends ValidationDomainException {
-
     public AmSyncConflictException(String organizationId) {
         super("A user sync is already running for organization " + organizationId);
     }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Spinner, ThemeProvider } from '@gravitee/graphene-core';
+import { Spinner, ThemeProvider, Toaster } from '@gravitee/graphene-core';
 import { StrictMode, Suspense } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
@@ -28,6 +28,8 @@ runApplicationBootstrap().then(() => {
         <StrictMode>
             <BrowserRouter>
                 <ThemeProvider defaultMode="system">
+                    {/* Single app-wide Toaster so toast() calls from federated module remotes render. */}
+                    <Toaster position="bottom-right" richColors closeButton />
                     <ErrorBoundary
                         fallback={(error, retry) => (
                             <div>

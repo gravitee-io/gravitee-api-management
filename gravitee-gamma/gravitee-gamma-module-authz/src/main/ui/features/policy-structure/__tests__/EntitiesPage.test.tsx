@@ -23,6 +23,7 @@ import { EntitiesPage } from '../EntitiesPage';
 
 const toastSuccessSpy = vi.fn();
 const toastErrorSpy = vi.fn();
+const toastInfoSpy = vi.fn();
 
 vi.mock('@gravitee/graphene-core', async importOriginal => {
     const actual = await importOriginal<Record<string, unknown>>();
@@ -31,6 +32,7 @@ vi.mock('@gravitee/graphene-core', async importOriginal => {
         toast: {
             success: (msg: string) => toastSuccessSpy(msg),
             error: (msg: string) => toastErrorSpy(msg),
+            info: (msg: string) => toastInfoSpy(msg),
         },
     };
 });
@@ -80,7 +82,7 @@ vi.mock('../../../shared/api/authz-api.service', () => ({
         listEntities: (env: string, params?: ListEntitiesParams) => listEntitiesSpy(env, params),
         deleteEntity: (env: string, entityId: string) => deleteEntitySpy(env, entityId),
         getUserSyncStatus: () => Promise.resolve(null),
-        startUserSync: () => Promise.resolve({ jobId: 'job-1', status: 'PENDING' }),
+        startUserSync: () => Promise.resolve({ jobId: 'job-1', status: 'PENDING', totalUsers: 2000 }),
     },
 }));
 
@@ -129,6 +131,7 @@ beforeEach(() => {
     deleteEntitySpy.mockReset();
     toastSuccessSpy.mockReset();
     toastErrorSpy.mockReset();
+    toastInfoSpy.mockReset();
 });
 
 describe('EntitiesPage', () => {

@@ -28,6 +28,11 @@ export interface UseAllEntitiesFilter {
     readonly excludeEntityIdPrefix?: string;
 }
 
+export interface UseAllEntitiesOptions {
+    /** Poll the full set on this interval (ms) while truthy — e.g. to show users landing during a sync. */
+    readonly refetchInterval?: number | false;
+}
+
 export interface UseAllEntitiesResult {
     readonly data: readonly EntityResponse[];
     readonly total: number;
@@ -42,7 +47,11 @@ export interface UseAllEntitiesResult {
  * page can filter/search/paginate client-side over the complete dataset rather
  * than a single server page. Mirrors the listPolicies fetch-all approach.
  */
-export function useAllEntities(environmentId: string, filter: UseAllEntitiesFilter = {}): UseAllEntitiesResult {
+export function useAllEntities(
+    environmentId: string,
+    filter: UseAllEntitiesFilter = {},
+    options: UseAllEntitiesOptions = {},
+): UseAllEntitiesResult {
     const { kind, entityIdPrefix, excludeEntityIdPrefix } = filter;
     const queryClient = useQueryClient();
 
@@ -68,6 +77,7 @@ export function useAllEntities(environmentId: string, filter: UseAllEntitiesFilt
         },
         enabled: Boolean(environmentId),
         staleTime: 30_000,
+        refetchInterval: options.refetchInterval ?? false,
     });
 
     const reload = useCallback(

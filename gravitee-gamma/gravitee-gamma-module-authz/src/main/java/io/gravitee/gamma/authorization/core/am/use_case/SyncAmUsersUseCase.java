@@ -34,24 +34,22 @@ import java.util.UUID;
  * Pages every user out of the AM domain on the connection and upserts each as a PRINCIPAL authz
  * entity via {@link AuthzEntityAdminApi#bulkUpsert}. Upsert-only: users removed in AM are left as
  * stale entities. Invoked on a worker thread by the infra job manager.
+ *
+ * @author GraviteeSource Team
  */
 public class SyncAmUsersUseCase {
 
     static final String SOURCE = "gravitee_am";
-    static final int PAGE_SIZE = 1000;
-    static final int BATCH_SIZE = 500;
+    static final int PAGE_SIZE = 50;
+    static final int BATCH_SIZE = 50;
 
-    private final AmUserClient amUserClient;
+    private final AmUserClient userClient;
     private final AuthzEntityAdminApi authzEntityAdminApi;
 
-    public SyncAmUsersUseCase(AmUserClient amUserClient, AuthzEntityAdminApi authzEntityAdminApi) {
-        this.amUserClient = amUserClient;
+    public SyncAmUsersUseCase(AmUserClient userClient, AuthzEntityAdminApi authzEntityAdminApi) {
+        this.userClient = userClient;
         this.authzEntityAdminApi = authzEntityAdminApi;
     }
-
-    public record Input(AuthzCallerContext caller, AmConnection connection) {}
-
-    public record Output(int usersFetched, int entitiesUpserted) {}
 
     public Output execute(Input input) {
         AuthzCallerContext caller = input.caller();
@@ -62,7 +60,7 @@ public class SyncAmUsersUseCase {
         int entitiesUpserted = 0;
         List<CreateOrReplaceAuthzEntityCommand> batch = new ArrayList<>();
 
-        try (AmUserClient.Session session = amUserClient.openSession(connection)) {
+        try (AmUserClient.Session session = userClient.openSession(connection)) {
             while (true) {
                 AmUserPage userPage = session.fetchUsers(page, PAGE_SIZE);
                 if (userPage.users().isEmpty()) {
@@ -99,10 +97,12 @@ public class SyncAmUsersUseCase {
         String sub = computeSub(user);
         // Map.copyOf (inside the command) rejects null values, so only put attributes AM populated.
         Map<String, Object> attributes = new LinkedHashMap<>();
+
         // Present synced principals as the "user" kind in the UI (Type column + user.<sub> entity id)
         // without changing the stored entityId, which stays the bare sub so the PEP's
         // Principal::"<sub>" still matches at eval time.
         attributes.put("_kind", "user");
+
         // Surface the resolved token sub as a visible property too (it is also the entityId).
         attributes.put("sub", sub);
         if (user.email() != null) {
@@ -131,4 +131,8 @@ public class SyncAmUsersUseCase {
         String internalSub = user.source() + ":" + user.externalId();
         return UUID.nameUUIDFromBytes(internalSub.getBytes(StandardCharsets.UTF_8)).toString();
     }
+
+    public record Input(AuthzCallerContext caller, AmConnection connection) {}
+
+    public record Output(int usersFetched, int entitiesUpserted) {}
 }

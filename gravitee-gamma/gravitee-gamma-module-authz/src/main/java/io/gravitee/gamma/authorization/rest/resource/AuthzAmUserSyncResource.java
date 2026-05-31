@@ -15,7 +15,6 @@
  */
 package io.gravitee.gamma.authorization.rest.resource;
 
-import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.plugin.gamma.api.identity.AmNotConfiguredException;
 import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 import io.gravitee.gamma.authorization.core.am.exception.AmSyncConflictException;
@@ -44,6 +43,8 @@ import lombok.CustomLog;
 /**
  * Triggers and reports an asynchronous sync of AM users into FGA PRINCIPAL entities, scoped to the
  * organization's configured AM connection. POST starts a job (202) and GET returns its status.
+ *
+ *
  */
 @Path("/users/sync")
 @Produces(MediaType.APPLICATION_JSON)
@@ -79,8 +80,10 @@ public class AuthzAmUserSyncResource {
             // Resolve the caller on the request thread — the worker thread has no GraviteeContext
             // thread-locals. The use case resolves the AM connection (synchronously) from there.
             AuthzCallerContext caller = AuthzCallerResolver.resolve(securityContext);
-            AsyncJob job = startAmUserSyncUseCase.execute(new StartAmUserSyncUseCase.Input(caller)).job();
-            return Response.status(Response.Status.ACCEPTED).entity(AmSyncStartResponse.from(job)).build();
+            StartAmUserSyncUseCase.Output output = startAmUserSyncUseCase.execute(new StartAmUserSyncUseCase.Input(caller));
+            return Response.status(Response.Status.ACCEPTED)
+                .entity(AmSyncStartResponse.from(output.job(), output.totalUsers()))
+                .build();
         } catch (AmNotConfiguredException e) {
             return Response.status(Response.Status.SERVICE_UNAVAILABLE)
                 .type(MediaType.APPLICATION_JSON)
