@@ -22,17 +22,20 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class IdentityProviderActivationInitializerTest {
 
     @Mock
@@ -62,6 +65,6 @@ public class IdentityProviderActivationInitializerTest {
 
     @Test
     public void testOrder() {
-        Assert.assertEquals(InitializerOrder.IDENTITY_PROVIDER_ACTIVATION_INITIALIZER, initializer.getOrder());
+        Assertions.assertEquals(InitializerOrder.IDENTITY_PROVIDER_ACTIVATION_INITIALIZER, initializer.getOrder());
     }
 }

@@ -25,7 +25,7 @@ import static fixtures.core.model.PortalNavigationItemFixtures.LINK1_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.PAGE11_ID;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;

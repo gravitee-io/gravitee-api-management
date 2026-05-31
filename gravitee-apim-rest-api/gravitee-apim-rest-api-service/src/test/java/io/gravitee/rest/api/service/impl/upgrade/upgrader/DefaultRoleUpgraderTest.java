@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static io.gravitee.rest.api.model.permissions.RoleScope.API;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_API_REVIEWER;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.node.api.upgrader.UpgraderException;
@@ -30,17 +31,20 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class DefaultRoleUpgraderTest {
 
     @InjectMocks
@@ -52,14 +56,16 @@ public class DefaultRoleUpgraderTest {
     @Mock
     OrganizationRepository organizationRepository;
 
-    @Test(expected = UpgraderException.class)
-    public void upgrade_should_failed_because_of_exception() throws TechnicalException, UpgraderException {
-        when(organizationRepository.findAll()).thenThrow(new RuntimeException());
+    @Test
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+        assertThrows(UpgraderException.class, () -> {
+            when(organizationRepository.findAll()).thenThrow(new RuntimeException());
 
-        upgrader.upgrade();
+            upgrader.upgrade();
 
-        verify(organizationRepository, times(1)).findAll();
-        verifyNoMoreInteractions(organizationRepository);
+            verify(organizationRepository, times(1)).findAll();
+            verifyNoMoreInteractions(organizationRepository);
+        });
     }
 
     @Test
@@ -101,6 +107,6 @@ public class DefaultRoleUpgraderTest {
 
     @Test
     public void test_order() {
-        Assert.assertEquals(UpgraderOrder.DEFAULT_ROLES_UPGRADER, upgrader.getOrder());
+        Assertions.assertEquals(UpgraderOrder.DEFAULT_ROLES_UPGRADER, upgrader.getOrder());
     }
 }

@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -127,13 +127,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class DeleteEnvironmentCommandHandlerTest {
 
     private static final String EMPTY_ENV_ID = "env#1";
@@ -352,7 +355,7 @@ public class DeleteEnvironmentCommandHandlerTest {
 
     private DeleteEnvironmentCommandHandler cut;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         when(environmentService.findByCockpitId(NOT_FOUND_ENV_ID)).thenThrow(new EnvironmentNotFoundException(NOT_FOUND_ENV_ID));
         when(environmentService.findByCockpitId(ERROR_ENV_ID)).thenThrow(new RuntimeException(ERROR_ENV_ID));

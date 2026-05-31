@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -30,14 +31,17 @@ import io.gravitee.rest.api.service.exceptions.AlertTemplateInvalidException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@MockitoSettings(strictness = Strictness.WARN)
+@ExtendWith(MockitoExtension.class)
 public class AlertService_ApplyDefaultsTest extends AlertServiceTest {
 
     @Test
@@ -59,25 +63,29 @@ public class AlertService_ApplyDefaultsTest extends AlertServiceTest {
         alertService.applyDefaults(GraviteeContext.getExecutionContext(), "my-alert", AlertReferenceType.API);
     }
 
-    @Test(expected = AlertNotFoundException.class)
+    @Test
     public void must_throw_AlertNotFoundException_when_apply_defaults_new_alert_trigger_entity_with_email_notifier_definition()
         throws TechnicalException {
-        final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
+        assertThrows(AlertNotFoundException.class, () -> {
+            final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
 
-        when(alertTriggerRepository.findById(alert.getId())).thenReturn(Optional.empty());
+            when(alertTriggerRepository.findById(alert.getId())).thenReturn(Optional.empty());
 
-        alertService.applyDefaults(executionContext, alert.getId(), alert.getReferenceType());
+            alertService.applyDefaults(executionContext, alert.getId(), alert.getReferenceType());
+        });
     }
 
-    @Test(expected = AlertTemplateInvalidException.class)
+    @Test
     public void must_throw_AlertTemplateInvalidException_when_apply_defaults_new_alert_trigger_entity_with_email_notifier_definition()
         throws TechnicalException, JsonProcessingException {
-        final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
-        final AlertTrigger alertTrigger = getAlertTriggerFromNew(alert);
+        assertThrows(AlertTemplateInvalidException.class, () -> {
+            final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
+            final AlertTrigger alertTrigger = getAlertTriggerFromNew(alert);
 
-        when(alertTriggerRepository.findById(alert.getId())).thenReturn(Optional.of(alertTrigger));
+            when(alertTriggerRepository.findById(alert.getId())).thenReturn(Optional.of(alertTrigger));
 
-        alertService.applyDefaults(executionContext, alert.getId(), alert.getReferenceType());
+            alertService.applyDefaults(executionContext, alert.getId(), alert.getReferenceType());
+        });
     }
 
     @Test

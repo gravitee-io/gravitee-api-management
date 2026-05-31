@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -30,19 +31,21 @@ import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.HashMap;
-import junit.framework.TestCase;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
-public class InstallationCommandHandlerTest extends TestCase {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
+public class InstallationCommandHandlerTest {
 
     private static final String CUSTOM_VALUE = "customValue";
     private static final String CUSTOM_KEY = "customKey";
@@ -53,7 +56,7 @@ public class InstallationCommandHandlerTest extends TestCase {
 
     public InstallationCommandHandler cut;
 
-    @Before
+    @BeforeEach
     public void before() {
         cut = new InstallationCommandHandler(installationService);
     }

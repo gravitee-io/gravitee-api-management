@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.definition.model.DefinitionContext.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -28,17 +29,20 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotManagedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Optional;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiService_DeployTest {
 
     @Mock
@@ -47,13 +51,15 @@ public class ApiService_DeployTest {
     @InjectMocks
     ApiService apiService = new ApiServiceImpl();
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldThrowIfManagedByKubernetes() throws TechnicalException {
-        final String apiId = "kubernetes-api";
-        final Api api = new Api();
-        api.setId(apiId);
-        api.setOrigin(ORIGIN_KUBERNETES);
-        Mockito.when(apiRepository.findById(apiId)).thenReturn(Optional.of(api));
-        apiService.deploy(GraviteeContext.getExecutionContext(), apiId, "some-user", EventType.STOP_API, new ApiDeploymentEntity());
+        assertThrows(TechnicalManagementException.class, () -> {
+            final String apiId = "kubernetes-api";
+            final Api api = new Api();
+            api.setId(apiId);
+            api.setOrigin(ORIGIN_KUBERNETES);
+            Mockito.when(apiRepository.findById(apiId)).thenReturn(Optional.of(api));
+            apiService.deploy(GraviteeContext.getExecutionContext(), apiId, "some-user", EventType.STOP_API, new ApiDeploymentEntity());
+        });
     }
 }

@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -26,11 +26,14 @@ import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.alert.AlertEventEntity;
 import java.util.List;
 import java.util.UUID;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
+@MockitoSettings(strictness = Strictness.WARN)
+@ExtendWith(MockitoExtension.class)
 public class AlertService_FindEventsTest extends AlertServiceTest {
 
     @Test

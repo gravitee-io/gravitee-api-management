@@ -15,7 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.node.api.upgrader.UpgraderException;
@@ -33,17 +34,20 @@ import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class MetadataDefaultReferenceUpgraderTest {
 
     private static final ZonedDateTime CREATED_AT = Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault());
@@ -57,7 +61,7 @@ public class MetadataDefaultReferenceUpgraderTest {
 
     private MetadataDefaultReferenceUpgrader upgrader;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         upgrader = new MetadataDefaultReferenceUpgrader(environmentRepository, metadataRepository);
     }
@@ -152,36 +156,40 @@ public class MetadataDefaultReferenceUpgraderTest {
         verify(metadataRepository, never()).delete(any(), any(), any());
     }
 
-    @Test(expected = UpgraderException.class)
-    public void should_stop_if_cannot_find_all_env() throws TechnicalException, UpgraderException {
-        when(environmentRepository.findAll()).thenThrow(new TechnicalException("Cannot find all env"));
+    @Test
+    public void should_stop_if_cannot_find_all_env() throws TechnicalException {
+        assertThrows(UpgraderException.class, () -> {
+            when(environmentRepository.findAll()).thenThrow(new TechnicalException("Cannot find all env"));
 
-        upgrader.upgrade();
+            upgrader.upgrade();
 
-        verify(metadataRepository, never()).create(any());
-        verify(metadataRepository, never()).delete(any(), any(), any());
+            verify(metadataRepository, never()).create(any());
+            verify(metadataRepository, never()).delete(any(), any(), any());
+        });
     }
 
-    @Test(expected = UpgraderException.class)
-    public void should_stop_if_cannot_create_env() throws TechnicalException, UpgraderException {
-        when(environmentRepository.findAll()).thenReturn(
-            Set.of(Environment.builder().id("DEFAULT").build(), Environment.builder().id("env#1").build())
-        );
+    @Test
+    public void should_stop_if_cannot_create_env() throws TechnicalException {
+        assertThrows(UpgraderException.class, () -> {
+            when(environmentRepository.findAll()).thenReturn(
+                Set.of(Environment.builder().id("DEFAULT").build(), Environment.builder().id("env#1").build())
+            );
 
-        Set<Metadata> metadataList = Set.of(
-            aMetadata("_", MetadataReferenceType.ENVIRONMENT, "key#1"),
-            aMetadata("_", MetadataReferenceType.API, "key#2"),
-            aMetadata("env#1", MetadataReferenceType.ENVIRONMENT),
-            aMetadata("api#1", MetadataReferenceType.API),
-            aMetadata("app#1", MetadataReferenceType.APPLICATION),
-            aMetadata("user#1", MetadataReferenceType.USER)
-        );
-        when(metadataRepository.findAll()).thenReturn(metadataList);
-        when(metadataRepository.create(any())).thenThrow(new TechnicalException("Cannot create metadata"));
+            Set<Metadata> metadataList = Set.of(
+                aMetadata("_", MetadataReferenceType.ENVIRONMENT, "key#1"),
+                aMetadata("_", MetadataReferenceType.API, "key#2"),
+                aMetadata("env#1", MetadataReferenceType.ENVIRONMENT),
+                aMetadata("api#1", MetadataReferenceType.API),
+                aMetadata("app#1", MetadataReferenceType.APPLICATION),
+                aMetadata("user#1", MetadataReferenceType.USER)
+            );
+            when(metadataRepository.findAll()).thenReturn(metadataList);
+            when(metadataRepository.create(any())).thenThrow(new TechnicalException("Cannot create metadata"));
 
-        upgrader.upgrade();
+            upgrader.upgrade();
 
-        verify(metadataRepository).create(any());
+            verify(metadataRepository).create(any());
+        });
     }
 
     private Metadata aMetadata(String referenceId, MetadataReferenceType referenceType) {
@@ -214,6 +222,6 @@ public class MetadataDefaultReferenceUpgraderTest {
 
     @Test
     public void test_order() {
-        Assert.assertEquals(UpgraderOrder.DEFAULT_METADATA_UPGRADER, upgrader.getOrder());
+        Assertions.assertEquals(UpgraderOrder.DEFAULT_METADATA_UPGRADER, upgrader.getOrder());
     }
 }

@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -28,17 +29,20 @@ import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Collections;
 import java.util.Optional;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class OrganizationService_GetDefaultOrInitializeTest {
 
     @InjectMocks
@@ -50,7 +54,7 @@ public class OrganizationService_GetDefaultOrInitializeTest {
     @Mock
     private FlowService mockFlowService;
 
-    @After
+    @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
     }
@@ -78,10 +82,12 @@ public class OrganizationService_GetDefaultOrInitializeTest {
         assertThat(organization.getDescription()).isEqualTo("Default organization");
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldCatchExceptionIfThrow() throws TechnicalException {
-        when(mockOrganizationRepository.findById(eq(GraviteeContext.getDefaultEnvironment()))).thenThrow(new TechnicalException(""));
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(mockOrganizationRepository.findById(eq(GraviteeContext.getDefaultEnvironment()))).thenThrow(new TechnicalException(""));
 
-        organizationService.getDefaultOrInitialize();
+            organizationService.getDefaultOrInitialize();
+        });
     }
 }

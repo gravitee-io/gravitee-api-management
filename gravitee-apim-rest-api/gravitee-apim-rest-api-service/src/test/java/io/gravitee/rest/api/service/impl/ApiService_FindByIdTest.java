@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,21 +42,24 @@ import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.util.*;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiService_FindByIdTest {
 
     private static final String API_ID = "id-api";
@@ -106,7 +109,7 @@ public class ApiService_FindByIdTest {
     @Mock
     private PrimaryOwnerService primaryOwnerService;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(
@@ -115,7 +118,7 @@ public class ApiService_FindByIdTest {
         GraviteeContext.setCurrentEnvironment("DEFAULT");
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
     }
@@ -163,17 +166,21 @@ public class ApiService_FindByIdTest {
         verifyNoMoreInteractions(flowService);
     }
 
-    @Test(expected = ApiNotFoundException.class)
+    @Test
     public void shouldNotFindByNameBecauseNotExists() throws TechnicalException {
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
+        assertThrows(ApiNotFoundException.class, () -> {
+            when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
 
-        apiService.findById(GraviteeContext.getExecutionContext(), API_ID);
+            apiService.findById(GraviteeContext.getExecutionContext(), API_ID);
+        });
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotFindByNameBecauseTechnicalException() throws TechnicalException {
-        when(apiRepository.findById(API_ID)).thenThrow(TechnicalException.class);
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(apiRepository.findById(API_ID)).thenThrow(TechnicalException.class);
 
-        apiService.findById(GraviteeContext.getExecutionContext(), API_ID);
+            apiService.findById(GraviteeContext.getExecutionContext(), API_ID);
+        });
     }
 }

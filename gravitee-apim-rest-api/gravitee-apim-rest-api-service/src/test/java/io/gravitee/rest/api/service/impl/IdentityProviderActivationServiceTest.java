@@ -17,9 +17,9 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.IdentityProvider.AuditEvent.IDENTITY_PROVIDER_ACTIVATED;
 import static io.gravitee.repository.management.model.IdentityProvider.AuditEvent.IDENTITY_PROVIDER_DEACTIVATED;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.util.collections.Sets.newSet;
@@ -39,17 +39,20 @@ import io.gravitee.rest.api.service.impl.configuration.identity.IdentityProvider
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class IdentityProviderActivationServiceTest {
 
     private static final String IDENTITY_PROVIDER_ID = "my-identity-provider-id";
@@ -601,43 +604,47 @@ public class IdentityProviderActivationServiceTest {
         );
     }
 
-    @Test(expected = IdentityProviderActivationNotFoundException.class)
+    @Test
     public void shouldNotDeactivateIdpOnTargetWhenNotActivated() throws TechnicalException {
-        // Given
-        doReturn(Optional.empty())
-            .when(identityProviderActivationRepository)
-            .findById(IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
+        assertThrows(IdentityProviderActivationNotFoundException.class, () -> {
+            // Given
+            doReturn(Optional.empty())
+                .when(identityProviderActivationRepository)
+                .findById(IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
 
-        // When
-        this.identityProviderActivationService.deactivateIdpOnTargets(
-            GraviteeContext.getExecutionContext(),
-            IDENTITY_PROVIDER_ID,
-            new ActivationTarget(
-                TARGET_REFERENCE_ID,
-                io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType.valueOf(
-                    TARGET_REFERENCE_TYPE.name()
+            // When
+            this.identityProviderActivationService.deactivateIdpOnTargets(
+                GraviteeContext.getExecutionContext(),
+                IDENTITY_PROVIDER_ID,
+                new ActivationTarget(
+                    TARGET_REFERENCE_ID,
+                    io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType.valueOf(
+                        TARGET_REFERENCE_TYPE.name()
+                    )
                 )
-            )
-        );
+            );
+        });
     }
 
-    @Test(expected = IdentityProviderActivationNotFoundException.class)
+    @Test
     public void shouldNotRemoveIdpsFromTargetWhenNotActivated() throws TechnicalException {
-        // Given
-        doReturn(Optional.empty())
-            .when(identityProviderActivationRepository)
-            .findById(IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
+        assertThrows(IdentityProviderActivationNotFoundException.class, () -> {
+            // Given
+            doReturn(Optional.empty())
+                .when(identityProviderActivationRepository)
+                .findById(IDENTITY_PROVIDER_ID, TARGET_REFERENCE_ID, TARGET_REFERENCE_TYPE);
 
-        // When
-        this.identityProviderActivationService.removeIdpsFromTarget(
-            GraviteeContext.getExecutionContext(),
-            new ActivationTarget(
-                TARGET_REFERENCE_ID,
-                io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType.valueOf(
-                    TARGET_REFERENCE_TYPE.name()
-                )
-            ),
-            IDENTITY_PROVIDER_ID
-        );
+            // When
+            this.identityProviderActivationService.removeIdpsFromTarget(
+                GraviteeContext.getExecutionContext(),
+                new ActivationTarget(
+                    TARGET_REFERENCE_ID,
+                    io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType.valueOf(
+                        TARGET_REFERENCE_TYPE.name()
+                    )
+                ),
+                IDENTITY_PROVIDER_ID
+            );
+        });
     }
 }

@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.model.permissions.EnvironmentPermission.DOCUMENTATION;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -31,18 +31,21 @@ import io.gravitee.rest.api.service.impl.RoleServiceImpl;
 import java.util.Arrays;
 import java.util.Optional;
 import org.apache.commons.lang3.ArrayUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class RoleService_FindByIdTest {
 
     @InjectMocks
@@ -51,7 +54,7 @@ public class RoleService_FindByIdTest {
     @Mock
     private RoleRepository mockRoleRepository;
 
-    @Before
+    @BeforeEach
     public void init() {
         GraviteeContext.getCurrentRoles().clear();
     }
@@ -97,16 +100,16 @@ public class RoleService_FindByIdTest {
 
         RoleEntity entity = roleService.findById("id");
 
-        assertNotNull("no entity found", entity);
-        assertEquals("invalid id", "id", entity.getId());
-        assertEquals("invalid name", "name", entity.getName());
-        assertEquals("invalid scope", io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT, entity.getScope());
-        assertFalse("no permissions found", entity.getPermissions().isEmpty());
-        assertTrue("invalid Permission name", entity.getPermissions().containsKey(DOCUMENTATION.getName()));
+        assertNotNull(entity, "no entity found");
+        assertEquals("id", entity.getId(), "invalid id");
+        assertEquals("name", entity.getName(), "invalid name");
+        assertEquals(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT, entity.getScope(), "invalid scope");
+        assertFalse(entity.getPermissions().isEmpty(), "no permissions found");
+        assertTrue(entity.getPermissions().containsKey(DOCUMENTATION.getName()), "invalid Permission name");
         char[] perms = entity.getPermissions().get(DOCUMENTATION.getName());
-        assertEquals("not enough permissions", action.length, perms.length);
+        assertEquals(action.length, perms.length, "not enough permissions");
         for (RolePermissionAction rolePermissionAction : action) {
-            assertTrue("not the good permission", Arrays.asList(ArrayUtils.toObject(perms)).contains(rolePermissionAction.getId()));
+            assertTrue(Arrays.asList(ArrayUtils.toObject(perms)).contains(rolePermissionAction.getId()), "not the good permission");
         }
     }
 }

@@ -21,17 +21,20 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CategoryRepository;
 import io.gravitee.repository.management.model.Category;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class DefaultCategoryInitializerTest {
 
     @Mock
@@ -51,6 +54,6 @@ public class DefaultCategoryInitializerTest {
 
     @Test
     public void testOrder() {
-        Assert.assertEquals(InitializerOrder.DEFAULT_CATEGORY_INITIALIZER, initializer.getOrder());
+        Assertions.assertEquals(InitializerOrder.DEFAULT_CATEGORY_INITIALIZER, initializer.getOrder());
     }
 }

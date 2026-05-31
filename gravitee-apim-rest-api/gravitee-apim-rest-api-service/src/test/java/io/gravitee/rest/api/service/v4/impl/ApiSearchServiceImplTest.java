@@ -16,9 +16,7 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.eq;
@@ -75,12 +73,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -89,7 +89,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiSearchServiceImplTest {
 
     private static final String API_ID = "id-api";
@@ -139,7 +140,7 @@ public class ApiSearchServiceImplTest {
     private ApiSearchService apiSearchService;
     private Api api;
 
-    @AfterClass
+    @AfterAll
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
         SecurityContextHolder.setContext(
@@ -155,7 +156,7 @@ public class ApiSearchServiceImplTest {
         );
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         var categoryMapper = new CategoryMapper(categoryService);
         var apiConverter = new ApiConverter(
@@ -381,18 +382,22 @@ public class ApiSearchServiceImplTest {
         Assertions.assertThat(indexableApi.getCategories()).containsExactlyInAnyOrder(categoryKey1, categoryKey2);
     }
 
-    @Test(expected = ApiNotFoundException.class)
+    @Test
     public void shouldNotFindBecauseNotExists() throws TechnicalException {
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
+        assertThrows(ApiNotFoundException.class, () -> {
+            when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
 
-        apiSearchService.findById(GraviteeContext.getExecutionContext(), API_ID);
+            apiSearchService.findById(GraviteeContext.getExecutionContext(), API_ID);
+        });
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotFindBecauseTechnicalException() throws TechnicalException {
-        when(apiRepository.findById(API_ID)).thenThrow(TechnicalException.class);
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(apiRepository.findById(API_ID)).thenThrow(TechnicalException.class);
 
-        apiSearchService.findById(GraviteeContext.getExecutionContext(), API_ID);
+            apiSearchService.findById(GraviteeContext.getExecutionContext(), API_ID);
+        });
     }
 
     @Test

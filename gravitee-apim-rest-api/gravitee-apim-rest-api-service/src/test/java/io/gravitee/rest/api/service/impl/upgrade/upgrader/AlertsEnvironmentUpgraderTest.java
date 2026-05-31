@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -31,18 +32,21 @@ import io.gravitee.repository.management.model.Application;
 import io.gravitee.rest.api.service.converter.AlertTriggerConverter;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class AlertsEnvironmentUpgraderTest {
 
     @InjectMocks
@@ -59,19 +63,21 @@ public class AlertsEnvironmentUpgraderTest {
 
     AlertTriggerConverter alertTriggerConverter = new AlertTriggerConverter(new ObjectMapper());
 
-    @Before
+    @BeforeEach
     public void setup() {
         upgrader = new AlertsEnvironmentUpgrader(alertTriggerRepository, alertTriggerConverter, apiRepository, applicationRepository);
     }
 
-    @Test(expected = UpgraderException.class)
-    public void upgrade_should_failed_because_of_exception() throws UpgraderException, TechnicalException {
-        when(alertTriggerRepository.findAll()).thenThrow(new RuntimeException());
+    @Test
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+        assertThrows(UpgraderException.class, () -> {
+            when(alertTriggerRepository.findAll()).thenThrow(new RuntimeException());
 
-        upgrader.upgrade();
+            upgrader.upgrade();
 
-        verify(alertTriggerRepository, times(1)).findAll();
-        verifyNoMoreInteractions(alertTriggerRepository);
+            verify(alertTriggerRepository, times(1)).findAll();
+            verifyNoMoreInteractions(alertTriggerRepository);
+        });
     }
 
     @Test
@@ -96,7 +102,7 @@ public class AlertsEnvironmentUpgraderTest {
         api3.setEnvironmentId("env-id-2");
         when(apiRepository.findById("api-id-3")).thenReturn(Optional.of(api3));
 
-        Assert.assertTrue(upgrader.upgrade());
+        Assertions.assertTrue(upgrader.upgrade());
 
         // 3 alerts have been updated with API environment
         verify(alertTriggerRepository, times(1)).update(
@@ -130,7 +136,7 @@ public class AlertsEnvironmentUpgraderTest {
         application3.setEnvironmentId("env-id-2");
         when(applicationRepository.findById("app-id-2")).thenReturn(Optional.of(application3));
 
-        Assert.assertTrue(upgrader.upgrade());
+        Assertions.assertTrue(upgrader.upgrade());
 
         // 2 alerts have been updated with applications environment
         verify(alertTriggerRepository, times(1)).update(
@@ -144,15 +150,19 @@ public class AlertsEnvironmentUpgraderTest {
         verifyNoMoreInteractions(alertTriggerRepository);
     }
 
-    @Test(expected = UpgraderException.class)
-    public void upgrade_should_failed_because_of_missing_application() throws UpgraderException, TechnicalException {
-        when(alertTriggerRepository.findAll()).thenReturn(Set.of(buildTestAlert("alert-id-2", "alert-name-2", "APPLICATION", "app-id-1")));
+    @Test
+    public void upgrade_should_failed_because_of_missing_application() throws TechnicalException {
+        assertThrows(UpgraderException.class, () -> {
+            when(alertTriggerRepository.findAll()).thenReturn(
+                Set.of(buildTestAlert("alert-id-2", "alert-name-2", "APPLICATION", "app-id-1"))
+            );
 
-        when(applicationRepository.findById("app-id-1")).thenReturn(Optional.empty());
+            when(applicationRepository.findById("app-id-1")).thenReturn(Optional.empty());
 
-        upgrader.upgrade();
+            upgrader.upgrade();
 
-        verify(alertTriggerRepository, times(1)).findAll();
+            verify(alertTriggerRepository, times(1)).findAll();
+        });
     }
 
     @Test
@@ -177,7 +187,7 @@ public class AlertsEnvironmentUpgraderTest {
 
     @Test
     public void test_order() {
-        Assert.assertEquals(UpgraderOrder.ALERTS_ENVIRONMENT_UPGRADER, upgrader.getOrder());
+        Assertions.assertEquals(UpgraderOrder.ALERTS_ENVIRONMENT_UPGRADER, upgrader.getOrder());
     }
 
     private boolean alertMatches(

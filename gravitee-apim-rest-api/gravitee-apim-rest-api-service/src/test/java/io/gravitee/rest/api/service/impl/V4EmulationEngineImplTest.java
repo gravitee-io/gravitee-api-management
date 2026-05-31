@@ -18,12 +18,12 @@ package io.gravitee.rest.api.service.impl;
 import static io.gravitee.rest.api.service.V4EmulationEngineService.DefaultMode.CREATION_ONLY;
 import static io.gravitee.rest.api.service.V4EmulationEngineService.DefaultMode.NO;
 import static io.gravitee.rest.api.service.V4EmulationEngineService.DefaultMode.YES;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.ExecutionMode;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Guillaume Guillaume (guillaume.lamirand at graviteesource.com)

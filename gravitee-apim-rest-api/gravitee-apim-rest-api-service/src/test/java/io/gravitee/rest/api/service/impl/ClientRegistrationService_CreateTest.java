@@ -17,7 +17,8 @@ package io.gravitee.rest.api.service.impl;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static io.gravitee.repository.management.model.ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_CREATED;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -36,18 +37,21 @@ import io.gravitee.rest.api.service.impl.configuration.application.registration.
 import io.gravitee.rest.api.service.impl.configuration.application.registration.InvalidRenewClientSecretException;
 import java.util.Collections;
 import java.util.Objects;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ClientRegistrationService_CreateTest {
 
     @InjectMocks
@@ -61,12 +65,12 @@ public class ClientRegistrationService_CreateTest {
 
     private final WireMockServer wireMockServer = new WireMockServer(Options.DYNAMIC_PORT);
 
-    @Before
+    @BeforeEach
     public void setup() {
         wireMockServer.start();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         wireMockServer.stop();
     }
@@ -98,7 +102,7 @@ public class ClientRegistrationService_CreateTest {
             GraviteeContext.getExecutionContext(),
             providerPayload
         );
-        assertNotNull("Result is null", providerCreated);
+        assertNotNull(providerCreated, "Result is null");
 
         verify(mockAuditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
@@ -109,39 +113,47 @@ public class ClientRegistrationService_CreateTest {
         verify(mockClientRegistrationProviderRepository, times(1)).create(any());
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotCreateMoreThanOneProvider() throws TechnicalException {
-        when(
-            mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId()))
-        ).thenReturn(Collections.singleton(new ClientRegistrationProvider()));
+        assertThrows(IllegalStateException.class, () -> {
+            when(
+                mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId()))
+            ).thenReturn(Collections.singleton(new ClientRegistrationProvider()));
 
-        NewClientRegistrationProviderEntity providerPayload = new NewClientRegistrationProviderEntity();
-        clientRegistrationService.create(GraviteeContext.getExecutionContext(), providerPayload);
+            NewClientRegistrationProviderEntity providerPayload = new NewClientRegistrationProviderEntity();
+            clientRegistrationService.create(GraviteeContext.getExecutionContext(), providerPayload);
+        });
     }
 
-    @Test(expected = EmptyInitialAccessTokenException.class)
+    @Test
     public void shouldThrowWithTypeInitialAccessTokenAndWithoutToken() {
-        NewClientRegistrationProviderEntity providerPayload = new NewClientRegistrationProviderEntity();
-        providerPayload.setInitialAccessTokenType(InitialAccessTokenType.INITIAL_ACCESS_TOKEN);
-        clientRegistrationService.create(GraviteeContext.getExecutionContext(), providerPayload);
+        assertThrows(EmptyInitialAccessTokenException.class, () -> {
+            NewClientRegistrationProviderEntity providerPayload = new NewClientRegistrationProviderEntity();
+            providerPayload.setInitialAccessTokenType(InitialAccessTokenType.INITIAL_ACCESS_TOKEN);
+            clientRegistrationService.create(GraviteeContext.getExecutionContext(), providerPayload);
+        });
     }
 
-    @Test(expected = InvalidRenewClientSecretException.class)
+    @Test
     public void shouldThrowWithBadRenewClientSecretMethod() {
-        NewClientRegistrationProviderEntity providerPayload = new NewClientRegistrationProviderEntity();
-        providerPayload.setName("name");
-        providerPayload.setRenewClientSecretSupport(true);
-        providerPayload.setRenewClientSecretMethod("DELETE");
-        clientRegistrationService.create(GraviteeContext.getExecutionContext(), providerPayload);
+        assertThrows(InvalidRenewClientSecretException.class, () -> {
+            NewClientRegistrationProviderEntity providerPayload = new NewClientRegistrationProviderEntity();
+            providerPayload.setName("name");
+            providerPayload.setRenewClientSecretSupport(true);
+            providerPayload.setRenewClientSecretMethod("DELETE");
+            clientRegistrationService.create(GraviteeContext.getExecutionContext(), providerPayload);
+        });
     }
 
-    @Test(expected = InvalidRenewClientSecretException.class)
+    @Test
     public void shouldThrowWithBadRenewClientSecretEndpoint() {
-        NewClientRegistrationProviderEntity providerPayload = new NewClientRegistrationProviderEntity();
-        providerPayload.setName("name");
-        providerPayload.setRenewClientSecretSupport(true);
-        providerPayload.setRenewClientSecretMethod("POST");
-        providerPayload.setRenewClientSecretEndpoint("notStartWithHttp");
-        clientRegistrationService.create(GraviteeContext.getExecutionContext(), providerPayload);
+        assertThrows(InvalidRenewClientSecretException.class, () -> {
+            NewClientRegistrationProviderEntity providerPayload = new NewClientRegistrationProviderEntity();
+            providerPayload.setName("name");
+            providerPayload.setRenewClientSecretSupport(true);
+            providerPayload.setRenewClientSecretMethod("POST");
+            providerPayload.setRenewClientSecretEndpoint("notStartWithHttp");
+            clientRegistrationService.create(GraviteeContext.getExecutionContext(), providerPayload);
+        });
     }
 }

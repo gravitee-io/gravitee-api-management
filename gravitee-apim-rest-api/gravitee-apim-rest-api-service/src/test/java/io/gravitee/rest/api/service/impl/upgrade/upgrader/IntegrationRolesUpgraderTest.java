@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_INTEGRATION_OWNER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_INTEGRATION_USER;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -31,14 +32,17 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class IntegrationRolesUpgraderTest {
 
     @InjectMocks
@@ -50,14 +54,16 @@ public class IntegrationRolesUpgraderTest {
     @Mock
     OrganizationRepository organizationRepository;
 
-    @Test(expected = UpgraderException.class)
-    public void upgrade_should_failed_because_of_exception() throws TechnicalException, UpgraderException {
-        when(organizationRepository.findAll()).thenThrow(new RuntimeException());
+    @Test
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+        assertThrows(UpgraderException.class, () -> {
+            when(organizationRepository.findAll()).thenThrow(new RuntimeException());
 
-        upgrader.upgrade();
+            upgrader.upgrade();
 
-        verify(organizationRepository, times(1)).findAll();
-        verifyNoMoreInteractions(organizationRepository);
+            verify(organizationRepository, times(1)).findAll();
+            verifyNoMoreInteractions(organizationRepository);
+        });
     }
 
     @Test
@@ -77,6 +83,6 @@ public class IntegrationRolesUpgraderTest {
 
     @Test
     public void test_order() {
-        Assert.assertEquals(UpgraderOrder.INTEGRATION_ROLES_UPGRADER, upgrader.getOrder());
+        Assertions.assertEquals(UpgraderOrder.INTEGRATION_ROLES_UPGRADER, upgrader.getOrder());
     }
 }

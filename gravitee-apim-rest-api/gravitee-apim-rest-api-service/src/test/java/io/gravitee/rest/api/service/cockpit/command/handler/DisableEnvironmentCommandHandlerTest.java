@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;

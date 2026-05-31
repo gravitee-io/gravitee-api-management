@@ -36,16 +36,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+@ExtendWith(MockitoExtension.class)
 class FilterValueNameResolverImplTest {
 
     private static final String ENVIRONMENT_ID = "env-id";
@@ -66,11 +67,9 @@ class FilterValueNameResolverImplTest {
     private io.gravitee.apim.core.api_product.query_service.ApiProductQueryService apiProductQueryService;
 
     private FilterValueNameResolverImpl resolver;
-    private AutoCloseable closeable;
 
     @BeforeEach
     void setUp() {
-        closeable = MockitoAnnotations.openMocks(this);
         resolver = new FilterValueNameResolverImpl(
             apiCrudService,
             apiQueryService,
@@ -78,11 +77,6 @@ class FilterValueNameResolverImplTest {
             planCrudService,
             apiProductQueryService
         );
-    }
-
-    @AfterEach
-    void tearDown() throws Exception {
-        closeable.close();
     }
 
     @Nested

@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -39,18 +39,21 @@ import io.gravitee.rest.api.service.quality.ApiQualityMetricLoader;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricLogo;
 import java.util.*;
 import java.util.function.Function;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class QualityMetricsServiceTest {
 
     @InjectMocks
@@ -74,27 +77,29 @@ public class QualityMetricsServiceTest {
     @Mock
     private ApiQualityRuleService apiQualityRuleService;
 
-    @Before
+    @BeforeEach
     public void setup() {
         when(apiQualityMetricLoader.getApiQualityMetrics()).thenReturn(Arrays.asList(apiQualityMetricLogo, apiQualityMetricCategories));
         when(apiQualityMetricLogo.getWeightKey()).thenReturn(Key.API_QUALITY_METRICS_LOGO_WEIGHT);
         when(apiQualityMetricCategories.getWeightKey()).thenReturn(Key.API_QUALITY_METRICS_CATEGORIES_WEIGHT);
     }
 
-    @Test(expected = ApiQualityMetricsDisableException.class)
+    @Test
     public void shouldThrowExceptionIfDisabled() {
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.API_QUALITY_METRICS_ENABLED,
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ).thenReturn(Boolean.FALSE);
-        ApiEntity api = mock(ApiEntity.class);
+        assertThrows(ApiQualityMetricsDisableException.class, () -> {
+            when(
+                parameterService.findAsBoolean(
+                    GraviteeContext.getExecutionContext(),
+                    Key.API_QUALITY_METRICS_ENABLED,
+                    ParameterReferenceType.ENVIRONMENT
+                )
+            ).thenReturn(Boolean.FALSE);
+            ApiEntity api = mock(ApiEntity.class);
 
-        srv.getMetrics(GraviteeContext.getExecutionContext(), api);
+            srv.getMetrics(GraviteeContext.getExecutionContext(), api);
 
-        fail();
+            fail();
+        });
     }
 
     @Test

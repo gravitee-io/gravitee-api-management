@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -46,20 +46,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class OrganizationService_CreateTest {
 
     @InjectMocks
@@ -86,12 +89,12 @@ public class OrganizationService_CreateTest {
     @Mock
     private ObjectMapper mapper;
 
-    @Before
+    @BeforeEach
     public void setup() {
         GraviteeContext.fromExecutionContext(new ExecutionContext("org_id"));
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
     }
@@ -121,7 +124,7 @@ public class OrganizationService_CreateTest {
         when(mockFlowService.findByReference(FlowReferenceType.ORGANIZATION, "org_id")).thenReturn(new ArrayList<>());
         OrganizationEntity organization = organizationService.createOrUpdate("org_id", org1);
 
-        assertNotNull("result is null", organization);
+        assertNotNull(organization, "result is null");
         verify(mockOrganizationRepository, times(1)).create(
             argThat(arg -> arg != null && arg.getName().equals("org_name") && arg.getDescription().equals("org_desc"))
         );
@@ -163,7 +166,7 @@ public class OrganizationService_CreateTest {
 
         OrganizationEntity organization = organizationService.createOrUpdate("org_id", org1);
 
-        assertNotNull("result is null", organization);
+        assertNotNull(organization, "result is null");
         verify(mockOrganizationRepository, times(1)).update(
             argThat(arg -> arg != null && arg.getName().equals("org_name") && arg.getDescription().equals("org_desc"))
         );

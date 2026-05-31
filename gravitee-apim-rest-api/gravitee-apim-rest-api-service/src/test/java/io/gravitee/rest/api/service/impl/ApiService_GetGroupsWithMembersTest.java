@@ -15,9 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.eq;
@@ -52,15 +50,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiService_GetGroupsWithMembersTest {
 
     private static final String ENVIRONMENT = "DEFAULT";
@@ -92,7 +93,7 @@ public class ApiService_GetGroupsWithMembersTest {
 
     private ApiGroupService apiGroupService;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         GraviteeContext.cleanContext();
         apiGroupService = new ApiGroupServiceImpl(

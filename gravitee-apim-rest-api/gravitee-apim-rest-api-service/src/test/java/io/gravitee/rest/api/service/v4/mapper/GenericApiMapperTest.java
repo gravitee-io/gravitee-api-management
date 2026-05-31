@@ -21,17 +21,20 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.service.converter.ApiConverter;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class GenericApiMapperTest {
 
     @Mock
@@ -42,7 +45,7 @@ public class GenericApiMapperTest {
 
     private GenericApiMapper genericApiMapper;
 
-    @Before
+    @BeforeEach
     public void before() {
         genericApiMapper = new GenericApiMapper(apiMapper, apiConverter);
     }

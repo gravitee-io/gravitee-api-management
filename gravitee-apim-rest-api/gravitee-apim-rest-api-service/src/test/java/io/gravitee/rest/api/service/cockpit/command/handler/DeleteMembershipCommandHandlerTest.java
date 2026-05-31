@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import static io.gravitee.rest.api.service.cockpit.command.handler.UserCommandHandler.COCKPIT_SOURCE;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
@@ -36,13 +36,16 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.reactivex.rxjava3.observers.TestObserver;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class DeleteMembershipCommandHandlerTest {
 
     @Mock
@@ -53,7 +56,7 @@ public class DeleteMembershipCommandHandlerTest {
 
     public DeleteMembershipCommandHandler cut;
 
-    @Before
+    @BeforeEach
     public void before() {
         cut = new DeleteMembershipCommandHandler(membershipService, userService);
     }

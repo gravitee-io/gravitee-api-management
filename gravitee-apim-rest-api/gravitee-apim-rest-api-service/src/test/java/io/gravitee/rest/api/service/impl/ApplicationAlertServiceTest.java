@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -58,19 +59,22 @@ import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApplicationAlertServiceTest {
 
     private ApplicationAlertService cut;
@@ -99,7 +103,7 @@ public class ApplicationAlertServiceTest {
     private static final String APPLICATION_NAME = "app-name";
     private static final String API_ID = "api-id";
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         cut = new ApplicationAlertServiceImpl(
             applicationService,
@@ -208,33 +212,37 @@ public class ApplicationAlertServiceTest {
         assertThat(alertCaptor.getValue().getNotifications().get(2).getType()).isEqualTo("default-email");
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotCreateMappingError() throws Exception {
-        NewAlertTriggerEntity newAlert = new NewAlertTriggerEntity();
-        newAlert.setId(ALERT_ID);
-        newAlert.setType("METRICS_RATE");
+        assertThrows(TechnicalManagementException.class, () -> {
+            NewAlertTriggerEntity newAlert = new NewAlertTriggerEntity();
+            newAlert.setId(ALERT_ID);
+            newAlert.setType("METRICS_RATE");
 
-        ApplicationEntity application = getApplication();
-        prepareForCreation(newAlert);
+            ApplicationEntity application = getApplication();
+            prepareForCreation(newAlert);
 
-        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
-        when(mapper.writeValueAsString(any())).thenThrow(JsonProcessingException.class);
+            when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
+            when(mapper.writeValueAsString(any())).thenThrow(JsonProcessingException.class);
 
-        cut.create(GraviteeContext.getExecutionContext(), APPLICATION_ID, newAlert);
+            cut.create(GraviteeContext.getExecutionContext(), APPLICATION_ID, newAlert);
+        });
     }
 
-    @Test(expected = AlertNotFoundException.class)
+    @Test
     public void shouldNotUpdateBecauseDoesNotBelongToApplication() throws Exception {
-        final AlertTriggerEntity alertTrigger = mock(AlertTriggerEntity.class);
-        when(alertTrigger.getReferenceId()).thenReturn("Another_application");
-        when(alertService.findById(ALERT_ID)).thenReturn(alertTrigger);
+        assertThrows(AlertNotFoundException.class, () -> {
+            final AlertTriggerEntity alertTrigger = mock(AlertTriggerEntity.class);
+            when(alertTrigger.getReferenceId()).thenReturn("Another_application");
+            when(alertService.findById(ALERT_ID)).thenReturn(alertTrigger);
 
-        UpdateAlertTriggerEntity updating = new UpdateAlertTriggerEntity();
-        updating.setId(ALERT_ID);
+            UpdateAlertTriggerEntity updating = new UpdateAlertTriggerEntity();
+            updating.setId(ALERT_ID);
 
-        cut.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updating);
+            cut.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updating);
 
-        verify(alertService, never()).update(GraviteeContext.getExecutionContext(), updating);
+            verify(alertService, never()).update(GraviteeContext.getExecutionContext(), updating);
+        });
     }
 
     @Test
@@ -373,22 +381,24 @@ public class ApplicationAlertServiceTest {
         verify(alertService, never()).update(eq(GraviteeContext.getExecutionContext()), any());
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotAddMemberMappingError() throws Exception {
-        AlertTriggerEntity trigger1 = mock(AlertTriggerEntity.class);
-        Notification notification = new Notification();
-        notification.setType("default-email");
-        notification.setConfiguration("");
-        when(trigger1.getNotifications()).thenReturn(Collections.singletonList(notification));
+        assertThrows(TechnicalManagementException.class, () -> {
+            AlertTriggerEntity trigger1 = mock(AlertTriggerEntity.class);
+            Notification notification = new Notification();
+            notification.setType("default-email");
+            notification.setConfiguration("");
+            when(trigger1.getNotifications()).thenReturn(Collections.singletonList(notification));
 
-        List<AlertTriggerEntity> triggers = new ArrayList<>();
-        triggers.add(trigger1);
+            List<AlertTriggerEntity> triggers = new ArrayList<>();
+            triggers.add(trigger1);
 
-        when(alertService.findByReference(AlertReferenceType.APPLICATION, APPLICATION_ID)).thenReturn(triggers);
+            when(alertService.findByReference(AlertReferenceType.APPLICATION, APPLICATION_ID)).thenReturn(triggers);
 
-        when(mapper.readTree(notification.getConfiguration())).thenThrow(JsonProcessingException.class);
+            when(mapper.readTree(notification.getConfiguration())).thenThrow(JsonProcessingException.class);
 
-        cut.addMemberToApplication(GraviteeContext.getExecutionContext(), APPLICATION_ID, "add@mail.gio");
+            cut.addMemberToApplication(GraviteeContext.getExecutionContext(), APPLICATION_ID, "add@mail.gio");
+        });
     }
 
     @Test
@@ -436,22 +446,24 @@ public class ApplicationAlertServiceTest {
         verify(alertService, never()).update(eq(GraviteeContext.getExecutionContext()), any());
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotDeleteMemberMappingError() throws Exception {
-        AlertTriggerEntity trigger1 = mock(AlertTriggerEntity.class);
-        Notification notification = new Notification();
-        notification.setType("default-email");
-        notification.setConfiguration("");
-        when(trigger1.getNotifications()).thenReturn(Collections.singletonList(notification));
+        assertThrows(TechnicalManagementException.class, () -> {
+            AlertTriggerEntity trigger1 = mock(AlertTriggerEntity.class);
+            Notification notification = new Notification();
+            notification.setType("default-email");
+            notification.setConfiguration("");
+            when(trigger1.getNotifications()).thenReturn(Collections.singletonList(notification));
 
-        List<AlertTriggerEntity> triggers = new ArrayList<>();
-        triggers.add(trigger1);
+            List<AlertTriggerEntity> triggers = new ArrayList<>();
+            triggers.add(trigger1);
 
-        when(alertService.findByReference(AlertReferenceType.APPLICATION, APPLICATION_ID)).thenReturn(triggers);
+            when(alertService.findByReference(AlertReferenceType.APPLICATION, APPLICATION_ID)).thenReturn(triggers);
 
-        when(mapper.readTree(notification.getConfiguration())).thenThrow(JsonProcessingException.class);
+            when(mapper.readTree(notification.getConfiguration())).thenThrow(JsonProcessingException.class);
 
-        cut.deleteMemberFromApplication(GraviteeContext.getExecutionContext(), APPLICATION_ID, "delete@mail.gio");
+            cut.deleteMemberFromApplication(GraviteeContext.getExecutionContext(), APPLICATION_ID, "delete@mail.gio");
+        });
     }
 
     @Test

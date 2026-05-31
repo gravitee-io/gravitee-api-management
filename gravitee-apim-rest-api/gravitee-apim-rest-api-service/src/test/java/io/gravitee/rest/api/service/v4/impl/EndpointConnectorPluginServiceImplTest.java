@@ -17,7 +17,7 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.reactive.api.ApiType;
@@ -34,13 +34,16 @@ import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class EndpointConnectorPluginServiceImplTest {
 
     private static final String PLUGIN_ID = "my-test-plugin";
@@ -65,7 +68,7 @@ public class EndpointConnectorPluginServiceImplTest {
     @Mock
     private EndpointConnectorFactory<?> mockFactory;
 
-    @Before
+    @BeforeEach
     public void setup() {
         cut = new EndpointConnectorPluginServiceImpl(jsonSchemaService, pluginManager);
         when(mockPluginManifest.feature()).thenReturn(FEATURE);
@@ -97,11 +100,13 @@ public class EndpointConnectorPluginServiceImplTest {
         assertNull(resultConfiguration);
     }
 
-    @Test(expected = PluginNotFoundException.class)
+    @Test
     public void shouldFailToValidateConfigurationWhenNoPlugin() {
-        when(pluginManager.get(PLUGIN_ID, true)).thenReturn(null);
+        assertThrows(PluginNotFoundException.class, () -> {
+            when(pluginManager.get(PLUGIN_ID, true)).thenReturn(null);
 
-        cut.validateConnectorConfiguration(PLUGIN_ID, CONFIGURATION);
+            cut.validateConnectorConfiguration(PLUGIN_ID, CONFIGURATION);
+        });
     }
 
     @Test
@@ -117,11 +122,13 @@ public class EndpointConnectorPluginServiceImplTest {
         assertEquals(FEATURE, result.getFeature());
     }
 
-    @Test(expected = PluginNotFoundException.class)
+    @Test
     public void shouldNotFindById() {
-        when(pluginManager.get(PLUGIN_ID, true)).thenReturn(null);
+        assertThrows(PluginNotFoundException.class, () -> {
+            when(pluginManager.get(PLUGIN_ID, true)).thenReturn(null);
 
-        cut.findById(PLUGIN_ID);
+            cut.findById(PLUGIN_ID);
+        });
     }
 
     @Test

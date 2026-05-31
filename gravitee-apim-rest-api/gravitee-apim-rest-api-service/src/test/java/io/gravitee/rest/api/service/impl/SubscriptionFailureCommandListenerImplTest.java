@@ -28,17 +28,20 @@ import io.gravitee.rest.api.model.command.CommandTags;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.event.CommandEvent;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class SubscriptionFailureCommandListenerImplTest {
 
     public static final String VALID_COMMAND_CONTENT =
@@ -57,7 +60,7 @@ public class SubscriptionFailureCommandListenerImplTest {
 
     private SubscriptionFailureCommandListenerImpl cut;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         cut = new SubscriptionFailureCommandListenerImpl(eventManager, subscriptionService, objectMapper);
     }

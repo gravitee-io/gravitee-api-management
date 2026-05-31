@@ -44,6 +44,7 @@ import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -556,7 +557,7 @@ class VerifyApiPathDomainServiceTest {
      * and the clock-skew belt-and-suspenders path. Each test wires the seeder and supplementary calls separately
      * so we can drive divergent views.
      */
-    @org.junit.jupiter.api.Nested
+    @Nested
     class WatermarkAndRecheck {
 
         @Test

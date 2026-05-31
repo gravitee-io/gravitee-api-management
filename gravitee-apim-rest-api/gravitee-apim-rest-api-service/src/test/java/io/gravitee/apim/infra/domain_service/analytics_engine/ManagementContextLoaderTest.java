@@ -34,14 +34,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -51,6 +51,7 @@ import org.springframework.security.core.context.SecurityContextImpl;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+@ExtendWith(MockitoExtension.class)
 class ManagementContextLoaderTest {
 
     @Mock
@@ -63,7 +64,6 @@ class ManagementContextLoaderTest {
     private Authentication authentication;
 
     private ManagementContextLoader contextLoader;
-    private AutoCloseable closeable;
 
     private static final Api API_1 = Api.builder().id("id1").name("api1").type(ApiType.PROXY).build();
     private static final Api API_2 = Api.builder().id("id2").name("api2").type(ApiType.MESSAGE).build();
@@ -79,13 +79,7 @@ class ManagementContextLoaderTest {
 
     @BeforeEach
     void setUp() {
-        closeable = MockitoAnnotations.openMocks(this);
         contextLoader = new ManagementContextLoader(apiAuthorizationService, apiRepository);
-    }
-
-    @AfterEach
-    void tearDown() throws Exception {
-        closeable.close();
     }
 
     private AuditInfo auditInfo(String userId) {

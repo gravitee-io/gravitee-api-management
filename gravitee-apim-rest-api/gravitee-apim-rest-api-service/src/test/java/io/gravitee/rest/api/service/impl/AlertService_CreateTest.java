@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -33,32 +34,41 @@ import io.gravitee.rest.api.service.exceptions.AlertUnavailableException;
 import io.gravitee.rest.api.service.exceptions.NodeAlertNotAllowedInCloudException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
+@MockitoSettings(strictness = Strictness.WARN)
+@ExtendWith(MockitoExtension.class)
 public class AlertService_CreateTest extends AlertServiceTest {
 
-    @Test(expected = AlertUnavailableException.class)
+    @Test
     public void must_throw_AlertUnavailableException_when_create_new_alert_trigger_entity() {
-        final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
+        assertThrows(AlertUnavailableException.class, () -> {
+            final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
 
-        when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(false);
+            when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(
+                false
+            );
 
-        alertService.create(executionContext, alert);
+            alertService.create(executionContext, alert);
+        });
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void must_throw_TechnicalManagementException_when_create_new_alert_trigger_entity_with_email_notifier_definition()
         throws TechnicalException {
-        final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
+        assertThrows(TechnicalManagementException.class, () -> {
+            final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
 
-        when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(true);
-        when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class)));
-        when(alertTriggerRepository.create(any())).thenThrow(new TechnicalException("An unexpected error has occurred"));
+            when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(true);
+            when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class)));
+            when(alertTriggerRepository.create(any())).thenThrow(new TechnicalException("An unexpected error has occurred"));
 
-        alertService.create(executionContext, alert);
+            alertService.create(executionContext, alert);
+        });
     }
 
     @Test
@@ -91,16 +101,18 @@ public class AlertService_CreateTest extends AlertServiceTest {
         verify(triggerProvider, times(1)).unregister(any(Trigger.class));
     }
 
-    @Test(expected = NodeAlertNotAllowedInCloudException.class)
+    @Test
     public void must_throw_NodeAlertNotAllowedInCloudException_when_create_new_node_alert_on_cloud()
         throws JsonProcessingException, TechnicalException {
-        final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
-        alert.setSource("NODE_HEALTHCHECK");
+        assertThrows(NodeAlertNotAllowedInCloudException.class, () -> {
+            final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
+            alert.setSource("NODE_HEALTHCHECK");
 
-        when(cloudHosted.getEnabled()).thenReturn(true);
-        when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(true);
-        when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class)));
+            when(cloudHosted.getEnabled()).thenReturn(true);
+            when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(true);
+            when(alertTriggerProviderManager.findAll()).thenReturn(List.of(mock(TriggerProvider.class)));
 
-        alertService.create(executionContext, alert);
+            alertService.create(executionContext, alert);
+        });
     }
 }

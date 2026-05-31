@@ -18,7 +18,7 @@ package io.gravitee.rest.api.service.impl;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.argThat;
@@ -81,13 +81,15 @@ import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import java.io.InputStream;
 import java.util.Set;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -95,7 +97,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiService_CreateWithDefinitionTest {
 
     private static final ObjectMapper MAPPER = new GraviteeMapper();
@@ -176,7 +179,7 @@ public class ApiService_CreateWithDefinitionTest {
     @Mock
     private ApiCategoryService apiCategoryService;
 
-    @AfterClass
+    @AfterAll
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
         SecurityContextHolder.setContext(
@@ -192,7 +195,7 @@ public class ApiService_CreateWithDefinitionTest {
         );
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         final SecurityContext securityContext = mock(SecurityContext.class);
         final Authentication authentication = mock(Authentication.class);
@@ -409,38 +412,42 @@ public class ApiService_CreateWithDefinitionTest {
         return MAPPER.readTree(resourceAsStream);
     }
 
-    @Test(expected = EndpointNameAlreadyExistsException.class)
+    @Test
     public void shouldNotCreateApiBecauseOfEndpointGroupAndInnerEndpointHaveSameName() throws TechnicalException {
-        Endpoint endpoint = Endpoint.builder().name("endpointGroupName").build();
-        EndpointGroup endpointGroup = EndpointGroup.builder().name("endpointGroupName").endpoints(singleton(endpoint)).build();
-        Proxy proxy = Proxy.builder().groups(singleton(endpointGroup)).virtualHosts(singletonList(new VirtualHost("/context"))).build();
+        assertThrows(EndpointNameAlreadyExistsException.class, () -> {
+            Endpoint endpoint = Endpoint.builder().name("endpointGroupName").build();
+            EndpointGroup endpointGroup = EndpointGroup.builder().name("endpointGroupName").endpoints(singleton(endpoint)).build();
+            Proxy proxy = Proxy.builder().groups(singleton(endpointGroup)).virtualHosts(singletonList(new VirtualHost("/context"))).build();
 
-        UpdateApiEntity api = new UpdateApiEntity();
-        api.setProxy(proxy);
-        api.setVersion("1.0");
-        api.setName("tag test basic");
-        api.setDescription("tag test basic example");
+            UpdateApiEntity api = new UpdateApiEntity();
+            api.setProxy(proxy);
+            api.setVersion("1.0");
+            api.setName("tag test basic");
+            api.setDescription("tag test basic example");
 
-        apiService.createWithApiDefinition(GraviteeContext.getExecutionContext(), api, USERNAME, null);
+            apiService.createWithApiDefinition(GraviteeContext.getExecutionContext(), api, USERNAME, null);
+        });
     }
 
-    @Test(expected = EndpointGroupNameAlreadyExistsException.class)
+    @Test
     public void shouldNotCreateApiBecauseOfEndpointGroupAndEndpointOfAnotherGroupHaveSameName() throws TechnicalException {
-        Endpoint endpoint = Endpoint.builder().name("endpointName").build();
-        EndpointGroup endpointGroup = EndpointGroup.builder().name("endpointGroupName").endpoints(singleton(endpoint)).build();
-        Endpoint endpoint2 = Endpoint.builder().name("endpointGroupName").build();
-        EndpointGroup endpointGroup2 = EndpointGroup.builder().name("endpointName").endpoints(singleton(endpoint2)).build();
-        Proxy proxy = Proxy.builder()
-            .groups(Set.of(endpointGroup, endpointGroup2))
-            .virtualHosts(singletonList(new VirtualHost("/context")))
-            .build();
+        assertThrows(EndpointGroupNameAlreadyExistsException.class, () -> {
+            Endpoint endpoint = Endpoint.builder().name("endpointName").build();
+            EndpointGroup endpointGroup = EndpointGroup.builder().name("endpointGroupName").endpoints(singleton(endpoint)).build();
+            Endpoint endpoint2 = Endpoint.builder().name("endpointGroupName").build();
+            EndpointGroup endpointGroup2 = EndpointGroup.builder().name("endpointName").endpoints(singleton(endpoint2)).build();
+            Proxy proxy = Proxy.builder()
+                .groups(Set.of(endpointGroup, endpointGroup2))
+                .virtualHosts(singletonList(new VirtualHost("/context")))
+                .build();
 
-        UpdateApiEntity api = new UpdateApiEntity();
-        api.setProxy(proxy);
-        api.setVersion("1.0");
-        api.setName("tag test basic");
-        api.setDescription("tag test basic example");
+            UpdateApiEntity api = new UpdateApiEntity();
+            api.setProxy(proxy);
+            api.setVersion("1.0");
+            api.setName("tag test basic");
+            api.setDescription("tag test basic example");
 
-        apiService.createWithApiDefinition(GraviteeContext.getExecutionContext(), api, USERNAME, null);
+            apiService.createWithApiDefinition(GraviteeContext.getExecutionContext(), api, USERNAME, null);
+        });
     }
 }

@@ -58,14 +58,16 @@ import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -74,7 +76,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiStateServiceImpl_IsSynchronizedTest {
 
     private final ObjectMapper objectMapper = new GraviteeMapper();
@@ -145,7 +148,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
 
     private ApiStateService apiStateService;
 
-    @AfterClass
+    @AfterAll
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
         SecurityContextHolder.setContext(
@@ -161,7 +164,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         );
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(

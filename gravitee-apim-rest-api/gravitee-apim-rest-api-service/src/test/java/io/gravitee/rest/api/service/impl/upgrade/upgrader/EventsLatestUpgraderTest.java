@@ -17,7 +17,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -49,20 +49,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class EventsLatestUpgraderTest {
 
     @Mock
@@ -86,7 +89,7 @@ public class EventsLatestUpgraderTest {
     @Captor
     private ArgumentCaptor<Event> eventCaptor;
 
-    @Before
+    @BeforeEach
     public void before() {
         cut = new EventsLatestUpgrader(
             apiRepository,
@@ -98,14 +101,16 @@ public class EventsLatestUpgraderTest {
         );
     }
 
-    @Test(expected = UpgraderException.class)
-    public void upgrade_should_failed_because_of_exception() throws TechnicalException, UpgraderException {
-        when(apiRepository.searchIds(any(), any(), any())).thenThrow(new RuntimeException());
+    @Test
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+        assertThrows(UpgraderException.class, () -> {
+            when(apiRepository.searchIds(any(), any(), any())).thenThrow(new RuntimeException());
 
-        cut.upgrade();
+            cut.upgrade();
 
-        verify(apiRepository, times(1)).searchIds(any(), any(), any());
-        verifyNoMoreInteractions(apiRepository);
+            verify(apiRepository, times(1)).searchIds(any(), any(), any());
+            verifyNoMoreInteractions(apiRepository);
+        });
     }
 
     @Test
@@ -327,6 +332,6 @@ public class EventsLatestUpgraderTest {
 
     @Test
     public void test_order() {
-        Assert.assertEquals(UpgraderOrder.EVENTS_LATEST_UPGRADER, cut.getOrder());
+        Assertions.assertEquals(UpgraderOrder.EVENTS_LATEST_UPGRADER, cut.getOrder());
     }
 }

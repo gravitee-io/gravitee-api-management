@@ -15,7 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
@@ -24,18 +25,21 @@ import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class PageService_FindMaxPageOrderByApiTest {
 
     private static final String API_ID = "myAPI";
@@ -60,10 +64,14 @@ public class PageService_FindMaxPageOrderByApiTest {
         assertEquals(0, pageService.findMaxApiPageOrderByApi(API_ID));
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotFindMaxPageOrderByApiNameBecauseTechnicalException() throws TechnicalException {
-        doThrow(TechnicalException.class).when(pageRepository).findMaxPageReferenceIdAndReferenceTypeOrder(API_ID, PageReferenceType.API);
+        assertThrows(TechnicalManagementException.class, () -> {
+            doThrow(TechnicalException.class)
+                .when(pageRepository)
+                .findMaxPageReferenceIdAndReferenceTypeOrder(API_ID, PageReferenceType.API);
 
-        pageService.findMaxApiPageOrderByApi(API_ID);
+            pageService.findMaxApiPageOrderByApi(API_ID);
+        });
     }
 }

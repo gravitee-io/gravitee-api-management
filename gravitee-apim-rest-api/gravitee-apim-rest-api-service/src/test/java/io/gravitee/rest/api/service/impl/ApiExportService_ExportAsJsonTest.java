@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
@@ -30,16 +29,19 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Azize Elamrani (azize.elamrani at graviteesource.com)
  * @author Nicolas Geraud (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@MockitoSettings(strictness = Strictness.WARN)
+@ExtendWith(MockitoExtension.class)
 public class ApiExportService_ExportAsJsonTest extends ApiExportService_ExportAsJsonTestSetup {
 
     @Test

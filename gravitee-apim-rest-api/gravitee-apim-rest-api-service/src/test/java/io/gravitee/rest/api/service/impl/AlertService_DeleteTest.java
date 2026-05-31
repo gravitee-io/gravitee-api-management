@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,44 +27,53 @@ import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
 import io.gravitee.rest.api.service.exceptions.AlertNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Optional;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@MockitoSettings(strictness = Strictness.WARN)
+@ExtendWith(MockitoExtension.class)
 public class AlertService_DeleteTest extends AlertServiceTest {
 
-    @Test(expected = AlertNotFoundException.class)
+    @Test
     public void delete_should_throw_AlertNotFoundException_cause_alert_not_found() throws TechnicalException, JsonProcessingException {
-        final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
+        assertThrows(AlertNotFoundException.class, () -> {
+            final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
 
-        when(alertTriggerRepository.findById(alert.getId())).thenReturn(Optional.empty());
+            when(alertTriggerRepository.findById(alert.getId())).thenReturn(Optional.empty());
 
-        alertService.delete(alert.getId(), alert.getReferenceId());
+            alertService.delete(alert.getId(), alert.getReferenceId());
+        });
     }
 
-    @Test(expected = AlertNotFoundException.class)
+    @Test
     public void delete_should_throw_AlertNotFoundException_cause_alert_found_with_different_referenceId()
         throws TechnicalException, JsonProcessingException {
-        final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
-        final AlertTrigger alertTrigger = getAlertTriggerFromNew(alert);
-        alertTrigger.setReferenceId("another-ref-id");
-        when(alertTriggerRepository.findById(alert.getId())).thenReturn(Optional.of(alertTrigger));
+        assertThrows(AlertNotFoundException.class, () -> {
+            final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
+            final AlertTrigger alertTrigger = getAlertTriggerFromNew(alert);
+            alertTrigger.setReferenceId("another-ref-id");
+            when(alertTriggerRepository.findById(alert.getId())).thenReturn(Optional.of(alertTrigger));
 
-        alertService.delete(alert.getId(), alert.getReferenceId());
+            alertService.delete(alert.getId(), alert.getReferenceId());
+        });
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void delete_should_throw_TechnicalManagementException_cause_technicalException_thrown()
         throws TechnicalException, JsonProcessingException {
-        final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
+        assertThrows(TechnicalManagementException.class, () -> {
+            final NewAlertTriggerEntity alert = getNewAlertTriggerEntity();
 
-        when(alertTriggerRepository.findById(alert.getId())).thenThrow(TechnicalException.class);
+            when(alertTriggerRepository.findById(alert.getId())).thenThrow(TechnicalException.class);
 
-        alertService.delete(alert.getId(), alert.getReferenceId());
+            alertService.delete(alert.getId(), alert.getReferenceId());
+        });
     }
 
     @Test
@@ -80,32 +90,36 @@ public class AlertService_DeleteTest extends AlertServiceTest {
         verify(triggerProvider, times(1)).unregister(argThat(trigger -> trigger.getId().equals(alertTrigger.getId())));
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void must_throw_TechnicalManagementException_delete_alert_trigger_entity_with_email_notifier_definition_and_disable_trigger()
         throws TechnicalException {
-        final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
+        assertThrows(TechnicalManagementException.class, () -> {
+            final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
 
-        when(alertTriggerRepository.findById(any())).thenThrow(new TechnicalException("An unexpected error has occurred"));
+            when(alertTriggerRepository.findById(any())).thenThrow(new TechnicalException("An unexpected error has occurred"));
 
-        alertService.delete(alert.getId(), alert.getReferenceId());
+            alertService.delete(alert.getId(), alert.getReferenceId());
 
-        verify(alertTriggerRepository, times(0)).delete(eq(alert.getId()));
-        verify(alertEventRepository, times(0)).deleteAll(eq(alert.getId()));
-        verify(triggerProvider, times(0)).unregister(any(Trigger.class));
+            verify(alertTriggerRepository, times(0)).delete(eq(alert.getId()));
+            verify(alertEventRepository, times(0)).deleteAll(eq(alert.getId()));
+            verify(triggerProvider, times(0)).unregister(any(Trigger.class));
+        });
     }
 
-    @Test(expected = AlertNotFoundException.class)
+    @Test
     public void must_throw_AlertNotFoundException_delete_alert_trigger_entity_with_email_notifier_definition_and_disable_trigger()
         throws TechnicalException {
-        final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
+        assertThrows(AlertNotFoundException.class, () -> {
+            final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
 
-        when(alertTriggerRepository.findById(any())).thenReturn(Optional.empty());
+            when(alertTriggerRepository.findById(any())).thenReturn(Optional.empty());
 
-        alertService.delete(alert.getId(), alert.getReferenceId());
+            alertService.delete(alert.getId(), alert.getReferenceId());
 
-        verify(alertTriggerRepository, times(0)).delete(eq(alert.getId()));
-        verify(alertEventRepository, times(0)).deleteAll(eq(alert.getId()));
-        verify(triggerProvider, times(0)).unregister(any(Trigger.class));
+            verify(alertTriggerRepository, times(0)).delete(eq(alert.getId()));
+            verify(alertEventRepository, times(0)).deleteAll(eq(alert.getId()));
+            verify(triggerProvider, times(0)).unregister(any(Trigger.class));
+        });
     }
 
     @Test

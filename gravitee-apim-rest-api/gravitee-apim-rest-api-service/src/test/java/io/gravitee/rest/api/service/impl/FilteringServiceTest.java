@@ -18,8 +18,8 @@ package io.gravitee.rest.api.service.impl;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -44,13 +44,15 @@ import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.*;
 import org.jetbrains.annotations.NotNull;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -59,7 +61,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class FilteringServiceTest {
 
     private static Set<String> mockApis;
@@ -88,7 +91,7 @@ public class FilteringServiceTest {
     @InjectMocks
     private FilteringServiceImpl filteringService = new FilteringServiceImpl();
 
-    @AfterClass
+    @AfterAll
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
         SecurityContextHolder.setContext(
@@ -104,7 +107,7 @@ public class FilteringServiceTest {
         );
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void initAllTest() {
         ApiEntity publishedApi1 = new ApiEntity();
         publishedApi1.setLifecycleState(ApiLifecycleState.PUBLISHED);

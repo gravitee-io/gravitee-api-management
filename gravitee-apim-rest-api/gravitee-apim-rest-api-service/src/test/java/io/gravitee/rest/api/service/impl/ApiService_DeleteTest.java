@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.definition.model.DefinitionContext.ORIGIN_MANAGEMENT;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,20 +46,23 @@ import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import java.util.Collections;
 import java.util.Optional;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiService_DeleteTest {
 
     private static final String API_ID = "id-api";
@@ -134,7 +138,7 @@ public class ApiService_DeleteTest {
     private Api api;
     private PlanEntity planEntity;
 
-    @Before
+    @BeforeEach
     public void setUp() throws TechnicalException {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(
@@ -150,11 +154,13 @@ public class ApiService_DeleteTest {
         lenient().when(planService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.singleton(planEntity));
     }
 
-    @Test(expected = ApiRunningStateException.class)
+    @Test
     public void shouldNotDeleteBecauseRunningState() throws TechnicalException {
-        api.setLifecycleState(LifecycleState.STARTED);
-        api.setOrigin(ORIGIN_MANAGEMENT);
-        apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
+        assertThrows(ApiRunningStateException.class, () -> {
+            api.setLifecycleState(LifecycleState.STARTED);
+            api.setOrigin(ORIGIN_MANAGEMENT);
+            apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
+        });
     }
 
     @Test
@@ -169,13 +175,15 @@ public class ApiService_DeleteTest {
         verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, null);
     }
 
-    @Test(expected = ApiNotDeletableException.class)
+    @Test
     public void shouldNotDeleteBecausePlanNotClosed() throws TechnicalException {
-        api.setLifecycleState(LifecycleState.STOPPED);
-        planEntity.setStatus(PlanStatus.PUBLISHED);
+        assertThrows(ApiNotDeletableException.class, () -> {
+            api.setLifecycleState(LifecycleState.STOPPED);
+            planEntity.setStatus(PlanStatus.PUBLISHED);
 
-        apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
-        verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
+            apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
+            verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
+        });
     }
 
     @Test

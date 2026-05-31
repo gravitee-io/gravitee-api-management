@@ -30,16 +30,17 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import java.util.Set;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class SearchSubscriptionsUseCaseTest {
 
     private static final String REFERENCE_ID = "ref-id";
@@ -52,20 +53,11 @@ class SearchSubscriptionsUseCaseTest {
     @Captor
     private ArgumentCaptor<SubscriptionReferenceType> referenceTypeCaptor;
 
-    private AutoCloseable mocks;
     private SearchSubscriptionsUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        mocks = MockitoAnnotations.openMocks(this);
         useCase = new SearchSubscriptionsUseCase(subscriptionSearchQueryService);
-    }
-
-    @AfterEach
-    void tearDown() throws Exception {
-        if (mocks != null) {
-            mocks.close();
-        }
     }
 
     @ParameterizedTest

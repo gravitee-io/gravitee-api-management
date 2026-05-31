@@ -15,9 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.eq;
@@ -74,15 +73,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.AdditionalAnswers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -93,7 +94,8 @@ import org.springframework.security.core.context.SecurityContextImpl;
  * @author Nicolas Geraud (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiDuplicatorService_CreateWithDefinitionTest {
 
     private static final String API_ID = "id-api";
@@ -153,7 +155,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
     @Mock
     private CategoryMapper categoryMapper;
 
-    @Before
+    @BeforeEach
     public void mockAuthenticatedUser() {
         final Authentication authentication = mock(Authentication.class);
         final UserDetails userDetails = new UserDetails("admin", "PASSWORD", Collections.emptyList());
@@ -162,7 +164,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         GraviteeContext.cleanContext();
     }
 
-    @AfterClass
+    @AfterAll
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
         SecurityContextHolder.setContext(

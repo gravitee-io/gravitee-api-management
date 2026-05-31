@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Charsets;
@@ -32,17 +32,20 @@ import io.swagger.v3.core.util.Json;
 import io.swagger.v3.core.util.Yaml;
 import java.io.IOException;
 import java.net.URL;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class SwaggerService_ParseTest {
 
     @InjectMocks
@@ -182,12 +185,14 @@ public class SwaggerService_ParseTest {
         assertEquals("attribute info.title is missing", descriptor.getMessages().get(0));
     }
 
-    @Test(expected = UrlForbiddenException.class)
+    @Test
     public void shouldThrowUrlForbiddenException() {
-        PageEntity pageEntity = new PageEntity();
-        pageEntity.setContent("http://localhost");
+        assertThrows(UrlForbiddenException.class, () -> {
+            PageEntity pageEntity = new PageEntity();
+            pageEntity.setContent("http://localhost");
 
-        swaggerService.parse(pageEntity.getContent(), false);
+            swaggerService.parse(pageEntity.getContent(), false);
+        });
     }
 
     private void validateV3(JsonNode node) {

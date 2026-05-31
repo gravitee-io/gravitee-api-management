@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,18 +43,21 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import org.assertj.core.api.Assertions;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.context.ApplicationContext;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiExportService_ExportAsCustomResourceTest extends ApiExportService_ExportAsJsonTestSetup {
 
     @Mock
@@ -104,7 +107,7 @@ public class ApiExportService_ExportAsCustomResourceTest extends ApiExportServic
     private static final String GRAVITEE_FETCHER_TYPE = "graviteeio/fetcher_type";
 
     @Override
-    @Before
+    @BeforeEach
     public void setUp() throws io.gravitee.repository.exceptions.TechnicalException {
         GraviteeContext.setCurrentEnvironment("DEFAULT");
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();

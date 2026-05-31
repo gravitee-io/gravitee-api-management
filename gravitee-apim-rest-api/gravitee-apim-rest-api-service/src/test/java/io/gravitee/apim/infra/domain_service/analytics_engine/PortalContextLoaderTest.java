@@ -44,8 +44,9 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -55,6 +56,7 @@ import org.springframework.security.core.context.SecurityContextImpl;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+@ExtendWith(MockitoExtension.class)
 class PortalContextLoaderTest {
 
     @Mock
@@ -70,7 +72,6 @@ class PortalContextLoaderTest {
     private Authentication authentication;
 
     private PortalContextLoader contextLoader;
-    private AutoCloseable closeable;
 
     private static final String ENV_ID = "DEFAULT";
     private static final String ORG_ID = "DEFAULT";
@@ -84,13 +85,11 @@ class PortalContextLoaderTest {
 
     @BeforeEach
     void setUp() {
-        closeable = MockitoAnnotations.openMocks(this);
         contextLoader = new PortalContextLoader(visibilityDomainService, apiRepository, applicationService);
     }
 
     @AfterEach
     void tearDown() throws Exception {
-        closeable.close();
         SecurityContextHolder.clearContext();
     }
 

@@ -51,13 +51,16 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Rémi SULTAN (remi.sultan at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
 public class AlertServiceTest {
 
     protected final ObjectMapper objectMapper = new ObjectMapper();
@@ -109,7 +112,7 @@ public class AlertServiceTest {
 
     protected ExecutionContext executionContext = new ExecutionContext("DEFAULT", "DEFAULT");
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         alertService = getAlertService();
         alertService.afterPropertiesSet();

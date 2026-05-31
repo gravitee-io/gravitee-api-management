@@ -17,8 +17,8 @@ package io.gravitee.rest.api.service.impl;
 
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -37,16 +37,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.assertj.core.util.Sets;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class PortalNotificationConfigService_FindByIdTest {
 
     @Mock
@@ -60,7 +63,7 @@ public class PortalNotificationConfigService_FindByIdTest {
 
     private PortalNotificationConfigServiceImpl underTest;
 
-    @Before
+    @BeforeEach
     public void setup() {
         underTest = new PortalNotificationConfigServiceImpl(portalNotificationConfigRepository, membershipService, groupService);
     }
@@ -77,10 +80,10 @@ public class PortalNotificationConfigService_FindByIdTest {
         final PortalNotificationConfigEntity entity = underTest.findById("user", NotificationReferenceType.API, "123");
 
         assertNotNull(entity);
-        assertEquals("referenceId", cfg.getReferenceId(), entity.getReferenceId());
-        assertEquals("referenceType", cfg.getReferenceType().name(), entity.getReferenceType());
-        assertEquals("user", cfg.getUser(), entity.getUser());
-        assertEquals("hooks", cfg.getHooks(), entity.getHooks());
+        assertEquals(cfg.getReferenceId(), entity.getReferenceId(), "referenceId");
+        assertEquals(cfg.getReferenceType().name(), entity.getReferenceType(), "referenceType");
+        assertEquals(cfg.getUser(), entity.getUser(), "user");
+        assertEquals(cfg.getHooks(), entity.getHooks(), "hooks");
         verify(portalNotificationConfigRepository, times(1)).findById("user", NotificationReferenceType.API, "123");
     }
 
@@ -112,12 +115,12 @@ public class PortalNotificationConfigService_FindByIdTest {
         var entity = underTest.findById("user", NotificationReferenceType.API, "123");
 
         assertNotNull(entity);
-        assertEquals("referenceId", cfg.getReferenceId(), entity.getReferenceId());
-        assertEquals("referenceType", cfg.getReferenceType().name(), entity.getReferenceType());
-        assertEquals("user", cfg.getUser(), entity.getUser());
-        assertEquals("hooks", cfg.getHooks(), entity.getHooks());
-        assertNotNull("groupHooks", entity.getGroupHooks());
-        assertEquals("groupHooks", Set.of("A", "B", "C"), entity.getGroupHooks());
+        assertEquals(cfg.getReferenceId(), entity.getReferenceId(), "referenceId");
+        assertEquals(cfg.getReferenceType().name(), entity.getReferenceType(), "referenceType");
+        assertEquals(cfg.getUser(), entity.getUser(), "user");
+        assertEquals(cfg.getHooks(), entity.getHooks(), "hooks");
+        assertNotNull(entity.getGroupHooks(), "groupHooks");
+        assertEquals(Set.of("A", "B", "C"), entity.getGroupHooks(), "groupHooks");
         verify(portalNotificationConfigRepository, times(1)).findById("user", NotificationReferenceType.API, "123");
     }
 
@@ -135,12 +138,12 @@ public class PortalNotificationConfigService_FindByIdTest {
         var entity = underTest.findById("user", NotificationReferenceType.APPLICATION, "123");
 
         assertNotNull(entity);
-        assertEquals("referenceId", cfg.getReferenceId(), entity.getReferenceId());
-        assertEquals("referenceType", cfg.getReferenceType().name(), entity.getReferenceType());
-        assertEquals("user", cfg.getUser(), entity.getUser());
-        assertEquals("hooks", cfg.getHooks(), entity.getHooks());
-        assertNotNull("groupHooks", entity.getGroupHooks());
-        assertEquals("groupHooks", Set.of(), entity.getGroupHooks());
+        assertEquals(cfg.getReferenceId(), entity.getReferenceId(), "referenceId");
+        assertEquals(cfg.getReferenceType().name(), entity.getReferenceType(), "referenceType");
+        assertEquals(cfg.getUser(), entity.getUser(), "user");
+        assertEquals(cfg.getHooks(), entity.getHooks(), "hooks");
+        assertNotNull(entity.getGroupHooks(), "groupHooks");
+        assertEquals(Set.of(), entity.getGroupHooks(), "groupHooks");
 
         verify(portalNotificationConfigRepository, times(1)).findById("user", NotificationReferenceType.APPLICATION, "123");
         verify(membershipService, never()).getPrimaryOwnerUserId(anyString(), any(MembershipReferenceType.class), anyString());
@@ -154,10 +157,10 @@ public class PortalNotificationConfigService_FindByIdTest {
         final PortalNotificationConfigEntity entity = underTest.findById("user", NotificationReferenceType.API, "123");
 
         assertNotNull(entity);
-        assertEquals("referenceId", "123", entity.getReferenceId());
-        assertEquals("referenceType", NotificationReferenceType.API.name(), entity.getReferenceType());
-        assertEquals("user", "user", entity.getUser());
-        assertEquals("hooks", Collections.emptyList(), entity.getHooks());
+        assertEquals("123", entity.getReferenceId(), "referenceId");
+        assertEquals(NotificationReferenceType.API.name(), entity.getReferenceType(), "referenceType");
+        assertEquals("user", entity.getUser(), "user");
+        assertEquals(Collections.emptyList(), entity.getHooks(), "hooks");
         verify(portalNotificationConfigRepository, times(1)).findById("user", NotificationReferenceType.API, "123");
     }
 }

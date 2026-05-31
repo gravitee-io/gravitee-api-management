@@ -45,20 +45,23 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApplicationService_FindByUserTest {
 
     private static final String APPLICATION_ID = "id-app";
@@ -102,7 +105,7 @@ public class ApplicationService_FindByUserTest {
     @Mock
     private io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService clientCertificateCrudService;
 
-    @After
+    @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
     }
@@ -138,17 +141,17 @@ public class ApplicationService_FindByUserTest {
 
         Set<ApplicationListItem> apps = applicationService.findByUser(GraviteeContext.getExecutionContext(), USERNAME);
 
-        Assert.assertNotNull(apps);
-        Assert.assertFalse("should find app", apps.isEmpty());
-        Assert.assertEquals(APPLICATION_ID, apps.iterator().next().getId());
+        Assertions.assertNotNull(apps);
+        Assertions.assertFalse(apps.isEmpty(), "should find app");
+        Assertions.assertEquals(APPLICATION_ID, apps.iterator().next().getId());
     }
 
     @Test
     public void shouldNotFindByUserBecauseOfArchived() {
         Set<ApplicationListItem> apps = applicationService.findByUser(GraviteeContext.getExecutionContext(), USERNAME);
 
-        Assert.assertNotNull(apps);
-        Assert.assertTrue("should not find app", apps.isEmpty());
+        Assertions.assertNotNull(apps);
+        Assertions.assertTrue(apps.isEmpty(), "should not find app");
     }
 
     @Test
@@ -207,9 +210,9 @@ public class ApplicationService_FindByUserTest {
 
         Set<ApplicationListItem> apps = applicationService.findByUser(GraviteeContext.getExecutionContext(), USERNAME);
 
-        Assert.assertNotNull(apps);
-        Assert.assertFalse("should find apps", apps.isEmpty());
-        Assert.assertEquals(2, apps.size());
+        Assertions.assertNotNull(apps);
+        Assertions.assertFalse(apps.isEmpty(), "should find apps");
+        Assertions.assertEquals(2, apps.size());
     }
 
     @Test
@@ -248,9 +251,9 @@ public class ApplicationService_FindByUserTest {
             new SortableImpl("name", true)
         );
 
-        Assert.assertNotNull(apps);
-        Assert.assertFalse("should find app", apps.isEmpty());
-        Assert.assertEquals(APPLICATION_ID, apps.iterator().next().getId());
+        Assertions.assertNotNull(apps);
+        Assertions.assertFalse(apps.isEmpty(), "should find app");
+        Assertions.assertEquals(APPLICATION_ID, apps.iterator().next().getId());
     }
 
     @Test
@@ -277,9 +280,9 @@ public class ApplicationService_FindByUserTest {
 
         Set<String> apps = applicationService.findIdsByUser(GraviteeContext.getExecutionContext(), USERNAME);
 
-        Assert.assertNotNull(apps);
-        Assert.assertFalse("should find app", apps.isEmpty());
-        Assert.assertEquals(APPLICATION_ID, apps.iterator().next());
+        Assertions.assertNotNull(apps);
+        Assertions.assertFalse(apps.isEmpty(), "should find app");
+        Assertions.assertEquals(APPLICATION_ID, apps.iterator().next());
     }
 
     @Test
@@ -312,8 +315,8 @@ public class ApplicationService_FindByUserTest {
             RolePermissionAction.READ
         );
 
-        Assert.assertNotNull(apps);
-        Assert.assertFalse("should find app", apps.isEmpty());
-        Assert.assertEquals(APPLICATION_ID, apps.iterator().next());
+        Assertions.assertNotNull(apps);
+        Assertions.assertFalse(apps.isEmpty(), "should find app");
+        Assertions.assertEquals(APPLICATION_ID, apps.iterator().next());
     }
 }

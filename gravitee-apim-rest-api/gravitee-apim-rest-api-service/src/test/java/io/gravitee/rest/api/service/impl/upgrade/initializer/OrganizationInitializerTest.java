@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.initializer;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -24,17 +24,20 @@ import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Set;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class OrganizationInitializerTest {
 
     @InjectMocks

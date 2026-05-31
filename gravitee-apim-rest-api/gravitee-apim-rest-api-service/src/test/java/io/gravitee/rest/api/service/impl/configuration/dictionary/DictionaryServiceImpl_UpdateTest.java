@@ -16,7 +16,8 @@
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
 import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_UPDATED;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
@@ -40,13 +41,16 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class DictionaryServiceImpl_UpdateTest {
 
     private static final String ENVIRONMENT_ID = GraviteeContext.getCurrentEnvironment();
@@ -192,26 +196,30 @@ public class DictionaryServiceImpl_UpdateTest {
         );
     }
 
-    @Test(expected = DictionaryNotFoundException.class)
+    @Test
     public void shouldNotUpdateBecauseDoesNotBelongToEnvironment() throws TechnicalException {
-        Dictionary dictionaryInDb = new Dictionary();
-        dictionaryInDb.setId(DICTIONARY_ID);
-        dictionaryInDb.setCreatedAt(new Date());
-        dictionaryInDb.setState(LifecycleState.STARTED);
-        dictionaryInDb.setEnvironmentId("Another_environment");
-        when(dictionaryRepository.findById(dictionaryInDb.getId())).thenReturn(Optional.of(dictionaryInDb));
+        assertThrows(DictionaryNotFoundException.class, () -> {
+            Dictionary dictionaryInDb = new Dictionary();
+            dictionaryInDb.setId(DICTIONARY_ID);
+            dictionaryInDb.setCreatedAt(new Date());
+            dictionaryInDb.setState(LifecycleState.STARTED);
+            dictionaryInDb.setEnvironmentId("Another_environment");
+            when(dictionaryRepository.findById(dictionaryInDb.getId())).thenReturn(Optional.of(dictionaryInDb));
 
-        UpdateDictionaryEntity updateDictionaryEntity = new UpdateDictionaryEntity();
-        updateDictionaryEntity.setName("UpdatedName");
-        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
+            UpdateDictionaryEntity updateDictionaryEntity = new UpdateDictionaryEntity();
+            updateDictionaryEntity.setName("UpdatedName");
+            dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
+        });
     }
 
-    @Test(expected = DictionaryNotFoundException.class)
+    @Test
     public void shouldNotUpdateBecauseNotFound() throws TechnicalException {
-        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.empty());
+        assertThrows(DictionaryNotFoundException.class, () -> {
+            when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.empty());
 
-        UpdateDictionaryEntity updateDictionaryEntity = new UpdateDictionaryEntity();
-        updateDictionaryEntity.setName("UpdatedName");
-        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
+            UpdateDictionaryEntity updateDictionaryEntity = new UpdateDictionaryEntity();
+            updateDictionaryEntity.setName("UpdatedName");
+            dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
+        });
     }
 }

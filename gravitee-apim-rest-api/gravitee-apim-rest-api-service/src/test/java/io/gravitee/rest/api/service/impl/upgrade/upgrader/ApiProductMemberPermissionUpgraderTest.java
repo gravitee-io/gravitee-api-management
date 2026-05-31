@@ -20,6 +20,7 @@ import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_API_PRODUCT_OWNER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_API_PRODUCT_USER;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -44,15 +45,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiProductMemberPermissionUpgraderTest {
 
     @InjectMocks
@@ -74,10 +78,12 @@ public class ApiProductMemberPermissionUpgraderTest {
         );
     }
 
-    @Test(expected = UpgraderException.class)
-    public void upgrade_should_fail_when_organization_repository_throws() throws TechnicalException, UpgraderException {
-        when(organizationRepository.findAll()).thenThrow(new RuntimeException("db error"));
-        upgrader.upgrade();
+    @Test
+    public void upgrade_should_fail_when_organization_repository_throws() throws TechnicalException {
+        assertThrows(UpgraderException.class, () -> {
+            when(organizationRepository.findAll()).thenThrow(new RuntimeException("db error"));
+            upgrader.upgrade();
+        });
     }
 
     @Test
@@ -248,7 +254,7 @@ public class ApiProductMemberPermissionUpgraderTest {
 
     @Test
     public void getOrder_matches_api_product_member_permission_upgrader() {
-        Assert.assertEquals(UpgraderOrder.API_PRODUCT_MEMBER_PERMISSION_UPGRADER, upgrader.getOrder());
+        Assertions.assertEquals(UpgraderOrder.API_PRODUCT_MEMBER_PERMISSION_UPGRADER, upgrader.getOrder());
     }
 
     private static RoleEntity roleWithoutMember(String id, String name, Map<String, char[]> fullPermissions) {

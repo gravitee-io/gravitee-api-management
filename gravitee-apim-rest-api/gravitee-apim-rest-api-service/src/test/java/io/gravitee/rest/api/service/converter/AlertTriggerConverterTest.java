@@ -17,7 +17,7 @@ package io.gravitee.rest.api.service.converter;
 
 import static io.gravitee.repository.management.model.AlertEventType.API_CREATE;
 import static io.gravitee.repository.management.model.AlertEventType.APPLICATION_CREATE;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -36,13 +36,16 @@ import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class AlertTriggerConverterTest {
 
     @InjectMocks

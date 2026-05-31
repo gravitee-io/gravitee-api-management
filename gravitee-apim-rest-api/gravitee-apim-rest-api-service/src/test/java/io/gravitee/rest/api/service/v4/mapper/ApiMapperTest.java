@@ -69,17 +69,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiMapperTest {
 
     private ApiMapper apiMapper;
@@ -104,7 +107,7 @@ public class ApiMapperTest {
 
     private ObjectMapper objectMapper;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         objectMapper = new ObjectMapper();
         apiMapper = new ApiMapper(objectMapper, planService, flowService, parameterService, workflowService, categoryMapper);

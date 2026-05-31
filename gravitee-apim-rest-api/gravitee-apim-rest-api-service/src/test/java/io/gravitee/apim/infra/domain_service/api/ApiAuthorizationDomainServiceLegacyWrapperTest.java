@@ -16,7 +16,6 @@
 package io.gravitee.apim.infra.domain_service.api;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.apim.core.api.model.ApiQueryCriteria;

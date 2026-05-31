@@ -17,7 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Category.AuditEvent.CATEGORY_UPDATED;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -32,18 +32,21 @@ import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class CategoryService_UpdateTest {
 
     @InjectMocks
@@ -72,19 +75,21 @@ public class CategoryService_UpdateTest {
         );
     }
 
-    @Test(expected = CategoryNotFoundException.class)
+    @Test
     public void shouldNotUpdateUnknownCategory_single_mode() throws TechnicalException {
-        UpdateCategoryEntity mockCategory = mock(UpdateCategoryEntity.class);
-        when(mockCategoryRepository.findById("unknown")).thenReturn(Optional.empty());
+        assertThrows(CategoryNotFoundException.class, () -> {
+            UpdateCategoryEntity mockCategory = mock(UpdateCategoryEntity.class);
+            when(mockCategoryRepository.findById("unknown")).thenReturn(Optional.empty());
 
-        categoryService.update(GraviteeContext.getExecutionContext(), "unknown", mockCategory);
+            categoryService.update(GraviteeContext.getExecutionContext(), "unknown", mockCategory);
 
-        verify(mockCategoryRepository, times(1)).findById(any());
-        verify(mockCategoryRepository, never()).update(any());
-        verify(mockAuditService, never()).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(auditLogData -> auditLogData.getEvent().equals(CATEGORY_UPDATED))
-        );
+            verify(mockCategoryRepository, times(1)).findById(any());
+            verify(mockCategoryRepository, never()).update(any());
+            verify(mockAuditService, never()).createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(auditLogData -> auditLogData.getEvent().equals(CATEGORY_UPDATED))
+            );
+        });
     }
 
     @Test
@@ -108,15 +113,15 @@ public class CategoryService_UpdateTest {
         List<CategoryEntity> list = categoryService.update(GraviteeContext.getExecutionContext(), singletonList(mockCategory));
 
         assertFalse(list.isEmpty());
-        assertEquals("one element", 1, list.size());
-        assertEquals("Id", "category-id", list.get(0).getId());
-        assertEquals("Name", "category-name", list.get(0).getName());
-        assertEquals("Description", "category-description", list.get(0).getDescription());
-        assertEquals("Total APIs", 0, list.get(0).getTotalApis());
-        assertEquals("Order", 1, list.get(0).getOrder());
-        assertEquals("Hidden", true, list.get(0).isHidden());
-        assertEquals("UpdatedAt", new Date(1234567890L), list.get(0).getUpdatedAt());
-        assertEquals("CreatedAt", new Date(9876543210L), list.get(0).getCreatedAt());
+        assertEquals(1, list.size(), "one element");
+        assertEquals("category-id", list.get(0).getId(), "Id");
+        assertEquals("category-name", list.get(0).getName(), "Name");
+        assertEquals("category-description", list.get(0).getDescription(), "Description");
+        assertEquals(0, list.get(0).getTotalApis(), "Total APIs");
+        assertEquals(1, list.get(0).getOrder(), "Order");
+        assertEquals(true, list.get(0).isHidden(), "Hidden");
+        assertEquals(new Date(1234567890L), list.get(0).getUpdatedAt(), "UpdatedAt");
+        assertEquals(new Date(9876543210L), list.get(0).getCreatedAt(), "CreatedAt");
         verify(mockCategoryRepository, times(1)).findById(any());
         verify(mockCategoryRepository, times(1)).update(any());
         verify(mockAuditService, times(1)).createAuditLog(
@@ -146,14 +151,14 @@ public class CategoryService_UpdateTest {
         CategoryEntity category = categoryService.update(GraviteeContext.getExecutionContext(), "category-id", mockCategory);
 
         assertNotNull(category);
-        assertEquals("Id", "category-id", category.getId());
-        assertEquals("Name", "category-name", category.getName());
-        assertEquals("Description", "category-description", category.getDescription());
-        assertEquals("Total APIs", 0, category.getTotalApis());
-        assertEquals("Order", 1, category.getOrder());
-        assertEquals("Hidden", true, category.isHidden());
-        assertEquals("UpdatedAt", new Date(1234567890L), category.getUpdatedAt());
-        assertEquals("CreatedAt", new Date(9876543210L), category.getCreatedAt());
+        assertEquals("category-id", category.getId(), "Id");
+        assertEquals("category-name", category.getName(), "Name");
+        assertEquals("category-description", category.getDescription(), "Description");
+        assertEquals(0, category.getTotalApis(), "Total APIs");
+        assertEquals(1, category.getOrder(), "Order");
+        assertEquals(true, category.isHidden(), "Hidden");
+        assertEquals(new Date(1234567890L), category.getUpdatedAt(), "UpdatedAt");
+        assertEquals(new Date(9876543210L), category.getCreatedAt(), "CreatedAt");
         verify(mockCategoryRepository, times(1)).findById(any());
         verify(mockCategoryRepository, times(1)).update(any());
         verify(mockAuditService, times(1)).createAuditLog(

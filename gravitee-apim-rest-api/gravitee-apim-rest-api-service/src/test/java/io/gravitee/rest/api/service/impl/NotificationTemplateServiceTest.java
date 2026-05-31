@@ -19,8 +19,7 @@ import static io.gravitee.repository.management.model.NotificationTemplate.Audit
 import static io.gravitee.repository.management.model.NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_UPDATED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.eq;
@@ -59,21 +58,24 @@ import java.util.Set;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.internal.util.collections.Sets;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class NotificationTemplateServiceTest {
 
     private static final String ORGANIZATION_ID = "ORG_ID";
@@ -119,7 +121,7 @@ public class NotificationTemplateServiceTest {
 
     NotificationTemplate notificationTemplate;
 
-    @Before
+    @BeforeEach
     public void init() {
         notificationTemplate = new NotificationTemplate();
         notificationTemplate.setId(NOTIFICATION_TEMPLATE_ID);
@@ -139,22 +141,26 @@ public class NotificationTemplateServiceTest {
         GraviteeContext.setCurrentOrganization(ORGANIZATION_ID);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
     }
 
-    @Test(expected = NotificationTemplateNotFoundException.class)
+    @Test
     public void shouldNotFindNotificationTemplate() throws TechnicalException {
-        when(notificationTemplateRepository.findById(NOTIFICATION_TEMPLATE_ID)).thenReturn(Optional.empty());
-        notificationTemplateService.findById(GraviteeContext.getCurrentOrganization(), NOTIFICATION_TEMPLATE_ID);
+        assertThrows(NotificationTemplateNotFoundException.class, () -> {
+            when(notificationTemplateRepository.findById(NOTIFICATION_TEMPLATE_ID)).thenReturn(Optional.empty());
+            notificationTemplateService.findById(GraviteeContext.getCurrentOrganization(), NOTIFICATION_TEMPLATE_ID);
+        });
     }
 
-    @Test(expected = NotificationTemplateNotFoundException.class)
+    @Test
     public void shouldNotFindNotificationTemplateBecauseDoesNotBelongToOrganization() throws TechnicalException {
-        notificationTemplate.setReferenceId("Another_organization");
-        when(notificationTemplateRepository.findById(NOTIFICATION_TEMPLATE_ID)).thenReturn(Optional.of(notificationTemplate));
-        notificationTemplateService.findById(GraviteeContext.getCurrentOrganization(), NOTIFICATION_TEMPLATE_ID);
+        assertThrows(NotificationTemplateNotFoundException.class, () -> {
+            notificationTemplate.setReferenceId("Another_organization");
+            when(notificationTemplateRepository.findById(NOTIFICATION_TEMPLATE_ID)).thenReturn(Optional.of(notificationTemplate));
+            notificationTemplateService.findById(GraviteeContext.getCurrentOrganization(), NOTIFICATION_TEMPLATE_ID);
+        });
     }
 
     @Test
@@ -279,32 +285,34 @@ public class NotificationTemplateServiceTest {
         assertThat(command.getTags()).containsExactly(CommandTags.EMAIL_TEMPLATE_UPDATE.name());
     }
 
-    @Test(expected = NotificationTemplateNotFoundException.class)
+    @Test
     public void shouldNotUpdateNotificationTemplateBecauseDoesNotBelongToOrganization() throws TechnicalException {
-        NotificationTemplateEntity updatingNotificationTemplateEntity = new NotificationTemplateEntity();
-        updatingNotificationTemplateEntity.setId(NOTIFICATION_TEMPLATE_ID);
-        updatingNotificationTemplateEntity.setName("New Name");
-        updatingNotificationTemplateEntity.setType(
-            io.gravitee.rest.api.model.notification.NotificationTemplateType.valueOf(NOTIFICATION_TEMPLATE_TYPE.name())
-        );
-        updatingNotificationTemplateEntity.setEnabled(NOTIFICATION_TEMPLATE_ENABLED);
+        assertThrows(NotificationTemplateNotFoundException.class, () -> {
+            NotificationTemplateEntity updatingNotificationTemplateEntity = new NotificationTemplateEntity();
+            updatingNotificationTemplateEntity.setId(NOTIFICATION_TEMPLATE_ID);
+            updatingNotificationTemplateEntity.setName("New Name");
+            updatingNotificationTemplateEntity.setType(
+                io.gravitee.rest.api.model.notification.NotificationTemplateType.valueOf(NOTIFICATION_TEMPLATE_TYPE.name())
+            );
+            updatingNotificationTemplateEntity.setEnabled(NOTIFICATION_TEMPLATE_ENABLED);
 
-        final NotificationTemplate toUpdate = mock(NotificationTemplate.class);
-        when(toUpdate.getReferenceType()).thenReturn(NotificationTemplateReferenceType.ORGANIZATION);
-        when(toUpdate.getReferenceId()).thenReturn("Another_organization");
-        when(notificationTemplateRepository.findById(NOTIFICATION_TEMPLATE_ID)).thenReturn(Optional.of(toUpdate));
+            final NotificationTemplate toUpdate = mock(NotificationTemplate.class);
+            when(toUpdate.getReferenceType()).thenReturn(NotificationTemplateReferenceType.ORGANIZATION);
+            when(toUpdate.getReferenceId()).thenReturn("Another_organization");
+            when(notificationTemplateRepository.findById(NOTIFICATION_TEMPLATE_ID)).thenReturn(Optional.of(toUpdate));
 
-        notificationTemplateService.update(GraviteeContext.getExecutionContext(), updatingNotificationTemplateEntity);
-        verify(notificationTemplateRepository, never()).update(any());
-        verify(auditService, never()).createOrganizationAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData ->
-                    auditLogData.getEvent().equals(NOTIFICATION_TEMPLATE_UPDATED) &&
-                    auditLogData.getOldValue().equals(toUpdate) &&
-                    auditLogData.getNewValue().equals(notificationTemplate)
-            )
-        );
+            notificationTemplateService.update(GraviteeContext.getExecutionContext(), updatingNotificationTemplateEntity);
+            verify(notificationTemplateRepository, never()).update(any());
+            verify(auditService, never()).createOrganizationAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(
+                    auditLogData ->
+                        auditLogData.getEvent().equals(NOTIFICATION_TEMPLATE_UPDATED) &&
+                        auditLogData.getOldValue().equals(toUpdate) &&
+                        auditLogData.getNewValue().equals(notificationTemplate)
+                )
+            );
+        });
     }
 
     @Test
@@ -319,14 +327,16 @@ public class NotificationTemplateServiceTest {
         assertThat(result).isEqualTo("# Hello world");
     }
 
-    @Test(expected = InvalidTemplateException.class)
+    @Test
     public void resolveInlineTemplateWithParamThrowsWhenTemplateIsInvalid() {
-        notificationTemplateService.resolveInlineTemplateWithParam(
-            ORGANIZATION_ID,
-            NOTIFICATION_TEMPLATE_NAME,
-            "# Hello ${metadata.[wrong]}",
-            Map.of("metadata", Map.of()),
-            false
+        assertThrows(InvalidTemplateException.class, () ->
+            notificationTemplateService.resolveInlineTemplateWithParam(
+                ORGANIZATION_ID,
+                NOTIFICATION_TEMPLATE_NAME,
+                "# Hello ${metadata.[wrong]}",
+                Map.of("metadata", Map.of()),
+                false
+            )
         );
     }
 
@@ -342,14 +352,16 @@ public class NotificationTemplateServiceTest {
         assertThat(result).isEqualTo("");
     }
 
-    @Test(expected = TemplateProcessingException.class)
+    @Test
     public void resolveInlineTemplateWithParamThrowsWhenTemplateEvaluateUnknownProperties() {
-        notificationTemplateService.resolveInlineTemplateWithParam(
-            ORGANIZATION_ID,
-            NOTIFICATION_TEMPLATE_NAME,
-            "# Hello ${metadata.wrong}",
-            Map.of("metadata", Map.of()),
-            false
+        assertThrows(TemplateProcessingException.class, () ->
+            notificationTemplateService.resolveInlineTemplateWithParam(
+                ORGANIZATION_ID,
+                NOTIFICATION_TEMPLATE_NAME,
+                "# Hello ${metadata.wrong}",
+                Map.of("metadata", Map.of()),
+                false
+            )
         );
     }
 

@@ -15,9 +15,7 @@
  */
 package io.gravitee.rest.api.service.cockpit.command.adapter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.cockpit.model.AccessPointTemplate;

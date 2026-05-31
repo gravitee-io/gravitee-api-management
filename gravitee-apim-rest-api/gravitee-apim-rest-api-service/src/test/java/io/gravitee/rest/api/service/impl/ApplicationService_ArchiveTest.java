@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.notNull;
 import static org.mockito.Mockito.times;
@@ -41,19 +42,22 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import java.util.Collections;
 import java.util.Optional;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApplicationService_ArchiveTest {
 
     private static final String APPLICATION_ID = "id-app";
@@ -126,10 +130,12 @@ public class ApplicationService_ArchiveTest {
         verify(applicationAlertService, times(1)).deleteAll(APPLICATION_ID);
     }
 
-    @Test(expected = ApplicationNotFoundException.class)
+    @Test
     public void shouldNotArchiveUnknownApp() throws Exception {
-        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.empty());
-        applicationService.archive(GraviteeContext.getExecutionContext(), APPLICATION_ID);
-        Assert.fail("should not archive unknown app");
+        assertThrows(ApplicationNotFoundException.class, () -> {
+            when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.empty());
+            applicationService.archive(GraviteeContext.getExecutionContext(), APPLICATION_ID);
+            Assertions.fail("should not archive unknown app");
+        });
     }
 }

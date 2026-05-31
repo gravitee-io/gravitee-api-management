@@ -20,7 +20,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.data.domain.Page;
@@ -44,13 +44,15 @@ import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.Date;
 import java.util.List;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -59,7 +61,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class RatingServiceTest {
 
     private static final String USER = "my-user";
@@ -113,7 +116,7 @@ public class RatingServiceTest {
     @Mock
     private NotifierService mockNotifierService;
 
-    @AfterClass
+    @AfterAll
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
         SecurityContextHolder.setContext(
@@ -129,7 +132,7 @@ public class RatingServiceTest {
         );
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         final Authentication authentication = mock(Authentication.class);
         when(authentication.getPrincipal()).thenReturn(new UserDetails(USER, "", emptyList()));
@@ -156,18 +159,20 @@ public class RatingServiceTest {
         ).thenReturn(Boolean.TRUE);
     }
 
-    @Test(expected = RatingAlreadyExistsException.class)
+    @Test
     public void shouldNotCreateBecauseAlreadyExists() throws TechnicalException {
-        when(newRatingEntity.getApi()).thenReturn(API_ID);
-        when(ratingRepository.findByReferenceIdAndReferenceTypeAndUser(API_ID, RatingReferenceType.API, USER)).thenReturn(of(rating));
+        assertThrows(RatingAlreadyExistsException.class, () -> {
+            when(newRatingEntity.getApi()).thenReturn(API_ID);
+            when(ratingRepository.findByReferenceIdAndReferenceTypeAndUser(API_ID, RatingReferenceType.API, USER)).thenReturn(of(rating));
 
-        ratingService.create(GraviteeContext.getExecutionContext(), newRatingEntity);
-        verify(mockNotifierService, never()).trigger(
-            eq(GraviteeContext.getExecutionContext()),
-            eq(ApiHook.NEW_RATING_ANSWER),
-            eq(API_ID),
-            any()
-        );
+            ratingService.create(GraviteeContext.getExecutionContext(), newRatingEntity);
+            verify(mockNotifierService, never()).trigger(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(ApiHook.NEW_RATING_ANSWER),
+                eq(API_ID),
+                any()
+            );
+        });
     }
 
     @Test
@@ -196,19 +201,26 @@ public class RatingServiceTest {
         );
     }
 
-    @Test(expected = RatingNotFoundException.class)
+    @Test
     public void shouldNotCreateAnswerBecauseUnknownRating() throws TechnicalException {
-        when(newRatingAnswerEntity.getRatingId()).thenReturn(UNKNOWN_RATING_ID);
-        when(ratingRepository.findById(UNKNOWN_RATING_ID)).thenReturn(empty());
+        assertThrows(RatingNotFoundException.class, () -> {
+            when(newRatingAnswerEntity.getRatingId()).thenReturn(UNKNOWN_RATING_ID);
+            when(ratingRepository.findById(UNKNOWN_RATING_ID)).thenReturn(empty());
 
-        ratingService.createAnswer(GraviteeContext.getExecutionContext(), newRatingAnswerEntity);
-        verify(mockNotifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.NEW_RATING), eq(API_ID), any());
-        verify(mockNotifierService, never()).trigger(
-            eq(GraviteeContext.getExecutionContext()),
-            eq(ApiHook.NEW_RATING_ANSWER),
-            eq(API_ID),
-            any()
-        );
+            ratingService.createAnswer(GraviteeContext.getExecutionContext(), newRatingAnswerEntity);
+            verify(mockNotifierService, times(1)).trigger(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(ApiHook.NEW_RATING),
+                eq(API_ID),
+                any()
+            );
+            verify(mockNotifierService, never()).trigger(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(ApiHook.NEW_RATING_ANSWER),
+                eq(API_ID),
+                any()
+            );
+        });
     }
 
     @Test
@@ -293,12 +305,14 @@ public class RatingServiceTest {
         assertEquals(ratingEntity.getCreatedAt(), ratingEntity.getUpdatedAt());
     }
 
-    @Test(expected = RatingNotFoundException.class)
+    @Test
     public void shouldNotUpdateBecauseUnknownRating() throws TechnicalException {
-        when(updateRatingEntity.getId()).thenReturn(UNKNOWN_RATING_ID);
-        when(ratingRepository.findById(UNKNOWN_RATING_ID)).thenReturn(empty());
+        assertThrows(RatingNotFoundException.class, () -> {
+            when(updateRatingEntity.getId()).thenReturn(UNKNOWN_RATING_ID);
+            when(ratingRepository.findById(UNKNOWN_RATING_ID)).thenReturn(empty());
 
-        ratingService.update(GraviteeContext.getExecutionContext(), updateRatingEntity);
+            ratingService.update(GraviteeContext.getExecutionContext(), updateRatingEntity);
+        });
     }
 
     @Test
@@ -317,11 +331,13 @@ public class RatingServiceTest {
         verify(ratingRepository).update(rating);
     }
 
-    @Test(expected = RatingNotFoundException.class)
+    @Test
     public void shouldNotDeleteBecauseUnknownRating() throws TechnicalException {
-        when(ratingRepository.findById(UNKNOWN_RATING_ID)).thenReturn(empty());
+        assertThrows(RatingNotFoundException.class, () -> {
+            when(ratingRepository.findById(UNKNOWN_RATING_ID)).thenReturn(empty());
 
-        ratingService.delete(GraviteeContext.getExecutionContext(), UNKNOWN_RATING_ID);
+            ratingService.delete(GraviteeContext.getExecutionContext(), UNKNOWN_RATING_ID);
+        });
     }
 
     @Test

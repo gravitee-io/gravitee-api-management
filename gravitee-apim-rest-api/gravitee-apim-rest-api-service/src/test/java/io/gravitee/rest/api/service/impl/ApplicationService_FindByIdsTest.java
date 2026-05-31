@@ -15,9 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
@@ -47,19 +45,22 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApplicationService_FindByIdsTest {
 
     private static final List<String> APPLICATION_IDS = Arrays.asList("id-app-1", "id-app-2");
@@ -97,7 +98,7 @@ public class ApplicationService_FindByIdsTest {
     @Mock
     private io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService clientCertificateCrudService;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         GraviteeContext.setCurrentOrganization("DEFAULT");
         GraviteeContext.setCurrentEnvironment("DEFAULT");
@@ -119,7 +120,7 @@ public class ApplicationService_FindByIdsTest {
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(primaryOwners);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
     }
@@ -185,24 +186,31 @@ public class ApplicationService_FindByIdsTest {
         verify(applicationRepository, times(0)).search(any(), any());
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldThrowsIfNoPrimaryOwner() throws TechnicalException {
-        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        ApplicationCriteria criteria = ApplicationCriteria.builder()
-            .restrictedToIds(Sets.newHashSet(APPLICATION_IDS))
-            .environmentIds(Set.of(executionContext.getEnvironmentId()))
-            .build();
-        doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
+        assertThrows(TechnicalManagementException.class, () -> {
+            ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+            ApplicationCriteria criteria = ApplicationCriteria.builder()
+                .restrictedToIds(Sets.newHashSet(APPLICATION_IDS))
+                .environmentIds(Set.of(executionContext.getEnvironmentId()))
+                .build();
+            doReturn(new Page(Arrays.asList(app1, app2), 1, 2, 2)).when(applicationRepository).search(criteria, null);
 
-        final Set<ApplicationListItem> applications = applicationService.findByIds(GraviteeContext.getExecutionContext(), APPLICATION_IDS);
+            final Set<ApplicationListItem> applications = applicationService.findByIds(
+                GraviteeContext.getExecutionContext(),
+                APPLICATION_IDS
+            );
 
-        assertNotNull(applications);
-        assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).toList());
+            assertNotNull(applications);
+            assertEquals(APPLICATION_IDS, applications.stream().map(ApplicationListItem::getId).toList());
+        });
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldThrowTechnicalManagementException() throws TechnicalException {
-        when(applicationRepository.search(any(), any())).thenThrow(new TechnicalException());
-        applicationService.findByIds(GraviteeContext.getExecutionContext(), APPLICATION_IDS);
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(applicationRepository.search(any(), any())).thenThrow(new TechnicalException());
+            applicationService.findByIds(GraviteeContext.getExecutionContext(), APPLICATION_IDS);
+        });
     }
 }

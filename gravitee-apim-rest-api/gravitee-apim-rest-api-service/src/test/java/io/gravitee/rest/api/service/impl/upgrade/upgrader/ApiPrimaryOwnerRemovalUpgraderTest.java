@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import ch.qos.logback.classic.Level;
@@ -33,19 +34,22 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiPrimaryOwnerRemovalUpgraderTest {
 
     @Mock
@@ -78,7 +82,7 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
     private static final String API_PO_ROLE_ID = "po-role-test";
     private static final String DEFAULT_PRIMARY_OWNER_ID = "po-default-test";
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         upgrader = new ApiPrimaryOwnerRemovalUpgrader(
             roleRepository,
@@ -94,14 +98,16 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
         logger.addAppender(appender);
     }
 
-    @Test(expected = UpgraderException.class)
-    public void upgrade_should_failed_because_of_exception() throws TechnicalException, UpgraderException {
-        when(organizationRepository.findAll()).thenThrow(new RuntimeException());
+    @Test
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+        assertThrows(UpgraderException.class, () -> {
+            when(organizationRepository.findAll()).thenThrow(new RuntimeException());
 
-        upgrader.upgrade();
+            upgrader.upgrade();
 
-        verify(organizationRepository, times(1)).findAll();
-        verifyNoMoreInteractions(organizationRepository);
+            verify(organizationRepository, times(1)).findAll();
+            verifyNoMoreInteractions(organizationRepository);
+        });
     }
 
     @Test
@@ -217,7 +223,7 @@ public class ApiPrimaryOwnerRemovalUpgraderTest {
 
     @Test
     public void test_order() {
-        Assert.assertEquals(UpgraderOrder.API_PRIMARY_OWNER_REMOVAL_UPGRADER, upgrader.getOrder());
+        Assertions.assertEquals(UpgraderOrder.API_PRIMARY_OWNER_REMOVAL_UPGRADER, upgrader.getOrder());
     }
 
     private static Organization organization() {

@@ -15,10 +15,8 @@
  */
 package io.gravitee.rest.api.service.v4.mapper;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -33,7 +31,7 @@ import io.gravitee.repository.management.model.flow.selector.FlowOperator;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.List;
 import java.util.Set;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)

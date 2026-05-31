@@ -15,8 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,18 +32,21 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class InstallationKeyStatusUpgraderTest {
 
     @InjectMocks
@@ -53,15 +58,17 @@ public class InstallationKeyStatusUpgraderTest {
     @Mock
     private UpgraderRepository upgraderRepository;
 
-    @Test(expected = UpgraderException.class)
-    public void should_not_upgrade_when_there_is_exception() throws UpgraderException {
-        when(installationService.get()).thenReturn(new InstallationEntity());
-        when(installationService.get().getAdditionalInformation()).thenThrow(new RuntimeException());
+    @Test
+    public void should_not_upgrade_when_there_is_exception() {
+        assertThrows(UpgraderException.class, () -> {
+            when(installationService.get()).thenReturn(new InstallationEntity());
+            when(installationService.get().getAdditionalInformation()).thenThrow(new RuntimeException());
 
-        cut.upgrade();
+            cut.upgrade();
 
-        verify(installationService, times(1)).get();
-        verify(upgraderRepository, times(0)).create(any());
+            verify(installationService, times(1)).get();
+            verify(upgraderRepository, times(0)).create(any());
+        });
     }
 
     @Test
@@ -126,6 +133,6 @@ public class InstallationKeyStatusUpgraderTest {
 
     @Test
     public void test_order() {
-        Assert.assertEquals(UpgraderOrder.INSTALLATION_KEY_STATUS_UPGRADER, cut.getOrder());
+        Assertions.assertEquals(UpgraderOrder.INSTALLATION_KEY_STATUS_UPGRADER, cut.getOrder());
     }
 }

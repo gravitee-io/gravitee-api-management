@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -40,17 +40,20 @@ import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Collections;
 import java.util.List;
 import lombok.SneakyThrows;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class EnvironmentCommandHandlerTest {
 
     @Mock
@@ -64,7 +67,7 @@ public class EnvironmentCommandHandlerTest {
 
     public EnvironmentCommandHandler cut;
 
-    @Before
+    @BeforeEach
     public void before() {
         cut = new EnvironmentCommandHandler(environmentService, accessPointService, createDefaultPortalNavigationItemsUseCase);
     }

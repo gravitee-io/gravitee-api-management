@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.never;
@@ -34,17 +34,20 @@ import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class PortalNotificationConfigOriginUpgraderTest {
 
     private static final ZonedDateTime CREATED_AT = Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault());
@@ -55,7 +58,7 @@ public class PortalNotificationConfigOriginUpgraderTest {
 
     private PortalNotificationConfigOriginUpgrader upgrader;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         upgrader = new PortalNotificationConfigOriginUpgrader(portalNotificationConfigRepository);
     }
@@ -107,6 +110,6 @@ public class PortalNotificationConfigOriginUpgraderTest {
 
     @Test
     public void test_order() {
-        Assert.assertEquals(UpgraderOrder.PORTAL_NOTIFICATION_CONFIG_ORIGIN_UPGRADER, upgrader.getOrder());
+        Assertions.assertEquals(UpgraderOrder.PORTAL_NOTIFICATION_CONFIG_ORIGIN_UPGRADER, upgrader.getOrder());
     }
 }

@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.shared_policy_group.use_case;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import fixtures.core.model.SharedPolicyGroupFixtures;

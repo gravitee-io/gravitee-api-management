@@ -19,6 +19,7 @@ import static io.gravitee.rest.api.model.permissions.RoleScope.API_PRODUCT;
 import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_API_PRODUCT_OWNER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_API_PRODUCT_USER;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -34,14 +35,17 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiProductRolesUpgraderTest {
 
     @InjectMocks
@@ -53,10 +57,12 @@ public class ApiProductRolesUpgraderTest {
     @Mock
     OrganizationRepository organizationRepository;
 
-    @Test(expected = UpgraderException.class)
-    public void upgrade_should_fail_because_of_exception() throws UpgraderException, TechnicalException {
-        when(organizationRepository.findAll()).thenThrow(new RuntimeException());
-        upgrader.upgrade();
+    @Test
+    public void upgrade_should_fail_because_of_exception() throws TechnicalException {
+        assertThrows(UpgraderException.class, () -> {
+            when(organizationRepository.findAll()).thenThrow(new RuntimeException());
+            upgrader.upgrade();
+        });
     }
 
     @Test
@@ -116,6 +122,6 @@ public class ApiProductRolesUpgraderTest {
 
     @Test
     public void test_order() {
-        Assert.assertEquals(UpgraderOrder.API_PRODUCT_ROLES_UPGRADER, upgrader.getOrder());
+        Assertions.assertEquals(UpgraderOrder.API_PRODUCT_ROLES_UPGRADER, upgrader.getOrder());
     }
 }

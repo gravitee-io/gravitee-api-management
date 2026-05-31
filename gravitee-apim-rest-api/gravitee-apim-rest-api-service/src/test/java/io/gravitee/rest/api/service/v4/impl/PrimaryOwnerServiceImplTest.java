@@ -15,8 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -51,17 +50,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class PrimaryOwnerServiceImplTest {
 
     private PrimaryOwnerService primaryOwnerService;
@@ -86,7 +88,7 @@ public class PrimaryOwnerServiceImplTest {
 
     private static final ExecutionContext EXECUTION_CONTEXT = new ExecutionContext("TEST", "TEST");
 
-    @Before
+    @BeforeEach
     public void setUp() {
         this.primaryOwnerService = new PrimaryOwnerServiceImpl(
             userService,
@@ -143,14 +145,16 @@ public class PrimaryOwnerServiceImplTest {
         assertEquals(3, primaryOwners.size());
     }
 
-    @Test(expected = NonPoGroupException.class)
+    @Test
     public void shouldFailIfPrimaryOwnerIsAGroupWithNoPrimaryOwnerMember() {
-        PrimaryOwnerEntity currentPoGroup = primaryOwner("GROUP");
-        when(groupService.findById(EXECUTION_CONTEXT, currentPoGroup.getId())).thenReturn(group());
-        when(this.parameterService.find(EXECUTION_CONTEXT, Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT)).thenReturn(
-            ApiPrimaryOwnerMode.GROUP.name()
-        );
-        primaryOwnerService.getPrimaryOwner(EXECUTION_CONTEXT, "admin", currentPoGroup);
+        assertThrows(NonPoGroupException.class, () -> {
+            PrimaryOwnerEntity currentPoGroup = primaryOwner("GROUP");
+            when(groupService.findById(EXECUTION_CONTEXT, currentPoGroup.getId())).thenReturn(group());
+            when(this.parameterService.find(EXECUTION_CONTEXT, Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT)).thenReturn(
+                ApiPrimaryOwnerMode.GROUP.name()
+            );
+            primaryOwnerService.getPrimaryOwner(EXECUTION_CONTEXT, "admin", currentPoGroup);
+        });
     }
 
     private static PrimaryOwnerEntity primaryOwner(String type) {

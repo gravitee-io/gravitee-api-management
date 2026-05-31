@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.any;
@@ -23,7 +24,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
@@ -40,18 +40,21 @@ import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Collections;
 import java.util.Optional;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class PlanService_CloseTest {
 
     private static final String PLAN_ID = "my-plan";
@@ -83,26 +86,32 @@ public class PlanService_CloseTest {
     @Mock
     private FlowService flowService;
 
-    @Test(expected = PlanNotFoundException.class)
+    @Test
     public void shouldNotCloseBecauseNotFound() throws TechnicalException {
-        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.empty());
+        assertThrows(PlanNotFoundException.class, () -> {
+            when(planRepository.findById(PLAN_ID)).thenReturn(Optional.empty());
 
-        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
+            planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
+        });
     }
 
-    @Test(expected = PlanAlreadyClosedException.class)
+    @Test
     public void shouldNotCloseBecauseAlreadyClosed() throws TechnicalException {
-        var plan = Plan.builder().status(Plan.Status.CLOSED).build();
-        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        assertThrows(PlanAlreadyClosedException.class, () -> {
+            var plan = Plan.builder().status(Plan.Status.CLOSED).build();
+            when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
-        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
+            planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
+        });
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotCloseBecauseTechnicalException() throws TechnicalException {
-        when(planRepository.findById(PLAN_ID)).thenThrow(TechnicalException.class);
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(planRepository.findById(PLAN_ID)).thenThrow(TechnicalException.class);
 
-        planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
+            planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
+        });
     }
 
     @Test
@@ -124,7 +133,7 @@ public class PlanService_CloseTest {
         planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.CLOSED).build());
-        verify(closeSubscriptionDomainService, times(1)).closeSubscription(eq(SUBSCRIPTION_ID), notNull(AuditInfo.class));
+        verify(closeSubscriptionDomainService, times(1)).closeSubscription(eq(SUBSCRIPTION_ID), notNull());
     }
 
     @Test
@@ -146,7 +155,7 @@ public class PlanService_CloseTest {
         planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.CLOSED).build());
-        verify(closeSubscriptionDomainService, times(1)).closeSubscription(eq(SUBSCRIPTION_ID), notNull(AuditInfo.class));
+        verify(closeSubscriptionDomainService, times(1)).closeSubscription(eq(SUBSCRIPTION_ID), notNull());
     }
 
     @Test
@@ -168,7 +177,7 @@ public class PlanService_CloseTest {
         planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.CLOSED).build());
-        verify(closeSubscriptionDomainService, times(1)).closeSubscription(eq(SUBSCRIPTION_ID), notNull(AuditInfo.class));
+        verify(closeSubscriptionDomainService, times(1)).closeSubscription(eq(SUBSCRIPTION_ID), notNull());
     }
 
     @Test

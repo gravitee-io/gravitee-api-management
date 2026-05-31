@@ -19,7 +19,7 @@ import static io.gravitee.rest.api.service.cockpit.command.handler.GoodByeComman
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
@@ -38,18 +38,21 @@ import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.HashMap;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class GoodByeCommandHandlerTest {
 
     private static final String CUSTOM_VALUE = "customValue";
@@ -64,7 +67,7 @@ public class GoodByeCommandHandlerTest {
 
     private GoodByeCommandHandler cut;
 
-    @Before
+    @BeforeEach
     public void before() {
         cut = new GoodByeCommandHandler(installationService, promotionService);
     }

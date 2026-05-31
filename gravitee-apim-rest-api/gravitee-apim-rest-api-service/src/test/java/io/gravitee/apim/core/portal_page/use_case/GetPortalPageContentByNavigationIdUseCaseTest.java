@@ -59,11 +59,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class GetPortalPageContentByNavigationIdUseCaseTest {
 
     private static final String ORGANIZATION_ID = PortalPageContentFixtures.ORGANIZATION_ID;
@@ -86,7 +91,6 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
         navigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory();
         pageContentQueryService = new PortalPageContentQueryServiceInMemory();
         var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(

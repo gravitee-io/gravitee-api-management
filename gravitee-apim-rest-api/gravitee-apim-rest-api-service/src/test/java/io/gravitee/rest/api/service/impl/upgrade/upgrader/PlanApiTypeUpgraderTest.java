@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
@@ -28,17 +29,20 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
 import java.util.Set;
 import java.util.stream.Stream;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Sergii ILLICHEVSKYI (sergii.illichevskyi at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class PlanApiTypeUpgraderTest {
 
     @InjectMocks
@@ -92,11 +96,13 @@ public class PlanApiTypeUpgraderTest {
         verify(planRepository, never()).update(any());
     }
 
-    @Test(expected = UpgraderException.class)
+    @Test
     public void shouldHandleExceptionDuringUpgrade() throws Exception {
-        when(apiRepository.search(any(), any(), any())).thenThrow(new RuntimeException());
+        assertThrows(UpgraderException.class, () -> {
+            when(apiRepository.search(any(), any(), any())).thenThrow(new RuntimeException());
 
-        planApiTypeUpgrader.upgrade();
+            planApiTypeUpgrader.upgrade();
+        });
     }
 
     @Test
@@ -113,22 +119,24 @@ public class PlanApiTypeUpgraderTest {
         verify(planRepository, never()).update(any());
     }
 
-    @Test(expected = UpgraderException.class)
+    @Test
     public void shouldThrowErrorWhenUpdatingPlanFails() throws Exception {
-        Api api = new Api();
-        api.setId("api1");
-        api.setType(ApiType.MESSAGE);
-        api.setDefinitionVersion(DefinitionVersion.V4);
+        assertThrows(UpgraderException.class, () -> {
+            Api api = new Api();
+            api.setId("api1");
+            api.setType(ApiType.MESSAGE);
+            api.setDefinitionVersion(DefinitionVersion.V4);
 
-        Plan plan = new Plan();
-        plan.setId("plan1");
+            Plan plan = new Plan();
+            plan.setId("plan1");
 
-        when(apiRepository.search(any(), any(), any())).thenReturn(Stream.of(api));
-        when(planRepository.findByApi("api1")).thenReturn(Set.of(plan));
-        doThrow(new RuntimeException()).when(planRepository).update(plan);
+            when(apiRepository.search(any(), any(), any())).thenReturn(Stream.of(api));
+            when(planRepository.findByApi("api1")).thenReturn(Set.of(plan));
+            doThrow(new RuntimeException()).when(planRepository).update(plan);
 
-        planApiTypeUpgrader.upgrade();
+            planApiTypeUpgrader.upgrade();
 
-        verify(planRepository, times(1)).update(any());
+            verify(planRepository, times(1)).update(any());
+        });
     }
 }

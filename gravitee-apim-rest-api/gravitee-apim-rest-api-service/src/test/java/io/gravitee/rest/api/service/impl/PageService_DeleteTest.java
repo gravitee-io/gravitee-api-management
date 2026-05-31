@@ -15,7 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
@@ -51,15 +52,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -69,7 +72,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class PageService_DeleteTest {
 
     public static final String API_ID = "some-api-id";
@@ -104,7 +108,7 @@ public class PageService_DeleteTest {
     private Page page;
     private PlanEntity planEntity;
 
-    @AfterClass
+    @AfterAll
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
         SecurityContextHolder.setContext(
@@ -120,7 +124,7 @@ public class PageService_DeleteTest {
         );
     }
 
-    @Before
+    @BeforeEach
     public void before() throws TechnicalException {
         page = new Page();
         page.setId(PAGE_ID);
@@ -141,24 +145,28 @@ public class PageService_DeleteTest {
         verify(pageRepository).delete(PAGE_ID);
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotDeletePageBecauseTechnicalException() throws TechnicalException {
-        doThrow(TechnicalException.class).when(pageRepository).delete(PAGE_ID);
+        assertThrows(TechnicalManagementException.class, () -> {
+            doThrow(TechnicalException.class).when(pageRepository).delete(PAGE_ID);
 
-        pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
+            pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
+        });
     }
 
-    @Test(expected = PageActionException.class)
+    @Test
     public void shouldNotDeletePageBecauseUsedInCategory() throws TechnicalException {
-        page.setType(PageType.MARKDOWN.name());
+        assertThrows(PageActionException.class, () -> {
+            page.setType(PageType.MARKDOWN.name());
 
-        CategoryEntity category1 = new CategoryEntity();
-        category1.setKey("cat_1");
+            CategoryEntity category1 = new CategoryEntity();
+            category1.setKey("cat_1");
 
-        CategoryEntity category2 = new CategoryEntity();
-        category2.setKey("cat_2");
-        doReturn(Arrays.asList(category1, category2)).when(categoryService).findByPage(PAGE_ID);
-        pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
+            CategoryEntity category2 = new CategoryEntity();
+            category2.setKey("cat_2");
+            doReturn(Arrays.asList(category1, category2)).when(categoryService).findByPage(PAGE_ID);
+            pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
+        });
     }
 
     @Test
@@ -190,60 +198,68 @@ public class PageService_DeleteTest {
         verify(pageRepository).delete(PAGE_ID);
     }
 
-    @Test(expected = PageUsedAsGeneralConditionsException.class)
+    @Test
     public void shouldNotDeletePage_UsedBy_PUBLISHED_Plan() {
-        page.setReferenceType(PageReferenceType.API);
-        page.setReferenceId(API_ID);
+        assertThrows(PageUsedAsGeneralConditionsException.class, () -> {
+            page.setReferenceType(PageReferenceType.API);
+            page.setReferenceId(API_ID);
 
-        planEntity.setGeneralConditions(PAGE_ID);
-        planEntity.setStatus(PlanStatus.PUBLISHED);
+            planEntity.setGeneralConditions(PAGE_ID);
+            planEntity.setStatus(PlanStatus.PUBLISHED);
 
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(Set.of(planEntity));
+            when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(Set.of(planEntity));
 
-        pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
+            pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
+        });
     }
 
-    @Test(expected = PageUsedAsGeneralConditionsException.class)
+    @Test
     public void shouldNotDeleteTranslationPage_UsedBy_PUBLISHED_Plan() throws TechnicalException {
-        Page translationPage = new Page();
-        translationPage.setType(PageType.TRANSLATION.name());
-        translationPage.setParentId(PAGE_ID);
-        translationPage.setReferenceType(PageReferenceType.API);
-        translationPage.setReferenceId(API_ID);
+        assertThrows(PageUsedAsGeneralConditionsException.class, () -> {
+            Page translationPage = new Page();
+            translationPage.setType(PageType.TRANSLATION.name());
+            translationPage.setParentId(PAGE_ID);
+            translationPage.setReferenceType(PageReferenceType.API);
+            translationPage.setReferenceId(API_ID);
 
-        planEntity.setGeneralConditions(PAGE_ID);
-        planEntity.setStatus(PlanStatus.PUBLISHED);
+            planEntity.setGeneralConditions(PAGE_ID);
+            planEntity.setStatus(PlanStatus.PUBLISHED);
 
-        when(pageRepository.findById(TRANSLATE_PAGE_ID)).thenReturn(Optional.of(translationPage));
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(Set.of(planEntity));
+            when(pageRepository.findById(TRANSLATE_PAGE_ID)).thenReturn(Optional.of(translationPage));
+            when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(Set.of(planEntity));
 
-        pageService.delete(GraviteeContext.getExecutionContext(), TRANSLATE_PAGE_ID);
+            pageService.delete(GraviteeContext.getExecutionContext(), TRANSLATE_PAGE_ID);
+        });
     }
 
-    @Test(expected = PageUsedAsGeneralConditionsException.class)
+    @Test
     public void shouldNotDeletePage_UsedBy_DEPRECATED_Plan() throws TechnicalException {
-        page.setReferenceType(PageReferenceType.API);
-        page.setReferenceId(API_ID);
+        assertThrows(PageUsedAsGeneralConditionsException.class, () -> {
+            page.setReferenceType(PageReferenceType.API);
+            page.setReferenceId(API_ID);
 
-        planEntity.setGeneralConditions(PAGE_ID);
-        planEntity.setStatus(PlanStatus.DEPRECATED);
+            planEntity.setGeneralConditions(PAGE_ID);
+            planEntity.setStatus(PlanStatus.DEPRECATED);
 
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(Set.of(planEntity));
+            when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(Set.of(planEntity));
 
-        pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
+            pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
+        });
     }
 
-    @Test(expected = PageUsedAsGeneralConditionsException.class)
+    @Test
     public void shouldNotDeletePage_UsedBy_STAGING_Plan() throws TechnicalException {
-        page.setReferenceType(PageReferenceType.API);
-        page.setReferenceId(API_ID);
+        assertThrows(PageUsedAsGeneralConditionsException.class, () -> {
+            page.setReferenceType(PageReferenceType.API);
+            page.setReferenceId(API_ID);
 
-        planEntity.setGeneralConditions(PAGE_ID);
-        planEntity.setStatus(PlanStatus.STAGING);
+            planEntity.setGeneralConditions(PAGE_ID);
+            planEntity.setStatus(PlanStatus.STAGING);
 
-        when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(Set.of(planEntity));
+            when(planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, false)).thenReturn(Set.of(planEntity));
 
-        pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
+            pageService.delete(GraviteeContext.getExecutionContext(), PAGE_ID);
+        });
     }
 
     @Test
@@ -325,9 +341,9 @@ public class PageService_DeleteTest {
 
         verify(pageRepository, times(6)).delete(idCaptor.capture());
         assertEquals(
-            "Pages are not deleted in order !",
             Arrays.asList(childPageId, PAGE_ID, linkId, translationId, childId, folderId),
-            idCaptor.getAllValues()
+            idCaptor.getAllValues(),
+            "Pages are not deleted in order !"
         );
     }
 }

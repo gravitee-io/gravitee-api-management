@@ -16,7 +16,8 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -31,15 +32,17 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import junit.framework.TestCase;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
-public class GroupService_FindAllTest extends TestCase {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
+public class GroupService_FindAllTest {
 
     private static final String ORGANIZATION_ID = "org-id";
     private static final String ENVIRONMENT_ID = "env-id";
@@ -78,10 +81,12 @@ public class GroupService_FindAllTest extends TestCase {
         assertThat(result).isEmpty();
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldThrowTechnicalManagementExceptionWhenRepositoryFails() throws TechnicalException {
-        when(groupRepository.findAllByEnvironment(ENVIRONMENT_ID)).thenThrow(new TechnicalException("Database error"));
-        groupService.findAllByEnvironment(ENVIRONMENT_ID);
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(groupRepository.findAllByEnvironment(ENVIRONMENT_ID)).thenThrow(new TechnicalException("Database error"));
+            groupService.findAllByEnvironment(ENVIRONMENT_ID);
+        });
     }
 
     @Test

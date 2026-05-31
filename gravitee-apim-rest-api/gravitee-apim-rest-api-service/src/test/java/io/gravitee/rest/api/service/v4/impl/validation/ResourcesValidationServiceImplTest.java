@@ -15,8 +15,10 @@
  */
 package io.gravitee.rest.api.service.v4.impl.validation;
 
-import static org.junit.Assert.assertSame;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.rest.api.service.ResourceService;
@@ -24,19 +26,21 @@ import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.v4.validation.ResourcesValidationService;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ResourcesValidationServiceImplTest {
 
     @Mock
@@ -44,7 +48,7 @@ public class ResourcesValidationServiceImplTest {
 
     private ResourcesValidationService resourcesValidationService;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         resourceService = Mockito.mock(ResourceService.class);
         resourcesValidationService = new ResourcesValidationServiceImpl(resourceService);
@@ -54,18 +58,18 @@ public class ResourcesValidationServiceImplTest {
     public void shouldValidateResources() {
         Resource resource = new Resource();
         List<Resource> resources = Collections.singletonList(resource);
-
-        doNothing().when(resourceService).validateResourceConfiguration(resource);
         List<Resource> sanitizedResources = resourcesValidationService.validateAndSanitize(resources);
         assertSame(resources, sanitizedResources);
     }
 
-    @Test(expected = InvalidDataException.class)
+    @Test
     public void shouldNotUpdateWithInvalidResourceConfiguration() {
-        Resource resource = new Resource();
-        List<Resource> resources = Collections.singletonList(resource);
+        assertThrows(InvalidDataException.class, () -> {
+            Resource resource = new Resource();
+            List<Resource> resources = Collections.singletonList(resource);
 
-        doThrow(new InvalidDataException()).when(resourceService).validateResourceConfiguration(resource);
-        resourcesValidationService.validateAndSanitize(resources);
+            doThrow(new InvalidDataException()).when(resourceService).validateResourceConfiguration(resource);
+            resourcesValidationService.validateAndSanitize(resources);
+        });
     }
 }

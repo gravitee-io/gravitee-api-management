@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.spring;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
@@ -27,15 +27,18 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class GraviteeJavaMailManagerTest {
 
     @Mock
@@ -46,7 +49,7 @@ public class GraviteeJavaMailManagerTest {
 
     private GraviteeJavaMailManager graviteeJavaMailManager;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         reset(parameterService, eventManager);
         GraviteeContext.setCurrentOrganization("DEFAULT");

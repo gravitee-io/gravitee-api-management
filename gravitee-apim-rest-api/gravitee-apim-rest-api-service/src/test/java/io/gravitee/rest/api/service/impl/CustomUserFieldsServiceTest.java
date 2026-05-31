@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,19 +39,22 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.assertj.core.api.Assertions;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class CustomUserFieldsServiceTest {
 
     private static final String ORG_ID = "DEFAULT";
@@ -100,70 +103,76 @@ public class CustomUserFieldsServiceTest {
         verify(customUserFieldsRepository).create(fieldCaptor.capture());
         verify(auditService).createOrganizationAuditLog(eq(GraviteeContext.getExecutionContext()), any());
 
-        assertEquals("CustomUserField.key", newFieldEntity.getKey().toLowerCase(), createdEntity.getKey());
-        assertEquals("CustomUserField.label", newFieldEntity.getLabel(), createdEntity.getLabel());
-        assertEquals("CustomUserField.required", newFieldEntity.isRequired(), createdEntity.isRequired());
+        assertEquals(newFieldEntity.getKey().toLowerCase(), createdEntity.getKey(), "CustomUserField.key");
+        assertEquals(newFieldEntity.getLabel(), createdEntity.getLabel(), "CustomUserField.label");
+        assertEquals(newFieldEntity.isRequired(), createdEntity.isRequired(), "CustomUserField.required");
         if (newFieldEntity.getValues() != null) {
-            assertNotNull("CustomUserField.values", createdEntity.getValues());
-            assertEquals("CustomUserField.values.size", 1, createdEntity.getValues().size());
-            assertEquals("CustomUserField.values.get(0)", newFieldEntity.getValues().get(0), createdEntity.getValues().get(0));
+            assertNotNull(createdEntity.getValues(), "CustomUserField.values");
+            assertEquals(1, createdEntity.getValues().size(), "CustomUserField.values.size");
+            assertEquals(newFieldEntity.getValues().get(0), createdEntity.getValues().get(0), "CustomUserField.values.get(0)");
         }
 
         final CustomUserField customFieldRecord = fieldCaptor.getValue();
         assertNotNull(customFieldRecord);
-        assertNotNull("CustomUserField.createAt", customFieldRecord.getCreatedAt());
-        assertNotNull("CustomUserField.updateAt", customFieldRecord.getUpdatedAt());
-        assertEquals("CustomUserField.required", newFieldEntity.isRequired(), customFieldRecord.isRequired());
-        assertEquals("CustomUserField.key", newFieldEntity.getKey().toLowerCase(), customFieldRecord.getKey());
-        assertEquals("CustomUserField.label", newFieldEntity.getLabel(), customFieldRecord.getLabel());
-        assertEquals("CustomUserField.organization", ORG_ID, customFieldRecord.getReferenceId());
-        assertEquals("CustomUserField.refType", REF_TYPE, customFieldRecord.getReferenceType());
-        assertEquals("CustomUserField.format", MetadataFormat.STRING, customFieldRecord.getFormat());
+        assertNotNull(customFieldRecord.getCreatedAt(), "CustomUserField.createAt");
+        assertNotNull(customFieldRecord.getUpdatedAt(), "CustomUserField.updateAt");
+        assertEquals(newFieldEntity.isRequired(), customFieldRecord.isRequired(), "CustomUserField.required");
+        assertEquals(newFieldEntity.getKey().toLowerCase(), customFieldRecord.getKey(), "CustomUserField.key");
+        assertEquals(newFieldEntity.getLabel(), customFieldRecord.getLabel(), "CustomUserField.label");
+        assertEquals(ORG_ID, customFieldRecord.getReferenceId(), "CustomUserField.organization");
+        assertEquals(REF_TYPE, customFieldRecord.getReferenceType(), "CustomUserField.refType");
+        assertEquals(MetadataFormat.STRING, customFieldRecord.getFormat(), "CustomUserField.format");
         if (newFieldEntity.getValues() != null) {
-            assertTrue("CustomUserField.values", customFieldRecord.getValues() != null && customFieldRecord.getValues().contains("test"));
+            assertTrue(customFieldRecord.getValues() != null && customFieldRecord.getValues().contains("test"), "CustomUserField.values");
         }
     }
 
-    @Test(expected = CustomUserFieldAlreadyExistException.class)
+    @Test
     public void shouldNotCreateExistingField() throws Exception {
-        final CustomUserFieldEntity newFieldEntity = new CustomUserFieldEntity();
-        newFieldEntity.setKey("NEWKEYUPPERCASE");
-        newFieldEntity.setLabel("New Field Label");
-        newFieldEntity.setRequired(true);
-        newFieldEntity.setValues(Arrays.asList("test"));
-        when(customUserFieldsRepository.findById(anyString(), anyString(), any())).thenReturn(Optional.of(mock(CustomUserField.class)));
+        assertThrows(CustomUserFieldAlreadyExistException.class, () -> {
+            final CustomUserFieldEntity newFieldEntity = new CustomUserFieldEntity();
+            newFieldEntity.setKey("NEWKEYUPPERCASE");
+            newFieldEntity.setLabel("New Field Label");
+            newFieldEntity.setRequired(true);
+            newFieldEntity.setValues(Arrays.asList("test"));
+            when(customUserFieldsRepository.findById(anyString(), anyString(), any())).thenReturn(Optional.of(mock(CustomUserField.class)));
 
-        service.create(GraviteeContext.getExecutionContext(), newFieldEntity);
+            service.create(GraviteeContext.getExecutionContext(), newFieldEntity);
 
-        verify(customUserFieldsRepository, never()).create(any());
+            verify(customUserFieldsRepository, never()).create(any());
+        });
     }
 
-    @Test(expected = CustomUserFieldException.class)
+    @Test
     public void shouldNotCreateInvalidKey_spaces() throws Exception {
-        final CustomUserFieldEntity newFieldEntity = new CustomUserFieldEntity();
-        newFieldEntity.setKey("NEW KEY UPPERCASE");
-        newFieldEntity.setLabel("New Field Label");
-        newFieldEntity.setRequired(true);
-        newFieldEntity.setValues(Arrays.asList("test"));
+        assertThrows(CustomUserFieldException.class, () -> {
+            final CustomUserFieldEntity newFieldEntity = new CustomUserFieldEntity();
+            newFieldEntity.setKey("NEW KEY UPPERCASE");
+            newFieldEntity.setLabel("New Field Label");
+            newFieldEntity.setRequired(true);
+            newFieldEntity.setValues(Arrays.asList("test"));
 
-        service.create(GraviteeContext.getExecutionContext(), newFieldEntity);
+            service.create(GraviteeContext.getExecutionContext(), newFieldEntity);
 
-        verify(customUserFieldsRepository, never()).create(any());
+            verify(customUserFieldsRepository, never()).create(any());
+        });
     }
 
-    @Test(expected = CustomUserFieldException.class)
+    @Test
     public void shouldNotCreateInvalidKey_tooLong() throws Exception {
-        final CustomUserFieldEntity newFieldEntity = new CustomUserFieldEntity();
-        newFieldEntity.setKey(
-            "abcdefghijklmnopqrstuvwxz_-5648521389794abcdefghijklmnopqrstuvwxz_-5648521389794abcdefghijklmnopqrstuvwxz_-5648521389794abcdefghijklmnopqrstuvwxz_-5648521389794abcdefghijklmnopqrstuvwxz_-5648521389794"
-        );
-        newFieldEntity.setLabel("New Field Label");
-        newFieldEntity.setRequired(true);
-        newFieldEntity.setValues(Arrays.asList("test"));
+        assertThrows(CustomUserFieldException.class, () -> {
+            final CustomUserFieldEntity newFieldEntity = new CustomUserFieldEntity();
+            newFieldEntity.setKey(
+                "abcdefghijklmnopqrstuvwxz_-5648521389794abcdefghijklmnopqrstuvwxz_-5648521389794abcdefghijklmnopqrstuvwxz_-5648521389794abcdefghijklmnopqrstuvwxz_-5648521389794abcdefghijklmnopqrstuvwxz_-5648521389794"
+            );
+            newFieldEntity.setLabel("New Field Label");
+            newFieldEntity.setRequired(true);
+            newFieldEntity.setValues(Arrays.asList("test"));
 
-        service.create(GraviteeContext.getExecutionContext(), newFieldEntity);
+            service.create(GraviteeContext.getExecutionContext(), newFieldEntity);
 
-        verify(customUserFieldsRepository, never()).create(any());
+            verify(customUserFieldsRepository, never()).create(any());
+        });
     }
 
     @Test
@@ -196,32 +205,34 @@ public class CustomUserFieldsServiceTest {
         verify(customUserFieldsRepository).update(fieldCaptor.capture());
         verify(auditService).createOrganizationAuditLog(eq(GraviteeContext.getExecutionContext()), any());
 
-        assertEquals("updatedCustomField.key", toUpdateFieldEntity.getKey().toLowerCase(), updatedEntity.getKey());
-        assertEquals("updatedCustomField.label", toUpdateFieldEntity.getLabel(), updatedEntity.getLabel());
-        assertEquals("updatedCustomField.required", toUpdateFieldEntity.isRequired(), updatedEntity.isRequired());
-        assertNotNull("updatedCustomField.values", updatedEntity.getValues());
-        assertEquals("updatedCustomField.values.size", 1, updatedEntity.getValues().size());
-        assertEquals("updatedCustomField.values.get(0)", toUpdateFieldEntity.getValues().get(0), updatedEntity.getValues().get(0));
+        assertEquals(toUpdateFieldEntity.getKey().toLowerCase(), updatedEntity.getKey(), "updatedCustomField.key");
+        assertEquals(toUpdateFieldEntity.getLabel(), updatedEntity.getLabel(), "updatedCustomField.label");
+        assertEquals(toUpdateFieldEntity.isRequired(), updatedEntity.isRequired(), "updatedCustomField.required");
+        assertNotNull(updatedEntity.getValues(), "updatedCustomField.values");
+        assertEquals(1, updatedEntity.getValues().size(), "updatedCustomField.values.size");
+        assertEquals(toUpdateFieldEntity.getValues().get(0), updatedEntity.getValues().get(0), "updatedCustomField.values.get(0)");
 
         final CustomUserField customFieldRecord = fieldCaptor.getValue();
         assertNotNull(customFieldRecord);
-        assertEquals("update parameter createAt", existingField.getCreatedAt(), customFieldRecord.getCreatedAt());
-        assertEquals("update parameter key", existingField.getKey(), customFieldRecord.getKey());
-        assertEquals("update parameter refId", ORG_ID, customFieldRecord.getReferenceId());
-        assertEquals("update parameter refType", REF_TYPE, customFieldRecord.getReferenceType());
-        assertEquals("update parameter format", MetadataFormat.STRING, customFieldRecord.getFormat());
-        assertNotEquals("update parameter updateAt", existingField.getUpdatedAt(), customFieldRecord.getUpdatedAt());
-        assertNotEquals("update parameter required", existingField.isRequired(), customFieldRecord.isRequired());
-        assertNotEquals("update parameter label", existingField.getLabel(), customFieldRecord.getLabel());
-        assertNotEquals("update parameter values", existingField.getValues(), customFieldRecord.getValues());
+        assertEquals(existingField.getCreatedAt(), customFieldRecord.getCreatedAt(), "update parameter createAt");
+        assertEquals(existingField.getKey(), customFieldRecord.getKey(), "update parameter key");
+        assertEquals(ORG_ID, customFieldRecord.getReferenceId(), "update parameter refId");
+        assertEquals(REF_TYPE, customFieldRecord.getReferenceType(), "update parameter refType");
+        assertEquals(MetadataFormat.STRING, customFieldRecord.getFormat(), "update parameter format");
+        assertNotEquals(existingField.getUpdatedAt(), customFieldRecord.getUpdatedAt(), "update parameter updateAt");
+        assertNotEquals(existingField.isRequired(), customFieldRecord.isRequired(), "update parameter required");
+        assertNotEquals(existingField.getLabel(), customFieldRecord.getLabel(), "update parameter label");
+        assertNotEquals(existingField.getValues(), customFieldRecord.getValues(), "update parameter values");
     }
 
-    @Test(expected = CustomUserFieldNotFoundException.class)
+    @Test
     public void shouldNotUpdateField_NotFound() throws Exception {
-        service.update(GraviteeContext.getExecutionContext(), mock(CustomUserFieldEntity.class));
+        assertThrows(CustomUserFieldNotFoundException.class, () -> {
+            service.update(GraviteeContext.getExecutionContext(), mock(CustomUserFieldEntity.class));
 
-        verify(customUserFieldsRepository, never()).update(any());
-        verify(auditService, never()).createOrganizationAuditLog(GraviteeContext.getExecutionContext(), any());
+            verify(customUserFieldsRepository, never()).update(any());
+            verify(auditService, never()).createOrganizationAuditLog(GraviteeContext.getExecutionContext(), any());
+        });
     }
 
     @Test
@@ -262,7 +273,7 @@ public class CustomUserFieldsServiceTest {
         List<CustomUserFieldEntity> entities = service.listAllFields(GraviteeContext.getExecutionContext());
 
         verify(customUserFieldsRepository).findByReferenceIdAndReferenceType(ORG_ID, REF_TYPE);
-        assertNotNull("Fields", entities);
+        assertNotNull(entities, "Fields");
         Assertions.assertThat(entities.stream().map(CustomUserFieldEntity::getKey).collect(Collectors.toList())).containsExactlyInAnyOrder(
             "key1",
             "key2"

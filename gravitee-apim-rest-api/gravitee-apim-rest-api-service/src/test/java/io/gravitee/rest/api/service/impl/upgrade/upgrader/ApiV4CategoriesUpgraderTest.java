@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
@@ -33,17 +34,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Sergii ILLICHEVSKYI (sergii.illichevskyi at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiV4CategoriesUpgraderTest {
 
     @InjectMocks
@@ -130,10 +134,12 @@ public class ApiV4CategoriesUpgraderTest {
         verify(apiRepository, never()).update(any());
     }
 
-    @Test(expected = UpgraderException.class)
+    @Test
     public void shouldReturnFalseWhenExceptionOccursDuringUpgrade() throws Exception {
-        when(categoryRepository.findAll()).thenThrow(new RuntimeException());
-        apiV4CategoriesUpgrader.upgrade();
+        assertThrows(UpgraderException.class, () -> {
+            when(categoryRepository.findAll()).thenThrow(new RuntimeException());
+            apiV4CategoriesUpgrader.upgrade();
+        });
     }
 
     @Test

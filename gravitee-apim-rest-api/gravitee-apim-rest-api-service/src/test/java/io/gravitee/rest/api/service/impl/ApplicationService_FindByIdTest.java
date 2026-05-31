@@ -16,7 +16,8 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -39,13 +40,15 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -53,7 +56,8 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApplicationService_FindByIdTest {
 
     private static final String APPLICATION_ID = "id-app";
@@ -76,13 +80,13 @@ public class ApplicationService_FindByIdTest {
     @Mock
     private ClientCertificateCrudService clientCertificateCrudService;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         GraviteeContext.setCurrentEnvironment("DEFAULT");
         when(application.getEnvironmentId()).thenReturn("DEFAULT");
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
     }
@@ -181,16 +185,20 @@ public class ApplicationService_FindByIdTest {
         assertThat(applicationEntity.getSettings().getTls().getClientCertificate()).isNull();
     }
 
-    @Test(expected = ApplicationNotFoundException.class)
+    @Test
     public void shouldNotFindByIdBecauseNotExists() throws TechnicalException {
-        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.empty());
-        applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
+        assertThrows(ApplicationNotFoundException.class, () -> {
+            when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.empty());
+            applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
+        });
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotFindByIdBecauseTechnicalException() throws TechnicalException {
-        when(applicationRepository.findById(APPLICATION_ID)).thenThrow(TechnicalException.class);
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(applicationRepository.findById(APPLICATION_ID)).thenThrow(TechnicalException.class);
 
-        applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
+            applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID);
+        });
     }
 }

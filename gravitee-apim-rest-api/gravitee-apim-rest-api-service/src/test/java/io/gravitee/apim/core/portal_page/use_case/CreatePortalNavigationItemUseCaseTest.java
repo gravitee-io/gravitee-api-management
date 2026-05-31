@@ -21,7 +21,7 @@ import static fixtures.core.model.PortalNavigationItemFixtures.CATEGORY1_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
@@ -47,12 +47,12 @@ import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.junit.function.ThrowingRunnable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -133,7 +133,7 @@ class CreatePortalNavigationItemUseCaseTest {
 
         // When
 
-        final ThrowingRunnable throwing = () ->
+        final Executable throwing = () ->
             useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, createPortalNavigationItem));
 
         // Then
@@ -190,7 +190,7 @@ class CreatePortalNavigationItemUseCaseTest {
         createPortalNavigationItem.setParentId(PortalNavigationItemId.of(APIS_ID));
 
         // When
-        final ThrowingRunnable throwing = () ->
+        final Executable throwing = () ->
             useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, createPortalNavigationItem));
 
         // Then
@@ -356,7 +356,7 @@ class CreatePortalNavigationItemUseCaseTest {
                 .build();
 
             // When
-            final ThrowingRunnable throwing = () ->
+            final Executable throwing = () ->
                 useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, createPortalNavigationItem));
 
             // Then

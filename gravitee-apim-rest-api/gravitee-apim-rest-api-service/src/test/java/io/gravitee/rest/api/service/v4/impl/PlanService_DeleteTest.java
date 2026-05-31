@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -36,18 +37,21 @@ import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import java.util.Collections;
 import java.util.Optional;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class PlanService_DeleteTest {
 
     private static final String API_ID = "my-api";
@@ -80,15 +84,17 @@ public class PlanService_DeleteTest {
     @Mock
     private KafkaPortRangeRepository kafkaPortRangeRepository;
 
-    @Test(expected = PlanWithSubscriptionsException.class)
+    @Test
     public void shouldNotDeleteBecauseSubscriptionsExist() throws TechnicalException {
-        when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
-        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
-        when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(
-            Collections.singleton(subscription)
-        );
+        assertThrows(PlanWithSubscriptionsException.class, () -> {
+            when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
+            when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+            when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(
+                Collections.singleton(subscription)
+            );
 
-        planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
+            planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
+        });
     }
 
     @Test
@@ -105,11 +111,13 @@ public class PlanService_DeleteTest {
         verify(flowCrudService, times(1)).savePlanFlows(PLAN_ID, null);
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotDeleteBecauseTechnicalException() throws TechnicalException {
-        when(planRepository.findById(PLAN_ID)).thenThrow(TechnicalException.class);
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(planRepository.findById(PLAN_ID)).thenThrow(TechnicalException.class);
 
-        planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
+            planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
+        });
     }
 
     @Test

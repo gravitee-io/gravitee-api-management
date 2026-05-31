@@ -15,9 +15,10 @@
  */
 package io.gravitee.rest.api.service.common;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team

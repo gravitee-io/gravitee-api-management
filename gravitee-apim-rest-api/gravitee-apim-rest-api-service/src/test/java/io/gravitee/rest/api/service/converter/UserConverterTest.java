@@ -15,16 +15,13 @@
  */
 package io.gravitee.rest.api.service.converter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.gravitee.repository.management.model.User;
 import io.gravitee.rest.api.model.NewExternalUserEntity;
 import io.gravitee.rest.api.model.UserEntity;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
 
 public class UserConverterTest {
 

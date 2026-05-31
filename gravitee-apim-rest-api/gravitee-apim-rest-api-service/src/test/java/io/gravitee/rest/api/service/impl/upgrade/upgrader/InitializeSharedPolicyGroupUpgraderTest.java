@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -29,17 +30,20 @@ import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.OrganizationService;
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class InitializeSharedPolicyGroupUpgraderTest {
 
     @Mock
@@ -54,15 +58,17 @@ public class InitializeSharedPolicyGroupUpgraderTest {
     @InjectMocks
     private final InitializeSharedPolicyGroupUpgrader upgrader = new InitializeSharedPolicyGroupUpgrader();
 
-    @Test(expected = UpgraderException.class)
-    public void upgrade_should_failed_because_of_exception() throws TechnicalException, UpgraderException {
-        when(organizationService.findAll()).thenThrow(new RuntimeException());
+    @Test
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+        assertThrows(UpgraderException.class, () -> {
+            when(organizationService.findAll()).thenThrow(new RuntimeException());
 
-        upgrader.upgrade();
+            upgrader.upgrade();
 
-        verify(organizationService, times(1)).findAll();
-        verifyNoMoreInteractions(environmentService);
-        verifyNoMoreInteractions(initializeSharedPolicyGroupUseCase);
+            verify(organizationService, times(1)).findAll();
+            verifyNoMoreInteractions(environmentService);
+            verifyNoMoreInteractions(initializeSharedPolicyGroupUseCase);
+        });
     }
 
     @Test
@@ -70,7 +76,7 @@ public class InitializeSharedPolicyGroupUpgraderTest {
         when(organizationService.findAll()).thenReturn(List.of(new OrganizationEntity()));
         when(environmentService.findByOrganization(any())).thenReturn(List.of(new EnvironmentEntity()));
 
-        Assert.assertTrue(upgrader.upgrade());
+        Assertions.assertTrue(upgrader.upgrade());
 
         verify(organizationService, times(1)).findAll();
         verify(environmentService, times(1)).findByOrganization(any());
@@ -79,6 +85,6 @@ public class InitializeSharedPolicyGroupUpgraderTest {
 
     @Test
     public void test_order() {
-        Assert.assertEquals(UpgraderOrder.INITIALIZE_SHARED_POLICY_GROUP_UPGRADER, upgrader.getOrder());
+        Assertions.assertEquals(UpgraderOrder.INITIALIZE_SHARED_POLICY_GROUP_UPGRADER, upgrader.getOrder());
     }
 }

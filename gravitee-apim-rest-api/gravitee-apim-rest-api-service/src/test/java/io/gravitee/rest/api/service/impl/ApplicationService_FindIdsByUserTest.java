@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
@@ -32,15 +32,18 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
 import java.util.Set;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApplicationService_FindIdsByUserTest {
 
     private static final String APPLICATION_ID = "id-app";
@@ -79,7 +82,7 @@ public class ApplicationService_FindIdsByUserTest {
     @Mock
     private RoleEntity primaryOwnerRole;
 
-    @After
+    @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
     }
@@ -96,9 +99,9 @@ public class ApplicationService_FindIdsByUserTest {
 
         Set<String> apps = applicationService.findIdsByUser(GraviteeContext.getExecutionContext(), null);
 
-        Assert.assertNotNull(apps);
-        Assert.assertFalse("should find app", apps.isEmpty());
-        Assert.assertEquals(APPLICATION_ID, apps.iterator().next());
+        Assertions.assertNotNull(apps);
+        Assertions.assertFalse(apps.isEmpty(), "should find app");
+        Assertions.assertEquals(APPLICATION_ID, apps.iterator().next());
     }
 
     @Test
@@ -119,8 +122,8 @@ public class ApplicationService_FindIdsByUserTest {
 
         Set<String> apps = applicationService.findIdsByUser(GraviteeContext.getExecutionContext(), USERNAME);
 
-        Assert.assertNotNull(apps);
-        Assert.assertFalse("should find app", apps.isEmpty());
-        Assert.assertEquals(APPLICATION_ID, apps.iterator().next());
+        Assertions.assertNotNull(apps);
+        Assertions.assertFalse(apps.isEmpty(), "should find app");
+        Assertions.assertEquals(APPLICATION_ID, apps.iterator().next());
     }
 }

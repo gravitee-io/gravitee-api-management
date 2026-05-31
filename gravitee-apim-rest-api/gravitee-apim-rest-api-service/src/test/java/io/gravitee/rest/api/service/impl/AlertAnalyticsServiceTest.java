@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -33,17 +34,20 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class AlertAnalyticsServiceTest {
 
     private static final String REFERENCE_TYPE = "ENVIRONMENT";
@@ -57,15 +61,17 @@ public class AlertAnalyticsServiceTest {
     @Mock
     private AlertEventRepository alertEventRepository;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         cut = new AlertAnalyticsServiceImpl(alertTriggerRepository, alertEventRepository);
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotFindByReferenceWhenException() throws Exception {
-        when(alertTriggerRepository.findByReferenceAndReferenceId(REFERENCE_TYPE, REFERENCE_ID)).thenThrow(new TechnicalException());
-        cut.findByReference(AlertReferenceType.ENVIRONMENT, REFERENCE_ID, new AlertAnalyticsQuery.Builder().from(0).to(1).build());
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(alertTriggerRepository.findByReferenceAndReferenceId(REFERENCE_TYPE, REFERENCE_ID)).thenThrow(new TechnicalException());
+            cut.findByReference(AlertReferenceType.ENVIRONMENT, REFERENCE_ID, new AlertAnalyticsQuery.Builder().from(0).to(1).build());
+        });
     }
 
     @Test

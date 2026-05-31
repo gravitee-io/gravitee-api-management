@@ -16,7 +16,8 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Category.AuditEvent.CATEGORY_CREATED;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -33,20 +34,23 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.DuplicateCategoryNameException;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import java.util.Collections;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class CategoryService_CreateTest {
 
     @InjectMocks
@@ -61,7 +65,7 @@ public class CategoryService_CreateTest {
     @Mock
     private EnvironmentService mockEnvironmentService;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         GraviteeContext.cleanContext();
     }
@@ -74,7 +78,7 @@ public class CategoryService_CreateTest {
         when(mockEnvironmentService.findById("DEFAULT")).thenReturn(new EnvironmentEntity());
         CategoryEntity category = categoryService.create(GraviteeContext.getExecutionContext(), v1);
 
-        assertNotNull("result is null", category);
+        assertNotNull(category, "result is null");
         verify(mockAuditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
             argThat(auditLogData -> auditLogData.getEvent().equals(CATEGORY_CREATED) && auditLogData.getOldValue() == null)
@@ -82,48 +86,54 @@ public class CategoryService_CreateTest {
         verify(mockCategoryRepository, times(1)).create(argThat(arg -> arg != null && arg.getName().equals("v1")));
     }
 
-    @Test(expected = EnvironmentNotFoundException.class)
+    @Test
     public void shouldNotCreateCategoryBecauseEnvironmentDoesNotExist() throws TechnicalException {
-        when(mockEnvironmentService.findById(any())).thenThrow(EnvironmentNotFoundException.class);
+        assertThrows(EnvironmentNotFoundException.class, () -> {
+            when(mockEnvironmentService.findById(any())).thenThrow(EnvironmentNotFoundException.class);
 
-        NewCategoryEntity nv1 = new NewCategoryEntity();
-        nv1.setName("v1");
-        categoryService.create(GraviteeContext.getExecutionContext(), nv1);
+            NewCategoryEntity nv1 = new NewCategoryEntity();
+            nv1.setName("v1");
+            categoryService.create(GraviteeContext.getExecutionContext(), nv1);
+        });
     }
 
-    @Test(expected = DuplicateCategoryNameException.class)
+    @Test
     public void shouldNotCreateExistingCategory() throws TechnicalException {
-        Category v1 = new Category();
-        NewCategoryEntity nv1 = new NewCategoryEntity();
-        v1.setName("v1");
-        v1.setKey(IdGenerator.generate(v1.getName()));
-        nv1.setName("v1");
-        when(mockCategoryRepository.findAllByEnvironment(any())).thenReturn(Collections.singleton(v1));
+        assertThrows(DuplicateCategoryNameException.class, () -> {
+            Category v1 = new Category();
+            NewCategoryEntity nv1 = new NewCategoryEntity();
+            v1.setName("v1");
+            v1.setKey(IdGenerator.generate(v1.getName()));
+            nv1.setName("v1");
+            when(mockCategoryRepository.findAllByEnvironment(any())).thenReturn(Collections.singleton(v1));
 
-        try {
-            categoryService.create(GraviteeContext.getExecutionContext(), nv1);
-        } catch (DuplicateCategoryNameException e) {
-            verify(mockCategoryRepository, never()).create(any());
-            throw e;
-        }
-        Assert.fail("should throw DuplicateCategoryNameException");
+            try {
+                categoryService.create(GraviteeContext.getExecutionContext(), nv1);
+            } catch (DuplicateCategoryNameException e) {
+                verify(mockCategoryRepository, never()).create(any());
+                throw e;
+            }
+            Assertions.fail("should throw DuplicateCategoryNameException");
+        });
     }
 
-    @Test(expected = DuplicateCategoryNameException.class)
+    @Test
     public void shouldNotCreateExistingCategoryBecauseSameName() throws TechnicalException {
-        Category v1 = new Category();
-        NewCategoryEntity nv1 = new NewCategoryEntity();
-        v1.setName("A Name With Capital Letters");
-        v1.setKey(IdGenerator.generate(v1.getName()));
-        nv1.setName("A name with CAPITAL letters");
-        when(mockCategoryRepository.findAllByEnvironment(any())).thenReturn(Collections.singleton(v1));
+        assertThrows(DuplicateCategoryNameException.class, () -> {
+            Category v1 = new Category();
+            NewCategoryEntity nv1 = new NewCategoryEntity();
+            v1.setName("A Name With Capital Letters");
+            v1.setKey(IdGenerator.generate(v1.getName()));
+            nv1.setName("A name with CAPITAL letters");
+            when(mockCategoryRepository.findAllByEnvironment(any())).thenReturn(Collections.singleton(v1));
 
-        try {
-            categoryService.create(GraviteeContext.getExecutionContext(), nv1);
-        } catch (DuplicateCategoryNameException e) {
-            verify(mockCategoryRepository, never()).create(any());
-            throw e;
-        }
-        Assert.fail("should throw DuplicateCategoryNameException");
+            try {
+                categoryService.create(GraviteeContext.getExecutionContext(), nv1);
+            } catch (DuplicateCategoryNameException e) {
+                verify(mockCategoryRepository, never()).create(any());
+                throw e;
+            }
+            Assertions.fail("should throw DuplicateCategoryNameException");
+        });
     }
 }

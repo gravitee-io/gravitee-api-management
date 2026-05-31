@@ -16,11 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static java.util.Collections.singleton;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -66,21 +62,22 @@ import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiDuplicatorServiceImplTest {
 
     private static final String API_ID = "id-api";
@@ -120,7 +117,7 @@ public class ApiDuplicatorServiceImplTest {
     @Spy
     private ObjectMapper objectMapper = (new ServiceConfiguration()).objectMapper();
 
-    @Before
+    @BeforeEach
     public void setup() {
         when(apiEntity.getId()).thenReturn(API_ID);
         ReflectionTestUtils.setField(apiDuplicatorService, "categoryMapper", new CategoryMapper(categoryService));
@@ -435,12 +432,16 @@ public class ApiDuplicatorServiceImplTest {
         verify(apiMetadataService, times(2)).update(eq(GraviteeContext.getExecutionContext()), any(UpdateApiMetadataEntity.class));
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldThrowTechnicalManagementExceptionWithMetadata() throws IOException {
-        ImportApiJsonNode metadataNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.metadata.default.json");
-        when(apiMetadataService.update(eq(GraviteeContext.getExecutionContext()), any())).thenThrow(new RuntimeException("fake exception"));
+        assertThrows(TechnicalManagementException.class, () -> {
+            ImportApiJsonNode metadataNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.metadata.default.json");
+            when(apiMetadataService.update(eq(GraviteeContext.getExecutionContext()), any())).thenThrow(
+                new RuntimeException("fake exception")
+            );
 
-        apiDuplicatorService.createOrUpdateMetadata(GraviteeContext.getExecutionContext(), apiEntity, metadataNode);
+            apiDuplicatorService.createOrUpdateMetadata(GraviteeContext.getExecutionContext(), apiEntity, metadataNode);
+        });
     }
 
     @Test

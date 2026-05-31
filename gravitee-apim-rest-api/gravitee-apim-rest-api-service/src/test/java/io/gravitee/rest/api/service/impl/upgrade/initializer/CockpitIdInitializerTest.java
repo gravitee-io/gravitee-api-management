@@ -23,17 +23,20 @@ import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class CockpitIdInitializerTest {
 
     @Mock
@@ -73,6 +76,6 @@ public class CockpitIdInitializerTest {
 
     @Test
     public void testOrder() {
-        Assert.assertEquals(InitializerOrder.COCKPIT_ID_INITIALIZER, initializer.getOrder());
+        Assertions.assertEquals(InitializerOrder.COCKPIT_ID_INITIALIZER, initializer.getOrder());
     }
 }

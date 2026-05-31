@@ -18,9 +18,11 @@ package io.gravitee.rest.api.service.impl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.service.jackson.ser.api.*;
 import java.io.IOException;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -28,7 +30,8 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author Nicolas Geraud (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@MockitoSettings(strictness = Strictness.WARN)
+@ExtendWith(MockitoExtension.class)
 public class ApiExportService_gRPC_ExportAsJsonTest extends ApiExportService_gRPC_ExportAsJsonTestSetup {
 
     @Test

@@ -19,8 +19,7 @@ import static io.gravitee.repository.management.model.Application.AuditEvent.APP
 import static io.gravitee.rest.api.model.ApiKeyMode.EXCLUSIVE;
 import static io.gravitee.rest.api.model.ApiKeyMode.SHARED;
 import static io.gravitee.rest.api.model.ApiKeyMode.UNSPECIFIED;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -52,13 +51,16 @@ import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeException;
 import java.util.Collections;
 import java.util.Optional;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApplicationService_UpdateApiKeyModeTest {
 
     private static final String APPLICATION_ID = "id-app";
@@ -140,47 +142,55 @@ public class ApplicationService_UpdateApiKeyModeTest {
         assertEquals(APPLICATION_NAME, applicationEntity.getName());
     }
 
-    @Test(expected = ApplicationNotFoundException.class)
+    @Test
     public void shouldNotUpdateBecauseNotFound() throws TechnicalException {
-        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.empty());
+        assertThrows(ApplicationNotFoundException.class, () -> {
+            when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.empty());
 
-        applicationService.updateApiKeyMode(GraviteeContext.getExecutionContext(), APPLICATION_ID, EXCLUSIVE);
+            applicationService.updateApiKeyMode(GraviteeContext.getExecutionContext(), APPLICATION_ID, EXCLUSIVE);
+        });
     }
 
-    @Test(expected = ApplicationArchivedException.class)
+    @Test
     public void shouldNotUpdateBecauseApplicationArchived() throws TechnicalException {
-        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ARCHIVED);
-        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        assertThrows(ApplicationArchivedException.class, () -> {
+            when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ARCHIVED);
+            when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
 
-        applicationService.updateApiKeyMode(GraviteeContext.getExecutionContext(), APPLICATION_ID, SHARED);
+            applicationService.updateApiKeyMode(GraviteeContext.getExecutionContext(), APPLICATION_ID, SHARED);
+        });
     }
 
-    @Test(expected = InvalidApplicationApiKeyModeException.class)
+    @Test
     public void should_throw_exception_trying_to_update_apiKeyMode_shared() throws TechnicalException {
-        // existing application has a SHARED api key mode
-        when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.SHARED);
-        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        assertThrows(InvalidApplicationApiKeyModeException.class, () -> {
+            // existing application has a SHARED api key mode
+            when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.SHARED);
+            when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
 
-        // this should throw exception cause API key mode update is forbidden
-        applicationService.updateApiKeyMode(GraviteeContext.getExecutionContext(), APPLICATION_ID, UNSPECIFIED);
+            // this should throw exception cause API key mode update is forbidden
+            applicationService.updateApiKeyMode(GraviteeContext.getExecutionContext(), APPLICATION_ID, UNSPECIFIED);
+        });
     }
 
-    @Test(expected = InvalidApplicationApiKeyModeException.class)
+    @Test
     public void should_throw_exception_trying_to_set_apiKeyMode_shared_with_env_setting_disabled() throws TechnicalException {
-        // 'Shared API KEY' setting is disabled
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ).thenReturn(false);
+        assertThrows(InvalidApplicationApiKeyModeException.class, () -> {
+            // 'Shared API KEY' setting is disabled
+            when(
+                parameterService.findAsBoolean(
+                    GraviteeContext.getExecutionContext(),
+                    Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                    ParameterReferenceType.ENVIRONMENT
+                )
+            ).thenReturn(false);
 
-        // existing application has a UNSPECIFIED api key mode
-        when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
-        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+            // existing application has a UNSPECIFIED api key mode
+            when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+            when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
 
-        // this should throw exception cause shard API key setting is disabled
-        applicationService.updateApiKeyMode(GraviteeContext.getExecutionContext(), APPLICATION_ID, SHARED);
+            // this should throw exception cause shard API key setting is disabled
+            applicationService.updateApiKeyMode(GraviteeContext.getExecutionContext(), APPLICATION_ID, SHARED);
+        });
     }
 }

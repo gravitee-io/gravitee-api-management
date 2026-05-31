@@ -28,17 +28,20 @@ import io.gravitee.repository.monitoring.MonitoringRepository;
 import io.gravitee.repository.monitoring.model.MonitoringResponse;
 import io.gravitee.rest.api.model.monitoring.MonitoringData;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class MonitoringServiceImplTest {
 
     @InjectMocks

@@ -43,12 +43,13 @@ import io.gravitee.rest.api.service.jackson.ser.api.*;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.internal.util.collections.Sets;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -56,6 +57,7 @@ import org.springframework.context.ApplicationContext;
  * @author Nicolas Geraud (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
 public class ApiExportService_ExportAsJsonTestSetup {
 
     protected static final String API_ID = "id-api";
@@ -104,7 +106,7 @@ public class ApiExportService_ExportAsJsonTestSetup {
 
     protected ApiEntity apiEntity;
 
-    @Before
+    @BeforeEach
     public void setUp() throws TechnicalException {
         GraviteeContext.setCurrentEnvironment("DEFAULT");
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
@@ -284,7 +286,7 @@ public class ApiExportService_ExportAsJsonTestSetup {
         );
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
     }

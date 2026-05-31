@@ -16,8 +16,6 @@
 package io.gravitee.rest.api.service.impl.configuration.application.registration.client.common;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 import io.gravitee.rest.api.model.configuration.application.registration.KeyStoreEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.KeyStoreEntity;
@@ -56,9 +54,6 @@ import org.apache.http.ssl.SSLContexts;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.MockedConstruction;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)

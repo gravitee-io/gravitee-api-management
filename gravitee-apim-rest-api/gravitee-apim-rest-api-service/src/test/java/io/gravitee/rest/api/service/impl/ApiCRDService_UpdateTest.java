@@ -18,8 +18,8 @@ package io.gravitee.rest.api.service.impl;
 import static io.gravitee.common.component.Lifecycle.State.STARTED;
 import static io.gravitee.common.component.Lifecycle.State.STOPPED;
 import static io.gravitee.definition.model.DefinitionContext.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -41,13 +41,15 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
@@ -56,7 +58,8 @@ import org.springframework.security.core.context.SecurityContextImpl;
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiCRDService_UpdateTest {
 
     @Mock
@@ -90,7 +93,7 @@ public class ApiCRDService_UpdateTest {
     private static final String API_NAME = "myAPI";
     private static final String USER_NAME = "user-id";
 
-    @Before
+    @BeforeEach
     public void setUp() {
         Authentication authentication = mock(Authentication.class);
         UserDetails userDetails = new UserDetails(USER_NAME, "PASSWORD", Collections.emptyList());

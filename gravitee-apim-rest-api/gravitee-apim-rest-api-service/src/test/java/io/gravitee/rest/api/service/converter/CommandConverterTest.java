@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.converter;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.node.api.Node;
@@ -30,17 +30,20 @@ import java.sql.Date;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class CommandConverterTest {
 
     @Mock
@@ -51,7 +54,7 @@ public class CommandConverterTest {
 
     private static final String NODE_ID = "gravitee-test";
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         when(node.id()).thenReturn(NODE_ID);
     }

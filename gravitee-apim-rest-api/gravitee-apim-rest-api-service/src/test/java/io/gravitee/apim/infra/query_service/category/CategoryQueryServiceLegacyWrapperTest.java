@@ -16,7 +16,6 @@
 package io.gravitee.apim.infra.query_service.category;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.apim.core.category.model.Category;

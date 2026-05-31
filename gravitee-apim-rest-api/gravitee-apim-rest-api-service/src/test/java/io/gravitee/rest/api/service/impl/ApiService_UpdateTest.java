@@ -34,9 +34,7 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.clearInvocations;
@@ -153,17 +151,18 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.internal.util.collections.Sets;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -172,7 +171,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiService_UpdateTest {
 
     public static final String API_DEFINITION = """
@@ -345,7 +345,7 @@ public class ApiService_UpdateTest {
     @Mock
     PortalNotificationConfigService portalNotificationConfigService;
 
-    @AfterClass
+    @AfterAll
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
         SecurityContextHolder.setContext(
@@ -361,10 +361,9 @@ public class ApiService_UpdateTest {
         );
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
-        MockitoAnnotations.openMocks(this);
         objectMapper.setFilterProvider(
             new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
         );
@@ -404,7 +403,7 @@ public class ApiService_UpdateTest {
         );
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
     }
@@ -475,129 +474,143 @@ public class ApiService_UpdateTest {
         verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, apiFlows);
     }
 
-    @Test(expected = ApiNotFoundException.class)
+    @Test
     public void shouldNotUpdateBecauseNotFound() throws TechnicalException {
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
+        assertThrows(ApiNotFoundException.class, () -> {
+            when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+            apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+        });
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotUpdateBecauseTechnicalException() throws TechnicalException {
-        updateApiEntity.setVersion("v1");
-        updateApiEntity.setName(API_NAME);
-        updateApiEntity.setDescription("Ma description");
-        final Proxy proxy = new Proxy();
-        EndpointGroup endpointGroup = new EndpointGroup();
-        endpointGroup.setName("endpointGroupName");
-        Endpoint endpoint = Endpoint.builder().name("endpointName").build();
-        endpointGroup.setEndpoints(singleton(endpoint));
-        proxy.setGroups(singleton(endpointGroup));
-        updateApiEntity.setProxy(proxy);
-        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
-        updateApiEntity.setLifecycleState(CREATED);
+        assertThrows(TechnicalManagementException.class, () -> {
+            updateApiEntity.setVersion("v1");
+            updateApiEntity.setName(API_NAME);
+            updateApiEntity.setDescription("Ma description");
+            final Proxy proxy = new Proxy();
+            EndpointGroup endpointGroup = new EndpointGroup();
+            endpointGroup.setName("endpointGroupName");
+            Endpoint endpoint = Endpoint.builder().name("endpointName").build();
+            endpointGroup.setEndpoints(singleton(endpoint));
+            proxy.setGroups(singleton(endpointGroup));
+            updateApiEntity.setProxy(proxy);
+            proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
+            updateApiEntity.setLifecycleState(CREATED);
 
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        api.setApiLifecycleState(ApiLifecycleState.CREATED);
-        when(apiRepository.update(any())).thenThrow(TechnicalException.class);
+            when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+            api.setApiLifecycleState(ApiLifecycleState.CREATED);
+            when(apiRepository.update(any())).thenThrow(TechnicalException.class);
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+            apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+        });
     }
 
-    @Test(expected = EndpointNameInvalidException.class)
+    @Test
     public void shouldNotUpdateWithInvalidEndpointGroupName() throws TechnicalException {
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        assertThrows(EndpointNameInvalidException.class, () -> {
+            when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
-        final Proxy proxy = new Proxy();
-        updateApiEntity.setProxy(proxy);
-        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/new")));
-        final EndpointGroup group = new EndpointGroup();
-        group.setName("inva:lid");
-        proxy.setGroups(singleton(group));
-        group.setEndpoints(singleton(mock(Endpoint.class)));
+            final Proxy proxy = new Proxy();
+            updateApiEntity.setProxy(proxy);
+            proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/new")));
+            final EndpointGroup group = new EndpointGroup();
+            group.setName("inva:lid");
+            proxy.setGroups(singleton(group));
+            group.setEndpoints(singleton(mock(Endpoint.class)));
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+            apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
 
-        fail("should throw EndpointNameInvalidException");
+            fail("should throw EndpointNameInvalidException");
+        });
     }
 
-    @Test(expected = EndpointNameInvalidException.class)
+    @Test
     public void shouldNotUpdateWithInvalidEndpointName() throws TechnicalException {
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        assertThrows(EndpointNameInvalidException.class, () -> {
+            when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
-        Endpoint endpoint = mock(Endpoint.class);
-        when(endpoint.getName()).thenReturn("inva:lid");
+            Endpoint endpoint = mock(Endpoint.class);
+            when(endpoint.getName()).thenReturn("inva:lid");
 
-        final EndpointGroup group = new EndpointGroup();
-        group.setName("group");
-        group.setEndpoints(singleton(endpoint));
+            final EndpointGroup group = new EndpointGroup();
+            group.setName("group");
+            group.setEndpoints(singleton(endpoint));
 
-        final Proxy proxy = new Proxy();
-        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/new")));
-        proxy.setGroups(singleton(group));
-        updateApiEntity.setProxy(proxy);
+            final Proxy proxy = new Proxy();
+            proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/new")));
+            proxy.setGroups(singleton(group));
+            updateApiEntity.setProxy(proxy);
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+            apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
 
-        fail("should throw EndpointNameInvalidException");
+            fail("should throw EndpointNameInvalidException");
+        });
     }
 
-    @Test(expected = EndpointNameAlreadyExistsException.class)
+    @Test
     public void shouldNotCreateApiBecauseOfEndpointGroupAndInnerEndpointHaveSameName() throws TechnicalException {
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        assertThrows(EndpointNameAlreadyExistsException.class, () -> {
+            when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
-        Endpoint endpoint = Endpoint.builder().name("endpointGroupName").build();
-        EndpointGroup endpointGroup = EndpointGroup.builder().name("endpointGroupName").endpoints(singleton(endpoint)).build();
-        Proxy proxy = Proxy.builder().groups(singleton(endpointGroup)).virtualHosts(singletonList(new VirtualHost("/context"))).build();
+            Endpoint endpoint = Endpoint.builder().name("endpointGroupName").build();
+            EndpointGroup endpointGroup = EndpointGroup.builder().name("endpointGroupName").endpoints(singleton(endpoint)).build();
+            Proxy proxy = Proxy.builder().groups(singleton(endpointGroup)).virtualHosts(singletonList(new VirtualHost("/context"))).build();
 
-        UpdateApiEntity api = new UpdateApiEntity();
-        api.setProxy(proxy);
-        api.setVersion("1.0");
-        api.setName("tag test basic");
-        api.setDescription("tag test basic example");
+            UpdateApiEntity api = new UpdateApiEntity();
+            api.setProxy(proxy);
+            api.setVersion("1.0");
+            api.setName("tag test basic");
+            api.setDescription("tag test basic example");
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, api);
+            apiService.update(GraviteeContext.getExecutionContext(), API_ID, api);
+        });
     }
 
-    @Test(expected = EndpointGroupNameAlreadyExistsException.class)
+    @Test
     public void shouldNotCreateApiBecauseOfEndpointGroupAndEndpointOfAnotherGroupHaveSameName() throws TechnicalException {
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        assertThrows(EndpointGroupNameAlreadyExistsException.class, () -> {
+            when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
-        Endpoint endpoint = Endpoint.builder().name("endpointName").build();
-        EndpointGroup endpointGroup = EndpointGroup.builder().name("endpointGroupName").endpoints(singleton(endpoint)).build();
-        Endpoint endpoint2 = Endpoint.builder().name("endpointGroupName").build();
-        EndpointGroup endpointGroup2 = EndpointGroup.builder().name("endpointName").endpoints(singleton(endpoint2)).build();
-        Proxy proxy = Proxy.builder()
-            .groups(Set.of(endpointGroup, endpointGroup2))
-            .virtualHosts(singletonList(new VirtualHost("/context")))
-            .build();
+            Endpoint endpoint = Endpoint.builder().name("endpointName").build();
+            EndpointGroup endpointGroup = EndpointGroup.builder().name("endpointGroupName").endpoints(singleton(endpoint)).build();
+            Endpoint endpoint2 = Endpoint.builder().name("endpointGroupName").build();
+            EndpointGroup endpointGroup2 = EndpointGroup.builder().name("endpointName").endpoints(singleton(endpoint2)).build();
+            Proxy proxy = Proxy.builder()
+                .groups(Set.of(endpointGroup, endpointGroup2))
+                .virtualHosts(singletonList(new VirtualHost("/context")))
+                .build();
 
-        UpdateApiEntity api = new UpdateApiEntity();
-        api.setProxy(proxy);
-        api.setVersion("1.0");
-        api.setName("tag test basic");
-        api.setDescription("tag test basic example");
+            UpdateApiEntity api = new UpdateApiEntity();
+            api.setProxy(proxy);
+            api.setVersion("1.0");
+            api.setName("tag test basic");
+            api.setDescription("tag test basic example");
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, api);
+            apiService.update(GraviteeContext.getExecutionContext(), API_ID, api);
+        });
     }
 
-    @Test(expected = InvalidDataException.class)
+    @Test
     public void shouldNotUpdateWithPOGroups() throws TechnicalException {
-        prepareUpdate();
+        assertThrows(InvalidDataException.class, () -> {
+            prepareUpdate();
 
-        Set<String> groups = Sets.newSet("group-with-po");
-        updateApiEntity.setGroups(groups);
+            Set<String> groups = Sets.newSet("group-with-po");
+            updateApiEntity.setGroups(groups);
 
-        GroupEntity poGroup = new GroupEntity();
-        poGroup.setId("group-with-po");
-        poGroup.setApiPrimaryOwner("a-api-po-user");
-        Set<GroupEntity> groupEntitySet = Sets.newSet(poGroup);
-        //        when(groupService.findByIds(groups)).thenReturn(groupEntitySet);
-        when(groupService.findByIds(groups)).thenThrow(GroupsNotFoundException.class);
+            GroupEntity poGroup = new GroupEntity();
+            poGroup.setId("group-with-po");
+            poGroup.setApiPrimaryOwner("a-api-po-user");
+            Set<GroupEntity> groupEntitySet = Sets.newSet(poGroup);
+            //        when(groupService.findByIds(groups)).thenReturn(groupEntitySet);
+            when(groupService.findByIds(groups)).thenThrow(GroupsNotFoundException.class);
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+            apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
 
-        fail("should throw InvalidDataException");
+            fail("should throw InvalidDataException");
+        });
     }
 
     private void prepareUpdate(DefinitionVersion existingAPIDefinitionVersion, DefinitionVersion updateAPIDefinitionVersion)
@@ -859,39 +872,47 @@ public class ApiService_UpdateTest {
         verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
-    @Test(expected = InvalidDataException.class)
+    @Test
     public void shouldNotUpdate_NewPlanNotAllowed() throws TechnicalException {
-        prepareUpdate();
-        PlanEntity plan = new PlanEntity();
-        plan.setName("Plan Malicious");
-        plan.setStatus(PlanStatus.PUBLISHED);
-        updateApiEntity.setPlans(Set.of(plan));
+        assertThrows(InvalidDataException.class, () -> {
+            prepareUpdate();
+            PlanEntity plan = new PlanEntity();
+            plan.setName("Plan Malicious");
+            plan.setStatus(PlanStatus.PUBLISHED);
+            updateApiEntity.setPlans(Set.of(plan));
 
-        api.setDefinition("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}");
-        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true);
-        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+            api.setDefinition("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}");
+            ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true);
+            verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+        });
     }
 
-    @Test(expected = InvalidDataException.class)
+    @Test
     public void shouldNotUpdate_PlanClosed() throws TechnicalException {
-        prepareUpdate();
+        assertThrows(InvalidDataException.class, () -> {
+            prepareUpdate();
 
-        PlanEntity updatedPlan = new PlanEntity();
-        updatedPlan.setId("MALICIOUS");
-        updatedPlan.setName("Plan Malicious");
-        updatedPlan.setStatus(PlanStatus.PUBLISHED);
-        updateApiEntity.setPlans(Set.of(updatedPlan));
+            PlanEntity updatedPlan = new PlanEntity();
+            updatedPlan.setId("MALICIOUS");
+            updatedPlan.setName("Plan Malicious");
+            updatedPlan.setStatus(PlanStatus.PUBLISHED);
+            updateApiEntity.setPlans(Set.of(updatedPlan));
 
-        PlanEntity originalPlan = new PlanEntity();
-        originalPlan.setId("MALICIOUS");
-        originalPlan.setStatus(PlanStatus.CLOSED);
-        when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
+            PlanEntity originalPlan = new PlanEntity();
+            originalPlan.setId("MALICIOUS");
+            originalPlan.setStatus(PlanStatus.CLOSED);
+            when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
 
-        api.setDefinition(
-            "{\"id\": \"" + API_ID + "\", \"gravitee\": \"2.0.0\", \"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}"
-        );
-        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true);
-        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+            api.setDefinition(
+                "{\"id\": \"" +
+                    API_ID +
+                    "\", \"gravitee\": \"2.0.0\", \"name\": \"" +
+                    API_NAME +
+                    "\",\"proxy\": {\"context_path\": \"/old\"}}"
+            );
+            ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true);
+            verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+        });
     }
 
     @Test
@@ -938,82 +959,98 @@ public class ApiService_UpdateTest {
         verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
     }
 
-    @Test(expected = TagNotAllowedException.class)
+    @Test
     public void shouldNotUpdateWithNotAllowedTag() throws TechnicalException {
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        api.setDefinition(
-            "{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\"]}"
-        );
-        updateApiEntity.setTags(singleton("private"));
-        final Proxy proxy = new Proxy();
-        EndpointGroup endpointGroup = new EndpointGroup();
-        Endpoint endpoint = Endpoint.builder().name("default").build();
-        endpointGroup.setEndpoints(singleton(endpoint));
-        proxy.setGroups(singleton(endpointGroup));
-        updateApiEntity.setProxy(proxy);
-        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
-        when(tagService.findByUser(any(), any(), any())).thenReturn(emptySet());
-        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
-        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+        assertThrows(TagNotAllowedException.class, () -> {
+            when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+            api.setDefinition(
+                "{\"id\": \"" +
+                    API_ID +
+                    "\",\"name\": \"" +
+                    API_NAME +
+                    "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\"]}"
+            );
+            updateApiEntity.setTags(singleton("private"));
+            final Proxy proxy = new Proxy();
+            EndpointGroup endpointGroup = new EndpointGroup();
+            Endpoint endpoint = Endpoint.builder().name("default").build();
+            endpointGroup.setEndpoints(singleton(endpoint));
+            proxy.setGroups(singleton(endpointGroup));
+            updateApiEntity.setProxy(proxy);
+            proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
+            when(tagService.findByUser(any(), any(), any())).thenReturn(emptySet());
+            ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+            verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+        });
     }
 
-    @Test(expected = TagNotAllowedException.class)
+    @Test
     public void shouldNotUpdateWithExistingNotAllowedTag() throws TechnicalException {
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        api.setDefinition(
-            "{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\"]}"
-        );
-        updateApiEntity.setTags(singleton("private"));
-        final Proxy proxy = new Proxy();
-        EndpointGroup endpointGroup = new EndpointGroup();
-        Endpoint endpoint = Endpoint.builder().name("default").build();
-        endpointGroup.setEndpoints(singleton(endpoint));
-        proxy.setGroups(singleton(endpointGroup));
-        updateApiEntity.setProxy(proxy);
-        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
-        when(tagService.findByUser(any(), any(), any())).thenReturn(singleton("public"));
-        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
-        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+        assertThrows(TagNotAllowedException.class, () -> {
+            when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+            api.setDefinition(
+                "{\"id\": \"" +
+                    API_ID +
+                    "\",\"name\": \"" +
+                    API_NAME +
+                    "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\"]}"
+            );
+            updateApiEntity.setTags(singleton("private"));
+            final Proxy proxy = new Proxy();
+            EndpointGroup endpointGroup = new EndpointGroup();
+            Endpoint endpoint = Endpoint.builder().name("default").build();
+            endpointGroup.setEndpoints(singleton(endpoint));
+            proxy.setGroups(singleton(endpointGroup));
+            updateApiEntity.setProxy(proxy);
+            proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
+            when(tagService.findByUser(any(), any(), any())).thenReturn(singleton("public"));
+            ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+            verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+        });
     }
 
-    @Test(expected = TagNotAllowedException.class)
+    @Test
     public void shouldNotUpdateWithExistingNotAllowedTags() throws TechnicalException {
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        api.setDefinition(
-            "{\"id\": \"" +
-                API_ID +
-                "\",\"name\": \"" +
-                API_NAME +
-                "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\", \"private\"]}"
-        );
-        updateApiEntity.setTags(emptySet());
+        assertThrows(TagNotAllowedException.class, () -> {
+            when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+            api.setDefinition(
+                "{\"id\": \"" +
+                    API_ID +
+                    "\",\"name\": \"" +
+                    API_NAME +
+                    "\",\"proxy\": {\"context_path\": \"/old\"} ,\"tags\": [\"public\", \"private\"]}"
+            );
+            updateApiEntity.setTags(emptySet());
 
-        final Proxy proxy = new Proxy();
-        EndpointGroup endpointGroup = new EndpointGroup();
-        Endpoint endpoint = Endpoint.builder().name("default").build();
-        endpointGroup.setEndpoints(singleton(endpoint));
-        proxy.setGroups(singleton(endpointGroup));
-        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
+            final Proxy proxy = new Proxy();
+            EndpointGroup endpointGroup = new EndpointGroup();
+            Endpoint endpoint = Endpoint.builder().name("default").build();
+            endpointGroup.setEndpoints(singleton(endpoint));
+            proxy.setGroups(singleton(endpointGroup));
+            proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
 
-        updateApiEntity.setProxy(proxy);
-        when(tagService.findByUser(any(), any(), any())).thenReturn(singleton("private"));
-        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
-        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+            updateApiEntity.setProxy(proxy);
+            when(tagService.findByUser(any(), any(), any())).thenReturn(singleton("private"));
+            ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+            verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+        });
     }
 
-    @Test(expected = InvalidDataException.class)
+    @Test
     public void shouldNotUpdateWithInvalidSchedule() throws TechnicalException {
-        prepareUpdate();
-        Services services = new Services();
-        HealthCheckService healthCheckService = mock(HealthCheckService.class);
-        when(healthCheckService.getSchedule()).thenReturn("**");
-        services.put(HealthCheckService.class, healthCheckService);
-        updateApiEntity.setServices(services);
-        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+        assertThrows(InvalidDataException.class, () -> {
+            prepareUpdate();
+            Services services = new Services();
+            HealthCheckService healthCheckService = mock(HealthCheckService.class);
+            when(healthCheckService.getSchedule()).thenReturn("**");
+            services.put(HealthCheckService.class, healthCheckService);
+            updateApiEntity.setServices(services);
+            final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
 
-        assertNotNull(apiEntity);
-        assertEquals(API_NAME, apiEntity.getName());
-        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+            assertNotNull(apiEntity);
+            assertEquals(API_NAME, apiEntity.getName());
+            verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+        });
     }
 
     @Test
@@ -1221,52 +1258,58 @@ public class ApiService_UpdateTest {
         verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), any(ApiEntity.class));
     }
 
-    @Test(expected = DefinitionVersionException.class)
+    @Test
     public void shouldNotDowngradeDefinitionVersion() throws TechnicalException {
-        prepareUpdate();
-        updateApiEntity.setGraviteeDefinitionVersion("2.0.0");
-        api.setDefinition(
-            "{\"id\": \"" +
-                API_ID +
-                "\",\"name\": \"" +
-                API_NAME +
-                "\",\"gravitee\": \"4.0.0\"" +
-                ",\"proxy\": {\"context_path\": \"/old\"} ,\"labels\": [\"public\"]}"
-        );
+        assertThrows(DefinitionVersionException.class, () -> {
+            prepareUpdate();
+            updateApiEntity.setGraviteeDefinitionVersion("2.0.0");
+            api.setDefinition(
+                "{\"id\": \"" +
+                    API_ID +
+                    "\",\"name\": \"" +
+                    API_NAME +
+                    "\",\"gravitee\": \"4.0.0\"" +
+                    ",\"proxy\": {\"context_path\": \"/old\"} ,\"labels\": [\"public\"]}"
+            );
 
-        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+            ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
 
-        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+            verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+        });
     }
 
-    @Test(expected = InvalidDataException.class)
+    @Test
     public void shouldNotUseInvalidDefinitionVersion() throws TechnicalException {
-        prepareUpdate();
-        updateApiEntity.setGraviteeDefinitionVersion("0.0.0");
-        api.setDefinition(
-            "{\"id\": \"" +
-                API_ID +
-                "\",\"name\": \"" +
-                API_NAME +
-                "\",\"gravitee\": \"2.0.0\"" +
-                ",\"proxy\": {\"context_path\": \"/old\"} ,\"labels\": [\"public\"]}"
-        );
+        assertThrows(InvalidDataException.class, () -> {
+            prepareUpdate();
+            updateApiEntity.setGraviteeDefinitionVersion("0.0.0");
+            api.setDefinition(
+                "{\"id\": \"" +
+                    API_ID +
+                    "\",\"name\": \"" +
+                    API_NAME +
+                    "\",\"gravitee\": \"2.0.0\"" +
+                    ",\"proxy\": {\"context_path\": \"/old\"} ,\"labels\": [\"public\"]}"
+            );
 
-        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+            ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
 
-        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+            verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+        });
     }
 
-    @Test(expected = InvalidDataException.class)
+    @Test
     public void shouldNotUpdateWithInvalidResourceConfiguration() throws TechnicalException {
-        prepareUpdate();
-        Resource resource = new Resource();
-        updateApiEntity.setResources(List.of(resource));
-        doThrow(new InvalidDataException()).when(resourceService).validateResourceConfiguration(any(Resource.class));
+        assertThrows(InvalidDataException.class, () -> {
+            prepareUpdate();
+            Resource resource = new Resource();
+            updateApiEntity.setResources(List.of(resource));
+            doThrow(new InvalidDataException()).when(resourceService).validateResourceConfiguration(any(Resource.class));
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+            apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
 
-        fail("should throw InvalidDataException");
+            fail("should throw InvalidDataException");
+        });
     }
 
     @Test

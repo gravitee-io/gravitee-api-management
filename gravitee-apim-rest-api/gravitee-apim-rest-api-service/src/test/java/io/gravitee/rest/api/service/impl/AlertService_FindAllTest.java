@@ -15,10 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -31,14 +29,17 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@MockitoSettings(strictness = Strictness.WARN)
+@ExtendWith(MockitoExtension.class)
 public class AlertService_FindAllTest extends AlertServiceTest {
 
     @Test
@@ -60,15 +61,15 @@ public class AlertService_FindAllTest extends AlertServiceTest {
         results
             .stream()
             .map(AlertTriggerEntity::getId)
-            .forEach(id -> {
-                assertTrue(alertTriggers.stream().anyMatch(alertTrigger -> alertTrigger.getId().equals(id)));
-            });
+            .forEach(id -> assertTrue(alertTriggers.stream().anyMatch(alertTrigger -> alertTrigger.getId().equals(id))));
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void findAll_should_throw_TechnicalManagementException_when_technicalException() throws TechnicalException {
-        when(alertTriggerRepository.findAll()).thenThrow(TechnicalException.class);
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(alertTriggerRepository.findAll()).thenThrow(TechnicalException.class);
 
-        alertService.findAll();
+            alertService.findAll();
+        });
     }
 }

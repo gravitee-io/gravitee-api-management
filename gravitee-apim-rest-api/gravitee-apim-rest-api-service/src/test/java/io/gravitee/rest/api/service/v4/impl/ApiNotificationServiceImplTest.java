@@ -31,11 +31,13 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -44,7 +46,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiNotificationServiceImplTest {
 
     @Mock
@@ -58,7 +61,7 @@ public class ApiNotificationServiceImplTest {
 
     private ApiNotificationService apiNotificationService;
 
-    @Before
+    @BeforeEach
     public void before() {
         apiNotificationService = new ApiNotificationServiceImpl(indexableApiMapper, notifierService, userService);
 
