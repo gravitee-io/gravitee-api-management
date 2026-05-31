@@ -16,6 +16,7 @@
 import { Button, Table, TableBody, TableCell, TableRow } from '@gravitee/graphene-core';
 import { CopyIcon } from '@gravitee/graphene-core/icons';
 
+import { copyTextToClipboardWithNotifyHandler } from '../../../../shared/copyToClipboard';
 import type { ApplicationSubscriptionDetail } from '../../types/applicationSubscription';
 import { formatApplicationDateTime } from '../../utils/applicationFormatters';
 
@@ -66,7 +67,7 @@ function DetailRow({
                             size="icon"
                             className="size-7 shrink-0"
                             aria-label={`Copy ${label}`}
-                            onClick={() => void navigator.clipboard?.writeText(display)}
+                            onClick={() => copyTextToClipboardWithNotifyHandler(display, 'Copied to clipboard')}
                         >
                             <CopyIcon className="size-3.5" aria-hidden />
                         </Button>

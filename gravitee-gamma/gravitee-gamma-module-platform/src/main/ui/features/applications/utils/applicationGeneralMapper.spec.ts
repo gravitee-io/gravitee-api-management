@@ -20,6 +20,7 @@ import {
     isApplicationGeneralFormDirty,
     validateApplicationGeneralForm,
 } from './applicationGeneralMapper';
+import { APPLICATION_TYPES_FIXTURE } from '../fixtures/applicationTypes.fixture';
 import type { ApplicationListItem } from '../types/application';
 
 const baseApplication: ApplicationListItem = {
@@ -38,6 +39,28 @@ describe('applicationGeneralMapper', () => {
         const form = formFromApplication(baseApplication);
         expect(form.name).toBe('My App');
         expect(form.simpleClientId).toBe('client-1');
+        expect(form.redirectUris).toEqual([]);
+        expect(form.additionalClientMetadata).toBeNull();
+    });
+
+    it('maps oauth settings including additional client metadata', () => {
+        const oauthApp: ApplicationListItem = {
+            ...baseApplication,
+            type: 'WEB',
+            settings: {
+                oauth: {
+                    client_id: 'oauth-id',
+                    grant_types: ['authorization_code'],
+                    redirect_uris: ['https://app.example/callback'],
+                    additional_client_metadata: { audience: 'api' },
+                },
+            },
+        };
+
+        const form = formFromApplication(oauthApp);
+
+        expect(form.redirectUris).toEqual(['https://app.example/callback']);
+        expect(form.additionalClientMetadata).toEqual({ audience: 'api' });
     });
 
     it('validates required fields', () => {
@@ -51,6 +74,62 @@ describe('applicationGeneralMapper', () => {
         expect(errors.description).toBeDefined();
     });
 
+    it('requires at least one grant type for OAuth applications such as SPA', () => {
+        const spaApp: ApplicationListItem = {
+            ...baseApplication,
+            type: 'BROWSER',
+            settings: {
+                oauth: {
+                    client_id: 'oauth-id',
+                    grant_types: ['authorization_code'],
+                    redirect_uris: ['https://app.example/callback'],
+                },
+            },
+        };
+        const spaType = APPLICATION_TYPES_FIXTURE.find(type => type.id === 'browser')!;
+        const form = { ...formFromApplication(spaApp), grantTypes: [] };
+
+        const errors = validateApplicationGeneralForm(form, { isOAuthApplication: true, typeConfig: spaType });
+
+        expect(errors.grantTypes).toBe('Allowed grant types is required.');
+        expect(hasApplicationGeneralValidationErrors(errors)).toBe(true);
+    });
+
+    it('requires mandatory grant types when configured for the application type', () => {
+        const webApp: ApplicationListItem = {
+            ...baseApplication,
+            type: 'WEB',
+            settings: {
+                oauth: {
+                    client_id: 'oauth-id',
+                    grant_types: ['refresh_token'],
+                    redirect_uris: ['https://app.example/callback'],
+                },
+            },
+        };
+        const webType = APPLICATION_TYPES_FIXTURE.find(type => type.id === 'web')!;
+        const form = formFromApplication(webApp);
+
+        const errors = validateApplicationGeneralForm(form, { isOAuthApplication: true, typeConfig: webType });
+
+        expect(errors.grantTypes).toBe('Mandatory grant types must be selected.');
+    });
+
+    it('rejects duplicate additional client metadata keys', () => {
+        const form = formFromApplication({
+            ...baseApplication,
+            type: 'BROWSER',
+            settings: { oauth: { client_id: 'id', grant_types: ['authorization_code'] } },
+        });
+
+        const errors = validateApplicationGeneralForm(form, {
+            isOAuthApplication: true,
+            metadataHasDuplicateKeys: true,
+        });
+
+        expect(errors.additionalClientMetadata).toBe('Keys must be unique');
+    });
+
     it('detects dirty state with explicit field comparison', () => {
         const saved = formFromApplication(baseApplication);
         const unchanged = { ...saved };
@@ -60,6 +139,24 @@ describe('applicationGeneralMapper', () => {
         expect(isApplicationGeneralFormDirty(unchanged, saved)).toBe(false);
         expect(isApplicationGeneralFormDirty(renamed, saved)).toBe(true);
         expect(isApplicationGeneralFormDirty(reorderedGrantTypes, saved)).toBe(false);
+    });
+
+    it('detects metadata and redirect URI changes', () => {
+        const saved = formFromApplication({
+            ...baseApplication,
+            type: 'WEB',
+            settings: {
+                oauth: {
+                    client_id: 'oauth-id',
+                    grant_types: ['authorization_code'],
+                    redirect_uris: ['https://a.example'],
+                    additional_client_metadata: { foo: 'bar' },
+                },
+            },
+        });
+
+        expect(isApplicationGeneralFormDirty({ ...saved, redirectUris: ['https://b.example'] }, saved)).toBe(true);
+        expect(isApplicationGeneralFormDirty({ ...saved, additionalClientMetadata: { foo: 'baz' } }, saved)).toBe(true);
     });
 
     it('builds simple application update payload', () => {
@@ -100,7 +197,7 @@ describe('applicationGeneralMapper', () => {
         expect(payload.background).toBe('data:image/png;base64,bg');
     });
 
-    it('parses redirect URIs for oauth applications', () => {
+    it('includes redirect URIs and additional client metadata in oauth update payload', () => {
         const oauthApp: ApplicationListItem = {
             ...baseApplication,
             type: 'WEB',
@@ -114,10 +211,11 @@ describe('applicationGeneralMapper', () => {
         };
         const form = {
             ...formFromApplication(oauthApp),
-            redirectUrisText: 'https://a.example\nhttps://b.example\n',
+            redirectUris: ['https://a.example', 'https://b.example'],
+            additionalClientMetadata: { scope: 'openid' },
         };
         const payload = buildUpdatePayload(oauthApp, form, {
-            id: 'WEB',
+            id: 'web',
             name: 'Web',
             allowed_grant_types: [],
             mandatory_grant_types: [],
@@ -125,5 +223,23 @@ describe('applicationGeneralMapper', () => {
             requires_redirect_uris: true,
         });
         expect(payload.settings?.oauth?.redirect_uris).toEqual(['https://a.example', 'https://b.example']);
+        expect(payload.settings?.oauth?.additional_client_metadata).toEqual({ scope: 'openid' });
+    });
+
+    it('sends empty metadata object when cleared', () => {
+        const oauthApp: ApplicationListItem = {
+            ...baseApplication,
+            type: 'WEB',
+            settings: {
+                oauth: {
+                    client_id: 'oauth-id',
+                    grant_types: ['authorization_code'],
+                    additional_client_metadata: { legacy: 'value' },
+                },
+            },
+        };
+        const form = { ...formFromApplication(oauthApp), additionalClientMetadata: null };
+        const payload = buildUpdatePayload(oauthApp, form, undefined);
+        expect(payload.settings?.oauth?.additional_client_metadata).toEqual({});
     });
 });

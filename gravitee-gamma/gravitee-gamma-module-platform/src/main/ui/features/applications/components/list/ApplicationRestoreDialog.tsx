@@ -31,13 +31,11 @@ export function ApplicationRestoreDialog({
     onClose,
     onConfirm,
     isLoading,
-    error,
 }: Readonly<{
     application: ApplicationListItem | null;
     onClose: () => void;
     onConfirm: () => void;
     isLoading: boolean;
-    error?: string | null;
 }>) {
     return (
         <Dialog open={application !== null} onOpenChange={open => !open && onClose()}>
@@ -51,7 +49,6 @@ export function ApplicationRestoreDialog({
                         reactivated as per requirements.
                     </DialogDescription>
                 </DialogHeader>
-                {error ? <p className="text-sm text-destructive">{error}</p> : null}
                 <DialogFooter className="sm:justify-end">
                     <DialogClose asChild>
                         <Button type="button" variant="outline">

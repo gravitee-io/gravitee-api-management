@@ -13,7 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ApimApiError } from '../api/apimClient';
 
-export interface ApplicationsListLocationState {
-    successMessage?: string;
+export function extractErrorMessage(error: unknown, fallback = 'Something went wrong.'): string {
+    if (error instanceof ApimApiError) {
+        return error.message;
+    }
+    if (error instanceof Error) {
+        return error.message;
+    }
+    if (typeof error === 'string' && error.trim()) {
+        return error;
+    }
+    return fallback;
 }

@@ -19,6 +19,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 
+import { PlatformToaster } from './PlatformToaster';
 import { APPLICATION_NAV_GROUPS, flattenApplicationDetailNavItems } from '../config/applicationDetailNavigation';
 import { applicationDetailTabElement } from '../config/applicationDetailPages';
 import { NAV_GROUPS } from '../config/navigation';
@@ -67,6 +68,7 @@ export function AppRoutes() {
     return (
         <QueryClientProvider client={queryClient}>
             <ConsoleSettingsProvider>
+                <PlatformToaster />
                 <Routes>
                     <Route element={<ModuleLayout />}>
                         <Route index element={<Navigate to="applications" replace />} />

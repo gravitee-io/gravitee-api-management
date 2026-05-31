@@ -15,7 +15,7 @@
  */
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { useCallback, useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { ApplicationsEmptyLanding } from '../features/applications/components';
 import { ApplicationsListView } from '../features/applications/components/list';
@@ -23,7 +23,6 @@ import { useApplicationList } from '../features/applications/hooks/useApplicatio
 import { useApplicationStats } from '../features/applications/hooks/useApplicationStats';
 import { useOrganizationAdmin } from '../features/applications/hooks/useOrganizationAdmin';
 import type { ApplicationStatus } from '../features/applications/types/application';
-import type { ApplicationsListLocationState } from '../features/applications/types/navigation';
 import {
     APPLICATION_LIST_SERVER_SORT_IDS,
     defaultApplicationListOrder,
@@ -31,7 +30,6 @@ import {
 } from '../features/applications/utils/applicationListSort';
 import { DEFAULT_APPLICATION_LIST_PAGE_SIZE } from '../features/applications/utils/paginationConstants';
 import { sortToOrder, type TableSortingState } from '../features/applications/utils/tableSort';
-import { SuccessBanner } from '../features/shared/components';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PER_PAGE = DEFAULT_APPLICATION_LIST_PAGE_SIZE;
@@ -40,11 +38,9 @@ const SEARCH_DEBOUNCE_MS = 300;
 
 export function ApplicationsPage() {
     const navigate = useNavigate();
-    const location = useLocation();
     const canCreate = useHasPermission({ anyOf: ['environment-application-c'] });
     const { isAdmin: canManageArchived, isLoading: isAdminLoading } = useOrganizationAdmin();
 
-    const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [status, setStatus] = useState<ApplicationStatus>(DEFAULT_STATUS);
@@ -83,15 +79,6 @@ export function ApplicationsPage() {
             setPage(DEFAULT_PAGE);
         }
     }, []);
-
-    useEffect(() => {
-        const state = location.state as ApplicationsListLocationState | null;
-        const message = state?.successMessage;
-        if (!message) return;
-
-        setSuccessMessage(message);
-        navigate(location.pathname, { replace: true, state: null });
-    }, [location.pathname, location.state, navigate]);
 
     const { data, isLoading, isFetching, isError } = useApplicationList({
         query: debouncedSearch,
@@ -145,28 +132,25 @@ export function ApplicationsPage() {
     }
 
     return (
-        <div className="space-y-4">
-            {successMessage && <SuccessBanner message={successMessage} />}
-            <ApplicationsListView
-                applications={applications}
-                totalCount={totalCount}
-                stats={stats}
-                isLoading={isLoading}
-                search={search}
-                status={status}
-                page={page}
-                perPage={perPage}
-                onSearchChange={handleSearchChange}
-                onStatusChange={handleStatusChange}
-                sorting={sorting}
-                onSortingChange={handleSortingChange}
-                onPageChange={setPage}
-                onPerPageChange={handlePerPageChange}
-                onRegisterApplication={handleRegisterApplication}
-                canCreate={canCreate}
-                canManageArchived={canManageArchived}
-                canRestore={canManageArchived}
-            />
-        </div>
+        <ApplicationsListView
+            applications={applications}
+            totalCount={totalCount}
+            stats={stats}
+            isLoading={isLoading}
+            search={search}
+            status={status}
+            page={page}
+            perPage={perPage}
+            onSearchChange={handleSearchChange}
+            onStatusChange={handleStatusChange}
+            sorting={sorting}
+            onSortingChange={handleSortingChange}
+            onPageChange={setPage}
+            onPerPageChange={handlePerPageChange}
+            onRegisterApplication={handleRegisterApplication}
+            canCreate={canCreate}
+            canManageArchived={canManageArchived}
+            canRestore={canManageArchived}
+        />
     );
 }

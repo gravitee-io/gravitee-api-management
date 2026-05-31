@@ -32,14 +32,12 @@ export function ApplicationSubscriptionEditRequestDialog({
     onOpenChange,
     onSave,
     isLoading,
-    error,
 }: Readonly<{
     open: boolean;
     initialRequest: string;
     onOpenChange: (open: boolean) => void;
     onSave: (request: string) => void;
     isLoading: boolean;
-    error?: string | null;
 }>) {
     const [request, setRequest] = useState(initialRequest);
 
@@ -57,7 +55,6 @@ export function ApplicationSubscriptionEditRequestDialog({
                 <div className="space-y-2 py-2">
                     <Label htmlFor="edit-subscription-request">Publisher message to subscriber</Label>
                     <Textarea id="edit-subscription-request" value={request} onChange={e => setRequest(e.target.value)} rows={4} />
-                    {error ? <p className="text-sm text-destructive">{error}</p> : null}
                 </div>
                 <DialogFooter className="sm:justify-end gap-2">
                     <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>

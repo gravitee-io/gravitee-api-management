@@ -31,13 +31,11 @@ export function ApplicationRevokeCertificateDialog({
     onClose,
     onConfirm,
     isLoading,
-    error,
 }: Readonly<{
     certificate: ClientCertificate | null;
     onClose: () => void;
     onConfirm: () => void;
     isLoading: boolean;
-    error?: string | null;
 }>) {
     return (
         <Dialog open={certificate !== null} onOpenChange={open => !open && onClose()}>
@@ -49,7 +47,6 @@ export function ApplicationRevokeCertificateDialog({
                         fail.
                     </DialogDescription>
                 </DialogHeader>
-                {error ? <p className="text-sm text-destructive">{error}</p> : null}
                 <DialogFooter className="sm:justify-end">
                     <DialogClose asChild>
                         <Button type="button" variant="outline">

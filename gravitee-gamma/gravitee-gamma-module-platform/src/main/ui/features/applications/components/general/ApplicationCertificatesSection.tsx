@@ -35,6 +35,7 @@ import { ApplicationAddCertificateDialog, type AddCertificateSubmit } from './Ap
 import { ApplicationCertificateDetailDialog } from './ApplicationCertificateDetailDialog';
 import { ApplicationRevokeCertificateDialog } from './ApplicationRevokeCertificateDialog';
 import { certificateStatusLabel, certificateStatusVariant } from './certificateUtils';
+import { notify } from '../../../../shared/notify';
 import { useApplicationCertificates } from '../../hooks/useApplicationCertificates';
 import {
     toGracePeriodUpdateFailure,
@@ -71,8 +72,6 @@ export function ApplicationCertificatesSection({
     const [certDialogOpen, setCertDialogOpen] = useState(false);
     const [viewCert, setViewCert] = useState<ClientCertificate | null>(null);
     const [revokeCert, setRevokeCert] = useState<ClientCertificate | null>(null);
-    const [certError, setCertError] = useState<string | null>(null);
-    const [revokeError, setRevokeError] = useState<string | null>(null);
     const [gracePeriodWarning, setGracePeriodWarning] = useState<GracePeriodUpdateFailure | null>(null);
     const actionsDisabled = isMutating || !canManageCertificates;
 
@@ -129,10 +128,7 @@ export function ApplicationCertificatesSection({
                                     size="sm"
                                     className="text-destructive hover:text-destructive"
                                     disabled={actionsDisabled}
-                                    onClick={() => {
-                                        setRevokeError(null);
-                                        setRevokeCert(cert);
-                                    }}
+                                    onClick={() => setRevokeCert(cert)}
                                 >
                                     Revoke
                                 </Button>
@@ -147,12 +143,10 @@ export function ApplicationCertificatesSection({
     }, [actionsDisabled, canManageCertificates]);
 
     const openAddDialog = () => {
-        setCertError(null);
         setCertDialogOpen(true);
     };
 
     const handleAddCertificate = (submit: AddCertificateSubmit) => {
-        setCertError(null);
         const activeCert = submit.activeCertificateId ? certificates.find(c => c.id === submit.activeCertificateId) : undefined;
         addCertificateWithGraceMutation.mutate(
             {
@@ -172,6 +166,7 @@ export function ApplicationCertificatesSection({
             },
             {
                 onSuccess: () => {
+                    notify.success('Certificate added successfully.');
                     setCertDialogOpen(false);
                     setGracePeriodWarning(null);
                 },
@@ -180,9 +175,10 @@ export function ApplicationCertificatesSection({
                     if (graceFailure) {
                         setGracePeriodWarning(graceFailure);
                         setCertDialogOpen(false);
+                        notify.warning('Certificate added, but grace period update failed.');
                         return;
                     }
-                    setCertError(e instanceof Error ? e.message : 'Failed to add certificate.');
+                    notify.error(e, 'Failed to add certificate.');
                 },
             },
         );
@@ -197,22 +193,14 @@ export function ApplicationCertificatesSection({
             },
             {
                 onSuccess: () => setGracePeriodWarning(null),
-                onError: (e: unknown) =>
-                    setGracePeriodWarning(prev =>
-                        prev
-                            ? {
-                                  ...prev,
-                                  message: e instanceof Error ? e.message : 'Failed to update grace period.',
-                              }
-                            : prev,
-                    ),
+                onError: (e: unknown) => notify.error(e, 'Failed to update grace period.'),
             },
         );
     };
 
     const handleRevokeCertificate = () => {
         if (!revokeCert) return;
-        setRevokeError(null);
+        const certName = revokeCert.name;
         const endsAt = new Date(Date.now() - 1000).toISOString();
         updateCertificateMutation.mutate(
             {
@@ -221,10 +209,10 @@ export function ApplicationCertificatesSection({
             },
             {
                 onSuccess: () => {
+                    notify.success(`Certificate "${certName}" has been deleted.`);
                     setRevokeCert(null);
-                    setRevokeError(null);
                 },
-                onError: (e: unknown) => setRevokeError(e instanceof Error ? e.message : 'Failed to revoke certificate.'),
+                onError: error => notify.error(error, 'Failed to delete certificate.'),
             },
         );
     };
@@ -292,28 +280,20 @@ export function ApplicationCertificatesSection({
 
             <ApplicationAddCertificateDialog
                 open={certDialogOpen}
-                onOpenChange={open => {
-                    setCertDialogOpen(open);
-                    if (!open) setCertError(null);
-                }}
+                onOpenChange={setCertDialogOpen}
                 applicationId={applicationId}
                 certificates={certificates}
                 onSubmit={handleAddCertificate}
                 isSubmitting={addCertificateWithGraceMutation.isPending}
-                error={certError}
             />
 
             <ApplicationCertificateDetailDialog certificate={viewCert} onClose={() => setViewCert(null)} />
 
             <ApplicationRevokeCertificateDialog
                 certificate={revokeCert}
-                onClose={() => {
-                    setRevokeCert(null);
-                    setRevokeError(null);
-                }}
+                onClose={() => setRevokeCert(null)}
                 onConfirm={handleRevokeCertificate}
                 isLoading={updateCertificateMutation.isPending}
-                error={revokeError}
             />
         </>
     );

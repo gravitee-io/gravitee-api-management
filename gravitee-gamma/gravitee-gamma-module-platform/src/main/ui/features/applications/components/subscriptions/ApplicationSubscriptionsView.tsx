@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Alert, AlertDescription, Button, DataTablePagination, Input, cn } from '@gravitee/graphene-core';
+import { Button, DataTablePagination, Input, cn } from '@gravitee/graphene-core';
 import { PlusIcon, RefreshCwIcon } from '@gravitee/graphene-core/icons';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { ApplicationSubscriptionCloseDialog } from './ApplicationSubscriptionCloseDialog';
@@ -23,6 +23,7 @@ import { ApplicationSubscriptionCreateDialog } from './ApplicationSubscriptionCr
 import { ApplicationSubscriptionMultiSelectFilter } from './ApplicationSubscriptionMultiSelectFilter';
 import { ApplicationSubscriptionsTable } from './ApplicationSubscriptionsTable';
 import { ApplicationSubscriptionStatusDetails } from './ApplicationSubscriptionStatusDetails';
+import { notify } from '../../../../shared/notify';
 import { useDetailBasePath } from '../../../shared/hooks/useDetailBasePath';
 import { useApplicationSubscriptionPermissions } from '../../hooks/useApplicationSubscriptionPermissions';
 import { useApplicationSubscriptions, useSubscribedApis } from '../../hooks/useApplicationSubscriptions';
@@ -59,8 +60,8 @@ export function ApplicationSubscriptionsView({ application }: Readonly<{ applica
     const [pageSize, setPageSize] = useState(() => parseApplicationSubscriptionListSearchParams(searchParams).pageSize);
     const [createOpen, setCreateOpen] = useState(false);
     const [closeTarget, setCloseTarget] = useState<ApplicationSubscriptionTableRow | null>(null);
-    const [closeError, setCloseError] = useState<string | null>(null);
     const canCreateSubscription = !readOnly && canCreate;
+    const loadErrorNotifiedRef = useRef(false);
 
     useEffect(() => {
         const timer = window.setTimeout(() => setDebouncedApiKey(apiKeyInput.trim()), API_KEY_DEBOUNCE_MS);
@@ -126,14 +127,24 @@ export function ApplicationSubscriptionsView({ application }: Readonly<{ applica
         setPage(1);
     };
 
+    useEffect(() => {
+        if (isError && !loadErrorNotifiedRef.current) {
+            notify.error('Unable to get subscriptions, please try again');
+            loadErrorNotifiedRef.current = true;
+        }
+        if (!isError) {
+            loadErrorNotifiedRef.current = false;
+        }
+    }, [isError]);
+
     const handleClose = async () => {
         if (!closeTarget) return;
-        setCloseError(null);
         try {
             await closeMutation.mutateAsync(closeTarget.id);
+            notify.success('The subscription has been closed');
             setCloseTarget(null);
-        } catch {
-            setCloseError('Failed to close subscription. Please try again.');
+        } catch (error) {
+            notify.error(error, 'An error occurred while closing the subscription!');
         }
     };
 
@@ -159,12 +170,6 @@ export function ApplicationSubscriptionsView({ application }: Readonly<{ applica
             </div>
 
             <ApplicationSubscriptionStatusDetails />
-
-            {isError ? (
-                <Alert variant="destructive">
-                    <AlertDescription>Failed to load subscriptions. Please try again.</AlertDescription>
-                </Alert>
-            ) : null}
 
             <div className="flex flex-wrap items-center gap-3">
                 <ApplicationSubscriptionMultiSelectFilter
@@ -195,41 +200,42 @@ export function ApplicationSubscriptionsView({ application }: Readonly<{ applica
                 </Button>
             </div>
 
-            <div className="flex justify-end">
-                <DataTablePagination
-                    page={page}
-                    pageSize={pageSize}
-                    totalCount={totalCount}
-                    pageSizeOptions={SUBSCRIPTION_PAGE_SIZE_OPTIONS}
-                    onPageChange={setPage}
-                    onPageSizeChange={handlePageSizeChange}
-                />
-            </div>
+            {isError ? null : (
+                <>
+                    <div className="flex justify-end">
+                        <DataTablePagination
+                            page={page}
+                            pageSize={pageSize}
+                            totalCount={totalCount}
+                            pageSizeOptions={SUBSCRIPTION_PAGE_SIZE_OPTIONS}
+                            onPageChange={setPage}
+                            onPageSizeChange={handlePageSizeChange}
+                        />
+                    </div>
 
-            <ApplicationSubscriptionsTable
-                rows={rows}
-                isLoading={isLoading}
-                skeletonRowCount={pageSize}
-                readOnly={readOnly}
-                canViewDetail={canViewDetail}
-                canClose={canDelete}
-                onView={row => navigate(`${basePath}/subscriptions/${row.id}`)}
-                onClose={row => {
-                    setCloseError(null);
-                    setCloseTarget(row);
-                }}
-            />
+                    <ApplicationSubscriptionsTable
+                        rows={rows}
+                        isLoading={isLoading}
+                        skeletonRowCount={pageSize}
+                        readOnly={readOnly}
+                        canViewDetail={canViewDetail}
+                        canClose={canDelete}
+                        onView={row => navigate(`${basePath}/subscriptions/${row.id}`)}
+                        onClose={row => setCloseTarget(row)}
+                    />
 
-            <div className="flex justify-end">
-                <DataTablePagination
-                    page={page}
-                    pageSize={pageSize}
-                    totalCount={totalCount}
-                    pageSizeOptions={SUBSCRIPTION_PAGE_SIZE_OPTIONS}
-                    onPageChange={setPage}
-                    onPageSizeChange={handlePageSizeChange}
-                />
-            </div>
+                    <div className="flex justify-end">
+                        <DataTablePagination
+                            page={page}
+                            pageSize={pageSize}
+                            totalCount={totalCount}
+                            pageSizeOptions={SUBSCRIPTION_PAGE_SIZE_OPTIONS}
+                            onPageChange={setPage}
+                            onPageSizeChange={handlePageSizeChange}
+                        />
+                    </div>
+                </>
+            )}
 
             {canCreateSubscription ? (
                 <ApplicationSubscriptionCreateDialog
@@ -242,13 +248,9 @@ export function ApplicationSubscriptionsView({ application }: Readonly<{ applica
 
             <ApplicationSubscriptionCloseDialog
                 subscription={closeTarget}
-                onClose={() => {
-                    setCloseTarget(null);
-                    setCloseError(null);
-                }}
+                onClose={() => setCloseTarget(null)}
                 onConfirm={() => void handleClose()}
                 isLoading={closeMutation.isPending}
-                error={closeError}
             />
         </div>
     );

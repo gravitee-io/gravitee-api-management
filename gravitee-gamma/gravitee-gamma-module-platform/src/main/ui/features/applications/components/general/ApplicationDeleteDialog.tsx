@@ -34,14 +34,12 @@ export function ApplicationDeleteDialog({
     applicationName,
     onDelete,
     isLoading,
-    error,
 }: Readonly<{
     open: boolean;
     onOpenChange: (open: boolean) => void;
     applicationName: string;
     onDelete: () => void;
     isLoading: boolean;
-    error?: string | null;
 }>) {
     const [confirm, setConfirm] = useState('');
 
@@ -69,7 +67,6 @@ export function ApplicationDeleteDialog({
                         placeholder={applicationName}
                         autoComplete="off"
                     />
-                    {error ? <p className="text-sm text-destructive">{error}</p> : null}
                 </div>
                 <DialogFooter className="sm:justify-end">
                     <DialogClose asChild>

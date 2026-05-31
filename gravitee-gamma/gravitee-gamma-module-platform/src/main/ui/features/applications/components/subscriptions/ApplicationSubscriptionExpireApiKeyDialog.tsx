@@ -54,13 +54,11 @@ export function ApplicationSubscriptionExpireApiKeyDialog({
     onClose,
     onConfirm,
     isLoading,
-    error,
 }: Readonly<{
     apiKey: ApplicationSubscriptionApiKeyRow | null;
     onClose: () => void;
     onConfirm: (expirationDate: Date) => void;
     isLoading: boolean;
-    error?: string | null;
 }>) {
     const initialLocal = useMemo(() => (apiKey ? toDatetimeLocalValue(defaultExpirationDraft(apiKey)) : ''), [apiKey]);
     const [value, setValue] = useState(initialLocal);
@@ -104,7 +102,6 @@ export function ApplicationSubscriptionExpireApiKeyDialog({
                         {hasInvalidRange ? <p className="text-sm text-destructive">Date and time must be in the future.</p> : null}
                     </div>
                 ) : null}
-                {error ? <p className="text-sm text-destructive">{error}</p> : null}
                 <DialogFooter>
                     <DialogClose asChild>
                         <Button type="button" variant="outline" disabled={isLoading}>

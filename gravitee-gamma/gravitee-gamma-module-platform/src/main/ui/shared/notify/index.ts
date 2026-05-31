@@ -13,12 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/** Inline success feedback (same pattern as ApiEntrypointsPage save confirmation in gamma-module-apim). */
-export function SuccessBanner({ message }: { readonly message: string }) {
-    return (
-        <div className="rounded-lg border border-success/30 bg-success/5 px-4 py-3" role="status">
-            <p className="text-sm text-success">{message}</p>
-        </div>
-    );
-}
+export { extractErrorMessage } from './extractErrorMessage';
+export { notify } from './notify';

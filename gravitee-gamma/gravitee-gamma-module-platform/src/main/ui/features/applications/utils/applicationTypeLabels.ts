@@ -53,3 +53,9 @@ export function normalizeApplicationTypes(types: readonly ApplicationTypeConfig[
 export function isSameApplicationType(left: string, right: string): boolean {
     return normalizeTypeId(left) === normalizeTypeId(right);
 }
+
+/** Normalize a single type from GET /applications/{id}/configuration. */
+export function normalizeApplicationType(type: ApplicationTypeConfig): ApplicationTypeConfig {
+    const [normalized] = normalizeApplicationTypes([type]);
+    return normalized!;
+}

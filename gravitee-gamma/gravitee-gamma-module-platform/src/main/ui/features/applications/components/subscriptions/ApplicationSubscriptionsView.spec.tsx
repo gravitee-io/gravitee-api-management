@@ -17,6 +17,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 import { ApplicationSubscriptionsView } from './ApplicationSubscriptionsView';
+import { notify } from '../../../../shared/notify';
 import { useApplicationSubscriptionPermissions } from '../../hooks/useApplicationSubscriptionPermissions';
 import { useApplicationSubscriptions, useSubscribedApis } from '../../hooks/useApplicationSubscriptions';
 import { useCloseApplicationSubscription } from '../../hooks/useCloseApplicationSubscription';
@@ -46,7 +47,16 @@ jest.mock('./ApplicationSubscriptionStatusDetails', () => ({
 jest.mock('./ApplicationSubscriptionMultiSelectFilter', () => ({
     ApplicationSubscriptionMultiSelectFilter: () => null,
 }));
+jest.mock('../../../../shared/notify', () => ({
+    notify: {
+        error: jest.fn(),
+        success: jest.fn(),
+        warning: jest.fn(),
+        info: jest.fn(),
+    },
+}));
 
+const mockNotify = jest.mocked(notify);
 const mockUsePermissions = jest.mocked(useApplicationSubscriptionPermissions);
 const mockUseSubscriptions = jest.mocked(useApplicationSubscriptions);
 const mockUseSubscribedApis = jest.mocked(useSubscribedApis);
@@ -113,6 +123,25 @@ describe('ApplicationSubscriptionsView', () => {
         renderView();
         expect(screen.queryByRole('button', { name: /Create a subscription/i })).toBeNull();
         expect(screen.queryByTestId('create-dialog')).toBeNull();
+    });
+
+    it('shows a toaster error and hides the table when subscriptions fail to load', () => {
+        mockUsePermissions.mockReturnValue({
+            permissionsReady: true,
+            canRead: true,
+            canCreate: false,
+            canUpdate: false,
+            canDelete: false,
+            canViewDetail: true,
+        });
+        mockUseSubscriptions.mockReturnValue({
+            data: undefined,
+            isLoading: false,
+            isError: true,
+        } as ReturnType<typeof useApplicationSubscriptions>);
+        renderView();
+        expect(mockNotify.error).toHaveBeenCalledWith('Unable to get subscriptions, please try again');
+        expect(screen.queryByTestId('subscriptions-table')).toBeNull();
     });
 
     it('hides Create a subscription for archived applications', () => {
