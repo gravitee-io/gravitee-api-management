@@ -17,7 +17,7 @@ package io.gravitee.gateway.security.apikey;
 
 import static io.gravitee.gateway.security.core.AuthenticationContext.TOKEN_TYPE_API_KEY;
 import static java.util.Optional.of;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.GraviteeHttpHeader;
@@ -39,20 +39,23 @@ import io.gravitee.reporter.api.http.SecurityType;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiKeyAuthenticationHandlerTest {
 
     @InjectMocks
@@ -76,7 +79,7 @@ public class ApiKeyAuthenticationHandlerTest {
     @Mock
     private ComponentProvider provider;
 
-    @Before
+    @BeforeEach
     public void init() {
         when(provider.getComponent(ApiKeyService.class)).thenReturn(apiKeyService);
         when(provider.getComponent(Api.class)).thenReturn(api);
@@ -98,7 +101,7 @@ public class ApiKeyAuthenticationHandlerTest {
         when(request.parameters()).thenReturn(parameters);
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
-        Assert.assertFalse(handle);
+        Assertions.assertFalse(handle);
     }
 
     @Test
@@ -112,7 +115,7 @@ public class ApiKeyAuthenticationHandlerTest {
         when(apiKeyService.getByApiAndKey("api-id", "xxxxx-xxxx-xxxxx")).thenReturn(of(new ApiKey()));
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
-        Assert.assertTrue(handle);
+        Assertions.assertTrue(handle);
         verify(metrics).setSecurityType(SecurityType.API_KEY);
         verify(metrics).setSecurityToken("xxxxx-xxxx-xxxxx");
     }
@@ -131,7 +134,7 @@ public class ApiKeyAuthenticationHandlerTest {
         when(request.headers()).thenReturn(headers);
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
-        Assert.assertTrue(handle);
+        Assertions.assertTrue(handle);
         verify(metrics).setSecurityType(SecurityType.API_KEY);
         verify(metrics).setSecurityToken("xxxxx-xxxx-xxxxx");
     }
@@ -147,7 +150,7 @@ public class ApiKeyAuthenticationHandlerTest {
         when(request.headers()).thenReturn(headers);
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
-        Assert.assertTrue(handle);
+        Assertions.assertTrue(handle);
     }
 
     @Test
@@ -174,7 +177,7 @@ public class ApiKeyAuthenticationHandlerTest {
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
 
-        Assert.assertTrue(handle);
+        Assertions.assertTrue(handle);
         verify(metrics).setSecurityType(SecurityType.API_KEY);
         verify(metrics).setSecurityToken(apiKey);
     }
@@ -197,7 +200,7 @@ public class ApiKeyAuthenticationHandlerTest {
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
 
-        Assert.assertTrue(handle);
+        Assertions.assertTrue(handle);
         verify(metrics, never()).setSecurityType(SecurityType.API_KEY);
         verify(metrics, never()).setSecurityToken(apiKey);
     }
