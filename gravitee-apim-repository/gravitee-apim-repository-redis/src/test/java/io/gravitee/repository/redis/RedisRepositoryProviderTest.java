@@ -15,13 +15,13 @@
  */
 package io.gravitee.repository.redis;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.redis.ratelimit.RateLimitRepositoryConfiguration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class RedisRepositoryProviderTest {
 
