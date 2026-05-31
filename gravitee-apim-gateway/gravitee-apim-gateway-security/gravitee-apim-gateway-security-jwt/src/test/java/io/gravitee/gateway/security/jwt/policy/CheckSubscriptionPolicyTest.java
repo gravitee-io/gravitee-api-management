@@ -29,18 +29,21 @@ import io.gravitee.gateway.policy.PolicyException;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
 import java.util.Optional;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class CheckSubscriptionPolicyTest {
 
     @Mock
@@ -56,7 +59,7 @@ public class CheckSubscriptionPolicyTest {
     private static final String PLAN_ID = "plan-id";
     private static final String CLIENT_ID = "client-id";
 
-    @Before
+    @BeforeEach
     public void init() {
         when(request.metrics()).thenReturn(on(currentTimeMillis()).build());
         when(request.timestamp()).thenReturn(currentTimeMillis());

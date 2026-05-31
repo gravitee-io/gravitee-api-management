@@ -17,7 +17,7 @@ package io.gravitee.gateway.security.jwt;
 
 import static io.gravitee.gateway.security.core.AuthenticationContext.ATTR_INTERNAL_TOKEN_IDENTIFIED;
 import static io.gravitee.gateway.security.core.AuthenticationContext.TOKEN_TYPE_AUTHORIZATION_BEARER;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -30,19 +30,22 @@ import io.gravitee.gateway.security.core.*;
 import io.gravitee.gateway.security.jwt.policy.CheckSubscriptionPolicy;
 import java.util.Iterator;
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class JWTAuthenticationHandlerTest {
 
     @InjectMocks
@@ -56,7 +59,7 @@ public class JWTAuthenticationHandlerTest {
     @Mock
     private Request request;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         when(executionContext.request()).thenReturn(request);
         authenticationContext = new SimpleAuthenticationContext(executionContext);
@@ -106,7 +109,7 @@ public class JWTAuthenticationHandlerTest {
         boolean handle = authenticationHandler.canHandle(authenticationContext);
         assertTrue(handle);
         assertNotNull(authenticationContext.get(JWTAuthenticationHandler.JWT_CONTEXT_ATTRIBUTE));
-        assertTrue(authenticationContext.getInternalAttribute(ATTR_INTERNAL_TOKEN_IDENTIFIED));
+        assertTrue((boolean) authenticationContext.getInternalAttribute(ATTR_INTERNAL_TOKEN_IDENTIFIED));
     }
 
     @Test
@@ -119,7 +122,7 @@ public class JWTAuthenticationHandlerTest {
         boolean handle = authenticationHandler.canHandle(authenticationContext);
         assertTrue(handle);
         assertNotNull(authenticationContext.get(JWTAuthenticationHandler.JWT_CONTEXT_ATTRIBUTE));
-        assertTrue(authenticationContext.getInternalAttribute(ATTR_INTERNAL_TOKEN_IDENTIFIED));
+        assertTrue((boolean) authenticationContext.getInternalAttribute(ATTR_INTERNAL_TOKEN_IDENTIFIED));
     }
 
     @Test
@@ -134,7 +137,7 @@ public class JWTAuthenticationHandlerTest {
         boolean handle = authenticationHandler.canHandle(authenticationContext);
         assertTrue(handle);
         assertNotNull(authenticationContext.get(JWTAuthenticationHandler.JWT_CONTEXT_ATTRIBUTE));
-        assertTrue(authenticationContext.getInternalAttribute(ATTR_INTERNAL_TOKEN_IDENTIFIED));
+        assertTrue((boolean) authenticationContext.getInternalAttribute(ATTR_INTERNAL_TOKEN_IDENTIFIED));
     }
 
     @Test
@@ -147,7 +150,7 @@ public class JWTAuthenticationHandlerTest {
         boolean handle = authenticationHandler.canHandle(authenticationContext);
         assertTrue(handle);
         assertNotNull(authenticationContext.get(JWTAuthenticationHandler.JWT_CONTEXT_ATTRIBUTE));
-        assertTrue(authenticationContext.getInternalAttribute(ATTR_INTERNAL_TOKEN_IDENTIFIED));
+        assertTrue((boolean) authenticationContext.getInternalAttribute(ATTR_INTERNAL_TOKEN_IDENTIFIED));
     }
 
     @Test
@@ -156,23 +159,23 @@ public class JWTAuthenticationHandlerTest {
 
         List<AuthenticationPolicy> jwtProviderPolicies = authenticationHandler.handle(executionContext);
 
-        Assert.assertEquals(2, jwtProviderPolicies.size());
+        Assertions.assertEquals(2, jwtProviderPolicies.size());
         Iterator<AuthenticationPolicy> policyIte = jwtProviderPolicies.iterator();
         PluginAuthenticationPolicy policy = (PluginAuthenticationPolicy) policyIte.next();
-        Assert.assertEquals(JWTAuthenticationHandler.AUTHENTICATION_HANDLER_NAME, policy.name());
+        Assertions.assertEquals(JWTAuthenticationHandler.AUTHENTICATION_HANDLER_NAME, policy.name());
 
         HookAuthenticationPolicy policy2 = (HookAuthenticationPolicy) policyIte.next();
-        Assert.assertEquals(CheckSubscriptionPolicy.class, policy2.clazz());
+        Assertions.assertEquals(CheckSubscriptionPolicy.class, policy2.clazz());
     }
 
     @Test
     public void shouldReturnName() {
-        Assert.assertEquals(JWTAuthenticationHandler.AUTHENTICATION_HANDLER_NAME, authenticationHandler.name());
+        Assertions.assertEquals(JWTAuthenticationHandler.AUTHENTICATION_HANDLER_NAME, authenticationHandler.name());
     }
 
     @Test
     public void shouldReturnOrder() {
-        Assert.assertEquals(0, authenticationHandler.order());
+        Assertions.assertEquals(0, authenticationHandler.order());
     }
 
     @Test
