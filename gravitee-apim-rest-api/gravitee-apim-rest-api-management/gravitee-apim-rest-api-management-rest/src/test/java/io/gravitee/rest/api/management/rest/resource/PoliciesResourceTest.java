@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -52,7 +52,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         final Response response = envTarget().request().get();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        assertTrue("empty", response.readEntity(Set.class).isEmpty());
+        assertTrue(response.readEntity(Set.class).isEmpty(), "empty");
     }
 
     @Test
@@ -112,13 +112,13 @@ public class PoliciesResourceTest extends AbstractResourceTest {
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         Set entity = response.readEntity(Set.class);
-        assertFalse("not empty", entity.isEmpty());
-        assertEquals("one element", 1, entity.size());
+        assertFalse(entity.isEmpty(), "not empty");
+        assertEquals(1, entity.size(), "one element");
         Object o = entity.iterator().next();
         assertTrue(o instanceof LinkedHashMap);
         LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>) o;
-        assertEquals("id", "my-api", elt.get("id"));
-        assertEquals("schema", "policy schema", elt.get("schema"));
+        assertEquals("my-api", elt.get("id"), "id");
+        assertEquals("policy schema", elt.get("schema"), "schema");
     }
 
     @Test
@@ -134,13 +134,13 @@ public class PoliciesResourceTest extends AbstractResourceTest {
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         Set entity = response.readEntity(Set.class);
-        assertFalse("not empty", entity.isEmpty());
-        assertEquals("one element", 1, entity.size());
+        assertFalse(entity.isEmpty(), "not empty");
+        assertEquals(1, entity.size(), "one element");
         Object o = entity.iterator().next();
         assertTrue(o instanceof LinkedHashMap);
         LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>) o;
-        assertEquals("id", "my-api", elt.get("id"));
-        assertFalse("unknown expand", elt.containsKey("schema"));
-        assertFalse("unknown expand", elt.containsKey("unknown"));
+        assertEquals("my-api", elt.get("id"), "id");
+        assertFalse(elt.containsKey("schema"), "unknown expand");
+        assertFalse(elt.containsKey("unknown"), "unknown expand");
     }
 }

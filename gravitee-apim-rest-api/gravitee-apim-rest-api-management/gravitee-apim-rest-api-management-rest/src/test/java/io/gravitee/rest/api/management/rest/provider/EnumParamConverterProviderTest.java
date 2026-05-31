@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.provider;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import jakarta.ws.rs.ext.ParamConverter;
 import org.junit.jupiter.api.Test;

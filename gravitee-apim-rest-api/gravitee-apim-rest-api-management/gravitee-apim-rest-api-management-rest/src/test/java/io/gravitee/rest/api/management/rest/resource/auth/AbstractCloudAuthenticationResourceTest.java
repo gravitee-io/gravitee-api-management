@@ -20,9 +20,7 @@ import static io.gravitee.rest.api.management.rest.resource.auth.CockpitAuthenti
 import static io.gravitee.rest.api.management.rest.resource.auth.CockpitAuthenticationResource.ENVIRONMENT_CLAIM;
 import static io.gravitee.rest.api.management.rest.resource.auth.CockpitAuthenticationResource.ORG_CLAIM;
 import static io.gravitee.rest.api.management.rest.resource.auth.CockpitAuthenticationResource.REDIRECT_URI_CLAIM;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 

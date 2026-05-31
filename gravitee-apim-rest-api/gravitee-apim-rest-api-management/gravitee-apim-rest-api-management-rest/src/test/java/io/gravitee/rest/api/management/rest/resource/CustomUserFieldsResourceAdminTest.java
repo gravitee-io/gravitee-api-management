@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -52,9 +52,9 @@ public class CustomUserFieldsResourceAdminTest extends AbstractResourceTest {
         assertEquals(CREATED_201, response.getStatus());
         verify(customUserFieldService, times(1)).create(any(), any());
         verify(customUserFieldService).create(any(), argument.capture());
-        assertNotNull("Field provided can't be null", argument.getValue());
+        assertNotNull(argument.getValue(), "Field provided can't be null");
         assertEquals(field.getKey(), argument.getValue().getKey());
-        assertTrue("LocationHeader value", response.getHeaderString("Location").endsWith(this.contextPath() + "/" + field.getKey()));
+        assertTrue(response.getHeaderString("Location").endsWith(this.contextPath() + "/" + field.getKey()), "LocationHeader value");
     }
 
     @Test
@@ -71,7 +71,7 @@ public class CustomUserFieldsResourceAdminTest extends AbstractResourceTest {
         assertEquals(OK_200, response.getStatus());
         verify(customUserFieldService, times(1)).update(any(), any());
         verify(customUserFieldService).update(any(), argument.capture());
-        assertNotNull("Field provided can't be null", argument.getValue());
+        assertNotNull(argument.getValue(), "Field provided can't be null");
         assertEquals(field.getKey(), argument.getValue().getKey());
     }
 

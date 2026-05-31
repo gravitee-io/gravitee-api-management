@@ -15,8 +15,9 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.service.common.GraviteeContext;

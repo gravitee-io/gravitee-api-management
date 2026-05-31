@@ -19,9 +19,7 @@ import static io.gravitee.common.http.HttpStatusCode.*;
 import static jakarta.ws.rs.client.Entity.entity;
 import static java.util.Base64.getEncoder;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -180,7 +178,7 @@ public class ApiResourceTest extends AbstractResourceTest {
     public void shouldUpdateApi() {
         final Response response = envTarget(API).request().put(Entity.json(updateApiEntity));
 
-        assertEquals(response.readEntity(String.class), OK_200, response.getStatus());
+        assertEquals(OK_200, response.getStatus(), response.readEntity(String.class));
     }
 
     @Test
@@ -190,7 +188,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         updateApiEntity.setPicture(picture);
         final Response response = envTarget(API).request().put(Entity.json(updateApiEntity));
 
-        assertEquals(response.readEntity(String.class), OK_200, response.getStatus());
+        assertEquals(OK_200, response.getStatus(), response.readEntity(String.class));
     }
 
     @Test
@@ -200,7 +198,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
-        assertTrue(message, message.contains("Invalid image format"));
+        assertTrue(message.contains("Invalid image format"), message);
     }
 
     @Test
@@ -210,7 +208,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
-        assertTrue(message, message.contains("Invalid image format"));
+        assertTrue(message.contains("Invalid image format"), message);
     }
 
     @Test
@@ -232,7 +230,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
-        assertTrue(message, message.contains("Invalid image format"));
+        assertTrue(message.contains("Invalid image format"), message);
     }
 
     @Test
@@ -244,7 +242,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
-        assertTrue(message, message.contains("Invalid image format"));
+        assertTrue(message.contains("Invalid image format"), message);
     }
 
     @Test
@@ -254,7 +252,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
-        assertTrue(message, message.contains("Invalid image format"));
+        assertTrue(message.contains("Invalid image format"), message);
     }
 
     @Test
@@ -264,7 +262,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
-        assertTrue(message, message.contains("Invalid image format"));
+        assertTrue(message.contains("Invalid image format"), message);
     }
 
     @Test
@@ -276,7 +274,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
-        assertTrue(message, message.contains("Invalid image format"));
+        assertTrue(message.contains("Invalid image format"), message);
     }
 
     @Test
@@ -288,7 +286,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
-        assertTrue(message, message.contains("Invalid image format"));
+        assertTrue(message.contains("Invalid image format"), message);
     }
 
     @Test
@@ -352,7 +350,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         final Response response = envTarget(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
-        assertTrue(message, message.contains("File format unauthorized"));
+        assertTrue(message.contains("File format unauthorized"), message);
     }
 
     @Test
@@ -387,7 +385,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         final Response response = envTarget(API + "/media/upload").request().post(entity(multiPart, multiPart.getMediaType()));
         assertEquals(BAD_REQUEST_400, response.getStatus());
         final String message = response.readEntity(String.class);
-        assertTrue(message, message.contains("Invalid image format"));
+        assertTrue(message.contains("Invalid image format"), message);
     }
 
     @Test

@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
@@ -36,6 +36,6 @@ public class InstallationResourceTest extends AbstractResourceTest {
     public void shouldGetInstallation() throws IOException {
         final Response response = orgTarget().request().get();
 
-        assertEquals(response.readEntity(String.class), OK_200, response.getStatus());
+        assertEquals(OK_200, response.getStatus(), response.readEntity(String.class));
     }
 }

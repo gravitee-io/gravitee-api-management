@@ -42,7 +42,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.junit.AfterClass;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.security.core.Authentication;
@@ -63,7 +63,7 @@ public class CurrentUserResourceTest extends AbstractResourceTest {
     private static final String GROUP_ID = "group-id";
     private static final String GROUP_NAME = "group-name";
 
-    @AfterClass
+    @AfterAll
     public static void afterClass() {
         // Clean up Spring security context.
         SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_THREADLOCAL);

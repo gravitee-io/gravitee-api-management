@@ -18,7 +18,7 @@ package io.gravitee.rest.api.management.rest.resource;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -94,10 +94,10 @@ public class PlatformTicketsResourceTest extends AbstractResourceTest {
         assertEquals(OK_200, response.getStatus());
         TicketQuery query = queryCaptor.getValue();
         SortableImpl sortable = sortableCaptor.getValue();
-        assertEquals("Query user", USER_NAME, query.getFromUser());
+        assertEquals(USER_NAME, query.getFromUser(), "Query user");
 
-        assertEquals("Sort field", "subject", sortable.getField());
-        assertEquals("Sort order", false, sortable.isAscOrder());
+        assertEquals("subject", sortable.getField(), "Sort field");
+        assertEquals(false, sortable.isAscOrder(), "Sort order");
 
         verify(ticketService, Mockito.times(1)).search(
             eq(GraviteeContext.getExecutionContext()),
@@ -119,7 +119,7 @@ public class PlatformTicketsResourceTest extends AbstractResourceTest {
 
         assertEquals(OK_200, response.getStatus());
         TicketQuery query = queryCaptor.getValue();
-        assertEquals("Query user", USER_NAME, query.getFromUser());
+        assertEquals(USER_NAME, query.getFromUser(), "Query user");
 
         verify(ticketService, Mockito.times(1)).search(
             eq(GraviteeContext.getExecutionContext()),

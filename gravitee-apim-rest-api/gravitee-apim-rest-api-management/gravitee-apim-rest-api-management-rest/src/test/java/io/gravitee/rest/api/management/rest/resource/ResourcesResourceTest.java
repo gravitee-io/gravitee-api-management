@@ -17,7 +17,8 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static jakarta.ws.rs.core.Response.Status.*;
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;

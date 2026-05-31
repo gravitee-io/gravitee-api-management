@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -74,6 +74,6 @@ public class CategoryResourceTest extends AbstractResourceTest {
         updateCategoryEntity.setPicture(picture);
         final Response response = envTarget(CATEGORY).request().put(Entity.json(updateCategoryEntity));
 
-        assertEquals(response.readEntity(String.class), OK_200, response.getStatus());
+        assertEquals(OK_200, response.getStatus(), response.readEntity(String.class));
     }
 }
