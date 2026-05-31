@@ -111,13 +111,38 @@ describe('useEntityOptions', () => {
         await waitFor(() => expect(getByTestId('count').textContent).toBe('3'));
         const items = getByTestId('options').querySelectorAll('li');
         expect(items[0].getAttribute('data-group')).toBe('User');
-        expect(items[0].getAttribute('data-label')).toBe('alice');
+        // Label prefers a readable attribute (email here) over the entity id.
+        expect(items[0].getAttribute('data-label')).toBe('alice@example.com');
         expect(items[0].getAttribute('data-description')).toBe('email=alice@example.com');
         expect(items[1].getAttribute('data-group')).toBe('Group');
         expect(items[1].getAttribute('data-description')).toBe('');
         expect(items[2].getAttribute('data-group')).toBe('ServiceAccount');
         // Meta keys prefixed with `_` must be skipped in the description.
         expect(items[2].getAttribute('data-description')).toBe('role=ci');
+    });
+
+    it('labels a synced principal by its readable attribute, not the entity id', async () => {
+        const sub = '0d3f8c8a-1b2c-3d4e-5f60-718293a4b5c6';
+        listEntitiesSpy.mockResolvedValue(
+            paged([
+                // displayName wins over email/username
+                entity(`user.${sub}`, { sub, displayName: 'Alice Smith', email: 'alice@example.com', username: 'asmith' }),
+                // email is next when displayName is absent
+                entity('user.u2', { email: 'bob@example.com', username: 'bob' }),
+                // falls back to the id when no readable attribute is present
+                entity('user.u3', { enabled: true }),
+            ]),
+        );
+
+        const { getByTestId } = render(<Probe env="env-1" />, { wrapper: makeWrapper() });
+
+        await waitFor(() => expect(getByTestId('count').textContent).toBe('3'));
+        const items = getByTestId('options').querySelectorAll('li');
+        expect(items[0].getAttribute('data-label')).toBe('Alice Smith');
+        // The unreadable sub stays reachable via the GAPL ref used to match at eval time.
+        expect(items[0].textContent).toBe(`User::"${sub}"`);
+        expect(items[1].getAttribute('data-label')).toBe('bob@example.com');
+        expect(items[2].getAttribute('data-label')).toBe('u3');
     });
 
     it('issues a single kind=PRINCIPAL fetch and filters client-side when typeFilter is a principal subset', async () => {
