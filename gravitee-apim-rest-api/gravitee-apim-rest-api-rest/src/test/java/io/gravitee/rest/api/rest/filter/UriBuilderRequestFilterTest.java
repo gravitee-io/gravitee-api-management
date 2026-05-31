@@ -15,9 +15,8 @@
  */
 package io.gravitee.rest.api.rest.filter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -26,7 +25,6 @@ import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -38,16 +36,22 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.invocation.Invocation;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class UriBuilderRequestFilterTest {
 
     @InjectMocks
@@ -69,9 +73,8 @@ public class UriBuilderRequestFilterTest {
 
     private static final int PROTOCOL_DEFAULT_PORT = -1;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        initMocks(this);
         setupBuildersMocks();
     }
 
@@ -418,10 +421,10 @@ public class UriBuilderRequestFilterTest {
     private void verifyUriBuildersChangedPathTo(String expectedBasePath, String expectedRequestPath) {
         String actualBasePath = getMethodArgBeforeLastBuild(baseUriBuilder, "replacePath", String.class);
         String actualRequestPath = getMethodArgBeforeLastBuild(requestUriBuilder, "replacePath", String.class);
-        assertNotNull("Base path should have been set", actualBasePath);
-        assertNotNull("Request path should have been set", actualRequestPath);
-        assertEquals("Base path should be normalized without double slashes", expectedBasePath, actualBasePath);
-        assertEquals("Request path should be normalized without double slashes", expectedRequestPath, actualRequestPath);
+        assertNotNull(actualBasePath, "Base path should have been set");
+        assertNotNull(actualRequestPath, "Request path should have been set");
+        assertEquals(expectedBasePath, actualBasePath, "Base path should be normalized without double slashes");
+        assertEquals(expectedRequestPath, actualRequestPath, "Request path should be normalized without double slashes");
     }
 
     @Test
