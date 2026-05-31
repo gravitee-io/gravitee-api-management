@@ -24,7 +24,7 @@ import { RouteLayout } from '../shared/components/RouteLayout';
 import { ShellLayout } from '../shared/components/ShellLayout';
 
 export function AppRoutes() {
-    const { modules, loading, error } = useGammaModules();
+    const { modules, loading, error, retry } = useGammaModules();
 
     if (loading && modules.length === 0) {
         return (
@@ -54,7 +54,7 @@ export function AppRoutes() {
                 <Route path="/environments/:envHrid" element={<ShellLayout modules={modules} />}>
                     <Route element={<EnvironmentGuard />}>
                         <Route element={<RouteLayout />}>
-                            <Route path="home" element={<HomePage modules={modules} loading={loading} error={error} />} />
+                            <Route path="home" element={<HomePage modules={modules} loading={loading} error={error} onRetry={retry} />} />
                         </Route>
                         {modules.map((m: GammaModule) => (
                             <Route key={m.id} path={`${m.id}/*`} element={<RemoteModuleRoute module={m} />} />

@@ -32,13 +32,16 @@ const DEV_MODULE_ENTRIES: Record<string, string> = (process.env.DEV_MODULE_ENTRI
         {} as Record<string, string>,
     );
 
-export function useGammaModules(): { modules: GammaModule[]; loading: boolean; error: Error | null } {
+export function useGammaModules(): { modules: GammaModule[]; loading: boolean; error: Error | null; retry: () => void } {
     const gammaBaseURL = useBootstrapStore(s => s.config?.gammaBaseURL ?? '');
     const organizationId = useBootstrapStore(s => s.config?.organizationId ?? '');
     const user = useAuthStore(s => s.user);
     const [modules, setModules] = useState<GammaModule[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
+    const [retryCount, setRetryCount] = useState(0);
+
+    const retry = () => setRetryCount(c => c + 1);
 
     useEffect(() => {
         if (!gammaBaseURL || !organizationId) {
@@ -85,7 +88,7 @@ export function useGammaModules(): { modules: GammaModule[]; loading: boolean; e
             });
 
         return () => controller.abort();
-    }, [gammaBaseURL, organizationId, user]);
+    }, [gammaBaseURL, organizationId, user, retryCount]);
 
-    return { modules, loading, error };
+    return { modules, loading, error, retry };
 }

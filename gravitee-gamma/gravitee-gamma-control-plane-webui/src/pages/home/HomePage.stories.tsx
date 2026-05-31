@@ -24,17 +24,10 @@ import type { GammaModule } from '../../features/modules';
 import { useBootstrapStore } from '../../shared/config/bootstrap.store';
 import { buildEnvironment, buildUser, TEST_CONFIG } from '../../testing/factories';
 
-/**
- * Reference catalog of modules a fully-licensed Gamma deployment exposes via
- * `GET /organizations/{orgId}/modules`. Stories pick subsets of this list to mimic
- * license tiers (e.g. a customer without the Agents pack). Shape is the **parsed**
- * `GammaModule` because the page receives the parsed list as a prop (parsing happens
- * upstream in `useGammaModules`, not in the story).
- */
 const ALL_MODULES: readonly GammaModule[] = [
     { id: 'apim', name: 'APIM Module', version: '1.0.0', remoteName: 'gravitee_gamma_module_apim', exposedModule: 'App' },
     { id: 'aim', name: 'AIM Module', version: '1.0.0', remoteName: 'gravitee_gamma_module_aim', exposedModule: 'App' },
-    { id: 'platform', name: 'Platform', version: '1.0.0', remoteName: 'gravitee_gamma_module_platform', exposedModule: 'App' },
+    { id: 'platform', name: 'Platform Management', version: '1.0.0', remoteName: 'gravitee_gamma_module_platform', exposedModule: 'App' },
     { id: 'catalog', name: 'Catalog', version: '1.0.0', remoteName: 'gravitee_gamma_module_catalog', exposedModule: 'App' },
     {
         id: 'authz',
@@ -45,37 +38,65 @@ const ALL_MODULES: readonly GammaModule[] = [
     },
 ];
 
-/**
- * URLs the decorator intercepts. We match by full prefix against the storybook stub
- * `http://api.test/...` instead of a loose `includes()` so that Storybook's own JSON
- * loads or third-party fetches that happen to contain `apis/_search` don't get
- * short-circuited.
- *
- * NB — `/modules` is NOT intercepted: HomePage receives `modules` as a prop from
- * AppRoutes, so the only fetches we need to mock are the two count endpoints.
- */
-const APIS_SEARCH_URL_PREFIX = `${TEST_CONFIG.managementBaseURL}/v2/environments/`;
-const AGENTS_CATALOG_URL_PREFIX = `${TEST_CONFIG.gammaBaseURL}/organizations/${TEST_CONFIG.organizationId}/environments/`;
+const MANAGEMENT_V2_ENV_PREFIX = `${TEST_CONFIG.managementBaseURL}/v2/environments/`;
+const MANAGEMENT_V1_ORG_PREFIX = `${TEST_CONFIG.managementBaseURL}/organizations/${TEST_CONFIG.organizationId}/`;
+const GAMMA_ORG_PREFIX = `${TEST_CONFIG.gammaBaseURL}/organizations/${TEST_CONFIG.organizationId}/`;
+
+interface MetricOverrides {
+    apiCount?: number | null;
+    agentCount?: number | null;
+    appCount?: number | null;
+    policyCount?: number | null;
+    principalCount?: number | null;
+    mcpServerCount?: number | null;
+    requestsTotal?: number | null;
+}
 
 /**
- * Intercepts the two count fetches and returns deterministic responses so badges render
- * exactly the story we describe. Falls through to the real fetch for anything else.
- *
- * Returns a `restore()` that puts `window.fetch` back. Callers MUST call it in a
- * teardown that runs **after** the home has fetched — a synchronous `queueMicrotask`
- * fires before the component's `useEffect` and the interceptor never sees the real call.
- * We attach the teardown to the React unmount lifecycle instead (see `Decorator`).
+ * Intercepts all metric fetches and returns deterministic responses.
+ * Falls through to the real fetch for anything else.
  */
-function installFetchInterceptor(apiCount: number | null, agentCount: number | null): () => void {
+function installFetchInterceptor(overrides: MetricOverrides): () => void {
+    const {
+        apiCount = null,
+        agentCount = null,
+        appCount = null,
+        policyCount = null,
+        principalCount = null,
+        mcpServerCount = null,
+        requestsTotal = null,
+    } = overrides;
+
     const originalFetch = window.fetch;
     window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
         const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
-        if (url.startsWith(APIS_SEARCH_URL_PREFIX) && url.includes('/apis/_search')) {
+
+        if (url.startsWith(MANAGEMENT_V2_ENV_PREFIX) && url.includes('/apis/_search')) {
             const body = apiCount === null ? '{}' : JSON.stringify({ pagination: { totalCount: apiCount } });
             return new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' } });
         }
-        if (url.startsWith(AGENTS_CATALOG_URL_PREFIX) && url.includes('/modules/aim/catalog/agents')) {
+        if (url.startsWith(GAMMA_ORG_PREFIX) && url.includes('/modules/aim/catalog/agents')) {
             const body = agentCount === null ? '{}' : JSON.stringify({ pagination: { totalCount: agentCount } });
+            return new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' } });
+        }
+        if (url.startsWith(MANAGEMENT_V1_ORG_PREFIX) && url.includes('/applications/_paged')) {
+            const body = appCount === null ? '{}' : JSON.stringify({ page: { total_elements: appCount } });
+            return new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' } });
+        }
+        if (url.startsWith(GAMMA_ORG_PREFIX) && url.includes('/modules/authz/policies')) {
+            const body = policyCount === null ? '{}' : JSON.stringify({ total: policyCount });
+            return new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' } });
+        }
+        if (url.startsWith(GAMMA_ORG_PREFIX) && url.includes('/modules/authz/entities')) {
+            const body = principalCount === null ? '{}' : JSON.stringify({ total: principalCount });
+            return new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' } });
+        }
+        if (url.startsWith(GAMMA_ORG_PREFIX) && url.includes('/modules/aim/catalog/items')) {
+            const body = mcpServerCount === null ? '{}' : JSON.stringify({ total: mcpServerCount });
+            return new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' } });
+        }
+        if (url.startsWith(MANAGEMENT_V2_ENV_PREFIX) && url.includes('/analytics/request-response-time')) {
+            const body = requestsTotal === null ? '{}' : JSON.stringify({ requestsTotal });
             return new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' } });
         }
         return originalFetch(input, init);
@@ -85,7 +106,6 @@ function installFetchInterceptor(apiCount: number | null, agentCount: number | n
     };
 }
 
-/** Seeds the Zustand stores so the HomePage hooks have what they need to render. */
 function seedStores() {
     useAuthStore.setState({ user: buildUser({ firstname: 'John', lastname: 'Doe', displayName: 'John Doe' }) });
     useBootstrapStore.setState({ config: TEST_CONFIG, loading: false, error: null });
@@ -102,7 +122,6 @@ function seedStores() {
     });
 }
 
-/** Reverts everything `seedStores` set up. */
 function teardownStores() {
     useAuthStore.setState({ user: null });
     useBootstrapStore.setState({ config: null, loading: false, error: null });
@@ -117,26 +136,15 @@ function teardownStores() {
     });
 }
 
-/**
- * Wraps the story tree. We use a child component (mounted under `MemoryRouter`) so we
- * can use `useEffect` cleanup to restore `window.fetch` and clear seeded localStorage.
- *
- * Deps list is `[apiCount, agentCount]` only — `modules` is forwarded as a prop to
- * `HomePage` directly and doesn't drive the interceptor. If we later add Storybook
- * controls that mutate `apiCount` / `agentCount` interactively, watch out for
- * Storybook duplicating the args object between updates: ref equality may break and
- * the interceptor would re-install/restore in tight loops. Memoising via `useMemo` or
- * passing a stable `key={...}` to `Decorator` would defuse this. Not an issue today.
- */
-function Decorator({ children, apiCount, agentCount }: { children: React.ReactNode; apiCount: number | null; agentCount: number | null }) {
+function Decorator({ children, metrics }: { children: React.ReactNode; metrics: MetricOverrides }) {
     useEffect(() => {
         seedStores();
-        const restoreFetch = installFetchInterceptor(apiCount, agentCount);
+        const restoreFetch = installFetchInterceptor(metrics);
         return () => {
             restoreFetch();
             teardownStores();
         };
-    }, [apiCount, agentCount]);
+    }, [metrics]);
 
     return (
         <MemoryRouter initialEntries={['/environments/production']}>
@@ -155,7 +163,7 @@ const meta: Meta<typeof HomePage> = {
         docs: {
             description: {
                 component:
-                    'Landing page of the Gamma console. Renders the Suggested next steps panel and one card per Gravitee product. Cards are wired to the modules returned by `GET /organizations/{orgId}/modules` (passed in as a prop from `AppRoutes`) — when a module is absent from the response (license missing, deployment missing, anything) the card is rendered without an `Open →` CTA and is not clickable, mirroring the app-switcher behaviour. Counts (e.g. "24 APIs") come from live calls; in stories we mock the underlying fetch to keep things deterministic, but the page itself contains no hard-coded numbers.',
+                    'Landing page of the Gamma console. Cards show live per-module metrics via progressive disclosure: modules with data show counts and stats, modules without data show a description and onboarding CTA, and unlicensed modules show a description with no CTA.',
             },
         },
     },
@@ -163,7 +171,7 @@ const meta: Meta<typeof HomePage> = {
         (Story, ctx) => {
             const args = ctx.args as StoryArgs;
             return (
-                <Decorator apiCount={args.apiCount ?? null} agentCount={args.agentCount ?? null}>
+                <Decorator metrics={args.metrics ?? {}}>
                     <Story />
                 </Decorator>
             );
@@ -173,45 +181,93 @@ const meta: Meta<typeof HomePage> = {
 
 export default meta;
 
-/** Story args — `modules` is a real HomePage prop; the two counts drive the decorator's interceptor. */
 interface StoryArgs {
     modules?: readonly GammaModule[];
-    apiCount?: number | null;
-    agentCount?: number | null;
+    metrics?: MetricOverrides;
 }
 type Story = StoryObj<StoryArgs>;
 
-/**
- * Happy path: licensed customer with the full module catalog. All five module cards
- * (Agent Management, API Management, Platform, Catalog, Authorization) render an active
- * link; Event API Management sits at the bottom as a "Coming soon" placeholder.
- */
+/** All modules active, rich data across the board. */
 export const FullAccess: Story = {
     args: {
         modules: [...ALL_MODULES],
-        apiCount: 24,
-        agentCount: 12,
+        metrics: {
+            apiCount: 54,
+            agentCount: 12,
+            appCount: 8,
+            policyCount: 23,
+            principalCount: 45,
+            mcpServerCount: 6,
+            requestsTotal: 12400,
+        },
     },
     render: args => <HomePage modules={args.modules ?? ALL_MODULES} loading={false} error={null} />,
 };
 
-/**
- * License-restricted scenario: the customer's license does not include Agent Management,
- * so the backend doesn't return that module. The card stays visible but is rendered
- * without an `Open →` CTA and is not clickable (same UX pattern as the app switcher).
- */
-export const WithoutAgentManagement: Story = {
+/** All modules active but no data — shows empty-state CTAs on every card. */
+export const EmptyEnvironment: Story = {
     args: {
-        modules: ALL_MODULES.filter(m => m.id !== 'aim'),
-        apiCount: 24,
-        agentCount: null,
+        modules: [...ALL_MODULES],
+        metrics: { apiCount: 0, agentCount: 0, appCount: 0, policyCount: 0, principalCount: 0, mcpServerCount: 0, requestsTotal: 0 },
     },
     parameters: {
         docs: {
             description: {
-                story: 'Agent Management is missing from `/modules` — the card is rendered without the `Open →` CTA and the agent-count fetch is skipped.',
+                story: 'Fresh environment: all modules are licensed but have no data yet. Each card shows its description and a contextual "Get started" CTA linking to the module onboarding flow.',
+            },
+        },
+    },
+    render: args => <HomePage modules={args.modules ?? ALL_MODULES} loading={false} error={null} />,
+};
+
+/** Mixed: some modules have data, some are empty, one is unlicensed. */
+export const PartialData: Story = {
+    args: {
+        modules: ALL_MODULES.filter(m => m.id !== 'aim'),
+        metrics: { apiCount: 24, agentCount: null, appCount: 0, policyCount: 5, principalCount: 12, requestsTotal: 3200 },
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: 'Agent Management is unlicensed (no CTA, disabled card). API Management and Authorization have data (metric view). Platform has no data yet (empty-state CTA).',
             },
         },
     },
     render: args => <HomePage modules={args.modules ?? []} loading={false} error={null} />,
+};
+
+/** License-restricted: Agent Management missing. */
+export const WithoutAgentManagement: Story = {
+    args: {
+        modules: ALL_MODULES.filter(m => m.id !== 'aim'),
+        metrics: { apiCount: 24, agentCount: null, appCount: 3, policyCount: 10, principalCount: 8, requestsTotal: 5600 },
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: 'Agent Management is missing from `/modules` — the card shows its description with no CTA. All other modules show their metrics.',
+            },
+        },
+    },
+    render: args => <HomePage modules={args.modules ?? []} loading={false} error={null} />,
+};
+
+/** Module fetch failed — error state with retry button. */
+export const ErrorState: Story = {
+    args: { modules: [], metrics: {} },
+    parameters: {
+        docs: {
+            description: {
+                story: 'The module list fetch failed. An inline error alert is shown with a Retry button that re-triggers the fetch.',
+            },
+        },
+    },
+    render: () => (
+        <HomePage
+            modules={[]}
+            loading={false}
+            error={new Error('Network request failed')}
+            onRetry={() => window.alert('Retry triggered')}
+        />
+    ),
 };

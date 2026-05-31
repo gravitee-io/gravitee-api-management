@@ -25,11 +25,13 @@ export type ModuleId = 'aim' | 'apim' | 'platform' | 'authz';
 export interface Application {
     readonly title: string;
     readonly description: string;
-    /** Optional live count badge (e.g. "24 APIs"). Omitted when null. */
-    readonly badge?: string;
     readonly moduleId: ModuleId;
     readonly Icon: LucideIcon;
     readonly accent: Accent;
+    readonly emptyState: {
+        readonly cta: string;
+        readonly ctaPath: string;
+    };
 }
 
 /**
@@ -44,6 +46,7 @@ export const APPLICATIONS: readonly Application[] = [
         moduleId: 'aim',
         Icon: MODULE_ICONS['aim'],
         accent: 'highlight',
+        emptyState: { cta: 'Add Integration', ctaPath: 'import/models' },
     },
     {
         title: 'API Management',
@@ -51,13 +54,15 @@ export const APPLICATIONS: readonly Application[] = [
         moduleId: 'apim',
         Icon: MODULE_ICONS['apim'],
         accent: 'primary',
+        emptyState: { cta: 'Create your first API', ctaPath: 'apis/new' },
     },
     {
-        title: 'Platform',
+        title: 'Platform Management',
         description: 'Manage applications, subscribe to APIs, and monitor consumption from a single dashboard.',
         moduleId: 'platform',
         Icon: MODULE_ICONS['platform'],
         accent: 'accent',
+        emptyState: { cta: 'Register an application', ctaPath: 'applications/new' },
     },
     {
         title: 'Authorization',
@@ -65,6 +70,7 @@ export const APPLICATIONS: readonly Application[] = [
         moduleId: 'authz',
         Icon: MODULE_ICONS['authz'],
         accent: 'success',
+        emptyState: { cta: 'Create your first policy', ctaPath: 'policies/new' },
     },
 ];
 
