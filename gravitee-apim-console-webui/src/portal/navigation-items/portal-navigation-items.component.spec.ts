@@ -1676,9 +1676,9 @@ describe('PortalNavigationItemsComponent', () => {
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [] }));
     });
 
-    it('should have default panel width of 350px', () => {
+    it('should have default panel width of 400px', () => {
       const component = fixture.componentInstance;
-      expect(component.panelWidth()).toBe(350);
+      expect(component.panelWidth()).toBe(400);
     });
 
     it('should increase panel width when dragging right', () => {
@@ -1686,7 +1686,7 @@ describe('PortalNavigationItemsComponent', () => {
       const resizeHandle = fixture.nativeElement.querySelector('.resize-handle');
 
       const initialWidth = component.panelWidth();
-      expect(initialWidth).toBe(350);
+      expect(initialWidth).toBe(400);
 
       // Simulate mousedown
       const mousedownEvent = new MouseEvent('mousedown', {
@@ -1706,7 +1706,7 @@ describe('PortalNavigationItemsComponent', () => {
       document.dispatchEvent(mousemoveEvent);
       fixture.detectChanges();
 
-      expect(component.panelWidth()).toBe(400);
+      expect(component.panelWidth()).toBe(450);
 
       // Simulate mouseup
       const mouseupEvent = new MouseEvent('mouseup', {
@@ -1722,7 +1722,7 @@ describe('PortalNavigationItemsComponent', () => {
       const resizeHandle = fixture.nativeElement.querySelector('.resize-handle');
 
       const initialWidth = component.panelWidth();
-      expect(initialWidth).toBe(350);
+      expect(initialWidth).toBe(400);
 
       // Simulate mousedown
       const mousedownEvent = new MouseEvent('mousedown', {
@@ -1742,7 +1742,7 @@ describe('PortalNavigationItemsComponent', () => {
       document.dispatchEvent(mousemoveEvent);
       fixture.detectChanges();
 
-      expect(component.panelWidth()).toBe(300);
+      expect(component.panelWidth()).toBe(350);
 
       // Simulate mouseup
       const mouseupEvent = new MouseEvent('mouseup', {
@@ -1758,7 +1758,7 @@ describe('PortalNavigationItemsComponent', () => {
       const resizeHandle = fixture.nativeElement.querySelector('.resize-handle');
 
       const initialWidth = component.panelWidth();
-      expect(initialWidth).toBe(350);
+      expect(initialWidth).toBe(400);
 
       // Simulate mousedown
       const mousedownEvent = new MouseEvent('mousedown', {
@@ -1794,7 +1794,7 @@ describe('PortalNavigationItemsComponent', () => {
       const resizeHandle = fixture.nativeElement.querySelector('.resize-handle');
 
       const initialWidth = component.panelWidth();
-      expect(initialWidth).toBe(350);
+      expect(initialWidth).toBe(400);
 
       // Simulate mousedown
       const mousedownEvent = new MouseEvent('mousedown', {
