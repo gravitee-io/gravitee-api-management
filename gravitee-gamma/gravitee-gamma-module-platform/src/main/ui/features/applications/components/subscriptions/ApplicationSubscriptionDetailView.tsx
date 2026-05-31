@@ -36,6 +36,7 @@ import { ApplicationSubscriptionEditRequestDialog } from './ApplicationSubscript
 import { ApplicationSubscriptionExpireApiKeyDialog } from './ApplicationSubscriptionExpireApiKeyDialog';
 import { ApplicationSubscriptionRevokeApiKeyDialog } from './ApplicationSubscriptionRevokeApiKeyDialog';
 import { SubscriptionStatusLabel } from './SubscriptionStatusLabel';
+import { notify } from '../../../../shared/notify';
 import { useDetailBasePath } from '../../../shared/hooks/useDetailBasePath';
 import {
     useApplicationSubscriptionApiKeys,
@@ -69,14 +70,9 @@ export function ApplicationSubscriptionDetailView({
     const closeMutation = useCloseApplicationSubscription(application.id);
 
     const [editOpen, setEditOpen] = useState(false);
-    const [editError, setEditError] = useState<string | null>(null);
     const [closeTarget, setCloseTarget] = useState<ReturnType<typeof mapDetailToCloseTarget> | null>(null);
-    const [closeError, setCloseError] = useState<string | null>(null);
     const [revokeTarget, setRevokeTarget] = useState<ApplicationSubscriptionApiKeyRow | null>(null);
-    const [revokeError, setRevokeError] = useState<string | null>(null);
     const [expireTarget, setExpireTarget] = useState<ApplicationSubscriptionApiKeyRow | null>(null);
-    const [expireError, setExpireError] = useState<string | null>(null);
-    const [renewError, setRenewError] = useState<string | null>(null);
 
     const detail = data?.detail;
     const entity = data?.entity;
@@ -124,55 +120,55 @@ export function ApplicationSubscriptionDetailView({
     const subtitle = `${detail.apiDisplay} · ${detail.planName}`;
 
     const handleSaveEdit = async (request: string) => {
-        setEditError(null);
         try {
             await updateMutation.mutateAsync({ entity, request });
+            notify.success('Consumer configuration updated.');
             setEditOpen(false);
-        } catch {
-            setEditError('Failed to update subscription. Please try again.');
+        } catch (error) {
+            notify.error(error, 'An error occurred while updating consumer configuration.');
         }
     };
 
     const handleClose = async () => {
         if (!closeTarget) return;
-        setCloseError(null);
         try {
             await closeMutation.mutateAsync(closeTarget.id);
+            notify.success('The subscription has been closed');
             setCloseTarget(null);
             navigate(`${basePath}/subscriptions`);
-        } catch {
-            setCloseError('Failed to close subscription. Please try again.');
+        } catch (error) {
+            notify.error(error, 'An error occurred while closing the subscription!');
         }
     };
 
     const handleRenew = async () => {
-        setRenewError(null);
         try {
             await renewMutation.mutateAsync();
-        } catch {
-            setRenewError('Failed to renew API key. Please try again.');
+            notify.success('API Key renewed');
+        } catch (error) {
+            notify.error(error, 'Failed to renew API key. Please try again.');
         }
     };
 
     const handleRevoke = async () => {
         if (!revokeTarget) return;
-        setRevokeError(null);
         try {
             await revokeMutation.mutateAsync(revokeTarget.id);
+            notify.success('API Key revoked');
             setRevokeTarget(null);
-        } catch {
-            setRevokeError('Failed to revoke API key. Please try again.');
+        } catch (error) {
+            notify.error(error, 'Failed to revoke API key. Please try again.');
         }
     };
 
     const handleExpireConfirm = async (expirationDate: Date) => {
         if (!expireTarget) return;
-        setExpireError(null);
         try {
             await expireMutation.mutateAsync({ apiKeyId: expireTarget.id, expireAt: expirationDate });
+            notify.success('API key expiration updated');
             setExpireTarget(null);
-        } catch {
-            setExpireError('Failed to update API key expiration. Please try again.');
+        } catch (error) {
+            notify.error(error, 'Failed to update API key expiration. Please try again.');
         }
     };
 
@@ -225,10 +221,7 @@ export function ApplicationSubscriptionDetailView({
                                 type="button"
                                 variant="destructive"
                                 size="sm"
-                                onClick={() => {
-                                    setCloseError(null);
-                                    setCloseTarget(mapDetailToCloseTarget(detail));
-                                }}
+                                onClick={() => setCloseTarget(mapDetailToCloseTarget(detail))}
                             >
                                 <Trash2Icon className="size-3.5" aria-hidden />
                                 Close
@@ -248,25 +241,16 @@ export function ApplicationSubscriptionDetailView({
             ) : null}
 
             {showApiKeys ? (
-                <div className="space-y-2">
-                    {renewError ? <p className="text-sm text-destructive">{renewError}</p> : null}
-                    <ApplicationSubscriptionApiKeysCard
-                        apiKeys={apiKeysQuery.data ?? []}
-                        isLoading={apiKeysQuery.isLoading}
-                        readOnly={!canManageApiKeys}
-                        renewPending={renewMutation.isPending}
-                        expireAvailable={Boolean(v2Parent)}
-                        onRenew={() => void handleRenew()}
-                        onRevoke={apiKey => {
-                            setRevokeError(null);
-                            setRevokeTarget(apiKey);
-                        }}
-                        onExpire={apiKey => {
-                            setExpireError(null);
-                            setExpireTarget(apiKey);
-                        }}
-                    />
-                </div>
+                <ApplicationSubscriptionApiKeysCard
+                    apiKeys={apiKeysQuery.data ?? []}
+                    isLoading={apiKeysQuery.isLoading}
+                    readOnly={!canManageApiKeys}
+                    renewPending={renewMutation.isPending}
+                    expireAvailable={Boolean(v2Parent)}
+                    onRenew={() => void handleRenew()}
+                    onRevoke={apiKey => setRevokeTarget(apiKey)}
+                    onExpire={apiKey => setExpireTarget(apiKey)}
+                />
             ) : null}
 
             <ApplicationSubscriptionEditRequestDialog
@@ -275,40 +259,27 @@ export function ApplicationSubscriptionDetailView({
                 onOpenChange={setEditOpen}
                 onSave={request => void handleSaveEdit(request)}
                 isLoading={updateMutation.isPending}
-                error={editError}
             />
 
             <ApplicationSubscriptionCloseDialog
                 subscription={closeTarget}
-                onClose={() => {
-                    setCloseTarget(null);
-                    setCloseError(null);
-                }}
+                onClose={() => setCloseTarget(null)}
                 onConfirm={() => void handleClose()}
                 isLoading={closeMutation.isPending}
-                error={closeError}
             />
 
             <ApplicationSubscriptionRevokeApiKeyDialog
                 apiKey={revokeTarget}
-                onClose={() => {
-                    setRevokeTarget(null);
-                    setRevokeError(null);
-                }}
+                onClose={() => setRevokeTarget(null)}
                 onConfirm={() => void handleRevoke()}
                 isLoading={revokeMutation.isPending}
-                error={revokeError}
             />
 
             <ApplicationSubscriptionExpireApiKeyDialog
                 apiKey={expireTarget}
-                onClose={() => {
-                    setExpireTarget(null);
-                    setExpireError(null);
-                }}
+                onClose={() => setExpireTarget(null)}
                 onConfirm={at => void handleExpireConfirm(at)}
                 isLoading={expireMutation.isPending}
-                error={expireError}
             />
         </div>
     );

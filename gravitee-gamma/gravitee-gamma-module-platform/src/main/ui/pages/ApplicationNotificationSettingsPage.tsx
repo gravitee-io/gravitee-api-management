@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Alert, AlertDescription } from '@gravitee/graphene-core';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
@@ -40,6 +39,7 @@ import type {
     UpdateApplicationNotification,
     UpdateApplicationMetadata,
 } from '../features/applications/types/applicationNotification';
+import { notify } from '../shared/notify';
 
 export function ApplicationNotificationSettingsPage() {
     const { applicationId } = useParams<{ applicationId: string }>();
@@ -63,7 +63,6 @@ export function ApplicationNotificationSettingsPage() {
     const updateMetadataMutation = useUpdateApplicationMetadata(applicationId);
     const deleteMetadataMutation = useDeleteApplicationMetadata(applicationId);
 
-    const [notificationSaveError, setNotificationSaveError] = useState<string | null>(null);
     const [notificationToEdit, setNotificationToEdit] = useState<ApplicationNotificationRow | null>(null);
     const [notificationToDelete, setNotificationToDelete] = useState<ApplicationNotificationRow | null>(null);
 
@@ -88,8 +87,8 @@ export function ApplicationNotificationSettingsPage() {
                 config_type: 'GENERIC',
                 hooks: [],
             });
+            notify.success('Notification created successfully');
             const notifier = notifiers.find(item => item.id === created.notifier);
-            setNotificationSaveError(null);
             setNotificationToEdit({
                 key: created.id ?? created.config_type,
                 name: created.name,
@@ -100,8 +99,8 @@ export function ApplicationNotificationSettingsPage() {
                 isReadonly: Boolean(created.origin && created.origin !== 'MANAGEMENT'),
             });
             return true;
-        } catch (err: unknown) {
-            setNotificationSaveError(err instanceof Error ? err.message : 'Failed to create notification.');
+        } catch (error: unknown) {
+            notify.error(error, 'Failed to create notification.');
             return false;
         }
     }
@@ -109,28 +108,25 @@ export function ApplicationNotificationSettingsPage() {
     function handleUpdateNotification(notification: UpdateApplicationNotification) {
         updateNotificationMutation.mutate(notification, {
             onSuccess: () => {
-                setNotificationSaveError(null);
+                notify.success('Notification saved successfully');
                 setNotificationToEdit(null);
             },
-            onError: (err: unknown) => {
-                setNotificationSaveError(err instanceof Error ? err.message : 'Failed to save notification.');
-            },
+            onError: error => notify.error(error, 'Failed to save notification.'),
         });
     }
 
     function handleDeleteNotificationConfirm() {
         const notificationId = notificationToDelete?.notification?.id;
+        const notificationName = notificationToDelete?.name;
         if (!notificationId) {
             return;
         }
         deleteNotificationMutation.mutate(notificationId, {
             onSuccess: () => {
-                setNotificationSaveError(null);
+                notify.success(`"${notificationName}" has been deleted`);
                 setNotificationToDelete(null);
             },
-            onError: (err: unknown) => {
-                setNotificationSaveError(err instanceof Error ? err.message : 'Failed to delete notification.');
-            },
+            onError: error => notify.error(error, 'Failed to delete notification.'),
         });
     }
 
@@ -161,12 +157,6 @@ export function ApplicationNotificationSettingsPage() {
                 <p className="text-sm text-muted-foreground">Hooks and metadata used in notification templates.</p>
             </div>
 
-            {notificationSaveError ? (
-                <Alert variant="destructive">
-                    <AlertDescription>{notificationSaveError}</AlertDescription>
-                </Alert>
-            ) : null}
-
             <NotificationsSection
                 rows={rows}
                 notifiers={notifiers}
@@ -177,14 +167,8 @@ export function ApplicationNotificationSettingsPage() {
                 canDelete={canRemoveNotification}
                 isCreating={createNotificationMutation.isPending}
                 onAdd={handleAddNotification}
-                onEdit={row => {
-                    setNotificationSaveError(null);
-                    setNotificationToEdit(row);
-                }}
-                onDelete={row => {
-                    setNotificationSaveError(null);
-                    setNotificationToDelete(row);
-                }}
+                onEdit={row => setNotificationToEdit(row)}
+                onDelete={row => setNotificationToDelete(row)}
             />
 
             <ApplicationMetadataSection
@@ -208,19 +192,13 @@ export function ApplicationNotificationSettingsPage() {
                 hookCategories={hookCategories}
                 isLoadingHooks={isLoadingHooks}
                 isSaving={updateNotificationMutation.isPending}
-                onCancel={() => {
-                    setNotificationSaveError(null);
-                    setNotificationToEdit(null);
-                }}
+                onCancel={() => setNotificationToEdit(null)}
                 onSave={handleUpdateNotification}
             />
             <DeleteNotificationDialog
                 row={notificationToDelete}
                 isDeleting={deleteNotificationMutation.isPending}
-                onCancel={() => {
-                    setNotificationSaveError(null);
-                    setNotificationToDelete(null);
-                }}
+                onCancel={() => setNotificationToDelete(null)}
                 onConfirm={handleDeleteNotificationConfirm}
             />
         </div>

@@ -19,6 +19,7 @@ import type { UseMutationResult } from '@tanstack/react-query';
 import { useState } from 'react';
 
 import { ApplicationDeleteDialog } from './ApplicationDeleteDialog';
+import { notify } from '../../../../shared/notify';
 import type { ApplicationListItem } from '../../types/application';
 
 export interface ApplicationLifecycleSectionProps {
@@ -35,11 +36,12 @@ export function ApplicationLifecycleSection({ application, canDelete, isMutating
         return null;
     }
 
-    const deleteError = deleteMutation.isError
-        ? deleteMutation.error instanceof Error
-            ? deleteMutation.error.message
-            : 'Failed to delete application.'
-        : null;
+    const handleDelete = () => {
+        deleteMutation.mutate(undefined, {
+            onSuccess: () => notify.success('The Application has been deleted.'),
+            onError: error => notify.error(error, 'Failed to delete application.'),
+        });
+    };
 
     return (
         <>
@@ -73,9 +75,8 @@ export function ApplicationLifecycleSection({ application, canDelete, isMutating
                 open={deleteOpen}
                 onOpenChange={setDeleteOpen}
                 applicationName={application.name}
-                onDelete={() => deleteMutation.mutate()}
+                onDelete={handleDelete}
                 isLoading={deleteMutation.isPending}
-                error={deleteError}
             />
         </>
     );

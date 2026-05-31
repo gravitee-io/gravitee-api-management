@@ -29,12 +29,48 @@ export interface ApplicationGeneralForm {
     oauthClientId: string;
     oauthClientSecret: string;
     grantTypes: string[];
-    redirectUrisText: string;
+    redirectUris: string[];
+    additionalClientMetadata: Record<string, string> | null;
+}
+
+export interface ApplicationGeneralValidationContext {
+    isOAuthApplication: boolean;
+    typeConfig?: ApplicationTypeConfig;
+    metadataHasDuplicateKeys?: boolean;
 }
 
 export interface ApplicationGeneralValidation {
     name?: string;
     description?: string;
+    grantTypes?: string;
+    additionalClientMetadata?: string;
+}
+
+function copyAdditionalClientMetadata(metadata: Record<string, string> | undefined): Record<string, string> | null {
+    if (!metadata || Object.keys(metadata).length === 0) {
+        return null;
+    }
+    return { ...metadata };
+}
+
+function additionalClientMetadataEqual(left: Record<string, string> | null, right: Record<string, string> | null): boolean {
+    const leftRecord = left ?? {};
+    const rightRecord = right ?? {};
+    const leftKeys = Object.keys(leftRecord).sort();
+    const rightKeys = Object.keys(rightRecord).sort();
+    if (leftKeys.length !== rightKeys.length) {
+        return false;
+    }
+    return leftKeys.every(key => leftRecord[key] === rightRecord[key]);
+}
+
+function stringArraysEqual(left: string[], right: string[]): boolean {
+    if (left.length !== right.length) {
+        return false;
+    }
+    const sortedLeft = [...left].sort();
+    const sortedRight = [...right].sort();
+    return sortedLeft.every((value, index) => value === sortedRight[index]);
 }
 
 export function formFromApplication(application: ApplicationListItem): ApplicationGeneralForm {
@@ -51,11 +87,15 @@ export function formFromApplication(application: ApplicationListItem): Applicati
         oauthClientId: !isSimple ? (application.settings?.oauth?.client_id ?? '') : '',
         oauthClientSecret: !isSimple ? (application.settings?.oauth?.client_secret ?? '') : '',
         grantTypes: !isSimple ? [...(application.settings?.oauth?.grant_types ?? [])] : [],
-        redirectUrisText: !isSimple ? (application.settings?.oauth?.redirect_uris ?? []).join('\n') : '',
+        redirectUris: !isSimple ? [...(application.settings?.oauth?.redirect_uris ?? [])] : [],
+        additionalClientMetadata: !isSimple ? copyAdditionalClientMetadata(application.settings?.oauth?.additional_client_metadata) : null,
     };
 }
 
-export function validateApplicationGeneralForm(form: ApplicationGeneralForm): ApplicationGeneralValidation {
+export function validateApplicationGeneralForm(
+    form: ApplicationGeneralForm,
+    context?: ApplicationGeneralValidationContext,
+): ApplicationGeneralValidation {
     const errors: ApplicationGeneralValidation = {};
     if (!form.name.trim()) {
         errors.name = 'Application name is required.';
@@ -65,20 +105,21 @@ export function validateApplicationGeneralForm(form: ApplicationGeneralForm): Ap
     if (!form.description.trim()) {
         errors.description = 'Application description is required.';
     }
+    if (context?.isOAuthApplication) {
+        if (form.grantTypes.length === 0) {
+            errors.grantTypes = 'Allowed grant types is required.';
+        } else if (context.typeConfig?.mandatory_grant_types.some(mandatory => !form.grantTypes.includes(mandatory.type))) {
+            errors.grantTypes = 'Mandatory grant types must be selected.';
+        }
+        if (context.metadataHasDuplicateKeys) {
+            errors.additionalClientMetadata = 'Keys must be unique';
+        }
+    }
     return errors;
 }
 
 export function hasApplicationGeneralValidationErrors(errors: ApplicationGeneralValidation): boolean {
-    return Boolean(errors.name || errors.description);
-}
-
-function grantTypesEqual(a: string[], b: string[]): boolean {
-    if (a.length !== b.length) {
-        return false;
-    }
-    const sortedA = [...a].sort();
-    const sortedB = [...b].sort();
-    return sortedA.every((value, index) => value === sortedB[index]);
+    return Boolean(errors.name || errors.description || errors.grantTypes || errors.additionalClientMetadata);
 }
 
 /** Returns true when local draft differs from the last saved snapshot. */
@@ -94,16 +135,10 @@ export function isApplicationGeneralFormDirty(current: ApplicationGeneralForm, s
         current.simpleClientId !== saved.simpleClientId ||
         current.oauthClientId !== saved.oauthClientId ||
         current.oauthClientSecret !== saved.oauthClientSecret ||
-        current.redirectUrisText !== saved.redirectUrisText ||
-        !grantTypesEqual(current.grantTypes, saved.grantTypes)
+        !stringArraysEqual(current.grantTypes, saved.grantTypes) ||
+        !stringArraysEqual(current.redirectUris, saved.redirectUris) ||
+        !additionalClientMetadataEqual(current.additionalClientMetadata, saved.additionalClientMetadata)
     );
-}
-
-function parseRedirectUris(text: string): string[] {
-    return text
-        .split('\n')
-        .map(line => line.trim())
-        .filter(Boolean);
 }
 
 /** Console always sends both images on update; omitting one clears it server-side. */
@@ -147,7 +182,8 @@ export function buildUpdatePayload(
                   client_id: form.oauthClientId || application.settings?.oauth?.client_id,
                   client_secret: form.oauthClientSecret || application.settings?.oauth?.client_secret,
                   grant_types: form.grantTypes,
-                  redirect_uris: parseRedirectUris(form.redirectUrisText),
+                  redirect_uris: form.redirectUris,
+                  additional_client_metadata: form.additionalClientMetadata ?? {},
                   application_type: applicationTypeConfig?.id ?? application.settings?.oauth?.application_type,
               },
           };

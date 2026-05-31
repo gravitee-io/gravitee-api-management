@@ -13,11 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, Input, Label } from '@gravitee/graphene-core';
+import { Button, cn, Input, Label } from '@gravitee/graphene-core';
 import { XIcon } from '@gravitee/graphene-core/icons';
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { rowsToAdditionalClientMetadata } from '../../utils/applicationCreateMapper';
+import {
+    additionalClientMetadataRecordsEqual,
+    getDuplicateMetadataKeys,
+    hasDuplicateMetadataRowKeys,
+    rowsToAdditionalClientMetadata,
+} from '../../utils/applicationCreateMapper';
 
 interface MetadataRow {
     id: string;
@@ -25,9 +30,12 @@ interface MetadataRow {
     value: string;
 }
 
-interface AdditionalClientMetadataFieldProps {
+export interface AdditionalClientMetadataFieldProps {
     readonly value: Record<string, string> | null;
     readonly onChange: (value: Record<string, string> | null) => void;
+    readonly onDuplicateKeysChange?: (hasDuplicates: boolean) => void;
+    readonly error?: string;
+    readonly disabled?: boolean;
 }
 
 function createEmptyRow(): MetadataRow {
@@ -55,13 +63,43 @@ function ensureTrailingEmptyRow(rows: MetadataRow[]): MetadataRow[] {
     return rows;
 }
 
-export function AdditionalClientMetadataField({ value, onChange }: AdditionalClientMetadataFieldProps) {
+export function AdditionalClientMetadataField({
+    value,
+    onChange,
+    onDuplicateKeysChange,
+    error,
+    disabled,
+}: AdditionalClientMetadataFieldProps) {
     const [rows, setRows] = useState<MetadataRow[]>(() => recordToRows(value));
+    const lastEmittedValueRef = useRef(value);
+
+    useEffect(() => {
+        if (additionalClientMetadataRecordsEqual(value, lastEmittedValueRef.current)) {
+            return;
+        }
+
+        const syncedRows = recordToRows(value);
+        lastEmittedValueRef.current = value;
+        setRows(syncedRows);
+        onDuplicateKeysChange?.(hasDuplicateMetadataRowKeys(syncedRows));
+    }, [value, onDuplicateKeysChange]);
+
+    const duplicateKeys = useMemo(() => getDuplicateMetadataKeys(rows), [rows]);
+    const hasDuplicates = duplicateKeys.size > 0;
+    const displayError = error ?? (hasDuplicates ? 'Keys must be unique' : null);
 
     const updateRows = (nextRows: MetadataRow[]) => {
         const withTrailing = ensureTrailingEmptyRow(nextRows);
+        const hasDuplicateKeys = hasDuplicateMetadataRowKeys(withTrailing);
+
         setRows(withTrailing);
-        onChange(rowsToAdditionalClientMetadata(withTrailing));
+        onDuplicateKeysChange?.(hasDuplicateKeys);
+
+        if (!hasDuplicateKeys) {
+            const nextValue = rowsToAdditionalClientMetadata(withTrailing);
+            lastEmittedValueRef.current = nextValue;
+            onChange(nextValue);
+        }
     };
 
     const handleRowChange = (rowId: string, field: 'key' | 'value', fieldValue: string) => {
@@ -90,15 +128,21 @@ export function AdditionalClientMetadataField({ value, onChange }: AdditionalCli
                         {rows.map((row, index) => {
                             const isTrailingEmpty = index === rows.length - 1 && !row.key.trim() && !row.value.trim();
                             const showDelete = !isTrailingEmpty && rows.length > 1;
+                            const trimmedKey = row.key.trim();
+                            const isDuplicateRow = Boolean(trimmedKey && duplicateKeys.has(trimmedKey));
+                            const duplicateInputClass = 'border-destructive focus-visible:ring-destructive/30';
 
                             return (
-                                <tr key={row.id} className="border-b last:border-b-0">
+                                <tr key={row.id} className={cn('border-b last:border-b-0', isDuplicateRow && 'bg-destructive/5')}>
                                     <td className="px-3 py-2 align-top">
                                         <Input
                                             value={row.key}
                                             onChange={event => handleRowChange(row.id, 'key', event.target.value)}
                                             placeholder="Name..."
                                             aria-label={`Metadata key ${index + 1}`}
+                                            aria-invalid={isDuplicateRow}
+                                            disabled={disabled}
+                                            className={isDuplicateRow ? duplicateInputClass : undefined}
                                         />
                                     </td>
                                     <td className="px-3 py-2 align-top">
@@ -107,6 +151,8 @@ export function AdditionalClientMetadataField({ value, onChange }: AdditionalCli
                                             onChange={event => handleRowChange(row.id, 'value', event.target.value)}
                                             placeholder="Value..."
                                             aria-label={`Metadata value ${index + 1}`}
+                                            disabled={disabled}
+                                            className={isDuplicateRow ? duplicateInputClass : undefined}
                                         />
                                     </td>
                                     <td className="px-2 py-2 align-top">
@@ -118,6 +164,7 @@ export function AdditionalClientMetadataField({ value, onChange }: AdditionalCli
                                                 className="size-8 shrink-0"
                                                 aria-label={`Remove metadata row ${index + 1}`}
                                                 onClick={() => handleDeleteRow(row.id)}
+                                                disabled={disabled}
                                             >
                                                 <XIcon className="size-4" aria-hidden />
                                             </Button>
@@ -129,6 +176,7 @@ export function AdditionalClientMetadataField({ value, onChange }: AdditionalCli
                     </tbody>
                 </table>
             </div>
+            {displayError ? <p className="text-xs text-destructive">{displayError}</p> : null}
         </div>
     );
 }

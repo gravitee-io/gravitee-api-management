@@ -168,24 +168,6 @@ describe('ApplicationsPage', () => {
         expect(screen.queryByText('Billing App')).not.toBeNull();
     });
 
-    it('shows a success banner when returning from application creation', () => {
-        mockUseApplicationList.mockReturnValue(
-            listHookResult({
-                data: { data: [STUB_APPLICATION], page: { ...EMPTY_PAGE, total_elements: 1, total_pages: 1 } },
-            }),
-        );
-        mockUseApplicationStats.mockReturnValue(statsResult({ active: 1, archived: 0, total: 1 }));
-        render(
-            <MemoryRouter initialEntries={[{ pathname: '/applications', state: { successMessage: 'Application "Billing App" created.' } }]}>
-                <TooltipProvider>
-                    <ApplicationsPage />
-                </TooltipProvider>
-            </MemoryRouter>,
-        );
-
-        expect(screen.getByRole('status').textContent).toBe('Application "Billing App" created.');
-    });
-
     it('shows the list view while loading — does not flash the empty landing', () => {
         mockUseApplicationList.mockReturnValue(listHookResult({ data: undefined, isLoading: true }));
         renderPage();

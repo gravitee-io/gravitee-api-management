@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Badge, cn, Label, Textarea } from '@gravitee/graphene-core';
-import { CircleCheckIcon } from '@gravitee/graphene-core/icons';
+import { Label, Textarea } from '@gravitee/graphene-core';
 
-import { AdditionalClientMetadataField } from './AdditionalClientMetadataField';
 import { ChipInput } from '../../../shared/components';
 import type { ApplicationTypeConfig } from '../../types/applicationCreate';
-import { isMandatoryGrantType } from '../../utils/applicationCreateMapper';
+import { AdditionalClientMetadataField } from '../shared/AdditionalClientMetadataField';
+import { GrantTypeChips } from '../shared/GrantTypeChips';
 
 interface OAuthSecurityFieldsProps {
     readonly selectedType: ApplicationTypeConfig;
@@ -31,6 +30,7 @@ interface OAuthSecurityFieldsProps {
     readonly onRedirectUrisChange: (redirectUris: string[]) => void;
     readonly onClientCertificateChange: (value: string) => void;
     readonly onAdditionalClientMetadataChange: (value: Record<string, string> | null) => void;
+    readonly onMetadataDuplicateKeysChange?: (hasDuplicates: boolean) => void;
 }
 
 export function OAuthSecurityFields({
@@ -43,47 +43,15 @@ export function OAuthSecurityFields({
     onRedirectUrisChange,
     onClientCertificateChange,
     onAdditionalClientMetadataChange,
+    onMetadataDuplicateKeysChange,
 }: OAuthSecurityFieldsProps) {
     const requiresRedirectUris = Boolean(selectedType.requires_redirect_uris);
-
-    const toggleGrantType = (grantType: string) => {
-        if (isMandatoryGrantType(selectedType, grantType)) return;
-        onGrantTypesChange(grantTypes.includes(grantType) ? grantTypes.filter(value => value !== grantType) : [...grantTypes, grantType]);
-    };
 
     return (
         <div className="space-y-5 pt-2">
             <div className="space-y-2">
                 <Label>Allowed grant types</Label>
-                <div className="flex flex-wrap gap-2">
-                    {selectedType.allowed_grant_types.map(grantType => {
-                        const isActive = grantTypes.includes(grantType.type);
-                        const isMandatory = isMandatoryGrantType(selectedType, grantType.type);
-
-                        return (
-                            <button
-                                key={grantType.type}
-                                type="button"
-                                className={cn(
-                                    'inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors',
-                                    isActive ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:bg-accent/50',
-                                    isMandatory ? 'cursor-not-allowed opacity-80' : 'cursor-pointer',
-                                )}
-                                onClick={() => toggleGrantType(grantType.type)}
-                                disabled={isMandatory}
-                                aria-pressed={isActive}
-                            >
-                                {isActive && <CircleCheckIcon className="size-3.5" aria-hidden />}
-                                {grantType.name}
-                                {isMandatory && (
-                                    <Badge variant="secondary" className="ml-1 text-xs">
-                                        Mandatory
-                                    </Badge>
-                                )}
-                            </button>
-                        );
-                    })}
-                </div>
+                <GrantTypeChips typeConfig={selectedType} values={grantTypes} onChange={onGrantTypesChange} />
                 <p className="text-xs text-muted-foreground">
                     Grant types allowed for the client. Please set only grant types you need for security reasons.
                 </p>
@@ -124,6 +92,7 @@ export function OAuthSecurityFields({
                 key={selectedType.id}
                 value={additionalClientMetadata}
                 onChange={onAdditionalClientMetadataChange}
+                onDuplicateKeysChange={onMetadataDuplicateKeysChange}
             />
         </div>
     );
