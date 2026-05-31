@@ -17,7 +17,7 @@ package io.gravitee.gateway.security.keyless;
 
 import static io.gravitee.gateway.security.core.AuthenticationContext.TOKEN_TYPE_AUTHORIZATION_BEARER;
 import static io.gravitee.gateway.security.core.AuthenticationContext.TOKEN_TYPE_NONE;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 
 import io.gravitee.gateway.api.ExecutionContext;
@@ -25,17 +25,20 @@ import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationPolicy;
 import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class KeylessAuthenticationHandlerTest {
 
     @InjectMocks
@@ -46,7 +49,7 @@ public class KeylessAuthenticationHandlerTest {
         AuthenticationContext context = mock(AuthenticationContext.class);
 
         boolean handle = authenticationHandler.canHandle(context);
-        Assert.assertTrue(handle);
+        Assertions.assertTrue(handle);
     }
 
     @Test
@@ -55,20 +58,20 @@ public class KeylessAuthenticationHandlerTest {
 
         List<AuthenticationPolicy> keylessProviderPolicies = authenticationHandler.handle(executionContext);
 
-        Assert.assertEquals(1, keylessProviderPolicies.size());
+        Assertions.assertEquals(1, keylessProviderPolicies.size());
 
         PluginAuthenticationPolicy policy = (PluginAuthenticationPolicy) keylessProviderPolicies.iterator().next();
-        Assert.assertEquals(policy.name(), KeylessAuthenticationHandler.KEYLESS_POLICY);
+        Assertions.assertEquals(policy.name(), KeylessAuthenticationHandler.KEYLESS_POLICY);
     }
 
     @Test
     public void shouldReturnName() {
-        Assert.assertEquals("key_less", authenticationHandler.name());
+        Assertions.assertEquals("key_less", authenticationHandler.name());
     }
 
     @Test
     public void shouldReturnOrder() {
-        Assert.assertEquals(1000, authenticationHandler.order());
+        Assertions.assertEquals(1000, authenticationHandler.order());
     }
 
     @Test
