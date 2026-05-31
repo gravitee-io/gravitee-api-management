@@ -24,8 +24,8 @@ import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.gateway.policy.StreamType;
 import java.io.Serializable;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -35,7 +35,7 @@ public class DebugStepTest {
 
     private DebugTestingStep cut;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         cut = new DebugTestingStep("policy", StreamType.ON_REQUEST, "uid", PolicyScope.ON_REQUEST, new PolicyMetadata("policy", "{}"));
     }

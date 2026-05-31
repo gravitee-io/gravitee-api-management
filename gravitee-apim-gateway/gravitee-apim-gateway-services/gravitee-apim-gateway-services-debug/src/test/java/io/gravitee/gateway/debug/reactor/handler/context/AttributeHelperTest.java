@@ -22,7 +22,7 @@ import io.gravitee.gateway.reactor.handler.DefaultHttpAcceptor;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class AttributeHelperTest {
 

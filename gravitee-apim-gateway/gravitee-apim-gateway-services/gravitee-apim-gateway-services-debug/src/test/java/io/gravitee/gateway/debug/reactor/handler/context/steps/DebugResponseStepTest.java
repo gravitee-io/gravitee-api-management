@@ -27,17 +27,20 @@ import io.gravitee.gateway.policy.StreamType;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class DebugResponseStepTest {
 
     @Mock
@@ -51,7 +54,7 @@ public class DebugResponseStepTest {
 
     private DebugResponseStep cut;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         cut = new DebugResponseStep("policy", StreamType.ON_REQUEST, "uid", PolicyScope.ON_REQUEST, policyMetadata);
         when(beforeResponse.headers()).thenReturn(HttpHeaders.create().add("Header", "header-value"));
