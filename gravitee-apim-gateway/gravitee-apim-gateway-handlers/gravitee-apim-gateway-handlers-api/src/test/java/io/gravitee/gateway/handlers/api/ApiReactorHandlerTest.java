@@ -16,7 +16,8 @@
 package io.gravitee.gateway.handlers.api;
 
 import static io.gravitee.common.component.Lifecycle.State.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.event.EventManager;
@@ -44,17 +45,21 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.*;
-import junit.framework.AssertionFailedError;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.*;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Answers;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.opentest4j.AssertionFailedError;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiReactorHandlerTest {
 
     @Mock
@@ -93,7 +98,7 @@ public class ApiReactorHandlerTest {
     @Mock
     Request request;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         when(node.lifecycleState()).thenReturn(STARTED);
         when(request.metrics()).thenReturn(Metrics.on(0).build());

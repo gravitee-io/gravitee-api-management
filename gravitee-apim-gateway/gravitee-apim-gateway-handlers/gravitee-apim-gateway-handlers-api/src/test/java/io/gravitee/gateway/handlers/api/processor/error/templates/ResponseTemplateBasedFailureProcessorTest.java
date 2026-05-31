@@ -34,15 +34,20 @@ import io.gravitee.reporter.api.http.Metrics;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ResponseTemplateBasedFailureProcessorTest {
 
     private ResponseTemplateBasedFailureProcessor processor;
@@ -65,9 +70,8 @@ public class ResponseTemplateBasedFailureProcessorTest {
     @Mock
     private Handler<ExecutionContext> next;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
         when(request.metrics()).thenReturn(Metrics.on(System.currentTimeMillis()).build());
         when(request.headers()).thenReturn(requestHeaders);
         when(response.headers()).thenReturn(responseHeaders);

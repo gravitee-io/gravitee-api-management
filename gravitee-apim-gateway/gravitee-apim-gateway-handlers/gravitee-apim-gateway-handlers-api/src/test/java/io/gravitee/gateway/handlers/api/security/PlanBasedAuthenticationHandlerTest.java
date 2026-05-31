@@ -16,24 +16,27 @@
 package io.gravitee.gateway.handlers.api.security;
 
 import static io.gravitee.common.http.HttpMethod.POST;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class PlanBasedAuthenticationHandlerTest {
 
     // test implementation in order to test abstract class behavior

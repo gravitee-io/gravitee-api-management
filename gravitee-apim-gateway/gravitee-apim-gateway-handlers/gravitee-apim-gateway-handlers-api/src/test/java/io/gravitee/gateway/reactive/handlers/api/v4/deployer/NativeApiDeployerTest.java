@@ -17,9 +17,6 @@ package io.gravitee.gateway.reactive.handlers.api.v4.deployer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.util.DataEncryptor;

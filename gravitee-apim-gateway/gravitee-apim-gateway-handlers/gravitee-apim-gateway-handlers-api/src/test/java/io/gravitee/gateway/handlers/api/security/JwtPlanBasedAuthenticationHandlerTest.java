@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api.security;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
@@ -30,17 +30,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import net.minidev.json.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class JwtPlanBasedAuthenticationHandlerTest {
 
     private static final String PLAN_ID = "PLAN_ID";
@@ -68,7 +71,7 @@ public class JwtPlanBasedAuthenticationHandlerTest {
     @Mock
     private Subscription subscription;
 
-    @Before
+    @BeforeEach
     public void setup() {
         when(plan.getId()).thenReturn(PLAN_ID);
         when(authenticationContext.getApi()).thenReturn(API_ID);
