@@ -21,9 +21,9 @@ import io.gravitee.policy.api.PolicyConfiguration;
 import java.io.IOException;
 import java.io.InputStream;
 import org.apache.commons.io.IOUtils;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -33,7 +33,7 @@ public class CachedPolicyConfigurationFactoryTest {
 
     private PolicyConfigurationFactory policyConfigurationFactory;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         policyConfigurationFactory = new CachedPolicyConfigurationFactory();
     }
@@ -48,10 +48,10 @@ public class CachedPolicyConfigurationFactoryTest {
                 configuration
             );
 
-            Assert.assertNotNull(policyConfiguration);
-            Assert.assertNotNull(policyConfiguration2);
+            Assertions.assertNotNull(policyConfiguration);
+            Assertions.assertNotNull(policyConfiguration2);
 
-            Assert.assertEquals(policyConfiguration, policyConfiguration2);
+            Assertions.assertEquals(policyConfiguration, policyConfiguration2);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -67,8 +67,8 @@ public class CachedPolicyConfigurationFactoryTest {
                 configuration
             );
 
-            Assert.assertNull(policyConfiguration);
-            Assert.assertNotNull(policyConfiguration2);
+            Assertions.assertNull(policyConfiguration);
+            Assertions.assertNotNull(policyConfiguration2);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -77,7 +77,7 @@ public class CachedPolicyConfigurationFactoryTest {
     @Test
     public void createNullPolicyClassFromCache() {
         PolicyConfiguration policyConfiguration1 = policyConfigurationFactory.create(null, null);
-        Assert.assertNull(policyConfiguration1);
+        Assertions.assertNull(policyConfiguration1);
     }
 
     @Test
@@ -86,9 +86,9 @@ public class CachedPolicyConfigurationFactoryTest {
         DummyPolicyConfiguration policyConfiguration = policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
         Dummy2PolicyConfiguration policyConfiguration2 = policyConfigurationFactory.create(Dummy2PolicyConfiguration.class, configuration);
 
-        Assert.assertNotNull(policyConfiguration);
-        Assert.assertNotNull(policyConfiguration2);
+        Assertions.assertNotNull(policyConfiguration);
+        Assertions.assertNotNull(policyConfiguration2);
 
-        Assert.assertNotEquals(policyConfiguration, policyConfiguration2);
+        Assertions.assertNotEquals(policyConfiguration, policyConfiguration2);
     }
 }

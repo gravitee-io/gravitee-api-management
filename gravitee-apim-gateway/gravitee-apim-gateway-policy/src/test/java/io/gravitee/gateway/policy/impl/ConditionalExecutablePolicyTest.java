@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.policy.impl;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -39,19 +40,21 @@ import io.gravitee.gateway.policy.dummy.DummyStreamablePolicy;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyConfiguration;
 import java.lang.reflect.Method;
-import junit.framework.TestCase;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
-public class ConditionalExecutablePolicyTest extends TestCase {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
+public class ConditionalExecutablePolicyTest {
 
     @Mock
     private PolicyChain policyChain;
@@ -65,7 +68,7 @@ public class ConditionalExecutablePolicyTest extends TestCase {
     private Method method;
     private ConditionEvaluator<String> conditionEvaluator;
 
-    @Before
+    @BeforeEach
     public void setUp() throws NoSuchMethodException {
         when(executionContext.request()).thenReturn(mock(Request.class));
         when(executionContext.response()).thenReturn(mock(Response.class));
@@ -96,14 +99,16 @@ public class ConditionalExecutablePolicyTest extends TestCase {
         verify(policyChain, times(1)).doNext(any(), any());
     }
 
-    @Test(expected = PolicyException.class)
-    public void shouldNotExecuteConditionalPolicyExpressionEvaluationException() throws PolicyException {
-        when(executionContext.getTemplateEngine()).thenReturn(templateEngine);
-        when(templateEngine.getValue("condition", Boolean.class)).thenThrow(ExpressionEvaluationException.class);
-        Policy delegatePolicy = new ExecutablePolicy("dummy", fakeExecutePolicy(), method, method);
+    @Test
+    public void shouldNotExecuteConditionalPolicyExpressionEvaluationException() {
+        assertThrows(PolicyException.class, () -> {
+            when(executionContext.getTemplateEngine()).thenReturn(templateEngine);
+            when(templateEngine.getValue("condition", Boolean.class)).thenThrow(ExpressionEvaluationException.class);
+            Policy delegatePolicy = new ExecutablePolicy("dummy", fakeExecutePolicy(), method, method);
 
-        final ConditionalExecutablePolicy policy = new ConditionalExecutablePolicy(delegatePolicy, "condition", conditionEvaluator);
-        policy.execute(policyChain, executionContext);
+            final ConditionalExecutablePolicy policy = new ConditionalExecutablePolicy(delegatePolicy, "condition", conditionEvaluator);
+            policy.execute(policyChain, executionContext);
+        });
     }
 
     @Test

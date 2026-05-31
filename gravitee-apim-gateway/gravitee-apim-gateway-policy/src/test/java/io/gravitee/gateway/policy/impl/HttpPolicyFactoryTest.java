@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.policy.impl;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
@@ -27,26 +29,28 @@ import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.policy.dummy.DummyPolicy;
 import io.gravitee.policy.api.PolicyConfiguration;
 import java.util.Map;
-import junit.framework.TestCase;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
-public class HttpPolicyFactoryTest extends TestCase {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
+public class HttpPolicyFactoryTest {
 
     @Mock
     private PolicyPluginFactory policyPluginFactory;
 
     private PolicyFactory cut;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         cut = new PolicyFactoryImpl(policyPluginFactory, new ExpressionLanguageStringConditionEvaluator());
     }

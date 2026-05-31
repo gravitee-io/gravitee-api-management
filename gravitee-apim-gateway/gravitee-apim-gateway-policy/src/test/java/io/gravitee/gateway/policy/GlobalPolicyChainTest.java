@@ -18,7 +18,6 @@ package io.gravitee.gateway.policy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.policy.impl.OrderedPolicyChain;
@@ -26,15 +25,20 @@ import io.gravitee.gateway.policy.impl.PolicyChain;
 import io.gravitee.gateway.policy.impl.ReversedPolicyChain;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
 import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class GlobalPolicyChainTest {
 
     @Spy
@@ -42,11 +46,6 @@ public class GlobalPolicyChainTest {
 
     @Spy
     private Policy policy2 = new SuccessPolicy();
-
-    @Before
-    public void setUp() {
-        initMocks(this);
-    }
 
     @Test
     public void doNext_multiplePolicyOrder() throws Exception {

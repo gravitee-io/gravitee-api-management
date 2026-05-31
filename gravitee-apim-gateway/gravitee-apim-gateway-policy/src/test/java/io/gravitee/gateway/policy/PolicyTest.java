@@ -34,12 +34,15 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
 import org.reflections.ReflectionUtils;
 
@@ -47,6 +50,8 @@ import org.reflections.ReflectionUtils;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class PolicyTest {
 
     @Mock
@@ -66,9 +71,8 @@ public class PolicyTest {
     @Mock
     private ExecutionContext context;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
         policyFactory = spy(new PolicyFactoryImpl(policyPluginFactory, new ExpressionLanguageStringConditionEvaluator()));
 
         when(context.request()).thenReturn(request);
@@ -91,8 +95,8 @@ public class PolicyTest {
 
         policy.execute(policyChain, context);
 
-        Assert.assertTrue(policy.isRunnable());
-        Assert.assertFalse(policy.isStreamable());
+        Assertions.assertTrue(policy.isRunnable());
+        Assertions.assertFalse(policy.isStreamable());
         verify(dummyPolicy, atLeastOnce()).onRequest(policyChain, request, response);
         verify(dummyPolicy, never()).onRequestContent(policyChain, request, response);
         verify(dummyPolicy, never()).onResponse(request, response, policyChain);
@@ -116,8 +120,8 @@ public class PolicyTest {
 
         policy.execute(policyChain, context);
 
-        Assert.assertTrue(policy.isRunnable());
-        Assert.assertFalse(policy.isStreamable());
+        Assertions.assertTrue(policy.isRunnable());
+        Assertions.assertFalse(policy.isStreamable());
         verify(dummyPolicy, never()).onRequest(policyChain, request, response);
         verify(dummyPolicy, never()).onRequestContent(policyChain, request, response);
         verify(dummyPolicy, atLeastOnce()).onResponse(request, response, policyChain);
@@ -141,8 +145,8 @@ public class PolicyTest {
 
         policy.stream(policyChain, context);
 
-        Assert.assertFalse(policy.isRunnable());
-        Assert.assertTrue(policy.isStreamable());
+        Assertions.assertFalse(policy.isRunnable());
+        Assertions.assertTrue(policy.isStreamable());
         verify(dummyPolicy, never()).onRequest(policyChain, request, response);
         verify(dummyPolicy, atLeastOnce()).onRequestContent(policyChain, request, response);
         verify(dummyPolicy, never()).onResponse(request, response, policyChain);
@@ -166,8 +170,8 @@ public class PolicyTest {
 
         policy.stream(policyChain, context);
 
-        Assert.assertFalse(policy.isRunnable());
-        Assert.assertTrue(policy.isStreamable());
+        Assertions.assertFalse(policy.isRunnable());
+        Assertions.assertTrue(policy.isStreamable());
         verify(dummyPolicy, never()).onRequest(policyChain, request, response);
         verify(dummyPolicy, never()).onRequestContent(policyChain, request, response);
         verify(dummyPolicy, never()).onResponse(request, response, policyChain);
