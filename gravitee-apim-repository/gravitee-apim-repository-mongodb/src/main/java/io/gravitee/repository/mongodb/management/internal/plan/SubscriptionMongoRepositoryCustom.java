@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.SubscriptionCursor;
+import io.gravitee.repository.management.api.search.SubscriptionSearchSort;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
 import java.util.List;
 import java.util.Set;
@@ -37,17 +38,21 @@ public interface SubscriptionMongoRepositoryCustom {
     List<SubscriptionMongo> searchUnordered(SubscriptionCriteria criteria);
 
     /**
-     * Keyset / seek pagination. Builds a {@code find()} query (not the aggregation pipeline).
+     * Keyset / seek pagination. Builds a {@code find()} query (not the aggregation pipeline). The
+     * {@code sort} mode drives both the sort order and the seek predicate so they always match:
      *
-     * <p>When {@code sortByUpdatedAt} is {@code true}, sorts by {@code (updatedAt, _id)} and seeks
-     * past {@code (cursor.updatedAt, cursor.id)} — used by the gateway-sync delta loop where the
-     * {@code (environmentId, updatedAt, _id)} compound index can be used cleanly.
-     *
-     * <p>When {@code sortByUpdatedAt} is {@code false}, sorts by {@code _id} only and seeks past
-     * {@code cursor.id} — used by the warmup load path where a {@code plans IN} filter dominates
-     * selectivity and the {@code _id_} primary index makes the seek O(N) across all pages.
+     * <ul>
+     *   <li>{@code UPDATED_AT} — sorts by {@code (updatedAt, _id)} and seeks past
+     *       {@code (cursor.updatedAt, cursor.id)} — the gateway-sync delta loop, served cleanly by
+     *       the {@code (environmentId, updatedAt, _id)} compound index.</li>
+     *   <li>{@code PLAN_ID} — sorts by {@code (plan, _id)} and seeks past {@code (cursor.plan, cursor.id)}
+     *       — the warmup path, where the {@code {plan,_id}} index scans each plan's range in order
+     *       instead of an {@code _id}-ordered walk over unrelated rows.</li>
+     *   <li>{@code ID} — sorts by {@code _id} only and seeks past {@code cursor.id} — the legacy /
+     *       repository-bridge fallback when no plan marker is available.</li>
+     * </ul>
      */
-    List<SubscriptionMongo> searchAfter(SubscriptionCriteria criteria, SubscriptionCursor after, int pageSize, boolean sortByUpdatedAt);
+    List<SubscriptionMongo> searchAfter(SubscriptionCriteria criteria, SubscriptionCursor after, int pageSize, SubscriptionSearchSort sort);
 
     Set<String> findReferenceIdsOrderByNumberOfSubscriptions(SubscriptionCriteria criteria, Order order);
 }
