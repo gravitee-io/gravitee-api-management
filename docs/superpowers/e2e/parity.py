@@ -4,7 +4,7 @@ Parity harness:
   - Loads 31 scenarios from gravitee-authorization-engine/.../examples.json
   - Per scenario:
       1. Wipe + provision engine playground (PUT /api/snapshot)
-      2. Wipe + provision gamma (REST entity + policy create/deploy + /entities/reload)
+      2. Wipe + provision gamma (per-entity DELETE+POST, per-policy DELETE+POST+deploy)
       3. POST same AuthZen request to both — across 5 dimensions:
            - single evaluation (/access/v1/evaluation)
            - batch evaluation  (/access/v1/evaluations)
@@ -105,61 +105,67 @@ def eval_engine(authzen_req):
 
 # ─── GAMMA side ──────────────────────────────────────────────────────────
 
-def wipe_gamma():
-    # delete all entities (pages of up to 200)
+def provision_gamma(s):
+    """Replace gamma state per-scenario using only base CRUD endpoints:
+
+    1. Wipe existing entities + policies (loop DELETE per id)
+    2. POST /entities per scenario entity (single-entity upsert)
+    3. POST /policies per scenario policy + POST /policies/{id}/deploy
+
+    No bulk / replace-all / reload endpoints required — the harness works
+    against the minimal authz REST surface (POST/GET/PUT/DELETE per resource).
+
+    Save automatically publishes events to the gateway sync channel, so no
+    explicit reload is needed.
+    """
+    # Wipe existing entities + policies.
     code, txt = http("GET", f"{GAMMA_REST}/entities?perPage=500", auth=True)
     if code == 200:
         for e in json.loads(txt).get("data", []):
             http("DELETE", f"{GAMMA_REST}/entities/{e['entityId']}", auth=True)
-    # delete all policies
     code, txt = http("GET", f"{GAMMA_REST}/policies?perPage=500", auth=True)
     if code == 200:
         for p in json.loads(txt).get("data", []):
             http("DELETE", f"{GAMMA_REST}/policies/{p['id']}", auth=True)
 
-
-def provision_gamma(s):
-    """Atomically replace gamma state via PUT /snapshot. Snapshot endpoint internally
-    does deleteAll + insert, so per-scenario state is fully replaced in one call —
-    no half-pollsync race where prior-scenario policies linger in PDP."""
+    # Insert scenario entities (POST per entity).
     entities_raw = json.loads(s.get("entities", "[]"))
-    entity_requests = []
     for e in entities_raw:
         uid = e.get("uid", {})
         eid = uid.get("id", "")
         etyp = uid.get("type", "")
         if not ID_REGEX.match(eid):
             return False, f"entityId '{eid}' violates regex"
-        parents = [{"type": p.get("type"), "id": p.get("id")} for p in e.get("parents", []) or []]
-        entity_requests.append({
+        # Legacy string-parent format expected by current branch: "Type::id".
+        parents = [f"{p.get('type')}::{p.get('id')}" for p in e.get("parents", []) or [] if p.get("type") and p.get("id")]
+        body = {
             "entityId":   eid,
             "entityType": etyp,
             "kind":       "PRINCIPAL",
             "attributes": e.get("attrs", {}) or {},
             "parents":    parents,
             "tags":       {},
-            "source":     "parity"
-        })
+            "source":     "parity",
+        }
+        code, txt = http("POST", f"{GAMMA_REST}/entities", body, auth=True)
+        if code >= 400:
+            return False, f"entity create HTTP {code}: {txt[:200]}"
 
-    policy_requests = []
+    # Insert + deploy scenario policy (if any).
     pt = s.get("policies", "").strip()
     if pt:
-        policy_requests.append({"name": s["id"] + "-policy", "kind": "GLOBAL", "policyText": pt})
+        body = {"name": s["id"] + "-policy", "kind": "GLOBAL", "policyText": pt}
+        code, txt = http("POST", f"{GAMMA_REST}/policies", body, auth=True)
+        if code >= 400:
+            return False, f"policy create HTTP {code}: {txt[:200]}"
 
-    body = {"policies": policy_requests, "entities": entity_requests}
-    code, txt = http("PUT", f"{GAMMA_REST}/snapshot", body, auth=True)
-    if code >= 400:
-        return False, f"snapshot HTTP {code}: {txt[:200]}"
-
-    # Snapshot returns inserted policies as DRAFT — deploy them so gateway sync picks them up.
+    # Newly created policies land as DRAFT — deploy them so gateway sync picks them up.
     code, txt = http("GET", f"{GAMMA_REST}/policies?perPage=500", auth=True)
     if code == 200:
         for p in json.loads(txt).get("data", []):
             if p.get("status") != "DEPLOYED":
                 http("POST", f"{GAMMA_REST}/policies/{p['id']}/deploy", auth=True)
 
-    # force entity push (small optimization; sync poll will pick policies up anyway)
-    http("POST", f"{GAMMA_REST}/entities/reload", auth=True)
     return True, None
 
 
@@ -336,7 +342,7 @@ def main():
             row["notes"]["_setup"] = f"engine snapshot HTTP {code}: {err[:200] if err else ''}"
             results.append(row); continue
 
-        # GAMMA provisioning — PUT /snapshot replaces atomically so no explicit wipe step
+        # GAMMA provisioning — entities/replace-all + per-policy CRUD (no atomic cross-section)
         ok, gerr = provision_gamma(s)
         if not ok:
             for d in DIMENSIONS:
