@@ -765,9 +765,10 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     }
 
     @Test
-    public void searchAfter_shouldPaginateByIdWithPlansFilter() throws TechnicalException {
+    public void searchAfter_shouldPaginateByPlanKeysetWithPlansFilter() throws TechnicalException {
         SubscriptionCriteria criteria = SubscriptionCriteria.builder().plans(List.of("plan3")).build();
-        var sortable = new SortableBuilder().field("id").order(Order.ASC).build();
+        // Warmup path: sort field "plan" → (plan, id) keyset, paired with byPlanAndId cursor.
+        var sortable = new SortableBuilder().field("plan").order(Order.ASC).build();
 
         Set<String> collected = new java.util.LinkedHashSet<>();
         SubscriptionCursor cursor = null;
@@ -782,7 +783,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
                 assertTrue("Duplicate id across pages: " + s.getId(), collected.add(s.getId()));
             }
             Subscription last = page.getLast();
-            cursor = SubscriptionCursor.byId(last.getId());
+            cursor = SubscriptionCursor.byPlanAndId(last.getPlan(), last.getId());
             if (page.size() < pageSize) {
                 break;
             }
@@ -796,6 +797,49 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     }
 
     @Test
+    public void searchAfter_shouldPaginateByIdOnlyFallback() throws TechnicalException {
+        // Legacy / repository-bridge fallback: sort field "id" → id-only keyset, paired with byId
+        // cursor. The seek and the sort must both be id-only — if the sort were (plan, id) here while
+        // the seek stays id-only (the bug this guards), keyset pagination would skip or duplicate rows.
+        SubscriptionCriteria criteria = SubscriptionCriteria.builder().plans(List.of("plan3")).build();
+        var sortable = new SortableBuilder().field("id").order(Order.ASC).build();
+
+        // Ground truth: a single page (no keyset) gives the engine's own id order. Collation differs
+        // per engine, so we compare against this rather than a hard-coded order.
+        List<String> singlePageOrder = subscriptionRepository
+            .searchAfter(criteria, sortable, null, 100)
+            .stream()
+            .map(Subscription::getId)
+            .collect(Collectors.toList());
+
+        // Paginate the same query in small pages via the byId cursor.
+        List<String> paged = new java.util.ArrayList<>();
+        SubscriptionCursor cursor = null;
+        int pageSize = 2;
+        int guard = 10;
+        while (guard-- > 0) {
+            List<Subscription> page = subscriptionRepository.searchAfter(criteria, sortable, cursor, pageSize);
+            if (page.isEmpty()) {
+                break;
+            }
+            page.forEach(s -> paged.add(s.getId()));
+            cursor = SubscriptionCursor.byId(page.getLast().getId());
+            if (page.size() < pageSize) {
+                break;
+            }
+        }
+
+        // Keyset pagination must reproduce the single-page order exactly — same elements, same order,
+        // no skips or duplicates. This holds only when the seek predicate agrees with the sort.
+        assertEquals("id-only keyset pagination must reproduce the single-page id order (no skip/dup/reorder)", singlePageOrder, paged);
+        assertEquals(
+            "plan3 subs returned exactly — no leak from unrelated plans",
+            Set.of("sub-legacy-push", "sub2", "sub3", "sub6", "sub7", "sub8"),
+            new java.util.HashSet<>(paged)
+        );
+    }
+
+    @Test
     public void searchAfter_shouldHonourEndingAtAfterWithIncludeWithoutEnd() throws TechnicalException {
         // Warmup criteria — initial sync filter uses endingAtAfter(now) + includeWithoutEnd(true)
         // to load subs that are active OR have no expiry. searchAfter's net-new criteria support
@@ -805,7 +849,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
             .endingAtAfter(2500L)
             .includeWithoutEnd(true)
             .build();
-        var sortable = new SortableBuilder().field("id").order(Order.ASC).build();
+        var sortable = new SortableBuilder().field("plan").order(Order.ASC).build();
 
         Set<String> viaSearchAfter = new java.util.LinkedHashSet<>();
         SubscriptionCursor cursor = null;
@@ -817,7 +861,7 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
                 break;
             }
             page.forEach(s -> viaSearchAfter.add(s.getId()));
-            cursor = SubscriptionCursor.byId(page.getLast().getId());
+            cursor = SubscriptionCursor.byPlanAndId(page.getLast().getPlan(), page.getLast().getId());
             if (page.size() < pageSize) {
                 break;
             }

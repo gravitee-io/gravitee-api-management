@@ -140,7 +140,10 @@ public class SubscriptionAppender {
             criteriaBuilder.statuses(INCREMENTAL_STATUS);
         }
         SubscriptionCriteria criteria = criteriaBuilder.build();
-        var sortable = new SortableBuilder().field("id").order(Order.ASC).build();
+        // Warmup pages by (plan, id): the sort field "plan" pairs with the byPlanAndId cursor below
+        // so the repository's order and keyset seek agree (an "id"-field request would seek/sort by
+        // id only — the legacy fallback — and mismatch the (plan, id) cursor).
+        var sortable = new SortableBuilder().field("plan").order(Order.ASC).build();
 
         Map<String, List<Subscription>> grouped = new HashMap<>();
         SubscriptionCursor cursor = null;
@@ -166,7 +169,7 @@ public class SubscriptionAppender {
                 if (page.size() < bulkItems) {
                     return grouped;
                 }
-                cursor = SubscriptionCursor.byId(page.getLast().getId());
+                cursor = SubscriptionCursor.byPlanAndId(page.getLast().getPlan(), page.getLast().getId());
             }
         } catch (Exception ex) {
             throw new SyncException("Error occurred when retrieving subscriptions", ex);
