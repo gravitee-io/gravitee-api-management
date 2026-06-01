@@ -16,9 +16,10 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static io.gravitee.common.http.HttpStatusCode.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doThrow;
 
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiDeploymentResponse;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
