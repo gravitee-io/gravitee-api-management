@@ -27,10 +27,13 @@ import java.util.Map;
  */
 public class LLMTotalCostBuilder {
 
+    private static final String SENT_COST_FIELD = "additional-metrics.double_llm-proxy_sent-cost";
+    private static final String RECEIVED_COST_FIELD = "additional-metrics.double_llm-proxy_received-cost";
+
     private static final String SCRIPT_SOURCE = """
-        (doc['additional-metrics.double_llm-proxy_sent-cost'].size() > 0 ? doc['additional-metrics.double_llm-proxy_sent-cost'].value : 0) + \
-        (doc['additional-metrics.double_llm-proxy_received-cost'].size() > 0 ? doc['additional-metrics.double_llm-proxy_received-cost'].value : 0)
-        """;
+        (doc.containsKey('%s') && doc['%s'].size() > 0 ? doc['%s'].value : 0) + \
+        (doc.containsKey('%s') && doc['%s'].size() > 0 ? doc['%s'].value : 0)
+        """.formatted(SENT_COST_FIELD, SENT_COST_FIELD, SENT_COST_FIELD, RECEIVED_COST_FIELD, RECEIVED_COST_FIELD, RECEIVED_COST_FIELD);
 
     public Map<String, JsonObject> buildSum(String aggName) {
         return Map.of(aggName, json().put("sum", json().put("script", script())));
