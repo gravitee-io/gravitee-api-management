@@ -601,6 +601,7 @@ public class PageService_CreateTest {
         when(
             this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), eq(content), any(), anyBoolean())
         ).thenThrow(new TemplateProcessingException(new TemplateException(null)));
+        when(htmlSanitizer.isSafe(anyString())).thenReturn(new HtmlSanitizer.SanitizeInfos(true, null));
         this.pageService.createPage(GraviteeContext.getExecutionContext(), API_ID, newPage);
 
         verify(pageRepository).create(any());
