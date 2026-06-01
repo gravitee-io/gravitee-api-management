@@ -39,7 +39,6 @@ import io.gravitee.gateway.services.sync.process.distributed.service.NoopDistrib
 import io.gravitee.gateway.services.sync.process.distributed.spring.DistributedSyncDisabledCondition;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiMapper;
-import io.gravitee.gateway.services.sync.process.repository.service.AuthzRegistry;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiKeyAppender;
@@ -177,11 +176,6 @@ public class SyncConfiguration {
     }
 
     @Bean
-    public AuthzRegistry authzRegistry(@Autowired(required = false) io.micrometer.core.instrument.MeterRegistry meterRegistry) {
-        return new AuthzRegistry(meterRegistry);
-    }
-
-    @Bean
     @Conditional(GammaEnabledCondition.class)
     public AuthzEnginePort authzEnginePort(io.vertx.rxjava3.core.Vertx vertx) {
         return new EventBusAuthzEnginePort(vertx);
@@ -261,9 +255,7 @@ public class SyncConfiguration {
         DistributedSyncService distributedSyncService,
         ApiProductManager apiProductManager,
         @Autowired(required = false) ApiProductSubscriptionRefresher apiProductSubscriptionRefresher,
-        AuthzEnginePort authzEnginePort,
-        AuthzRegistry authzRegistry,
-        AuthzEntityIdExtractor authzEntityIdExtractor
+        AuthzEnginePort authzEnginePort
     ) {
         Supplier<SubscriptionDispatcher> subscriptionDispatcherSupplier = provideSubscriptionDispatcher(subscriptionDispatcher);
         return new DeployerFactory(
@@ -287,9 +279,7 @@ public class SyncConfiguration {
             distributedSyncService,
             apiProductManager,
             apiProductSubscriptionRefresher,
-            authzEnginePort,
-            authzRegistry,
-            authzEntityIdExtractor
+            authzEnginePort
         );
     }
 

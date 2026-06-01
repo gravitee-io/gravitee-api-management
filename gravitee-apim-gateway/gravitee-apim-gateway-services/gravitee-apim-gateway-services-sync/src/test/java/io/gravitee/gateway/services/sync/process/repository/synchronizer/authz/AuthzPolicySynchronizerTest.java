@@ -29,7 +29,6 @@ import io.gravitee.gateway.services.sync.process.common.deployer.AuthzPolicyDepl
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
-import io.gravitee.gateway.services.sync.process.repository.service.AuthzRegistry;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.reactivex.rxjava3.core.Completable;
@@ -64,19 +63,15 @@ class AuthzPolicySynchronizerTest {
     @Mock
     private AuthzEnginePort port;
 
-    private AuthzRegistry authzRegistry;
-
     private AuthzPolicySynchronizer synchronizer;
 
     @BeforeEach
     void setUp() {
-        authzRegistry = new AuthzRegistry(null);
         synchronizer = new AuthzPolicySynchronizer(
             fetcher,
             new AuthzPolicyMapper(objectMapper),
             deployerFactory,
             port,
-            authzRegistry,
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
         );
@@ -126,7 +121,6 @@ class AuthzPolicySynchronizerTest {
 
     @Test
     void INCREMENTAL_deploys_both_GLOBAL_and_RESOURCE() throws InterruptedException {
-        authzRegistry.registerForApi("api.x", List.of("api.x"));
         Event globalEvt = event(
             "evt-g",
             EventType.PUBLISH_AUTHZ_POLICY,
@@ -251,7 +245,6 @@ class AuthzPolicySynchronizerTest {
 
     @Test
     void incremental_keeps_auto_derived_resource_policy_when_api_hosted() throws InterruptedException {
-        authzRegistry.registerForApi("api.bookings", List.of("api.bookings"));
         Event autoDerived = event(
             "evt-auto",
             EventType.PUBLISH_AUTHZ_POLICY,

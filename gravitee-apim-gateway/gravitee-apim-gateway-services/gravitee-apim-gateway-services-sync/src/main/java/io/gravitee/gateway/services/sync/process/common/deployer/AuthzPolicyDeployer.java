@@ -16,7 +16,6 @@
 package io.gravitee.gateway.services.sync.process.common.deployer;
 
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
-import io.gravitee.gateway.services.sync.process.repository.service.AuthzRegistry;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEnginePort;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzPolicyReactorDeployable;
 import io.reactivex.rxjava3.core.Completable;
@@ -28,7 +27,6 @@ import lombok.RequiredArgsConstructor;
 public class AuthzPolicyDeployer implements Deployer<AuthzPolicyReactorDeployable> {
 
     private final AuthzEnginePort enginePort;
-    private final AuthzRegistry authzRegistry;
     private final DistributedSyncService distributedSyncService;
 
     @Override

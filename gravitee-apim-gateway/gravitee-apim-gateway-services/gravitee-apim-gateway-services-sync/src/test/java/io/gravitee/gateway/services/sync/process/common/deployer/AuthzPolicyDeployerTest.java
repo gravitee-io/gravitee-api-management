@@ -18,7 +18,6 @@ package io.gravitee.gateway.services.sync.process.common.deployer;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
-import io.gravitee.gateway.services.sync.process.repository.service.AuthzRegistry;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEnginePort;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzPolicyReactorDeployable;
 import io.reactivex.rxjava3.core.Completable;
@@ -30,17 +29,14 @@ import org.junit.jupiter.api.Test;
 
 class AuthzPolicyDeployerTest {
 
-    private AuthzRegistry registry;
     private RecordingPort port;
     private AuthzPolicyDeployer deployer;
 
     @BeforeEach
     void setUp() {
-        registry = new AuthzRegistry(null);
         port = new RecordingPort();
         deployer = new AuthzPolicyDeployer(
             port,
-            registry,
             new io.gravitee.gateway.services.sync.process.distributed.service.NoopDistributedSyncService()
         );
     }
@@ -65,17 +61,6 @@ class AuthzPolicyDeployerTest {
 
         assertThat(port.policyOps).hasSize(1);
         assertThat(port.policyOps.peek().docId()).isEqualTo("doc-2");
-    }
-
-    @Test
-    void deploy_auto_derived_resource_policy_proceeds_when_API_is_registered() {
-        registry.registerForApi("api.bookings", List.of("api.bookings"));
-        AuthzPolicyReactorDeployable d = resource("doc-3", "Bookings read", "api.bookings", "permit(...);");
-
-        deployer.deploy(d).blockingAwait();
-
-        assertThat(port.policyOps).hasSize(1);
-        assertThat(port.policyOps.peek().docId()).isEqualTo("doc-3");
     }
 
     @Test

@@ -18,7 +18,6 @@ package io.gravitee.gateway.services.sync.process.common.deployer;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
-import io.gravitee.gateway.services.sync.process.repository.service.AuthzRegistry;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEnginePort;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityReactorDeployable;
 import io.reactivex.rxjava3.core.Completable;
@@ -30,17 +29,14 @@ import org.junit.jupiter.api.Test;
 
 class AuthzEntityDeployerTest {
 
-    private AuthzRegistry registry;
     private RecordingPort port;
     private AuthzEntityDeployer deployer;
 
     @BeforeEach
     void setUp() {
-        registry = new AuthzRegistry(null);
         port = new RecordingPort();
         deployer = new AuthzEntityDeployer(
             port,
-            registry,
             new io.gravitee.gateway.services.sync.process.distributed.service.NoopDistributedSyncService()
         );
     }
@@ -58,17 +54,6 @@ class AuthzEntityDeployerTest {
 
     @Test
     void deploy_auto_derived_resource_is_staged_unconditionally() {
-        AuthzEntityReactorDeployable d = resource("api.bookings");
-
-        deployer.deploy(d).blockingAwait();
-
-        assertThat(port.entityOps).hasSize(1);
-        assertThat(port.entityOps.peek().uid()).isEqualTo("Resource::\"api.bookings\"");
-    }
-
-    @Test
-    void deploy_auto_derived_resource_proceeds_when_API_is_registered() {
-        registry.registerForApi("api.bookings", List.of("api.bookings"));
         AuthzEntityReactorDeployable d = resource("api.bookings");
 
         deployer.deploy(d).blockingAwait();
@@ -106,7 +91,6 @@ class AuthzEntityDeployerTest {
 
     @Test
     void deploy_forwards_attributes_and_parents_to_the_engine_port() {
-        registry.registerForApi("api.bookings", List.of("api.bookings"));
         AuthzEntityReactorDeployable d = AuthzEntityReactorDeployable.builder()
             .entityId("api.bookings")
             .engineUid("Resource::\"api.bookings\"")

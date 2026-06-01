@@ -21,7 +21,6 @@ import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
-import io.gravitee.gateway.services.sync.process.repository.service.AuthzRegistry;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.reactivex.rxjava3.core.Completable;
@@ -45,7 +44,6 @@ public class AuthzEntitySynchronizer implements RepositorySynchronizer {
     private final AuthzEntityMapper mapper;
     private final DeployerFactory deployerFactory;
     private final AuthzEnginePort enginePort;
-    private final AuthzRegistry authzRegistry;
     private final ThreadPoolExecutor syncFetcherExecutor;
     private final ThreadPoolExecutor syncDeployerExecutor;
 
@@ -54,7 +52,6 @@ public class AuthzEntitySynchronizer implements RepositorySynchronizer {
         AuthzEntityMapper mapper,
         DeployerFactory deployerFactory,
         AuthzEnginePort enginePort,
-        AuthzRegistry authzRegistry,
         ThreadPoolExecutor syncFetcherExecutor,
         ThreadPoolExecutor syncDeployerExecutor
     ) {
@@ -62,7 +59,6 @@ public class AuthzEntitySynchronizer implements RepositorySynchronizer {
         this.mapper = mapper;
         this.deployerFactory = deployerFactory;
         this.enginePort = enginePort;
-        this.authzRegistry = authzRegistry;
         this.syncFetcherExecutor = syncFetcherExecutor;
         this.syncDeployerExecutor = syncDeployerExecutor;
     }

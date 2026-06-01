@@ -28,7 +28,6 @@ import io.gravitee.gateway.services.sync.process.common.deployer.AuthzEntityDepl
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
-import io.gravitee.gateway.services.sync.process.repository.service.AuthzRegistry;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.reactivex.rxjava3.core.Completable;
@@ -63,19 +62,15 @@ class AuthzEntitySynchronizerTest {
     @Mock
     private AuthzEnginePort port;
 
-    private AuthzRegistry authzRegistry;
-
     private AuthzEntitySynchronizer synchronizer;
 
     @BeforeEach
     void setUp() {
-        authzRegistry = new AuthzRegistry(null);
         synchronizer = new AuthzEntitySynchronizer(
             fetcher,
             new AuthzEntityMapper(objectMapper),
             deployerFactory,
             port,
-            authzRegistry,
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
         );
@@ -246,7 +241,6 @@ class AuthzEntitySynchronizerTest {
 
     @Test
     void incremental_deploys_auto_derived_resource_even_when_api_hosted() throws InterruptedException {
-        authzRegistry.registerForApi("api.bookings", List.of("api.bookings"));
         Event apiResource = event(
             "evt-api",
             EventType.PUBLISH_AUTHZ_ENTITY,

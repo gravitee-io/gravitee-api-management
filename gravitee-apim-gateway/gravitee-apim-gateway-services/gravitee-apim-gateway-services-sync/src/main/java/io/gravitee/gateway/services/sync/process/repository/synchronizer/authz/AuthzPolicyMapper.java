@@ -49,10 +49,7 @@ public class AuthzPolicyMapper {
                 }
                 AuthzPolicyReactorDeployable.Kind kind = toGatewayKind(wire.getKind());
                 if (kind == AuthzPolicyReactorDeployable.Kind.RESOURCE && (wire.getEntityId() == null || wire.getEntityId().isBlank())) {
-                    log.warn(
-                        "Skipping authz RESOURCE policy DEPLOY event [{}] — missing entityId (registry filter cannot run)",
-                        event.getId()
-                    );
+                    log.warn("Skipping authz RESOURCE policy DEPLOY event [{}] — missing entityId", event.getId());
                     return null;
                 }
                 String resolvedName = wire.getName() != null && !wire.getName().isBlank() ? wire.getName() : wire.getId();
@@ -79,9 +76,8 @@ public class AuthzPolicyMapper {
                     log.warn("Skipping authz policy UNDEPLOY event [{}] — missing id", event.getId());
                     return null;
                 }
-                // UNPUBLISH publishers historically omit kind. Kind is only used by the deployer
-                // to filter RESOURCE policies by registry on this node; on undeploy the engine just
-                // needs docId, so defaulting to GLOBAL is safe and ensures the removePolicy reaches it.
+                // UNPUBLISH publishers historically omit kind. On undeploy the engine only needs
+                // docId, so defaulting to GLOBAL is safe and ensures the removePolicy reaches it.
                 AuthzPolicyReactorDeployable.Kind kind = wire.getKind() != null
                     ? toGatewayKind(wire.getKind())
                     : AuthzPolicyReactorDeployable.Kind.GLOBAL;
