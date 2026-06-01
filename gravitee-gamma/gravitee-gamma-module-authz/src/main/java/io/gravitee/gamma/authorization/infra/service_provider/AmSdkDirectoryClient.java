@@ -15,19 +15,26 @@
  */
 package io.gravitee.gamma.authorization.infra.service_provider;
 
-import io.gravitee.am.sdk.management.api.UserApi;
-import io.gravitee.am.sdk.management.api.UserApiImpl;
+import io.gravitee.am.sdk.management.model.Group;
+import io.gravitee.am.sdk.management.model.GroupPage;
+import io.gravitee.am.sdk.management.model.Role;
+import io.gravitee.am.sdk.management.model.RolePage;
 import io.gravitee.am.sdk.management.model.User;
 import io.gravitee.am.sdk.management.model.UserPage;
 import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
+import io.gravitee.gamma.authorization.core.am.model.AmGroup;
+import io.gravitee.gamma.authorization.core.am.model.AmGroupPage;
+import io.gravitee.gamma.authorization.core.am.model.AmRole;
+import io.gravitee.gamma.authorization.core.am.model.AmRolePage;
 import io.gravitee.gamma.authorization.core.am.model.AmUser;
 import io.gravitee.gamma.authorization.core.am.model.AmUserPage;
 import io.gravitee.gamma.authorization.core.am.service_provider.AmDirectoryClient;
+import io.gravitee.gamma.authorization.infra.service_provider.AmSdkDirectoryClientFactory.AmSdkApis;
 import java.util.List;
 
 /**
- * AM SDK-backed {@link AmDirectoryClient}. Owns the SDK specifics — client construction, the well-known
- * default AM org/env scoping, and mapping the SDK {@link User} onto the SDK-free core {@link AmUser}.
+ * AM SDK-backed {@link AmDirectoryClient}. Owns the SDK specifics — client construction, the
+ * well-known default AM org/env scoping, and mapping the SDK models onto the SDK-free core models.
  */
 public class AmSdkDirectoryClient implements AmDirectoryClient {
 
@@ -45,23 +52,23 @@ public class AmSdkDirectoryClient implements AmDirectoryClient {
     @Override
     public Session openSession(AmConnection connection) {
         // One SDK client (and its Vert.x WebClient connection pool) for the whole run, closed below.
-        return new SdkSession(clientFactory.userApi(connection), connection.defaultDomainId());
+        return new SdkSession(clientFactory.create(connection), connection.defaultDomainId());
     }
 
     private static final class SdkSession implements Session {
 
-        private final UserApi userApi;
+        private final AmSdkApis apis;
         private final String domainId;
 
-        private SdkSession(UserApi userApi, String domainId) {
-            this.userApi = userApi;
+        private SdkSession(AmSdkApis apis, String domainId) {
+            this.apis = apis;
             this.domainId = domainId;
         }
 
         @Override
         public AmUserPage fetchUsers(int page, int size) {
             UserPage userPage = AmSdkInvocations.await(
-                userApi.listUsers(AM_DEFAULT_ORGANIZATION, AM_DEFAULT_ENVIRONMENT, domainId, null, null, page, size)
+                apis.userApi().listUsers(AM_DEFAULT_ORGANIZATION, AM_DEFAULT_ENVIRONMENT, domainId, null, null, page, size)
             );
             List<AmUser> users = (userPage.getData() == null ? List.<User>of() : userPage.getData())
                 .stream()
@@ -72,11 +79,35 @@ public class AmSdkDirectoryClient implements AmDirectoryClient {
         }
 
         @Override
+        public AmGroupPage fetchGroups(int page, int size) {
+            GroupPage groupPage = AmSdkInvocations.await(
+                apis.groupApi().listDomainGroups(AM_DEFAULT_ORGANIZATION, AM_DEFAULT_ENVIRONMENT, domainId, page, size)
+            );
+            List<AmGroup> groups = (groupPage.getData() == null ? List.<Group>of() : groupPage.getData())
+                .stream()
+                .map(AmSdkDirectoryClient::toAmGroup)
+                .toList();
+            long totalCount = groupPage.getTotalCount() == null ? 0 : groupPage.getTotalCount();
+            return new AmGroupPage(groups, totalCount);
+        }
+
+        @Override
+        public AmRolePage fetchRoles(int page, int size) {
+            RolePage rolePage = AmSdkInvocations.await(
+                apis.roleApi().findRoles(AM_DEFAULT_ORGANIZATION, AM_DEFAULT_ENVIRONMENT, domainId, page, size, null)
+            );
+            List<AmRole> roles = (rolePage.getData() == null ? List.<Role>of() : rolePage.getData())
+                .stream()
+                .map(AmSdkDirectoryClient::toAmRole)
+                .toList();
+            long totalCount = rolePage.getTotalCount() == null ? 0 : rolePage.getTotalCount();
+            return new AmRolePage(roles, totalCount);
+        }
+
+        @Override
         public void close() {
-            // Release the underlying Vert.x WebClient pool; building one per page would leak it.
-            if (userApi instanceof UserApiImpl impl) {
-                impl.getApiClient().getWebClient().close();
-            }
+            // Release the underlying Vert.x WebClient pool shared by all three API facades.
+            apis.apiClient().getWebClient().close();
         }
     }
 
@@ -92,5 +123,13 @@ public class AmSdkDirectoryClient implements AmDirectoryClient {
             user.getGroups(),
             user.getRoles()
         );
+    }
+
+    static AmGroup toAmGroup(Group group) {
+        return new AmGroup(group.getId(), group.getName());
+    }
+
+    static AmRole toAmRole(Role role) {
+        return new AmRole(role.getId(), role.getName());
     }
 }

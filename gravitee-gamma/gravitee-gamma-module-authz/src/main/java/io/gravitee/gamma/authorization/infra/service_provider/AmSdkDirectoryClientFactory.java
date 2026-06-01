@@ -20,6 +20,10 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import io.gravitee.am.sdk.management.api.GroupApi;
+import io.gravitee.am.sdk.management.api.GroupApiImpl;
+import io.gravitee.am.sdk.management.api.RoleApi;
+import io.gravitee.am.sdk.management.api.RoleApiImpl;
 import io.gravitee.am.sdk.management.api.UserApi;
 import io.gravitee.am.sdk.management.api.UserApiImpl;
 import io.gravitee.am.sdk.management.invoker.ApiClient;
@@ -32,9 +36,10 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
 /**
- * Builds an AM management {@link UserApi} from a stored {@link AmConnection}. No caching — a sync
- * opens one client per run (see {@code AmSdkDirectoryClient.openSession}) and closes it when done, so an
- * updated connection takes effect on the next sync. Mirrors the AIM module's {@code AmSdkClientFactory}.
+ * Builds the AM management API facades (user, group, role) from a stored {@link AmConnection},
+ * all sharing one {@link ApiClient} (and thus one Vert.x WebClient connection pool). No caching — a
+ * sync opens one set per run (see {@code AmSdkDirectoryClient.openSession}) and closes the shared
+ * client when done, so an updated connection takes effect on the next sync.
  */
 public class AmSdkDirectoryClientFactory {
 
@@ -44,7 +49,15 @@ public class AmSdkDirectoryClientFactory {
         this.vertx = vertx;
     }
 
-    public UserApi userApi(AmConnection connection) {
+    /** The three AM API facades for a connection plus the shared client that owns their HTTP pool. */
+    public record AmSdkApis(ApiClient apiClient, UserApi userApi, GroupApi groupApi, RoleApi roleApi) {}
+
+    public AmSdkApis create(AmConnection connection) {
+        ApiClient apiClient = buildApiClient(connection);
+        return new AmSdkApis(apiClient, new UserApiImpl(apiClient), new GroupApiImpl(apiClient), new RoleApiImpl(apiClient));
+    }
+
+    private ApiClient buildApiClient(AmConnection connection) {
         ApiClient apiClient = new ApiClient(vertx, new JsonObject());
         apiClient.setBasePath(connection.baseUrl() + "/management");
         apiClient.setBearerToken(connection.serviceAccountAccessToken());
@@ -67,6 +80,6 @@ public class AmSdkDirectoryClientFactory {
         );
         apiClient.getObjectMapper().registerModule(millisTimestamps);
 
-        return new UserApiImpl(apiClient);
+        return apiClient;
     }
 }
