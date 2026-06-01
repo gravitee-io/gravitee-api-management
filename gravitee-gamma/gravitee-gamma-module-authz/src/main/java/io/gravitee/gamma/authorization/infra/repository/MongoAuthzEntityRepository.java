@@ -109,6 +109,15 @@ public class MongoAuthzEntityRepository implements AuthzEntityRepository {
     }
 
     @Override
+    public List<AuthzEntity> findByParent(String environmentId, String parentEntityId) {
+        if (parentEntityId == null || parentEntityId.isBlank()) {
+            return List.of();
+        }
+        var query = new Query(Criteria.where("environmentId").is(environmentId).and("parents").is(parentEntityId));
+        return mongo.find(query, AuthzEntityMongo.class).stream().map(AuthzEntityDocumentMapper::toDomain).toList();
+    }
+
+    @Override
     public List<AuthzEntity> findByAnyEntityIdPrefix(String environmentId, Collection<String> prefixes) {
         if (prefixes == null || prefixes.isEmpty()) {
             return List.of();

@@ -42,13 +42,14 @@ import { KpiTile } from '../../components/KpiTile';
 import { ValidationErrorAlert } from '../../components/ValidationErrorAlert';
 import type { PolicyRequest, PolicyResponse, PolicyStatus, PolicyType } from '../../shared/api/authz-api.types';
 import type { ChipOption } from '../../shared/chip-option';
-import { parseGaplSchema } from '../../shared/gapl-parser';
 import { useEntities } from '../../shared/hooks/useEntities';
 import { useEntityOptions } from '../../shared/hooks/useEntityOptions';
 import { usePolicies } from '../../shared/hooks/usePolicies';
 import { useSchema } from '../../shared/hooks/useSchema';
 import { PolicyEditorSheet } from './PolicyEditorSheet';
 import { PolicyListTable } from './PolicyListTable';
+import { buildActionOptions } from './action-options';
+import { buildResourceOptions } from './resource-options';
 
 export type CatalogEntryType = 'MCP' | 'AGENT' | 'MODEL' | 'API' | 'EVENT';
 
@@ -117,6 +118,13 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
     });
     // Action chip options. Separate scoped fetch so it never bloats with catalog rows.
     const actionEntities = useEntities(envId, 200, { kind: 'RESOURCE', entityIdPrefix: 'action.' });
+    // MCP tools surface as selectable actions on the MCP policy page only. Fetched
+    // env-wide (all tools, any server), not scoped to the selected target server.
+    const mcpToolEntities = useEntities(envId, 200, {
+        kind: 'RESOURCE',
+        entityIdPrefix: 'mcptool.',
+        enabled: config.type === 'MCP',
+    });
 
     const allPolicies = useMemo<readonly PolicyResponse[]>(() => policies.data?.data ?? [], [policies.data]);
 
@@ -165,30 +173,11 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
         return { entries, isLoading: catalogEntities.isLoading, error: catalogEntities.error };
     }, [config.hasTarget, config.type, catalogEntities.data, catalogEntities.isLoading, catalogEntities.error]);
 
-    const actionOptions = useMemo((): readonly ChipOption[] => {
-        const seen = new Set<string>();
-        const merged: ChipOption[] = [];
-        if (schema.schema?.schemaText) {
-            const parsed = parseGaplSchema(schema.schema.schemaText);
-            for (const a of parsed.actions) {
-                const id = `Action::"${a.name}"`;
-                if (!seen.has(id)) {
-                    seen.add(id);
-                    merged.push({ id, label: a.name, group: 'Action' });
-                }
-            }
-        }
-        for (const e of actionEntities.data?.data ?? []) {
-            const name = (e.attributes?.name as string) || e.uid.replace(/^action\./, '');
-            if (!name) continue;
-            const id = `Action::"${name}"`;
-            if (seen.has(id)) continue;
-            seen.add(id);
-            const description = typeof e.attributes?.description === 'string' ? (e.attributes.description as string) : undefined;
-            merged.push({ id, label: name, group: 'Action', description });
-        }
-        return merged;
-    }, [schema.schema, actionEntities.data]);
+    const actionOptions = useMemo(
+        (): readonly ChipOption[] =>
+            buildActionOptions(schema.schema?.schemaText, actionEntities.data?.data ?? [], mcpToolEntities.data?.data ?? []),
+        [schema.schema, actionEntities.data, mcpToolEntities.data],
+    );
 
     const { options: principalOptions } = useEntityOptions(envId, {
         typeFilter: config.hasTarget ? ['User', 'Group', 'ServiceAccount', 'AgentIdentity'] : undefined,
@@ -204,41 +193,15 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
         return 'No principals available. Add Users, Groups, Service Accounts or Agent Identities under Policy Structure → Entities.';
     }, [principalOptions.length]);
 
-    const serviceResourceOptions = useMemo((): readonly ChipOption[] => {
-        // catalogEntities is already scoped server-side to this service prefix
-        // (kind=RESOURCE + entityIdPrefix=<type>.) — no need to re-filter out
-        // principals or other service types here.
-        const items: ChipOption[] = [];
-        const typePrefix = config.type.toLowerCase();
-        for (const e of catalogEntities.data?.data ?? []) {
-            const attrs = e.attributes ?? {};
-            const firstSeg = e.uid.includes('.') ? e.uid.slice(0, e.uid.indexOf('.')).toLowerCase() : '';
-            if (config.hasTarget && firstSeg !== typePrefix) continue;
-            const label =
-                typeof attrs.displayName === 'string' && attrs.displayName
-                    ? (attrs.displayName as string)
-                    : typeof attrs.name === 'string' && attrs.name
-                      ? (attrs.name as string)
-                      : e.uid.includes('.')
-                        ? e.uid.slice(e.uid.indexOf('.') + 1)
-                        : e.uid;
-            const group =
-                firstSeg === 'mcp'
-                    ? 'MCP'
-                    : firstSeg === 'model' || firstSeg === 'llm'
-                      ? 'Model'
-                      : firstSeg === 'agent'
-                        ? 'Agent'
-                        : firstSeg === 'api'
-                          ? 'API'
-                          : 'Resource';
-            const description = typeof attrs.description === 'string' ? (attrs.description as string) : undefined;
-            const labelForUid = e.uid.includes('.') ? e.uid.slice(e.uid.indexOf('.') + 1) : e.uid;
-            items.push({ id: `${group}::"${labelForUid}"`, label, group, description });
-        }
-        items.sort((a, b) => (a.group === b.group ? a.label.localeCompare(b.label) : a.group.localeCompare(b.group)));
-        return items;
-    }, [config.hasTarget, config.type, catalogEntities.data]);
+    const serviceResourceOptions = useMemo(
+        (): readonly ChipOption[] =>
+            buildResourceOptions(
+                { type: config.type, hasTarget: config.hasTarget },
+                catalogEntities.data?.data ?? [],
+                mcpToolEntities.data?.data ?? [],
+            ),
+        [config.hasTarget, config.type, catalogEntities.data, mcpToolEntities.data],
+    );
 
     const effectiveConfig = useMemo<ServicePageConfig>(
         () => ({
@@ -301,7 +264,8 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
         policies.reload();
         catalogEntities.reload();
         actionEntities.reload();
-    }, [policies, catalogEntities, actionEntities]);
+        mcpToolEntities.reload();
+    }, [policies, catalogEntities, actionEntities, mcpToolEntities]);
 
     const Icon = config.icon;
     const totalCount = policies.data?.total ?? 0;

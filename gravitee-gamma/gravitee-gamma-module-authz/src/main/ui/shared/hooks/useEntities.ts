@@ -35,6 +35,7 @@ export interface UseEntitiesFilter {
     readonly source?: string;
     readonly entityIdPrefix?: string;
     readonly excludeEntityIdPrefix?: string;
+    readonly enabled?: boolean;
 }
 
 export function useEntities(
@@ -57,13 +58,13 @@ export function useEntities(
         setPage(1);
     }
 
-    const { kind, source, entityIdPrefix, excludeEntityIdPrefix } = filter;
+    const { kind, source, entityIdPrefix, excludeEntityIdPrefix, enabled } = filter;
     const queryClient = useQueryClient();
 
     const query = useQuery({
         queryKey: authzQueryKeys.entities.page(environmentId, page, perPage, kind, source, entityIdPrefix, excludeEntityIdPrefix),
         queryFn: () => authzApiService.listEntities(environmentId, { page, perPage, kind, source, entityIdPrefix, excludeEntityIdPrefix }),
-        enabled: Boolean(environmentId),
+        enabled: Boolean(environmentId) && enabled !== false,
         staleTime: 30_000,
         placeholderData: keepPreviousData,
     });

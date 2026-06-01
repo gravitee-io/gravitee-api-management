@@ -43,7 +43,14 @@ import {
 import { DownloadIcon } from '@gravitee/graphene-core/icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDeferredValue, useMemo, useState } from 'react';
-import type { AgentCatalogItem, CatalogItem, McpServerCatalogItem, ModelCatalogItem } from '../../shared/api/aim-catalog.types';
+import { aimCatalogService } from '../../shared/api/aim-catalog.service';
+import type {
+    AgentCatalogItem,
+    CatalogItem,
+    McpServerCatalogItem,
+    McpToolCatalogItem,
+    ModelCatalogItem,
+} from '../../shared/api/aim-catalog.types';
 import { authzApiService } from '../../shared/api/authz-api.service';
 import { authzQueryKeys } from '../../shared/api/query-keys';
 import { useAimCatalogItems, type UseAimCatalogItemsResult } from '../../shared/hooks/useAimCatalogItems';
@@ -143,6 +150,16 @@ function buildEntityId(item: CatalogItem): string {
     return `${tab.entityKindPrefix}.${deriveSlug(item)}`;
 }
 
+/**
+ * Authorization entityId for an MCP tool: `mcptool.{slug}`. Prefers the catalog-provided
+ * `entityId`, falling back to the tool name then the row id — mirroring {@link deriveSlug}
+ * for servers, since older catalog rows (or AIM versions) may not expose `entityId`.
+ */
+function buildToolEntityId(tool: McpToolCatalogItem): string {
+    const slug = slugify(tool.entityId) || slugify(tool.definition.name) || tool.id;
+    return `mcptool.${slug}`;
+}
+
 /** Run `tasks` with up to `concurrency` in-flight at a time. Preserves order in the returned settled array. */
 async function runWithConcurrency<T>(tasks: ReadonlyArray<() => Promise<T>>, concurrency: number): Promise<PromiseSettledResult<T>[]> {
     const results: PromiseSettledResult<T>[] = new Array(tasks.length);
@@ -240,6 +257,33 @@ export function ImportFromCatalogDialog({ open, environmentId, onOpenChange, onI
 
         const successCatalogIds: string[] = [];
         let doneCount = 0;
+        let toolFailureCount = 0;
+
+        const importServerTools = async (server: McpServerCatalogItem, serverEntityId: string): Promise<void> => {
+            const tools = await aimCatalogService.listToolsForServer(environmentId, server.id);
+            if (tools.length === 0) return;
+            const toolTasks = tools.map(tool => async () => {
+                const toolAttributes: Record<string, unknown> = {
+                    _displayName: tool.definition.name,
+                    _catalogId: tool.id,
+                    _importedAt: new Date().toISOString(),
+                };
+                if (tool.definition.description) toolAttributes.description = tool.definition.description;
+                await authzApiService.createEntity(environmentId, {
+                    entityId: buildToolEntityId(tool),
+                    kind: 'RESOURCE',
+                    attributes: toolAttributes,
+                    parents: [serverEntityId],
+                    source: SOURCE_LABEL,
+                });
+            });
+            const settled = await runWithConcurrency(toolTasks, IMPORT_CONCURRENCY);
+            const failed = settled.filter(r => r.status === 'rejected') as PromiseRejectedResult[];
+            if (failed.length > 0) {
+                failed.forEach(r => console.error('catalog tool import failed:', r.reason));
+                throw new Error(`${failed.length} of ${tools.length} tools failed`);
+            }
+        };
 
         const tasks = items.map(item => async () => {
             const entityId = buildEntityId(item);
@@ -260,6 +304,14 @@ export function ImportFromCatalogDialog({ open, environmentId, onOpenChange, onI
                     source: SOURCE_LABEL,
                 });
                 successCatalogIds.push(item.id);
+                if (item.kind === 'mcp-server') {
+                    try {
+                        await importServerTools(item, entityId);
+                    } catch (err) {
+                        toolFailureCount++;
+                        console.error('mcp tool import failed for', entityId, err);
+                    }
+                }
                 return item;
             } finally {
                 doneCount++;
@@ -288,6 +340,9 @@ export function ImportFromCatalogDialog({ open, environmentId, onOpenChange, onI
                 .join('; ');
             toast.error(`Failed to import ${failed.length}: ${sample}`);
             failed.forEach(r => console.error('catalog import failed:', r.reason));
+        }
+        if (toolFailureCount > 0) {
+            toast.error(`${toolFailureCount} MCP server${toolFailureCount === 1 ? '' : 's'} imported with tool errors — see console`);
         }
         if (failed.length === 0) {
             resetAndClose(false);

@@ -44,6 +44,12 @@ export interface AgentDefinition {
     readonly url?: string;
 }
 
+export interface McpToolDefinition {
+    readonly name: string;
+    readonly description?: string;
+    readonly inputSchema?: Record<string, unknown>;
+}
+
 interface CatalogItemBase {
     readonly id: string;
     /**
@@ -79,6 +85,16 @@ export interface AgentCatalogItem extends CatalogItemBase {
 }
 
 export type CatalogItem = ModelCatalogItem | McpServerCatalogItem | AgentCatalogItem;
+
+/**
+ * MCP tool catalog row. Fetched per-server via `/catalog/mcp-tools?parentId=`,
+ * not through the kind-tabbed items list, so it is intentionally NOT part of the
+ * {@link CatalogItem} union. `parentId` links the tool back to its MCP server.
+ */
+export interface McpToolCatalogItem extends CatalogItemBase {
+    readonly kind: 'mcp-tool';
+    readonly definition: McpToolDefinition;
+}
 
 export interface AimPagination {
     readonly page: number;

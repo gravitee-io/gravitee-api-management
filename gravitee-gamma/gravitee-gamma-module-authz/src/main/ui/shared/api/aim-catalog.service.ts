@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { AimPagedResponse, CatalogItem, CatalogItemKind, CatalogItemPage } from './aim-catalog.types';
+import type { AimPagedResponse, CatalogItem, CatalogItemKind, CatalogItemPage, McpToolCatalogItem } from './aim-catalog.types';
 import { authzCoreApiClient } from './authz-api-client';
+
+const TOOLS_PER_PAGE = 200;
+const TOOLS_MAX_PAGES = 25;
 
 /**
  * AIM catalog client. The AIM module is mounted next to authz under the same
@@ -48,4 +51,23 @@ export const aimCatalogService = {
                 perPage: p.pagination.perPage,
                 total: p.pagination.totalCount,
             })),
+
+    listToolsForServer: async (environmentId: string, serverCatalogId: string): Promise<McpToolCatalogItem[]> => {
+        const accumulated: McpToolCatalogItem[] = [];
+        let page = 1;
+        while (page <= TOOLS_MAX_PAGES) {
+            const q = new URLSearchParams();
+            q.set('parentId', serverCatalogId);
+            q.set('page', String(page));
+            q.set('perPage', String(TOOLS_PER_PAGE));
+            const resp = await authzCoreApiClient.get<AimPagedResponse<McpToolCatalogItem>>(
+                aimPath(environmentId, `/catalog/mcp-tools?${q.toString()}`),
+            );
+            const data = resp.data ?? [];
+            accumulated.push(...data);
+            if (accumulated.length >= resp.pagination.totalCount || data.length === 0) break;
+            page++;
+        }
+        return accumulated;
+    },
 };
