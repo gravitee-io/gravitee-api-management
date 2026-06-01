@@ -202,6 +202,30 @@ describe('PolicyStatementCard', () => {
         );
     });
 
+    it('disables the inline-create button when the typed name resolves to an existing option id', async () => {
+        render(
+            <PolicyStatementCard
+                index={0}
+                statement={baseStatement}
+                principalOptions={[{ id: 'User::"alice-doe"', label: 'Alice Doe', group: 'User' }]}
+                actionOptions={actionOptions}
+                resourceOptions={resourceOptions}
+                resourceGroups={[{ key: 'MCPTool', label: 'Tools' }]}
+                onChange={vi.fn()}
+                onDuplicate={vi.fn()}
+                onDelete={vi.fn()}
+                principalCreate={principalCreate}
+            />,
+        );
+
+        await userEvent.click(screen.getByRole('combobox', { name: /add principal/i }));
+        await userEvent.type(screen.getByRole('combobox', { name: /add principal/i }), 'alice---doe');
+
+        const addButton = screen.getByRole('button', { name: /already in list/i });
+        expect(addButton).toBeDisabled();
+        expect(addButton).toHaveTextContent('user.alice-doe');
+    });
+
     it('renders an unregistered selected principal as a ghost chip with a warning tooltip', async () => {
         const stmt: PolicyStatement = {
             ...baseStatement,

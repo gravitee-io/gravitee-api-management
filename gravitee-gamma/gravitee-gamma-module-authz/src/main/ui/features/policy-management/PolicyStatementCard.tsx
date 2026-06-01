@@ -440,10 +440,13 @@ function InlineCreatePanel({ createConfig, query, existingLabels, onCreated }: I
     if (displayName === '' || exactMatch) return null;
 
     const slugInvalid = !slug || !SLUG_REGEX.test(slug);
+    const candidate = slugInvalid ? null : createConfig.create({ canonicalPrefix: canonical, slug, displayName });
+    const idExists = candidate !== null && existingLabels.some(o => o.id === candidate.id);
+    const disabled = slugInvalid || idExists;
 
     const runCreate = () => {
-        if (slugInvalid) return;
-        onCreated(createConfig.create({ canonicalPrefix: canonical, slug, displayName }));
+        if (disabled || candidate === null) return;
+        onCreated(candidate);
     };
 
     return (
@@ -473,12 +476,15 @@ function InlineCreatePanel({ createConfig, query, existingLabels, onCreated }: I
                 size="xs"
                 onMouseDown={e => e.preventDefault()}
                 onClick={runCreate}
-                disabled={slugInvalid}
+                disabled={disabled}
                 className="mt-1.5 w-full justify-start"
             >
                 <PlusIcon className="mr-1 size-3" aria-hidden />
                 <span className="truncate">
-                    Add <span className="font-mono">{canonical}.{slug || '…'}</span>
+                    {idExists ? 'Already in list: ' : 'Add '}
+                    <span className="font-mono">
+                        {canonical}.{slug || '…'}
+                    </span>
                 </span>
             </Button>
         </div>

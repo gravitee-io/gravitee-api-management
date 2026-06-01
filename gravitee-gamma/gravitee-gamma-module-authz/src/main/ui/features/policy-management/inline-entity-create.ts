@@ -59,9 +59,10 @@ export const SLUG_REGEX = /^[a-z0-9_-]+$/;
 export function slugify(value: string): string {
     return value
         .normalize('NFD')
-        .replace(/[̀-ͯ]/g, '')
+        .replace(/[\u0300-\u036f]/g, '')
         .toLowerCase()
         .replace(/[^a-z0-9_-]+/g, '-')
+        .replace(/-+/g, '-')
         .replace(/^-+|-+$/g, '');
 }
 
