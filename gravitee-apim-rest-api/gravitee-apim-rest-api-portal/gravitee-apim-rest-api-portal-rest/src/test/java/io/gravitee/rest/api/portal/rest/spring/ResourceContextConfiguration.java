@@ -621,6 +621,17 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public io.gravitee.rest.api.portal.rest.mapper.FinalizeRegistrationMapper finalizeRegistrationMapper() {
+        return new io.gravitee.rest.api.portal.rest.mapper.FinalizeRegistrationMapper();
+    }
+
+    @Bean
+    @org.springframework.context.annotation.Primary
+    public io.gravitee.apim.core.invitation.use_case.AcceptUserInvitationUseCase primaryAcceptUserInvitationUseCase() {
+        return mock(io.gravitee.apim.core.invitation.use_case.AcceptUserInvitationUseCase.class);
+    }
+
+    @Bean
     public AnalyticsMapper analyticsMapper() {
         return mock(AnalyticsMapper.class);
     }
