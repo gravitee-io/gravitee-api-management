@@ -201,7 +201,7 @@ export function ActionsPage() {
                 </div>
             </header>
 
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4" aria-label="Key metrics">
+            <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }} aria-label="Key metrics">
                 <KpiTile label="Total actions" value={total} loading={actionsQuery.isLoading} Icon={ZapIcon} iconClassName="bg-warning/10 text-warning" />
             </div>
 
