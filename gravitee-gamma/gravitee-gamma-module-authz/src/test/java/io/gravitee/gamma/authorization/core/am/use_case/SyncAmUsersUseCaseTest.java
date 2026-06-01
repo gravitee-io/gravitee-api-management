@@ -48,10 +48,14 @@ class SyncAmUsersUseCaseTest {
     private static final AuthzCallerContext CALLER = AuthzCallerContext.ofUser("org-1", "env-1", "user-1");
     private static final AmConnection CONNECTION = new AmConnection("http://am:8093", "token", "domain-1", "domain-hrid", null);
 
+    private static final int MAX_USERS = 1000;
+    private static final int PAGE_SIZE = 50;
+    private static final int BATCH_SIZE = 50;
+
+
     private AmUserClient amUserClient;
     private AmUserClient.Session session;
     private AuthzEntityAdminApi authzEntityAdminApi;
-    private SyncAmUsersUseCase useCase;
 
     @BeforeEach
     void setUp() {
@@ -59,10 +63,14 @@ class SyncAmUsersUseCaseTest {
         session = mock(AmUserClient.Session.class);
         when(amUserClient.openSession(CONNECTION)).thenReturn(session);
         authzEntityAdminApi = mock(AuthzEntityAdminApi.class);
-        useCase = new SyncAmUsersUseCase(amUserClient, authzEntityAdminApi);
     }
 
     private SyncAmUsersUseCase.Output run() {
+        return run(new SyncAmUsersUseCase.SyncConfig(MAX_USERS, PAGE_SIZE, BATCH_SIZE));
+    }
+
+    private SyncAmUsersUseCase.Output run(SyncAmUsersUseCase.SyncConfig syncConfig) {
+        SyncAmUsersUseCase useCase = new SyncAmUsersUseCase(amUserClient, authzEntityAdminApi, syncConfig);
         return useCase.execute(new SyncAmUsersUseCase.Input(CALLER, CONNECTION));
     }
 
@@ -187,6 +195,22 @@ class SyncAmUsersUseCaseTest {
         assertThat(captor.getAllValues().get(0)).hasSize(50);
         assertThat(captor.getAllValues().get(1)).hasSize(50);
         assertThat(captor.getAllValues().get(2)).hasSize(20);
+    }
+
+    @Test
+    void stops_syncing_once_the_configured_max_is_reached() {
+        // AM reports far more users than the cap; the sync must stop at the ceiling and not page further.
+        List<AmUser> firstPage = new ArrayList<>();
+        for (int i = 0; i < 50; i++) {
+            firstPage.add(user("sub-" + i, "user-" + i, null, null, null));
+        }
+        stubPage(0, new AmUserPage(firstPage, 500L));
+
+        SyncAmUsersUseCase.Output result = run(new SyncAmUsersUseCase.SyncConfig(20, PAGE_SIZE, BATCH_SIZE));
+
+        assertThat(result).isEqualTo(new SyncAmUsersUseCase.Output(20, 20));
+        verify(session).fetchUsers(eq(0), eq(50));
+        verify(session, never()).fetchUsers(eq(1), eq(50));
     }
 
     @Test
