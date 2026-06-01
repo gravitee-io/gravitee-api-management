@@ -67,6 +67,7 @@ import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
 import io.gravitee.repository.management.api.PortalPageContentRepository;
 import io.gravitee.repository.management.api.PortalPageContextRepository;
 import io.gravitee.repository.management.api.PortalPageRepository;
+import io.gravitee.repository.management.api.PortalRepository;
 import io.gravitee.repository.management.api.PromotionRepository;
 import io.gravitee.repository.management.api.QualityRuleRepository;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
@@ -315,6 +316,9 @@ public class DeleteEnvironmentCommandHandlerTest {
     private PortalNavigationItemRepository portalNavigationItemRepository;
 
     @Mock
+    private PortalRepository portalRepository;
+
+    @Mock
     private PromotionRepository promotionRepository;
 
     @Mock
@@ -471,6 +475,7 @@ public class DeleteEnvironmentCommandHandlerTest {
             portalPageContextRepository,
             portalNavigationItemRepository,
             portalPageContentRepository,
+            portalRepository,
             promotionRepository,
             qualityRuleRepository,
             ratingAnswerRepository,

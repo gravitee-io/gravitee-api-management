@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.12.0_add_portals
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}portals
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: pk_portals } }
+              - column: {name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: name, type: nvarchar(256), constraints: { nullable: false } }
+
+        - createIndex:
+            indexName: idx_${gravitee_prefix}portals_environment_id
+            columns:
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)
+            tableName: ${gravitee_prefix}portals
+
+        - createIndex:
+            indexName: idx_${gravitee_prefix}portals_organization_id
+            columns:
+              - column:
+                  name: organization_id
+                  type: nvarchar(64)
+            tableName: ${gravitee_prefix}portals

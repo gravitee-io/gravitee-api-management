@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
+import io.gravitee.apim.core.portal.use_case.CreateDefaultPortalUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationItemsUseCase;
 import io.gravitee.cockpit.api.command.model.accesspoint.AccessPoint;
 import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
@@ -65,11 +66,19 @@ public class EnvironmentCommandHandlerTest {
     @Mock
     private CreateDefaultPortalNavigationItemsUseCase createDefaultPortalNavigationItemsUseCase;
 
+    @Mock
+    private CreateDefaultPortalUseCase createDefaultPortalUseCase;
+
     public EnvironmentCommandHandler cut;
 
     @BeforeEach
     public void before() {
-        cut = new EnvironmentCommandHandler(environmentService, accessPointService, createDefaultPortalNavigationItemsUseCase);
+        cut = new EnvironmentCommandHandler(
+            environmentService,
+            accessPointService,
+            createDefaultPortalNavigationItemsUseCase,
+            createDefaultPortalUseCase
+        );
     }
 
     @Test
@@ -216,6 +225,71 @@ public class EnvironmentCommandHandlerTest {
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
         verify(createDefaultPortalNavigationItemsUseCase).execute(orgId, envId);
+    }
+
+    @Test
+    @SneakyThrows
+    public void environmentCreationCreatesDefaultPortal() {
+        String envId = "env#1";
+        String orgId = "orga#1";
+        EnvironmentCommandPayload environmentPayload = EnvironmentCommandPayload.builder()
+            .id(envId)
+            .cockpitId("env#cockpit-1")
+            .hrids(Collections.singletonList("env-1"))
+            .organizationId(orgId)
+            .description("Environment description")
+            .name("Environment name")
+            .build();
+        EnvironmentCommand command = new EnvironmentCommand(environmentPayload);
+
+        when(environmentService.findByCockpitId(any())).thenThrow(new EnvironmentNotFoundException("Env not found"));
+        when(environmentService.createOrUpdate(eq(orgId), eq(envId), any(UpdateEnvironmentEntity.class))).thenReturn(
+            EnvironmentEntity.builder().id(envId).organizationId(orgId).build()
+        );
+
+        TestObserver<EnvironmentReply> obs = cut.handle(command).test();
+
+        obs.await();
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+
+        verify(createDefaultPortalUseCase).execute(orgId, envId);
+    }
+
+    @Test
+    public void environmentUpdateDoesNotCreateDefaultPortal() throws InterruptedException {
+        EnvironmentCommandPayload environmentPayload = EnvironmentCommandPayload.builder()
+            .id("env#1")
+            .cockpitId("env#cockpit-1")
+            .hrids(Collections.singletonList("env-1"))
+            .organizationId("orga#1")
+            .description("Environment description")
+            .name("Environment name")
+            .build();
+        EnvironmentCommand command = new EnvironmentCommand(environmentPayload);
+        EnvironmentEntity existingEnvironment = mock(EnvironmentEntity.class);
+        when(existingEnvironment.getId()).thenReturn("DEFAULT");
+        when(existingEnvironment.getOrganizationId()).thenReturn("DEFAULT");
+        when(environmentService.findByCockpitId(any())).thenReturn(existingEnvironment);
+        when(
+            environmentService.createOrUpdate(
+                eq("DEFAULT"),
+                eq("DEFAULT"),
+                argThat(
+                    newEnvironment ->
+                        newEnvironment.getCockpitId().equals(environmentPayload.cockpitId()) &&
+                        newEnvironment.getHrids().equals(environmentPayload.hrids()) &&
+                        newEnvironment.getDescription().equals(environmentPayload.description()) &&
+                        newEnvironment.getName().equals(environmentPayload.name())
+                )
+            )
+        ).thenReturn(new EnvironmentEntity());
+
+        TestObserver<EnvironmentReply> obs = cut.handle(command).test();
+
+        obs.await();
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+
+        verify(createDefaultPortalUseCase, never()).execute(any(), any());
     }
 
     @Test
