@@ -29,7 +29,7 @@ import io.gravitee.gamma.authorization.api.AuthzPolicyAdminApi;
 import io.gravitee.gamma.authorization.api.AuthzPolicyRepository;
 import io.gravitee.gamma.authorization.api.AuthzSchemaAdminApi;
 import io.gravitee.gamma.authorization.audit.ApimAuthzAuditAdapter;
-import io.gravitee.gamma.authorization.core.am.service_provider.AmUserClient;
+import io.gravitee.gamma.authorization.core.am.service_provider.AmDirectoryClient;
 import io.gravitee.gamma.authorization.core.am.service_provider.AmUserSyncRunner;
 import io.gravitee.gamma.authorization.core.am.use_case.GetAmUserSyncStatusUseCase;
 import io.gravitee.gamma.authorization.core.am.use_case.StartAmUserSyncUseCase;
@@ -37,8 +37,8 @@ import io.gravitee.gamma.authorization.core.am.use_case.SyncAmUsersUseCase;
 import io.gravitee.gamma.authorization.event.EventRepositoryAuthzEventPublisher;
 import io.gravitee.gamma.authorization.infra.repository.MongoAuthzEntityRepository;
 import io.gravitee.gamma.authorization.infra.repository.MongoAuthzPolicyRepository;
-import io.gravitee.gamma.authorization.infra.service_provider.AmSdkUserClient;
-import io.gravitee.gamma.authorization.infra.service_provider.AmSdkUserClientFactory;
+import io.gravitee.gamma.authorization.infra.service_provider.AmSdkDirectoryClient;
+import io.gravitee.gamma.authorization.infra.service_provider.AmSdkDirectoryClientFactory;
 import io.gravitee.gamma.authorization.infra.service_provider.AmUserSyncRunnerImpl;
 import io.gravitee.gamma.authorization.service.AuthzEntityIdValidator;
 import io.gravitee.gamma.authorization.service.AuthzEntityServiceImpl;
@@ -151,24 +151,24 @@ public class SpringConfig {
     }
 
     @Bean
-    public AmSdkUserClientFactory amSdkUserClientFactory(Vertx vertx) {
-        return new AmSdkUserClientFactory(vertx);
+    public AmSdkDirectoryClientFactory amSdkDirectoryClientFactory(Vertx vertx) {
+        return new AmSdkDirectoryClientFactory(vertx);
     }
 
     @Bean
-    public AmUserClient amUserClient(AmSdkUserClientFactory amSdkUserClientFactory) {
-        return new AmSdkUserClient(amSdkUserClientFactory);
+    public AmDirectoryClient amDirectoryClient(AmSdkDirectoryClientFactory amSdkDirectoryClientFactory) {
+        return new AmSdkDirectoryClient(amSdkDirectoryClientFactory);
     }
 
     @Bean
     public SyncAmUsersUseCase syncAmUsersUseCase(
-        AmUserClient amUserClient,
+        AmDirectoryClient amDirectoryClient,
         @Lazy @Qualifier("entityService") AuthzEntityAdminApi entityService,
         @Value("${gravitee.authz.sync.max-users:1000}") int maxUsers,
         @Value("${gravitee.authz.sync.page-size:50}") int pageSize,
         @Value("${gravitee.authz.sync.batch-size:50}") int batchSize
     ) {
-        return new SyncAmUsersUseCase(amUserClient, entityService, new SyncAmUsersUseCase.SyncConfig(maxUsers, pageSize, batchSize));
+        return new SyncAmUsersUseCase(amDirectoryClient, entityService, new SyncAmUsersUseCase.SyncConfig(maxUsers, pageSize, batchSize));
     }
 
     @Bean
@@ -181,10 +181,10 @@ public class SpringConfig {
         AsyncJobQueryService asyncJobQueryService,
         AsyncJobCrudService asyncJobCrudService,
         @Lazy @Qualifier("amConnectionRepository") AmConnectionRepository amConnectionRepository,
-        AmUserClient amUserClient,
+        AmDirectoryClient amDirectoryClient,
         AmUserSyncRunner amUserSyncRunner
     ) {
-        return new StartAmUserSyncUseCase(asyncJobQueryService, asyncJobCrudService, amConnectionRepository, amUserClient, amUserSyncRunner);
+        return new StartAmUserSyncUseCase(asyncJobQueryService, asyncJobCrudService, amConnectionRepository, amDirectoryClient, amUserSyncRunner);
     }
 
     @Bean

@@ -31,7 +31,7 @@ import io.gravitee.gamma.authorization.api.AuthzEntityAdminApi;
 import io.gravitee.gamma.authorization.core.am.exception.AmSyncException;
 import io.gravitee.gamma.authorization.core.am.model.AmUser;
 import io.gravitee.gamma.authorization.core.am.model.AmUserPage;
-import io.gravitee.gamma.authorization.core.am.service_provider.AmUserClient;
+import io.gravitee.gamma.authorization.core.am.service_provider.AmDirectoryClient;
 import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
 import io.gravitee.gamma.authorization.service.CreateOrReplaceAuthzEntityCommand;
 import java.util.ArrayList;
@@ -53,15 +53,15 @@ class SyncAmUsersUseCaseTest {
     private static final int BATCH_SIZE = 50;
 
 
-    private AmUserClient amUserClient;
-    private AmUserClient.Session session;
+    private AmDirectoryClient amDirectoryClient;
+    private AmDirectoryClient.Session session;
     private AuthzEntityAdminApi authzEntityAdminApi;
 
     @BeforeEach
     void setUp() {
-        amUserClient = mock(AmUserClient.class);
-        session = mock(AmUserClient.Session.class);
-        when(amUserClient.openSession(CONNECTION)).thenReturn(session);
+        amDirectoryClient = mock(AmDirectoryClient.class);
+        session = mock(AmDirectoryClient.Session.class);
+        when(amDirectoryClient.openSession(CONNECTION)).thenReturn(session);
         authzEntityAdminApi = mock(AuthzEntityAdminApi.class);
     }
 
@@ -70,7 +70,7 @@ class SyncAmUsersUseCaseTest {
     }
 
     private SyncAmUsersUseCase.Output run(SyncAmUsersUseCase.SyncConfig syncConfig) {
-        SyncAmUsersUseCase useCase = new SyncAmUsersUseCase(amUserClient, authzEntityAdminApi, syncConfig);
+        SyncAmUsersUseCase useCase = new SyncAmUsersUseCase(amDirectoryClient, authzEntityAdminApi, syncConfig);
         return useCase.execute(new SyncAmUsersUseCase.Input(CALLER, CONNECTION));
     }
 
@@ -165,7 +165,7 @@ class SyncAmUsersUseCaseTest {
         verify(session).fetchUsers(eq(0), eq(50));
         verify(session).fetchUsers(eq(1), eq(50));
         // The per-run client is opened once and closed when the run completes.
-        verify(amUserClient).openSession(CONNECTION);
+        verify(amDirectoryClient).openSession(CONNECTION);
         verify(session).close();
     }
 

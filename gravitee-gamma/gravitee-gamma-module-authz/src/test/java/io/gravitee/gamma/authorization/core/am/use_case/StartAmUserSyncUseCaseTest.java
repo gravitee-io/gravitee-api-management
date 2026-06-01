@@ -34,7 +34,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 import io.gravitee.gamma.authorization.core.am.exception.AmSyncConflictException;
 import io.gravitee.gamma.authorization.core.am.model.AmUserPage;
-import io.gravitee.gamma.authorization.core.am.service_provider.AmUserClient;
+import io.gravitee.gamma.authorization.core.am.service_provider.AmDirectoryClient;
 import io.gravitee.gamma.authorization.core.am.service_provider.AmUserSyncRunner;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -53,8 +53,8 @@ class StartAmUserSyncUseCaseTest {
     private AsyncJobQueryService asyncJobQueryService;
     private AsyncJobCrudService asyncJobCrudService;
     private AmConnectionRepository amConnectionRepository;
-    private AmUserClient amUserClient;
-    private AmUserClient.Session session;
+    private AmDirectoryClient amDirectoryClient;
+    private AmDirectoryClient.Session session;
     private AmUserSyncRunner runner;
     private StartAmUserSyncUseCase useCase;
 
@@ -63,13 +63,13 @@ class StartAmUserSyncUseCaseTest {
         asyncJobQueryService = mock(AsyncJobQueryService.class);
         asyncJobCrudService = mock(AsyncJobCrudService.class);
         amConnectionRepository = mock(AmConnectionRepository.class);
-        amUserClient = mock(AmUserClient.class);
-        session = mock(AmUserClient.Session.class);
-        when(amUserClient.openSession(CONNECTION)).thenReturn(session);
+        amDirectoryClient = mock(AmDirectoryClient.class);
+        session = mock(AmDirectoryClient.Session.class);
+        when(amDirectoryClient.openSession(CONNECTION)).thenReturn(session);
         // One minimal page read at start time, used only for its total count.
         when(session.fetchUsers(0, 1)).thenReturn(new AmUserPage(List.of(), 42L));
         runner = mock(AmUserSyncRunner.class);
-        useCase = new StartAmUserSyncUseCase(asyncJobQueryService, asyncJobCrudService, amConnectionRepository, amUserClient, runner);
+        useCase = new StartAmUserSyncUseCase(asyncJobQueryService, asyncJobCrudService, amConnectionRepository, amDirectoryClient, runner);
     }
 
     private void stubPendingJobs(AsyncJob... jobs) {
