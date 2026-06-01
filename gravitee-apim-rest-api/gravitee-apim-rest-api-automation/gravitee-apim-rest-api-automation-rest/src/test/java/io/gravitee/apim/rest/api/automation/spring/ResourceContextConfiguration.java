@@ -143,6 +143,9 @@ import io.gravitee.apim.core.plan.use_case.PatchPlanUseCase.PlanFlowsConverter;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.portal.use_case.CreateOrUpdatePortalUseCase;
+import io.gravitee.apim.core.portal.use_case.DeletePortalUseCase;
+import io.gravitee.apim.core.portal.use_case.GetPortalUseCase;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
@@ -1302,5 +1305,20 @@ public class ResourceContextConfiguration {
     @Bean
     public io.gravitee.apim.core.log.crud_service.NativeApiLogCrudService nativeApiLogCrudService() {
         return mock(io.gravitee.apim.core.log.crud_service.NativeApiLogCrudService.class);
+    }
+
+    @Bean
+    public CreateOrUpdatePortalUseCase createOrUpdatePortalUseCase() {
+        return mock(CreateOrUpdatePortalUseCase.class);
+    }
+
+    @Bean
+    public GetPortalUseCase getPortalUseCase() {
+        return mock(GetPortalUseCase.class);
+    }
+
+    @Bean
+    public DeletePortalUseCase deletePortalUseCase() {
+        return mock(DeletePortalUseCase.class);
     }
 }

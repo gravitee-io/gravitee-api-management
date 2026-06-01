@@ -28,6 +28,8 @@ import io.gravitee.apim.rest.api.automation.resource.GroupResource;
 import io.gravitee.apim.rest.api.automation.resource.GroupsResource;
 import io.gravitee.apim.rest.api.automation.resource.OpenAPIResource;
 import io.gravitee.apim.rest.api.automation.resource.OrganizationResource;
+import io.gravitee.apim.rest.api.automation.resource.PortalResource;
+import io.gravitee.apim.rest.api.automation.resource.PortalsResource;
 import io.gravitee.apim.rest.api.automation.resource.SharedPolicyGroupsResource;
 import io.gravitee.apim.rest.api.automation.spring.PermissionsFilter;
 import io.gravitee.rest.api.management.v2.rest.exceptionmapper.BadRequestExceptionMapper;
@@ -61,6 +63,8 @@ public class GraviteeAutomationApplication extends ResourceConfig {
         register(SharedPolicyGroupsResource.class);
         register(DictionariesResource.class);
         register(DictionaryResource.class);
+        register(PortalsResource.class);
+        register(PortalResource.class);
 
         register(ValidationDomainMapper.class);
         register(HRIDNotFoundMapper.class);
