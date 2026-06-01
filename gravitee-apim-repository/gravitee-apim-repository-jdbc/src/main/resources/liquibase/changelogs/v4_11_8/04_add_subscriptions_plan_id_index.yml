@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.11.8_04_add_subscriptions_plan_id_index
+      author: GraviteeSource Team
+      changes:
+        - createIndex:
+            indexName: idx_${gravitee_prefix}subscriptions_plan_id
+            tableName: ${gravitee_prefix}subscriptions
+            columns:
+              - column:
+                  name: plan
+              - column:
+                  name: id
