@@ -80,6 +80,14 @@ spec:
       {{- end }}
       name: {{ $gatewayName }}
     {{- end }}
+    {{- if hasKey .Values.gateway "edge" }}
+    {{- if and .Values.gateway.edge.enabled .Values.gateway.services.edge.enabled }}
+    - port: {{ .Values.gateway.services.edge.service.externalPort }}
+      targetPort: {{ .Values.gateway.services.edge.service.internalPort }}
+      protocol: TCP
+      name: {{ printf "%s-%s" (.Values.gateway.name | trunc 53 | trimSuffix "-") "edge" }}
+    {{- end }}
+    {{- end }}
     {{- if hasKey .Values.gateway "kafka" }}
     {{- if and .Values.gateway.kafka.enabled .Values.gateway.services.kafka.enabled }}
     - port: {{ .Values.gateway.services.kafka.service.externalPort }}
