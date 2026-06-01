@@ -132,7 +132,8 @@ public class SpringConfig {
         AuthzSchemaAdminApi schemaService,
         AuthzEventPublisher eventPublisher,
         AuthzAuditPort auditPort,
-        @Value("${gravitee.authz.cascade-hard-limit:500}") int cascadeHardLimit
+        @Value("${gravitee.authz.cascade-hard-limit:500}") int cascadeHardLimit,
+        @Value("${gravitee.authz.entities.max:1000}") int maxEntities
     ) {
         return new AuthzEntityServiceImpl(
             entityRepository,
@@ -141,7 +142,8 @@ public class SpringConfig {
             schemaService,
             eventPublisher,
             auditPort,
-            cascadeHardLimit
+            cascadeHardLimit,
+            maxEntities
         );
     }
 

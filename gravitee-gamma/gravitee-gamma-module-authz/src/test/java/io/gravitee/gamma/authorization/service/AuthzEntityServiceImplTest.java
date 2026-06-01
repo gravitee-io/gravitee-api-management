@@ -30,6 +30,7 @@ import io.gravitee.gamma.authorization.event.RecordingAuthzEventPublisher.EventK
 import io.gravitee.gamma.authorization.repository.InMemoryAuthzEntityRepository;
 import io.gravitee.gamma.authorization.repository.InMemoryAuthzPolicyRepository;
 import io.gravitee.gamma.authorization.service.exception.AuthzCascadeTooLargeException;
+import io.gravitee.gamma.authorization.service.exception.AuthzEntityLimitExceededException;
 import io.gravitee.gamma.authorization.service.exception.AuthzEntityNotFoundException;
 import java.time.Clock;
 import java.time.Instant;
@@ -660,5 +661,83 @@ class AuthzEntityServiceImplTest {
 
         assertThat(entityRepository.findByEntityId(ENV, "api.huge")).isPresent();
         assertThat(events.events()).isEmpty();
+    }
+
+    @Test
+    void upsert_creating_above_max_entities_throws_and_saves_nothing() {
+        entityService = serviceWithMaxEntities(2);
+        entityService.upsert(CALLER, create("api.1", AuthzEntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("api.2", AuthzEntityKind.RESOURCE, "apim"));
+        events.clear();
+
+        assertThatThrownBy(() -> entityService.upsert(CALLER, create("api.3", AuthzEntityKind.RESOURCE, "apim")))
+            .isInstanceOf(AuthzEntityLimitExceededException.class);
+
+        assertThat(entityRepository.findByEntityId(ENV, "api.3")).isEmpty();
+        assertThat(entityRepository.count(ENV)).isEqualTo(2);
+        assertThat(events.events()).isEmpty();
+    }
+
+    @Test
+    void upsert_replacing_existing_at_max_entities_still_succeeds() {
+        entityService = serviceWithMaxEntities(2);
+        entityService.upsert(CALLER, create("api.1", AuthzEntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("api.2", AuthzEntityKind.RESOURCE, "apim"));
+
+        AuthzUpsertResult result = entityService.upsert(CALLER, create("api.1", AuthzEntityKind.RESOURCE, "apim"));
+
+        assertThat(result.created()).isFalse();
+        assertThat(entityRepository.count(ENV)).isEqualTo(2);
+    }
+
+    @Test
+    void bulkUpsert_creating_above_max_entities_throws_and_saves_nothing() {
+        entityService = serviceWithMaxEntities(2);
+        events.clear();
+
+        assertThatThrownBy(() ->
+                entityService.bulkUpsert(
+                    CALLER,
+                    List.of(
+                        create("api.1", AuthzEntityKind.RESOURCE, "apim"),
+                        create("api.2", AuthzEntityKind.RESOURCE, "apim"),
+                        create("api.3", AuthzEntityKind.RESOURCE, "apim")
+                    )
+                )
+            )
+            .isInstanceOf(AuthzEntityLimitExceededException.class);
+
+        assertThat(entityRepository.count(ENV)).isZero();
+        assertThat(events.events()).isEmpty();
+    }
+
+    @Test
+    void bulkUpsert_replacing_existing_does_not_count_against_max_entities() {
+        entityService = serviceWithMaxEntities(2);
+        entityService.upsert(CALLER, create("api.1", AuthzEntityKind.RESOURCE, "apim"));
+        entityService.upsert(CALLER, create("api.2", AuthzEntityKind.RESOURCE, "apim"));
+
+        List<AuthzUpsertResult> results = entityService.bulkUpsert(
+            CALLER,
+            List.of(create("api.1", AuthzEntityKind.RESOURCE, "apim"), create("api.2", AuthzEntityKind.RESOURCE, "apim"))
+        );
+
+        assertThat(results).allMatch(r -> !r.created());
+        assertThat(entityRepository.count(ENV)).isEqualTo(2);
+    }
+
+    private AuthzEntityServiceImpl serviceWithMaxEntities(int maxEntities) {
+        AuthzEntityIdValidator validator = new AuthzEntityIdValidator();
+        AuthzSchemaServiceImpl schemaService = new AuthzSchemaServiceImpl(entityRepository, policyRepository);
+        return new AuthzEntityServiceImpl(
+            entityRepository,
+            policyRepository,
+            validator,
+            schemaService,
+            events,
+            audit,
+            DEFAULT_CASCADE_HARD_LIMIT,
+            maxEntities
+        );
     }
 }

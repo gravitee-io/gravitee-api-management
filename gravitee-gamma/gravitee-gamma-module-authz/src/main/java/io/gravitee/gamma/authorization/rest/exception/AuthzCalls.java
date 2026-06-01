@@ -16,6 +16,7 @@
 package io.gravitee.gamma.authorization.rest.exception;
 
 import io.gravitee.gamma.authorization.service.exception.AuthzCascadeTooLargeException;
+import io.gravitee.gamma.authorization.service.exception.AuthzEntityLimitExceededException;
 import io.gravitee.gamma.authorization.service.exception.AuthzEntityNotFoundException;
 import io.gravitee.gamma.authorization.service.exception.AuthzInvalidArgumentException;
 import io.gravitee.gamma.authorization.service.exception.AuthzInvalidEntityIdException;
@@ -54,6 +55,8 @@ public final class AuthzCalls {
             throw error(Status.NOT_FOUND, "EntityNotFound", e);
         } catch (AuthzCascadeTooLargeException e) {
             throw error(Status.REQUEST_ENTITY_TOO_LARGE, "CascadeTooLarge", e);
+        } catch (AuthzEntityLimitExceededException e) {
+            throw error(Status.CONFLICT, "EntityLimitExceeded", e);
         } catch (AuthzInvalidStatusTransitionException e) {
             throw error(Status.CONFLICT, "InvalidStatusTransition", e);
         } catch (AuthzInvalidEntityIdException e) {

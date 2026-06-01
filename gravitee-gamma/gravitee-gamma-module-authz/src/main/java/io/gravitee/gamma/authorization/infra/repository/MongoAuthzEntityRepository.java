@@ -88,6 +88,11 @@ public class MongoAuthzEntityRepository implements AuthzEntityRepository {
     }
 
     @Override
+    public long count(String environmentId) {
+        return mongo.count(new Query(Criteria.where("environmentId").is(environmentId)), AuthzEntityMongo.class);
+    }
+
+    @Override
     public List<AuthzEntity> findByKind(String environmentId, AuthzEntityKind kind) {
         var query = new Query(Criteria.where("environmentId").is(environmentId).and("kind").is(kind.name()));
         return mongo.find(query, AuthzEntityMongo.class).stream().map(AuthzEntityDocumentMapper::toDomain).toList();

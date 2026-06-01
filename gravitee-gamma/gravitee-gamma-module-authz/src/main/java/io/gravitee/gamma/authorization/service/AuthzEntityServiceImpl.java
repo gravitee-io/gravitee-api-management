@@ -35,6 +35,7 @@ import io.gravitee.gamma.authorization.domain.AuthzPolicy;
 import io.gravitee.gamma.authorization.paging.Pageable;
 import io.gravitee.gamma.authorization.paging.PagedResult;
 import io.gravitee.gamma.authorization.service.exception.AuthzCascadeTooLargeException;
+import io.gravitee.gamma.authorization.service.exception.AuthzEntityLimitExceededException;
 import io.gravitee.gamma.authorization.service.exception.AuthzEntityNotFoundException;
 import io.gravitee.gamma.authorization.service.exception.AuthzInvalidArgumentException;
 import io.gravitee.gamma.definition.authz.AuthzEntityIdConstants;
@@ -57,6 +58,7 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
     private static final String AGENT_PREFIX = AuthzEntityIdConstants.AGENT_PREFIX;
 
     public static final int DEFAULT_CASCADE_HARD_LIMIT = 500;
+    public static final int DEFAULT_MAX_ENTITIES = 1000;
 
     private final AuthzEntityRepository entityRepository;
     private final AuthzPolicyRepository policyRepository;
@@ -65,6 +67,7 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
     private final AuthzEventPublisher eventPublisher;
     private final AuthzAuditPort auditPort;
     private final int cascadeHardLimit;
+    private final int maxEntities;
 
     public AuthzEntityServiceImpl(
         AuthzEntityRepository entityRepository,
@@ -86,6 +89,28 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
         AuthzAuditPort auditPort,
         int cascadeHardLimit
     ) {
+        this(
+            entityRepository,
+            policyRepository,
+            entityIdValidator,
+            schemaService,
+            eventPublisher,
+            auditPort,
+            cascadeHardLimit,
+            DEFAULT_MAX_ENTITIES
+        );
+    }
+
+    public AuthzEntityServiceImpl(
+        AuthzEntityRepository entityRepository,
+        AuthzPolicyRepository policyRepository,
+        AuthzEntityIdValidator entityIdValidator,
+        AuthzSchemaAdminApi schemaService,
+        AuthzEventPublisher eventPublisher,
+        AuthzAuditPort auditPort,
+        int cascadeHardLimit,
+        int maxEntities
+    ) {
         this.entityRepository = entityRepository;
         this.policyRepository = policyRepository;
         this.entityIdValidator = entityIdValidator;
@@ -95,7 +120,11 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
         if (cascadeHardLimit < 1) {
             throw new IllegalArgumentException("cascadeHardLimit must be >= 1, got " + cascadeHardLimit);
         }
+        if (maxEntities < 1) {
+            throw new IllegalArgumentException("maxEntities must be >= 1, got " + maxEntities);
+        }
         this.cascadeHardLimit = cascadeHardLimit;
+        this.maxEntities = maxEntities;
     }
 
     @Override
@@ -163,6 +192,14 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
             .stream()
             .collect(java.util.stream.Collectors.toMap(AuthzEntity::entityId, e -> e, (a, b) -> a, LinkedHashMap::new));
 
+        long newCount = commands.stream().map(CreateOrReplaceAuthzEntityCommand::entityId).distinct().filter(id -> !existingByEntityId.containsKey(id)).count();
+        if (newCount > 0) {
+            long current = entityRepository.count(environmentId);
+            if (current + newCount > maxEntities) {
+                throw new AuthzEntityLimitExceededException(current + newCount, maxEntities);
+            }
+        }
+
         Instant now = TimeProvider.instantNow();
         List<AuthzEntity> toSaveList = new ArrayList<>(commands.size());
         List<UpsertOutcome> outcomes = new ArrayList<>(commands.size());
@@ -180,6 +217,12 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
         AuthzEntity existing = preloadedExisting != null
             ? preloadedExisting
             : entityRepository.findByEntityId(command.environmentId(), command.entityId()).orElse(null);
+        if (existing == null) {
+            long current = entityRepository.count(command.environmentId());
+            if (current >= maxEntities) {
+                throw new AuthzEntityLimitExceededException(current + 1, maxEntities);
+            }
+        }
         AuthzEntity toSave = buildUpsertEntity(command, existing, TimeProvider.instantNow());
         AuthzEntity saved = entityRepository.save(toSave);
         return new UpsertOutcome(saved, existing, existing == null);

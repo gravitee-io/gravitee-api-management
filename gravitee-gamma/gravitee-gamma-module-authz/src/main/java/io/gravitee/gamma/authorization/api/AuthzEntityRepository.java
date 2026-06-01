@@ -45,6 +45,10 @@ public interface AuthzEntityRepository {
 
     List<AuthzEntity> findAll(String environmentId);
 
+    default long count(String environmentId) {
+        return findAll(environmentId).size();
+    }
+
     List<AuthzEntity> findByKind(String environmentId, AuthzEntityKind kind);
 
     List<AuthzEntity> findByEntityIdPrefix(String environmentId, String prefix);
