@@ -23,6 +23,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.SubscriptionCursor;
+import io.gravitee.repository.management.api.search.SubscriptionSearchSort;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
@@ -83,19 +84,13 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
         ) {
             throw new TechnicalException("searchAfter does not support planSecurityTypes or excludedApis filters; use search() instead");
         }
-        boolean sortByUpdatedAt = resolveSortByUpdatedAt(sortable);
-        return mapper.mapSubscriptions(internalSubscriptionRepository.searchAfter(criteria, after, pageSize, sortByUpdatedAt));
-    }
-
-    private static boolean resolveSortByUpdatedAt(Sortable sortable) throws TechnicalException {
-        if (sortable == null || sortable.field() == null) {
-            return true;
+        SubscriptionSearchSort sort;
+        try {
+            sort = SubscriptionSearchSort.fromSortable(sortable);
+        } catch (IllegalArgumentException e) {
+            throw new TechnicalException(e.getMessage());
         }
-        return switch (sortable.field()) {
-            case "updatedAt" -> true;
-            case "id" -> false;
-            default -> throw new TechnicalException("searchAfter supports sort field 'updatedAt' or 'id' only, got: " + sortable.field());
-        };
+        return mapper.mapSubscriptions(internalSubscriptionRepository.searchAfter(criteria, after, pageSize, sort));
     }
 
     @Override
