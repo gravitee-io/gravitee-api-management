@@ -554,6 +554,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public PortalCrudServiceInMemory portalCrudService() {
+        return new PortalCrudServiceInMemory();
+    }
+
+    @Bean
     public ApiProductCrudServiceInMemory apiProductCrudService() {
         return new ApiProductCrudServiceInMemory();
     }

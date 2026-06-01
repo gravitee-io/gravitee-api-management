@@ -71,6 +71,7 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
             "METADATA",
             "NOTIFICATION",
             "PLATFORM",
+            "PORTAL",
             "QUALITY_RULE",
             "SETTINGS",
             "SHARED_POLICY_GROUP",
