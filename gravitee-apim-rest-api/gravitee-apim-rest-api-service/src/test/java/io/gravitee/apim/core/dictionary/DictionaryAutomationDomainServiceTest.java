@@ -195,7 +195,7 @@ class DictionaryAutomationDomainServiceTest {
         }
 
         @Test
-        void should_stop_when_deploy_is_false_and_started() {
+        void should_stop_and_undeploy_when_deploy_is_false_and_started() {
             var dictionary = DictionaryEntity.builder()
                 .id("dict-id")
                 .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC)
@@ -206,12 +206,19 @@ class DictionaryAutomationDomainServiceTest {
                 .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC)
                 .state(Lifecycle.State.STOPPED)
                 .build();
+            var undeployed = DictionaryEntity.builder()
+                .id("dict-id")
+                .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC)
+                .state(Lifecycle.State.STOPPED)
+                .build();
             when(dictionaryService.stop(executionContext, "dict-id")).thenReturn(stopped);
+            when(dictionaryService.undeploy(executionContext, "dict-id")).thenReturn(undeployed);
 
             var result = domainService.handleDeployment(executionContext, dictionary, false);
 
-            assertThat(result).isSameAs(stopped);
+            assertThat(result).isSameAs(undeployed);
             verify(dictionaryService).stop(executionContext, "dict-id");
+            verify(dictionaryService).undeploy(executionContext, "dict-id");
         }
 
         @Test
