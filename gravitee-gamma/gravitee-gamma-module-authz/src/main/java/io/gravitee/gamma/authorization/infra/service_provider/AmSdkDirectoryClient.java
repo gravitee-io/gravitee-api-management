@@ -80,7 +80,7 @@ public class AmSdkDirectoryClient implements AmDirectoryClient {
         }
     }
 
-    private static AmUser toAmUser(User user) {
+    static AmUser toAmUser(User user) {
         return new AmUser(
             user.getId(),
             user.getSource(),
@@ -88,7 +88,9 @@ public class AmSdkDirectoryClient implements AmDirectoryClient {
             user.getEmail(),
             user.getUsername(),
             user.getDisplayName(),
-            user.getEnabled()
+            user.getEnabled(),
+            user.getGroups(),
+            user.getRoles()
         );
     }
 }
