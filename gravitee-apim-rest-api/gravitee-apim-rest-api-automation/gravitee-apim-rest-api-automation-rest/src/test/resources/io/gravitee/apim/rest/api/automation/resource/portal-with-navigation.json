@@ -1,0 +1,8 @@
+{
+  "hrid": "default-portal",
+  "name": "Default Portal",
+  "navigation": [
+    { "path": "/projects/alpha", "displayName": "Alpha" },
+    { "path": "/projects/alpha/docs" }
+  ]
+}
