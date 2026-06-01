@@ -72,7 +72,6 @@ public class DefaultSharedPolicyGroupReactor
         );
     }
 
-    @SuppressWarnings("deprecation")
     static ExecutionPhase toExecutionPhase(SharedPolicyGroup.Phase phase) {
         return switch (phase) {
             case REQUEST -> ExecutionPhase.REQUEST;
