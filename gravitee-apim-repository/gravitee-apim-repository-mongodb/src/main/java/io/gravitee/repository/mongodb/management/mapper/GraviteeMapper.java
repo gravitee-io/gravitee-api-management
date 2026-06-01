@@ -260,6 +260,11 @@ public interface GraviteeMapper {
 
     PlanMongo map(Plan toMap);
 
+    // Portal mapping
+    Portal map(PortalMongo toMap);
+    PortalMongo map(Portal toMap);
+    List<Portal> mapPortals(Collection<PortalMongo> toMap);
+
     // Portal menu links mapping
     PortalMenuLink map(PortalMenuLinkMongo toMap);
     PortalMenuLinkMongo map(PortalMenuLink toMap);

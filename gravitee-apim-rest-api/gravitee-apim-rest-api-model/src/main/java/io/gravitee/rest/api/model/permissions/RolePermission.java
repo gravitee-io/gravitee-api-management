@@ -92,6 +92,7 @@ public enum RolePermission {
     ENVIRONMENT_CLUSTER(RoleScope.ENVIRONMENT, EnvironmentPermission.CLUSTER),
     ENVIRONMENT_API_PRODUCT(RoleScope.ENVIRONMENT, EnvironmentPermission.API_PRODUCT),
     ENVIRONMENT_AUTHORIZATION(RoleScope.ENVIRONMENT, EnvironmentPermission.AUTHORIZATION),
+    ENVIRONMENT_PORTAL(RoleScope.ENVIRONMENT, EnvironmentPermission.PORTAL),
 
     ORGANIZATION_USERS(RoleScope.ORGANIZATION, OrganizationPermission.USER),
     ORGANIZATION_USERS_TOKEN(RoleScope.ORGANIZATION, OrganizationPermission.USER_TOKEN),

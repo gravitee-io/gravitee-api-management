@@ -63,6 +63,7 @@ import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
 import io.gravitee.repository.management.api.PortalPageContentRepository;
 import io.gravitee.repository.management.api.PortalPageContextRepository;
 import io.gravitee.repository.management.api.PortalPageRepository;
+import io.gravitee.repository.management.api.PortalRepository;
 import io.gravitee.repository.management.api.PromotionRepository;
 import io.gravitee.repository.management.api.QualityRuleRepository;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
@@ -169,6 +170,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
     private final PortalPageContextRepository portalPageContextRepository;
     private final PortalNavigationItemRepository portalNavigationItemRepository;
     private final PortalPageContentRepository portalPageContentRepository;
+    private final PortalRepository portalRepository;
     private final PromotionRepository promotionRepository;
     private final QualityRuleRepository qualityRuleRepository;
     private final RatingAnswerRepository ratingAnswerRepository;
@@ -227,6 +229,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         @Lazy PortalPageContextRepository portalPageContextRepository,
         @Lazy PortalNavigationItemRepository portalNavigationItemRepository,
         @Lazy PortalPageContentRepository portalPageContentRepository,
+        @Lazy PortalRepository portalRepository,
         @Lazy PromotionRepository promotionRepository,
         @Lazy QualityRuleRepository qualityRuleRepository,
         @Lazy RatingAnswerRepository ratingAnswerRepository,
@@ -298,6 +301,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         this.portalPageContextRepository = portalPageContextRepository;
         this.portalNavigationItemRepository = portalNavigationItemRepository;
         this.portalPageContentRepository = portalPageContentRepository;
+        this.portalRepository = portalRepository;
         this.promotionRepository = promotionRepository;
         this.qualityRuleRepository = qualityRuleRepository;
         this.ratingAnswerRepository = ratingAnswerRepository;
@@ -404,6 +408,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         portalPageRepository.deleteByEnvironmentId(environment.getId());
         deletePortalNavigationItems(environment);
         portalNavigationItemRepository.deleteByEnvironmentId(environment.getId());
+        portalRepository.deleteByEnvironmentId(environment.getId());
         customUserFieldsRepository.deleteByReferenceIdAndReferenceType(environment.getId(), CustomUserFieldReferenceType.ENVIRONMENT);
         groupRepository
             .deleteByEnvironmentId(environment.getId())

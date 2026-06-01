@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal.use_case;
 
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
@@ -22,6 +23,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import lombok.RequiredArgsConstructor;
 
+@UseCase
 @RequiredArgsConstructor
 public class CreateDefaultPortalUseCase {
 
