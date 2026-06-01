@@ -57,12 +57,13 @@ class AuthzEntityDeployerTest {
     }
 
     @Test
-    void deploy_auto_derived_resource_skipped_when_API_not_in_registry() {
+    void deploy_auto_derived_resource_is_staged_unconditionally() {
         AuthzEntityReactorDeployable d = resource("api.bookings");
 
         deployer.deploy(d).blockingAwait();
 
-        assertThat(port.entityOps).isEmpty();
+        assertThat(port.entityOps).hasSize(1);
+        assertThat(port.entityOps.peek().uid()).isEqualTo("Resource::\"api.bookings\"");
     }
 
     @Test

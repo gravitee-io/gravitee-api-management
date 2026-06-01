@@ -46,11 +46,9 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.Api
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.AuthzAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.NoopAuthzAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.PlanAppender;
-import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.RepositoryAuthzAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.SubscriptionAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEnginePort;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityIdExtractor;
-import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzPolicyMapper;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.EventBusAuthzEnginePort;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.GammaDisabledCondition;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.GammaEnabledCondition;
@@ -61,7 +59,6 @@ import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
-import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
@@ -302,19 +299,7 @@ public class SyncConfiguration {
     }
 
     @Bean
-    @Conditional(GammaEnabledCondition.class)
-    public AuthzAppender repositoryAuthzAppender(
-        AuthzEntityIdExtractor extractor,
-        EventLatestRepository eventLatestRepository,
-        AuthzPolicyMapper policyMapper,
-        AuthzEnginePort enginePort
-    ) {
-        return new RepositoryAuthzAppender(extractor, eventLatestRepository, policyMapper, enginePort);
-    }
-
-    @Bean
-    @Conditional(GammaDisabledCondition.class)
-    public AuthzAppender noopAuthzAppender() {
+    public AuthzAppender authzAppender() {
         return new NoopAuthzAppender();
     }
 

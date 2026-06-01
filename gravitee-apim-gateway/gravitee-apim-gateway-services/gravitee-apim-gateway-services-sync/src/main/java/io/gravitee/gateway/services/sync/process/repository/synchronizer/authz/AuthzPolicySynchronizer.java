@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 
-import io.gravitee.gamma.definition.authz.AuthzEntityIdConstants;
 import io.gravitee.gateway.services.sync.process.common.deployer.AuthzPolicyDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
@@ -153,26 +152,8 @@ public class AuthzPolicySynchronizer implements RepositorySynchronizer {
     ) {
         return eventsByType
             .flatMapMaybe(mapper::toDeploy)
-            .filter(d -> !(initialSync && d.kind() == AuthzPolicyReactorDeployable.Kind.RESOURCE))
-            .filter(d -> shouldDeployOnThisNode(d, initialSync))
             .buffer(bulkEvents())
             .flatMapIterable(d -> d);
-    }
-
-    private boolean shouldDeployOnThisNode(AuthzPolicyReactorDeployable deployable, boolean initialSync) {
-        if (deployable.kind() == AuthzPolicyReactorDeployable.Kind.GLOBAL) {
-            return true;
-        }
-        if (deployable.entityId() == null) {
-            return false;
-        }
-        if (!AuthzEntityIdConstants.isAutoDerived(deployable.entityId())) {
-            return true;
-        }
-        if (initialSync) {
-            return false;
-        }
-        return authzRegistry.isResourceDeployed(deployable.entityId());
     }
 
     private Flowable<AuthzPolicyReactorDeployable> prepareForUndeployment(Flowable<Event> events) {

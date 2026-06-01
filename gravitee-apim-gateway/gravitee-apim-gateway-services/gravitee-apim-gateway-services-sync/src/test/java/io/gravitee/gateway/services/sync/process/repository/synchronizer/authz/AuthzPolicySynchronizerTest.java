@@ -105,7 +105,7 @@ class AuthzPolicySynchronizerTest {
     }
 
     @Test
-    void INIT_deploys_GLOBAL_policy_and_skips_RESOURCE_to_avoid_appender_race() throws InterruptedException {
+    void INIT_deploys_GLOBAL_and_RESOURCE_policies() throws InterruptedException {
         Event globalEvt = event(
             "evt-g",
             EventType.PUBLISH_AUTHZ_POLICY,
@@ -120,7 +120,7 @@ class AuthzPolicySynchronizerTest {
 
         synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
 
-        verify(deployer, times(1)).deploy(any());
+        verify(deployer, times(2)).deploy(any());
         verify(port).commit();
     }
 
@@ -215,8 +215,7 @@ class AuthzPolicySynchronizerTest {
     }
 
     @Test
-    void cold_sync_skips_all_resource_policies() throws InterruptedException {
-        authzRegistry.registerForApi("api.bookings", List.of("api.bookings"));
+    void cold_sync_deploys_all_resource_policies() throws InterruptedException {
         Event autoDerived = event(
             "evt-auto",
             EventType.PUBLISH_AUTHZ_POLICY,
@@ -231,12 +230,12 @@ class AuthzPolicySynchronizerTest {
 
         synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
 
-        verify(deployer, never()).deploy(any());
-        verify(port, never()).commit();
+        verify(deployer, times(2)).deploy(any());
+        verify(port).commit();
     }
 
     @Test
-    void incremental_skips_auto_derived_resource_policy_when_api_not_hosted() throws InterruptedException {
+    void incremental_deploys_auto_derived_resource_policy_regardless_of_hosting() throws InterruptedException {
         Event autoDerived = event(
             "evt-auto",
             EventType.PUBLISH_AUTHZ_POLICY,
@@ -246,8 +245,8 @@ class AuthzPolicySynchronizerTest {
 
         synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
 
-        verify(deployer, never()).deploy(any());
-        verify(port, never()).commit();
+        verify(deployer).deploy(any());
+        verify(port).commit();
     }
 
     @Test

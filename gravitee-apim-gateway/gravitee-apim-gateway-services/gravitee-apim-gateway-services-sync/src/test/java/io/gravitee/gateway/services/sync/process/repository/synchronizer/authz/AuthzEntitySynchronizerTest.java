@@ -177,7 +177,7 @@ class AuthzEntitySynchronizerTest {
     }
 
     @Test
-    void cold_sync_skips_auto_derived_resource_entities() throws InterruptedException {
+    void cold_sync_deploys_auto_derived_resource_entities() throws InterruptedException {
         Event apiResource = event("evt-api", EventType.PUBLISH_AUTHZ_ENTITY, "{\"entityId\": \"api.bookings\", \"kind\": \"RESOURCE\"}");
         Event mcpResource = event(
             "evt-mcp",
@@ -191,8 +191,8 @@ class AuthzEntitySynchronizerTest {
 
         synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
 
-        verify(deployer, never()).deploy(any());
-        verify(port, never()).commit();
+        verify(deployer, times(3)).deploy(any());
+        verify(port).commit();
     }
 
     @Test
@@ -230,7 +230,7 @@ class AuthzEntitySynchronizerTest {
     }
 
     @Test
-    void incremental_skips_auto_derived_resource_when_api_not_hosted() throws InterruptedException {
+    void incremental_deploys_auto_derived_resource_regardless_of_hosting() throws InterruptedException {
         Event apiResource = event(
             "evt-api",
             EventType.PUBLISH_AUTHZ_ENTITY,
@@ -240,12 +240,12 @@ class AuthzEntitySynchronizerTest {
 
         synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
 
-        verify(deployer, never()).deploy(any());
-        verify(port, never()).commit();
+        verify(deployer).deploy(any());
+        verify(port).commit();
     }
 
     @Test
-    void incremental_keeps_auto_derived_resource_when_api_hosted() throws InterruptedException {
+    void incremental_deploys_auto_derived_resource_even_when_api_hosted() throws InterruptedException {
         authzRegistry.registerForApi("api.bookings", List.of("api.bookings"));
         Event apiResource = event(
             "evt-api",

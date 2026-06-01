@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.services.sync.process.common.deployer;
 
-import io.gravitee.gamma.definition.authz.AuthzEntityIdConstants;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.service.AuthzRegistry;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEnginePort;
@@ -34,10 +33,6 @@ public class AuthzEntityDeployer implements Deployer<AuthzEntityReactorDeployabl
 
     @Override
     public Completable deploy(AuthzEntityReactorDeployable deployable) {
-        if (!shouldDeployOnThisNode(deployable)) {
-            log.debug("Skipping authz RESOURCE entity '{}' — API not deployed on this node", deployable.entityId());
-            return Completable.complete();
-        }
         return enginePort
             .addOrUpdateEntity(deployable.engineUid(), deployable.attributes(), deployable.parents())
             .doOnComplete(() -> log.debug("Authz entity '{}' staged for next commit", deployable.entityId()))
@@ -60,17 +55,5 @@ public class AuthzEntityDeployer implements Deployer<AuthzEntityReactorDeployabl
     @Override
     public Completable doAfterUndeployment(AuthzEntityReactorDeployable deployable) {
         return distributedSyncService.distributeIfNeeded(deployable);
-    }
-
-    private boolean shouldDeployOnThisNode(AuthzEntityReactorDeployable deployable) {
-        if (deployable.kind() == AuthzEntityReactorDeployable.Kind.PRINCIPAL) {
-            return true;
-        }
-        // Non-auto-derived (custom) RESOURCE entities aren't tied to a specific API and must
-        // land on every node; only auto-derived ids partition by which APIs the node hosts.
-        if (!AuthzEntityIdConstants.isAutoDerived(deployable.entityId())) {
-            return true;
-        }
-        return authzRegistry.isResourceDeployed(deployable.entityId());
     }
 }

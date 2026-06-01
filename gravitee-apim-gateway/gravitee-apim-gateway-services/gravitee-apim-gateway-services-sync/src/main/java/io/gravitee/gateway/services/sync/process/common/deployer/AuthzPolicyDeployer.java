@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.services.sync.process.common.deployer;
 
-import io.gravitee.gamma.definition.authz.AuthzEntityIdConstants;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.service.AuthzRegistry;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEnginePort;
@@ -34,14 +33,6 @@ public class AuthzPolicyDeployer implements Deployer<AuthzPolicyReactorDeployabl
 
     @Override
     public Completable deploy(AuthzPolicyReactorDeployable deployable) {
-        if (!shouldDeployOnThisNode(deployable)) {
-            log.debug(
-                "Skipping authz RESOURCE policy '{}' (entityId='{}') — API not deployed on this node",
-                deployable.docId(),
-                deployable.entityId()
-            );
-            return Completable.complete();
-        }
         return enginePort
             .addOrUpdatePolicy(deployable.docId(), deployable.name(), deployable.policyText())
             .doOnComplete(() -> log.debug("Authz policy '{}' staged for next commit", deployable.docId()))
@@ -64,20 +55,5 @@ public class AuthzPolicyDeployer implements Deployer<AuthzPolicyReactorDeployabl
     @Override
     public Completable doAfterUndeployment(AuthzPolicyReactorDeployable deployable) {
         return distributedSyncService.distributeIfNeeded(deployable);
-    }
-
-    private boolean shouldDeployOnThisNode(AuthzPolicyReactorDeployable deployable) {
-        if (deployable.kind() == AuthzPolicyReactorDeployable.Kind.GLOBAL) {
-            return true;
-        }
-        if (deployable.entityId() == null) {
-            return false;
-        }
-        // RESOURCE policies on custom (non-auto-derived) entities broadcast to every node;
-        // auto-derived ids partition by which APIs the node hosts.
-        if (!AuthzEntityIdConstants.isAutoDerived(deployable.entityId())) {
-            return true;
-        }
-        return authzRegistry.isResourceDeployed(deployable.entityId());
     }
 }

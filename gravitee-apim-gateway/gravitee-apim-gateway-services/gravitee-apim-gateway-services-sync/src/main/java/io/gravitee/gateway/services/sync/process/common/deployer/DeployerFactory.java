@@ -98,7 +98,7 @@ public class DeployerFactory {
     }
 
     public ApiDeployer createApiDeployer() {
-        return new ApiDeployer(apiManager, planCache, distributedSyncService, authzRegistry, authzEntityIdExtractor, authzEnginePort);
+        return new ApiDeployer(apiManager, planCache, distributedSyncService);
     }
 
     public DictionaryDeployer createDictionaryDeployer() {

@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 
-import io.gravitee.gamma.definition.authz.AuthzEntityIdConstants;
 import io.gravitee.gateway.services.sync.process.common.deployer.AuthzEntityDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
@@ -153,22 +152,8 @@ public class AuthzEntitySynchronizer implements RepositorySynchronizer {
     ) {
         return eventsByType
             .flatMapMaybe(mapper::toDeploy)
-            .filter(d -> shouldDeployOnThisNode(d, initialSync))
             .buffer(bulkEvents())
             .flatMapIterable(d -> d);
-    }
-
-    private boolean shouldDeployOnThisNode(AuthzEntityReactorDeployable deployable, boolean initialSync) {
-        if (deployable.kind() == AuthzEntityReactorDeployable.Kind.PRINCIPAL) {
-            return true;
-        }
-        if (!AuthzEntityIdConstants.isAutoDerived(deployable.entityId())) {
-            return true;
-        }
-        if (initialSync) {
-            return false;
-        }
-        return authzRegistry.isResourceDeployed(deployable.entityId());
     }
 
     private Flowable<AuthzEntityReactorDeployable> prepareForUndeployment(Flowable<Event> events) {
