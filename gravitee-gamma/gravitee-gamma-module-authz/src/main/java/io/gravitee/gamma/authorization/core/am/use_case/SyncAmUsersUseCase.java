@@ -192,21 +192,21 @@ public class SyncAmUsersUseCase {
         List<String> parents = new ArrayList<>(user.groups());
         parents.addAll(user.roles());
 
-        return new CreateOrReplaceAuthzEntityCommand(environmentId, sub, AuthzEntityKind.PRINCIPAL, attributes, parents, SOURCE);
+        return new CreateOrReplaceAuthzEntityCommand(environmentId, sub, AuthzEntityKind.PRINCIPAL, null, attributes, parents, SOURCE);
     }
 
     private CreateOrReplaceAuthzEntityCommand groupCommand(String environmentId, AmGroup group) {
         Map<String, Object> attributes = new LinkedHashMap<>();
         attributes.put("_kind", "group");
         attributes.put("name", group.name() != null ? group.name() : group.id());
-        return new CreateOrReplaceAuthzEntityCommand(environmentId, group.id(), AuthzEntityKind.PRINCIPAL, attributes, List.of(), SOURCE);
+        return new CreateOrReplaceAuthzEntityCommand(environmentId, group.id(), AuthzEntityKind.PRINCIPAL, null, attributes, List.of(), SOURCE);
     }
 
     private CreateOrReplaceAuthzEntityCommand roleCommand(String environmentId, AmRole role) {
         Map<String, Object> attributes = new LinkedHashMap<>();
         attributes.put("_kind", "role");
         attributes.put("name", role.name() != null ? role.name() : role.id());
-        return new CreateOrReplaceAuthzEntityCommand(environmentId, role.id(), AuthzEntityKind.PRINCIPAL, attributes, List.of(), SOURCE);
+        return new CreateOrReplaceAuthzEntityCommand(environmentId, role.id(), AuthzEntityKind.PRINCIPAL, null, attributes, List.of(), SOURCE);
     }
 
     // Mirrors AM's SubjectManagerV2: the token `sub` a V2 domain issues is an MD5-based UUID of

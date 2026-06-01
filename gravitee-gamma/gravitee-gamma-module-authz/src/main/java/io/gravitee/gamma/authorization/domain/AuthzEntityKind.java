@@ -17,5 +17,17 @@ package io.gravitee.gamma.authorization.domain;
 
 public enum AuthzEntityKind {
     PRINCIPAL,
-    RESOURCE,
+    RESOURCE;
+
+    /**
+     * Default engine type name for entities whose REST request did not carry an explicit
+     * {@code entityType}. Used as a backwards-compatible fallback so existing integrations
+     * keep producing {@code Principal::"<id>"} / {@code Resource::"<id>"} UIDs in the PDP.
+     */
+    public String defaultEntityType() {
+        return switch (this) {
+            case PRINCIPAL -> "Principal";
+            case RESOURCE -> "Resource";
+        };
+    }
 }

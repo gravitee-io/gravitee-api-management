@@ -30,7 +30,30 @@ public record AuthzEntityRequest(
     @Pattern(regexp = AuthzEntityIdConstants.FORMAT_REGEX)
     String entityId,
     @NotNull AuthzEntityKind kind,
+    /**
+     * Engine type name (e.g. {@code "User"}, {@code "Doc"}). Optional — when omitted, the
+     * server falls back to {@link AuthzEntityKind#defaultEntityType()} ({@code "Principal"} /
+     * {@code "Resource"}) so legacy clients remain unaffected. Drives the engine UID emitted
+     * to the PDP ({@code <entityType>::"<entityId>"}) and the type a Cedar/GAPL policy can
+     * match (e.g. {@code principal == User::"alice"}).
+     */
+    String entityType,
     Map<String, Object> attributes,
     List<String> parents,
     String source
-) {}
+) {
+    /**
+     * Legacy 5-arg constructor for callers that pre-date the typed entityType rollout.
+     * {@code entityType} defaults to null and is later normalised to the kind-default by the
+     * service layer.
+     */
+    public AuthzEntityRequest(
+        String entityId,
+        AuthzEntityKind kind,
+        Map<String, Object> attributes,
+        List<String> parents,
+        String source
+    ) {
+        this(entityId, kind, null, attributes, parents, source);
+    }
+}

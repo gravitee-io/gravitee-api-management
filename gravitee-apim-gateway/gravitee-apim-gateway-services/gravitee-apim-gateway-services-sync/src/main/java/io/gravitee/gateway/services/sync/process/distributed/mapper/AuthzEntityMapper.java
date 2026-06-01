@@ -45,7 +45,7 @@ public class AuthzEntityMapper {
                 AuthzEntityReactorDeployable.Kind kind = AuthzEntityReactorDeployable.Kind.valueOf(wire.getKind().name());
                 return AuthzEntityReactorDeployable.builder()
                     .entityId(wire.getEntityId())
-                    .engineUid(toEngineUid(kind, wire.getEntityId()))
+                    .engineUid(toEngineUid(kind, wire.getEntityType(), wire.getEntityId()))
                     .kind(kind)
                     .attributes(wire.getAttributes())
                     .parents(wire.getParents())
@@ -64,6 +64,7 @@ public class AuthzEntityMapper {
                 AuthzEntity wire = AuthzEntity.builder()
                     .entityId(deployable.entityId())
                     .kind(io.gravitee.gamma.definition.authz.AuthzEntityKind.valueOf(deployable.kind().name()))
+                    .entityType(deployable.entityType())
                     .attributes(deployable.attributes())
                     .parents(deployable.parents())
                     .build();
@@ -83,7 +84,10 @@ public class AuthzEntityMapper {
         }).filter(java.util.Objects::nonNull);
     }
 
-    private static String toEngineUid(AuthzEntityReactorDeployable.Kind kind, String entityId) {
+    private static String toEngineUid(AuthzEntityReactorDeployable.Kind kind, String entityType, String entityId) {
+        if (entityType != null && !entityType.isBlank()) {
+            return entityType + "::\"" + entityId + "\"";
+        }
         if (kind == AuthzEntityReactorDeployable.Kind.PRINCIPAL) {
             return "Principal::\"" + entityId + "\"";
         }
