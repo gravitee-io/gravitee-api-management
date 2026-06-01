@@ -1,0 +1,26 @@
+[
+  {
+    "id": "portal1",
+    "environmentId": "environment1",
+    "organizationId": "organization1",
+    "name": "Default Portal"
+  },
+  {
+    "id": "portal2",
+    "environmentId": "environment1",
+    "organizationId": "organization1",
+    "name": "Secondary Portal"
+  },
+  {
+    "id": "portal3",
+    "environmentId": "environment2",
+    "organizationId": "organization1",
+    "name": "Env2 Portal"
+  },
+  {
+    "id": "portal4",
+    "environmentId": "environment3",
+    "organizationId": "organization2",
+    "name": "Org2 Portal"
+  }
+]

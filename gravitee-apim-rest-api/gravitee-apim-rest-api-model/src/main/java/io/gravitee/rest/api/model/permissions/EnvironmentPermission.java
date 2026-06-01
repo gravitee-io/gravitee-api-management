@@ -51,7 +51,8 @@ public enum EnvironmentPermission implements Permission {
     SHARED_POLICY_GROUP("SHARED_POLICY_GROUP", 3900),
     CLUSTER("CLUSTER", 4000),
     API_PRODUCT("API_PRODUCT", 4100),
-    AUTHORIZATION("AUTHORIZATION", 4200);
+    AUTHORIZATION("AUTHORIZATION", 4200),
+    PORTAL("PORTAL", 4300);
 
     String name;
     int mask;
