@@ -482,6 +482,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             portalConfigEntity.getLogging().getMessageSampling().getProbabilistic(),
             portalConfigEntity.getLogging().getMessageSampling().getTemporal(),
             portalConfigEntity.getLogging().getMessageSampling().getWindowedCount(),
+            portalConfigEntity.getKafkaPortRouting(),
         };
     }
 

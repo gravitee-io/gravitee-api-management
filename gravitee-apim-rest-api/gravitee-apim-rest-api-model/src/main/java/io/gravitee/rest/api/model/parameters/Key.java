@@ -317,6 +317,7 @@ public enum Key {
     ),
 
     API_REVIEW_ENABLED("api.review.enabled", Boolean.FALSE.toString(), new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    KAFKA_PORT_ROUTING_ENABLED("console.kafka.portRouting.enabled", Boolean.FALSE.toString(), new HashSet<>(singletonList(ENVIRONMENT))),
     MAINTENANCE_MODE_ENABLED("maintenance.enabled", Boolean.FALSE.toString(), new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     NEWSLETTER_ENABLED("newsletter.enabled", "true", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
 

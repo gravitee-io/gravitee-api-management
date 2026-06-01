@@ -45,6 +45,7 @@ public class PortalConfigEntity {
     private Dashboards dashboards;
     private AccessPoints accessPoints;
     private Logging logging;
+    private KafkaPortRouting kafkaPortRouting;
 
     public PortalConfigEntity() {
         super();
@@ -67,5 +68,6 @@ public class PortalConfigEntity {
         dashboards = new Dashboards();
         accessPoints = new AccessPoints();
         logging = new Logging();
+        kafkaPortRouting = new KafkaPortRouting();
     }
 }

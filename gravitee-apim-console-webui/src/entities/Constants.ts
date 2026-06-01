@@ -64,6 +64,9 @@ export interface EnvSettings {
   apiScore: {
     enabled: boolean;
   };
+  kafkaPortRouting: {
+    enabled: boolean;
+  };
   apiQualityMetrics: {
     enabled: boolean;
     functionalDocumentationWeight: number;

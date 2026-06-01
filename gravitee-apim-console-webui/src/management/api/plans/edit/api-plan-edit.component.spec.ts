@@ -23,6 +23,8 @@ import { set } from 'lodash';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatStepperHarness } from '@angular/material/stepper/testing';
+import { MatDialog } from '@angular/material/dialog';
+import { of } from 'rxjs';
 
 import { ApiPlanEditComponent } from './api-plan-edit.component';
 
@@ -38,6 +40,7 @@ import {
   fakeApiFederated,
   fakeApiV2,
   fakeApiV4,
+  fakeNativeKafkaApiV4,
   fakePlanFederated,
   fakePlanV2,
   fakePlanV4,
@@ -546,6 +549,246 @@ describe('ApiPlanEditComponent', () => {
         req.flush({});
         expect(routerNavigationSpy).toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('With a deployed Native Kafka API — bootstrap port confirmation dialog', () => {
+    const TAG_1_ID = 'tag-1';
+    const PLAN_WITH_BOOTSTRAP = fakePlanV4({ apiId: API_ID, security: { type: 'KEY_LESS' }, bootstrapPort: 9092 });
+    const DEPLOYED_NATIVE_API = fakeNativeKafkaApiV4({ id: API_ID, deployedAt: new Date() });
+
+    const setupDeployedNativeEdit = () => {
+      configureTestingModule(PLAN_WITH_BOOTSTRAP.id);
+      fixture.detectChanges();
+      expectApiGetRequest(DEPLOYED_NATIVE_API);
+      expectPlanGetRequest(API_ID, PLAN_WITH_BOOTSTRAP);
+    };
+
+    const flushPlanFormRequests = (planForm: any) => {
+      planForm.httpRequest(httpTestingController).expectTagsListRequest([{ id: TAG_1_ID, name: 'Tag 1', key: TAG_1_ID }]);
+      planForm.httpRequest(httpTestingController).expectGroupListRequest([]);
+      planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API_ID, []);
+      planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([]);
+    };
+
+    it('should open the dialog when bootstrap port changes, and abort save when dialog resolves false', async () => {
+      setupDeployedNativeEdit();
+
+      const planForm = await loader.getHarness(ApiPlanFormHarness);
+      flushPlanFormRequests(planForm);
+      fixture.detectChanges();
+
+      // Change the name to dirty the form
+      const nameInput = await planForm.getNameInput();
+      await nameInput.setValue('Updated plan');
+
+      // Change the bootstrap port to a new value
+      const bootstrapPortInput = await planForm.getBootstrapPortInput();
+      await bootstrapPortInput.setValue('9999');
+      fixture.detectChanges();
+
+      const matDialog = TestBed.inject(MatDialog);
+      const dialogSpy = jest.spyOn(matDialog, 'open').mockReturnValue({
+        afterClosed: () => of(false),
+      } as any);
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      await saveBar.clickSubmit();
+
+      expect(dialogSpy).toHaveBeenCalled();
+      httpTestingController.expectNone({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN_WITH_BOOTSTRAP.id}`,
+        method: 'PUT',
+      });
+      expect(routerNavigationSpy).not.toHaveBeenCalled();
+    });
+
+    it('should save when dialog resolves true after bootstrap port change', async () => {
+      setupDeployedNativeEdit();
+
+      const planForm = await loader.getHarness(ApiPlanFormHarness);
+      flushPlanFormRequests(planForm);
+      fixture.detectChanges();
+
+      const nameInput = await planForm.getNameInput();
+      await nameInput.setValue('Updated plan');
+
+      const bootstrapPortInput = await planForm.getBootstrapPortInput();
+      await bootstrapPortInput.setValue('9999');
+      fixture.detectChanges();
+
+      const matDialog = TestBed.inject(MatDialog);
+      jest.spyOn(matDialog, 'open').mockReturnValue({
+        afterClosed: () => of(true),
+      } as any);
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      await saveBar.clickSubmit();
+
+      expectPlanGetRequest(API_ID, PLAN_WITH_BOOTSTRAP);
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN_WITH_BOOTSTRAP.id}`,
+        method: 'PUT',
+      });
+      expect(req.request.body).toEqual(expect.objectContaining({ name: 'Updated plan', bootstrapPort: 9999 }));
+      req.flush({});
+      expect(routerNavigationSpy).toHaveBeenCalled();
+    });
+
+    it('should save directly (no dialog) when bootstrap port is unchanged', async () => {
+      setupDeployedNativeEdit();
+
+      const planForm = await loader.getHarness(ApiPlanFormHarness);
+      flushPlanFormRequests(planForm);
+      fixture.detectChanges();
+
+      // Change only the name, not the bootstrap port
+      const nameInput = await planForm.getNameInput();
+      await nameInput.setValue('Updated plan');
+      fixture.detectChanges();
+
+      const matDialog = TestBed.inject(MatDialog);
+      const dialogSpy = jest.spyOn(matDialog, 'open');
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      await saveBar.clickSubmit();
+
+      expect(dialogSpy).not.toHaveBeenCalled();
+
+      expectPlanGetRequest(API_ID, PLAN_WITH_BOOTSTRAP);
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN_WITH_BOOTSTRAP.id}`,
+        method: 'PUT',
+      });
+      req.flush({});
+      expect(routerNavigationSpy).toHaveBeenCalled();
+    });
+
+    it('should save directly (no dialog) when setting a bootstrap port for the first time (host -> port migration)', async () => {
+      const HOST_MODE_PLAN = fakePlanV4({ apiId: API_ID, security: { type: 'KEY_LESS' } }); // no bootstrapPort
+      configureTestingModule(HOST_MODE_PLAN.id);
+      fixture.detectChanges();
+      expectApiGetRequest(DEPLOYED_NATIVE_API);
+      expectPlanGetRequest(API_ID, HOST_MODE_PLAN);
+
+      const planForm = await loader.getHarness(ApiPlanFormHarness);
+      flushPlanFormRequests(planForm);
+      fixture.detectChanges();
+
+      const nameInput = await planForm.getNameInput();
+      await nameInput.setValue('Updated plan');
+
+      // Set a bootstrap port for the first time — the plan was host mode (no port) before.
+      const bootstrapPortInput = await planForm.getBootstrapPortInput();
+      await bootstrapPortInput.setValue('19092');
+      fixture.detectChanges();
+
+      const matDialog = TestBed.inject(MatDialog);
+      const dialogSpy = jest.spyOn(matDialog, 'open');
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      await saveBar.clickSubmit();
+
+      expect(dialogSpy).not.toHaveBeenCalled();
+
+      expectPlanGetRequest(API_ID, HOST_MODE_PLAN);
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${HOST_MODE_PLAN.id}`,
+        method: 'PUT',
+      });
+      req.flush({});
+      expect(routerNavigationSpy).toHaveBeenCalled();
+    });
+
+    it('should open the dialog when clearing an existing bootstrap port (port -> host migration)', async () => {
+      setupDeployedNativeEdit();
+
+      const planForm = await loader.getHarness(ApiPlanFormHarness);
+      flushPlanFormRequests(planForm);
+      fixture.detectChanges();
+
+      const nameInput = await planForm.getNameInput();
+      await nameInput.setValue('Updated plan');
+
+      // Clear the existing bootstrap port — this disables port-based routing and breaks port-mode clients.
+      const bootstrapPortInput = await planForm.getBootstrapPortInput();
+      await bootstrapPortInput.setValue('');
+      fixture.detectChanges();
+
+      const matDialog = TestBed.inject(MatDialog);
+      const dialogSpy = jest.spyOn(matDialog, 'open').mockReturnValue({
+        afterClosed: () => of(false),
+      } as any);
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      await saveBar.clickSubmit();
+
+      expect(dialogSpy).toHaveBeenCalled();
+      httpTestingController.expectNone({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN_WITH_BOOTSTRAP.id}`,
+        method: 'PUT',
+      });
+      expect(routerNavigationSpy).not.toHaveBeenCalled();
+    });
+
+    it('should block save (no dialog, no PUT, no navigation) when the broker range is out of order', async () => {
+      setupDeployedNativeEdit();
+
+      const planForm = await loader.getHarness(ApiPlanFormHarness);
+      flushPlanFormRequests(planForm);
+      fixture.detectChanges();
+
+      const nameInput = await planForm.getNameInput();
+      await nameInput.setValue('Updated plan');
+
+      // start > end -> rangeOrder error -> form invalid.
+      await (await planForm.getBrokerRangeStartInput()).setValue('9095');
+      await (await planForm.getBrokerRangeEndInput()).setValue('9093');
+      fixture.detectChanges();
+
+      const matDialog = TestBed.inject(MatDialog);
+      const dialogSpy = jest.spyOn(matDialog, 'open');
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      await saveBar.clickSubmit();
+
+      expect(dialogSpy).not.toHaveBeenCalled();
+      httpTestingController.expectNone({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN_WITH_BOOTSTRAP.id}`,
+        method: 'PUT',
+      });
+      expect(routerNavigationSpy).not.toHaveBeenCalled();
+    });
+
+    it('should block save (no dialog, no PUT, no navigation) when the bootstrap port falls within the broker range', async () => {
+      setupDeployedNativeEdit();
+
+      const planForm = await loader.getHarness(ApiPlanFormHarness);
+      flushPlanFormRequests(planForm);
+      fixture.detectChanges();
+
+      const nameInput = await planForm.getNameInput();
+      await nameInput.setValue('Updated plan');
+
+      // bootstrap (9094) inside [9093, 9095] -> bootstrapInRange error -> form invalid.
+      // Set bootstrap first (its valueChanges auto-fills the range), then override the range explicitly.
+      await (await planForm.getBootstrapPortInput()).setValue('9094');
+      await (await planForm.getBrokerRangeStartInput()).setValue('9093');
+      await (await planForm.getBrokerRangeEndInput()).setValue('9095');
+      fixture.detectChanges();
+
+      const matDialog = TestBed.inject(MatDialog);
+      const dialogSpy = jest.spyOn(matDialog, 'open');
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      await saveBar.clickSubmit();
+
+      expect(dialogSpy).not.toHaveBeenCalled();
+      httpTestingController.expectNone({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN_WITH_BOOTSTRAP.id}`,
+        method: 'PUT',
+      });
+      expect(routerNavigationSpy).not.toHaveBeenCalled();
     });
   });
 

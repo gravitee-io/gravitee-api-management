@@ -55,6 +55,7 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
     private PortalReCaptcha reCaptcha;
     private PortalScheduler scheduler;
     private Dashboards dashboards;
+    private KafkaPortRouting kafkaPortRouting;
 
     public PortalSettingsEntity() {
         super();
@@ -76,6 +77,7 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
         reCaptcha = new PortalReCaptcha();
         scheduler = new PortalScheduler();
         dashboards = new Dashboards();
+        kafkaPortRouting = new KafkaPortRouting();
         logging = new Logging();
     }
 

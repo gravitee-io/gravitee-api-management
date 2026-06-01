@@ -71,6 +71,9 @@ interface PortalForm {
       enabled: FormControl<boolean>;
     }>;
   }>;
+  kafkaPortRouting: FormGroup<{
+    enabled: FormControl<boolean>;
+  }>;
   portal: FormGroup<{
     apikeyHeader: FormControl<string>;
     url: FormControl<string>;
@@ -324,6 +327,12 @@ export class PortalSettingsComponent implements OnInit {
             value: this.settings.dashboards.apiStatus.enabled,
             disabled: this.isReadonly('console.dashboards.apiStatus.enabled'),
           }),
+        }),
+      }),
+      kafkaPortRouting: new FormGroup({
+        enabled: new FormControl({
+          value: this.settings.kafkaPortRouting?.enabled ?? false,
+          disabled: this.isReadonly('console.kafka.portRouting.enabled'),
         }),
       }),
       portal: new FormGroup({
@@ -633,6 +642,10 @@ export class PortalSettingsComponent implements OnInit {
       dashboards: {
         ...this.settings.dashboards,
         ...this.portalForm.get('dashboards').value,
+      },
+      kafkaPortRouting: {
+        ...this.settings.kafkaPortRouting,
+        ...this.portalForm.get('kafkaPortRouting').value,
       },
       portal: {
         ...this.settings.portal,

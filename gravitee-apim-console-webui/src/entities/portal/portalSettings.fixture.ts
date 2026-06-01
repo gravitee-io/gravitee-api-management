@@ -138,6 +138,9 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
     apiReview: {
       enabled: false,
     },
+    kafkaPortRouting: {
+      enabled: false,
+    },
     application: {
       registration: {
         enabled: false,

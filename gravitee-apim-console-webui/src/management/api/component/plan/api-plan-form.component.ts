@@ -68,6 +68,7 @@ import {
 } from '../../../../entities/management-api-v2';
 import { isApiV2FromMAPIV2 } from '../../../../util';
 import { PlanFormType, PlanMenuItemVM } from '../../../../services-ngx/constants.service';
+import { Constants } from '../../../../entities/Constants';
 
 export type InternalPlanFormValue = {
   general: {
@@ -80,6 +81,9 @@ export type InternalPlanFormValue = {
     commentMessage: string;
     autoValidation: boolean;
     excludedGroups: string[];
+    bootstrapPort?: number;
+    brokerRangeStart?: number;
+    brokerRangeEnd?: number;
   };
   secure: {
     securityConfig: unknown;
@@ -107,7 +111,15 @@ export type PlanFormValue = Pick<
   | 'validation'
   | 'excludedGroups'
   | 'security'
-> & { mode?: PlanMode; selectionRule?: string; tags?: string[]; flows?: Array<FlowV2 | FlowV4> };
+> & {
+  mode?: PlanMode;
+  selectionRule?: string;
+  tags?: string[];
+  flows?: Array<FlowV2 | FlowV4>;
+  bootstrapPort?: number;
+  brokerRangeStart?: number;
+  brokerRangeEnd?: number;
+};
 
 @Component({
   selector: 'api-plan-form',
@@ -183,6 +195,7 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
    */
   private readonly _stepChangeCounter = signal(0);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly constants = inject(Constants);
 
   private _onChange: (_: PlanFormValue) => void;
   private _onTouched: () => void;
@@ -343,6 +356,24 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
     this.matStepper.previous();
   }
 
+  // Environment-level toggle (console.kafka.portRouting.enabled): when disabled, the Kafka
+  // port-routing fields stay hidden on native plans.
+  get kafkaPortRoutingEnabled(): boolean {
+    return !!this.constants.env?.settings?.kafkaPortRouting?.enabled;
+  }
+
+  get showBrokerRangeChangeWarning(): boolean {
+    if (this.mode !== 'edit' || (this.api as ApiV4)?.deployedAt == null) {
+      return false;
+    }
+    const current = this.planForm?.getRawValue()?.general;
+    const initial = (this.initialPlanFormValue as any)?.general;
+    if (!current || !initial) {
+      return false;
+    }
+    return current.brokerRangeStart !== initial.brokerRangeStart || current.brokerRangeEnd !== initial.brokerRangeEnd;
+  }
+
   private initPlanForm() {
     this.planForm = new UntypedFormGroup({
       general: this.planEditGeneralStepComponent.generalForm,
@@ -475,6 +506,9 @@ const planToInternalFormValue = (
       commentMessage: plan.commentMessage,
       autoValidation: plan.validation === 'AUTO',
       excludedGroups: plan.excludedGroups,
+      bootstrapPort: plan.bootstrapPort ?? undefined,
+      brokerRangeStart: plan.brokerRangeStart ?? undefined,
+      brokerRangeEnd: plan.brokerRangeEnd ?? undefined,
     },
     secure: {
       securityConfig: plan.security?.configuration,
@@ -635,6 +669,10 @@ const internalFormValueToPlanV4 = (
     ];
   };
 
+  const bootstrapPort = Number.isFinite(value.general.bootstrapPort as number) ? value.general.bootstrapPort : undefined;
+  const brokerRangeStart = Number.isFinite(value.general.brokerRangeStart as number) ? value.general.brokerRangeStart : undefined;
+  const brokerRangeEnd = Number.isFinite(value.general.brokerRangeEnd as number) ? value.general.brokerRangeEnd : undefined;
+
   return {
     name: value.general.name,
     description: value.general.description,
@@ -659,6 +697,11 @@ const internalFormValueToPlanV4 = (
 
     excludedGroups: value.general.excludedGroups,
     selectionRule: value.secure.selectionRule,
+
+    // Kafka port-routing fields (NATIVE APIs only; undefined when not set)
+    bootstrapPort,
+    brokerRangeStart,
+    brokerRangeEnd,
 
     // Restriction (only for create mode)
     ...(mode === 'edit' ? {} : { flows: initFlowsWithRestriction(value.restriction) }),

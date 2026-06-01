@@ -18,12 +18,15 @@ import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { EMPTY, of, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+
+import { KafkaBootstrapPortChangeDialogComponent } from './kafka-bootstrap-port-change-dialog/kafka-bootstrap-port-change-dialog.component';
 
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiPlanFormComponent, PlanFormValue } from '../../component/plan/api-plan-form.component';
 import { AVAILABLE_PLANS_FOR_MENU, PlanFormType, PlanMenuItemVM } from '../../../../services-ngx/constants.service';
-import { Api, ApiV4, CreatePlanV2, CreatePlanV4, Plan, PlanStatus } from '../../../../entities/management-api-v2';
+import { Api, ApiV4, CreatePlanV2, CreatePlanV4, KafkaListener, Plan, PlanStatus } from '../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
 import { isApiV4 } from '../../../../util';
@@ -51,6 +54,8 @@ export class ApiPlanEditComponent implements OnInit, OnDestroy {
   public hasTcpListeners;
   public isNative: boolean = false;
 
+  private originalPlan?: Plan;
+
   constructor(
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
@@ -59,6 +64,7 @@ export class ApiPlanEditComponent implements OnInit, OnDestroy {
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
     private readonly changeDetectorRef: ChangeDetectorRef,
+    private readonly matDialog: MatDialog,
   ) {}
 
   ngOnInit() {
@@ -79,6 +85,7 @@ export class ApiPlanEditComponent implements OnInit, OnDestroy {
             : of(undefined),
         ),
         tap((plan: Plan) => {
+          this.originalPlan = plan;
           this.currentPlanStatus = plan?.status;
           this.planForm = new UntypedFormGroup({
             plan: new UntypedFormControl({
@@ -132,8 +139,34 @@ export class ApiPlanEditComponent implements OnInit, OnDestroy {
               : createV2Plan(planFormValue, this.planMenuItem.planFormType)),
           });
 
-    savePlan$
+    const newBootstrapPort = (planFormValue as any).bootstrapPort;
+    const oldBootstrapPort = (this.originalPlan as any)?.bootstrapPort;
+    const deployed = (this.api as ApiV4)?.deployedAt != null;
+    // Confirm whenever a deployed plan's EXISTING bootstrap port changes — including being cleared.
+    // Changing the port breaks currently-connected consumers; clearing it disables port-based routing
+    // entirely (the API reverts to host-based routing), which also breaks existing port-mode clients.
+    // Setting a port for the first time (host -> port migration) is NOT breaking, so no dialog is shown.
+    const needsBootstrapConfirm =
+      this.mode === 'edit' && this.isNative && deployed && oldBootstrapPort != null && newBootstrapPort !== oldBootstrapPort;
+
+    const kafkaHost = (this.api as ApiV4)?.listeners?.find((listener): listener is KafkaListener => listener.type === 'KAFKA')?.host;
+
+    const confirm$ = needsBootstrapConfirm
+      ? this.matDialog
+          .open<KafkaBootstrapPortChangeDialogComponent, { host?: string; oldPort?: number; newPort?: number }, boolean>(
+            KafkaBootstrapPortChangeDialogComponent,
+            {
+              data: { host: kafkaHost, oldPort: oldBootstrapPort, newPort: newBootstrapPort },
+              width: '500px',
+              role: 'alertdialog',
+            },
+          )
+          .afterClosed()
+      : of(true);
+
+    confirm$
       .pipe(
+        switchMap(confirmed => (confirmed ? savePlan$ : EMPTY)),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
         catchError(error => {
           this.snackBarService.error(error.error?.message ?? 'An error occurs while saving configuration');
