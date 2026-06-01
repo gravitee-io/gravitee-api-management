@@ -105,7 +105,8 @@ export function EditEntityDialog({ open, entity, kind, environmentId, onOpenChan
             const names = new Set<string>();
             for (const ent of parsed.entities) for (const a of ent.attributes) if (!a.name.startsWith('_')) names.add(a.name);
             return Array.from(names).sort();
-        } catch {
+        } catch (err) {
+            console.error('Failed to parse GAPL schema for attribute key suggestions', err);
             return [];
         }
     }, [schema?.schemaText]);
