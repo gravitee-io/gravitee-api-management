@@ -56,6 +56,10 @@ public final class HRIDToUUID {
         return new TopLevelBuilder();
     }
 
+    public static TopLevelBuilder portal() {
+        return new TopLevelBuilder();
+    }
+
     public static SubResourceBuilder plan() {
         return new SubResourceBuilder();
     }
