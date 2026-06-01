@@ -142,7 +142,7 @@ class GetTraceDetailUseCaseTest {
     }
 
     @Test
-    void should_flag_hasError_when_any_span_has_ERROR_status() {
+    void should_promote_trace_status_to_ERROR_when_any_span_has_ERROR_status() {
         Span ok = span("ok", null, "GET /pets", Instant.parse("2026-05-26T15:00:00Z"));
         Span failing = new Span(
             "failing",
@@ -161,16 +161,46 @@ class GetTraceDetailUseCaseTest {
 
         TraceDetail detail = useCase.execute(input()).trace().orElseThrow();
 
-        assertThat(detail.hasError()).isTrue();
+        assertThat(detail.status()).isEqualTo(SpanStatus.ERROR);
     }
 
     @Test
-    void should_not_flag_hasError_when_no_span_has_ERROR_status() {
-        givenTraceWithSpans(List.of(span("root", null, "GET /pets", Instant.parse("2026-05-26T15:00:00Z"))));
+    void should_fall_back_to_root_span_status_when_no_span_has_ERROR_status() {
+        // Root with explicit OK status — no spans errored, so the trace rolls up to the root's status (OK), not
+        // the default UNSET. Caller filters on "healthy traces" via status == OK can rely on this fallback.
+        Span root = new Span(
+            "root",
+            null,
+            "GET /pets",
+            "gateway",
+            Instant.parse("2026-05-26T15:00:00Z"),
+            1_000L,
+            SpanStatus.OK,
+            SpanKind.INTERNAL,
+            Map.of(),
+            List.of(),
+            List.of()
+        );
+        givenTraceWithSpans(List.of(root));
 
         TraceDetail detail = useCase.execute(input()).trace().orElseThrow();
 
-        assertThat(detail.hasError()).isFalse();
+        assertThat(detail.status()).isEqualTo(SpanStatus.OK);
+    }
+
+    @Test
+    void should_report_span_count_matching_the_assembled_span_list() {
+        givenTraceWithSpans(
+            List.of(
+                span("root", null, "GET /pets", Instant.parse("2026-05-26T15:00:00Z")),
+                span("child-1", "root", "policy-pre", Instant.parse("2026-05-26T15:00:01Z")),
+                span("child-2", "root", "policy-post", Instant.parse("2026-05-26T15:00:02Z"))
+            )
+        );
+
+        TraceDetail detail = useCase.execute(input()).trace().orElseThrow();
+
+        assertThat(detail.spanCount()).isEqualTo(3);
     }
 
     private Span span(String spanId, String parentSpanId, String op, Instant start) {
@@ -190,11 +220,14 @@ class GetTraceDetailUseCaseTest {
     }
 
     private void givenTraceWithSpans(List<Span> spans) {
+        // The summary Trace stamped onto the port is unused by GetTraceDetailUseCase (it builds TraceDetail from
+        // the spans list). Stub with UNSET / 0 so the fixture doesn't lie about the trace status — the use case
+        // computes status from the spans list, not from this seed.
         tracingPort.givenTrace(
             ORG,
             ENV,
             Map.of(TracingResourceFilters.ENV_ID_KEY, ENV, TracingResourceFilters.API_ID_KEY, API_ID),
-            new Trace(TRACE_ID, spans.get(0).startTime(), 1_000L, "gateway", spans.get(0).operationName(), false),
+            new Trace(TRACE_ID, spans.get(0).startTime(), 1_000L, "gateway", spans.get(0).operationName(), SpanStatus.UNSET, 0),
             spans
         );
     }

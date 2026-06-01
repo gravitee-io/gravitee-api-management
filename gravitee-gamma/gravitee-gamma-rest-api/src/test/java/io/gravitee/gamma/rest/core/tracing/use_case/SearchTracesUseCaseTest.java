@@ -23,6 +23,7 @@ import io.gravitee.gamma.rest.core.tracing.exception.UnsupportedFilterException;
 import io.gravitee.gamma.rest.core.tracing.inmemory.InMemoryTracingPort;
 import io.gravitee.gamma.rest.core.tracing.model.FilterCondition;
 import io.gravitee.gamma.rest.core.tracing.model.FilterOperator;
+import io.gravitee.gamma.rest.core.tracing.model.SpanStatus;
 import io.gravitee.gamma.rest.core.tracing.model.Trace;
 import java.time.Duration;
 import java.time.Instant;
@@ -150,7 +151,7 @@ class SearchTracesUseCaseTest {
             ORG,
             ENV,
             Map.of(TracingResourceFilters.ENV_ID_KEY, ENV, TracingResourceFilters.API_ID_KEY, apiId),
-            new Trace(traceId, startTime, 1_000L, "gateway", "GET /pets", false),
+            new Trace(traceId, startTime, 1_000L, "gateway", "GET /pets", SpanStatus.OK, 1),
             null
         );
     }

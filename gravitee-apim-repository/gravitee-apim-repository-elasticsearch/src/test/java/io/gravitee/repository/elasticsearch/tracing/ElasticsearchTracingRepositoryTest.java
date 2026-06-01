@@ -134,7 +134,11 @@ class ElasticsearchTracingRepositoryTest {
         assertThat(trace.rootService()).isEqualTo("test-service");
         assertThat(trace.rootOperation()).isEqualTo("GET /ok");
         assertThat(trace.durationNanos()).isEqualTo(5_000_000L);
-        assertThat(trace.hasError()).isFalse();
+        // Root span's status drives the trace-level rollup when no span errored — buildTracesAggregation seeds it
+        // with STATUS_CODE_OK so the bucket should resolve to OK (not UNSET).
+        assertThat(trace.status()).isEqualTo("OK");
+        // doc_count on the bucket = number of spans for that trace_id. Fixture sets it to 3.
+        assertThat(trace.spanCount()).isEqualTo(3);
         assertThat(trace.startTime()).isEqualTo(Instant.parse("2026-04-30T10:00:00Z"));
         assertThat(trace.spans()).isEmpty();
     }
@@ -175,7 +179,7 @@ class ElasticsearchTracingRepositoryTest {
     }
 
     @Test
-    void getTrace_should_mark_trace_has_error_when_any_span_has_error_short_form_status() {
+    void getTrace_should_promote_trace_status_to_ERROR_when_any_span_has_error_short_form_status() {
         // The OTel ES exporter (otel mapping mode, recent versions) writes status.code as the short form ("Error"),
         // not the proto-enum-suffix form ("STATUS_CODE_ERROR"). Both must work.
         SearchResponse response = new SearchResponse();
@@ -196,7 +200,10 @@ class ElasticsearchTracingRepositoryTest {
         Trace trace = repository.getTrace(QUERY_CONTEXT, "a1b2c3d4", Map.of()).blockingGet();
 
         assertThat(trace).isNotNull();
-        assertThat(trace.hasError()).isTrue();
+        // Trace-level status rolls up to ERROR because at least one span reported ERROR. Wire vocabulary matches
+        // per-span status (UNSET / OK / ERROR) so the UI can reuse the same lookup.
+        assertThat(trace.status()).isEqualTo("ERROR");
+        assertThat(trace.spanCount()).isEqualTo(1);
         assertThat(trace.spans().get(0).attributes()).containsEntry("otel.status_code", "ERROR");
     }
 
@@ -333,6 +340,9 @@ class ElasticsearchTracingRepositoryTest {
         Aggregation traces = new Aggregation();
         Map<String, Object> bucket = new HashMap<>();
         bucket.put("key", "a1b2c3d4");
+        // doc_count on a terms-agg bucket = number of docs (= spans) for this trace_id. Exposed to the caller via
+        // Trace.spanCount so the listing row can render "N spans".
+        bucket.put("doc_count", 3);
         Map<String, Object> traceStart = new HashMap<>();
         traceStart.put("value_as_string", "2026-04-30T10:00:00Z");
         bucket.put("trace_start", traceStart);
@@ -350,6 +360,11 @@ class ElasticsearchTracingRepositoryTest {
         resourceAttributes.put("service", resourceService);
         resource.put("attributes", resourceAttributes);
         rootSource.put("resource", resource);
+        // Root span status drives the trace-level rollup when no span errored — the impl runs the same
+        // normalizeStatusCode logic on the rootSpan top_hits as it does on per-span sources, so seed it the same way.
+        Map<String, Object> rootStatus = new HashMap<>();
+        rootStatus.put("code", "STATUS_CODE_OK");
+        rootSource.put("status", rootStatus);
         rootSpanHitsHits.put("_source", rootSource);
         rootSpanHits.put("hits", List.of(rootSpanHitsHits));
         rootSpan.put("hits", rootSpanHits);

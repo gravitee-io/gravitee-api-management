@@ -125,7 +125,7 @@ class TracingResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_traces_with_logs_aligned_envelope_and_iso_8601_start_time() {
-            Trace trace = new Trace(TRACE_ID, SAMPLE_INSTANT, 1_234_000L, "gateway", "GET /pets", false);
+            Trace trace = new Trace(TRACE_ID, SAMPLE_INSTANT, 1_234_000L, "gateway", "GET /pets", SpanStatus.OK, 3);
             when(searchTracesUseCase.execute(any())).thenReturn(new SearchTracesUseCase.Output(new Page<>(List.of(trace), 0, 1, 1)));
 
             Response response = postSearch(Map.of("apiId", API_ID));
@@ -142,7 +142,10 @@ class TracingResourceTest extends AbstractResourceTest {
             assertThat(row.get("rootServiceName").asText()).isEqualTo("gateway");
             assertThat(row.get("rootOperationName").asText()).isEqualTo("GET /pets");
             assertThat(row.get("durationNanos").asLong()).isEqualTo(1_234_000L);
-            assertThat(row.get("hasError").asBoolean()).isFalse();
+            // status emitted lowercase to match the lib's WireTraceSummary.status union ('unset' | 'ok' | 'error');
+            // spanCount lets the listing row render "N spans" without a second round-trip.
+            assertThat(row.get("status").asText()).isEqualTo("ok");
+            assertThat(row.get("spanCount").asInt()).isEqualTo(3);
             // ms-since-epoch emission is load-bearing: see TraceSummaryDto's javadoc — the long
             // field type bypasses Jackson's Instant handling and the parent rest-api ObjectMapper's
             // WRITE_DATES_AS_TIMESTAMPS default that would otherwise emit <epoch_seconds>.<nanos>.
@@ -238,7 +241,16 @@ class TracingResourceTest extends AbstractResourceTest {
                 List.<SpanEvent>of(),
                 List.<PayloadLog>of()
             );
-            TraceDetail detail = new TraceDetail(TRACE_ID, SAMPLE_INSTANT, 1_234_000L, "gateway", "GET /pets", false, List.of(span));
+            TraceDetail detail = new TraceDetail(
+                TRACE_ID,
+                SAMPLE_INSTANT,
+                1_234_000L,
+                "gateway",
+                "GET /pets",
+                SpanStatus.OK,
+                1,
+                List.of(span)
+            );
             when(getTraceDetailUseCase.execute(any())).thenReturn(new GetTraceDetailUseCase.Output(Optional.of(detail)));
 
             Response response = detailRequest().request().get();
@@ -247,6 +259,9 @@ class TracingResourceTest extends AbstractResourceTest {
             JsonNode body = response.readEntity(JsonNode.class);
             assertThat(body.get("traceId").asText()).isEqualTo(TRACE_ID);
             assertThat(body.get("startTimeEpochMs").asLong()).isEqualTo(SAMPLE_INSTANT.toEpochMilli());
+            // status/spanCount mirror the lib's WireTraceDetail expectation — same vocabulary as the summary row.
+            assertThat(body.get("status").asText()).isEqualTo("ok");
+            assertThat(body.get("spanCount").asInt()).isEqualTo(1);
             assertThat(body.get("spans")).hasSize(1);
             JsonNode spanNode = body.get("spans").get(0);
             // traceId echoed on every span — matches OTel transports and lib's TraceSpan required field.

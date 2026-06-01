@@ -94,7 +94,10 @@ public class TracingPortAdapter implements TracingPort {
             source.durationNanos(),
             source.rootService(),
             source.rootOperation(),
-            Boolean.TRUE.equals(source.hasError())
+            // The SPI emits status as a UNSET/OK/ERROR string (matches per-span normalizeStatusCode output); the
+            // core layer lifts it to the typed enum so the use case + DTO don't have to know the string vocabulary.
+            SpanStatus.fromAttribute(source.status()),
+            source.spanCount()
         );
     }
 

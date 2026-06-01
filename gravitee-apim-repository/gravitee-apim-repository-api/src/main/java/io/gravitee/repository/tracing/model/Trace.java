@@ -23,7 +23,10 @@ import java.util.List;
  * Aggregated view of a distributed trace returned by a {@link io.gravitee.repository.tracing.api.TracingRepository}.
  * <p>
  * In list responses {@code spans} is empty (the backend only carries summary attributes); {@code spans} is populated when the
- * trace is fetched by id. {@code hasError} may be {@code null} when the backend cannot determine the error status.
+ * trace is fetched by id. {@code status} is the trace-level rollup in the same {@code UNSET / OK / ERROR} vocabulary as per-span
+ * status — any span reporting {@code ERROR} promotes the whole trace to {@code ERROR}; otherwise the root span's status is used.
+ * {@code spanCount} is the total span count for the trace (the aggregation doc_count in list responses; {@code spans.size()} in
+ * fetch-by-id), which the UI surfaces alongside the row.
  *
  * @author GraviteeSource Team
  */
@@ -33,7 +36,8 @@ public record Trace(
     long durationNanos,
     String rootService,
     String rootOperation,
-    Boolean hasError,
+    String status,
+    int spanCount,
     List<TraceSpan> spans
 ) {
     public Trace {

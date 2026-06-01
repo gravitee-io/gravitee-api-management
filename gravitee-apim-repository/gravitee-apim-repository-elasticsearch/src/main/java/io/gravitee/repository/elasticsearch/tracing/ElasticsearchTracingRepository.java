@@ -339,9 +339,15 @@ public class ElasticsearchTracingRepository implements TracingRepository {
         String rootOperation = textOrNull(rootSource.get("name"));
         long durationNanos = rootSource.path("duration").asLong(0L);
 
-        boolean hasError = bucket.path("error_count").path("doc_count").asLong(0L) > 0L;
+        long errorCount = bucket.path("error_count").path("doc_count").asLong(0L);
+        // Trace-level rollup: any ERROR span wins; else fall back to the root span's normalized status (OK / UNSET).
+        // Missing status on the root → UNSET, mirroring the per-span fallback in normalizeStatusCode.
+        String status = errorCount > 0L ? "ERROR" : statusOrUnset(normalizeStatusCode(rootSource));
+        // doc_count on a terms-agg bucket equals the number of documents (= spans) for that trace_id within the search
+        // window. Exposed to the caller so a listing row can render "N spans" without a second round-trip.
+        int spanCount = (int) bucket.path("doc_count").asLong(0L);
 
-        return new Trace(traceId, traceStart, durationNanos, rootService, rootOperation, hasError, List.of());
+        return new Trace(traceId, traceStart, durationNanos, rootService, rootOperation, status, spanCount, List.of());
     }
 
     private static Trace parseGetTraceResponse(String traceId, SearchResponse response) {
@@ -352,7 +358,7 @@ public class ElasticsearchTracingRepository implements TracingRepository {
         }
 
         List<TraceSpan> spans = new ArrayList<>(response.getSearchHits().getHits().size());
-        boolean hasError = false;
+        boolean anyError = false;
         TraceSpan rootSpan = null;
         for (SearchHit hit : response.getSearchHits().getHits()) {
             JsonNode source = hit.getSource();
@@ -365,7 +371,7 @@ public class ElasticsearchTracingRepository implements TracingRepository {
                 rootSpan = span;
             }
             if ("ERROR".equals(span.attributes().get(OTEL_STATUS_CODE_ATTR))) {
-                hasError = true;
+                anyError = true;
             }
         }
 
@@ -381,8 +387,15 @@ public class ElasticsearchTracingRepository implements TracingRepository {
         long durationNanos = rootSpan != null ? rootSpan.durationNanos() : 0L;
         String rootService = rootSpan != null ? rootSpan.serviceName() : null;
         String rootOperation = rootSpan != null ? rootSpan.operationName() : null;
+        // Same trace-level rollup as the list path: any ERROR span wins; else root span's status drives OK / UNSET.
+        String rootStatus = rootSpan != null ? rootSpan.attributes().get(OTEL_STATUS_CODE_ATTR) : null;
+        String status = anyError ? "ERROR" : statusOrUnset(rootStatus);
 
-        return new Trace(traceId, traceStart, durationNanos, rootService, rootOperation, hasError, spans);
+        return new Trace(traceId, traceStart, durationNanos, rootService, rootOperation, status, spans.size(), spans);
+    }
+
+    private static String statusOrUnset(String raw) {
+        return (raw == null || raw.isEmpty()) ? "UNSET" : raw;
     }
 
     private static TraceSpan parseSpan(JsonNode source) {

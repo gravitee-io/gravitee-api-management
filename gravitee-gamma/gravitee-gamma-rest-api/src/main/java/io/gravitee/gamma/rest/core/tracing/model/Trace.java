@@ -19,8 +19,13 @@ import java.time.Instant;
 
 /**
  * Summary view of a trace — what the listing endpoint returns. Carries just enough to render a row
- * (trace id, root span operation / service, duration, error flag, start time) without paying for the
- * full span tree. The detail endpoint switches to {@link TraceDetail} for the timeline view.
+ * (trace id, root span operation / service, duration, status, span count, start time) without paying
+ * for the full span tree. The detail endpoint switches to {@link TraceDetail} for the timeline view.
+ *
+ * <p>{@code status} is the trace-level rollup using the same {@link SpanStatus} vocabulary as per-span
+ * status — any span reporting {@link SpanStatus#ERROR} promotes the trace to {@link SpanStatus#ERROR},
+ * otherwise the root span's status drives the outcome. {@code spanCount} is the total number of spans
+ * recorded for the trace within the search window.
  *
  * @author GraviteeSource Team
  */
@@ -30,5 +35,6 @@ public record Trace(
     long durationNanos,
     String rootServiceName,
     String rootOperationName,
-    boolean hasError
+    SpanStatus status,
+    int spanCount
 ) {}
