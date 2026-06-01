@@ -84,7 +84,11 @@ export function NotificationsSection({
                 accessorKey: 'name',
                 header: 'Name',
                 ...NON_SORTABLE_COLUMN,
-                cell: ({ row }: ColCell<ApplicationNotificationRow>) => <span className="font-medium">{row.original.name}</span>,
+                cell: ({ row }: ColCell<ApplicationNotificationRow>) => (
+                    <span className="block truncate font-medium" title={row.original.name}>
+                        {row.original.name}
+                    </span>
+                ),
             },
             {
                 accessorKey: 'subscribedEvents',
