@@ -56,6 +56,7 @@ export function buildActionOptions(
         const attrs = e.attributes ?? {};
         const name = firstString(attrs._displayName, attrs.displayName, attrs.name) ?? e.uid.replace(/^mcptool\./, '');
         if (!name) continue;
+        // Action token keeps the raw tool name (must match the tool at runtime); the matching resource token in resource-options.ts uses the lowercased entity slug instead — this mismatch is intentional.
         const id = `Action::"${name}"`;
         if (seen.has(id)) continue;
         seen.add(id);

@@ -77,6 +77,7 @@ export function buildResourceOptions(
     for (const e of mcpToolRows) {
         const attrs = e.attributes ?? {};
         const slug = uidSlug(e.uid);
+        // Resource token uses the entity slug (catalog entityId suffix); the matching action token in action-options.ts keeps the raw tool name instead — this mismatch is intentional.
         const id = `MCPTool::"${slug}"`;
         if (seen.has(id)) continue;
         seen.add(id);
