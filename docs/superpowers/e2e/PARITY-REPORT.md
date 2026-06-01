@@ -150,6 +150,31 @@ cat docs/superpowers/e2e/parity-results.json | jq .
 > **API definition:** 6-flow `api-def.json` (single eval + batch + 3 search + discovery), atomic redeploy after PDP+PEP rebuild and gateway wipe-restart.
 > **Harness:** [`parity.py`](parity.py) `sync_wait=20s` (same as definitive run), now scoring 5 evaluation dimensions per scenario plus a one-shot discovery comparison.
 
+## Structural refactor — AuthZen split into dedicated policy
+
+After all functional work landed, the `authz-pep` plugin was carrying two
+semantically different roles in its `ResponseMode` enum:
+- `GUARD` — true PEP: intercepts request, asks PDP, allows/denies, forwards to upstream
+- `AUTHZEN*` — PDP REST exposure: every request short-circuits with an AuthZen response body
+
+To clean this up, AUTHZEN endpoint emitter logic was moved into a NEW dedicated plugin
+**`gravitee-policy-authz-pdp-authzen`** (id `authz-pdp-authzen`). The existing `authz-pep`
+retains its name and is now GUARD-only (the `ResponseMode` enum was dropped entirely;
+GUARD is implicit).
+
+| Plugin | Role | Discriminator |
+|---|---|---|
+| `authz-pep` | True PEP — per-request guard before upstream | none (GUARD implicit) |
+| `authz-pdp-authzen` | AuthZen 1.0 PDP REST exposure (loop-back, short-circuit) | `endpointType` enum: `EVALUATION` / `EVALUATIONS` / `SEARCH_SUBJECT` / `SEARCH_RESOURCE` / `SEARCH_ACTION` |
+
+Both plugins talk to the same `service-authz-pdp` over the same Vert.x EventBus —
+the split is purely on the HTTP-facing side. Helpers (`EvalWireBuilder`,
+`AuthZenResponseMapper`, `PdpEventBusAddresses`) are duplicated in both plugins
+(no shared lib — explicit user decision).
+
+Full parity sweep re-run after the split confirms **zero behavior regression** — same
+29/29 / 26/29 / 7/29 numbers as the unified version.
+
 ## TL;DR (after SearchHandler reactive fix + PDP schema-aware action enumeration + AuthZen action result shape)
 
 ```
