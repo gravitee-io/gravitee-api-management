@@ -15,10 +15,12 @@
  */
 
 import { each, keyBy, keys } from 'lodash';
+import { last } from 'rxjs/operators';
 
 import { ApiService } from '../../services/api.service';
 import ApplicationService from '../../services/application.service';
 import TenantService from '../../services/tenant.service';
+import { ApiV2Service } from '../../services-ngx/api-v2.service';
 import { CompareCondition, Metrics, Scope, StringCondition, ThresholdCondition, ThresholdRangeCondition, Tuple } from '../alert';
 import { gatewayErrorKeys } from '../gateway-error-keys/GatewayErrorKeys';
 
@@ -95,12 +97,15 @@ export class ApiMetrics extends Metrics {
       const apis: Tuple[] = [];
 
       if (type === 2) {
-        // PLATFORM: Search for all registered APIs
-        ($injector.get('ApiService') as ApiService).searchApis().then((result) => {
-          result.data.forEach((api) => {
-            apis.push(new Tuple(api.id, api.name));
+        // PLATFORM: Search for all registered APIs (v2 + v4)
+        ($injector.get('ngApiV2Service') as ApiV2Service)
+          .getAll()
+          .pipe(last())
+          .subscribe((result) => {
+            result.forEach((api) => {
+              apis.push(new Tuple(api.id, api.name));
+            });
           });
-        });
       } else if (type === 1) {
         // APPLICATION: Search for all subscribed APIs
         ($injector.get('ApplicationService') as ApplicationService).getSubscribedAPI(id).then((result) => {
