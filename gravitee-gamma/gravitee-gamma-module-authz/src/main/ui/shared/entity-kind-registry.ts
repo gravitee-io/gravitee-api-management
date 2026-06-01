@@ -29,6 +29,7 @@ export const ENTITY_KIND_REGISTRY: readonly EntityKindEntry[] = [
     { canonical: 'serviceaccount', uiType: 'ServiceAccount', aliases: ['service-account', 'service_account'] },
     { canonical: 'agent-identity', uiType: 'AgentIdentity', aliases: ['agentidentity'], policyType: 'AGENT' },
     { canonical: 'mcp', uiType: 'MCPServer', aliases: ['mcpserver'], policyType: 'MCP' },
+    { canonical: 'mcptool', uiType: 'MCPTool', policyType: 'MCP' },
     { canonical: 'model', uiType: 'Model', aliases: ['llm', 'llmmodel', 'llmroute'], policyType: 'MODEL' },
     { canonical: 'agent', uiType: 'Agent', aliases: ['a2a', 'a2aagent'], policyType: 'AGENT' },
     { canonical: 'api', uiType: 'API', policyType: 'API' },

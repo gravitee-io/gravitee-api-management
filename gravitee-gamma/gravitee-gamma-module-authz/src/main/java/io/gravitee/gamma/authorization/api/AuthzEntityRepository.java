@@ -60,6 +60,13 @@ public interface AuthzEntityRepository {
         return result;
     }
 
+    default List<AuthzEntity> findByParent(String environmentId, String parentEntityId) {
+        if (parentEntityId == null || parentEntityId.isBlank()) {
+            return List.of();
+        }
+        return findAll(environmentId).stream().filter(e -> e.parents().contains(parentEntityId)).toList();
+    }
+
     default List<AuthzEntity> findByAnyEntityIdPrefix(String environmentId, Collection<String> prefixes) {
         if (prefixes == null || prefixes.isEmpty()) {
             return List.of();

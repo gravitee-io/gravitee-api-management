@@ -381,6 +381,9 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
         for (AuthzEntity e : entityRepository.findByAnyEntityIdPrefix(environmentId, prefixes)) {
             result.putIfAbsent(e.entityId(), e);
         }
+        for (AuthzEntity e : entityRepository.findByParent(environmentId, entityId)) {
+            result.putIfAbsent(e.entityId(), e);
+        }
         return result;
     }
 

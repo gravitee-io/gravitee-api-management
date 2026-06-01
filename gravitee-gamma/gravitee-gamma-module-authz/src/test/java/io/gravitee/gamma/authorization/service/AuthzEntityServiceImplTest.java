@@ -328,6 +328,53 @@ class AuthzEntityServiceImplTest {
         assertThat(result.totalAffected()).isZero();
     }
 
+    @Test
+    void delete_cascades_to_tools_linked_by_parents_even_outside_the_entityId_prefix() {
+        entityService.upsert(CALLER, create("mcp.filesystem", AuthzEntityKind.RESOURCE, "gravitee-catalog"));
+        entityService.upsert(
+            CALLER,
+            new CreateOrReplaceAuthzEntityCommand(
+                ENV,
+                "mcptool.read_file",
+                AuthzEntityKind.RESOURCE,
+                Map.of(),
+                List.of("mcp.filesystem"),
+                "gravitee-catalog"
+            )
+        );
+        entityService.upsert(
+            CALLER,
+            new CreateOrReplaceAuthzEntityCommand(
+                ENV,
+                "mcptool.write_file",
+                AuthzEntityKind.RESOURCE,
+                Map.of(),
+                List.of("mcp.filesystem"),
+                "gravitee-catalog"
+            )
+        );
+        entityService.upsert(
+            CALLER,
+            new CreateOrReplaceAuthzEntityCommand(
+                ENV,
+                "mcptool.list_repos",
+                AuthzEntityKind.RESOURCE,
+                Map.of(),
+                List.of("mcp.github"),
+                "gravitee-catalog"
+            )
+        );
+
+        AuthzCascadeResult result = entityService.delete(CALLER, "mcp.filesystem");
+
+        assertThat(result.deletedEntityIds()).containsExactlyInAnyOrder(
+            "mcp.filesystem",
+            "mcptool.read_file",
+            "mcptool.write_file"
+        );
+        assertThat(entityRepository.findByEntityId(ENV, "mcptool.list_repos")).isPresent();
+    }
+
     private static CreateOrReplaceAuthzEntityCommand create(String entityId, AuthzEntityKind kind, String source) {
         return new CreateOrReplaceAuthzEntityCommand(ENV, entityId, kind, Map.of(), List.of(), source);
     }
