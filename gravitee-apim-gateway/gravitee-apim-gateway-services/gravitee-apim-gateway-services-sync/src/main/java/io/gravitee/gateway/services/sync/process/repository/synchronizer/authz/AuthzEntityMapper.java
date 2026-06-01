@@ -43,8 +43,9 @@ public class AuthzEntityMapper {
                 AuthzEntityReactorDeployable.Kind kind = toGatewayKind(wire.getKind());
                 return AuthzEntityReactorDeployable.builder()
                     .entityId(wire.getEntityId())
-                    .engineUid(toEngineUid(kind, wire.getEntityId()))
+                    .engineUid(toEngineUid(kind, wire.getEntityType(), wire.getEntityId()))
                     .kind(kind)
+                    .entityType(wire.getEntityType())
                     .attributes(wire.getAttributes())
                     .parents(wire.getParents())
                     .syncAction(SyncAction.DEPLOY)
@@ -71,8 +72,9 @@ public class AuthzEntityMapper {
                     : AuthzEntityReactorDeployable.Kind.RESOURCE;
                 return AuthzEntityReactorDeployable.builder()
                     .entityId(wire.getEntityId())
-                    .engineUid(toEngineUid(kind, wire.getEntityId()))
+                    .engineUid(toEngineUid(kind, wire.getEntityType(), wire.getEntityId()))
                     .kind(kind)
+                    .entityType(wire.getEntityType())
                     .syncAction(SyncAction.UNDEPLOY)
                     .build();
             } catch (Exception e) {
@@ -86,7 +88,20 @@ public class AuthzEntityMapper {
         return AuthzEntityReactorDeployable.Kind.valueOf(wireKind.name());
     }
 
-    static String toEngineUid(AuthzEntityReactorDeployable.Kind kind, String entityId) {
+    /**
+     * Build the engine UID emitted to the PDP:
+     * <ul>
+     *   <li>If the wire carries an explicit {@code entityType} (post typed-entity-type rollout)
+     *       — use it verbatim so Cedar policies like {@code principal == User::"alice"} match
+     *       the entity in the snapshot.</li>
+     *   <li>Otherwise (legacy publisher) — fall back to the kind default
+     *       ({@code Principal::"<id>"} / {@code Resource::"<id>"}).</li>
+     * </ul>
+     */
+    static String toEngineUid(AuthzEntityReactorDeployable.Kind kind, String entityType, String entityId) {
+        if (entityType != null && !entityType.isBlank()) {
+            return entityType + "::\"" + entityId + "\"";
+        }
         if (kind == AuthzEntityReactorDeployable.Kind.PRINCIPAL) {
             return ENGINE_TYPE_PRINCIPAL + "::\"" + entityId + "\"";
         }

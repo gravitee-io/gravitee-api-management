@@ -146,13 +146,21 @@ class AuthzEntityMapperTest {
     }
 
     @Test
-    void toEngineUid_static_helper_quotes_entityId_safely() {
-        assertThat(AuthzEntityMapper.toEngineUid(AuthzEntityReactorDeployable.Kind.RESOURCE, "api.bookings")).isEqualTo(
+    void toEngineUid_falls_back_to_kind_default_when_entityType_is_null_or_blank() {
+        assertThat(AuthzEntityMapper.toEngineUid(AuthzEntityReactorDeployable.Kind.RESOURCE, null, "api.bookings")).isEqualTo(
             "Resource::\"api.bookings\""
         );
-        assertThat(AuthzEntityMapper.toEngineUid(AuthzEntityReactorDeployable.Kind.PRINCIPAL, "idp.am.alice")).isEqualTo(
+        assertThat(AuthzEntityMapper.toEngineUid(AuthzEntityReactorDeployable.Kind.PRINCIPAL, "", "idp.am.alice")).isEqualTo(
             "Principal::\"idp.am.alice\""
         );
+    }
+
+    @Test
+    void toEngineUid_uses_explicit_entityType_when_present() {
+        assertThat(AuthzEntityMapper.toEngineUid(AuthzEntityReactorDeployable.Kind.PRINCIPAL, "User", "alice")).isEqualTo(
+            "User::\"alice\""
+        );
+        assertThat(AuthzEntityMapper.toEngineUid(AuthzEntityReactorDeployable.Kind.RESOURCE, "Doc", "doc-1")).isEqualTo("Doc::\"doc-1\"");
     }
 
     private static Event event(String id, String payload) {

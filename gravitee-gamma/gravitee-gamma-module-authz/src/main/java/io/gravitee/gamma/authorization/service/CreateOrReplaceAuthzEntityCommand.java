@@ -26,13 +26,45 @@ public record CreateOrReplaceAuthzEntityCommand(
     @NotBlank String environmentId,
     @NotBlank String entityId,
     @NotNull AuthzEntityKind kind,
+    String entityType,
     Map<String, Object> attributes,
     List<String> parents,
     @NotBlank String source
 ) {
     public CreateOrReplaceAuthzEntityCommand {
-        AuthzValidators.validateCtor(CreateOrReplaceAuthzEntityCommand.class, environmentId, entityId, kind, attributes, parents, source);
+        // Backwards-compatible: legacy callers (no entityType) fall back to the kind-default.
+        // Done before validate so the value seen by hibernate-validator matches the canonical
+        // constructor parameter list.
+        if (entityType == null || entityType.isBlank()) {
+            entityType = kind != null ? kind.defaultEntityType() : null;
+        }
+        AuthzValidators.validateCtor(
+            CreateOrReplaceAuthzEntityCommand.class,
+            environmentId,
+            entityId,
+            kind,
+            entityType,
+            attributes,
+            parents,
+            source
+        );
         attributes = Map.copyOf(attributes);
         parents = List.copyOf(parents);
+    }
+
+    /**
+     * Legacy 6-arg constructor for callers that pre-date the typed entityType rollout.
+     * Delegates to the canonical constructor with a null {@code entityType}, which is then
+     * normalised to the kind-default by the compact constructor.
+     */
+    public CreateOrReplaceAuthzEntityCommand(
+        String environmentId,
+        String entityId,
+        AuthzEntityKind kind,
+        Map<String, Object> attributes,
+        List<String> parents,
+        String source
+    ) {
+        this(environmentId, entityId, kind, null, attributes, parents, source);
     }
 }

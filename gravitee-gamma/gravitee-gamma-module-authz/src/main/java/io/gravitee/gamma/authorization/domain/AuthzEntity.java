@@ -32,6 +32,7 @@ public record AuthzEntity(
     @Pattern(regexp = AuthzEntityIdConstants.FORMAT_REGEX)
     String entityId,
     @NotNull AuthzEntityKind kind,
+    @NotBlank String entityType,
     @NotNull Map<String, Object> attributes,
     @NotNull List<String> parents,
     @NotBlank String source,
@@ -40,11 +41,17 @@ public record AuthzEntity(
     @NotNull Instant updatedAt
 ) {
     public AuthzEntity {
+        // Backwards-compat: pre-typed-entityType rows persisted with a null entityType column
+        // are normalised to the kind-default on read so older snapshots keep flowing through.
+        if ((entityType == null || entityType.isBlank()) && kind != null) {
+            entityType = kind.defaultEntityType();
+        }
         AuthzValidators.validateCtor(
             AuthzEntity.class,
             id,
             entityId,
             kind,
+            entityType,
             attributes,
             parents,
             source,
@@ -54,5 +61,24 @@ public record AuthzEntity(
         );
         attributes = Map.copyOf(attributes);
         parents = List.copyOf(parents);
+    }
+
+    /**
+     * Legacy 9-arg constructor for callers that pre-date the typed entityType rollout.
+     * Delegates with null {@code entityType}, normalised to the kind-default by the compact
+     * constructor.
+     */
+    public AuthzEntity(
+        String id,
+        String entityId,
+        AuthzEntityKind kind,
+        Map<String, Object> attributes,
+        List<String> parents,
+        String source,
+        String environmentId,
+        Instant createdAt,
+        Instant updatedAt
+    ) {
+        this(id, entityId, kind, null, attributes, parents, source, environmentId, createdAt, updatedAt);
     }
 }

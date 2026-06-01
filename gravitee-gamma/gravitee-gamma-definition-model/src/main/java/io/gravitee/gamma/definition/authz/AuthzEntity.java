@@ -52,6 +52,12 @@ public class AuthzEntity implements Serializable {
     @NotNull
     private AuthzEntityKind kind;
 
+    /** Engine type name (e.g. {@code "User"}, {@code "Doc"}). Optional on the wire so that
+     *  older publishers stay compatible — when null the gateway falls back to the kind-default
+     *  ({@code "Principal"} / {@code "Resource"}). */
+    @JsonProperty
+    private String entityType;
+
     @JsonProperty
     private Map<String, Object> attributes;
 

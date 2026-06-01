@@ -27,6 +27,7 @@ public record AuthzEntityMongo(
     @Id String id,
     String entityId,
     AuthzEntityKind kind,
+    String entityType,
     Map<String, Object> attributes,
     List<String> parents,
     String source,

@@ -26,6 +26,7 @@ public final class AuthzEntityDocumentMapper {
             entity.id(),
             entity.entityId(),
             entity.kind(),
+            entity.entityType(),
             entity.attributes(),
             entity.parents(),
             entity.source(),
@@ -36,10 +37,14 @@ public final class AuthzEntityDocumentMapper {
     }
 
     public static AuthzEntity toDomain(AuthzEntityMongo doc) {
+        // entityType may be null on rows persisted before the typed-entity-type rollout — the
+        // AuthzEntity compact constructor normalises that null to the kind-default, so old
+        // documents transparently surface as Principal::"<id>" / Resource::"<id>".
         return new AuthzEntity(
             doc.id(),
             doc.entityId(),
             doc.kind(),
+            doc.entityType(),
             doc.attributes() != null ? doc.attributes() : java.util.Map.of(),
             doc.parents() != null ? doc.parents() : java.util.List.of(),
             doc.source(),

@@ -87,6 +87,7 @@ public class AuthzEntitiesResource {
                     caller.environmentId(),
                     request.entityId(),
                     request.kind(),
+                    request.entityType(),
                     request.attributes(),
                     request.parents(),
                     request.source()
