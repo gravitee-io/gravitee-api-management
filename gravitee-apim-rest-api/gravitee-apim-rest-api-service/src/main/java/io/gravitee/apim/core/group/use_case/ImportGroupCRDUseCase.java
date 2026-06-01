@@ -17,7 +17,7 @@ package io.gravitee.apim.core.group.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.group.crud_service.GroupCrudService;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupCRDDomainService;
 import io.gravitee.apim.core.group.model.crd.GroupCRDSpec;
@@ -65,11 +65,16 @@ public class ImportGroupCRDUseCase {
         validationResult
             .severe()
             .ifPresent(errors -> {
-                throw new TechnicalDomainException(errors.iterator().next().getMessage());
+                throw new ValidationDomainException(
+                    String.format(
+                        "Unable to import because of errors [%s]",
+                        String.join(",", errors.stream().map(Validator.Error::getMessage).toList())
+                    )
+                );
             });
 
         var warnings = validationResult.warning().orElseGet(List::of);
-        var sanitizedInput = validationResult.value().orElseThrow(() -> new TechnicalDomainException("Unable to sanitize CRD spec"));
+        var sanitizedInput = validationResult.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize CRD spec"));
 
         var status = queryService
             .findById(sanitizedInput.spec.getId())
