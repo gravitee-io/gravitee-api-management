@@ -449,7 +449,7 @@ export function ApplicationUserPermissionsPage() {
                 onClose={() => setTransferOpen(false)}
                 onTransfer={payload =>
                     transferMutation.mutate(payload, {
-                        onSuccess: () => notify.success('Transfer ownership done.'),
+                        onSuccess: () => notify.success('Ownership transferred successfully.'),
                         onError: error => notify.error(error),
                     })
                 }

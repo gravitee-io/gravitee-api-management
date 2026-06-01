@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Badge, cn } from '@gravitee/graphene-core';
+import { Badge, Button, cn } from '@gravitee/graphene-core';
 import { CircleCheckIcon } from '@gravitee/graphene-core/icons';
 
 import type { ApplicationTypeConfig } from '../../types/applicationCreate';
@@ -48,15 +48,17 @@ export function GrantTypeChips({ typeConfig, values, onChange, disabled, lockMan
                 const isLockedMandatory = lockMandatoryGrantTypes && isMandatory && isActive;
 
                 return (
-                    <button
+                    <Button
                         key={grantType.type}
                         type="button"
+                        variant={isActive ? 'default' : 'outline'}
+                        size="sm"
                         disabled={disabled || isLockedMandatory}
                         aria-pressed={isActive}
                         onClick={() => toggle(grantType.type)}
                         className={cn(
-                            'inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50',
-                            isActive ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:bg-accent/50',
+                            'h-auto gap-1.5 px-3 py-2 font-normal',
+                            isActive && 'border-primary bg-primary/10 text-primary hover:bg-primary/15',
                         )}
                     >
                         {isActive && <CircleCheckIcon className="size-3.5" aria-hidden />}
@@ -66,7 +68,7 @@ export function GrantTypeChips({ typeConfig, values, onChange, disabled, lockMan
                                 Mandatory
                             </Badge>
                         ) : null}
-                    </button>
+                    </Button>
                 );
             })}
         </div>

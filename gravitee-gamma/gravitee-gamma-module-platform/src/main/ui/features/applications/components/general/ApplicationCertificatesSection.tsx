@@ -213,10 +213,10 @@ export function ApplicationCertificatesSection({
             },
             {
                 onSuccess: () => {
-                    notify.success(`Certificate "${certName}" has been deleted.`);
+                    notify.success(`Certificate "${certName}" has been revoked.`);
                     setRevokeCert(null);
                 },
-                onError: error => notify.error(error, 'Failed to delete certificate.'),
+                onError: error => notify.error(error, 'Failed to revoke certificate.'),
             },
         );
     };

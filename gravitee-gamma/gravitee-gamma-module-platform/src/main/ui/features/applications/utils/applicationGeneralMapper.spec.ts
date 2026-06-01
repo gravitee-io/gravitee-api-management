@@ -17,7 +17,10 @@ import {
     buildUpdatePayload,
     formFromApplication,
     hasApplicationGeneralValidationErrors,
+    isApplicationDetailsSectionDirty,
     isApplicationGeneralFormDirty,
+    isApplicationOAuthSectionDirty,
+    validateApplicationDetailsSection,
     validateApplicationGeneralForm,
 } from './applicationGeneralMapper';
 import { APPLICATION_TYPES_FIXTURE } from '../fixtures/applicationTypes.fixture';
@@ -129,6 +132,31 @@ describe('applicationGeneralMapper', () => {
         });
 
         expect(errors.additionalClientMetadata).toBe('Keys must be unique');
+    });
+
+    it('validates details section without OAuth grant type rules', () => {
+        const form = formFromApplication({
+            ...baseApplication,
+            type: 'WEB',
+            settings: { oauth: { client_id: 'id', grant_types: [] } },
+        });
+
+        const errors = validateApplicationDetailsSection(form);
+
+        expect(errors.grantTypes).toBeUndefined();
+        expect(errors.name).toBeUndefined();
+    });
+
+    it('detects details-only vs OAuth dirty sections', () => {
+        const saved = formFromApplication({
+            ...baseApplication,
+            type: 'WEB',
+            settings: { oauth: { client_id: 'id', grant_types: ['authorization_code'] } },
+        });
+
+        expect(isApplicationDetailsSectionDirty({ ...saved, name: 'Renamed' }, saved)).toBe(true);
+        expect(isApplicationOAuthSectionDirty({ ...saved, name: 'Renamed' }, saved, false)).toBe(false);
+        expect(isApplicationOAuthSectionDirty({ ...saved, grantTypes: [] }, saved, false)).toBe(true);
     });
 
     it('detects dirty state with explicit field comparison', () => {

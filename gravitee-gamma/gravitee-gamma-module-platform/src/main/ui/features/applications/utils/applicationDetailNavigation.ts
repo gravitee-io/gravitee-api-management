@@ -13,11 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { resolveListHrefFromDetailBasePath } from './useDetailBasePath';
 
-describe('resolveListHrefFromDetailBasePath', () => {
-    it('strips the trailing resource id segment', () => {
-        expect(resolveListHrefFromDetailBasePath('/applications/app-1')).toBe('/applications');
-        expect(resolveListHrefFromDetailBasePath('/org/env/applications/app-1')).toBe('/org/env/applications');
-    });
-});
+/** Router location state after registering a new application. */
+export interface ApplicationDetailLocationState {
+    readonly applicationCreated?: boolean;
+}
+
+export function applicationCreatedNavigationState(): ApplicationDetailLocationState {
+    return { applicationCreated: true };
+}
+
+export function isApplicationCreatedNavigationState(state: unknown): state is ApplicationDetailLocationState {
+    return typeof state === 'object' && state !== null && (state as ApplicationDetailLocationState).applicationCreated === true;
+}

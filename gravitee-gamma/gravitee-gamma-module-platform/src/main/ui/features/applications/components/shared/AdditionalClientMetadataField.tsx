@@ -95,9 +95,11 @@ export function AdditionalClientMetadataField({
         setRows(withTrailing);
         onDuplicateKeysChange?.(hasDuplicateKeys);
 
-        const nextValue = rowsToAdditionalClientMetadata(withTrailing);
-        lastEmittedValueRef.current = nextValue;
-        onChange(nextValue);
+        if (!hasDuplicateKeys) {
+            const nextValue = rowsToAdditionalClientMetadata(withTrailing);
+            lastEmittedValueRef.current = nextValue;
+            onChange(nextValue);
+        }
     };
 
     const handleRowChange = (rowId: string, field: 'key' | 'value', fieldValue: string) => {

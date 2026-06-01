@@ -97,7 +97,7 @@ describe('RegisterApplicationForm', () => {
         mutationOptions.onSuccess?.({ id: 'app-new' });
 
         expect(mockNotify.success).toHaveBeenCalledWith('Application created');
-        expect(mockNavigate).toHaveBeenCalledWith('../app-new/general');
+        expect(mockNavigate).toHaveBeenCalledWith('../app-new/general', { state: { applicationCreated: true } });
     });
 
     it('shows an error toast when create fails', () => {

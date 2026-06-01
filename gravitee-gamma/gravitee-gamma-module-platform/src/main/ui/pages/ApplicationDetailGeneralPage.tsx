@@ -14,12 +14,27 @@
  * limitations under the License.
  */
 import { Skeleton } from '@gravitee/graphene-core';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
+import { ApplicationCreatedBanner } from '../features/applications/components/general/ApplicationCreatedBanner';
 import { ApplicationGeneralContent } from '../features/applications/components/general/ApplicationGeneralContent';
 import { useApplicationDetailContext } from '../features/applications/context/ApplicationDetailContext';
+import { isApplicationCreatedNavigationState } from '../features/applications/utils/applicationDetailNavigation';
 
 export function ApplicationDetailGeneralPage() {
     const { application, isLoading } = useApplicationDetailContext();
+    const location = useLocation();
+    const navigate = useNavigate();
+    const [showCreatedBanner, setShowCreatedBanner] = useState(() => isApplicationCreatedNavigationState(location.state));
+
+    useEffect(() => {
+        if (!isApplicationCreatedNavigationState(location.state)) {
+            return;
+        }
+        setShowCreatedBanner(true);
+        navigate(location.pathname, { replace: true, state: null });
+    }, [location.pathname, location.state, navigate]);
 
     if (isLoading) {
         return (
@@ -36,6 +51,7 @@ export function ApplicationDetailGeneralPage() {
 
     return (
         <div className="space-y-6">
+            {showCreatedBanner ? <ApplicationCreatedBanner /> : null}
             <ApplicationGeneralContent application={application} />
         </div>
     );

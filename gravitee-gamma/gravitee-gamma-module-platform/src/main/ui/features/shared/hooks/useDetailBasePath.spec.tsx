@@ -17,7 +17,7 @@ import { renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
-import { useDetailBasePath } from './useDetailBasePath';
+import { resolveListHrefFromDetailBasePath, useDetailBasePath } from './useDetailBasePath';
 
 describe('useDetailBasePath', () => {
     function hookAt(path: string, id = 'app-1') {
@@ -36,5 +36,12 @@ describe('useDetailBasePath', () => {
 
     it('handles an MF host prefix — extracts only up to /applications/{id}', () => {
         expect(hookAt('/org/env/platform/applications/app-1/general')).toBe('/org/env/platform/applications/app-1');
+    });
+});
+
+describe('resolveListHrefFromDetailBasePath', () => {
+    it('strips the trailing resource id segment', () => {
+        expect(resolveListHrefFromDetailBasePath('/applications/app-1')).toBe('/applications');
+        expect(resolveListHrefFromDetailBasePath('/org/env/applications/app-1')).toBe('/org/env/applications');
     });
 });
