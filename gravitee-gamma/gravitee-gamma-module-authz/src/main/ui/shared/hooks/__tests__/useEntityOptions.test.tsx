@@ -159,6 +159,26 @@ describe('useEntityOptions', () => {
         expect(items[1].textContent).toBe('Principal::"api-gateway"');
     });
 
+    it('recovers the specific type for bare-id principals from the _kind hint', async () => {
+        listEntitiesSpy.mockImplementation((_env: string, params: { kind?: string } = {}) => {
+            if (params.kind === 'PRINCIPAL') {
+                return Promise.resolve(paged([entity('bob', { _kind: 'user' }), entity('ci', { _kind: 'serviceaccount' })]));
+            }
+            return Promise.resolve(paged([]));
+        });
+
+        const { getByTestId } = render(<Probe env="env-1" opts={{ typeFilter: ['User', 'ServiceAccount'] }} />, {
+            wrapper: makeWrapper(),
+        });
+
+        await waitFor(() => expect(getByTestId('count').textContent).toBe('2'));
+        const items = getByTestId('options').querySelectorAll('li');
+        expect(items[0].getAttribute('data-group')).toBe('User');
+        expect(items[0].textContent).toBe('User::"bob"');
+        expect(items[1].getAttribute('data-group')).toBe('ServiceAccount');
+        expect(items[1].textContent).toBe('ServiceAccount::"ci"');
+    });
+
     it('sets error when total exceeds page size and still returns the loaded slice', async () => {
         const data = Array.from({ length: 200 }, (_, i) => entity(`User::"u${i}"`));
         listEntitiesSpy.mockResolvedValue(paged(data, 503));

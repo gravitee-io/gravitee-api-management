@@ -17,8 +17,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { PolicyResponse, PolicyStatus } from '../../../shared/api/authz-api.types';
-import { ServicePolicyPage, type ServicePageConfig } from '../ServicePolicyPage';
+import type { EntityResponse, PolicyResponse, PolicyStatus } from '../../../shared/api/authz-api.types';
+import { buildServiceResourceOptions, ServicePolicyPage, type ServicePageConfig } from '../ServicePolicyPage';
 
 // jsdom doesn't implement scrollIntoView; Radix Select calls it on item activation.
 beforeAll(() => {
@@ -157,5 +157,60 @@ describe('ServicePolicyPage', () => {
 
         await waitFor(() => expect(listPoliciesSpy).toHaveBeenCalled());
         expect(screen.queryByLabelText('Unique targets')).not.toBeInTheDocument();
+    });
+});
+
+function resourceEntity(uid: string, attributes: Record<string, unknown> = {}): EntityResponse {
+    return {
+        id: `id-${uid}`,
+        environmentId: 'DEFAULT',
+        uid,
+        attributes,
+        parents: [],
+        createdAt: new Date(0).toISOString(),
+        updatedAt: new Date(0).toISOString(),
+    };
+}
+
+describe('buildServiceResourceOptions', () => {
+    it('excludes api/mcp/model/llm/action prefixes for custom policies', () => {
+        const entities = [
+            resourceEntity('api.orders'),
+            resourceEntity('mcp.files'),
+            resourceEntity('model.gpt'),
+            resourceEntity('llm.claude'),
+            resourceEntity('action.read'),
+            resourceEntity('document.contract'),
+        ];
+
+        const options = buildServiceResourceOptions(entities, { hasTarget: false, type: 'CUSTOM' });
+
+        expect(options.map(o => o.id)).toEqual(['Resource::"contract"']);
+        expect(options[0].group).toBe('Resource');
+        expect(options[0].label).toBe('contract');
+    });
+
+    it('keeps bare-id resources for custom policies', () => {
+        const entities = [resourceEntity('inventory'), resourceEntity('api.orders')];
+
+        const options = buildServiceResourceOptions(entities, { hasTarget: false, type: 'CUSTOM' });
+
+        expect(options).toHaveLength(1);
+        expect(options[0].id).toBe('Resource::"inventory"');
+        expect(options[0].group).toBe('Resource');
+    });
+
+    it('scopes to the service prefix and groups by segment for targeted policies', () => {
+        const entities = [
+            resourceEntity('mcp.files', { displayName: 'Files MCP' }),
+            resourceEntity('mcp.search'),
+            resourceEntity('api.orders'),
+        ];
+
+        const options = buildServiceResourceOptions(entities, { hasTarget: true, type: 'MCP' });
+
+        expect(options.map(o => o.id)).toEqual(['MCP::"files"', 'MCP::"search"']);
+        expect(options.every(o => o.group === 'MCP')).toBe(true);
+        expect(options[0].label).toBe('Files MCP');
     });
 });

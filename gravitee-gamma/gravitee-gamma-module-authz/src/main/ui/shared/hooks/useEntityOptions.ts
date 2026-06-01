@@ -20,6 +20,7 @@ import type { EntityResponse } from '../api/authz-api.types';
 import { authzQueryKeys } from '../api/query-keys';
 import type { ChipOption } from '../chip-option';
 import { parseEntityUid } from '../entity-adapter';
+import { kindToUiType } from '../entity-kind-registry';
 
 export interface UseEntityOptionsResult {
     readonly options: readonly ChipOption[];
@@ -40,9 +41,10 @@ const PER_PAGE = 200;
 const PRINCIPAL_UI_TYPES = new Set(['User', 'Group', 'ServiceAccount', 'AgentIdentity']);
 
 // Umbrella group for entities the server already scoped by kind but whose uid
-// carries no recognizable `<kind>.<id>` prefix (e.g. parity-imported principals
-// stored as bare ids like `alice`). Maps to the canonical GAPL entity type so
-// the emitted token (`Principal::"alice"`) stays schema-valid.
+// carries no recognizable `<kind>.<id>` prefix and no `_kind` hint (e.g.
+// parity-imported principals stored as bare ids like `alice`). Maps to the
+// canonical GAPL entity type so the emitted token (`Principal::"alice"`) stays
+// schema-valid.
 const KIND_FALLBACK_GROUP: Record<EntityKindFilter, string> = { PRINCIPAL: 'Principal', RESOURCE: 'Resource' };
 
 function resolveKind(typeFilter: readonly string[] | undefined): EntityKindFilter | undefined {
@@ -66,7 +68,9 @@ function summarizeAttributes(attrs: Record<string, unknown>): string | undefined
 
 function toChipOption(entity: EntityResponse, fallbackGroup?: string): ChipOption {
     const { type, id } = parseEntityUid(entity.uid);
-    const group = type === 'Unknown' && fallbackGroup ? fallbackGroup : type;
+    // Bare ids parse to `Unknown`; recover the specific type from the `_kind`
+    // hint (as fromBackend does) before dropping to the kind umbrella group.
+    const group = type !== 'Unknown' ? type : (kindToUiType(entity.attributes['_kind']) ?? fallbackGroup ?? type);
     return {
         id: `${group}::"${id}"`,
         label: id,

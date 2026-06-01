@@ -40,7 +40,7 @@ import { PlusIcon, RefreshCwIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useDeferredValue, useMemo, useState } from 'react';
 import { KpiTile } from '../../components/KpiTile';
 import { ValidationErrorAlert } from '../../components/ValidationErrorAlert';
-import type { PolicyRequest, PolicyResponse, PolicyStatus, PolicyType } from '../../shared/api/authz-api.types';
+import type { EntityResponse, PolicyRequest, PolicyResponse, PolicyStatus, PolicyType } from '../../shared/api/authz-api.types';
 import type { ChipOption } from '../../shared/chip-option';
 import { parseGaplSchema } from '../../shared/gapl-parser';
 import { useEntities } from '../../shared/hooks/useEntities';
@@ -96,6 +96,41 @@ const DEFAULT_RESOURCE_GROUPS: readonly { key: string; label: string }[] = [
 // (API / MCP / Model) and never the Action picker. Resources carrying these
 // prefixes are excluded from the custom resource picker.
 const CUSTOM_RESOURCE_EXCLUDED_PREFIXES = new Set(['api', 'mcp', 'model', 'llm', 'action']);
+
+export function buildServiceResourceOptions(
+    entities: readonly EntityResponse[],
+    config: { readonly hasTarget: boolean; readonly type: PolicyType },
+): readonly ChipOption[] {
+    const items: ChipOption[] = [];
+    const typePrefix = config.type.toLowerCase();
+    for (const e of entities) {
+        const attrs = e.attributes ?? {};
+        const firstSeg = e.uid.includes('.') ? e.uid.slice(0, e.uid.indexOf('.')).toLowerCase() : '';
+        if (config.hasTarget && firstSeg !== typePrefix) continue;
+        if (!config.hasTarget && CUSTOM_RESOURCE_EXCLUDED_PREFIXES.has(firstSeg)) continue;
+        const labelForUid = e.uid.includes('.') ? e.uid.slice(e.uid.indexOf('.') + 1) : e.uid;
+        const label =
+            typeof attrs.displayName === 'string' && attrs.displayName
+                ? (attrs.displayName as string)
+                : typeof attrs.name === 'string' && attrs.name
+                  ? (attrs.name as string)
+                  : labelForUid;
+        const group =
+            firstSeg === 'mcp'
+                ? 'MCP'
+                : firstSeg === 'model' || firstSeg === 'llm'
+                  ? 'Model'
+                  : firstSeg === 'agent'
+                    ? 'Agent'
+                    : firstSeg === 'api'
+                      ? 'API'
+                      : 'Resource';
+        const description = typeof attrs.description === 'string' ? (attrs.description as string) : undefined;
+        items.push({ id: `${group}::"${labelForUid}"`, label, group, description });
+    }
+    items.sort((a, b) => (a.group === b.group ? a.label.localeCompare(b.label) : a.group.localeCompare(b.group)));
+    return items;
+}
 
 export function ServicePolicyPage({ config }: { readonly config: ServicePageConfig }) {
     const env = useEnvironment();
@@ -209,42 +244,10 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
         return 'No principals available. Add Users, Groups, Service Accounts or Agent Identities under Policy Structure → Entities.';
     }, [principalOptions.length]);
 
-    const serviceResourceOptions = useMemo((): readonly ChipOption[] => {
-        // catalogEntities is already scoped server-side to this service prefix
-        // (kind=RESOURCE + entityIdPrefix=<type>.) — no need to re-filter out
-        // principals or other service types here.
-        const items: ChipOption[] = [];
-        const typePrefix = config.type.toLowerCase();
-        for (const e of catalogEntities.data?.data ?? []) {
-            const attrs = e.attributes ?? {};
-            const firstSeg = e.uid.includes('.') ? e.uid.slice(0, e.uid.indexOf('.')).toLowerCase() : '';
-            if (config.hasTarget && firstSeg !== typePrefix) continue;
-            if (!config.hasTarget && CUSTOM_RESOURCE_EXCLUDED_PREFIXES.has(firstSeg)) continue;
-            const label =
-                typeof attrs.displayName === 'string' && attrs.displayName
-                    ? (attrs.displayName as string)
-                    : typeof attrs.name === 'string' && attrs.name
-                      ? (attrs.name as string)
-                      : e.uid.includes('.')
-                        ? e.uid.slice(e.uid.indexOf('.') + 1)
-                        : e.uid;
-            const group =
-                firstSeg === 'mcp'
-                    ? 'MCP'
-                    : firstSeg === 'model' || firstSeg === 'llm'
-                      ? 'Model'
-                      : firstSeg === 'agent'
-                        ? 'Agent'
-                        : firstSeg === 'api'
-                          ? 'API'
-                          : 'Resource';
-            const description = typeof attrs.description === 'string' ? (attrs.description as string) : undefined;
-            const labelForUid = e.uid.includes('.') ? e.uid.slice(e.uid.indexOf('.') + 1) : e.uid;
-            items.push({ id: `${group}::"${labelForUid}"`, label, group, description });
-        }
-        items.sort((a, b) => (a.group === b.group ? a.label.localeCompare(b.label) : a.group.localeCompare(b.group)));
-        return items;
-    }, [config.hasTarget, config.type, catalogEntities.data]);
+    const serviceResourceOptions = useMemo(
+        () => buildServiceResourceOptions(catalogEntities.data?.data ?? [], { hasTarget: config.hasTarget, type: config.type }),
+        [config.hasTarget, config.type, catalogEntities.data],
+    );
 
     const effectiveConfig = useMemo<ServicePageConfig>(
         () => ({
