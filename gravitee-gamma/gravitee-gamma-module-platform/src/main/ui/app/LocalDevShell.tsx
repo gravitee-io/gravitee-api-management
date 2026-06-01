@@ -16,12 +16,13 @@
 import { AppLayout, AppSidebar, ContentHeader, useLayoutSlots } from '@gravitee/graphene-core';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-/** Minimal app chrome for standalone `nx serve` only; the host provides the real shell when federated. */
-export function LocalDevShell({ children }: { readonly children: ReactNode }) {
+/** Minimal app chrome for standalone nx serve only; the host provides the real shell when federated. */ export function LocalDevShell({
+    children,
+}: {
+    readonly children: ReactNode;
+}) {
     const { slots } = useLayoutSlots();
     const navigate = useNavigate();
-
     return (
         <AppLayout
             defaultSidebarMode="hover-expand"
@@ -30,7 +31,8 @@ export function LocalDevShell({ children }: { readonly children: ReactNode }) {
             sidebar={<AppSidebar onLogoClick={() => navigate('/')} renderNavigation={() => slots.navigation} />}
             subheader={<ContentHeader breadcrumbs={slots.breadcrumbs} />}
         >
-            {children}
+            {' '}
+            {children}{' '}
         </AppLayout>
     );
 }
