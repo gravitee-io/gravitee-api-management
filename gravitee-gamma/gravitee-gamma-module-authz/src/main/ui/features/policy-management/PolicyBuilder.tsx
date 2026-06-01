@@ -17,6 +17,7 @@ import { Button } from '@gravitee/graphene-core';
 import { PlusIcon, SparklesIcon } from '@gravitee/graphene-core/icons';
 import type { ChipOption } from '../../shared/chip-option';
 import { PolicyStatementCard } from './PolicyStatementCard';
+import type { InlineCreateConfig } from './inline-entity-create';
 import { createEmptyStatement, makeStatementId, type PolicyEffect, type PolicyStatement } from './statement-to-gapl';
 
 export interface PolicyBuilderProps {
@@ -30,6 +31,8 @@ export interface PolicyBuilderProps {
     readonly emptyPrincipalsHint?: string;
     readonly emptyActionsHint?: string;
     readonly emptyResourcesHint?: string;
+    readonly principalCreate?: InlineCreateConfig;
+    readonly resourceCreate?: InlineCreateConfig;
 }
 
 export function PolicyBuilder({
@@ -43,6 +46,8 @@ export function PolicyBuilder({
     emptyPrincipalsHint,
     emptyActionsHint,
     emptyResourcesHint,
+    principalCreate,
+    resourceCreate,
 }: PolicyBuilderProps) {
     const addStatement = (effect: PolicyEffect) => onChange([...statements, createEmptyStatement(effect)]);
 
@@ -102,6 +107,8 @@ export function PolicyBuilder({
                     emptyPrincipalsHint={emptyPrincipalsHint}
                     emptyActionsHint={emptyActionsHint}
                     emptyResourcesHint={emptyResourcesHint}
+                    principalCreate={principalCreate}
+                    resourceCreate={resourceCreate}
                 />
             ))}
             <div className="flex flex-col items-start gap-1.5 pt-1">

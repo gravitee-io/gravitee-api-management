@@ -27,6 +27,7 @@ import { parseGaplToStatements } from '../../shared/gapl-policy-parser';
 import { PolicyBuilder } from './PolicyBuilder';
 import { relativeTime } from './PolicyListTable';
 import type { CatalogEntry, ServicePageConfig } from './ServicePolicyPage';
+import type { InlineCreateConfig } from './inline-entity-create';
 import { createEmptyStatement, statementsToGapl, type PolicyStatement } from './statement-to-gapl';
 
 export interface PolicyEditorSheetProps {
@@ -42,6 +43,8 @@ export interface PolicyEditorSheetProps {
     readonly emptyPrincipalsHint?: string;
     readonly emptyActionsHint?: string;
     readonly emptyResourcesHint?: string;
+    readonly principalCreate?: InlineCreateConfig;
+    readonly resourceCreate?: InlineCreateConfig;
 }
 
 const TEMPLATE = 'permit (principal, action, resource);';
@@ -61,6 +64,8 @@ export function PolicyEditorSheet({
     emptyPrincipalsHint,
     emptyActionsHint,
     emptyResourcesHint,
+    principalCreate,
+    resourceCreate,
 }: PolicyEditorSheetProps) {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
@@ -326,6 +331,8 @@ export function PolicyEditorSheet({
                             emptyPrincipalsHint={emptyPrincipalsHint}
                             emptyActionsHint={emptyActionsHint}
                             emptyResourcesHint={emptyResourcesHint}
+                            principalCreate={principalCreate}
+                            resourceCreate={resourceCreate}
                         />
                     ) : (
                         <CodePane

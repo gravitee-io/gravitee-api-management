@@ -49,6 +49,13 @@ import { usePolicies } from '../../shared/hooks/usePolicies';
 import { useSchema } from '../../shared/hooks/useSchema';
 import { PolicyEditorSheet } from './PolicyEditorSheet';
 import { PolicyListTable } from './PolicyListTable';
+import {
+    defaultResourceCanonical,
+    makeInlineEntityCreator,
+    PRINCIPAL_INLINE_PRESETS,
+    RESOURCE_INLINE_PRESETS,
+    type InlineCreateConfig,
+} from './inline-entity-create';
 
 export type CatalogEntryType = 'MCP' | 'AGENT' | 'MODEL' | 'API' | 'EVENT';
 
@@ -240,6 +247,26 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
         return items;
     }, [config.hasTarget, config.type, catalogEntities.data]);
 
+    const principalCreate = useMemo<InlineCreateConfig>(
+        () => ({
+            kind: 'PRINCIPAL',
+            presets: PRINCIPAL_INLINE_PRESETS,
+            defaultCanonical: 'user',
+            create: makeInlineEntityCreator('PRINCIPAL'),
+        }),
+        [],
+    );
+
+    const resourceCreate = useMemo<InlineCreateConfig>(
+        () => ({
+            kind: 'RESOURCE',
+            presets: RESOURCE_INLINE_PRESETS,
+            defaultCanonical: defaultResourceCanonical(config.type),
+            create: makeInlineEntityCreator('RESOURCE'),
+        }),
+        [config.type],
+    );
+
     const effectiveConfig = useMemo<ServicePageConfig>(
         () => ({
             ...config,
@@ -425,6 +452,8 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
                 actionOptions={actionOptions}
                 emptyPrincipalsHint={emptyPrincipalsHint}
                 emptyActionsHint={emptyActionsHint}
+                principalCreate={principalCreate}
+                resourceCreate={resourceCreate}
                 onOpenChange={o => {
                     if (!o) {
                         setSheet({ kind: 'closed' });

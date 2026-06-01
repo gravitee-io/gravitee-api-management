@@ -29,12 +29,17 @@ import {
     Textarea,
     ToggleGroup,
     ToggleGroupItem,
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
     cn,
     useComboboxAnchor,
 } from '@gravitee/graphene-core';
-import { ChevronDownIcon, ChevronUpIcon, CopyIcon, Trash2Icon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
+import { ChevronDownIcon, ChevronUpIcon, CopyIcon, PlusIcon, Trash2Icon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 import { useMemo, useState } from 'react';
 import type { ChipOption } from '../../shared/chip-option';
+import { SLUG_REGEX, slugify, type InlineCreateConfig } from './inline-entity-create';
 import type { ActionRef, PolicyEffect, PolicyStatement, PrincipalRef, ResourceRef } from './statement-to-gapl';
 
 const GAPL_UID_PATTERN = /^([^:]+)::"(.+)"$/;
@@ -57,6 +62,8 @@ export interface PolicyStatementCardProps {
     readonly emptyPrincipalsHint?: string;
     readonly emptyActionsHint?: string;
     readonly emptyResourcesHint?: string;
+    readonly principalCreate?: InlineCreateConfig;
+    readonly resourceCreate?: InlineCreateConfig;
 }
 
 const DEFAULT_CONDITION_SNIPPETS: readonly { label: string; snippet: string }[] = [
@@ -84,6 +91,8 @@ export function PolicyStatementCard({
     emptyPrincipalsHint,
     emptyActionsHint,
     emptyResourcesHint,
+    principalCreate,
+    resourceCreate,
 }: PolicyStatementCardProps) {
     const [conditionOpen, setConditionOpen] = useState(Boolean((statement.condition ?? '').trim()));
 
@@ -137,6 +146,7 @@ export function PolicyStatementCard({
     const snippets = conditionSnippets ?? DEFAULT_CONDITION_SNIPPETS;
 
     return (
+        <TooltipProvider>
         <div className={cn('rounded-lg border bg-card p-3 shadow-sm', effectBorderClass)}>
             <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
@@ -206,6 +216,7 @@ export function PolicyStatementCard({
                         onChange={syncPrincipals}
                         groupOrder={['User', 'Group', 'ServiceAccount', 'AgentIdentity']}
                         emptyHint={emptyPrincipalsHint}
+                        createConfig={principalCreate}
                     />
                 </ChipField>
 
@@ -228,6 +239,7 @@ export function PolicyStatementCard({
                         onChange={syncResources}
                         groupOrder={resourceGroups.map(g => g.key)}
                         emptyHint={emptyResourcesHint}
+                        createConfig={resourceCreate}
                     />
                 </ChipField>
             </div>
@@ -271,6 +283,7 @@ export function PolicyStatementCard({
                 ) : null}
             </div>
         </div>
+        </TooltipProvider>
     );
 }
 
@@ -290,9 +303,10 @@ interface ChipMultiComboboxProps {
     readonly onChange: (ids: string[]) => void;
     readonly groupOrder?: readonly string[];
     readonly emptyHint?: string;
+    readonly createConfig?: InlineCreateConfig;
 }
 
-function ChipMultiCombobox({ placeholder, options, selectedIds, onChange, groupOrder, emptyHint }: ChipMultiComboboxProps) {
+function ChipMultiCombobox({ placeholder, options, selectedIds, onChange, groupOrder, emptyHint, createConfig }: ChipMultiComboboxProps) {
     const anchorRef = useComboboxAnchor();
     const [query, setQuery] = useState('');
 
@@ -350,7 +364,7 @@ function ChipMultiCombobox({ placeholder, options, selectedIds, onChange, groupO
             <ComboboxChips ref={anchorRef}>
                 {values.map(id => {
                     const { label, ghost } = labelOf(id);
-                    return (
+                    const chip = (
                         <ComboboxChip
                             key={id}
                             removeAriaLabel={`Remove ${label}`}
@@ -360,10 +374,17 @@ function ChipMultiCombobox({ placeholder, options, selectedIds, onChange, groupO
                             {label}
                         </ComboboxChip>
                     );
+                    if (!ghost) return chip;
+                    return (
+                        <Tooltip key={id}>
+                            <TooltipTrigger asChild>{chip}</TooltipTrigger>
+                            <TooltipContent>Defined only in this policy. Add it under Entities to reuse it.</TooltipContent>
+                        </Tooltip>
+                    );
                 })}
                 <ComboboxChipsInput placeholder={values.length === 0 ? placeholder : 'Type to filter…'} aria-label={placeholder} />
             </ComboboxChips>
-            <ComboboxContent anchor={anchorRef} className="max-h-64 min-w-60" style={{ pointerEvents: 'auto' }}>
+            <ComboboxContent anchor={anchorRef} className="max-h-72 min-w-60" style={{ pointerEvents: 'auto' }}>
                 <ComboboxList>
                     {!hasVisibleItems && (
                         <ComboboxEmpty>
@@ -386,7 +407,80 @@ function ChipMultiCombobox({ placeholder, options, selectedIds, onChange, groupO
                         </ComboboxGroup>
                     ))}
                 </ComboboxList>
+                {createConfig ? (
+                    <InlineCreatePanel
+                        createConfig={createConfig}
+                        query={query}
+                        existingLabels={options}
+                        onCreated={opt => {
+                            if (!values.includes(opt.id)) onChange([...values, opt.id]);
+                            setQuery('');
+                        }}
+                    />
+                ) : null}
             </ComboboxContent>
         </Combobox>
+    );
+}
+
+interface InlineCreatePanelProps {
+    readonly createConfig: InlineCreateConfig;
+    readonly query: string;
+    readonly existingLabels: readonly ChipOption[];
+    readonly onCreated: (option: ChipOption) => void;
+}
+
+function InlineCreatePanel({ createConfig, query, existingLabels, onCreated }: InlineCreatePanelProps) {
+    const [canonical, setCanonical] = useState(createConfig.defaultCanonical);
+
+    const displayName = query.trim();
+    const slug = slugify(displayName);
+    const exactMatch = displayName !== '' && existingLabels.some(o => o.label.toLowerCase() === displayName.toLowerCase());
+
+    if (displayName === '' || exactMatch) return null;
+
+    const slugInvalid = !slug || !SLUG_REGEX.test(slug);
+
+    const runCreate = () => {
+        if (slugInvalid) return;
+        onCreated(createConfig.create({ canonicalPrefix: canonical, slug, displayName }));
+    };
+
+    return (
+        <div className="border-t px-2 py-2">
+            <p className="px-1 pb-1 text-xs font-medium text-muted-foreground">Add to this policy only</p>
+            <div className="flex flex-wrap gap-1 px-1">
+                {createConfig.presets.map(preset => (
+                    <button
+                        key={preset.canonical}
+                        type="button"
+                        onMouseDown={e => e.preventDefault()}
+                        onClick={() => setCanonical(preset.canonical)}
+                        className={cn(
+                            'rounded border px-1.5 py-0.5 text-xs',
+                            canonical === preset.canonical
+                                ? 'border-primary bg-primary/10 text-primary'
+                                : 'border-dashed text-muted-foreground hover:border-foreground/40 hover:text-foreground',
+                        )}
+                    >
+                        {preset.label}
+                    </button>
+                ))}
+            </div>
+            <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                onMouseDown={e => e.preventDefault()}
+                onClick={runCreate}
+                disabled={slugInvalid}
+                className="mt-1.5 w-full justify-start"
+            >
+                <PlusIcon className="mr-1 size-3" aria-hidden />
+                <span className="truncate">
+                    Add <span className="font-mono">{canonical}.{slug || '…'}</span>
+                </span>
+            </Button>
+        </div>
     );
 }

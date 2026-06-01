@@ -17,7 +17,15 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { PolicyStatementCard } from '../PolicyStatementCard';
+import { makeInlineEntityCreator, PRINCIPAL_INLINE_PRESETS, type InlineCreateConfig } from '../inline-entity-create';
 import type { PolicyStatement } from '../statement-to-gapl';
+
+const principalCreate: InlineCreateConfig = {
+    kind: 'PRINCIPAL',
+    presets: PRINCIPAL_INLINE_PRESETS,
+    defaultCanonical: 'user',
+    create: makeInlineEntityCreator('PRINCIPAL'),
+};
 
 const baseStatement: PolicyStatement = {
     id: 'stmt-1',
@@ -165,6 +173,60 @@ describe('PolicyStatementCard', () => {
         expect(screen.getByRole('combobox', { name: /add principal/i })).toBeInTheDocument();
         expect(screen.getByRole('combobox', { name: /add action/i })).toBeInTheDocument();
         expect(screen.getByRole('combobox', { name: /add resource/i })).toBeInTheDocument();
+    });
+
+    it('adds a typed-but-unregistered principal to the policy as a ghost id', async () => {
+        const onChange = vi.fn();
+
+        render(
+            <PolicyStatementCard
+                index={0}
+                statement={baseStatement}
+                principalOptions={principalOptions}
+                actionOptions={actionOptions}
+                resourceOptions={resourceOptions}
+                resourceGroups={[{ key: 'MCPTool', label: 'Tools' }]}
+                onChange={onChange}
+                onDuplicate={vi.fn()}
+                onDelete={vi.fn()}
+                principalCreate={principalCreate}
+            />,
+        );
+
+        await userEvent.click(screen.getByRole('combobox', { name: /add principal/i }));
+        await userEvent.type(screen.getByRole('combobox', { name: /add principal/i }), 'alice123');
+        await userEvent.click(screen.getByRole('button', { name: /add user\.alice123/i }));
+
+        expect(onChange).toHaveBeenCalledWith(
+            expect.objectContaining({ principals: [{ id: 'User::"alice123"', kind: 'User', label: 'alice123' }] }),
+        );
+    });
+
+    it('renders an unregistered selected principal as a ghost chip with a warning tooltip', async () => {
+        const stmt: PolicyStatement = {
+            ...baseStatement,
+            principals: [{ id: 'User::"ghost"', kind: 'User', label: 'ghost' }],
+        };
+
+        render(
+            <PolicyStatementCard
+                index={0}
+                statement={stmt}
+                principalOptions={principalOptions}
+                actionOptions={actionOptions}
+                resourceOptions={resourceOptions}
+                resourceGroups={[{ key: 'MCPTool', label: 'Tools' }]}
+                onChange={vi.fn()}
+                onDuplicate={vi.fn()}
+                onDelete={vi.fn()}
+                principalCreate={principalCreate}
+            />,
+        );
+
+        const chip = screen.getByText('ghost').closest('.border-dashed');
+        expect(chip).not.toBeNull();
+        expect(chip).toHaveClass('border-warning');
+        expect(chip).toHaveTextContent('ghost');
     });
 
     it('shows existing condition text when statement has a condition', () => {
