@@ -21,7 +21,6 @@ import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 
 import { NAV_GROUPS } from '../config/navigation';
 import { APIM_ROUTE_CONFIG } from '../config/routes';
-import { AnalyticsPage } from '../features/analytics/pages/AnalyticsPage';
 import { ApiProductDetailLayout, ApiProductIndexRedirect } from '../features/api-products/components';
 import { ApiProductsPage } from '../features/api-products/pages/ApiProductsPage';
 import { CreateApiProductPage } from '../features/api-products/pages/CreateApiProductPage';
@@ -175,7 +174,7 @@ export function AppRoutes() {
                             <Route path="*" element={<Navigate to="overview" replace />} />
                         </Route>
                     </Route>
-                    <Route path="analytics" element={<AnalyticsPage />} />
+                    {/* Analytics is out of scope for now; restore this route (and the dashboard tile) when the feature is ready. */}
                     <Route path="settings" element={<SettingsPage />} />
                 </Route>
             </Routes>

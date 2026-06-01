@@ -86,7 +86,6 @@ export function DashboardPage() {
                 onCreateProduct={() => goTo('api-products/new')}
                 onGoToApis={() => navigateToKey('apis')}
                 onGoToApiProducts={() => navigateToKey('api-products')}
-                onGoToAnalytics={() => navigateToKey('analytics')}
             />
         );
     }

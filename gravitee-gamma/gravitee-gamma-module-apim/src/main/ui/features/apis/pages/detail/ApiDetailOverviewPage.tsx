@@ -44,7 +44,11 @@ export function ApiDetailOverviewPage() {
             <div className="space-y-1">
                 <h1 className="text-2xl font-semibold tracking-tight">Overview</h1>
                 <p className="text-sm text-muted-foreground">
-                    Setup checklist, gateway endpoints, and traffic snapshot for {api?.name ?? '…'}.
+                    Setup checklist, gateway endpoints, and traffic snapshot for{' '}
+                    <span title={api?.name && api.name.length > 40 ? api.name : undefined}>
+                        {api?.name ? (api.name.length > 40 ? `${api.name.slice(0, 40).trimEnd()}…` : api.name) : '…'}
+                    </span>
+                    .
                 </p>
             </div>
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ArchiveIcon, BarChart2Icon, RadioIcon } from '@gravitee/graphene-core/icons';
+import { ArchiveIcon, RadioIcon } from '@gravitee/graphene-core/icons';
 import type { LucideIcon } from '@gravitee/graphene-core/icons';
 
 // ─── Single tile ──────────────────────────────────────────────────────────────
@@ -58,12 +58,7 @@ const TILES = [
         label: 'API Products',
         description: 'Manage product bundles',
     },
-    {
-        key: 'analytics' as const,
-        Icon: BarChart2Icon,
-        label: 'Analytics',
-        description: 'Traffic, errors & latency',
-    },
+    // Analytics is out of scope for now; re-add this tile (and the `analytics` route) when the feature is ready.
 ] as const;
 
 // ─── Public component ─────────────────────────────────────────────────────────
@@ -71,14 +66,12 @@ const TILES = [
 interface DashboardQuickActionsProps {
     onGoToApis: () => void;
     onGoToApiProducts: () => void;
-    onGoToAnalytics: () => void;
 }
 
-export function DashboardQuickActions({ onGoToApis, onGoToApiProducts, onGoToAnalytics }: DashboardQuickActionsProps) {
+export function DashboardQuickActions({ onGoToApis, onGoToApiProducts }: DashboardQuickActionsProps) {
     const handlers: Record<(typeof TILES)[number]['key'], () => void> = {
         apis: onGoToApis,
         'api-products': onGoToApiProducts,
-        analytics: onGoToAnalytics,
     };
 
     return (

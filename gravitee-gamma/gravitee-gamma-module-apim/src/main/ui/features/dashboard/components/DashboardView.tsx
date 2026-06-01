@@ -24,7 +24,6 @@ interface DashboardViewProps {
     onCreateProduct: () => void;
     onGoToApis: () => void;
     onGoToApiProducts: () => void;
-    onGoToAnalytics: () => void;
 }
 
 export function DashboardView({
@@ -34,7 +33,6 @@ export function DashboardView({
     onCreateProduct,
     onGoToApis,
     onGoToApiProducts,
-    onGoToAnalytics,
 }: DashboardViewProps) {
     return (
         <div className="space-y-6">
@@ -48,7 +46,7 @@ export function DashboardView({
             <DashboardSummaryCards totalApis={totalApis} totalProducts={totalProducts} />
 
             {/* Quick actions */}
-            <DashboardQuickActions onGoToApis={onGoToApis} onGoToApiProducts={onGoToApiProducts} onGoToAnalytics={onGoToAnalytics} />
+            <DashboardQuickActions onGoToApis={onGoToApis} onGoToApiProducts={onGoToApiProducts} />
 
             {/* Get Started */}
             <section>

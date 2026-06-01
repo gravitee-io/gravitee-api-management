@@ -275,7 +275,7 @@ export function ApiDetailLayout() {
             leading: <ContextToggleButton expanded={contextExpanded} onToggle={() => setContextExpanded(v => !v)} />,
             breadcrumbs: [
                 { label: 'API Proxies', href: `${basePath.slice(0, basePath.lastIndexOf('/apis/'))}${'/apis'}` },
-                { label: api?.name ?? 'Loading…' },
+                { label: api?.name ? (api.name.length > 40 ? `${api.name.slice(0, 40).trimEnd()}…` : api.name) : 'Loading…' },
             ],
         },
         [contextExpanded, api, isLoading, basePath, permissionsReady],
