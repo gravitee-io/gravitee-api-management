@@ -39,6 +39,11 @@ export function newAttributeRow(): AttributeRow {
     return { id: `attr-${rowSeq}-${Date.now()}`, key: '', type: 'string', raw: '' };
 }
 
+function rawForType(type: AttrType, raw: string | string[]): string | string[] {
+    if (type === 'set') return Array.isArray(raw) ? raw : raw.split(',');
+    return Array.isArray(raw) ? (raw[0] ?? '') : raw;
+}
+
 export function AttributeEditor({ value, onChange, readOnly = false, keySuggestions }: AttributeEditorProps) {
     const listId = useId();
 
@@ -94,7 +99,13 @@ export function AttributeEditor({ value, onChange, readOnly = false, keySuggesti
                                 aria-invalid={keyError !== null}
                                 className="w-40 font-mono"
                             />
-                            <Select value={r.type} onValueChange={t => patch(r.id, { type: t as AttrType })}>
+                            <Select
+                                value={r.type}
+                                onValueChange={t => {
+                                    const type = t as AttrType;
+                                    patch(r.id, { type, raw: rawForType(type, r.raw) });
+                                }}
+                            >
                                 <SelectTrigger aria-label="Attribute type" className="w-36">
                                     <SelectValue />
                                 </SelectTrigger>
