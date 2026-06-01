@@ -340,3 +340,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_11_8/03_add_plans_cross_id_index.yml
     - include:
         - file: liquibase/changelogs/v4_11_8/04_add_subscriptions_plan_id_index.yml
+    - include:
+        - file: liquibase/changelogs/v4_11_8/05_add_key_subscriptions_subscription_id_index.yml
