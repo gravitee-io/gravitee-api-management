@@ -40,9 +40,11 @@ class LLMTotalCostBuilderTest {
         assertThat(sumAgg.containsKey("script")).isTrue();
 
         var script = sumAgg.getJsonObject("script");
-        assertThat(script.getString("source")).contains("additional-metrics.double_llm-proxy_sent-cost");
-        assertThat(script.getString("source")).contains("additional-metrics.double_llm-proxy_received-cost");
-        assertThat(script.getString("source")).contains("+");
+        var source = script.getString("source");
+        assertThat(source).contains("additional-metrics.double_llm-proxy_sent-cost");
+        assertThat(source).contains("additional-metrics.double_llm-proxy_received-cost");
+        assertThat(source).contains("+");
+        assertThat(source).contains("doc.containsKey(");
     }
 
     @Test
@@ -58,8 +60,10 @@ class LLMTotalCostBuilderTest {
         assertThat(avgAgg.containsKey("script")).isTrue();
 
         var script = avgAgg.getJsonObject("script");
-        assertThat(script.getString("source")).contains("additional-metrics.double_llm-proxy_sent-cost");
-        assertThat(script.getString("source")).contains("additional-metrics.double_llm-proxy_received-cost");
-        assertThat(script.getString("source")).contains("+");
+        var source = script.getString("source");
+        assertThat(source).contains("additional-metrics.double_llm-proxy_sent-cost");
+        assertThat(source).contains("additional-metrics.double_llm-proxy_received-cost");
+        assertThat(source).contains("+");
+        assertThat(source).contains("doc.containsKey(");
     }
 }
