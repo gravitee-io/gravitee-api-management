@@ -23,7 +23,7 @@ import io.gravitee.apim.plugin.gamma.api.identity.AmConnectionRepository;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 import io.gravitee.gamma.authorization.core.am.exception.AmSyncConflictException;
-import io.gravitee.gamma.authorization.core.am.service_provider.AmUserClient;
+import io.gravitee.gamma.authorization.core.am.service_provider.AmDirectoryClient;
 import io.gravitee.gamma.authorization.core.am.service_provider.AmUserSyncRunner;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import java.time.Duration;
@@ -46,20 +46,20 @@ public class StartAmUserSyncUseCase {
     private final AsyncJobQueryService queryService;
     private final AsyncJobCrudService crudService;
     private final AmConnectionRepository connectionRepository;
-    private final AmUserClient userClient;
+    private final AmDirectoryClient directoryClient;
     private final AmUserSyncRunner syncRunner;
 
     public StartAmUserSyncUseCase(
         AsyncJobQueryService queryService,
         AsyncJobCrudService crudService,
         AmConnectionRepository connectionRepository,
-        AmUserClient userClient,
+        AmDirectoryClient directoryClient,
         AmUserSyncRunner syncRunner
     ) {
         this.queryService = queryService;
         this.crudService = crudService;
         this.connectionRepository = connectionRepository;
-        this.userClient = userClient;
+        this.directoryClient = directoryClient;
         this.syncRunner = syncRunner;
     }
 
@@ -90,7 +90,7 @@ public class StartAmUserSyncUseCase {
         AmConnection connection = connectionRepository.requireByOrg(organizationId);
 
         long totalUsers;
-        try (AmUserClient.Session session = userClient.openSession(connection)) {
+        try (AmDirectoryClient.Session session = directoryClient.openSession(connection)) {
             totalUsers = session.fetchUsers(0, 1).totalCount();
         }
 

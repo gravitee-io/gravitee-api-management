@@ -22,7 +22,7 @@ import io.gravitee.gamma.authorization.core.am.model.AmUserPage;
  * Port for paging users out of an AM domain. The infra implementation owns the AM SDK details
  * (client construction, default org/env scoping, timestamp handling).
  */
-public interface AmUserClient {
+public interface AmDirectoryClient {
     /**
      * Opens a paging session bound to one AM connection. The implementation builds a single
      * underlying SDK client and reuses it across every page of the run; the caller must

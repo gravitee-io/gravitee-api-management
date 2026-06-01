@@ -20,7 +20,7 @@ import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 import io.gravitee.gamma.authorization.api.AuthzEntityAdminApi;
 import io.gravitee.gamma.authorization.core.am.model.AmUser;
 import io.gravitee.gamma.authorization.core.am.model.AmUserPage;
-import io.gravitee.gamma.authorization.core.am.service_provider.AmUserClient;
+import io.gravitee.gamma.authorization.core.am.service_provider.AmDirectoryClient;
 import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
 import io.gravitee.gamma.authorization.service.CreateOrReplaceAuthzEntityCommand;
 import java.nio.charset.StandardCharsets;
@@ -44,12 +44,12 @@ public class SyncAmUsersUseCase {
 
     static final String SOURCE = "gravitee_am";
 
-    private final AmUserClient userClient;
+    private final AmDirectoryClient directoryClient;
     private final AuthzEntityAdminApi authzEntityAdminApi;
     private final SyncConfig syncConfig;
 
-    public SyncAmUsersUseCase(AmUserClient userClient, AuthzEntityAdminApi authzEntityAdminApi, SyncConfig syncConfig) {
-        this.userClient = userClient;
+    public SyncAmUsersUseCase(AmDirectoryClient directoryClient, AuthzEntityAdminApi authzEntityAdminApi, SyncConfig syncConfig) {
+        this.directoryClient = directoryClient;
         this.authzEntityAdminApi = authzEntityAdminApi;
         this.syncConfig = syncConfig;
     }
@@ -63,7 +63,7 @@ public class SyncAmUsersUseCase {
 
         // Fetching (paging the AM domain) is encapsulated in the cursor below; this loop only owns the
         // business logic of mapping each user to a command and flushing in batches.
-        try (AmUserClient.Session session = userClient.openSession(input.connection())) {
+        try (AmDirectoryClient.Session session = directoryClient.openSession(input.connection())) {
             for (AmUser user : pageThrough(session, this.syncConfig.pageSize())) {
                 usersFetched++;
                 batch.add(toCommand(caller.environmentId(), user));
@@ -86,7 +86,7 @@ public class SyncAmUsersUseCase {
      * user reported by {@code totalCount} has been handed out, so it never fetches a page it doesn't
      * need.
      */
-    private Iterable<AmUser> pageThrough(AmUserClient.Session session, int pageSize) {
+    private Iterable<AmUser> pageThrough(AmDirectoryClient.Session session, int pageSize) {
         return () ->
             new Iterator<>() {
                 private int page = 0;

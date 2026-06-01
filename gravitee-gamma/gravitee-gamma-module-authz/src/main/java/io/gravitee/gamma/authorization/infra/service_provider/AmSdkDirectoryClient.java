@@ -22,23 +22,23 @@ import io.gravitee.am.sdk.management.model.UserPage;
 import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
 import io.gravitee.gamma.authorization.core.am.model.AmUser;
 import io.gravitee.gamma.authorization.core.am.model.AmUserPage;
-import io.gravitee.gamma.authorization.core.am.service_provider.AmUserClient;
+import io.gravitee.gamma.authorization.core.am.service_provider.AmDirectoryClient;
 import java.util.List;
 
 /**
- * AM SDK-backed {@link AmUserClient}. Owns the SDK specifics — client construction, the well-known
+ * AM SDK-backed {@link AmDirectoryClient}. Owns the SDK specifics — client construction, the well-known
  * default AM org/env scoping, and mapping the SDK {@link User} onto the SDK-free core {@link AmUser}.
  */
-public class AmSdkUserClient implements AmUserClient {
+public class AmSdkDirectoryClient implements AmDirectoryClient {
 
     // AM resolves the domain by id alone; org/env only scope the service-account permission check,
     // so the well-known default AM org/env are used (see AM UsersResource#list).
     private static final String AM_DEFAULT_ORGANIZATION = "DEFAULT";
     private static final String AM_DEFAULT_ENVIRONMENT = "DEFAULT";
 
-    private final AmSdkUserClientFactory clientFactory;
+    private final AmSdkDirectoryClientFactory clientFactory;
 
-    public AmSdkUserClient(AmSdkUserClientFactory clientFactory) {
+    public AmSdkDirectoryClient(AmSdkDirectoryClientFactory clientFactory) {
         this.clientFactory = clientFactory;
     }
 
@@ -65,7 +65,7 @@ public class AmSdkUserClient implements AmUserClient {
             );
             List<AmUser> users = (userPage.getData() == null ? List.<User>of() : userPage.getData())
                 .stream()
-                .map(AmSdkUserClient::toAmUser)
+                .map(AmSdkDirectoryClient::toAmUser)
                 .toList();
             long totalCount = userPage.getTotalCount() == null ? 0 : userPage.getTotalCount();
             return new AmUserPage(users, totalCount);

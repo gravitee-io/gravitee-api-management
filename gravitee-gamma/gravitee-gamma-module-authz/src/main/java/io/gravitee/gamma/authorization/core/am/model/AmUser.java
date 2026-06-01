@@ -17,7 +17,7 @@ package io.gravitee.gamma.authorization.core.am.model;
 
 /**
  * An AM user as the sync needs it, decoupled from the AM SDK so the core layer stays free of the
- * SDK dependency. The infra {@code AmUserClient} adapter maps the SDK model onto this record.
+ * SDK dependency. The infra {@code AmDirectoryClient} adapter maps the SDK model onto this record.
  * Nullable fields ({@code source}, {@code externalId}, {@code email}, {@code username},
  * {@code displayName}, {@code enabled}) reflect what AM populated.
  */
