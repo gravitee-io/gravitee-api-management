@@ -18,6 +18,7 @@ package io.gravitee.gamma.authorization.core.am.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -29,6 +30,10 @@ import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
 import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 import io.gravitee.gamma.authorization.api.AuthzEntityAdminApi;
 import io.gravitee.gamma.authorization.core.am.exception.AmSyncException;
+import io.gravitee.gamma.authorization.core.am.model.AmGroup;
+import io.gravitee.gamma.authorization.core.am.model.AmGroupPage;
+import io.gravitee.gamma.authorization.core.am.model.AmRole;
+import io.gravitee.gamma.authorization.core.am.model.AmRolePage;
 import io.gravitee.gamma.authorization.core.am.model.AmUser;
 import io.gravitee.gamma.authorization.core.am.model.AmUserPage;
 import io.gravitee.gamma.authorization.core.am.service_provider.AmDirectoryClient;
@@ -63,6 +68,8 @@ class SyncAmUsersUseCaseTest {
         session = mock(AmDirectoryClient.Session.class);
         when(amDirectoryClient.openSession(CONNECTION)).thenReturn(session);
         authzEntityAdminApi = mock(AuthzEntityAdminApi.class);
+        when(session.fetchGroups(anyInt(), anyInt())).thenReturn(new AmGroupPage(List.of(), 0));
+        when(session.fetchRoles(anyInt(), anyInt())).thenReturn(new AmRolePage(List.of(), 0));
     }
 
     private SyncAmUsersUseCase.Output run() {
@@ -78,8 +85,20 @@ class SyncAmUsersUseCaseTest {
         when(session.fetchUsers(eq(page), eq(50))).thenReturn(userPage);
     }
 
+    private void stubGroupPage(int page, AmGroupPage groupPage) {
+        when(session.fetchGroups(eq(page), eq(50))).thenReturn(groupPage);
+    }
+
+    private void stubRolePage(int page, AmRolePage rolePage) {
+        when(session.fetchRoles(eq(page), eq(50))).thenReturn(rolePage);
+    }
+
     private static AmUser user(String id, String username, String email, String displayName, Boolean enabled) {
         return new AmUser(id, null, null, email, username, displayName, enabled, List.of(), List.of());
+    }
+
+    private static AmUser userWithMemberships(String id, List<String> groups, List<String> roles) {
+        return new AmUser(id, null, null, null, "user-" + id, null, null, groups, roles);
     }
 
     private static AmUserPage page(long totalCount, AmUser... users) {
@@ -91,6 +110,13 @@ class SyncAmUsersUseCaseTest {
         ArgumentCaptor<List<CreateOrReplaceAuthzEntityCommand>> captor = ArgumentCaptor.forClass(List.class);
         verify(authzEntityAdminApi).bulkUpsert(eq(CALLER), captor.capture());
         return captor.getValue();
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<CreateOrReplaceAuthzEntityCommand> captureAllUpserts() {
+        ArgumentCaptor<List<CreateOrReplaceAuthzEntityCommand>> captor = ArgumentCaptor.forClass(List.class);
+        verify(authzEntityAdminApi, org.mockito.Mockito.atLeastOnce()).bulkUpsert(eq(CALLER), captor.capture());
+        return captor.getAllValues().stream().flatMap(List::stream).toList();
     }
 
     @Test
@@ -228,5 +254,54 @@ class SyncAmUsersUseCaseTest {
 
         assertThatThrownBy(this::run).isInstanceOf(AmSyncException.class);
         verify(session).close();
+    }
+
+    @Test
+    void syncs_groups_and_roles_as_principal_entities_and_links_them_to_users() {
+        stubGroupPage(0, new AmGroupPage(List.of(new AmGroup("g-1", "Engineering")), 1L));
+        stubRolePage(0, new AmRolePage(List.of(new AmRole("r-1", "ADMIN")), 1L));
+        stubPage(0, page(1, userWithMemberships("sub-1", List.of("g-1"), List.of("r-1"))));
+
+        run();
+
+        List<CreateOrReplaceAuthzEntityCommand> all = captureAllUpserts();
+
+        CreateOrReplaceAuthzEntityCommand group = all.stream().filter(c -> c.entityId().equals("g-1")).findFirst().orElseThrow();
+        assertThat(group.kind()).isEqualTo(AuthzEntityKind.PRINCIPAL);
+        assertThat(group.source()).isEqualTo("gravitee_am");
+        assertThat(group.parents()).isEmpty();
+        assertThat(group.attributes()).containsEntry("_kind", "group").containsEntry("name", "Engineering");
+
+        CreateOrReplaceAuthzEntityCommand role = all.stream().filter(c -> c.entityId().equals("r-1")).findFirst().orElseThrow();
+        assertThat(role.attributes()).containsEntry("_kind", "role").containsEntry("name", "ADMIN");
+
+        CreateOrReplaceAuthzEntityCommand user = all.stream().filter(c -> c.entityId().equals("sub-1")).findFirst().orElseThrow();
+        assertThat(user.attributes()).containsEntry("_kind", "user");
+        assertThat(user.parents()).containsExactlyInAnyOrder("g-1", "r-1");
+    }
+
+    @Test
+    void falls_back_to_the_id_when_a_group_or_role_has_no_name() {
+        stubGroupPage(0, new AmGroupPage(List.of(new AmGroup("g-1", null)), 1L));
+        stubRolePage(0, new AmRolePage(List.of(new AmRole("r-1", null)), 1L));
+        stubPage(0, page(0)); // no users — exercise only the group/role labelling path
+
+        run();
+
+        List<CreateOrReplaceAuthzEntityCommand> all = captureAllUpserts();
+        assertThat(all.stream().filter(c -> c.entityId().equals("g-1")).findFirst().orElseThrow().attributes())
+            .containsEntry("name", "g-1");
+        assertThat(all.stream().filter(c -> c.entityId().equals("r-1")).findFirst().orElseThrow().attributes())
+            .containsEntry("name", "r-1");
+    }
+
+    @Test
+    void leaves_user_parents_empty_when_the_user_has_no_memberships() {
+        stubPage(0, page(1, user("sub-1", "alice", null, null, null)));
+
+        run();
+
+        List<CreateOrReplaceAuthzEntityCommand> commands = captureSingleBulkUpsert();
+        assertThat(commands.get(0).parents()).isEmpty();
     }
 }
