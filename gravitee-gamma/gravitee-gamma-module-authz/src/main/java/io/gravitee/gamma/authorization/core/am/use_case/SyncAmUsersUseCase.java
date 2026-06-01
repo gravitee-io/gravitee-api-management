@@ -43,15 +43,15 @@ import java.util.UUID;
 public class SyncAmUsersUseCase {
 
     static final String SOURCE = "gravitee_am";
-    static final int PAGE_SIZE = 50;
-    static final int BATCH_SIZE = 50;
 
     private final AmUserClient userClient;
     private final AuthzEntityAdminApi authzEntityAdminApi;
+    private final SyncConfig syncConfig;
 
-    public SyncAmUsersUseCase(AmUserClient userClient, AuthzEntityAdminApi authzEntityAdminApi) {
+    public SyncAmUsersUseCase(AmUserClient userClient, AuthzEntityAdminApi authzEntityAdminApi, SyncConfig syncConfig) {
         this.userClient = userClient;
         this.authzEntityAdminApi = authzEntityAdminApi;
+        this.syncConfig = syncConfig;
     }
 
     public Output execute(Input input) {
@@ -64,11 +64,15 @@ public class SyncAmUsersUseCase {
         // Fetching (paging the AM domain) is encapsulated in the cursor below; this loop only owns the
         // business logic of mapping each user to a command and flushing in batches.
         try (AmUserClient.Session session = userClient.openSession(input.connection())) {
-            for (AmUser user : pageThrough(session)) {
+            for (AmUser user : pageThrough(session, this.syncConfig.pageSize())) {
                 usersFetched++;
                 batch.add(toCommand(caller.environmentId(), user));
-                if (batch.size() >= BATCH_SIZE) {
+                if (batch.size() >= this.syncConfig.batchSize()) {
                     entitiesUpserted += flush(caller, batch);
+                }
+                // Cap the sync at the configured ceiling; the lazy cursor stops paging once we break.
+                if (usersFetched >= this.syncConfig.maxUsers()) {
+                    break;
                 }
             }
         }
@@ -82,7 +86,7 @@ public class SyncAmUsersUseCase {
      * user reported by {@code totalCount} has been handed out, so it never fetches a page it doesn't
      * need.
      */
-    private static Iterable<AmUser> pageThrough(AmUserClient.Session session) {
+    private Iterable<AmUser> pageThrough(AmUserClient.Session session, int pageSize) {
         return () ->
             new Iterator<>() {
                 private int page = 0;
@@ -93,7 +97,7 @@ public class SyncAmUsersUseCase {
                 @Override
                 public boolean hasNext() {
                     while (!current.hasNext() && fetched < totalCount) {
-                        AmUserPage userPage = session.fetchUsers(page++, PAGE_SIZE);
+                        AmUserPage userPage = session.fetchUsers(page++, pageSize);
                         totalCount = userPage.totalCount();
                         if (userPage.users().isEmpty()) {
                             return false;
@@ -166,4 +170,6 @@ public class SyncAmUsersUseCase {
     public record Input(AuthzCallerContext caller, AmConnection connection) {}
 
     public record Output(int usersFetched, int entitiesUpserted) {}
+
+    public record SyncConfig(int maxUsers, int pageSize, int batchSize) {}
 }

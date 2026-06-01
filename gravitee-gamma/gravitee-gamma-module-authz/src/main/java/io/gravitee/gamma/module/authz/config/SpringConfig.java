@@ -163,9 +163,12 @@ public class SpringConfig {
     @Bean
     public SyncAmUsersUseCase syncAmUsersUseCase(
         AmUserClient amUserClient,
-        @Lazy @Qualifier("entityService") AuthzEntityAdminApi entityService
+        @Lazy @Qualifier("entityService") AuthzEntityAdminApi entityService,
+        @Value("${gravitee.authz.sync.max-users:1000}") int maxUsers,
+        @Value("${gravitee.authz.sync.page-size:50}") int pageSize,
+        @Value("${gravitee.authz.sync.batch-size:50}") int batchSize
     ) {
-        return new SyncAmUsersUseCase(amUserClient, entityService);
+        return new SyncAmUsersUseCase(amUserClient, entityService, new SyncAmUsersUseCase.SyncConfig(maxUsers, pageSize, batchSize));
     }
 
     @Bean
