@@ -179,6 +179,20 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
 
         var esRanges = aggs.at("/HTTP_GATEWAY_LATENCY#HTTP_STATUS/range/ranges");
         assertThat(esRanges).isNotEmpty();
+        assertThat(esRanges.size()).isEqualTo(5);
+
+        // ES `to` is exclusive, so the adapter must add 1 to make the upper bound inclusive
+        assertThat(esRanges.get(0).get("key").asText()).isEqualTo("100-199");
+        assertThat(esRanges.get(0).get("from").asInt()).isEqualTo(100);
+        assertThat(esRanges.get(0).get("to").asInt()).isEqualTo(200);
+
+        assertThat(esRanges.get(3).get("key").asText()).isEqualTo("400-499");
+        assertThat(esRanges.get(3).get("from").asInt()).isEqualTo(400);
+        assertThat(esRanges.get(3).get("to").asInt()).isEqualTo(500);
+
+        assertThat(esRanges.get(4).get("key").asText()).isEqualTo("500-599");
+        assertThat(esRanges.get(4).get("from").asInt()).isEqualTo(500);
+        assertThat(esRanges.get(4).get("to").asInt()).isEqualTo(600);
     }
 
     @Test
@@ -218,6 +232,16 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
 
         var esRanges = aggs.at("/HTTP_GATEWAY_LATENCY#HTTP_STATUS_CODE_GROUP/range/ranges");
         assertThat(esRanges).isNotEmpty();
+        assertThat(esRanges.size()).isEqualTo(5);
+
+        // ES `to` is exclusive — the adapter adds 1 so forStatusCodeGroup() [x, y] becomes [x, y+1)
+        assertThat(esRanges.get(0).get("key").asText()).isEqualTo("100-199");
+        assertThat(esRanges.get(0).get("from").asInt()).isEqualTo(100);
+        assertThat(esRanges.get(0).get("to").asInt()).isEqualTo(200);
+
+        assertThat(esRanges.get(3).get("key").asText()).isEqualTo("400-499");
+        assertThat(esRanges.get(3).get("from").asInt()).isEqualTo(400);
+        assertThat(esRanges.get(3).get("to").asInt()).isEqualTo(500);
     }
 
     @Test
