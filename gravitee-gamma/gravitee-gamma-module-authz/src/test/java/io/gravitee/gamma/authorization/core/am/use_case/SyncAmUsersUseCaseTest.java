@@ -79,7 +79,7 @@ class SyncAmUsersUseCaseTest {
     }
 
     private static AmUser user(String id, String username, String email, String displayName, Boolean enabled) {
-        return new AmUser(id, null, null, email, username, displayName, enabled);
+        return new AmUser(id, null, null, email, username, displayName, enabled, List.of(), List.of());
     }
 
     private static AmUserPage page(long totalCount, AmUser... users) {
@@ -120,7 +120,7 @@ class SyncAmUsersUseCaseTest {
     @Test
     void keys_the_entity_on_the_token_sub_when_source_is_present() {
         // AM V2 issues sub = MD5-UUID("source:externalId"); the entity must be keyed on that, not the user id.
-        AmUser user = new AmUser("internal-id", "github", "ext-42", null, "alice", null, null);
+        AmUser user = new AmUser("internal-id", "github", "ext-42", null, "alice", null, null, List.of(), List.of());
         stubPage(0, page(1, user));
 
         run();
@@ -134,7 +134,7 @@ class SyncAmUsersUseCaseTest {
     void falls_back_to_the_user_id_when_external_id_is_absent() {
         // Source present but no externalId (e.g. a misconfigured provider): AM can't build
         // "source:externalId", so the sub falls back to the user id. The entity must follow.
-        AmUser user = new AmUser("internal-id", "github", null, null, "alice", null, null);
+        AmUser user = new AmUser("internal-id", "github", null, null, "alice", null, null, List.of(), List.of());
         stubPage(0, page(1, user));
 
         run();

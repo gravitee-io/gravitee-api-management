@@ -15,11 +15,14 @@
  */
 package io.gravitee.gamma.authorization.core.am.model;
 
+import java.util.List;
+
 /**
  * An AM user as the sync needs it, decoupled from the AM SDK so the core layer stays free of the
  * SDK dependency. The infra {@code AmDirectoryClient} adapter maps the SDK model onto this record.
  * Nullable fields ({@code source}, {@code externalId}, {@code email}, {@code username},
- * {@code displayName}, {@code enabled}) reflect what AM populated.
+ * {@code displayName}, {@code enabled}) reflect what AM populated. {@code groups} and {@code roles}
+ * are the AM group/role ids the user belongs to; they are normalised to empty lists, never null.
  */
 public record AmUser(
     String id,
@@ -28,5 +31,12 @@ public record AmUser(
     String email,
     String username,
     String displayName,
-    Boolean enabled
-) {}
+    Boolean enabled,
+    List<String> groups,
+    List<String> roles
+) {
+    public AmUser {
+        groups = groups == null ? List.of() : List.copyOf(groups);
+        roles = roles == null ? List.of() : List.copyOf(roles);
+    }
+}
