@@ -194,6 +194,8 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
         typeFilter: config.hasTarget ? ['User', 'Group', 'ServiceAccount', 'AgentIdentity'] : undefined,
     });
 
+    const agentOptions = useMemo(() => principalOptions.filter(o => o.group === 'AgentIdentity'), [principalOptions]);
+
     const emptyActionsHint = useMemo<string | undefined>(() => {
         if (actionOptions.length > 0) return undefined;
         return 'No actions defined yet. Add some under Policy Structure → Actions, or declare them in the schema.';
@@ -423,6 +425,7 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
                 submitError={submitError}
                 principalOptions={principalOptions}
                 actionOptions={actionOptions}
+                agentOptions={agentOptions}
                 emptyPrincipalsHint={emptyPrincipalsHint}
                 emptyActionsHint={emptyActionsHint}
                 onOpenChange={o => {

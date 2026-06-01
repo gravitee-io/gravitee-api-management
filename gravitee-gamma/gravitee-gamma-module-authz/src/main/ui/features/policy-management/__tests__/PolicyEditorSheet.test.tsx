@@ -56,6 +56,7 @@ function makeProps(overrides: Partial<PolicyEditorSheetProps> = {}): PolicyEdito
         submitError: null,
         principalOptions: [],
         actionOptions: [],
+        agentOptions: [],
         onOpenChange: vi.fn(),
         onSubmit: vi.fn().mockResolvedValue(undefined),
         ...overrides,

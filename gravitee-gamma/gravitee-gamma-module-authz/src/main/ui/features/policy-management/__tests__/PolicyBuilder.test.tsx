@@ -29,6 +29,7 @@ describe('PolicyBuilder', () => {
                 principalOptions={[]}
                 actionOptions={[]}
                 resourceOptions={[]}
+                agentOptions={[]}
                 resourceGroups={[]}
                 onChange={onChange}
             />,
@@ -51,6 +52,7 @@ describe('PolicyBuilder', () => {
                 principalOptions={[]}
                 actionOptions={[]}
                 resourceOptions={[]}
+                agentOptions={[]}
                 resourceGroups={[]}
                 onChange={onChange}
             />,
@@ -71,6 +73,7 @@ describe('PolicyBuilder', () => {
                 principalOptions={[]}
                 actionOptions={[]}
                 resourceOptions={[]}
+                agentOptions={[]}
                 resourceGroups={[]}
                 onChange={vi.fn()}
             />,

@@ -24,6 +24,7 @@ export interface PolicyBuilderProps {
     readonly principalOptions: readonly ChipOption[];
     readonly actionOptions: readonly ChipOption[];
     readonly resourceOptions: readonly ChipOption[];
+    readonly agentOptions: readonly ChipOption[];
     readonly resourceGroups: readonly { key: string; label: string }[];
     readonly conditionSnippets?: readonly { label: string; snippet: string }[];
     readonly onChange: (statements: readonly PolicyStatement[]) => void;
@@ -37,6 +38,7 @@ export function PolicyBuilder({
     principalOptions,
     actionOptions,
     resourceOptions,
+    agentOptions,
     resourceGroups,
     conditionSnippets,
     onChange,
@@ -90,6 +92,7 @@ export function PolicyBuilder({
                     principalOptions={principalOptions}
                     actionOptions={actionOptions}
                     resourceOptions={resourceOptions}
+                    agentOptions={agentOptions}
                     resourceGroups={resourceGroups}
                     conditionSnippets={conditionSnippets}
                     onChange={updateStatement}

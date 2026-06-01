@@ -37,6 +37,7 @@ export interface PolicyEditorSheetProps {
     readonly submitError: ApiError | Error | null;
     readonly principalOptions: readonly ChipOption[];
     readonly actionOptions: readonly ChipOption[];
+    readonly agentOptions: readonly ChipOption[];
     readonly onOpenChange: (open: boolean) => void;
     readonly onSubmit: (request: PolicyRequest) => Promise<void>;
     readonly emptyPrincipalsHint?: string;
@@ -56,6 +57,7 @@ export function PolicyEditorSheet({
     submitError,
     principalOptions,
     actionOptions,
+    agentOptions,
     onOpenChange,
     onSubmit,
     emptyPrincipalsHint,
@@ -320,6 +322,7 @@ export function PolicyEditorSheet({
                             principalOptions={principalOptions}
                             actionOptions={actionOptions}
                             resourceOptions={resourceOptions}
+                            agentOptions={agentOptions}
                             resourceGroups={config.resourceGroups ?? []}
                             conditionSnippets={config.conditionSnippets}
                             onChange={handleStatementsChange}
