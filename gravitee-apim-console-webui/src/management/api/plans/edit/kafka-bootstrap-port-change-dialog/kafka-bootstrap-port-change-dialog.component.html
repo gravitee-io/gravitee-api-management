@@ -15,12 +15,25 @@
     limitations under the License.
 
 -->
-<h2 mat-dialog-title>Change bootstrap port</h2>
+<h2 mat-dialog-title>{{ data.newPort == null ? 'Remove bootstrap port' : 'Change bootstrap port' }}</h2>
 
 <mat-dialog-content>
-  <gio-banner-warning> Warning: changing the bootstrap port will break all consumers of this plan. </gio-banner-warning>
+  <gio-banner-warning>
+    Warning:
+    {{
+      data.newPort == null
+        ? 'removing the bootstrap port will disable port-based routing and break all consumers of this plan.'
+        : 'changing the bootstrap port will break all consumers of this plan.'
+    }}
+  </gio-banner-warning>
 
-  @if (data.host) {
+  @if (data.newPort == null) {
+    <p>
+      Removing the bootstrap port will disable port-based routing for this API; it will revert to host-based routing. All clients currently
+      configured with <strong>{{ data.host ? data.host + ':' + data.oldPort : data.oldPort }}</strong> will lose connectivity until they
+      update their Kafka bootstrap configuration.
+    </p>
+  } @else if (data.host) {
     <p>
       The new bootstrap address will be <strong>{{ data.host }}:{{ data.newPort }}</strong
       >. All clients currently configured with <strong>{{ data.host }}:{{ data.oldPort }}</strong> will lose connectivity until they update

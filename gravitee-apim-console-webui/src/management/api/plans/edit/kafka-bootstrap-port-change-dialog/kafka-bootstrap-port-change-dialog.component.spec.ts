@@ -116,4 +116,22 @@ describe('KafkaBootstrapPortChangeDialogComponent', () => {
       expect(compiled.textContent).not.toContain(':9092');
     });
   });
+
+  describe('removing the port (no newPort)', () => {
+    beforeEach(() => {
+      createComponent({ host: 'kafka.example.com', oldPort: 9092 });
+    });
+
+    it('should render the removal title', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.textContent).toContain('Remove bootstrap port');
+    });
+
+    it('should warn that port-based routing will be disabled', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.textContent).toContain('disable port-based routing');
+      expect(compiled.textContent).toContain('revert to host-based routing');
+      expect(compiled.textContent).toContain('kafka.example.com:9092');
+    });
+  });
 });

@@ -139,18 +139,18 @@ export class ApiPlanEditComponent implements OnInit, OnDestroy {
               : createV2Plan(planFormValue, this.planMenuItem.planFormType)),
           });
 
-    const newBootstrapPort = (planFormValue as any).bootstrapPort ?? undefined;
-    const oldBootstrapPort = (this.originalPlan as any)?.bootstrapPort ?? undefined;
+    const newBootstrapPort = (planFormValue as any).bootstrapPort;
+    const oldBootstrapPort = (this.originalPlan as any)?.bootstrapPort;
     const deployed = (this.api as ApiV4)?.deployedAt != null;
-    // Only confirm when an EXISTING bootstrap port is being changed to a different one — that breaks
-    // currently-connected consumers. Setting a port for the first time (host -> port migration) or
-    // clearing it is not a breaking change for existing port-mode clients, so no dialog is shown.
+    // Confirm whenever a deployed plan's EXISTING bootstrap port changes — including being cleared.
+    // Changing the port breaks currently-connected consumers; clearing it disables port-based routing
+    // entirely (the API reverts to host-based routing), which also breaks existing port-mode clients.
+    // Setting a port for the first time (host -> port migration) is NOT breaking, so no dialog is shown.
     const needsBootstrapConfirm =
       this.mode === 'edit' &&
       this.isNative &&
       deployed &&
       oldBootstrapPort != null &&
-      newBootstrapPort != null &&
       newBootstrapPort !== oldBootstrapPort;
 
     const kafkaHost = (this.api as ApiV4)?.listeners?.find((listener): listener is KafkaListener => listener.type === 'KAFKA')?.host;

@@ -699,6 +699,37 @@ describe('ApiPlanEditComponent', () => {
       req.flush({});
       expect(routerNavigationSpy).toHaveBeenCalled();
     });
+
+    it('should open the dialog when clearing an existing bootstrap port (port -> host migration)', async () => {
+      setupDeployedNativeEdit();
+
+      const planForm = await loader.getHarness(ApiPlanFormHarness);
+      flushPlanFormRequests(planForm);
+      fixture.detectChanges();
+
+      const nameInput = await planForm.getNameInput();
+      await nameInput.setValue('Updated plan');
+
+      // Clear the existing bootstrap port — this disables port-based routing and breaks port-mode clients.
+      const bootstrapPortInput = await planForm.getBootstrapPortInput();
+      await bootstrapPortInput.setValue('');
+      fixture.detectChanges();
+
+      const matDialog = TestBed.inject(MatDialog);
+      const dialogSpy = jest.spyOn(matDialog, 'open').mockReturnValue({
+        afterClosed: () => of(false),
+      } as any);
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      await saveBar.clickSubmit();
+
+      expect(dialogSpy).toHaveBeenCalled();
+      httpTestingController.expectNone({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN_WITH_BOOTSTRAP.id}`,
+        method: 'PUT',
+      });
+      expect(routerNavigationSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('With a Federated API', () => {
