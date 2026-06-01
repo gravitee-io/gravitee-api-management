@@ -17,7 +17,6 @@ package io.gravitee.gateway.services.sync.process.distributed.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gamma.definition.authz.AuthzEntity;
-import io.gravitee.gamma.definition.authz.AuthzEntityIdConstants;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityIdExtractor;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityReactorDeployable;
@@ -41,9 +40,6 @@ public class AuthzEntityMapper {
                 AuthzEntity wire = objectMapper.readValue(event.getPayload(), AuthzEntity.class);
                 if (wire.getEntityId() == null || wire.getEntityId().isBlank() || wire.getKind() == null) {
                     log.warn("Skipping distributed authz entity event [{}] — missing entityId or kind", event.getId());
-                    return null;
-                }
-                if (AuthzEntityIdConstants.isAutoDerived(wire.getEntityId())) {
                     return null;
                 }
                 AuthzEntityReactorDeployable.Kind kind = AuthzEntityReactorDeployable.Kind.valueOf(wire.getKind().name());

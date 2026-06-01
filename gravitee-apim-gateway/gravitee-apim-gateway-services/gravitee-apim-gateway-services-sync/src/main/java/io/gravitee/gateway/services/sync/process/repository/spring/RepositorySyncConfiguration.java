@@ -47,7 +47,6 @@ import io.gravitee.gateway.services.sync.process.repository.mapper.DebugMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.DictionaryMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.OrganizationMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.SharedPolicyGroupMapper;
-import io.gravitee.gateway.services.sync.process.repository.service.AuthzRegistry;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint.AccessPointSynchronizer;
@@ -383,7 +382,6 @@ public class RepositorySyncConfiguration {
         AuthzEntityMapper authzEntityMapper,
         DeployerFactory deployerFactory,
         AuthzEnginePort authzEnginePort,
-        AuthzRegistry authzRegistry,
         @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
         @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
     ) {
@@ -392,7 +390,6 @@ public class RepositorySyncConfiguration {
             authzEntityMapper,
             deployerFactory,
             authzEnginePort,
-            authzRegistry,
             syncFetcherExecutor,
             syncDeployerExecutor
         );
@@ -411,7 +408,6 @@ public class RepositorySyncConfiguration {
         AuthzPolicyMapper authzPolicyMapper,
         DeployerFactory deployerFactory,
         AuthzEnginePort authzEnginePort,
-        AuthzRegistry authzRegistry,
         @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
         @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
     ) {
@@ -420,7 +416,6 @@ public class RepositorySyncConfiguration {
             authzPolicyMapper,
             deployerFactory,
             authzEnginePort,
-            authzRegistry,
             syncFetcherExecutor,
             syncDeployerExecutor
         );

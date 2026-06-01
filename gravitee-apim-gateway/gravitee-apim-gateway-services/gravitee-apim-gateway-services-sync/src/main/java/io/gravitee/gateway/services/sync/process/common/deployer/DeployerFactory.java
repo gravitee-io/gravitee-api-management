@@ -28,10 +28,8 @@ import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupM
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
-import io.gravitee.gateway.services.sync.process.repository.service.AuthzRegistry;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEnginePort;
-import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityIdExtractor;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.license.LicenseFactory;
 import io.gravitee.node.api.license.LicenseManager;
@@ -79,8 +77,6 @@ public class DeployerFactory {
     private final ApiProductSubscriptionRefresher apiProductSubscriptionRefresher;
 
     private final AuthzEnginePort authzEnginePort;
-    private final AuthzRegistry authzRegistry;
-    private final AuthzEntityIdExtractor authzEntityIdExtractor;
 
     public SubscriptionDeployer createSubscriptionDeployer() {
         return new SubscriptionDeployer(
@@ -98,7 +94,7 @@ public class DeployerFactory {
     }
 
     public ApiDeployer createApiDeployer() {
-        return new ApiDeployer(apiManager, planCache, distributedSyncService, authzRegistry, authzEntityIdExtractor, authzEnginePort);
+        return new ApiDeployer(apiManager, planCache, distributedSyncService);
     }
 
     public DictionaryDeployer createDictionaryDeployer() {
@@ -143,10 +139,10 @@ public class DeployerFactory {
     }
 
     public AuthzEntityDeployer createAuthzEntityDeployer() {
-        return new AuthzEntityDeployer(authzEnginePort, authzRegistry, distributedSyncService);
+        return new AuthzEntityDeployer(authzEnginePort, distributedSyncService);
     }
 
     public AuthzPolicyDeployer createAuthzPolicyDeployer() {
-        return new AuthzPolicyDeployer(authzEnginePort, authzRegistry, distributedSyncService);
+        return new AuthzPolicyDeployer(authzEnginePort, distributedSyncService);
     }
 }
