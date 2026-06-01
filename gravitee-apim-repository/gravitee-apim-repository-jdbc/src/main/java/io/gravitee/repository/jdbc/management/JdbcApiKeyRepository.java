@@ -193,7 +193,8 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         // otherwise a federated key with multiple key_subscriptions rows consumes more than one
         // row of the limit (partial subscriptions + false short-page exhaustion). Build the page
         // of key ids in a subquery, then join key_subscriptions on the outer query.
-        final StringBuilder inner = new StringBuilder("select * from ").append(this.tableName);
+        // The api-key table is named "keys", a reserved word on MySQL/MariaDB/SQL Server — escape it.
+        final StringBuilder inner = new StringBuilder("select * from ").append(escapeReservedWord(this.tableName));
 
         boolean started = false;
         if (!isEmpty(criteria.getSubscriptions())) {
@@ -380,7 +381,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
             return apiKey;
         }
         jdbcTemplate.update("insert into " + keySubscriptions + " ( key_id, subscription_id ) values ( ?, ? )", id, subscriptionId);
-        jdbcTemplate.update("update " + this.tableName + " set updated_at=? where id=?", new Date(), id);
+        jdbcTemplate.update("update " + escapeReservedWord(this.tableName) + " set updated_at=? where id=?", new Date(), id);
         return findById(id);
     }
 
@@ -389,7 +390,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         log.debug("JdbcApiKeyRepository.deleteByEnvironmentId({})", environmentId);
         try {
             final var keyIds = jdbcTemplate.queryForList(
-                "select id from " + this.tableName + " where environment_id = ?",
+                "select id from " + escapeReservedWord(this.tableName) + " where environment_id = ?",
                 String.class,
                 environmentId
             );
@@ -399,7 +400,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
                     "delete from " + keySubscriptions + " where key_id IN (" + getOrm().buildInClause(keyIds) + ")",
                     keyIds.toArray()
                 );
-                jdbcTemplate.update("delete from " + tableName + " where environment_id = ?", environmentId);
+                jdbcTemplate.update("delete from " + escapeReservedWord(tableName) + " where environment_id = ?", environmentId);
             }
             log.debug("JdbcApiKeyRepository.deleteByEnvironmentId({}) - Done", environmentId);
             return keyIds;
