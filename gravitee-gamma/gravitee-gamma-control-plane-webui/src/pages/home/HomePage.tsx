@@ -132,7 +132,7 @@ export function HomePage({ modules, loading, error, onRetry }: HomePageProps) {
                         )}
                     </div>
                 ) : loading ? (
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-busy="true">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-4" aria-busy="true">
                         {APPLICATIONS.map(app => (
                             <div key={app.title} className="flex flex-col gap-3 rounded-xl border bg-card p-5 opacity-60">
                                 <div className="size-12 animate-pulse rounded-lg bg-muted" aria-hidden />
@@ -145,7 +145,7 @@ export function HomePage({ modules, loading, error, onRetry }: HomePageProps) {
                         ))}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
                         {APPLICATIONS.map(app => {
                             const to = isAvailable(app.moduleId) ? buildModulePath(envHrid, app.moduleId) : null;
                             return (
