@@ -29,6 +29,8 @@ const capturedTheme: { current: string | null } = {
     current: null,
 };
 
+vi.mock('../monaco-setup', () => ({}));
+
 vi.mock('@monaco-editor/react', () => ({
     __esModule: true,
     default: (props: { onMount?: (editor: unknown, monaco: unknown) => void; options?: Record<string, unknown>; theme?: string }) => {
