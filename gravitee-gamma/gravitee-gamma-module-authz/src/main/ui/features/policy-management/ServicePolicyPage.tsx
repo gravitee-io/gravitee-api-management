@@ -36,7 +36,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@gravitee/graphene-core';
-import { PlusIcon, RefreshCwIcon } from '@gravitee/graphene-core/icons';
+import { NetworkIcon, PencilIcon, PlusIcon, RefreshCwIcon, RocketIcon, ShieldCheckIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useDeferredValue, useMemo, useState } from 'react';
 import { KpiTile } from '../../components/KpiTile';
 import { ValidationErrorAlert } from '../../components/ValidationErrorAlert';
@@ -296,12 +296,38 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
                 </div>
             </header>
 
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4" aria-label="Key metrics">
-                <KpiTile label="Policies" value={kpis.total} loading={policies.isLoading} />
-                <KpiTile label={`Deployed${pageSuffix}`} value={kpis.deployed} loading={policies.isLoading} tone="success" />
-                <KpiTile label={`Draft${pageSuffix}`} value={kpis.draft} loading={policies.isLoading} tone="muted" />
+            <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }} aria-label="Key metrics">
+                <KpiTile
+                    label="Policies"
+                    value={kpis.total}
+                    loading={policies.isLoading}
+                    Icon={ShieldCheckIcon}
+                    iconClassName="bg-primary/10 text-primary"
+                />
+                <KpiTile
+                    label={`Deployed${pageSuffix}`}
+                    value={kpis.deployed}
+                    loading={policies.isLoading}
+                    tone="success"
+                    Icon={RocketIcon}
+                    iconClassName="bg-success/10 text-success"
+                />
+                <KpiTile
+                    label={`Draft${pageSuffix}`}
+                    value={kpis.draft}
+                    loading={policies.isLoading}
+                    tone="muted"
+                    Icon={PencilIcon}
+                    iconClassName="bg-muted text-muted-foreground"
+                />
                 {config.hasTarget ? (
-                    <KpiTile label={`Unique targets${pageSuffix}`} value={kpis.uniqueTargets} loading={policies.isLoading} />
+                    <KpiTile
+                        label={`Unique targets${pageSuffix}`}
+                        value={kpis.uniqueTargets}
+                        loading={policies.isLoading}
+                        Icon={NetworkIcon}
+                        iconClassName="bg-highlight/10 text-highlight"
+                    />
                 ) : null}
             </div>
 
