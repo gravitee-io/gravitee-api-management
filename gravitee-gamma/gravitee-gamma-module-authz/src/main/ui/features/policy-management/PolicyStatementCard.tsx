@@ -35,6 +35,7 @@ import {
 import { ChevronDownIcon, ChevronUpIcon, CopyIcon, Trash2Icon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 import { useMemo, useState } from 'react';
 import type { ChipOption } from '../../shared/chip-option';
+import { readAgentIds, upsertAgentClause } from './agent-condition';
 import type { ActionRef, PolicyEffect, PolicyStatement, PrincipalRef, ResourceRef } from './statement-to-gapl';
 
 const GAPL_UID_PATTERN = /^([^:]+)::"(.+)"$/;
@@ -45,6 +46,7 @@ export interface PolicyStatementCardProps {
     readonly principalOptions: readonly ChipOption[];
     readonly actionOptions: readonly ChipOption[];
     readonly resourceOptions: readonly ChipOption[];
+    readonly agentOptions: readonly ChipOption[];
     readonly resourceGroups: readonly { key: string; label: string }[];
     readonly conditionSnippets?: readonly { label: string; snippet: string }[];
     readonly onChange: (next: PolicyStatement) => void;
@@ -72,6 +74,7 @@ export function PolicyStatementCard({
     principalOptions,
     actionOptions,
     resourceOptions,
+    agentOptions,
     resourceGroups,
     conditionSnippets,
     onChange,
@@ -126,6 +129,9 @@ export function PolicyStatementCard({
         });
         onChange({ ...statement, resources: next });
     };
+
+    const agentIds = readAgentIds(statement.condition);
+    const syncAgents = (ids: string[]) => onChange({ ...statement, condition: upsertAgentClause(statement.condition ?? '', ids) });
 
     const appendCondition = (snippet: string) => {
         const trimmed = (statement.condition || '').trim();
@@ -228,6 +234,19 @@ export function PolicyStatementCard({
                         onChange={syncResources}
                         groupOrder={resourceGroups.map(g => g.key)}
                         emptyHint={emptyResourcesHint}
+                    />
+                </ChipField>
+            </div>
+
+            <div className="mt-2">
+                <ChipField label="Agents">
+                    <ChipMultiCombobox
+                        placeholder="Add agent identity"
+                        options={agentOptions}
+                        selectedIds={agentIds}
+                        onChange={syncAgents}
+                        groupOrder={['AgentIdentity']}
+                        emptyHint="No agent identities imported yet."
                     />
                 </ChipField>
             </div>
