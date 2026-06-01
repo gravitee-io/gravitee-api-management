@@ -53,3 +53,8 @@ annotations:
           url: https://github.com/gravitee-io/gravitee-api-management/pull/16606
     - kind: added
       description: "Expose `api.services.audit.cleanup.batchSize` to tune the audit retention cleaner page size"
+    - kind: added
+      description: 'Expose Edge Reactor HTTP server port in gateway service and configmap'
+      links:
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/17159
