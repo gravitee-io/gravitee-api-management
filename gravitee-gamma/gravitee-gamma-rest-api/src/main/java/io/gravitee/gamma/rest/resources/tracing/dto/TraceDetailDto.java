@@ -20,7 +20,7 @@ import java.util.List;
 
 /**
  * Full trace detail response — summary fields plus the assembled span tree. See {@link TraceSummaryDto}
- * for the ms-since-epoch timestamp rationale.
+ * for the ms-since-epoch timestamp rationale and the lowercase {@code status} vocabulary.
  */
 public record TraceDetailDto(
     String traceId,
@@ -28,7 +28,8 @@ public record TraceDetailDto(
     long durationNanos,
     String rootServiceName,
     String rootOperationName,
-    boolean hasError,
+    String status,
+    int spanCount,
     List<SpanDto> spans
 ) {
     public static TraceDetailDto from(TraceDetail detail) {
@@ -38,7 +39,8 @@ public record TraceDetailDto(
             detail.durationNanos(),
             detail.rootServiceName(),
             detail.rootOperationName(),
-            detail.hasError(),
+            detail.status().name().toLowerCase(),
+            detail.spanCount(),
             detail
                 .spans()
                 .stream()

@@ -30,6 +30,7 @@ public record TraceDetail(
     long durationNanos,
     String rootServiceName,
     String rootOperationName,
-    boolean hasError,
+    SpanStatus status,
+    int spanCount,
     List<Span> spans
 ) {}

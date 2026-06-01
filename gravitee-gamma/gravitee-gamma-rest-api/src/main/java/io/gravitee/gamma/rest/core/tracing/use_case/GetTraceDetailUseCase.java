@@ -96,15 +96,23 @@ public class GetTraceDetailUseCase {
         }
 
         Span rootSpan = pickRootSpan(stitchedSpans);
+        // Trace-level status uses the same UNSET/OK/ERROR vocabulary as a span: any ERROR wins; else fall back to
+        // the root span's own status. Keeps the wire status field useful for "is this trace healthy?" filtering
+        // without forcing the consumer to walk every span.
+        SpanStatus traceStatus;
+        if (stitchedSpans.stream().anyMatch(s -> s.status() == SpanStatus.ERROR)) {
+            traceStatus = SpanStatus.ERROR;
+        } else {
+            traceStatus = rootSpan != null ? rootSpan.status() : SpanStatus.UNSET;
+        }
         TraceDetail detail = new TraceDetail(
             input.traceId,
             rootSpan != null ? rootSpan.startTime() : null,
             rootSpan != null ? rootSpan.durationNanos() : 0L,
             rootSpan != null ? rootSpan.serviceName() : null,
             rootSpan != null ? rootSpan.operationName() : null,
-            // Trace-wide error is "any span reported ERROR" — now reads from the promoted status field
-            // instead of digging into attributes['otel.status_code'].
-            stitchedSpans.stream().anyMatch(s -> s.status() == SpanStatus.ERROR),
+            traceStatus,
+            stitchedSpans.size(),
             stitchedSpans
         );
         return new Output(Optional.of(detail));

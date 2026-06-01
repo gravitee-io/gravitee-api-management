@@ -26,6 +26,10 @@ import io.gravitee.gamma.rest.core.tracing.model.Trace;
  * Jackson's {@code Instant} handling entirely — the parent rest-api ObjectMapper has
  * {@code WRITE_DATES_AS_TIMESTAMPS} enabled, which would otherwise serialise Instant as a fractional
  * {@code <epoch_seconds>.<nanos>} value that JS code misinterprets as milliseconds.
+ *
+ * <p>{@code status} is emitted lowercase ({@code "unset" | "ok" | "error"}) to match the
+ * {@code @gravitee/gamma-lib-observability} {@code WireTraceSummary.status} contract — the lib renders
+ * a status badge per row from this exact vocabulary.
  */
 public record TraceSummaryDto(
     String traceId,
@@ -33,7 +37,8 @@ public record TraceSummaryDto(
     long durationNanos,
     String rootServiceName,
     String rootOperationName,
-    boolean hasError
+    String status,
+    int spanCount
 ) {
     public static TraceSummaryDto from(Trace trace) {
         return new TraceSummaryDto(
@@ -42,7 +47,8 @@ public record TraceSummaryDto(
             trace.durationNanos(),
             trace.rootServiceName(),
             trace.rootOperationName(),
-            trace.hasError()
+            trace.status().name().toLowerCase(),
+            trace.spanCount()
         );
     }
 }

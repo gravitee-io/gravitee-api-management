@@ -62,6 +62,8 @@ not assume the lib types match the wire field-for-field.
 | `FilterCondition.label / valueLabels`      | (omitted)                                       | lib synthesises from `TraceFilterSpec` for enums, raw value otherwise |
 | `TraceSpan.startTime / endTime / duration` | `startTimeEpochMs` + `durationNanos`            | lib adapter (renames; computes `endTime = start + duration/1e6`) |
 | `TraceSpan.attributes: AttributeValue`     | `attributes: Map<String,String>`                | lib adapter (lossy — typed attributes tracked as a follow-up)    |
+| `WireTraceSummary.status: 'unset'\|'ok'\|'error'` | `status` (same lowercase union)         | none — backend emits the lib's exact vocabulary                  |
+| `WireTraceSummary.spanCount: number`       | `spanCount: int`                                | none — backend emits the bucket `doc_count` (list) / `spans.length` (detail) |
 
 **`endTime` is intentionally not emitted** on the wire — it's purely derivable as
 `startTimeEpochMs + durationNanos / 1_000_000`. Emitting it would risk drift between stored and
@@ -124,7 +126,8 @@ interface TraceSummary {
   durationNanos: number;
   rootServiceName: string;
   rootOperationName: string;
-  hasError: boolean;
+  status: 'unset' | 'ok' | 'error';  // trace-level rollup; any ERROR span → 'error', else root's status
+  spanCount: number;                  // total spans for the trace in the search window
 }
 ```
 
@@ -153,7 +156,8 @@ Example response:
       "durationNanos": 1234000,
       "rootServiceName": "gateway",
       "rootOperationName": "GET /pets",
-      "hasError": true
+      "status": "error",
+      "spanCount": 12
     }
   ],
   "pagination": { "totalCount": 42, "page": 1, "pageCount": 3 }
@@ -329,7 +333,8 @@ interface TraceDetail {
   durationNanos: number;      // root span duration in ns
   rootServiceName: string;
   rootOperationName: string;
-  hasError: boolean;
+  status: 'unset' | 'ok' | 'error';  // same rollup as TraceSummary.status
+  spanCount: number;                  // equal to spans.length
   spans: Span[];
 }
 

@@ -440,7 +440,7 @@ components:
         TraceSummary:
             type: object
             description: Summary view of one trace returned by the list endpoint.
-            required: [traceId, startTimeEpochMs, durationNanos, rootServiceName, rootOperationName, hasError]
+            required: [traceId, startTimeEpochMs, durationNanos, rootServiceName, rootOperationName, status, spanCount]
             properties:
                 traceId:
                     type: string
@@ -466,15 +466,27 @@ components:
                     type: string
                     description: Operation name of the trace's root span.
                     example: GET /pets
-                hasError:
-                    type: boolean
-                    description: True iff any span in the trace has `status === "error"`. Precomputed server-side from `otel.status_code`.
-                    example: false
+                status:
+                    type: string
+                    enum: [unset, ok, error]
+                    description: |
+                        Trace-level status rollup using the same vocabulary as per-span `status`.
+                        Any span reporting `error` promotes the whole trace to `error`; otherwise the
+                        root span's status drives the outcome (`ok` or `unset`). Lowercase to match
+                        the lib's `WireTraceSummary.status` union.
+                    example: ok
+                spanCount:
+                    type: integer
+                    description: |
+                        Total span count for the trace within the search window. Computed
+                        server-side from the aggregation's `doc_count` per `trace_id` bucket — no
+                        extra round-trip needed to render "N spans" on a listing row.
+                    example: 12
 
         TraceDetail:
             type: object
             description: Full trace view returned by the detail endpoint — summary fields plus the assembled span tree.
-            required: [traceId, startTimeEpochMs, durationNanos, hasError, spans]
+            required: [traceId, startTimeEpochMs, durationNanos, status, spanCount, spans]
             properties:
                 traceId:
                     type: string
@@ -492,8 +504,13 @@ components:
                 rootOperationName:
                     type: string
                     nullable: true
-                hasError:
-                    type: boolean
+                status:
+                    type: string
+                    enum: [unset, ok, error]
+                    description: Same trace-level status rollup as `TraceSummary.status`.
+                spanCount:
+                    type: integer
+                    description: Equal to `spans.length` for the detail response. Sent on the envelope so the renderer doesn't need a `.length` walk before the array is rendered.
                 spans:
                     type: array
                     description: |
