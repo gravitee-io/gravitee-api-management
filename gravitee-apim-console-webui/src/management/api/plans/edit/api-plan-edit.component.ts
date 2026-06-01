@@ -147,11 +147,7 @@ export class ApiPlanEditComponent implements OnInit, OnDestroy {
     // entirely (the API reverts to host-based routing), which also breaks existing port-mode clients.
     // Setting a port for the first time (host -> port migration) is NOT breaking, so no dialog is shown.
     const needsBootstrapConfirm =
-      this.mode === 'edit' &&
-      this.isNative &&
-      deployed &&
-      oldBootstrapPort != null &&
-      newBootstrapPort !== oldBootstrapPort;
+      this.mode === 'edit' && this.isNative && deployed && oldBootstrapPort != null && newBootstrapPort !== oldBootstrapPort;
 
     const kafkaHost = (this.api as ApiV4)?.listeners?.find((listener): listener is KafkaListener => listener.type === 'KAFKA')?.host;
 
