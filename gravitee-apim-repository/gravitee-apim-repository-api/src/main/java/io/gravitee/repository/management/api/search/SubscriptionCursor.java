@@ -18,21 +18,26 @@ package io.gravitee.repository.management.api.search;
 import java.util.Objects;
 
 /**
- * Position marker for keyset / seek pagination over subscriptions. Two seek modes are supported by
- * {@code SubscriptionRepository.searchAfter} depending on the sort field passed alongside:
+ * Position marker for keyset / seek pagination over subscriptions. Three seek modes are supported by
+ * {@code SubscriptionRepository.searchAfter} depending on the sort field passed alongside (see
+ * {@link SubscriptionSearchSort}); the cursor's shape must match that field:
  *
  * <ul>
  *   <li>{@code (updatedAt, id)} — used when the {@code Sortable} field is {@code "updatedAt"} (the
  *       delta sync path). Construct with {@link #byUpdatedAt(long, String)}.</li>
- *   <li>{@code id}-only — used when the {@code Sortable} field is {@code "id"} (the warmup path
- *       where a {@code plans IN} filter dominates selectivity). Construct with {@link #byId(String)};
- *       the {@code updatedAt} component is ignored by the seek.</li>
+ *   <li>{@code (plan, id)} — used when the {@code Sortable} field is {@code "plan"} (the warmup path
+ *       where a {@code plans IN} filter dominates selectivity). Construct with
+ *       {@link #byPlanAndId(String, String)}. Sorting/seeking by {@code (plan, _id)} lets the
+ *       {@code {plan:1,_id:1}} index scan each plan's range in order without an N-way merge, instead
+ *       of an {@code _id}-ordered collection walk that examines unrelated rows.</li>
+ *   <li>{@code id} only — used when the {@code Sortable} field is {@code "id"} (legacy / repository
+ *       bridge fallback when no plan marker is available). Construct with {@link #byId(String)}.</li>
  * </ul>
  *
  * <p>Use the static factories rather than the canonical constructor to make the seek mode explicit
  * at the call site.
  */
-public record SubscriptionCursor(long updatedAt, String id) {
+public record SubscriptionCursor(long updatedAt, String id, String plan) {
     public SubscriptionCursor {
         Objects.requireNonNull(id, "SubscriptionCursor.id must not be null");
         if (id.isBlank()) {
@@ -42,11 +47,17 @@ public record SubscriptionCursor(long updatedAt, String id) {
 
     /** Cursor for {@code (updatedAt, id)} keyset seek — delta sync path. */
     public static SubscriptionCursor byUpdatedAt(long updatedAt, String id) {
-        return new SubscriptionCursor(updatedAt, id);
+        return new SubscriptionCursor(updatedAt, id, null);
     }
 
-    /** Cursor for {@code id}-only keyset seek — warmup path. */
+    /** Cursor for {@code (plan, id)} keyset seek — warmup path served by the {@code {plan,_id}} index. */
+    public static SubscriptionCursor byPlanAndId(String plan, String id) {
+        return new SubscriptionCursor(0L, id, plan);
+    }
+
+    /** Cursor for {@code id}-only keyset seek — fallback when no plan marker is available
+     *  (e.g. the repository bridge receiving a cursor from an older client). */
     public static SubscriptionCursor byId(String id) {
-        return new SubscriptionCursor(0L, id);
+        return new SubscriptionCursor(0L, id, null);
     }
 }

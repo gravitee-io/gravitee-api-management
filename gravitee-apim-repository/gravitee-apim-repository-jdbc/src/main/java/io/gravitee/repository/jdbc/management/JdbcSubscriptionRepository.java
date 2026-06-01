@@ -34,6 +34,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.SubscriptionCursor;
+import io.gravitee.repository.management.api.search.SubscriptionSearchSort;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import java.sql.PreparedStatement;
@@ -202,13 +203,11 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
         if (!isEmpty(criteria.getPlanSecurityTypes()) || !isEmpty(criteria.getExcludedApis())) {
             throw new TechnicalException("searchAfter does not support planSecurityTypes or excludedApis filters; use search() instead");
         }
-        boolean sortByUpdatedAt;
-        if (sortable == null || sortable.field() == null || "updatedAt".equals(sortable.field())) {
-            sortByUpdatedAt = true;
-        } else if ("id".equals(sortable.field())) {
-            sortByUpdatedAt = false;
-        } else {
-            throw new TechnicalException("searchAfter supports sort field 'updatedAt' or 'id' only, got: " + sortable.field());
+        final SubscriptionSearchSort sort;
+        try {
+            sort = SubscriptionSearchSort.fromSortable(sortable);
+        } catch (IllegalArgumentException e) {
+            throw new TechnicalException(e.getMessage());
         }
 
         final List<Object> argsList = new ArrayList<>();
@@ -262,34 +261,68 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             argsList.add(new Date(criteria.getEndingAtAfter()));
             started = true;
         }
+        final String planColumn = escapeReservedWord("plan");
         if (after != null) {
             inner.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            if (sortByUpdatedAt) {
-                inner.append("( updated_at > ? or ( updated_at = ? and id > ? ) )");
-                Date marker = new Date(after.updatedAt());
-                argsList.add(marker);
-                argsList.add(marker);
-                argsList.add(after.id());
-            } else {
-                inner.append("id > ?");
-                argsList.add(after.id());
+            switch (sort) {
+                case UPDATED_AT -> {
+                    inner.append("( updated_at > ? or ( updated_at = ? and id > ? ) )");
+                    Date marker = new Date(after.updatedAt());
+                    argsList.add(marker);
+                    argsList.add(marker);
+                    argsList.add(after.id());
+                }
+                case PLAN_ID -> {
+                    if (after.plan() == null) {
+                        throw new TechnicalException("PLAN_ID sort requires a (plan, id) cursor, but the cursor has no plan");
+                    }
+                    // (plan, id) keyset. The OR-form is the portable, correct comparison (works on all
+                    // JDBC dialects incl. SQL Server, which rejects row-value comparisons). The extra
+                    // redundant `plan >= ?` is a sargable lower bound that lets the planner start the
+                    // index scan at the cursor's plan instead of filtering the whole plan range — on
+                    // Postgres this becomes the index range condition.
+                    inner
+                        .append("( ( ")
+                        .append(planColumn)
+                        .append(" > ? or ( ")
+                        .append(planColumn)
+                        .append(" = ? and id > ? ) ) and ")
+                        .append(planColumn)
+                        .append(" >= ? )");
+                    argsList.add(after.plan());
+                    argsList.add(after.plan());
+                    argsList.add(after.id());
+                    argsList.add(after.plan());
+                }
+                case ID -> {
+                    inner.append("id > ?");
+                    argsList.add(after.id());
+                }
             }
         }
 
-        if (sortByUpdatedAt) {
-            inner.append(" order by updated_at asc, id asc ");
-        } else {
-            inner.append(" order by id asc ");
-        }
+        // The order must match the seek predicate above (and the backing index): a sort that
+        // disagrees with the keyset silently skips or duplicates rows across pages.
+        final String orderBy = switch (sort) {
+            case UPDATED_AT -> "updated_at asc, id asc";
+            case PLAN_ID -> planColumn + " asc, id asc";
+            case ID -> "id asc";
+        };
+        inner.append(" order by ").append(orderBy).append(" ");
         inner.append(createPagingClause(pageSize, 0));
 
+        final String outerOrderBy = switch (sort) {
+            case UPDATED_AT -> "order by s.updated_at asc, s.id asc";
+            case PLAN_ID -> "order by s." + planColumn + " asc, s.id asc";
+            case ID -> "order by s.id asc";
+        };
         final String query =
             "select s.*, sm.k as sm_k, sm.v as sm_v from (" +
             inner +
             ") s left join " +
             this.metadataTableName +
             " sm on s.id = sm.subscription_id " +
-            (sortByUpdatedAt ? "order by s.updated_at asc, s.id asc" : "order by s.id asc");
+            outerOrderBy;
 
         try {
             jdbcTemplate.query(query, rowMapper, argsList.toArray());

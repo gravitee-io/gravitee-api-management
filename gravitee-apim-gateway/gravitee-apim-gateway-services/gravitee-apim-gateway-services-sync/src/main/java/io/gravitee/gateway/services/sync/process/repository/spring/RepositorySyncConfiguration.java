@@ -135,9 +135,9 @@ public class RepositorySyncConfiguration {
     public SubscriptionFetcher subscriptionFetcher(
         SubscriptionRepository subscriptionRepository,
         @Value(
-            "${services.sync.subscription.bulk_items:${services.sync.bulk_items:" +
+            "${services.sync.subscription.bulk_items:" +
                 io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_SUBSCRIPTION_BULK_ITEMS +
-                "}}"
+                "}"
         ) int bulkItems
     ) {
         return new SubscriptionFetcher(subscriptionRepository, bulkItems);
@@ -147,9 +147,7 @@ public class RepositorySyncConfiguration {
     public ApiKeyFetcher apiKeyFetcher(
         ApiKeyRepository apiKeyRepository,
         @Value(
-            "${services.sync.apikey.bulk_items:${services.sync.bulk_items:" +
-                io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_APIKEY_BULK_ITEMS +
-                "}}"
+            "${services.sync.apikey.bulk_items:" + io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_APIKEY_BULK_ITEMS + "}"
         ) int bulkItems
     ) {
         return new ApiKeyFetcher(apiKeyRepository, bulkItems);
@@ -353,9 +351,7 @@ public class RepositorySyncConfiguration {
         SubscriptionService subscriptionService,
         ApiKeyService apiKeyService,
         @Value(
-            "${services.sync.apikey.bulk_items:${services.sync.bulk_items:" +
-                io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_APIKEY_BULK_ITEMS +
-                "}}"
+            "${services.sync.apikey.bulk_items:" + io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_APIKEY_BULK_ITEMS + "}"
         ) int bulkItems,
         @Value(
             "${services.sync.apikey.subscriptions_chunk_size:" +

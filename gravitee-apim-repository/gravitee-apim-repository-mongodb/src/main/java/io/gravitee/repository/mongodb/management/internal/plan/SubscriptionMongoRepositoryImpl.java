@@ -32,6 +32,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.SubscriptionCursor;
+import io.gravitee.repository.management.api.search.SubscriptionSearchSort;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
@@ -241,7 +242,7 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
         SubscriptionCriteria criteria,
         SubscriptionCursor after,
         int pageSize,
-        boolean sortByUpdatedAt
+        SubscriptionSearchSort sort
     ) {
         Criteria mongoCriteria = new Criteria();
         List<Criteria> clauses = new ArrayList<>();
@@ -270,16 +271,30 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             }
         }
         if (after != null) {
-            if (sortByUpdatedAt) {
-                Date marker = new Date(after.updatedAt());
-                clauses.add(
-                    new Criteria().orOperator(
-                        Criteria.where("updatedAt").gt(marker),
-                        new Criteria().andOperator(Criteria.where("updatedAt").is(marker), Criteria.where("_id").gt(after.id()))
-                    )
-                );
-            } else {
-                clauses.add(Criteria.where("_id").gt(after.id()));
+            switch (sort) {
+                case UPDATED_AT -> {
+                    Date marker = new Date(after.updatedAt());
+                    clauses.add(
+                        new Criteria().orOperator(
+                            Criteria.where("updatedAt").gt(marker),
+                            new Criteria().andOperator(Criteria.where("updatedAt").is(marker), Criteria.where("_id").gt(after.id()))
+                        )
+                    );
+                }
+                case PLAN_ID -> {
+                    if (after.plan() == null) {
+                        throw new IllegalArgumentException("PLAN_ID sort requires a (plan, id) cursor, but the cursor has no plan");
+                    }
+                    // (plan, _id) keyset: lets the {plan:1,_id:1} index scan each plan's range in order
+                    // instead of an _id-ordered collection walk over unrelated rows.
+                    clauses.add(
+                        new Criteria().orOperator(
+                            Criteria.where("plan").gt(after.plan()),
+                            new Criteria().andOperator(Criteria.where("plan").is(after.plan()), Criteria.where("_id").gt(after.id()))
+                        )
+                    );
+                }
+                case ID -> clauses.add(Criteria.where("_id").gt(after.id()));
             }
         }
 
@@ -287,8 +302,14 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             mongoCriteria = mongoCriteria.andOperator(clauses.toArray(new Criteria[0]));
         }
 
-        Sort sort = sortByUpdatedAt ? Sort.by(Sort.Order.asc("updatedAt"), Sort.Order.asc("_id")) : Sort.by(Sort.Order.asc("_id"));
-        Query query = new Query(mongoCriteria).with(sort).limit(pageSize);
+        // Sort must match the seek predicate above (and the backing index): an order that disagrees
+        // with the keyset silently skips or duplicates rows across pages.
+        Sort mongoSort = switch (sort) {
+            case UPDATED_AT -> Sort.by(Sort.Order.asc("updatedAt"), Sort.Order.asc("_id"));
+            case PLAN_ID -> Sort.by(Sort.Order.asc("plan"), Sort.Order.asc("_id"));
+            case ID -> Sort.by(Sort.Order.asc("_id"));
+        };
+        Query query = new Query(mongoCriteria).with(mongoSort).limit(pageSize);
 
         return mongoTemplate.find(query, SubscriptionMongo.class);
     }
