@@ -138,7 +138,8 @@ public class HTTPFacetsQueryAdapter {
 
     private JsonObject toQueryRange(NumberRange range) {
         var key = range.from() + "-" + range.to();
-        return json().put("key", key).put("from", range.from()).put("to", range.to());
+        // ES range aggregation `to` is exclusive; add 1 so the upper bound is included
+        return json().put("key", key).put("from", range.from()).put("to", range.to().longValue() + 1);
     }
 
     private JsonObject toTermsLeaf(Facet facet, MetricMeasuresQuery metric, Integer limit) {
