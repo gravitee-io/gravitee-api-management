@@ -27,10 +27,20 @@ import java.util.Map;
  */
 public class LLMTotalTokenBuilder {
 
+    private static final String SENT_TOKENS_FIELD = "additional-metrics.long_llm-proxy_tokens-sent";
+    private static final String RECEIVED_TOKENS_FIELD = "additional-metrics.long_llm-proxy_tokens-received";
+
     private static final String SCRIPT_SOURCE = """
-        (doc['additional-metrics.long_llm-proxy_tokens-sent'].size() > 0 ? doc['additional-metrics.long_llm-proxy_tokens-sent'].value : 0) + \
-        (doc['additional-metrics.long_llm-proxy_tokens-received'].size() > 0 ? doc['additional-metrics.long_llm-proxy_tokens-received'].value : 0)
-        """;
+        (doc.containsKey('%s') && doc['%s'].size() > 0 ? doc['%s'].value : 0) + \
+        (doc.containsKey('%s') && doc['%s'].size() > 0 ? doc['%s'].value : 0)
+        """.formatted(
+            SENT_TOKENS_FIELD,
+            SENT_TOKENS_FIELD,
+            SENT_TOKENS_FIELD,
+            RECEIVED_TOKENS_FIELD,
+            RECEIVED_TOKENS_FIELD,
+            RECEIVED_TOKENS_FIELD
+        );
 
     public Map<String, JsonObject> buildSum(String aggName) {
         return Map.of(aggName, json().put("sum", json().put("script", script())));

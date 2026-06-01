@@ -40,9 +40,11 @@ class LLMTotalTokenBuilderTest {
         assertThat(sumAgg.containsKey("script")).isTrue();
 
         var script = sumAgg.getJsonObject("script");
-        assertThat(script.getString("source")).contains("additional-metrics.long_llm-proxy_tokens-sent");
-        assertThat(script.getString("source")).contains("additional-metrics.long_llm-proxy_tokens-received");
-        assertThat(script.getString("source")).contains("+");
+        var source = script.getString("source");
+        assertThat(source).contains("additional-metrics.long_llm-proxy_tokens-sent");
+        assertThat(source).contains("additional-metrics.long_llm-proxy_tokens-received");
+        assertThat(source).contains("+");
+        assertThat(source).contains("doc.containsKey(");
     }
 
     @Test
@@ -58,8 +60,10 @@ class LLMTotalTokenBuilderTest {
         assertThat(avgAgg.containsKey("script")).isTrue();
 
         var script = avgAgg.getJsonObject("script");
-        assertThat(script.getString("source")).contains("additional-metrics.long_llm-proxy_tokens-sent");
-        assertThat(script.getString("source")).contains("additional-metrics.long_llm-proxy_tokens-received");
-        assertThat(script.getString("source")).contains("+");
+        var source = script.getString("source");
+        assertThat(source).contains("additional-metrics.long_llm-proxy_tokens-sent");
+        assertThat(source).contains("additional-metrics.long_llm-proxy_tokens-received");
+        assertThat(source).contains("+");
+        assertThat(source).contains("doc.containsKey(");
     }
 }
