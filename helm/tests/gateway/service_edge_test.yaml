@@ -1,0 +1,36 @@
+suite: Test API Gateway Edge service
+templates:
+  - "gateway/gateway-service.yaml"
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Enable Edge service
+    template: gateway/gateway-service.yaml
+    set:
+      gateway:
+        edge:
+          enabled: true
+    asserts:
+      - contains:
+          path: spec.ports
+          content:
+            name: gateway-edge
+            port: 18093
+            protocol: TCP
+            targetPort: 18093
+  - it: Disable Edge service
+    template: gateway/gateway-service.yaml
+    set:
+      gateway:
+        edge:
+          enabled: true
+        services:
+          edge:
+            enabled: false
+    asserts:
+      - notContains:
+          path: spec.ports
+          content:
+            name: gateway-edge
+            port: 18093
+            protocol: TCP
+            targetPort: 18093

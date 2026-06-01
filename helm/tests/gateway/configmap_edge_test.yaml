@@ -1,0 +1,29 @@
+suite: Test API Gateway configmap with edge reactor enabled
+templates:
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Enable Edge reactor with custom port
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        edge:
+          enabled: true
+          server:
+            port: 18093
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            edge:
+              server:
+                port: 18093
+  - it: Disabled Edge reactor does not inject edge config
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        edge:
+          enabled: false
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "edge:"

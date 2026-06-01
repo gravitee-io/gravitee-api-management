@@ -390,6 +390,17 @@ data:
         {{- end}}
       {{- end}}
     {{- end }}
+    {{- if hasKey .Values.gateway "edge" }}
+    {{- if .Values.gateway.edge.enabled }}
+    edge:
+      server:
+        {{- if hasKey .Values.gateway.edge "server" }}
+        {{- if hasKey .Values.gateway.edge.server "port" }}
+        port: {{ .Values.gateway.edge.server.port }}
+        {{- end }}
+        {{- end }}
+    {{- end }}
+    {{- end }}
     repositories:
       management:
       {{- if .Values.gateway.dbLess }}

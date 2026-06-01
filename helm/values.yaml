@@ -1388,6 +1388,12 @@ gateway:
     requestTimeout: 30000
     requestTimeoutGraceDelay: 30
 
+# # Gateway Edge Reactor HTTP server
+#  edge:
+#    enabled: false
+#    server:
+#      port: 18093
+
 # # Gateway Kafka server
 #  kafka:
 #    enabled: false
@@ -1845,6 +1851,11 @@ gateway:
       service:
         externalPort: 9092
         internalPort: 9092
+    edge:
+      enabled: true # Activated if `gateway.edge.enabled` is also enabled
+      service:
+        externalPort: 18093
+        internalPort: 18093
     bridge:
       enabled: false
       # host: localhost
