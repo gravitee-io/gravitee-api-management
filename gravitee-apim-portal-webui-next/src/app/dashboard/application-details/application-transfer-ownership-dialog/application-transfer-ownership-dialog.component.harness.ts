@@ -38,6 +38,10 @@ export class ApplicationTransferOwnershipDialogHarness extends ComponentHarness 
     MatButtonHarness.with({ selector: '[data-testid="transfer-ownership-submit-button"]' }),
   );
   private readonly locateSearchError = this.locatorForOptional('[data-testid="transfer-ownership-user-search-error"]');
+  private readonly locateApplicationMemberSearchError = this.locatorForOptional(
+    '[data-testid="transfer-ownership-application-member-search-error"]',
+  );
+  private readonly locateSelectedTarget = this.locatorForOptional('[data-testid="transfer-ownership-selected-target"]');
   private readonly locateSubmitError = this.locatorForOptional('[data-testid="transfer-ownership-submit-error"]');
   private readonly locateRolesError = this.locatorForOptional('[data-testid="transfer-ownership-roles-error"]');
 
@@ -120,6 +124,16 @@ export class ApplicationTransferOwnershipDialogHarness extends ComponentHarness 
 
   async getSearchErrorText(): Promise<string | null> {
     const element = await this.locateSearchError();
+    return element ? element.text() : null;
+  }
+
+  async getApplicationMemberSearchErrorText(): Promise<string | null> {
+    const element = await this.locateApplicationMemberSearchError();
+    return element ? element.text() : null;
+  }
+
+  async getSelectedTargetText(): Promise<string | null> {
+    const element = await this.locateSelectedTarget();
     return element ? element.text() : null;
   }
 

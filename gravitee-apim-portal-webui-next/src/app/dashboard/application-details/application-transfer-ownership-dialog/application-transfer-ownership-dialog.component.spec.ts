@@ -26,6 +26,8 @@ import {
 } from './application-transfer-ownership-dialog.component';
 import { ApplicationTransferOwnershipDialogHarness } from './application-transfer-ownership-dialog.component.harness';
 import { APPLICATION_PRIMARY_OWNER_ROLE_NAME, ApplicationRole } from '../../../../entities/application/application';
+import { MembersResponse } from '../../../../entities/member/member';
+import { fakeMember, fakeMembersResponse } from '../../../../entities/member/member.fixtures';
 import { User, UsersResponse } from '../../../../entities/user/user';
 import { fakeUser, fakeUsersResponse } from '../../../../entities/user/user.fixtures';
 import { ConfigService } from '../../../../services/config.service';
@@ -35,27 +37,25 @@ const APPLICATION_ID = 'app-1';
 const OWNER_ID = 'owner-1';
 const ROLES_URL = `${TESTING_BASE_URL}/configuration/applications/roles`;
 const TRANSFER_URL = `${TESTING_BASE_URL}/applications/${APPLICATION_ID}/members/_transfer_ownership`;
+const MEMBERS_SEARCH_URL = `${TESTING_BASE_URL}/applications/${APPLICATION_ID}/members/_search`;
 const USERS_SEARCH_URL = `${TESTING_BASE_URL}/users/_search`;
 
 const DIALOG_DATA: ApplicationTransferOwnershipDialogData = {
   applicationId: APPLICATION_ID,
   currentOwnerId: OWNER_ID,
-  members: [
-    {
-      id: OWNER_ID,
-      displayName: 'Current Owner',
-      email: 'owner@example.com',
-      initials: 'CO',
-    },
-    {
-      id: 'member-1',
-      reference: 'member-reference',
-      displayName: 'Alice Smith',
-      email: 'alice@example.com',
-      initials: 'AS',
-    },
-  ],
 };
+
+const APPLICATION_MEMBERS_RESPONSE = fakeMembersResponse([
+  fakeMember({
+    id: OWNER_ID,
+    role: APPLICATION_PRIMARY_OWNER_ROLE_NAME,
+    user: { id: OWNER_ID, display_name: 'Current Owner', _links: {} },
+  }),
+  fakeMember({
+    id: 'member-1',
+    user: { id: 'member-1', reference: 'member-reference', display_name: 'Alice Smith', email: 'alice@example.com', _links: {} },
+  }),
+]);
 
 const APPLICATION_ROLES: ApplicationRole[] = [
   { id: APPLICATION_PRIMARY_OWNER_ROLE_NAME, name: APPLICATION_PRIMARY_OWNER_ROLE_NAME, default: false, system: true },
@@ -74,6 +74,7 @@ describe('ApplicationTransferOwnershipDialogComponent', () => {
   async function init(
     data: ApplicationTransferOwnershipDialogData = DIALOG_DATA,
     roles: ApplicationRole[] | null = APPLICATION_ROLES,
+    applicationMembers: MembersResponse | null = null,
     createHarness = true,
   ): Promise<void> {
     jest.useRealTimers();
@@ -97,6 +98,11 @@ describe('ApplicationTransferOwnershipDialogComponent', () => {
     fixture.detectChanges();
     if (roles) {
       flushRoles(roles);
+    }
+    if (applicationMembers) {
+      flushApplicationMembers(applicationMembers);
+    }
+    if (roles || applicationMembers) {
       await fixture.whenStable();
       fixture.detectChanges();
     }
@@ -109,6 +115,30 @@ describe('ApplicationTransferOwnershipDialogComponent', () => {
     const req = httpTestingController.expectOne(ROLES_URL);
     expect(req.request.method).toBe('GET');
     req.flush({ data: roles });
+  }
+
+  function flushApplicationMembers(response: MembersResponse = APPLICATION_MEMBERS_RESPONSE, query = ''): void {
+    const req = httpTestingController.expectOne(req => req.url === MEMBERS_SEARCH_URL);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.params.get('page')).toBe('1');
+    expect(req.request.params.get('size')).toBe('20');
+    expect(req.request.body).toEqual({
+      filters: {
+        displayName: query,
+      },
+    });
+    req.flush(response);
+  }
+
+  async function searchApplicationMember(query: string, response: MembersResponse): Promise<void> {
+    await harness.searchApplicationMember(query);
+    fixture.detectChanges();
+    await new Promise(resolve => setTimeout(resolve, 350));
+    fixture.detectChanges();
+
+    flushApplicationMembers(response, query);
+    await fixture.whenStable();
+    fixture.detectChanges();
   }
 
   async function searchOtherUser(query: string, response: UsersResponse): Promise<void> {
@@ -148,6 +178,12 @@ describe('ApplicationTransferOwnershipDialogComponent', () => {
     expect(methodTexts.some(text => text.includes('Primary owner group'))).toBe(false);
   });
 
+  it('should not search application members before query is entered', async () => {
+    await init();
+
+    httpTestingController.expectNone(req => req.url === MEMBERS_SEARCH_URL);
+  });
+
   it('should offer only assignable roles for the current owner new role', async () => {
     await init();
 
@@ -157,7 +193,7 @@ describe('ApplicationTransferOwnershipDialogComponent', () => {
   it('should keep transfer disabled until target and role are selected', async () => {
     await init();
 
-    await harness.searchApplicationMember('Alice');
+    await searchApplicationMember('Alice', fakeMembersResponse([aliceMember()]));
     await harness.selectApplicationMember(/Alice Smith/);
     fixture.detectChanges();
 
@@ -171,7 +207,7 @@ describe('ApplicationTransferOwnershipDialogComponent', () => {
   it('should transfer ownership to an application member', async () => {
     await init();
 
-    await harness.searchApplicationMember('Alice');
+    await searchApplicationMember('Alice', fakeMembersResponse([aliceMember()]));
     expect(await harness.getApplicationMemberOptionTexts()).toEqual([expect.stringContaining('Alice Smith')]);
     await harness.selectApplicationMember(/Alice Smith/);
     await harness.selectRole('OWNER');
@@ -189,6 +225,48 @@ describe('ApplicationTransferOwnershipDialogComponent', () => {
     await fixture.whenStable();
 
     expect(dialogRef.close).toHaveBeenCalledWith(true);
+  });
+
+  it('should show the selected application member email after selection', async () => {
+    await init();
+
+    await searchApplicationMember('Alice', fakeMembersResponse([aliceMember()]));
+    await harness.selectApplicationMember(/Alice Smith/);
+    fixture.detectChanges();
+
+    expect(await harness.getSelectedTargetText()).toContain('alice@example.com');
+  });
+
+  it('should search application members independently from the members table page', async () => {
+    await init();
+
+    await searchApplicationMember(
+      'Page Two',
+      fakeMembersResponse([
+        fakeMember({
+          id: 'page-2-member',
+          user: {
+            id: 'page-2-member',
+            reference: 'page-2-reference',
+            display_name: 'Page Two Member',
+            email: 'page.two@example.com',
+            _links: {},
+          },
+        }),
+      ]),
+    );
+    await harness.selectApplicationMember(/Page Two Member/);
+    await harness.selectRole('OWNER');
+    await harness.clickSubmit();
+    fixture.detectChanges();
+
+    const req = httpTestingController.expectOne(TRANSFER_URL);
+    expect(req.request.body).toEqual({
+      new_primary_owner_id: 'page-2-member',
+      new_primary_owner_reference: 'page-2-reference',
+      primary_owner_newrole: 'OWNER',
+    });
+    req.flush(null, { status: 204, statusText: 'No Content' });
   });
 
   it('should transfer ownership to another registered user', async () => {
@@ -228,7 +306,7 @@ describe('ApplicationTransferOwnershipDialogComponent', () => {
   it('should keep dialog open and show inline error when transfer fails', async () => {
     await init();
 
-    await harness.searchApplicationMember('Alice');
+    await searchApplicationMember('Alice', fakeMembersResponse([aliceMember()]));
     await harness.selectApplicationMember(/Alice Smith/);
     await harness.selectRole('OWNER');
     await harness.clickSubmit();
@@ -253,7 +331,7 @@ describe('ApplicationTransferOwnershipDialogComponent', () => {
   });
 
   it('should show recoverable roles loading error', async () => {
-    await init(DIALOG_DATA, null, false);
+    await init(DIALOG_DATA, null, null, false);
 
     httpTestingController.expectOne(ROLES_URL).flush({ message: 'Server error' }, { status: 500, statusText: 'Error' });
     await fixture.whenStable();
@@ -271,5 +349,12 @@ function usersResponse(users: User[], applicationMembership: Record<string, bool
       data: { total: users.length },
       applicationMembership,
     },
+  });
+}
+
+function aliceMember() {
+  return fakeMember({
+    id: 'member-1',
+    user: { id: 'member-1', reference: 'member-reference', display_name: 'Alice Smith', email: 'alice@example.com', _links: {} },
   });
 }

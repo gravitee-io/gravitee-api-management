@@ -30,6 +30,7 @@ import { ButtonToggleGroupComponent } from '../../../../components/button-toggle
 import { ButtonToggleOptionComponent } from '../../../../components/button-toggle-group/button-toggle-option.component';
 import { UserCellComponent, UserCellVM } from '../../../../components/user-cell/user-cell.component';
 import { isAssignableApplicationRole } from '../../../../entities/application/application';
+import { Member, MembersResponse } from '../../../../entities/member/member';
 import { User, UsersResponse } from '../../../../entities/user/user';
 import { ApplicationService } from '../../../../services/application.service';
 import { MembershipService } from '../../../../services/membership.service';
@@ -37,10 +38,11 @@ import { UsersService } from '../../../../services/users.service';
 
 const APPLICATION_MEMBER_METHOD = 'APPLICATION_MEMBER';
 const OTHER_USER_METHOD = 'OTHER_USER';
+const APPLICATION_MEMBER_SEARCH_PAGE_SIZE = 20;
 
 type TransferOwnershipMethod = typeof APPLICATION_MEMBER_METHOD | typeof OTHER_USER_METHOD;
 
-export interface ApplicationTransferOwnershipMemberOption {
+interface ApplicationTransferOwnershipMemberOption {
   id: string;
   reference?: string;
   displayName: string;
@@ -52,7 +54,6 @@ export interface ApplicationTransferOwnershipMemberOption {
 export interface ApplicationTransferOwnershipDialogData {
   applicationId: string;
   currentOwnerId?: string;
-  members: ApplicationTransferOwnershipMemberOption[];
 }
 
 interface TransferOwnershipTarget extends ApplicationTransferOwnershipMemberOption {
@@ -98,7 +99,11 @@ export class ApplicationTransferOwnershipDialogComponent {
   readonly selectedTarget = signal<TransferOwnershipTarget | null>(null);
 
   private readonly applicationMemberSearchValue = toSignal(
-    this.applicationMemberControl.valueChanges.pipe(startWith(this.applicationMemberControl.value)),
+    this.applicationMemberControl.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      startWith(this.applicationMemberControl.value),
+    ),
     {
       initialValue: this.applicationMemberControl.value,
     },
@@ -119,10 +124,24 @@ export class ApplicationTransferOwnershipDialogComponent {
   readonly isOtherUserMethod = computed(() => this.transferMethod() === OTHER_USER_METHOD);
   readonly applicationMemberSearchQuery = computed(() => this.applicationMemberSearchValue().trim());
   readonly otherUserSearchQuery = computed(() => this.otherUserSearchValue().trim());
+  readonly applicationMemberSearchRequest = computed(() => {
+    const query = this.applicationMemberSearchQuery();
+    return this.isApplicationMemberMethod() && query.length > 0 ? query : null;
+  });
   readonly otherUserSearchRequest = computed(() => (this.isOtherUserMethod() ? this.otherUserSearchQuery() : ''));
 
   protected readonly rolesResource = rxResource({
     stream: () => this.applicationService.getApplicationRoles(),
+  });
+
+  protected readonly applicationMembersResource = rxResource<MembersResponse | undefined, string | null>({
+    params: this.applicationMemberSearchRequest,
+    stream: ({ params }) =>
+      params === null
+        ? of(undefined)
+        : this.membershipService.searchApplicationMembers(this.data.applicationId, 1, APPLICATION_MEMBER_SEARCH_PAGE_SIZE, {
+            displayName: params,
+          }),
   });
 
   protected readonly usersResource = rxResource<UsersResponse | undefined, string>({
@@ -131,13 +150,19 @@ export class ApplicationTransferOwnershipDialogComponent {
       params.length > 0 ? this.usersService.searchUsersForApplicationMembership(this.data.applicationId, params) : of(undefined),
   });
 
-  readonly assignableRoles = computed(() => (this.rolesResource.value() ?? []).filter(isAssignableApplicationRole));
+  readonly assignableRoles = computed(() =>
+    this.rolesResource.error() ? [] : (this.rolesResource.value() ?? []).filter(isAssignableApplicationRole),
+  );
 
   readonly applicationMemberOptions = computed<TransferOwnershipTarget[]>(() => {
+    if (this.applicationMembersResource.error()) {
+      return [];
+    }
+
     const query = this.applicationMemberSearchQuery().toLowerCase();
-    return this.data.members
-      .filter(member => member.id !== this.data.currentOwnerId)
+    return (this.applicationMembersResource.value()?.data ?? [])
       .map(member => this.toMemberTarget(member))
+      .filter(target => !target.isDisabled)
       .filter(target => this.targetMatchesQuery(target, query));
   });
 
@@ -160,7 +185,11 @@ export class ApplicationTransferOwnershipDialogComponent {
   });
 
   readonly noApplicationMembersFound = computed(
-    () => this.applicationMemberSearchQuery() !== '' && this.applicationMemberOptions().length === 0,
+    () =>
+      this.applicationMemberSearchQuery() !== '' &&
+      !this.applicationMembersResource.isLoading() &&
+      !this.applicationMembersResource.error() &&
+      this.applicationMemberOptions().length === 0,
   );
 
   readonly noUsersFound = computed(
@@ -263,17 +292,20 @@ export class ApplicationTransferOwnershipDialogComponent {
     this.roleControl.enable(options);
   }
 
-  private toMemberTarget(member: ApplicationTransferOwnershipMemberOption): TransferOwnershipTarget {
+  private toMemberTarget(member: Member): TransferOwnershipTarget {
+    const id = member.id ?? member.user?.id ?? '';
+    const userCell = this.toMemberUserCell(member);
+
     return {
-      ...member,
-      vm: {
-        displayName: member.displayName,
-        email: member.email,
-        avatarUrl: member.avatarUrl,
-        initials: member.initials,
-      },
+      id,
+      reference: member.user?.reference,
+      displayName: userCell.displayName,
+      email: userCell.email,
+      avatarUrl: userCell.avatarUrl,
+      initials: userCell.initials,
+      vm: userCell,
       isAlreadyMember: true,
-      isDisabled: false,
+      isDisabled: !id || id === this.data.currentOwnerId,
     };
   }
 
@@ -301,6 +333,20 @@ export class ApplicationTransferOwnershipDialogComponent {
       displayName,
       email: user.email,
       avatarUrl: user._links?.avatar,
+      initials: this.getInitialsFromDisplayName(displayName),
+    };
+  }
+
+  private toMemberUserCell(member: Member): UserCellVM {
+    const user = member.user;
+    const displayName =
+      user?.display_name ??
+      (user?.first_name || user?.last_name ? `${user?.first_name ?? ''} ${user?.last_name ?? ''}`.trim() : (user?.id ?? member.id ?? ''));
+
+    return {
+      displayName,
+      email: user?.email,
+      avatarUrl: user?._links?.avatar,
       initials: this.getInitialsFromDisplayName(displayName),
     };
   }

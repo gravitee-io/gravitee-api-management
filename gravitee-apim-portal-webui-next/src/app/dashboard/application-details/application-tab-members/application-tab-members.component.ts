@@ -43,7 +43,6 @@ import {
 import {
   ApplicationTransferOwnershipDialogComponent,
   ApplicationTransferOwnershipDialogData,
-  ApplicationTransferOwnershipMemberOption,
 } from '../application-transfer-ownership-dialog/application-transfer-ownership-dialog.component';
 
 interface MemberTableRow {
@@ -213,9 +212,6 @@ export class ApplicationTabMembersComponent {
           data: {
             applicationId: this.applicationId(),
             currentOwnerId: this.application()?.owner?.id,
-            members: this.rows()
-              .filter(row => !!row.id)
-              .map(row => this.toTransferOwnershipMemberOption(row)),
           },
           disableClose: true,
         },
@@ -291,17 +287,6 @@ export class ApplicationTabMembersComponent {
       isCurrentUser: !!user?.id && user.id === this.currentUserService.user()?.id,
       role: member.role ?? '',
       isPrimaryOwner: member.role === APPLICATION_PRIMARY_OWNER_ROLE_NAME,
-    };
-  }
-
-  private toTransferOwnershipMemberOption(member: MemberTableRow): ApplicationTransferOwnershipMemberOption {
-    return {
-      id: member.id,
-      reference: member.reference,
-      displayName: member.user.displayName,
-      email: member.user.email,
-      avatarUrl: member.user.avatarUrl,
-      initials: member.user.initials,
     };
   }
 
