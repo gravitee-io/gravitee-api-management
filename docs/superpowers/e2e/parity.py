@@ -186,10 +186,16 @@ def _post(url, body):
 
 
 def _ids(payload):
+    """Extract sorted identifiers from search results.
+
+    Subject/resource search results are {type, id, properties?}; action search results
+    are {name} per AuthZen 1.0 §search. Fall back from id to name so all three search
+    types can be compared with the same helper.
+    """
     if payload is None:
         return None
     results = payload.get("results") or []
-    return sorted([r.get("id", "") for r in results])
+    return sorted([(r.get("id") or r.get("name") or "") for r in results])
 
 
 def compare_batch(authzen_req):

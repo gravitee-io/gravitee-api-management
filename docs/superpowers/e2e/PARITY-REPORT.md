@@ -150,7 +150,7 @@ cat docs/superpowers/e2e/parity-results.json | jq .
 > **API definition:** 6-flow `api-def.json` (single eval + batch + 3 search + discovery), atomic redeploy after PDP+PEP rebuild and gateway wipe-restart.
 > **Harness:** [`parity.py`](parity.py) `sync_wait=20s` (same as definitive run), now scoring 5 evaluation dimensions per scenario plus a one-shot discovery comparison.
 
-## TL;DR (after SearchHandler reactive-chain fix)
+## TL;DR (after SearchHandler reactive fix + PDP schema-aware action enumeration + AuthZen action result shape)
 
 ```
                           Single eval  Batch       Search-Subject  Search-Resource  Search-Action  Discovery
@@ -159,11 +159,11 @@ PASS                      29 (100%)    29 (100%)   29 (100%)       26 (89%)     
 SKIP (intentional)        2            2           2               2                2              0
 ```
 
-**4 dimensions reach full parity (29/29)**: single eval, batch eval, search-subject, discovery.
-**Search resource at 89%** (3 scenarios diverge — auto-derived API entities pollute results + 2 schema-driven semantic gaps).
-**Search action at 24%** — real product gap: PDP iterates Action entities in the entity store (typically empty), engine enumerates actions from policy text + schema declarations. Plus a wire-shape mismatch: AuthZen action results are `{name}`, our PDP emits `{type, id}`.
+- **4 dimensions reach 100% parity**: single eval, batch eval, search-subject, discovery.
+- **Search resource at 89%** (3/29 divergent — auto-derived API entities pollute, plus 2 schema-driven semantic gaps).
+- **Search action at 24%** — gated by a **multi-repo schema-sync gap**. The PDP-side schema-aware enumeration is implemented (mirrors engine playground exactly), but `snapshot.schema()` is always `null` because gamma's gateway sync layer doesn't yet carry schema events to the PDP. Scenarios with explicit Action entities work; scenarios with schema-only action declarations return empty until the follow-up sync work lands.
 
-**The original Search 503 blocker (across all scenarios)** was a reactive-chain bug in `SearchHandler` where `interruptOk`'s success signal (an `InterruptionFailureException` from `ctx.interruptBodyWith(200)`) was caught by `.onErrorResumeNext` and rewritten as 503 search_failed. Fix landed as `gravitee-policy-authz-pep` commit `fix: SearchHandler reactive chain` — restructured to apply `onErrorReturn` on the inner `Single<Message>` only, with `interruptOk`/`interruptError` called exactly once at the end. All search dimensions now produce real results.
+**The original universal Search 503** was a reactive-chain bug — fixed by restructuring `SearchHandler` to apply `onErrorReturn` on the inner `Single<Message>` only and call `interruptOk`/`interruptError` exactly once at the end (mirroring `BatchEvaluationHandler`). All search dimensions now produce real results.
 
 ## Per-dimension verdict (after SearchHandler reactive fix)
 
@@ -219,18 +219,22 @@ Also kept the diagnostic `LOG.warn` for real PDP failures — silent 503s were a
 | `feature-10-boolean-logic` | `[api-config]` | `[api-config, api.<uuid1>, api.<uuid2>, api.<uuid3>]` | Gamma over-includes 3 auto-derived `api.{uuid}` entities (synced into the PDP from the deployed APIM API definitions themselves). They happen to match the candidate type predicate. Engine's snapshot is hermetic (no auto-derived entities). **Fix**: gateway sync layer should filter out `api.*` / `mcp.*` auto-derived entities from search results, OR the gamma test harness should not pollute the PDP with API-derived entities for search scenarios. |
 | `real-world-06-mcp-server-access` | 6 results | `[]` | Gamma returns ZERO; engine returns 6. Inverse of feature-10. Likely a colon-bearing-ID interaction with the PDP's `Entities.byType` iteration — confirms the entity-id regex relaxation works for storage and single-eval but the SearchExecutor's per-type iteration may have a bug. **Investigation needed.** |
 
-### Search action — 22/29 divergent scenarios — fundamental gap
+### Search action — 22/29 divergent — root cause: gamma doesn't sync schema to PDP
 
-**Root cause:** Gamma's PDP `SearchExecutor.searchAction` iterates `Entities` of `uid.type == "Action"` to find candidates. But action entities are not typically present in the entity store — they're declared in the policy/schema. The engine playground enumerates actions from the schema's `action "name" appliesTo {...}` blocks and policy `Action::"name"` references.
+**Implemented in this PR:**
+1. ✅ PDP `SearchExecutor.searchActions` enumerates schema-declared actions (mirrors engine playground's `SearchActionHandler`): schema first, then entity-store back-compat. ~50 LOC.
+2. ✅ `SearchResult.EntityRef.ofAction(name)` factory + AuthZen-spec-aligned wire shape `{name: ...}` only. Codec discriminates via `isAction()` predicate.
+3. ✅ Parity harness `_ids` falls back from `id` to `name` so action results are comparable across both sides.
 
-Additionally, AuthZen 1.0 action search responses carry the result as `{name: "read"}` (the action's `name` attribute), not `{type: "Action", id: "read"}`. Our PDP emits the latter shape; engine emits the former.
+**But the schema-enumeration code has nothing to enumerate** because **Gamma's gateway sync layer doesn't carry schema** to the PDP. `Snapshot.schema()` is always `null` in production (the snapshot stream consumed by `AuthzPdpSyncBusConsumer` carries entities + policies, no schema events). The 7 scenarios that pass are exactly the ones with explicit Action entities in their `entities` JSON (back-compat path); the 22 that fail use schema-only action declarations (the Cedar/AuthZen-spec common case).
 
-**To fix properly:**
-1. PDP `SearchExecutor.searchAction` should enumerate distinct action names from the loaded `PolicySet` (scan for `Action::"<name>"` references) instead of (or in addition to) iterating entity store.
-2. `SearchResult.EntityRef` for the ACTION search type should serialize as `{name: <id>}` not `{type, id}`. Two options: (a) discriminate in the codec by searchType, (b) add a `name` field to EntityRef and use it for actions.
-3. Parity harness's `_ids(payload)` extracts only `id`; it should fall back to `name` for action results.
+**Resolution requires multi-repo work** (deferred to a follow-up):
+- New gamma-module-authz event type for schema mutations (`PUBLISH_AUTHZ_SCHEMA` / `UNPUBLISH_AUTHZ_SCHEMA`).
+- `gravitee-apim-gateway-services-sync` `AuthzEntityDeployer`-style sync deployer for schemas.
+- PDP `AuthzPdpSyncBusConsumer` handler for the new event type, plus `Snapshot.schema(AuthzSchema)` setter.
+- ~1-2 dev-days across 3 repos.
 
-**Pragmatic deferral:** customers who actually use search-action typically populate Action entities in the bundle explicitly (or use the playground UI which auto-creates them). For a v1 migration the gap is documentable: "search-action returns Action entities present in your bundle; declare them explicitly if you need search to enumerate them."
+**Customer migration story (today):** if your policy bundle materialises actions as entities (the `entities` array contains `Action::"name"` entries) — search-action works out of the box. If your bundle declares actions only in schema blocks — search-action returns empty until the schema-sync follow-up lands. Document this in the migration guide.
 
 ## Five fix-commits landed (NOT pushed yet — gated on user decision)
 
