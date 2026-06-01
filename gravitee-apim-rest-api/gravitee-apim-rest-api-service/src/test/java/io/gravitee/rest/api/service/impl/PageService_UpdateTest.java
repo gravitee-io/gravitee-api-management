@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl;
 import static java.util.Arrays.asList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
@@ -520,7 +521,7 @@ public class PageService_UpdateTest {
         verify(pageRepository, never()).update(any());
     }
 
-    @Test
+    @Test(expected = PageContentUnsafeException.class)
     public void shouldNotUpdateBecausePageContentTemplatingException() throws TechnicalException, TemplateException {
         setField(pageService, "markdownSanitize", true);
 
@@ -531,15 +532,35 @@ public class PageService_UpdateTest {
         when(page1.getReferenceId()).thenReturn(API_ID);
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
 
-        when(pageRepository.update(any())).thenReturn(page1);
+        when(
+            this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), eq(content), any(), anyBoolean())
+        ).thenThrow(new TemplateProcessingException(new TemplateException(null)));
+        when(htmlSanitizer.isSafe(anyString())).thenReturn(new HtmlSanitizer.SanitizeInfos(false, "Tag not allowed: script"));
+
+        pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, existingPage);
+
+        verify(pageRepository, never()).update(any());
+    }
+
+    @Test(expected = PageContentUnsafeException.class)
+    public void shouldNotUpdateWhenXssPayloadBypassesTemplateError() throws TechnicalException, TemplateException {
+        setField(pageService, "markdownSanitize", true);
+
+        String content = "<img src=x onerror=\"alert('XSS')\">\n${";
+        when(existingPage.getContent()).thenReturn(content);
+        when(page1.getType()).thenReturn(PageType.MARKDOWN.name());
+        when(page1.getReferenceType()).thenReturn(PageReferenceType.API);
+        when(page1.getReferenceId()).thenReturn(API_ID);
+        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
 
         when(
             this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), eq(content), any(), anyBoolean())
         ).thenThrow(new TemplateProcessingException(new TemplateException(null)));
+        when(htmlSanitizer.isSafe(anyString())).thenReturn(new HtmlSanitizer.SanitizeInfos(false, "Attribute not allowed: onerror"));
 
         pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, existingPage);
 
-        verify(pageRepository).update(any());
+        verify(pageRepository, never()).update(any());
     }
 
     @Test
