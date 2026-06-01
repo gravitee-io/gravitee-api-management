@@ -533,7 +533,7 @@ export function EntitiesPage() {
                         <div className="ml-auto flex items-center gap-2">
                             <Button variant="outline" onClick={onSync} disabled={isSyncing}>
                                 <RefreshCwIcon className={`mr-2 size-4 ${isSyncing ? 'animate-spin' : ''}`} aria-hidden />
-                                {isSyncing ? 'Syncing from AM…' : 'Sync from AM'}
+                                {isSyncing ? 'Syncing from Gravitee Access Management…' : 'Sync From Gravitee Access Management'}
                             </Button>
                             <Button onClick={() => setAddingKind('PRINCIPAL')}>
                                 <PlusIcon className="mr-2 size-4" aria-hidden />
@@ -593,7 +593,7 @@ export function EntitiesPage() {
                             </Button>
                             <Button onClick={() => setImportOpen(true)}>
                                 <DownloadIcon className="mr-2 size-4" aria-hidden />
-                                Import from Context Catalog
+                                Import from AI Catalog
                             </Button>
                         </div>
                     </div>

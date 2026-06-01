@@ -297,7 +297,7 @@ export function ImportFromCatalogDialog({ open, environmentId, onOpenChange, onI
     const selectedCount = selected.size;
     const tabCount = (key: TabKey): number => queryByTab[key].data?.total ?? 0;
 
-    const ariaLabel = 'Import from Context Catalog';
+    const ariaLabel = 'Import from AI Catalog';
 
     function renderTabBody(tab: TabDef, query: UseAimCatalogItemsResult<CatalogItem>) {
         const items: readonly CatalogItem[] = query.data?.data ?? [];
@@ -434,7 +434,7 @@ export function ImportFromCatalogDialog({ open, environmentId, onOpenChange, onI
                 <SheetTitle className="sr-only">{ariaLabel}</SheetTitle>
 
                 <div className="border-b px-6 py-4">
-                    <h2 className="text-lg font-semibold">Import from Context Catalog</h2>
+                    <h2 className="text-lg font-semibold">Import from AI Catalog</h2>
                     <p className="mt-1 text-sm text-muted-foreground">
                         Select catalog entries to register as read-only resource entities in the Policy Engine. Imported entities keep the
                         same Entity ID as in the Catalog, so policies always refer to one canonical identifier.
