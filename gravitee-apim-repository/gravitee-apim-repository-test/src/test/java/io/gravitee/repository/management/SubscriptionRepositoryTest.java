@@ -831,11 +831,11 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
 
         // Keyset pagination must reproduce the single-page order exactly — same elements, same order,
         // no skips or duplicates. This holds only when the seek predicate agrees with the sort.
-        assertEquals("id-only keyset pagination must reproduce the single-page id order (no skip/dup/reorder)", singlePageOrder, paged);
+        assertEquals(singlePageOrder, paged, "id-only keyset pagination must reproduce the single-page id order (no skip/dup/reorder)");
         assertEquals(
-            "plan3 subs returned exactly — no leak from unrelated plans",
             Set.of("sub-legacy-push", "sub2", "sub3", "sub6", "sub7", "sub8"),
-            new java.util.HashSet<>(paged)
+            new java.util.HashSet<>(paged),
+            "plan3 subs returned exactly — no leak from unrelated plans"
         );
     }
 
