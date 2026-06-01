@@ -75,7 +75,8 @@ public class DictionaryAutomationDomainServiceLegacyWrapper implements Dictionar
             if (deploy && !isStarted(dictionary)) {
                 return dictionaryService.start(executionContext, dictionary.getId());
             } else if (!deploy && isStarted(dictionary)) {
-                return dictionaryService.stop(executionContext, dictionary.getId());
+                dictionaryService.stop(executionContext, dictionary.getId());
+                return dictionaryService.undeploy(executionContext, dictionary.getId());
             }
         }
         return dictionary;
