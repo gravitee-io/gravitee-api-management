@@ -1,0 +1,8 @@
+{
+  "entityId": "doc-1",
+  "kind": "RESOURCE",
+  "entityType": "Document",
+  "attributes": { "owner": "alice" },
+  "tags": {},
+  "source": "e2e-test"
+}

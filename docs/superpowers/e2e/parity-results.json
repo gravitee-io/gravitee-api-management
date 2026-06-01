@@ -1,0 +1,647 @@
+{
+  "discovery": {
+    "result": "PASS",
+    "note": "engine_endpoints={'access_evaluation_endpoint': '/access/v1/evaluation', 'access_evaluations_endpoint': '/access/v1/evaluations', 'search_subject_endpoint': '/access/v1/search/subject', 'search_resource_endpoint': '/access/v1/search/resource', 'search_action_endpoint': '/access/v1/search/action'} gamma_endpoints={'access_evaluation_endpoint': '/access/v1/evaluation', 'access_evaluations_endpoint': '/access/v1/evaluations', 'search_subject_endpoint': '/access/v1/search/subject', 'search_resource_endpoint': '/access/v1/search/resource', 'search_action_endpoint': '/access/v1/search/action'}"
+  },
+  "rows": [
+    {
+      "id": "learn-01-first-policy",
+      "cat": "learn",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "learn-02-allow-and-deny",
+      "cat": "learn",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "learn-03-groups-hierarchy",
+      "cat": "learn",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "learn-04-conditions",
+      "cat": "learn",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "learn-05-schema",
+      "cat": "learn",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "learn-06-types-expressions",
+      "cat": "learn",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "learn-07-advanced-scoping",
+      "cat": "learn",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "learn-08-annotations",
+      "cat": "learn",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "learn-09-templates",
+      "cat": "learn",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "learn-10-putting-it-together",
+      "cat": "learn",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "learn-11-batch-evaluation",
+      "cat": "learn",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "learn-12-properties-from-request",
+      "cat": "learn",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=False gamma=False",
+        "batch": "engine=False gamma=False",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": false,
+      "gamma": false,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "feature-01-wildcards",
+      "cat": "features",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "feature-02-ip-filtering",
+      "cat": "features",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "feature-03-datetime",
+      "cat": "features",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "feature-04-decimal",
+      "cat": "features",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "feature-05-entity-tags",
+      "cat": "features",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "feature-06-partial-evaluation",
+      "cat": "features",
+      "dims": {
+        "eval": "SKIP_INTENTIONAL",
+        "batch": "SKIP_INTENTIONAL",
+        "sub": "SKIP_INTENTIONAL",
+        "res": "SKIP_INTENTIONAL",
+        "act": "SKIP_INTENTIONAL"
+      },
+      "notes": {
+        "_setup": "scenario hint flags this as a tutorial demo (not designed to load as-is)"
+      },
+      "result": "INTENTIONAL_DESIGN"
+    },
+    {
+      "id": "feature-07-enum-entities",
+      "cat": "features",
+      "dims": {
+        "eval": "SKIP_INTENTIONAL",
+        "batch": "SKIP_INTENTIONAL",
+        "sub": "SKIP_INTENTIONAL",
+        "res": "SKIP_INTENTIONAL",
+        "act": "SKIP_INTENTIONAL"
+      },
+      "notes": {
+        "_setup": "scenario hint flags this as a tutorial demo (not designed to load as-is)"
+      },
+      "result": "INTENTIONAL_DESIGN"
+    },
+    {
+      "id": "feature-08-skip-on-error",
+      "cat": "features",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "feature-09-set-operations",
+      "cat": "features",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "feature-10-boolean-logic",
+      "cat": "features",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "feature-11-authzen-enrichment",
+      "cat": "features",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=False gamma=False",
+        "batch": "engine=False gamma=False",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": false,
+      "gamma": false,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "feature-12-authzen-search",
+      "cat": "features",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "real-world-01-saas",
+      "cat": "real-world",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "real-world-02-healthcare",
+      "cat": "real-world",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "real-world-03-document-collab",
+      "cat": "real-world",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "real-world-04-api-gateway",
+      "cat": "real-world",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "real-world-05-ai-agent-tools",
+      "cat": "real-world",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "real-world-06-mcp-server-access",
+      "cat": "real-world",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    },
+    {
+      "id": "real-world-07-ai-governance",
+      "cat": "real-world",
+      "dims": {
+        "eval": "PASS",
+        "batch": "PASS",
+        "sub": "ERROR",
+        "res": "ERROR",
+        "act": "ERROR"
+      },
+      "notes": {
+        "eval": "engine=True gamma=True",
+        "batch": "engine=True gamma=True",
+        "sub": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "res": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}",
+        "act": "engine_err=None gamma_err=HTTP 503: {\"results\":[],\"page\":{},\"context\":{\"reason\":\"search_failed\"}}"
+      },
+      "engine": true,
+      "gamma": true,
+      "result": "EVAL_ERROR"
+    }
+  ]
+}
