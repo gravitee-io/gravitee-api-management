@@ -201,8 +201,17 @@ export function SchemaPage() {
                         </Alert>
                     )}
 
-                    <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }} aria-label="Schema summary">
-                        <KpiTile label="Entities" value={parsed.entities.length} Icon={BoxesIcon} iconClassName="bg-primary/10 text-primary" />
+                    <div
+                        className="grid gap-4"
+                        style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}
+                        aria-label="Schema summary"
+                    >
+                        <KpiTile
+                            label="Entities"
+                            value={parsed.entities.length}
+                            Icon={BoxesIcon}
+                            iconClassName="bg-primary/10 text-primary"
+                        />
                         <KpiTile label="Actions" value={parsed.actions.length} Icon={ZapIcon} iconClassName="bg-warning/10 text-warning" />
                         <KpiTile
                             label="Principal kinds"

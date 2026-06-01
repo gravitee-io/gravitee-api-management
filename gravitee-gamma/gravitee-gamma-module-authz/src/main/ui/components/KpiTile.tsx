@@ -35,7 +35,9 @@ export function KpiTile({ label, value, loading = false, tone = 'default', Icon,
     return (
         <Card className="flex flex-col gap-3 p-5" aria-label={label}>
             {Icon && (
-                <div className={cn('flex size-10 items-center justify-center rounded-lg', iconClassName ?? 'bg-muted text-muted-foreground')}>
+                <div
+                    className={cn('flex size-10 items-center justify-center rounded-lg', iconClassName ?? 'bg-muted text-muted-foreground')}
+                >
                     <Icon className="size-5" aria-hidden />
                 </div>
             )}

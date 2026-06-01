@@ -202,7 +202,13 @@ export function ActionsPage() {
             </header>
 
             <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }} aria-label="Key metrics">
-                <KpiTile label="Total actions" value={total} loading={actionsQuery.isLoading} Icon={ZapIcon} iconClassName="bg-warning/10 text-warning" />
+                <KpiTile
+                    label="Total actions"
+                    value={total}
+                    loading={actionsQuery.isLoading}
+                    Icon={ZapIcon}
+                    iconClassName="bg-warning/10 text-warning"
+                />
             </div>
 
             {actionsQuery.error !== undefined && (
