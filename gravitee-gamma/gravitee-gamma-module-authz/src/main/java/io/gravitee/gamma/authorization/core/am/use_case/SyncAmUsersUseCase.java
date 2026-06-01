@@ -18,8 +18,9 @@ package io.gravitee.gamma.authorization.core.am.use_case;
 import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
 import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 import io.gravitee.gamma.authorization.api.AuthzEntityAdminApi;
+import io.gravitee.gamma.authorization.core.am.model.AmGroup;
+import io.gravitee.gamma.authorization.core.am.model.AmRole;
 import io.gravitee.gamma.authorization.core.am.model.AmUser;
-import io.gravitee.gamma.authorization.core.am.model.AmUserPage;
 import io.gravitee.gamma.authorization.core.am.service_provider.AmDirectoryClient;
 import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
 import io.gravitee.gamma.authorization.service.CreateOrReplaceAuthzEntityCommand;
@@ -34,9 +35,11 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 
 /**
- * Pages every user out of the AM domain on the connection and upserts each as a PRINCIPAL authz
- * entity via {@link AuthzEntityAdminApi#bulkUpsert}. Upsert-only: users removed in AM are left as
- * stale entities. Invoked on a worker thread by the infra job manager.
+ * Pages every user, group, and role out of the AM domain on the connection and upserts each as a
+ * PRINCIPAL authz entity via {@link AuthzEntityAdminApi#bulkUpsert}. Groups and roles are synced
+ * first (they are the parent entities users reference); each user's {@code parents} is then set to
+ * its group + role ids. Upsert-only: entities removed in AM are left as stale entities. Invoked on a
+ * worker thread by the infra job manager.
  *
  * @author GraviteeSource Team
  */
@@ -56,22 +59,46 @@ public class SyncAmUsersUseCase {
 
     public Output execute(Input input) {
         AuthzCallerContext caller = input.caller();
+        String env = caller.environmentId();
 
         int usersFetched = 0;
         int entitiesUpserted = 0;
         List<CreateOrReplaceAuthzEntityCommand> batch = new ArrayList<>();
 
-        // Fetching (paging the AM domain) is encapsulated in the cursor below; this loop only owns the
-        // business logic of mapping each user to a command and flushing in batches.
         try (AmDirectoryClient.Session session = directoryClient.openSession(input.connection())) {
-            for (AmUser user : pageThrough(session, this.syncConfig.pageSize())) {
+            // Groups and roles first: they are the parent entities the user upserts reference.
+            for (AmGroup group : pageThrough((p, s) -> {
+                var gp = session.fetchGroups(p, s);
+                return new Page<>(gp.groups(), gp.totalCount());
+            }, syncConfig.pageSize())) {
+                batch.add(groupCommand(env, group));
+                if (batch.size() >= syncConfig.batchSize()) {
+                    entitiesUpserted += flush(caller, batch);
+                }
+            }
+            for (AmRole role : pageThrough((p, s) -> {
+                var rp = session.fetchRoles(p, s);
+                return new Page<>(rp.roles(), rp.totalCount());
+            }, syncConfig.pageSize())) {
+                batch.add(roleCommand(env, role));
+                if (batch.size() >= syncConfig.batchSize()) {
+                    entitiesUpserted += flush(caller, batch);
+                }
+            }
+            // Flush the group/role remainder so the user phase starts on a clean batch.
+            entitiesUpserted += flush(caller, batch);
+
+            for (AmUser user : pageThrough((p, s) -> {
+                var up = session.fetchUsers(p, s);
+                return new Page<>(up.users(), up.totalCount());
+            }, syncConfig.pageSize())) {
                 usersFetched++;
-                batch.add(toCommand(caller.environmentId(), user));
-                if (batch.size() >= this.syncConfig.batchSize()) {
+                batch.add(userCommand(env, user));
+                if (batch.size() >= syncConfig.batchSize()) {
                     entitiesUpserted += flush(caller, batch);
                 }
                 // Cap the sync at the configured ceiling; the lazy cursor stops paging once we break.
-                if (usersFetched >= this.syncConfig.maxUsers()) {
+                if (usersFetched >= syncConfig.maxUsers()) {
                     break;
                 }
             }
@@ -81,34 +108,34 @@ public class SyncAmUsersUseCase {
     }
 
     /**
-     * Lazily pages users out of the session and flattens them into a single iteration. Termination is
-     * bounded — not an open {@code while (true)}: it stops once AM returns an empty page or once every
-     * user reported by {@code totalCount} has been handed out, so it never fetches a page it doesn't
-     * need.
+     * Lazily pages items out of the given fetcher and flattens them into a single iteration.
+     * Termination is bounded — not an open {@code while (true)}: it stops once a page comes back
+     * empty or once every item reported by {@code totalCount} has been handed out, so it never
+     * fetches a page it doesn't need.
      */
-    private Iterable<AmUser> pageThrough(AmDirectoryClient.Session session, int pageSize) {
+    private static <T> Iterable<T> pageThrough(PageFetcher<T> fetcher, int pageSize) {
         return () ->
             new Iterator<>() {
                 private int page = 0;
                 private int fetched = 0;
                 private long totalCount = Long.MAX_VALUE;
-                private Iterator<AmUser> current = Collections.emptyIterator();
+                private Iterator<T> current = Collections.emptyIterator();
 
                 @Override
                 public boolean hasNext() {
                     while (!current.hasNext() && fetched < totalCount) {
-                        AmUserPage userPage = session.fetchUsers(page++, pageSize);
-                        totalCount = userPage.totalCount();
-                        if (userPage.users().isEmpty()) {
+                        Page<T> p = fetcher.fetch(page++, pageSize);
+                        totalCount = p.totalCount();
+                        if (p.items().isEmpty()) {
                             return false;
                         }
-                        current = userPage.users().iterator();
+                        current = p.items().iterator();
                     }
                     return current.hasNext();
                 }
 
                 @Override
-                public AmUser next() {
+                public T next() {
                     if (!hasNext()) {
                         throw new NoSuchElementException();
                     }
@@ -117,6 +144,13 @@ public class SyncAmUsersUseCase {
                 }
             };
     }
+
+    @FunctionalInterface
+    private interface PageFetcher<T> {
+        Page<T> fetch(int page, int size);
+    }
+
+    private record Page<T>(List<T> items, long totalCount) {}
 
     private int flush(AuthzCallerContext caller, List<CreateOrReplaceAuthzEntityCommand> batch) {
         if (batch.isEmpty()) {
@@ -128,7 +162,7 @@ public class SyncAmUsersUseCase {
         return count;
     }
 
-    private CreateOrReplaceAuthzEntityCommand toCommand(String environmentId, AmUser user) {
+    private CreateOrReplaceAuthzEntityCommand userCommand(String environmentId, AmUser user) {
         String sub = computeSub(user);
         // Map.copyOf (inside the command) rejects null values, so only put attributes AM populated.
         Map<String, Object> attributes = new LinkedHashMap<>();
@@ -152,7 +186,27 @@ public class SyncAmUsersUseCase {
         if (user.enabled() != null) {
             attributes.put("enabled", user.enabled());
         }
-        return new CreateOrReplaceAuthzEntityCommand(environmentId, sub, AuthzEntityKind.PRINCIPAL, attributes, List.of(), SOURCE);
+
+        // Membership: the user's parents are its AM group + role ids. Replaced wholesale on every
+        // upsert, so a membership dropped in AM disappears from parents on the next sync.
+        List<String> parents = new ArrayList<>(user.groups());
+        parents.addAll(user.roles());
+
+        return new CreateOrReplaceAuthzEntityCommand(environmentId, sub, AuthzEntityKind.PRINCIPAL, attributes, parents, SOURCE);
+    }
+
+    private CreateOrReplaceAuthzEntityCommand groupCommand(String environmentId, AmGroup group) {
+        Map<String, Object> attributes = new LinkedHashMap<>();
+        attributes.put("_kind", "group");
+        attributes.put("name", group.name() != null ? group.name() : group.id());
+        return new CreateOrReplaceAuthzEntityCommand(environmentId, group.id(), AuthzEntityKind.PRINCIPAL, attributes, List.of(), SOURCE);
+    }
+
+    private CreateOrReplaceAuthzEntityCommand roleCommand(String environmentId, AmRole role) {
+        Map<String, Object> attributes = new LinkedHashMap<>();
+        attributes.put("_kind", "role");
+        attributes.put("name", role.name() != null ? role.name() : role.id());
+        return new CreateOrReplaceAuthzEntityCommand(environmentId, role.id(), AuthzEntityKind.PRINCIPAL, attributes, List.of(), SOURCE);
     }
 
     // Mirrors AM's SubjectManagerV2: the token `sub` a V2 domain issues is an MD5-based UUID of
