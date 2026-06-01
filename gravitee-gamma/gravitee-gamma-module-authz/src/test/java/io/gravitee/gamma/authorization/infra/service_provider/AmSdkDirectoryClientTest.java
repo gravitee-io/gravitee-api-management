@@ -17,7 +17,11 @@ package io.gravitee.gamma.authorization.infra.service_provider;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.am.sdk.management.model.Group;
+import io.gravitee.am.sdk.management.model.Role;
 import io.gravitee.am.sdk.management.model.User;
+import io.gravitee.gamma.authorization.core.am.model.AmGroup;
+import io.gravitee.gamma.authorization.core.am.model.AmRole;
 import io.gravitee.gamma.authorization.core.am.model.AmUser;
 import java.util.List;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -49,5 +53,29 @@ class AmSdkDirectoryClientTest {
 
         assertThat(mapped.groups()).isEmpty();
         assertThat(mapped.roles()).isEmpty();
+    }
+
+    @Test
+    void maps_group_id_and_name() {
+        Group group = new Group();
+        group.setId("g-1");
+        group.setName("Engineering");
+
+        AmGroup mapped = AmSdkDirectoryClient.toAmGroup(group);
+
+        assertThat(mapped.id()).isEqualTo("g-1");
+        assertThat(mapped.name()).isEqualTo("Engineering");
+    }
+
+    @Test
+    void maps_role_id_and_name() {
+        Role role = new Role();
+        role.setId("r-1");
+        role.setName("ADMIN");
+
+        AmRole mapped = AmSdkDirectoryClient.toAmRole(role);
+
+        assertThat(mapped.id()).isEqualTo("r-1");
+        assertThat(mapped.name()).isEqualTo("ADMIN");
     }
 }
