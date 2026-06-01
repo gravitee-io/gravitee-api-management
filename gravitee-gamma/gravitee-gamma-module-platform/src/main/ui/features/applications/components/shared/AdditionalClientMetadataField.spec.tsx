@@ -25,7 +25,7 @@ describe('AdditionalClientMetadataField', () => {
             configurable: true,
         });
     });
-    it('highlights duplicate keys and still syncs draft values to the parent', () => {
+    it('highlights duplicate keys without syncing draft values to the parent', () => {
         const onChange = jest.fn();
         const onDuplicateKeysChange = jest.fn();
 
@@ -41,7 +41,7 @@ describe('AdditionalClientMetadataField', () => {
 
         expect(screen.getByText('Keys must be unique')).not.toBeNull();
         expect(onDuplicateKeysChange).toHaveBeenLastCalledWith(true);
-        expect(onChange).toHaveBeenLastCalledWith({ scope: 'profile' });
+        expect(onChange).not.toHaveBeenCalled();
         expect(duplicateKeyInputs[0]?.getAttribute('aria-invalid')).toBe('true');
         expect(duplicateKeyInputs[1]?.getAttribute('aria-invalid')).toBe('true');
     });

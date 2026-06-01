@@ -18,6 +18,8 @@ import { toast } from '@gravitee/graphene-core';
 import { extractErrorMessage } from './extractErrorMessage';
 
 const SUCCESS_DURATION_MS = 3000;
+/** Long enough to read; avoids infinite stacking and persistent screen-reader announcements. */
+const ERROR_DURATION_MS = 10_000;
 
 /**
  * Transient feedback aligned with console Applications snackbar behavior.
@@ -29,7 +31,7 @@ export const notify = {
     },
 
     error(error: unknown, fallback?: string) {
-        toast.error(extractErrorMessage(error, fallback ?? 'Something went wrong.'), { duration: Infinity });
+        toast.error(extractErrorMessage(error, fallback ?? 'Something went wrong.'), { duration: ERROR_DURATION_MS });
     },
 
     warning(message: string) {

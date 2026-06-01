@@ -43,6 +43,7 @@ import { useCreateApplication } from '../../hooks/useCreateApplication';
 import { useUserGroupRequired } from '../../hooks/useUserGroupRequired';
 import type { RegisterApplicationDraft } from '../../types/applicationCreate';
 import { defaultGrantTypesForType, isOAuthApplicationType, isRegisterApplicationFormValid } from '../../utils/applicationCreateMapper';
+import { applicationCreatedNavigationState } from '../../utils/applicationDetailNavigation';
 
 const EMPTY_DRAFT: RegisterApplicationDraft = {
     name: '',
@@ -121,7 +122,7 @@ export function RegisterApplicationForm() {
             {
                 onSuccess: created => {
                     notify.success('Application created');
-                    navigate(`../${created.id}/general`);
+                    navigate(`../${created.id}/general`, { state: applicationCreatedNavigationState() });
                 },
                 onError: error => notify.error(error, 'An error occurred while creating the application!'),
             },

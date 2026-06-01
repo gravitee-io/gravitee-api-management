@@ -204,40 +204,42 @@ export function ApplicationSubscriptionsView({ application }: Readonly<{ applica
                 <Alert variant="destructive">
                     <AlertDescription>Unable to get subscriptions. Please try again.</AlertDescription>
                 </Alert>
-            ) : null}
+            ) : (
+                <>
+                    <div className="flex justify-end">
+                        <DataTablePagination
+                            page={page}
+                            pageSize={pageSize}
+                            totalCount={totalCount}
+                            pageSizeOptions={SUBSCRIPTION_PAGE_SIZE_OPTIONS}
+                            onPageChange={setPage}
+                            onPageSizeChange={handlePageSizeChange}
+                        />
+                    </div>
 
-            <div className="flex justify-end">
-                <DataTablePagination
-                    page={page}
-                    pageSize={pageSize}
-                    totalCount={isError ? 0 : totalCount}
-                    pageSizeOptions={SUBSCRIPTION_PAGE_SIZE_OPTIONS}
-                    onPageChange={setPage}
-                    onPageSizeChange={handlePageSizeChange}
-                />
-            </div>
+                    <ApplicationSubscriptionsTable
+                        rows={rows}
+                        isLoading={isLoading}
+                        skeletonRowCount={pageSize}
+                        readOnly={readOnly}
+                        canViewDetail={canViewDetail}
+                        canClose={canDelete}
+                        onView={row => navigate(`${basePath}/subscriptions/${row.id}`)}
+                        onClose={row => setCloseTarget(row)}
+                    />
 
-            <ApplicationSubscriptionsTable
-                rows={isError ? [] : rows}
-                isLoading={isLoading && !isError}
-                skeletonRowCount={pageSize}
-                readOnly={readOnly}
-                canViewDetail={canViewDetail}
-                canClose={canDelete}
-                onView={row => navigate(`${basePath}/subscriptions/${row.id}`)}
-                onClose={row => setCloseTarget(row)}
-            />
-
-            <div className="flex justify-end">
-                <DataTablePagination
-                    page={page}
-                    pageSize={pageSize}
-                    totalCount={isError ? 0 : totalCount}
-                    pageSizeOptions={SUBSCRIPTION_PAGE_SIZE_OPTIONS}
-                    onPageChange={setPage}
-                    onPageSizeChange={handlePageSizeChange}
-                />
-            </div>
+                    <div className="flex justify-end">
+                        <DataTablePagination
+                            page={page}
+                            pageSize={pageSize}
+                            totalCount={totalCount}
+                            pageSizeOptions={SUBSCRIPTION_PAGE_SIZE_OPTIONS}
+                            onPageChange={setPage}
+                            onPageSizeChange={handlePageSizeChange}
+                        />
+                    </div>
+                </>
+            )}
 
             {canCreateSubscription ? (
                 <ApplicationSubscriptionCreateDialog

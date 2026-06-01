@@ -125,7 +125,7 @@ describe('ApplicationSubscriptionsView', () => {
         expect(screen.queryByTestId('create-dialog')).toBeNull();
     });
 
-    it('shows a toaster error, inline alert, and empty table when subscriptions fail to load', () => {
+    it('shows a toaster error and inline alert without the table when subscriptions fail to load', () => {
         mockUsePermissions.mockReturnValue({
             permissionsReady: true,
             canRead: true,
@@ -142,7 +142,7 @@ describe('ApplicationSubscriptionsView', () => {
         renderView();
         expect(mockNotify.error).toHaveBeenCalledWith('Unable to get subscriptions, please try again');
         expect(screen.getByText(/unable to get subscriptions/i)).not.toBeNull();
-        expect(screen.getByTestId('subscriptions-table')).not.toBeNull();
+        expect(screen.queryByTestId('subscriptions-table')).toBeNull();
     });
 
     it('hides Create a subscription for archived applications', () => {

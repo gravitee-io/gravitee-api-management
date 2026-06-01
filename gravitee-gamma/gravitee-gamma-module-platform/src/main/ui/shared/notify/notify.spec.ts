@@ -52,27 +52,27 @@ describe('notify', () => {
         expect(mockToast.warning).toHaveBeenCalledWith('Certificate added, but grace period update failed.');
     });
 
-    it('shows error toasts with extracted Error messages and persistent duration', () => {
+    it('shows error toasts with extracted Error messages and a long transient duration', () => {
         notify.error(new Error('Failed to save changes.'));
 
-        expect(mockToast.error).toHaveBeenCalledWith('Failed to save changes.', { duration: Infinity });
+        expect(mockToast.error).toHaveBeenCalledWith('Failed to save changes.', { duration: 10_000 });
     });
 
     it('shows error toasts with ApimApiError messages', () => {
         notify.error(new ApimApiError(400, 'Bad request'));
 
-        expect(mockToast.error).toHaveBeenCalledWith('Bad request', { duration: Infinity });
+        expect(mockToast.error).toHaveBeenCalledWith('Bad request', { duration: 10_000 });
     });
 
     it('uses the default fallback when the error cannot be extracted', () => {
         notify.error(null);
 
-        expect(mockToast.error).toHaveBeenCalledWith('Something went wrong.', { duration: Infinity });
+        expect(mockToast.error).toHaveBeenCalledWith('Something went wrong.', { duration: 10_000 });
     });
 
     it('uses a custom fallback when provided', () => {
         notify.error(null, 'Unable to load subscriptions');
 
-        expect(mockToast.error).toHaveBeenCalledWith('Unable to load subscriptions', { duration: Infinity });
+        expect(mockToast.error).toHaveBeenCalledWith('Unable to load subscriptions', { duration: 10_000 });
     });
 });

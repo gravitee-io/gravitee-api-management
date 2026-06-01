@@ -34,8 +34,11 @@ import {
     buildUpdatePayload,
     formFromApplication,
     hasApplicationGeneralValidationErrors,
+    isApplicationDetailsSectionDirty,
     isApplicationGeneralFormDirty,
     isApplicationGeneralReadOnly,
+    isApplicationOAuthSectionDirty,
+    validateApplicationDetailsSection,
     validateApplicationGeneralForm,
     type ApplicationGeneralForm,
 } from '../../utils/applicationGeneralMapper';
@@ -92,20 +95,32 @@ export function ApplicationGeneralContent({ application }: Readonly<{ applicatio
 
     const isOAuthFormBlocked = needsTypeConfig && (isTypeConfigLoading || Boolean(typeConfigErrorMessage) || !typeConfig);
 
-    const validation = useMemo(
-        () =>
-            form
-                ? validateApplicationGeneralForm(form, {
-                      isOAuthApplication: !isSimple,
-                      typeConfig,
-                      metadataHasDuplicateKeys,
-                  })
-                : {},
-        [form, isSimple, typeConfig, metadataHasDuplicateKeys],
+    const isDetailsDirty = useMemo(
+        () => form !== null && savedForm !== null && isApplicationDetailsSectionDirty(form, savedForm),
+        [form, savedForm],
     );
+    const isOAuthDirty = useMemo(
+        () => form !== null && savedForm !== null && isApplicationOAuthSectionDirty(form, savedForm, isSimple),
+        [form, savedForm, isSimple],
+    );
+    const saveDetailsOnlyWhileOAuthBlocked = isOAuthFormBlocked && isDetailsDirty && !isOAuthDirty;
+
+    const validation = useMemo(() => {
+        if (!form) {
+            return {};
+        }
+        if (saveDetailsOnlyWhileOAuthBlocked) {
+            return validateApplicationDetailsSection(form);
+        }
+        return validateApplicationGeneralForm(form, {
+            isOAuthApplication: !isSimple,
+            typeConfig,
+            metadataHasDuplicateKeys,
+        });
+    }, [form, isSimple, typeConfig, metadataHasDuplicateKeys, saveDetailsOnlyWhileOAuthBlocked]);
     const isDirty = useMemo(() => form !== null && savedForm !== null && isApplicationGeneralFormDirty(form, savedForm), [form, savedForm]);
     const hasValidationErrors = hasApplicationGeneralValidationErrors(validation);
-    const canSave = isDirty && !hasValidationErrors && !isMutating && !isOAuthFormBlocked;
+    const canSave = isDirty && !hasValidationErrors && !isMutating && (!isOAuthFormBlocked || saveDetailsOnlyWhileOAuthBlocked);
 
     const setField = useCallback(<K extends keyof ApplicationGeneralForm>(key: K, value: ApplicationGeneralForm[K]) => {
         setForm(prev => (prev ? { ...prev, [key]: value } : prev));

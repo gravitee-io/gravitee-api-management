@@ -120,6 +120,47 @@ export function hasApplicationGeneralValidationErrors(errors: ApplicationGeneral
     return Boolean(errors.name || errors.description || errors.grantTypes || errors.additionalClientMetadata);
 }
 
+/** Validates name, description, and domain only (details section). */
+export function validateApplicationDetailsSection(form: ApplicationGeneralForm): ApplicationGeneralValidation {
+    const errors: ApplicationGeneralValidation = {};
+    if (!form.name.trim()) {
+        errors.name = 'Application name is required.';
+    } else if (form.name.length > 512) {
+        errors.name = 'Application name must be 512 characters or fewer.';
+    }
+    if (!form.description.trim()) {
+        errors.description = 'Application description is required.';
+    }
+    return errors;
+}
+
+/** Returns true when details-section fields differ from the saved snapshot. */
+export function isApplicationDetailsSectionDirty(current: ApplicationGeneralForm, saved: ApplicationGeneralForm): boolean {
+    return (
+        current.name !== saved.name ||
+        current.description !== saved.description ||
+        current.domain !== saved.domain ||
+        current.picture !== saved.picture ||
+        current.background !== saved.background ||
+        current.pictureRemoved !== saved.pictureRemoved ||
+        current.backgroundRemoved !== saved.backgroundRemoved
+    );
+}
+
+/** Returns true when OAuth / simple client fields differ from the saved snapshot. */
+export function isApplicationOAuthSectionDirty(current: ApplicationGeneralForm, saved: ApplicationGeneralForm, isSimple: boolean): boolean {
+    if (isSimple) {
+        return current.simpleClientId !== saved.simpleClientId;
+    }
+    return (
+        current.oauthClientId !== saved.oauthClientId ||
+        current.oauthClientSecret !== saved.oauthClientSecret ||
+        !stringArraysEqual(current.grantTypes, saved.grantTypes) ||
+        !stringArraysEqual(current.redirectUris, saved.redirectUris) ||
+        !additionalClientMetadataEqual(current.additionalClientMetadata, saved.additionalClientMetadata)
+    );
+}
+
 /** Returns true when local draft differs from the last saved snapshot. */
 export function isApplicationGeneralFormDirty(current: ApplicationGeneralForm, saved: ApplicationGeneralForm): boolean {
     return (
