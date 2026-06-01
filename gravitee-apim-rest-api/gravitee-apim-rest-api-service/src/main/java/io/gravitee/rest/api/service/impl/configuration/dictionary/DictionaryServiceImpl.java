@@ -337,13 +337,17 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     @Override
     public DictionaryEntity updateProperties(final String id, final Map<String, String> properties) {
         try {
-            log.debug("Update dictionary properties {}", id);
+            log.debug("Update dynamic dictionary properties {}", id);
 
             Optional<Dictionary> optDictionary = dictionaryRepository.findById(id);
             if (optDictionary.isEmpty()) {
                 throw new DictionaryNotFoundException(id);
             }
             Dictionary dictionary = optDictionary.get();
+            if (dictionary.getState() != LifecycleState.STARTED) {
+                log.warn("Update dictionary {} properties not applied: dictionary is {}", id, dictionary.getState());
+                return convert(dictionary);
+            }
             dictionary.setProperties(properties);
             dictionary.setUpdatedAt(new Date());
             dictionary.setDeployedAt(dictionary.getUpdatedAt());
