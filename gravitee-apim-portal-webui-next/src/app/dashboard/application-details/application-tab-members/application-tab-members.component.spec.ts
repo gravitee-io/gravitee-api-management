@@ -569,6 +569,7 @@ describe('ApplicationTabMembersComponent', () => {
       );
 
       await harness.clickTransferOwnershipButton();
+      fixture.detectChanges();
       await fixture.whenStable();
       fixture.detectChanges();
 
@@ -581,6 +582,7 @@ describe('ApplicationTabMembersComponent', () => {
       const harness = await flush(fakeMembersResponse([fakeMember()]));
 
       await harness.clickTransferOwnershipButton();
+      fixture.detectChanges();
       await fixture.whenStable();
       fixture.detectChanges();
 

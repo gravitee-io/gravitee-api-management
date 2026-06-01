@@ -39,6 +39,10 @@
     width: 100%;
   }
 
+  &__selected-target {
+    display: flex;
+  }
+
   &__loading {
     display: flex;
     align-items: center;
