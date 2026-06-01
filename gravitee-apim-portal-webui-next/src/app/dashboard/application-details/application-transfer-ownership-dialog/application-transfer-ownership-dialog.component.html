@@ -28,12 +28,14 @@
     </p>
     <app-button-toggle-group [value]="transferMethod()" (valueChange)="onTransferMethodChange($event)">
       <app-button-toggle-option
+        class="application-transfer-ownership-dialog__method-option"
         value="APPLICATION_MEMBER"
-        icon="groups"
+        icon="person"
         label="Application member"
         i18n-label="@@transferApplicationOwnershipApplicationMemberMethod"
       />
       <app-button-toggle-option
+        class="application-transfer-ownership-dialog__method-option"
         value="OTHER_USER"
         icon="person_search"
         label="Other user"
@@ -59,6 +61,14 @@
           i18n-placeholder="@@transferApplicationOwnershipMemberPlaceholder"
         />
         <mat-autocomplete #applicationMemberAutocomplete="matAutocomplete">
+          @if (applicationMembersResource.isLoading()) {
+            <mat-option disabled data-testid="transfer-ownership-application-member-search-loading">
+              <div class="application-transfer-ownership-dialog__option">
+                <mat-progress-spinner diameter="20" mode="indeterminate" />
+                <span class="next-gen-small" i18n="@@transferApplicationOwnershipMemberSearchLoading">Searching members...</span>
+              </div>
+            </mat-option>
+          }
           @for (option of applicationMemberOptions(); track option.id) {
             <mat-option [value]="applicationMemberSearchQuery()" (onSelectionChange)="$event.isUserInput && onTargetSelected(option)">
               <app-user-cell [user]="option.vm" />
@@ -71,6 +81,17 @@
           }
         </mat-autocomplete>
       </mat-form-field>
+
+      @if (applicationMembersResource.error()) {
+        <p
+          class="application-transfer-ownership-dialog__error next-gen-small"
+          data-testid="transfer-ownership-application-member-search-error"
+          role="alert"
+          i18n
+        >
+          An error occurred while searching application members. Please try again.
+        </p>
+      }
     } @else {
       <mat-form-field appearance="outline" class="application-transfer-ownership-dialog__field">
         <mat-label i18n="@@transferApplicationOwnershipOtherUserLabel">Search user</mat-label>
@@ -135,6 +156,12 @@
         </p>
       }
     }
+
+    @if (selectedTarget(); as target) {
+      <div class="application-transfer-ownership-dialog__selected-target" data-testid="transfer-ownership-selected-target">
+        <app-user-cell [user]="target.vm" />
+      </div>
+    }
   </section>
 
   <section class="application-transfer-ownership-dialog__section">
@@ -154,11 +181,11 @@
       </p>
     } @else {
       <mat-form-field appearance="outline" class="application-transfer-ownership-dialog__field">
-        <mat-label i18n="@@transferApplicationOwnershipCurrentOwnerRoleLabel">Current owner new role</mat-label>
+        <mat-label i18n="@@transferApplicationOwnershipCurrentOwnerRoleLabel">New Role for Current Primary Owner</mat-label>
         <mat-select
           [formControl]="roleControl"
           data-testid="transfer-ownership-role-select"
-          aria-label="Current owner new role"
+          aria-label="New Role for Current Primary Owner"
           i18n-aria-label="@@transferApplicationOwnershipCurrentOwnerRoleAriaLabel"
         >
           @for (role of assignableRoles(); track role.name) {
