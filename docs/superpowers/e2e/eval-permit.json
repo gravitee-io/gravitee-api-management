@@ -1,6 +1,0 @@
-{
-  "subject":  { "type": "User",     "id": "alice", "properties": { "department": "engineering" } },
-  "action":   { "name": "read",     "properties": {} },
-  "resource": { "type": "Document", "id": "doc-1", "properties": { "owner": "alice" } },
-  "context":  { "tenant": "e2e" }
-}

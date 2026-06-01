@@ -1,8 +1,0 @@
-{
-  "entityId": "alice",
-  "kind": "PRINCIPAL",
-  "entityType": "User",
-  "attributes": { "department": "engineering" },
-  "tags": {},
-  "source": "e2e-test"
-}

@@ -1,6 +1,0 @@
-{
-  "subject":  { "type": "User",     "id": "bob",   "properties": {} },
-  "action":   { "name": "read",     "properties": {} },
-  "resource": { "type": "Document", "id": "doc-1", "properties": {} },
-  "context":  { "tenant": "e2e" }
-}

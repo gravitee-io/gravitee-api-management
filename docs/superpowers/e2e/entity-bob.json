@@ -1,8 +1,0 @@
-{
-  "entityId": "bob",
-  "kind": "PRINCIPAL",
-  "entityType": "User",
-  "attributes": { "department": "marketing" },
-  "tags": {},
-  "source": "e2e-test"
-}

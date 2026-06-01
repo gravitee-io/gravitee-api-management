@@ -1,5 +1,0 @@
-{
-  "name": "alice-can-read-doc-1",
-  "kind": "GLOBAL",
-  "policyText": "permit (principal == User::\"alice\", action == Action::\"read\", resource == Document::\"doc-1\");"
-}

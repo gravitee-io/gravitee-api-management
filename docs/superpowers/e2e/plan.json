@@ -1,8 +1,0 @@
-{
-  "definitionVersion": "V4",
-  "name": "Keyless",
-  "description": "Keyless plan for e2e test",
-  "security": { "type": "KEY_LESS", "configuration": {} },
-  "mode": "STANDARD",
-  "validation": "MANUAL"
-}
