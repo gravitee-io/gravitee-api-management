@@ -39,6 +39,12 @@ const PER_PAGE = 200;
 // under that kind, so we don't need N kind-scoped requests.
 const PRINCIPAL_UI_TYPES = new Set(['User', 'Group', 'ServiceAccount', 'AgentIdentity']);
 
+// Umbrella group for entities the server already scoped by kind but whose uid
+// carries no recognizable `<kind>.<id>` prefix (e.g. parity-imported principals
+// stored as bare ids like `alice`). Maps to the canonical GAPL entity type so
+// the emitted token (`Principal::"alice"`) stays schema-valid.
+const KIND_FALLBACK_GROUP: Record<EntityKindFilter, string> = { PRINCIPAL: 'Principal', RESOURCE: 'Resource' };
+
 function resolveKind(typeFilter: readonly string[] | undefined): EntityKindFilter | undefined {
     if (!typeFilter || typeFilter.length === 0) return undefined;
     const allPrincipals = typeFilter.every(t => PRINCIPAL_UI_TYPES.has(t));
@@ -58,12 +64,13 @@ function summarizeAttributes(attrs: Record<string, unknown>): string | undefined
     return parts.join(', ');
 }
 
-function toChipOption(entity: EntityResponse): ChipOption {
+function toChipOption(entity: EntityResponse, fallbackGroup?: string): ChipOption {
     const { type, id } = parseEntityUid(entity.uid);
+    const group = type === 'Unknown' && fallbackGroup ? fallbackGroup : type;
     return {
-        id: `${type}::"${id}"`,
+        id: `${group}::"${id}"`,
         label: id,
-        group: type,
+        group,
         description: summarizeAttributes(entity.attributes),
     };
 }
@@ -84,14 +91,16 @@ export function useEntityOptions(environmentId: string, opts?: UseEntityOptionsO
         staleTime: 30_000,
     });
 
-    const allOptions = useMemo(() => query.data?.data.map(toChipOption) ?? [], [query.data]);
+    const fallbackGroup = kind ? KIND_FALLBACK_GROUP[kind] : undefined;
+
+    const allOptions = useMemo(() => query.data?.data.map(e => toChipOption(e, fallbackGroup)) ?? [], [query.data, fallbackGroup]);
 
     const allowedTypes = useMemo(() => (typeFilterKey ? new Set(typeFilterKey.split('\0')) : null), [typeFilterKey]);
 
     const options = useMemo<readonly ChipOption[]>(() => {
         if (!allowedTypes) return allOptions;
-        return allOptions.filter(o => allowedTypes.has(o.group));
-    }, [allOptions, allowedTypes]);
+        return allOptions.filter(o => allowedTypes.has(o.group) || (fallbackGroup !== undefined && o.group === fallbackGroup));
+    }, [allOptions, allowedTypes, fallbackGroup]);
 
     const tooMany = (query.data?.total ?? 0) > (query.data?.data.length ?? 0);
     const networkError = query.error instanceof Error ? query.error.message : query.error ? String(query.error) : undefined;

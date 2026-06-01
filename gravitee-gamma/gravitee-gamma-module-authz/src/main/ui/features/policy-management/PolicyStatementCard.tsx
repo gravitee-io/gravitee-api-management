@@ -204,7 +204,7 @@ export function PolicyStatementCard({
                         options={principalOptions}
                         selectedIds={statement.principals.map(p => p.id)}
                         onChange={syncPrincipals}
-                        groupOrder={['User', 'Group', 'ServiceAccount', 'AgentIdentity']}
+                        groupOrder={['User', 'Group', 'ServiceAccount', 'AgentIdentity', 'Principal']}
                         emptyHint={emptyPrincipalsHint}
                     />
                 </ChipField>

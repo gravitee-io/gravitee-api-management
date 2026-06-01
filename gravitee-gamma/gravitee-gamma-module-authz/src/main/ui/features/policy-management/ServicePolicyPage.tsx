@@ -92,6 +92,11 @@ const DEFAULT_RESOURCE_GROUPS: readonly { key: string; label: string }[] = [
     { key: 'Resource', label: 'Resource' },
 ];
 
+// Custom policies cover everything not already routed to a dedicated page
+// (API / MCP / Model) and never the Action picker. Resources carrying these
+// prefixes are excluded from the custom resource picker.
+const CUSTOM_RESOURCE_EXCLUDED_PREFIXES = new Set(['api', 'mcp', 'model', 'llm', 'action']);
+
 export function ServicePolicyPage({ config }: { readonly config: ServicePageConfig }) {
     const env = useEnvironment();
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
@@ -113,7 +118,7 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
     // service prefix instead of "fetch all" so envs with 10k+ entities still load fast.
     const catalogEntities = useEntities(envId, 200, {
         kind: 'RESOURCE',
-        entityIdPrefix: `${config.type.toLowerCase()}.`,
+        ...(config.hasTarget ? { entityIdPrefix: `${config.type.toLowerCase()}.` } : {}),
     });
     // Action chip options. Separate scoped fetch so it never bloats with catalog rows.
     const actionEntities = useEntities(envId, 200, { kind: 'RESOURCE', entityIdPrefix: 'action.' });
@@ -191,7 +196,7 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
     }, [schema.schema, actionEntities.data]);
 
     const { options: principalOptions } = useEntityOptions(envId, {
-        typeFilter: config.hasTarget ? ['User', 'Group', 'ServiceAccount', 'AgentIdentity'] : undefined,
+        typeFilter: ['User', 'Group', 'ServiceAccount', 'AgentIdentity'],
     });
 
     const emptyActionsHint = useMemo<string | undefined>(() => {
@@ -214,6 +219,7 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
             const attrs = e.attributes ?? {};
             const firstSeg = e.uid.includes('.') ? e.uid.slice(0, e.uid.indexOf('.')).toLowerCase() : '';
             if (config.hasTarget && firstSeg !== typePrefix) continue;
+            if (!config.hasTarget && CUSTOM_RESOURCE_EXCLUDED_PREFIXES.has(firstSeg)) continue;
             const label =
                 typeof attrs.displayName === 'string' && attrs.displayName
                     ? (attrs.displayName as string)

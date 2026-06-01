@@ -138,6 +138,27 @@ describe('useEntityOptions', () => {
         expect(listEntitiesSpy).toHaveBeenCalledWith('env-1', { page: 1, perPage: 200, kind: 'PRINCIPAL' });
     });
 
+    it('keeps bare-id principals under the kind umbrella group when typeFilter is a principal subset', async () => {
+        listEntitiesSpy.mockImplementation((_env: string, params: { kind?: string } = {}) => {
+            if (params.kind === 'PRINCIPAL') {
+                return Promise.resolve(paged([entity('alice'), entity('api-gateway')]));
+            }
+            return Promise.resolve(paged([]));
+        });
+
+        const { getByTestId } = render(<Probe env="env-1" opts={{ typeFilter: ['User', 'ServiceAccount'] }} />, {
+            wrapper: makeWrapper(),
+        });
+
+        await waitFor(() => expect(getByTestId('count').textContent).toBe('2'));
+        const items = getByTestId('options').querySelectorAll('li');
+        expect(items[0].getAttribute('data-group')).toBe('Principal');
+        expect(items[0].getAttribute('data-label')).toBe('alice');
+        expect(items[0].textContent).toBe('Principal::"alice"');
+        expect(items[1].getAttribute('data-group')).toBe('Principal');
+        expect(items[1].textContent).toBe('Principal::"api-gateway"');
+    });
+
     it('sets error when total exceeds page size and still returns the loaded slice', async () => {
         const data = Array.from({ length: 200 }, (_, i) => entity(`User::"u${i}"`));
         listEntitiesSpy.mockResolvedValue(paged(data, 503));
