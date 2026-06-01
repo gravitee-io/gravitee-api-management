@@ -24,6 +24,9 @@ metadata:
 data:
   {{- if not (include "gateway.externalConfig" .)}}
   gravitee.yml: |
+    # Gamma
+    gamma:
+      enabled: {{ .Values.gamma.enabled }}
     # Distributed Sync Setup
     {{- if .Values.gateway.cluster }}
     cluster:
