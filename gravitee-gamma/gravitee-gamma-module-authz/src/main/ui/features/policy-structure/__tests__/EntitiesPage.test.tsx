@@ -229,12 +229,12 @@ describe('EntitiesPage', () => {
         renderPage();
 
         await waitFor(() => expect(screen.getAllByText('alice').length).toBeGreaterThan(0));
-        expect(screen.queryByRole('button', { name: /Import from Context Catalog/i })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /Import from AI Catalog/i })).not.toBeInTheDocument();
 
         const user = userEvent.setup();
         await user.click(screen.getByRole('tab', { name: /Resources/i }));
 
-        await waitFor(() => expect(screen.getByRole('button', { name: /Import from Context Catalog/i })).toBeInTheDocument());
+        await waitFor(() => expect(screen.getByRole('button', { name: /Import from AI Catalog/i })).toBeInTheDocument());
     });
 
     it('opens the import dialog stub when the button is clicked', async () => {
@@ -243,10 +243,10 @@ describe('EntitiesPage', () => {
 
         const user = userEvent.setup();
         await user.click(screen.getByRole('tab', { name: /Resources/i }));
-        await waitFor(() => expect(screen.getByRole('button', { name: /Import from Context Catalog/i })).toBeInTheDocument());
+        await waitFor(() => expect(screen.getByRole('button', { name: /Import from AI Catalog/i })).toBeInTheDocument());
 
         expect(screen.queryByTestId('import-dialog-stub')).not.toBeInTheDocument();
-        await user.click(screen.getByRole('button', { name: /Import from Context Catalog/i }));
+        await user.click(screen.getByRole('button', { name: /Import from AI Catalog/i }));
         expect(screen.getByTestId('import-dialog-stub')).toBeInTheDocument();
     });
 
