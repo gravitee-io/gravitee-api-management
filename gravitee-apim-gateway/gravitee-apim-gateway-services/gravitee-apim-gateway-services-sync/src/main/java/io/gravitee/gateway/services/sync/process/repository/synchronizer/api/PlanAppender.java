@@ -62,16 +62,13 @@ public class PlanAppender {
             })
             .filter(deployable -> {
                 ReactableApi<?> reactableApi = deployable.reactableApi();
-                boolean hasPlan = false;
-                if (reactableApi.getDefinition() instanceof io.gravitee.definition.model.v4.Api v4Api) {
-                    hasPlan = v4Api.getPlans() != null && !v4Api.getPlans().isEmpty();
-                } else if (reactableApi.getDefinition() instanceof NativeApi nativeApi) {
-                    hasPlan = nativeApi.getPlans() != null && !nativeApi.getPlans().isEmpty();
-                } else if (reactableApi.getDefinition() instanceof EdgeApi edgeApi) {
-                    hasPlan = edgeApi.getPlans() != null && !edgeApi.getPlans().isEmpty();
-                } else if (reactableApi.getDefinition() instanceof io.gravitee.definition.model.Api api) {
-                    hasPlan = api.getPlans() != null && !api.getPlans().isEmpty();
-                }
+                boolean hasPlan = switch (reactableApi.getDefinition()) {
+                    case io.gravitee.definition.model.v4.Api v4Api -> v4Api.getPlans() != null && !v4Api.getPlans().isEmpty();
+                    case NativeApi nativeApi -> nativeApi.getPlans() != null && !nativeApi.getPlans().isEmpty();
+                    case EdgeApi edgeApi -> edgeApi.getPlans() != null && !edgeApi.getPlans().isEmpty();
+                    case io.gravitee.definition.model.Api api -> api.getPlans() != null && !api.getPlans().isEmpty();
+                    case null, default -> false;
+                };
 
                 if (!hasPlan && apiProductRegistry != null && reactableApi.getEnvironmentId() != null) {
                     var entries = apiProductRegistry.getApiProductPlanEntriesForApi(deployable.apiId(), reactableApi.getEnvironmentId());
