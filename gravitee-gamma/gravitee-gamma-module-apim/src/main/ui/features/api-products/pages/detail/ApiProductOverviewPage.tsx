@@ -100,7 +100,13 @@ export function ApiProductOverviewPage() {
         <div className="space-y-6 p-6">
             <div className="space-y-1">
                 <h1 className="text-2xl font-semibold tracking-tight">Overview</h1>
-                <p className="text-sm text-muted-foreground">Onboarding checklist and snapshot for {product?.name ?? '…'}.</p>
+                <p className="text-sm text-muted-foreground">
+                    Onboarding checklist and snapshot for{' '}
+                    <span title={product?.name && product.name.length > 40 ? product.name : undefined}>
+                        {product?.name ? (product.name.length > 40 ? `${product.name.slice(0, 40).trimEnd()}…` : product.name) : '…'}
+                    </span>
+                    .
+                </p>
             </div>
 
             <OverviewChecklistCard

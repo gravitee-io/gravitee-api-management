@@ -105,7 +105,13 @@ export function ApiProductDetailLayout() {
             leading: <ContextToggleButton expanded={contextExpanded} onToggle={() => setContextExpanded(v => !v)} />,
             breadcrumbs: [
                 { label: 'API Products', href: `${basePath.slice(0, basePath.lastIndexOf('/api-products/'))}${'/api-products'}` },
-                { label: product?.name ?? 'Loading…' },
+                {
+                    label: product?.name
+                        ? product.name.length > 40
+                            ? `${product.name.slice(0, 40).trimEnd()}…`
+                            : product.name
+                        : 'Loading…',
+                },
             ],
         },
         [contextExpanded, product, isLoading, basePath],

@@ -113,15 +113,20 @@ function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<
             id: 'API Name',
             accessorFn: (row: ApiListItem) => row.name,
             header: ({ column }: ColHeader<ApiListItem>) => <DataTableColumnHeader column={column} title="API Name" />,
-            cell: ({ row }: ColCell<ApiListItem>) => (
-                <button
-                    type="button"
-                    className="font-medium text-left hover:underline"
-                    onClick={() => navigate(`${row.original.id}/overview`)}
-                >
-                    {row.original.name}
-                </button>
-            ),
+            cell: ({ row }: ColCell<ApiListItem>) => {
+                const name = row.original.name;
+                const truncated = name.length > 40;
+                return (
+                    <button
+                        type="button"
+                        className="text-left font-medium hover:underline"
+                        title={truncated ? name : undefined}
+                        onClick={() => navigate(`${row.original.id}/overview`)}
+                    >
+                        {truncated ? `${name.slice(0, 40).trimEnd()}…` : name}
+                    </button>
+                );
+            },
         },
         {
             id: 'Runtime Status',

@@ -65,15 +65,20 @@ function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<
             id: 'Product Name',
             accessorFn: (row: ApiProductListItem) => row.name,
             header: ({ column }: ColHeader<ApiProductListItem>) => <DataTableColumnHeader column={column} title="Product Name" />,
-            cell: ({ row }: ColCell<ApiProductListItem>) => (
-                <button
-                    type="button"
-                    className="font-medium text-left hover:underline"
-                    onClick={() => navigate(`${row.original.id}/overview`)}
-                >
-                    {row.original.name}
-                </button>
-            ),
+            cell: ({ row }: ColCell<ApiProductListItem>) => {
+                const name = row.original.name;
+                const truncated = name.length > 40;
+                return (
+                    <button
+                        type="button"
+                        className="text-left font-medium hover:underline"
+                        title={truncated ? name : undefined}
+                        onClick={() => navigate(`${row.original.id}/overview`)}
+                    >
+                        {truncated ? `${name.slice(0, 40).trimEnd()}…` : name}
+                    </button>
+                );
+            },
         },
         {
             id: 'Total APIs',
