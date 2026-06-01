@@ -20,6 +20,7 @@ import { ApplicationOverviewChecklist } from '../features/applications/component
 import { ApplicationOverviewSnapshot } from '../features/applications/components/overview/ApplicationOverviewSnapshot';
 import { useApplicationDetailContext } from '../features/applications/context/ApplicationDetailContext';
 import { useApplicationOverviewData } from '../features/applications/hooks/useApplicationOverviewData';
+import { OVERVIEW_DESCRIPTION_MAX_LENGTH, truncateLabel } from '../features/shared/utils/truncateLabel';
 
 export function ApplicationDetailOverviewPage() {
     const { applicationId } = useParams<{ applicationId: string }>();
@@ -40,11 +41,26 @@ export function ApplicationDetailOverviewPage() {
         return <p className="text-sm text-muted-foreground">Application not found or you may not have access.</p>;
     }
 
+    const description = application.description?.trim();
+    const displayName = truncateLabel(application.name);
+    const displayDescription = description ? truncateLabel(description, OVERVIEW_DESCRIPTION_MAX_LENGTH) : null;
+
     return (
         <div className="space-y-6">
             <div className="space-y-1">
                 <h1 className="text-2xl font-semibold tracking-tight">Overview</h1>
-                <p className="text-sm text-muted-foreground">Setup progress and snapshot for {application.name}.</p>
+                <p className="text-sm text-muted-foreground">
+                    Setup progress and snapshot for{' '}
+                    <span className="font-medium text-foreground" title={application.name}>
+                        {displayName}
+                    </span>
+                    .
+                </p>
+                {displayDescription ? (
+                    <p className="text-sm leading-relaxed text-muted-foreground" title={description}>
+                        {displayDescription}
+                    </p>
+                ) : null}
             </div>
 
             {overviewData.isError ? (

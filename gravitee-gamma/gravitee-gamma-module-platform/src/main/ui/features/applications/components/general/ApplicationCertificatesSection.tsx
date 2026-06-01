@@ -81,7 +81,11 @@ export function ApplicationCertificatesSection({
                 accessorKey: 'name',
                 header: 'Name',
                 ...NON_SORTABLE_COLUMN,
-                cell: ({ row }: ColCell<ClientCertificate>) => <span className="font-medium">{row.original.name}</span>,
+                cell: ({ row }: ColCell<ClientCertificate>) => (
+                    <span className="block truncate font-medium" title={row.original.name}>
+                        {row.original.name}
+                    </span>
+                ),
             },
             {
                 accessorKey: 'createdAt',

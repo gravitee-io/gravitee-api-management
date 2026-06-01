@@ -24,15 +24,17 @@ export interface GrantTypeChipsProps {
     readonly values: string[];
     readonly onChange: (next: string[]) => void;
     readonly disabled?: boolean;
+    /** When true (default), active mandatory grant types cannot be deselected (Create flow). */
+    readonly lockMandatoryGrantTypes?: boolean;
 }
 
-export function GrantTypeChips({ typeConfig, values, onChange, disabled }: GrantTypeChipsProps) {
+export function GrantTypeChips({ typeConfig, values, onChange, disabled, lockMandatoryGrantTypes = true }: GrantTypeChipsProps) {
     const toggle = (grantType: string) => {
         if (disabled) {
             return;
         }
         const isSelected = values.includes(grantType);
-        if (isSelected && isMandatoryGrantType(typeConfig, grantType)) {
+        if (lockMandatoryGrantTypes && isSelected && isMandatoryGrantType(typeConfig, grantType)) {
             return;
         }
         onChange(isSelected ? values.filter(value => value !== grantType) : [...values, grantType]);
@@ -43,7 +45,7 @@ export function GrantTypeChips({ typeConfig, values, onChange, disabled }: Grant
             {typeConfig.allowed_grant_types.map(grantType => {
                 const isActive = values.includes(grantType.type);
                 const isMandatory = isMandatoryGrantType(typeConfig, grantType.type);
-                const isLockedMandatory = isMandatory && isActive;
+                const isLockedMandatory = lockMandatoryGrantTypes && isMandatory && isActive;
 
                 return (
                     <button

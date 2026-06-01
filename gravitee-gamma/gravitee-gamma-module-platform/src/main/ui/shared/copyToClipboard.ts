@@ -34,7 +34,7 @@ export async function copyTextToClipboardWithNotify(
         await copyTextToClipboard(text);
         notify.info(successMessage);
     } catch (error) {
-        notify.error(errorMessage);
+        notify.error(error, errorMessage);
         throw error;
     }
 }

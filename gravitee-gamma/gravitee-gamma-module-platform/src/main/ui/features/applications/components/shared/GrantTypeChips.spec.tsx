@@ -34,7 +34,7 @@ describe('GrantTypeChips', () => {
         expect(onChange).toHaveBeenCalledWith(['authorization_code', 'implicit']);
     });
 
-    it('does not deselect mandatory grant types for Web', async () => {
+    it('does not deselect mandatory grant types for Web when locked (create flow)', async () => {
         const user = userEvent.setup();
         const onChange = jest.fn();
 
@@ -43,6 +43,24 @@ describe('GrantTypeChips', () => {
         await user.click(screen.getByRole('button', { name: /Authorization Code/i }));
 
         expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('allows deselecting mandatory grant types when unlocked (general flow)', async () => {
+        const user = userEvent.setup();
+        const onChange = jest.fn();
+
+        render(
+            <GrantTypeChips
+                typeConfig={webType}
+                values={['authorization_code', 'refresh_token']}
+                onChange={onChange}
+                lockMandatoryGrantTypes={false}
+            />,
+        );
+
+        await user.click(screen.getByRole('button', { name: /Authorization Code/i }));
+
+        expect(onChange).toHaveBeenCalledWith(['refresh_token']);
     });
 
     it('allows selecting mandatory grant types when not yet selected', async () => {

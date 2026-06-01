@@ -151,6 +151,7 @@ export function RegisterApplicationForm() {
                         </Label>
                         <Input
                             id="application-name"
+                            className="w-full min-w-0"
                             value={draft.name}
                             onChange={event => updateDraft({ name: event.target.value })}
                             placeholder="Application name"
@@ -164,11 +165,13 @@ export function RegisterApplicationForm() {
                         </Label>
                         <Textarea
                             id="application-description"
+                            className="w-full min-w-0"
                             value={draft.description}
                             onChange={event => updateDraft({ description: event.target.value })}
                             placeholder="Provide a description of your application, what it does, ..."
                             maxLength={40000}
                             rows={4}
+                            style={{ fieldSizing: 'fixed' }}
                         />
                     </div>
 
@@ -176,6 +179,7 @@ export function RegisterApplicationForm() {
                         <Label htmlFor="application-domain">Domain</Label>
                         <Input
                             id="application-domain"
+                            className="w-full min-w-0"
                             value={draft.domain}
                             onChange={event => updateDraft({ domain: event.target.value })}
                             placeholder="e.g., app.example.com"

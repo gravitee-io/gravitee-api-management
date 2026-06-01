@@ -95,7 +95,7 @@ describe('applicationGeneralMapper', () => {
         expect(hasApplicationGeneralValidationErrors(errors)).toBe(true);
     });
 
-    it('requires mandatory grant types when configured for the application type', () => {
+    it('does not require mandatory grant types on general save (console parity)', () => {
         const webApp: ApplicationListItem = {
             ...baseApplication,
             type: 'WEB',
@@ -112,7 +112,8 @@ describe('applicationGeneralMapper', () => {
 
         const errors = validateApplicationGeneralForm(form, { isOAuthApplication: true, typeConfig: webType });
 
-        expect(errors.grantTypes).toBe('Mandatory grant types must be selected.');
+        expect(errors.grantTypes).toBeUndefined();
+        expect(hasApplicationGeneralValidationErrors(errors)).toBe(false);
     });
 
     it('rejects duplicate additional client metadata keys', () => {

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Badge } from '@gravitee/graphene-core';
+import { Badge, Button } from '@gravitee/graphene-core';
 import { XIcon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
 
@@ -42,27 +42,29 @@ export function ChipInput({ id, values, onChange, placeholder, disabled = false,
         setDraft('');
     };
 
-    const remove = (value: string) => {
+    const removeAt = (index: number) => {
         if (disabled) {
             return;
         }
-        onChange(values.filter(item => item !== value));
+        onChange(values.filter((_, itemIndex) => itemIndex !== index));
     };
 
     return (
         <div className={`flex min-h-9 flex-wrap gap-1.5 rounded-md border bg-muted/30 p-2 ${disabled ? 'opacity-50' : ''}`}>
-            {values.map(value => (
-                <Badge key={value} variant="secondary" className="gap-0.5 pr-1 text-[11px] font-normal">
+            {values.map((value, index) => (
+                <Badge key={`${value}-${index}`} variant="secondary" className="gap-0.5 pr-1 text-[11px] font-normal">
                     {value}
-                    <button
+                    <Button
                         type="button"
-                        onClick={() => remove(value)}
-                        className="ml-0.5 rounded-sm p-0.5 hover:text-destructive"
+                        variant="ghost"
+                        size="icon-xs"
+                        className="ml-0.5 shrink-0 hover:text-destructive"
+                        onClick={() => removeAt(index)}
                         aria-label={`Remove ${value}`}
                         disabled={disabled}
                     >
                         <XIcon className="size-3" aria-hidden />
-                    </button>
+                    </Button>
                 </Badge>
             ))}
             <input
@@ -77,7 +79,7 @@ export function ChipInput({ id, values, onChange, placeholder, disabled = false,
                         event.preventDefault();
                         add(draft);
                     } else if (event.key === 'Backspace' && !draft && values.length > 0) {
-                        remove(values[values.length - 1]!);
+                        removeAt(values.length - 1);
                     }
                 }}
                 onBlur={() => add(draft)}

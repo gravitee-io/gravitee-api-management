@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ReactNode } from 'react';
 
-export function DetailRow({ label, value }: Readonly<{ label: ReactNode; value: string }>) {
-    return (
-        <div className="flex min-w-0 items-start justify-between gap-2">
-            <dt className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">{label}</dt>
-            <dd className="min-w-0 flex-1 truncate text-right text-xs font-medium" title={value}>
-                {value}
-            </dd>
-        </div>
-    );
+/** Max characters shown for resource names (breadcrumbs, lists, overview subtitles — matches API proxy UX). */
+export const BREADCRUMB_LABEL_MAX_LENGTH = 48;
+
+/** Max characters for overview description preview (single-line ellipsis). */
+export const OVERVIEW_DESCRIPTION_MAX_LENGTH = 96;
+
+export function truncateLabel(label: string, maxLength = BREADCRUMB_LABEL_MAX_LENGTH): string {
+    if (label.length <= maxLength) {
+        return label;
+    }
+    return `${label.slice(0, Math.max(0, maxLength - 1))}…`;
 }
