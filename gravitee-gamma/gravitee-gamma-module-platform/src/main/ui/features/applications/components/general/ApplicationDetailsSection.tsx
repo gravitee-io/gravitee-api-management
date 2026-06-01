@@ -77,6 +77,7 @@ export function ApplicationDetailsSection({
                             </Label>
                             <Input
                                 id="app-name"
+                                className="w-full min-w-0"
                                 value={form.name}
                                 maxLength={512}
                                 onChange={e => onFieldChange('name', e.target.value)}
@@ -91,6 +92,7 @@ export function ApplicationDetailsSection({
                             </Label>
                             <Textarea
                                 id="app-desc"
+                                className="w-full min-w-0"
                                 rows={3}
                                 style={{ fieldSizing: 'fixed' } as CSSProperties}
                                 value={form.description}
@@ -125,6 +127,7 @@ export function ApplicationDetailsSection({
                             </div>
                             <Input
                                 id="app-domain"
+                                className="w-full min-w-0"
                                 value={form.domain}
                                 onChange={e => onFieldChange('domain', e.target.value)}
                                 disabled={isFormDisabled}

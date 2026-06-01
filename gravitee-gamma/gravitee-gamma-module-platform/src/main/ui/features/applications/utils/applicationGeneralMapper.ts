@@ -87,7 +87,7 @@ export function formFromApplication(application: ApplicationListItem): Applicati
         oauthClientId: !isSimple ? (application.settings?.oauth?.client_id ?? '') : '',
         oauthClientSecret: !isSimple ? (application.settings?.oauth?.client_secret ?? '') : '',
         grantTypes: !isSimple ? [...(application.settings?.oauth?.grant_types ?? [])] : [],
-        redirectUris: !isSimple ? [...(application.settings?.oauth?.redirect_uris ?? [])] : [],
+        redirectUris: !isSimple ? [...new Set(application.settings?.oauth?.redirect_uris ?? [])] : [],
         additionalClientMetadata: !isSimple ? copyAdditionalClientMetadata(application.settings?.oauth?.additional_client_metadata) : null,
     };
 }
@@ -108,8 +108,6 @@ export function validateApplicationGeneralForm(
     if (context?.isOAuthApplication) {
         if (form.grantTypes.length === 0) {
             errors.grantTypes = 'Allowed grant types is required.';
-        } else if (context.typeConfig?.mandatory_grant_types.some(mandatory => !form.grantTypes.includes(mandatory.type))) {
-            errors.grantTypes = 'Mandatory grant types must be selected.';
         }
         if (context.metadataHasDuplicateKeys) {
             errors.additionalClientMetadata = 'Keys must be unique';

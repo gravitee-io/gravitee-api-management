@@ -68,13 +68,15 @@ export function OverviewChecklistCard({
         <Card>
             <CardHeader className="pb-0">
                 <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
+                    <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                             <CircleCheckIcon className="size-4 text-primary" aria-hidden />
                         </div>
-                        <div>
+                        <div className="min-w-0">
                             <CardTitle className="text-base">Checklist</CardTitle>
-                            <CardDescription className="mt-0.5">{description}</CardDescription>
+                            <CardDescription className="mt-0.5 line-clamp-2 break-words" title={description}>
+                                {description}
+                            </CardDescription>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">

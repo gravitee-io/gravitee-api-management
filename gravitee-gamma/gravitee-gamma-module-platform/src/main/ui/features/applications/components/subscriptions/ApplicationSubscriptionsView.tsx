@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, DataTablePagination, Input, cn } from '@gravitee/graphene-core';
+import { Alert, AlertDescription, Button, DataTablePagination, Input, cn } from '@gravitee/graphene-core';
 import { PlusIcon, RefreshCwIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -200,42 +200,44 @@ export function ApplicationSubscriptionsView({ application }: Readonly<{ applica
                 </Button>
             </div>
 
-            {isError ? null : (
-                <>
-                    <div className="flex justify-end">
-                        <DataTablePagination
-                            page={page}
-                            pageSize={pageSize}
-                            totalCount={totalCount}
-                            pageSizeOptions={SUBSCRIPTION_PAGE_SIZE_OPTIONS}
-                            onPageChange={setPage}
-                            onPageSizeChange={handlePageSizeChange}
-                        />
-                    </div>
+            {isError ? (
+                <Alert variant="destructive">
+                    <AlertDescription>Unable to get subscriptions. Please try again.</AlertDescription>
+                </Alert>
+            ) : null}
 
-                    <ApplicationSubscriptionsTable
-                        rows={rows}
-                        isLoading={isLoading}
-                        skeletonRowCount={pageSize}
-                        readOnly={readOnly}
-                        canViewDetail={canViewDetail}
-                        canClose={canDelete}
-                        onView={row => navigate(`${basePath}/subscriptions/${row.id}`)}
-                        onClose={row => setCloseTarget(row)}
-                    />
+            <div className="flex justify-end">
+                <DataTablePagination
+                    page={page}
+                    pageSize={pageSize}
+                    totalCount={isError ? 0 : totalCount}
+                    pageSizeOptions={SUBSCRIPTION_PAGE_SIZE_OPTIONS}
+                    onPageChange={setPage}
+                    onPageSizeChange={handlePageSizeChange}
+                />
+            </div>
 
-                    <div className="flex justify-end">
-                        <DataTablePagination
-                            page={page}
-                            pageSize={pageSize}
-                            totalCount={totalCount}
-                            pageSizeOptions={SUBSCRIPTION_PAGE_SIZE_OPTIONS}
-                            onPageChange={setPage}
-                            onPageSizeChange={handlePageSizeChange}
-                        />
-                    </div>
-                </>
-            )}
+            <ApplicationSubscriptionsTable
+                rows={isError ? [] : rows}
+                isLoading={isLoading && !isError}
+                skeletonRowCount={pageSize}
+                readOnly={readOnly}
+                canViewDetail={canViewDetail}
+                canClose={canDelete}
+                onView={row => navigate(`${basePath}/subscriptions/${row.id}`)}
+                onClose={row => setCloseTarget(row)}
+            />
+
+            <div className="flex justify-end">
+                <DataTablePagination
+                    page={page}
+                    pageSize={pageSize}
+                    totalCount={isError ? 0 : totalCount}
+                    pageSizeOptions={SUBSCRIPTION_PAGE_SIZE_OPTIONS}
+                    onPageChange={setPage}
+                    onPageSizeChange={handlePageSizeChange}
+                />
+            </div>
 
             {canCreateSubscription ? (
                 <ApplicationSubscriptionCreateDialog
