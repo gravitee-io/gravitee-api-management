@@ -50,9 +50,9 @@
           {
             "name": "AuthZen -> GAPL PDP",
             "enabled": true,
-            "policy": "authz-pep",
+            "policy": "authz-pdp-authzen",
             "configuration": {
-              "responseMode": "AUTHZEN",
+              "endpointType": "EVALUATION",
               "bodyMapping": {
                 "subjectTypePath": "$.subject.type",
                 "subjectIdPath": "$.subject.id",
@@ -88,9 +88,9 @@
           {
             "name": "AuthZen batch -> GAPL PDP",
             "enabled": true,
-            "policy": "authz-pep",
+            "policy": "authz-pdp-authzen",
             "configuration": {
-              "responseMode": "AUTHZEN_BATCH",
+              "endpointType": "EVALUATIONS",
               "bodyMapping": {
                 "subjectTypePath": "$.subject.type",
                 "subjectIdPath": "$.subject.id",
@@ -126,9 +126,9 @@
           {
             "name": "AuthZen search-subject -> GAPL PDP",
             "enabled": true,
-            "policy": "authz-pep",
+            "policy": "authz-pdp-authzen",
             "configuration": {
-              "responseMode": "AUTHZEN_SEARCH_SUBJECT",
+              "endpointType": "SEARCH_SUBJECT",
               "evalTimeoutMs": 5000,
               "logDecisions": true
             }
@@ -150,9 +150,9 @@
           {
             "name": "AuthZen search-resource -> GAPL PDP",
             "enabled": true,
-            "policy": "authz-pep",
+            "policy": "authz-pdp-authzen",
             "configuration": {
-              "responseMode": "AUTHZEN_SEARCH_RESOURCE",
+              "endpointType": "SEARCH_RESOURCE",
               "evalTimeoutMs": 5000,
               "logDecisions": true
             }
@@ -174,9 +174,9 @@
           {
             "name": "AuthZen search-action -> GAPL PDP",
             "enabled": true,
-            "policy": "authz-pep",
+            "policy": "authz-pdp-authzen",
             "configuration": {
-              "responseMode": "AUTHZEN_SEARCH_ACTION",
+              "endpointType": "SEARCH_ACTION",
               "evalTimeoutMs": 5000,
               "logDecisions": true
             }
