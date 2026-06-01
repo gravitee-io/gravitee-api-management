@@ -139,7 +139,6 @@ public class SharedPolicyGroup {
             .build();
     }
 
-    @SuppressWarnings("deprecation")
     static io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase toDefinitionPhase(FlowPhase phase) {
         return switch (phase) {
             case REQUEST -> io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup.Phase.REQUEST;
