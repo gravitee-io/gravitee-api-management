@@ -21,6 +21,10 @@ import { readYaml } from '../../../app/helpers/yaml-parser';
 import { Page } from '../../../entities/page/page';
 import { CurrentUserService } from '../../../services/current-user.service';
 
+const OAS_SCHEMA_TYPES = new Set(['null', 'boolean', 'object', 'array', 'number', 'string', 'integer']);
+// Priority order: most permissive first, so we pick the least-restrictive type from the array
+const OAS_TYPE_PRIORITY = ['string', 'number', 'integer', 'boolean', 'array', 'object'];
+
 @Component({
   selector: 'app-page-swagger',
   standalone: true,
@@ -94,10 +98,40 @@ export class PageSwaggerComponent implements OnChanges {
       return undefined;
     }
     try {
-      return JSON.parse(content);
+      return this.normalizeTypeArrays(JSON.parse(content));
     } catch (_) {
-      return readYaml(content);
+      return this.normalizeTypeArrays(readYaml(content));
     }
+  }
+
+  /**
+   * Recursively normalizes OAS 3.1 type arrays (e.g. `"type": ["integer", "string"]`) to a single
+   * string type that Swagger UI can validate correctly. Without this, Swagger UI's form validator
+   * fails to match entered values against an array type and incorrectly reports required fields as
+   * missing. See APIM-14231.
+   */
+  private normalizeTypeArrays(obj: unknown): unknown {
+    if (obj === null || typeof obj !== 'object') {
+      return obj;
+    }
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.normalizeTypeArrays(item));
+    }
+    const record = obj as Record<string, unknown>;
+    const result: Record<string, unknown> = {};
+    for (const key of Object.keys(record)) {
+      if (key === 'type' && Array.isArray(record[key]) && (record[key] as string[]).every(t => OAS_SCHEMA_TYPES.has(t))) {
+        const typeArray = record[key] as string[];
+        const nonNullTypes = typeArray.filter(t => t !== 'null');
+        result[key] = nonNullTypes.length === 1 ? nonNullTypes[0] : (OAS_TYPE_PRIORITY.find(t => nonNullTypes.includes(t)) ?? 'string');
+        if (typeArray.includes('null')) {
+          result['nullable'] = true;
+        }
+      } else {
+        result[key] = this.normalizeTypeArrays(record[key]);
+      }
+    }
+    return result;
   }
 
   private disabledTryItOutPlugin() {
