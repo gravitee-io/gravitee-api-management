@@ -37,4 +37,49 @@ describe('GvPageSwaggerUIComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  describe('normalizeTypeArrays', () => {
+    it('should flatten a single-element type array to that type', () => {
+      expect(component['normalizeTypeArrays']({ type: ['integer'] })).toEqual({ type: 'integer' });
+    });
+
+    it('should pick the most permissive OAS type when multiple non-null types are present', () => {
+      expect(component['normalizeTypeArrays']({ type: ['integer', 'string'] })).toEqual({ type: 'string' });
+    });
+
+    it('should pick "number" over "integer" when both are present', () => {
+      expect(component['normalizeTypeArrays']({ type: ['integer', 'number'] })).toEqual({ type: 'number' });
+    });
+
+    it('should leave a non-OAS type array (e.g. extension values) untouched', () => {
+      expect(component['normalizeTypeArrays']({ type: ['compact', 'expanded'] })).toEqual({ type: ['compact', 'expanded'] });
+    });
+
+    it('should strip null and add nullable:true for a nullable type', () => {
+      expect(component['normalizeTypeArrays']({ type: ['string', 'null'] })).toEqual({ type: 'string', nullable: true });
+    });
+
+    it('should fall back to "string" and add nullable:true when the type array contains only "null"', () => {
+      expect(component['normalizeTypeArrays']({ type: ['null'] })).toEqual({ type: 'string', nullable: true });
+    });
+
+    it('should leave a plain string type untouched', () => {
+      expect(component['normalizeTypeArrays']({ type: 'number' })).toEqual({ type: 'number' });
+    });
+
+    it('should recurse into nested schema objects', () => {
+      const input = { properties: { id: { type: ['integer', 'string'] } } };
+      expect(component['normalizeTypeArrays'](input)).toEqual({ properties: { id: { type: 'string' } } });
+    });
+
+    it('should recurse into arrays', () => {
+      expect(component['normalizeTypeArrays']([{ type: ['integer'] }])).toEqual([{ type: 'integer' }]);
+    });
+
+    it('should return primitives and null unchanged', () => {
+      expect(component['normalizeTypeArrays'](null)).toBeNull();
+      expect(component['normalizeTypeArrays']('string')).toBe('string');
+      expect(component['normalizeTypeArrays'](42)).toBe(42);
+    });
+  });
 });
