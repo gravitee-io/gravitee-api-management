@@ -25,6 +25,7 @@ export interface EntityKindEntry {
 export const ENTITY_KIND_REGISTRY: readonly EntityKindEntry[] = [
     { canonical: 'user', uiType: 'User' },
     { canonical: 'group', uiType: 'Group' },
+    { canonical: 'role', uiType: 'Role' },
     { canonical: 'serviceaccount', uiType: 'ServiceAccount', aliases: ['service-account', 'service_account'] },
     { canonical: 'agent-identity', uiType: 'AgentIdentity', aliases: ['agentidentity'], policyType: 'AGENT' },
     { canonical: 'mcp', uiType: 'MCPServer', aliases: ['mcpserver'], policyType: 'MCP' },
