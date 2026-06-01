@@ -603,11 +603,35 @@ export function EntitiesPage() {
                 </DropdownMenu>
             </header>
 
-            <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }} aria-label="Key metrics">
-                <KpiTile label="Total entities" value={kpis.total} loading={isLoading} Icon={BoxesIcon} iconClassName="bg-primary/10 text-primary" />
-                <KpiTile label="Types" value={kpis.types} loading={isLoading} Icon={PuzzleIcon} iconClassName="bg-highlight/10 text-highlight" />
-                <KpiTile label="Principals" value={kpis.principals} loading={isLoading} Icon={UsersIcon} iconClassName="bg-success/10 text-success" />
-                <KpiTile label="Resources" value={kpis.resources} loading={isLoading} Icon={ShieldIcon} iconClassName="bg-warning/10 text-warning" />
+            <div className="grid grid-cols-5 gap-4" aria-label="Key metrics">
+                <KpiTile
+                    label="Total entities"
+                    value={kpis.total}
+                    loading={isLoading}
+                    Icon={BoxesIcon}
+                    iconClassName="bg-primary/10 text-primary"
+                />
+                <KpiTile
+                    label="Types"
+                    value={kpis.types}
+                    loading={isLoading}
+                    Icon={PuzzleIcon}
+                    iconClassName="bg-highlight/10 text-highlight"
+                />
+                <KpiTile
+                    label="Principals"
+                    value={kpis.principals}
+                    loading={isLoading}
+                    Icon={UsersIcon}
+                    iconClassName="bg-success/10 text-success"
+                />
+                <KpiTile
+                    label="Resources"
+                    value={kpis.resources}
+                    loading={isLoading}
+                    Icon={ShieldIcon}
+                    iconClassName="bg-warning/10 text-warning"
+                />
                 <KpiTile
                     label="Policy-Linked"
                     value={policyLinkedCount}

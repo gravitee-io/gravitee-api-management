@@ -201,11 +201,7 @@ export function SchemaPage() {
                         </Alert>
                     )}
 
-                    <div
-                        className="grid gap-4"
-                        style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}
-                        aria-label="Schema summary"
-                    >
+                    <div className="grid grid-cols-4 gap-4" aria-label="Schema summary">
                         <KpiTile
                             label="Entities"
                             value={parsed.entities.length}

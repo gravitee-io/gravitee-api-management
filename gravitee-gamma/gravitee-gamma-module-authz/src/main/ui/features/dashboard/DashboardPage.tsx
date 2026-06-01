@@ -120,7 +120,7 @@ export function DashboardPage() {
                 </p>
             </header>
 
-            <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
+            <div className="grid grid-cols-4 gap-4">
                 {KPI_CARDS.map(kpi => {
                     const count = counts[kpi.label as keyof typeof counts];
                     return (
