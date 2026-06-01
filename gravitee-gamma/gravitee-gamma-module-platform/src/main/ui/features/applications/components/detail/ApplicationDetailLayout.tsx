@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import { permissionService } from '@gravitee/gamma-modules-sdk';
-import { Badge, Skeleton } from '@gravitee/graphene-core';
+import { Badge, ContextSidebar, ContextToggleButton, Skeleton, useLayoutConfig } from '@gravitee/graphene-core';
 import { AppWindowIcon } from '@gravitee/graphene-core/icons';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 
 import { ApplicationDetailNoSectionsAvailable } from './ApplicationDetailNoSectionsAvailable';
@@ -101,6 +101,29 @@ export function ApplicationDetailLayout() {
     const basePath = useDetailBasePath('applications', applicationId);
     const { data: application, isLoading, isError } = useApplicationDetail(applicationId);
     const { permissionsReady, isError: permissionsError, refetch: refetchPermissions } = useApplicationPermissions(applicationId);
+    const [contextExpanded, setContextExpanded] = useState(true);
+
+    useLayoutConfig(
+        {
+            viewMode: 'context',
+            contextExpanded,
+            contextSidebar: (
+                <ContextSidebar header={<ApplicationInfoHeader application={application ?? null} isLoading={isLoading} />}>
+                    <ApplicationDetailSidebarNav
+                        groups={APPLICATION_NAV_GROUPS}
+                        basePath={basePath}
+                        permissionsReady={permissionsReady && !isLoading}
+                    />
+                </ContextSidebar>
+            ),
+            leading: <ContextToggleButton expanded={contextExpanded} onToggle={() => setContextExpanded(v => !v)} />,
+            breadcrumbs: [
+                { label: 'Applications', href: `${basePath.slice(0, basePath.lastIndexOf('/applications/'))}/applications` },
+                { label: application?.name ?? 'Loading…' },
+            ],
+        },
+        [contextExpanded, application, isLoading, basePath, permissionsReady],
+    );
 
     if (isError) {
         return (
@@ -131,18 +154,8 @@ export function ApplicationDetailLayout() {
                 refetchPermissions,
             }}
         >
-            <div className="flex gap-6">
-                <aside className="sticky top-0 max-h-[100dvh] w-56 min-w-0 max-w-56 shrink-0 self-start overflow-x-hidden overflow-y-auto pb-4">
-                    <ApplicationInfoHeader application={application ?? null} isLoading={isLoading} />
-                    <ApplicationDetailSidebarNav
-                        groups={APPLICATION_NAV_GROUPS}
-                        basePath={basePath}
-                        permissionsReady={permissionsReady && !isLoading}
-                    />
-                </aside>
-                <main className="min-w-0 flex-1">
-                    <ApplicationDetailProtectedOutlet />
-                </main>
+            <div className="min-h-0 flex-1">
+                <ApplicationDetailProtectedOutlet />
             </div>
         </ApplicationDetailContext.Provider>
     );
