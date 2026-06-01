@@ -15,11 +15,13 @@
  */
 package io.gravitee.apim.core.portal.use_case;
 
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.model.Portal;
 import lombok.RequiredArgsConstructor;
 
+@UseCase
 @RequiredArgsConstructor
 public class CreateOrUpdatePortalUseCase {
 
