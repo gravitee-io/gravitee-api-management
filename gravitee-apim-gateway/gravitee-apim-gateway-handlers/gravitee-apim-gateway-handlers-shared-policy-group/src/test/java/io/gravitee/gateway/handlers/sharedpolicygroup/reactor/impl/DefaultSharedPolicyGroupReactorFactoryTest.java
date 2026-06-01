@@ -25,7 +25,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-@SuppressWarnings("deprecation")
 class DefaultSharedPolicyGroupReactorFactoryTest {
 
     @ParameterizedTest
