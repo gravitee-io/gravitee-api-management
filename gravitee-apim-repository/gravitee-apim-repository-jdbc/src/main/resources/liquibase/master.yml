@@ -340,6 +340,8 @@ databaseChangeLog:
     - include:
         - file: liquibase/changelogs/v4_11_8/04_add_subscriptions_plan_id_index.yml
     - include:
+        - file: liquibase/changelogs/v4_11_8/05_add_key_subscriptions_subscription_id_index.yml
+    - include:
         - file: liquibase/changelogs/v4_12_0/00_add_tags_key_column.yml
     - include:
         - file: liquibase/changelogs/v4_12_0/01_add_tenants_key_column.yml
