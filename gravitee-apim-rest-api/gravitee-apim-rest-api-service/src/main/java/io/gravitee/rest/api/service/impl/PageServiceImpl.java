@@ -2589,12 +2589,12 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
             if (markdownSanitize && MARKDOWN.name().equals(pageType)) {
                 this.transformWithTemplate(executionContext, pageEntity, apiId);
-                if (!CollectionUtils.isEmpty(pageEntity.getMessages())) {
-                    return asList(pageEntity.getMessages().toString());
-                }
                 HtmlSanitizer.SanitizeInfos sanitizeInfos = this.htmlSanitizer.isSafe(pageEntity.getContent());
                 if (!sanitizeInfos.isSafe()) {
                     throw new PageContentUnsafeException(sanitizeInfos.getRejectedMessage());
+                }
+                if (!CollectionUtils.isEmpty(pageEntity.getMessages())) {
+                    return asList(pageEntity.getMessages().toString());
                 }
             } else if (swaggerValidateSafeContent && SWAGGER.name().equals(pageEntity.getType()) && pageEntity.getContent() != null) {
                 OAIDescriptor openApiDescriptor = new OAIParser().parse(pageEntity.getContent());
