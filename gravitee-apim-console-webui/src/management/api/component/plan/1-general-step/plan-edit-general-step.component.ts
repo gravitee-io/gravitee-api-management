@@ -138,8 +138,7 @@ export class PlanEditGeneralStepComponent implements OnInit {
   protected readonly bootstrapInRangeErrorMatcher = new GroupErrorStateMatcher('bootstrapInRange');
   protected readonly rangeOrderErrorMatcher = new GroupErrorStateMatcher('rangeOrder');
 
-  // Default broker range size when deriving the range from the bootstrap port (matches the gateway's
-  // kafka.routingPortMode.defaultBrokersRangeSize default of 3).
+  // Default broker range: 3 brokers ([bootstrap+1 .. bootstrap+3], inclusive).
   private static readonly DEFAULT_BROKER_RANGE_SIZE = 3;
   // The last range values we auto-filled, used to keep following the bootstrap port until the user
   // edits the range themselves.

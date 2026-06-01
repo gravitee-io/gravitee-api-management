@@ -630,7 +630,7 @@ describe('ApiPlanEditComponent', () => {
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN_WITH_BOOTSTRAP.id}`,
         method: 'PUT',
       });
-      expect(req.request.body).toEqual(expect.objectContaining({ name: 'Updated plan' }));
+      expect(req.request.body).toEqual(expect.objectContaining({ name: 'Updated plan', bootstrapPort: 9999 }));
       req.flush({});
       expect(routerNavigationSpy).toHaveBeenCalled();
     });
@@ -724,6 +724,66 @@ describe('ApiPlanEditComponent', () => {
       await saveBar.clickSubmit();
 
       expect(dialogSpy).toHaveBeenCalled();
+      httpTestingController.expectNone({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN_WITH_BOOTSTRAP.id}`,
+        method: 'PUT',
+      });
+      expect(routerNavigationSpy).not.toHaveBeenCalled();
+    });
+
+    it('should block save (no dialog, no PUT, no navigation) when the broker range is out of order', async () => {
+      setupDeployedNativeEdit();
+
+      const planForm = await loader.getHarness(ApiPlanFormHarness);
+      flushPlanFormRequests(planForm);
+      fixture.detectChanges();
+
+      const nameInput = await planForm.getNameInput();
+      await nameInput.setValue('Updated plan');
+
+      // start > end -> rangeOrder error -> form invalid.
+      await (await planForm.getBrokerRangeStartInput()).setValue('9095');
+      await (await planForm.getBrokerRangeEndInput()).setValue('9093');
+      fixture.detectChanges();
+
+      const matDialog = TestBed.inject(MatDialog);
+      const dialogSpy = jest.spyOn(matDialog, 'open');
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      await saveBar.clickSubmit();
+
+      expect(dialogSpy).not.toHaveBeenCalled();
+      httpTestingController.expectNone({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN_WITH_BOOTSTRAP.id}`,
+        method: 'PUT',
+      });
+      expect(routerNavigationSpy).not.toHaveBeenCalled();
+    });
+
+    it('should block save (no dialog, no PUT, no navigation) when the bootstrap port falls within the broker range', async () => {
+      setupDeployedNativeEdit();
+
+      const planForm = await loader.getHarness(ApiPlanFormHarness);
+      flushPlanFormRequests(planForm);
+      fixture.detectChanges();
+
+      const nameInput = await planForm.getNameInput();
+      await nameInput.setValue('Updated plan');
+
+      // bootstrap (9094) inside [9093, 9095] -> bootstrapInRange error -> form invalid.
+      // Set bootstrap first (its valueChanges auto-fills the range), then override the range explicitly.
+      await (await planForm.getBootstrapPortInput()).setValue('9094');
+      await (await planForm.getBrokerRangeStartInput()).setValue('9093');
+      await (await planForm.getBrokerRangeEndInput()).setValue('9095');
+      fixture.detectChanges();
+
+      const matDialog = TestBed.inject(MatDialog);
+      const dialogSpy = jest.spyOn(matDialog, 'open');
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      await saveBar.clickSubmit();
+
+      expect(dialogSpy).not.toHaveBeenCalled();
       httpTestingController.expectNone({
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${PLAN_WITH_BOOTSTRAP.id}`,
         method: 'PUT',
