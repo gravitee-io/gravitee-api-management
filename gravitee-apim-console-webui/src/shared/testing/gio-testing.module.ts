@@ -50,6 +50,9 @@ export const CONSTANTS_TESTING: Constants = {
       apiQualityMetrics: {
         enabled: false,
       },
+      kafkaPortRouting: {
+        enabled: true,
+      },
     } as any,
     v2BaseURL: 'https://url.test:3000/management/v2/environments/DEFAULT',
   },

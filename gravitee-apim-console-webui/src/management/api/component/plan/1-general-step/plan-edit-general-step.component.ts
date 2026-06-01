@@ -126,6 +126,11 @@ export class PlanEditGeneralStepComponent implements OnInit {
   @Input()
   isNative = false;
 
+  // Gated by the environment-level "Kafka port routing" setting (console.kafka.portRouting.enabled).
+  // When false, the Kafka port-routing fields are hidden even for native APIs.
+  @Input()
+  kafkaPortRoutingEnabled = false;
+
   @Input()
   showBrokerRangeChangeWarning = false;
 

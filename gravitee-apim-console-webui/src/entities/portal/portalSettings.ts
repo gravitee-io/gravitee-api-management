@@ -27,6 +27,7 @@ export interface PortalConfiguration {
   apiScore?: PortalSettingsApiScore;
   apiQualityMetrics?: PortalSettingsApiQualityMetrics;
   apiReview?: PortalSettingsApiReview;
+  kafkaPortRouting?: PortalSettingsKafkaPortRouting;
   authentication?: PortalSettingsAuthentication;
   company?: PortalSettingsCompany;
   plan?: PortalSettingsPlan;
@@ -138,6 +139,10 @@ export interface PortalSettingsApiScore {
 }
 
 export interface PortalSettingsApiReview {
+  enabled: boolean;
+}
+
+export interface PortalSettingsKafkaPortRouting {
   enabled: boolean;
 }
 

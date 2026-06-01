@@ -34,7 +34,12 @@ describe('PlanEditGeneralStepComponent — Kafka port routing', () => {
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  const setupComponent = (mode: 'create' | 'edit' = 'create', isNative = false, api = fakeNativeKafkaApiV4()) => {
+  const setupComponent = (
+    mode: 'create' | 'edit' = 'create',
+    isNative = false,
+    api = fakeNativeKafkaApiV4(),
+    kafkaPortRoutingEnabled = true,
+  ) => {
     TestBed.configureTestingModule({
       declarations: [PlanEditGeneralStepComponent],
       imports: [NoopAnimationsModule, GioTestingModule, ApiPlanFormModule, MatIconTestingModule],
@@ -47,6 +52,7 @@ describe('PlanEditGeneralStepComponent — Kafka port routing', () => {
 
     component.mode = mode;
     component.isNative = isNative;
+    component.kafkaPortRoutingEnabled = kafkaPortRoutingEnabled;
     component.api = api;
     fixture.detectChanges();
   };
@@ -88,6 +94,14 @@ describe('PlanEditGeneralStepComponent — Kafka port routing', () => {
       const nonNativeApi = fakeApiV4({ type: 'PROXY' });
       setupComponent('create', false, nonNativeApi);
       flushDefaultRequests(nonNativeApi.id);
+
+      const bootstrapPortInput = await loader.getHarnessOrNull(MatInputHarness.with({ selector: '[data-testid="bootstrap_port_field"]' }));
+      expect(bootstrapPortInput).toBeNull();
+    });
+
+    it('should NOT render the Kafka port routing section when the env toggle is disabled, even for a native API', async () => {
+      setupComponent('create', true, fakeNativeKafkaApiV4(), false);
+      flushDefaultRequests(fakeNativeKafkaApiV4().id);
 
       const bootstrapPortInput = await loader.getHarnessOrNull(MatInputHarness.with({ selector: '[data-testid="bootstrap_port_field"]' }));
       expect(bootstrapPortInput).toBeNull();

@@ -68,6 +68,7 @@ import {
 } from '../../../../entities/management-api-v2';
 import { isApiV2FromMAPIV2 } from '../../../../util';
 import { PlanFormType, PlanMenuItemVM } from '../../../../services-ngx/constants.service';
+import { Constants } from '../../../../entities/Constants';
 
 export type InternalPlanFormValue = {
   general: {
@@ -194,6 +195,7 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
    */
   private readonly _stepChangeCounter = signal(0);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly constants = inject(Constants);
 
   private _onChange: (_: PlanFormValue) => void;
   private _onTouched: () => void;
@@ -352,6 +354,12 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
 
   previousStep() {
     this.matStepper.previous();
+  }
+
+  // Environment-level toggle (console.kafka.portRouting.enabled): when disabled, the Kafka
+  // port-routing fields stay hidden on native plans.
+  get kafkaPortRoutingEnabled(): boolean {
+    return !!this.constants.env?.settings?.kafkaPortRouting?.enabled;
   }
 
   get showBrokerRangeChangeWarning(): boolean {

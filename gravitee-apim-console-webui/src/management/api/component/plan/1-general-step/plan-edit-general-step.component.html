@@ -126,7 +126,7 @@
       </mat-form-field>
     }
 
-    @if (isNative) {
+    @if (isNative && kafkaPortRoutingEnabled) {
       <h2>Kafka port routing</h2>
       <p class="kafka-port-routing__hint">These ports apply when the gateway is configured for port-based routing.</p>
 
