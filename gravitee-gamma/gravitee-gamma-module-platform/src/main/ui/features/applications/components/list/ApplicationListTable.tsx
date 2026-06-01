@@ -31,6 +31,7 @@ import { AppWindowIcon, ExternalLinkIcon, MoreHorizontalIcon, PlugIcon, Wand2Ico
 import { useMemo, type Dispatch, type SetStateAction } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { truncateLabel } from '../../../shared/utils/truncateLabel';
 import type { ApplicationListItem, ApplicationStatus } from '../../types/application';
 import { formatApplicationDateTime, formatApplicationTypeLabel } from '../../utils/applicationFormatters';
 import type { ColCell, ColHeader } from '../../utils/dataTableTypes';
@@ -68,16 +69,19 @@ function buildActiveColumns(navigate: ReturnType<typeof useNavigate>): DataTable
         {
             accessorKey: 'name',
             header: ({ column }: ColHeader<ApplicationListItem>) => <DataTableColumnHeader column={column} title="Name" />,
-            cell: ({ row }: ColCell<ApplicationListItem>) => (
-                <button
-                    type="button"
-                    className="flex items-center gap-2 font-medium text-left hover:underline"
-                    onClick={() => navigate(`${row.original.id}/general`)}
-                >
-                    <AppWindowIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-                    {row.original.name}
-                </button>
-            ),
+            cell: ({ row }: ColCell<ApplicationListItem>) => {
+                const name = row.original.name;
+                return (
+                    <button
+                        type="button"
+                        className="flex items-center gap-2 font-medium text-left hover:underline"
+                        onClick={() => navigate(`${row.original.id}/general`)}
+                    >
+                        <AppWindowIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                        <span title={name}>{truncateLabel(name)}</span>
+                    </button>
+                );
+            },
         },
         {
             id: 'type',
@@ -94,9 +98,16 @@ function buildActiveColumns(navigate: ReturnType<typeof useNavigate>): DataTable
             id: 'owner',
             accessorFn: (row: ApplicationListItem) => row.owner?.displayName ?? '',
             header: 'Owner',
-            cell: ({ row }: ColCell<ApplicationListItem>) => (
-                <span className="text-sm text-muted-foreground">{row.original.owner?.displayName ?? '—'}</span>
-            ),
+            cell: ({ row }: ColCell<ApplicationListItem>) => {
+                const ownerName = row.original.owner?.displayName;
+                return ownerName ? (
+                    <span className="block truncate text-sm text-muted-foreground" title={ownerName}>
+                        {ownerName}
+                    </span>
+                ) : (
+                    <span className="text-sm text-muted-foreground">—</span>
+                );
+            },
             enableSorting: false,
         },
         {
@@ -122,12 +133,15 @@ function buildArchivedColumns(
         {
             accessorKey: 'name',
             header: ({ column }: ColHeader<ApplicationListItem>) => <DataTableColumnHeader column={column} title="Name" />,
-            cell: ({ row }: ColCell<ApplicationListItem>) => (
-                <div className="flex items-center gap-2 font-medium">
-                    <AppWindowIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-                    {row.original.name}
-                </div>
-            ),
+            cell: ({ row }: ColCell<ApplicationListItem>) => {
+                const name = row.original.name;
+                return (
+                    <div className="flex items-center gap-2 font-medium">
+                        <AppWindowIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                        <span title={name}>{truncateLabel(name)}</span>
+                    </div>
+                );
+            },
         },
         {
             accessorKey: 'updated_at',

@@ -27,3 +27,9 @@ export function useDetailBasePath(segment: string, id: string | undefined): stri
     const idx = pathname.indexOf(marker);
     return idx >= 0 ? pathname.slice(0, idx + marker.length) : pathname;
 }
+
+/** List route for a detail base path (e.g. `/applications/app-1` → `/applications`). */
+export function resolveListHrefFromDetailBasePath(detailBasePath: string): string {
+    const lastSlash = detailBasePath.lastIndexOf('/');
+    return lastSlash > 0 ? detailBasePath.slice(0, lastSlash) : detailBasePath || '/applications';
+}

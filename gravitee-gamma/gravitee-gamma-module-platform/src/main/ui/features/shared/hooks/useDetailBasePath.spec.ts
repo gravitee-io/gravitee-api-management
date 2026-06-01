@@ -13,15 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ReactNode } from 'react';
+import { resolveListHrefFromDetailBasePath } from './useDetailBasePath';
 
-export function DetailRow({ label, value }: Readonly<{ label: ReactNode; value: string }>) {
-    return (
-        <div className="flex min-w-0 items-start justify-between gap-2">
-            <dt className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">{label}</dt>
-            <dd className="min-w-0 flex-1 truncate text-right text-xs font-medium" title={value}>
-                {value}
-            </dd>
-        </div>
-    );
-}
+describe('resolveListHrefFromDetailBasePath', () => {
+    it('strips the trailing resource id segment', () => {
+        expect(resolveListHrefFromDetailBasePath('/applications/app-1')).toBe('/applications');
+        expect(resolveListHrefFromDetailBasePath('/org/env/applications/app-1')).toBe('/org/env/applications');
+    });
+});

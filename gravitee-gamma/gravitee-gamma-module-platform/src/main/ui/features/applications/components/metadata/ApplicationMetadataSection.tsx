@@ -30,11 +30,12 @@ import {
     SelectValue,
 } from '@gravitee/graphene-core';
 import { PlusIcon } from '@gravitee/graphene-core/icons';
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useMemo, useState } from 'react';
 
 import { DeleteMetadataDialog } from './DeleteMetadataDialog';
 import { EditMetadataDialog } from './EditMetadataDialog';
 import { METADATA_FORMATS } from './metadataConstants';
+import { deriveMetadataKey } from './metadataHelpers';
 import { MetadataTable } from './MetadataTable';
 import { MetadataValueField } from './MetadataValueField';
 import type {
@@ -80,7 +81,9 @@ export function ApplicationMetadataSection({
     const [metadataToEdit, setMetadataToEdit] = useState<ApplicationMetadata | null>(null);
     const [metadataToDelete, setMetadataToDelete] = useState<ApplicationMetadata | null>(null);
 
-    const canSubmitMetadata = canCreate && metadataName.trim().length > 0 && metadataFormat.length > 0 && metadataValue.length > 0;
+    const metadataKey = useMemo(() => deriveMetadataKey(metadataName), [metadataName]);
+    const canSubmitMetadata =
+        canCreate && metadataKey.length > 0 && metadataName.trim().length > 0 && metadataFormat.length > 0 && metadataValue.length > 0;
 
     async function handleAddMetadata(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -141,7 +144,19 @@ export function ApplicationMetadataSection({
 
                     {canCreate ? (
                         <form className="space-y-3" onSubmit={handleAddMetadata}>
-                            <div className="grid gap-3 md:grid-cols-3">
+                            <div className="grid gap-3 md:grid-cols-4">
+                                <div className="space-y-2">
+                                    <RequiredLabel htmlFor="metadata-key">Key</RequiredLabel>
+                                    <Input
+                                        id="metadata-key"
+                                        value={metadataKey}
+                                        placeholder="department"
+                                        readOnly
+                                        required
+                                        aria-required="true"
+                                        className="bg-muted/40"
+                                    />
+                                </div>
                                 <div className="space-y-2">
                                     <RequiredLabel htmlFor="metadata-name">Name</RequiredLabel>
                                     <Input

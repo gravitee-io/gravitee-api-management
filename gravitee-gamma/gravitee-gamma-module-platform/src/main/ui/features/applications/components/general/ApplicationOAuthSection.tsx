@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Alert, AlertDescription, Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '@gravitee/graphene-core';
+import { Alert, AlertDescription, Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Skeleton } from '@gravitee/graphene-core';
 import { CopyIcon } from '@gravitee/graphene-core/icons';
 
 import { ChipInput } from '../../../shared/components';
@@ -26,6 +26,9 @@ export interface ApplicationOAuthSectionProps {
     readonly isSimple: boolean;
     readonly form: ApplicationGeneralForm;
     readonly typeConfig: ApplicationTypeConfig | undefined;
+    readonly isTypeConfigLoading?: boolean;
+    readonly typeConfigErrorMessage?: string | null;
+    readonly onRetryTypeConfig?: () => void;
     readonly validation: ApplicationGeneralValidation;
     readonly metadataFieldKey: number;
     readonly isFormDisabled: boolean;
@@ -38,6 +41,9 @@ export function ApplicationOAuthSection({
     isSimple,
     form,
     typeConfig,
+    isTypeConfigLoading = false,
+    typeConfigErrorMessage = null,
+    onRetryTypeConfig,
     validation,
     metadataFieldKey,
     isFormDisabled,
@@ -84,7 +90,34 @@ export function ApplicationOAuthSection({
     }
 
     if (!typeConfig) {
-        return null;
+        return (
+            <Card>
+                <CardHeader className="pb-3">
+                    <CardTitle className="text-sm">OpenID Connect Integration</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {typeConfigErrorMessage ? (
+                        <Alert variant="destructive">
+                            <AlertDescription className="flex flex-wrap items-center justify-between gap-2">
+                                <span>{typeConfigErrorMessage}</span>
+                                {onRetryTypeConfig ? (
+                                    <Button type="button" variant="outline" size="sm" onClick={onRetryTypeConfig}>
+                                        Retry
+                                    </Button>
+                                ) : null}
+                            </AlertDescription>
+                        </Alert>
+                    ) : isTypeConfigLoading ? (
+                        <div className="space-y-3">
+                            <Skeleton className="h-9 w-full" />
+                            <Skeleton className="h-24 w-full" />
+                        </div>
+                    ) : (
+                        <p className="text-sm text-muted-foreground">Application type configuration is unavailable.</p>
+                    )}
+                </CardContent>
+            </Card>
+        );
     }
 
     return (
@@ -142,6 +175,7 @@ export function ApplicationOAuthSection({
                         values={form.grantTypes}
                         onChange={next => onFieldChange('grantTypes', next)}
                         disabled={isFormDisabled}
+                        lockMandatoryGrantTypes={false}
                     />
                     {validation.grantTypes ? (
                         <p className="text-xs text-destructive">{validation.grantTypes}</p>

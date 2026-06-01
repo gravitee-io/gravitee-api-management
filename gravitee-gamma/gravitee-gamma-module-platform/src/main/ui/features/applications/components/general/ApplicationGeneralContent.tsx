@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { Button, Card, Skeleton } from '@gravitee/graphene-core';
+import { Button, Skeleton } from '@gravitee/graphene-core';
 import { CheckIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -60,6 +60,9 @@ export function ApplicationGeneralContent({ application }: Readonly<{ applicatio
         data: typeConfig,
         isError: isTypeConfigError,
         error: typeConfigError,
+        isLoading: isTypeConfigLoading,
+        isFetched: isTypeConfigFetched,
+        refetch: refetchTypeConfig,
     } = useApplicationTypeConfiguration(applicationId, needsTypeConfig);
     const { saveMutation, deleteMutation, addCertificateWithGraceMutation, updateCertificateMutation, isMutating } =
         useApplicationGeneralMutations(application, applicationId, {
@@ -79,6 +82,16 @@ export function ApplicationGeneralContent({ application }: Readonly<{ applicatio
         setMetadataFieldKey(key => key + 1);
     }, [application.id, application.updated_at]);
 
+    const typeConfigErrorMessage = isTypeConfigError
+        ? typeConfigError instanceof Error
+            ? typeConfigError.message
+            : 'Failed to load application type configuration.'
+        : needsTypeConfig && isTypeConfigFetched && !typeConfig
+          ? 'Application type configuration is unavailable.'
+          : null;
+
+    const isOAuthFormBlocked = needsTypeConfig && (isTypeConfigLoading || Boolean(typeConfigErrorMessage) || !typeConfig);
+
     const validation = useMemo(
         () =>
             form
@@ -92,7 +105,7 @@ export function ApplicationGeneralContent({ application }: Readonly<{ applicatio
     );
     const isDirty = useMemo(() => form !== null && savedForm !== null && isApplicationGeneralFormDirty(form, savedForm), [form, savedForm]);
     const hasValidationErrors = hasApplicationGeneralValidationErrors(validation);
-    const canSave = isDirty && !hasValidationErrors && !isMutating;
+    const canSave = isDirty && !hasValidationErrors && !isMutating && !isOAuthFormBlocked;
 
     const setField = useCallback(<K extends keyof ApplicationGeneralForm>(key: K, value: ApplicationGeneralForm[K]) => {
         setForm(prev => (prev ? { ...prev, [key]: value } : prev));
@@ -139,39 +152,19 @@ export function ApplicationGeneralContent({ application }: Readonly<{ applicatio
         const payload = buildUpdatePayload(application, form, typeConfig);
         saveMutation.mutate(payload, {
             onSuccess: () => {
-                setSavedForm(form);
                 notify.success('Application details successfully updated!');
             },
             onError: error => notify.error(error, 'Failed to save changes.'),
         });
     };
 
-    const pageSkeleton = (
-        <div className="space-y-5">
-            <Skeleton className="h-10 w-64" />
-            <Skeleton className="h-64 w-full" />
-        </div>
-    );
-
-    if (!applicationId) {
-        return pageSkeleton;
-    }
-
-    if (needsTypeConfig && isTypeConfigError) {
+    if (!applicationId || !form) {
         return (
             <div className="space-y-5">
-                <Card className="border-destructive/30 bg-destructive/5 p-4">
-                    <p className="text-sm text-destructive">
-                        {typeConfigError instanceof Error ? typeConfigError.message : 'Failed to load application type configuration.'}
-                    </p>
-                </Card>
+                <Skeleton className="h-10 w-64" />
+                <Skeleton className="h-64 w-full" />
             </div>
         );
-    }
-
-    // Console waits for application + type config before rendering the form.
-    if (!form || (needsTypeConfig && !typeConfig)) {
-        return pageSkeleton;
     }
 
     return (
@@ -212,9 +205,12 @@ export function ApplicationGeneralContent({ application }: Readonly<{ applicatio
                 isSimple={isSimple}
                 form={form}
                 typeConfig={typeConfig}
+                isTypeConfigLoading={needsTypeConfig && isTypeConfigLoading}
+                typeConfigErrorMessage={typeConfigErrorMessage}
+                onRetryTypeConfig={needsTypeConfig ? () => void refetchTypeConfig() : undefined}
                 validation={validation}
                 metadataFieldKey={metadataFieldKey}
-                isFormDisabled={isFormDisabled || isMutating}
+                isFormDisabled={isFormDisabled || isMutating || isOAuthFormBlocked}
                 onFieldChange={setField}
                 onMetadataDuplicateKeysChange={setMetadataHasDuplicateKeys}
                 onCopy={copyToClipboard}

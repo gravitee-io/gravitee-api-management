@@ -71,7 +71,7 @@ describe('copyTextToClipboardWithNotify', () => {
 
         await expect(copyTextToClipboardWithNotify('key-1', 'Copied', 'Copy failed')).rejects.toBe(denied);
 
-        expect(mockNotify.error).toHaveBeenCalledWith('Copy failed');
+        expect(mockNotify.error).toHaveBeenCalledWith(denied, 'Copy failed');
         expect(mockNotify.info).not.toHaveBeenCalled();
     });
 });

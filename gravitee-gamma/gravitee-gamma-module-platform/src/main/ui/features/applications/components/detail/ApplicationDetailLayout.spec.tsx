@@ -87,6 +87,7 @@ jest.mock('./ApplicationDetailPermissionsError', () => ({
 }));
 
 import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from './ApplicationDetailLayout';
+import { truncateLabel } from '../../../shared/utils/truncateLabel';
 import { ApplicationDetailContext } from '../../context/ApplicationDetailContext';
 import { useApplicationDetail } from '../../hooks/useApplicationDetail';
 import { useApplicationPermissions } from '../../hooks/useApplicationPermissions';
@@ -159,6 +160,7 @@ describe('ApplicationDetailLayout', () => {
         renderLayout();
         expect(screen.queryByText(/failed to load application/i)).not.toBeNull();
         expect(screen.queryByTestId('application-detail-protected-outlet')).toBeNull();
+        expect(capturedLayoutConfig).toBeNull();
     });
 
     it('shows permissions error UI when permissions fetch fails', () => {
@@ -174,6 +176,33 @@ describe('ApplicationDetailLayout', () => {
     it('renders application name in the context sidebar header', () => {
         renderLayout();
         expectContextSidebarMarkup('My Application', 'data-testid="application-detail-sidebar-nav"');
+    });
+
+    it('truncates long application names in breadcrumbs', () => {
+        const longName = 'A'.repeat(60);
+        mockUseApplicationDetail.mockReturnValue({
+            data: baseApplication({ name: longName }),
+            isLoading: false,
+            isError: false,
+        });
+        renderLayout();
+        const breadcrumbs = capturedLayoutConfig?.breadcrumbs as { label: string }[];
+        expect(breadcrumbs[1]?.label).toBe(truncateLabel(longName));
+        expect(breadcrumbs[1]?.label.length).toBeLessThan(longName.length);
+    });
+
+    it('renders clamped description in the context sidebar header when present', () => {
+        mockUseApplicationDetail.mockReturnValue({
+            data: baseApplication({ description: 'A long description that should not expand the sidebar width.' }),
+            isLoading: false,
+            isError: false,
+        });
+        renderLayout();
+        const sidebar = capturedLayoutConfig?.contextSidebar;
+        expect(isValidElement(sidebar)).toBe(true);
+        const markup = renderToStaticMarkup(sidebar);
+        expect(markup).toContain('line-clamp-2');
+        expect(markup).toContain('A long description');
     });
 });
 
