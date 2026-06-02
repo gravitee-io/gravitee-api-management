@@ -16,6 +16,7 @@
 
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { MatIcon } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, forkJoin, map, of } from 'rxjs';
 
@@ -44,7 +45,7 @@ export interface DashboardPaginatorVM {
 
 @Component({
   selector: 'app-analytics',
-  imports: [AnalyticsDashboardCardComponent, CardsGridComponent, PaginationComponent, LoaderComponent, BannerComponent],
+  imports: [AnalyticsDashboardCardComponent, CardsGridComponent, PaginationComponent, LoaderComponent, BannerComponent, MatIcon],
   templateUrl: './analytics.component.html',
   styleUrl: './analytics.component.scss',
 })
@@ -122,6 +123,19 @@ export default class AnalyticsComponent {
     const isPinned = current.includes(dashboardId);
     if (!isPinned && current.length >= AnalyticsComponent.MAX_PINNED) return;
     const updated = isPinned ? current.filter(id => id !== dashboardId) : [...current, dashboardId];
+
+    // Optimistically update the cached pinned dashboards so the UI reflects the change instantly,
+    // without waiting for the rxResource HTTP round-trip.
+    if (isPinned) {
+      this.cachedPinnedDashboards.update(cached => cached.filter(d => d.id !== dashboardId));
+    } else {
+      const dashboard =
+        this.dashboardPaginator().data.find(d => d.id === dashboardId) ?? this.cachedPinnedDashboards().find(d => d.id === dashboardId);
+      if (dashboard) {
+        this.cachedPinnedDashboards.update(cached => [...cached, dashboard]);
+      }
+    }
+
     this.pinnedIds.set(updated);
     localStorage.setItem(AnalyticsComponent.PINNED_KEY, JSON.stringify(updated));
   }
