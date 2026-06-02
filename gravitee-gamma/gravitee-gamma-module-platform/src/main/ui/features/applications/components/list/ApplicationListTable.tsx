@@ -72,14 +72,15 @@ function buildActiveColumns(navigate: ReturnType<typeof useNavigate>): DataTable
             cell: ({ row }: ColCell<ApplicationListItem>) => {
                 const name = row.original.name;
                 return (
-                    <button
+                    <Button
                         type="button"
-                        className="flex items-center gap-2 font-medium text-left hover:underline"
+                        variant="link"
+                        className="h-auto p-0 flex items-center justify-start gap-2 font-medium text-left text-foreground hover:underline hover:text-foreground"
                         onClick={() => navigate(`${row.original.id}/general`)}
                     >
                         <AppWindowIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
                         <span title={name}>{truncateLabel(name)}</span>
-                    </button>
+                    </Button>
                 );
             },
         },
@@ -126,6 +127,7 @@ function buildActiveColumns(navigate: ReturnType<typeof useNavigate>): DataTable
 }
 
 function buildArchivedColumns(
+    navigate: ReturnType<typeof useNavigate>,
     canRestore: boolean,
     onRestore: ((application: ApplicationListItem) => void) | undefined,
 ): DataTableProps<ApplicationListItem>['columns'] {
@@ -136,10 +138,15 @@ function buildArchivedColumns(
             cell: ({ row }: ColCell<ApplicationListItem>) => {
                 const name = row.original.name;
                 return (
-                    <div className="flex items-center gap-2 font-medium">
+                    <Button
+                        type="button"
+                        variant="link"
+                        className="h-auto p-0 flex items-center justify-start gap-2 font-medium text-left text-foreground hover:underline hover:text-foreground"
+                        onClick={() => navigate(`${row.original.id}/general`)}
+                    >
                         <AppWindowIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
                         <span title={name}>{truncateLabel(name)}</span>
-                    </div>
+                    </Button>
                 );
             },
         },
@@ -204,7 +211,7 @@ export function ApplicationListTable({
     const navigate = useNavigate();
     const isArchived = status === 'ARCHIVED';
     const activeColumns = useMemo(() => buildActiveColumns(navigate), [navigate]);
-    const archivedColumns = useMemo(() => buildArchivedColumns(canRestore, onRestore), [canRestore, onRestore]);
+    const archivedColumns = useMemo(() => buildArchivedColumns(navigate, canRestore, onRestore), [navigate, canRestore, onRestore]);
     const columns = isArchived ? archivedColumns : activeColumns;
 
     return (
