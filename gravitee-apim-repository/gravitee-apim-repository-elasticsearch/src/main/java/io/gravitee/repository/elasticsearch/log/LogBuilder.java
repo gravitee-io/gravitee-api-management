@@ -92,6 +92,10 @@ final class LogBuilder {
     static ExtendedLog createExtendedLog(final SearchHit hit, final JsonNode log) {
         ExtendedLog extentedLog = createLog(hit, new ExtendedLog());
 
+        if (extentedLog == null) {
+            return null;
+        }
+
         // Add client and proxy requests / responses
         if (log != null) {
             extentedLog.setClientRequest(createRequest(log.get(FIELD_CLIENT_REQUEST)));
@@ -109,11 +113,19 @@ final class LogBuilder {
         log.setTransactionId(source.get(FIELD_TRANSACTION_ID).asText());
         log.setGateway(source.get(FIELD_GATEWAY).asText());
 
+        final JsonNode timestampNode = source.get(FIELD_TIMESTAMP);
+        final String rawTimestamp = (timestampNode == null) ? null : timestampNode.asText();
+
+        if (rawTimestamp == null || rawTimestamp.isBlank()) {
+            logger.warn("Skipping log doc id={}: missing or blank @timestamp", hit.getId());
+            return null;
+        }
+
         try {
-            log.setTimestamp(dtf.parse((source.get(FIELD_TIMESTAMP).asText())).getTime());
-        } catch (final ParseException e) {
-            logger.error("Impossible to parse date", e);
-            throw new IllegalArgumentException("Impossible to parse timestamp field", e);
+            log.setTimestamp(dtf.parse(rawTimestamp).getTime());
+        } catch (final ParseException | NumberFormatException e) {
+            logger.warn("Skipping log doc id={} with malformed @timestamp value [{}]: {}", hit.getId(), rawTimestamp, e.getMessage());
+            return null;
         }
 
         log.setUri(source.get(FIELD_URI).asText());
