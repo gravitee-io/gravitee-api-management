@@ -32,6 +32,7 @@ import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
 import inmemory.GroupCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
+import inmemory.KafkaPortRangeCrudServiceInMemory;
 import inmemory.NewtAIProviderInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
@@ -803,6 +804,11 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public KafkaPortRangeCrudServiceInMemory kafkaPortRangeCrudService() {
+        return new KafkaPortRangeCrudServiceInMemory();
+    }
+
+    @Bean
     public ValidateApiCRDUseCase validateApiCRDUseCase(
         CategoryQueryServiceInMemory categoryQueryService,
         UserDomainServiceInMemory userDomainService,
@@ -817,7 +823,7 @@ public class ResourceContextConfiguration {
         ParametersQueryService parametersQueryService,
         PolicyValidationDomainService policyValidationDomainService,
         PageCrudService pageCrudService,
-        VerifyPlanPortRangesDomainService verifyPlanPortRangesDomainService
+        KafkaPortRangeCrudServiceInMemory kafkaPortRangeCrudService
     ) {
         ValidateGroupsDomainService groupsValidator = new ValidateGroupsDomainService(groupQueryService);
         return new ValidateApiCRDUseCase(
@@ -835,7 +841,7 @@ public class ResourceContextConfiguration {
                 ),
                 new ValidatePlanDomainService(
                     new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService),
-                    verifyPlanPortRangesDomainService
+                    new VerifyPlanPortRangesDomainService(kafkaPortRangeCrudService)
                 ),
                 new ValidatePortalNotificationDomainService(groupsValidator)
             )

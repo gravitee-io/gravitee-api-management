@@ -135,7 +135,6 @@ import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import io.gravitee.rest.api.service.exceptions.InvalidLicenseException;
-import io.gravitee.rest.api.service.exceptions.PreconditionFailedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TransferOwnershipNotAllowedException;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
@@ -182,7 +181,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.CustomLog;
-import org.glassfish.jersey.message.internal.HttpHeaderReader;
 
 /**
  * Defines the REST resources to manage API v4.
@@ -1322,22 +1320,6 @@ public class ApiResource extends AbstractResource {
         baos.write(image.getContent(), 0, image.getContent().length);
 
         return Response.ok(baos).cacheControl(cc).tag(etag).type(image.getType()).build();
-    }
-
-    private void evaluateIfMatchStrictly(final HttpHeaders headers, final String etagValue) {
-        String ifMatch = headers.getHeaderString(HttpHeaders.IF_MATCH);
-
-        if (Objects.nonNull(ifMatch) && !ifMatch.isEmpty()) {
-            if ("*".equals(ifMatch)) {
-                return;
-            }
-            try {
-                HttpHeaderReader.readMatchingEntityTag(ifMatch.replace("-gzip", ""));
-            } catch (java.text.ParseException e) {
-                throw new PreconditionFailedException();
-            }
-            evaluateIfMatch(headers, etagValue);
-        }
     }
 
     private Response apiResponse(GenericApiEntity apiEntity) {
