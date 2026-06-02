@@ -228,7 +228,11 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
                 log = searchResponse.getSearchHits().getHits().get(0).getSource();
             }
 
-            return LogBuilder.createExtendedLog(searchHit, log);
+            final ExtendedLog extendedLog = LogBuilder.createExtendedLog(searchHit, log);
+            if (extendedLog == null) {
+                throw new AnalyticsException("Request [" + requestId + "] has malformed data and cannot be parsed");
+            }
+            return extendedLog;
         } catch (Exception e) {
             logger.error("Request [{}] does not exist", requestId, e);
             throw new AnalyticsException("Request [" + requestId + "] does not exist");
@@ -244,7 +248,10 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
         final TabularResponse tabularResponse = new TabularResponse(total);
         final List<Log> logs = new ArrayList<>(hits.getHits().size());
         for (int i = 0; i < hits.getHits().size(); i++) {
-            logs.add(LogBuilder.createLog(hits.getHits().get(i)));
+            final Log entry = LogBuilder.createLog(hits.getHits().get(i));
+            if (entry != null) {
+                logs.add(entry);
+            }
         }
         tabularResponse.setLogs(logs);
 
