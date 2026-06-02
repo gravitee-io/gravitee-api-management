@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class AuthzEntitiesResourceTest extends AbstractAuthorizationResourceTest {
 
@@ -89,6 +90,46 @@ class AuthzEntitiesResourceTest extends AbstractAuthorizationResourceTest {
             AuthzEntityResponse body = response.readEntity(AuthzEntityResponse.class);
             assertThat(body.attributes()).containsEntry("k", "v2");
             assertThat(body.parents()).containsExactly("api.parent");
+        }
+    }
+
+    @Test
+    void post_with_typed_entityType_propagates_to_command_and_response() {
+        AuthzEntity created = entity("alice", AuthzEntityKind.PRINCIPAL, "User", Map.of(), List.of(), "apim");
+        ArgumentCaptor<CreateOrReplaceAuthzEntityCommand> captor = ArgumentCaptor.forClass(CreateOrReplaceAuthzEntityCommand.class);
+        when(entityService.upsert(any(AuthzCallerContext.class), captor.capture())).thenReturn(new AuthzUpsertResult(created, true));
+
+        try (
+            Response response = target("/entities")
+                .request()
+                .post(
+                    jakarta.ws.rs.client.Entity.json(
+                        new AuthzEntityRequest("alice", AuthzEntityKind.PRINCIPAL, "User", Map.of(), List.of(), "apim")
+                    )
+                )
+        ) {
+            assertThat(response.getStatus()).isEqualTo(201);
+            assertThat(response.readEntity(AuthzEntityResponse.class).entityType()).isEqualTo("User");
+        }
+        assertThat(captor.getValue().entityType()).isEqualTo("User");
+    }
+
+    @Test
+    void post_without_entityType_defaults_to_kind_default_in_response() {
+        AuthzEntity created = entity("api.123", AuthzEntityKind.RESOURCE, null, Map.of(), List.of(), "apim");
+        when(entityService.upsert(any(), any())).thenReturn(new AuthzUpsertResult(created, true));
+
+        try (
+            Response response = target("/entities")
+                .request()
+                .post(
+                    jakarta.ws.rs.client.Entity.json(
+                        new AuthzEntityRequest("api.123", AuthzEntityKind.RESOURCE, Map.of(), List.of(), "apim")
+                    )
+                )
+        ) {
+            AuthzEntityResponse body = response.readEntity(AuthzEntityResponse.class);
+            assertThat(body.entityType()).isEqualTo("Resource");
         }
     }
 
@@ -258,7 +299,18 @@ class AuthzEntitiesResourceTest extends AbstractAuthorizationResourceTest {
         List<String> parents,
         String source
     ) {
+        return entity(entityId, kind, null, attributes, parents, source);
+    }
+
+    private static AuthzEntity entity(
+        String entityId,
+        AuthzEntityKind kind,
+        String entityType,
+        Map<String, Object> attributes,
+        List<String> parents,
+        String source
+    ) {
         Instant now = Instant.parse("2026-05-14T10:00:00Z");
-        return new AuthzEntity("id-" + entityId, entityId, kind, attributes, parents, source, ENV, now, now);
+        return new AuthzEntity("id-" + entityId, entityId, kind, entityType, attributes, parents, source, ENV, now, now);
     }
 }

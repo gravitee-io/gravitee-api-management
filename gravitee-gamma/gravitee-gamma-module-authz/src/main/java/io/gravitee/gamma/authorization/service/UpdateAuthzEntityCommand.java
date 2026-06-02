@@ -18,4 +18,12 @@ package io.gravitee.gamma.authorization.service;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Patch for an existing authz entity. Only {@code attributes} and {@code parents} are mutable.
+ *
+ * <p>{@code kind}, {@code source}, and {@code entityType} are set once at upsert and immutable
+ * on update — they form part of the entity's identity in the engine snapshot
+ * ({@code <entityType>::"<entityId>"}). Changing them mid-life would silently break policies
+ * that reference the old {@code Type::"id"}.
+ */
 public record UpdateAuthzEntityCommand(Map<String, Object> attributes, List<String> parents) {}

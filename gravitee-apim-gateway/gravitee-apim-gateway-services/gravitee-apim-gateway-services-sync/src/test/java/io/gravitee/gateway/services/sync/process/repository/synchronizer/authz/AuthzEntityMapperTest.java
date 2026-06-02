@@ -146,6 +146,72 @@ class AuthzEntityMapperTest {
     }
 
     @Test
+    void toDeploy_typed_entityType_payload_propagates_to_deployable_and_engine_uid() {
+        Event event = event(
+            "evt-typed",
+            """
+            {
+              "entityId": "alice",
+              "kind": "PRINCIPAL",
+              "entityType": "User",
+              "attributes": {"email": "alice@example.com"},
+              "parents": []
+            }
+            """
+        );
+
+        AuthzEntityReactorDeployable d = mapper.toDeploy(event).blockingGet();
+
+        assertThat(d).isNotNull();
+        assertThat(d.entityType()).isEqualTo("User");
+        assertThat(d.engineUid()).isEqualTo("User::\"alice\"");
+        assertThat(d.kind()).isEqualTo(AuthzEntityReactorDeployable.Kind.PRINCIPAL);
+    }
+
+    @Test
+    void toUndeploy_typed_entityType_payload_propagates_to_deployable_and_engine_uid() {
+        Event event = event(
+            "evt-typed-undeploy",
+            """
+            {
+              "entityId": "doc-1",
+              "kind": "RESOURCE",
+              "entityType": "Doc",
+              "environmentId": "env-1"
+            }
+            """
+        );
+
+        AuthzEntityReactorDeployable d = mapper.toUndeploy(event).blockingGet();
+
+        assertThat(d).isNotNull();
+        assertThat(d.entityType()).isEqualTo("Doc");
+        assertThat(d.engineUid()).isEqualTo("Doc::\"doc-1\"");
+        assertThat(d.syncAction()).isEqualTo(SyncAction.UNDEPLOY);
+    }
+
+    @Test
+    void toDeploy_legacy_payload_without_entityType_yields_null_entityType_on_deployable() {
+        Event event = event(
+            "evt-legacy",
+            """
+            {
+              "entityId": "custom.bookings",
+              "kind": "RESOURCE",
+              "attributes": {},
+              "parents": []
+            }
+            """
+        );
+
+        AuthzEntityReactorDeployable d = mapper.toDeploy(event).blockingGet();
+
+        assertThat(d).isNotNull();
+        assertThat(d.entityType()).isNull();
+        assertThat(d.engineUid()).isEqualTo("Resource::\"custom.bookings\"");
+    }
+
+    @Test
     void toEngineUid_falls_back_to_kind_default_when_entityType_is_null_or_blank() {
         assertThat(AuthzEntityMapper.toEngineUid(AuthzEntityReactorDeployable.Kind.RESOURCE, null, "api.bookings")).isEqualTo(
             "Resource::\"api.bookings\""

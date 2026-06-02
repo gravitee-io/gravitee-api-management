@@ -52,12 +52,6 @@ public class AuthzEntity implements Serializable {
     @NotNull
     private AuthzEntityKind kind;
 
-    /** Engine type name (e.g. {@code "User"}, {@code "Doc"}). Optional on the wire so that
-     *  older publishers stay compatible — when null the gateway falls back to the kind-default
-     *  ({@code "Principal"} / {@code "Resource"}). */
-    @JsonProperty
-    private String entityType;
-
     @JsonProperty
     private Map<String, Object> attributes;
 
@@ -74,4 +68,14 @@ public class AuthzEntity implements Serializable {
      *  to a specific Jackson time module on the gateway side. */
     @JsonProperty
     private String updatedAt;
+
+    /**
+     * Engine type name (e.g. {@code "User"}, {@code "Doc"}). Optional on the wire so that
+     * older publishers stay compatible — when null the gateway falls back to the kind-default
+     * ({@code "Principal"} / {@code "Resource"}). Appended to the end of the field list so the
+     * Lombok-generated {@code @AllArgsConstructor} preserves binary compatibility with
+     * pre-typed-entity-type consumers up to the first 8 positional arguments.
+     */
+    @JsonProperty
+    private String entityType;
 }

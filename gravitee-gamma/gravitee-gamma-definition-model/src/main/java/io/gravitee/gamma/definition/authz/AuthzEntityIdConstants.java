@@ -28,6 +28,9 @@ public final class AuthzEntityIdConstants {
      */
     public static final String FORMAT_REGEX = "^[a-z0-9_:-]+(?:\\.[a-z0-9_:-]+)*$";
 
+    public static final String ENGINE_TYPE_PRINCIPAL = "Principal";
+    public static final String ENGINE_TYPE_RESOURCE = "Resource";
+
     public static final String API_PREFIX = "api.";
     public static final String MCP_PREFIX = "mcp.";
     public static final String AGENT_PREFIX = "agent.";
