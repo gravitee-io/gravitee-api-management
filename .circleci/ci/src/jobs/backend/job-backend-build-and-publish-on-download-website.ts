@@ -85,7 +85,7 @@ for pathToArtefactFile in $(find . -path '*target/gravitee-apim*.zip'); do
     # e.g. ./gravitee-apim-repository/gravitee-apim-repository-mongodb/target/gravitee-apim-repository-mongodb-4.4.21.zip => gravitee-apim-repository-mongodb-4.4.21.zip
     artefactFile=\${pathToArtefactFile##*/}
 
-    regex="(.*)-[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc).[0-9]+)?"
+    regex="(.*)-[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|milestone|rc).[0-9]+)?"
     [[ $artefactFile =~ $regex ]]
     artefactName=\${BASH_REMATCH[1]}
 
