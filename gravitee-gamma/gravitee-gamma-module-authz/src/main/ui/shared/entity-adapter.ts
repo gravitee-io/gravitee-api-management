@@ -40,6 +40,17 @@ export function parseEntityUid(uid: string): { type: string; id: string } {
 }
 
 /**
+ * Resolve a backend entity to its structured `{ type, id }`, preferring the
+ * explicit `_kind` attribute over the dotted uid prefix. AM-synced principals
+ * keep a bare token sub as their uid (no `<kind>.` prefix) and carry their type
+ * only in `_kind` — so a raw {@link parseEntityUid} would mislabel them as
+ * `Unknown`. Falls back to uid parsing when `_kind` is absent or unknown.
+ */
+export function resolveEntityRef(uid: string, attributes: Record<string, unknown>): { type: string; id: string } {
+    return resolveUid(uid, kindToUiType(attributes['_kind']));
+}
+
+/**
  * Format a structured uid back to the canonical backend form
  * `<lowercase-kind>.<id>`. The id is passed through unchanged because the
  * server-side validator (`[a-z0-9._-]+`) wouldn't have accepted invalid
