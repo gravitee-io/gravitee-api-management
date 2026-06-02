@@ -34,7 +34,7 @@ public record AuthzEntityRequest(
      * Engine type name (e.g. {@code "User"}, {@code "Doc"}). Optional — when omitted, the
      * server falls back to {@link AuthzEntityKind#defaultEntityType()} ({@code "Principal"} /
      * {@code "Resource"}) so legacy clients remain unaffected. Drives the engine UID emitted
-     * to the PDP ({@code <entityType>::"<entityId>"}) and the type a Cedar/GAPL policy can
+     * to the PDP ({@code <entityType>::"<entityId>"}) and the type a GAPL policy can
      * match (e.g. {@code principal == User::"alice"}).
      */
     String entityType,

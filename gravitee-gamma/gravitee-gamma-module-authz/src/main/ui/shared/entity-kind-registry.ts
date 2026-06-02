@@ -58,9 +58,9 @@ export function uiTypeToKind(type: string): string {
 }
 
 /**
- * Resolve a GAPL/Cedar type token to its canonical lowercase kind, accepting
- * either a UI type (`MCPServer`), the canonical kind (`mcp`), or any alias
- * (`mcpserver`, `llm`). Falls back to the lowercased token when unknown.
+ * Resolve a GAPL type token to its canonical lowercase kind, accepting either a
+ * UI type (`MCPServer`), the canonical kind (`mcp`), or any alias (`mcpserver`,
+ * `llm`). Falls back to the lowercased token when unknown.
  *
  * Use this — not a raw `toLowerCase()` — when deriving a canonical entityId
  * from policy text so `MCPServer::"x"` and `mcp.x` resolve to the same id.
