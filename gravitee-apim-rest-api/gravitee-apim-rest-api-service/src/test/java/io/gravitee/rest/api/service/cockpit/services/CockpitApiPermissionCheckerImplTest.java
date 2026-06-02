@@ -24,16 +24,19 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class CockpitApiPermissionCheckerImplTest {
 
     private static final String API_ID = "api#id";
@@ -45,7 +48,7 @@ public class CockpitApiPermissionCheckerImplTest {
 
     private CockpitApiPermissionChecker permissionChecker;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         permissionChecker = new CockpitApiPermissionCheckerImpl(permissionService);
     }

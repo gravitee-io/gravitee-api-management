@@ -16,7 +16,7 @@
 package io.gravitee.gateway.standalone.http;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.github.tomakehurst.wiremock.matching.EqualToPattern;
 import io.gravitee.common.http.HttpHeadersValues;
@@ -30,8 +30,8 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
 import org.apache.http.entity.ContentType;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -41,7 +41,7 @@ import org.junit.Test;
 public class PostContentGatewayTest extends AbstractWiremockGatewayTest {
 
     @Test
-    @Ignore
+    @Disabled
     /*
       This test seems to not work anymore since latest Wiremock & Jetty upgrade.
       Content_type response header is no more sent back and replaced by transfer-encoding.

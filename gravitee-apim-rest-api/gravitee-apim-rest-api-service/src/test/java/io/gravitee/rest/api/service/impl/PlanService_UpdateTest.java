@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl;
 import static io.gravitee.definition.model.DefinitionVersion.V2;
 import static io.gravitee.repository.management.model.Plan.Status.PUBLISHED;
 import static java.util.Arrays.asList;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
@@ -64,19 +65,22 @@ import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class PlanService_UpdateTest {
 
     private static final String PLAN_ID = "my-plan";
@@ -134,7 +138,7 @@ public class PlanService_UpdateTest {
     @Mock
     private GroupService groupService;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(api.getDefinition()).thenReturn(MOCK_API_DEFINITION);
@@ -223,24 +227,24 @@ public class PlanService_UpdateTest {
         verify(parameterService).findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT));
     }
 
-    @Test(expected = PlanGeneralConditionStatusException.class)
+    @Test
     public void shouldNotUpdate_WithNotPublished_GeneralConditionPage_PublishPlan() throws Exception {
-        shouldNotUpdate_withNotPublished_GCUPage(PUBLISHED, V2);
+        assertThrows(PlanGeneralConditionStatusException.class, () -> shouldNotUpdate_withNotPublished_GCUPage(PUBLISHED, V2));
     }
 
-    @Test(expected = PlanGeneralConditionStatusException.class)
+    @Test
     public void shouldNotUpdate_WithNotPublished_GeneralConditionPage_DeprecatedPlan() throws Exception {
-        shouldNotUpdate_withNotPublished_GCUPage(Plan.Status.DEPRECATED, V2);
+        assertThrows(PlanGeneralConditionStatusException.class, () -> shouldNotUpdate_withNotPublished_GCUPage(Plan.Status.DEPRECATED, V2));
     }
 
-    @Test(expected = PlanGeneralConditionStatusException.class)
+    @Test
     public void shouldNotUpdate_WithNotPublished_GeneralConditionPage_PublishPlan_v2() throws Exception {
-        shouldNotUpdate_withNotPublished_GCUPage(PUBLISHED, V2);
+        assertThrows(PlanGeneralConditionStatusException.class, () -> shouldNotUpdate_withNotPublished_GCUPage(PUBLISHED, V2));
     }
 
-    @Test(expected = PlanGeneralConditionStatusException.class)
+    @Test
     public void shouldNotUpdate_WithNotPublished_GeneralConditionPage_DeprecatedPlan_v2() throws Exception {
-        shouldNotUpdate_withNotPublished_GCUPage(Plan.Status.DEPRECATED, V2);
+        assertThrows(PlanGeneralConditionStatusException.class, () -> shouldNotUpdate_withNotPublished_GCUPage(Plan.Status.DEPRECATED, V2));
     }
 
     private void shouldNotUpdate_withNotPublished_GCUPage(Plan.Status planStatus, DefinitionVersion apiVersion) throws Exception {
@@ -328,31 +332,33 @@ public class PlanService_UpdateTest {
         verify(flowService, times(1)).save(FlowReferenceType.PLAN, updatePlan.getId(), updatePlan.getFlows());
     }
 
-    @Test(expected = PlanFlowRequiredException.class)
+    @Test
     public void shouldUpdateApi_PlanWithoutFlow() throws Exception {
-        final String PAGE_ID = "PAGE_ID_TEST";
-        when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.KEY_LESS);
-        when(plan.getReferenceId()).thenReturn(API_ID);
-        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
-        when(
-            parameterService.findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT))
-        ).thenReturn(true);
+        assertThrows(PlanFlowRequiredException.class, () -> {
+            final String PAGE_ID = "PAGE_ID_TEST";
+            when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.KEY_LESS);
+            when(plan.getReferenceId()).thenReturn(API_ID);
+            when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+            when(
+                parameterService.findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT))
+            ).thenReturn(true);
 
-        mockApiDefinitionVersion(V2);
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+            mockApiDefinitionVersion(V2);
+            when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
-        UpdatePlanEntity updatePlan = mock(UpdatePlanEntity.class);
-        when(updatePlan.getId()).thenReturn(PLAN_ID);
-        when(updatePlan.getName()).thenReturn("NameUpdated");
-        when(updatePlan.getFlows()).thenReturn(null);
+            UpdatePlanEntity updatePlan = mock(UpdatePlanEntity.class);
+            when(updatePlan.getId()).thenReturn(PLAN_ID);
+            when(updatePlan.getName()).thenReturn("NameUpdated");
+            when(updatePlan.getFlows()).thenReturn(null);
 
-        PageEntity unpublishedPage = new PageEntity();
-        unpublishedPage.setId(PAGE_ID);
-        unpublishedPage.setOrder(1);
-        unpublishedPage.setType("MARKDOWN");
-        unpublishedPage.setPublished(false);
+            PageEntity unpublishedPage = new PageEntity();
+            unpublishedPage.setId(PAGE_ID);
+            unpublishedPage.setOrder(1);
+            unpublishedPage.setType("MARKDOWN");
+            unpublishedPage.setPublished(false);
 
-        planService.update(GraviteeContext.getExecutionContext(), updatePlan);
+            planService.update(GraviteeContext.getExecutionContext(), updatePlan);
+        });
     }
 
     @Test
@@ -413,25 +419,27 @@ public class PlanService_UpdateTest {
         verify(parameterService).findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT));
     }
 
-    @Test(expected = TagNotAllowedException.class)
+    @Test
     public void should_throw_tagNotAllowedException_if_tag_validation_fails() throws Exception {
-        when(plan.getReferenceId()).thenReturn(API_ID);
-        when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.KEY_LESS);
-        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
-        when(
-            parameterService.findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT))
-        ).thenReturn(true);
+        assertThrows(TagNotAllowedException.class, () -> {
+            when(plan.getReferenceId()).thenReturn(API_ID);
+            when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.KEY_LESS);
+            when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+            when(
+                parameterService.findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT))
+            ).thenReturn(true);
 
-        UpdatePlanEntity updatePlan = mock(UpdatePlanEntity.class);
-        when(updatePlan.getId()).thenReturn(PLAN_ID);
-        when(updatePlan.getName()).thenReturn("NameUpdated");
-        when(updatePlan.getTags()).thenReturn(Set.of("tag1"));
+            UpdatePlanEntity updatePlan = mock(UpdatePlanEntity.class);
+            when(updatePlan.getId()).thenReturn(PLAN_ID);
+            when(updatePlan.getName()).thenReturn("NameUpdated");
+            when(updatePlan.getTags()).thenReturn(Set.of("tag1"));
 
-        doThrow(new TagNotAllowedException(new String[0]))
-            .when(tagsValidationService)
-            .validatePlanTagsAgainstApiTags(any(), any(Api.class));
+            doThrow(new TagNotAllowedException(new String[0]))
+                .when(tagsValidationService)
+                .validatePlanTagsAgainstApiTags(any(), any(Api.class));
 
-        planService.update(GraviteeContext.getExecutionContext(), updatePlan);
+            planService.update(GraviteeContext.getExecutionContext(), updatePlan);
+        });
     }
 
     private void mockApiDefinitionVersion(DefinitionVersion version) throws Exception {
@@ -440,25 +448,27 @@ public class PlanService_UpdateTest {
         when(api.getDefinition()).thenReturn(new ObjectMapper().writeValueAsString(apiDefinition));
     }
 
-    @Test(expected = GroupNotFoundException.class)
+    @Test
     public void should_throw_GroupNotFoundException_if_updated_excluded_group_not_found() throws TechnicalException {
-        when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
-        when(plan.getType()).thenReturn(Plan.PlanType.API);
-        when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.API_KEY);
-        when(plan.getReferenceId()).thenReturn(API_ID);
-        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
-        when(
-            parameterService.findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT))
-        ).thenReturn(true);
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        assertThrows(GroupNotFoundException.class, () -> {
+            when(plan.getStatus()).thenReturn(Plan.Status.STAGING);
+            when(plan.getType()).thenReturn(Plan.PlanType.API);
+            when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.API_KEY);
+            when(plan.getReferenceId()).thenReturn(API_ID);
+            when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+            when(
+                parameterService.findAsBoolean(eq(GraviteeContext.getExecutionContext()), any(), eq(ParameterReferenceType.ENVIRONMENT))
+            ).thenReturn(true);
+            when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
-        UpdatePlanEntity updatePlan = mock(UpdatePlanEntity.class);
-        when(updatePlan.getId()).thenReturn(PLAN_ID);
-        when(updatePlan.getName()).thenReturn("NameUpdated");
+            UpdatePlanEntity updatePlan = mock(UpdatePlanEntity.class);
+            when(updatePlan.getId()).thenReturn(PLAN_ID);
+            when(updatePlan.getName()).thenReturn("NameUpdated");
 
-        when(updatePlan.getExcludedGroups()).thenReturn(List.of("not-existing-group"));
-        when(groupService.findAllByEnvironment(any())).thenReturn(Set.of(Group.builder().id("existing-group").build()));
+            when(updatePlan.getExcludedGroups()).thenReturn(List.of("not-existing-group"));
+            when(groupService.findAllByEnvironment(any())).thenReturn(Set.of(Group.builder().id("existing-group").build()));
 
-        planService.update(GraviteeContext.getExecutionContext(), updatePlan);
+            planService.update(GraviteeContext.getExecutionContext(), updatePlan);
+        });
     }
 }

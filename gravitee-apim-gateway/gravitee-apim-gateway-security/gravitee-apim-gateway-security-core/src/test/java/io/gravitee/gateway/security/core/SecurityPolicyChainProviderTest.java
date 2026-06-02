@@ -24,17 +24,22 @@ import io.gravitee.gateway.policy.PolicyResolver;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.policy.impl.OrderedPolicyChain;
 import java.util.Collections;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class SecurityPolicyChainProviderTest {
 
     private SecurityPolicyChainProvider securityPolicyChainResolver;
@@ -45,9 +50,8 @@ public class SecurityPolicyChainProviderTest {
     @Mock
     private ExecutionContext executionContext;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
         securityPolicyChainResolver = new SecurityPolicyChainProvider(policyResolver);
     }
 
@@ -58,7 +62,7 @@ public class SecurityPolicyChainProviderTest {
         );
         StreamableProcessor<ExecutionContext, Buffer> processor = securityPolicyChainResolver.provide(executionContext);
 
-        Assert.assertEquals(OrderedPolicyChain.class, processor.getClass());
+        Assertions.assertEquals(OrderedPolicyChain.class, processor.getClass());
     }
 
     @Test
@@ -67,8 +71,8 @@ public class SecurityPolicyChainProviderTest {
 
         StreamableProcessor<ExecutionContext, Buffer> processor = securityPolicyChainResolver.provide(executionContext);
 
-        Assert.assertEquals(DirectPolicyChain.class, processor.getClass());
-        Assert.assertNotNull(((DirectPolicyChain) processor).policyResult());
-        Assert.assertEquals(SecurityPolicyChainProvider.PLAN_UNRESOLVABLE, ((DirectPolicyChain) processor).policyResult().key());
+        Assertions.assertEquals(DirectPolicyChain.class, processor.getClass());
+        Assertions.assertNotNull(((DirectPolicyChain) processor).policyResult());
+        Assertions.assertEquals(SecurityPolicyChainProvider.PLAN_UNRESOLVABLE, ((DirectPolicyChain) processor).policyResult().key());
     }
 }

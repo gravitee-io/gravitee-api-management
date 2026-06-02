@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -32,15 +33,17 @@ import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.reactivex.rxjava3.observers.TestObserver;
-import junit.framework.TestCase;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
-public class UnlinkInstallationCommandHandlerTest extends TestCase {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
+public class UnlinkInstallationCommandHandlerTest {
 
     private static final String COCKPIT_ORG_ID = "coc-org#1";
     private static final String COCKPIT_ENV_ID = "coc-env#1";
@@ -56,7 +59,7 @@ public class UnlinkInstallationCommandHandlerTest extends TestCase {
 
     public UnlinkInstallationCommandHandler cut;
 
-    @Before
+    @BeforeEach
     public void before() {
         cut = new UnlinkInstallationCommandHandler(organizationService, environmentService, accessPointCrudService);
     }

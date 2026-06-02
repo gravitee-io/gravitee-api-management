@@ -16,8 +16,8 @@
 package io.gravitee.rest.api.repository.plugins;
 
 import io.gravitee.platform.repository.api.Scope;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team
@@ -28,11 +28,11 @@ public class RestApiRepositoryScopeProviderTest {
 
     @Test
     public void shouldReturnManagementAndAnalyticsScopes() {
-        Assert.assertArrayEquals(new Scope[] { Scope.MANAGEMENT, Scope.ANALYTICS }, provider.getHandledScopes());
+        Assertions.assertArrayEquals(new Scope[] { Scope.MANAGEMENT, Scope.ANALYTICS }, provider.getHandledScopes());
     }
 
     @Test
     public void shouldReturnOtelTracesAndOtelLogsAsOptionalScopes() {
-        Assert.assertArrayEquals(new Scope[] { Scope.OTEL_TRACES, Scope.OTEL_LOGS }, provider.getOptionalHandledScopes());
+        Assertions.assertArrayEquals(new Scope[] { Scope.OTEL_TRACES, Scope.OTEL_LOGS }, provider.getOptionalHandledScopes());
     }
 }

@@ -17,12 +17,7 @@ package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -35,8 +30,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class UserRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -63,26 +58,26 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
         user.setNewsletterSubscribed(false);
         User userCreated = userRepository.create(user);
 
-        assertNotNull("User created is null", userCreated);
+        assertNotNull(userCreated, "User created is null");
 
         Optional<User> optional = userRepository.findBySource("gravitee", "createuser1", "DEFAULT");
 
-        assertTrue("Unable to find saved user", optional.isPresent());
+        assertTrue(optional.isPresent(), "Unable to find saved user");
         User userFound = optional.get();
 
-        assertEquals("Invalid saved organization id.", user.getOrganizationId(), userFound.getOrganizationId());
-        assertEquals("Invalid saved user name.", user.getId(), userFound.getId());
-        assertEquals("Invalid saved user mail.", user.getEmail(), userFound.getEmail());
-        assertEquals("Invalid saved user status.", user.getStatus(), userFound.getStatus());
-        assertEquals("Invalid saved user login count.", user.getLoginCount(), userFound.getLoginCount());
-        assertEquals("Invalid saved user first connection at.", user.getFirstConnectionAt(), userFound.getFirstConnectionAt());
-        assertEquals("Invalid saved user newsletter.", user.getNewsletterSubscribed(), false);
+        assertEquals(user.getOrganizationId(), userFound.getOrganizationId(), "Invalid saved organization id.");
+        assertEquals(user.getId(), userFound.getId(), "Invalid saved user name.");
+        assertEquals(user.getEmail(), userFound.getEmail(), "Invalid saved user mail.");
+        assertEquals(user.getStatus(), userFound.getStatus(), "Invalid saved user status.");
+        assertEquals(user.getLoginCount(), userFound.getLoginCount(), "Invalid saved user login count.");
+        assertEquals(user.getFirstConnectionAt(), userFound.getFirstConnectionAt(), "Invalid saved user first connection at.");
+        assertEquals(user.getNewsletterSubscribed(), false, "Invalid saved user newsletter.");
     }
 
     @Test
     public void shouldUpdate() throws Exception {
         Optional<User> optional = userRepository.findById("id2update");
-        assertTrue("userRepository to update not found", optional.isPresent());
+        assertTrue(optional.isPresent(), "userRepository to update not found");
 
         final User user = optional.get();
         user.setSource("sourceUpdated");
@@ -112,24 +107,24 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(nbUsersBeforeUpdate, nbUsersAfterUpdate);
 
         Optional<User> optionalUpdated = userRepository.findById("id2update");
-        assertTrue("User to update not found", optionalUpdated.isPresent());
+        assertTrue(optionalUpdated.isPresent(), "User to update not found");
 
         final User userUpdated = optionalUpdated.get();
-        assertEquals("Invalid saved organization id.", "new_DEFAULT", userUpdated.getOrganizationId());
-        assertEquals("Invalid saved source", "sourceUpdated", userUpdated.getSource());
-        assertEquals("Invalid saved sourceId", "sourceIdUpdated", userUpdated.getSourceId());
-        assertEquals("Invalid saved password", "passwordUpdated", userUpdated.getPassword());
-        assertEquals("Invalid saved email", "emailUpdated", userUpdated.getEmail());
-        assertEquals("Invalid saved firstname", "firstnameUpdated", userUpdated.getFirstname());
-        assertEquals("Invalid saved lastname", "lastnameUpdated", userUpdated.getLastname());
-        assertEquals("Invalid saved picture", "pictureUpdated", userUpdated.getPicture());
-        assertTrue("Invalid saved createDate", compareDate(new Date(1439032010883L), userUpdated.getCreatedAt()));
-        assertTrue("Invalid saved updateDate", compareDate(new Date(1439042010883L), userUpdated.getUpdatedAt()));
-        assertTrue("Invalid saved lastConnection", compareDate(new Date(1439052010883L), userUpdated.getLastConnectionAt()));
-        assertEquals("Invalid status", UserStatus.ARCHIVED, userUpdated.getStatus());
-        assertEquals("Invalid saved user login count.", 123, userUpdated.getLoginCount());
-        assertEquals("Invalid saved user newsletter subscribed", true, userUpdated.getNewsletterSubscribed());
-        assertEquals("Invalid saved user first connection at.", user.getFirstConnectionAt(), userUpdated.getFirstConnectionAt());
+        assertEquals("new_DEFAULT", userUpdated.getOrganizationId(), "Invalid saved organization id.");
+        assertEquals("sourceUpdated", userUpdated.getSource(), "Invalid saved source");
+        assertEquals("sourceIdUpdated", userUpdated.getSourceId(), "Invalid saved sourceId");
+        assertEquals("passwordUpdated", userUpdated.getPassword(), "Invalid saved password");
+        assertEquals("emailUpdated", userUpdated.getEmail(), "Invalid saved email");
+        assertEquals("firstnameUpdated", userUpdated.getFirstname(), "Invalid saved firstname");
+        assertEquals("lastnameUpdated", userUpdated.getLastname(), "Invalid saved lastname");
+        assertEquals("pictureUpdated", userUpdated.getPicture(), "Invalid saved picture");
+        assertTrue(compareDate(new Date(1439032010883L), userUpdated.getCreatedAt()), "Invalid saved createDate");
+        assertTrue(compareDate(new Date(1439042010883L), userUpdated.getUpdatedAt()), "Invalid saved updateDate");
+        assertTrue(compareDate(new Date(1439052010883L), userUpdated.getLastConnectionAt()), "Invalid saved lastConnection");
+        assertEquals(UserStatus.ARCHIVED, userUpdated.getStatus(), "Invalid status");
+        assertEquals(123, userUpdated.getLoginCount(), "Invalid saved user login count.");
+        assertEquals(true, userUpdated.getNewsletterSubscribed(), "Invalid saved user newsletter subscribed");
+        assertEquals(user.getFirstConnectionAt(), userUpdated.getFirstConnectionAt(), "Invalid saved user first connection at.");
     }
 
     @Test
@@ -142,7 +137,7 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
             .getContent();
 
         assertNotNull(users);
-        assertEquals("Invalid user numbers in search", 1, users.size());
+        assertEquals(1, users.size(), "Invalid user numbers in search");
         assertEquals("user0", users.getFirst().getId());
     }
 
@@ -153,7 +148,7 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
             .getContent();
 
         assertNotNull(users);
-        assertEquals("Invalid user numbers in search", 11, users.size());
+        assertEquals(11, users.size(), "Invalid user numbers in search");
         assertEquals("id2update", users.get(0).getId());
         assertEquals("idSpecialChar", users.get(1).getId());
         assertEquals("user0", users.get(2).getId());
@@ -183,8 +178,8 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
             )
             .getContent();
 
-        Assert.assertNotNull(users);
-        assertEquals("Invalid user numbers in find archived", 1, users.size());
+        Assertions.assertNotNull(users);
+        assertEquals(1, users.size(), "Invalid user numbers in find archived");
     }
 
     @Test
@@ -217,8 +212,8 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
             .search(new UserCriteria.Builder().noStatus().build(), new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
             .getContent();
 
-        Assert.assertNotNull(users);
-        assertEquals("Invalid user numbers in find no status", 1, users.size());
+        Assertions.assertNotNull(users);
+        assertEquals(1, users.size(), "Invalid user numbers in find no status");
     }
 
     @Test
@@ -230,28 +225,32 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
             )
             .getContent();
 
-        Assert.assertNotNull(users);
-        assertEquals("Invalid user numbers in find active", 9, users.size());
+        Assertions.assertNotNull(users);
+        assertEquals(9, users.size(), "Invalid user numbers in find active");
     }
 
     @Test
     public void findUserBySourceTest() throws Exception {
         Optional<User> user = userRepository.findBySource("gravitee", "user1", "DEV");
-        Assert.assertTrue(user.isPresent());
+        Assertions.assertTrue(user.isPresent());
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownUser() throws Exception {
-        User unknownUser = new User();
-        unknownUser.setId("unknown");
-        userRepository.update(unknownUser);
-        fail("An unknown user should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            User unknownUser = new User();
+            unknownUser.setId("unknown");
+            userRepository.update(unknownUser);
+            fail("An unknown user should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        userRepository.update(null);
-        fail("A null user should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            userRepository.update(null);
+            fail("A null user should not be updated");
+        });
     }
 
     @Test
@@ -259,7 +258,7 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
         final Optional<User> optionalUser = userRepository.findById("user1");
 
         assertTrue(optionalUser.isPresent());
-        assertEquals("User not found by its id", "user1", optionalUser.get().getId());
+        assertEquals("user1", optionalUser.get().getId(), "User not found by its id");
     }
 
     @Test
@@ -273,9 +272,9 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldDelete() throws Exception {
-        assertTrue("user2delete exists", userRepository.findById("user2delete").isPresent());
+        assertTrue(userRepository.findById("user2delete").isPresent(), "user2delete exists");
         userRepository.delete("user2delete");
-        assertFalse("user2delete not exists", userRepository.findById("user2delete").isPresent());
+        assertFalse(userRepository.findById("user2delete").isPresent(), "user2delete not exists");
     }
 
     @Test

@@ -15,14 +15,17 @@
  */
 package io.gravitee.repository.mongodb.common;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
 import org.springframework.mock.env.MockEnvironment;
 
+@ExtendWith(MockitoExtension.class)
 public class AbstractRepositoryConfigurationTest {
 
     private AbstractRepositoryConfiguration abstractRepositoryConfiguration;
@@ -32,7 +35,7 @@ public class AbstractRepositoryConfigurationTest {
     @Mock
     private ApplicationContext applicationContext;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         environment = new MockEnvironment();
         abstractRepositoryConfiguration = new AbstractRepositoryConfiguration(environment, applicationContext) {};

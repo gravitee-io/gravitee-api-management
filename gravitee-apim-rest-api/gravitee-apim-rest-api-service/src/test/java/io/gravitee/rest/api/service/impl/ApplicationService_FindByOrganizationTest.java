@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -32,16 +33,19 @@ import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
 import java.util.Set;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApplicationService_FindByOrganizationTest {
 
     @Mock
@@ -85,15 +89,17 @@ public class ApplicationService_FindByOrganizationTest {
         assertThat(applications).containsExactly("test-application");
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldThrowTechnicalManagementException() throws TechnicalException {
-        final String organizationId = "gravitee";
-        final String environmentId = "test";
-        final EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId(environmentId);
-        environment.setOrganizationId(organizationId);
-        when(environmentService.findByOrganization(organizationId)).thenReturn(List.of(environment));
-        when(applicationRepository.searchIds(any(), any())).thenThrow(new TechnicalException());
-        applicationService.findIdsByOrganization(organizationId);
+        assertThrows(TechnicalManagementException.class, () -> {
+            final String organizationId = "gravitee";
+            final String environmentId = "test";
+            final EnvironmentEntity environment = new EnvironmentEntity();
+            environment.setId(environmentId);
+            environment.setOrganizationId(organizationId);
+            when(environmentService.findByOrganization(organizationId)).thenReturn(List.of(environment));
+            when(applicationRepository.searchIds(any(), any())).thenThrow(new TechnicalException());
+            applicationService.findIdsByOrganization(organizationId);
+        });
     }
 }

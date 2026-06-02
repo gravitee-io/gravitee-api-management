@@ -18,7 +18,7 @@ package io.gravitee.gateway.debug.definition;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.gateway.debug.utils.Stubs;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)

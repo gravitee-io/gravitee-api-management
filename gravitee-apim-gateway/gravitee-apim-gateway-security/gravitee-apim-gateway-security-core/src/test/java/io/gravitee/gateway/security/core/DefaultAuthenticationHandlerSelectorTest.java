@@ -15,8 +15,7 @@
  */
 package io.gravitee.gateway.security.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -25,17 +24,20 @@ import static org.mockito.Mockito.*;
 import io.gravitee.gateway.api.ExecutionContext;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class DefaultAuthenticationHandlerSelectorTest {
 
     @Mock
@@ -46,7 +48,7 @@ public class DefaultAuthenticationHandlerSelectorTest {
 
     private DefaultAuthenticationHandlerSelector cut;
 
-    @Before
+    @BeforeEach
     public void init() {
         cut = new DefaultAuthenticationHandlerSelector(authenticationHandlerManager);
     }

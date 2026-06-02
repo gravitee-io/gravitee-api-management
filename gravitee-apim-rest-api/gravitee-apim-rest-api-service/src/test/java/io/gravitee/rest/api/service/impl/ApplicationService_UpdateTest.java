@@ -19,9 +19,7 @@ import static io.gravitee.repository.management.model.ApiKeyMode.SHARED;
 import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
 import static io.gravitee.repository.management.model.Application.METADATA_REGISTRATION_PAYLOAD;
 import static io.gravitee.rest.api.model.ApiKeyMode.UNSPECIFIED;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.eq;
@@ -105,21 +103,24 @@ import joptsimple.internal.Strings;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.internal.util.collections.Sets;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApplicationService_UpdateTest {
 
     private static final String APPLICATION_ID = "id-app";
@@ -187,7 +188,7 @@ public class ApplicationService_UpdateTest {
 
     private static final CertificateInfo VALID_CERT_INFO = new CertificateInfo(new Date(), "CN=unit-tests", "CN=unit-tests", "SHA256:abc");
 
-    @Before
+    @BeforeEach
     public void setUp() {
         lenient().when(clientCertificateValidationDomainService.validateForCreation(any(), any())).thenReturn(VALID_CERT_INFO);
     }
@@ -357,35 +358,39 @@ public class ApplicationService_UpdateTest {
         );
     }
 
-    @Test(expected = ApplicationNotFoundException.class)
+    @Test
     public void shouldNotUpdateBecauseNotFound() throws TechnicalException {
-        ConsoleConfigEntity config = getConsoleConfigEntity(false);
+        assertThrows(ApplicationNotFoundException.class, () -> {
+            ConsoleConfigEntity config = getConsoleConfigEntity(false);
 
-        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.empty());
-        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(config);
+            when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.empty());
+            when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(config);
 
-        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+            applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+        });
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotUpdateBecauseTechnicalException() throws TechnicalException {
-        ApplicationSettings settings = new ApplicationSettings();
-        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
-        clientSettings.setClientId(CLIENT_ID);
-        settings.setApp(clientSettings);
-        ConsoleConfigEntity consoleConfig = getConsoleConfigEntity(false);
+        assertThrows(TechnicalManagementException.class, () -> {
+            ApplicationSettings settings = new ApplicationSettings();
+            SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+            clientSettings.setClientId(CLIENT_ID);
+            settings.setApp(clientSettings);
+            ConsoleConfigEntity consoleConfig = getConsoleConfigEntity(false);
 
-        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
-        when(updateApplication.getSettings()).thenReturn(settings);
-        when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
-        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
-        when(applicationRepository.update(any())).thenThrow(TechnicalException.class);
-        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+            when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
+            when(updateApplication.getSettings()).thenReturn(settings);
+            when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+            when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+            when(applicationRepository.update(any())).thenThrow(TechnicalException.class);
+            when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
 
-        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
-        when(updateApplication.getDescription()).thenReturn("My description");
+            when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+            when(updateApplication.getDescription()).thenReturn("My description");
 
-        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+            applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+        });
     }
 
     @Test
@@ -435,129 +440,139 @@ public class ApplicationService_UpdateTest {
         assertEquals(APPLICATION_NAME, applicationEntity.getName());
     }
 
-    @Test(expected = ClientIdAlreadyExistsException.class)
+    @Test
     public void shouldNotUpdateBecauseDifferentApplication() throws TechnicalException {
-        Application other = mock(Application.class);
-        when(other.getId()).thenReturn("other-app");
+        assertThrows(ClientIdAlreadyExistsException.class, () -> {
+            Application other = mock(Application.class);
+            when(other.getId()).thenReturn("other-app");
 
-        Map<String, String> metadata = new HashMap<>();
-        metadata.put(METADATA_CLIENT_ID, CLIENT_ID);
-        when(other.getMetadata()).thenReturn(metadata);
+            Map<String, String> metadata = new HashMap<>();
+            metadata.put(METADATA_CLIENT_ID, CLIENT_ID);
+            when(other.getMetadata()).thenReturn(metadata);
 
-        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
-        when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
-        when(applicationRepository.findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE)).thenReturn(Sets.newSet(other));
+            when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+            when(existingApplication.getType()).thenReturn(ApplicationType.SIMPLE);
+            when(applicationRepository.findAllByEnvironment("DEFAULT", ApplicationStatus.ACTIVE)).thenReturn(Sets.newSet(other));
 
-        when(existingApplication.getId()).thenReturn(APPLICATION_ID);
+            when(existingApplication.getId()).thenReturn(APPLICATION_ID);
 
-        ApplicationSettings settings = new ApplicationSettings();
-        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
-        clientSettings.setClientId(CLIENT_ID);
-        settings.setApp(clientSettings);
-        ConsoleConfigEntity consoleConfig = getConsoleConfigEntity(false);
+            ApplicationSettings settings = new ApplicationSettings();
+            SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+            clientSettings.setClientId(CLIENT_ID);
+            settings.setApp(clientSettings);
+            ConsoleConfigEntity consoleConfig = getConsoleConfigEntity(false);
 
-        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
-        when(updateApplication.getSettings()).thenReturn(settings);
+            when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
+            when(updateApplication.getSettings()).thenReturn(settings);
 
-        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+            applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void should_throw_exception_cause_client_registration_is_disabled() throws TechnicalException {
-        ConsoleConfigEntity consoleConfig = getConsoleConfigEntity(false);
+        assertThrows(IllegalStateException.class, () -> {
+            ConsoleConfigEntity consoleConfig = getConsoleConfigEntity(false);
 
-        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
-        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
-        when(existingApplication.getType()).thenReturn(ApplicationType.BROWSER);
-        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
-        // oauth app settings
-        ApplicationSettings settings = new ApplicationSettings();
-        settings.setOauth(new OAuthClientSettings());
-        when(updateApplication.getSettings()).thenReturn(settings);
+            when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+            when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+            when(existingApplication.getType()).thenReturn(ApplicationType.BROWSER);
+            when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
+            // oauth app settings
+            ApplicationSettings settings = new ApplicationSettings();
+            settings.setOauth(new OAuthClientSettings());
+            when(updateApplication.getSettings()).thenReturn(settings);
 
-        // client registration is disabled
-        when(
-            parameterService.findAsBoolean(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Key.APPLICATION_REGISTRATION_ENABLED),
-                any(),
-                eq(ParameterReferenceType.ENVIRONMENT)
-            )
-        ).thenReturn(false);
+            // client registration is disabled
+            when(
+                parameterService.findAsBoolean(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(Key.APPLICATION_REGISTRATION_ENABLED),
+                    any(),
+                    eq(ParameterReferenceType.ENVIRONMENT)
+                )
+            ).thenReturn(false);
 
-        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+            applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+        });
     }
 
-    @Test(expected = InvalidApplicationApiKeyModeException.class)
+    @Test
     public void should_throw_exception_trying_to_update_apiKeyMode_shared() throws TechnicalException {
-        // existing application has a SHARED API Key mode
-        when(existingApplication.getApiKeyMode()).thenReturn(SHARED);
-        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        assertThrows(InvalidApplicationApiKeyModeException.class, () -> {
+            // existing application has a SHARED API Key mode
+            when(existingApplication.getApiKeyMode()).thenReturn(SHARED);
+            when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
 
-        // updated application has a UNSPECIFIED API Key mode
-        when(updateApplication.getApiKeyMode()).thenReturn(UNSPECIFIED);
-        when(updateApplication.getSettings()).thenReturn(new ApplicationSettings());
-        updateApplication.getSettings().setApp(new SimpleApplicationSettings());
+            // updated application has a UNSPECIFIED API Key mode
+            when(updateApplication.getApiKeyMode()).thenReturn(UNSPECIFIED);
+            when(updateApplication.getSettings()).thenReturn(new ApplicationSettings());
+            updateApplication.getSettings().setApp(new SimpleApplicationSettings());
 
-        ConsoleConfigEntity consoleConfig = getConsoleConfigEntity(false);
-        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
+            ConsoleConfigEntity consoleConfig = getConsoleConfigEntity(false);
+            when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
 
-        // this should throw exception cause API Key mode update is forbidden
-        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+            // this should throw exception cause API Key mode update is forbidden
+            applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+        });
     }
 
-    @Test(expected = InvalidApplicationApiKeyModeException.class)
+    @Test
     public void should_throw_exception_trying_to_set_apiKeyMode_shared_with_env_setting_disabled() throws TechnicalException {
-        // 'Shared API KEY' setting is disabled
-        when(
-            parameterService.findAsBoolean(
-                GraviteeContext.getExecutionContext(),
-                Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ).thenReturn(false);
+        assertThrows(InvalidApplicationApiKeyModeException.class, () -> {
+            // 'Shared API KEY' setting is disabled
+            when(
+                parameterService.findAsBoolean(
+                    GraviteeContext.getExecutionContext(),
+                    Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED,
+                    ParameterReferenceType.ENVIRONMENT
+                )
+            ).thenReturn(false);
 
-        // existing application has a UNSPECIFIED API Key mode
-        when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
-        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+            // existing application has a UNSPECIFIED API Key mode
+            when(existingApplication.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+            when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
 
-        // updated application has a SHARED API Key mode
-        when(updateApplication.getApiKeyMode()).thenReturn(io.gravitee.rest.api.model.ApiKeyMode.SHARED);
-        when(updateApplication.getSettings()).thenReturn(new ApplicationSettings());
-        updateApplication.getSettings().setApp(new SimpleApplicationSettings());
+            // updated application has a SHARED API Key mode
+            when(updateApplication.getApiKeyMode()).thenReturn(io.gravitee.rest.api.model.ApiKeyMode.SHARED);
+            when(updateApplication.getSettings()).thenReturn(new ApplicationSettings());
+            updateApplication.getSettings().setApp(new SimpleApplicationSettings());
 
-        ConsoleConfigEntity consoleConfig = getConsoleConfigEntity(false);
-        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
+            ConsoleConfigEntity consoleConfig = getConsoleConfigEntity(false);
+            when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
 
-        // this should throw exception cause shard API Key setting is disabled
-        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+            // this should throw exception cause shard API Key setting is disabled
+            applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+        });
     }
 
-    @Test(expected = ApplicationGrantTypesNotFoundException.class)
+    @Test
     public void should_throw_exception_cause_oAuth_client_settings_has_no_grant_types() throws TechnicalException {
-        ConsoleConfigEntity config = getConsoleConfigEntity(false);
+        assertThrows(ApplicationGrantTypesNotFoundException.class, () -> {
+            ConsoleConfigEntity config = getConsoleConfigEntity(false);
 
-        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
-        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
-        when(existingApplication.getType()).thenReturn(ApplicationType.BROWSER);
-        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(config);
-        // oauth app settings doesn't contain grant types
-        ApplicationSettings settings = new ApplicationSettings();
-        settings.setOauth(new OAuthClientSettings());
-        when(updateApplication.getSettings()).thenReturn(settings);
-        when(updateApplication.getSettings()).thenReturn(settings);
+            when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+            when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+            when(existingApplication.getType()).thenReturn(ApplicationType.BROWSER);
+            when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(config);
+            // oauth app settings doesn't contain grant types
+            ApplicationSettings settings = new ApplicationSettings();
+            settings.setOauth(new OAuthClientSettings());
+            when(updateApplication.getSettings()).thenReturn(settings);
+            when(updateApplication.getSettings()).thenReturn(settings);
 
-        // client registration is enabled
-        when(
-            parameterService.findAsBoolean(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Key.APPLICATION_REGISTRATION_ENABLED),
-                any(),
-                eq(ParameterReferenceType.ENVIRONMENT)
-            )
-        ).thenReturn(true);
+            // client registration is enabled
+            when(
+                parameterService.findAsBoolean(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(Key.APPLICATION_REGISTRATION_ENABLED),
+                    any(),
+                    eq(ParameterReferenceType.ENVIRONMENT)
+                )
+            ).thenReturn(true);
 
-        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+            applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+        });
     }
 
     @Test

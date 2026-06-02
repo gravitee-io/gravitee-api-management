@@ -15,8 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.when;
 
@@ -33,18 +32,21 @@ import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
 import java.util.*;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class PageService_FindByIdTest {
 
     private static final String PAGE_ID = "ba01aef0-e3da-4499-81ae-f0e3daa4995a";
@@ -110,17 +112,21 @@ public class PageService_FindByIdTest {
         assertEquals(5, pageEntity.getContentRevisionId().getRevision());
     }
 
-    @Test(expected = PageNotFoundException.class)
+    @Test
     public void shouldNotFindByIdBecauseNotFound() throws TechnicalException {
-        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.empty());
+        assertThrows(PageNotFoundException.class, () -> {
+            when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.empty());
 
-        pageService.findById(PAGE_ID);
+            pageService.findById(PAGE_ID);
+        });
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotFindByIdBecauseTechnicalException() throws TechnicalException {
-        when(pageRepository.findById(PAGE_ID)).thenThrow(TechnicalException.class);
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(pageRepository.findById(PAGE_ID)).thenThrow(TechnicalException.class);
 
-        pageService.findById(PAGE_ID);
+            pageService.findById(PAGE_ID);
+        });
     }
 }

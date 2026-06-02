@@ -31,7 +31,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
 

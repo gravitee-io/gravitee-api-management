@@ -16,7 +16,8 @@
 package io.gravitee.gateway.reactive.handlers.api.v4;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.v4.plan.Plan;

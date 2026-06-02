@@ -17,9 +17,7 @@ package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.definition.model.Origin;
 import io.gravitee.repository.management.model.NotificationReferenceType;
@@ -29,7 +27,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class PortalNotificationConfigRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -181,13 +179,13 @@ public class PortalNotificationConfigRepositoryTest extends AbstractManagementRe
     public void shouldFindByHookAndOrganizationId() throws Exception {
         List<PortalNotificationConfig> configs = portalNotificationConfigRepository.findByHookAndOrganizationId("A", "org1");
         List<String> userIds = configs.stream().map(PortalNotificationConfig::getUser).toList();
-        assertAll(() -> assertEquals("size", 2, configs.size()), () -> assertTrue(userIds.containsAll(List.of("userA", "userF"))));
+        assertAll(() -> assertEquals(2, configs.size(), "size"), () -> assertTrue(userIds.containsAll(List.of("userA", "userF"))));
     }
 
     @Test
     public void shouldNotFindByHookAndOrganizationId() throws Exception {
         List<PortalNotificationConfig> configs = portalNotificationConfigRepository.findByHookAndOrganizationId("A", "org4");
-        assertTrue("size", configs.isEmpty());
+        assertTrue(configs.isEmpty(), "size");
     }
 
     @Test

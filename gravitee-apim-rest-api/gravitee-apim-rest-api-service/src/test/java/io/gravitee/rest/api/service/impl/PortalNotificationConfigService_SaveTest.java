@@ -18,10 +18,8 @@ package io.gravitee.rest.api.service.impl;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.assertArg;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
@@ -45,16 +43,19 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class PortalNotificationConfigService_SaveTest {
 
     @Mock
@@ -68,7 +69,7 @@ public class PortalNotificationConfigService_SaveTest {
 
     PortalNotificationConfigService underTest;
 
-    @Before
+    @BeforeEach
     public void setup() {
         underTest = new PortalNotificationConfigServiceImpl(portalNotificationConfigRepository, membershipService, groupService);
     }
@@ -85,10 +86,10 @@ public class PortalNotificationConfigService_SaveTest {
         final PortalNotificationConfigEntity entity = underTest.save(cfgEntity);
 
         assertNotNull(entity);
-        assertEquals("referenceId", cfgEntity.getReferenceId(), entity.getReferenceId());
-        assertEquals("referenceType", cfgEntity.getReferenceType(), entity.getReferenceType());
-        assertEquals("userId", cfgEntity.getUser(), entity.getUser());
-        assertEquals("hooks", cfgEntity.getHooks(), entity.getHooks());
+        assertEquals(cfgEntity.getReferenceId(), entity.getReferenceId(), "referenceId");
+        assertEquals(cfgEntity.getReferenceType(), entity.getReferenceType(), "referenceType");
+        assertEquals(cfgEntity.getUser(), entity.getUser(), "userId");
+        assertEquals(cfgEntity.getHooks(), entity.getHooks(), "hooks");
         verify(portalNotificationConfigRepository, never()).findById(any(), any(), any());
         verify(portalNotificationConfigRepository, times(1)).delete(any());
     }
@@ -113,10 +114,10 @@ public class PortalNotificationConfigService_SaveTest {
         final PortalNotificationConfigEntity entity = underTest.save(cfgEntity);
 
         assertNotNull(entity);
-        assertEquals("referenceId", cfgEntity.getReferenceId(), entity.getReferenceId());
-        assertEquals("referenceType", cfgEntity.getReferenceType(), entity.getReferenceType());
-        assertEquals("user", cfgEntity.getUser(), entity.getUser());
-        assertEquals("hooks", cfgEntity.getHooks(), entity.getHooks());
+        assertEquals(cfgEntity.getReferenceId(), entity.getReferenceId(), "referenceId");
+        assertEquals(cfgEntity.getReferenceType(), entity.getReferenceType(), "referenceType");
+        assertEquals(cfgEntity.getUser(), entity.getUser(), "user");
+        assertEquals(cfgEntity.getHooks(), entity.getHooks(), "hooks");
         verify(portalNotificationConfigRepository, times(1)).findById("user", NotificationReferenceType.API, "123");
         verify(portalNotificationConfigRepository, times(1)).update(any());
         verify(portalNotificationConfigRepository, never()).delete(any());
@@ -143,10 +144,10 @@ public class PortalNotificationConfigService_SaveTest {
         final PortalNotificationConfigEntity entity = underTest.save(cfgEntity);
 
         assertNotNull(entity);
-        assertEquals("referenceId", cfgEntity.getReferenceId(), entity.getReferenceId());
-        assertEquals("referenceType", cfgEntity.getReferenceType(), entity.getReferenceType());
-        assertEquals("user", cfgEntity.getUser(), entity.getUser());
-        assertEquals("hooks", cfgEntity.getHooks(), entity.getHooks());
+        assertEquals(cfgEntity.getReferenceId(), entity.getReferenceId(), "referenceId");
+        assertEquals(cfgEntity.getReferenceType(), entity.getReferenceType(), "referenceType");
+        assertEquals(cfgEntity.getUser(), entity.getUser(), "user");
+        assertEquals(cfgEntity.getHooks(), entity.getHooks(), "hooks");
         verify(portalNotificationConfigRepository, times(1)).findById("user", NotificationReferenceType.API, "123");
         verify(portalNotificationConfigRepository, times(1)).create(any());
         verify(portalNotificationConfigRepository, never()).delete(any());

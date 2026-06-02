@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.services.dictionary.provider.http.mapper;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.gravitee.rest.api.services.dictionary.model.DynamicProperty;
 import java.io.IOException;
@@ -23,7 +23,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import org.apache.commons.io.IOUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team

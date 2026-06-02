@@ -23,17 +23,20 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.debug.reactor.handler.context.steps.DebugResponseStep;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class DebugExecutionContextTest {
 
     @Mock
@@ -44,7 +47,7 @@ public class DebugExecutionContextTest {
 
     private DebugExecutionContext cut;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         Request request = mock(Request.class);
         when(request.headers()).thenReturn(HttpHeaders.create());
@@ -54,7 +57,6 @@ public class DebugExecutionContextTest {
 
     @Test
     public void shouldAddNoTransformationStep() {
-        doNothing().when(debugStep).before(any(), any());
         cut.saveNoTransformationDebugStep(debugStep);
         assertThat(cut.getDebugSteps()).hasSize(1);
         assertThat(cut.getDebugSteps()).contains(debugStep);
@@ -63,7 +65,6 @@ public class DebugExecutionContextTest {
 
     @Test
     public void shouldNotAddAStepTwice() {
-        doNothing().when(debugStep).before(any(), any());
         cut.beforePolicyExecution(debugStep);
         assertThat(cut.getDebugSteps()).hasSize(1);
         assertThat(cut.getDebugSteps()).contains(debugStep);
@@ -75,7 +76,6 @@ public class DebugExecutionContextTest {
 
     @Test
     public void shouldNotEndAStepTwice() {
-        doNothing().when(debugStep).after(any(), any(), any(), any());
         doCallRealMethod().when(debugStep).ended();
         when(debugStep.isEnded()).thenCallRealMethod();
 

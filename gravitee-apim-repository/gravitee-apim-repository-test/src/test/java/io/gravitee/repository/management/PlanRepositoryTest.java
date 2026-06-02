@@ -21,15 +21,15 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Plan;
 import java.util.*;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -322,22 +322,22 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         planRepository.create(plan);
 
         Optional<Plan> optional = planRepository.findById(planName);
-        Assert.assertTrue("New plan not found", optional.isPresent());
+        Assertions.assertTrue(optional.isPresent(), "New plan not found");
 
         final Plan createdPlan = optional.get();
-        Assert.assertEquals("Invalid plan name.", plan.getName(), createdPlan.getName());
-        Assert.assertEquals("Invalid GeneralCondition.", plan.getGeneralConditions(), createdPlan.getGeneralConditions());
-        Assert.assertEquals("Invalid plan description.", plan.getDescription(), createdPlan.getDescription());
-        Assert.assertEquals("Invalid plan validation.", plan.getValidation(), createdPlan.getValidation());
-        Assert.assertEquals("Invalid plan type.", plan.getType(), createdPlan.getType());
-        Assert.assertEquals("Invalid plan API.", plan.getReferenceId(), createdPlan.getReferenceId());
-        Assert.assertTrue("Invalid plan created date.", compareDate(plan.getCreatedAt(), createdPlan.getCreatedAt()));
-        Assert.assertTrue("Invalid plan updated date.", compareDate(plan.getUpdatedAt(), createdPlan.getUpdatedAt()));
-        Assert.assertEquals("Invalid plan status.", plan.getStatus(), createdPlan.getStatus());
-        Assert.assertTrue("Invalid plan published date.", compareDate(plan.getPublishedAt(), createdPlan.getPublishedAt()));
-        Assert.assertTrue("Invalid plan closed date.", compareDate(plan.getClosedAt(), createdPlan.getClosedAt()));
-        Assert.assertEquals("Invalid plan security.", plan.getSecurity(), createdPlan.getSecurity());
-        Assert.assertEquals("Invalid plan apiType.", plan.getApiType(), createdPlan.getApiType());
+        Assertions.assertEquals(plan.getName(), createdPlan.getName(), "Invalid plan name.");
+        Assertions.assertEquals(plan.getGeneralConditions(), createdPlan.getGeneralConditions(), "Invalid GeneralCondition.");
+        Assertions.assertEquals(plan.getDescription(), createdPlan.getDescription(), "Invalid plan description.");
+        Assertions.assertEquals(plan.getValidation(), createdPlan.getValidation(), "Invalid plan validation.");
+        Assertions.assertEquals(plan.getType(), createdPlan.getType(), "Invalid plan type.");
+        Assertions.assertEquals(plan.getReferenceId(), createdPlan.getReferenceId(), "Invalid plan API.");
+        Assertions.assertTrue(compareDate(plan.getCreatedAt(), createdPlan.getCreatedAt()), "Invalid plan created date.");
+        Assertions.assertTrue(compareDate(plan.getUpdatedAt(), createdPlan.getUpdatedAt()), "Invalid plan updated date.");
+        Assertions.assertEquals(plan.getStatus(), createdPlan.getStatus(), "Invalid plan status.");
+        Assertions.assertTrue(compareDate(plan.getPublishedAt(), createdPlan.getPublishedAt()), "Invalid plan published date.");
+        Assertions.assertTrue(compareDate(plan.getClosedAt(), createdPlan.getClosedAt()), "Invalid plan closed date.");
+        Assertions.assertEquals(plan.getSecurity(), createdPlan.getSecurity(), "Invalid plan security.");
+        Assertions.assertEquals(plan.getApiType(), createdPlan.getApiType(), "Invalid plan apiType.");
     }
 
     @Test
@@ -393,29 +393,33 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         planRepository.create(plan);
 
         Optional<Plan> optional = planRepository.findById(planName);
-        Assert.assertTrue("New oauth2 plan not found", optional != null && optional.isPresent());
+        Assertions.assertTrue(optional != null && optional.isPresent(), "New oauth2 plan not found");
 
         final Plan createdPlan = optional.get();
-        Assert.assertEquals("Invalid oauth2 plan name.", plan.getName(), createdPlan.getName());
-        Assert.assertEquals("Invalid oauth2 plan description.", plan.getDescription(), createdPlan.getDescription());
-        Assert.assertEquals("Invalid oauth2 plan validation.", plan.getValidation(), createdPlan.getValidation());
-        Assert.assertEquals("Invalid oauth2 plan type.", plan.getType(), createdPlan.getType());
-        Assert.assertEquals("Invalid oauth2 plan API.", plan.getReferenceId(), createdPlan.getReferenceId());
-        Assert.assertTrue("Invalid oauth2 plan created date.", compareDate(plan.getCreatedAt(), createdPlan.getCreatedAt()));
-        Assert.assertTrue("Invalid oauth2 plan updated date.", compareDate(plan.getUpdatedAt(), createdPlan.getUpdatedAt()));
-        Assert.assertEquals("Invalid oauth2 plan status.", plan.getStatus(), createdPlan.getStatus());
-        Assert.assertTrue("Invalid oauth2 plan published date.", compareDate(plan.getPublishedAt(), createdPlan.getPublishedAt()));
-        Assert.assertTrue("Invalid oauth2 plan closed date.", compareDate(plan.getClosedAt(), createdPlan.getClosedAt()));
-        Assert.assertEquals("Invalid oauth2 plan security.", plan.getSecurity(), createdPlan.getSecurity());
-        Assert.assertEquals("Invalid oauth2 plan security definition.", plan.getSecurityDefinition(), createdPlan.getSecurityDefinition());
-        Assert.assertEquals("Invalid oauth2 plan comment required.", plan.isCommentRequired(), createdPlan.isCommentRequired());
-        Assert.assertEquals("Invalid oauth2 plan apiType.", plan.getApiType(), createdPlan.getApiType());
+        Assertions.assertEquals(plan.getName(), createdPlan.getName(), "Invalid oauth2 plan name.");
+        Assertions.assertEquals(plan.getDescription(), createdPlan.getDescription(), "Invalid oauth2 plan description.");
+        Assertions.assertEquals(plan.getValidation(), createdPlan.getValidation(), "Invalid oauth2 plan validation.");
+        Assertions.assertEquals(plan.getType(), createdPlan.getType(), "Invalid oauth2 plan type.");
+        Assertions.assertEquals(plan.getReferenceId(), createdPlan.getReferenceId(), "Invalid oauth2 plan API.");
+        Assertions.assertTrue(compareDate(plan.getCreatedAt(), createdPlan.getCreatedAt()), "Invalid oauth2 plan created date.");
+        Assertions.assertTrue(compareDate(plan.getUpdatedAt(), createdPlan.getUpdatedAt()), "Invalid oauth2 plan updated date.");
+        Assertions.assertEquals(plan.getStatus(), createdPlan.getStatus(), "Invalid oauth2 plan status.");
+        Assertions.assertTrue(compareDate(plan.getPublishedAt(), createdPlan.getPublishedAt()), "Invalid oauth2 plan published date.");
+        Assertions.assertTrue(compareDate(plan.getClosedAt(), createdPlan.getClosedAt()), "Invalid oauth2 plan closed date.");
+        Assertions.assertEquals(plan.getSecurity(), createdPlan.getSecurity(), "Invalid oauth2 plan security.");
+        Assertions.assertEquals(
+            plan.getSecurityDefinition(),
+            createdPlan.getSecurityDefinition(),
+            "Invalid oauth2 plan security definition."
+        );
+        Assertions.assertEquals(plan.isCommentRequired(), createdPlan.isCommentRequired(), "Invalid oauth2 plan comment required.");
+        Assertions.assertEquals(plan.getApiType(), createdPlan.getApiType(), "Invalid oauth2 plan apiType.");
     }
 
     @Test
     public void shouldUpdate() throws Exception {
         Optional<Plan> optional = planRepository.findById("updated-plan");
-        Assert.assertTrue("Plan to update not found", optional != null && optional.isPresent());
+        Assertions.assertTrue(optional != null && optional.isPresent(), "Plan to update not found");
 
         final Plan plan = optional.get();
         plan.setName("New plan");
@@ -428,21 +432,21 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         planRepository.update(plan);
 
         Optional<Plan> optionalUpdated = planRepository.findById("updated-plan");
-        Assert.assertTrue("Plan to update not found", optionalUpdated != null && optionalUpdated.isPresent());
+        Assertions.assertTrue(optionalUpdated != null && optionalUpdated.isPresent(), "Plan to update not found");
 
         final Plan planUpdated = optionalUpdated.get();
-        Assert.assertEquals("Invalid saved plan name.", plan.getName(), planUpdated.getName());
-        Assert.assertEquals("Invalid saved general conditions.", plan.getGeneralConditions(), planUpdated.getGeneralConditions());
-        Assert.assertEquals("Invalid plan description.", plan.getDescription(), planUpdated.getDescription());
-        Assert.assertEquals("Invalid plan status.", plan.getStatus(), planUpdated.getStatus());
-        Assert.assertEquals("Invalid plan tags.", plan.getTags().size(), planUpdated.getTags().size());
-        Assert.assertEquals("Invalid plan apiType.", plan.getApiType(), planUpdated.getApiType());
+        Assertions.assertEquals(plan.getName(), planUpdated.getName(), "Invalid saved plan name.");
+        Assertions.assertEquals(plan.getGeneralConditions(), planUpdated.getGeneralConditions(), "Invalid saved general conditions.");
+        Assertions.assertEquals(plan.getDescription(), planUpdated.getDescription(), "Invalid plan description.");
+        Assertions.assertEquals(plan.getStatus(), planUpdated.getStatus(), "Invalid plan status.");
+        Assertions.assertEquals(plan.getTags().size(), planUpdated.getTags().size(), "Invalid plan tags.");
+        Assertions.assertEquals(plan.getApiType(), planUpdated.getApiType(), "Invalid plan apiType.");
     }
 
     @Test
     public void shouldUpdateOAuth2Plan() throws Exception {
         Optional<Plan> optional = planRepository.findById("plan-oauth2");
-        Assert.assertTrue("Plan to update not found", optional != null && optional.isPresent());
+        Assertions.assertTrue(optional != null && optional.isPresent(), "Plan to update not found");
 
         final Plan plan = optional.get();
         plan.setName("New oauth2 plan");
@@ -454,14 +458,14 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         planRepository.update(plan);
 
         Optional<Plan> optionalUpdated = planRepository.findById("plan-oauth2");
-        Assert.assertTrue("Plan to update not found", optionalUpdated != null && optionalUpdated.isPresent());
+        Assertions.assertTrue(optionalUpdated != null && optionalUpdated.isPresent(), "Plan to update not found");
 
         final Plan planUpdated = optionalUpdated.get();
-        Assert.assertEquals("Invalid saved plan name.", plan.getName(), planUpdated.getName());
-        Assert.assertEquals("Invalid plan description.", plan.getDescription(), planUpdated.getDescription());
-        Assert.assertEquals("Invalid plan status.", plan.getStatus(), planUpdated.getStatus());
-        Assert.assertEquals("Invalid plan security definition.", plan.getSecurityDefinition(), planUpdated.getSecurityDefinition());
-        Assert.assertEquals("Invalid plan apiType.", plan.getApiType(), planUpdated.getApiType());
+        Assertions.assertEquals(plan.getName(), planUpdated.getName(), "Invalid saved plan name.");
+        Assertions.assertEquals(plan.getDescription(), planUpdated.getDescription(), "Invalid plan description.");
+        Assertions.assertEquals(plan.getStatus(), planUpdated.getStatus(), "Invalid plan status.");
+        Assertions.assertEquals(plan.getSecurityDefinition(), planUpdated.getSecurityDefinition(), "Invalid plan security definition.");
+        Assertions.assertEquals(plan.getApiType(), planUpdated.getApiType(), "Invalid plan apiType.");
     }
 
     @Test
@@ -470,21 +474,25 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
 
         Optional<Plan> optional = planRepository.findById("stores");
 
-        Assert.assertFalse("Plan must not be found", optional.isPresent());
+        Assertions.assertFalse(optional.isPresent(), "Plan must not be found");
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownPlan() throws Exception {
-        Plan unknownPlan = new Plan();
-        unknownPlan.setId("unknown");
-        planRepository.update(unknownPlan);
-        fail("An unknown plan should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            Plan unknownPlan = new Plan();
+            unknownPlan.setId("unknown");
+            planRepository.update(unknownPlan);
+            fail("An unknown plan should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        planRepository.update(null);
-        fail("A null plan should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            planRepository.update(null);
+            fail("A null plan should not be updated");
+        });
     }
 
     @Test

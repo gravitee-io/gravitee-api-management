@@ -22,9 +22,9 @@ import io.gravitee.repository.management.model.PortalPageContent;
 import jakarta.inject.Inject;
 import java.util.List;
 import java.util.Set;
-import org.junit.Test;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class PortalPageContentRepositoryTest extends AbstractManagementRepositoryTest {

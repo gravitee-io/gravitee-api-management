@@ -15,32 +15,33 @@
  */
 package io.gravitee.rest.api.security.utils;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import io.gravitee.rest.api.exception.InvalidImageException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
 public class ImageUtilsTest {
 
-    @Test(expected = InvalidImageException.class)
-    public void shouldNotVerify_svgFormat() throws InvalidImageException {
-        ImageUtils.verify(
-            "data:image/SVG+xml;base64,PHNWZw0KdmVyc2lvbj0iMS4xIiBiYXNlUHJvZmlsZT0iZnVsbCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4NCiAgIDxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMTAwIiBzdHlsZT0iZmlsbDpyZ2IoMCwwLDI1NSk7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlOnJnYigwLDAsMCkiIC8+DQogICA8c2NyaXB0PmFsZXJ0KDEpPC9zY3JpcHQ+DQo8L3NWZz4="
+    @Test
+    public void shouldNotVerify_svgFormat() {
+        assertThrows(InvalidImageException.class, () ->
+            ImageUtils.verify(
+                "data:image/SVG+xml;base64,PHNWZw0KdmVyc2lvbj0iMS4xIiBiYXNlUHJvZmlsZT0iZnVsbCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4NCiAgIDxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMTAwIiBzdHlsZT0iZmlsbDpyZ2IoMCwwLDI1NSk7c3Ryb2tlLXdpZHRoOjM7c3Ryb2tlOnJnYigwLDAsMCkiIC8+DQogICA8c2NyaXB0PmFsZXJ0KDEpPC9zY3JpcHQ+DQo8L3NWZz4="
+            )
         );
     }
 
-    @Test(expected = InvalidImageException.class)
-    public void shouldNotVerify_invalidBase64Format() throws InvalidImageException {
-        ImageUtils.verify("data:image/SVG+xml;base64,invalid_base64");
+    @Test
+    public void shouldNotVerify_invalidBase64Format() {
+        assertThrows(InvalidImageException.class, () -> ImageUtils.verify("data:image/SVG+xml;base64,invalid_base64"));
     }
 
     @Test

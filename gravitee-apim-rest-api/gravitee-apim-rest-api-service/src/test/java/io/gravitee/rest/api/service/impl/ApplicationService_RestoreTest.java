@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -39,18 +40,21 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApplicationService_RestoreTest {
 
     private static final String APP = "my-app";
@@ -85,39 +89,45 @@ public class ApplicationService_RestoreTest {
     @Mock
     private io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService clientCertificateCrudService;
 
-    @BeforeClass
+    @BeforeAll
     public static void setup() {
         GraviteeContext.setCurrentEnvironment(GraviteeContext.getDefaultEnvironment());
     }
 
-    @Test(expected = ApplicationNotFoundException.class)
+    @Test
     public void shouldNotRestoreApp_NotExist() throws TechnicalException {
-        when(applicationRepository.findById(APP)).thenReturn(Optional.empty());
+        assertThrows(ApplicationNotFoundException.class, () -> {
+            when(applicationRepository.findById(APP)).thenReturn(Optional.empty());
 
-        applicationService.restore(GraviteeContext.getExecutionContext(), APP);
+            applicationService.restore(GraviteeContext.getExecutionContext(), APP);
+        });
     }
 
-    @Test(expected = ApplicationActiveException.class)
+    @Test
     public void shouldNotRestoreApp_NotArchived() throws TechnicalException {
-        Application app = fakeApp(false);
-        app.setStatus(ApplicationStatus.ACTIVE);
+        assertThrows(ApplicationActiveException.class, () -> {
+            Application app = fakeApp(false);
+            app.setStatus(ApplicationStatus.ACTIVE);
 
-        when(applicationRepository.findById(APP)).thenReturn(Optional.of(app));
+            when(applicationRepository.findById(APP)).thenReturn(Optional.of(app));
 
-        applicationService.restore(GraviteeContext.getExecutionContext(), APP);
+            applicationService.restore(GraviteeContext.getExecutionContext(), APP);
+        });
     }
 
-    @Test(expected = ClientIdAlreadyExistsException.class)
+    @Test
     public void shouldNotRestoreApp_ClientIdAlreadyExists() throws TechnicalException {
-        Application appToRestore = fakeApp(false);
-        appToRestore.setStatus(ApplicationStatus.ARCHIVED);
-        appToRestore.setMetadata(Map.of(Application.METADATA_CLIENT_ID, CLIENT_ID));
-        appToRestore.setEnvironmentId(ENVIRONMENT_ID);
+        assertThrows(ClientIdAlreadyExistsException.class, () -> {
+            Application appToRestore = fakeApp(false);
+            appToRestore.setStatus(ApplicationStatus.ARCHIVED);
+            appToRestore.setMetadata(Map.of(Application.METADATA_CLIENT_ID, CLIENT_ID));
+            appToRestore.setEnvironmentId(ENVIRONMENT_ID);
 
-        when(applicationRepository.findById(APP)).thenReturn(Optional.of(appToRestore));
-        when(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_ID, CLIENT_ID, "DEFAULT")).thenReturn(true);
+            when(applicationRepository.findById(APP)).thenReturn(Optional.of(appToRestore));
+            when(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_ID, CLIENT_ID, "DEFAULT")).thenReturn(true);
 
-        applicationService.restore(GraviteeContext.getExecutionContext(), APP);
+            applicationService.restore(GraviteeContext.getExecutionContext(), APP);
+        });
     }
 
     @Test

@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.repository.noop.otel.log.NoOpOtelLogRepository;
 import io.gravitee.repository.otel.log.api.OtelLogRepository;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class NoOpOtelLogsRepositoryConfigurationTest {
 

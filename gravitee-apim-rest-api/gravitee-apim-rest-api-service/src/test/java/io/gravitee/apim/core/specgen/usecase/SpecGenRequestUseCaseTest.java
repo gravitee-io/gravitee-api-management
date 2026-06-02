@@ -22,7 +22,6 @@ import static io.gravitee.apim.core.specgen.model.ApiSpecGenRequestState.STARTED
 import static io.gravitee.apim.core.specgen.model.ApiSpecGenRequestState.UNAVAILABLE;
 import static io.gravitee.rest.api.service.common.UuidString.generateRandom;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.mockito.Mockito.mock;
 
 import inmemory.ApiSpecGenCrudServiceInMemory;
 import inmemory.ApiSpecGenQueryServiceInMemory;

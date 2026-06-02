@@ -15,8 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -31,18 +30,21 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Collections;
 import java.util.Set;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApplicationService_FindByGroupTest {
 
     private static final String GROUP_ID = "group-id";
@@ -63,13 +65,15 @@ public class ApplicationService_FindByGroupTest {
             Collections.singletonList(GROUP_ID)
         );
         assertNotNull(set);
-        assertTrue("result is empty", set.isEmpty());
+        assertTrue(set.isEmpty(), "result is empty");
         verify(applicationRepository, times(1)).findByGroups(Collections.singletonList(GROUP_ID), ApplicationStatus.ACTIVE);
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldThrowTechnicalManagementException() throws TechnicalException {
-        when(applicationRepository.findByGroups(any(), any())).thenThrow(new TechnicalException());
-        applicationService.findByGroups(GraviteeContext.getExecutionContext(), Collections.singletonList(GROUP_ID));
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(applicationRepository.findByGroups(any(), any())).thenThrow(new TechnicalException());
+            applicationService.findByGroups(GraviteeContext.getExecutionContext(), Collections.singletonList(GROUP_ID));
+        });
     }
 }

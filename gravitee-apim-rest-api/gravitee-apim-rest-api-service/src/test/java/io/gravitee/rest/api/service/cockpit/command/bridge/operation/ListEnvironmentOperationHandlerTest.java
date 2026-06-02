@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.service.cockpit.command.bridge.operation;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -36,17 +36,20 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Arrays;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ListEnvironmentOperationHandlerTest {
 
     private static final String INSTALLATION_ID = "my-installation-id";
@@ -67,7 +70,7 @@ public class ListEnvironmentOperationHandlerTest {
     @Mock
     private ObjectMapper objectMapper;
 
-    @Before
+    @BeforeEach
     public void before() {
         cut = new ListEnvironmentOperationHandler(environmentService, installationService, objectMapper);
         installationEntity = new InstallationEntity();

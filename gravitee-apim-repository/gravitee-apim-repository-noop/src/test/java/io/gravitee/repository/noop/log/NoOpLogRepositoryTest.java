@@ -18,15 +18,16 @@ package io.gravitee.repository.noop.log;
 import static io.gravitee.repository.analytics.query.DateRangeBuilder.lastDays;
 import static io.gravitee.repository.analytics.query.IntervalBuilder.hours;
 import static io.gravitee.repository.analytics.query.QueryBuilders.tabular;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import io.gravitee.repository.analytics.query.tabular.TabularResponse;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.api.LogRepository;
 import io.gravitee.repository.log.model.ExtendedLog;
 import io.gravitee.repository.noop.AbstractNoOpRepositoryTest;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -42,7 +43,7 @@ public class NoOpLogRepositoryTest extends AbstractNoOpRepositoryTest {
 
     @Test
     public void testFindById() throws Exception {
-        Assert.assertNotNull(logRepository);
+        Assertions.assertNotNull(logRepository);
 
         ExtendedLog log = logRepository.findById(
             queryContext,
@@ -55,7 +56,7 @@ public class NoOpLogRepositoryTest extends AbstractNoOpRepositoryTest {
 
     @Test
     public void testTabular_withQuery() throws Exception {
-        Assert.assertNotNull(logRepository);
+        Assertions.assertNotNull(logRepository);
 
         TabularResponse response = logRepository.query(
             queryContext,

@@ -21,19 +21,20 @@ import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class TokenExtractorTest {
 
     @Mock
@@ -47,7 +48,7 @@ public class TokenExtractorTest {
 
         String token = TokenExtractor.extract(request);
 
-        Assert.assertNull(token);
+        Assertions.assertNull(token);
     }
 
     @Test
@@ -60,7 +61,7 @@ public class TokenExtractorTest {
 
         String token = TokenExtractor.extract(request);
 
-        Assert.assertNull(token);
+        Assertions.assertNull(token);
     }
 
     @Test
@@ -71,7 +72,7 @@ public class TokenExtractorTest {
 
         String token = TokenExtractor.extract(request);
 
-        Assert.assertEquals("", token);
+        Assertions.assertEquals("", token);
     }
 
     @Test
@@ -84,8 +85,8 @@ public class TokenExtractorTest {
 
         String token = TokenExtractor.extract(request);
 
-        Assert.assertNotNull(token);
-        Assert.assertEquals(jwt, token);
+        Assertions.assertNotNull(token);
+        Assertions.assertEquals(jwt, token);
     }
 
     @Test
@@ -101,7 +102,7 @@ public class TokenExtractorTest {
 
         String token = TokenExtractor.extract(request);
 
-        Assert.assertNotNull(token);
-        Assert.assertEquals(jwt, token);
+        Assertions.assertNotNull(token);
+        Assertions.assertEquals(jwt, token);
     }
 }

@@ -20,8 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static io.gravitee.repository.management.model.ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_UPDATED;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.eq;
@@ -54,18 +53,21 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ClientRegistrationService_UpdateTest {
 
     @InjectMocks
@@ -79,12 +81,12 @@ public class ClientRegistrationService_UpdateTest {
 
     private final WireMockServer wireMockServer = new WireMockServer(Options.DYNAMIC_PORT);
 
-    @Before
+    @BeforeEach
     public void setup() {
         wireMockServer.start();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         wireMockServer.stop();
     }
@@ -127,7 +129,7 @@ public class ClientRegistrationService_UpdateTest {
             existingPayload.getId(),
             providerPayload
         );
-        assertNotNull("Result is null", providerUpdated);
+        assertNotNull(providerUpdated, "Result is null");
 
         verify(mockAuditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
@@ -136,39 +138,43 @@ public class ClientRegistrationService_UpdateTest {
         verify(mockClientRegistrationProviderRepository, times(1)).update(any());
     }
 
-    @Test(expected = ClientRegistrationProviderNotFoundException.class)
+    @Test
     public void shouldNotUpdateProviderBecauseDoesNotBelongToEnvironment() throws TechnicalException {
-        UpdateClientRegistrationProviderEntity providerPayload = new UpdateClientRegistrationProviderEntity();
-        providerPayload.setName("name");
-        providerPayload.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
+        assertThrows(ClientRegistrationProviderNotFoundException.class, () -> {
+            UpdateClientRegistrationProviderEntity providerPayload = new UpdateClientRegistrationProviderEntity();
+            providerPayload.setName("name");
+            providerPayload.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
 
-        ClientRegistrationProvider existingPayload = new ClientRegistrationProvider();
-        existingPayload.setId("CRP_ID");
-        existingPayload.setEnvironmentId("Another_environment");
+            ClientRegistrationProvider existingPayload = new ClientRegistrationProvider();
+            existingPayload.setId("CRP_ID");
+            existingPayload.setEnvironmentId("Another_environment");
 
-        when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(existingPayload));
+            when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(existingPayload));
 
-        clientRegistrationService.update(GraviteeContext.getExecutionContext(), existingPayload.getId(), providerPayload);
+            clientRegistrationService.update(GraviteeContext.getExecutionContext(), existingPayload.getId(), providerPayload);
 
-        verify(mockAuditService, never()).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(auditLogData -> auditLogData.getEvent().equals(CLIENT_REGISTRATION_PROVIDER_UPDATED))
-        );
-        verify(mockClientRegistrationProviderRepository, never()).update(any());
+            verify(mockAuditService, never()).createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(auditLogData -> auditLogData.getEvent().equals(CLIENT_REGISTRATION_PROVIDER_UPDATED))
+            );
+            verify(mockClientRegistrationProviderRepository, never()).update(any());
+        });
     }
 
-    @Test(expected = EmptyInitialAccessTokenException.class)
+    @Test
     public void shouldThrowWithTypeInitialAccessTokenAndWithoutToken() throws TechnicalException {
-        UpdateClientRegistrationProviderEntity providerPayload = new UpdateClientRegistrationProviderEntity();
-        providerPayload.setInitialAccessTokenType(InitialAccessTokenType.INITIAL_ACCESS_TOKEN);
+        assertThrows(EmptyInitialAccessTokenException.class, () -> {
+            UpdateClientRegistrationProviderEntity providerPayload = new UpdateClientRegistrationProviderEntity();
+            providerPayload.setInitialAccessTokenType(InitialAccessTokenType.INITIAL_ACCESS_TOKEN);
 
-        ClientRegistrationProvider existingPayload = new ClientRegistrationProvider();
-        existingPayload.setId("CRP_ID");
-        existingPayload.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+            ClientRegistrationProvider existingPayload = new ClientRegistrationProvider();
+            existingPayload.setId("CRP_ID");
+            existingPayload.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
 
-        when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(existingPayload));
+            when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(existingPayload));
 
-        clientRegistrationService.update(GraviteeContext.getExecutionContext(), existingPayload.getId(), providerPayload);
+            clientRegistrationService.update(GraviteeContext.getExecutionContext(), existingPayload.getId(), providerPayload);
+        });
     }
 
     @Test
@@ -218,7 +224,7 @@ public class ClientRegistrationService_UpdateTest {
             mapper.writeValueAsString(existingPayload),
             updateApplicationEntity
         );
-        assertNotNull("Result is null", providerUpdated);
+        assertNotNull(providerUpdated, "Result is null");
 
         assertEquals("https://example.com/policy", providerUpdated.getPolicyUri());
     }
@@ -268,7 +274,7 @@ public class ClientRegistrationService_UpdateTest {
             existingPayload.getId(),
             providerPayload
         );
-        assertNotNull("Result is null", providerUpdated);
+        assertNotNull(providerUpdated, "Result is null");
 
         verify(mockAuditService, times(1)).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),

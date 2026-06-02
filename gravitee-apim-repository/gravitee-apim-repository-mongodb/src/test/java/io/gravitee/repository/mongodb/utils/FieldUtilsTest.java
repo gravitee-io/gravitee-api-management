@@ -15,21 +15,18 @@
  */
 package io.gravitee.repository.mongodb.utils;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(Parameterized.class)
 public class FieldUtilsTest {
 
-    @Parameterized.Parameters
     public static Iterable<Object[]> data() {
         return Arrays.asList(
             new Object[][] {
@@ -42,16 +39,20 @@ public class FieldUtilsTest {
         );
     }
 
-    @Parameterized.Parameter(0)
     public String actual;
-
-    @Parameterized.Parameter(1)
     public String expected;
 
-    @Test
-    public void convertToCamelCase() {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void convertToCamelCase(String actual, String expected) {
+        initFieldUtilsTest(actual, expected);
         String result = FieldUtils.toCamelCase(actual);
 
         assertEquals(expected, result);
+    }
+
+    public void initFieldUtilsTest(String actual, String expected) {
+        this.actual = actual;
+        this.expected = expected;
     }
 }

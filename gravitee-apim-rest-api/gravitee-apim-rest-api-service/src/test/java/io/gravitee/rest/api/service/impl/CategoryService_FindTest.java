@@ -17,7 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -28,17 +28,20 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.CategoryServiceImpl;
 import java.util.Date;
 import java.util.List;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class CategoryService_FindTest {
 
     @InjectMocks
@@ -72,15 +75,15 @@ public class CategoryService_FindTest {
         List<CategoryEntity> list = categoryService.findAll(GraviteeContext.getCurrentEnvironment());
 
         assertFalse(list.isEmpty());
-        assertEquals("one element", 1, list.size());
-        assertEquals("Id", "category-id", list.get(0).getId());
-        assertEquals("Name", "category-name", list.get(0).getName());
-        assertEquals("Description", "category-description", list.get(0).getDescription());
-        assertEquals("Total APIs", 0, list.get(0).getTotalApis());
-        assertEquals("Order", 1, list.get(0).getOrder());
-        assertEquals("Hidden", true, list.get(0).isHidden());
-        assertEquals("UpdatedAt", new Date(1234567890L), list.get(0).getUpdatedAt());
-        assertEquals("CreatedAt", new Date(9876543210L), list.get(0).getCreatedAt());
+        assertEquals(1, list.size(), "one element");
+        assertEquals("category-id", list.get(0).getId(), "Id");
+        assertEquals("category-name", list.get(0).getName(), "Name");
+        assertEquals("category-description", list.get(0).getDescription(), "Description");
+        assertEquals(0, list.get(0).getTotalApis(), "Total APIs");
+        assertEquals(1, list.get(0).getOrder(), "Order");
+        assertEquals(true, list.get(0).isHidden(), "Hidden");
+        assertEquals(new Date(1234567890L), list.get(0).getUpdatedAt(), "UpdatedAt");
+        assertEquals(new Date(9876543210L), list.get(0).getCreatedAt(), "CreatedAt");
         verify(mockCategoryRepository, times(1)).findAllByEnvironment(any());
     }
 }

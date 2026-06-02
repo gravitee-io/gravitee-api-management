@@ -16,12 +16,12 @@
 package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.management.model.AmConnection;
 import java.util.Date;
 import java.util.Optional;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team
@@ -47,7 +47,7 @@ public class AmConnectionRepositoryTest extends AbstractManagementRepositoryTest
         amConnectionRepository.create(amConnection);
 
         final Optional<AmConnection> optional = amConnectionRepository.findByOrganizationId("org-create");
-        assertTrue("Am connection saved not found", optional.isPresent());
+        assertTrue(optional.isPresent(), "Am connection saved not found");
 
         final AmConnection saved = optional.get();
         assertEquals("org-create", saved.getOrganizationId());
@@ -56,13 +56,13 @@ public class AmConnectionRepositoryTest extends AbstractManagementRepositoryTest
         assertEquals("domain-create", saved.getDefaultDomainId());
         assertEquals("domain-hrid-create", saved.getDefaultDomainHrid());
         assertEquals("https://gw-create.example.com", saved.getGatewayUrl());
-        assertTrue("Invalid updatedAt", compareDate(new Date(1439032010883L), saved.getUpdatedAt()));
+        assertTrue(compareDate(new Date(1439032010883L), saved.getUpdatedAt()), "Invalid updatedAt");
     }
 
     @Test
     public void shouldUpdate() throws Exception {
         final Optional<AmConnection> optional = amConnectionRepository.findByOrganizationId("org-update");
-        assertTrue("Am connection to update not found", optional.isPresent());
+        assertTrue(optional.isPresent(), "Am connection to update not found");
 
         final AmConnection amConnection = optional.get();
         amConnection.setBaseUrl("https://am-updated.example.com");
@@ -72,21 +72,23 @@ public class AmConnectionRepositoryTest extends AbstractManagementRepositoryTest
         amConnectionRepository.update(amConnection);
 
         final Optional<AmConnection> optionalUpdated = amConnectionRepository.findByOrganizationId("org-update");
-        assertTrue("Updated am connection not found", optionalUpdated.isPresent());
+        assertTrue(optionalUpdated.isPresent(), "Updated am connection not found");
 
         final AmConnection updated = optionalUpdated.get();
         assertEquals("https://am-updated.example.com", updated.getBaseUrl());
         assertEquals("cipher-updated", updated.getServiceAccountAccessTokenEncrypted());
-        assertTrue("Invalid updatedAt", compareDate(new Date(1486771200000L), updated.getUpdatedAt()));
+        assertTrue(compareDate(new Date(1486771200000L), updated.getUpdatedAt()), "Invalid updatedAt");
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldThrowWhenUpdatingUnknownOrganization() throws Exception {
-        final AmConnection amConnection = new AmConnection();
-        amConnection.setOrganizationId("unknown-org");
-        amConnection.setBaseUrl("https://am-unknown.example.com");
+        assertThrows(IllegalStateException.class, () -> {
+            final AmConnection amConnection = new AmConnection();
+            amConnection.setOrganizationId("unknown-org");
+            amConnection.setBaseUrl("https://am-unknown.example.com");
 
-        amConnectionRepository.update(amConnection);
+            amConnectionRepository.update(amConnection);
+        });
     }
 
     @Test

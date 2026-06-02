@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.cockpit.command.bridge;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.gravitee.cockpit.api.command.legacy.bridge.BridgeMultiReply;
 import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
@@ -31,21 +31,24 @@ import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@MockitoSettings(strictness = Strictness.WARN)
+@ExtendWith(MockitoExtension.class)
 public class BridgeCommandHandlerTest {
 
     public BridgeCommandHandler cut;
 
-    @Before
+    @BeforeEach
     public void before() {
         cut = new BridgeCommandHandler(Collections.emptyList());
     }

@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.openMocks;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -39,19 +38,20 @@ import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.List;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatchers;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiLicenseServiceImplTest {
 
     private static final String API = "api";
@@ -86,10 +86,8 @@ public class ApiLicenseServiceImplTest {
 
     private ApiLicenseService apiLicenseService;
 
-    @Before
+    @BeforeEach
     public void init() throws Exception {
-        openMocks(this);
-
         when(apiSearchService.findRepositoryApiById(executionContext, API)).thenReturn(repositoryApi);
         when(repositoryApi.getType()).thenReturn(ApiType.PROXY);
         when(repositoryApi.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);

@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static io.gravitee.repository.management.model.ApiKeyMode.*;
 import static io.gravitee.repository.management.model.Plan.PlanSecurityType.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.node.api.upgrader.UpgraderException;
@@ -29,14 +30,17 @@ import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.Subscription;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApplicationApiKeyModeUpgraderTest {
 
     @InjectMocks
@@ -51,14 +55,16 @@ public class ApplicationApiKeyModeUpgraderTest {
     @Mock
     private SubscriptionRepository subscriptionRepository;
 
-    @Test(expected = UpgraderException.class)
-    public void upgrade_should_failed_because_of_exception() throws TechnicalException, UpgraderException {
-        when(planRepository.findAll()).thenThrow(new RuntimeException());
+    @Test
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+        assertThrows(UpgraderException.class, () -> {
+            when(planRepository.findAll()).thenThrow(new RuntimeException());
 
-        upgrader.upgrade();
+            upgrader.upgrade();
 
-        verify(planRepository, times(1)).findAll();
-        verifyNoMoreInteractions(planRepository);
+            verify(planRepository, times(1)).findAll();
+            verifyNoMoreInteractions(planRepository);
+        });
     }
 
     @Test
@@ -121,7 +127,7 @@ public class ApplicationApiKeyModeUpgraderTest {
 
     @Test
     public void test_order() {
-        Assert.assertEquals(UpgraderOrder.APPLICATION_API_KEY_MODE_UPGRADER, upgrader.getOrder());
+        Assertions.assertEquals(UpgraderOrder.APPLICATION_API_KEY_MODE_UPGRADER, upgrader.getOrder());
     }
 
     private Plan buildTestPlan(String id, Plan.PlanSecurityType securityType) {

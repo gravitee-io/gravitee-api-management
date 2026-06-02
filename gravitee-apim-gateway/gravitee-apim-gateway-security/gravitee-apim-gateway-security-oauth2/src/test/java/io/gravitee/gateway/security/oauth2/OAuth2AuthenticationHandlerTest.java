@@ -30,19 +30,22 @@ import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
 import io.gravitee.gateway.security.oauth2.policy.CheckSubscriptionPolicy;
 import java.util.Iterator;
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class OAuth2AuthenticationHandlerTest {
 
     @InjectMocks
@@ -54,7 +57,7 @@ public class OAuth2AuthenticationHandlerTest {
     @Mock
     private Request request;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         when(authenticationContext.request()).thenReturn(request);
     }
@@ -64,7 +67,7 @@ public class OAuth2AuthenticationHandlerTest {
         when(request.headers()).thenReturn(HttpHeaders.create());
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
-        Assert.assertFalse(handle);
+        Assertions.assertFalse(handle);
     }
 
     @Test
@@ -75,7 +78,7 @@ public class OAuth2AuthenticationHandlerTest {
         headers.add(HttpHeaderNames.AUTHORIZATION, "");
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
-        Assert.assertFalse(handle);
+        Assertions.assertFalse(handle);
     }
 
     @Test
@@ -86,7 +89,7 @@ public class OAuth2AuthenticationHandlerTest {
         headers.add(HttpHeaderNames.AUTHORIZATION, "Basic xxx-xx-xxx-xx-xx");
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
-        Assert.assertFalse(handle);
+        Assertions.assertFalse(handle);
     }
 
     @Test
@@ -97,7 +100,7 @@ public class OAuth2AuthenticationHandlerTest {
         headers.add(HttpHeaderNames.AUTHORIZATION, OAuth2AuthenticationHandler.BEARER_AUTHORIZATION_TYPE + " xxx-xx-xxx-xx-xx");
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
-        Assert.assertTrue(handle);
+        Assertions.assertTrue(handle);
     }
 
     @Test
@@ -108,7 +111,7 @@ public class OAuth2AuthenticationHandlerTest {
         headers.add(HttpHeaderNames.AUTHORIZATION, "BeaRer xxx-xx-xxx-xx-xx");
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
-        Assert.assertTrue(handle);
+        Assertions.assertTrue(handle);
     }
 
     @Test
@@ -120,7 +123,7 @@ public class OAuth2AuthenticationHandlerTest {
         parameters.add("access_token", "xxx-xx-xxx-xx-xx");
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
-        Assert.assertTrue(handle);
+        Assertions.assertTrue(handle);
     }
 
     @Test
@@ -131,7 +134,7 @@ public class OAuth2AuthenticationHandlerTest {
         headers.add(HttpHeaderNames.AUTHORIZATION, OAuth2AuthenticationHandler.BEARER_AUTHORIZATION_TYPE + " ");
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
-        Assert.assertTrue(handle);
+        Assertions.assertTrue(handle);
     }
 
     @Test
@@ -140,22 +143,22 @@ public class OAuth2AuthenticationHandlerTest {
 
         List<AuthenticationPolicy> oauth2ProviderPolicies = authenticationHandler.handle(executionContext);
 
-        Assert.assertEquals(2, oauth2ProviderPolicies.size());
+        Assertions.assertEquals(2, oauth2ProviderPolicies.size());
         Iterator<AuthenticationPolicy> policyIte = oauth2ProviderPolicies.iterator();
         PluginAuthenticationPolicy policy = (PluginAuthenticationPolicy) policyIte.next();
-        Assert.assertEquals(OAuth2AuthenticationHandler.AUTHENTICATION_HANDLER_NAME, policy.name());
+        Assertions.assertEquals(OAuth2AuthenticationHandler.AUTHENTICATION_HANDLER_NAME, policy.name());
 
         HookAuthenticationPolicy policy2 = (HookAuthenticationPolicy) policyIte.next();
-        Assert.assertEquals(CheckSubscriptionPolicy.class, policy2.clazz());
+        Assertions.assertEquals(CheckSubscriptionPolicy.class, policy2.clazz());
     }
 
     @Test
     public void shouldReturnName() {
-        Assert.assertEquals(OAuth2AuthenticationHandler.AUTHENTICATION_HANDLER_NAME, authenticationHandler.name());
+        Assertions.assertEquals(OAuth2AuthenticationHandler.AUTHENTICATION_HANDLER_NAME, authenticationHandler.name());
     }
 
     @Test
     public void shouldReturnOrder() {
-        Assert.assertEquals(100, authenticationHandler.order());
+        Assertions.assertEquals(100, authenticationHandler.order());
     }
 }

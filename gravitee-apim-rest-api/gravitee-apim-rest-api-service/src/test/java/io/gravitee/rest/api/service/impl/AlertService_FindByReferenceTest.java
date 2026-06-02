@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -29,14 +29,17 @@ import io.gravitee.rest.api.model.alert.NewAlertTriggerEntity;
 import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@MockitoSettings(strictness = Strictness.WARN)
+@ExtendWith(MockitoExtension.class)
 public class AlertService_FindByReferenceTest extends AlertServiceTest {
 
     private static final AlertReferenceType REFERENCE_TYPE = AlertReferenceType.APPLICATION;
@@ -63,21 +66,27 @@ public class AlertService_FindByReferenceTest extends AlertServiceTest {
         assertEquals(newAlertTriggerEntity3.getId(), results.get(2).getId());
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void findByReference_should_throw_TechnicalManagementException_when_technicalException() throws TechnicalException {
-        when(alertTriggerRepository.findByReferenceAndReferenceId(REFERENCE_TYPE.name(), REFERENCE_ID)).thenThrow(TechnicalException.class);
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(alertTriggerRepository.findByReferenceAndReferenceId(REFERENCE_TYPE.name(), REFERENCE_ID)).thenThrow(
+                TechnicalException.class
+            );
 
-        alertService.findByReference(REFERENCE_TYPE, REFERENCE_ID);
+            alertService.findByReference(REFERENCE_TYPE, REFERENCE_ID);
+        });
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void must_TechnicalManagementException_when_find_alert_trigger_entity_by_reference() throws TechnicalException {
-        final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
+        assertThrows(TechnicalManagementException.class, () -> {
+            final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
 
-        when(alertTriggerRepository.findByReferenceAndReferenceId(any(), any())).thenThrow(
-            new TechnicalException("An unexpected error has occurred")
-        );
+            when(alertTriggerRepository.findByReferenceAndReferenceId(any(), any())).thenThrow(
+                new TechnicalException("An unexpected error has occurred")
+            );
 
-        alertService.findByReference(alert.getReferenceType(), alert.getReferenceId());
+            alertService.findByReference(alert.getReferenceType(), alert.getReferenceId());
+        });
     }
 }

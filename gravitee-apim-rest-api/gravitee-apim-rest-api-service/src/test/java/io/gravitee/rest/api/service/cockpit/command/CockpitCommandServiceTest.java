@@ -27,13 +27,16 @@ import io.gravitee.cockpit.api.command.v1.bridge.BridgeReply;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.exchange.api.command.CommandStatus;
 import io.reactivex.rxjava3.core.Single;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class CockpitCommandServiceTest {
 
     private CockpitCommandService cockpitCommandService;
@@ -41,7 +44,7 @@ public class CockpitCommandServiceTest {
     @Mock
     private CockpitConnector cockpitConnector;
 
-    @Before
+    @BeforeEach
     public void setup() {
         cockpitCommandService = new CockpitCommandServiceImpl(cockpitConnector);
     }

@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.rest.api.model.PageEntity;
 import org.apache.lucene.document.Document;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)

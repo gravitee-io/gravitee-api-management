@@ -24,7 +24,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.ScoringRuleset;
 import java.util.Date;
 import org.assertj.core.api.Condition;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ScoringRulesetRepositoryTest extends AbstractManagementRepositoryTest {
 

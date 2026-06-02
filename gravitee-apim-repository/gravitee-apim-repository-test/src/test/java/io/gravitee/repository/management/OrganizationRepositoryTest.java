@@ -15,12 +15,12 @@
  */
 package io.gravitee.repository.management;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.gravitee.repository.management.model.Organization;
 import java.util.*;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class OrganizationRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -48,7 +48,7 @@ public class OrganizationRepositoryTest extends AbstractManagementRepositoryTest
         assertEquals(organization.getFlowMode(), createdOrg.getFlowMode());
 
         Optional<Organization> optionalOrg = organizationRepository.findById("DEFAULT-ORG-create");
-        Assert.assertTrue("Organization to create not found", optionalOrg.isPresent());
+        Assertions.assertTrue(optionalOrg.isPresent(), "Organization to create not found");
         assertEquals(organization.getId(), optionalOrg.get().getId());
         assertEquals(organization.getCockpitId(), optionalOrg.get().getCockpitId());
         assertEquals(organization.getName(), optionalOrg.get().getName());
@@ -60,8 +60,8 @@ public class OrganizationRepositoryTest extends AbstractManagementRepositoryTest
     @Test
     public void shouldUpdate() throws Exception {
         Optional<Organization> optional = organizationRepository.findById("DEFAULT-ORG-update");
-        Assert.assertTrue("Organization to update not found", optional.isPresent());
-        assertEquals("Invalid saved Organization name.", "Default org for update", optional.get().getName());
+        Assertions.assertTrue(optional.isPresent(), "Organization to update not found");
+        assertEquals("Default org for update", optional.get().getName(), "Invalid saved Organization name.");
 
         final Organization org = optional.get();
         org.setName("New name");
@@ -78,36 +78,36 @@ public class OrganizationRepositoryTest extends AbstractManagementRepositoryTest
         assertEquals(org.getFlowMode(), fetchedOrganization.getFlowMode());
 
         optional = organizationRepository.findById("DEFAULT-ORG-update");
-        Assert.assertTrue("Organization to update not found", optional.isPresent());
+        Assertions.assertTrue(optional.isPresent(), "Organization to update not found");
     }
 
     @Test
     public void shouldDelete() throws Exception {
         Optional<Organization> optional = organizationRepository.findById("DEFAULT-ORG-delete");
-        Assert.assertTrue("Organization to delete not found", optional.isPresent());
+        Assertions.assertTrue(optional.isPresent(), "Organization to delete not found");
         organizationRepository.delete("DEFAULT-ORG-delete");
         optional = organizationRepository.findById("DEFAULT-ORG-delete");
-        Assert.assertFalse("Organization to delete has not been deleted", optional.isPresent());
+        Assertions.assertFalse(optional.isPresent(), "Organization to delete has not been deleted");
     }
 
     @Test
     public void shouldFindById() throws Exception {
         Optional<Organization> optional = organizationRepository.findById("DEFAULT-ORG-findById");
-        Assert.assertTrue("Organization to find not found", optional.isPresent());
+        Assertions.assertTrue(optional.isPresent(), "Organization to find not found");
     }
 
     @Test
     public void shouldCount() throws Exception {
         final long count = organizationRepository.count();
         // Should count 4 organizations (DEFAULT-ORG-create, DEFAULT-ORG-update, DEFAULT-ORG-findById and DEFAULT)
-        Assert.assertEquals("Organization count should be 4", 4L, count);
+        Assertions.assertEquals(4L, count, "Organization count should be 4");
     }
 
     @Test
     public void shouldFindAll() throws Exception {
         final Collection<Organization> organizations = organizationRepository.findAll();
         // Should count 4 organizations (DEFAULT-ORG-create, DEFAULT-ORG-update, DEFAULT-ORG-findById and DEFAULT)
-        Assert.assertEquals("Organization count should be 4", 4L, organizations.size());
+        Assertions.assertEquals(4L, organizations.size(), "Organization count should be 4");
     }
 
     @Test
@@ -116,13 +116,13 @@ public class OrganizationRepositoryTest extends AbstractManagementRepositoryTest
         hrids.add("def");
         hrids.add("ate");
         final Set<Organization> organizations = organizationRepository.findByHrids(hrids);
-        Assert.assertTrue("No organization found", !organizations.isEmpty());
-        Assert.assertEquals(2, organizations.size());
+        Assertions.assertTrue(!organizations.isEmpty(), "No organization found");
+        Assertions.assertEquals(2, organizations.size());
     }
 
     @Test
     public void shouldFindByCockpitId() throws Exception {
         final Optional<Organization> optional = organizationRepository.findByCockpitId("cockpitId-org-findById");
-        Assert.assertTrue("No organization found for cockpitId: cockpitId-org-findById", optional.isPresent());
+        Assertions.assertTrue(optional.isPresent(), "No organization found for cockpitId: cockpitId-org-findById");
     }
 }

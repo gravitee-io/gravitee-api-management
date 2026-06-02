@@ -16,7 +16,7 @@
 package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.CommandCriteria;
@@ -24,7 +24,7 @@ import io.gravitee.repository.management.model.Command;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class CommandRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -41,18 +41,18 @@ public class CommandRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertTrue(optMessage.isPresent());
         Command command = optMessage.get();
-        assertEquals("id", "msg-to-create", command.getId());
-        assertEquals("organization id", "DEFAULT", command.getOrganizationId());
-        assertEquals("environment id", "DEFAULT", command.getEnvironmentId());
-        assertEquals("to", "someone", command.getTo());
-        assertTrue("tags: DATA_TO_INDEX", command.getTags().contains("DATA_TO_INDEX"));
-        assertTrue("tags: INSERT", command.getTags().contains("INSERT"));
-        assertEquals("content", "Hello, is it me you're looking for?", command.getContent());
-        assertTrue("acknowledgments: 1", command.getAcknowledgments().contains("1"));
-        assertTrue("acknowledgments: a", command.getAcknowledgments().contains("a"));
-        assertTrue("createdAt", compareDate(new Date(1546305346000L), command.getCreatedAt()));
-        assertTrue("updatedAt", compareDate(new Date(1548983746000L), command.getUpdatedAt()));
-        assertTrue("deleteAt", compareDate(new Date(1551402946000L), command.getExpiredAt()));
+        assertEquals("msg-to-create", command.getId(), "id");
+        assertEquals("DEFAULT", command.getOrganizationId(), "organization id");
+        assertEquals("DEFAULT", command.getEnvironmentId(), "environment id");
+        assertEquals("someone", command.getTo(), "to");
+        assertTrue(command.getTags().contains("DATA_TO_INDEX"), "tags: DATA_TO_INDEX");
+        assertTrue(command.getTags().contains("INSERT"), "tags: INSERT");
+        assertEquals("Hello, is it me you're looking for?", command.getContent(), "content");
+        assertTrue(command.getAcknowledgments().contains("1"), "acknowledgments: 1");
+        assertTrue(command.getAcknowledgments().contains("a"), "acknowledgments: a");
+        assertTrue(compareDate(new Date(1546305346000L), command.getCreatedAt()), "createdAt");
+        assertTrue(compareDate(new Date(1548983746000L), command.getUpdatedAt()), "updatedAt");
+        assertTrue(compareDate(new Date(1551402946000L), command.getExpiredAt()), "deleteAt");
     }
 
     @Test
@@ -72,45 +72,49 @@ public class CommandRepositoryTest extends AbstractManagementRepositoryTest {
 
         Command updatedCommand = commandRepository.update(command);
 
-        assertEquals("id", command.getId(), updatedCommand.getId());
-        assertEquals("environment id.", command.getEnvironmentId(), updatedCommand.getEnvironmentId());
-        assertEquals("organization id.", command.getOrganizationId(), updatedCommand.getOrganizationId());
-        assertEquals("to", command.getTo(), updatedCommand.getTo());
-        assertEquals("from", command.getFrom(), updatedCommand.getFrom());
-        assertTrue("tags: DATA_TO_INDEX", command.getTags().containsAll(updatedCommand.getTags()));
-        assertEquals("content", command.getContent(), updatedCommand.getContent());
+        assertEquals(command.getId(), updatedCommand.getId(), "id");
+        assertEquals(command.getEnvironmentId(), updatedCommand.getEnvironmentId(), "environment id.");
+        assertEquals(command.getOrganizationId(), updatedCommand.getOrganizationId(), "organization id.");
+        assertEquals(command.getTo(), updatedCommand.getTo(), "to");
+        assertEquals(command.getFrom(), updatedCommand.getFrom(), "from");
+        assertTrue(command.getTags().containsAll(updatedCommand.getTags()), "tags: DATA_TO_INDEX");
+        assertEquals(command.getContent(), updatedCommand.getContent(), "content");
         assertTrue(
-            "acknowledgments: " + updatedCommand.getAcknowledgments().size() + "/" + command.getAcknowledgments().size(),
-            command.getAcknowledgments().containsAll(updatedCommand.getAcknowledgments())
+            command.getAcknowledgments().containsAll(updatedCommand.getAcknowledgments()),
+            "acknowledgments: " + updatedCommand.getAcknowledgments().size() + "/" + command.getAcknowledgments().size()
         );
-        assertTrue("createdAt", compareDate(command.getCreatedAt(), updatedCommand.getCreatedAt()));
-        assertTrue("updatedAt", compareDate(command.getUpdatedAt(), updatedCommand.getUpdatedAt()));
-        assertTrue("deleteAt", compareDate(command.getExpiredAt(), updatedCommand.getExpiredAt()));
+        assertTrue(compareDate(command.getCreatedAt(), updatedCommand.getCreatedAt()), "createdAt");
+        assertTrue(compareDate(command.getUpdatedAt(), updatedCommand.getUpdatedAt()), "updatedAt");
+        assertTrue(compareDate(command.getExpiredAt(), updatedCommand.getExpiredAt()), "deleteAt");
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownMessage() throws Exception {
-        Command unknownCommand = new Command();
-        commandRepository.update(unknownCommand);
-        fail("An unknown message should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            Command unknownCommand = new Command();
+            commandRepository.update(unknownCommand);
+            fail("An unknown message should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        commandRepository.update(null);
-        fail("A null message should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            commandRepository.update(null);
+            fail("A null message should not be updated");
+        });
     }
 
     @Test
     public void shouldDelete() throws TechnicalException {
         String idToDelete = "msg-to-delete";
         Optional<Command> message = commandRepository.findById(idToDelete);
-        assertTrue("msg should exists before being deleted", message.isPresent());
+        assertTrue(message.isPresent(), "msg should exists before being deleted");
 
         commandRepository.delete(idToDelete);
 
         message = commandRepository.findById(idToDelete);
-        assertFalse("msg should not exists after being deleted", message.isPresent());
+        assertFalse(message.isPresent(), "msg should not exists after being deleted");
 
         // Deletion should be idempotent and not throw exception if message does not exist
         commandRepository.delete(idToDelete);
@@ -120,52 +124,52 @@ public class CommandRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldSearchByNotFrom() {
         List<Command> commands = commandRepository.search((new CommandCriteria.Builder()).notFrom("node1").build());
 
-        assertNotNull("not null", commands);
-        assertFalse("not empty", commands.isEmpty());
-        assertEquals("result size", 5, commands.size());
+        assertNotNull(commands, "not null");
+        assertFalse(commands.isEmpty(), "not empty");
+        assertEquals(5, commands.size(), "result size");
         List<String> ids = commands.stream().map(Command::getId).toList();
-        assertFalse("not contain 'search1'", ids.contains("search1"));
-        assertTrue("contain 'search2'", ids.contains("search2"));
-        assertTrue("contain 'search3'", ids.contains("search3"));
+        assertFalse(ids.contains("search1"), "not contain 'search1'");
+        assertTrue(ids.contains("search2"), "contain 'search2'");
+        assertTrue(ids.contains("search3"), "contain 'search3'");
     }
 
     @Test
     public void shouldSearchByTo() {
         List<Command> commands = commandRepository.search((new CommandCriteria.Builder()).to("node1").build());
 
-        assertNotNull("not null", commands);
-        assertFalse("not empty", commands.isEmpty());
-        assertEquals("result size", 1, commands.size());
-        assertEquals("contain 'search3'", "search3", commands.get(0).getId());
+        assertNotNull(commands, "not null");
+        assertFalse(commands.isEmpty(), "not empty");
+        assertEquals(1, commands.size(), "result size");
+        assertEquals("search3", commands.get(0).getId(), "contain 'search3'");
     }
 
     @Test
     public void shouldSearchByTag() {
         List<Command> commands = commandRepository.search((new CommandCriteria.Builder()).tags("INSERT").build());
 
-        assertNotNull("not null", commands);
-        assertFalse("not empty", commands.isEmpty());
-        assertEquals("result size", 4, commands.size());
+        assertNotNull(commands, "not null");
+        assertFalse(commands.isEmpty(), "not empty");
+        assertEquals(4, commands.size(), "result size");
         List<String> ids = commands.stream().map(Command::getId).collect(Collectors.toList());
-        assertTrue("contain 'msg-to-create'", ids.contains("msg-to-create"));
-        assertTrue("contain 'msg-to-update'", ids.contains("msg-to-update"));
-        assertTrue("contain 'search1'", ids.contains("search1"));
-        assertTrue("contain 'search2'", ids.contains("search2"));
+        assertTrue(ids.contains("msg-to-create"), "contain 'msg-to-create'");
+        assertTrue(ids.contains("msg-to-update"), "contain 'msg-to-update'");
+        assertTrue(ids.contains("search1"), "contain 'search1'");
+        assertTrue(ids.contains("search2"), "contain 'search2'");
     }
 
     @Test
     public void shouldSearchByTags() {
         List<Command> commands = commandRepository.search((new CommandCriteria.Builder()).tags("DATA_TO_INDEX", "DELETE").build());
 
-        assertNotNull("not null", commands);
-        assertFalse("not empty", commands.isEmpty());
-        assertEquals("result size", 5, commands.size());
+        assertNotNull(commands, "not null");
+        assertFalse(commands.isEmpty(), "not empty");
+        assertEquals(5, commands.size(), "result size");
         assertTrue(
-            "contain [msg-to-create, msg-to-update, search1, search2, search3]",
             commands
                 .stream()
                 .map(Command::getId)
-                .allMatch(List.of("msg-to-create", "msg-to-update", "search1", "search2", "search3")::contains)
+                .allMatch(List.of("msg-to-create", "msg-to-update", "search1", "search2", "search3")::contains),
+            "contain [msg-to-create, msg-to-update, search1, search2, search3]"
         );
     }
 
@@ -173,42 +177,42 @@ public class CommandRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldSearchByNotAck() {
         List<Command> commands = commandRepository.search((new CommandCriteria.Builder()).notAckBy("node3").build());
 
-        assertNotNull("not null", commands);
-        assertFalse("not empty", commands.isEmpty());
-        assertEquals("result size", 4, commands.size());
+        assertNotNull(commands, "not null");
+        assertFalse(commands.isEmpty(), "not empty");
+        assertEquals(4, commands.size(), "result size");
         List<String> ids = commands.stream().map(Command::getId).collect(Collectors.toList());
-        assertFalse("not contain 'search1'", ids.contains("search1"));
-        assertFalse("not contain 'search3'", ids.contains("search3"));
+        assertFalse(ids.contains("search1"), "not contain 'search1'");
+        assertFalse(ids.contains("search3"), "not contain 'search3'");
     }
 
     @Test
     public void shouldSearchByNotDeleted() {
         List<Command> commands = commandRepository.search((new CommandCriteria.Builder()).notDeleted().build());
 
-        assertNotNull("not null", commands);
-        assertFalse("not empty", commands.isEmpty());
-        assertEquals("result size", 1, commands.size());
-        assertEquals("contain 'search2'", "search2", commands.get(0).getId());
+        assertNotNull(commands, "not null");
+        assertFalse(commands.isEmpty(), "not empty");
+        assertEquals(1, commands.size(), "result size");
+        assertEquals("search2", commands.get(0).getId(), "contain 'search2'");
     }
 
     @Test
     public void shouldSearchByEnvironment() {
         List<Command> commands = commandRepository.search((new CommandCriteria.Builder()).environmentId("DEFAULT").build());
 
-        assertNotNull("not null", commands);
-        assertFalse("not empty", commands.isEmpty());
-        assertEquals("result size", 1, commands.size());
-        assertEquals("contain 'msg-to-create'", "msg-to-create", commands.get(0).getId());
+        assertNotNull(commands, "not null");
+        assertFalse(commands.isEmpty(), "not empty");
+        assertEquals(1, commands.size(), "result size");
+        assertEquals("msg-to-create", commands.get(0).getId(), "contain 'msg-to-create'");
     }
 
     @Test
     public void shouldSearchByOrganization() {
         List<Command> commands = commandRepository.search((new CommandCriteria.Builder()).organizationId("DEFAULT").build());
 
-        assertNotNull("not null", commands);
-        assertFalse("not empty", commands.isEmpty());
-        assertEquals("result size", 1, commands.size());
-        assertEquals("contain 'msg-to-create'", "msg-to-create", commands.get(0).getId());
+        assertNotNull(commands, "not null");
+        assertFalse(commands.isEmpty(), "not empty");
+        assertEquals(1, commands.size(), "result size");
+        assertEquals("msg-to-create", commands.get(0).getId(), "contain 'msg-to-create'");
     }
 
     @Test
@@ -245,8 +249,8 @@ public class CommandRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(9, deletedCount);
 
         // Verify search2 still exists
-        assertTrue("search2 should still exist", commandRepository.findById("search2").isPresent());
+        assertTrue(commandRepository.findById("search2").isPresent(), "search2 should still exist");
         // Verify a deleted one is gone
-        assertFalse("search1 should not exist anymore", commandRepository.findById("search1").isPresent());
+        assertFalse(commandRepository.findById("search1").isPresent(), "search1 should not exist anymore");
     }
 }

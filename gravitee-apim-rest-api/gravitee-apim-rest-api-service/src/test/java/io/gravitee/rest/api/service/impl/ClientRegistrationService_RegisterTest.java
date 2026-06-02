@@ -19,8 +19,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.collections.Sets.newSet;
@@ -39,18 +39,21 @@ import io.gravitee.rest.api.service.impl.configuration.application.registration.
 import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ClientRegistrationService_RegisterTest {
 
     @InjectMocks
@@ -61,12 +64,12 @@ public class ClientRegistrationService_RegisterTest {
 
     private final WireMockServer wireMockServer = new WireMockServer(Options.DYNAMIC_PORT);
 
-    @Before
+    @BeforeEach
     public void setup() {
         wireMockServer.start();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         wireMockServer.stop();
     }
@@ -79,7 +82,7 @@ public class ClientRegistrationService_RegisterTest {
             GraviteeContext.getExecutionContext(),
             application
         );
-        assertNotNull("Result is null", clientRegistration);
+        assertNotNull(clientRegistration, "Result is null");
 
         assertEquals(clientRegistration.getClientName(), "gravitee");
     }
@@ -100,7 +103,7 @@ public class ClientRegistrationService_RegisterTest {
             GraviteeContext.getExecutionContext(),
             application
         );
-        assertNotNull("Result is null", clientRegistration);
+        assertNotNull(clientRegistration, "Result is null");
 
         assertEquals(clientRegistration.getClientName(), "gravitee");
         assertEquals("https://example.com/policy", clientRegistration.getPolicyUri());

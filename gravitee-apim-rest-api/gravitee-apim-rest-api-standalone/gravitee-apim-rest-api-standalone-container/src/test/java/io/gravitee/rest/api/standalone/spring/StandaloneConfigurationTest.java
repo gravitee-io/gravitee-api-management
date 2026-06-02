@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.standalone.spring;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.gravitee.rest.api.repository.plugins.RestApiRepositoryScopeProvider;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team

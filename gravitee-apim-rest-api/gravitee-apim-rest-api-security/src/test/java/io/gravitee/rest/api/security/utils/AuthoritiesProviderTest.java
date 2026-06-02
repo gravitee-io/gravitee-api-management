@@ -16,8 +16,8 @@
 package io.gravitee.rest.api.security.utils;
 
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.MembershipMemberType;
@@ -30,12 +30,14 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 
@@ -43,7 +45,8 @@ import org.springframework.security.core.authority.AuthorityUtils;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class AuthoritiesProviderTest {
 
     public static final String ENVIRONMENT_ID = "environment#id";
@@ -54,13 +57,13 @@ public class AuthoritiesProviderTest {
 
     private AuthoritiesProvider cut;
 
-    @Before
+    @BeforeEach
     public void init() {
         GraviteeContext.fromExecutionContext(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID));
         cut = new AuthoritiesProvider(membershipService);
     }
 
-    @After
+    @AfterEach
     public void clean() {
         GraviteeContext.cleanContext();
     }

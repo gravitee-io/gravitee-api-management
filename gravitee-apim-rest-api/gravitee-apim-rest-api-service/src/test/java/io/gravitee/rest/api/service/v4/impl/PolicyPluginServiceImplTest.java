@@ -15,9 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,14 +35,17 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class PolicyPluginServiceImplTest {
 
     private static final String PLUGIN_ID = "my-test-plugin";
@@ -65,7 +66,7 @@ public class PolicyPluginServiceImplTest {
     @Mock
     private PluginManifest mockPluginManifest;
 
-    @Before
+    @BeforeEach
     public void setup() {
         cut = new PolicyPluginServiceImpl(jsonSchemaService, pluginManager);
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
@@ -103,11 +104,13 @@ public class PolicyPluginServiceImplTest {
         verify(pluginManager, times(0)).get(policyId, true);
     }
 
-    @Test(expected = PluginNotFoundException.class)
+    @Test
     public void shouldFailToValidateConfigurationWhenNoPlugin() {
-        when(pluginManager.get(PLUGIN_ID, true)).thenReturn(null);
+        assertThrows(PluginNotFoundException.class, () -> {
+            when(pluginManager.get(PLUGIN_ID, true)).thenReturn(null);
 
-        cut.validatePolicyConfiguration(PLUGIN_ID, CONFIGURATION);
+            cut.validatePolicyConfiguration(PLUGIN_ID, CONFIGURATION);
+        });
     }
 
     @Test
@@ -122,11 +125,13 @@ public class PolicyPluginServiceImplTest {
         assertEquals(PLUGIN_ID, result.getId());
     }
 
-    @Test(expected = PluginNotFoundException.class)
+    @Test
     public void shouldNotFindById() {
-        when(pluginManager.get(PLUGIN_ID, true)).thenReturn(null);
+        assertThrows(PluginNotFoundException.class, () -> {
+            when(pluginManager.get(PLUGIN_ID, true)).thenReturn(null);
 
-        cut.findById(PLUGIN_ID);
+            cut.findById(PLUGIN_ID);
+        });
     }
 
     @Test

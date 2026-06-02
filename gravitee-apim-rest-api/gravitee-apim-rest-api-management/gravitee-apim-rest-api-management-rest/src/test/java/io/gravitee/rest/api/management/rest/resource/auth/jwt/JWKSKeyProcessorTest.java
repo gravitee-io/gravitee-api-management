@@ -37,14 +37,16 @@ import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
 
+@ExtendWith(MockitoExtension.class)
 public class JWKSKeyProcessorTest extends AbstractKeyProcessorTest {
 
     private JWKSKeyProcessor<SecurityContext> keyProcessor;

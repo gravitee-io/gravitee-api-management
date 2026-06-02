@@ -15,7 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -26,14 +27,17 @@ import io.gravitee.rest.api.model.alert.UpdateAlertTriggerEntity;
 import io.gravitee.rest.api.service.exceptions.AlertNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Optional;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@MockitoSettings(strictness = Strictness.WARN)
+@ExtendWith(MockitoExtension.class)
 public class AlertService_FindByIdTest extends AlertServiceTest {
 
     @Test
@@ -46,30 +50,36 @@ public class AlertService_FindByIdTest extends AlertServiceTest {
         assertNotNull(alertService.findById(alert.getId()));
     }
 
-    @Test(expected = AlertNotFoundException.class)
+    @Test
     public void must_throw_AlertNotFoundException_when_find_alert_trigger_entity_by_id() throws TechnicalException {
-        final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
+        assertThrows(AlertNotFoundException.class, () -> {
+            final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
 
-        when(alertTriggerRepository.findById(any())).thenReturn(Optional.empty());
+            when(alertTriggerRepository.findById(any())).thenReturn(Optional.empty());
 
-        alertService.findById(alert.getId());
+            alertService.findById(alert.getId());
+        });
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void must_TechnicalManagementException_when_find_alert_trigger_entity_by_id() throws TechnicalException {
-        final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
+        assertThrows(TechnicalManagementException.class, () -> {
+            final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
 
-        when(alertTriggerRepository.findById(any())).thenThrow(new TechnicalException("An unexpected error has occurred"));
+            when(alertTriggerRepository.findById(any())).thenThrow(new TechnicalException("An unexpected error has occurred"));
 
-        alertService.findById(alert.getId());
+            alertService.findById(alert.getId());
+        });
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void must_throw_TechnicalManagementException_when_find_alert_trigger_entity_by_id() throws TechnicalException {
-        final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
+        assertThrows(TechnicalManagementException.class, () -> {
+            final UpdateAlertTriggerEntity alert = getUpdateAlertTriggerEntity();
 
-        when(alertTriggerRepository.findById(any())).thenThrow(new TechnicalException("An unexpected error has occurred"));
+            when(alertTriggerRepository.findById(any())).thenThrow(new TechnicalException("An unexpected error has occurred"));
 
-        alertService.findById(alert.getId());
+            alertService.findById(alert.getId());
+        });
     }
 }

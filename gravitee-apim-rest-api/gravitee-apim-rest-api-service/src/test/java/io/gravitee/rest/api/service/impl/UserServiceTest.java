@@ -22,9 +22,8 @@ import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAUL
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
@@ -63,14 +62,16 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.security.core.Authentication;
@@ -81,7 +82,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class UserServiceTest {
 
     private static final String USER_SOURCE = "usersource";
@@ -191,7 +193,7 @@ public class UserServiceTest {
     @Mock
     private InstallationAccessQueryService installationAccessQueryService;
 
-    @Before
+    @BeforeEach
     public void setup() {
         when(userConverter.toUser(any(NewExternalUserEntity.class))).thenCallRealMethod();
         when(userConverter.toUserEntity(any(User.class), any())).thenCallRealMethod();
@@ -216,11 +218,13 @@ public class UserServiceTest {
         assertNull(userEntity.getRoles());
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldFindByUsernameThrowsError() throws TechnicalException {
-        when(userRepository.findBySource(USER_SOURCE, USER_NAME, ORGANIZATION)).thenThrow(new TechnicalException("user not found"));
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(userRepository.findBySource(USER_SOURCE, USER_NAME, ORGANIZATION)).thenThrow(new TechnicalException("user not found"));
 
-        final UserEntity userEntity = userService.findBySource(ORGANIZATION, USER_SOURCE, USER_NAME, false);
+            final UserEntity userEntity = userService.findBySource(ORGANIZATION, USER_SOURCE, USER_NAME, false);
+        });
     }
 
     @Test
@@ -291,26 +295,32 @@ public class UserServiceTest {
         assertNull(userEntity.getRoles());
     }
 
-    @Test(expected = UserNotFoundException.class)
+    @Test
     public void shouldNotFindByIdBecauseNotInCurrentOrganization() throws TechnicalException {
-        when(user.getOrganizationId()).thenReturn("ANOTHER_ORGANIZATION");
-        when(userRepository.findById(USER_NAME)).thenReturn(of(user));
+        assertThrows(UserNotFoundException.class, () -> {
+            when(user.getOrganizationId()).thenReturn("ANOTHER_ORGANIZATION");
+            when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
-        userService.findById(EXECUTION_CONTEXT, USER_NAME);
+            userService.findById(EXECUTION_CONTEXT, USER_NAME);
+        });
     }
 
-    @Test(expected = UserNotFoundException.class)
+    @Test
     public void shouldNotFindByUsernameBecauseNotExists() throws TechnicalException {
-        when(userRepository.findBySource(USER_SOURCE, USER_NAME, ORGANIZATION)).thenReturn(Optional.empty());
+        assertThrows(UserNotFoundException.class, () -> {
+            when(userRepository.findBySource(USER_SOURCE, USER_NAME, ORGANIZATION)).thenReturn(Optional.empty());
 
-        userService.findBySource(ORGANIZATION, USER_SOURCE, USER_NAME, false);
+            userService.findBySource(ORGANIZATION, USER_SOURCE, USER_NAME, false);
+        });
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotFindByUsernameBecauseTechnicalException() throws TechnicalException {
-        when(userRepository.findBySource(USER_SOURCE, USER_NAME, ORGANIZATION)).thenThrow(TechnicalException.class);
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(userRepository.findBySource(USER_SOURCE, USER_NAME, ORGANIZATION)).thenThrow(TechnicalException.class);
 
-        userService.findBySource(ORGANIZATION, USER_SOURCE, USER_NAME, false);
+            userService.findBySource(ORGANIZATION, USER_SOURCE, USER_NAME, false);
+        });
     }
 
     @Test
@@ -423,29 +433,33 @@ public class UserServiceTest {
         innerShouldCreate(customFields);
     }
 
-    @Test(expected = EmailFormatInvalidException.class)
+    @Test
     public void shouldNotCreateNormalUserBadEmail() throws TechnicalException {
-        final NewPreRegisterUserEntity newPreRegisterUserEntity = new NewPreRegisterUserEntity();
-        newPreRegisterUserEntity.setService(false);
-        newPreRegisterUserEntity.setEmail("bad./.email");
+        assertThrows(EmailFormatInvalidException.class, () -> {
+            final NewPreRegisterUserEntity newPreRegisterUserEntity = new NewPreRegisterUserEntity();
+            newPreRegisterUserEntity.setService(false);
+            newPreRegisterUserEntity.setEmail("bad./.email");
 
-        userService.create(EXECUTION_CONTEXT, newPreRegisterUserEntity);
+            userService.create(EXECUTION_CONTEXT, newPreRegisterUserEntity);
+        });
     }
 
-    @Test(expected = InvalidUserException.class)
+    @Test
     public void shouldNotCreateNormalUserBecauseAlreadyExists() throws TechnicalException {
-        final NewPreRegisterUserEntity newPreRegisterUserEntity = mock(NewPreRegisterUserEntity.class);
-        when(newPreRegisterUserEntity.isService()).thenReturn(false);
-        when(newPreRegisterUserEntity.getEmail()).thenReturn(EMAIL);
-        when(newPreRegisterUserEntity.getSource()).thenReturn("gravitee");
-        doCallRealMethod().when(newPreRegisterUserEntity).setSourceId(any());
-        when(newPreRegisterUserEntity.getSourceId()).thenCallRealMethod();
+        assertThrows(InvalidUserException.class, () -> {
+            final NewPreRegisterUserEntity newPreRegisterUserEntity = mock(NewPreRegisterUserEntity.class);
+            when(newPreRegisterUserEntity.isService()).thenReturn(false);
+            when(newPreRegisterUserEntity.getEmail()).thenReturn(EMAIL);
+            when(newPreRegisterUserEntity.getSource()).thenReturn("gravitee");
+            doCallRealMethod().when(newPreRegisterUserEntity).setSourceId(any());
+            when(newPreRegisterUserEntity.getSourceId()).thenCallRealMethod();
 
-        when(userRepository.findBySource("gravitee", EMAIL, ORGANIZATION)).thenReturn(Optional.of(new User()));
+            when(userRepository.findBySource("gravitee", EMAIL, ORGANIZATION)).thenReturn(Optional.of(new User()));
 
-        userService.create(EXECUTION_CONTEXT, newPreRegisterUserEntity);
+            userService.create(EXECUTION_CONTEXT, newPreRegisterUserEntity);
 
-        verify(newPreRegisterUserEntity, times(1)).setSourceId(EMAIL);
+            verify(newPreRegisterUserEntity, times(1)).setSourceId(EMAIL);
+        });
     }
 
     @Test
@@ -502,13 +516,15 @@ public class UserServiceTest {
         verify(notifierService, times(1)).trigger(eq(EXECUTION_CONTEXT), eq(PortalHook.USER_CREATED), any());
     }
 
-    @Test(expected = EmailFormatInvalidException.class)
+    @Test
     public void shouldNotCreateServiceUserBadEmail() throws TechnicalException {
-        final NewPreRegisterUserEntity newPreRegisterUserEntity = new NewPreRegisterUserEntity();
-        newPreRegisterUserEntity.setService(true);
-        newPreRegisterUserEntity.setEmail("bad./.email");
+        assertThrows(EmailFormatInvalidException.class, () -> {
+            final NewPreRegisterUserEntity newPreRegisterUserEntity = new NewPreRegisterUserEntity();
+            newPreRegisterUserEntity.setService(true);
+            newPreRegisterUserEntity.setEmail("bad./.email");
 
-        userService.create(EXECUTION_CONTEXT, newPreRegisterUserEntity);
+            userService.create(EXECUTION_CONTEXT, newPreRegisterUserEntity);
+        });
     }
 
     @Test
@@ -794,70 +810,80 @@ public class UserServiceTest {
         );
     }
 
-    @Test(expected = InvalidUserException.class)
+    @Test
     public void shouldNotUpdateUser_EmailAlreadyInUse() throws TechnicalException {
-        final String USER_ID = "myuserid";
-        final String USER_EMAIL = "my.user@acme.fr";
-        final String GIO_SOURCE = "gravitee";
+        assertThrows(InvalidUserException.class, () -> {
+            final String USER_ID = "myuserid";
+            final String USER_EMAIL = "my.user@acme.fr";
+            final String GIO_SOURCE = "gravitee";
 
-        User user = new User();
-        user.setId(USER_ID);
-        user.setEmail(EMAIL);
-        user.setFirstname(FIRST_NAME);
-        user.setLastname(LAST_NAME);
-        user.setSource(GIO_SOURCE);
-        user.setSourceId(USER_EMAIL);
-        user.setOrganizationId(ORGANIZATION);
+            User user = new User();
+            user.setId(USER_ID);
+            user.setEmail(EMAIL);
+            user.setFirstname(FIRST_NAME);
+            user.setLastname(LAST_NAME);
+            user.setSource(GIO_SOURCE);
+            user.setSourceId(USER_EMAIL);
+            user.setOrganizationId(ORGANIZATION);
 
-        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
-        when(userRepository.findBySource(GIO_SOURCE, USER_EMAIL, ORGANIZATION)).thenReturn(Optional.of(new User()));
+            when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+            when(userRepository.findBySource(GIO_SOURCE, USER_EMAIL, ORGANIZATION)).thenReturn(Optional.of(new User()));
 
-        when(updateUser.getEmail()).thenReturn(USER_EMAIL);
-        String UPDATED_LAST_NAME = LAST_NAME + "updated";
-        String UPDATED_FIRST_NAME = FIRST_NAME + "updated";
-        when(updateUser.getFirstname()).thenReturn(UPDATED_FIRST_NAME);
-        when(updateUser.getLastname()).thenReturn(UPDATED_LAST_NAME);
-        userService.update(EXECUTION_CONTEXT, user.getId(), updateUser);
+            when(updateUser.getEmail()).thenReturn(USER_EMAIL);
+            String UPDATED_LAST_NAME = LAST_NAME + "updated";
+            String UPDATED_FIRST_NAME = FIRST_NAME + "updated";
+            when(updateUser.getFirstname()).thenReturn(UPDATED_FIRST_NAME);
+            when(updateUser.getLastname()).thenReturn(UPDATED_LAST_NAME);
+            userService.update(EXECUTION_CONTEXT, user.getId(), updateUser);
 
-        verify(userRepository, never()).update(any());
+            verify(userRepository, never()).update(any());
+        });
     }
 
-    @Test(expected = OrganizationNotFoundException.class)
+    @Test
     public void shouldNotCreateBecauseOrganizationDoesNotExist() throws TechnicalException {
-        when(organizationService.findById(ORGANIZATION)).thenThrow(OrganizationNotFoundException.class);
+        assertThrows(OrganizationNotFoundException.class, () -> {
+            when(organizationService.findById(ORGANIZATION)).thenThrow(OrganizationNotFoundException.class);
 
-        userService.create(EXECUTION_CONTEXT, newUser, false);
+            userService.create(EXECUTION_CONTEXT, newUser, false);
 
-        verify(userRepository, never()).create(any());
+            verify(userRepository, never()).create(any());
+        });
     }
 
-    @Test(expected = InvalidUserException.class)
+    @Test
     public void shouldNotCreateBecauseExists() throws TechnicalException {
-        when(userRepository.findBySource(nullable(String.class), nullable(String.class), nullable(String.class))).thenReturn(
-            of(new User())
-        );
+        assertThrows(InvalidUserException.class, () -> {
+            when(userRepository.findBySource(nullable(String.class), nullable(String.class), nullable(String.class))).thenReturn(
+                of(new User())
+            );
 
-        userService.create(EXECUTION_CONTEXT, newUser, false);
+            userService.create(EXECUTION_CONTEXT, newUser, false);
 
-        verify(userRepository, never()).create(any());
+            verify(userRepository, never()).create(any());
+        });
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotCreateBecauseTechnicalException() throws TechnicalException {
-        when(userRepository.create(any(User.class))).thenThrow(TechnicalException.class);
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(userRepository.create(any(User.class))).thenThrow(TechnicalException.class);
 
-        userService.create(EXECUTION_CONTEXT, newUser, false);
+            userService.create(EXECUTION_CONTEXT, newUser, false);
 
-        verify(userRepository, never()).create(any());
+            verify(userRepository, never()).create(any());
+        });
     }
 
-    @Test(expected = UserNotFoundException.class)
+    @Test
     public void shouldNotConnectBecauseNotExists() throws TechnicalException {
-        when(userRepository.findById(USER_NAME)).thenReturn(Optional.empty());
+        assertThrows(UserNotFoundException.class, () -> {
+            when(userRepository.findById(USER_NAME)).thenReturn(Optional.empty());
 
-        userService.connect(EXECUTION_CONTEXT, USER_NAME);
+            userService.connect(EXECUTION_CONTEXT, USER_NAME);
 
-        verify(userRepository, never()).create(any());
+            verify(userRepository, never()).create(any());
+        });
     }
 
     @Test
@@ -905,45 +931,51 @@ public class UserServiceTest {
         verify(applicationService, never()).create(eq(EXECUTION_CONTEXT), any(), eq(USER_NAME));
     }
 
-    @Test(expected = UserRegistrationUnavailableException.class)
+    @Test
     public void shouldNotCreateUserIfRegistrationIsDisabled() {
-        when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+        assertThrows(UserRegistrationUnavailableException.class, () -> {
+            when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
 
-        RegisterUserEntity userEntity = new RegisterUserEntity();
-        userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100));
+            RegisterUserEntity userEntity = new RegisterUserEntity();
+            userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100));
 
-        userService.finalizeRegistration(EXECUTION_CONTEXT, userEntity);
+            userService.finalizeRegistration(EXECUTION_CONTEXT, userEntity);
+        });
     }
 
-    @Test(expected = UserNotFoundException.class)
+    @Test
     public void createNewRegistrationUserThatIsNotCreatedYet() throws TechnicalException {
-        when(
-            mockParameterService.findAsBoolean(
-                EXECUTION_CONTEXT,
-                Key.PORTAL_USERCREATION_ENABLED,
-                ENVIRONMENT,
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ).thenReturn(Boolean.TRUE);
-        when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
-        when(passwordValidator.validate(anyString())).thenReturn(true);
+        assertThrows(UserNotFoundException.class, () -> {
+            when(
+                mockParameterService.findAsBoolean(
+                    EXECUTION_CONTEXT,
+                    Key.PORTAL_USERCREATION_ENABLED,
+                    ENVIRONMENT,
+                    ParameterReferenceType.ENVIRONMENT
+                )
+            ).thenReturn(Boolean.TRUE);
+            when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+            when(passwordValidator.validate(anyString())).thenReturn(true);
 
-        RegisterUserEntity userEntity = new RegisterUserEntity();
-        userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100));
-        userEntity.setPassword(PASSWORD);
+            RegisterUserEntity userEntity = new RegisterUserEntity();
+            userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100));
+            userEntity.setPassword(PASSWORD);
 
-        userService.finalizeRegistration(EXECUTION_CONTEXT, userEntity);
+            userService.finalizeRegistration(EXECUTION_CONTEXT, userEntity);
+        });
     }
 
-    @Test(expected = UserStateConflictException.class)
+    @Test
     public void createNewRegistrationUserWithResetPasswordAction() throws TechnicalException {
-        when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+        assertThrows(UserStateConflictException.class, () -> {
+            when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
 
-        RegisterUserEntity userEntity = new RegisterUserEntity();
-        userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100, RESET_PASSWORD.name()));
-        userEntity.setPassword(PASSWORD);
+            RegisterUserEntity userEntity = new RegisterUserEntity();
+            userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100, RESET_PASSWORD.name()));
+            userEntity.setPassword(PASSWORD);
 
-        userService.finalizeRegistration(EXECUTION_CONTEXT, userEntity);
+            userService.finalizeRegistration(EXECUTION_CONTEXT, userEntity);
+        });
     }
 
     @Test
@@ -972,53 +1004,59 @@ public class UserServiceTest {
         );
     }
 
-    @Test(expected = PasswordFormatInvalidException.class)
+    @Test
     public void changePassword_invalidPwd() throws TechnicalException {
-        when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+        assertThrows(PasswordFormatInvalidException.class, () -> {
+            when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
 
-        User user = new User();
-        user.setId("CUSTOM_LONG_ID");
-        user.setEmail(EMAIL);
-        user.setFirstname(FIRST_NAME);
-        user.setLastname(LAST_NAME);
-        user.setOrganizationId(ORGANIZATION);
-        when(userRepository.findById(USER_NAME)).thenReturn(Optional.of(user));
+            User user = new User();
+            user.setId("CUSTOM_LONG_ID");
+            user.setEmail(EMAIL);
+            user.setFirstname(FIRST_NAME);
+            user.setLastname(LAST_NAME);
+            user.setOrganizationId(ORGANIZATION);
+            when(userRepository.findById(USER_NAME)).thenReturn(Optional.of(user));
 
-        ResetPasswordUserEntity userEntity = new ResetPasswordUserEntity();
-        userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100, RESET_PASSWORD.name()));
-        userEntity.setPassword(PASSWORD);
+            ResetPasswordUserEntity userEntity = new ResetPasswordUserEntity();
+            userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100, RESET_PASSWORD.name()));
+            userEntity.setPassword(PASSWORD);
 
-        userService.finalizeResetPassword(EXECUTION_CONTEXT, userEntity);
+            userService.finalizeResetPassword(EXECUTION_CONTEXT, userEntity);
+        });
     }
 
-    @Test(expected = UserStateConflictException.class)
+    @Test
     public void changePassword_withInvalidAction() throws TechnicalException {
-        when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+        assertThrows(UserStateConflictException.class, () -> {
+            when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
 
-        ResetPasswordUserEntity userEntity = new ResetPasswordUserEntity();
-        userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100));
-        userEntity.setPassword(PASSWORD);
+            ResetPasswordUserEntity userEntity = new ResetPasswordUserEntity();
+            userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100));
+            userEntity.setPassword(PASSWORD);
 
-        userService.finalizeResetPassword(EXECUTION_CONTEXT, userEntity);
+            userService.finalizeResetPassword(EXECUTION_CONTEXT, userEntity);
+        });
     }
 
-    @Test(expected = PasswordFormatInvalidException.class)
+    @Test
     public void createAlreadyPreRegisteredUser_invalidPassword() throws TechnicalException {
-        when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
-        when(
-            mockParameterService.findAsBoolean(
-                EXECUTION_CONTEXT,
-                Key.PORTAL_USERCREATION_ENABLED,
-                ENVIRONMENT,
-                ParameterReferenceType.ENVIRONMENT
-            )
-        ).thenReturn(Boolean.TRUE);
+        assertThrows(PasswordFormatInvalidException.class, () -> {
+            when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+            when(
+                mockParameterService.findAsBoolean(
+                    EXECUTION_CONTEXT,
+                    Key.PORTAL_USERCREATION_ENABLED,
+                    ENVIRONMENT,
+                    ParameterReferenceType.ENVIRONMENT
+                )
+            ).thenReturn(Boolean.TRUE);
 
-        RegisterUserEntity userEntity = new RegisterUserEntity();
-        userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100));
-        userEntity.setPassword(PASSWORD);
+            RegisterUserEntity userEntity = new RegisterUserEntity();
+            userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 + 100));
+            userEntity.setPassword(PASSWORD);
 
-        userService.finalizeRegistration(EXECUTION_CONTEXT, userEntity);
+            userService.finalizeRegistration(EXECUTION_CONTEXT, userEntity);
+        });
     }
 
     @Test
@@ -1060,17 +1098,19 @@ public class UserServiceTest {
         );
     }
 
-    @Test(expected = UserRegistrationUnavailableException.class)
+    @Test
     public void shouldValidateJWTokenAndFail() throws TechnicalException {
-        when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
+        assertThrows(UserRegistrationUnavailableException.class, () -> {
+            when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
 
-        RegisterUserEntity userEntity = new RegisterUserEntity();
-        userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 - 100));
-        userEntity.setPassword(PASSWORD);
+            RegisterUserEntity userEntity = new RegisterUserEntity();
+            userEntity.setToken(createJWT(System.currentTimeMillis() / 1000 - 100));
+            userEntity.setPassword(PASSWORD);
 
-        verify(userRepository, never()).findBySource(USER_SOURCE, USER_NAME, ORGANIZATION);
+            verify(userRepository, never()).findBySource(USER_SOURCE, USER_NAME, ORGANIZATION);
 
-        userService.finalizeRegistration(EXECUTION_CONTEXT, userEntity);
+            userService.finalizeRegistration(EXECUTION_CONTEXT, userEntity);
+        });
     }
 
     @Test
@@ -1147,97 +1187,111 @@ public class UserServiceTest {
         verify(emailService).sendAsyncEmailNotification(eq(EXECUTION_CONTEXT), any());
     }
 
-    @Test(expected = PasswordAlreadyResetException.class)
+    @Test
     public void shouldNotResetPassword_AlreadyReset() throws TechnicalException {
-        when(user.getId()).thenReturn(USER_NAME);
-        when(user.getSource()).thenReturn("gravitee");
-        when(user.getOrganizationId()).thenReturn(ORGANIZATION);
-        when(userRepository.findById(USER_NAME)).thenReturn(of(user));
+        assertThrows(PasswordAlreadyResetException.class, () -> {
+            when(user.getId()).thenReturn(USER_NAME);
+            when(user.getSource()).thenReturn("gravitee");
+            when(user.getOrganizationId()).thenReturn(ORGANIZATION);
+            when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
-        MetadataPage mdPage = mock(MetadataPage.class);
-        AuditEntity entity1 = new AuditEntity();
-        entity1.setProperties(Collections.singletonMap("USER", USER_NAME));
-        when(mdPage.getContent()).thenReturn(Arrays.asList(entity1));
-        when(
-            auditService.search(eq(EXECUTION_CONTEXT), argThat(arg -> arg.getEvents().contains(User.AuditEvent.PASSWORD_RESET.name())))
-        ).thenReturn(mdPage);
+            MetadataPage mdPage = mock(MetadataPage.class);
+            AuditEntity entity1 = new AuditEntity();
+            entity1.setProperties(Collections.singletonMap("USER", USER_NAME));
+            when(mdPage.getContent()).thenReturn(Arrays.asList(entity1));
+            when(
+                auditService.search(eq(EXECUTION_CONTEXT), argThat(arg -> arg.getEvents().contains(User.AuditEvent.PASSWORD_RESET.name())))
+            ).thenReturn(mdPage);
 
-        SecurityContextHolder.setContext(
-            new SecurityContext() {
-                @Override
-                public Authentication getAuthentication() {
-                    return null;
+            SecurityContextHolder.setContext(
+                new SecurityContext() {
+                    @Override
+                    public Authentication getAuthentication() {
+                        return null;
+                    }
+
+                    @Override
+                    public void setAuthentication(final Authentication authentication) {}
                 }
+            );
 
-                @Override
-                public void setAuthentication(final Authentication authentication) {}
-            }
-        );
+            userService.resetPassword(EXECUTION_CONTEXT, USER_NAME);
 
-        userService.resetPassword(EXECUTION_CONTEXT, USER_NAME);
-
-        verify(user, never()).setPassword(null);
-        verify(userRepository, never()).update(user);
-        verify(emailService, never()).sendAsyncEmailNotification(eq(EXECUTION_CONTEXT), any());
+            verify(user, never()).setPassword(null);
+            verify(userRepository, never()).update(user);
+            verify(emailService, never()).sendAsyncEmailNotification(eq(EXECUTION_CONTEXT), any());
+        });
     }
 
-    @Test(expected = UserNotFoundException.class)
+    @Test
     public void shouldNotResetPasswordCauseUserNotFound() throws TechnicalException {
-        when(userRepository.findById(USER_NAME)).thenReturn(empty());
-        userService.resetPassword(EXECUTION_CONTEXT, USER_NAME);
+        assertThrows(UserNotFoundException.class, () -> {
+            when(userRepository.findById(USER_NAME)).thenReturn(empty());
+            userService.resetPassword(EXECUTION_CONTEXT, USER_NAME);
+        });
     }
 
-    @Test(expected = UserNotFoundException.class)
+    @Test
     public void shouldFailWhileResettingPassword() throws TechnicalException {
-        when(userRepository.findBySource(any(), any(), any())).thenReturn(Optional.empty());
-        userService.resetPasswordFromSourceId(EXECUTION_CONTEXT, "my@email.com", "HTTP://MY-RESET-PAGE");
+        assertThrows(UserNotFoundException.class, () -> {
+            when(userRepository.findBySource(any(), any(), any())).thenReturn(Optional.empty());
+            userService.resetPasswordFromSourceId(EXECUTION_CONTEXT, "my@email.com", "HTTP://MY-RESET-PAGE");
+        });
     }
 
-    @Test(expected = UserNotActiveException.class)
+    @Test
     public void shouldFailWhileResettingPasswordWhenUserFoundIsNotActive() throws TechnicalException {
-        User user = new User();
-        user.setId(USER_NAME);
-        user.setSource("gravitee");
-        user.setStatus(UserStatus.ARCHIVED);
-        when(userRepository.findBySource(any(), any(), any())).thenReturn(Optional.of(user));
+        assertThrows(UserNotActiveException.class, () -> {
+            User user = new User();
+            user.setId(USER_NAME);
+            user.setSource("gravitee");
+            user.setStatus(UserStatus.ARCHIVED);
+            when(userRepository.findBySource(any(), any(), any())).thenReturn(Optional.of(user));
 
-        userService.resetPasswordFromSourceId(EXECUTION_CONTEXT, "my@email.com", "HTTP://MY-RESET-PAGE");
+            userService.resetPasswordFromSourceId(EXECUTION_CONTEXT, "my@email.com", "HTTP://MY-RESET-PAGE");
+        });
     }
 
-    @Test(expected = UserNotInternallyManagedException.class)
+    @Test
     public void shouldFailWhileResettingPasswordWhenUserFoundIsNotInternallyManaged() throws TechnicalException {
-        User user = new User();
-        user.setId(USER_NAME);
-        user.setSource("not gravitee");
-        user.setStatus(UserStatus.ACTIVE);
-        user.setOrganizationId(ORGANIZATION);
-        when(userRepository.findBySource(any(), any(), any())).thenReturn(Optional.of(user));
-        when(userRepository.findById(any())).thenReturn(Optional.of(user));
+        assertThrows(UserNotInternallyManagedException.class, () -> {
+            User user = new User();
+            user.setId(USER_NAME);
+            user.setSource("not gravitee");
+            user.setStatus(UserStatus.ACTIVE);
+            user.setOrganizationId(ORGANIZATION);
+            when(userRepository.findBySource(any(), any(), any())).thenReturn(Optional.of(user));
+            when(userRepository.findById(any())).thenReturn(Optional.of(user));
 
-        userService.resetPasswordFromSourceId(EXECUTION_CONTEXT, "my@email.com", "HTTP://MY-RESET-PAGE");
+            userService.resetPasswordFromSourceId(EXECUTION_CONTEXT, "my@email.com", "HTTP://MY-RESET-PAGE");
+        });
     }
 
-    @Test(expected = UserNotInternallyManagedException.class)
+    @Test
     public void shouldNotResetPasswordCauseUserNotInternallyManaged() throws TechnicalException {
-        when(user.getSource()).thenReturn("external");
-        when(user.getOrganizationId()).thenReturn(ORGANIZATION);
-        when(userRepository.findById(USER_NAME)).thenReturn(of(user));
+        assertThrows(UserNotInternallyManagedException.class, () -> {
+            when(user.getSource()).thenReturn("external");
+            when(user.getOrganizationId()).thenReturn(ORGANIZATION);
+            when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
-        userService.resetPassword(EXECUTION_CONTEXT, USER_NAME);
+            userService.resetPassword(EXECUTION_CONTEXT, USER_NAME);
+        });
     }
 
-    @Test(expected = ServiceAccountNotManageableException.class)
+    @Test
     public void shouldNotResetPasswordCauseServiceAccountNotManageable() throws TechnicalException {
-        when(userRepository.findById(USER_NAME)).thenReturn(of(user));
-        when(user.getOrganizationId()).thenReturn(ORGANIZATION);
-        when(user.getSource()).thenReturn("gravitee");
-        when(user.getSourceId()).thenReturn("lastname");
-        when(user.getLastname()).thenReturn("lastname");
-        when(user.getOrganizationId()).thenReturn(ORGANIZATION);
-        when(user.getIsServiceAccount()).thenReturn(true);
-        when(userRepository.findById(USER_NAME)).thenReturn(of(user));
+        assertThrows(ServiceAccountNotManageableException.class, () -> {
+            when(userRepository.findById(USER_NAME)).thenReturn(of(user));
+            when(user.getOrganizationId()).thenReturn(ORGANIZATION);
+            when(user.getSource()).thenReturn("gravitee");
+            when(user.getSourceId()).thenReturn("lastname");
+            when(user.getLastname()).thenReturn("lastname");
+            when(user.getOrganizationId()).thenReturn(ORGANIZATION);
+            when(user.getIsServiceAccount()).thenReturn(true);
+            when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
-        userService.resetPassword(EXECUTION_CONTEXT, USER_NAME);
+            userService.resetPassword(EXECUTION_CONTEXT, USER_NAME);
+        });
     }
 
     private String createJWT(long expirationSeconds, String action) {
@@ -1478,20 +1532,14 @@ public class UserServiceTest {
         verify(membershipService, times(1)).removeMemberMemberships(EXECUTION_CONTEXT, MembershipMemberType.USER, userId);
         verify(userRepository, times(1)).update(
             argThat(
-                new ArgumentMatcher<User>() {
-                    @Override
-                    public boolean matches(User user) {
-                        return (
-                            userId.equals(user.getId()) &&
-                            UserStatus.ARCHIVED.equals(user.getStatus()) &&
-                            ("deleted-" + userId + "-" + sourceId).equals(user.getSourceId()) &&
-                            !updatedAt.equals(user.getUpdatedAt()) &&
-                            firstName.equals(user.getFirstname()) &&
-                            lastName.equals(user.getLastname()) &&
-                            email.equals(user.getEmail())
-                        );
-                    }
-                }
+                (ArgumentMatcher<User>) u ->
+                    (userId.equals(u.getId()) &&
+                        UserStatus.ARCHIVED.equals(u.getStatus()) &&
+                        ("deleted-" + userId + "-" + sourceId).equals(u.getSourceId()) &&
+                        !updatedAt.equals(u.getUpdatedAt()) &&
+                        firstName.equals(u.getFirstname()) &&
+                        lastName.equals(u.getLastname()) &&
+                        email.equals(u.getEmail()))
             )
         );
         verify(searchEngineService, times(1)).delete(eq(EXECUTION_CONTEXT), any());
@@ -1566,22 +1614,16 @@ public class UserServiceTest {
         verify(membershipService, times(1)).removeMemberMemberships(EXECUTION_CONTEXT, MembershipMemberType.USER, userId);
         verify(userRepository, times(1)).update(
             argThat(
-                new ArgumentMatcher<User>() {
-                    @Override
-                    public boolean matches(User user) {
-                        return (
-                            userId.equals(user.getId()) &&
-                            organizationId.equals(user.getOrganizationId()) &&
-                            UserStatus.ARCHIVED.equals(user.getStatus()) &&
-                            ("deleted-" + userId + "-" + sourceId).equals(user.getSourceId()) &&
-                            !updatedAt.equals(user.getUpdatedAt()) &&
-                            "Unknown".equals(user.getFirstname()) &&
-                            user.getLastname().isEmpty() &&
-                            user.getEmail() == null &&
-                            user.getPicture() == null
-                        );
-                    }
-                }
+                (ArgumentMatcher<User>) u ->
+                    (userId.equals(u.getId()) &&
+                        organizationId.equals(u.getOrganizationId()) &&
+                        UserStatus.ARCHIVED.equals(u.getStatus()) &&
+                        ("deleted-" + userId + "-" + sourceId).equals(u.getSourceId()) &&
+                        !updatedAt.equals(u.getUpdatedAt()) &&
+                        "Unknown".equals(u.getFirstname()) &&
+                        u.getLastname().isEmpty() &&
+                        u.getEmail() == null &&
+                        u.getPicture() == null)
             )
         );
         verify(searchEngineService, times(1)).delete(eq(EXECUTION_CONTEXT), any());
@@ -1591,24 +1633,26 @@ public class UserServiceTest {
         verify(tokenService, times(1)).revokeByUser(EXECUTION_CONTEXT, userId);
     }
 
-    @Test(expected = EmailRequiredException.class)
+    @Test
     public void shouldThrowEmailRequiredExceptionWhenMissingMailInUserInfo() throws IOException {
-        reset(identityProvider);
+        assertThrows(EmailRequiredException.class, () -> {
+            reset(identityProvider);
 
-        Map<String, String> wrongUserProfileMapping = new HashMap<>();
-        wrongUserProfileMapping.put(SocialIdentityProviderEntity.UserProfile.EMAIL, "theEmail");
-        wrongUserProfileMapping.put(SocialIdentityProviderEntity.UserProfile.ID, "theEmail");
-        wrongUserProfileMapping.put(SocialIdentityProviderEntity.UserProfile.SUB, "sub");
-        wrongUserProfileMapping.put(SocialIdentityProviderEntity.UserProfile.FIRSTNAME, "given_name");
-        wrongUserProfileMapping.put(SocialIdentityProviderEntity.UserProfile.LASTNAME, "family_name");
-        wrongUserProfileMapping.put(SocialIdentityProviderEntity.UserProfile.PICTURE, "picture");
-        when(identityProvider.getUserProfileMapping()).thenReturn(wrongUserProfileMapping);
-        when(identityProvider.isEmailRequired()).thenReturn(Boolean.TRUE);
+            Map<String, String> wrongUserProfileMapping = new HashMap<>();
+            wrongUserProfileMapping.put(SocialIdentityProviderEntity.UserProfile.EMAIL, "theEmail");
+            wrongUserProfileMapping.put(SocialIdentityProviderEntity.UserProfile.ID, "theEmail");
+            wrongUserProfileMapping.put(SocialIdentityProviderEntity.UserProfile.SUB, "sub");
+            wrongUserProfileMapping.put(SocialIdentityProviderEntity.UserProfile.FIRSTNAME, "given_name");
+            wrongUserProfileMapping.put(SocialIdentityProviderEntity.UserProfile.LASTNAME, "family_name");
+            wrongUserProfileMapping.put(SocialIdentityProviderEntity.UserProfile.PICTURE, "picture");
+            when(identityProvider.getUserProfileMapping()).thenReturn(wrongUserProfileMapping);
+            when(identityProvider.isEmailRequired()).thenReturn(Boolean.TRUE);
 
-        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
-        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
-        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
-        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+            String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+            String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+            String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+            userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+        });
     }
 
     @Test
@@ -2684,21 +2728,25 @@ public class UserServiceTest {
         );
     }
 
-    @Test(expected = UserNotFoundException.class)
+    @Test
     public void shouldNotUpdateServiceAccountStatusWhenUserNotFound() throws TechnicalException {
-        when(userRepository.findById(USER_NAME)).thenReturn(empty());
+        assertThrows(UserNotFoundException.class, () -> {
+            when(userRepository.findById(USER_NAME)).thenReturn(empty());
 
-        userService.updateServiceAccountStatus(EXECUTION_CONTEXT, USER_NAME, true);
+            userService.updateServiceAccountStatus(EXECUTION_CONTEXT, USER_NAME, true);
+        });
     }
 
-    @Test(expected = UserNotFoundException.class)
+    @Test
     public void shouldNotUpdateServiceAccountStatusWhenUserInDifferentOrganization() throws TechnicalException {
-        User existingUser = new User();
-        existingUser.setId(USER_NAME);
-        existingUser.setOrganizationId("other-org");
+        assertThrows(UserNotFoundException.class, () -> {
+            User existingUser = new User();
+            existingUser.setId(USER_NAME);
+            existingUser.setOrganizationId("other-org");
 
-        when(userRepository.findById(USER_NAME)).thenReturn(of(existingUser));
+            when(userRepository.findById(USER_NAME)).thenReturn(of(existingUser));
 
-        userService.updateServiceAccountStatus(EXECUTION_CONTEXT, USER_NAME, true);
+            userService.updateServiceAccountStatus(EXECUTION_CONTEXT, USER_NAME, true);
+        });
     }
 }

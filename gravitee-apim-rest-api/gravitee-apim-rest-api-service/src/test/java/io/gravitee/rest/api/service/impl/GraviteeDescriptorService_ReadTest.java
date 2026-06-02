@@ -15,22 +15,25 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorEntity;
 import io.gravitee.rest.api.service.exceptions.GraviteeDescriptorReadException;
 import io.gravitee.rest.api.service.exceptions.GraviteeDescriptorVersionException;
 import io.gravitee.rest.api.service.impl.GraviteeDescriptorServiceImpl;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class GraviteeDescriptorService_ReadTest {
 
     @InjectMocks
@@ -41,28 +44,34 @@ public class GraviteeDescriptorService_ReadTest {
         GraviteeDescriptorEntity entity = service.read("{ \"version\": 1}");
 
         assertNotNull(entity);
-        assertEquals("version", 1, entity.getVersion());
-        assertNull("documentation", entity.getDocumentation());
+        assertEquals(1, entity.getVersion(), "version");
+        assertNull(entity.getDocumentation(), "documentation");
     }
 
-    @Test(expected = GraviteeDescriptorReadException.class)
+    @Test
     public void shouldThrowGraviteeDescriptorReadException() throws Exception {
-        service.read("{ \"unknown\": 1}");
+        assertThrows(GraviteeDescriptorReadException.class, () -> {
+            service.read("{ \"unknown\": 1}");
 
-        fail("should throw a GraviteeDescriptorReadException");
+            fail("should throw a GraviteeDescriptorReadException");
+        });
     }
 
-    @Test(expected = GraviteeDescriptorVersionException.class)
+    @Test
     public void shouldThrowGraviteeDescriptorVersionException_WrongVersion() throws Exception {
-        service.read("{ \"version\": 2}");
+        assertThrows(GraviteeDescriptorVersionException.class, () -> {
+            service.read("{ \"version\": 2}");
 
-        fail("should throw a GraviteeDescriptorVersionException");
+            fail("should throw a GraviteeDescriptorVersionException");
+        });
     }
 
-    @Test(expected = GraviteeDescriptorVersionException.class)
+    @Test
     public void shouldThrowGraviteeDescriptorVersionException_NoVersion() throws Exception {
-        service.read("{}");
+        assertThrows(GraviteeDescriptorVersionException.class, () -> {
+            service.read("{}");
 
-        fail("should throw a GraviteeDescriptorVersionException");
+            fail("should throw a GraviteeDescriptorVersionException");
+        });
     }
 }

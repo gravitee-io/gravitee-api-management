@@ -15,7 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -41,19 +42,22 @@ import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.impl.PrimaryOwnerServiceImpl;
 import java.util.Arrays;
 import java.util.HashSet;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiService_FindPrimaryOwnerTest {
 
     private static final String CURRENT_USER = "myCurrentUser";
@@ -85,7 +89,7 @@ public class ApiService_FindPrimaryOwnerTest {
     @Mock
     private ApiPrimaryOwnerDomainService primaryOwnerDomainService;
 
-    @Before
+    @BeforeEach
     public void before() {
         PrimaryOwnerService primaryOwnerService = new PrimaryOwnerServiceImpl(
             userService,
@@ -236,15 +240,17 @@ public class ApiService_FindPrimaryOwnerTest {
         assertEquals("GROUP", primaryOwner.getType());
     }
 
-    @Test(expected = NoPrimaryOwnerGroupForUserException.class)
+    @Test
     public void testGroupModeWithNonExistingPOGroupAndCurrentUserDoesNotBelongToAPoGroup() {
-        setPrimaryOwnerMode("GROUP");
-        setPoGroupNonExisting();
-        setCurrentUserInNoPOGroup();
+        assertThrows(NoPrimaryOwnerGroupForUserException.class, () -> {
+            setPrimaryOwnerMode("GROUP");
+            setPoGroupNonExisting();
+            setCurrentUserInNoPOGroup();
 
-        JsonNode definition = poGroupDefinition();
+            JsonNode definition = poGroupDefinition();
 
-        apiService.findPrimaryOwner(GraviteeContext.getExecutionContext(), definition, CURRENT_USER);
+            apiService.findPrimaryOwner(GraviteeContext.getExecutionContext(), definition, CURRENT_USER);
+        });
     }
 
     // GROUP + import with PO User
@@ -283,16 +289,18 @@ public class ApiService_FindPrimaryOwnerTest {
         assertEquals("GROUP", primaryOwner.getType());
     }
 
-    @Test(expected = NoPrimaryOwnerGroupForUserException.class)
+    @Test
     public void testGroupModeWithExistingPOUserAndPoUserDoesNotBelongToAPoGroupAndCurrentUserDoesNotBelongToAPoGroup() {
-        setPrimaryOwnerMode("GROUP");
-        defineUser(PO_USER_ID);
-        setCurrentUserInNoPOGroup();
-        setPoUserInNoPOGroup();
+        assertThrows(NoPrimaryOwnerGroupForUserException.class, () -> {
+            setPrimaryOwnerMode("GROUP");
+            defineUser(PO_USER_ID);
+            setCurrentUserInNoPOGroup();
+            setPoUserInNoPOGroup();
 
-        JsonNode definition = poUserDefinition();
+            JsonNode definition = poUserDefinition();
 
-        apiService.findPrimaryOwner(GraviteeContext.getExecutionContext(), definition, CURRENT_USER);
+            apiService.findPrimaryOwner(GraviteeContext.getExecutionContext(), definition, CURRENT_USER);
+        });
     }
 
     @Test
@@ -312,15 +320,17 @@ public class ApiService_FindPrimaryOwnerTest {
         assertEquals("GROUP", primaryOwner.getType());
     }
 
-    @Test(expected = NoPrimaryOwnerGroupForUserException.class)
+    @Test
     public void testGroupModeWithNonExistingPOUserAndCurrentUserDoesNotBelongToAPoGroup() {
-        setPrimaryOwnerMode("GROUP");
-        setPoUserNonExisting();
-        setCurrentUserInNoPOGroup();
+        assertThrows(NoPrimaryOwnerGroupForUserException.class, () -> {
+            setPrimaryOwnerMode("GROUP");
+            setPoUserNonExisting();
+            setCurrentUserInNoPOGroup();
 
-        JsonNode definition = poUserDefinition();
+            JsonNode definition = poUserDefinition();
 
-        apiService.findPrimaryOwner(GraviteeContext.getExecutionContext(), definition, CURRENT_USER);
+            apiService.findPrimaryOwner(GraviteeContext.getExecutionContext(), definition, CURRENT_USER);
+        });
     }
 
     // GROUP + import with no PO
@@ -340,14 +350,16 @@ public class ApiService_FindPrimaryOwnerTest {
         assertEquals("GROUP", primaryOwner.getType());
     }
 
-    @Test(expected = NoPrimaryOwnerGroupForUserException.class)
+    @Test
     public void testGroupModeWithNoPOAndCurrentUserDoesNotBelongToAPoGroup() {
-        setPrimaryOwnerMode("GROUP");
-        setCurrentUserInNoPOGroup();
+        assertThrows(NoPrimaryOwnerGroupForUserException.class, () -> {
+            setPrimaryOwnerMode("GROUP");
+            setCurrentUserInNoPOGroup();
 
-        JsonNode definition = noPODefinition();
+            JsonNode definition = noPODefinition();
 
-        apiService.findPrimaryOwner(GraviteeContext.getExecutionContext(), definition, CURRENT_USER);
+            apiService.findPrimaryOwner(GraviteeContext.getExecutionContext(), definition, CURRENT_USER);
+        });
     }
 
     // USER + import with PO GROUP

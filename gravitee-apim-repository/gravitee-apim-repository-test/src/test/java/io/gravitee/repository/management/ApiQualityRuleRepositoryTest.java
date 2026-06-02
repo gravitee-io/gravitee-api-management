@@ -16,14 +16,14 @@
 package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.management.model.ApiQualityRule;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class ApiQualityRuleRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -64,22 +64,22 @@ public class ApiQualityRuleRepositoryTest extends AbstractManagementRepositoryTe
         apiQualityRuleRepository.create(apiQualityRule);
         int nbApiQualityRulesAfterCreation = apiQualityRuleRepository.findByApi("api2").size();
 
-        Assert.assertEquals(nbApiQualityRulesBeforeCreation + 1, nbApiQualityRulesAfterCreation);
+        Assertions.assertEquals(nbApiQualityRulesBeforeCreation + 1, nbApiQualityRulesAfterCreation);
 
         Optional<ApiQualityRule> optional = apiQualityRuleRepository.findById("api2", "new-apiQualityRule");
-        Assert.assertTrue("ApiQualityRule saved not found", optional.isPresent());
+        Assertions.assertTrue(optional.isPresent(), "ApiQualityRule saved not found");
 
         final ApiQualityRule apiQualityRuleSaved = optional.get();
-        Assert.assertEquals("Invalid saved apiQualityRule checked.", apiQualityRule.isChecked(), apiQualityRuleSaved.isChecked());
-        Assert.assertTrue("Invalid createdAt.", compareDate(apiQualityRule.getCreatedAt(), apiQualityRuleSaved.getCreatedAt()));
-        Assert.assertTrue("Invalid updatedAt.", compareDate(apiQualityRule.getUpdatedAt(), apiQualityRuleSaved.getUpdatedAt()));
+        Assertions.assertEquals(apiQualityRule.isChecked(), apiQualityRuleSaved.isChecked(), "Invalid saved apiQualityRule checked.");
+        Assertions.assertTrue(compareDate(apiQualityRule.getCreatedAt(), apiQualityRuleSaved.getCreatedAt()), "Invalid createdAt.");
+        Assertions.assertTrue(compareDate(apiQualityRule.getUpdatedAt(), apiQualityRuleSaved.getUpdatedAt()), "Invalid updatedAt.");
     }
 
     @Test
     public void shouldUpdate() throws Exception {
         Optional<ApiQualityRule> optional = apiQualityRuleRepository.findById("api2", "quality-rule1");
-        Assert.assertTrue("ApiQualityRule to update not found", optional.isPresent());
-        assertTrue("Invalid saved apiQualityRule checked.", optional.get().isChecked());
+        Assertions.assertTrue(optional.isPresent(), "ApiQualityRule to update not found");
+        assertTrue(optional.get().isChecked(), "Invalid saved apiQualityRule checked.");
 
         final ApiQualityRule apiQualityRule = optional.get();
         apiQualityRule.setChecked(false);
@@ -90,15 +90,15 @@ public class ApiQualityRuleRepositoryTest extends AbstractManagementRepositoryTe
         apiQualityRuleRepository.update(apiQualityRule);
         int nbApiQualityRulesAfterUpdate = apiQualityRuleRepository.findByApi("api2").size();
 
-        Assert.assertEquals(nbApiQualityRulesBeforeUpdate, nbApiQualityRulesAfterUpdate);
+        Assertions.assertEquals(nbApiQualityRulesBeforeUpdate, nbApiQualityRulesAfterUpdate);
 
         Optional<ApiQualityRule> optionalUpdated = apiQualityRuleRepository.findById("api2", "quality-rule1");
-        Assert.assertTrue("ApiQualityRule to update not found", optionalUpdated.isPresent());
+        Assertions.assertTrue(optionalUpdated.isPresent(), "ApiQualityRule to update not found");
 
         final ApiQualityRule apiQualityRuleUpdated = optionalUpdated.get();
-        assertFalse("Invalid apiQualityRule checked.", apiQualityRuleUpdated.isChecked());
-        Assert.assertTrue("Invalid createdAt.", compareDate(NEW_DATE, apiQualityRuleUpdated.getCreatedAt()));
-        Assert.assertTrue("Invalid updatedAt.", compareDate(NEW_DATE, apiQualityRuleUpdated.getUpdatedAt()));
+        assertFalse(apiQualityRuleUpdated.isChecked(), "Invalid apiQualityRule checked.");
+        Assertions.assertTrue(compareDate(NEW_DATE, apiQualityRuleUpdated.getCreatedAt()), "Invalid createdAt.");
+        Assertions.assertTrue(compareDate(NEW_DATE, apiQualityRuleUpdated.getUpdatedAt()), "Invalid updatedAt.");
     }
 
     @Test
@@ -107,43 +107,47 @@ public class ApiQualityRuleRepositoryTest extends AbstractManagementRepositoryTe
         apiQualityRuleRepository.delete("api1", "quality-rule2");
         int nbApiQualityRulesAfterDeletion = apiQualityRuleRepository.findByApi("api1").size();
 
-        Assert.assertEquals(nbApiQualityRulesBeforeDeletion - 1, nbApiQualityRulesAfterDeletion);
+        Assertions.assertEquals(nbApiQualityRulesBeforeDeletion - 1, nbApiQualityRulesAfterDeletion);
     }
 
     @Test
     public void shouldDeleteByApi() throws Exception {
         int nbApiQualityRulesBeforeDeletion = apiQualityRuleRepository.findByApi("api1").size();
-        Assert.assertNotEquals(0, nbApiQualityRulesBeforeDeletion);
+        Assertions.assertNotEquals(0, nbApiQualityRulesBeforeDeletion);
 
         apiQualityRuleRepository.deleteByApi("api1");
         int nbApiQualityRulesAfterDeletion = apiQualityRuleRepository.findByApi("api1").size();
 
-        Assert.assertEquals(0, nbApiQualityRulesAfterDeletion);
+        Assertions.assertEquals(0, nbApiQualityRulesAfterDeletion);
     }
 
     @Test
     public void shouldDeleteByQualityRule() throws Exception {
         int nbApiQualityRulesBeforeDeletion = apiQualityRuleRepository.findByQualityRule("quality-rule2").size();
-        Assert.assertNotEquals(0, nbApiQualityRulesBeforeDeletion);
+        Assertions.assertNotEquals(0, nbApiQualityRulesBeforeDeletion);
 
         apiQualityRuleRepository.deleteByQualityRule("quality-rule2");
         int nbApiQualityRulesAfterDeletion = apiQualityRuleRepository.findByQualityRule("quality-rule2").size();
 
-        Assert.assertEquals(0, nbApiQualityRulesAfterDeletion);
+        Assertions.assertEquals(0, nbApiQualityRulesAfterDeletion);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownApiQualityRule() throws Exception {
-        ApiQualityRule unknownApiQualityRule = new ApiQualityRule();
-        unknownApiQualityRule.setApi("unknown");
-        unknownApiQualityRule.setQualityRule("unknown");
-        apiQualityRuleRepository.update(unknownApiQualityRule);
-        fail("An unknown apiQualityRule should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            ApiQualityRule unknownApiQualityRule = new ApiQualityRule();
+            unknownApiQualityRule.setApi("unknown");
+            unknownApiQualityRule.setQualityRule("unknown");
+            apiQualityRuleRepository.update(unknownApiQualityRule);
+            fail("An unknown apiQualityRule should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        apiQualityRuleRepository.update(null);
-        fail("A null apiQualityRule should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            apiQualityRuleRepository.update(null);
+            fail("A null apiQualityRule should not be updated");
+        });
     }
 }

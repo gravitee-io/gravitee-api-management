@@ -28,15 +28,16 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+@ExtendWith(MockitoExtension.class)
 class ResolveFilterLabelsUseCaseTest {
 
     private static final AuditInfo AUDIT_INFO = AuditInfo.builder().organizationId("org-id").environmentId("env-id").build();
@@ -44,18 +45,11 @@ class ResolveFilterLabelsUseCaseTest {
     @Mock
     private FilterValueNameResolver filterValueNameResolver;
 
-    private AutoCloseable closeable;
     private ResolveFilterLabelsUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        closeable = MockitoAnnotations.openMocks(this);
         useCase = new ResolveFilterLabelsUseCase(filterValueNameResolver);
-    }
-
-    @AfterEach
-    void tearDown() throws Exception {
-        closeable.close();
     }
 
     @Test

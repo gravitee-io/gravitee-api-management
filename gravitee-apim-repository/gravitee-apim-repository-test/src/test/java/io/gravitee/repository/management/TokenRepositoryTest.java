@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.management;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.management.model.TagReferenceType;
 import io.gravitee.repository.management.model.Token;
@@ -23,8 +23,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TokenRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -63,9 +63,9 @@ public class TokenRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("My personal token", tokenProduct.getName());
         assertEquals("USER", tokenProduct.getReferenceType());
         assertEquals("123", tokenProduct.getReferenceId());
-        assertEquals("created at", new Date(1486771200000L), tokenProduct.getCreatedAt());
-        assertEquals("expire at", new Date(1486772200000L), tokenProduct.getExpiresAt());
-        assertEquals("last use at", new Date(1486773200000L), tokenProduct.getLastUseAt());
+        assertEquals(new Date(1486771200000L), tokenProduct.getCreatedAt(), "created at");
+        assertEquals(new Date(1486772200000L), tokenProduct.getExpiresAt(), "expire at");
+        assertEquals(new Date(1486773200000L), tokenProduct.getLastUseAt(), "last use at");
     }
 
     @Test
@@ -84,26 +84,26 @@ public class TokenRepositoryTest extends AbstractManagementRepositoryTest {
         tokenRepository.create(token);
         int nbTokensAfterCreation = tokenRepository.findByReference("USER", "456").size();
 
-        Assert.assertEquals(nbTokensBeforeCreation + 1, nbTokensAfterCreation);
+        Assertions.assertEquals(nbTokensBeforeCreation + 1, nbTokensAfterCreation);
 
         Optional<Token> optional = tokenRepository.findById("new-token");
-        Assert.assertTrue("Token saved not found", optional.isPresent());
+        Assertions.assertTrue(optional.isPresent(), "Token saved not found");
 
         final Token tokenSaved = optional.get();
-        Assert.assertEquals("Invalid saved token.", token.getToken(), tokenSaved.getToken());
-        Assert.assertEquals("Invalid saved token name.", token.getName(), tokenSaved.getName());
-        Assert.assertEquals("Invalid token ref type.", token.getReferenceType(), tokenSaved.getReferenceType());
-        Assert.assertEquals("Invalid token ref id.", token.getReferenceId(), tokenSaved.getReferenceId());
-        Assert.assertEquals("Invalid token created date.", token.getCreatedAt(), tokenSaved.getCreatedAt());
-        Assert.assertEquals("Invalid token expire date.", token.getExpiresAt(), tokenSaved.getExpiresAt());
-        Assert.assertEquals("Invalid token last use date.", token.getLastUseAt(), tokenSaved.getLastUseAt());
+        Assertions.assertEquals(token.getToken(), tokenSaved.getToken(), "Invalid saved token.");
+        Assertions.assertEquals(token.getName(), tokenSaved.getName(), "Invalid saved token name.");
+        Assertions.assertEquals(token.getReferenceType(), tokenSaved.getReferenceType(), "Invalid token ref type.");
+        Assertions.assertEquals(token.getReferenceId(), tokenSaved.getReferenceId(), "Invalid token ref id.");
+        Assertions.assertEquals(token.getCreatedAt(), tokenSaved.getCreatedAt(), "Invalid token created date.");
+        Assertions.assertEquals(token.getExpiresAt(), tokenSaved.getExpiresAt(), "Invalid token expire date.");
+        Assertions.assertEquals(token.getLastUseAt(), tokenSaved.getLastUseAt(), "Invalid token last use date.");
     }
 
     @Test
     public void shouldUpdate() throws Exception {
         Optional<Token> optional = tokenRepository.findById("token123");
-        Assert.assertTrue("Token to update not found", optional.isPresent());
-        Assert.assertEquals("Invalid saved token name.", "My personal token", optional.get().getName());
+        Assertions.assertTrue(optional.isPresent(), "Token to update not found");
+        Assertions.assertEquals("My personal token", optional.get().getName(), "Invalid saved token name.");
 
         final Token token = optional.get();
         token.setToken("new_token");
@@ -118,19 +118,19 @@ public class TokenRepositoryTest extends AbstractManagementRepositoryTest {
         tokenRepository.update(token);
         int nbTokensAfterUpdate = tokenRepository.findByReference("USER", "token123").size();
 
-        Assert.assertEquals(nbTokensBeforeUpdate, nbTokensAfterUpdate);
+        Assertions.assertEquals(nbTokensBeforeUpdate, nbTokensAfterUpdate);
 
         Optional<Token> optionalUpdated = tokenRepository.findById("token123");
-        Assert.assertTrue("Token to update not found", optionalUpdated.isPresent());
+        Assertions.assertTrue(optionalUpdated.isPresent(), "Token to update not found");
 
         final Token tokenUpdated = optionalUpdated.get();
-        Assert.assertEquals("Invalid saved token.", "new_token", tokenUpdated.getToken());
-        Assert.assertEquals("Invalid saved token name.", "New token name", tokenUpdated.getName());
-        Assert.assertEquals("Invalid token ref type.", "New ref type", tokenUpdated.getReferenceType());
-        Assert.assertEquals("Invalid token ref id.", "New ref id", tokenUpdated.getReferenceId());
-        Assert.assertEquals("Invalid token created date.", new Date(1486774200000L), tokenUpdated.getCreatedAt());
-        Assert.assertEquals("Invalid token expire date.", new Date(1486775200000L), tokenUpdated.getExpiresAt());
-        Assert.assertEquals("Invalid token expire date.", new Date(1486776200000L), tokenUpdated.getLastUseAt());
+        Assertions.assertEquals("new_token", tokenUpdated.getToken(), "Invalid saved token.");
+        Assertions.assertEquals("New token name", tokenUpdated.getName(), "Invalid saved token name.");
+        Assertions.assertEquals("New ref type", tokenUpdated.getReferenceType(), "Invalid token ref type.");
+        Assertions.assertEquals("New ref id", tokenUpdated.getReferenceId(), "Invalid token ref id.");
+        Assertions.assertEquals(new Date(1486774200000L), tokenUpdated.getCreatedAt(), "Invalid token created date.");
+        Assertions.assertEquals(new Date(1486775200000L), tokenUpdated.getExpiresAt(), "Invalid token expire date.");
+        Assertions.assertEquals(new Date(1486776200000L), tokenUpdated.getLastUseAt(), "Invalid token expire date.");
     }
 
     @Test
@@ -139,21 +139,25 @@ public class TokenRepositoryTest extends AbstractManagementRepositoryTest {
         tokenRepository.delete("token_to_delete");
         int nbTokensAfterDeletion = tokenRepository.findByReference("USER", "123").size();
 
-        Assert.assertEquals(nbTokensBeforeDeletion - 1, nbTokensAfterDeletion);
+        Assertions.assertEquals(nbTokensBeforeDeletion - 1, nbTokensAfterDeletion);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownToken() throws Exception {
-        Token unknownToken = new Token();
-        unknownToken.setToken("unknown");
-        tokenRepository.update(unknownToken);
-        fail("An unknown token should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            Token unknownToken = new Token();
+            unknownToken.setToken("unknown");
+            tokenRepository.update(unknownToken);
+            fail("An unknown token should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        tokenRepository.update(null);
-        fail("A null token should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            tokenRepository.update(null);
+            fail("A null token should not be updated");
+        });
     }
 
     @Test

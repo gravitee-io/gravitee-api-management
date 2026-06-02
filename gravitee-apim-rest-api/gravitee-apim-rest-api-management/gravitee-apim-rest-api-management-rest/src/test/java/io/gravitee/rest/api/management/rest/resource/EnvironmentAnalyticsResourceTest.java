@@ -20,9 +20,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;

@@ -16,31 +16,30 @@
 package io.gravitee.gateway.handlers.api.processor.logging;
 
 import io.gravitee.definition.model.Logging;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class ApiLoggableRequestProcessorTest {
 
     @Mock
     private Logging logging;
 
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
-    }
-
     @Test
     public void shouldBeDisabled_emptyValue() {
         ApiLoggableRequestProcessor processor = new ApiLoggableRequestProcessor(logging);
 
-        Assert.assertEquals(-1, processor.getMaxSizeLogMessage());
+        Assertions.assertEquals(-1, processor.getMaxSizeLogMessage());
     }
 
     @Test
@@ -48,7 +47,7 @@ public class ApiLoggableRequestProcessorTest {
         ApiLoggableRequestProcessor processor = new ApiLoggableRequestProcessor(logging);
         processor.setMaxSizeLogMessage("-1");
 
-        Assert.assertEquals(-1, processor.getMaxSizeLogMessage());
+        Assertions.assertEquals(-1, processor.getMaxSizeLogMessage());
     }
 
     @Test
@@ -56,55 +55,55 @@ public class ApiLoggableRequestProcessorTest {
         ApiLoggableRequestProcessor processor = new ApiLoggableRequestProcessor(logging);
         processor.setMaxSizeLogMessage("1");
 
-        Assert.assertEquals(1024 * 1024, processor.getMaxSizeLogMessage());
+        Assertions.assertEquals(1024 * 1024, processor.getMaxSizeLogMessage());
     }
 
     @Test
     public void shouldBeEnabled_MB() {
         ApiLoggableRequestProcessor processor = new ApiLoggableRequestProcessor(logging);
         processor.setMaxSizeLogMessage("1MB");
-        Assert.assertEquals(1024 * 1024, processor.getMaxSizeLogMessage());
+        Assertions.assertEquals(1024 * 1024, processor.getMaxSizeLogMessage());
 
         processor.setMaxSizeLogMessage("1M");
-        Assert.assertEquals(1024 * 1024, processor.getMaxSizeLogMessage());
+        Assertions.assertEquals(1024 * 1024, processor.getMaxSizeLogMessage());
 
         processor.setMaxSizeLogMessage("1mb");
-        Assert.assertEquals(1024 * 1024, processor.getMaxSizeLogMessage());
+        Assertions.assertEquals(1024 * 1024, processor.getMaxSizeLogMessage());
 
         processor.setMaxSizeLogMessage("1m");
-        Assert.assertEquals(1024 * 1024, processor.getMaxSizeLogMessage());
+        Assertions.assertEquals(1024 * 1024, processor.getMaxSizeLogMessage());
     }
 
     @Test
     public void shouldBeEnabled_KB() {
         ApiLoggableRequestProcessor processor = new ApiLoggableRequestProcessor(logging);
         processor.setMaxSizeLogMessage("1KB");
-        Assert.assertEquals(1024, processor.getMaxSizeLogMessage());
+        Assertions.assertEquals(1024, processor.getMaxSizeLogMessage());
 
         processor.setMaxSizeLogMessage("1K");
-        Assert.assertEquals(1024, processor.getMaxSizeLogMessage());
+        Assertions.assertEquals(1024, processor.getMaxSizeLogMessage());
 
         processor.setMaxSizeLogMessage("1kb");
-        Assert.assertEquals(1024, processor.getMaxSizeLogMessage());
+        Assertions.assertEquals(1024, processor.getMaxSizeLogMessage());
 
         processor.setMaxSizeLogMessage("1k");
-        Assert.assertEquals(1024, processor.getMaxSizeLogMessage());
+        Assertions.assertEquals(1024, processor.getMaxSizeLogMessage());
     }
 
     @Test
     public void shouldBeEnabled_B() {
         ApiLoggableRequestProcessor processor = new ApiLoggableRequestProcessor(logging);
         processor.setMaxSizeLogMessage("1B");
-        Assert.assertEquals(1, processor.getMaxSizeLogMessage());
+        Assertions.assertEquals(1, processor.getMaxSizeLogMessage());
 
         processor.setMaxSizeLogMessage("1b");
-        Assert.assertEquals(1, processor.getMaxSizeLogMessage());
+        Assertions.assertEquals(1, processor.getMaxSizeLogMessage());
     }
 
     @Test
     public void shouldBeDisabled_invalidValue() {
         ApiLoggableRequestProcessor processor = new ApiLoggableRequestProcessor(logging);
         processor.setMaxSizeLogMessage("d12B");
-        Assert.assertEquals(-1, processor.getMaxSizeLogMessage());
+        Assertions.assertEquals(-1, processor.getMaxSizeLogMessage());
     }
 }

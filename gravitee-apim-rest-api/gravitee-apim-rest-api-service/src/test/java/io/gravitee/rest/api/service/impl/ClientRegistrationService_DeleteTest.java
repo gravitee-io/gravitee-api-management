@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_DELETED;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -26,16 +27,19 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.ClientRegistrationProviderNotFoundException;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.ClientRegistrationServiceImpl;
 import java.util.Optional;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ClientRegistrationService_DeleteTest {
 
     @InjectMocks
@@ -66,27 +70,32 @@ public class ClientRegistrationService_DeleteTest {
         verify(mockClientRegistrationProviderRepository, times(1)).delete(existingPayload.getId());
     }
 
-    @Test(expected = ClientRegistrationProviderNotFoundException.class)
+    @Test
     public void shouldNotDeleteProviderBecauseDoesNotBelongToEnvironment() throws TechnicalException {
-        ClientRegistrationProvider existingPayload = new ClientRegistrationProvider();
-        existingPayload.setId("CRP_ID");
-        existingPayload.setEnvironmentId("Another_environment");
+        assertThrows(ClientRegistrationProviderNotFoundException.class, () -> {
+            ClientRegistrationProvider existingPayload = new ClientRegistrationProvider();
+            existingPayload.setId("CRP_ID");
+            existingPayload.setEnvironmentId("Another_environment");
 
-        when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(existingPayload));
+            when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(existingPayload));
 
-        clientRegistrationService.delete(GraviteeContext.getExecutionContext(), existingPayload.getId());
+            clientRegistrationService.delete(GraviteeContext.getExecutionContext(), existingPayload.getId());
 
-        verify(mockAuditService, times(1)).createAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(
-                auditLogData -> auditLogData.getEvent().equals(CLIENT_REGISTRATION_PROVIDER_DELETED) && auditLogData.getNewValue() == null
-            )
-        );
-        verify(mockClientRegistrationProviderRepository, never()).delete(existingPayload.getId());
+            verify(mockAuditService, times(1)).createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(
+                    auditLogData ->
+                        auditLogData.getEvent().equals(CLIENT_REGISTRATION_PROVIDER_DELETED) && auditLogData.getNewValue() == null
+                )
+            );
+            verify(mockClientRegistrationProviderRepository, never()).delete(existingPayload.getId());
+        });
     }
 
-    @Test(expected = ClientRegistrationProviderNotFoundException.class)
+    @Test
     public void shouldThrowClientRegistrationProviderNotFoundException() {
-        clientRegistrationService.delete(GraviteeContext.getExecutionContext(), "providerId");
+        assertThrows(ClientRegistrationProviderNotFoundException.class, () ->
+            clientRegistrationService.delete(GraviteeContext.getExecutionContext(), "providerId")
+        );
     }
 }

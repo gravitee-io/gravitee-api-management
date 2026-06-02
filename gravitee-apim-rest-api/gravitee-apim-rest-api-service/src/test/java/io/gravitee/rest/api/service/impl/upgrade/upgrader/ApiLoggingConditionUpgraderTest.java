@@ -16,7 +16,8 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -36,19 +37,22 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.*;
 import java.util.stream.Stream;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
 import org.springframework.test.util.ReflectionTestUtils;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiLoggingConditionUpgraderTest {
 
     @InjectMocks
@@ -69,7 +73,7 @@ public class ApiLoggingConditionUpgraderTest {
 
     private ExecutionContext executionContext;
 
-    @Before
+    @BeforeEach
     public void setUp() throws TechnicalException {
         when(apiRepository.update(any(Api.class))).thenAnswer((Answer<Api>) invocation -> (Api) invocation.getArguments()[0]);
         this.executionContext = GraviteeContext.getExecutionContext();
@@ -78,14 +82,16 @@ public class ApiLoggingConditionUpgraderTest {
         when(environmentRepository.findAll()).thenReturn(Collections.singleton(environment));
     }
 
-    @Test(expected = UpgraderException.class)
-    public void upgrade_should_failed_because_of_exception() throws TechnicalException, UpgraderException {
-        when(environmentRepository.findAll()).thenThrow(new RuntimeException());
+    @Test
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+        assertThrows(UpgraderException.class, () -> {
+            when(environmentRepository.findAll()).thenThrow(new RuntimeException());
 
-        upgrader.upgrade();
+            upgrader.upgrade();
 
-        verify(environmentRepository, times(1)).findAll();
-        verifyNoMoreInteractions(environmentRepository);
+            verify(environmentRepository, times(1)).findAll();
+            verifyNoMoreInteractions(environmentRepository);
+        });
     }
 
     @Test
@@ -95,11 +101,13 @@ public class ApiLoggingConditionUpgraderTest {
         assertTrue(success);
     }
 
-    @Test(expected = UpgraderException.class)
-    public void upgrade_should_run_and_set_failure_status_on_exception() throws UpgraderException {
-        doThrow(new RuntimeException("test exception")).when(upgrader).fixApis(any());
+    @Test
+    public void upgrade_should_run_and_set_failure_status_on_exception() {
+        assertThrows(UpgraderException.class, () -> {
+            doThrow(new RuntimeException("test exception")).when(upgrader).fixApis(any());
 
-        upgrader.upgrade();
+            upgrader.upgrade();
+        });
     }
 
     @Test
@@ -221,6 +229,6 @@ public class ApiLoggingConditionUpgraderTest {
 
     @Test
     public void test_order() {
-        Assert.assertEquals(UpgraderOrder.API_LOGGING_CONDITION_UPGRADER, upgrader.getOrder());
+        Assertions.assertEquals(UpgraderOrder.API_LOGGING_CONDITION_UPGRADER, upgrader.getOrder());
     }
 }

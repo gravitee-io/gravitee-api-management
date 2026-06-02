@@ -17,12 +17,13 @@ package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import io.gravitee.repository.management.model.CustomDashboard;
 import io.gravitee.repository.management.model.CustomDashboardWidget;
 import java.util.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -292,16 +293,20 @@ public class CustomDashboardRepositoryTest extends AbstractManagementRepositoryT
         assertThat(customDashboardRepository.findById("cd-4")).isEmpty();
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownDashboard() throws Exception {
-        var unknown = CustomDashboard.builder().id("unknown").build();
-        customDashboardRepository.update(unknown);
-        fail("An unknown custom dashboard should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            var unknown = CustomDashboard.builder().id("unknown").build();
+            customDashboardRepository.update(unknown);
+            fail("An unknown custom dashboard should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        customDashboardRepository.update(null);
-        fail("A null custom dashboard should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            customDashboardRepository.update(null);
+            fail("A null custom dashboard should not be updated");
+        });
     }
 }

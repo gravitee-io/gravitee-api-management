@@ -29,8 +29,8 @@ import io.gravitee.repository.mongodb.management.internal.model.AuditMongo;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
@@ -40,7 +40,7 @@ public class AuditMongoRepositoryImplTest {
     private MongoTemplate mongoTemplate;
     private AuditMongoRepositoryImpl repository;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         mongoTemplate = mock(MongoTemplate.class);
         repository = new AuditMongoRepositoryImpl();

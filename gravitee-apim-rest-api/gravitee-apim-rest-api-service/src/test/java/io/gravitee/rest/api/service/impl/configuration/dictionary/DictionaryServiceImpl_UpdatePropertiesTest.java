@@ -16,8 +16,8 @@
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
 import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_UPDATED;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
@@ -36,13 +36,16 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class DictionaryServiceImpl_UpdatePropertiesTest {
 
     private static final String DICTIONARY_ID = "dictionaryId";
@@ -109,10 +112,12 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
         );
     }
 
-    @Test(expected = DictionaryNotFoundException.class)
+    @Test
     public void shouldNotUpdatePropertiesBecauseNotFound() throws TechnicalException {
-        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.empty());
+        assertThrows(DictionaryNotFoundException.class, () -> {
+            when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.empty());
 
-        dictionaryService.updateProperties(DICTIONARY_ID, Map.of("key", "value"));
+            dictionaryService.updateProperties(DICTIONARY_ID, Map.of("key", "value"));
+        });
     }
 }

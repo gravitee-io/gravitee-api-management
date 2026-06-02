@@ -20,11 +20,10 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import java.util.Arrays;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,13 +31,11 @@ import org.slf4j.LoggerFactory;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(Parameterized.class)
 public class CustomApiKeyTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomApiKeyTest.class);
     private Validator validator;
 
-    @Parameterized.Parameters
     public static Iterable<Object[]> data() {
         return Arrays.asList(
             new Object[][] {
@@ -54,31 +51,23 @@ public class CustomApiKeyTest {
         );
     }
 
-    @Parameterized.Parameter(0)
-    public String customApiKeyParam;
-
-    @Parameterized.Parameter(1)
-    public int violationSize;
-
-    @Parameterized.Parameter(2)
-    public String message;
-
-    @Before
+    @BeforeEach
     public void setUp() {
         this.validator = Validation.buildDefaultValidatorFactory().getValidator();
     }
 
-    @Test
-    public void shouldTestCustomApiKeyValidation() {
-        LOGGER.info("Execute custom API Key validation test for: " + this.customApiKeyParam);
+    @MethodSource("data")
+    @ParameterizedTest
+    public void shouldTestCustomApiKeyValidation(String customApiKeyParam, int violationSize, String message) {
+        LOGGER.info("Execute custom API Key validation test for: " + customApiKeyParam);
 
-        CustomApiKeyObject customApiKeyObject = new CustomApiKeyObject(this.customApiKeyParam);
+        CustomApiKeyObject customApiKeyObject = new CustomApiKeyObject(customApiKeyParam);
         Set<ConstraintViolation<CustomApiKeyObject>> violations = validator.validate(customApiKeyObject);
 
-        Assert.assertEquals(violations.size(), this.violationSize);
+        Assertions.assertEquals(violations.size(), violationSize);
 
         if (violationSize > 0) {
-            Assert.assertTrue(violations.stream().anyMatch(v -> v.getMessage().equals(message)));
+            Assertions.assertTrue(violations.stream().anyMatch(v -> v.getMessage().equals(message)));
         }
     }
 

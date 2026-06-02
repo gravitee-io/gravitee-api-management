@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -24,17 +25,20 @@ import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ClientIdInApiKeySubscriptionsUpgraderTest {
 
     @InjectMocks
@@ -43,14 +47,16 @@ public class ClientIdInApiKeySubscriptionsUpgraderTest {
     @Mock
     SubscriptionRepository subscriptionRepository;
 
-    @Test(expected = UpgraderException.class)
-    public void upgrade_should_failed_because_of_exception() throws TechnicalException, UpgraderException {
-        when(subscriptionRepository.search(any())).thenThrow(new RuntimeException());
+    @Test
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+        assertThrows(UpgraderException.class, () -> {
+            when(subscriptionRepository.search(any())).thenThrow(new RuntimeException());
 
-        upgrader.upgrade();
+            upgrader.upgrade();
 
-        verify(subscriptionRepository, times(1)).search(any());
-        verifyNoMoreInteractions(subscriptionRepository);
+            verify(subscriptionRepository, times(1)).search(any());
+            verifyNoMoreInteractions(subscriptionRepository);
+        });
     }
 
     @Test
@@ -71,7 +77,7 @@ public class ClientIdInApiKeySubscriptionsUpgraderTest {
 
     @Test
     public void test_order() {
-        Assert.assertEquals(UpgraderOrder.CLIENT_ID_IN_API_KEY_SUBSCRIPTIONS_UPGRADER, upgrader.getOrder());
+        Assertions.assertEquals(UpgraderOrder.CLIENT_ID_IN_API_KEY_SUBSCRIPTIONS_UPGRADER, upgrader.getOrder());
     }
 
     private static Subscription apiKeySubscription(String clientId) {

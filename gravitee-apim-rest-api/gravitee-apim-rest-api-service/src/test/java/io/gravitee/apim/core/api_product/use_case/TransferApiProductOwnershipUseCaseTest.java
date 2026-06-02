@@ -39,9 +39,11 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class TransferApiProductOwnershipUseCaseTest extends AbstractUseCaseTest {
 
     private static final String API_PRODUCT_ID = "my-api-product";
@@ -60,7 +62,6 @@ class TransferApiProductOwnershipUseCaseTest extends AbstractUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
         transferApiProductOwnershipUseCase = new TransferApiProductOwnershipUseCase(
             membershipDomainService,
             apiProductQueryService,

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.node.api.Node;
@@ -33,16 +34,19 @@ import io.gravitee.rest.api.service.exceptions.Message2RecipientNotFoundExceptio
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class CommandServiceTest {
 
     @Mock
@@ -57,13 +61,15 @@ public class CommandServiceTest {
     @InjectMocks
     private CommandServiceImpl commandService = new CommandServiceImpl();
 
-    @Test(expected = Message2RecipientNotFoundException.class)
+    @Test
     public void sendShouldNotCreateCommandWithNullRecipient() {
-        final NewCommandEntity newCommand = new NewCommandEntity();
-        newCommand.setContent("{}");
-        newCommand.setTags(List.of(CommandTags.DATA_TO_INDEX));
-        newCommand.setTo(null);
-        commandService.send(GraviteeContext.getExecutionContext(), newCommand);
+        assertThrows(Message2RecipientNotFoundException.class, () -> {
+            final NewCommandEntity newCommand = new NewCommandEntity();
+            newCommand.setContent("{}");
+            newCommand.setTags(List.of(CommandTags.DATA_TO_INDEX));
+            newCommand.setTo(null);
+            commandService.send(GraviteeContext.getExecutionContext(), newCommand);
+        });
     }
 
     @Test

@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.definition.model.DefinitionContext.*;
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -26,16 +27,19 @@ import io.gravitee.rest.api.model.api.DefinitionContextEntity;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Optional;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiDefinitionContextServiceTest {
 
     private static final String API_ID = "f866a23f-966d-41be-8b79-41126721ab8b";
@@ -85,16 +89,20 @@ public class ApiDefinitionContextServiceTest {
         );
     }
 
-    @Test(expected = ApiNotFoundException.class)
+    @Test
     public void shouldThrowApiNotFoundException() throws TechnicalException {
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
-        definitionContextService.setDefinitionContext(API_ID, newKubernetesContext());
+        assertThrows(ApiNotFoundException.class, () -> {
+            when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
+            definitionContextService.setDefinitionContext(API_ID, newKubernetesContext());
+        });
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldThrowTechnicalManagementException() throws TechnicalException {
-        when(apiRepository.findById(API_ID)).thenThrow(TechnicalException.class);
-        definitionContextService.setDefinitionContext(API_ID, newKubernetesContext());
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(apiRepository.findById(API_ID)).thenThrow(TechnicalException.class);
+            definitionContextService.setDefinitionContext(API_ID, newKubernetesContext());
+        });
     }
 
     private static Api newApi() {

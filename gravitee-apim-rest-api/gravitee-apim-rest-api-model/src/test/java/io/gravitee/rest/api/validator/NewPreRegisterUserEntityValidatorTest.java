@@ -17,11 +17,10 @@ package io.gravitee.rest.api.validator;
 
 import io.gravitee.rest.api.model.NewPreRegisterUserEntity;
 import java.util.Arrays;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,13 +28,11 @@ import org.slf4j.LoggerFactory;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(Parameterized.class)
 public class NewPreRegisterUserEntityValidatorTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NewPreRegisterUserEntityValidatorTest.class);
     private NewPreRegisterUserEntityValidator validator;
 
-    @Parameterized.Parameters
     public static Iterable<Object[]> data() {
         return Arrays.asList(
             new Object[][] {
@@ -52,25 +49,14 @@ public class NewPreRegisterUserEntityValidatorTest {
         );
     }
 
-    @Parameterized.Parameter(0)
-    public String email;
-
-    @Parameterized.Parameter(1)
-    public String firstName;
-
-    @Parameterized.Parameter(2)
-    public Boolean isServiceAccount;
-
-    @Parameterized.Parameter(3)
-    public boolean shouldBeValid;
-
-    @Before
+    @BeforeEach
     public void setUp() {
         this.validator = new NewPreRegisterUserEntityValidator();
     }
 
-    @Test
-    public void shoultTestNewExternalUserEntityValidation() {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void shoultTestNewExternalUserEntityValidation(String email, String firstName, Boolean isServiceAccount, boolean shouldBeValid) {
         LOGGER.info(
             "Execute NewExternalUserEntity validation test for mail: '{}', firstName: '{}', serviceUser: {}, shouldBeValid: {}",
             email,
@@ -86,6 +72,6 @@ public class NewPreRegisterUserEntityValidatorTest {
 
         final boolean isValid = validator.isValid(newPreRegisterUserEntity, null);
 
-        Assert.assertEquals(isValid, shouldBeValid);
+        Assertions.assertEquals(isValid, shouldBeValid);
     }
 }

@@ -24,7 +24,7 @@ import io.gravitee.repository.otel.log.model.OtelLogRecord;
 import io.gravitee.repository.otel.log.model.OtelLogSearchCriteria;
 import java.util.List;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**

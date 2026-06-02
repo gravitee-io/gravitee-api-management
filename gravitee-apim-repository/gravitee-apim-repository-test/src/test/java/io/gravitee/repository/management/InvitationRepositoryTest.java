@@ -17,7 +17,7 @@ package io.gravitee.repository.management;
 
 import static io.gravitee.repository.management.InvitationFixtures.anInvitation;
 import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.InvitationRepository.InvitationCriteria;
@@ -30,8 +30,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class InvitationRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -78,7 +78,7 @@ public class InvitationRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(nbInvitationsBeforeCreation + 1, nbInvitationsAfterCreation);
 
         Optional<Invitation> optional = invitationRepository.findById("new-invitation");
-        Assert.assertTrue("Invitation saved not found", optional.isPresent());
+        Assertions.assertTrue(optional.isPresent(), "Invitation saved not found");
         final Invitation fetchedInvitation = optional.get();
         assertEquals(invitation.getReferenceType(), fetchedInvitation.getReferenceType());
         assertEquals(invitation.getReferenceId(), fetchedInvitation.getReferenceId());
@@ -92,8 +92,8 @@ public class InvitationRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldUpdate() throws Exception {
         Optional<Invitation> optional = invitationRepository.findById("e6d5e6d0-17e9-4606-83c3-cfef8b91d5ce");
-        Assert.assertTrue("Invitation to update not found", optional.isPresent());
-        assertEquals("Invalid saved invitation email.", "invitation@application.com", optional.get().getEmail());
+        Assertions.assertTrue(optional.isPresent(), "Invitation to update not found");
+        assertEquals("invitation@application.com", optional.get().getEmail(), "Invalid saved invitation email.");
 
         final Invitation invitation = optional.get();
         invitation.setReferenceType("New reference type");
@@ -112,7 +112,7 @@ public class InvitationRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(nbInvitationsBeforeUpdate, nbInvitationsAfterUpdate);
 
         Optional<Invitation> optionalUpdated = invitationRepository.findById("e6d5e6d0-17e9-4606-83c3-cfef8b91d5ce");
-        Assert.assertTrue("Invitation to update not found", optionalUpdated.isPresent());
+        Assertions.assertTrue(optionalUpdated.isPresent(), "Invitation to update not found");
         final Invitation fetchedInvitation = optionalUpdated.get();
         assertEquals(invitation.getReferenceType(), fetchedInvitation.getReferenceType());
         assertEquals(invitation.getReferenceId(), fetchedInvitation.getReferenceId());
@@ -168,18 +168,22 @@ public class InvitationRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("bravo@example.com", page.getContent().get(0).getEmail());
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownInvitation() throws Exception {
-        Invitation unknownInvitation = new Invitation();
-        unknownInvitation.setId("unknown");
-        invitationRepository.update(unknownInvitation);
-        fail("An unknown invitation should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            Invitation unknownInvitation = new Invitation();
+            unknownInvitation.setId("unknown");
+            invitationRepository.update(unknownInvitation);
+            fail("An unknown invitation should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        invitationRepository.update(null);
-        fail("A null invitation should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            invitationRepository.update(null);
+            fail("A null invitation should not be updated");
+        });
     }
 
     @Test

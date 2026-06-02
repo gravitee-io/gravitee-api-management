@@ -15,23 +15,27 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.service.EnvironmentService;
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class DefaultEnvironmentUpgraderTest {
 
     @Mock
@@ -40,14 +44,16 @@ public class DefaultEnvironmentUpgraderTest {
     @InjectMocks
     private final DefaultEnvironmentUpgrader upgrader = new DefaultEnvironmentUpgrader();
 
-    @Test(expected = UpgraderException.class)
-    public void upgrade_should_failed_because_of_exception() throws TechnicalException, UpgraderException {
-        when(environmentService.findByOrganization(any())).thenThrow(new RuntimeException());
+    @Test
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+        assertThrows(UpgraderException.class, () -> {
+            when(environmentService.findByOrganization(any())).thenThrow(new RuntimeException());
 
-        upgrader.upgrade();
+            upgrader.upgrade();
 
-        verify(environmentService, times(1)).findByOrganization(any());
-        verifyNoMoreInteractions(environmentService);
+            verify(environmentService, times(1)).findByOrganization(any());
+            verifyNoMoreInteractions(environmentService);
+        });
     }
 
     @Test
@@ -61,6 +67,6 @@ public class DefaultEnvironmentUpgraderTest {
 
     @Test
     public void test_order() {
-        Assert.assertEquals(UpgraderOrder.DEFAULT_ENVIRONMENT_UPGRADER, upgrader.getOrder());
+        Assertions.assertEquals(UpgraderOrder.DEFAULT_ENVIRONMENT_UPGRADER, upgrader.getOrder());
     }
 }

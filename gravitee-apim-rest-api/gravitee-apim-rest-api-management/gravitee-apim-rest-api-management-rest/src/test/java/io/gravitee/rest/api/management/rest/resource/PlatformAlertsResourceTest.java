@@ -19,7 +19,7 @@ import static io.gravitee.alert.api.trigger.Trigger.Severity.INFO;
 import static io.gravitee.rest.api.model.alert.AlertReferenceType.ENVIRONMENT;
 import static io.gravitee.rest.api.service.common.GraviteeContext.getCurrentEnvironment;
 import static io.gravitee.rest.api.service.common.GraviteeContext.getExecutionContext;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;

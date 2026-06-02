@@ -16,8 +16,8 @@
 package io.gravitee.rest.api.idp.api.authentication;
 
 import java.util.Collections;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -32,7 +32,7 @@ public class UserDetailsTest {
         userDetails.setLastname(null);
         userDetails.setEmail(null);
 
-        Assert.assertEquals("user", userDetails.getDisplayName());
+        Assertions.assertEquals("user", userDetails.getDisplayName());
     }
 
     @Test
@@ -42,7 +42,7 @@ public class UserDetailsTest {
         userDetails.setLastname("");
         userDetails.setEmail(null);
 
-        Assert.assertEquals("user", userDetails.getDisplayName());
+        Assertions.assertEquals("user", userDetails.getDisplayName());
     }
 
     @Test
@@ -52,7 +52,7 @@ public class UserDetailsTest {
         userDetails.setLastname("lastname");
         userDetails.setEmail(null);
 
-        Assert.assertEquals("lastname", userDetails.getDisplayName());
+        Assertions.assertEquals("lastname", userDetails.getDisplayName());
     }
 
     @Test
@@ -62,7 +62,7 @@ public class UserDetailsTest {
         userDetails.setLastname("lastname");
         userDetails.setEmail(null);
 
-        Assert.assertEquals("lastname", userDetails.getDisplayName());
+        Assertions.assertEquals("lastname", userDetails.getDisplayName());
     }
 
     @Test
@@ -72,7 +72,7 @@ public class UserDetailsTest {
         userDetails.setLastname(null);
         userDetails.setEmail("test@test.com");
 
-        Assert.assertEquals("test@test.com", userDetails.getDisplayName());
+        Assertions.assertEquals("test@test.com", userDetails.getDisplayName());
     }
 
     @Test
@@ -82,7 +82,7 @@ public class UserDetailsTest {
         userDetails.setLastname("");
         userDetails.setEmail("test@test.com");
 
-        Assert.assertEquals("test@test.com", userDetails.getDisplayName());
+        Assertions.assertEquals("test@test.com", userDetails.getDisplayName());
     }
 
     @Test
@@ -93,7 +93,7 @@ public class UserDetailsTest {
         userDetails.setEmail(null);
         userDetails.setSourceId("username");
 
-        Assert.assertEquals("username", userDetails.getDisplayName());
+        Assertions.assertEquals("username", userDetails.getDisplayName());
     }
 
     @Test
@@ -104,6 +104,6 @@ public class UserDetailsTest {
         userDetails.setEmail("");
         userDetails.setSourceId("username");
 
-        Assert.assertEquals("username", userDetails.getDisplayName());
+        Assertions.assertEquals("username", userDetails.getDisplayName());
     }
 }

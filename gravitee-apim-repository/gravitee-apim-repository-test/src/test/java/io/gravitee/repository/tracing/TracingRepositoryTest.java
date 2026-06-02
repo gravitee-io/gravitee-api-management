@@ -25,7 +25,7 @@ import io.gravitee.repository.tracing.model.TraceSearchCriteria;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**

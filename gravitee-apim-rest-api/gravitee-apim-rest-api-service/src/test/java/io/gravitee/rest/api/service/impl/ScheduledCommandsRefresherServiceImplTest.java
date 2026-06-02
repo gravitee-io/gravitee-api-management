@@ -34,20 +34,23 @@ import io.gravitee.rest.api.service.CommandService;
 import io.gravitee.rest.api.service.event.CommandEvent;
 import java.time.Instant;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.scheduling.TaskScheduler;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ScheduledCommandsRefresherServiceImplTest {
 
     @Mock
@@ -70,7 +73,7 @@ public class ScheduledCommandsRefresherServiceImplTest {
 
     private ScheduledCommandsRefresherServiceImpl cut;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         cut = new ScheduledCommandsRefresherServiceImpl(commandService, node, taskScheduler, "0/5 * * * * *", eventManager, clusterManager);
         when(node.id()).thenReturn("node-id");

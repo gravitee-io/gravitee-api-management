@@ -20,7 +20,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.api.Request;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ContextualizedDebugHttpServerRequestTest {
 

@@ -16,7 +16,7 @@
 package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.ClientRegistrationProvider;
@@ -25,8 +25,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -91,59 +91,59 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractManagement
         clientRegistrationProviderRepository.create(clientRegistrationProvider);
         int nbClientRegistrationProvidersAfterCreation = clientRegistrationProviderRepository.findAll().size();
 
-        Assert.assertEquals(nbClientRegistrationProvidersBeforeCreation + 1, nbClientRegistrationProvidersAfterCreation);
+        Assertions.assertEquals(nbClientRegistrationProvidersBeforeCreation + 1, nbClientRegistrationProvidersAfterCreation);
 
         Optional<ClientRegistrationProvider> optional = clientRegistrationProviderRepository.findById("new-dcr");
-        Assert.assertTrue("Client registration provider saved not found", optional.isPresent());
+        Assertions.assertTrue(optional.isPresent(), "Client registration provider saved not found");
 
         final ClientRegistrationProvider clientRegistrationProviderSaved = optional.get();
-        Assert.assertEquals(
-            "Invalid saved client registration provider environmentId.",
+        Assertions.assertEquals(
             clientRegistrationProvider.getEnvironmentId(),
-            clientRegistrationProviderSaved.getEnvironmentId()
+            clientRegistrationProviderSaved.getEnvironmentId(),
+            "Invalid saved client registration provider environmentId."
         );
-        Assert.assertEquals(
-            "Invalid saved client registration provider name.",
+        Assertions.assertEquals(
             clientRegistrationProvider.getName(),
-            clientRegistrationProviderSaved.getName()
+            clientRegistrationProviderSaved.getName(),
+            "Invalid saved client registration provider name."
         );
-        Assert.assertEquals(
-            "Invalid client registration provider description.",
+        Assertions.assertEquals(
             clientRegistrationProvider.getDescription(),
-            clientRegistrationProviderSaved.getDescription()
+            clientRegistrationProviderSaved.getDescription(),
+            "Invalid client registration provider description."
         );
-        Assert.assertTrue(
-            "Invalid client registration provider createdAt.",
-            compareDate(clientRegistrationProvider.getCreatedAt(), clientRegistrationProviderSaved.getCreatedAt())
+        Assertions.assertTrue(
+            compareDate(clientRegistrationProvider.getCreatedAt(), clientRegistrationProviderSaved.getCreatedAt()),
+            "Invalid client registration provider createdAt."
         );
-        Assert.assertTrue(
-            "Invalid client registration provider updatedAt.",
-            compareDate(clientRegistrationProvider.getUpdatedAt(), clientRegistrationProviderSaved.getUpdatedAt())
+        Assertions.assertTrue(
+            compareDate(clientRegistrationProvider.getUpdatedAt(), clientRegistrationProviderSaved.getUpdatedAt()),
+            "Invalid client registration provider updatedAt."
         );
-        Assert.assertEquals(
-            "Invalid client registration provider discovery endpoint.",
+        Assertions.assertEquals(
             clientRegistrationProvider.getDiscoveryEndpoint(),
-            clientRegistrationProviderSaved.getDiscoveryEndpoint()
+            clientRegistrationProviderSaved.getDiscoveryEndpoint(),
+            "Invalid client registration provider discovery endpoint."
         );
-        Assert.assertEquals(
-            "Invalid client registration provider initial access token type.",
+        Assertions.assertEquals(
             clientRegistrationProvider.getInitialAccessTokenType(),
-            clientRegistrationProviderSaved.getInitialAccessTokenType()
+            clientRegistrationProviderSaved.getInitialAccessTokenType(),
+            "Invalid client registration provider initial access token type."
         );
-        Assert.assertEquals(
-            "Invalid client registration provider client id.",
+        Assertions.assertEquals(
             clientRegistrationProvider.getClientId(),
-            clientRegistrationProviderSaved.getClientId()
+            clientRegistrationProviderSaved.getClientId(),
+            "Invalid client registration provider client id."
         );
-        Assert.assertEquals(
-            "Invalid client registration provider client secret.",
+        Assertions.assertEquals(
             clientRegistrationProvider.getClientSecret(),
-            clientRegistrationProviderSaved.getClientSecret()
+            clientRegistrationProviderSaved.getClientSecret(),
+            "Invalid client registration provider client secret."
         );
-        Assert.assertEquals(
-            "Invalid client registration provider scopes.",
+        Assertions.assertEquals(
             clientRegistrationProvider.getScopes().size(),
-            clientRegistrationProviderSaved.getScopes().size()
+            clientRegistrationProviderSaved.getScopes().size(),
+            "Invalid client registration provider scopes."
         );
     }
 
@@ -180,37 +180,45 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractManagement
         clientRegistrationProviderRepository.create(clientRegistrationProvider);
         int nbClientRegistrationProvidersAfterCreation = clientRegistrationProviderRepository.findAll().size();
 
-        Assert.assertEquals(nbClientRegistrationProvidersBeforeCreation + 1, nbClientRegistrationProvidersAfterCreation);
+        Assertions.assertEquals(nbClientRegistrationProvidersBeforeCreation + 1, nbClientRegistrationProvidersAfterCreation);
 
         Optional<ClientRegistrationProvider> optional = clientRegistrationProviderRepository.findById("new-dcr-with-ssl");
-        Assert.assertTrue("Client registration provider with SSL saved not found", optional.isPresent());
+        Assertions.assertTrue(optional.isPresent(), "Client registration provider with SSL saved not found");
 
         final ClientRegistrationProvider clientRegistrationProviderSaved = optional.get();
 
         // Verify truststore fields
-        Assert.assertEquals("Invalid truststore type.", "JKS", clientRegistrationProviderSaved.getTrustStoreType());
-        Assert.assertEquals("Invalid truststore path.", "/path/to/truststore.jks", clientRegistrationProviderSaved.getTrustStorePath());
-        Assert.assertEquals(
-            "Invalid truststore content.",
+        Assertions.assertEquals("JKS", clientRegistrationProviderSaved.getTrustStoreType(), "Invalid truststore type.");
+        Assertions.assertEquals("/path/to/truststore.jks", clientRegistrationProviderSaved.getTrustStorePath(), "Invalid truststore path.");
+        Assertions.assertEquals(
             "truststore-content-base64",
-            clientRegistrationProviderSaved.getTrustStoreContent()
+            clientRegistrationProviderSaved.getTrustStoreContent(),
+            "Invalid truststore content."
         );
-        Assert.assertEquals("Invalid truststore password.", "truststore-password", clientRegistrationProviderSaved.getTrustStorePassword());
+        Assertions.assertEquals(
+            "truststore-password",
+            clientRegistrationProviderSaved.getTrustStorePassword(),
+            "Invalid truststore password."
+        );
 
         // Verify keystore fields
-        Assert.assertEquals("Invalid keystore type.", "PKCS12", clientRegistrationProviderSaved.getKeyStoreType());
-        Assert.assertEquals("Invalid keystore path.", "/path/to/keystore.p12", clientRegistrationProviderSaved.getKeyStorePath());
-        Assert.assertEquals("Invalid keystore content.", "keystore-content-base64", clientRegistrationProviderSaved.getKeyStoreContent());
-        Assert.assertEquals("Invalid keystore password.", "keystore-password", clientRegistrationProviderSaved.getKeyStorePassword());
-        Assert.assertEquals("Invalid keystore alias.", "my-alias", clientRegistrationProviderSaved.getKeyStoreAlias());
-        Assert.assertEquals("Invalid key password.", "key-password", clientRegistrationProviderSaved.getKeyPassword());
+        Assertions.assertEquals("PKCS12", clientRegistrationProviderSaved.getKeyStoreType(), "Invalid keystore type.");
+        Assertions.assertEquals("/path/to/keystore.p12", clientRegistrationProviderSaved.getKeyStorePath(), "Invalid keystore path.");
+        Assertions.assertEquals(
+            "keystore-content-base64",
+            clientRegistrationProviderSaved.getKeyStoreContent(),
+            "Invalid keystore content."
+        );
+        Assertions.assertEquals("keystore-password", clientRegistrationProviderSaved.getKeyStorePassword(), "Invalid keystore password.");
+        Assertions.assertEquals("my-alias", clientRegistrationProviderSaved.getKeyStoreAlias(), "Invalid keystore alias.");
+        Assertions.assertEquals("key-password", clientRegistrationProviderSaved.getKeyPassword(), "Invalid key password.");
     }
 
     @Test
     public void shouldUpdate() throws Exception {
         Optional<ClientRegistrationProvider> optional = clientRegistrationProviderRepository.findById("oidc1");
-        Assert.assertTrue("Client registration provider to update not found", optional.isPresent());
-        Assert.assertEquals("Invalid saved client registration provider name.", "OIDC-1", optional.get().getName());
+        Assertions.assertTrue(optional.isPresent(), "Client registration provider to update not found");
+        Assertions.assertEquals("OIDC-1", optional.get().getName(), "Invalid saved client registration provider name.");
 
         final ClientRegistrationProvider identityProvider = optional.get();
         identityProvider.setName("OIDC-1");
@@ -235,85 +243,89 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractManagement
         clientRegistrationProviderRepository.update(identityProvider);
         int nbIdentityProvidersAfterUpdate = clientRegistrationProviderRepository.findAll().size();
 
-        Assert.assertEquals(nbIdentityProvidersBeforeUpdate, nbIdentityProvidersAfterUpdate);
+        Assertions.assertEquals(nbIdentityProvidersBeforeUpdate, nbIdentityProvidersAfterUpdate);
 
         Optional<ClientRegistrationProvider> optionalUpdated = clientRegistrationProviderRepository.findById("oidc1");
-        Assert.assertTrue("Client registration provider to update not found", optionalUpdated.isPresent());
+        Assertions.assertTrue(optionalUpdated.isPresent(), "Client registration provider to update not found");
 
         final ClientRegistrationProvider identityProviderUpdated = optionalUpdated.get();
-        Assert.assertEquals(
-            "Invalid saved client registration provider environmentId.",
+        Assertions.assertEquals(
             identityProvider.getEnvironmentId(),
-            identityProviderUpdated.getEnvironmentId()
+            identityProviderUpdated.getEnvironmentId(),
+            "Invalid saved client registration provider environmentId."
         );
-        Assert.assertEquals(
-            "Invalid saved client registration provider name.",
+        Assertions.assertEquals(
             identityProvider.getName(),
-            identityProviderUpdated.getName()
+            identityProviderUpdated.getName(),
+            "Invalid saved client registration provider name."
         );
-        Assert.assertEquals(
-            "Invalid client registration provider description.",
+        Assertions.assertEquals(
             identityProvider.getDescription(),
-            identityProviderUpdated.getDescription()
+            identityProviderUpdated.getDescription(),
+            "Invalid client registration provider description."
         );
-        Assert.assertTrue(
-            "Invalid client registration provider createdAt.",
-            compareDate(identityProvider.getCreatedAt(), identityProviderUpdated.getCreatedAt())
+        Assertions.assertTrue(
+            compareDate(identityProvider.getCreatedAt(), identityProviderUpdated.getCreatedAt()),
+            "Invalid client registration provider createdAt."
         );
-        Assert.assertTrue(
-            "Invalid client registration provider updatedAt.",
-            compareDate(identityProvider.getUpdatedAt(), identityProviderUpdated.getUpdatedAt())
+        Assertions.assertTrue(
+            compareDate(identityProvider.getUpdatedAt(), identityProviderUpdated.getUpdatedAt()),
+            "Invalid client registration provider updatedAt."
         );
 
         // Verify truststore fields are updated
-        Assert.assertEquals(
-            "Invalid updated truststore type.",
+        Assertions.assertEquals(
             identityProvider.getTrustStoreType(),
-            identityProviderUpdated.getTrustStoreType()
+            identityProviderUpdated.getTrustStoreType(),
+            "Invalid updated truststore type."
         );
-        Assert.assertEquals(
-            "Invalid updated truststore path.",
+        Assertions.assertEquals(
             identityProvider.getTrustStorePath(),
-            identityProviderUpdated.getTrustStorePath()
+            identityProviderUpdated.getTrustStorePath(),
+            "Invalid updated truststore path."
         );
-        Assert.assertEquals(
-            "Invalid updated truststore content.",
+        Assertions.assertEquals(
             identityProvider.getTrustStoreContent(),
-            identityProviderUpdated.getTrustStoreContent()
+            identityProviderUpdated.getTrustStoreContent(),
+            "Invalid updated truststore content."
         );
-        Assert.assertEquals(
-            "Invalid updated truststore password.",
+        Assertions.assertEquals(
             identityProvider.getTrustStorePassword(),
-            identityProviderUpdated.getTrustStorePassword()
+            identityProviderUpdated.getTrustStorePassword(),
+            "Invalid updated truststore password."
         );
 
         // Verify keystore fields are updated
-        Assert.assertEquals(
-            "Invalid updated keystore type.",
+        Assertions.assertEquals(
             identityProvider.getKeyStoreType(),
-            identityProviderUpdated.getKeyStoreType()
+            identityProviderUpdated.getKeyStoreType(),
+            "Invalid updated keystore type."
         );
-        Assert.assertEquals(
-            "Invalid updated keystore path.",
+        Assertions.assertEquals(
             identityProvider.getKeyStorePath(),
-            identityProviderUpdated.getKeyStorePath()
+            identityProviderUpdated.getKeyStorePath(),
+            "Invalid updated keystore path."
         );
-        Assert.assertEquals(
-            "Invalid updated keystore content.",
+        Assertions.assertEquals(
             identityProvider.getKeyStoreContent(),
-            identityProviderUpdated.getKeyStoreContent()
+            identityProviderUpdated.getKeyStoreContent(),
+            "Invalid updated keystore content."
         );
-        Assert.assertEquals(
-            "Invalid updated keystore password.",
+        Assertions.assertEquals(
             identityProvider.getKeyStorePassword(),
-            identityProviderUpdated.getKeyStorePassword()
+            identityProviderUpdated.getKeyStorePassword(),
+            "Invalid updated keystore password."
         );
-        Assert.assertEquals(
-            "Invalid updated keystore alias.",
+        Assertions.assertEquals(
             identityProvider.getKeyStoreAlias(),
-            identityProviderUpdated.getKeyStoreAlias()
+            identityProviderUpdated.getKeyStoreAlias(),
+            "Invalid updated keystore alias."
         );
-        Assert.assertEquals("Invalid updated key password.", identityProvider.getKeyPassword(), identityProviderUpdated.getKeyPassword());
+        Assertions.assertEquals(
+            identityProvider.getKeyPassword(),
+            identityProviderUpdated.getKeyPassword(),
+            "Invalid updated key password."
+        );
     }
 
     @Test
@@ -346,21 +358,21 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractManagement
         clientRegistrationProviderRepository.create(clientRegistrationProvider);
 
         Optional<ClientRegistrationProvider> optional = clientRegistrationProviderRepository.findById("new-dcr-null-ssl");
-        Assert.assertTrue("Client registration provider with null SSL saved not found", optional.isPresent());
+        Assertions.assertTrue(optional.isPresent(), "Client registration provider with null SSL saved not found");
 
         final ClientRegistrationProvider clientRegistrationProviderSaved = optional.get();
 
         // Verify that null values are preserved
-        Assert.assertNull("Truststore type should be null", clientRegistrationProviderSaved.getTrustStoreType());
-        Assert.assertNull("Truststore path should be null", clientRegistrationProviderSaved.getTrustStorePath());
-        Assert.assertNull("Truststore content should be null", clientRegistrationProviderSaved.getTrustStoreContent());
-        Assert.assertNull("Truststore password should be null", clientRegistrationProviderSaved.getTrustStorePassword());
-        Assert.assertNull("Keystore type should be null", clientRegistrationProviderSaved.getKeyStoreType());
-        Assert.assertNull("Keystore path should be null", clientRegistrationProviderSaved.getKeyStorePath());
-        Assert.assertNull("Keystore content should be null", clientRegistrationProviderSaved.getKeyStoreContent());
-        Assert.assertNull("Keystore password should be null", clientRegistrationProviderSaved.getKeyStorePassword());
-        Assert.assertNull("Keystore alias should be null", clientRegistrationProviderSaved.getKeyStoreAlias());
-        Assert.assertNull("Key password should be null", clientRegistrationProviderSaved.getKeyPassword());
+        Assertions.assertNull(clientRegistrationProviderSaved.getTrustStoreType(), "Truststore type should be null");
+        Assertions.assertNull(clientRegistrationProviderSaved.getTrustStorePath(), "Truststore path should be null");
+        Assertions.assertNull(clientRegistrationProviderSaved.getTrustStoreContent(), "Truststore content should be null");
+        Assertions.assertNull(clientRegistrationProviderSaved.getTrustStorePassword(), "Truststore password should be null");
+        Assertions.assertNull(clientRegistrationProviderSaved.getKeyStoreType(), "Keystore type should be null");
+        Assertions.assertNull(clientRegistrationProviderSaved.getKeyStorePath(), "Keystore path should be null");
+        Assertions.assertNull(clientRegistrationProviderSaved.getKeyStoreContent(), "Keystore content should be null");
+        Assertions.assertNull(clientRegistrationProviderSaved.getKeyStorePassword(), "Keystore password should be null");
+        Assertions.assertNull(clientRegistrationProviderSaved.getKeyStoreAlias(), "Keystore alias should be null");
+        Assertions.assertNull(clientRegistrationProviderSaved.getKeyPassword(), "Key password should be null");
     }
 
     @Test
@@ -369,21 +381,25 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractManagement
         clientRegistrationProviderRepository.delete("oidc3");
         int nbClientRegistrationProvidersAfterDeletion = clientRegistrationProviderRepository.findAll().size();
 
-        Assert.assertEquals(nbClientRegistrationProvidersBeforeDeletion - 1, nbClientRegistrationProvidersAfterDeletion);
+        Assertions.assertEquals(nbClientRegistrationProvidersBeforeDeletion - 1, nbClientRegistrationProvidersAfterDeletion);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownClientRegistrationProvider() throws Exception {
-        ClientRegistrationProvider unknownClientRegistrationProvider = new ClientRegistrationProvider();
-        unknownClientRegistrationProvider.setId("unknown");
-        clientRegistrationProviderRepository.update(unknownClientRegistrationProvider);
-        fail("An unknown client registration provider should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            ClientRegistrationProvider unknownClientRegistrationProvider = new ClientRegistrationProvider();
+            unknownClientRegistrationProvider.setId("unknown");
+            clientRegistrationProviderRepository.update(unknownClientRegistrationProvider);
+            fail("An unknown client registration provider should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        clientRegistrationProviderRepository.update(null);
-        fail("A null client registration provider should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            clientRegistrationProviderRepository.update(null);
+            fail("A null client registration provider should not be updated");
+        });
     }
 
     @Test

@@ -20,6 +20,7 @@ import static io.gravitee.rest.api.model.permissions.RoleScope.API;
 import static io.gravitee.rest.api.model.permissions.SystemRole.PRIMARY_OWNER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_API_OWNER;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -36,14 +37,17 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.*;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class NativeApiLogPermissionUpgraderTest {
 
     private static final String NATIVE_LOG = ApiPermission.NATIVE_LOG.getName();
@@ -193,24 +197,27 @@ public class NativeApiLogPermissionUpgraderTest {
         );
     }
 
-    @Test(expected = UpgraderException.class)
-    public void throws_UpgraderException_when_organization_repository_throws_RuntimeException()
-        throws TechnicalException, UpgraderException {
-        when(organizationRepository.findAll()).thenThrow(new RuntimeException("OrganizationRepository connection failure"));
-        upgrader.upgrade();
+    @Test
+    public void throws_UpgraderException_when_organization_repository_throws_RuntimeException() throws TechnicalException {
+        assertThrows(UpgraderException.class, () -> {
+            when(organizationRepository.findAll()).thenThrow(new RuntimeException("OrganizationRepository connection failure"));
+            upgrader.upgrade();
+        });
     }
 
-    @Test(expected = UpgraderException.class)
-    public void throws_UpgraderException_when_role_service_throws_RuntimeException() throws TechnicalException, UpgraderException {
-        String orgId = GraviteeContext.getDefaultOrganization();
-        mockOrganizations(orgId);
+    @Test
+    public void throws_UpgraderException_when_role_service_throws_RuntimeException() throws TechnicalException {
+        assertThrows(UpgraderException.class, () -> {
+            String orgId = GraviteeContext.getDefaultOrganization();
+            mockOrganizations(orgId);
 
-        when(roleService.findByScopeAndName(API, ROLE_API_OWNER.getName(), orgId)).thenReturn(Optional.of(restrictedRole(OWNER_ID)));
-        doThrow(new RuntimeException("RoleService update failure"))
-            .when(roleService)
-            .update(any(ExecutionContext.class), any(UpdateRoleEntity.class));
+            when(roleService.findByScopeAndName(API, ROLE_API_OWNER.getName(), orgId)).thenReturn(Optional.of(restrictedRole(OWNER_ID)));
+            doThrow(new RuntimeException("RoleService update failure"))
+                .when(roleService)
+                .update(any(ExecutionContext.class), any(UpdateRoleEntity.class));
 
-        upgrader.upgrade();
+            upgrader.upgrade();
+        });
     }
 
     private void mockOrganizations(String... ids) throws TechnicalException {

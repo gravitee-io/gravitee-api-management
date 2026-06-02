@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 

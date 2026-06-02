@@ -18,15 +18,15 @@ package io.gravitee.repository.management;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.management.model.Tag;
 import io.gravitee.repository.management.model.TagReferenceType;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TagRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -66,23 +66,23 @@ public class TagRepositoryTest extends AbstractManagementRepositoryTest {
         tagRepository.create(tag);
         int nbTagsAfterCreation = tagRepository.findByReference("DEFAULT", TagReferenceType.ORGANIZATION).size();
 
-        Assert.assertEquals(nbTagsBeforeCreation + 1, nbTagsAfterCreation);
+        Assertions.assertEquals(nbTagsBeforeCreation + 1, nbTagsAfterCreation);
 
         Optional<Tag> optional = tagRepository.findById(tag.getId());
-        Assert.assertTrue("Tag saved not found", optional.isPresent());
+        Assertions.assertTrue(optional.isPresent(), "Tag saved not found");
 
         final Tag tagSaved = optional.get();
-        Assert.assertEquals("Invalid saved tag name.", tag.getName(), tagSaved.getName());
-        Assert.assertEquals("Invalid saved tag key.", tag.getKey(), tagSaved.getKey());
-        Assert.assertEquals("Invalid tag description.", tag.getDescription(), tagSaved.getDescription());
-        Assert.assertEquals("Invalid tag groups.", tag.getRestrictedGroups(), tagSaved.getRestrictedGroups());
+        Assertions.assertEquals(tag.getName(), tagSaved.getName(), "Invalid saved tag name.");
+        Assertions.assertEquals(tag.getKey(), tagSaved.getKey(), "Invalid saved tag key.");
+        Assertions.assertEquals(tag.getDescription(), tagSaved.getDescription(), "Invalid tag description.");
+        Assertions.assertEquals(tag.getRestrictedGroups(), tagSaved.getRestrictedGroups(), "Invalid tag groups.");
     }
 
     @Test
     public void shouldUpdate() throws Exception {
         Optional<Tag> optional = tagRepository.findById("1d114170-466d-4952-9141-70466de95213");
-        Assert.assertTrue("Tag to update not found", optional.isPresent());
-        Assert.assertEquals("Invalid saved tag name.", "Products", optional.get().getName());
+        Assertions.assertTrue(optional.isPresent(), "Tag to update not found");
+        Assertions.assertEquals("Products", optional.get().getName(), "Invalid saved tag name.");
 
         final Tag tag = optional.get();
         tag.setName("New product");
@@ -93,15 +93,15 @@ public class TagRepositoryTest extends AbstractManagementRepositoryTest {
         tagRepository.update(tag);
         int nbTagsAfterUpdate = tagRepository.findByReference("DEFAULT", TagReferenceType.ORGANIZATION).size();
 
-        Assert.assertEquals(nbTagsBeforeUpdate, nbTagsAfterUpdate);
+        Assertions.assertEquals(nbTagsBeforeUpdate, nbTagsAfterUpdate);
 
         Optional<Tag> optionalUpdated = tagRepository.findById("1d114170-466d-4952-9141-70466de95213");
-        Assert.assertTrue("Tag to update not found", optionalUpdated.isPresent());
+        Assertions.assertTrue(optionalUpdated.isPresent(), "Tag to update not found");
 
         final Tag tagUpdated = optionalUpdated.get();
-        Assert.assertEquals("Invalid saved tag name.", "New product", tagUpdated.getName());
-        Assert.assertEquals("Invalid tag description.", "New description", tagUpdated.getDescription());
-        Assert.assertEquals("Invalid tag groups.", singletonList("group"), tagUpdated.getRestrictedGroups());
+        Assertions.assertEquals("New product", tagUpdated.getName(), "Invalid saved tag name.");
+        Assertions.assertEquals("New description", tagUpdated.getDescription(), "Invalid tag description.");
+        Assertions.assertEquals(singletonList("group"), tagUpdated.getRestrictedGroups(), "Invalid tag groups.");
     }
 
     @Test
@@ -110,21 +110,25 @@ public class TagRepositoryTest extends AbstractManagementRepositoryTest {
         tagRepository.delete("70237305-6f68-450e-a373-056f68750e50");
         int nbTagsAfterDeletion = tagRepository.findByReference("DEFAULT", TagReferenceType.ORGANIZATION).size();
 
-        Assert.assertEquals(nbTagsBeforeDeletion - 1, nbTagsAfterDeletion);
+        Assertions.assertEquals(nbTagsBeforeDeletion - 1, nbTagsAfterDeletion);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownTag() throws Exception {
-        Tag unknownTag = new Tag();
-        unknownTag.setId("unknown");
-        tagRepository.update(unknownTag);
-        fail("An unknown tag should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            Tag unknownTag = new Tag();
+            unknownTag.setId("unknown");
+            tagRepository.update(unknownTag);
+            fail("An unknown tag should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        tagRepository.update(null);
-        fail("A null tag should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            tagRepository.update(null);
+            fail("A null tag should not be updated");
+        });
     }
 
     @Test

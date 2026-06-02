@@ -23,9 +23,9 @@ import io.gravitee.gateway.policy.dummy.DummyPolicyWithConfig;
 import io.gravitee.gateway.policy.dummy.DummyReactivePolicy;
 import io.gravitee.gateway.policy.dummy.DummyReactivePolicyWithConfig;
 import io.gravitee.gateway.policy.impl.PolicyPluginFactoryImpl;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -35,7 +35,7 @@ public class PolicyPluginFactoryTest {
 
     private PolicyPluginFactory policyFactory;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         policyFactory = new PolicyPluginFactoryImpl();
     }
@@ -44,41 +44,41 @@ public class PolicyPluginFactoryTest {
     public void createPolicyWithConfigurationAndWithoutConfigurationData() {
         Object policy = policyFactory.create(DummyPolicyWithConfig.class, null);
 
-        Assert.assertNotNull(policy);
+        Assertions.assertNotNull(policy);
     }
 
     @Test
     public void createPolicyWithConfigurationAndWithConfigurationData() {
         Object policy = policyFactory.create(DummyPolicyWithConfig.class, mock(DummyPolicyConfiguration.class));
 
-        Assert.assertNotNull(policy);
+        Assertions.assertNotNull(policy);
     }
 
     @Test
     public void createPolicyWithoutConfigurationAndWithoutConfigurationData() {
         Object policy = policyFactory.create(DummyPolicy.class, null);
 
-        Assert.assertNotNull(policy);
+        Assertions.assertNotNull(policy);
     }
 
     @Test
     public void createReactivePolicyWithConfigurationAndWithoutConfigurationData() {
         Object policy = policyFactory.create(DummyReactivePolicyWithConfig.class, null);
 
-        Assert.assertNotNull(policy);
+        Assertions.assertNotNull(policy);
     }
 
     @Test
     public void createReactivePolicyWithConfigurationAndWithConfigurationData() {
         Object policy = policyFactory.create(DummyReactivePolicyWithConfig.class, mock(DummyPolicyConfiguration.class));
 
-        Assert.assertNotNull(policy);
+        Assertions.assertNotNull(policy);
     }
 
     @Test
     public void createReactivePolicyWithoutConfigurationAndWithoutConfigurationData() {
         Object policy = policyFactory.create(DummyReactivePolicy.class, null);
 
-        Assert.assertNotNull(policy);
+        Assertions.assertNotNull(policy);
     }
 }

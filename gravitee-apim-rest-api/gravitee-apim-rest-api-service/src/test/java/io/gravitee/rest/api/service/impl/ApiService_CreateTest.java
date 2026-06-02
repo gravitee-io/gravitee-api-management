@@ -17,8 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Api.AuditEvent.API_CREATED;
 import static io.gravitee.rest.api.service.V4EmulationEngineService.DefaultMode.YES;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -79,15 +78,17 @@ import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -95,7 +96,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiService_CreateTest {
 
     private static final String API_ID = "id-api";
@@ -186,7 +188,7 @@ public class ApiService_CreateTest {
     @Mock
     private AnalyticsValidationService loggingValidationService;
 
-    @AfterClass
+    @AfterAll
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
         SecurityContextHolder.setContext(
@@ -202,7 +204,7 @@ public class ApiService_CreateTest {
         );
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         //        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), any(Reader.class), any()))
         //            .thenReturn("toDecode=decoded-value");
@@ -242,29 +244,33 @@ public class ApiService_CreateTest {
         verify(alertService, times(1)).createDefaults(GraviteeContext.getExecutionContext(), AlertReferenceType.API, API_ID);
     }
 
-    @Test(expected = ApiAlreadyExistsException.class)
+    @Test
     public void shouldNotCreateForUserBecauseExists() throws TechnicalException {
-        // FIXME Should be remove. This test doesn't make any sense because there is no id given when creating an api
-        // this is because we mock every id when calling findById that an error is thrown...
-        when(apiRepository.findById(anyString())).thenReturn(Optional.of(api));
-        when(newApi.getName()).thenReturn(API_NAME);
+        assertThrows(ApiAlreadyExistsException.class, () -> {
+            // FIXME Should be remove. This test doesn't make any sense because there is no id given when creating an api
+            // this is because we mock every id when calling findById that an error is thrown...
+            when(apiRepository.findById(anyString())).thenReturn(Optional.of(api));
+            when(newApi.getName()).thenReturn(API_NAME);
 
-        when(newApi.getVersion()).thenReturn("v1");
-        when(newApi.getDescription()).thenReturn("Ma description");
+            when(newApi.getVersion()).thenReturn("v1");
+            when(newApi.getDescription()).thenReturn("Ma description");
 
-        apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
+            apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
+        });
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotCreateForUserBecauseTechnicalException() throws TechnicalException {
-        when(apiRepository.findById(anyString())).thenThrow(TechnicalException.class);
-        when(newApi.getName()).thenReturn(API_NAME);
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(apiRepository.findById(anyString())).thenThrow(TechnicalException.class);
+            when(newApi.getName()).thenReturn(API_NAME);
 
-        when(newApi.getVersion()).thenReturn("v1");
-        when(newApi.getDescription()).thenReturn("Ma description");
-        //        when(userService.findByUsername(USER_NAME, false)).thenReturn(new UserEntity());
+            when(newApi.getVersion()).thenReturn("v1");
+            when(newApi.getDescription()).thenReturn("Ma description");
+            //        when(userService.findByUsername(USER_NAME, false)).thenReturn(new UserEntity());
 
-        apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
+            apiService.create(GraviteeContext.getExecutionContext(), newApi, USER_NAME);
+        });
     }
 
     @Test

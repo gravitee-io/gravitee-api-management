@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -46,15 +47,17 @@ import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
-import junit.framework.TestCase;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
-public class GroupService_AssociateTest extends TestCase {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
+public class GroupService_AssociateTest {
 
     private static final String GROUP_ID = "my-group-id";
 
@@ -91,10 +94,12 @@ public class GroupService_AssociateTest extends TestCase {
     @Mock
     private ApiTemplateService apiTemplateService;
 
-    @Test(expected = GroupNotFoundException.class)
+    @Test
     public void shouldThrowGroupNotFoundException() throws TechnicalException {
-        when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.empty());
-        groupService.findById(null, GROUP_ID);
+        assertThrows(GroupNotFoundException.class, () -> {
+            when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.empty());
+            groupService.findById(null, GROUP_ID);
+        });
     }
 
     @Test

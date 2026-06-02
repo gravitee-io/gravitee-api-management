@@ -24,9 +24,9 @@ import io.gravitee.repository.management.model.PortalPageContextType;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Test;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team

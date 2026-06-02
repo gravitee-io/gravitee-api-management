@@ -37,17 +37,20 @@ import io.gravitee.rest.api.service.v4.validation.GroupValidationService;
 import java.util.List;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class GroupValidationServiceImplTest {
 
     public static final String PO_MAIL = "primary-owner@mail.fr";
@@ -60,7 +63,7 @@ public class GroupValidationServiceImplTest {
 
     private GroupValidationService groupValidationService;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         groupValidationService = new GroupValidationServiceImpl(groupService, membershipService);
     }

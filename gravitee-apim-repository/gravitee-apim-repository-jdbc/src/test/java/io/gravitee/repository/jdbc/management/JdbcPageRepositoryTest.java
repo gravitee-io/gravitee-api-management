@@ -22,7 +22,7 @@ import static org.mockito.Mockito.verify;
 import java.lang.reflect.Field;
 import java.util.List;
 import lombok.SneakyThrows;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 public class JdbcPageRepositoryTest {

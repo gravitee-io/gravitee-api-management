@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service;
 
 import static io.gravitee.repository.management.model.Application.METADATA_REGISTRATION_PAYLOAD;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -40,16 +41,19 @@ import io.gravitee.rest.api.service.exceptions.ApplicationRenewClientSecretExcep
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import java.util.*;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApplicationService_RenewClientSecretTest {
 
     private static final String APP = "my-app";
@@ -82,62 +86,70 @@ public class ApplicationService_RenewClientSecretTest {
     @Mock
     private RoleService roleService;
 
-    @Test(expected = ApplicationNotFoundException.class)
+    @Test
     public void should_throw_exception_cause_application_not_exists() throws TechnicalException {
-        when(applicationRepository.findById(APP)).thenReturn(Optional.empty());
+        assertThrows(ApplicationNotFoundException.class, () -> {
+            when(applicationRepository.findById(APP)).thenReturn(Optional.empty());
 
-        applicationService.renewClientSecret(GraviteeContext.getExecutionContext(), APP);
+            applicationService.renewClientSecret(GraviteeContext.getExecutionContext(), APP);
+        });
     }
 
-    @Test(expected = ApplicationArchivedException.class)
+    @Test
     public void should_throw_exception_cause_application_archived() throws TechnicalException {
-        Application app = fakeApp();
-        app.setStatus(ApplicationStatus.ARCHIVED);
+        assertThrows(ApplicationArchivedException.class, () -> {
+            Application app = fakeApp();
+            app.setStatus(ApplicationStatus.ARCHIVED);
 
-        when(applicationRepository.findById(APP)).thenReturn(Optional.of(app));
+            when(applicationRepository.findById(APP)).thenReturn(Optional.of(app));
 
-        applicationService.renewClientSecret(GraviteeContext.getExecutionContext(), APP);
+            applicationService.renewClientSecret(GraviteeContext.getExecutionContext(), APP);
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void should_throw_exception_cause_client_registration_disabled() throws TechnicalException {
-        Application app = fakeApp();
-        app.setStatus(ApplicationStatus.ACTIVE);
+        assertThrows(IllegalStateException.class, () -> {
+            Application app = fakeApp();
+            app.setStatus(ApplicationStatus.ACTIVE);
 
-        when(applicationRepository.findById(APP)).thenReturn(Optional.of(app));
+            when(applicationRepository.findById(APP)).thenReturn(Optional.of(app));
 
-        // client registration is disabled
-        when(
-            parameterService.findAsBoolean(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Key.APPLICATION_REGISTRATION_ENABLED),
-                any(),
-                eq(ParameterReferenceType.ENVIRONMENT)
-            )
-        ).thenReturn(false);
+            // client registration is disabled
+            when(
+                parameterService.findAsBoolean(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(Key.APPLICATION_REGISTRATION_ENABLED),
+                    any(),
+                    eq(ParameterReferenceType.ENVIRONMENT)
+                )
+            ).thenReturn(false);
 
-        applicationService.renewClientSecret(GraviteeContext.getExecutionContext(), APP);
+            applicationService.renewClientSecret(GraviteeContext.getExecutionContext(), APP);
+        });
     }
 
-    @Test(expected = ApplicationRenewClientSecretException.class)
+    @Test
     public void should_throw_exception_cause_no_auth_setting() throws TechnicalException {
-        Application app = fakeApp();
-        app.setStatus(ApplicationStatus.ACTIVE);
-        app.setMetadata(Map.of(METADATA_REGISTRATION_PAYLOAD, "{\"my\":\"payload\"}"));
+        assertThrows(ApplicationRenewClientSecretException.class, () -> {
+            Application app = fakeApp();
+            app.setStatus(ApplicationStatus.ACTIVE);
+            app.setMetadata(Map.of(METADATA_REGISTRATION_PAYLOAD, "{\"my\":\"payload\"}"));
 
-        when(applicationRepository.findById(APP)).thenReturn(Optional.of(app));
+            when(applicationRepository.findById(APP)).thenReturn(Optional.of(app));
 
-        // client registration is enabled
-        when(
-            parameterService.findAsBoolean(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(Key.APPLICATION_REGISTRATION_ENABLED),
-                any(),
-                eq(ParameterReferenceType.ENVIRONMENT)
-            )
-        ).thenReturn(true);
+            // client registration is enabled
+            when(
+                parameterService.findAsBoolean(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(Key.APPLICATION_REGISTRATION_ENABLED),
+                    any(),
+                    eq(ParameterReferenceType.ENVIRONMENT)
+                )
+            ).thenReturn(true);
 
-        applicationService.renewClientSecret(GraviteeContext.getExecutionContext(), APP);
+            applicationService.renewClientSecret(GraviteeContext.getExecutionContext(), APP);
+        });
     }
 
     @Test

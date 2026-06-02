@@ -17,7 +17,7 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static io.gravitee.common.http.HttpStatusCode.SERVICE_UNAVAILABLE_503;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -68,7 +68,7 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
 
         final Response response = orgTarget().request().post(Entity.json(config));
 
-        assertEquals(response.readEntity(String.class), OK_200, response.getStatus());
+        assertEquals(OK_200, response.getStatus(), response.readEntity(String.class));
         verify(configService).save(eq(executionContext), any(ConsoleSettingsEntity.class));
     }
 
@@ -94,7 +94,7 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
 
         final Response response = orgTarget().request().post(Entity.json(config));
 
-        assertEquals(response.readEntity(String.class), OK_200, response.getStatus());
+        assertEquals(OK_200, response.getStatus(), response.readEntity(String.class));
         verify(configService).save(eq(executionContext), any(ConsoleSettingsEntity.class));
     }
 
@@ -116,7 +116,7 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
 
         final Response response = orgTarget().request().post(Entity.json(config));
 
-        assertEquals(response.readEntity(String.class), SERVICE_UNAVAILABLE_503, response.getStatus());
+        assertEquals(SERVICE_UNAVAILABLE_503, response.getStatus(), response.readEntity(String.class));
         verify(configService, never()).save(eq(GraviteeContext.getExecutionContext()), any(ConsoleSettingsEntity.class));
     }
 
@@ -135,7 +135,7 @@ public class ConsoleSettingsResourceTest extends AbstractResourceTest {
 
         final Response response = orgTarget().request().post(Entity.json(config));
 
-        assertEquals(response.readEntity(String.class), SERVICE_UNAVAILABLE_503, response.getStatus());
+        assertEquals(SERVICE_UNAVAILABLE_503, response.getStatus(), response.readEntity(String.class));
         verify(configService, never()).save(eq(GraviteeContext.getExecutionContext()), any(ConsoleSettingsEntity.class));
     }
 }

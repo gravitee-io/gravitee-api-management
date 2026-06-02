@@ -21,9 +21,9 @@ import io.gravitee.repository.management.api.search.PortalNavigationItemCriteria
 import io.gravitee.repository.management.model.PortalNavigationItem;
 import java.util.List;
 import java.util.Set;
-import org.junit.Test;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class PortalNavigationItemRepositoryTest extends AbstractManagementRepositoryTest {

@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.portal.rest.model.Category;
@@ -24,16 +24,19 @@ import io.gravitee.rest.api.portal.rest.model.CategoryLinks;
 import jakarta.ws.rs.core.UriBuilder;
 import java.time.Instant;
 import java.util.Date;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class CategoryMapperTest {
 
     private static final String CATEGORY_DESCRIPTION = "my-category-description";

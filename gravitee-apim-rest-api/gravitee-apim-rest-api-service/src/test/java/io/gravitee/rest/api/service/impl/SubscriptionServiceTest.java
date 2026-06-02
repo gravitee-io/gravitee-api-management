@@ -29,11 +29,7 @@ import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyMap;
@@ -156,16 +152,18 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.assertj.core.api.Assertions;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -178,7 +176,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class SubscriptionServiceTest {
 
     private static final String SUBSCRIPTION_ID = "my-subscription";
@@ -281,7 +280,7 @@ public class SubscriptionServiceTest {
     @Mock
     private MembershipService membershipService;
 
-    @AfterClass
+    @AfterAll
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
         SecurityContextHolder.setContext(
@@ -298,7 +297,7 @@ public class SubscriptionServiceTest {
         GraviteeContext.cleanContext();
     }
 
-    @Before
+    @BeforeEach
     public void before() {
         planEntity = new PlanEntity();
         planEntity.setId(PLAN_ID);
@@ -335,18 +334,22 @@ public class SubscriptionServiceTest {
         assertNotNull(subscriptionEntity);
     }
 
-    @Test(expected = SubscriptionNotFoundException.class)
+    @Test
     public void shouldNotFindByIdBecauseNotExists() throws TechnicalException {
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.empty());
+        assertThrows(SubscriptionNotFoundException.class, () -> {
+            when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.empty());
 
-        subscriptionService.findById(SUBSCRIPTION_ID);
+            subscriptionService.findById(SUBSCRIPTION_ID);
+        });
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotFindByIdBecauseTechnicalException() throws TechnicalException {
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenThrow(TechnicalException.class);
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenThrow(TechnicalException.class);
 
-        subscriptionService.findById(SUBSCRIPTION_ID);
+            subscriptionService.findById(SUBSCRIPTION_ID);
+        });
     }
 
     @Test
@@ -408,11 +411,13 @@ public class SubscriptionServiceTest {
         assertEquals(2, subscriptions.size());
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotFindByApplicationBecauseTechnicalException() throws TechnicalException {
-        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenThrow(TechnicalException.class);
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenThrow(TechnicalException.class);
 
-        subscriptionService.findByApplicationAndPlan(GraviteeContext.getExecutionContext(), APPLICATION_ID, null);
+            subscriptionService.findByApplicationAndPlan(GraviteeContext.getExecutionContext(), APPLICATION_ID, null);
+        });
     }
 
     @Test
@@ -434,116 +439,137 @@ public class SubscriptionServiceTest {
         assertEquals(2, subscriptions.size());
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotFindByPlanBecauseTechnicalException() throws TechnicalException {
-        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenThrow(TechnicalException.class);
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenThrow(TechnicalException.class);
 
-        subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID);
+            subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID);
+        });
     }
 
-    @Test(expected = PlanNotYetPublishedException.class)
+    @Test
     public void shouldNotCreateBecausePlanNotPublished() {
-        // Stub
-        planEntity.setStatus(PlanStatus.STAGING);
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        assertThrows(PlanNotYetPublishedException.class, () -> {
+            // Stub
+            planEntity.setStatus(PlanStatus.STAGING);
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
 
-        // Run
-        subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+            // Run
+            subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+        });
     }
 
-    @Test(expected = PlanAlreadyClosedException.class)
+    @Test
     public void shouldNotCreateBecausePlanAlreadyClosed() {
-        // Stub
-        planEntity.setStatus(PlanStatus.CLOSED);
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        assertThrows(PlanAlreadyClosedException.class, () -> {
+            // Stub
+            planEntity.setStatus(PlanStatus.CLOSED);
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
 
-        // Run
-        subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+            // Run
+            subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+        });
     }
 
-    @Test(expected = PlanNotSubscribableException.class)
+    @Test
     public void shouldNotCreateBecausePlanAlreadyDeprecated() {
-        // Stub
-        planEntity.setStatus(PlanStatus.DEPRECATED);
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        assertThrows(PlanNotSubscribableException.class, () -> {
+            // Stub
+            planEntity.setStatus(PlanStatus.DEPRECATED);
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
 
-        // Run
-        subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+            // Run
+            subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+        });
     }
 
-    @Test(expected = PlanNotSubscribableException.class)
+    @Test
     public void shouldNotCreateBecausePlanKeyless() {
-        // Stub
-        planEntity.setSecurity(PlanSecurityType.KEY_LESS);
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+        assertThrows(PlanNotSubscribableException.class, () -> {
+            // Stub
+            planEntity.setSecurity(PlanSecurityType.KEY_LESS);
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
 
-        // Run
-        subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+            // Run
+            subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+        });
     }
 
-    @Test(expected = PlanNotSubscribableWithSharedApiKeyException.class)
+    @Test
     public void shouldNotCreateBecauseSharedModeAndExistingApiKeyPlanSubscription() throws Exception {
-        final String existingApiKeyPlanId = "existing-api-key-plan";
+        assertThrows(PlanNotSubscribableWithSharedApiKeyException.class, () -> {
+            final String existingApiKeyPlanId = "existing-api-key-plan";
 
-        planEntity.setSecurity(PlanSecurityType.API_KEY);
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+            planEntity.setSecurity(PlanSecurityType.API_KEY);
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
 
-        application.setApiKeyMode(ApiKeyMode.SHARED);
-        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
+            application.setApiKeyMode(ApiKeyMode.SHARED);
+            when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
 
-        PlanEntity existingApiKeyPlan = new PlanEntity();
-        existingApiKeyPlan.setId(existingApiKeyPlanId);
-        existingApiKeyPlan.setSecurity(PlanSecurityType.API_KEY);
-        existingApiKeyPlan.setReferenceId(API_ID);
-        existingApiKeyPlan.setReferenceType(GenericPlanEntity.ReferenceType.API);
+            PlanEntity existingApiKeyPlan = new PlanEntity();
+            existingApiKeyPlan.setId(existingApiKeyPlanId);
+            existingApiKeyPlan.setSecurity(PlanSecurityType.API_KEY);
+            existingApiKeyPlan.setReferenceId(API_ID);
+            existingApiKeyPlan.setReferenceType(GenericPlanEntity.ReferenceType.API);
 
-        Subscription existingSubscription = buildTestSubscription("sub-1", API_ID, ACCEPTED, existingApiKeyPlanId, APPLICATION_ID, null);
+            Subscription existingSubscription = buildTestSubscription(
+                "sub-1",
+                API_ID,
+                ACCEPTED,
+                existingApiKeyPlanId,
+                APPLICATION_ID,
+                null
+            );
 
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), existingApiKeyPlanId)).thenReturn(existingApiKeyPlan);
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), existingApiKeyPlanId)).thenReturn(existingApiKeyPlan);
 
-        when(
-            subscriptionRepository.search(
-                SubscriptionCriteria.builder()
-                    .referenceIds(Set.of(API_ID))
-                    .referenceType(SubscriptionReferenceType.API)
-                    .applications(Set.of(APPLICATION_ID))
-                    .build()
-            )
-        ).thenReturn(List.of(existingSubscription));
-        // Run
-        subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+            when(
+                subscriptionRepository.search(
+                    SubscriptionCriteria.builder()
+                        .referenceIds(Set.of(API_ID))
+                        .referenceType(SubscriptionReferenceType.API)
+                        .applications(Set.of(APPLICATION_ID))
+                        .build()
+                )
+            ).thenReturn(List.of(existingSubscription));
+            // Run
+            subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+        });
     }
 
-    @Test(expected = PlanMtlsAlreadySubscribedException.class)
+    @Test
     public void shouldNotCreateBecauseExistingMtlsPlanSubscription() throws Exception {
-        final String existingMtlsPlanId = "existing-mtls-plan";
+        assertThrows(PlanMtlsAlreadySubscribedException.class, () -> {
+            final String existingMtlsPlanId = "existing-mtls-plan";
 
-        planEntity.setSecurity(PlanSecurityType.MTLS);
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+            planEntity.setSecurity(PlanSecurityType.MTLS);
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
 
-        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
+            when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
 
-        PlanEntity existingApiKeyPlan = new PlanEntity();
-        existingApiKeyPlan.setId(existingMtlsPlanId);
-        existingApiKeyPlan.setSecurity(PlanSecurityType.MTLS);
-        existingApiKeyPlan.setReferenceId(API_ID);
-        existingApiKeyPlan.setReferenceType(GenericPlanEntity.ReferenceType.API);
+            PlanEntity existingApiKeyPlan = new PlanEntity();
+            existingApiKeyPlan.setId(existingMtlsPlanId);
+            existingApiKeyPlan.setSecurity(PlanSecurityType.MTLS);
+            existingApiKeyPlan.setReferenceId(API_ID);
+            existingApiKeyPlan.setReferenceType(GenericPlanEntity.ReferenceType.API);
 
-        Subscription existingSubscription = buildTestSubscription("sub-1", API_ID, ACCEPTED, existingMtlsPlanId, APPLICATION_ID, null);
+            Subscription existingSubscription = buildTestSubscription("sub-1", API_ID, ACCEPTED, existingMtlsPlanId, APPLICATION_ID, null);
 
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), existingMtlsPlanId)).thenReturn(existingApiKeyPlan);
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), existingMtlsPlanId)).thenReturn(existingApiKeyPlan);
 
-        when(
-            subscriptionRepository.search(
-                SubscriptionCriteria.builder()
-                    .referenceIds(Set.of(API_ID))
-                    .referenceType(SubscriptionReferenceType.API)
-                    .applications(Set.of(APPLICATION_ID))
-                    .build()
-            )
-        ).thenReturn(List.of(existingSubscription));
-        // Run
-        subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+            when(
+                subscriptionRepository.search(
+                    SubscriptionCriteria.builder()
+                        .referenceIds(Set.of(API_ID))
+                        .referenceType(SubscriptionReferenceType.API)
+                        .applications(Set.of(APPLICATION_ID))
+                        .build()
+                )
+            ).thenReturn(List.of(existingSubscription));
+            // Run
+            subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+        });
     }
 
     @Test
@@ -1128,59 +1154,65 @@ public class SubscriptionServiceTest {
         );
     }
 
-    @Test(expected = PlanGeneralConditionRevisionException.class)
+    @Test
     public void shouldNotCreateWithoutProcess_AcceptedOutdatedGCU() {
-        // Prepare data
-        planEntity.setGeneralConditions(PAGE_ID);
-        PageEntity.PageRevisionId pageRevisionId = new PageEntity.PageRevisionId(PAGE_ID, 2);
-        when(generalConditionPage.getContentRevisionId()).thenReturn(pageRevisionId);
+        assertThrows(PlanGeneralConditionRevisionException.class, () -> {
+            // Prepare data
+            planEntity.setGeneralConditions(PAGE_ID);
+            PageEntity.PageRevisionId pageRevisionId = new PageEntity.PageRevisionId(PAGE_ID, 2);
+            when(generalConditionPage.getContentRevisionId()).thenReturn(pageRevisionId);
 
-        // Stub
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
-        when(pageService.findById(PAGE_ID)).thenReturn(generalConditionPage);
+            // Stub
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+            when(pageService.findById(PAGE_ID)).thenReturn(generalConditionPage);
 
-        SecurityContextHolder.setContext(generateSecurityContext());
+            SecurityContextHolder.setContext(generateSecurityContext());
 
-        // Run
-        final NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID);
-        newSubscriptionEntity.setGeneralConditionsContentRevision(new PageEntity.PageRevisionId(PAGE_ID, 1));
-        newSubscriptionEntity.setGeneralConditionsAccepted(true);
-        subscriptionService.create(GraviteeContext.getExecutionContext(), newSubscriptionEntity);
+            // Run
+            final NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID);
+            newSubscriptionEntity.setGeneralConditionsContentRevision(new PageEntity.PageRevisionId(PAGE_ID, 1));
+            newSubscriptionEntity.setGeneralConditionsAccepted(true);
+            subscriptionService.create(GraviteeContext.getExecutionContext(), newSubscriptionEntity);
+        });
     }
 
-    @Test(expected = PlanGeneralConditionAcceptedException.class)
+    @Test
     public void shouldNotCreateWithoutProcess_NotAcceptedGCU() {
-        // Prepare data
-        planEntity.setGeneralConditions(PAGE_ID);
+        assertThrows(PlanGeneralConditionAcceptedException.class, () -> {
+            // Prepare data
+            planEntity.setGeneralConditions(PAGE_ID);
 
-        // Stub
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+            // Stub
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
 
-        SecurityContextHolder.setContext(generateSecurityContext());
+            SecurityContextHolder.setContext(generateSecurityContext());
 
-        // Run
-        final NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID);
-        newSubscriptionEntity.setGeneralConditionsContentRevision(
-            new PageEntity.PageRevisionId(planEntity.getGeneralConditions() + "-1", 2)
-        );
-        newSubscriptionEntity.setGeneralConditionsAccepted(false);
-        subscriptionService.create(GraviteeContext.getExecutionContext(), newSubscriptionEntity);
+            // Run
+            final NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID);
+            newSubscriptionEntity.setGeneralConditionsContentRevision(
+                new PageEntity.PageRevisionId(planEntity.getGeneralConditions() + "-1", 2)
+            );
+            newSubscriptionEntity.setGeneralConditionsAccepted(false);
+            subscriptionService.create(GraviteeContext.getExecutionContext(), newSubscriptionEntity);
+        });
     }
 
-    @Test(expected = PlanGeneralConditionAcceptedException.class)
+    @Test
     public void shouldNotCreateWithoutProcess_AcceptedGCU_WithoutGCUContent() {
-        // Prepare data
-        planEntity.setGeneralConditions(PAGE_ID);
-        SecurityContextHolder.setContext(generateSecurityContext());
+        assertThrows(PlanGeneralConditionAcceptedException.class, () -> {
+            // Prepare data
+            planEntity.setGeneralConditions(PAGE_ID);
+            SecurityContextHolder.setContext(generateSecurityContext());
 
-        // Stub
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+            // Stub
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
 
-        // Run
-        final NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID);
-        newSubscriptionEntity.setGeneralConditionsContentRevision(null);
-        newSubscriptionEntity.setGeneralConditionsAccepted(true);
-        subscriptionService.create(GraviteeContext.getExecutionContext(), newSubscriptionEntity);
+            // Run
+            final NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID);
+            newSubscriptionEntity.setGeneralConditionsContentRevision(null);
+            newSubscriptionEntity.setGeneralConditionsAccepted(true);
+            subscriptionService.create(GraviteeContext.getExecutionContext(), newSubscriptionEntity);
+        });
     }
 
     @Test
@@ -1274,44 +1306,50 @@ public class SubscriptionServiceTest {
         };
     }
 
-    @Test(expected = PlanNotSubscribableException.class)
+    @Test
     public void shouldNotSubscribe_applicationWithoutClientId() {
-        // Prepare data
-        planEntity.setSecurity(PlanSecurityType.OAUTH2);
+        assertThrows(PlanNotSubscribableException.class, () -> {
+            // Prepare data
+            planEntity.setSecurity(PlanSecurityType.OAUTH2);
 
-        SecurityContextHolder.setContext(generateSecurityContext());
+            SecurityContextHolder.setContext(generateSecurityContext());
 
-        // Stub
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+            // Stub
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+            when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
 
-        // Run
-        subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+            // Run
+            subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+        });
     }
 
-    @Test(expected = SubscriptionNotFoundException.class)
+    @Test
     public void shouldNotUpdateSubscriptionBecauseDoesNoExist() throws Exception {
-        UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
-        updatedSubscription.setId(SUBSCRIPTION_ID);
+        assertThrows(SubscriptionNotFoundException.class, () -> {
+            UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
+            updatedSubscription.setId(SUBSCRIPTION_ID);
 
-        // Stub
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.empty());
+            // Stub
+            when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.empty());
 
-        subscriptionService.update(GraviteeContext.getExecutionContext(), updatedSubscription);
+            subscriptionService.update(GraviteeContext.getExecutionContext(), updatedSubscription);
+        });
     }
 
-    @Test(expected = SubscriptionNotUpdatableException.class)
+    @Test
     public void shouldNotUpdateSubscriptionBecauseBadStatus() throws Exception {
-        UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
-        updatedSubscription.setId(SUBSCRIPTION_ID);
+        assertThrows(SubscriptionNotUpdatableException.class, () -> {
+            UpdateSubscriptionEntity updatedSubscription = new UpdateSubscriptionEntity();
+            updatedSubscription.setId(SUBSCRIPTION_ID);
 
-        Subscription subscription = buildTestSubscription(REJECTED);
+            Subscription subscription = buildTestSubscription(REJECTED);
 
-        // Stub
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+            // Stub
+            when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
 
-        // Run
-        subscriptionService.update(GraviteeContext.getExecutionContext(), updatedSubscription);
+            // Run
+            subscriptionService.update(GraviteeContext.getExecutionContext(), updatedSubscription);
+        });
     }
 
     @Test
@@ -1531,12 +1569,14 @@ public class SubscriptionServiceTest {
             .hasMessage("Subscription [" + SUBSCRIPTION_ID + "] is in failure state: " + failureCause);
     }
 
-    @Test(expected = SubscriptionNotFoundException.class)
+    @Test
     public void shouldNotPauseSubscriptionBecauseDoesNoExist() throws Exception {
-        // Stub
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.empty());
+        assertThrows(SubscriptionNotFoundException.class, () -> {
+            // Stub
+            when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.empty());
 
-        subscriptionService.pause(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+            subscriptionService.pause(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+        });
     }
 
     @Test
@@ -1647,38 +1687,44 @@ public class SubscriptionServiceTest {
         assertThat(subscriptionEntity.getProcessedBy()).isEqualTo(USER_ID);
     }
 
-    @Test(expected = PlanNotSubscribableException.class)
+    @Test
     public void shouldNotCreateBecauseNoClientId_oauth2() {
-        // Stub
-        planEntity.setSecurity(PlanSecurityType.OAUTH2);
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        assertThrows(PlanNotSubscribableException.class, () -> {
+            // Stub
+            planEntity.setSecurity(PlanSecurityType.OAUTH2);
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+            when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
 
-        // Run
-        subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+            // Run
+            subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+        });
     }
 
-    @Test(expected = PlanNotSubscribableException.class)
+    @Test
     public void shouldNotCreateBecauseNoClientId_jwt() {
-        // Stub
-        planEntity.setSecurity(PlanSecurityType.OAUTH2);
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+        assertThrows(PlanNotSubscribableException.class, () -> {
+            // Stub
+            planEntity.setSecurity(PlanSecurityType.OAUTH2);
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+            when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
 
-        // Run
-        subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+            // Run
+            subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+        });
     }
 
-    @Test(expected = PlanNotSubscribableException.class)
+    @Test
     public void shouldNotCreateBecauseExistingSubscription_oauth2() {
-        planEntity.setSecurity(PlanSecurityType.OAUTH2);
-        planEntity.setStatus(PlanStatus.PUBLISHED);
+        assertThrows(PlanNotSubscribableException.class, () -> {
+            planEntity.setSecurity(PlanSecurityType.OAUTH2);
+            planEntity.setStatus(PlanStatus.PUBLISHED);
 
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+            when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
 
-        // Run
-        subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+            // Run
+            subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+        });
     }
 
     @Test
@@ -1869,141 +1915,155 @@ public class SubscriptionServiceTest {
         assertThat(apiKey.getUpdatedAt()).isNotNull();
     }
 
-    @Test(expected = TransferNotAllowedException.class)
+    @Test
     public void shouldNotTransferSubscription_onPlanWithGeneralConditions() throws Exception {
-        final TransferSubscriptionEntity transferSubscription = new TransferSubscriptionEntity();
-        transferSubscription.setId(SUBSCRIPTION_ID);
-        transferSubscription.setPlan(PLAN_ID);
+        assertThrows(TransferNotAllowedException.class, () -> {
+            final TransferSubscriptionEntity transferSubscription = new TransferSubscriptionEntity();
+            transferSubscription.setId(SUBSCRIPTION_ID);
+            transferSubscription.setPlan(PLAN_ID);
 
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        when(subscription.getPlan()).thenReturn(PLAN_ID);
-        planEntity.setStatus(PlanStatus.PUBLISHED);
-        planEntity.setSecurity(PlanSecurityType.API_KEY);
-        planEntity.setGeneralConditions("general-conditions-page-id");
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+            when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+            when(subscription.getPlan()).thenReturn(PLAN_ID);
+            planEntity.setStatus(PlanStatus.PUBLISHED);
+            planEntity.setSecurity(PlanSecurityType.API_KEY);
+            planEntity.setGeneralConditions("general-conditions-page-id");
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
 
-        subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
+            subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
+        });
     }
 
-    @Test(expected = TransferNotAllowedException.class)
+    @Test
     public void shouldNotTransferSubscription_onPlanAttachedToAnotherApi() throws Exception {
-        final TransferSubscriptionEntity transferSubscription = new TransferSubscriptionEntity();
-        transferSubscription.setId(SUBSCRIPTION_ID);
-        transferSubscription.setPlan(PLAN_ID);
+        assertThrows(TransferNotAllowedException.class, () -> {
+            final TransferSubscriptionEntity transferSubscription = new TransferSubscriptionEntity();
+            transferSubscription.setId(SUBSCRIPTION_ID);
+            transferSubscription.setPlan(PLAN_ID);
 
-        when(subscription.getPlan()).thenReturn(PLAN_ID);
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        planEntity.setStatus(PlanStatus.PUBLISHED);
-        planEntity.setSecurity(PlanSecurityType.API_KEY);
-        planEntity.setApi("another");
-        planEntity.setReferenceId("another");
-        planEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+            when(subscription.getPlan()).thenReturn(PLAN_ID);
+            when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+            planEntity.setStatus(PlanStatus.PUBLISHED);
+            planEntity.setSecurity(PlanSecurityType.API_KEY);
+            planEntity.setApi("another");
+            planEntity.setReferenceId("another");
+            planEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
 
-        subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
+            subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
+        });
     }
 
-    @Test(expected = TransferNotAllowedException.class)
+    @Test
     public void shouldNotTransferSubscription_onNonPublishedPlan() throws Exception {
-        final TransferSubscriptionEntity transferSubscription = new TransferSubscriptionEntity();
-        transferSubscription.setId(SUBSCRIPTION_ID);
-        transferSubscription.setPlan(PLAN_ID);
+        assertThrows(TransferNotAllowedException.class, () -> {
+            final TransferSubscriptionEntity transferSubscription = new TransferSubscriptionEntity();
+            transferSubscription.setId(SUBSCRIPTION_ID);
+            transferSubscription.setPlan(PLAN_ID);
 
-        when(subscription.getPlan()).thenReturn(PLAN_ID);
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        planEntity.setStatus(PlanStatus.STAGING);
-        planEntity.setSecurity(PlanSecurityType.API_KEY);
-        planEntity.setApi("another");
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+            when(subscription.getPlan()).thenReturn(PLAN_ID);
+            when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+            planEntity.setStatus(PlanStatus.STAGING);
+            planEntity.setSecurity(PlanSecurityType.API_KEY);
+            planEntity.setApi("another");
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
 
-        subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
+            subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
+        });
     }
 
-    @Test(expected = TransferNotAllowedException.class)
+    @Test
     public void shouldNotTransferSubscription_onStandardPlanFromPushPlan() throws Exception {
-        final TransferSubscriptionEntity transferSubscription = new TransferSubscriptionEntity();
-        transferSubscription.setId(SUBSCRIPTION_ID);
-        transferSubscription.setPlan(PLAN_ID);
+        assertThrows(TransferNotAllowedException.class, () -> {
+            final TransferSubscriptionEntity transferSubscription = new TransferSubscriptionEntity();
+            transferSubscription.setId(SUBSCRIPTION_ID);
+            transferSubscription.setPlan(PLAN_ID);
 
-        when(subscription.getPlan()).thenReturn("push-plan-id");
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        planEntity.setStatus(PlanStatus.PUBLISHED);
-        planEntity.setSecurity(PlanSecurityType.API_KEY);
-        planEntity.setApi("another");
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
-        PlanEntity pushPlan = new PlanEntity();
-        pushPlan.setStatus(PlanStatus.PUBLISHED);
-        pushPlan.setApi("another");
-        pushPlan.setReferenceId("another");
-        pushPlan.setReferenceType(GenericPlanEntity.ReferenceType.API);
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), "push-plan-id")).thenReturn(pushPlan);
+            when(subscription.getPlan()).thenReturn("push-plan-id");
+            when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+            planEntity.setStatus(PlanStatus.PUBLISHED);
+            planEntity.setSecurity(PlanSecurityType.API_KEY);
+            planEntity.setApi("another");
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+            PlanEntity pushPlan = new PlanEntity();
+            pushPlan.setStatus(PlanStatus.PUBLISHED);
+            pushPlan.setApi("another");
+            pushPlan.setReferenceId("another");
+            pushPlan.setReferenceType(GenericPlanEntity.ReferenceType.API);
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), "push-plan-id")).thenReturn(pushPlan);
 
-        subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
+            subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
+        });
     }
 
-    @Test(expected = TransferNotAllowedException.class)
+    @Test
     public void shouldNotTransferSubscription_onPushPlanFromStandardPlan() throws Exception {
-        final TransferSubscriptionEntity transferSubscription = new TransferSubscriptionEntity();
-        transferSubscription.setId(SUBSCRIPTION_ID);
-        transferSubscription.setPlan("push-plan-id");
+        assertThrows(TransferNotAllowedException.class, () -> {
+            final TransferSubscriptionEntity transferSubscription = new TransferSubscriptionEntity();
+            transferSubscription.setId(SUBSCRIPTION_ID);
+            transferSubscription.setPlan("push-plan-id");
 
-        when(subscription.getPlan()).thenReturn(PLAN_ID);
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        planEntity.setStatus(PlanStatus.PUBLISHED);
-        planEntity.setSecurity(PlanSecurityType.API_KEY);
-        planEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
-        planEntity.setReferenceId("another");
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
-        PlanEntity pushPlan = new PlanEntity();
-        pushPlan.setStatus(PlanStatus.PUBLISHED);
-        pushPlan.setApi("another");
-        pushPlan.setReferenceId("another");
-        pushPlan.setReferenceType(GenericPlanEntity.ReferenceType.API);
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), "push-plan-id")).thenReturn(pushPlan);
+            when(subscription.getPlan()).thenReturn(PLAN_ID);
+            when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+            planEntity.setStatus(PlanStatus.PUBLISHED);
+            planEntity.setSecurity(PlanSecurityType.API_KEY);
+            planEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
+            planEntity.setReferenceId("another");
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+            PlanEntity pushPlan = new PlanEntity();
+            pushPlan.setStatus(PlanStatus.PUBLISHED);
+            pushPlan.setApi("another");
+            pushPlan.setReferenceId("another");
+            pushPlan.setReferenceType(GenericPlanEntity.ReferenceType.API);
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), "push-plan-id")).thenReturn(pushPlan);
 
-        subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
+            subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
+        });
     }
 
-    @Test(expected = TransferNotAllowedException.class)
+    @Test
     public void shouldNotTransferSubscription_onPlanWithDifferentSecurity() throws Exception {
-        final TransferSubscriptionEntity transferSubscription = new TransferSubscriptionEntity();
-        transferSubscription.setId(SUBSCRIPTION_ID);
-        transferSubscription.setPlan(PLAN_ID);
+        assertThrows(TransferNotAllowedException.class, () -> {
+            final TransferSubscriptionEntity transferSubscription = new TransferSubscriptionEntity();
+            transferSubscription.setId(SUBSCRIPTION_ID);
+            transferSubscription.setPlan(PLAN_ID);
 
-        when(subscription.getPlan()).thenReturn("JWT-plan-id");
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        planEntity.setStatus(PlanStatus.PUBLISHED);
-        planEntity.setSecurity(PlanSecurityType.API_KEY);
-        planEntity.setApi("another");
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
-        PlanEntity jwtPlan = new PlanEntity();
-        jwtPlan.setStatus(PlanStatus.PUBLISHED);
-        jwtPlan.setSecurity(PlanSecurityType.JWT);
-        jwtPlan.setApi("another");
-        jwtPlan.setReferenceId("another");
-        jwtPlan.setReferenceType(GenericPlanEntity.ReferenceType.API);
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), "JWT-plan-id")).thenReturn(jwtPlan);
+            when(subscription.getPlan()).thenReturn("JWT-plan-id");
+            when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+            planEntity.setStatus(PlanStatus.PUBLISHED);
+            planEntity.setSecurity(PlanSecurityType.API_KEY);
+            planEntity.setApi("another");
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+            PlanEntity jwtPlan = new PlanEntity();
+            jwtPlan.setStatus(PlanStatus.PUBLISHED);
+            jwtPlan.setSecurity(PlanSecurityType.JWT);
+            jwtPlan.setApi("another");
+            jwtPlan.setReferenceId("another");
+            jwtPlan.setReferenceType(GenericPlanEntity.ReferenceType.API);
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), "JWT-plan-id")).thenReturn(jwtPlan);
 
-        subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
+            subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
+        });
     }
 
-    @Test(expected = PlanRestrictedException.class)
+    @Test
     public void shouldNotCreateBecauseRestricted() {
-        // Stub
-        planEntity.setExcludedGroups(List.of("excl1", "excl2"));
-        planEntity.setApi("api1");
+        assertThrows(PlanRestrictedException.class, () -> {
+            // Stub
+            planEntity.setExcludedGroups(List.of("excl1", "excl2"));
+            planEntity.setApi("api1");
 
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
-        final GroupEntity group = new GroupEntity();
-        group.setId("excl2");
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+            final GroupEntity group = new GroupEntity();
+            group.setId("excl2");
 
-        final SecurityContext securityContext = mock(SecurityContext.class);
-        Authentication authMock = new TestingAuthenticationToken(null, null, "USER");
-        when(securityContext.getAuthentication()).thenReturn(authMock);
-        SecurityContextHolder.setContext(securityContext);
+            final SecurityContext securityContext = mock(SecurityContext.class);
+            Authentication authMock = new TestingAuthenticationToken(null, null, "USER");
+            when(securityContext.getAuthentication()).thenReturn(authMock);
+            SecurityContextHolder.setContext(securityContext);
 
-        // Run
-        subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+            // Run
+            subscriptionService.create(GraviteeContext.getExecutionContext(), new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
+        });
     }
 
     @Test
@@ -2489,23 +2549,27 @@ public class SubscriptionServiceTest {
         verifyNoMoreInteractions(apiKeyService);
     }
 
-    @Test(expected = SubscriptionNotFoundException.class)
+    @Test
     public void shouldNotUpdateSubscriptionConfigurationCauseNotFound() {
-        UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
-        updateSubscriptionConfigurationEntity.setSubscriptionId(SUBSCRIPTION_ID);
+        assertThrows(SubscriptionNotFoundException.class, () -> {
+            UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
+            updateSubscriptionConfigurationEntity.setSubscriptionId(SUBSCRIPTION_ID);
 
-        subscriptionService.update(GraviteeContext.getExecutionContext(), updateSubscriptionConfigurationEntity);
+            subscriptionService.update(GraviteeContext.getExecutionContext(), updateSubscriptionConfigurationEntity);
+        });
     }
 
-    @Test(expected = SubscriptionNotUpdatableException.class)
+    @Test
     public void shouldNotUpdateSubscriptionCauseClosed() throws TechnicalException {
-        UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
-        updateSubscriptionConfigurationEntity.setSubscriptionId(SUBSCRIPTION_ID);
+        assertThrows(SubscriptionNotUpdatableException.class, () -> {
+            UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
+            updateSubscriptionConfigurationEntity.setSubscriptionId(SUBSCRIPTION_ID);
 
-        when(subscription.getStatus()).thenReturn(Subscription.Status.CLOSED);
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+            when(subscription.getStatus()).thenReturn(Subscription.Status.CLOSED);
+            when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
 
-        subscriptionService.update(GraviteeContext.getExecutionContext(), updateSubscriptionConfigurationEntity);
+            subscriptionService.update(GraviteeContext.getExecutionContext(), updateSubscriptionConfigurationEntity);
+        });
     }
 
     @Test
@@ -2619,56 +2683,64 @@ public class SubscriptionServiceTest {
         );
     }
 
-    @Test(expected = SubscriptionNotFoundException.class)
+    @Test
     public void shouldNotPauseByConsumerBecauseDoesNoExist() throws Exception {
-        // Stub
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.empty());
+        assertThrows(SubscriptionNotFoundException.class, () -> {
+            // Stub
+            when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.empty());
 
-        subscriptionService.pauseConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+            subscriptionService.pauseConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+        });
     }
 
-    @Test(expected = SubscriptionConsumerStatusNotUpdatableException.class)
+    @Test
     public void shouldNotPauseByConsumerBecauseApiDefinitionNotV4() throws Exception {
-        Subscription subscription = buildTestSubscription(ACCEPTED);
+        assertThrows(SubscriptionConsumerStatusNotUpdatableException.class, () -> {
+            Subscription subscription = buildTestSubscription(ACCEPTED);
 
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
-        when(apiModelEntity.getDefinitionVersion()).thenReturn(DefinitionVersion.V2);
+            when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+            when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+            when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+            when(apiModelEntity.getDefinitionVersion()).thenReturn(DefinitionVersion.V2);
 
-        subscriptionService.pauseConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+            subscriptionService.pauseConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+        });
     }
 
-    @Test(expected = SubscriptionConsumerStatusNotUpdatableException.class)
+    @Test
     public void shouldNotPauseByConsumerBecauseNoSubscriptionListener() throws Exception {
-        Subscription subscription = buildTestSubscription(ACCEPTED);
+        assertThrows(SubscriptionConsumerStatusNotUpdatableException.class, () -> {
+            Subscription subscription = buildTestSubscription(ACCEPTED);
 
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        io.gravitee.rest.api.model.v4.api.ApiModel apiModel = mock(io.gravitee.rest.api.model.v4.api.ApiModel.class);
-        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModel);
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
-        when(apiModel.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
-        when(apiModel.getListeners()).thenReturn(List.of());
+            when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+            io.gravitee.rest.api.model.v4.api.ApiModel apiModel = mock(io.gravitee.rest.api.model.v4.api.ApiModel.class);
+            when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModel);
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+            when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+            when(apiModel.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+            when(apiModel.getListeners()).thenReturn(List.of());
 
-        subscriptionService.pauseConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+            subscriptionService.pauseConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+        });
     }
 
-    @Test(expected = SubscriptionNotPausableException.class)
+    @Test
     public void shouldNotPauseByConsumerBecauseAlreadyPaused() throws Exception {
-        Subscription subscription = buildTestSubscription(ACCEPTED);
-        subscription.setConsumerStatus(Subscription.ConsumerStatus.STOPPED);
+        assertThrows(SubscriptionNotPausableException.class, () -> {
+            Subscription subscription = buildTestSubscription(ACCEPTED);
+            subscription.setConsumerStatus(Subscription.ConsumerStatus.STOPPED);
 
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        io.gravitee.rest.api.model.v4.api.ApiModel apiModel = mock(io.gravitee.rest.api.model.v4.api.ApiModel.class);
-        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModel);
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
-        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
-        when(apiModel.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
-        when(apiModel.getListeners()).thenReturn(List.of(new SubscriptionListener()));
+            when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+            io.gravitee.rest.api.model.v4.api.ApiModel apiModel = mock(io.gravitee.rest.api.model.v4.api.ApiModel.class);
+            when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModel);
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+            when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+            when(apiModel.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+            when(apiModel.getListeners()).thenReturn(List.of(new SubscriptionListener()));
 
-        subscriptionService.pauseConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+            subscriptionService.pauseConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+        });
     }
 
     @Test
@@ -2704,53 +2776,61 @@ public class SubscriptionServiceTest {
         );
     }
 
-    @Test(expected = SubscriptionNotFoundException.class)
+    @Test
     public void shouldNotResumeByConsumerBecauseDoesNoExist() throws Exception {
-        // Stub
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.empty());
+        assertThrows(SubscriptionNotFoundException.class, () -> {
+            // Stub
+            when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.empty());
 
-        subscriptionService.resumeConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+            subscriptionService.resumeConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+        });
     }
 
-    @Test(expected = SubscriptionConsumerStatusNotUpdatableException.class)
+    @Test
     public void shouldNotResumeByConsumerBecauseApiDefinitionNotV4() throws Exception {
-        Subscription subscription = buildTestSubscription(ACCEPTED);
+        assertThrows(SubscriptionConsumerStatusNotUpdatableException.class, () -> {
+            Subscription subscription = buildTestSubscription(ACCEPTED);
 
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
-        when(apiModelEntity.getDefinitionVersion()).thenReturn(DefinitionVersion.V2);
+            when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+            when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModelEntity);
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+            when(apiModelEntity.getDefinitionVersion()).thenReturn(DefinitionVersion.V2);
 
-        subscriptionService.resumeConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+            subscriptionService.resumeConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+        });
     }
 
-    @Test(expected = SubscriptionConsumerStatusNotUpdatableException.class)
+    @Test
     public void shouldNotResumeByConsumerBecauseNoSubscriptionListener() throws Exception {
-        Subscription subscription = buildTestSubscription(ACCEPTED);
+        assertThrows(SubscriptionConsumerStatusNotUpdatableException.class, () -> {
+            Subscription subscription = buildTestSubscription(ACCEPTED);
 
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        io.gravitee.rest.api.model.v4.api.ApiModel apiModel = mock(io.gravitee.rest.api.model.v4.api.ApiModel.class);
-        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModel);
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
-        when(apiModel.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
-        when(apiModel.getListeners()).thenReturn(List.of());
+            when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+            io.gravitee.rest.api.model.v4.api.ApiModel apiModel = mock(io.gravitee.rest.api.model.v4.api.ApiModel.class);
+            when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModel);
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+            when(apiModel.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+            when(apiModel.getListeners()).thenReturn(List.of());
 
-        subscriptionService.resumeConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+            subscriptionService.resumeConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+        });
     }
 
-    @Test(expected = SubscriptionNotPausedException.class)
+    @Test
     public void shouldNotResumeByConsumerBecauseAlreadyActive() throws Exception {
-        Subscription subscription = buildTestSubscription(ACCEPTED);
-        subscription.setConsumerStatus(Subscription.ConsumerStatus.STARTED);
+        assertThrows(SubscriptionNotPausedException.class, () -> {
+            Subscription subscription = buildTestSubscription(ACCEPTED);
+            subscription.setConsumerStatus(Subscription.ConsumerStatus.STARTED);
 
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        io.gravitee.rest.api.model.v4.api.ApiModel apiModel = mock(io.gravitee.rest.api.model.v4.api.ApiModel.class);
-        when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModel);
-        when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
-        when(apiModel.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
-        when(apiModel.getListeners()).thenReturn(List.of(new SubscriptionListener()));
+            when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+            io.gravitee.rest.api.model.v4.api.ApiModel apiModel = mock(io.gravitee.rest.api.model.v4.api.ApiModel.class);
+            when(apiTemplateService.findByIdForTemplates(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(apiModel);
+            when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+            when(apiModel.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+            when(apiModel.getListeners()).thenReturn(List.of(new SubscriptionListener()));
 
-        subscriptionService.resumeConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+            subscriptionService.resumeConsumer(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+        });
     }
 
     @Test
@@ -2816,20 +2896,24 @@ public class SubscriptionServiceTest {
         );
     }
 
-    @Test(expected = SubscriptionFailureCustomerStatusRequiredException.class)
+    @Test
     public void shouldNotResumeFailureByConsumerBecauseApiDefinitionNotV4() throws Exception {
-        Subscription subscription = buildTestSubscription(ACCEPTED);
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        assertThrows(SubscriptionFailureCustomerStatusRequiredException.class, () -> {
+            Subscription subscription = buildTestSubscription(ACCEPTED);
+            when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
 
-        subscriptionService.resumeFailed(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+            subscriptionService.resumeFailed(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+        });
     }
 
-    @Test(expected = SubscriptionNotFoundException.class)
+    @Test
     public void shouldNotResumeFailureByConsumerBecauseDoesNoExist() throws Exception {
-        // Stub
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.empty());
+        assertThrows(SubscriptionNotFoundException.class, () -> {
+            // Stub
+            when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.empty());
 
-        subscriptionService.resumeFailed(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+            subscriptionService.resumeFailed(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID);
+        });
     }
 
     @Test

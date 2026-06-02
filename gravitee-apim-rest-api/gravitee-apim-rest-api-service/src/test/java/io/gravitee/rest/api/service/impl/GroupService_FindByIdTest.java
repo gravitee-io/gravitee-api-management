@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -32,15 +33,17 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import java.util.Optional;
-import junit.framework.TestCase;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
-public class GroupService_FindByIdTest extends TestCase {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
+public class GroupService_FindByIdTest {
 
     private static final String GROUP_ID = "my-group-id";
     private static final String ORGANIZATION_ID = "org-id";
@@ -61,22 +64,26 @@ public class GroupService_FindByIdTest extends TestCase {
     @Mock
     private PermissionService permissionService;
 
-    @Test(expected = GroupNotFoundException.class)
+    @Test
     public void shouldThrowGroupNotFoundException() throws TechnicalException {
-        when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.empty());
-        groupService.findById(null, GROUP_ID);
+        assertThrows(GroupNotFoundException.class, () -> {
+            when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.empty());
+            groupService.findById(null, GROUP_ID);
+        });
     }
 
-    @Test(expected = GroupNotFoundException.class)
+    @Test
     public void shouldNotFindGroupBecauseDoesNotBelongToEnvironment() throws TechnicalException {
-        final Group group = new Group();
-        group.setId(GROUP_ID);
-        group.setEnvironmentId("Another_environment");
-        when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
+        assertThrows(GroupNotFoundException.class, () -> {
+            final Group group = new Group();
+            group.setId(GROUP_ID);
+            group.setEnvironmentId("Another_environment");
+            when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
 
-        ExecutionContext executionContext = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
+            ExecutionContext executionContext = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
 
-        groupService.findById(executionContext, GROUP_ID);
+            groupService.findById(executionContext, GROUP_ID);
+        });
     }
 
     @Test

@@ -15,12 +15,12 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import io.gravitee.rest.api.portal.rest.model.ApplicationMembersSearchFilters;
 import io.gravitee.rest.api.portal.rest.model.ApplicationMembersSearchInput;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ApplicationMembersSearchCriteriaMapperTest {
 

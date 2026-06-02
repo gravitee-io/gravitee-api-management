@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -33,8 +33,8 @@ import io.gravitee.rest.api.portal.rest.model.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -44,7 +44,7 @@ public class AlertMapperTest {
 
     private AlertMapper alertMapper;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         alertMapper = new AlertMapper(new ObjectMapper());
     }

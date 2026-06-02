@@ -15,14 +15,12 @@
  */
 package io.gravitee.repository.jdbc;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.platform.repository.api.Scope;
 import io.gravitee.repository.jdbc.management.JdbcManagementRepositoryConfiguration;
 import io.gravitee.repository.jdbc.ratelimit.JdbcRateLimitRepositoryConfiguration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class JdbcRepositoryProviderTest {
 

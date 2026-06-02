@@ -15,8 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -35,19 +34,22 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class InstallationServiceTest {
 
     private static final String INSTALLATION_ID = "id-installation";
@@ -70,7 +72,7 @@ public class InstallationServiceTest {
 
     private static final Date NOW = Date.from(Instant.now().minus(1, ChronoUnit.DAYS));
 
-    @Before
+    @BeforeEach
     public void init() throws TechnicalException {
         reset(installationRepository);
 
@@ -198,23 +200,29 @@ public class InstallationServiceTest {
         assertEquals(InstallationStatus.NOT_LINKED, installationStatus);
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotFindByIdBecauseTechnicalException() throws TechnicalException {
-        when(installationRepository.find()).thenThrow(TechnicalException.class);
-        installationService.get();
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(installationRepository.find()).thenThrow(TechnicalException.class);
+            installationService.get();
+        });
     }
 
-    @Test(expected = InstallationNotFoundException.class)
+    @Test
     public void shouldNotFindBecauseNotExists() throws TechnicalException {
-        when(installationRepository.find()).thenReturn(Optional.empty());
+        assertThrows(InstallationNotFoundException.class, () -> {
+            when(installationRepository.find()).thenReturn(Optional.empty());
 
-        installationService.get();
+            installationService.get();
+        });
     }
 
-    @Test(expected = InstallationNotFoundException.class)
+    @Test
     public void shouldNotUpdateAddiontalInformationFindBecauseNotExists() throws TechnicalException {
-        when(installationRepository.find()).thenReturn(Optional.empty());
+        assertThrows(InstallationNotFoundException.class, () -> {
+            when(installationRepository.find()).thenReturn(Optional.empty());
 
-        installationService.setAdditionalInformation(new HashMap<>());
+            installationService.setAdditionalInformation(new HashMap<>());
+        });
     }
 }

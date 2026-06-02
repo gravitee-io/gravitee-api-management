@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
@@ -44,17 +45,20 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class GroupService_UpdateTest {
 
     private static final String GROUP_ID = "my-group-id";
@@ -177,22 +181,24 @@ public class GroupService_UpdateTest {
         verify(membershipService, never()).addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
     }
 
-    @Test(expected = GroupNotFoundException.class)
+    @Test
     public void shouldNotUpdateGroupBecauseDoesNotBelongToEnvironment() throws Exception {
-        UpdateGroupEntity updatedGroupEntity = new UpdateGroupEntity();
-        updatedGroupEntity.setRoles(
-            Maps.<RoleScope, String>builder().put(RoleScope.API, "PRIMARY_OWNER").put(RoleScope.APPLICATION, "PRIMARY_OWNER").build()
-        );
+        assertThrows(GroupNotFoundException.class, () -> {
+            UpdateGroupEntity updatedGroupEntity = new UpdateGroupEntity();
+            updatedGroupEntity.setRoles(
+                Maps.<RoleScope, String>builder().put(RoleScope.API, "PRIMARY_OWNER").put(RoleScope.APPLICATION, "PRIMARY_OWNER").build()
+            );
 
-        final Group group = new Group();
-        group.setEnvironmentId("Another_environment");
+            final Group group = new Group();
+            group.setEnvironmentId("Another_environment");
 
-        when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
+            when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
 
-        groupService.update(GraviteeContext.getExecutionContext(), GROUP_ID, updatedGroupEntity);
+            groupService.update(GraviteeContext.getExecutionContext(), GROUP_ID, updatedGroupEntity);
 
-        verify(membershipService, never()).deleteReferenceMember(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any());
-        verify(membershipService, never()).addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+            verify(membershipService, never()).deleteReferenceMember(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any());
+            verify(membershipService, never()).addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+        });
     }
 
     @Test

@@ -26,7 +26,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -42,7 +42,7 @@ import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import java.util.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -79,30 +79,30 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         apiRepository.create(api);
 
         Optional<Api> optional = apiRepository.findById(apiId);
-        assertTrue("Api saved not found", optional.isPresent());
+        assertTrue(optional.isPresent(), "Api saved not found");
 
         Api apiSaved = optional.get();
-        assertEquals("Invalid saved environment id.", api.getEnvironmentId(), apiSaved.getEnvironmentId());
-        assertEquals("Invalid saved api origin.", api.getOrigin(), apiSaved.getOrigin());
-        assertEquals("Invalid saved hrid.", api.getHrid(), apiSaved.getHrid());
-        assertEquals("Invalid saved api mode.", api.getMode(), apiSaved.getMode());
-        assertEquals("Invalid saved api syncFrom.", api.getSyncFrom(), apiSaved.getSyncFrom());
-        assertEquals("Invalid saved api version.", api.getVersion(), apiSaved.getVersion());
-        assertEquals("Invalid deployment lifecycle.", api.getLifecycleState(), apiSaved.getLifecycleState());
-        assertEquals("Invalid api private api status.", api.getVisibility(), apiSaved.getVisibility());
-        assertEquals("Invalid api definition.", api.getDefinition(), apiSaved.getDefinition());
-        assertTrue("Invalid api createdAt.", compareDate(api.getCreatedAt(), apiSaved.getCreatedAt()));
-        assertTrue("Invalid api updateAt.", compareDate(api.getUpdatedAt(), apiSaved.getUpdatedAt()));
-        assertEquals("Invalid api lifecycle.", api.getApiLifecycleState(), apiSaved.getApiLifecycleState());
-        assertTrue("Invalid api disable membership notifications", apiSaved.isDisableMembershipNotifications());
-        assertTrue("Invalid api allow multi JwtOauth2 subscriptions", apiSaved.isAllowMultiJwtOauth2Subscriptions());
+        assertEquals(api.getEnvironmentId(), apiSaved.getEnvironmentId(), "Invalid saved environment id.");
+        assertEquals(api.getOrigin(), apiSaved.getOrigin(), "Invalid saved api origin.");
+        assertEquals(api.getHrid(), apiSaved.getHrid(), "Invalid saved hrid.");
+        assertEquals(api.getMode(), apiSaved.getMode(), "Invalid saved api mode.");
+        assertEquals(api.getSyncFrom(), apiSaved.getSyncFrom(), "Invalid saved api syncFrom.");
+        assertEquals(api.getVersion(), apiSaved.getVersion(), "Invalid saved api version.");
+        assertEquals(api.getLifecycleState(), apiSaved.getLifecycleState(), "Invalid deployment lifecycle.");
+        assertEquals(api.getVisibility(), apiSaved.getVisibility(), "Invalid api private api status.");
+        assertEquals(api.getDefinition(), apiSaved.getDefinition(), "Invalid api definition.");
+        assertTrue(compareDate(api.getCreatedAt(), apiSaved.getCreatedAt()), "Invalid api createdAt.");
+        assertTrue(compareDate(api.getUpdatedAt(), apiSaved.getUpdatedAt()), "Invalid api updateAt.");
+        assertEquals(api.getApiLifecycleState(), apiSaved.getApiLifecycleState(), "Invalid api lifecycle.");
+        assertTrue(apiSaved.isDisableMembershipNotifications(), "Invalid api disable membership notifications");
+        assertTrue(apiSaved.isAllowMultiJwtOauth2Subscriptions(), "Invalid api allow multi JwtOauth2 subscriptions");
 
         // test delete
         int nbApplicationBefore = apiRepository.search(null, ApiFieldFilter.allFields()).size();
         apiRepository.delete(apiId);
         int nbApplicationAfter = apiRepository.search(null, ApiFieldFilter.allFields()).size();
-        assertFalse("api was deleted", apiRepository.findById(apiId).isPresent());
-        assertEquals("Invalid number of apis after deletion", nbApplicationBefore - 1, nbApplicationAfter);
+        assertFalse(apiRepository.findById(apiId).isPresent(), "api was deleted");
+        assertEquals(nbApplicationBefore - 1, nbApplicationAfter, "Invalid number of apis after deletion");
     }
 
     @Test
@@ -144,8 +144,8 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldUpdate() throws Exception {
         Optional<Api> optional = apiRepository.findById("api-to-update");
-        assertTrue("API to update not found", optional.isPresent());
-        assertEquals("Invalid saved api name.", "api-to-update name", optional.get().getName());
+        assertTrue(optional.isPresent(), "API to update not found");
+        assertEquals("api-to-update name", optional.get().getName(), "Invalid saved api name.");
 
         final Api api = optional.get();
         api.setName("New API name");
@@ -173,52 +173,52 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(nbAPIsBeforeUpdate, nbAPIsAfterUpdate);
 
         Optional<Api> optionalUpdated = apiRepository.findById("api-to-update");
-        assertTrue("API to update not found", optionalUpdated.isPresent());
+        assertTrue(optionalUpdated.isPresent(), "API to update not found");
 
         final Api apiUpdated = optionalUpdated.get();
-        assertEquals("Invalid saved API name.", "New API name", apiUpdated.getName());
-        assertEquals("Invalid saved environment id.", "new_DEFAULT", apiUpdated.getEnvironmentId());
-        assertEquals("Invalid API description.", "New description", apiUpdated.getDescription());
-        assertEquals("Invalid API categories.", new HashSet<>(asList("category1", "category2")), apiUpdated.getCategories());
-        assertEquals("Invalid API definition.", "New definition", apiUpdated.getDefinition());
-        assertTrue("Invalid API deployment date.", compareDate("11/02/2016", apiUpdated.getDeployedAt()));
-        assertEquals("Invalid API group.", Collections.singleton("New group"), apiUpdated.getGroups());
-        assertEquals("Invalid deployment lifecycle state.", LifecycleState.STARTED, apiUpdated.getLifecycleState());
-        assertEquals("Invalid API picture.", "New picture", apiUpdated.getPicture());
-        assertEquals("Invalid API background.", "New background", apiUpdated.getBackground());
-        assertTrue("Invalid API create date.", compareDate("11/02/2016", apiUpdated.getCreatedAt()));
-        assertTrue("Invalid API update date.", compareDate("13/11/2016", apiUpdated.getUpdatedAt()));
-        assertEquals("Invalid API version.", "New version", apiUpdated.getVersion());
-        assertEquals("Invalid API visibility.", Visibility.PRIVATE, apiUpdated.getVisibility());
-        assertEquals("Invalid API lifecycle state.", ApiLifecycleState.UNPUBLISHED, apiUpdated.getApiLifecycleState());
-        assertFalse("Invalid API disable membership notifications", apiUpdated.isDisableMembershipNotifications());
-        assertTrue("Invalid api allow multi JwtOauth2 subscriptions", apiUpdated.isAllowMultiJwtOauth2Subscriptions());
+        assertEquals("New API name", apiUpdated.getName(), "Invalid saved API name.");
+        assertEquals("new_DEFAULT", apiUpdated.getEnvironmentId(), "Invalid saved environment id.");
+        assertEquals("New description", apiUpdated.getDescription(), "Invalid API description.");
+        assertEquals(new HashSet<>(asList("category1", "category2")), apiUpdated.getCategories(), "Invalid API categories.");
+        assertEquals("New definition", apiUpdated.getDefinition(), "Invalid API definition.");
+        assertTrue(compareDate("11/02/2016", apiUpdated.getDeployedAt()), "Invalid API deployment date.");
+        assertEquals(Collections.singleton("New group"), apiUpdated.getGroups(), "Invalid API group.");
+        assertEquals(LifecycleState.STARTED, apiUpdated.getLifecycleState(), "Invalid deployment lifecycle state.");
+        assertEquals("New picture", apiUpdated.getPicture(), "Invalid API picture.");
+        assertEquals("New background", apiUpdated.getBackground(), "Invalid API background.");
+        assertTrue(compareDate("11/02/2016", apiUpdated.getCreatedAt()), "Invalid API create date.");
+        assertTrue(compareDate("13/11/2016", apiUpdated.getUpdatedAt()), "Invalid API update date.");
+        assertEquals("New version", apiUpdated.getVersion(), "Invalid API version.");
+        assertEquals(Visibility.PRIVATE, apiUpdated.getVisibility(), "Invalid API visibility.");
+        assertEquals(ApiLifecycleState.UNPUBLISHED, apiUpdated.getApiLifecycleState(), "Invalid API lifecycle state.");
+        assertFalse(apiUpdated.isDisableMembershipNotifications(), "Invalid API disable membership notifications");
+        assertTrue(apiUpdated.isAllowMultiJwtOauth2Subscriptions(), "Invalid api allow multi JwtOauth2 subscriptions");
     }
 
     @Test
     public void findByIdTest() throws Exception {
         Optional<Api> optional = apiRepository.findById("api-to-findById");
-        assertTrue("Find api by name return no result ", optional.isPresent());
+        assertTrue(optional.isPresent(), "Find api by name return no result ");
 
         Api api = optional.get();
-        assertEquals("Invalid environment id.", "DEFAULT", api.getEnvironmentId());
-        assertEquals("Invalid origin.", Api.ORIGIN_KUBERNETES, api.getOrigin());
-        assertEquals("Invalid mode.", Api.MODE_API_DEFINITION_ONLY, api.getMode());
-        assertEquals("Invalid api name", "api-to-findById name", api.getName());
-        assertEquals("Invalid api version", "1", api.getVersion());
-        assertEquals("Invalid api visibility", PUBLIC, api.getVisibility());
-        assertEquals("Invalid deployment lifecycle state", STOPPED, api.getLifecycleState());
-        assertEquals("Invalid api labels", 2, api.getLabels().size());
-        assertEquals("Invalid api label at position 0", "label 1", api.getLabels().iterator().next());
-        assertEquals("Invalid api lifecycle state", ApiLifecycleState.DEPRECATED, api.getApiLifecycleState());
-        assertTrue("Invalid api disable membership notifications", api.isDisableMembershipNotifications());
-        assertTrue("Invalid api allow multi JwtOauth2 subscriptions", api.isAllowMultiJwtOauth2Subscriptions());
+        assertEquals("DEFAULT", api.getEnvironmentId(), "Invalid environment id.");
+        assertEquals(Api.ORIGIN_KUBERNETES, api.getOrigin(), "Invalid origin.");
+        assertEquals(Api.MODE_API_DEFINITION_ONLY, api.getMode(), "Invalid mode.");
+        assertEquals("api-to-findById name", api.getName(), "Invalid api name");
+        assertEquals("1", api.getVersion(), "Invalid api version");
+        assertEquals(PUBLIC, api.getVisibility(), "Invalid api visibility");
+        assertEquals(STOPPED, api.getLifecycleState(), "Invalid deployment lifecycle state");
+        assertEquals(2, api.getLabels().size(), "Invalid api labels");
+        assertEquals("label 1", api.getLabels().iterator().next(), "Invalid api label at position 0");
+        assertEquals(ApiLifecycleState.DEPRECATED, api.getApiLifecycleState(), "Invalid api lifecycle state");
+        assertTrue(api.isDisableMembershipNotifications(), "Invalid api disable membership notifications");
+        assertTrue(api.isAllowMultiJwtOauth2Subscriptions(), "Invalid api allow multi JwtOauth2 subscriptions");
     }
 
     @Test
     public void findByIdMissingTest() throws Exception {
         Optional<Api> optional = apiRepository.findById("findByNameMissing");
-        assertFalse("Find api by name on missing api return a result", optional.isPresent());
+        assertFalse(optional.isPresent(), "Find api by name on missing api return a result");
     }
 
     @Test
@@ -226,8 +226,8 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         List<Api> apis = apiRepository.search(null, ApiFieldFilter.allFields());
 
         assertNotNull(apis);
-        assertFalse("Api list is empty", apis.isEmpty());
-        assertNotNull("Api is null", apis.iterator().next());
+        assertFalse(apis.isEmpty(), "Api list is empty");
+        assertNotNull(apis.iterator().next(), "Api is null");
     }
 
     @Test
@@ -235,17 +235,17 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         List<Api> apis = apiRepository.search(new ApiCriteria.Builder().build(), ApiFieldFilter.allFields());
 
         assertNotNull(apis);
-        assertFalse("Api list is empty", apis.isEmpty());
-        assertNotNull("Api is null", apis.iterator().next());
+        assertFalse(apis.isEmpty(), "Api list is empty");
+        assertNotNull(apis.iterator().next(), "Api is null");
     }
 
     @Test
     public void deleteApiTest() throws Exception {
         Optional<Api> api = apiRepository.findById("api-to-delete");
-        assertTrue("api exists", api.isPresent());
+        assertTrue(api.isPresent(), "api exists");
         apiRepository.delete("api-to-delete");
         api = apiRepository.findById("api-to-delete");
-        assertFalse("api was deleted", api.isPresent());
+        assertFalse(api.isPresent(), "api was deleted");
     }
 
     @Test
@@ -301,18 +301,22 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(federatedApis).hasSize(1);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownApi() throws TechnicalException {
-        Api unknownApi = new Api();
-        unknownApi.setId("unknown");
-        apiRepository.update(unknownApi);
-        fail("An unknown api should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            Api unknownApi = new Api();
+            unknownApi.setId("unknown");
+            apiRepository.update(unknownApi);
+            fail("An unknown api should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws TechnicalException {
-        apiRepository.update(null);
-        fail("A null api should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            apiRepository.update(null);
+            fail("A null api should not be updated");
+        });
     }
 
     @Test
@@ -590,9 +594,9 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertTrue(api.isEmpty());
     }
 
-    @Test(expected = Exception.class)
-    public void shouldFindMultipleByEnvironmentIdAndCrossId_throwsException() throws TechnicalException {
-        apiRepository.findByEnvironmentIdAndCrossId("ENV6", "duplicated-crossId");
+    @Test
+    public void shouldFindMultipleByEnvironmentIdAndCrossId_throwsException() {
+        assertThrows(Exception.class, () -> apiRepository.findByEnvironmentIdAndCrossId("ENV6", "duplicated-crossId"));
     }
 
     @Test

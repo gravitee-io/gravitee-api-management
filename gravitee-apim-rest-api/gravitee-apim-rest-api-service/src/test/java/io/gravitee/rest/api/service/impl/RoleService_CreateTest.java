@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.model.permissions.EnvironmentPermission.DOCUMENTATION;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -37,17 +37,20 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.RoleReservedNameException;
 import java.util.Collections;
 import org.assertj.core.api.Assertions;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class RoleService_CreateTest {
 
     @InjectMocks
@@ -85,50 +88,54 @@ public class RoleService_CreateTest {
 
         RoleEntity entity = roleService.create(GraviteeContext.getExecutionContext(), newRoleEntityMock);
 
-        assertNotNull("no entoty created", entity);
-        assertEquals("invalid id", "new_mock_role", entity.getId());
-        assertEquals("invalid name", "new mock role", entity.getName());
-        assertEquals("invalid scope", io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT, entity.getScope());
-        assertFalse("no permissions found", entity.getPermissions().isEmpty());
-        assertTrue("invalid Permission name", entity.getPermissions().containsKey(DOCUMENTATION.getName()));
+        assertNotNull(entity, "no entoty created");
+        assertEquals("new_mock_role", entity.getId(), "invalid id");
+        assertEquals("new mock role", entity.getName(), "invalid name");
+        assertEquals(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT, entity.getScope(), "invalid scope");
+        assertFalse(entity.getPermissions().isEmpty(), "no permissions found");
+        assertTrue(entity.getPermissions().containsKey(DOCUMENTATION.getName()), "invalid Permission name");
         char[] perms = entity.getPermissions().get(DOCUMENTATION.getName());
-        assertEquals("not enough permissions", 1, perms.length);
-        assertEquals("not the good permission", RolePermissionAction.CREATE.getId(), perms[0]);
+        assertEquals(1, perms.length, "not enough permissions");
+        assertEquals(RolePermissionAction.CREATE.getId(), perms[0], "not the good permission");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void shouldNotCreateBecauseOfInvalidPermissionAction() throws TechnicalException {
-        NewRoleEntity newRoleEntityMock = mock(NewRoleEntity.class);
-        when(newRoleEntityMock.getName()).thenReturn("new mock role");
-        when(newRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT);
-        when(newRoleEntityMock.getPermissions()).thenReturn(Collections.singletonMap(DOCUMENTATION.getName(), new char[] { 'X' }));
+        assertThrows(IllegalArgumentException.class, () -> {
+            NewRoleEntity newRoleEntityMock = mock(NewRoleEntity.class);
+            when(newRoleEntityMock.getName()).thenReturn("new mock role");
+            when(newRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT);
+            when(newRoleEntityMock.getPermissions()).thenReturn(Collections.singletonMap(DOCUMENTATION.getName(), new char[] { 'X' }));
 
-        ConsoleConfigEntity consoleConfig = new ConsoleConfigEntity();
-        Management management = new Management();
-        management.setSystemRoleEdition(new Enabled(false));
-        consoleConfig.setManagement(management);
-        when(configService.getConsoleConfig(any())).thenReturn(consoleConfig);
+            ConsoleConfigEntity consoleConfig = new ConsoleConfigEntity();
+            Management management = new Management();
+            management.setSystemRoleEdition(new Enabled(false));
+            consoleConfig.setManagement(management);
+            when(configService.getConsoleConfig(any())).thenReturn(consoleConfig);
 
-        roleService.create(GraviteeContext.getExecutionContext(), newRoleEntityMock);
+            roleService.create(GraviteeContext.getExecutionContext(), newRoleEntityMock);
 
-        fail("should fail earlier");
+            fail("should fail earlier");
+        });
     }
 
-    @Test(expected = RoleReservedNameException.class)
+    @Test
     public void shouldNotCreateBecauseOfReservedRoleNameWithSystemRoleEditionEnabled() throws TechnicalException {
-        NewRoleEntity newRoleEntityMock = mock(NewRoleEntity.class);
-        when(newRoleEntityMock.getName()).thenReturn("admin");
-        when(newRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ORGANIZATION);
+        assertThrows(RoleReservedNameException.class, () -> {
+            NewRoleEntity newRoleEntityMock = mock(NewRoleEntity.class);
+            when(newRoleEntityMock.getName()).thenReturn("admin");
+            when(newRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ORGANIZATION);
 
-        ConsoleConfigEntity consoleConfig = new ConsoleConfigEntity();
-        Management management = new Management();
-        management.setSystemRoleEdition(new Enabled(false));
-        consoleConfig.setManagement(management);
-        when(configService.getConsoleConfig(any())).thenReturn(consoleConfig);
+            ConsoleConfigEntity consoleConfig = new ConsoleConfigEntity();
+            Management management = new Management();
+            management.setSystemRoleEdition(new Enabled(false));
+            consoleConfig.setManagement(management);
+            when(configService.getConsoleConfig(any())).thenReturn(consoleConfig);
 
-        roleService.create(GraviteeContext.getExecutionContext(), newRoleEntityMock);
+            roleService.create(GraviteeContext.getExecutionContext(), newRoleEntityMock);
 
-        fail("should fail earlier");
+            fail("should fail earlier");
+        });
     }
 
     @Test
@@ -156,20 +163,22 @@ public class RoleService_CreateTest {
         assertNotNull(entity);
     }
 
-    @Test(expected = RoleReservedNameException.class)
+    @Test
     public void shouldNotCreateBecauseOfReservedRoleNameWithSystemRoleEditionDisabled() throws TechnicalException {
-        NewRoleEntity newRoleEntityMock = mock(NewRoleEntity.class);
-        when(newRoleEntityMock.getName()).thenReturn("admin");
-        when(newRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT);
+        assertThrows(RoleReservedNameException.class, () -> {
+            NewRoleEntity newRoleEntityMock = mock(NewRoleEntity.class);
+            when(newRoleEntityMock.getName()).thenReturn("admin");
+            when(newRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT);
 
-        ConsoleConfigEntity consoleConfig = new ConsoleConfigEntity();
-        Management management = new Management();
-        management.setSystemRoleEdition(new Enabled(false));
-        consoleConfig.setManagement(management);
-        when(configService.getConsoleConfig(any())).thenReturn(consoleConfig);
+            ConsoleConfigEntity consoleConfig = new ConsoleConfigEntity();
+            Management management = new Management();
+            management.setSystemRoleEdition(new Enabled(false));
+            consoleConfig.setManagement(management);
+            when(configService.getConsoleConfig(any())).thenReturn(consoleConfig);
 
-        roleService.create(GraviteeContext.getExecutionContext(), newRoleEntityMock);
+            roleService.create(GraviteeContext.getExecutionContext(), newRoleEntityMock);
 
-        fail("should fail earlier");
+            fail("should fail earlier");
+        });
     }
 }

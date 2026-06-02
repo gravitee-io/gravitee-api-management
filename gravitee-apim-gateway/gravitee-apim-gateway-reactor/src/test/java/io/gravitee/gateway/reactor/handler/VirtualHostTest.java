@@ -18,52 +18,51 @@ package io.gravitee.gateway.reactor.handler;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.api.Request;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class VirtualHostTest {
 
     @Mock
     private Request request;
 
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
-    }
-
     @Test
     public void shouldHaveWeightEqualsTo1() {
         DefaultHttpAcceptor vHost = new DefaultHttpAcceptor("/");
 
-        Assert.assertEquals(1, vHost.priority());
+        Assertions.assertEquals(1, vHost.priority());
     }
 
     @Test
     public void shouldHaveWeightEqualsTo5() {
         DefaultHttpAcceptor vHost = new DefaultHttpAcceptor("/path/to/my/api");
 
-        Assert.assertEquals(5, vHost.priority());
+        Assertions.assertEquals(5, vHost.priority());
     }
 
     @Test
     public void shouldHaveWeightEqualsTo5_duplicatedPathSeparator() {
         DefaultHttpAcceptor vHost = new DefaultHttpAcceptor("/path//to///my/api");
 
-        Assert.assertEquals(5, vHost.priority());
+        Assertions.assertEquals(5, vHost.priority());
     }
 
     @Test
     public void shouldHaveWeightEqualsTo1001() {
         DefaultHttpAcceptor vHost = new DefaultHttpAcceptor("api.gravitee.io", "/");
 
-        Assert.assertEquals(1001, vHost.priority());
+        Assertions.assertEquals(1001, vHost.priority());
     }
 
     @Test
@@ -73,7 +72,7 @@ public class VirtualHostTest {
         when(request.path()).thenReturn("/");
         boolean accept = vHost.accept(request);
 
-        Assert.assertTrue(accept);
+        Assertions.assertTrue(accept);
     }
 
     @Test
@@ -83,7 +82,7 @@ public class VirtualHostTest {
         when(request.path()).thenReturn("/");
         boolean accept = vHost.accept(request);
 
-        Assert.assertFalse(accept);
+        Assertions.assertFalse(accept);
     }
 
     @Test
@@ -93,7 +92,7 @@ public class VirtualHostTest {
         when(request.path()).thenReturn("/products");
         boolean accept = vHost.accept(request);
 
-        Assert.assertTrue(accept);
+        Assertions.assertTrue(accept);
     }
 
     @Test
@@ -103,7 +102,7 @@ public class VirtualHostTest {
         when(request.path()).thenReturn("/products/");
         boolean accept = vHost.accept(request);
 
-        Assert.assertTrue(accept);
+        Assertions.assertTrue(accept);
     }
 
     @Test
@@ -113,7 +112,7 @@ public class VirtualHostTest {
         when(request.path()).thenReturn("/products2");
         boolean accept = vHost.accept(request);
 
-        Assert.assertFalse(accept);
+        Assertions.assertFalse(accept);
     }
 
     @Test
@@ -124,7 +123,7 @@ public class VirtualHostTest {
         when(request.path()).thenReturn("/");
         boolean accept = vHost.accept(request);
 
-        Assert.assertFalse(accept);
+        Assertions.assertFalse(accept);
     }
 
     @Test
@@ -135,6 +134,6 @@ public class VirtualHostTest {
         when(request.host()).thenReturn("api.gravitee.io");
         boolean accept = vHost.accept(request);
 
-        Assert.assertTrue(accept);
+        Assertions.assertTrue(accept);
     }
 }

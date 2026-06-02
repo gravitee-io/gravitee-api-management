@@ -17,9 +17,9 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.MetadataReferenceType.API;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import freemarker.template.TemplateException;
@@ -35,17 +35,20 @@ import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class MetadataServiceTest {
 
     @InjectMocks
@@ -60,33 +63,39 @@ public class MetadataServiceTest {
     @Mock
     private NotificationTemplateService notificationTemplateService;
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void checkMetadataFormat_badEmailFormat() {
-        metadataService.checkMetadataFormat(GraviteeContext.getExecutionContext(), MetadataFormat.MAIL, "test");
-    }
-
-    @Test(expected = TechnicalManagementException.class)
-    public void checkMetadataFormat_badURLFormat() {
-        metadataService.checkMetadataFormat(GraviteeContext.getExecutionContext(), MetadataFormat.URL, "test");
-    }
-
-    @Test(expected = TechnicalManagementException.class)
-    public void checkMetadataFormat_badEmailFormat_EL() throws TemplateException {
-        when(
-            this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), any(Reader.class), any())
-        ).thenReturn("test");
-        UserEntity userEntity = new UserEntity();
-        userEntity.setEmail("test");
-        PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity(userEntity);
-        ApiEntity apiEntity = new ApiEntity();
-        apiEntity.setPrimaryOwner(primaryOwnerEntity);
-        metadataService.checkMetadataFormat(
-            GraviteeContext.getExecutionContext(),
-            MetadataFormat.MAIL,
-            "${api.primaryOwner.email}",
-            API,
-            apiEntity
+        assertThrows(TechnicalManagementException.class, () ->
+            metadataService.checkMetadataFormat(GraviteeContext.getExecutionContext(), MetadataFormat.MAIL, "test")
         );
+    }
+
+    @Test
+    public void checkMetadataFormat_badURLFormat() {
+        assertThrows(TechnicalManagementException.class, () ->
+            metadataService.checkMetadataFormat(GraviteeContext.getExecutionContext(), MetadataFormat.URL, "test")
+        );
+    }
+
+    @Test
+    public void checkMetadataFormat_badEmailFormat_EL() throws TemplateException {
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(
+                this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), any(Reader.class), any())
+            ).thenReturn("test");
+            UserEntity userEntity = new UserEntity();
+            userEntity.setEmail("test");
+            PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity(userEntity);
+            ApiEntity apiEntity = new ApiEntity();
+            apiEntity.setPrimaryOwner(primaryOwnerEntity);
+            metadataService.checkMetadataFormat(
+                GraviteeContext.getExecutionContext(),
+                MetadataFormat.MAIL,
+                "${api.primaryOwner.email}",
+                API,
+                apiEntity
+            );
+        });
     }
 
     @Test
@@ -123,9 +132,11 @@ public class MetadataServiceTest {
         );
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void checkMetadataFormat_badDateFormat() {
-        metadataService.checkMetadataFormat(GraviteeContext.getExecutionContext(), MetadataFormat.DATE, "2015-31-31");
+        assertThrows(TechnicalManagementException.class, () ->
+            metadataService.checkMetadataFormat(GraviteeContext.getExecutionContext(), MetadataFormat.DATE, "2015-31-31")
+        );
     }
 
     @Test
@@ -174,16 +185,18 @@ public class MetadataServiceTest {
         );
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void createWithReference_technicalException() throws TechnicalException {
-        when(metadataRepository.create(any(Metadata.class))).thenThrow(new TechnicalException("Mock exception"));
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(metadataRepository.create(any(Metadata.class))).thenThrow(new TechnicalException("Mock exception"));
 
-        final NewMetadataEntity metadata = new NewMetadataEntity();
-        metadata.setFormat(MetadataFormat.STRING);
-        metadata.setName("test");
-        metadata.setValue("value");
+            final NewMetadataEntity metadata = new NewMetadataEntity();
+            metadata.setFormat(MetadataFormat.STRING);
+            metadata.setName("test");
+            metadata.setValue("value");
 
-        metadataService.create(GraviteeContext.getExecutionContext(), metadata, API, "apiId");
+            metadataService.create(GraviteeContext.getExecutionContext(), metadata, API, "apiId");
+        });
     }
 
     @Test
@@ -209,10 +222,12 @@ public class MetadataServiceTest {
         assertThat(metadataEntity.getFormat()).isEqualTo(MetadataFormat.STRING);
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void findByKeyAndReferenceType_technicalException() throws TechnicalException {
-        when(metadataRepository.findByKeyAndReferenceType("key", API)).thenThrow(new TechnicalException("Mock exception"));
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(metadataRepository.findByKeyAndReferenceType("key", API)).thenThrow(new TechnicalException("Mock exception"));
 
-        metadataService.findByKeyAndReferenceType("key", API);
+            metadataService.findByKeyAndReferenceType("key", API);
+        });
     }
 }

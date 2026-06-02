@@ -16,8 +16,8 @@
 package io.gravitee.gateway.standalone.http2;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.http.HttpStatusCode;
@@ -27,15 +27,15 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Ignore("Disabled for now because there are some race condition between https and http tests when running all tests.")
+@Disabled("Disabled for now because there are some race condition between https and http tests when running all tests.")
 @ApiDescriptor("/io/gravitee/gateway/standalone/http/teams.json")
 public class Http2UnexpectedHttpHeadersGatewayTest extends Http2WiremockGatewayTest {
 
@@ -55,7 +55,7 @@ public class Http2UnexpectedHttpHeadersGatewayTest extends Http2WiremockGatewayT
                 new Handler<AsyncResult<HttpClientRequest>>() {
                     @Override
                     public void handle(AsyncResult<HttpClientRequest> event) {
-                        Assert.assertTrue(event.succeeded());
+                        Assertions.assertTrue(event.succeeded());
 
                         event
                             .result()
@@ -64,7 +64,7 @@ public class Http2UnexpectedHttpHeadersGatewayTest extends Http2WiremockGatewayT
                                 new Handler<AsyncResult<HttpClientResponse>>() {
                                     @Override
                                     public void handle(AsyncResult<HttpClientResponse> event) {
-                                        Assert.assertTrue(event.succeeded());
+                                        Assertions.assertTrue(event.succeeded());
 
                                         HttpClientResponse httpClientResponse = event.result();
 

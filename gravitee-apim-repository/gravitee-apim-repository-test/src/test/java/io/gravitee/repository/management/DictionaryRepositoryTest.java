@@ -16,16 +16,13 @@
 package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.management.model.Dictionary;
 import io.gravitee.repository.management.model.DictionaryType;
 import java.util.*;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -93,13 +90,13 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
         assertNotNull(optionalDictionary);
         assertTrue(optionalDictionary.isPresent());
         final Dictionary dictionary = optionalDictionary.get();
-        Assert.assertEquals("Invalid saved environment id.", "DEFAULT", dictionary.getEnvironmentId());
-        Assert.assertEquals("Invalid saved dictionary name.", "My dic 1", dictionary.getName());
-        Assert.assertEquals("Invalid dictionary description.", "Description for my dic 1", dictionary.getDescription());
-        Assert.assertTrue("Invalid dictionary createdAt.", compareDate(new Date(1000000000000L), dictionary.getCreatedAt()));
-        Assert.assertTrue("Invalid dictionary updatedAt.", compareDate(new Date(1439032010883L), dictionary.getUpdatedAt()));
-        Assert.assertEquals("Invalid dictionary properties.", 3, dictionary.getProperties().size());
-        Assert.assertEquals("Invalid dictionary property.", "127.0.0.1:8082", dictionary.getProperties().get("127.0.0.1:8082"));
+        Assertions.assertEquals("DEFAULT", dictionary.getEnvironmentId(), "Invalid saved environment id.");
+        Assertions.assertEquals("My dic 1", dictionary.getName(), "Invalid saved dictionary name.");
+        Assertions.assertEquals("Description for my dic 1", dictionary.getDescription(), "Invalid dictionary description.");
+        Assertions.assertTrue(compareDate(new Date(1000000000000L), dictionary.getCreatedAt()), "Invalid dictionary createdAt.");
+        Assertions.assertTrue(compareDate(new Date(1439032010883L), dictionary.getUpdatedAt()), "Invalid dictionary updatedAt.");
+        Assertions.assertEquals(3, dictionary.getProperties().size(), "Invalid dictionary properties.");
+        Assertions.assertEquals("127.0.0.1:8082", dictionary.getProperties().get("127.0.0.1:8082"), "Invalid dictionary property.");
     }
 
     @Test
@@ -123,26 +120,26 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
         dictionaryRepository.create(dictionary);
         int nbDictionariesAfterCreation = dictionaryRepository.findAll().size();
 
-        Assert.assertEquals(nbDictionariesBeforeCreation + 1, nbDictionariesAfterCreation);
+        Assertions.assertEquals(nbDictionariesBeforeCreation + 1, nbDictionariesAfterCreation);
 
         Optional<Dictionary> optional = dictionaryRepository.findById("new-dictionary");
-        Assert.assertTrue("Dictionary saved not found", optional.isPresent());
+        Assertions.assertTrue(optional.isPresent(), "Dictionary saved not found");
 
         final Dictionary dictionarySaved = optional.get();
-        Assert.assertEquals("Invalid saved environment id.", dictionary.getEnvironmentId(), dictionarySaved.getEnvironmentId());
-        Assert.assertEquals("Invalid saved dictionary name.", dictionary.getName(), dictionarySaved.getName());
-        Assert.assertEquals("Invalid dictionary description.", dictionary.getDescription(), dictionarySaved.getDescription());
-        Assert.assertTrue("Invalid dictionary createdAt.", compareDate(dictionary.getCreatedAt(), dictionarySaved.getCreatedAt()));
-        Assert.assertTrue("Invalid dictionary updatedAt.", compareDate(dictionary.getUpdatedAt(), dictionarySaved.getUpdatedAt()));
-        Assert.assertEquals("Invalid dictionary type.", dictionary.getType(), dictionarySaved.getType());
-        Assert.assertEquals("Invalid dictionary properties.", dictionary.getProperties(), dictionarySaved.getProperties());
+        Assertions.assertEquals(dictionary.getEnvironmentId(), dictionarySaved.getEnvironmentId(), "Invalid saved environment id.");
+        Assertions.assertEquals(dictionary.getName(), dictionarySaved.getName(), "Invalid saved dictionary name.");
+        Assertions.assertEquals(dictionary.getDescription(), dictionarySaved.getDescription(), "Invalid dictionary description.");
+        Assertions.assertTrue(compareDate(dictionary.getCreatedAt(), dictionarySaved.getCreatedAt()), "Invalid dictionary createdAt.");
+        Assertions.assertTrue(compareDate(dictionary.getUpdatedAt(), dictionarySaved.getUpdatedAt()), "Invalid dictionary updatedAt.");
+        Assertions.assertEquals(dictionary.getType(), dictionarySaved.getType(), "Invalid dictionary type.");
+        Assertions.assertEquals(dictionary.getProperties(), dictionarySaved.getProperties(), "Invalid dictionary properties.");
     }
 
     @Test
     public void shouldUpdate() throws Exception {
         Optional<Dictionary> optional = dictionaryRepository.findById("dic-1");
-        Assert.assertTrue("Dictionary to update not found", optional.isPresent());
-        Assert.assertEquals("Invalid saved dictionary name.", "My dic 1", optional.get().getName());
+        Assertions.assertTrue(optional.isPresent(), "Dictionary to update not found");
+        Assertions.assertEquals("My dic 1", optional.get().getName(), "Invalid saved dictionary name.");
 
         final Dictionary dictionary = optional.get();
         dictionary.setId("dic-1");
@@ -162,20 +159,20 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
         dictionaryRepository.update(dictionary);
         int nbDictionariesAfterUpdate = dictionaryRepository.findAll().size();
 
-        Assert.assertEquals(nbDictionariesBeforeUpdate, nbDictionariesAfterUpdate);
+        Assertions.assertEquals(nbDictionariesBeforeUpdate, nbDictionariesAfterUpdate);
 
         Optional<Dictionary> optionalUpdated = dictionaryRepository.findById("dic-1");
-        Assert.assertTrue("Dictionary to update not found", optionalUpdated.isPresent());
+        Assertions.assertTrue(optionalUpdated.isPresent(), "Dictionary to update not found");
 
         final Dictionary dictionaryUpdated = optionalUpdated.get();
 
-        Assert.assertEquals("Invalid saved environment id.", dictionary.getEnvironmentId(), dictionaryUpdated.getEnvironmentId());
-        Assert.assertEquals("Invalid saved dictionary name.", dictionary.getName(), dictionaryUpdated.getName());
-        Assert.assertEquals("Invalid dictionary description.", dictionary.getDescription(), dictionaryUpdated.getDescription());
-        Assert.assertTrue("Invalid dictionary createdAt.", compareDate(dictionary.getCreatedAt(), dictionaryUpdated.getCreatedAt()));
-        Assert.assertTrue("Invalid dictionary updatedAt.", compareDate(dictionary.getUpdatedAt(), dictionaryUpdated.getUpdatedAt()));
-        Assert.assertEquals("Invalid dictionary type.", dictionary.getType(), dictionaryUpdated.getType());
-        Assert.assertEquals("Invalid dictionary properties.", dictionary.getProperties(), dictionaryUpdated.getProperties());
+        Assertions.assertEquals(dictionary.getEnvironmentId(), dictionaryUpdated.getEnvironmentId(), "Invalid saved environment id.");
+        Assertions.assertEquals(dictionary.getName(), dictionaryUpdated.getName(), "Invalid saved dictionary name.");
+        Assertions.assertEquals(dictionary.getDescription(), dictionaryUpdated.getDescription(), "Invalid dictionary description.");
+        Assertions.assertTrue(compareDate(dictionary.getCreatedAt(), dictionaryUpdated.getCreatedAt()), "Invalid dictionary createdAt.");
+        Assertions.assertTrue(compareDate(dictionary.getUpdatedAt(), dictionaryUpdated.getUpdatedAt()), "Invalid dictionary updatedAt.");
+        Assertions.assertEquals(dictionary.getType(), dictionaryUpdated.getType(), "Invalid dictionary type.");
+        Assertions.assertEquals(dictionary.getProperties(), dictionaryUpdated.getProperties(), "Invalid dictionary properties.");
     }
 
     @Test
@@ -195,16 +192,16 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
         dictionaryRepository.update(dictionary);
 
         Optional<Dictionary> optionalUpdated = dictionaryRepository.findById("dic-1");
-        Assert.assertTrue("Dictionary to update not found", optionalUpdated.isPresent());
+        Assertions.assertTrue(optionalUpdated.isPresent(), "Dictionary to update not found");
 
         final Dictionary dictionaryUpdated = optionalUpdated.get();
-        Assert.assertEquals("Invalid saved environment id.", dictionary.getEnvironmentId(), dictionaryUpdated.getEnvironmentId());
-        Assert.assertEquals("Invalid saved dictionary name.", dictionary.getName(), dictionaryUpdated.getName());
-        Assert.assertEquals("Invalid dictionary description.", dictionary.getDescription(), dictionaryUpdated.getDescription());
-        Assert.assertTrue("Invalid dictionary createdAt.", compareDate(dictionary.getCreatedAt(), dictionaryUpdated.getCreatedAt()));
-        Assert.assertTrue("Invalid dictionary updatedAt.", compareDate(dictionary.getUpdatedAt(), dictionaryUpdated.getUpdatedAt()));
-        Assert.assertEquals("Invalid dictionary type.", dictionary.getType(), dictionaryUpdated.getType());
-        Assert.assertEquals("Invalid dictionary properties.", dictionary.getProperties(), dictionaryUpdated.getProperties());
+        Assertions.assertEquals(dictionary.getEnvironmentId(), dictionaryUpdated.getEnvironmentId(), "Invalid saved environment id.");
+        Assertions.assertEquals(dictionary.getName(), dictionaryUpdated.getName(), "Invalid saved dictionary name.");
+        Assertions.assertEquals(dictionary.getDescription(), dictionaryUpdated.getDescription(), "Invalid dictionary description.");
+        Assertions.assertTrue(compareDate(dictionary.getCreatedAt(), dictionaryUpdated.getCreatedAt()), "Invalid dictionary createdAt.");
+        Assertions.assertTrue(compareDate(dictionary.getUpdatedAt(), dictionaryUpdated.getUpdatedAt()), "Invalid dictionary updatedAt.");
+        Assertions.assertEquals(dictionary.getType(), dictionaryUpdated.getType(), "Invalid dictionary type.");
+        Assertions.assertEquals(dictionary.getProperties(), dictionaryUpdated.getProperties(), "Invalid dictionary properties.");
     }
 
     @Test
@@ -213,21 +210,25 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
         dictionaryRepository.delete("dic-3");
         int nbDictionariesAfterDeletion = dictionaryRepository.findAll().size();
 
-        Assert.assertEquals(nbDictionariesBeforeDeletion - 1, nbDictionariesAfterDeletion);
+        Assertions.assertEquals(nbDictionariesBeforeDeletion - 1, nbDictionariesAfterDeletion);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownView() throws Exception {
-        Dictionary unknownDictionary = new Dictionary();
-        unknownDictionary.setId("unknown");
-        dictionaryRepository.update(unknownDictionary);
-        fail("An unknown dictionary should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            Dictionary unknownDictionary = new Dictionary();
+            unknownDictionary.setId("unknown");
+            dictionaryRepository.update(unknownDictionary);
+            fail("An unknown dictionary should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        dictionaryRepository.update(null);
-        fail("A null dictionary should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            dictionaryRepository.update(null);
+            fail("A null dictionary should not be updated");
+        });
     }
 
     @Test

@@ -32,18 +32,21 @@ import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActiv
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.gravitee.rest.api.service.impl.configuration.identity.IdentityProviderNotFoundException;
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.mock.env.MockEnvironment;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class IdentityProviderInitializerTest {
 
     @Mock
@@ -66,7 +69,7 @@ public class IdentityProviderInitializerTest {
     private static final String GOOGLE_NAME = "google";
     private static final String GOOGLE_ID = IdGenerator.generate(GOOGLE_NAME);
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         MockEnvironment environment = new MockEnvironment()
             .withProperty("security.providers[0].type", "google")
@@ -169,6 +172,6 @@ public class IdentityProviderInitializerTest {
 
     @Test
     public void testOrder() {
-        Assert.assertEquals(InitializerOrder.IDENTITY_PROVIDER_INITIALIZER, initializer.getOrder());
+        Assertions.assertEquals(InitializerOrder.IDENTITY_PROVIDER_INITIALIZER, initializer.getOrder());
     }
 }

@@ -16,8 +16,8 @@
 package io.gravitee.gateway.standalone.reporter;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
@@ -32,9 +32,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -45,12 +45,12 @@ public class LoggableClientResponseWithRequestTimeoutTest extends AbstractWiremo
 
     private FakeReporter fakeReporter;
 
-    @Before
+    @BeforeEach
     public void setup() {
         fakeReporter = (FakeReporter) context.getBean("fakeReporter");
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         fakeReporter.reset();
     }
@@ -75,7 +75,7 @@ public class LoggableClientResponseWithRequestTimeoutTest extends AbstractWiremo
 
         wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")));
 
-        assertTrue("Reporter should have been called for Metric reportable", latchMetric.await(2, TimeUnit.SECONDS));
-        assertTrue("Reporter should have been called for Log reportable", latchLog.await(100, TimeUnit.MILLISECONDS));
+        assertTrue(latchMetric.await(2, TimeUnit.SECONDS), "Reporter should have been called for Metric reportable");
+        assertTrue(latchLog.await(100, TimeUnit.MILLISECONDS), "Reporter should have been called for Log reportable");
     }
 }

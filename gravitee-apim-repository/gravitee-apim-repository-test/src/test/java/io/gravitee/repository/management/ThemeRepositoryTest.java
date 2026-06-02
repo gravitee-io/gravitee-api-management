@@ -17,7 +17,7 @@ package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.ThemeCriteria;
@@ -25,7 +25,7 @@ import io.gravitee.repository.management.model.Theme;
 import io.gravitee.repository.management.model.ThemeReferenceType;
 import io.gravitee.repository.management.model.ThemeType;
 import java.util.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ThemeRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -124,10 +124,10 @@ public class ThemeRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(nbThemesBeforeCreation + 1, nbThemesAfterCreation);
 
         Optional<Theme> optional = themeRepository.findById("new-theme");
-        assertTrue("Theme saved not found", optional.isPresent());
+        assertTrue(optional.isPresent(), "Theme saved not found");
 
         final Theme themeSaved = optional.get();
-        assertEquals("Invalid saved theme name.", theme.getName(), themeSaved.getName());
+        assertEquals(theme.getName(), themeSaved.getName(), "Invalid saved theme name.");
         assertEquals("PORTAL", theme.getType().name());
         assertEquals("backgroundImage", themeSaved.getBackgroundImage());
         assertEquals("{\"def\": \"value\"}", themeSaved.getDefinition());
@@ -144,8 +144,8 @@ public class ThemeRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldUpdate() throws Exception {
         Optional<Theme> optional = themeRepository.findById("light");
-        assertTrue("Theme to update not found", optional.isPresent());
-        assertEquals("Invalid saved theme name.", "Light", optional.get().getName());
+        assertTrue(optional.isPresent(), "Theme to update not found");
+        assertEquals("Light", optional.get().getName(), "Invalid saved theme name.");
 
         final Theme theme = optional.get();
         theme.setName("Awesome");
@@ -167,11 +167,11 @@ public class ThemeRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(nbThemeBeforeUpdate, nbThemeAfterUpdate);
 
         Optional<Theme> optionalUpdated = themeRepository.findById("light");
-        assertTrue("Theme to update not found", optionalUpdated.isPresent());
+        assertTrue(optionalUpdated.isPresent(), "Theme to update not found");
 
         final Theme themeUpdated = optionalUpdated.get();
 
-        assertEquals("Invalid saved theme name.", "Awesome", themeUpdated.getName());
+        assertEquals("Awesome", themeUpdated.getName(), "Invalid saved theme name.");
         assertEquals("updateBackground", themeUpdated.getBackgroundImage());
         assertEquals("{\"def\": \"test\"}", themeUpdated.getDefinition());
         assertEquals("updateLogo", themeUpdated.getLogo());
@@ -192,18 +192,22 @@ public class ThemeRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(nbThemesBeforeDeletion - 1, nbThemesAfterDeletion);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownTheme() throws Exception {
-        Theme unknownTheme = new Theme();
-        unknownTheme.setId("unknown");
-        themeRepository.update(unknownTheme);
-        fail("An unknown theme should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            Theme unknownTheme = new Theme();
+            unknownTheme.setId("unknown");
+            themeRepository.update(unknownTheme);
+            fail("An unknown theme should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        themeRepository.update(null);
-        fail("A null theme should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            themeRepository.update(null);
+            fail("A null theme should not be updated");
+        });
     }
 
     @Test

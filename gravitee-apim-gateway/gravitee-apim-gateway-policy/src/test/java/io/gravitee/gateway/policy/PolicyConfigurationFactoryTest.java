@@ -21,9 +21,9 @@ import io.gravitee.policy.api.PolicyConfiguration;
 import java.io.IOException;
 import java.io.InputStream;
 import org.apache.commons.io.IOUtils;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -33,7 +33,7 @@ public class PolicyConfigurationFactoryTest {
 
     private PolicyConfigurationFactory policyConfigurationFactory;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         policyConfigurationFactory = new PolicyConfigurationFactoryImpl();
     }
@@ -42,14 +42,14 @@ public class PolicyConfigurationFactoryTest {
     public void createPolicyWithConfigurationAndWithoutConfigurationData() {
         PolicyConfiguration policyConfiguration = policyConfigurationFactory.create(DummyPolicyConfiguration.class, null);
 
-        Assert.assertNull(policyConfiguration);
+        Assertions.assertNull(policyConfiguration);
     }
 
     @Test
     public void createPolicyWithConfigurationAndEmptyConfigurationData() {
         PolicyConfiguration policyConfiguration = policyConfigurationFactory.create(DummyPolicyConfiguration.class, "");
 
-        Assert.assertNull(policyConfiguration);
+        Assertions.assertNull(policyConfiguration);
     }
 
     @Test
@@ -58,7 +58,7 @@ public class PolicyConfigurationFactoryTest {
             String configuration = IOUtils.toString(is, "UTF-8");
             DummyPolicyConfiguration policyConfiguration = policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
 
-            Assert.assertNotNull(policyConfiguration);
+            Assertions.assertNotNull(policyConfiguration);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -70,7 +70,7 @@ public class PolicyConfigurationFactoryTest {
             String configuration = IOUtils.toString(is, "UTF-8");
             DummyPolicyConfiguration policyConfiguration = policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
 
-            Assert.assertNotNull(policyConfiguration);
+            Assertions.assertNotNull(policyConfiguration);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -82,7 +82,7 @@ public class PolicyConfigurationFactoryTest {
             String configuration = IOUtils.toString(is, "UTF-8");
             DummyPolicyConfiguration policyConfiguration = policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
 
-            Assert.assertNotNull(policyConfiguration);
+            Assertions.assertNotNull(policyConfiguration);
         } catch (IOException e) {
             e.printStackTrace();
         }

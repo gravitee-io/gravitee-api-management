@@ -16,7 +16,6 @@
 package io.gravitee.repository.jdbc.management;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.data.domain.Page;

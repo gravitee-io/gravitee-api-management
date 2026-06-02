@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -31,18 +31,21 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.PageRevisionServiceImpl;
 import java.util.Date;
 import java.util.Optional;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class PageRevisionServiceTest {
 
     private static final String PAGE_ID = "ba01aef0-e3da-4499-81ae-f0e3daa4995a";
@@ -142,13 +145,15 @@ public class PageRevisionServiceTest {
         assertEquals(1, createdRev.getRevision());
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotCreate_Because_InvalidType() throws TechnicalException {
-        Date now = new Date();
-        Page page = mock(Page.class);
-        when(page.getId()).thenReturn(PAGE_ID);
-        when(page.getType()).thenReturn(PageType.FOLDER.name());
-        pageRevisionService.create(page);
+        assertThrows(TechnicalManagementException.class, () -> {
+            Date now = new Date();
+            Page page = mock(Page.class);
+            when(page.getId()).thenReturn(PAGE_ID);
+            when(page.getType()).thenReturn(PageType.FOLDER.name());
+            pageRevisionService.create(page);
+        });
     }
 
     @Test
@@ -157,9 +162,11 @@ public class PageRevisionServiceTest {
         verify(pageRevisionRepository).deleteAllByPageId(PAGE_ID);
     }
 
-    @Test(expected = TechnicalException.class)
-    public void shouldNotDeletePageRevisionBecauseTechnicalException() throws TechnicalException {
-        doThrow(TechnicalException.class).when(pageRevisionRepository).deleteAllByPageId(PAGE_ID);
-        pageRevisionService.deleteAllByPageId(PAGE_ID);
+    @Test
+    public void shouldNotDeletePageRevisionBecauseTechnicalException() {
+        assertThrows(TechnicalException.class, () -> {
+            doThrow(TechnicalException.class).when(pageRevisionRepository).deleteAllByPageId(PAGE_ID);
+            pageRevisionService.deleteAllByPageId(PAGE_ID);
+        });
     }
 }

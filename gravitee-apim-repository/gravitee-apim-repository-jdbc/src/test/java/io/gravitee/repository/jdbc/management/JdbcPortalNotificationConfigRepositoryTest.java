@@ -17,15 +17,13 @@ package io.gravitee.repository.jdbc.management;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration;
 import io.gravitee.repository.management.api.search.PortalNotificationCriteria;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationConfig;
@@ -33,6 +31,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Set;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -43,15 +42,41 @@ public class JdbcPortalNotificationConfigRepositoryTest {
 
     private JdbcPortalNotificationConfigRepository repository = new JdbcPortalNotificationConfigRepository("table_prefix_");
     private JdbcTemplate jdbcTemplate;
+    private char savedEscapePrefix;
+    private char savedEscapeSufix;
 
     @BeforeEach
     @SneakyThrows
     void setUp() {
+        // The expected queries below use MySQL-style backtick escaping (the default). escapeReservedWord relies
+        // on shared static state in AbstractJdbcRepositoryConfiguration that another test may have switched to
+        // another dialect; force backticks here (and restore in tearDown so we don't pollute other tests, which
+        // run against a real DB and rely on the dialect configured by their container).
+        Field prefix = AbstractJdbcRepositoryConfiguration.class.getDeclaredField("escapeReservedWordsPrefixChar");
+        Field sufix = AbstractJdbcRepositoryConfiguration.class.getDeclaredField("escapeReservedWordsSufixChar");
+        prefix.setAccessible(true);
+        sufix.setAccessible(true);
+        savedEscapePrefix = prefix.getChar(null);
+        savedEscapeSufix = sufix.getChar(null);
+        prefix.setChar(null, '`');
+        sufix.setChar(null, '`');
+
         jdbcTemplate = mock(JdbcTemplate.class);
         Field field = JdbcAbstractRepository.class.getDeclaredField("jdbcTemplate");
         field.setAccessible(true);
         field.set(repository, jdbcTemplate);
         field.setAccessible(false);
+    }
+
+    @AfterEach
+    @SneakyThrows
+    void tearDown() {
+        Field prefix = AbstractJdbcRepositoryConfiguration.class.getDeclaredField("escapeReservedWordsPrefixChar");
+        Field sufix = AbstractJdbcRepositoryConfiguration.class.getDeclaredField("escapeReservedWordsSufixChar");
+        prefix.setAccessible(true);
+        sufix.setAccessible(true);
+        prefix.setChar(null, savedEscapePrefix);
+        sufix.setChar(null, savedEscapeSufix);
     }
 
     @Test

@@ -17,7 +17,7 @@ package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.RatingCriteria;
@@ -26,8 +26,8 @@ import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingAnswer;
 import io.gravitee.repository.management.model.RatingReferenceType;
 import java.util.*;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class RatingRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -38,7 +38,7 @@ public class RatingRepositoryTest extends AbstractManagementRepositoryTest {
         return "/data/rating-tests/";
     }
 
-    @Before
+    @BeforeEach
     public void init() {
         cal.set(Calendar.YEAR, 2017);
         cal.set(Calendar.MONTH, Calendar.FEBRUARY);
@@ -191,18 +191,18 @@ public class RatingRepositoryTest extends AbstractManagementRepositoryTest {
         assertFalse(ratingRepository.findById("new-rating").isPresent());
         ratingRepository.create(rating);
         Optional<Rating> optional = ratingRepository.findById("new-rating");
-        assertTrue("Rating saved not found", optional.isPresent());
+        assertTrue(optional.isPresent(), "Rating saved not found");
 
         final Rating ratingSaved = optional.get();
-        assertEquals("Invalid rating api.", rating.getReferenceId(), ratingSaved.getReferenceId());
-        assertEquals("Invalid rating api.", rating.getReferenceType(), ratingSaved.getReferenceType());
-        assertEquals("Invalid rating user.", rating.getUser(), ratingSaved.getUser());
-        assertEquals("Invalid rating title.", rating.getTitle(), ratingSaved.getTitle());
-        assertEquals("Invalid rating comment.", rating.getComment(), ratingSaved.getComment());
-        assertEquals("Invalid rating rate.", rating.getRate(), ratingSaved.getRate());
-        assertTrue("Invalid rating created date.", compareDate(rating.getCreatedAt(), ratingSaved.getCreatedAt()));
-        assertTrue("Invalid rating updated date.", compareDate(rating.getUpdatedAt(), ratingSaved.getUpdatedAt()));
-        assertEquals("Invalid rating answers.", singletonList(ratingAnswer), ratingAnswerRepository.findByRating(rating.getId()));
+        assertEquals(rating.getReferenceId(), ratingSaved.getReferenceId(), "Invalid rating api.");
+        assertEquals(rating.getReferenceType(), ratingSaved.getReferenceType(), "Invalid rating api.");
+        assertEquals(rating.getUser(), ratingSaved.getUser(), "Invalid rating user.");
+        assertEquals(rating.getTitle(), ratingSaved.getTitle(), "Invalid rating title.");
+        assertEquals(rating.getComment(), ratingSaved.getComment(), "Invalid rating comment.");
+        assertEquals(rating.getRate(), ratingSaved.getRate(), "Invalid rating rate.");
+        assertTrue(compareDate(rating.getCreatedAt(), ratingSaved.getCreatedAt()), "Invalid rating created date.");
+        assertTrue(compareDate(rating.getUpdatedAt(), ratingSaved.getUpdatedAt()), "Invalid rating updated date.");
+        assertEquals(singletonList(ratingAnswer), ratingAnswerRepository.findByRating(rating.getId()), "Invalid rating answers.");
     }
 
     @Test
@@ -219,28 +219,28 @@ public class RatingRepositoryTest extends AbstractManagementRepositoryTest {
         rating.setUpdatedAt(cal.getTime());
 
         final Rating ratingSaved = ratingRepository.update(rating);
-        assertEquals("Invalid rating api.", rating.getReferenceId(), ratingSaved.getReferenceId());
-        assertEquals("Invalid rating api.", rating.getReferenceType(), ratingSaved.getReferenceType());
-        assertEquals("Invalid rating user.", rating.getUser(), ratingSaved.getUser());
-        assertEquals("Invalid rating title.", rating.getTitle(), ratingSaved.getTitle());
-        assertEquals("Invalid rating comment.", rating.getComment(), ratingSaved.getComment());
-        assertEquals("Invalid rating rate.", rating.getRate(), ratingSaved.getRate());
-        assertTrue("Invalid rating created date.", compareDate(rating.getCreatedAt(), ratingSaved.getCreatedAt()));
-        assertTrue("Invalid rating updated date.", compareDate(rating.getUpdatedAt(), ratingSaved.getUpdatedAt()));
+        assertEquals(rating.getReferenceId(), ratingSaved.getReferenceId(), "Invalid rating api.");
+        assertEquals(rating.getReferenceType(), ratingSaved.getReferenceType(), "Invalid rating api.");
+        assertEquals(rating.getUser(), ratingSaved.getUser(), "Invalid rating user.");
+        assertEquals(rating.getTitle(), ratingSaved.getTitle(), "Invalid rating title.");
+        assertEquals(rating.getComment(), ratingSaved.getComment(), "Invalid rating comment.");
+        assertEquals(rating.getRate(), ratingSaved.getRate(), "Invalid rating rate.");
+        assertTrue(compareDate(rating.getCreatedAt(), ratingSaved.getCreatedAt()), "Invalid rating created date.");
+        assertTrue(compareDate(rating.getUpdatedAt(), ratingSaved.getUpdatedAt()), "Invalid rating updated date.");
     }
 
     @Test
     public void shouldDelete() throws Exception {
         assertTrue(ratingRepository.findById("rating3-id").isPresent());
         ratingRepository.delete("rating3-id");
-        assertFalse("Rating not deleted", ratingRepository.findById("rating3-id").isPresent());
+        assertFalse(ratingRepository.findById("rating3-id").isPresent(), "Rating not deleted");
     }
 
     @Test
     public void shouldDeleteAnswer() throws Exception {
         assertTrue(ratingAnswerRepository.findById("answer-id").isPresent());
         ratingAnswerRepository.delete("answer-id");
-        assertFalse("Rating answer not deleted", ratingAnswerRepository.findById("answer-id").isPresent());
+        assertFalse(ratingAnswerRepository.findById("answer-id").isPresent(), "Rating answer not deleted");
     }
 
     @Test

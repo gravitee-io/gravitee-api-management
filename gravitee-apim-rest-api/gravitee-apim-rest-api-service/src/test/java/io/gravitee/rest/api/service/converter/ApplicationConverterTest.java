@@ -15,13 +15,13 @@
  */
 package io.gravitee.rest.api.service.converter;
 
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ApplicationConverterTest {
 

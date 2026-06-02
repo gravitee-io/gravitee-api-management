@@ -16,8 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.rest.api.portal.rest.resource.ApplicationsResource.METADATA_SUBSCRIPTIONS_KEY;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;

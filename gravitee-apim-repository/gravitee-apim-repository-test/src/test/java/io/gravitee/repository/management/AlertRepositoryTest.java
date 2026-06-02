@@ -16,13 +16,13 @@
 package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.AlertTrigger;
 import java.util.*;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class AlertRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -88,7 +88,7 @@ public class AlertRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(nbAlertsBeforeCreation + 1, nbAlertsAfterCreation);
 
         Optional<AlertTrigger> optional = alertRepository.findById("new-alert");
-        Assert.assertTrue("Alert saved not found", optional.isPresent());
+        Assertions.assertTrue(optional.isPresent(), "Alert saved not found");
         final AlertTrigger fetchedAlert = optional.get();
         assertEquals(alert.getName(), fetchedAlert.getName());
         assertEquals(alert.getDescription(), fetchedAlert.getDescription());
@@ -105,8 +105,8 @@ public class AlertRepositoryTest extends AbstractManagementRepositoryTest {
     @Test
     public void shouldUpdate() throws Exception {
         Optional<AlertTrigger> optional = alertRepository.findById("quota80");
-        Assert.assertTrue("Alert to update not found", optional.isPresent());
-        assertEquals("Invalid saved alert name.", "Quota80", optional.get().getName());
+        Assertions.assertTrue(optional.isPresent(), "Alert to update not found");
+        assertEquals("Quota80", optional.get().getName(), "Invalid saved alert name.");
 
         final AlertTrigger alert = optional.get();
         alert.setName("New name");
@@ -127,7 +127,7 @@ public class AlertRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(nbAlertsBeforeUpdate, nbAlertsAfterUpdate);
 
         Optional<AlertTrigger> optionalUpdated = alertRepository.findById("quota80");
-        Assert.assertTrue("Alert to update not found", optionalUpdated.isPresent());
+        Assertions.assertTrue(optionalUpdated.isPresent(), "Alert to update not found");
         final AlertTrigger fetchedAlert = optionalUpdated.get();
         assertEquals(alert.getName(), fetchedAlert.getName());
         assertEquals(alert.getDescription(), fetchedAlert.getDescription());
@@ -170,17 +170,21 @@ public class AlertRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(0, alerts.size());
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownAlert() throws Exception {
-        AlertTrigger unknownAlert = new AlertTrigger();
-        unknownAlert.setId("unknown");
-        alertRepository.update(unknownAlert);
-        fail("An unknown alert should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            AlertTrigger unknownAlert = new AlertTrigger();
+            unknownAlert.setId("unknown");
+            alertRepository.update(unknownAlert);
+            fail("An unknown alert should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        alertRepository.update(null);
-        fail("A null alert should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            alertRepository.update(null);
+            fail("A null alert should not be updated");
+        });
     }
 }

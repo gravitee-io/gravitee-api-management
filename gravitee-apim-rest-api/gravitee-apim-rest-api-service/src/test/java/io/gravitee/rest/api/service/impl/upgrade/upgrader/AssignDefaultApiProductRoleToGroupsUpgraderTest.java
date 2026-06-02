@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_API_PRODUCT_USER;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -37,14 +38,17 @@ import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class AssignDefaultApiProductRoleToGroupsUpgraderTest {
 
     private static final String ORG_ID = "org-1";
@@ -66,10 +70,12 @@ public class AssignDefaultApiProductRoleToGroupsUpgraderTest {
     @Mock
     RoleRepository roleRepository;
 
-    @Test(expected = UpgraderException.class)
-    public void upgrade_throws_when_environment_lookup_fails() throws UpgraderException, TechnicalException {
-        when(environmentRepository.findAll()).thenThrow(new RuntimeException("boom"));
-        upgrader.upgrade();
+    @Test
+    public void upgrade_throws_when_environment_lookup_fails() throws TechnicalException {
+        assertThrows(UpgraderException.class, () -> {
+            when(environmentRepository.findAll()).thenThrow(new RuntimeException("boom"));
+            upgrader.upgrade();
+        });
     }
 
     @Test

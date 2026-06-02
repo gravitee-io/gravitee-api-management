@@ -16,8 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.service.impl.PageServiceImplTests.executionContext;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
@@ -55,18 +54,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class PageService_CreateTest {
 
     private static final String API_ID = "myAPI";
@@ -189,41 +191,45 @@ public class PageService_CreateTest {
         verify(pageRevisionService).create(page1);
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotCreateBecauseTechnicalException() throws TechnicalException, IOException {
-        final String name = "PAGE_NAME";
-        when(newPage.getName()).thenReturn(name);
-        when(newPage.getType()).thenReturn(PageType.SWAGGER);
-        when(newPage.getContent()).thenReturn(
-            getPage("io/gravitee/rest/api/management/service/swagger-v1.json", MediaType.APPLICATION_JSON).getContent()
-        );
-        when(newPage.getVisibility()).thenReturn(Visibility.PUBLIC);
+        assertThrows(TechnicalManagementException.class, () -> {
+            final String name = "PAGE_NAME";
+            when(newPage.getName()).thenReturn(name);
+            when(newPage.getType()).thenReturn(PageType.SWAGGER);
+            when(newPage.getContent()).thenReturn(
+                getPage("io/gravitee/rest/api/management/service/swagger-v1.json", MediaType.APPLICATION_JSON).getContent()
+            );
+            when(newPage.getVisibility()).thenReturn(Visibility.PUBLIC);
 
-        when(pageRepository.create(any(Page.class))).thenThrow(TechnicalException.class);
+            when(pageRepository.create(any(Page.class))).thenThrow(TechnicalException.class);
 
-        pageService.createPage(GraviteeContext.getExecutionContext(), API_ID, newPage);
+            pageService.createPage(GraviteeContext.getExecutionContext(), API_ID, newPage);
 
-        verify(pageRepository, never()).create(any());
+            verify(pageRepository, never()).create(any());
+        });
     }
 
-    @Test(expected = PageFolderActionException.class)
+    @Test
     public void shouldNotCreateFolderinFolderOfSystemFolderPage() throws TechnicalException {
-        Page systemFolder = new Page();
-        systemFolder.setId("SYS");
-        systemFolder.setType("SYSTEM_FOLDER");
-        doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
+        assertThrows(PageFolderActionException.class, () -> {
+            Page systemFolder = new Page();
+            systemFolder.setId("SYS");
+            systemFolder.setType("SYSTEM_FOLDER");
+            doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
 
-        Page folderInSystemFolder = new Page();
-        folderInSystemFolder.setId("FOLD_IN_SYS");
-        folderInSystemFolder.setType("FOLDER");
-        folderInSystemFolder.setParentId("SYS");
-        doReturn(Optional.of(folderInSystemFolder)).when(pageRepository).findById("FOLD_IN_SYS");
+            Page folderInSystemFolder = new Page();
+            folderInSystemFolder.setId("FOLD_IN_SYS");
+            folderInSystemFolder.setType("FOLDER");
+            folderInSystemFolder.setParentId("SYS");
+            doReturn(Optional.of(folderInSystemFolder)).when(pageRepository).findById("FOLD_IN_SYS");
 
-        NewPageEntity newFolder = new NewPageEntity();
-        newFolder.setType(PageType.FOLDER);
-        newFolder.setParentId("FOLD_IN_SYS");
+            NewPageEntity newFolder = new NewPageEntity();
+            newFolder.setType(PageType.FOLDER);
+            newFolder.setParentId("FOLD_IN_SYS");
 
-        pageService.createPage(GraviteeContext.getExecutionContext(), newFolder);
+            pageService.createPage(GraviteeContext.getExecutionContext(), newFolder);
+        });
     }
 
     @Test
@@ -252,76 +258,84 @@ public class PageService_CreateTest {
         verify(pageRevisionService, times(0)).create(any());
     }
 
-    @Test(expected = PageActionException.class)
+    @Test
     public void shouldNotCreateSwaggerInSystemFolderPage() throws TechnicalException {
-        Page systemFolder = new Page();
-        systemFolder.setId("SYS");
-        systemFolder.setType("SYSTEM_FOLDER");
-        doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
+        assertThrows(PageActionException.class, () -> {
+            Page systemFolder = new Page();
+            systemFolder.setId("SYS");
+            systemFolder.setType("SYSTEM_FOLDER");
+            doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
 
-        NewPageEntity newFolder = new NewPageEntity();
-        newFolder.setType(PageType.SWAGGER);
-        newFolder.setParentId("SYS");
+            NewPageEntity newFolder = new NewPageEntity();
+            newFolder.setType(PageType.SWAGGER);
+            newFolder.setParentId("SYS");
 
-        pageService.createPage(GraviteeContext.getExecutionContext(), newFolder);
+            pageService.createPage(GraviteeContext.getExecutionContext(), newFolder);
+        });
     }
 
-    @Test(expected = PageActionException.class)
+    @Test
     public void shouldNotCreateMarkdownInSystemFolderPage() throws TechnicalException {
-        Page systemFolder = new Page();
-        systemFolder.setId("SYS");
-        systemFolder.setType("SYSTEM_FOLDER");
-        doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
+        assertThrows(PageActionException.class, () -> {
+            Page systemFolder = new Page();
+            systemFolder.setId("SYS");
+            systemFolder.setType("SYSTEM_FOLDER");
+            doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
 
-        NewPageEntity newFolder = new NewPageEntity();
-        newFolder.setType(PageType.MARKDOWN);
-        newFolder.setParentId("SYS");
+            NewPageEntity newFolder = new NewPageEntity();
+            newFolder.setType(PageType.MARKDOWN);
+            newFolder.setParentId("SYS");
 
-        pageService.createPage(GraviteeContext.getExecutionContext(), newFolder);
+            pageService.createPage(GraviteeContext.getExecutionContext(), newFolder);
+        });
     }
 
-    @Test(expected = PageActionException.class)
+    @Test
     public void shouldNotCreateLinkOfSystemFolder() throws TechnicalException {
-        Page systemFolder = new Page();
-        systemFolder.setId("SYS");
-        systemFolder.setType("SYSTEM_FOLDER");
-        doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
+        assertThrows(PageActionException.class, () -> {
+            Page systemFolder = new Page();
+            systemFolder.setId("SYS");
+            systemFolder.setType("SYSTEM_FOLDER");
+            doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
 
-        Map<String, String> conf = new HashMap<>();
-        conf.put(PageConfigurationKeys.LINK_RESOURCE_TYPE, PageConfigurationKeys.LINK_RESOURCE_TYPE_PAGE);
+            Map<String, String> conf = new HashMap<>();
+            conf.put(PageConfigurationKeys.LINK_RESOURCE_TYPE, PageConfigurationKeys.LINK_RESOURCE_TYPE_PAGE);
 
-        NewPageEntity newLink = new NewPageEntity();
-        newLink.setType(PageType.LINK);
-        newLink.setParentId("SYS");
-        newLink.setConfiguration(conf);
-        newLink.setContent("SYS");
+            NewPageEntity newLink = new NewPageEntity();
+            newLink.setType(PageType.LINK);
+            newLink.setParentId("SYS");
+            newLink.setConfiguration(conf);
+            newLink.setContent("SYS");
 
-        pageService.createPage(GraviteeContext.getExecutionContext(), newLink);
+            pageService.createPage(GraviteeContext.getExecutionContext(), newLink);
+        });
     }
 
-    @Test(expected = PageActionException.class)
+    @Test
     public void shouldNotCreateLinkOfFolderInSystemFolder() throws TechnicalException {
-        Page systemFolder = new Page();
-        systemFolder.setId("SYS");
-        systemFolder.setType("SYSTEM_FOLDER");
-        doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
+        assertThrows(PageActionException.class, () -> {
+            Page systemFolder = new Page();
+            systemFolder.setId("SYS");
+            systemFolder.setType("SYSTEM_FOLDER");
+            doReturn(Optional.of(systemFolder)).when(pageRepository).findById("SYS");
 
-        Page folderInSystemFolder = new Page();
-        folderInSystemFolder.setId("FOLD_IN_SYS");
-        folderInSystemFolder.setType("FOLDER");
-        folderInSystemFolder.setParentId("SYS");
-        doReturn(Optional.of(folderInSystemFolder)).when(pageRepository).findById("FOLD_IN_SYS");
+            Page folderInSystemFolder = new Page();
+            folderInSystemFolder.setId("FOLD_IN_SYS");
+            folderInSystemFolder.setType("FOLDER");
+            folderInSystemFolder.setParentId("SYS");
+            doReturn(Optional.of(folderInSystemFolder)).when(pageRepository).findById("FOLD_IN_SYS");
 
-        Map<String, String> conf = new HashMap<>();
-        conf.put(PageConfigurationKeys.LINK_RESOURCE_TYPE, PageConfigurationKeys.LINK_RESOURCE_TYPE_PAGE);
+            Map<String, String> conf = new HashMap<>();
+            conf.put(PageConfigurationKeys.LINK_RESOURCE_TYPE, PageConfigurationKeys.LINK_RESOURCE_TYPE_PAGE);
 
-        NewPageEntity newLink = new NewPageEntity();
-        newLink.setType(PageType.LINK);
-        newLink.setParentId("SYS");
-        newLink.setConfiguration(conf);
-        newLink.setContent("FOLD_IN_SYS");
+            NewPageEntity newLink = new NewPageEntity();
+            newLink.setType(PageType.LINK);
+            newLink.setParentId("SYS");
+            newLink.setConfiguration(conf);
+            newLink.setContent("FOLD_IN_SYS");
 
-        pageService.createPage(GraviteeContext.getExecutionContext(), newLink);
+            pageService.createPage(GraviteeContext.getExecutionContext(), newLink);
+        });
     }
 
     @Test
@@ -383,82 +397,94 @@ public class PageService_CreateTest {
         verify(pageRevisionService, times(0)).create(any());
     }
 
-    @Test(expected = PageActionException.class)
+    @Test
     public void shouldNotCreateTranslationPageIfNoParent() throws TechnicalException {
-        NewPageEntity newTranslation = new NewPageEntity();
-        newTranslation.setType(PageType.TRANSLATION);
+        assertThrows(PageActionException.class, () -> {
+            NewPageEntity newTranslation = new NewPageEntity();
+            newTranslation.setType(PageType.TRANSLATION);
 
-        pageService.createPage(GraviteeContext.getExecutionContext(), newTranslation);
+            pageService.createPage(GraviteeContext.getExecutionContext(), newTranslation);
+        });
     }
 
-    @Test(expected = PageActionException.class)
+    @Test
     public void shouldNotCreateTranslationPageWithoutConfiguration() throws TechnicalException {
-        NewPageEntity newTranslation = new NewPageEntity();
-        newTranslation.setType(PageType.TRANSLATION);
-        newTranslation.setParentId("FOLDER");
+        assertThrows(PageActionException.class, () -> {
+            NewPageEntity newTranslation = new NewPageEntity();
+            newTranslation.setType(PageType.TRANSLATION);
+            newTranslation.setParentId("FOLDER");
 
-        pageService.createPage(GraviteeContext.getExecutionContext(), newTranslation);
+            pageService.createPage(GraviteeContext.getExecutionContext(), newTranslation);
+        });
     }
 
-    @Test(expected = PageActionException.class)
+    @Test
     public void shouldNotCreateTranslationPageWithoutLang() throws TechnicalException {
-        NewPageEntity newTranslation = new NewPageEntity();
-        newTranslation.setType(PageType.TRANSLATION);
-        newTranslation.setParentId("FOLDER");
+        assertThrows(PageActionException.class, () -> {
+            NewPageEntity newTranslation = new NewPageEntity();
+            newTranslation.setType(PageType.TRANSLATION);
+            newTranslation.setParentId("FOLDER");
 
-        Map<String, String> conf = new HashMap<>();
-        newTranslation.setConfiguration(conf);
+            Map<String, String> conf = new HashMap<>();
+            newTranslation.setConfiguration(conf);
 
-        pageService.createPage(GraviteeContext.getExecutionContext(), newTranslation);
+            pageService.createPage(GraviteeContext.getExecutionContext(), newTranslation);
+        });
     }
 
-    @Test(expected = PageActionException.class)
+    @Test
     public void shouldNotCreateTranslationPageIfParentIsSystemFolder() throws TechnicalException {
-        Page parentPage = new Page();
-        parentPage.setType("SYSTEM_FOLDER");
-        doReturn(Optional.of(parentPage)).when(pageRepository).findById("SYS_FOLDER");
+        assertThrows(PageActionException.class, () -> {
+            Page parentPage = new Page();
+            parentPage.setType("SYSTEM_FOLDER");
+            doReturn(Optional.of(parentPage)).when(pageRepository).findById("SYS_FOLDER");
 
-        NewPageEntity newTranslation = new NewPageEntity();
-        newTranslation.setType(PageType.TRANSLATION);
-        newTranslation.setParentId("SYS_FOLDER");
-        Map<String, String> conf = new HashMap<>();
-        conf.put(PageConfigurationKeys.TRANSLATION_LANG, "fr");
-        newTranslation.setConfiguration(conf);
+            NewPageEntity newTranslation = new NewPageEntity();
+            newTranslation.setType(PageType.TRANSLATION);
+            newTranslation.setParentId("SYS_FOLDER");
+            Map<String, String> conf = new HashMap<>();
+            conf.put(PageConfigurationKeys.TRANSLATION_LANG, "fr");
+            newTranslation.setConfiguration(conf);
 
-        pageService.createPage(GraviteeContext.getExecutionContext(), newTranslation);
+            pageService.createPage(GraviteeContext.getExecutionContext(), newTranslation);
+        });
     }
 
-    @Test(expected = PageActionException.class)
+    @Test
     public void shouldNotCreateTranslationPageIfParentIsRoot() throws TechnicalException {
-        Page parentPage = new Page();
-        parentPage.setType("ROOT");
-        doReturn(Optional.of(parentPage)).when(pageRepository).findById("ROOT");
+        assertThrows(PageActionException.class, () -> {
+            Page parentPage = new Page();
+            parentPage.setType("ROOT");
+            doReturn(Optional.of(parentPage)).when(pageRepository).findById("ROOT");
 
-        NewPageEntity newTranslation = new NewPageEntity();
-        newTranslation.setType(PageType.TRANSLATION);
-        newTranslation.setParentId("ROOT");
-        Map<String, String> conf = new HashMap<>();
-        conf.put(PageConfigurationKeys.TRANSLATION_LANG, "fr");
-        newTranslation.setConfiguration(conf);
+            NewPageEntity newTranslation = new NewPageEntity();
+            newTranslation.setType(PageType.TRANSLATION);
+            newTranslation.setParentId("ROOT");
+            Map<String, String> conf = new HashMap<>();
+            conf.put(PageConfigurationKeys.TRANSLATION_LANG, "fr");
+            newTranslation.setConfiguration(conf);
 
-        pageService.createPage(GraviteeContext.getExecutionContext(), newTranslation);
+            pageService.createPage(GraviteeContext.getExecutionContext(), newTranslation);
+        });
     }
 
-    @Test(expected = PageActionException.class)
+    @Test
     public void shouldNotCreateTranslationPageIfParentIsTranslation() throws TechnicalException {
-        Page parentPage = new Page();
-        parentPage.setType("TRANSLATION");
-        doReturn(Optional.of(parentPage)).when(pageRepository).findById("TRANSLATION");
+        assertThrows(PageActionException.class, () -> {
+            Page parentPage = new Page();
+            parentPage.setType("TRANSLATION");
+            doReturn(Optional.of(parentPage)).when(pageRepository).findById("TRANSLATION");
 
-        NewPageEntity newTranslation = new NewPageEntity();
-        newTranslation.setType(PageType.TRANSLATION);
-        newTranslation.setParentId("TRANSLATION");
+            NewPageEntity newTranslation = new NewPageEntity();
+            newTranslation.setType(PageType.TRANSLATION);
+            newTranslation.setParentId("TRANSLATION");
 
-        Map<String, String> conf = new HashMap<>();
-        conf.put(PageConfigurationKeys.TRANSLATION_LANG, "fr");
-        newTranslation.setConfiguration(conf);
+            Map<String, String> conf = new HashMap<>();
+            conf.put(PageConfigurationKeys.TRANSLATION_LANG, "fr");
+            newTranslation.setConfiguration(conf);
 
-        pageService.createPage(GraviteeContext.getExecutionContext(), newTranslation);
+            pageService.createPage(GraviteeContext.getExecutionContext(), newTranslation);
+        });
     }
 
     @Test
@@ -492,83 +518,89 @@ public class PageService_CreateTest {
         verify(pageRevisionService, times(1)).create(any());
     }
 
-    @Test(expected = PageContentUnsafeException.class)
+    @Test
     public void shouldNotCreateTranslationBecausePageContentUnsafeException() throws TechnicalException {
-        setField(pageService, "markdownSanitize", true);
-        Page page = new Page();
-        page.setId(PAGE_ID);
-        page.setType("MARKDOWN");
-        page.setReferenceId(API_ID);
-        page.setPublished(true);
-        doReturn(Optional.of(page)).when(pageRepository).findById(PAGE_ID);
+        assertThrows(PageContentUnsafeException.class, () -> {
+            setField(pageService, "markdownSanitize", true);
+            Page page = new Page();
+            page.setId(PAGE_ID);
+            page.setType("MARKDOWN");
+            page.setReferenceId(API_ID);
+            page.setPublished(true);
+            doReturn(Optional.of(page)).when(pageRepository).findById(PAGE_ID);
 
-        NewPageEntity newTranslation = new NewPageEntity();
-        newTranslation.setType(PageType.TRANSLATION);
-        newTranslation.setParentId(PAGE_ID);
-        Map<String, String> conf = new HashMap<>();
-        conf.put(PageConfigurationKeys.TRANSLATION_LANG, "fr");
-        newTranslation.setConfiguration(conf);
-        newTranslation.setPublished(false);
-        newTranslation.setVisibility(Visibility.PUBLIC);
-        newTranslation.setContent("[Click me](javascript:alert(\"XSS\"))");
+            NewPageEntity newTranslation = new NewPageEntity();
+            newTranslation.setType(PageType.TRANSLATION);
+            newTranslation.setParentId(PAGE_ID);
+            Map<String, String> conf = new HashMap<>();
+            conf.put(PageConfigurationKeys.TRANSLATION_LANG, "fr");
+            newTranslation.setConfiguration(conf);
+            newTranslation.setPublished(false);
+            newTranslation.setVisibility(Visibility.PUBLIC);
+            newTranslation.setContent("[Click me](javascript:alert(\"XSS\"))");
 
-        when(htmlSanitizer.isSafe(anyString())).thenReturn(new HtmlSanitizer.SanitizeInfos(false, "Tag not allowed: script"));
+            when(htmlSanitizer.isSafe(anyString())).thenReturn(new HtmlSanitizer.SanitizeInfos(false, "Tag not allowed: script"));
 
-        when(
-            this.notificationTemplateService.resolveInlineTemplateWithParam(
-                anyString(),
-                anyString(),
-                eq(newTranslation.getContent()),
-                any(),
-                anyBoolean()
-            )
-        ).thenReturn(newTranslation.getContent());
+            when(
+                this.notificationTemplateService.resolveInlineTemplateWithParam(
+                    anyString(),
+                    anyString(),
+                    eq(newTranslation.getContent()),
+                    any(),
+                    anyBoolean()
+                )
+            ).thenReturn(newTranslation.getContent());
 
-        pageService.createPage(new ExecutionContext("DEFAULT", "DEFAULT"), newTranslation);
-        verify(pageRepository, never()).create(any());
+            pageService.createPage(new ExecutionContext("DEFAULT", "DEFAULT"), newTranslation);
+            verify(pageRepository, never()).create(any());
+        });
     }
 
-    @Test(expected = UrlForbiddenException.class)
+    @Test
     public void shouldNotCreateBecauseUrlForbiddenException() throws TechnicalException {
-        PageSourceEntity pageSource = new PageSourceEntity();
-        pageSource.setType("HTTP");
-        pageSource.setConfiguration(JsonNodeFactory.instance.objectNode().put("url", "http://localhost"));
+        assertThrows(UrlForbiddenException.class, () -> {
+            PageSourceEntity pageSource = new PageSourceEntity();
+            pageSource.setType("HTTP");
+            pageSource.setConfiguration(JsonNodeFactory.instance.objectNode().put("url", "http://localhost"));
 
-        final String name = "PAGE_NAME";
+            final String name = "PAGE_NAME";
 
-        when(newPage.getSource()).thenReturn(pageSource);
-        when(newPage.getVisibility()).thenReturn(Visibility.PUBLIC);
+            when(newPage.getSource()).thenReturn(pageSource);
+            when(newPage.getVisibility()).thenReturn(Visibility.PUBLIC);
 
-        when(importConfiguration.isAllowImportFromPrivate()).thenReturn(false);
-        when(importConfiguration.getImportWhitelist()).thenReturn(Collections.emptyList());
+            when(importConfiguration.isAllowImportFromPrivate()).thenReturn(false);
+            when(importConfiguration.getImportWhitelist()).thenReturn(Collections.emptyList());
 
-        pageService.createPage(GraviteeContext.getExecutionContext(), API_ID, newPage);
+            pageService.createPage(GraviteeContext.getExecutionContext(), API_ID, newPage);
 
-        verify(pageRepository, never()).create(any());
+            verify(pageRepository, never()).create(any());
+        });
     }
 
-    @Test(expected = PageContentUnsafeException.class)
+    @Test
     public void shouldNotCreateBecausePageContentUnsafeException() throws TechnicalException {
-        setField(pageService, "markdownSanitize", true);
+        assertThrows(PageContentUnsafeException.class, () -> {
+            setField(pageService, "markdownSanitize", true);
 
-        final String name = "MARKDOWN";
-        final String contrib = "contrib";
-        final String content = "<script />";
+            final String name = "MARKDOWN";
+            final String contrib = "contrib";
+            final String content = "<script />";
 
-        when(newPage.getName()).thenReturn(name);
-        when(newPage.getOrder()).thenReturn(1);
-        when(newPage.getContent()).thenReturn(content);
-        when(newPage.getLastContributor()).thenReturn(contrib);
-        when(newPage.getType()).thenReturn(PageType.MARKDOWN);
-        when(newPage.getVisibility()).thenReturn(Visibility.PUBLIC);
-        when(
-            this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), eq(content), any(), anyBoolean())
-        ).thenReturn(content);
-        when(htmlSanitizer.isSafe(anyString())).thenReturn(new HtmlSanitizer.SanitizeInfos(false, "Tag not allowed: script"));
+            when(newPage.getName()).thenReturn(name);
+            when(newPage.getOrder()).thenReturn(1);
+            when(newPage.getContent()).thenReturn(content);
+            when(newPage.getLastContributor()).thenReturn(contrib);
+            when(newPage.getType()).thenReturn(PageType.MARKDOWN);
+            when(newPage.getVisibility()).thenReturn(Visibility.PUBLIC);
+            when(
+                this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), eq(content), any(), anyBoolean())
+            ).thenReturn(content);
+            when(htmlSanitizer.isSafe(anyString())).thenReturn(new HtmlSanitizer.SanitizeInfos(false, "Tag not allowed: script"));
 
-        this.pageService.createPage(GraviteeContext.getExecutionContext(), API_ID, newPage);
+            this.pageService.createPage(GraviteeContext.getExecutionContext(), API_ID, newPage);
 
-        verify(pageRepository, never()).create(any());
+            verify(pageRepository, never()).create(any());
+        });
     }
 
     @Test
@@ -607,14 +639,16 @@ public class PageService_CreateTest {
         verify(pageRepository).create(any());
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldFailToCreatePageWithInvalidFetchCron() {
-        PageSourceEntity source = new PageSourceEntity();
-        source.setType("github-fetcher");
-        source.setConfiguration(JsonNodeFactory.instance.objectNode().put("autoFetch", true).put("fetchCron", "15 8,13 * * MON-FRI")); // Invalid cron
-        when(newPage.getSource()).thenReturn(source);
-        when(newPage.getVisibility()).thenReturn(Visibility.PUBLIC);
-        pageService.createPage(GraviteeContext.getExecutionContext(), API_ID, newPage);
+        assertThrows(TechnicalManagementException.class, () -> {
+            PageSourceEntity source = new PageSourceEntity();
+            source.setType("github-fetcher");
+            source.setConfiguration(JsonNodeFactory.instance.objectNode().put("autoFetch", true).put("fetchCron", "15 8,13 * * MON-FRI")); // Invalid cron
+            when(newPage.getSource()).thenReturn(source);
+            when(newPage.getVisibility()).thenReturn(Visibility.PUBLIC);
+            pageService.createPage(GraviteeContext.getExecutionContext(), API_ID, newPage);
+        });
     }
 
     @Test

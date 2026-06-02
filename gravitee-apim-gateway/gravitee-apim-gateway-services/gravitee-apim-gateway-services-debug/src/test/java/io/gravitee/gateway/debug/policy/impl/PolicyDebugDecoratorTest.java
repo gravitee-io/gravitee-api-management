@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -53,15 +52,16 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
 import org.reflections.ReflectionUtils;
 
@@ -69,7 +69,8 @@ import org.reflections.ReflectionUtils;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class PolicyDebugDecoratorTest {
 
     @Mock
@@ -89,9 +90,8 @@ public class PolicyDebugDecoratorTest {
     @Mock
     private DebugExecutionContext context;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
         policyFactory = spy(
             new PolicyDebugDecoratorFactory(new PolicyFactoryImpl(policyPluginFactory, new ExpressionLanguageStringConditionEvaluator()))
         );
@@ -119,8 +119,8 @@ public class PolicyDebugDecoratorTest {
 
         debugPolicy.execute(policyChain, context);
 
-        Assert.assertTrue(debugPolicy.isRunnable());
-        Assert.assertFalse(debugPolicy.isStreamable());
+        Assertions.assertTrue(debugPolicy.isRunnable());
+        Assertions.assertFalse(debugPolicy.isStreamable());
         verify(dummyPolicy, atLeastOnce()).onRequest(chainCaptor.capture(), eq(request), eq(response));
         verify(dummyPolicy, never()).onRequestContent(policyChain, request, response);
         verify(dummyPolicy, never()).onResponse(chainCaptor.capture(), eq(request), eq(response));
@@ -152,8 +152,8 @@ public class PolicyDebugDecoratorTest {
 
         debugPolicy.execute(policyChain, context);
 
-        Assert.assertTrue(debugPolicy.isRunnable());
-        Assert.assertFalse(debugPolicy.isStreamable());
+        Assertions.assertTrue(debugPolicy.isRunnable());
+        Assertions.assertFalse(debugPolicy.isStreamable());
         verify(dummyPolicy, never()).onRequest(chainCaptor.capture(), eq(request), eq(response));
         verify(dummyPolicy, never()).onRequestContent(policyChain, request, response);
         verify(dummyPolicy, atLeastOnce()).onResponse(chainCaptor.capture(), eq(request), eq(response));
@@ -186,8 +186,8 @@ public class PolicyDebugDecoratorTest {
 
         debugPolicy.stream(policyChain, context);
 
-        Assert.assertFalse(debugPolicy.isRunnable());
-        Assert.assertTrue(debugPolicy.isStreamable());
+        Assertions.assertFalse(debugPolicy.isRunnable());
+        Assertions.assertTrue(debugPolicy.isStreamable());
         verify(dummyPolicy, never()).onRequest(policyChain, request, response);
         verify(dummyPolicy, atLeastOnce()).onRequestContent(chainCaptor.capture(), eq(request), eq(response));
         verify(dummyPolicy, never()).onResponse(policyChain, request, response);
@@ -219,8 +219,8 @@ public class PolicyDebugDecoratorTest {
 
         debugPolicy.stream(policyChain, context);
 
-        Assert.assertFalse(debugPolicy.isRunnable());
-        Assert.assertTrue(debugPolicy.isStreamable());
+        Assertions.assertFalse(debugPolicy.isRunnable());
+        Assertions.assertTrue(debugPolicy.isStreamable());
         verify(noTransformationPolicy, never()).onRequest(policyChain, request, response);
         verify(noTransformationPolicy, atLeastOnce()).onRequestContent(chainCaptor.capture(), eq(request), eq(response));
         verify(noTransformationPolicy, never()).onResponse(policyChain, request, response);
@@ -251,8 +251,8 @@ public class PolicyDebugDecoratorTest {
 
         debugPolicy.stream(policyChain, context);
 
-        Assert.assertFalse(debugPolicy.isRunnable());
-        Assert.assertTrue(debugPolicy.isStreamable());
+        Assertions.assertFalse(debugPolicy.isRunnable());
+        Assertions.assertTrue(debugPolicy.isStreamable());
         verify(dummyPolicy, never()).onRequest(policyChain, request, response);
         verify(dummyPolicy, never()).onRequestContent(policyChain, request, response);
         verify(dummyPolicy, never()).onResponse(policyChain, request, response);
@@ -284,8 +284,8 @@ public class PolicyDebugDecoratorTest {
 
         debugPolicy.stream(policyChain, context);
 
-        Assert.assertFalse(debugPolicy.isRunnable());
-        Assert.assertTrue(debugPolicy.isStreamable());
+        Assertions.assertFalse(debugPolicy.isRunnable());
+        Assertions.assertTrue(debugPolicy.isStreamable());
         verify(noTransformationPolicy, never()).onRequest(policyChain, request, response);
         verify(noTransformationPolicy, never()).onRequestContent(policyChain, request, response);
         verify(noTransformationPolicy, never()).onResponse(policyChain, request, response);

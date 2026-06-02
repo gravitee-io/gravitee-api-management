@@ -15,7 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.node.api.upgrader.UpgraderException;
@@ -27,17 +28,20 @@ import io.gravitee.repository.management.model.Command;
 import io.gravitee.repository.management.model.Environment;
 import java.util.List;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class CommandOrganizationUpgraderTest {
 
     @Mock
@@ -49,14 +53,16 @@ public class CommandOrganizationUpgraderTest {
     @InjectMocks
     CommandOrganizationUpgrader upgrader;
 
-    @Test(expected = UpgraderException.class)
-    public void upgrade_should_failed_because_of_exception() throws TechnicalException, UpgraderException {
-        when(environmentRepository.findAll()).thenThrow(new RuntimeException());
+    @Test
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+        assertThrows(UpgraderException.class, () -> {
+            when(environmentRepository.findAll()).thenThrow(new RuntimeException());
 
-        upgrader.upgrade();
+            upgrader.upgrade();
 
-        verify(environmentRepository, times(1)).findAll();
-        verifyNoMoreInteractions(environmentRepository);
+            verify(environmentRepository, times(1)).findAll();
+            verifyNoMoreInteractions(environmentRepository);
+        });
     }
 
     @Test
@@ -88,6 +94,6 @@ public class CommandOrganizationUpgraderTest {
 
     @Test
     public void test_order() {
-        Assert.assertEquals(UpgraderOrder.COMMAND_ORGANIZATION_UPGRADER, upgrader.getOrder());
+        Assertions.assertEquals(UpgraderOrder.COMMAND_ORGANIZATION_UPGRADER, upgrader.getOrder());
     }
 }

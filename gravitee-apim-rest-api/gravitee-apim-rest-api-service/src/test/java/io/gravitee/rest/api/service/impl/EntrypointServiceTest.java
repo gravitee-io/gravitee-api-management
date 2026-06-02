@@ -18,8 +18,7 @@ package io.gravitee.rest.api.service.impl;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.of;
 import static org.assertj.core.util.Sets.newHashSet;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,18 +34,21 @@ import io.gravitee.rest.api.service.EntrypointService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.EntrypointNotFoundException;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class EntrypointServiceTest {
 
     private static final String ID = "123";
@@ -78,7 +80,7 @@ public class EntrypointServiceTest {
     private final Entrypoint entrypointCreated = new Entrypoint();
     private final Entrypoint entrypointUpdated = new Entrypoint();
 
-    @Before
+    @BeforeEach
     public void init() throws Exception {
         entrypointCreated.setId(ID);
         entrypointCreated.setTarget(HTTP);
@@ -162,15 +164,17 @@ public class EntrypointServiceTest {
         assertEquals(1, entrypoints.size());
     }
 
-    @Test(expected = EntrypointNotFoundException.class)
+    @Test
     public void shouldNotUpdate() {
-        final UpdateEntryPointEntity entrypoint = new UpdateEntryPointEntity();
-        entrypoint.setId(UNKNOWN_ID);
-        entrypointService.update(GraviteeContext.getExecutionContext(), entrypoint);
+        assertThrows(EntrypointNotFoundException.class, () -> {
+            final UpdateEntryPointEntity entrypoint = new UpdateEntryPointEntity();
+            entrypoint.setId(UNKNOWN_ID);
+            entrypointService.update(GraviteeContext.getExecutionContext(), entrypoint);
+        });
     }
 
-    @Test(expected = EntrypointNotFoundException.class)
+    @Test
     public void shouldNotDelete() {
-        entrypointService.delete(GraviteeContext.getExecutionContext(), UNKNOWN_ID);
+        assertThrows(EntrypointNotFoundException.class, () -> entrypointService.delete(GraviteeContext.getExecutionContext(), UNKNOWN_ID));
     }
 }

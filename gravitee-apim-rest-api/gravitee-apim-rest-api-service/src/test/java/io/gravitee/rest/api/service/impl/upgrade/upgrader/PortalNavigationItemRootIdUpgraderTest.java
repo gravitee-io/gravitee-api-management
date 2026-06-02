@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -30,12 +30,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import lombok.SneakyThrows;
-import org.junit.function.ThrowingRunnable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -94,7 +94,7 @@ public class PortalNavigationItemRootIdUpgraderTest {
     void should_throw_upgrader_exception_on_repository_error() {
         when(environmentRepository.findAll()).thenThrow(new TechnicalException("connection failed"));
 
-        final ThrowingRunnable throwing = () -> upgrader.upgrade();
+        final Executable throwing = () -> upgrader.upgrade();
 
         Exception exception = assertThrows(UpgraderException.class, throwing);
         assertThat(exception.getMessage()).contains("connection failed");
@@ -237,7 +237,7 @@ public class PortalNavigationItemRootIdUpgraderTest {
 
         when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId("DEFAULT", "DEFAULT")).thenReturn(List.of(orphan));
 
-        final ThrowingRunnable throwing = () -> upgrader.upgrade();
+        final Executable throwing = () -> upgrader.upgrade();
 
         Exception exception = assertThrows(UpgraderException.class, throwing);
         assertThat(exception.getMessage()).contains("Unable to resolve rootId");
@@ -256,7 +256,7 @@ public class PortalNavigationItemRootIdUpgraderTest {
             List.of(nodeA, nodeB)
         );
 
-        final ThrowingRunnable throwing = () -> upgrader.upgrade();
+        final Executable throwing = () -> upgrader.upgrade();
 
         Exception exception = assertThrows(UpgraderException.class, throwing);
         assertThat(exception.getMessage()).contains("Unable to resolve rootId");

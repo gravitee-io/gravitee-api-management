@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource.auth;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 import com.nimbusds.jose.*;

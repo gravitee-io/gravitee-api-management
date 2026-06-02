@@ -16,8 +16,9 @@
 package io.gravitee.rest.api.service.processor;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -28,12 +29,15 @@ import io.gravitee.definition.model.services.Services;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import java.util.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
 public class SynchronizationServiceTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -138,26 +142,26 @@ public class SynchronizationServiceTest {
      * WHEN we attempt to extract the field from the entity
      * THEN an error should be thrown regarding access to entity fields
      */
-    @Test(expected = Exception.class)
+    @Test
     public void thenAnErrorShouldBeThrownRegardingAccessToEntityFields() {
-        synchronizationService.addRequiredEntityFieldToList(null, null, null);
+        assertThrows(Exception.class, () -> {
+            synchronizationService.addRequiredEntityFieldToList(null, null, null);
 
-        fail("should throw Exception regarding access to entity fields");
+            fail("should throw Exception regarding access to entity fields");
+        });
     }
 
     /**
      * GIVEN an issue has occurred during synchronization checks
      * WHEN we attempt to check synchronization between two entities
-     * THEN an error is thrown regarding field definition generation
+     * THEN the error is caught and the entities are reported as not synchronized
      */
-    @Test(expected = Exception.class)
+    @Test
     public void thenAnErrorShouldBeThrownRegardingFieldDefinitionGeneration() throws JsonProcessingException {
         doThrow(new RuntimeException()).when(objectMapperMock).writeValueAsString(any());
 
         SynchronizationService synchronizationServiceWithMock = new SynchronizationService(objectMapperMock);
 
-        synchronizationServiceWithMock.checkSynchronization(null, null, null);
-
-        fail("should throw Exception regarding field definition generation");
+        assertThat(synchronizationServiceWithMock.checkSynchronization(null, null, null)).isFalse();
     }
 }

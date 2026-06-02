@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -37,18 +37,21 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
 import java.util.Optional;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class PlanService_DeprecateTest {
 
     private static final String PLAN_ID = "my-plan";
@@ -72,34 +75,37 @@ public class PlanService_DeprecateTest {
     @Mock
     private AuditService auditService;
 
-    @Before
-    public void setUp() {
-        // avoid NPE from static analysis and ensure audit calls do nothing
-        doNothing().when(auditService).createApiAuditLog(any(), any(), any());
-    }
+    @BeforeEach
+    public void setUp() {}
 
-    @Test(expected = PlanAlreadyDeprecatedException.class)
+    @Test
     public void shouldNotDepreciateBecauseAlreadyDepreciated() throws TechnicalException {
-        var plan = Plan.builder().id(PLAN_ID).status(Plan.Status.DEPRECATED).build();
-        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        assertThrows(PlanAlreadyDeprecatedException.class, () -> {
+            var plan = Plan.builder().id(PLAN_ID).status(Plan.Status.DEPRECATED).build();
+            when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
-        planService.deprecate(GraviteeContext.getExecutionContext(), PLAN_ID);
+            planService.deprecate(GraviteeContext.getExecutionContext(), PLAN_ID);
+        });
     }
 
-    @Test(expected = PlanAlreadyClosedException.class)
+    @Test
     public void shouldNotDepreciateBecauseAlreadyClosed() throws TechnicalException {
-        var plan = Plan.builder().id(PLAN_ID).status(Plan.Status.CLOSED).build();
-        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        assertThrows(PlanAlreadyClosedException.class, () -> {
+            var plan = Plan.builder().id(PLAN_ID).status(Plan.Status.CLOSED).build();
+            when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
-        planService.deprecate(GraviteeContext.getExecutionContext(), PLAN_ID);
+            planService.deprecate(GraviteeContext.getExecutionContext(), PLAN_ID);
+        });
     }
 
-    @Test(expected = PlanNotYetPublishedException.class)
+    @Test
     public void shouldNotDepreciateBecauseNotPublished() throws TechnicalException {
-        var plan = Plan.builder().id(PLAN_ID).status(Plan.Status.STAGING).build();
-        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        assertThrows(PlanNotYetPublishedException.class, () -> {
+            var plan = Plan.builder().id(PLAN_ID).status(Plan.Status.STAGING).build();
+            when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
-        planService.deprecate(GraviteeContext.getExecutionContext(), PLAN_ID);
+            planService.deprecate(GraviteeContext.getExecutionContext(), PLAN_ID);
+        });
     }
 
     @Test
@@ -139,27 +145,31 @@ public class PlanService_DeprecateTest {
         verify(flowService, never()).findByReference(any(), any());
     }
 
-    @Test(expected = PlanNotYetPublishedException.class)
+    @Test
     public void shouldNotDepreciateWithStagingPlanAndNotAllowStaging() throws TechnicalException {
-        var plan = Plan.builder()
-            .status(Plan.Status.STAGING)
-            .referenceType(Plan.PlanReferenceType.API)
-            .validation(Plan.PlanValidationType.AUTO)
-            .id(PLAN_ID)
-            .referenceId(API_ID)
-            .build();
-        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        assertThrows(PlanNotYetPublishedException.class, () -> {
+            var plan = Plan.builder()
+                .status(Plan.Status.STAGING)
+                .referenceType(Plan.PlanReferenceType.API)
+                .validation(Plan.PlanValidationType.AUTO)
+                .id(PLAN_ID)
+                .referenceId(API_ID)
+                .build();
+            when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
-        planService.deprecate(GraviteeContext.getExecutionContext(), PLAN_ID, false);
+            planService.deprecate(GraviteeContext.getExecutionContext(), PLAN_ID, false);
 
-        verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.DEPRECATED).build());
+            verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.DEPRECATED).build());
+        });
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotDepreciateBecauseTechnicalException() throws TechnicalException {
-        when(planRepository.findById(PLAN_ID)).thenThrow(TechnicalException.class);
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(planRepository.findById(PLAN_ID)).thenThrow(TechnicalException.class);
 
-        planService.deprecate(GraviteeContext.getExecutionContext(), PLAN_ID);
+            planService.deprecate(GraviteeContext.getExecutionContext(), PLAN_ID);
+        });
     }
 
     @Test

@@ -15,14 +15,14 @@
  */
 package io.gravitee.apim.plugin.apiservice.dynamicproperties.http.jolt;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.gravitee.definition.model.v4.property.Property;
 import java.io.IOException;
 import java.util.Collection;
-import org.junit.Test;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)

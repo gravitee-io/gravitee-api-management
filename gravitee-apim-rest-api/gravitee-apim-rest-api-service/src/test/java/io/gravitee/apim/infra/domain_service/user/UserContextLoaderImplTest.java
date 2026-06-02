@@ -36,15 +36,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -54,6 +56,8 @@ import org.springframework.security.core.context.SecurityContextImpl;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class UserContextLoaderImplTest {
 
     @Mock
@@ -66,7 +70,6 @@ class UserContextLoaderImplTest {
     private Authentication authentication;
 
     private UserContextLoaderImpl userContextLoader;
-    private AutoCloseable closeable;
 
     // Test data
     private static final Api API_1 = Api.builder().id("id1").name("api1").build();
@@ -83,13 +86,7 @@ class UserContextLoaderImplTest {
 
     @BeforeEach
     void setUp() {
-        closeable = MockitoAnnotations.openMocks(this);
         userContextLoader = new UserContextLoaderImpl(apiAuthorizationService, apiRepository);
-    }
-
-    @AfterEach
-    void tearDown() throws Exception {
-        closeable.close();
     }
 
     private AuditInfo auditInfo(String userId) {

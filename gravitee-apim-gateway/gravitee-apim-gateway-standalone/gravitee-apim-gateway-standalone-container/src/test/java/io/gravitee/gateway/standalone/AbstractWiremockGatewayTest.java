@@ -21,7 +21,7 @@ import com.github.tomakehurst.wiremock.common.ClasspathFileSource;
 import com.github.tomakehurst.wiremock.common.FileSource;
 import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
 import com.github.tomakehurst.wiremock.extension.responsetemplating.TemplateEngine;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.ExecutionMode;
@@ -36,10 +36,9 @@ import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.rules.RuleChain;
-import org.junit.rules.TestRule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.core.env.Environment;
 
 /**
@@ -49,11 +48,18 @@ import org.springframework.core.env.Environment;
 public abstract class AbstractWiremockGatewayTest extends AbstractGatewayTest {
 
     protected Executor executor;
-    protected final WireMockRule wireMockRule = getWiremockRule();
 
-    private ApiDeployer apiDeployer = new ApiDeployer(this);
+    // WireMock must start before the API is deployed (the API endpoints are wired to the mock port),
+    // hence @Order: WireMock (1) runs its beforeEach before the deployer (2), and tears down after it.
+    @Order(1)
+    @RegisterExtension
+    protected final WireMockExtension wireMockRule = getWiremockRule();
 
-    @Before
+    @Order(2)
+    @RegisterExtension
+    protected final ApiDeployer apiDeployer = new ApiDeployer(this);
+
+    @BeforeEach
     public void initExecutor() throws Exception {
         // Create a dedicated HttpClient for each test with no pooling to avoid side effects.
         final CloseableHttpClient client = HttpClients.custom().build();
@@ -61,16 +67,18 @@ public abstract class AbstractWiremockGatewayTest extends AbstractGatewayTest {
         this.executor = Executor.newInstance(client);
     }
 
-    @Rule
-    public final TestRule chain = RuleChain.outerRule(wireMockRule).around(apiDeployer);
-
-    protected WireMockRule getWiremockRule() {
+    protected WireMockExtension getWiremockRule() {
         FileSource fs = new ClasspathFileSource("src/test/resources/");
-        return new WireMockRule(
-            wireMockConfig()
-                .dynamicPort()
-                .extensions(new ResponseTemplateTransformer(TemplateEngine.defaultTemplateEngine(), true, fs, Collections.emptyList()))
-        );
+        return WireMockExtension.newInstance()
+            .options(
+                wireMockConfig()
+                    .dynamicPort()
+                    .extensions(new ResponseTemplateTransformer(TemplateEngine.defaultTemplateEngine(), true, fs, Collections.emptyList()))
+            )
+            // Point the static WireMock DSL (stubFor(...), verify(...)) at this instance, as the JUnit 4
+            // WireMockRule used to. Without this, static-import tests target the default localhost:8080.
+            .configureStaticDsl(true)
+            .build();
     }
 
     @Override
@@ -83,7 +91,7 @@ public abstract class AbstractWiremockGatewayTest extends AbstractGatewayTest {
     protected void updateEndpoints() {
         // Define dynamically endpoint port
         for (Endpoint endpoint : api.getProxy().getGroups().iterator().next().getEndpoints()) {
-            endpoint.setTarget(exchangePort(endpoint.getTarget(), wireMockRule.port()));
+            endpoint.setTarget(exchangePort(endpoint.getTarget(), wireMockRule.getPort()));
         }
     }
 

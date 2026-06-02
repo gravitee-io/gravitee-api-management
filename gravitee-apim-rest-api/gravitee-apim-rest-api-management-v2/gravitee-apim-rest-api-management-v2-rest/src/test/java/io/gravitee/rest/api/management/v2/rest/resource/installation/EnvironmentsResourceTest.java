@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.installation;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.management.v2.rest.model.Environment;

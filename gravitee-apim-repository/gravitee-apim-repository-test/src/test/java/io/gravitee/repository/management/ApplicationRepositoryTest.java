@@ -20,11 +20,7 @@ import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -39,7 +35,7 @@ import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 import java.util.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -61,7 +57,7 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         Set<Application> applications = applicationRepository.findAll();
 
         assertNotNull(applications);
-        assertEquals("Fail to resolve application in findAll", 15, applications.size());
+        assertEquals(15, applications.size(), "Fail to resolve application in findAll");
     }
 
     @Test
@@ -69,7 +65,7 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         Set<Application> applications = applicationRepository.findAllByEnvironment("DEFAULT");
 
         assertNotNull(applications);
-        assertEquals("Fail to resolve application in findAllByEnvironment", 7, applications.size());
+        assertEquals(7, applications.size(), "Fail to resolve application in findAllByEnvironment");
     }
 
     @Test
@@ -77,7 +73,7 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         Set<Application> applications = applicationRepository.findAll(ApplicationStatus.ARCHIVED);
 
         assertNotNull(applications);
-        assertEquals("Fail to resolve application in findAll with application status", 3, applications.size());
+        assertEquals(3, applications.size(), "Fail to resolve application in findAll with application status");
         assertThat(applications)
             .extracting(Application::getId)
             .containsExactlyInAnyOrder("grouped-app2", "app-with-client-id-archived", "app-with-certificate-archived");
@@ -108,19 +104,19 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         Optional<Application> optional = applicationRepository.findById(name);
 
         assertNotNull(optional);
-        assertTrue("Application saved not found", optional.isPresent());
+        assertTrue(optional.isPresent(), "Application saved not found");
 
         Application appSaved = optional.get();
 
-        assertEquals("Invalid environment id.", application.getEnvironmentId(), appSaved.getEnvironmentId());
-        assertEquals("Invalid application name.", application.getName(), appSaved.getName());
-        assertEquals("Invalid application description.", application.getDescription(), appSaved.getDescription());
-        assertEquals("Invalid application domain.", application.getDomain(), appSaved.getDomain());
-        assertEquals("Invalid application status.", application.getStatus(), appSaved.getStatus());
-        assertTrue("Invalid application createdAt.", compareDate(application.getCreatedAt(), appSaved.getCreatedAt()));
-        assertTrue("Invalid application updateAt.", compareDate(application.getUpdatedAt(), appSaved.getUpdatedAt()));
-        assertEquals("Invalid application metadata.", application.getMetadata().get("type"), appSaved.getMetadata().get("type"));
-        assertTrue("Invalid application disable membership notifications", appSaved.isDisableMembershipNotifications());
+        assertEquals(application.getEnvironmentId(), appSaved.getEnvironmentId(), "Invalid environment id.");
+        assertEquals(application.getName(), appSaved.getName(), "Invalid application name.");
+        assertEquals(application.getDescription(), appSaved.getDescription(), "Invalid application description.");
+        assertEquals(application.getDomain(), appSaved.getDomain(), "Invalid application domain.");
+        assertEquals(application.getStatus(), appSaved.getStatus(), "Invalid application status.");
+        assertTrue(compareDate(application.getCreatedAt(), appSaved.getCreatedAt()), "Invalid application createdAt.");
+        assertTrue(compareDate(application.getUpdatedAt(), appSaved.getUpdatedAt()), "Invalid application updateAt.");
+        assertEquals(application.getMetadata().get("type"), appSaved.getMetadata().get("type"), "Invalid application metadata.");
+        assertTrue(appSaved.isDisableMembershipNotifications(), "Invalid application disable membership notifications");
     }
 
     @Test
@@ -148,21 +144,21 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         applicationRepository.update(application);
 
         Optional<Application> optional = applicationRepository.findById(applicationName);
-        assertTrue("Application updated not found", optional.isPresent());
+        assertTrue(optional.isPresent(), "Application updated not found");
 
         Application appUpdated = optional.get();
 
-        assertEquals("Invalid updated environment id.", application.getEnvironmentId(), appUpdated.getEnvironmentId());
-        assertEquals("Invalid updated application name.", application.getName(), appUpdated.getName());
-        assertEquals("Invalid updated application description.", application.getDescription(), appUpdated.getDescription());
-        assertEquals("Invalid updated application domain.", application.getDomain(), appUpdated.getDomain());
-        assertEquals("Invalid updated application status.", application.getStatus(), appUpdated.getStatus());
-        assertTrue("Invalid updated application createdAt.", compareDate(application.getCreatedAt(), appUpdated.getCreatedAt()));
-        assertTrue("Invalid updated application updateAt.", compareDate(application.getUpdatedAt(), appUpdated.getUpdatedAt()));
-        assertEquals("Invalid application metadata.", application.getMetadata().get("type"), appUpdated.getMetadata().get("type"));
-        assertTrue("Invalid application disable membership notifications", appUpdated.isDisableMembershipNotifications());
-        assertEquals("Invalid updated application picture.", application.getPicture(), appUpdated.getPicture());
-        assertEquals("Invalid updated application background.", application.getBackground(), appUpdated.getBackground());
+        assertEquals(application.getEnvironmentId(), appUpdated.getEnvironmentId(), "Invalid updated environment id.");
+        assertEquals(application.getName(), appUpdated.getName(), "Invalid updated application name.");
+        assertEquals(application.getDescription(), appUpdated.getDescription(), "Invalid updated application description.");
+        assertEquals(application.getDomain(), appUpdated.getDomain(), "Invalid updated application domain.");
+        assertEquals(application.getStatus(), appUpdated.getStatus(), "Invalid updated application status.");
+        assertTrue(compareDate(application.getCreatedAt(), appUpdated.getCreatedAt()), "Invalid updated application createdAt.");
+        assertTrue(compareDate(application.getUpdatedAt(), appUpdated.getUpdatedAt()), "Invalid updated application updateAt.");
+        assertEquals(application.getMetadata().get("type"), appUpdated.getMetadata().get("type"), "Invalid application metadata.");
+        assertTrue(appUpdated.isDisableMembershipNotifications(), "Invalid application disable membership notifications");
+        assertEquals(application.getPicture(), appUpdated.getPicture(), "Invalid updated application picture.");
+        assertEquals(application.getBackground(), appUpdated.getBackground(), "Invalid updated application background.");
     }
 
     @Test
@@ -175,14 +171,14 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         Optional<Application> optional = applicationRepository.findById(applicationName);
         int nbApplicationAfter = applicationRepository.findAll().size();
 
-        assertFalse("Deleted application always present", optional.isPresent());
-        assertEquals("Invalid number of applications after deletion", nbApplicationBefore - 1, nbApplicationAfter);
+        assertFalse(optional.isPresent(), "Deleted application always present");
+        assertEquals(nbApplicationBefore - 1, nbApplicationAfter, "Invalid number of applications after deletion");
     }
 
     @Test
     public void findByIdTest() throws Exception {
         Optional<Application> optional = applicationRepository.findById("application-sample");
-        assertTrue("Find application by name return no result ", optional.isPresent());
+        assertTrue(optional.isPresent(), "Find application by name return no result ");
         assertEquals(1, optional.get().getMetadata().size());
     }
 
@@ -301,18 +297,22 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
         assertTrue(apps.stream().map(Application::getId).toList().containsAll(Arrays.asList("application-sample", "updated-app")));
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateUnknownApplication() throws Exception {
-        Application unknownApplication = new Application();
-        unknownApplication.setId("unknown");
-        applicationRepository.update(unknownApplication);
-        fail("An unknown application should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            Application unknownApplication = new Application();
+            unknownApplication.setId("unknown");
+            applicationRepository.update(unknownApplication);
+            fail("An unknown application should not be updated");
+        });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void shouldNotUpdateNull() throws Exception {
-        applicationRepository.update(null);
-        fail("A null application should not be updated");
+        assertThrows(IllegalStateException.class, () -> {
+            applicationRepository.update(null);
+            fail("A null application should not be updated");
+        });
     }
 
     @Test

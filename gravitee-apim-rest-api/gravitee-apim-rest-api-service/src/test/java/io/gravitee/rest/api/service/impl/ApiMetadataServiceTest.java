@@ -21,8 +21,7 @@ import static io.gravitee.repository.management.model.MetadataReferenceType.API;
 import static io.gravitee.repository.management.model.MetadataReferenceType.ENVIRONMENT;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.of;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.times;
 
@@ -46,19 +45,22 @@ import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.groups.Tuple;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiMetadataServiceTest {
 
     private static final String ENV_ID = "env#1";
@@ -109,7 +111,7 @@ public class ApiMetadataServiceTest {
     @Mock
     private NotificationTemplateService notificationTemplateService;
 
-    @Before
+    @BeforeEach
     public void init() throws TechnicalException {
         mockMetadata(defaultMetadata, METADATA_KEY, ENVIRONMENT, ENV_ID, METADATA_VALUE);
         mockMetadata(apiMetadata, METADATA_KEY, API, API_ID, API_METADATA_VALUE);
@@ -139,7 +141,7 @@ public class ApiMetadataServiceTest {
         GraviteeContext.setCurrentEnvironment(ENV_ID);
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws TechnicalException {
         GraviteeContext.cleanContext();
     }
@@ -215,15 +217,17 @@ public class ApiMetadataServiceTest {
         assertEquals(MetadataFormat.STRING, apiMetadataEntities.get(2).getFormat());
     }
 
-    @Test(expected = DuplicateMetadataNameException.class)
+    @Test
     public void shouldNotCreateDuplicate() {
-        final NewApiMetadataEntity newApiMetadataEntity = new NewApiMetadataEntity();
-        newApiMetadataEntity.setApiId(API_ID);
-        newApiMetadataEntity.setFormat(MetadataFormat.STRING);
-        newApiMetadataEntity.setName(METADATA_NAME);
-        newApiMetadataEntity.setValue(METADATA_VALUE);
+        assertThrows(DuplicateMetadataNameException.class, () -> {
+            final NewApiMetadataEntity newApiMetadataEntity = new NewApiMetadataEntity();
+            newApiMetadataEntity.setApiId(API_ID);
+            newApiMetadataEntity.setFormat(MetadataFormat.STRING);
+            newApiMetadataEntity.setName(METADATA_NAME);
+            newApiMetadataEntity.setValue(METADATA_VALUE);
 
-        apiMetadataService.create(GraviteeContext.getExecutionContext(), newApiMetadataEntity);
+            apiMetadataService.create(GraviteeContext.getExecutionContext(), newApiMetadataEntity);
+        });
     }
 
     @Test

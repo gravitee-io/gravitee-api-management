@@ -23,8 +23,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -69,7 +69,7 @@ public class ApiCategoryOrderRepositoryTest extends AbstractManagementRepository
         apiCategoryOrderRepository.create(apiCategoryOrder);
 
         var savedEntities = apiCategoryOrderRepository.findAll();
-        Assert.assertEquals(nbApiCategoryOrdersBeforeCreation + 1, savedEntities.size());
+        Assertions.assertEquals(nbApiCategoryOrdersBeforeCreation + 1, savedEntities.size());
 
         var optional = savedEntities
             .stream()
@@ -102,7 +102,7 @@ public class ApiCategoryOrderRepositoryTest extends AbstractManagementRepository
 
         var updatedSavedEntities = apiCategoryOrderRepository.findAll();
 
-        Assert.assertEquals(savedEntities.size(), updatedSavedEntities.size());
+        Assertions.assertEquals(savedEntities.size(), updatedSavedEntities.size());
 
         var savedOptional = savedEntities
             .stream()

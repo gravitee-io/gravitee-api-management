@@ -17,10 +17,10 @@ package io.gravitee.gateway.standalone.http2;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import io.gravitee.connector.http.endpoint.HttpEndpoint;
 import io.gravitee.connector.http.endpoint.pkcs12.PKCS12TrustStore;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -33,7 +33,7 @@ import java.net.URL;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Based on keystore from {@link io.gravitee.gateway.standalone.http.SSLPKCS12TrustStoreTest}
@@ -47,14 +47,16 @@ public class Http2SSLPKCS12TrustStoreTest extends AbstractWiremockGatewayTest {
     ObjectMapper mapper = new GraviteeMapper();
 
     @Override
-    protected WireMockRule getWiremockRule() {
-        return new WireMockRule(
-            wireMockConfig()
-                .dynamicPort()
-                .dynamicHttpsPort()
-                .keystorePath(ResourceUtils.toPath("io/gravitee/gateway/standalone/keystore01.jks"))
-                .keystorePassword("password")
-        );
+    protected WireMockExtension getWiremockRule() {
+        return WireMockExtension.newInstance()
+            .options(
+                wireMockConfig()
+                    .dynamicPort()
+                    .dynamicHttpsPort()
+                    .keystorePath(ResourceUtils.toPath("io/gravitee/gateway/standalone/keystore01.jks"))
+                    .keystorePassword("password")
+            )
+            .build();
     }
 
     @Test
@@ -64,22 +66,22 @@ public class Http2SSLPKCS12TrustStoreTest extends AbstractWiremockGatewayTest {
         // First call is calling an endpoint where trustAll is defined to true, no need for truststore => 200
         HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
         assertEquals(
-            "trustAll is defined to true, no need for truststore => 200",
             HttpStatus.SC_OK,
-            response.getStatusLine().getStatusCode()
+            response.getStatusLine().getStatusCode(),
+            "trustAll is defined to true, no need for truststore => 200"
         );
 
         // Second call is calling an endpoint where trustAll is defined to false, without truststore => 502
         response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
         assertEquals(
-            "trustAll is defined to false, without truststore => 502",
             HttpStatus.SC_BAD_GATEWAY,
-            response.getStatusLine().getStatusCode()
+            response.getStatusLine().getStatusCode(),
+            "trustAll is defined to false, without truststore => 502"
         );
 
         // Third call is calling an endpoint where trustAll is defined to false, with truststore => 200
         response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
-        assertEquals("trustAll is defined to false, with truststore => 200", HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode(), "trustAll is defined to false, with truststore => 200");
 
         // Check that the stub has been successfully invoked by the gateway
         wireMockRule.verify(2, getRequestedFor(urlPathEqualTo("/team/my_team")));
@@ -92,7 +94,7 @@ public class Http2SSLPKCS12TrustStoreTest extends AbstractWiremockGatewayTest {
         try {
             for (Endpoint endpoint : api.getProxy().getGroups().iterator().next().getEndpoints()) {
                 URL target = new URL(endpoint.getTarget());
-                URL newTarget = new URL(target.getProtocol(), target.getHost(), wireMockRule.httpsPort(), target.getFile());
+                URL newTarget = new URL(target.getProtocol(), target.getHost(), wireMockRule.getHttpsPort(), target.getFile());
                 endpoint.setTarget(newTarget.toString());
 
                 HttpEndpoint httpEndpoint = mapper.readValue(endpoint.getConfiguration(), HttpEndpoint.class);

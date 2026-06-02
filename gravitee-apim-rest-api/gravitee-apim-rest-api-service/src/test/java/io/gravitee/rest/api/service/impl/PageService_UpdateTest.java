@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static java.util.Arrays.asList;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -42,19 +43,22 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class PageService_UpdateTest {
 
     private static final String API_ID = "myAPI";
@@ -99,7 +103,7 @@ public class PageService_UpdateTest {
     @Mock
     private HtmlSanitizer htmlSanitizer;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         when(page1.getVisibility()).thenReturn("PUBLIC");
         when(existingPage.getVisibility()).thenReturn(Visibility.PUBLIC);
@@ -287,25 +291,29 @@ public class PageService_UpdateTest {
         verify(pageRevisionService, times(0)).create(any());
     }
 
-    @Test(expected = PageNotFoundException.class)
+    @Test
     public void shouldNotUpdateBecauseNotExists() throws TechnicalException {
-        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.empty());
+        assertThrows(PageNotFoundException.class, () -> {
+            when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.empty());
 
-        pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, existingPage);
+            pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, existingPage);
 
-        verify(pageRepository, never()).update(any());
+            verify(pageRepository, never()).update(any());
+        });
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotUpdateBecauseTechnicalException() throws TechnicalException {
-        when(page1.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
-        when(page1.getReferenceId()).thenReturn("envId");
-        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
-        when(pageRepository.update(any(Page.class))).thenThrow(TechnicalException.class);
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(page1.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
+            when(page1.getReferenceId()).thenReturn("envId");
+            when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
+            when(pageRepository.update(any(Page.class))).thenThrow(TechnicalException.class);
 
-        pageService.update(new ExecutionContext(GraviteeContext.getDefaultOrganization(), "envId"), PAGE_ID, existingPage);
+            pageService.update(new ExecutionContext(GraviteeContext.getDefaultOrganization(), "envId"), PAGE_ID, existingPage);
 
-        verify(pageRepository, never()).update(any());
+            verify(pageRepository, never()).update(any());
+        });
     }
 
     @Test
@@ -427,140 +435,164 @@ public class PageService_UpdateTest {
         verify(pageRepository).update(argThat(p -> p.getId().equals("LINK_TRANSLATION_ID") && p.isPublished()));
     }
 
-    @Test(expected = PageActionException.class)
+    @Test
     public void shouldNotCreateTranslationPageWithoutLang() throws TechnicalException {
-        Page translationPage = new Page();
-        translationPage.setId("TRANSLATION_ID");
-        translationPage.setParentId(PAGE_ID);
-        translationPage.setOrder(1);
-        translationPage.setPublished(false);
-        translationPage.setReferenceId("DEFAULT");
-        translationPage.setReferenceType(PageReferenceType.ENVIRONMENT);
-        translationPage.setType("TRANSLATION");
-        Map<String, String> translationConf = new HashMap<String, String>();
-        translationConf.put(PageConfigurationKeys.TRANSLATION_LANG, "fr");
-        translationPage.setConfiguration(translationConf);
-        doReturn(Optional.of(translationPage)).when(pageRepository).findById("TRANSLATION_ID");
+        assertThrows(PageActionException.class, () -> {
+            Page translationPage = new Page();
+            translationPage.setId("TRANSLATION_ID");
+            translationPage.setParentId(PAGE_ID);
+            translationPage.setOrder(1);
+            translationPage.setPublished(false);
+            translationPage.setReferenceId("DEFAULT");
+            translationPage.setReferenceType(PageReferenceType.ENVIRONMENT);
+            translationPage.setType("TRANSLATION");
+            Map<String, String> translationConf = new HashMap<String, String>();
+            translationConf.put(PageConfigurationKeys.TRANSLATION_LANG, "fr");
+            translationPage.setConfiguration(translationConf);
+            doReturn(Optional.of(translationPage)).when(pageRepository).findById("TRANSLATION_ID");
 
-        UpdatePageEntity updateTranslation = new UpdatePageEntity();
-        updateTranslation.setConfiguration(new HashMap<String, String>());
-        updateTranslation.setOrder(1);
+            UpdatePageEntity updateTranslation = new UpdatePageEntity();
+            updateTranslation.setConfiguration(new HashMap<String, String>());
+            updateTranslation.setOrder(1);
 
-        pageService.update(new ExecutionContext(GraviteeContext.getDefaultOrganization(), "DEFAULT"), "TRANSLATION_ID", updateTranslation);
+            pageService.update(
+                new ExecutionContext(GraviteeContext.getDefaultOrganization(), "DEFAULT"),
+                "TRANSLATION_ID",
+                updateTranslation
+            );
+        });
     }
 
-    @Test(expected = PageActionException.class)
+    @Test
     public void shouldNotCreateTranslationPageIfParentIsSystemFolder() throws TechnicalException {
-        Page parentPage = new Page();
-        parentPage.setType("SYSTEM_FOLDER");
-        doReturn(Optional.of(parentPage)).when(pageRepository).findById("SYS_FOLDER");
+        assertThrows(PageActionException.class, () -> {
+            Page parentPage = new Page();
+            parentPage.setType("SYSTEM_FOLDER");
+            doReturn(Optional.of(parentPage)).when(pageRepository).findById("SYS_FOLDER");
 
-        Page translationPage = new Page();
-        translationPage.setId("TRANSLATION_ID");
-        translationPage.setParentId(PAGE_ID);
-        translationPage.setOrder(1);
-        translationPage.setPublished(false);
-        translationPage.setReferenceId("DEFAULT");
-        translationPage.setReferenceType(PageReferenceType.ENVIRONMENT);
-        translationPage.setType("TRANSLATION");
-        Map<String, String> translationConf = new HashMap<String, String>();
-        translationConf.put(PageConfigurationKeys.TRANSLATION_LANG, "fr");
-        translationPage.setConfiguration(translationConf);
-        doReturn(Optional.of(translationPage)).when(pageRepository).findById("TRANSLATION_ID");
+            Page translationPage = new Page();
+            translationPage.setId("TRANSLATION_ID");
+            translationPage.setParentId(PAGE_ID);
+            translationPage.setOrder(1);
+            translationPage.setPublished(false);
+            translationPage.setReferenceId("DEFAULT");
+            translationPage.setReferenceType(PageReferenceType.ENVIRONMENT);
+            translationPage.setType("TRANSLATION");
+            Map<String, String> translationConf = new HashMap<String, String>();
+            translationConf.put(PageConfigurationKeys.TRANSLATION_LANG, "fr");
+            translationPage.setConfiguration(translationConf);
+            doReturn(Optional.of(translationPage)).when(pageRepository).findById("TRANSLATION_ID");
 
-        UpdatePageEntity updateTranslation = new UpdatePageEntity();
-        updateTranslation.setParentId("SYS_FOLDER");
-        updateTranslation.setOrder(1);
+            UpdatePageEntity updateTranslation = new UpdatePageEntity();
+            updateTranslation.setParentId("SYS_FOLDER");
+            updateTranslation.setOrder(1);
 
-        pageService.update(new ExecutionContext(GraviteeContext.getDefaultOrganization(), "DEFAULT"), "TRANSLATION_ID", updateTranslation);
+            pageService.update(
+                new ExecutionContext(GraviteeContext.getDefaultOrganization(), "DEFAULT"),
+                "TRANSLATION_ID",
+                updateTranslation
+            );
+        });
     }
 
-    @Test(expected = PageActionException.class)
+    @Test
     public void shouldNotCreateTranslationPageIfParentIsRoot() throws TechnicalException {
-        Page parentPage = new Page();
-        parentPage.setType("ROOT");
-        doReturn(Optional.of(parentPage)).when(pageRepository).findById("ROOT");
+        assertThrows(PageActionException.class, () -> {
+            Page parentPage = new Page();
+            parentPage.setType("ROOT");
+            doReturn(Optional.of(parentPage)).when(pageRepository).findById("ROOT");
 
-        Page translationPage = new Page();
-        translationPage.setId("TRANSLATION_ID");
-        translationPage.setParentId(PAGE_ID);
-        translationPage.setOrder(1);
-        translationPage.setPublished(false);
-        translationPage.setReferenceId("DEFAULT");
-        translationPage.setReferenceType(PageReferenceType.ENVIRONMENT);
-        translationPage.setType("TRANSLATION");
-        Map<String, String> translationConf = new HashMap<String, String>();
-        translationConf.put(PageConfigurationKeys.TRANSLATION_LANG, "fr");
-        translationPage.setConfiguration(translationConf);
-        doReturn(Optional.of(translationPage)).when(pageRepository).findById("TRANSLATION_ID");
+            Page translationPage = new Page();
+            translationPage.setId("TRANSLATION_ID");
+            translationPage.setParentId(PAGE_ID);
+            translationPage.setOrder(1);
+            translationPage.setPublished(false);
+            translationPage.setReferenceId("DEFAULT");
+            translationPage.setReferenceType(PageReferenceType.ENVIRONMENT);
+            translationPage.setType("TRANSLATION");
+            Map<String, String> translationConf = new HashMap<String, String>();
+            translationConf.put(PageConfigurationKeys.TRANSLATION_LANG, "fr");
+            translationPage.setConfiguration(translationConf);
+            doReturn(Optional.of(translationPage)).when(pageRepository).findById("TRANSLATION_ID");
 
-        UpdatePageEntity updateTranslation = new UpdatePageEntity();
-        updateTranslation.setParentId("ROOT");
-        updateTranslation.setOrder(1);
+            UpdatePageEntity updateTranslation = new UpdatePageEntity();
+            updateTranslation.setParentId("ROOT");
+            updateTranslation.setOrder(1);
 
-        pageService.update(new ExecutionContext(GraviteeContext.getDefaultOrganization(), "DEFAULT"), "TRANSLATION_ID", updateTranslation);
+            pageService.update(
+                new ExecutionContext(GraviteeContext.getDefaultOrganization(), "DEFAULT"),
+                "TRANSLATION_ID",
+                updateTranslation
+            );
+        });
     }
 
-    @Test(expected = PageContentUnsafeException.class)
+    @Test
     public void shouldNotUpdateBecausePageContentUnsafeException() throws TechnicalException {
-        setField(pageService, "markdownSanitize", true);
+        assertThrows(PageContentUnsafeException.class, () -> {
+            setField(pageService, "markdownSanitize", true);
 
-        String content = "<script />";
-        when(existingPage.getContent()).thenReturn(content);
-        when(page1.getType()).thenReturn(PageType.MARKDOWN.name());
-        when(page1.getReferenceType()).thenReturn(PageReferenceType.API);
-        when(page1.getReferenceId()).thenReturn(API_ID);
-        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
-        when(
-            this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), eq(content), any(), anyBoolean())
-        ).thenReturn(content);
-        when(htmlSanitizer.isSafe(anyString())).thenReturn(new HtmlSanitizer.SanitizeInfos(false, "Tag not allowed: script"));
+            String content = "<script />";
+            when(existingPage.getContent()).thenReturn(content);
+            when(page1.getType()).thenReturn(PageType.MARKDOWN.name());
+            when(page1.getReferenceType()).thenReturn(PageReferenceType.API);
+            when(page1.getReferenceId()).thenReturn(API_ID);
+            when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
+            when(
+                this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), eq(content), any(), anyBoolean())
+            ).thenReturn(content);
+            when(htmlSanitizer.isSafe(anyString())).thenReturn(new HtmlSanitizer.SanitizeInfos(false, "Tag not allowed: script"));
 
-        pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, existingPage);
+            pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, existingPage);
 
-        verify(pageRepository, never()).update(any());
+            verify(pageRepository, never()).update(any());
+        });
     }
 
-    @Test(expected = PageContentUnsafeException.class)
+    @Test
     public void shouldNotUpdateBecausePageContentTemplatingException() throws TechnicalException, TemplateException {
-        setField(pageService, "markdownSanitize", true);
+        assertThrows(PageContentUnsafeException.class, () -> {
+            setField(pageService, "markdownSanitize", true);
 
-        String content = "<script />";
-        when(existingPage.getContent()).thenReturn(content);
-        when(page1.getType()).thenReturn(PageType.MARKDOWN.name());
-        when(page1.getReferenceType()).thenReturn(PageReferenceType.API);
-        when(page1.getReferenceId()).thenReturn(API_ID);
-        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
+            String content = "<script />";
+            when(existingPage.getContent()).thenReturn(content);
+            when(page1.getType()).thenReturn(PageType.MARKDOWN.name());
+            when(page1.getReferenceType()).thenReturn(PageReferenceType.API);
+            when(page1.getReferenceId()).thenReturn(API_ID);
+            when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
 
-        when(
-            this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), eq(content), any(), anyBoolean())
-        ).thenThrow(new TemplateProcessingException(new TemplateException(null)));
-        when(htmlSanitizer.isSafe(anyString())).thenReturn(new HtmlSanitizer.SanitizeInfos(false, "Tag not allowed: script"));
+            when(
+                this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), eq(content), any(), anyBoolean())
+            ).thenThrow(new TemplateProcessingException(new TemplateException(null)));
+            when(htmlSanitizer.isSafe(anyString())).thenReturn(new HtmlSanitizer.SanitizeInfos(false, "Tag not allowed: script"));
 
-        pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, existingPage);
+            pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, existingPage);
 
-        verify(pageRepository, never()).update(any());
+            verify(pageRepository, never()).update(any());
+        });
     }
 
-    @Test(expected = PageContentUnsafeException.class)
+    @Test
     public void shouldNotUpdateWhenXssPayloadBypassesTemplateError() throws TechnicalException, TemplateException {
-        setField(pageService, "markdownSanitize", true);
+        assertThrows(PageContentUnsafeException.class, () -> {
+            setField(pageService, "markdownSanitize", true);
 
-        String content = "<img src=x onerror=\"alert('XSS')\">\n${";
-        when(existingPage.getContent()).thenReturn(content);
-        when(page1.getType()).thenReturn(PageType.MARKDOWN.name());
-        when(page1.getReferenceType()).thenReturn(PageReferenceType.API);
-        when(page1.getReferenceId()).thenReturn(API_ID);
-        when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
+            String content = "<img src=x onerror=\"alert('XSS')\">\n${";
+            when(existingPage.getContent()).thenReturn(content);
+            when(page1.getType()).thenReturn(PageType.MARKDOWN.name());
+            when(page1.getReferenceType()).thenReturn(PageReferenceType.API);
+            when(page1.getReferenceId()).thenReturn(API_ID);
+            when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
 
-        when(
-            this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), eq(content), any(), anyBoolean())
-        ).thenThrow(new TemplateProcessingException(new TemplateException(null)));
-        when(htmlSanitizer.isSafe(anyString())).thenReturn(new HtmlSanitizer.SanitizeInfos(false, "Attribute not allowed: onerror"));
+            when(
+                this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), anyString(), eq(content), any(), anyBoolean())
+            ).thenThrow(new TemplateProcessingException(new TemplateException(null)));
+            when(htmlSanitizer.isSafe(anyString())).thenReturn(new HtmlSanitizer.SanitizeInfos(false, "Attribute not allowed: onerror"));
 
-        pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, existingPage);
+            pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, existingPage);
 
-        verify(pageRepository, never()).update(any());
+            verify(pageRepository, never()).update(any());
+        });
     }
 
     @Test
@@ -611,39 +643,41 @@ public class PageService_UpdateTest {
         verify(planSearchService).findByApi(eq(GraviteeContext.getExecutionContext()), (String) argThat(p -> p.equals(API_ID)), eq(false));
     }
 
-    @Test(expected = PageUsedByCategoryException.class)
+    @Test
     public void shouldNotUnpublishPage_LinkedToCategory() throws TechnicalException {
-        final String API_ID = "API_ID_TEST";
-        Page unpublishedPage = new Page();
-        unpublishedPage.setId(PAGE_ID);
-        unpublishedPage.setOrder(1);
-        unpublishedPage.setReferenceId(API_ID);
-        unpublishedPage.setReferenceType(PageReferenceType.ENVIRONMENT);
-        unpublishedPage.setType("MARKDOWN");
-        unpublishedPage.setPublished(true);
-        unpublishedPage.setVisibility("PUBLIC");
-        doReturn(Optional.of(unpublishedPage)).when(pageRepository).findById(PAGE_ID);
+        assertThrows(PageUsedByCategoryException.class, () -> {
+            final String API_ID = "API_ID_TEST";
+            Page unpublishedPage = new Page();
+            unpublishedPage.setId(PAGE_ID);
+            unpublishedPage.setOrder(1);
+            unpublishedPage.setReferenceId(API_ID);
+            unpublishedPage.setReferenceType(PageReferenceType.ENVIRONMENT);
+            unpublishedPage.setType("MARKDOWN");
+            unpublishedPage.setPublished(true);
+            unpublishedPage.setVisibility("PUBLIC");
+            doReturn(Optional.of(unpublishedPage)).when(pageRepository).findById(PAGE_ID);
 
-        UpdatePageEntity updatePageEntity = new UpdatePageEntity();
-        updatePageEntity.setPublished(false);
-        updatePageEntity.setOrder(1);
-        updatePageEntity.setVisibility(Visibility.PUBLIC);
+            UpdatePageEntity updatePageEntity = new UpdatePageEntity();
+            updatePageEntity.setPublished(false);
+            updatePageEntity.setOrder(1);
+            updatePageEntity.setVisibility(Visibility.PUBLIC);
 
-        when(categoryService.findByPage(PAGE_ID)).thenReturn(Collections.singletonList(new CategoryEntity()));
+            when(categoryService.findByPage(PAGE_ID)).thenReturn(Collections.singletonList(new CategoryEntity()));
 
-        pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, updatePageEntity);
+            pageService.update(GraviteeContext.getExecutionContext(), PAGE_ID, updatePageEntity);
 
-        verify(planSearchService).findByApi(GraviteeContext.getExecutionContext(), (String) argThat(p -> p.equals(API_ID)), true);
+            verify(planSearchService).findByApi(GraviteeContext.getExecutionContext(), (String) argThat(p -> p.equals(API_ID)), true);
+        });
     }
 
-    @Test(expected = PageUsedAsGeneralConditionsException.class)
+    @Test
     public void shouldNotUnpublishPage_LinkedToPublishedPlan() throws TechnicalException {
-        shouldNotUnpublishPage(PlanStatus.PUBLISHED);
+        assertThrows(PageUsedAsGeneralConditionsException.class, () -> shouldNotUnpublishPage(PlanStatus.PUBLISHED));
     }
 
-    @Test(expected = PageUsedAsGeneralConditionsException.class)
+    @Test
     public void shouldNotUnpublishPage_LinkedToDepreciatedPlan() throws TechnicalException {
-        shouldNotUnpublishPage(PlanStatus.DEPRECATED);
+        assertThrows(PageUsedAsGeneralConditionsException.class, () -> shouldNotUnpublishPage(PlanStatus.DEPRECATED));
     }
 
     private void shouldNotUnpublishPage(PlanStatus planStatus) throws TechnicalException {

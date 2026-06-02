@@ -30,16 +30,19 @@ import io.gravitee.rest.api.model.AmConnectionEntity;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.security.GeneralSecurityException;
 import java.util.Optional;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.mock.env.MockEnvironment;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class AmConnectionServiceImplTest {
 
     @Mock
@@ -48,7 +51,7 @@ public class AmConnectionServiceImplTest {
     private DataEncryptor dataEncryptor;
     private AmConnectionServiceImpl service;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         dataEncryptor = new DataEncryptor(new MockEnvironment(), "test.secret", "vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6");
         service = new AmConnectionServiceImpl(amConnectionRepository, dataEncryptor);

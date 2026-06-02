@@ -24,9 +24,9 @@ import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import java.util.List;
 import org.bson.Document;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -72,7 +72,7 @@ public class ApiMongoFieldAbsentDefVersionTest extends AbstractManagementReposit
         return collectionPrefix + "apis";
     }
 
-    @Before
+    @BeforeEach
     public void insertFieldAbsentDoc() {
         Document doc = new Document()
             .append("_id", FIELD_ABSENT_API_ID)
@@ -84,7 +84,7 @@ public class ApiMongoFieldAbsentDefVersionTest extends AbstractManagementReposit
         mongoTemplate.getCollection(apisCollectionName()).insertOne(doc);
     }
 
-    @After
+    @AfterEach
     public void deleteFieldAbsentDoc() {
         mongoTemplate.getCollection(apisCollectionName()).deleteOne(new Document("_id", FIELD_ABSENT_API_ID));
     }

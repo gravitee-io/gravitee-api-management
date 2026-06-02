@@ -16,7 +16,7 @@
 package io.gravitee.apim.core.subscription_form.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import fixtures.core.model.SubscriptionFormFixtures;
 import inmemory.SubscriptionFormCrudServiceInMemory;

@@ -15,11 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -50,18 +46,21 @@ import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericPlanMapper;
 import java.util.*;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class PlanSearchServiceImplTest {
 
     private static final String PLAN_ID = "my-plan";
@@ -98,7 +97,7 @@ public class PlanSearchServiceImplTest {
 
     private Api api;
 
-    @Before
+    @BeforeEach
     public void before() throws TechnicalException {
         planSearchService = new PlanSearchServiceImpl(
             planRepository,
@@ -160,18 +159,22 @@ public class PlanSearchServiceImplTest {
         assertTrue(entities.contains(planEntity2));
     }
 
-    @Test(expected = PlanNotFoundException.class)
+    @Test
     public void shouldNotFindByIdBecauseNotExists() throws TechnicalException {
-        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.empty());
+        assertThrows(PlanNotFoundException.class, () -> {
+            when(planRepository.findById(PLAN_ID)).thenReturn(Optional.empty());
 
-        planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+            planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        });
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotFindByIdBecauseTechnicalException() throws TechnicalException {
-        when(planRepository.findById(PLAN_ID)).thenThrow(TechnicalException.class);
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(planRepository.findById(PLAN_ID)).thenThrow(TechnicalException.class);
 
-        planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+            planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID);
+        });
     }
 
     @Test
@@ -202,11 +205,13 @@ public class PlanSearchServiceImplTest {
         return plan;
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotFindByApiBecauseTechnicalException() throws TechnicalException {
-        when(planRepository.findByReferenceIdAndReferenceType(API_ID, Plan.PlanReferenceType.API)).thenThrow(TechnicalException.class);
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(planRepository.findByReferenceIdAndReferenceType(API_ID, Plan.PlanReferenceType.API)).thenThrow(TechnicalException.class);
 
-        planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, true);
+            planSearchService.findByApi(GraviteeContext.getExecutionContext(), API_ID, true);
+        });
     }
 
     @Test
@@ -276,20 +281,24 @@ public class PlanSearchServiceImplTest {
         assertSame(result, planEntity);
     }
 
-    @Test(expected = PlanNotFoundException.class)
+    @Test
     public void shouldNotFindByPlanIdForApiProductBecauseNotExists() throws TechnicalException {
-        when(planRepository.findByIdAndReferenceIdAndReferenceType(PLAN_ID, API_PRODUCT_ID, Plan.PlanReferenceType.API_PRODUCT)).thenReturn(
-            Optional.empty()
-        );
-        planSearchService.findByPlanIdIdForApiProduct(GraviteeContext.getExecutionContext(), PLAN_ID, API_PRODUCT_ID);
+        assertThrows(PlanNotFoundException.class, () -> {
+            when(
+                planRepository.findByIdAndReferenceIdAndReferenceType(PLAN_ID, API_PRODUCT_ID, Plan.PlanReferenceType.API_PRODUCT)
+            ).thenReturn(Optional.empty());
+            planSearchService.findByPlanIdIdForApiProduct(GraviteeContext.getExecutionContext(), PLAN_ID, API_PRODUCT_ID);
+        });
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotFindByPlanIdForApiProductBecauseTechnicalException() throws TechnicalException {
-        when(planRepository.findByIdAndReferenceIdAndReferenceType(PLAN_ID, API_PRODUCT_ID, Plan.PlanReferenceType.API_PRODUCT)).thenThrow(
-            TechnicalException.class
-        );
-        planSearchService.findByPlanIdIdForApiProduct(GraviteeContext.getExecutionContext(), PLAN_ID, API_PRODUCT_ID);
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(
+                planRepository.findByIdAndReferenceIdAndReferenceType(PLAN_ID, API_PRODUCT_ID, Plan.PlanReferenceType.API_PRODUCT)
+            ).thenThrow(TechnicalException.class);
+            planSearchService.findByPlanIdIdForApiProduct(GraviteeContext.getExecutionContext(), PLAN_ID, API_PRODUCT_ID);
+        });
     }
 
     @Test
@@ -328,14 +337,16 @@ public class PlanSearchServiceImplTest {
         verify(planRepository, never()).findByReferenceIdAndReferenceType(anyString(), any());
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotFindByApiProductBecauseTechnicalException() throws TechnicalException {
-        when(apiProductRepository.findById(API_PRODUCT_ID)).thenReturn(Optional.of(new ApiProduct()));
-        when(planRepository.findByReferenceIdAndReferenceType(API_PRODUCT_ID, Plan.PlanReferenceType.API_PRODUCT)).thenThrow(
-            TechnicalException.class
-        );
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(apiProductRepository.findById(API_PRODUCT_ID)).thenReturn(Optional.of(new ApiProduct()));
+            when(planRepository.findByReferenceIdAndReferenceType(API_PRODUCT_ID, Plan.PlanReferenceType.API_PRODUCT)).thenThrow(
+                TechnicalException.class
+            );
 
-        planSearchService.findByApiProduct(GraviteeContext.getExecutionContext(), API_PRODUCT_ID);
+            planSearchService.findByApiProduct(GraviteeContext.getExecutionContext(), API_PRODUCT_ID);
+        });
     }
 
     @Test

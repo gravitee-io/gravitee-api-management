@@ -15,8 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -35,17 +34,20 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.AnalyticsCalculateException;
 import java.util.List;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class AnalyticsServiceImplTest {
 
     @InjectMocks
@@ -56,11 +58,13 @@ public class AnalyticsServiceImplTest {
 
     private static final ExecutionContext EXECUTION_CONTEXT = GraviteeContext.getExecutionContext();
 
-    @Test(expected = AnalyticsCalculateException.class)
+    @Test
     public void shouldThrowExceptionForStatusQuery() throws Exception {
-        when(analyticsRepository.query(any(QueryContext.class), any())).thenThrow(new AnalyticsException());
+        assertThrows(AnalyticsCalculateException.class, () -> {
+            when(analyticsRepository.query(any(QueryContext.class), any())).thenThrow(new AnalyticsException());
 
-        cut.execute(EXECUTION_CONTEXT, new StatsQuery());
+            cut.execute(EXECUTION_CONTEXT, new StatsQuery());
+        });
     }
 
     @Test
@@ -81,11 +85,13 @@ public class AnalyticsServiceImplTest {
         verify(analyticsRepository, times(1)).query(any(QueryContext.class), any());
     }
 
-    @Test(expected = AnalyticsCalculateException.class)
+    @Test
     public void shouldThrowExceptionForCountQuery() throws Exception {
-        when(analyticsRepository.query(any(QueryContext.class), any())).thenThrow(new AnalyticsException());
+        assertThrows(AnalyticsCalculateException.class, () -> {
+            when(analyticsRepository.query(any(QueryContext.class), any())).thenThrow(new AnalyticsException());
 
-        cut.execute(EXECUTION_CONTEXT, new CountQuery());
+            cut.execute(EXECUTION_CONTEXT, new CountQuery());
+        });
     }
 
     @Test
@@ -106,11 +112,13 @@ public class AnalyticsServiceImplTest {
         verify(analyticsRepository, times(1)).query(any(QueryContext.class), any());
     }
 
-    @Test(expected = AnalyticsCalculateException.class)
+    @Test
     public void shouldThrowExceptionForDateHistogramQuery() throws Exception {
-        when(analyticsRepository.query(any(QueryContext.class), any())).thenThrow(new AnalyticsException());
+        assertThrows(AnalyticsCalculateException.class, () -> {
+            when(analyticsRepository.query(any(QueryContext.class), any())).thenThrow(new AnalyticsException());
 
-        cut.execute(EXECUTION_CONTEXT, new DateHistogramQuery());
+            cut.execute(EXECUTION_CONTEXT, new DateHistogramQuery());
+        });
     }
 
     @Test
@@ -131,11 +139,13 @@ public class AnalyticsServiceImplTest {
         verify(analyticsRepository, times(1)).query(any(QueryContext.class), any());
     }
 
-    @Test(expected = AnalyticsCalculateException.class)
+    @Test
     public void shouldThrowExceptionForGroupByQuery() throws Exception {
-        when(analyticsRepository.query(any(QueryContext.class), any())).thenThrow(new AnalyticsException());
+        assertThrows(AnalyticsCalculateException.class, () -> {
+            when(analyticsRepository.query(any(QueryContext.class), any())).thenThrow(new AnalyticsException());
 
-        cut.execute(EXECUTION_CONTEXT, new GroupByQuery());
+            cut.execute(EXECUTION_CONTEXT, new GroupByQuery());
+        });
     }
 
     @Test

@@ -15,17 +15,19 @@
  */
 package io.gravitee.repository.management;
 
-import org.junit.Ignore;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
 /**
+ * Developer entry point to run the whole repository test battery against a single database from the IDE
+ * (see the {@code .run/Repository - *} run configurations). Not picked up by Surefire (its name does not end
+ * with {@code Test}), so it never runs during the Maven build; each repository module runs these tests itself.
+ *
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Ignore
-@RunWith(Suite.class)
-@Suite.SuiteClasses(
+@Suite
+@SelectClasses(
     {
         AccessPointRepositoryTest.class,
         AlertEventRepositoryTest.class,

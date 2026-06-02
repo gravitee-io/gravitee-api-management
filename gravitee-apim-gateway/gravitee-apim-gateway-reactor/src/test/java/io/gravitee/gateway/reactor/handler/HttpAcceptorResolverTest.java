@@ -16,8 +16,8 @@
 package io.gravitee.gateway.reactor.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.api.ExecutionContext;
@@ -29,12 +29,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentSkipListSet;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +45,8 @@ import org.slf4j.LoggerFactory;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class HttpAcceptorResolverTest {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpAcceptorResolverTest.class);
@@ -62,15 +67,13 @@ public class HttpAcceptorResolverTest {
     @Mock
     private HttpHeaders httpHeaders;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
-
         when(context.request()).thenReturn(request);
         when(request.headers()).thenReturn(httpHeaders);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         reactorHandlerRegistry.clear();
     }
@@ -250,9 +253,9 @@ public class HttpAcceptorResolverTest {
             when(request.path()).thenReturn(requestData.path);
             String message = "host=" + requestData.host + " path=" + requestData.path;
             if (requestData.acceptorIndex != null) {
-                assertEquals(message, httpAcceptorHandlers.get(requestData.acceptorIndex), handlerResolver.resolve(context, SERVER_ID));
+                assertEquals(httpAcceptorHandlers.get(requestData.acceptorIndex), handlerResolver.resolve(context, SERVER_ID), message);
             } else {
-                assertNull(message, handlerResolver.resolve(context, SERVER_ID));
+                assertNull(handlerResolver.resolve(context, SERVER_ID), message);
             }
         }
     }

@@ -16,7 +16,8 @@
 package io.gravitee.apim.core.api.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiCRDFixtures;
 import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;

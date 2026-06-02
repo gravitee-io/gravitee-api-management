@@ -22,11 +22,7 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -71,17 +67,20 @@ import io.gravitee.rest.api.service.v4.validation.ResourcesValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.List;
 import java.util.Set;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiValidationServiceImplTest {
 
     @Mock
@@ -122,7 +121,7 @@ public class ApiValidationServiceImplTest {
     @Mock
     private ApiProductQueryService apiProductQueryService;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         apiValidationService = new ApiValidationServiceImpl(
             tagsValidationService,
@@ -194,82 +193,94 @@ public class ApiValidationServiceImplTest {
         verify(flowValidationDomainService, times(1)).validatePathParameters(any(), any(), any());
     }
 
-    @Test(expected = InvalidDataException.class)
+    @Test
     public void shouldValidateNewApiThrowExceptionWhenDefinitionVersionNull() {
-        NewApiEntity newApiEntity = new NewApiEntity();
-        newApiEntity.setDefinitionVersion(null);
+        assertThrows(InvalidDataException.class, () -> {
+            NewApiEntity newApiEntity = new NewApiEntity();
+            newApiEntity.setDefinitionVersion(null);
 
-        apiValidationService.validateAndSanitizeNewApi(GraviteeContext.getExecutionContext(), newApiEntity, new PrimaryOwnerEntity());
+            apiValidationService.validateAndSanitizeNewApi(GraviteeContext.getExecutionContext(), newApiEntity, new PrimaryOwnerEntity());
+        });
     }
 
-    @Test(expected = InvalidDataException.class)
+    @Test
     public void shouldValidateNewApiThrowExceptionWhenApiTypeNull() {
-        NewApiEntity newApiEntity = new NewApiEntity();
-        apiValidationService.validateAndSanitizeNewApi(GraviteeContext.getExecutionContext(), newApiEntity, new PrimaryOwnerEntity());
+        assertThrows(InvalidDataException.class, () -> {
+            NewApiEntity newApiEntity = new NewApiEntity();
+            apiValidationService.validateAndSanitizeNewApi(GraviteeContext.getExecutionContext(), newApiEntity, new PrimaryOwnerEntity());
+        });
     }
 
-    @Test(expected = InvalidDataException.class)
+    @Test
     public void shouldThrowExceptionBecauseMustNotSetDefinitionVersionToNull() {
-        UpdateApiEntity updateApiEntity = new UpdateApiEntity();
-        updateApiEntity.setDefinitionVersion(null);
-        ApiEntity existingApiEntity = new ApiEntity();
-        existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        assertThrows(InvalidDataException.class, () -> {
+            UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+            updateApiEntity.setDefinitionVersion(null);
+            ApiEntity existingApiEntity = new ApiEntity();
+            existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
-        apiValidationService.validateAndSanitizeUpdateApi(
-            GraviteeContext.getExecutionContext(),
-            updateApiEntity,
-            new PrimaryOwnerEntity(),
-            existingApiEntity
-        );
+            apiValidationService.validateAndSanitizeUpdateApi(
+                GraviteeContext.getExecutionContext(),
+                updateApiEntity,
+                new PrimaryOwnerEntity(),
+                existingApiEntity
+            );
+        });
     }
 
-    @Test(expected = InvalidDataException.class)
+    @Test
     public void shouldThrowExceptionBecauseDefinitionVersionNotV4() {
-        UpdateApiEntity updateApiEntity = new UpdateApiEntity();
-        updateApiEntity.setDefinitionVersion(DefinitionVersion.V2);
-        ApiEntity existingApiEntity = new ApiEntity();
-        existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        assertThrows(InvalidDataException.class, () -> {
+            UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+            updateApiEntity.setDefinitionVersion(DefinitionVersion.V2);
+            ApiEntity existingApiEntity = new ApiEntity();
+            existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
 
-        apiValidationService.validateAndSanitizeUpdateApi(
-            GraviteeContext.getExecutionContext(),
-            updateApiEntity,
-            new PrimaryOwnerEntity(),
-            existingApiEntity
-        );
+            apiValidationService.validateAndSanitizeUpdateApi(
+                GraviteeContext.getExecutionContext(),
+                updateApiEntity,
+                new PrimaryOwnerEntity(),
+                existingApiEntity
+            );
+        });
     }
 
-    @Test(expected = InvalidDataException.class)
+    @Test
     public void shouldThrowExceptionBecauseMustNotSetApiTypeToNull() {
-        UpdateApiEntity updateApiEntity = new UpdateApiEntity();
-        updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        updateApiEntity.setType(null);
-        ApiEntity existingApiEntity = new ApiEntity();
-        existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        existingApiEntity.setType(ApiType.MESSAGE);
+        assertThrows(InvalidDataException.class, () -> {
+            UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+            updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+            updateApiEntity.setType(null);
+            ApiEntity existingApiEntity = new ApiEntity();
+            existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+            existingApiEntity.setType(ApiType.MESSAGE);
 
-        apiValidationService.validateAndSanitizeUpdateApi(
-            GraviteeContext.getExecutionContext(),
-            updateApiEntity,
-            new PrimaryOwnerEntity(),
-            existingApiEntity
-        );
+            apiValidationService.validateAndSanitizeUpdateApi(
+                GraviteeContext.getExecutionContext(),
+                updateApiEntity,
+                new PrimaryOwnerEntity(),
+                existingApiEntity
+            );
+        });
     }
 
-    @Test(expected = ApiTypeException.class)
+    @Test
     public void shouldThrowExceptionBecauseMustNotChangeApiType() {
-        UpdateApiEntity updateApiEntity = new UpdateApiEntity();
-        updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        updateApiEntity.setType(ApiType.PROXY);
-        ApiEntity existingApiEntity = new ApiEntity();
-        existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        existingApiEntity.setType(ApiType.MESSAGE);
+        assertThrows(ApiTypeException.class, () -> {
+            UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+            updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+            updateApiEntity.setType(ApiType.PROXY);
+            ApiEntity existingApiEntity = new ApiEntity();
+            existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+            existingApiEntity.setType(ApiType.MESSAGE);
 
-        apiValidationService.validateAndSanitizeUpdateApi(
-            GraviteeContext.getExecutionContext(),
-            updateApiEntity,
-            new PrimaryOwnerEntity(),
-            existingApiEntity
-        );
+            apiValidationService.validateAndSanitizeUpdateApi(
+                GraviteeContext.getExecutionContext(),
+                updateApiEntity,
+                new PrimaryOwnerEntity(),
+                existingApiEntity
+            );
+        });
     }
 
     @Test
@@ -336,25 +347,27 @@ public class ApiValidationServiceImplTest {
         assertUpdate(PUBLISHED, PUBLISHED, false);
     }
 
-    @Test(expected = LifecycleStateChangeNotAllowedException.class)
+    @Test
     public void shouldNotChangeLifecycleStateFromCreatedInReview() throws TechnicalException {
-        UpdateApiEntity updateApiEntity = new UpdateApiEntity();
-        updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        updateApiEntity.setType(ApiType.MESSAGE);
-        updateApiEntity.setLifecycleState(PUBLISHED);
+        assertThrows(LifecycleStateChangeNotAllowedException.class, () -> {
+            UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+            updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+            updateApiEntity.setType(ApiType.MESSAGE);
+            updateApiEntity.setLifecycleState(PUBLISHED);
 
-        ApiEntity existingApiEntity = new ApiEntity();
-        existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
-        existingApiEntity.setType(ApiType.MESSAGE);
-        existingApiEntity.setLifecycleState(CREATED);
-        existingApiEntity.setWorkflowState(IN_REVIEW);
+            ApiEntity existingApiEntity = new ApiEntity();
+            existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+            existingApiEntity.setType(ApiType.MESSAGE);
+            existingApiEntity.setLifecycleState(CREATED);
+            existingApiEntity.setWorkflowState(IN_REVIEW);
 
-        apiValidationService.validateAndSanitizeUpdateApi(
-            GraviteeContext.getExecutionContext(),
-            updateApiEntity,
-            new PrimaryOwnerEntity(),
-            existingApiEntity
-        );
+            apiValidationService.validateAndSanitizeUpdateApi(
+                GraviteeContext.getExecutionContext(),
+                updateApiEntity,
+                new PrimaryOwnerEntity(),
+                existingApiEntity
+            );
+        });
     }
 
     @Test

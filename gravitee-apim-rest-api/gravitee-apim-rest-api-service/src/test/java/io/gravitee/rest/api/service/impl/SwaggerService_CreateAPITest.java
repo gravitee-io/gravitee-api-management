@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -47,18 +47,21 @@ import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class SwaggerService_CreateAPITest {
 
     @Mock
@@ -80,7 +83,7 @@ public class SwaggerService_CreateAPITest {
         return DefinitionVersion.V2;
     }
 
-    @Before
+    @BeforeEach
     public void setup() {
         PolicyOperationVisitor swaggerPolicyOperationVisitor = mock(PolicyOperationVisitor.class);
         when(swaggerPolicyOperationVisitor.getId()).thenReturn("mock");
@@ -375,7 +378,7 @@ public class SwaggerService_CreateAPITest {
         }
 
         // No matching flow found
-        assertEquals("Expected rules for path " + path + " but found none", 0, expectedRuleSize);
+        assertEquals(0, expectedRuleSize, "Expected rules for path " + path + " but found none");
     }
 
     @Test

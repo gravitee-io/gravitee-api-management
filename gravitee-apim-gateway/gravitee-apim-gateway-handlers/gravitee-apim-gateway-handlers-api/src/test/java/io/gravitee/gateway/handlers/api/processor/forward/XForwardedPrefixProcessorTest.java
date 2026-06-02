@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api.processor.forward;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.api.Request;
@@ -25,16 +25,21 @@ import io.gravitee.gateway.api.context.SimpleExecutionContext;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class XForwardedPrefixProcessorTest {
 
     public static final String CONTEXT_PATH = "/context_path";
@@ -47,9 +52,8 @@ public class XForwardedPrefixProcessorTest {
     @Mock
     private Response response;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
         context = new SimpleExecutionContext(request, response);
         HttpHeaders headers = HttpHeaders.create();
         Mockito.when(request.headers()).thenReturn(headers);

@@ -31,11 +31,7 @@ import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anySet;
@@ -172,15 +168,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -189,7 +187,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiServiceImplTest {
 
     private static final String API_ID = "id-api";
@@ -319,7 +318,7 @@ public class ApiServiceImplTest {
     private Api updatedApi;
     private ApiStateService apiStateService;
 
-    @AfterClass
+    @AfterAll
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
         SecurityContextHolder.setContext(
@@ -335,7 +334,7 @@ public class ApiServiceImplTest {
         );
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         var apiMapper = new ApiMapper(
             new ObjectMapper(),
@@ -437,15 +436,17 @@ public class ApiServiceImplTest {
         );
     }
 
-    @Test(expected = ApiRunningStateException.class)
+    @Test
     public void shouldNotDeleteBecauseRunningState() throws TechnicalException {
-        Api api = new Api();
-        api.setId(API_ID);
-        api.setLifecycleState(LifecycleState.STARTED);
-        api.setOrigin(ORIGIN_MANAGEMENT);
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        assertThrows(ApiRunningStateException.class, () -> {
+            Api api = new Api();
+            api.setId(API_ID);
+            api.setLifecycleState(LifecycleState.STARTED);
+            api.setOrigin(ORIGIN_MANAGEMENT);
+            when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
 
-        apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
+            apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
+        });
     }
 
     @Test
@@ -486,22 +487,24 @@ public class ApiServiceImplTest {
         verify(removeApiFromApiProductsDomainService, times(1)).removeApiFromApiProducts(eq(API_ID), any(), any(), any());
     }
 
-    @Test(expected = ApiNotDeletableException.class)
+    @Test
     public void shouldNotDeleteBecausePublishedPlan() throws TechnicalException {
-        Api api = new Api();
-        api.setId(API_ID);
-        api.setLifecycleState(LifecycleState.STOPPED);
+        assertThrows(ApiNotDeletableException.class, () -> {
+            Api api = new Api();
+            api.setId(API_ID);
+            api.setLifecycleState(LifecycleState.STOPPED);
 
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        PlanEntity planEntity = new PlanEntity();
-        planEntity.setId(PLAN_ID);
-        planEntity.setStatus(PlanStatus.PUBLISHED);
-        when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(false))).thenReturn(
-            singleton(planEntity)
-        );
+            when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+            PlanEntity planEntity = new PlanEntity();
+            planEntity.setId(PLAN_ID);
+            planEntity.setStatus(PlanStatus.PUBLISHED);
+            when(planSearchService.findByApi(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class), eq(false))).thenReturn(
+                singleton(planEntity)
+            );
 
-        apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
-        verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
+            apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
+            verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
+        });
     }
 
     @Test
@@ -881,30 +884,36 @@ public class ApiServiceImplTest {
         verify(flowCrudService, times(1)).saveApiFlows(API_ID, apiFlows);
     }
 
-    @Test(expected = ApiNotFoundException.class)
+    @Test
     public void shouldNotUpdateBecauseNotFound() throws TechnicalException {
-        prepareUpdate();
+        assertThrows(ApiNotFoundException.class, () -> {
+            prepareUpdate();
 
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
+            when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+            apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+        });
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotUpdateBecauseTechnicalException() throws TechnicalException {
-        prepareUpdate();
+        assertThrows(TechnicalManagementException.class, () -> {
+            prepareUpdate();
 
-        when(apiRepository.update(any())).thenThrow(TechnicalException.class);
+            when(apiRepository.update(any())).thenThrow(TechnicalException.class);
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+            apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+        });
     }
 
-    @Test(expected = EndpointNameInvalidException.class)
+    @Test
     public void shouldNotUpdateBecauseValidationException() throws TechnicalException {
-        prepareUpdate();
-        doThrow(EndpointNameInvalidException.class).when(apiValidationService).validateAndSanitizeUpdateApi(any(), any(), any(), any());
+        assertThrows(EndpointNameInvalidException.class, () -> {
+            prepareUpdate();
+            doThrow(EndpointNameInvalidException.class).when(apiValidationService).validateAndSanitizeUpdateApi(any(), any(), any(), any());
 
-        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+            apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+        });
     }
 
     @Test
@@ -936,35 +945,39 @@ public class ApiServiceImplTest {
         verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
     }
 
-    @Test(expected = InvalidDataException.class)
+    @Test
     public void shouldNotUpdate_NewPlanNotAllowed() throws TechnicalException {
-        prepareUpdate();
-        PlanEntity updatedPlan = new PlanEntity();
-        updatedPlan.setName("Plan Malicious");
-        updatedPlan.setStatus(PlanStatus.PUBLISHED);
-        updateApiEntity.setPlans(Set.of(updatedPlan));
+        assertThrows(InvalidDataException.class, () -> {
+            prepareUpdate();
+            PlanEntity updatedPlan = new PlanEntity();
+            updatedPlan.setName("Plan Malicious");
+            updatedPlan.setStatus(PlanStatus.PUBLISHED);
+            updateApiEntity.setPlans(Set.of(updatedPlan));
 
-        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
-        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+            ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
+            verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+        });
     }
 
-    @Test(expected = InvalidDataException.class)
+    @Test
     public void shouldNotUpdate_PlanClosed() throws TechnicalException {
-        prepareUpdate();
+        assertThrows(InvalidDataException.class, () -> {
+            prepareUpdate();
 
-        PlanEntity updatedPlan = new PlanEntity();
-        updatedPlan.setId("MALICIOUS");
-        updatedPlan.setName("Plan Malicious");
-        updatedPlan.setStatus(PlanStatus.PUBLISHED);
-        updateApiEntity.setPlans(Set.of(updatedPlan));
+            PlanEntity updatedPlan = new PlanEntity();
+            updatedPlan.setId("MALICIOUS");
+            updatedPlan.setName("Plan Malicious");
+            updatedPlan.setStatus(PlanStatus.PUBLISHED);
+            updateApiEntity.setPlans(Set.of(updatedPlan));
 
-        PlanEntity originalPlan = new PlanEntity();
-        originalPlan.setId("MALICIOUS");
-        originalPlan.setStatus(PlanStatus.CLOSED);
-        when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
+            PlanEntity originalPlan = new PlanEntity();
+            originalPlan.setId("MALICIOUS");
+            originalPlan.setStatus(PlanStatus.CLOSED);
+            when(planService.findByApi(any(), eq(API_ID))).thenReturn(Set.of(originalPlan));
 
-        ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
-        verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+            ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
+            verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+        });
     }
 
     @Test

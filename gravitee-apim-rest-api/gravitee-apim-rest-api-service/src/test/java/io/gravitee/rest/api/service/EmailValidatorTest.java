@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.service;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team
@@ -56,14 +56,14 @@ public class EmailValidatorTest {
     @Test
     public void validate() {
         for (String email : VALID_EMAILS) {
-            assertTrue(email + " should be valid", EmailValidator.isValid(email));
+            assertTrue(EmailValidator.isValid(email), email + " should be valid");
         }
     }
 
     @Test
     public void validate_notValid() {
         for (String email : INVALID_EMAILS) {
-            assertFalse(email + " should be invalid", EmailValidator.isValid(email));
+            assertFalse(EmailValidator.isValid(email), email + " should be invalid");
         }
     }
 }

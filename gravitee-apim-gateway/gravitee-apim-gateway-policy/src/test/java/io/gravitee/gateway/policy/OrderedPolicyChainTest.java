@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.policy;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
@@ -31,16 +31,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
 import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class OrderedPolicyChainTest {
 
     @Spy
@@ -52,21 +57,16 @@ public class OrderedPolicyChainTest {
     @Spy
     private Policy policy3 = new FailurePolicy();
 
-    @Before
-    public void setUp() {
-        initMocks(this);
-    }
-
-    @Test(expected = NullPointerException.class)
+    @Test
     public void buildPolicyChain_withNullPolicies() {
-        OrderedPolicyChain.create(null, mock(ExecutionContext.class));
+        assertThrows(NullPointerException.class, () -> OrderedPolicyChain.create(null, mock(ExecutionContext.class)));
     }
 
     @Test
     public void buildPolicyChain_withEmptyPolicies() {
         io.gravitee.policy.api.PolicyChain chain = OrderedPolicyChain.create(Collections.emptyList(), mock(ExecutionContext.class));
 
-        Assert.assertNotNull(chain);
+        Assertions.assertNotNull(chain);
     }
 
     @Test

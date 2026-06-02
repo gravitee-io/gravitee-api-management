@@ -18,7 +18,8 @@ package io.gravitee.rest.api.service.impl;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_TOP_APIS;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -37,17 +38,20 @@ import io.gravitee.rest.api.service.v4.ApiService;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class TopApiServiceTest {
 
     @InjectMocks
@@ -114,16 +118,18 @@ public class TopApiServiceTest {
         );
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void shouldNotCreate() {
-        final NewTopApiEntity topApi = new NewTopApiEntity();
-        topApi.setApi("api");
+        assertThrows(IllegalArgumentException.class, () -> {
+            final NewTopApiEntity topApi = new NewTopApiEntity();
+            topApi.setApi("api");
 
-        when(
-            parameterService.findAll(GraviteeContext.getExecutionContext(), PORTAL_TOP_APIS, ParameterReferenceType.ENVIRONMENT)
-        ).thenReturn(singletonList("api"));
+            when(
+                parameterService.findAll(GraviteeContext.getExecutionContext(), PORTAL_TOP_APIS, ParameterReferenceType.ENVIRONMENT)
+            ).thenReturn(singletonList("api"));
 
-        topApiService.create(GraviteeContext.getExecutionContext(), topApi);
+            topApiService.create(GraviteeContext.getExecutionContext(), topApi);
+        });
     }
 
     @Test
@@ -156,20 +162,22 @@ public class TopApiServiceTest {
         );
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void shouldNotUpdate() {
-        final UpdateTopApiEntity topApi = new UpdateTopApiEntity();
-        topApi.setApi("api");
-        topApi.setOrder(2);
-        final UpdateTopApiEntity topApi2 = new UpdateTopApiEntity();
-        topApi2.setApi("api2");
-        topApi.setOrder(1);
+        assertThrows(IllegalArgumentException.class, () -> {
+            final UpdateTopApiEntity topApi = new UpdateTopApiEntity();
+            topApi.setApi("api");
+            topApi.setOrder(2);
+            final UpdateTopApiEntity topApi2 = new UpdateTopApiEntity();
+            topApi2.setApi("api2");
+            topApi.setOrder(1);
 
-        when(
-            parameterService.findAll(GraviteeContext.getExecutionContext(), PORTAL_TOP_APIS, ParameterReferenceType.ENVIRONMENT)
-        ).thenReturn(singletonList("api"));
+            when(
+                parameterService.findAll(GraviteeContext.getExecutionContext(), PORTAL_TOP_APIS, ParameterReferenceType.ENVIRONMENT)
+            ).thenReturn(singletonList("api"));
 
-        topApiService.update(GraviteeContext.getExecutionContext(), asList(topApi, topApi2));
+            topApiService.update(GraviteeContext.getExecutionContext(), asList(topApi, topApi2));
+        });
     }
 
     @Test

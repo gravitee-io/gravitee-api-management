@@ -15,7 +15,7 @@
  */
 package io.gravitee.repository.management;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.MediaCriteria;
@@ -31,7 +31,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Optional;
 import org.apache.commons.io.IOUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Guillaume GILLON
@@ -60,21 +60,21 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
             hashString,
             MediaCriteria.builder().mediaType("image").organization(ORG_ID).environment(ENV_ID).build()
         );
-        assertTrue("Image saved not found", optionalAfter.isPresent());
+        assertTrue(optionalAfter.isPresent(), "Image saved not found");
 
         final Media imageDataSaved = optionalAfter.get();
         assertNotNull(imageDataSaved.getCreatedAt());
-        assertEquals("Invalid saved image id.", "223344", imageDataSaved.getId());
-        assertEquals("Invalid saved image name.", fileName, imageDataSaved.getFileName());
-        assertEquals("Invalid saved image hash.", hashString, imageDataSaved.getHash());
-        assertEquals("Invalid saved image size.", size, imageDataSaved.getSize().longValue());
-        assertEquals("Invalid saved image type.", "image", imageDataSaved.getType());
-        assertEquals("Invalid saved image SubType.", "gif", imageDataSaved.getSubType());
-        assertNotNull("Invalid saved image data.", imageDataSaved.getData());
+        assertEquals("223344", imageDataSaved.getId(), "Invalid saved image id.");
+        assertEquals(fileName, imageDataSaved.getFileName(), "Invalid saved image name.");
+        assertEquals(hashString, imageDataSaved.getHash(), "Invalid saved image hash.");
+        assertEquals(size, imageDataSaved.getSize().longValue(), "Invalid saved image size.");
+        assertEquals("image", imageDataSaved.getType(), "Invalid saved image type.");
+        assertEquals("gif", imageDataSaved.getSubType(), "Invalid saved image SubType.");
+        assertNotNull(imageDataSaved.getData(), "Invalid saved image data.");
 
         // test search ignoring type
         optionalAfter = mediaRepository.findByHash(hashString);
-        assertTrue("Image saved not found", optionalAfter.isPresent());
+        assertTrue(optionalAfter.isPresent(), "Image saved not found");
     }
 
     @Test
@@ -91,20 +91,20 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
             MediaCriteria.builder().api("apiId").organization(ORG_ID).environment(ENV_ID).mediaType("image").build()
         );
 
-        assertTrue("Image saved not found", optionalAfter.isPresent());
+        assertTrue(optionalAfter.isPresent(), "Image saved not found");
 
         final Media imageDataSaved = optionalAfter.get();
-        assertEquals("Invalid saved image id.", "22334455", imageDataSaved.getId());
-        assertEquals("Invalid saved image name.", fileName, imageDataSaved.getFileName());
-        assertEquals("Invalid saved image size.", size, imageDataSaved.getSize().longValue());
-        assertNotNull("Invalid saved image data.", imageDataSaved.getData());
+        assertEquals("22334455", imageDataSaved.getId(), "Invalid saved image id.");
+        assertEquals(fileName, imageDataSaved.getFileName(), "Invalid saved image name.");
+        assertEquals(size, imageDataSaved.getSize().longValue(), "Invalid saved image size.");
+        assertNotNull(imageDataSaved.getData(), "Invalid saved image data.");
 
         // test search ignoring type
         optionalAfter = mediaRepository.findByHash(
             hashString,
             MediaCriteria.builder().api("apiId").organization(ORG_ID).environment(ENV_ID).build()
         );
-        assertTrue("Image saved not found", optionalAfter.isPresent());
+        assertTrue(optionalAfter.isPresent(), "Image saved not found");
     }
 
     @Test
@@ -146,12 +146,12 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
 
         List<Media> all = mediaRepository.findAllByApi(apiId);
 
-        assertNotNull("Assets list not found", all);
-        assertEquals("Invalid assets list", 2, all.size());
+        assertNotNull(all, "Assets list not found");
+        assertEquals(2, all.size(), "Invalid assets list");
 
         final Media imageDataSaved = all.get(1);
-        assertEquals("Invalid saved image id.", "image-1", imageDataSaved.getId());
-        assertNotNull("Invalid saved image size.", imageDataSaved.getSize());
+        assertEquals("image-1", imageDataSaved.getId(), "Invalid saved image id.");
+        assertNotNull(imageDataSaved.getSize(), "Invalid saved image size.");
     }
 
     @Test
@@ -171,7 +171,7 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
             hashString,
             MediaCriteria.builder().api(apiId).organization(ORG_ID).environment(ENV_ID).build()
         );
-        assertFalse("Should find by hash and API", media.isEmpty());
+        assertFalse(media.isEmpty(), "Should find by hash and API");
     }
 
     @Test
@@ -191,7 +191,7 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
             hashString,
             MediaCriteria.builder().api(apiId).mediaType("image").organization(ORG_ID).environment(ENV_ID).build()
         );
-        assertFalse("Should find by hash and API", media.isEmpty());
+        assertFalse(media.isEmpty(), "Should find by hash and API");
     }
 
     @Test
@@ -211,7 +211,7 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
             hashString,
             MediaCriteria.builder().api(apiId).mediaType("image").organization(ORG_ID).environment(ENV_ID).build()
         );
-        assertFalse("Should find by hash and API", media.isEmpty());
+        assertFalse(media.isEmpty(), "Should find by hash and API");
         assertEquals(mediaId, media.get().getId());
     }
 
@@ -229,8 +229,8 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
         }
 
         List<Media> all = mediaRepository.findAllByApi(apiId);
-        assertNotNull("Assets list not found", all);
-        assertEquals("Invalid assets list", 2, all.size());
+        assertNotNull(all, "Assets list not found");
+        assertEquals(2, all.size(), "Invalid assets list");
 
         mediaRepository.deleteAllByApi(apiId);
 
@@ -238,7 +238,7 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
             hashString,
             MediaCriteria.builder().mediaType("image").organization(ORG_ID).environment(ENV_ID).build()
         );
-        assertFalse("Invalid asset found", image.isPresent());
+        assertFalse(image.isPresent(), "Invalid asset found");
     }
 
     @Test
@@ -258,13 +258,13 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
 
         Optional<Media> media = mediaRepository.findByHash(hashString, MediaCriteria.builder().api(apiId).build());
 
-        assertFalse("Should not find media after deletion", media.isPresent());
+        assertFalse(media.isPresent(), "Should not find media after deletion");
     }
 
     @Test
     public void should_return_empty_list_with_null_api() throws TechnicalException {
         List<Media> apis = mediaRepository.findAllByApi(null);
-        assertTrue("Should return empty list with null API", apis.isEmpty());
+        assertTrue(apis.isEmpty(), "Should return empty list with null API");
     }
 
     @Test
@@ -323,7 +323,7 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
             hash,
             MediaCriteria.builder().organization(ORG_ID).environment(environment).build()
         );
-        assertTrue("Media should exist before deletion", mediaBeforeDelete.isPresent());
+        assertTrue(mediaBeforeDelete.isPresent(), "Media should exist before deletion");
 
         mediaRepository.deleteByHashAndEnvironment(hash, environment);
 
@@ -331,7 +331,7 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
             hash,
             MediaCriteria.builder().organization(ORG_ID).environment(environment).build()
         );
-        assertFalse("Media should not exist after deletion", mediaAfterDelete.isPresent());
+        assertFalse(mediaAfterDelete.isPresent(), "Media should not exist after deletion");
     }
 
     @Test
@@ -348,7 +348,7 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
             "validHash",
             MediaCriteria.builder().organization(ORG_ID).environment(ENV_ID).build()
         );
-        assertTrue("Media should still exist when hash is null", mediaAfterDeleteAttempt1.isPresent());
+        assertTrue(mediaAfterDeleteAttempt1.isPresent(), "Media should still exist when hash is null");
 
         mediaRepository.deleteByHashAndEnvironment("validHash", null);
 
@@ -356,7 +356,7 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
             "validHash",
             MediaCriteria.builder().organization(ORG_ID).environment(ENV_ID).build()
         );
-        assertTrue("Media should still exist when environment is null", mediaAfterDeleteAttempt2.isPresent());
+        assertTrue(mediaAfterDeleteAttempt2.isPresent(), "Media should still exist when environment is null");
     }
 
     @Test
@@ -377,13 +377,13 @@ public class MediaRepositoryTest extends AbstractManagementRepositoryTest {
             hash,
             MediaCriteria.builder().organization(ORG_ID).environment(environment1).build()
         );
-        assertFalse("Media with environment1 should be deleted", mediaAfterDeleteEnv1.isPresent());
+        assertFalse(mediaAfterDeleteEnv1.isPresent(), "Media with environment1 should be deleted");
 
         Optional<Media> mediaAfterDeleteEnv2 = mediaRepository.findByHash(
             hash,
             MediaCriteria.builder().organization(ORG_ID).environment(environment2).build()
         );
-        assertTrue("Media with environment2 should still exist", mediaAfterDeleteEnv2.isPresent());
+        assertTrue(mediaAfterDeleteEnv2.isPresent(), "Media with environment2 should still exist");
     }
 
     private Media createMedia(

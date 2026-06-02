@@ -18,8 +18,8 @@ package io.gravitee.gateway.flow;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.definition.model.flow.Flow;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -29,7 +29,7 @@ public class FlowPolicyResolverFactoryTest {
 
     private FlowPolicyResolverFactory cut;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         cut = new FlowPolicyResolverFactory();
     }

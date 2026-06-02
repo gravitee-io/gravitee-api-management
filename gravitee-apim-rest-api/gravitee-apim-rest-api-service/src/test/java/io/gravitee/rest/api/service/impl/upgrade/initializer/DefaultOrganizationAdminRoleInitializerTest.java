@@ -28,17 +28,20 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class DefaultOrganizationAdminRoleInitializerTest {
 
     @InjectMocks
@@ -83,6 +86,6 @@ public class DefaultOrganizationAdminRoleInitializerTest {
 
     @Test
     public void testOrder() {
-        Assert.assertEquals(InitializerOrder.DEFAULT_ORGANIZATION_ADMIN_ROLE_INITIALIZER, initializer.getOrder());
+        Assertions.assertEquals(InitializerOrder.DEFAULT_ORGANIZATION_ADMIN_ROLE_INITIALIZER, initializer.getOrder());
     }
 }

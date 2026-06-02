@@ -15,14 +15,14 @@
  */
 package io.gravitee.rest.api.idp.ldap.authentication;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collections;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -34,7 +34,7 @@ public class UserDetailsContextPropertiesMapperTest {
     private Environment environment;
     private DirContextOperations ctx;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         environment = mock(Environment.class);
         ctx = mock(DirContextOperations.class);

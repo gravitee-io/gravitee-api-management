@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -29,19 +30,24 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
+@MockitoSettings(strictness = Strictness.WARN)
+@ExtendWith(MockitoExtension.class)
 public class AlertService_CreateDefaultsTest extends AlertServiceTest {
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void must_throw_TechnicalManagementException_when_create_defaults_alerts_for_an_API() throws TechnicalException {
-        when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(true);
-        when(alertTriggerRepository.findAll()).thenThrow(new TechnicalException("An unexpected error has occurred"));
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(parameterService.findAsBoolean(executionContext, Key.ALERT_ENABLED, ParameterReferenceType.ORGANIZATION)).thenReturn(true);
+            when(alertTriggerRepository.findAll()).thenThrow(new TechnicalException("An unexpected error has occurred"));
 
-        alertService.createDefaults(executionContext, AlertReferenceType.API, "apiId");
+            alertService.createDefaults(executionContext, AlertReferenceType.API, "apiId");
+        });
     }
 
     @Test

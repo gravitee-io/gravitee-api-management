@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -30,15 +30,18 @@ import io.gravitee.repository.management.model.Category;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.Set;
 import java.util.stream.Stream;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class OrphanCategoryUpgraderTest {
 
     @InjectMocks
@@ -51,14 +54,16 @@ public class OrphanCategoryUpgraderTest {
     @Mock
     private CategoryRepository categoryRepository;
 
-    @Test(expected = UpgraderException.class)
-    public void upgrade_should_failed_because_of_exception() throws TechnicalException, UpgraderException {
-        when(categoryRepository.findAll()).thenThrow(new RuntimeException());
+    @Test
+    public void upgrade_should_failed_because_of_exception() throws TechnicalException {
+        assertThrows(UpgraderException.class, () -> {
+            when(categoryRepository.findAll()).thenThrow(new RuntimeException());
 
-        upgrader.upgrade();
+            upgrader.upgrade();
 
-        verify(categoryRepository, times(1)).findAll();
-        verifyNoMoreInteractions(categoryRepository);
+            verify(categoryRepository, times(1)).findAll();
+            verifyNoMoreInteractions(categoryRepository);
+        });
     }
 
     @Test
@@ -84,6 +89,6 @@ public class OrphanCategoryUpgraderTest {
 
     @Test
     public void test_order() {
-        Assert.assertEquals(UpgraderOrder.ORPHAN_CATEGORY_UPGRADER, upgrader.getOrder());
+        Assertions.assertEquals(UpgraderOrder.ORPHAN_CATEGORY_UPGRADER, upgrader.getOrder());
     }
 }

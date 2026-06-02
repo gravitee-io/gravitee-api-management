@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.spec.converter.wsdl;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
@@ -27,16 +27,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
 public class WSDLToOpenAPIConverterTest {
 
     private WSDLToOpenAPIConverter converter = new WSDLToOpenAPIConverter();
 
-    @Parameterized.Parameters
     public static Iterable<Object[]> data() {
         return Arrays.asList(
             new Object[][] {
@@ -49,36 +46,25 @@ public class WSDLToOpenAPIConverterTest {
         );
     }
 
-    @Parameterized.Parameter(0)
-    public String wsdl;
-
-    @Parameterized.Parameter(1)
-    public int expectedPaths;
-
-    @Parameterized.Parameter(2)
-    public int expectedSoapEnvelopes;
-
-    @Parameterized.Parameter(3)
-    public int expectedServers;
-
-    @Test
-    public void convertWsdl() {
+    @MethodSource("data")
+    @ParameterizedTest
+    public void convertWsdl(String wsdl, int expectedPaths, int expectedSoapEnvelopes, int expectedServers) {
         System.out.println("Execute on " + wsdl);
         OpenAPI openApi = converter.toOpenAPI(this.getClass().getResourceAsStream(wsdl));
-        assertNotNull("OpenAPI should be generated", openApi);
+        assertNotNull(openApi, "OpenAPI should be generated");
 
         Info info = openApi.getInfo();
-        assertNotNull("Info is required", info);
-        assertFalse("Title is required", isNullOrEmpty(info.getTitle()));
-        assertFalse("Version is required", isNullOrEmpty(info.getVersion()));
+        assertNotNull(info, "Info is required");
+        assertFalse(isNullOrEmpty(info.getTitle()), "Title is required");
+        assertFalse(isNullOrEmpty(info.getVersion()), "Version is required");
 
         List<Server> servers = openApi.getServers();
-        assertNotNull("Servers is required", servers);
-        assertEquals("Servers is required", expectedServers, servers.size());
+        assertNotNull(servers, "Servers is required");
+        assertEquals(expectedServers, servers.size(), "Servers is required");
 
         Paths paths = openApi.getPaths();
-        assertNotNull("Paths is required", paths);
-        assertEquals("Not enough paths", expectedPaths, paths.size());
+        assertNotNull(paths, "Paths is required");
+        assertEquals(expectedPaths, paths.size(), "Not enough paths");
         int soapEnvelopes = 0;
         for (PathItem path : paths.values()) {
             Optional<State> optState = Arrays.asList(
@@ -98,7 +84,7 @@ public class WSDLToOpenAPIConverterTest {
                 fail("operation is missing for path");
             }
         }
-        assertEquals("Not enough SoapEnvelopes", expectedSoapEnvelopes, soapEnvelopes);
+        assertEquals(expectedSoapEnvelopes, soapEnvelopes, "Not enough SoapEnvelopes");
     }
 
     private State checkOperation(Operation operation) {

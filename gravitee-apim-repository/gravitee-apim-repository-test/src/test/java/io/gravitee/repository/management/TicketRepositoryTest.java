@@ -17,9 +17,7 @@ package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Order;
@@ -29,7 +27,7 @@ import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Ticket;
 import java.util.Date;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class TicketRepositoryTest extends AbstractManagementRepositoryTest {
 
@@ -45,7 +43,7 @@ public class TicketRepositoryTest extends AbstractManagementRepositoryTest {
             .getContent();
 
         assertNotNull(tickets);
-        assertEquals("Invalid tickets numbers in search", 8, tickets.size());
+        assertEquals(8, tickets.size(), "Invalid tickets numbers in search");
         assertEquals("ticket0", tickets.get(0).getId());
         assertEquals("ticket1", tickets.get(1).getId());
         assertEquals("ticket2", tickets.get(2).getId());
@@ -59,7 +57,7 @@ public class TicketRepositoryTest extends AbstractManagementRepositoryTest {
             .getContent();
 
         assertNotNull(tickets);
-        assertEquals("Invalid tickets numbers in search", 8, tickets.size());
+        assertEquals(8, tickets.size(), "Invalid tickets numbers in search");
         assertEquals("ticket0", tickets.get(0).getId());
         assertEquals("ticket1", tickets.get(1).getId());
         assertEquals("ticket2", tickets.get(2).getId());
@@ -77,7 +75,7 @@ public class TicketRepositoryTest extends AbstractManagementRepositoryTest {
             .getContent();
 
         assertNotNull(tickets);
-        assertEquals("Invalid tickets numbers in search", 8, tickets.size());
+        assertEquals(8, tickets.size(), "Invalid tickets numbers in search");
         assertEquals("ticket0", tickets.get(0).getId());
         assertEquals("ticket1", tickets.get(1).getId());
         assertEquals("ticket2", tickets.get(2).getId());
@@ -95,7 +93,7 @@ public class TicketRepositoryTest extends AbstractManagementRepositoryTest {
             .getContent();
 
         assertNotNull(tickets);
-        assertEquals("Invalid tickets numbers in search", 3, tickets.size());
+        assertEquals(3, tickets.size(), "Invalid tickets numbers in search");
         assertEquals("ticket3", tickets.get(0).getId());
         assertEquals("ticket2", tickets.get(1).getId());
         assertEquals("ticket1", tickets.get(2).getId());
@@ -114,7 +112,7 @@ public class TicketRepositoryTest extends AbstractManagementRepositoryTest {
 
         Ticket ticketCreated = ticketRepository.create(ticket);
 
-        assertNotNull("Ticket created is null", ticketCreated);
+        assertNotNull(ticketCreated, "Ticket created is null");
 
         List<Ticket> tickets = ticketRepository
             .search(
@@ -124,15 +122,15 @@ public class TicketRepositoryTest extends AbstractManagementRepositoryTest {
             )
             .getContent();
 
-        assertTrue("Unable to find saved ticket", tickets.size() == 1);
+        assertTrue(tickets.size() == 1, "Unable to find saved ticket");
         Ticket ticketFound = tickets.get(0);
 
-        assertEquals("Invalid saved ticket id.", ticket.getId(), ticketFound.getId());
-        assertEquals("Invalid saved ticket api.", ticket.getApi(), ticketFound.getApi());
-        assertEquals("Invalid saved ticket application.", ticket.getApplication(), ticketFound.getApplication());
-        assertEquals("Invalid saved ticket fromUser.", ticket.getFromUser(), ticketFound.getFromUser());
-        assertEquals("Invalid saved ticket subject.", ticket.getSubject(), ticketFound.getSubject());
-        assertEquals("Invalid saved ticket content.", ticket.getContent(), ticketFound.getContent());
+        assertEquals(ticket.getId(), ticketFound.getId(), "Invalid saved ticket id.");
+        assertEquals(ticket.getApi(), ticketFound.getApi(), "Invalid saved ticket api.");
+        assertEquals(ticket.getApplication(), ticketFound.getApplication(), "Invalid saved ticket application.");
+        assertEquals(ticket.getFromUser(), ticketFound.getFromUser(), "Invalid saved ticket fromUser.");
+        assertEquals(ticket.getSubject(), ticketFound.getSubject(), "Invalid saved ticket subject.");
+        assertEquals(ticket.getContent(), ticketFound.getContent(), "Invalid saved ticket content.");
         assertTrue(compareDate(ticket.getCreatedAt(), ticketFound.getCreatedAt()));
     }
 

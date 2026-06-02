@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.*;
 import io.gravitee.node.api.upgrader.UpgradeRecord;
 import java.time.Instant;
 import java.util.Date;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author GraviteeSource Team

@@ -22,7 +22,7 @@ import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFi
 import io.gravitee.gateway.reactive.debug.policy.condition.DebugExpressionLanguageConditionFilter;
 import io.gravitee.gateway.reactive.policy.HttpConditionalPolicy;
 import io.gravitee.node.api.configuration.Configuration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;

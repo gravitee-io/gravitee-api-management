@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
 import static java.util.Collections.singleton;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -47,22 +48,25 @@ import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.util.*;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 public class ApiService_StopTest {
 
     private static final String API_ID = "id-api";
@@ -121,7 +125,7 @@ public class ApiService_StopTest {
 
     private ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
-    @Before
+    @BeforeEach
     public void setUp() throws TechnicalException {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(
@@ -165,22 +169,26 @@ public class ApiService_StopTest {
         verify(notifierService, times(1)).trigger(eq(executionContext), eq(ApiHook.API_STOPPED), eq(API_ID), any());
     }
 
-    @Test(expected = ApiNotFoundException.class)
+    @Test
     public void shouldNotStopBecauseNotFound() throws TechnicalException {
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
+        assertThrows(ApiNotFoundException.class, () -> {
+            when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
 
-        apiService.stop(executionContext, API_ID, USER_NAME);
+            apiService.stop(executionContext, API_ID, USER_NAME);
 
-        verify(apiRepository, never()).update(api);
-        verify(notifierService, never()).trigger(eq(executionContext), eq(ApiHook.API_STOPPED), eq(API_ID), any());
+            verify(apiRepository, never()).update(api);
+            verify(notifierService, never()).trigger(eq(executionContext), eq(ApiHook.API_STOPPED), eq(API_ID), any());
+        });
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldNotStopBecauseTechnicalException() throws TechnicalException {
-        when(apiRepository.findById(API_ID)).thenThrow(TechnicalException.class);
+        assertThrows(TechnicalManagementException.class, () -> {
+            when(apiRepository.findById(API_ID)).thenThrow(TechnicalException.class);
 
-        apiService.stop(executionContext, API_ID, USER_NAME);
-        verify(notifierService, never()).trigger(eq(executionContext), eq(ApiHook.API_STOPPED), eq(API_ID), any());
+            apiService.stop(executionContext, API_ID, USER_NAME);
+            verify(notifierService, never()).trigger(eq(executionContext), eq(ApiHook.API_STOPPED), eq(API_ID), any());
+        });
     }
 
     private EventEntity mockEvent(EventType eventType) throws Exception {

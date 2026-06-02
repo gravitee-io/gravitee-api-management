@@ -20,17 +20,22 @@ import static org.mockito.Mockito.when;
 import io.gravitee.node.api.configuration.Configuration;
 import java.util.List;
 import java.util.Optional;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class GatewayConfigurationTest {
 
     @InjectMocks
@@ -39,9 +44,8 @@ public class GatewayConfigurationTest {
     @Mock
     private Configuration configuration;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
         System.clearProperty(GatewayConfiguration.SHARDING_TAGS_SYSTEM_PROPERTY);
         System.clearProperty(GatewayConfiguration.MULTI_TENANT_SYSTEM_PROPERTY);
         System.clearProperty("vertx.disableWebsockets");
@@ -53,7 +57,7 @@ public class GatewayConfigurationTest {
     public void shouldEnableWebSockets() {
         gatewayConfiguration.afterPropertiesSet();
 
-        Assert.assertTrue(Boolean.parseBoolean(System.getProperty("vertx.disableWebsockets")));
+        Assertions.assertTrue(Boolean.parseBoolean(System.getProperty("vertx.disableWebsockets")));
     }
 
     @Test
@@ -61,7 +65,7 @@ public class GatewayConfigurationTest {
         when(configuration.getProperty("http.websocket.enabled", Boolean.class, false)).thenReturn(true);
         gatewayConfiguration.afterPropertiesSet();
 
-        Assert.assertFalse(Boolean.parseBoolean(System.getProperty("vertx.disableWebsockets")));
+        Assertions.assertFalse(Boolean.parseBoolean(System.getProperty("vertx.disableWebsockets")));
     }
 
     @Test
@@ -69,7 +73,7 @@ public class GatewayConfigurationTest {
         gatewayConfiguration.afterPropertiesSet();
 
         Optional<List<String>> shardingTags = gatewayConfiguration.shardingTags();
-        Assert.assertFalse(shardingTags.isPresent());
+        Assertions.assertFalse(shardingTags.isPresent());
     }
 
     @Test
@@ -78,7 +82,7 @@ public class GatewayConfigurationTest {
         gatewayConfiguration.afterPropertiesSet();
 
         Optional<List<String>> shardingTags = gatewayConfiguration.shardingTags();
-        Assert.assertFalse(shardingTags.isPresent());
+        Assertions.assertFalse(shardingTags.isPresent());
     }
 
     @Test
@@ -86,7 +90,7 @@ public class GatewayConfigurationTest {
         gatewayConfiguration.afterPropertiesSet();
 
         Optional<String> tenant = gatewayConfiguration.tenant();
-        Assert.assertFalse(tenant.isPresent());
+        Assertions.assertFalse(tenant.isPresent());
     }
 
     @Test
@@ -96,7 +100,7 @@ public class GatewayConfigurationTest {
         gatewayConfiguration.afterPropertiesSet();
 
         Optional<String> tenant = gatewayConfiguration.tenant();
-        Assert.assertFalse(tenant.isPresent());
+        Assertions.assertFalse(tenant.isPresent());
     }
 
     @Test
@@ -105,12 +109,12 @@ public class GatewayConfigurationTest {
         gatewayConfiguration.afterPropertiesSet();
 
         Optional<List<String>> shardingTagsOpt = gatewayConfiguration.shardingTags();
-        Assert.assertTrue(shardingTagsOpt.isPresent());
+        Assertions.assertTrue(shardingTagsOpt.isPresent());
 
         List<String> shardingTags = shardingTagsOpt.get();
-        Assert.assertEquals(2, shardingTags.size());
-        Assert.assertEquals("public", shardingTags.get(0));
-        Assert.assertEquals("private", shardingTags.get(1));
+        Assertions.assertEquals(2, shardingTags.size());
+        Assertions.assertEquals("public", shardingTags.get(0));
+        Assertions.assertEquals("private", shardingTags.get(1));
     }
 
     @Test
@@ -119,9 +123,9 @@ public class GatewayConfigurationTest {
         gatewayConfiguration.afterPropertiesSet();
 
         Optional<String> tenantOpt = gatewayConfiguration.tenant();
-        Assert.assertTrue(tenantOpt.isPresent());
+        Assertions.assertTrue(tenantOpt.isPresent());
 
-        Assert.assertEquals("europe", tenantOpt.get());
+        Assertions.assertEquals("europe", tenantOpt.get());
     }
 
     @Test
@@ -130,12 +134,12 @@ public class GatewayConfigurationTest {
         gatewayConfiguration.afterPropertiesSet();
 
         Optional<List<String>> shardingTagsOpt = gatewayConfiguration.shardingTags();
-        Assert.assertTrue(shardingTagsOpt.isPresent());
+        Assertions.assertTrue(shardingTagsOpt.isPresent());
 
         List<String> shardingTags = shardingTagsOpt.get();
-        Assert.assertEquals(2, shardingTags.size());
-        Assert.assertEquals("public", shardingTags.get(0));
-        Assert.assertEquals("private", shardingTags.get(1));
+        Assertions.assertEquals(2, shardingTags.size());
+        Assertions.assertEquals("public", shardingTags.get(0));
+        Assertions.assertEquals("private", shardingTags.get(1));
     }
 
     @Test
@@ -144,9 +148,9 @@ public class GatewayConfigurationTest {
         gatewayConfiguration.afterPropertiesSet();
 
         Optional<String> tenantOpt = gatewayConfiguration.tenant();
-        Assert.assertTrue(tenantOpt.isPresent());
+        Assertions.assertTrue(tenantOpt.isPresent());
 
-        Assert.assertEquals("europe", tenantOpt.get());
+        Assertions.assertEquals("europe", tenantOpt.get());
     }
 
     @Test
@@ -156,12 +160,12 @@ public class GatewayConfigurationTest {
         gatewayConfiguration.afterPropertiesSet();
 
         Optional<List<String>> shardingTagsOpt = gatewayConfiguration.shardingTags();
-        Assert.assertTrue(shardingTagsOpt.isPresent());
+        Assertions.assertTrue(shardingTagsOpt.isPresent());
 
         List<String> shardingTags = shardingTagsOpt.get();
-        Assert.assertEquals(2, shardingTags.size());
-        Assert.assertEquals("public", shardingTags.get(0));
-        Assert.assertEquals("private", shardingTags.get(1));
+        Assertions.assertEquals(2, shardingTags.size());
+        Assertions.assertEquals("public", shardingTags.get(0));
+        Assertions.assertEquals("private", shardingTags.get(1));
     }
 
     @Test
@@ -171,8 +175,8 @@ public class GatewayConfigurationTest {
         gatewayConfiguration.afterPropertiesSet();
 
         Optional<String> tenantOpt = gatewayConfiguration.tenant();
-        Assert.assertTrue(tenantOpt.isPresent());
+        Assertions.assertTrue(tenantOpt.isPresent());
 
-        Assert.assertEquals("asia", tenantOpt.get());
+        Assertions.assertEquals("asia", tenantOpt.get());
     }
 }
