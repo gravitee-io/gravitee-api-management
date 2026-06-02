@@ -55,7 +55,7 @@
           <gv-identity-picture
             *ngIf="currentUser"
             rounded
-            [display_name]="currentUser.display_name"
+            [display_name]="currentUser.display_name || currentUser.email || 'User'"
             [picture]="userPicture"
             [notification]="numberOfPortalNotifications"
           ></gv-identity-picture>
