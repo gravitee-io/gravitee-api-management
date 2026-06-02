@@ -81,6 +81,19 @@ describe('ApplicationsComponent', () => {
     expect(component.applications).toEqual([{ item: fakeApplication1, metrics: expect.anything() }]);
   });
 
+  it('should default to page=1 when page query param is not a number', () => {
+    const fakeApplication1 = {
+      id: 'application1',
+      name: 'application1',
+      description: 'application1 description',
+    };
+    expectApplicationsGetRequest([fakeApplication1]);
+
+    mockActivatedRouteQueryParamMap$.next(new Map([['page', 'documentation-page-id']]));
+
+    expectApplicationsGetRequest([fakeApplication1], { page: 1, size: 12 });
+  });
+
   it('should displays page=2 with size=24', () => {
     const fakeApplication1 = {
       id: 'application1',
