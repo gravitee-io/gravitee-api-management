@@ -1,0 +1,765 @@
+openapi: 3.1.0
+info:
+  title: Gravitee Authz API (Gamma module)
+  description: |
+    Management REST API for the Gamma authorization module. Covers entity CRUD,
+    policy CRUD + lifecycle (deploy/disable), schema read, and AM user sync.
+
+    All endpoints are scoped to the caller's current organization + environment
+    (resolved server-side from the session context). Every endpoint requires
+    `ENVIRONMENT_AUTHORIZATION` with the action(s) noted in each operation.
+
+    Mounted under `/gamma` by APIM; the full path therefore is
+    `/gamma/organizations/{orgId}/environments/{envId}/modules/authz/...`.
+  contact:
+    email: team-apim@graviteesource.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+
+servers:
+  - url: "/gamma/organizations/{orgId}/environments/{envId}/modules/authz"
+    description: Gamma authz module — base URL
+    variables:
+      orgId:
+        description: The unique ID of your organization
+        default: DEFAULT
+      envId:
+        description: The unique ID of your environment
+        default: DEFAULT
+
+security:
+  - BasicAuth: []
+  - CookieAuth: []
+  - BearerAuth: []
+
+tags:
+  - name: Entities
+    description: CRUD over authz entities
+  - name: Policies
+    description: CRUD + deploy/disable lifecycle over authz policies
+  - name: Schema
+    description: Read-only access to the current GAPL schema
+  - name: AM Sync
+    description: Asynchronous sync of AM users into PRINCIPAL entities
+
+paths:
+  /entities:
+    post:
+      tags: [Entities]
+      summary: Upsert a single entity
+      description: |
+        Create or replace a single authz entity by `entityId`. Returns `201 Created` on
+        the first write of that `entityId` for the caller's environment, `200 OK` when an
+        existing entity was replaced. The replace is field-for-field — every field on the
+        stored entity is overwritten by the values from the request.
+
+        When `entityType` is omitted, the server defaults it from `kind`
+        (`PRINCIPAL` → `Principal`, `RESOURCE` → `Resource`).
+
+        **Requires `ENVIRONMENT_AUTHORIZATION` with `CREATE` and `UPDATE`.**
+      operationId: upsertEntity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthzEntityRequest"
+      responses:
+        "200":
+          description: Entity replaced
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthzEntityResponse"
+        "201":
+          description: Entity created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthzEntityResponse"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+    get:
+      tags: [Entities]
+      summary: List entities (paged, filtered)
+      description: |
+        List entities for the caller's environment. All query parameters are optional and
+        composable. Pagination is 1-indexed.
+
+        **Requires `ENVIRONMENT_AUTHORIZATION` with `READ`.**
+      operationId: listEntities
+      parameters:
+        - in: query
+          name: kind
+          schema: { $ref: "#/components/schemas/AuthzEntityKind" }
+          description: Filter by entity kind
+        - in: query
+          name: source
+          schema: { type: string }
+          description: Filter by `source` provenance tag
+        - in: query
+          name: entityIdPrefix
+          schema: { type: string }
+          description: Restrict to entities whose `entityId` starts with this prefix
+        - in: query
+          name: excludeEntityIdPrefix
+          schema: { type: string }
+          description: Exclude entities whose `entityId` starts with this prefix
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: perPage
+          schema: { type: integer, minimum: 1 }
+      responses:
+        "200":
+          description: Paged list of entities
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedEntityResponse"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /entities/{entityId}:
+    parameters:
+      - in: path
+        name: entityId
+        required: true
+        schema: { $ref: "#/components/schemas/EntityIdString" }
+    get:
+      tags: [Entities]
+      summary: Get a single entity by entityId
+      description: |
+        Look up an entity by its `entityId` within the caller's environment.
+
+        **Requires `ENVIRONMENT_AUTHORIZATION` with `READ`.**
+      operationId: getEntity
+      responses:
+        "200":
+          description: Entity found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthzEntityResponse"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+    put:
+      tags: [Entities]
+      summary: Partially update an entity
+      description: |
+        Patch-style update — only `attributes` and `parents` may be changed. `null` on a
+        field means "leave existing untouched"; a value replaces wholesale (no deep merge).
+
+        `entityId`, `kind`, `entityType`, and `source` are immutable after upsert — they
+        form part of the entity's identity in the engine snapshot. To change them, use
+        `POST /entities` (upsert) with the same `entityId`.
+
+        **Requires `ENVIRONMENT_AUTHORIZATION` with `UPDATE`.**
+      operationId: updateEntity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAuthzEntityRequest"
+      responses:
+        "200":
+          description: Entity updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthzEntityResponse"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+    delete:
+      tags: [Entities]
+      summary: Delete an entity (with cascade)
+      description: |
+        Delete an entity and cascade to dependent policies. The response lists the
+        IDs that were actually removed.
+
+        A `413 Payload Too Large` is returned when the cascade exceeds the configured
+        safety cap (intentionally surfaced so destructive sweeps are explicit).
+
+        **Requires `ENVIRONMENT_AUTHORIZATION` with `DELETE`.**
+      operationId: deleteEntity
+      responses:
+        "200":
+          description: Entity deleted (with cascade summary)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthzCascadeResponse"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "413": { $ref: "#/components/responses/PayloadTooLarge" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /policies:
+    post:
+      tags: [Policies]
+      summary: Create a policy
+      description: |
+        Create a policy. New policies are created in `DRAFT` status — call
+        `POST /policies/{id}/deploy` to make them effective.
+
+        **Requires `ENVIRONMENT_AUTHORIZATION` with `CREATE`.**
+      operationId: createPolicy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthzPolicyRequest"
+      responses:
+        "201":
+          description: Policy created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthzPolicyResponse"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+    get:
+      tags: [Policies]
+      summary: List policies (paged, filtered)
+      description: |
+        List policies for the caller's environment. All query parameters are optional.
+
+        **Requires `ENVIRONMENT_AUTHORIZATION` with `READ`.**
+      operationId: listPolicies
+      parameters:
+        - in: query
+          name: kind
+          schema: { $ref: "#/components/schemas/AuthzPolicyKind" }
+        - in: query
+          name: entityId
+          schema: { type: string }
+          description: Filter to policies that target a specific entity (only meaningful for `RESOURCE` kind)
+        - in: query
+          name: status
+          schema: { $ref: "#/components/schemas/AuthzPolicyStatus" }
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: perPage
+          schema: { type: integer, minimum: 1 }
+      responses:
+        "200":
+          description: Paged list of policies
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedPolicyResponse"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /policies/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string }
+        description: The policy's surrogate id (server-assigned)
+    get:
+      tags: [Policies]
+      summary: Get a single policy by id
+      description: |
+        **Requires `ENVIRONMENT_AUTHORIZATION` with `READ`.**
+      operationId: getPolicy
+      responses:
+        "200":
+          description: Policy found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthzPolicyResponse"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+    put:
+      tags: [Policies]
+      summary: Update a policy (rename / edit text)
+      description: |
+        Partial update — only `name` and `policyText` may be changed. `null` on a field
+        means "no change". Does not change `status` (use `/deploy` and `/disable`).
+
+        **Requires `ENVIRONMENT_AUTHORIZATION` with `UPDATE`.**
+      operationId: updatePolicy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAuthzPolicyRequest"
+      responses:
+        "200":
+          description: Policy updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthzPolicyResponse"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+    delete:
+      tags: [Policies]
+      summary: Delete a policy
+      description: |
+        **Requires `ENVIRONMENT_AUTHORIZATION` with `DELETE`.**
+      operationId: deletePolicy
+      responses:
+        "204":
+          description: Policy deleted
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /policies/{id}/deploy:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string }
+    post:
+      tags: [Policies]
+      summary: Deploy a policy
+      description: |
+        Move a policy to `DEPLOYED` status — only `DEPLOYED` policies are pushed to
+        the gateway PDP via sync. Illegal transitions (e.g. deploying an
+        already-disabled policy without first re-drafting) return `409`.
+
+        **Requires `ENVIRONMENT_AUTHORIZATION` with `UPDATE`.**
+      operationId: deployPolicy
+      responses:
+        "200":
+          description: Policy deployed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthzPolicyResponse"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /policies/{id}/disable:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string }
+    post:
+      tags: [Policies]
+      summary: Disable a policy
+      description: |
+        Move a policy to `DISABLED` status. Illegal transitions return `409`.
+
+        **Requires `ENVIRONMENT_AUTHORIZATION` with `UPDATE`.**
+      operationId: disablePolicy
+      responses:
+        "200":
+          description: Policy disabled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthzPolicyResponse"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /schema:
+    get:
+      tags: [Schema]
+      summary: Get the current GAPL schema
+      description: |
+        Return the schema document derived from the live entities + policies for the
+        caller's environment. Read-only; schema writes are not yet supported.
+
+        **Requires `ENVIRONMENT_AUTHORIZATION` with `READ`.**
+      operationId: getSchema
+      responses:
+        "200":
+          description: Current schema
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthzSchemaResponse"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+  /users/sync:
+    post:
+      tags: [AM Sync]
+      summary: Start an AM user sync
+      description: |
+        Trigger an asynchronous sync of AM users into PRINCIPAL entities, scoped to the
+        organization's configured AM connection. Returns immediately with the job id;
+        poll `GET /users/sync` for status.
+
+        Returns `503` with `error: "am_not_configured"` when no AM connection is
+        configured for the organization. Returns `409` with `error: "SyncAlreadyRunning"`
+        when a previous sync is still in progress.
+
+        **Requires `ENVIRONMENT_AUTHORIZATION` with `CREATE` and `UPDATE`.**
+      operationId: startAmUserSync
+      responses:
+        "202":
+          description: Sync job accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AmSyncStartResponse"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+        "503":
+          description: AM is not configured for this organization
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorBody" }
+    get:
+      tags: [AM Sync]
+      summary: Get the latest AM user sync status
+      description: |
+        Return the status of the most recent AM user sync job for this organization.
+        Returns `404` with `error: "SyncNotFound"` when no sync has ever run.
+
+        **Requires `ENVIRONMENT_AUTHORIZATION` with `READ`.**
+      operationId: getAmUserSyncStatus
+      responses:
+        "200":
+          description: Latest sync job status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AmSyncStatusResponse"
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+components:
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+    BearerAuth:
+      type: http
+      scheme: bearer
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: Auth-Graviteeio-APIM
+
+  responses:
+    BadRequest:
+      description: Validation failure or malformed input
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorBody" }
+    Unauthorized:
+      description: Caller is not authenticated
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorBody" }
+    Forbidden:
+      description: Caller is authenticated but lacks the required role permission
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorBody" }
+    NotFound:
+      description: Target resource does not exist
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorBody" }
+    Conflict:
+      description: Illegal state transition (e.g. policy status, sync already running)
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorBody" }
+    PayloadTooLarge:
+      description: Cascade exceeds the configured safety cap
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorBody" }
+    InternalServerError:
+      description: Unexpected server error
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorBody" }
+
+  schemas:
+    EntityIdString:
+      type: string
+      minLength: 1
+      maxLength: 255
+      pattern: "^[a-z0-9_:-]+(?:\\.[a-z0-9_:-]+)*$"
+      description: |
+        Stable, caller-supplied entity identifier. Lowercase alphanumerics, `_`, `-`, `:`,
+        dot-separated segments (e.g. `api.my-service`, `idp.am.alice`, `repo:backend`).
+      example: api.payments
+
+    AuthzEntityKind:
+      type: string
+      enum: [PRINCIPAL, RESOURCE]
+      description: |
+        Gamma-specific dual-axis tag distinct from the engine's free-string
+        `entityType`. Used by the UI / filters to separate subjects from objects.
+
+    AuthzPolicyKind:
+      type: string
+      enum: [GLOBAL, RESOURCE]
+      description: |
+        `GLOBAL` policies apply environment-wide; `RESOURCE` policies are bound to a
+        specific `entityId`.
+
+    AuthzPolicyStatus:
+      type: string
+      enum: [DRAFT, DEPLOYED, DISABLED]
+      description: |
+        Lifecycle status. Only `DEPLOYED` policies are pushed to the gateway PDP.
+
+    AuthzEntityRequest:
+      type: object
+      description: |
+        Create/replace payload for a single entity. `entityType` defaults from `kind`
+        when omitted (`PRINCIPAL` → `Principal`, `RESOURCE` → `Resource`).
+      properties:
+        entityId:
+          $ref: "#/components/schemas/EntityIdString"
+        kind:
+          $ref: "#/components/schemas/AuthzEntityKind"
+        entityType:
+          type: string
+          description: |
+            Free-string entity type emitted to the engine as the UID type prefix
+            (`<entityType>::"<entityId>"`). Optional; defaults from `kind`.
+        attributes:
+          type: object
+          additionalProperties: true
+          description: Arbitrary JSON attributes evaluated by GAPL policies.
+        parents:
+          type: array
+          description: Parent entity ids for hierarchy.
+          items:
+            type: string
+            minLength: 1
+        source:
+          type: string
+          description: |
+            Free-form provenance tag (`"import:api-discovery"`, `"manual"`, etc.).
+            Filterable on `GET /entities`.
+      required: [entityId, kind]
+
+    UpdateAuthzEntityRequest:
+      type: object
+      description: |
+        Partial update; only `attributes` and `parents` may be changed. `null` means
+        "no change". Replacements are wholesale per field (no deep merge).
+      properties:
+        attributes:
+          type: object
+          additionalProperties: true
+        parents:
+          type: array
+          items:
+            type: string
+            minLength: 1
+
+    AuthzEntityResponse:
+      type: object
+      description: Stored entity as emitted by the API.
+      properties:
+        id: { type: string, description: Server-assigned surrogate id }
+        entityId: { $ref: "#/components/schemas/EntityIdString" }
+        kind: { $ref: "#/components/schemas/AuthzEntityKind" }
+        entityType: { type: string }
+        attributes:
+          type: object
+          additionalProperties: true
+        parents:
+          type: array
+          items: { type: string }
+        source: { type: string }
+        environmentId: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+      required: [id, entityId, kind, entityType, environmentId]
+
+    AuthzPolicyRequest:
+      type: object
+      description: Create payload for a policy.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Human-friendly policy name (required, non-blank).
+        kind:
+          $ref: "#/components/schemas/AuthzPolicyKind"
+        entityId:
+          type: string
+          maxLength: 255
+          pattern: "^[a-z0-9_:-]+(?:\\.[a-z0-9_:-]+)*$"
+          description: |
+            For `RESOURCE` policies, the `entityId` of the entity the policy binds to.
+            Ignored for `GLOBAL` policies.
+        policyText:
+          type: string
+          description: Raw GAPL policy text.
+      required: [name, kind, policyText]
+
+    UpdateAuthzPolicyRequest:
+      type: object
+      description: |
+        Partial update; only `name` and `policyText` may be changed. `null` on a field
+        means "no change".
+      properties:
+        name: { type: string }
+        policyText: { type: string }
+
+    AuthzPolicyResponse:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        kind: { $ref: "#/components/schemas/AuthzPolicyKind" }
+        entityId: { type: string }
+        policyText: { type: string }
+        status: { $ref: "#/components/schemas/AuthzPolicyStatus" }
+        environmentId: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+      required: [id, name, kind, policyText, status, environmentId]
+
+    AuthzSchemaResponse:
+      type: object
+      properties:
+        schema:
+          type: string
+          description: Raw GAPL schema text for the caller's environment.
+      required: [schema]
+
+    AuthzCascadeResponse:
+      type: object
+      description: Summary of the entities + policies cascade-deleted by the request.
+      properties:
+        deletedEntityIds:
+          type: array
+          items: { type: string }
+        deletedPolicyIds:
+          type: array
+          items: { type: string }
+        totalAffected:
+          type: integer
+          minimum: 0
+      required: [deletedEntityIds, deletedPolicyIds, totalAffected]
+
+    AmSyncStartResponse:
+      type: object
+      description: Returned by `POST /users/sync` when a sync job is accepted.
+      properties:
+        jobId: { type: string }
+        status:
+          type: string
+          description: AsyncJob status name (`PENDING`, `SUCCESS`, `ERROR`, `TIMEOUT`).
+        totalUsers:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Upper bound on AM users to be synced (the job's expected work).
+      required: [jobId, status, totalUsers]
+
+    AmSyncStatusResponse:
+      type: object
+      description: Status of the most recent AM user sync for this organization.
+      properties:
+        jobId: { type: string }
+        status:
+          type: string
+          description: AsyncJob status name (`PENDING`, `SUCCESS`, `ERROR`, `TIMEOUT`).
+        entitiesUpserted:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Count of PRINCIPAL entities synced (populated on success).
+        error:
+          type: string
+          description: Error message when `status == "ERROR"`; otherwise null.
+        completedAt:
+          type: string
+          format: date-time
+          description: Set once the job reaches a terminal status; null otherwise.
+      required: [jobId, status]
+
+    PagedEntityResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: "#/components/schemas/AuthzEntityResponse" }
+        total: { type: integer, minimum: 0 }
+        page: { type: integer, minimum: 1 }
+        perPage: { type: integer, minimum: 0 }
+      required: [data, total, page, perPage]
+
+    PagedPolicyResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: "#/components/schemas/AuthzPolicyResponse" }
+        total: { type: integer, minimum: 0 }
+        page: { type: integer, minimum: 1 }
+        perPage: { type: integer, minimum: 0 }
+      required: [data, total, page, perPage]
+
+    ErrorBody:
+      type: object
+      description: |
+        Uniform error envelope. Known `error` codes:
+
+        Entity / policy CRUD (emitted by `AuthzCalls`):
+        `PolicyNotFound`, `EntityNotFound`, `CascadeTooLarge`,
+        `InvalidStatusTransition`, `InvalidArgument`.
+
+        EntityId validation (from `AuthzEntityIdValidationCode`):
+        `ENTITY_ID_FORBIDDEN_ON_GLOBAL`, `ENTITY_ID_REQUIRED_FOR_RESOURCE`,
+        `ENTITY_ID_MALFORMED`.
+
+        AM user sync:
+        `am_not_configured`, `SyncAlreadyRunning`, `SyncStartFailed`,
+        `SyncNotFound`, `SyncStatusFailed`.
+      properties:
+        error:
+          type: string
+          description: Stable, machine-readable error code.
+        message:
+          type: string
+          description: Human-readable detail. Not for programmatic inspection.
+      required: [error, message]
