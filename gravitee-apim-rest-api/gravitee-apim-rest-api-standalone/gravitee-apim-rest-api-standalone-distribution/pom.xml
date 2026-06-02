@@ -310,19 +310,6 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.graviteesource.gamma.module</groupId>
-            <artifactId>gravitee-gamma-module-aim</artifactId>
-            <version>${gravitee-gamma-module-aim.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>io.gravitee.gamma.module</groupId>
             <artifactId>gravitee-gamma-module-authz</artifactId>
             <version>${project.version}</version>
