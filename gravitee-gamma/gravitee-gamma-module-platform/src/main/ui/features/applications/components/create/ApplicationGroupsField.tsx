@@ -79,11 +79,12 @@ export function ApplicationGroupsField({
                         id="application-groups"
                         placeholder={selectedGroupIds.length === 0 ? placeholder : ''}
                         aria-label="Search groups"
+                        readOnly
                     />
                 </ComboboxChips>
                 <ComboboxContent anchor={chipsAnchorRef} align="start">
                     <ComboboxList>
-                        <ComboboxEmpty>No groups available</ComboboxEmpty>
+                        {sortedGroups.length === 0 && !isLoading ? <ComboboxEmpty>No groups available</ComboboxEmpty> : null}
                         {sortedGroups.map(group => (
                             <ComboboxItem key={group.id} value={group.id}>
                                 {group.name}

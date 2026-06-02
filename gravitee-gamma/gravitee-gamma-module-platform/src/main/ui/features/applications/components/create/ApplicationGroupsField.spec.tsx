@@ -73,6 +73,7 @@ describe('ApplicationGroupsField', () => {
 
         const options = screen.getAllByRole('option');
         expect(options.map(option => option.textContent)).toEqual(['Alpha Team', 'Middle Team', 'Zeta Team']);
+        expect(document.querySelector('[data-slot="combobox-empty"]')).toBeNull();
     });
 
     it('adds a group to the selection', async () => {
@@ -111,6 +112,17 @@ describe('ApplicationGroupsField', () => {
         renderField({ isLoading: true });
 
         expect(screen.getByLabelText('Search groups').disabled).toBe(true);
+    });
+
+    it('prevents typing in the groups input', async () => {
+        const user = userEvent.setup();
+        renderField();
+
+        const input = screen.getByLabelText('Search groups');
+        await user.click(input);
+        await user.type(input, 'alpha');
+
+        expect((input as HTMLInputElement).value).toBe('');
     });
 
     it('does not change selection while loading', async () => {

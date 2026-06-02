@@ -94,7 +94,7 @@ export function ApplicationsListView({
 
     return (
         <div className="space-y-6">
-            <ApplicationsPageHeader canCreate={canCreate} onRegisterApplication={onRegisterApplication} showInfoTooltip />
+            <ApplicationsPageHeader canCreate={canCreate} onRegisterApplication={onRegisterApplication} />
 
             <ApplicationStatsCards stats={stats} />
 

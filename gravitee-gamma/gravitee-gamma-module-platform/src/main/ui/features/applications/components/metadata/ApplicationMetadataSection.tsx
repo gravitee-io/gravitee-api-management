@@ -144,19 +144,7 @@ export function ApplicationMetadataSection({
 
                     {canCreate ? (
                         <form className="space-y-3" onSubmit={handleAddMetadata}>
-                            <div className="grid gap-3 md:grid-cols-4">
-                                <div className="space-y-2">
-                                    <RequiredLabel htmlFor="metadata-key">Key</RequiredLabel>
-                                    <Input
-                                        id="metadata-key"
-                                        value={metadataKey}
-                                        placeholder="department"
-                                        readOnly
-                                        required
-                                        aria-required="true"
-                                        className="bg-muted/40"
-                                    />
-                                </div>
+                            <div className="grid gap-3 md:grid-cols-3">
                                 <div className="space-y-2">
                                     <RequiredLabel htmlFor="metadata-name">Name</RequiredLabel>
                                     <Input
