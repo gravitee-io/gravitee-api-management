@@ -17,9 +17,12 @@ import { createComponentFactory, mockProvider, Spectator } from '@ngneat/spectat
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { DomSanitizer } from '@angular/platform-browser';
+import { ActivatedRoute, Router } from '@angular/router';
 
+import { FilterApiQuery } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { ConfigurationService } from '../../services/configuration.service';
+import { SearchQueryParam } from '../../utils/search-query-param.enum';
 
 import { GvDocumentationComponent } from './gv-documentation.component';
 
@@ -41,6 +44,26 @@ describe('GvDocumentationComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should preserve navigation context params but not the previous page id when changing doc page', () => {
+    const router = spectator.inject(Router);
+    jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    const activatedRoute = spectator.inject(ActivatedRoute);
+    (activatedRoute.snapshot as any).queryParams = {
+      [SearchQueryParam.API_QUERY]: FilterApiQuery.ALL,
+      page: 'current-page-id',
+    };
+
+    component.onPageChange({ id: 'next-page-id' });
+
+    expect(router.navigate).toHaveBeenCalledWith([], {
+      queryParams: {
+        [SearchQueryParam.API_QUERY]: FilterApiQuery.ALL,
+        page: 'next-page-id',
+      },
+    });
   });
 
   it('should not call onPageChange if link not have data-pageId ', () => {
