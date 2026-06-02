@@ -19,7 +19,7 @@ import { authzApiService, type EntityKindFilter } from '../api/authz-api.service
 import type { EntityResponse } from '../api/authz-api.types';
 import { authzQueryKeys } from '../api/query-keys';
 import type { ChipOption } from '../chip-option';
-import { parseEntityUid } from '../entity-adapter';
+import { resolveEntityRef } from '../entity-adapter';
 
 export interface UseEntityOptionsResult {
     readonly options: readonly ChipOption[];
@@ -49,10 +49,11 @@ function resolveKind(typeFilter: readonly string[] | undefined): EntityKindFilte
 }
 
 // Synced principals carry an unreadable entity id (the AM token `sub`, a UUID). Prefer a
-// human attribute for the chip label, falling back to the id. The id stays visible via the
-// description (it leads the attribute summary as `sub=...`) and is unchanged in the chip's
-// `id` — the GAPL ref the PEP matches on.
-const LABEL_ATTRS = ['displayName', 'email', 'username'] as const;
+// human attribute for the chip label, falling back to the id. `_displayName` is the explicit
+// name set by the local "Add principal" form; `displayName`/`email`/`username` are populated by
+// the AM sync. The id stays visible via the description and is unchanged in the chip's `id` —
+// the GAPL ref the PEP matches on.
+const LABEL_ATTRS = ['_displayName', 'displayName', 'email', 'username'] as const;
 
 function readableLabel(attrs: Record<string, unknown>, fallbackId: string): string {
     for (const key of LABEL_ATTRS) {
@@ -73,7 +74,7 @@ function summarizeAttributes(attrs: Record<string, unknown>): string | undefined
 }
 
 function toChipOption(entity: EntityResponse): ChipOption {
-    const { type, id } = parseEntityUid(entity.uid);
+    const { type, id } = resolveEntityRef(entity.uid, entity.attributes);
     return {
         id: `${type}::"${id}"`,
         label: readableLabel(entity.attributes, id),

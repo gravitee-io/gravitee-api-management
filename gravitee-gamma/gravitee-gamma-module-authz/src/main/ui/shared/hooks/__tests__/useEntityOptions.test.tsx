@@ -145,6 +145,43 @@ describe('useEntityOptions', () => {
         expect(items[2].getAttribute('data-label')).toBe('u3');
     });
 
+    it('resolves a synced principal stored with a bare sub uid via its _kind attribute', async () => {
+        // AM-synced principals keep the bare token sub as their entityId (no `user.` prefix); the
+        // type lives only in the `_kind` attribute. The chip must still resolve to a User so the
+        // principal type filter does not drop it.
+        const sub = 'c4a2111a-fdb7-39d7-8540-ee725e250f59';
+        listEntitiesSpy.mockResolvedValue(paged([entity(sub, { _kind: 'user', sub, displayName: 'Abagail Friesen' })]));
+
+        const { getByTestId } = render(<Probe env="env-1" opts={{ typeFilter: ['User', 'Group', 'ServiceAccount', 'AgentIdentity'] }} />, {
+            wrapper: makeWrapper(),
+        });
+
+        await waitFor(() => expect(getByTestId('count').textContent).toBe('1'));
+        const item = getByTestId('options').querySelector('li')!;
+        expect(item.getAttribute('data-group')).toBe('User');
+        expect(item.getAttribute('data-label')).toBe('Abagail Friesen');
+        // The bare sub is preserved as the GAPL ref the PEP matches on.
+        expect(item.textContent).toBe(`User::"${sub}"`);
+    });
+
+    it('labels a locally-added principal by its _displayName meta attribute, not the entity id', async () => {
+        // The "Add principal" form stores the human name under the `_displayName` meta key (not the
+        // plain `displayName` the AM sync uses). The chip label must surface it so the user sees the
+        // name they typed, while the inserted GAPL ref keeps the entity id.
+        listEntitiesSpy.mockResolvedValue(paged([entity('user.12345', { _displayName: 'Rafal' })]));
+
+        const { getByTestId } = render(<Probe env="env-1" opts={{ typeFilter: ['User', 'Group', 'ServiceAccount', 'AgentIdentity'] }} />, {
+            wrapper: makeWrapper(),
+        });
+
+        await waitFor(() => expect(getByTestId('count').textContent).toBe('1'));
+        const item = getByTestId('options').querySelector('li')!;
+        expect(item.getAttribute('data-group')).toBe('User');
+        expect(item.getAttribute('data-label')).toBe('Rafal');
+        // The entity id is what lands in the policy, not the display name.
+        expect(item.textContent).toBe('User::"12345"');
+    });
+
     it('issues a single kind=PRINCIPAL fetch and filters client-side when typeFilter is a principal subset', async () => {
         listEntitiesSpy.mockImplementation((_env: string, params: { kind?: string } = {}) => {
             if (params.kind === 'PRINCIPAL') {
