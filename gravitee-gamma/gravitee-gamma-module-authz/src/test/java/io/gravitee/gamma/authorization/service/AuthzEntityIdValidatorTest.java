@@ -95,8 +95,6 @@ class AuthzEntityIdValidatorTest {
 
     @Test
     void entityKind_with_colon_in_entityId_is_accepted() {
-        // Cedar/GAPL accept colons in unquoted ids — used by engine scenarios such as
-        // real-world-06-mcp-server-access (repo:backend, db:production, channel:engineering).
         assertThatCode(() -> validator.validate(AuthzEntityKind.RESOURCE, "repo:backend")).doesNotThrowAnyException();
         assertThatCode(() -> validator.validate(AuthzEntityKind.RESOURCE, "db:production")).doesNotThrowAnyException();
         assertThatCode(() -> validator.validate(AuthzEntityKind.PRINCIPAL, "group:engineering")).doesNotThrowAnyException();

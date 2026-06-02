@@ -91,7 +91,7 @@ public class AuthzEntityMapper {
      * Build the engine UID emitted to the PDP:
      * <ul>
      *   <li>If the wire carries an explicit {@code entityType} (post typed-entity-type rollout)
-     *       — use it verbatim so Cedar policies like {@code principal == User::"alice"} match
+     *       — use it verbatim so GAPL policies like {@code principal == User::"alice"} match
      *       the entity in the snapshot.</li>
      *   <li>Otherwise (legacy publisher) — fall back to the kind default
      *       ({@code Principal::"<id>"} / {@code Resource::"<id>"}).</li>

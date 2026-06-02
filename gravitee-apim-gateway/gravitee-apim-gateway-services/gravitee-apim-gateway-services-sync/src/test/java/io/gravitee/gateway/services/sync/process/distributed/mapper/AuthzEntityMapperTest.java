@@ -77,8 +77,7 @@ class AuthzEntityMapperTest {
 
     @Test
     void to_roundtrip_preserves_entityType_through_distributed_event() throws Exception {
-        AuthzEntityReactorDeployable source = AuthzEntityReactorDeployable
-            .builder()
+        AuthzEntityReactorDeployable source = AuthzEntityReactorDeployable.builder()
             .entityId("doc-1")
             .kind(AuthzEntityReactorDeployable.Kind.RESOURCE)
             .entityType("Doc")
