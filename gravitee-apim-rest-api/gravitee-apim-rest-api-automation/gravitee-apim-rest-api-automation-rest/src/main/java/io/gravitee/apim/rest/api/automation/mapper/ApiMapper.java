@@ -52,7 +52,9 @@ import java.util.Map;
 import java.util.Objects;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.ValueMapping;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -62,6 +64,11 @@ import org.mapstruct.factory.Mappers;
 @Mapper(uses = { DateMapper.class, OriginContextMapper.class, ServiceMapper.class })
 public interface ApiMapper {
     ApiMapper INSTANCE = Mappers.getMapper(ApiMapper.class);
+
+    @ValueMapping(source = "EDGE", target = MappingConstants.THROW_EXCEPTION)
+    io.gravitee.apim.rest.api.automation.model.ApiType map(io.gravitee.rest.api.management.v2.rest.model.ApiType type);
+
+    io.gravitee.rest.api.management.v2.rest.model.ApiType map(io.gravitee.apim.rest.api.automation.model.ApiType type);
 
     @Mapping(target = "listeners", expression = "java(mapApiV4SpecListeners(apiV4Spec))")
     @Mapping(target = "plans", expression = "java(mapApiV4SpecPlans(apiV4Spec))")

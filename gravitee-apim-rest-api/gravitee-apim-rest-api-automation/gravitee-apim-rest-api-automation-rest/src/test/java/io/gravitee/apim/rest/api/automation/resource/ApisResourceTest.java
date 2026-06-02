@@ -134,6 +134,19 @@ class ApisResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_reject_edge_api_type() {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", false)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-with-edge-type.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(400);
+            }
+        }
+
+        @Test
         void should_return_state_from_hrid_and_have_spg_hrid_replaced() {
             var state = expectEntity("api-with-hrid-spg-hrid.json");
             SoftAssertions.assertSoftly(soft -> {
@@ -264,6 +277,19 @@ class ApisResourceTest extends AbstractResourceTest {
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
                     .put(Entity.json(readJSON("api-with-no-hrid.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(400);
+            }
+        }
+
+        @Test
+        void should_reject_edge_api_type() {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", dryRun)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-with-edge-type.json")))
             ) {
                 assertThat(response.getStatus()).isEqualTo(400);
             }
