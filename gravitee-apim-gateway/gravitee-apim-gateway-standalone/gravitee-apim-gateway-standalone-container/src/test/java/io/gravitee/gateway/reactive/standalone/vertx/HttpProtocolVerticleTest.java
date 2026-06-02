@@ -82,11 +82,12 @@ class HttpProtocolVerticleTest {
         client
             .request(HttpMethod.GET, actualPort(), "127.0.0.1", "/")
             .compose(HttpClientRequest::send)
+            .compose(response -> response.body().map(body -> response))
             .onComplete(
                 testContext.succeeding(response ->
                     testContext.verify(() -> {
                         assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
-                        testContext.completeNow();
+                        client.close().onComplete(ar -> testContext.completeNow());
                     })
                 )
             );
@@ -102,6 +103,7 @@ class HttpProtocolVerticleTest {
         client
             .request(HttpMethod.GET, actualPort(), "127.0.0.1", "/")
             .compose(HttpClientRequest::send)
+            .compose(response -> response.body().map(body -> response))
             .onComplete(
                 testContext.succeeding(response ->
                     testContext.verify(() -> assertThat(response.statusCode()).isEqualTo(HttpStatusCode.INTERNAL_SERVER_ERROR_500))
@@ -109,11 +111,12 @@ class HttpProtocolVerticleTest {
             )
             .compose(httpClientResponse -> client.request(HttpMethod.GET, actualPort(), "127.0.0.1", "/"))
             .compose(HttpClientRequest::send)
+            .compose(response -> response.body().map(body -> response))
             .onComplete(
                 testContext.succeeding(response ->
                     testContext.verify(() -> {
                         assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
-                        testContext.completeNow();
+                        client.close().onComplete(ar -> testContext.completeNow());
                     })
                 )
             );
@@ -151,6 +154,7 @@ class HttpProtocolVerticleTest {
         client
             .request(HttpMethod.GET, actualPort(), "127.0.0.1", "/")
             .compose(HttpClientRequest::send)
+            .compose(response -> response.body().map(body -> response))
             .onComplete(
                 testContext.succeeding(response ->
                     testContext.verify(() -> assertThat(response.statusCode()).isEqualTo(SERVICE_UNAVAILABLE_503))
@@ -158,11 +162,12 @@ class HttpProtocolVerticleTest {
             )
             .compose(httpClientResponse -> client.request(HttpMethod.GET, actualPort(), "127.0.0.1", "/"))
             .compose(HttpClientRequest::send)
+            .compose(response -> response.body().map(body -> response))
             .onComplete(
                 testContext.succeeding(response ->
                     testContext.verify(() -> {
                         assertThat(response.statusCode()).isEqualTo(HttpStatusCode.OK_200);
-                        testContext.completeNow();
+                        client.close().onComplete(ar -> testContext.completeNow());
                     })
                 )
             );
