@@ -43,4 +43,26 @@ describe('LoginComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  describe('getProviderStyle', () => {
+    it('should return empty style when color is unset', () => {
+      expect(component.getProviderStyle({ type: 'OIDC' } as never)).toBe('');
+    });
+
+    it('should return empty style when color is whitespace only', () => {
+      expect(component.getProviderStyle({ type: 'OIDC', color: '   ' } as never)).toBe('');
+    });
+
+    it('should include background and contrasting text color for dark hex', () => {
+      expect(component.getProviderStyle({ type: 'OIDC', color: '#000000' } as never)).toBe(
+        '--gv-button-oidc--bgc:#000000;--gv-button--c:#ffffff;',
+      );
+    });
+
+    it('should include background and contrasting text color for light hex', () => {
+      expect(component.getProviderStyle({ type: 'OIDC', color: '#ffffff' } as never)).toBe(
+        '--gv-button-oidc--bgc:#ffffff;--gv-button--c:#000000;',
+      );
+    });
+  });
 });
