@@ -39,6 +39,9 @@ import java.util.List;
  */
 public class PageResource extends AbstractResource {
 
+    private static final String INCLUDE_CONTENT = "content";
+    private static final String TEXT_PLAIN_UTF_8 = MediaType.TEXT_PLAIN + ";charset=UTF-8";
+
     @Inject
     private PageMapper pageMapper;
 
@@ -47,8 +50,6 @@ public class PageResource extends AbstractResource {
 
     @Inject
     private AccessControlService accessControlService;
-
-    private static final String INCLUDE_CONTENT = "content";
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -93,7 +94,7 @@ public class PageResource extends AbstractResource {
 
     @GET
     @Path("content")
-    @Produces(MediaType.TEXT_PLAIN)
+    @Produces(TEXT_PLAIN_UTF_8)
     @RequirePortalAuth
     public Response getPageContentByPageId(@PathParam("pageId") String pageId) {
         PageEntity pageEntity = pageService.findById(pageId, null);
