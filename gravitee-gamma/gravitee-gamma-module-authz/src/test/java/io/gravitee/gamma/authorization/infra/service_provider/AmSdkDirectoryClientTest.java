@@ -24,6 +24,7 @@ import io.gravitee.gamma.authorization.core.am.model.AmGroup;
 import io.gravitee.gamma.authorization.core.am.model.AmRole;
 import io.gravitee.gamma.authorization.core.am.model.AmUser;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -38,7 +39,7 @@ class AmSdkDirectoryClientTest {
         user.setGroups(List.of("g-1", "g-2"));
         user.setRoles(List.of("r-1"));
 
-        AmUser mapped = AmSdkDirectoryClient.toAmUser(user);
+        AmUser mapped = AmSdkDirectoryClient.toAmUser(user, Map.of());
 
         assertThat(mapped.groups()).containsExactly("g-1", "g-2");
         assertThat(mapped.roles()).containsExactly("r-1");
@@ -49,10 +50,34 @@ class AmSdkDirectoryClientTest {
         User user = new User();
         user.setId("u-1");
 
-        AmUser mapped = AmSdkDirectoryClient.toAmUser(user);
+        AmUser mapped = AmSdkDirectoryClient.toAmUser(user, Map.of());
 
         assertThat(mapped.groups()).isEmpty();
         assertThat(mapped.roles()).isEmpty();
+    }
+
+    @Test
+    void resolves_source_name_back_to_the_idp_id() {
+        // listUsers returns the IdP *name* in `source`; the sync must key the entity on the IdP *id*
+        // so it matches AM's token `sub` (UUID of "idpId:externalId").
+        User user = new User();
+        user.setId("u-1");
+        user.setSource("Default Identity Provider");
+
+        AmUser mapped = AmSdkDirectoryClient.toAmUser(user, Map.of("Default Identity Provider", "default-idp-3e149b8b"));
+
+        assertThat(mapped.source()).isEqualTo("default-idp-3e149b8b");
+    }
+
+    @Test
+    void keeps_source_as_is_when_idp_name_is_not_in_the_map() {
+        User user = new User();
+        user.setId("u-1");
+        user.setSource("default-idp-3e149b8b");
+
+        AmUser mapped = AmSdkDirectoryClient.toAmUser(user, Map.of());
+
+        assertThat(mapped.source()).isEqualTo("default-idp-3e149b8b");
     }
 
     @Test

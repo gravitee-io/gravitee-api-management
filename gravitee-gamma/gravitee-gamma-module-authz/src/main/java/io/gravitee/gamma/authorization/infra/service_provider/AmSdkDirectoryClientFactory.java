@@ -22,6 +22,8 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import io.gravitee.am.sdk.management.api.GroupApi;
 import io.gravitee.am.sdk.management.api.GroupApiImpl;
+import io.gravitee.am.sdk.management.api.IdentityProviderApi;
+import io.gravitee.am.sdk.management.api.IdentityProviderApiImpl;
 import io.gravitee.am.sdk.management.api.RoleApi;
 import io.gravitee.am.sdk.management.api.RoleApiImpl;
 import io.gravitee.am.sdk.management.api.UserApi;
@@ -36,7 +38,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
 /**
- * Builds the AM management API facades (user, group, role) from a stored {@link AmConnection},
+ * Builds the AM management API facades (user, group, role, identity provider) from a stored {@link AmConnection},
  * all sharing one {@link ApiClient} (and thus one Vert.x WebClient connection pool). No caching — a
  * sync opens one set per run (see {@code AmSdkDirectoryClient.openSession}) and closes the shared
  * client when done, so an updated connection takes effect on the next sync.
@@ -49,12 +51,24 @@ public class AmSdkDirectoryClientFactory {
         this.vertx = vertx;
     }
 
-    /** The three AM API facades for a connection plus the shared client that owns their HTTP pool. */
-    public record AmSdkApis(ApiClient apiClient, UserApi userApi, GroupApi groupApi, RoleApi roleApi) {}
+    /** The AM API facades for a connection plus the shared client that owns their HTTP pool. */
+    public record AmSdkApis(
+        ApiClient apiClient,
+        UserApi userApi,
+        GroupApi groupApi,
+        RoleApi roleApi,
+        IdentityProviderApi identityProviderApi
+    ) {}
 
     public AmSdkApis create(AmConnection connection) {
         ApiClient apiClient = buildApiClient(connection);
-        return new AmSdkApis(apiClient, new UserApiImpl(apiClient), new GroupApiImpl(apiClient), new RoleApiImpl(apiClient));
+        return new AmSdkApis(
+            apiClient,
+            new UserApiImpl(apiClient),
+            new GroupApiImpl(apiClient),
+            new RoleApiImpl(apiClient),
+            new IdentityProviderApiImpl(apiClient)
+        );
     }
 
     private ApiClient buildApiClient(AmConnection connection) {
