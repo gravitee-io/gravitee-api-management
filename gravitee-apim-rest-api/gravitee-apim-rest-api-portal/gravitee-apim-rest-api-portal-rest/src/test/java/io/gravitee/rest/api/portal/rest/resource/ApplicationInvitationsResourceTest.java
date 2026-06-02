@@ -55,6 +55,7 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
 
     private static final String APPLICATION = "my-application";
     private static final String UNKNOWN_APPLICATION = "unknown-application";
+    private static final String OTHER_APPLICATION = "other-application";
     private static final String INVITATION_ID_1 = "00000000-0000-0000-0000-000000000001";
     private static final String INVITATION_ID_2 = "00000000-0000-0000-0000-000000000002";
     private static final String ROLE_NAME = "USER";
@@ -251,10 +252,60 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
         verify(invitationQueryService, never()).findByApplicationId(anyString(), any(), any());
     }
 
+    @Test
+    void should_delete_invitation() {
+        var invitationId = InvitationId.of(INVITATION_ID_1);
+        when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(
+            Optional.of(anInvitation(INVITATION_ID_1, "alice@example.com"))
+        );
+
+        var response = target(APPLICATION).path("invitations").path(INVITATION_ID_1).request().delete();
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
+        verify(invitationCrudService).delete(invitationId);
+    }
+
+    @Test
+    void should_return_not_found_when_deleting_invitation_for_unknown_application() {
+        var response = target(UNKNOWN_APPLICATION).path("invitations").path(INVITATION_ID_1).request().delete();
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        verify(invitationCrudService, never()).findApplicationInvitationById(any());
+        verify(invitationCrudService, never()).delete(any());
+    }
+
+    @Test
+    void should_return_not_found_when_deleting_unknown_invitation() {
+        var invitationId = InvitationId.of(INVITATION_ID_1);
+        when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(Optional.empty());
+
+        var response = target(APPLICATION).path("invitations").path(INVITATION_ID_1).request().delete();
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        verify(invitationCrudService, never()).delete(any());
+    }
+
+    @Test
+    void should_return_not_found_when_deleting_invitation_from_another_application() {
+        var invitationId = InvitationId.of(INVITATION_ID_1);
+        when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(
+            Optional.of(anInvitation(INVITATION_ID_1, OTHER_APPLICATION, "alice@example.com"))
+        );
+
+        var response = target(APPLICATION).path("invitations").path(INVITATION_ID_1).request().delete();
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        verify(invitationCrudService, never()).delete(any());
+    }
+
     private ApplicationInvitation anInvitation(String id, String email) {
+        return anInvitation(id, APPLICATION, email);
+    }
+
+    private ApplicationInvitation anInvitation(String id, String applicationId, String email) {
         return new ApplicationInvitation(
             InvitationId.of(id),
-            APPLICATION,
+            applicationId,
             email,
             "USER",
             ZonedDateTime.parse("2026-04-23T09:30:00Z"),

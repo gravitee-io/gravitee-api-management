@@ -22,6 +22,7 @@ import io.gravitee.apim.core.invitation.model.InvitationId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class InvitationCrudServiceInMemory implements InvitationCrudService, InMemoryAlternative<Invitation> {
 
@@ -31,6 +32,16 @@ public class InvitationCrudServiceInMemory implements InvitationCrudService, InM
     public ApplicationInvitation create(ApplicationInvitation invitation) {
         storage.add(invitation);
         return invitation;
+    }
+
+    @Override
+    public Optional<ApplicationInvitation> findApplicationInvitationById(InvitationId invitationId) {
+        return storage
+            .stream()
+            .filter(ApplicationInvitation.class::isInstance)
+            .map(ApplicationInvitation.class::cast)
+            .filter(invitation -> invitation.id().equals(invitationId))
+            .findFirst();
     }
 
     @Override
