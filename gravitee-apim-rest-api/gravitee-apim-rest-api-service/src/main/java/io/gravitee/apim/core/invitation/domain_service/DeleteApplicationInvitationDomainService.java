@@ -32,7 +32,7 @@ public class DeleteApplicationInvitationDomainService {
         var invitation = invitationCrudService
             .findApplicationInvitationById(invitationId)
             .filter(applicationInvitation -> applicationId.equals(applicationInvitation.applicationId()))
-            .orElseThrow(() -> new ApplicationInvitationNotFoundException(invitationId));
+            .orElseThrow(() -> new ApplicationInvitationNotFoundException(invitationId.toString()));
 
         invitationCrudService.delete(invitation.id());
     }

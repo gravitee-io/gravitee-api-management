@@ -16,11 +16,10 @@
 package io.gravitee.apim.core.invitation.exception;
 
 import io.gravitee.apim.core.exception.NotFoundDomainException;
-import io.gravitee.apim.core.invitation.model.InvitationId;
 
 public class ApplicationInvitationNotFoundException extends NotFoundDomainException {
 
-    public ApplicationInvitationNotFoundException(InvitationId invitationId) {
-        super("Application invitation not found.", invitationId.toString());
+    public ApplicationInvitationNotFoundException(String invitationId) {
+        super("Application invitation not found.", invitationId);
     }
 }
