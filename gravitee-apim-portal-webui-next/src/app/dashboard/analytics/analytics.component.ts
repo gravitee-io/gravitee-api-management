@@ -57,7 +57,7 @@ export default class AnalyticsComponent {
   private readonly router = inject(Router);
   private readonly breadcrumbService = inject(BreadcrumbService);
 
-  readonly pageSize = 20;
+  readonly pageSize = signal(20);
   private readonly currentPage = signal(1);
 
   readonly pinnedIds = signal<string[]>(this.loadPinnedIds());
@@ -65,7 +65,7 @@ export default class AnalyticsComponent {
   readonly canPinMore = computed(() => this.pinnedIds().length < AnalyticsComponent.MAX_PINNED);
 
   protected readonly dashboardsResource = rxResource<AnalyticsDashboardsResponse | undefined, DashboardsListParams>({
-    params: () => ({ page: this.currentPage(), pageSize: this.pageSize }),
+    params: () => ({ page: this.currentPage(), pageSize: this.pageSize() }),
     stream: ({ params }) => this.dashboardService.list(params.page, params.pageSize),
   });
 
@@ -106,6 +106,11 @@ export default class AnalyticsComponent {
 
   onPageChange(page: number): void {
     this.currentPage.set(page);
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
   }
 
   navigateToDashboard(dashboardId: string): void {

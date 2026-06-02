@@ -76,8 +76,9 @@
       class="analytics-list__pagination"
       [totalResults]="dashboardPaginator().totalResults"
       [currentPage]="dashboardPaginator().page"
-      [pageSize]="pageSize"
+      [pageSize]="pageSize()"
       (selectPage)="onPageChange($event)"
+      (selectPageSize)="onPageSizeChange($event)"
     />
   }
 </div>
