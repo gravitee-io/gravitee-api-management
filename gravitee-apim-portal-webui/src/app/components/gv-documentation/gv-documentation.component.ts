@@ -23,6 +23,7 @@ import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { TreeItem } from '../../model/tree-item';
 import { ScrollService } from '../../services/scroll.service';
 import { ConfigurationService } from '../../services/configuration.service';
+import { getNavigationContextQueryParams } from '../../utils/navigation-query-params.util';
 
 @Component({
   selector: 'app-gv-documentation',
@@ -246,7 +247,12 @@ export class GvDocumentationComponent implements OnInit, AfterViewInit {
 
   @HostListener(':gv-tree:select', ['$event.detail.value'])
   onPageChange(page) {
-    return this.router.navigate([], { queryParams: { page: page.id } });
+    return this.router.navigate([], {
+      queryParams: {
+        ...getNavigationContextQueryParams(this.route.snapshot.queryParams),
+        page: page.id,
+      },
+    });
   }
 
   @HostListener(':gv-tree:toggle', ['$event.detail.closed'])

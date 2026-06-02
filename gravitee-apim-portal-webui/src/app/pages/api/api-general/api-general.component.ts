@@ -15,7 +15,7 @@
  */
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, Params, PRIMARY_OUTLET, Router } from '@angular/router';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
@@ -47,6 +47,7 @@ import { ConfigurationService } from '../../../services/configuration.service';
 import { CurrentUserService } from '../../../services/current-user.service';
 import { NotificationService } from '../../../services/notification.service';
 import { ScrollService } from '../../../services/scroll.service';
+import { getNavigationContextQueryParams, navigateWithNavigationContext } from '../../../utils/navigation-query-params.util';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
 import { MarkdownService } from '../../../services/markdown.service';
 
@@ -328,9 +329,7 @@ export class ApiGeneralComponent implements OnInit {
     if (route.target && route.target === '_blank') {
       window.open(route.path, route.target);
     } else {
-      const urlTree = this.router.parseUrl(route.path);
-      const path = urlTree.root.children[PRIMARY_OUTLET].segments.join('/');
-      this.router.navigate([path], { queryParams: urlTree.queryParams });
+      navigateWithNavigationContext(this.router, route.path);
     }
   }
 
@@ -474,7 +473,7 @@ export class ApiGeneralComponent implements OnInit {
     if (queryParamMap.has(SearchQueryParam.QUERY)) {
       label = await this.translateService.get('apiGeneral.backToSearch').toPromise();
       url = '/catalog/search';
-      queryParams = this.route.snapshot.queryParams;
+      queryParams = getNavigationContextQueryParams(this.route.snapshot.queryParams);
     } else if (queryParamMap.has(SearchQueryParam.CATEGORY)) {
       const categoryId = queryParamMap.get(SearchQueryParam.CATEGORY);
       try {

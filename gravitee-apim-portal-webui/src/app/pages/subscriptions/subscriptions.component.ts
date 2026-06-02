@@ -35,6 +35,7 @@ import {
 } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { ConfigurationService } from '../../services/configuration.service';
 import { formatCurlCommandLine } from '../../utils/utils';
+import { parsePaginationParam } from '../../utils/navigation-query-params.util';
 
 const StatusEnum = Subscription.StatusEnum;
 
@@ -166,8 +167,8 @@ export class SubscriptionsComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         switchMap(params =>
           this.applicationService.getApplications({
-            size: Number(params.get('size') ?? this.paginationSize),
-            page: Number(params.get('page') ?? 1),
+            size: parsePaginationParam(params.get('size'), this.paginationSize),
+            page: parsePaginationParam(params.get('page'), 1),
           }),
         ),
       )

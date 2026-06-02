@@ -45,6 +45,7 @@ import {
 
 import { Link, PortalService, User, UserService } from '../../projects/portal-webclient-sdk/src/lib';
 
+import { navigateWithNavigationContext } from './utils/navigation-query-params.util';
 import { UserNotificationComponent } from './pages/user/user-notification/user-notification.component';
 import { CurrentUserService } from './services/current-user.service';
 import { NotificationService } from './services/notification.service';
@@ -331,9 +332,7 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     if (route.target && route.target === '_blank') {
       window.open(route.path, route.target);
     } else {
-      const urlTree = this.router.parseUrl(route.path);
-      const path = urlTree.root.children[PRIMARY_OUTLET].segments.join('/');
-      this.router.navigate([path], { queryParams: urlTree.queryParams, queryParamsHandling: 'merge' });
+      navigateWithNavigationContext(this.router, route.path);
     }
   }
 
