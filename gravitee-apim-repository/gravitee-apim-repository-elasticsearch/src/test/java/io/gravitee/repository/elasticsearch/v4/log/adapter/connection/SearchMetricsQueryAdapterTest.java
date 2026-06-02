@@ -497,25 +497,41 @@ class SearchMetricsQueryAdapterTest {
             Arguments.of(
                 MetricsQuery.Filter.builder().entrypointIds(Set.of("http-post", "http-get")).build(),
                 """
-                                         {
-                                             "from": 0,
-                                             "size": 20,
-                                             "query": {
-                                                 "bool": {
-                                                     "must": [
-                                                         {
-                                                             "terms": {
-                                                                 "entrypoint-id": ["http-post", "http-get"]
-                                                             }
-                                                         }
-                                                     ]
-                                                 }
-                                             },
-                                             "sort": [
-                                                 { "@timestamp": { "order": "desc" } },
-                                                 { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
-                                             ]
-                                          }
+                {
+                    "from": 0,
+                    "size": 20,
+                    "query": {
+                        "bool": {
+                            "must": [
+                                {
+                                    "bool": {
+                                        "should": [
+                                            {
+                                                "terms": {
+                                                    "entrypoint-id": ["http-post", "http-get"]
+                                                }
+                                            },
+                                            {
+                                                "bool": {
+                                                    "must_not": {
+                                                        "exists": {
+                                                            "field": "entrypoint-id"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        ],
+                                        "minimum_should_match": 1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "sort": [
+                        { "@timestamp": { "order": "desc" } },
+                        { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
+                    ]
+                }
                 """
             ),
             Arguments.of(
@@ -667,6 +683,99 @@ class SearchMetricsQueryAdapterTest {
                 .build();
 
             assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.ERROR_KEY)).isFalse();
+        }
+    }
+
+    @Nested
+    class EntrypointIdsFilter {
+
+        @Test
+        void should_include_missing_entrypoint_fallback_when_entrypoint_ids_provided() {
+            var result = SearchMetricsQueryAdapter.adapt(
+                MetricsQuery.builder()
+                    .page(1)
+                    .size(20)
+                    .filter(MetricsQuery.Filter.builder().entrypointIds(Set.of("llm-proxy", "mcp-proxy")).build())
+                    .build()
+            );
+
+            assertThatJson(result)
+                .when(IGNORING_ARRAY_ORDER)
+                .isEqualTo(
+                    """
+                    {
+                        "from": 0,
+                        "size": 20,
+                        "query": {
+                            "bool": {
+                                "must": [
+                                    {
+                                        "bool": {
+                                            "should": [
+                                                {
+                                                    "terms": {
+                                                        "entrypoint-id": ["llm-proxy", "mcp-proxy"]
+                                                    }
+                                                },
+                                                {
+                                                    "bool": {
+                                                        "must_not": {
+                                                            "exists": {
+                                                                "field": "entrypoint-id"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ],
+                                            "minimum_should_match": 1
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        "sort": [
+                            { "@timestamp": { "order": "desc" } },
+                            { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
+                        ]
+                    }
+                    """
+                );
+        }
+
+        @Test
+        void should_not_add_entrypoint_filter_when_entrypoint_ids_null() {
+            var query = MetricsQuery.builder()
+                .page(1)
+                .size(20)
+                .filter(MetricsQuery.Filter.builder().apiIds(Set.of("api-1")).entrypointIds(null).build())
+                .build();
+
+            var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
+            var mustClauses = result.getJsonObject("query").getJsonObject("bool").getJsonArray("must");
+            assertThat(
+                mustClauses
+                    .stream()
+                    .map(o -> (JsonObject) o)
+                    .noneMatch(clause -> clause.toString().contains("entrypoint-id"))
+            ).isTrue();
+        }
+
+        @Test
+        void should_not_add_entrypoint_filter_when_entrypoint_ids_empty() {
+            var query = MetricsQuery.builder()
+                .page(1)
+                .size(20)
+                .filter(MetricsQuery.Filter.builder().apiIds(Set.of("api-1")).entrypointIds(Set.of()).build())
+                .build();
+
+            var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
+            var mustClauses = result.getJsonObject("query").getJsonObject("bool").getJsonArray("must");
+            assertThat(
+                mustClauses
+                    .stream()
+                    .map(o -> (JsonObject) o)
+                    .noneMatch(clause -> clause.toString().contains("entrypoint-id"))
+            ).isTrue();
         }
     }
 
