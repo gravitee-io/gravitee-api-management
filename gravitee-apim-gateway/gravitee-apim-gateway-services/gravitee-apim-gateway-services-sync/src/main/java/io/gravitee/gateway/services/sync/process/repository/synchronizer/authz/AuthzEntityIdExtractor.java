@@ -16,6 +16,7 @@
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 
 import static io.gravitee.gamma.definition.authz.AuthzEntityIdConstants.API_PREFIX;
+import static io.gravitee.gamma.definition.authz.AuthzEntityIdConstants.ENGINE_TYPE_RESOURCE;
 import static io.gravitee.gamma.definition.authz.AuthzEntityIdConstants.MCP_PREFIX;
 import static io.gravitee.gamma.definition.authz.AuthzEntityIdConstants.TOOLS_CALL_METHOD;
 
@@ -39,7 +40,7 @@ public final class AuthzEntityIdExtractor {
     public record EntityFragment(String uid, Map<String, Object> attributes, List<String> parents) {}
 
     public static String toResourceEngineUid(final String entityId) {
-        return "Resource::\"" + entityId + "\"";
+        return ENGINE_TYPE_RESOURCE + "::\"" + entityId + "\"";
     }
 
     public Set<String> extract(ReactableApi<?> api) {

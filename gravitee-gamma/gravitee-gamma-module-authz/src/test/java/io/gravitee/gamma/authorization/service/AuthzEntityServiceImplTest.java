@@ -128,6 +128,44 @@ class AuthzEntityServiceImplTest {
     }
 
     @Test
+    void upsert_without_entityType_defaults_to_kind_default_at_domain_level() {
+        AuthzUpsertResult resource = entityService.upsert(
+            CALLER,
+            new CreateOrReplaceAuthzEntityCommand(ENV, "api.123", AuthzEntityKind.RESOURCE, Map.of(), List.of(), "apim")
+        );
+        AuthzUpsertResult principal = entityService.upsert(
+            CALLER,
+            new CreateOrReplaceAuthzEntityCommand(ENV, "idp.am.alice", AuthzEntityKind.PRINCIPAL, Map.of(), List.of(), "gravitee_am_default")
+        );
+
+        assertThat(resource.entity().entityType()).isEqualTo("Resource");
+        assertThat(principal.entity().entityType()).isEqualTo("Principal");
+    }
+
+    @Test
+    void upsert_with_explicit_entityType_persists_typed_value() {
+        AuthzUpsertResult result = entityService.upsert(
+            CALLER,
+            new CreateOrReplaceAuthzEntityCommand(ENV, "alice", AuthzEntityKind.PRINCIPAL, "User", Map.of(), List.of(), "apim")
+        );
+
+        assertThat(result.entity().entityType()).isEqualTo("User");
+    }
+
+    @Test
+    void update_preserves_entityType_immutably_across_revisions() {
+        entityService.upsert(
+            CALLER,
+            new CreateOrReplaceAuthzEntityCommand(ENV, "alice", AuthzEntityKind.PRINCIPAL, "User", Map.of("k", "v1"), List.of(), "apim")
+        );
+
+        AuthzEntity updated = entityService.update(CALLER, "alice", new UpdateAuthzEntityCommand(Map.of("k", "v2"), List.of("admins")));
+
+        assertThat(updated.entityType()).isEqualTo("User");
+        assertThat(updated.attributes()).containsEntry("k", "v2");
+    }
+
+    @Test
     void update_modifies_attributes_and_parents_only() {
         entityService.upsert(
             CALLER,

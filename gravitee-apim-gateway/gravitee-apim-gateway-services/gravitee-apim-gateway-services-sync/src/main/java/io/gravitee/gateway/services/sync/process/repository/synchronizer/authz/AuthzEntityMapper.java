@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gamma.definition.authz.AuthzEntity;
+import io.gravitee.gamma.definition.authz.AuthzEntityIdConstants;
 import io.gravitee.gamma.definition.authz.AuthzEntityKind;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.repository.management.model.Event;
@@ -27,8 +28,6 @@ import lombok.RequiredArgsConstructor;
 @CustomLog
 @RequiredArgsConstructor
 public class AuthzEntityMapper {
-
-    public static final String ENGINE_TYPE_PRINCIPAL = "Principal";
 
     private final ObjectMapper objectMapper;
 
@@ -103,7 +102,7 @@ public class AuthzEntityMapper {
             return entityType + "::\"" + entityId + "\"";
         }
         if (kind == AuthzEntityReactorDeployable.Kind.PRINCIPAL) {
-            return ENGINE_TYPE_PRINCIPAL + "::\"" + entityId + "\"";
+            return AuthzEntityIdConstants.ENGINE_TYPE_PRINCIPAL + "::\"" + entityId + "\"";
         }
         return AuthzEntityIdExtractor.toResourceEngineUid(entityId);
     }

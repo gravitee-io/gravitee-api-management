@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.distributed.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gamma.definition.authz.AuthzEntity;
+import io.gravitee.gamma.definition.authz.AuthzEntityIdConstants;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityIdExtractor;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityReactorDeployable;
@@ -47,6 +48,7 @@ public class AuthzEntityMapper {
                     .entityId(wire.getEntityId())
                     .engineUid(toEngineUid(kind, wire.getEntityType(), wire.getEntityId()))
                     .kind(kind)
+                    .entityType(wire.getEntityType())
                     .attributes(wire.getAttributes())
                     .parents(wire.getParents())
                     .syncAction(SyncActionMapper.to(event.getSyncAction()))
@@ -89,7 +91,7 @@ public class AuthzEntityMapper {
             return entityType + "::\"" + entityId + "\"";
         }
         if (kind == AuthzEntityReactorDeployable.Kind.PRINCIPAL) {
-            return "Principal::\"" + entityId + "\"";
+            return AuthzEntityIdConstants.ENGINE_TYPE_PRINCIPAL + "::\"" + entityId + "\"";
         }
         return AuthzEntityIdExtractor.toResourceEngineUid(entityId);
     }

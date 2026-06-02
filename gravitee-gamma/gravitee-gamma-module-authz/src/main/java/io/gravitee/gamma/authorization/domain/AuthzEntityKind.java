@@ -15,6 +15,8 @@
  */
 package io.gravitee.gamma.authorization.domain;
 
+import io.gravitee.gamma.definition.authz.AuthzEntityIdConstants;
+
 public enum AuthzEntityKind {
     PRINCIPAL,
     RESOURCE;
@@ -26,8 +28,8 @@ public enum AuthzEntityKind {
      */
     public String defaultEntityType() {
         return switch (this) {
-            case PRINCIPAL -> "Principal";
-            case RESOURCE -> "Resource";
+            case PRINCIPAL -> AuthzEntityIdConstants.ENGINE_TYPE_PRINCIPAL;
+            case RESOURCE -> AuthzEntityIdConstants.ENGINE_TYPE_RESOURCE;
         };
     }
 }

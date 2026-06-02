@@ -101,17 +101,18 @@ public final class EventRepositoryAuthzEventPublisher implements AuthzEventPubli
     @Override
     public void publishEntityUpserted(AuthzEntity entity) {
         Objects.requireNonNull(entity, "entity must not be null");
-        io.gravitee.gamma.definition.authz.AuthzEntity wire = new io.gravitee.gamma.definition.authz.AuthzEntity(
-            entity.id(),
-            entity.entityId(),
-            io.gravitee.gamma.definition.authz.AuthzEntityKind.valueOf(entity.kind().name()),
-            entity.entityType(),
-            redactSensitive(entity.attributes()),
-            entity.parents(),
-            entity.source(),
-            entity.environmentId(),
-            entity.updatedAt().toString()
-        );
+        io.gravitee.gamma.definition.authz.AuthzEntity wire = io.gravitee.gamma.definition.authz.AuthzEntity
+            .builder()
+            .id(entity.id())
+            .entityId(entity.entityId())
+            .kind(io.gravitee.gamma.definition.authz.AuthzEntityKind.valueOf(entity.kind().name()))
+            .attributes(redactSensitive(entity.attributes()))
+            .parents(entity.parents())
+            .source(entity.source())
+            .environmentId(entity.environmentId())
+            .updatedAt(entity.updatedAt().toString())
+            .entityType(entity.entityType())
+            .build();
         emit(
             entity.environmentId(),
             EventType.PUBLISH_AUTHZ_ENTITY,
@@ -123,17 +124,16 @@ public final class EventRepositoryAuthzEventPublisher implements AuthzEventPubli
     @Override
     public void unpublishEntity(AuthzEntity entity) {
         Objects.requireNonNull(entity, "entity must not be null");
-        io.gravitee.gamma.definition.authz.AuthzEntity wire = new io.gravitee.gamma.definition.authz.AuthzEntity(
-            entity.id(),
-            entity.entityId(),
-            io.gravitee.gamma.definition.authz.AuthzEntityKind.valueOf(entity.kind().name()),
-            entity.entityType(),
-            null,
-            null,
-            entity.source(),
-            entity.environmentId(),
-            entity.updatedAt().toString()
-        );
+        io.gravitee.gamma.definition.authz.AuthzEntity wire = io.gravitee.gamma.definition.authz.AuthzEntity
+            .builder()
+            .id(entity.id())
+            .entityId(entity.entityId())
+            .kind(io.gravitee.gamma.definition.authz.AuthzEntityKind.valueOf(entity.kind().name()))
+            .source(entity.source())
+            .environmentId(entity.environmentId())
+            .updatedAt(entity.updatedAt().toString())
+            .entityType(entity.entityType())
+            .build();
         emit(
             entity.environmentId(),
             EventType.UNPUBLISH_AUTHZ_ENTITY,
