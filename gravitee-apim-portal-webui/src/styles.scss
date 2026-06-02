@@ -138,6 +138,13 @@
   padding: 24px;
 }
 
+// gv-identity-picture uses computed width/height to size the jdenticon fallback SVG; "auto" yields NaN.
+gv-identity-picture {
+  display: block;
+  width: 40px;
+  height: 40px;
+}
+
 .aside .page__box-title gv-identity-picture {
   width: 32px;
   height: 32px;
