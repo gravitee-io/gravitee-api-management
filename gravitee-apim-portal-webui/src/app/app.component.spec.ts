@@ -17,8 +17,13 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { createComponentFactory, Spectator } from '@ngneat/spectator/jest';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { Router } from '@angular/router';
+import { TestBed } from '@angular/core/testing';
+
+import { FilterApiQuery } from '../../projects/portal-webclient-sdk/src/lib';
 
 import { AppComponent } from './app.component';
+import { SearchQueryParam } from './utils/search-query-param.enum';
 
 describe('AppComponent', () => {
   const createComponent = createComponentFactory({
@@ -36,5 +41,32 @@ describe('AppComponent', () => {
   it('should create the app', () => {
     const app = spectator.component;
     expect(app).toBeTruthy();
+  });
+
+  it('should preserve navigation context but not documentation page when changing route', () => {
+    const router = TestBed.inject(Router);
+    jest.spyOn(router, 'navigate').mockResolvedValue(true);
+    jest.spyOn(router, 'parseUrl').mockImplementation(url => {
+      if (url === '/applications') {
+        return {
+          root: { children: { primary: { segments: [{ toString: () => 'applications' }] } } },
+          queryParams: {},
+        } as any;
+      }
+      return {
+        root: { children: { primary: { segments: [] } } },
+        queryParams: {
+          [SearchQueryParam.API_QUERY]: FilterApiQuery.ALL,
+          page: 'documentation-page-id',
+        },
+      } as any;
+    });
+    Object.defineProperty(router, 'url', {
+      get: () => '/catalog/api/123/doc?page=documentation-page-id&aq=ALL',
+    });
+
+    spectator.component.onNavChange({ path: '/applications', title: 'Applications' });
+
+    expect(router.navigate).toHaveBeenCalledWith(['applications'], { queryParams: { [SearchQueryParam.API_QUERY]: FilterApiQuery.ALL } });
   });
 });
