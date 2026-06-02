@@ -338,7 +338,7 @@
         <gravitee-resource-ai-model-token-classification.version>1.0.0</gravitee-resource-ai-model-token-classification.version>
 
         <!-- Authz plugins -->
-        <gravitee-service-authz-pdp.version>1.0.0-alpha.4</gravitee-service-authz-pdp.version>
+        <gravitee-service-authz-pdp.version>1.0.0-alpha.5</gravitee-service-authz-pdp.version>
         <gravitee-policy-authz-pep.version>1.0.0-alpha.7</gravitee-policy-authz-pep.version>
     </properties>
 
