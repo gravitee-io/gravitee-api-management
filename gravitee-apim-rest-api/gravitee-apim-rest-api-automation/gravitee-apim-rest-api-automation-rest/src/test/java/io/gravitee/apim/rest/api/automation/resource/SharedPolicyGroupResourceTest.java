@@ -263,6 +263,18 @@ class SharedPolicyGroupResourceTest extends AbstractResourceTest {
                     assertThat(response.getStatus()).isEqualTo(400);
                 }
             }
+
+            @Test
+            void should_reject_edge_api_type() {
+                try (
+                    var response = rootTarget()
+                        .queryParam("dryRun", false)
+                        .request()
+                        .put(Entity.json(readJSON("shared-policy-group-with-edge-type.json")))
+                ) {
+                    assertThat(response.getStatus()).isEqualTo(400);
+                }
+            }
         }
 
         @Nested
@@ -287,6 +299,18 @@ class SharedPolicyGroupResourceTest extends AbstractResourceTest {
                         .queryParam("dryRun", true)
                         .request()
                         .put(Entity.json(readJSON("shared-policy-group-with-cross-id-and-no-hrid.json")))
+                ) {
+                    assertThat(response.getStatus()).isEqualTo(400);
+                }
+            }
+
+            @Test
+            void should_reject_edge_api_type() {
+                try (
+                    var response = rootTarget()
+                        .queryParam("dryRun", true)
+                        .request()
+                        .put(Entity.json(readJSON("shared-policy-group-with-edge-type.json")))
                 ) {
                     assertThat(response.getStatus()).isEqualTo(400);
                 }
