@@ -107,10 +107,22 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.loginForm.valid.valueOf();
   }
 
-  getProviderStyle(provider) {
-    if (provider.color) {
-      return `--gv-button-${provider.type.toLowerCase()}--bgc:${provider.color};`;
+  getProviderStyle(provider: IdentityProvider): string {
+    const color = provider.color?.trim();
+    if (!color) {
+      return '';
     }
-    return '';
+    const textColor = colorIsDark(color) ? '#ffffff' : '#000000';
+    return `--gv-button-${provider.type.toLowerCase()}--bgc:${color};--gv-button--c:${textColor};`;
   }
 }
+
+const colorIsDark = (bgColor: string): boolean => {
+  const hex = bgColor.charAt(0) === '#' ? bgColor.substring(1, 7) : bgColor;
+  const r = Number.parseInt(hex.substring(0, 2), 16);
+  const g = Number.parseInt(hex.substring(2, 4), 16);
+  const b = Number.parseInt(hex.substring(4, 6), 16);
+  const uicolors = [r / 255, g / 255, b / 255];
+  const c = uicolors.map(col => (col <= 0.03928 ? col / 12.92 : Math.pow((col + 0.055) / 1.055, 2.4)));
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2] <= 0.179;
+};
