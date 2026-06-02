@@ -28,6 +28,11 @@ export class AnalyticsComponentHarness extends ComponentHarness {
   private readonly locateTitle = this.locatorForOptional('.next-gen-h3');
   private readonly locatePinnedCards = this.locatorForAll(AnalyticsDashboardCardHarness.with({ ancestor: '.analytics-list__pinned-row' }));
 
+  /** Count pinned cards without awaiting zone stabilization — safe when an rxResource HTTP request is still pending. */
+  public static getPinnedCardCountFromNativeElement(hostElement: HTMLElement): number {
+    return hostElement.querySelectorAll('.analytics-list__pinned-row app-analytics-dashboard-card').length;
+  }
+
   public async getLoader(): Promise<LoaderHarness | null> {
     return this.locateLoader();
   }
