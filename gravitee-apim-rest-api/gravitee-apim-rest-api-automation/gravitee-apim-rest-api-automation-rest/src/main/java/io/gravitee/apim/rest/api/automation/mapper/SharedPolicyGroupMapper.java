@@ -27,7 +27,9 @@ import io.gravitee.rest.api.management.v2.rest.mapper.DateMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.OriginContextMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.ValueMapping;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -37,6 +39,11 @@ import org.mapstruct.factory.Mappers;
 @Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class, OriginContextMapper.class })
 public interface SharedPolicyGroupMapper {
     SharedPolicyGroupMapper INSTANCE = Mappers.getMapper(SharedPolicyGroupMapper.class);
+
+    @ValueMapping(source = "EDGE", target = MappingConstants.THROW_EXCEPTION)
+    io.gravitee.apim.rest.api.automation.model.ApiType map(io.gravitee.definition.model.v4.ApiType apiType);
+
+    io.gravitee.definition.model.v4.ApiType map(io.gravitee.apim.rest.api.automation.model.ApiType apiType);
 
     @Mapping(target = "sharedPolicyGroupId", ignore = true)
     @Mapping(target = "originContext", ignore = true)

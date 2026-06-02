@@ -1,0 +1,74 @@
+{
+    "name": "api-v4-edge",
+    "hrid": "api-hrid",
+    "description": "API v4 spec with forbidden EDGE type",
+    "version": "1.0",
+    "type": "EDGE",
+    "listeners": [
+        {
+            "type": "HTTP",
+            "paths": [
+                {
+                    "path": "/test-edge"
+                }
+            ],
+            "entrypoints": [
+                {
+                    "type": "http-proxy",
+                    "qos": "AUTO"
+                }
+            ]
+        }
+    ],
+    "endpointGroups": [
+        {
+            "name": "Default HTTP proxy group",
+            "type": "http-proxy",
+            "endpoints": [
+                {
+                    "name": "Default HTTP proxy",
+                    "type": "http-proxy",
+                    "inheritConfiguration": false,
+                    "configuration": {
+                        "target": "https://api.gravitee.io/echo"
+                    },
+                    "secondary": false
+                }
+            ]
+        }
+    ],
+    "flowExecution": {
+        "mode": "DEFAULT",
+        "matchRequired": false
+    },
+    "state": "STARTED",
+    "lifecycleState": "PUBLISHED",
+    "visibility": "PUBLIC",
+    "flows": [],
+    "plans": [
+        {
+            "name": "Keyless plan",
+            "hrid": "KEY_LESS",
+            "description": "No authentication",
+            "type": "API",
+            "status": "PUBLISHED",
+            "validation": "AUTO",
+            "mode": "STANDARD",
+            "security": {
+                "type": "KEY_LESS"
+            },
+            "flows": [
+                {
+                    "enabled": true,
+                    "selectors": [
+                        {
+                            "type": "HTTP",
+                            "path": "/",
+                            "pathOperator": "STARTS_WITH"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
