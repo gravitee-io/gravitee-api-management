@@ -28,6 +28,7 @@ import {
   PermissionsService,
   SubscriptionService,
 } from '../../../../projects/portal-webclient-sdk/src/lib';
+import { parsePaginationParam } from '../../utils/navigation-query-params.util';
 @Component({
   selector: 'app-applications',
   templateUrl: './applications.component.html',
@@ -64,8 +65,8 @@ export class ApplicationsComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         switchMap(params =>
           this.applicationService.getApplications({
-            size: Number(params.get('size') ?? this.initialPaginationSize),
-            page: Number(params.get('page') ?? 1),
+            size: parsePaginationParam(params.get('size'), this.initialPaginationSize),
+            page: parsePaginationParam(params.get('page'), 1),
           }),
         ),
       )
