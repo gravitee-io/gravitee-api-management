@@ -247,7 +247,7 @@ describe('parseGaplToStatements — id is regenerated, not preserved', () => {
 });
 
 describe('parseGaplToStatements — unsupported / malformed input → diagnostics', () => {
-    it('reports `unless` (Cedar-only feature) as a diagnostic', () => {
+    it('reports `unless` as a diagnostic', () => {
         const text = 'permit (principal == user::"a", action == action::"r", resource == tool::"t") unless { false };';
         const result = parseGaplToStatements(text);
         expect(result.diagnostics.length).toBeGreaterThan(0);

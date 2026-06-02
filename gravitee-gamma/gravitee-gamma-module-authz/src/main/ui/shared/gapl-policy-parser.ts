@@ -203,10 +203,8 @@ class PolicyParser {
             condition = conditionResult;
         }
 
-        // `unless` is valid Cedar but unsupported here — flag it explicitly so the
-        // editor can tell the user what's going on rather than just "unexpected token".
         if (this.peek()?.value === 'unless') {
-            return this.fail("'unless' clauses are not supported (Cedar feature outside the GAPL visual editor's subset)");
+            return this.fail("'unless' clauses are not supported by the GAPL visual editor");
         }
 
         if (this.peek()?.value === ';') this.next();
