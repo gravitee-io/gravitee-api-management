@@ -1471,19 +1471,6 @@
                 </dependency>
                 <dependency>
                     <groupId>com.graviteesource.entrypoint</groupId>
-                    <artifactId>gravitee-entrypoint-mcp-studio</artifactId>
-                    <version>${gravitee-reactor-mcp-proxy.version}</version>
-                    <type>zip</type>
-                    <scope>runtime</scope>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>*</groupId>
-                            <artifactId>*</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-                <dependency>
-                    <groupId>com.graviteesource.entrypoint</groupId>
                     <artifactId>gravitee-entrypoint-a2a-proxy</artifactId>
                     <version>${gravitee-reactor-a2a-proxy.version}</version>
                     <type>zip</type>
@@ -1631,19 +1618,6 @@
                 <dependency>
                     <groupId>com.graviteesource.endpoint</groupId>
                     <artifactId>gravitee-endpoint-mcp-proxy</artifactId>
-                    <version>${gravitee-reactor-mcp-proxy.version}</version>
-                    <type>zip</type>
-                    <scope>runtime</scope>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>*</groupId>
-                            <artifactId>*</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-                <dependency>
-                    <groupId>com.graviteesource.endpoint</groupId>
-                    <artifactId>gravitee-endpoint-mcp-http</artifactId>
                     <version>${gravitee-reactor-mcp-proxy.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
