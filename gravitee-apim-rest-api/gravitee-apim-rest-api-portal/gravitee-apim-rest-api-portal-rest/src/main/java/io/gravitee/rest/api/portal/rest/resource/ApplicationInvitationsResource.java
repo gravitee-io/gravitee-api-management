@@ -15,7 +15,9 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import io.gravitee.apim.core.invitation.model.InvitationId;
 import io.gravitee.apim.core.invitation.use_case.CreateApplicationInvitationsUseCase;
+import io.gravitee.apim.core.invitation.use_case.DeleteApplicationInvitationUseCase;
 import io.gravitee.apim.core.invitation.use_case.SearchApplicationInvitationsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.common.PageableImpl;
@@ -37,6 +39,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -55,6 +58,9 @@ public class ApplicationInvitationsResource extends AbstractResource {
 
     @Inject
     private CreateApplicationInvitationsUseCase createApplicationInvitationsUseCase;
+
+    @Inject
+    private DeleteApplicationInvitationUseCase deleteApplicationInvitationUseCase;
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -103,5 +109,24 @@ public class ApplicationInvitationsResource extends AbstractResource {
         );
 
         return createListResponse(executionContext, invitations, paginationParam, metadata);
+    }
+
+    @DELETE
+    @Path("/{invitationId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.DELETE) })
+    public Response deleteApplicationInvitation(
+        @PathParam("applicationId") String applicationId,
+        @PathParam("invitationId") String invitationId
+    ) {
+        deleteApplicationInvitationUseCase.execute(
+            new DeleteApplicationInvitationUseCase.Input(
+                GraviteeContext.getCurrentEnvironment(),
+                applicationId,
+                InvitationId.of(invitationId)
+            )
+        );
+
+        return Response.noContent().build();
     }
 }

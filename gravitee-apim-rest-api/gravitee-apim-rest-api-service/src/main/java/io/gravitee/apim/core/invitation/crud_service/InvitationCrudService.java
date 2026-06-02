@@ -19,9 +19,14 @@ import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
 import io.gravitee.apim.core.invitation.model.Invitation;
 import io.gravitee.apim.core.invitation.model.InvitationId;
 import java.util.List;
+import java.util.Optional;
 
 public interface InvitationCrudService {
     ApplicationInvitation create(ApplicationInvitation invitation);
+
+    default Optional<ApplicationInvitation> findApplicationInvitationById(InvitationId invitationId) {
+        throw new UnsupportedOperationException("findApplicationInvitationById not implemented");
+    }
 
     default List<Invitation> findByEmail(String email) {
         throw new UnsupportedOperationException("findByEmail not implemented");
