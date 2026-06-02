@@ -96,7 +96,7 @@ pull_request_rules:
               title: "[4.11.x] {{ title }}"
     - name: Apply commits on `4.12.x`
       conditions:
-          - label=apply-on-4.12.x
+          - label=apply-on-4-12-x
       actions:
           backport:
               branches:
