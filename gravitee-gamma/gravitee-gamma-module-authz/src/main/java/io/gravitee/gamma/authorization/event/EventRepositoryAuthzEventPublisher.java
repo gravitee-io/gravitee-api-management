@@ -143,21 +143,29 @@ public final class EventRepositoryAuthzEventPublisher implements AuthzEventPubli
     }
 
     /**
-     * Writes the event log first, then refreshes the per-id latest snapshot.
-     * Order matters: if write 2 fails the canonical log still has the entry
-     * and the next emit() for the same id catches up the latest collection
-     * (createOrUpdate is idempotent). Reversed order would leave an entry
-     * permanently missing from the log under partial failure — sync chain
-     * consumers that compute incremental deltas would never see it.
+     * Writes the append-only event log first, then refreshes the per-resource latest snapshot.
+     * The latest write keys by resource id (not a fresh event id) so a later UNPUBLISH overwrites
+     * the matching PUBLISH; a random id per emit would accumulate one row per event and never evict
+     * a deleted resource. Order matters: if the second write fails the canonical log still has the
+     * entry and a later emit for the same id reconciles the latest collection.
      */
     private void emit(String environmentId, EventType type, Object payload, Map<String, String> properties) {
         Event event = buildEvent(environmentId, type, payload, properties);
+        Event latest = buildEvent(environmentId, type, payload, properties);
+        latest.setId(latestEventId(properties));
         try {
             eventRepository.create(event);
-            eventLatestRepository.createOrUpdate(event);
+            eventLatestRepository.createOrUpdate(latest);
         } catch (TechnicalException e) {
             throw new AuthzEventPublishException("Failed to emit authz event " + type + " for env " + environmentId, e);
         }
+    }
+
+    private static String latestEventId(Map<String, String> properties) {
+        // events_latest must hold one row per resource; reuse the single {AUTHZ_*_ID: id} property,
+        // prefixed with its key to avoid _id collisions across resource types in the shared collection.
+        Map.Entry<String, String> resource = properties.entrySet().iterator().next();
+        return resource.getKey() + ":" + resource.getValue();
     }
 
     private Event buildEvent(String environmentId, EventType type, Object payload, Map<String, String> properties) {
