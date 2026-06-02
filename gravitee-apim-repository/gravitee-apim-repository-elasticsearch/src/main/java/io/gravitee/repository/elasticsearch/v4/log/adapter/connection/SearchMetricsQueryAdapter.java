@@ -122,8 +122,19 @@ public class SearchMetricsQueryAdapter {
 
     private static void addEntrypointIdsFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getEntrypointIds())) {
+            var termsFilter = JsonObject.of(
+                "terms",
+                JsonObject.of(RequestV2MetricsV4Fields.ENTRYPOINT_ID.v4Metrics(), filter.getEntrypointIds())
+            );
+            var fieldMissingFilter = JsonObject.of(
+                "bool",
+                JsonObject.of(
+                    "must_not",
+                    JsonObject.of("exists", JsonObject.of("field", RequestV2MetricsV4Fields.ENTRYPOINT_ID.v4Metrics()))
+                )
+            );
             mustFilterList.add(
-                JsonObject.of("terms", JsonObject.of(RequestV2MetricsV4Fields.ENTRYPOINT_ID.v4Metrics(), filter.getEntrypointIds()))
+                JsonObject.of("bool", JsonObject.of("should", JsonArray.of(termsFilter, fieldMissingFilter), "minimum_should_match", 1))
             );
         }
     }
