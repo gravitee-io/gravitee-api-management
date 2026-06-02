@@ -16,7 +16,6 @@
 import angular, { IController } from 'angular';
 
 import * as yaml from 'js-yaml';
-import { ActivatedRoute } from '@angular/router';
 import { isNaN } from 'lodash';
 import SwaggerUI from 'swagger-ui';
 
@@ -40,12 +39,7 @@ class PageSwaggerComponentController implements IController {
   pageContent: string;
   edit: boolean;
 
-  cfg: Record<string, unknown>;
-
-  private activatedRoute: ActivatedRoute;
-
   constructor(
-    private readonly Constants,
     private readonly UserService: UserService,
     private $window: ng.IWindowService,
   ) {}
@@ -87,31 +81,17 @@ class PageSwaggerComponentController implements IController {
     const plugins = this.loadPlugins();
     const spec = this.loadContent();
     const oauth2RedirectUrl = this.loadOauth2RedirectUrl();
-    const config: any = Object.assign({}, this.cfg, { plugins, spec, oauth2RedirectUrl });
+    const config: any = { plugins, spec, oauth2RedirectUrl };
 
-    if (this.pageConfiguration?.showURL === 'true') {
-      let url = '';
-      if (this.activatedRoute.snapshot.params.apiId) {
-        url = `${this.Constants.env.baseURL}/apis/${this.activatedRoute.snapshot.params.apiId}/pages/${this.activatedRoute.snapshot.params.pageId}/content`;
-      } else {
-        url = `${this.Constants.env.baseURL}/portal/pages/${this.activatedRoute.snapshot.params.pageId}/content`;
-      }
-      if (url.includes('{:envId}')) {
-        url = url.replace('{:envId}', this.Constants.org.currentEnv.id);
-      }
-
-      config.url = url;
-      config.spec = undefined;
-    }
     config.docExpansion = this.pageConfiguration?.docExpansion ?? 'none';
     config.displayOperationId = this.pageConfiguration?.displayOperationId === 'true';
     config.filter = this.pageConfiguration?.enableFiltering === 'true';
     config.showExtensions = this.pageConfiguration?.showExtensions === 'true';
     config.showCommonExtensions = this.pageConfiguration?.showCommonExtensions === 'true';
     config.maxDisplayedTags =
-      isNaN(Number(this.pageConfiguration.maxDisplayedTags)) || this.pageConfiguration.maxDisplayedTags === '-1'
+      isNaN(Number(this.pageConfiguration?.maxDisplayedTags)) || this.pageConfiguration?.maxDisplayedTags === '-1'
         ? undefined
-        : Number(this.pageConfiguration.maxDisplayedTags);
+        : Number(this.pageConfiguration?.maxDisplayedTags);
 
     SwaggerUI({
       dom_id: '#swagger-container',
@@ -119,7 +99,7 @@ class PageSwaggerComponentController implements IController {
     });
   }
 }
-PageSwaggerComponentController.$inject = ['Constants', 'UserService', '$window'];
+PageSwaggerComponentController.$inject = ['UserService', '$window'];
 
 export const PageSwaggerComponent: ng.IComponentOptions = {
   template: require('html-loader!./page-swagger.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
