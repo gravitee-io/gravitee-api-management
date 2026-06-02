@@ -23,8 +23,10 @@ import io.gravitee.apim.core.invitation.model.InvitationId;
 import io.gravitee.apim.infra.adapter.InvitationAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.InvitationRepository;
+import io.gravitee.repository.management.model.InvitationReferenceType;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +47,18 @@ public class InvitationCrudServiceImpl extends TransactionalService implements I
             );
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurs while trying to create application invitation", e);
+        }
+    }
+
+    @Override
+    public Optional<ApplicationInvitation> findApplicationInvitationById(InvitationId invitationId) {
+        try {
+            return invitationRepository
+                .findById(invitationId.toString())
+                .filter(invitation -> InvitationReferenceType.APPLICATION.name().equals(invitation.getReferenceType()))
+                .map(InvitationAdapter.INSTANCE::toApplicationInvitation);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to find application invitation by id", e);
         }
     }
 
