@@ -15,8 +15,6 @@
  */
 package io.gravitee.apim.core.invitation.domain_service;
 
-import static io.gravitee.rest.api.service.common.ReferenceContext.Type.ORGANIZATION;
-
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.exception.ConflictDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -24,9 +22,6 @@ import io.gravitee.apim.core.invitation.crud_service.InvitationCrudService;
 import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
 import io.gravitee.apim.core.invitation.model.InvitationReference;
 import io.gravitee.apim.core.invitation.query_service.InvitationQueryService;
-import io.gravitee.apim.core.membership.exception.RoleNotFoundException;
-import io.gravitee.apim.core.membership.query_service.RoleQueryService;
-import io.gravitee.rest.api.service.common.ReferenceContext;
 import jakarta.annotation.Nonnull;
 import jakarta.mail.internet.AddressException;
 import jakarta.mail.internet.InternetAddress;
@@ -40,7 +35,7 @@ public class CreateApplicationInvitationsDomainService {
 
     private final InvitationQueryService invitationQueryService;
     private final InvitationCrudService invitationCrudService;
-    private final RoleQueryService roleQueryService;
+    private final ValidateApplicationInvitationRoleDomainService validateApplicationInvitationRoleDomainService;
 
     public List<ApplicationInvitation> create(
         @Nonnull String organizationId,
@@ -53,7 +48,7 @@ public class CreateApplicationInvitationsDomainService {
             throw new UnsupportedOperationException("Application invitation notifications are not implemented yet.");
         }
 
-        validateRoleName(organizationId, roleName);
+        validateApplicationInvitationRoleDomainService.validate(organizationId, roleName);
         var emails = validateRecipients(recipientEmails);
 
         validateNoPendingInvitation(applicationId, emails);
@@ -62,17 +57,6 @@ public class CreateApplicationInvitationsDomainService {
             .map(email -> ApplicationInvitation.create(applicationId, email, roleName))
             .map(invitationCrudService::create)
             .toList();
-    }
-
-    private void validateRoleName(String organizationId, String roleName) {
-        if (roleName == null || roleName.isBlank()) {
-            throw new ValidationDomainException("Application invitation role must not be blank.");
-        }
-
-        var referenceContext = new ReferenceContext(ORGANIZATION, organizationId);
-        roleQueryService
-            .findApplicationRole(roleName, referenceContext)
-            .orElseThrow(() -> new RoleNotFoundException(roleName, referenceContext));
     }
 
     private Set<String> validateRecipients(Set<String> recipients) {

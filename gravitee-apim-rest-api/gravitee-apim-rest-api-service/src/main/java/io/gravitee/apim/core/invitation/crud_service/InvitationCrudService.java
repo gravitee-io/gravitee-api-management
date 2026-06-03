@@ -24,6 +24,10 @@ import java.util.Optional;
 public interface InvitationCrudService {
     ApplicationInvitation create(ApplicationInvitation invitation);
 
+    default ApplicationInvitation update(ApplicationInvitation invitation) {
+        throw new UnsupportedOperationException("update not implemented");
+    }
+
     default Optional<ApplicationInvitation> findApplicationInvitationById(InvitationId invitationId) {
         throw new UnsupportedOperationException("findApplicationInvitationById not implemented");
     }
