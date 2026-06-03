@@ -253,6 +253,7 @@ class DefaultHttpRequestDispatcherTest {
             when(handlerEntrypoint.path()).thenReturn(PATH);
             when(handlerEntrypoint.reactor()).thenReturn(apiReactor);
             when(apiReactor.tracingContext()).thenReturn(tracingContext);
+            lenient().when(apiReactor.createExecutionContext(any(), any())).thenCallRealMethod();
         }
 
         @Test

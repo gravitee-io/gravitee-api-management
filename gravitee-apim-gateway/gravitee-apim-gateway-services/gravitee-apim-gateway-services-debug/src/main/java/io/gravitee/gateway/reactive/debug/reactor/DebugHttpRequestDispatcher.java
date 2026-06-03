@@ -26,6 +26,7 @@ import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.reactive.debug.reactor.context.DebugExecutionContext;
 import io.gravitee.gateway.reactive.debug.reactor.processor.DebugPlatformProcessorChainFactory;
 import io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest;
+import io.gravitee.gateway.reactive.reactor.ApiReactor;
 import io.gravitee.gateway.reactive.reactor.DefaultHttpRequestDispatcher;
 import io.gravitee.gateway.reactive.reactor.handler.HttpAcceptorResolver;
 import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFactory;
@@ -75,7 +76,7 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
     }
 
     @Override
-    protected DefaultExecutionContext createExecutionContext(VertxHttpServerRequest request) {
+    protected DefaultExecutionContext createExecutionContext(ApiReactor<?> apiReactor, VertxHttpServerRequest request) {
         return new DebugExecutionContext(request, request.response());
     }
 
