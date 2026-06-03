@@ -183,12 +183,12 @@
         <gravitee-policy-assign-content.version>3.1.1</gravitee-policy-assign-content.version>
         <gravitee-policy-assign-metrics.version>3.1.0</gravitee-policy-assign-metrics.version>
         <gravitee-policy-basic-authentication.version>1.6.0</gravitee-policy-basic-authentication.version>
-        <gravitee-policy-cache.version>4.0.0-alpha.1</gravitee-policy-cache.version>
+        <gravitee-policy-cache.version>4.0.0-alpha.4</gravitee-policy-cache.version>
         <gravitee-policy-callout-http.version>7.0.0-alpha.2</gravitee-policy-callout-http.version>
         <gravitee-policy-circuit-breaker.version>2.0.0</gravitee-policy-circuit-breaker.version>
         <gravitee-policy-custom-query-parameters.version>2.0.0</gravitee-policy-custom-query-parameters.version>
         <gravitee-policy-cloud-events.version>1.1.0</gravitee-policy-cloud-events.version>
-        <gravitee-policy-data-cache.version>1.1.0</gravitee-policy-data-cache.version>
+        <gravitee-policy-data-cache.version>2.0.0-alpha.2</gravitee-policy-data-cache.version>
         <gravitee-policy-data-logging-masking.version>3.1.2</gravitee-policy-data-logging-masking.version>
         <gravitee-policy-dynamic-routing.version>1.13.0</gravitee-policy-dynamic-routing.version>
         <gravitee-policy-generate-http-signature.version>1.5.0</gravitee-policy-generate-http-signature.version>
@@ -279,7 +279,7 @@
         <gravitee-resource-auth-provider-http.version>2.0.0-alpha.1</gravitee-resource-auth-provider-http.version>
         <gravitee-resource-auth-provider-inline.version>1.4.0</gravitee-resource-auth-provider-inline.version>
         <gravitee-resource-auth-provider-ldap.version>2.0.1</gravitee-resource-auth-provider-ldap.version>
-        <gravitee-resource-cache-redis.version>4.0.4</gravitee-resource-cache-redis.version>
+        <gravitee-resource-cache-redis.version>5.0.0-alpha.3</gravitee-resource-cache-redis.version>
         <gravitee-resource-oauth2-provider-keycloak.version>4.0.0-alpha.1</gravitee-resource-oauth2-provider-keycloak.version>
         <gravitee-resource-ai-model-text-classification.version>2.2.1</gravitee-resource-ai-model-text-classification.version>
         <gravitee-service-geoip.version>3.0.0</gravitee-service-geoip.version>
