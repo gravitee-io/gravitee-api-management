@@ -30,6 +30,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -68,7 +69,12 @@ public class SearchUsersUseCase {
     }
 
     private Map<String, Boolean> buildApplicationMembership(String applicationId, List<User> users) {
-        var userIds = users.stream().map(User::id).toList();
+        var userIds = users.stream().map(User::id).filter(Objects::nonNull).filter(not(String::isBlank)).toList();
+
+        if (userIds.isEmpty()) {
+            return Map.of();
+        }
+
         Set<String> alreadyAddedUserIds = membershipQueryService
             .findByMemberIdsAndMemberTypeAndReferenceType(userIds, Membership.Type.USER, Membership.ReferenceType.APPLICATION)
             .stream()
@@ -76,7 +82,7 @@ public class SearchUsersUseCase {
             .map(Membership::getMemberId)
             .collect(Collectors.toSet());
 
-        return users.stream().collect(Collectors.toMap(User::id, user -> alreadyAddedUserIds.contains(user.id())));
+        return userIds.stream().collect(Collectors.toMap(userId -> userId, alreadyAddedUserIds::contains));
     }
 
     public record Input(
