@@ -15,6 +15,8 @@
  */
 package io.gravitee.gamma.authorization.infra.service_provider;
 
+import io.gravitee.am.sdk.management.model.ApplicationPage;
+import io.gravitee.am.sdk.management.model.FilteredApplication;
 import io.gravitee.am.sdk.management.model.FilteredIdentityProviderInfo;
 import io.gravitee.am.sdk.management.model.Group;
 import io.gravitee.am.sdk.management.model.GroupPage;
@@ -23,6 +25,8 @@ import io.gravitee.am.sdk.management.model.RolePage;
 import io.gravitee.am.sdk.management.model.User;
 import io.gravitee.am.sdk.management.model.UserPage;
 import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
+import io.gravitee.gamma.authorization.core.am.model.AmAgent;
+import io.gravitee.gamma.authorization.core.am.model.AmAgentPage;
 import io.gravitee.gamma.authorization.core.am.model.AmGroup;
 import io.gravitee.gamma.authorization.core.am.model.AmGroupPage;
 import io.gravitee.gamma.authorization.core.am.model.AmRole;
@@ -45,6 +49,11 @@ public class AmSdkDirectoryClient implements AmDirectoryClient {
     // so the well-known default AM org/env are used (see AM UsersResource#list).
     private static final String AM_DEFAULT_ORGANIZATION = "DEFAULT";
     private static final String AM_DEFAULT_ENVIRONMENT = "DEFAULT";
+
+    // Agents are AM applications of type AGENT. The list endpoint omits clientId unless asked to
+    // expand it; we need clientId to derive the entity id, so always request the expand (AM-6979).
+    private static final String AGENT_APPLICATION_TYPE = "AGENT";
+    private static final String CLIENT_ID_EXPAND = "clientId";
 
     private final AmSdkDirectoryClientFactory clientFactory;
 
@@ -127,6 +136,35 @@ public class AmSdkDirectoryClient implements AmDirectoryClient {
         }
 
         @Override
+        public AmAgentPage fetchAgents(int page, int size) {
+            // Filter to AGENT applications and expand clientId so each FilteredApplication carries the
+            // client_id the entity id is derived from. Positional params follow the AM resource:
+            // (org, env, domain, page, size, q, expand, status, owner.email, type).
+            ApplicationPage applicationPage = AmSdkInvocations.await(
+                apis
+                    .applicationApi()
+                    .listApplications(
+                        AM_DEFAULT_ORGANIZATION,
+                        AM_DEFAULT_ENVIRONMENT,
+                        domainId,
+                        page,
+                        size,
+                        null,
+                        List.of(CLIENT_ID_EXPAND),
+                        null,
+                        null,
+                        List.of(AGENT_APPLICATION_TYPE)
+                    )
+            );
+            List<AmAgent> agents = (applicationPage.getData() == null ? List.<FilteredApplication>of() : applicationPage.getData())
+                .stream()
+                .map(AmSdkDirectoryClient::toAmAgent)
+                .toList();
+            long totalCount = applicationPage.getTotalCount() == null ? 0 : applicationPage.getTotalCount();
+            return new AmAgentPage(agents, totalCount);
+        }
+
+        @Override
         public void close() {
             // Release the underlying Vert.x WebClient pool shared by all the API facades.
             apis.apiClient().getWebClient().close();
@@ -149,6 +187,13 @@ public class AmSdkDirectoryClient implements AmDirectoryClient {
             user.getGroups(),
             user.getRoles()
         );
+    }
+
+    static AmAgent toAmAgent(FilteredApplication application) {
+        // kind is the agent sub-type (USER_EMBEDDED / HOSTED_DELEGATED / AUTONOMOUS); clientId is
+        // populated because the list call requests the clientId expand.
+        String agentType = application.getKind() == null ? null : application.getKind().getValue();
+        return new AmAgent(application.getId(), application.getClientId(), application.getName(), agentType);
     }
 
     static AmGroup toAmGroup(Group group) {
