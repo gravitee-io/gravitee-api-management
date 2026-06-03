@@ -335,21 +335,22 @@ class SyncAmUsersUseCaseTest {
         assertThat(cmd.parents()).isEmpty();
         assertThat(cmd.attributes())
             .containsEntry("_kind", "agent-identity")
+            .containsEntry("sub", "app-1")
             .containsEntry("clientId", "agent-client")
             .containsEntry("domain", "domain-1")
-            .containsEntry("name", "Booking bot")
+            .containsEntry("displayName", "Booking bot")
             .containsEntry("agentType", "AUTONOMOUS");
     }
 
     @Test
-    void keys_the_agent_entity_on_the_id_the_pep_derives_from_domain_and_client_id() {
+    void keys_the_agent_entity_on_the_id_the_pep_derives_from_the_client_id() {
         stubPage(0, page(0));
         stubAgentPage(0, new AmAgentPage(List.of(agent("app-1", "agent-client", "Bot", "AUTONOMOUS")), 1L));
 
         run();
 
-        // CONNECTION.defaultDomainId() == "domain-1"; the entity id must equal the shared derivation.
-        String expectedId = AgentEntityId.derive("domain-1", "agent-client");
+        // The entity id must equal the shared derivation from the agent's client_id.
+        String expectedId = AgentEntityId.derive("agent-client");
         List<CreateOrReplaceAuthzEntityCommand> commands = captureSingleBulkUpsert();
         assertThat(commands.get(0).entityId()).isEqualTo(expectedId);
     }
@@ -362,8 +363,8 @@ class SyncAmUsersUseCaseTest {
         run();
 
         List<CreateOrReplaceAuthzEntityCommand> commands = captureSingleBulkUpsert();
-        // _kind, clientId, domain are always set; name/agentType only carry through when AM populated them.
-        assertThat(commands.get(0).attributes()).containsOnlyKeys("_kind", "clientId", "domain");
+        // _kind, sub, clientId, domain are always set; displayName/agentType only carry through when AM populated them.
+        assertThat(commands.get(0).attributes()).containsOnlyKeys("_kind", "sub", "clientId", "domain");
     }
 
     @Test
