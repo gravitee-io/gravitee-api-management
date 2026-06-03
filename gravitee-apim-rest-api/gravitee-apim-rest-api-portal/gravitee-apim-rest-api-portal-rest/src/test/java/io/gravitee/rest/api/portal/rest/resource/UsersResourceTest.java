@@ -21,6 +21,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.apim.core.invitation.use_case.AcceptUserInvitationUseCase;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.core.user.model.DecodedToken;
 import io.gravitee.apim.core.user.model.UserSearchQuery;
 import io.gravitee.apim.core.user.use_case.SearchUsersUseCase;
 import io.gravitee.common.http.HttpStatusCode;
@@ -30,7 +33,9 @@ import io.gravitee.rest.api.model.UrlPictureEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.JWTHelper;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
+import io.gravitee.rest.api.service.exceptions.UserStateConflictException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
@@ -61,6 +66,8 @@ public class UsersResourceTest extends AbstractResourceTest {
     public void init() {
         resetAllMocks();
         reset(searchUsersUseCase);
+        reset(acceptUserInvitationUseCase);
+        reset(registrationTokenService);
 
         searchUser = io.gravitee.apim.core.user.model.User.builder()
             .id("my-user-id")
@@ -269,47 +276,62 @@ public class UsersResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldFinalizeRegistration() {
-        // init
-        FinalizeRegistrationInput input = new FinalizeRegistrationInput()
-            .token("token")
-            .password("P4s5vv0Rd")
-            .firstname("Firstname")
-            .lastname("LASTNAME");
+    public void should_finalize_registration_for_user_registration_action() {
+        var input = new FinalizeRegistrationInput().token("my-jwt").password("P4s5vv0Rd").firstname("John").lastname("Doe");
+        var decoded = new DecodedToken(JWTHelper.ACTION.USER_REGISTRATION.name(), "user@example.com", Optional.empty());
+        var user = BaseUserEntity.builder().id("user-id").email("user@example.com").build();
 
-        RegisterUserEntity registerUserEntity = new RegisterUserEntity();
-        doReturn(registerUserEntity).when(userMapper).convert(input);
+        doReturn(decoded).when(registrationTokenService).decode("my-jwt");
+        doReturn(new AcceptUserInvitationUseCase.Output(user)).when(acceptUserInvitationUseCase).execute(any());
+        doReturn(new io.gravitee.rest.api.portal.rest.model.User()).when(userMapper).convert(any(UserEntity.class));
 
-        doReturn(new UserEntity()).when(userService).finalizeRegistration(GraviteeContext.getExecutionContext(), registerUserEntity);
-
-        // test
         final Response response = target("registration/_finalize").request().post(Entity.json(input));
-        assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        Mockito.verify(userMapper).convert(input);
-        Mockito.verify(userService).finalizeRegistration(GraviteeContext.getExecutionContext(), registerUserEntity);
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        verify(registrationTokenService).decode("my-jwt");
+        verify(acceptUserInvitationUseCase).execute(any());
     }
 
     @Test
-    public void shouldNotFinalizeRegistration() {
-        // init
-        FinalizeRegistrationInput input = new FinalizeRegistrationInput()
-            .token("token")
-            .password("P4s5vv0Rd")
-            .firstname("Firstname")
-            .lastname("LASTNAME");
+    public void should_finalize_registration_for_group_invitation_action() {
+        var input = new FinalizeRegistrationInput().token("my-jwt").password("P4s5vv0Rd").firstname("John").lastname("Doe");
+        var decoded = new DecodedToken(JWTHelper.ACTION.GROUP_INVITATION.name(), "user@example.com", Optional.of("user-id"));
+        var user = BaseUserEntity.builder().id("user-id").email("user@example.com").build();
 
-        RegisterUserEntity registerUserEntity = new RegisterUserEntity();
-        doReturn(registerUserEntity).when(userMapper).convert(input);
+        doReturn(decoded).when(registrationTokenService).decode("my-jwt");
+        doReturn(new AcceptUserInvitationUseCase.Output(user)).when(acceptUserInvitationUseCase).execute(any());
+        doReturn(new io.gravitee.rest.api.portal.rest.model.User()).when(userMapper).convert(any(UserEntity.class));
 
-        doReturn(null).when(userService).finalizeRegistration(GraviteeContext.getExecutionContext(), registerUserEntity);
-
-        // test
         final Response response = target("registration/_finalize").request().post(Entity.json(input));
-        assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
 
-        Mockito.verify(userMapper).convert(input);
-        Mockito.verify(userService).finalizeRegistration(GraviteeContext.getExecutionContext(), registerUserEntity);
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        verify(acceptUserInvitationUseCase).execute(any());
+    }
+
+    @Test
+    public void should_return_conflict_when_reset_password_action() {
+        var input = new FinalizeRegistrationInput().token("my-jwt").password("P4s5vv0Rd").firstname("John").lastname("Doe");
+        var decoded = new DecodedToken(JWTHelper.ACTION.RESET_PASSWORD.name(), "user@example.com", Optional.empty());
+
+        doReturn(decoded).when(registrationTokenService).decode("my-jwt");
+
+        final Response response = target("registration/_finalize").request().post(Entity.json(input));
+
+        assertEquals(HttpStatusCode.CONFLICT_409, response.getStatus());
+        verify(acceptUserInvitationUseCase, never()).execute(any());
+    }
+
+    @Test
+    public void should_propagate_token_decode_error() {
+        var input = new FinalizeRegistrationInput().token("invalid-jwt").password("P4s5vv0Rd").firstname("John").lastname("Doe");
+        doThrow(new com.auth0.jwt.exceptions.JWTVerificationException("invalid token"))
+            .when(registrationTokenService)
+            .decode("invalid-jwt");
+
+        final Response response = target("registration/_finalize").request().post(Entity.json(input));
+
+        assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
+        verify(acceptUserInvitationUseCase, never()).execute(any());
     }
 
     @Test
