@@ -37,8 +37,10 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
+import io.gravitee.apim.core.plan.domain_service.PlanExcludedGroupsDomainService;
 import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
@@ -247,6 +249,12 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     @Lazy
     @Autowired
     private ApiProductsRepository apiProductsRepository;
+
+    @Autowired
+    private ApiProductCrudService apiProductCrudService;
+
+    @Autowired
+    private PlanExcludedGroupsDomainService planExcludedGroupsDomainService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -522,18 +530,24 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             }
 
             if (genericPlanEntity.getExcludedGroups() != null && !genericPlanEntity.getExcludedGroups().isEmpty()) {
-                // For API Product plans, excluded groups check is not applicable
-                if (genericPlanEntity.getReferenceType() != GenericPlanEntity.ReferenceType.API_PRODUCT) {
-                    String referenceId = genericPlanEntity.getReferenceId();
-                    if (referenceId != null) {
-                        final boolean userAuthorizedToAccessApiData = groupService.isUserAuthorizedToAccessApiData(
+                String referenceId = genericPlanEntity.getReferenceId();
+                if (referenceId != null) {
+                    final boolean userAuthorized;
+                    if (genericPlanEntity.getReferenceType() == GenericPlanEntity.ReferenceType.API_PRODUCT) {
+                        userAuthorized = planExcludedGroupsDomainService.isUserAuthorizedToAccessApiProductPlan(
+                            apiProductCrudService.get(referenceId),
+                            genericPlanEntity.getExcludedGroups(),
+                            getAuthenticatedUsername()
+                        );
+                    } else {
+                        userAuthorized = groupService.isUserAuthorizedToAccessApiData(
                             apiSearchService.findGenericById(executionContext, referenceId, false, false, false),
                             genericPlanEntity.getExcludedGroups(),
                             getAuthenticatedUsername()
                         );
-                        if (!userAuthorizedToAccessApiData && !isEnvironmentAdmin()) {
-                            throw new PlanRestrictedException(plan);
-                        }
+                    }
+                    if (!userAuthorized && !isEnvironmentAdmin()) {
+                        throw new PlanRestrictedException(plan);
                     }
                 }
             }

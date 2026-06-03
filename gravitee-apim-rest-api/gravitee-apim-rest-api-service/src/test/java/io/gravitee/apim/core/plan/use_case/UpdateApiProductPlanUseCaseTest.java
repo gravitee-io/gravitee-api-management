@@ -28,6 +28,7 @@ import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
+import io.gravitee.apim.core.plan.domain_service.PlanExcludedGroupsDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanUpdates;
@@ -64,11 +65,19 @@ class UpdateApiProductPlanUseCaseTest {
     @Mock
     private ApiProductCrudService apiProductCrudService;
 
+    @Mock
+    private PlanExcludedGroupsDomainService planExcludedGroupsDomainService;
+
     private UpdateApiProductPlanUseCase updatePlanUseCase;
 
     @BeforeEach
     void setUp() {
-        updatePlanUseCase = new UpdateApiProductPlanUseCase(updatePlanDomainService, planCrudService, apiProductCrudService);
+        updatePlanUseCase = new UpdateApiProductPlanUseCase(
+            updatePlanDomainService,
+            planCrudService,
+            apiProductCrudService,
+            planExcludedGroupsDomainService
+        );
         GraviteeContext.fromExecutionContext(new io.gravitee.rest.api.service.common.ExecutionContext(ORG_ID, ENV_ID));
     }
 

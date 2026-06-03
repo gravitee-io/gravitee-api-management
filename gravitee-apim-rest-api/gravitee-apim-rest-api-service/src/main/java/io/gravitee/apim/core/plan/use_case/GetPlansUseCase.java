@@ -18,6 +18,9 @@ package io.gravitee.apim.core.plan.use_case;
 import static java.util.Comparator.comparingInt;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.plan.domain_service.PlanExcludedGroupsDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanSearchQueryService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
@@ -39,6 +42,8 @@ public class GetPlansUseCase {
 
     private final PlanSearchQueryService planSearchQueryService;
     private final SubscriptionQueryService subscriptionQueryService;
+    private final ApiProductCrudService apiProductCrudService;
+    private final PlanExcludedGroupsDomainService planExcludedGroupsDomainService;
 
     public Output execute(Input input) {
         log.debug("Getting plans for reference {} (planId={})", input.referenceId, input.planId);
@@ -54,6 +59,18 @@ public class GetPlansUseCase {
                 .searchPlans(input.referenceId, input.referenceType, input.query, input.authenticatedUser, input.isAdmin)
                 .stream()
                 .sorted(comparingInt(Plan::getOrder));
+
+            if (GenericPlanEntity.ReferenceType.API_PRODUCT.equals(input.referenceType) && !input.isAdmin) {
+                ApiProduct apiProduct = apiProductCrudService.get(input.referenceId);
+                plansStream = plansStream.filter(plan ->
+                    planExcludedGroupsDomainService.isUserAuthorizedToAccessApiProductPlan(
+                        apiProduct,
+                        plan.getExcludedGroups(),
+                        input.authenticatedUser
+                    )
+                );
+            }
+
             //TODO ask if need API_GATEWAY_DEFINITION and API_PRODUCT_PLAN filtersensitiveData is needed like api plans
 
             if (input.subscribableBy != null) {
