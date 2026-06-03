@@ -905,3 +905,16 @@ scoring:
 
 gamma:
   enabled: false
+
+# Gamma authorization entity store (FGA). Tuning knobs for the AM -> entity store sync and the
+# cascade guard. All optional; the values shown are the defaults applied when left unset.
+#authz:
+#  # Max entities a single cascade operation may touch before it is rejected.
+#  cascade-hard-limit: 500
+#  sync:
+#    # Max entities pulled from AM in one sync run.
+#    max-entities: 1000
+#    # Page size used when paging users/groups/roles/agents out of AM.
+#    page-size: 50
+#    # Number of entities per bulk upsert into the entity store.
+#    batch-size: 50
