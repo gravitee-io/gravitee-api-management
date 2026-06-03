@@ -356,7 +356,7 @@ export function EntitiesPage() {
         const current = sync.status?.status;
         if (current === 'SUCCESS' && prevSyncStatus.current === 'PENDING') {
             void queryClient.invalidateQueries({ queryKey: authzQueryKeys.entities.all(environmentId) });
-            toast.success(`Sync finished, synced ${sync.status?.entitiesUpserted ?? 0} users`);
+            toast.success(`Sync finished, synced ${sync.status?.entitiesUpserted ?? 0} entities`);
         }
         prevSyncStatus.current = current;
     }, [sync.status?.status, sync.status?.entitiesUpserted, environmentId, queryClient]);
@@ -365,7 +365,7 @@ export function EntitiesPage() {
         // A 409 (sync already running) rejects the mutation; the hook suppresses it and the
         // status reflects the in-flight job, so swallow the rejection here.
         sync.start()
-            .then(res => toast.info(`Syncing ${res.totalUsers} users...`))
+            .then(() => toast.info('Syncing entities from Gravitee Access Management…'))
             .catch(() => {});
     };
 
