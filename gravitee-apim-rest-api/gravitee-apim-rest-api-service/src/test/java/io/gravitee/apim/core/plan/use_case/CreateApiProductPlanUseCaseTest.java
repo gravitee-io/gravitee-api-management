@@ -33,6 +33,7 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
+import io.gravitee.apim.core.plan.domain_service.PlanExcludedGroupsDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.exception.UnauthorizedPlanSecurityTypeException;
 import io.gravitee.apim.core.plan.model.Plan;
@@ -101,7 +102,13 @@ class CreateApiProductPlanUseCaseTest {
         kafkaPortRanges
     );
 
-    CreateApiProductPlanUseCase createPlanUseCase = new CreateApiProductPlanUseCase(createPlanDomainService, apiProductCrudServiceInMemory);
+    PlanExcludedGroupsDomainService planExcludedGroupsDomainService = mock(PlanExcludedGroupsDomainService.class);
+
+    CreateApiProductPlanUseCase createPlanUseCase = new CreateApiProductPlanUseCase(
+        createPlanDomainService,
+        apiProductCrudServiceInMemory,
+        planExcludedGroupsDomainService
+    );
 
     @BeforeAll
     static void beforeAll() {
