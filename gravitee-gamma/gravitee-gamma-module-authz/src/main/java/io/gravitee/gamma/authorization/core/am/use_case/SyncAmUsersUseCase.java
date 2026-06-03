@@ -254,12 +254,10 @@ public class SyncAmUsersUseCase {
         attributes.put("sub", agent.id());
         attributes.put("clientId", clientId);
         attributes.put("domain", domain);
-        // The client_id doubles as the agent's workload identifier: a spiffe:// id is a SPIFFE
-        // workloadId, a plain http(s) URL is a CIMD url. Surfaced as a typed attribute when it
-        // matches; a plain id is neither.
-        if (clientId.startsWith("spiffe://")) {
-            attributes.put("workloadId", clientId);
-        } else if (clientId.startsWith("http://") || clientId.startsWith("https://")) {
+        // A CIMD agent's client_id is its CIMD url (a normal http(s) URL); surface it as a typed
+        // attribute. (A SPIFFE agent's workload id lives in the application's workload-identity
+        // settings, not the client_id, so AM's app list can't surface it here yet.)
+        if (clientId.startsWith("http://") || clientId.startsWith("https://")) {
             attributes.put("cimdUrl", clientId);
         }
         if (agent.name() != null) {
