@@ -17,9 +17,11 @@ package io.gravitee.gamma.authorization.infra.service_provider;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.am.sdk.management.model.FilteredApplication;
 import io.gravitee.am.sdk.management.model.Group;
 import io.gravitee.am.sdk.management.model.Role;
 import io.gravitee.am.sdk.management.model.User;
+import io.gravitee.gamma.authorization.core.am.model.AmAgent;
 import io.gravitee.gamma.authorization.core.am.model.AmGroup;
 import io.gravitee.gamma.authorization.core.am.model.AmRole;
 import io.gravitee.gamma.authorization.core.am.model.AmUser;
@@ -77,5 +79,32 @@ class AmSdkDirectoryClientTest {
 
         assertThat(mapped.id()).isEqualTo("r-1");
         assertThat(mapped.name()).isEqualTo("ADMIN");
+    }
+
+    @Test
+    void maps_agent_id_client_id_name_and_type() {
+        FilteredApplication application = new FilteredApplication();
+        application.setId("app-1");
+        application.setClientId("agent-client");
+        application.setName("Booking bot");
+        application.setKind(FilteredApplication.KindEnum.AUTONOMOUS);
+
+        AmAgent mapped = AmSdkDirectoryClient.toAmAgent(application);
+
+        assertThat(mapped.id()).isEqualTo("app-1");
+        assertThat(mapped.clientId()).isEqualTo("agent-client");
+        assertThat(mapped.name()).isEqualTo("Booking bot");
+        assertThat(mapped.agentType()).isEqualTo(FilteredApplication.KindEnum.AUTONOMOUS.getValue());
+    }
+
+    @Test
+    void maps_agent_type_to_null_when_kind_is_absent() {
+        FilteredApplication application = new FilteredApplication();
+        application.setId("app-1");
+        application.setClientId("agent-client");
+
+        AmAgent mapped = AmSdkDirectoryClient.toAmAgent(application);
+
+        assertThat(mapped.agentType()).isNull();
     }
 }

@@ -68,7 +68,7 @@ class AmUserSyncRunnerImplTest {
 
     @Test
     void completes_the_job_with_the_synced_count() throws InterruptedException {
-        when(syncAmUsersUseCase.execute(any())).thenReturn(new SyncAmUsersUseCase.Output(5, 7));
+        when(syncAmUsersUseCase.execute(any())).thenReturn(new SyncAmUsersUseCase.Output(5, 3, 7));
 
         runner.runAsync(JOB, CALLER, CONNECTION);
         awaitCompletion();
