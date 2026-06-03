@@ -42,6 +42,10 @@ describe('ApiProductPlanEditComponent', () => {
   let notifyApiProductChangedSpy: jest.SpyInstance;
   const snackBarService = { error: jest.fn(), success: jest.fn() };
 
+  function flushGroupsRequest(): void {
+    httpTestingController.match({ method: 'GET', url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups` }).forEach(r => r.flush([]));
+  }
+
   async function setup(
     params: { planId?: string; queryParams?: Record<string, string> } = {},
     permissions: string[] = ['api_product-plan-u', 'api_product-plan-r'],
@@ -79,8 +83,25 @@ describe('ApiProductPlanEditComponent', () => {
   }
 
   afterEach(() => {
+    flushGroupsRequest();
     httpTestingController.verify();
     jest.clearAllMocks();
+  });
+
+  describe('access control', () => {
+    it('shows groups excluded on the general step', fakeAsync(async () => {
+      await setup({ queryParams: { selectedPlanMenuItem: 'API_KEY' } });
+      tick();
+      flushGroupsRequest();
+      fixture.detectChanges();
+      httpTestingController.match(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/api-key/schema`).forEach(r => r.flush({}));
+      tick();
+      fixture.detectChanges();
+
+      const planForm = await harness.getPlanForm();
+      expect(await planForm.getExcludedGroupsInput()).toBeTruthy();
+      expect(await planForm.getGeneralConditionsInput()).toBeNull();
+    }));
   });
 
   /** Submits the plan form by dispatching submit so ngSubmit runs. */
