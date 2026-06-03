@@ -43,14 +43,27 @@
     }
   }
 
+  &__section-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+
+    &--pinned {
+      color: app-theme.$primary-main-color;
+    }
+  }
+
+  &__section-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
   &__pinned {
     display: flex;
     flex-direction: column;
     gap: 12px;
-
-    h2 {
-      margin: 0;
-    }
   }
 
   &__pinned-row {
@@ -60,6 +73,7 @@
   &__content {
     display: flex;
     flex-direction: column;
+    gap: 12px;
     position: relative;
     overflow: hidden;
     flex: 1;
