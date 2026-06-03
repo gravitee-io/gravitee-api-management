@@ -37,6 +37,9 @@
   <h4 class="next-gen-h4 invitations__title" data-testid="invitations-section-title">
     {{ sectionTitle() }}
   </h4>
+  @if (error(); as errorText) {
+    <p class="invitations__error next-gen-small" data-testid="invitations-delete-error" role="alert">{{ errorText }}</p>
+  }
   @if (invitationsResource.isLoading()) {
     <app-loader />
   } @else if (invitationsResource.error()) {
@@ -61,8 +64,10 @@
       [currentPage]="currentPage()"
       [pageSize]="pageSize()"
       [navigable]="false"
+      [actions]="actions()"
       (pageChange)="onPageChange($event)"
       (pageSizeChange)="onPageSizeChange($event)"
+      (actionClick)="onActionClick($event)"
     >
       <ng-template appTableCell="email" let-row>
         <span class="invitations__email">
@@ -74,9 +79,6 @@
       </ng-template>
       <ng-template appTableCell="role" let-row>
         <span class="next-gen-small" data-testid="invitation-role">{{ row.role }}</span>
-      </ng-template>
-      <ng-template appTableCell="actions">
-        <span data-testid="invitation-actions"></span>
       </ng-template>
     </app-paginated-table>
   }
