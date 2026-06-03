@@ -69,6 +69,7 @@ interface ListEntitiesParams {
 
 const listEntitiesSpy = vi.fn();
 const deleteEntitySpy = vi.fn();
+const listPoliciesSpy = vi.fn();
 
 vi.mock('@gravitee/gamma-modules-sdk', async importOriginal => ({
     ...(await importOriginal<object>()),
@@ -83,6 +84,7 @@ vi.mock('../../../shared/api/authz-api.service', () => ({
         deleteEntity: (env: string, entityId: string) => deleteEntitySpy(env, entityId),
         getUserSyncStatus: () => Promise.resolve(null),
         startUserSync: () => Promise.resolve({ jobId: 'job-1', status: 'PENDING', totalUsers: 2000 }),
+        listPolicies: (env: string, params?: unknown) => listPoliciesSpy(env, params),
     },
 }));
 
@@ -129,6 +131,8 @@ function mockByKind(opts: {
 beforeEach(() => {
     listEntitiesSpy.mockReset();
     deleteEntitySpy.mockReset();
+    listPoliciesSpy.mockReset();
+    listPoliciesSpy.mockResolvedValue({ data: [], total: 0, page: 1, perPage: 100 });
     toastSuccessSpy.mockReset();
     toastErrorSpy.mockReset();
     toastInfoSpy.mockReset();
@@ -430,5 +434,90 @@ describe('EntitiesPage', () => {
         await waitFor(() => expect(toastErrorSpy).toHaveBeenCalledWith(expect.stringContaining('upstream 500')));
         // Dialog stays open after a failed delete so the user can retry / cancel.
         expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    it('opens the entity detail sheet when a principal name is clicked', async () => {
+        mockByKind({ principals: [makeEntity({ id: 'p1', uid: 'user.alice', attributes: { _displayName: 'Alice' } })] });
+        renderPage();
+
+        const user = userEvent.setup();
+        await waitFor(() => expect(screen.getByRole('button', { name: 'Alice' })).toBeInTheDocument());
+        await user.click(screen.getByRole('button', { name: 'Alice' }));
+
+        // The detail sheet has tabs that do not exist anywhere else on the page.
+        expect(await screen.findByRole('tab', { name: /GAPL shape/i })).toBeInTheDocument();
+        expect(screen.getByRole('tab', { name: 'Overview' })).toBeInTheDocument();
+    });
+
+    it('renders a copy button next to each Entity ID', async () => {
+        mockByKind({ principals: [makeEntity({ id: 'p1', uid: 'user.alice' })] });
+        renderPage();
+
+        await waitFor(() => expect(screen.getByLabelText('Copy user.alice')).toBeInTheDocument());
+    });
+
+    it('renders the Policy-Linked KPI and a settings menu with Open entities.json', async () => {
+        mockByKind({ principals: [makeEntity({ id: 'p1', uid: 'user.alice' })] });
+        renderPage();
+
+        const user = userEvent.setup();
+        await waitFor(() => expect(screen.getByLabelText('Policy-Linked')).toBeInTheDocument());
+        await user.click(screen.getByRole('button', { name: /Entities settings/i }));
+        expect(await screen.findByRole('menuitem', { name: /Open entities\.json/i })).toBeInTheDocument();
+    });
+
+    it('counts an entity targeted by a policy in the Policy-Linked KPI', async () => {
+        mockByKind({ resources: [makeEntity({ id: 'r1', uid: 'mcp.flight', attributes: { _displayName: 'Flight' } })] });
+        listPoliciesSpy.mockResolvedValue({
+            data: [
+                {
+                    id: '1',
+                    environmentId: 'DEFAULT',
+                    name: 'allow',
+                    description: null,
+                    policyText: '',
+                    type: 'MCP',
+                    target: { id: 'mcp.flight', label: 'flight' },
+                    status: 'DRAFT',
+                    createdAt: '2026-04-27T10:00:00.000Z',
+                    updatedAt: '2026-04-27T10:00:00.000Z',
+                },
+            ],
+            total: 1,
+            page: 1,
+            perPage: 100,
+        });
+        renderPage();
+
+        await waitFor(() => expect(within(screen.getByLabelText('Policy-Linked')).getByText('1')).toBeInTheDocument());
+    });
+
+    it('renders an "in N" relationships badge for an entity with parents', async () => {
+        mockByKind({ principals: [makeEntity({ id: 'p1', uid: 'user.alice', parents: ['group.devs'] })] });
+        renderPage();
+
+        await waitFor(() => expect(screen.getByText('in 1')).toBeInTheDocument());
+    });
+
+    it('opens a generated entities.json blob from the settings menu', async () => {
+        mockByKind({ principals: [makeEntity({ id: 'p1', uid: 'user.alice' })] });
+        const createObjectURL = vi.fn(() => 'blob:entities');
+        Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: createObjectURL });
+        Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: vi.fn() });
+        const openSpy = vi.fn();
+        const originalOpen = window.open;
+        window.open = openSpy;
+        try {
+            renderPage();
+            const user = userEvent.setup();
+            await waitFor(() => expect(screen.getByRole('button', { name: /Entities settings/i })).toBeInTheDocument());
+            await user.click(screen.getByRole('button', { name: /Entities settings/i }));
+            await user.click(await screen.findByRole('menuitem', { name: /Open entities\.json/i }));
+
+            expect(createObjectURL).toHaveBeenCalledTimes(1);
+            expect(openSpy).toHaveBeenCalledWith('blob:entities', '_blank', 'noopener');
+        } finally {
+            window.open = originalOpen;
+        }
     });
 });
