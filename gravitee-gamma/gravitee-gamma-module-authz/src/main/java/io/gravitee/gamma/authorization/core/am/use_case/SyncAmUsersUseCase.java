@@ -25,7 +25,6 @@ import io.gravitee.gamma.authorization.core.am.model.AmUser;
 import io.gravitee.gamma.authorization.core.am.service_provider.AmDirectoryClient;
 import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
 import io.gravitee.gamma.authorization.service.CreateOrReplaceAuthzEntityCommand;
-import io.gravitee.gamma.definition.authz.AgentEntityId;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,8 +41,8 @@ import lombok.CustomLog;
  * as a PRINCIPAL authz entity via {@link AuthzEntityAdminApi#bulkUpsert}. Groups and roles are synced
  * first (they are the parent entities users reference); each user's {@code parents} is then set to
  * its group + role ids. Agents (AM applications of type AGENT) are projected last as generic,
- * user-independent principals keyed on {@link AgentEntityId#derive(String)} so the request-time
- * PEP matches them. Upsert-only: entities removed in AM are left as stale entities. Invoked on a
+ * user-independent principals keyed on a name-UUID of their OAuth {@code client_id} so the
+ * request-time PEP matches them. Upsert-only: entities removed in AM are left as stale entities. Invoked on a
  * worker thread by the infra job manager.
  *
  * @author GraviteeSource Team
@@ -241,8 +240,10 @@ public class SyncAmUsersUseCase {
 
     private CreateOrReplaceAuthzEntityCommand agentCommand(String environmentId, String domain, AmAgent agent) {
         String clientId = agent.clientId();
-        // The entity id must equal what the PEP derives at request time from the token client_id.
-        String entityId = AgentEntityId.derive(clientId);
+        // The entity id must equal what the PEP derives at request time from the token client_id: a
+        // name-UUID of the client_id. Hashing keeps the id within the entity-id grammar even when the
+        // client_id is itself illegal there (mixed case, slashes, dots — e.g. a CIMD URL).
+        String entityId = UUID.nameUUIDFromBytes(clientId.getBytes(StandardCharsets.UTF_8)).toString();
         // Map.copyOf (inside the command) rejects null values, so only put attributes AM populated.
         Map<String, Object> attributes = new LinkedHashMap<>();
         // The entityId is a bare name-UUID (like a user's sub); _kind carries the type. The UI's
