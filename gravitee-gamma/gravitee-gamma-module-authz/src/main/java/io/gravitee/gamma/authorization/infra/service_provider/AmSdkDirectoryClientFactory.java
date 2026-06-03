@@ -20,6 +20,8 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import io.gravitee.am.sdk.management.api.ApplicationApi;
+import io.gravitee.am.sdk.management.api.ApplicationApiImpl;
 import io.gravitee.am.sdk.management.api.GroupApi;
 import io.gravitee.am.sdk.management.api.GroupApiImpl;
 import io.gravitee.am.sdk.management.api.IdentityProviderApi;
@@ -38,7 +40,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
 /**
- * Builds the AM management API facades (user, group, role, identity provider) from a stored {@link AmConnection},
+ * Builds the AM management API facades (user, group, role, identity provider, application) from a stored {@link AmConnection},
  * all sharing one {@link ApiClient} (and thus one Vert.x WebClient connection pool). No caching — a
  * sync opens one set per run (see {@code AmSdkDirectoryClient.openSession}) and closes the shared
  * client when done, so an updated connection takes effect on the next sync.
@@ -57,7 +59,8 @@ public class AmSdkDirectoryClientFactory {
         UserApi userApi,
         GroupApi groupApi,
         RoleApi roleApi,
-        IdentityProviderApi identityProviderApi
+        IdentityProviderApi identityProviderApi,
+        ApplicationApi applicationApi
     ) {}
 
     public AmSdkApis create(AmConnection connection) {
@@ -67,7 +70,8 @@ public class AmSdkDirectoryClientFactory {
             new UserApiImpl(apiClient),
             new GroupApiImpl(apiClient),
             new RoleApiImpl(apiClient),
-            new IdentityProviderApiImpl(apiClient)
+            new IdentityProviderApiImpl(apiClient),
+            new ApplicationApiImpl(apiClient)
         );
     }
 

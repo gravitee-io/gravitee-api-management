@@ -16,12 +16,13 @@
 package io.gravitee.gamma.authorization.core.am.service_provider;
 
 import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
+import io.gravitee.gamma.authorization.core.am.model.AmAgentPage;
 import io.gravitee.gamma.authorization.core.am.model.AmGroupPage;
 import io.gravitee.gamma.authorization.core.am.model.AmRolePage;
 import io.gravitee.gamma.authorization.core.am.model.AmUserPage;
 
 /**
- * Port for paging users, groups, and roles out of an AM domain. The infra implementation owns the AM SDK details
+ * Port for paging users, groups, roles, and agents out of an AM domain. The infra implementation owns the AM SDK details
  * (client construction, default org/env scoping, timestamp handling).
  */
 public interface AmDirectoryClient {
@@ -32,13 +33,15 @@ public interface AmDirectoryClient {
      */
     Session openSession(AmConnection connection);
 
-    /** A connection-bound cursor over an AM domain's users, groups, and roles. Not thread-safe; use within one run. */
+    /** A connection-bound cursor over an AM domain's users, groups, roles, and agents. Not thread-safe; use within one run. */
     interface Session extends AutoCloseable {
         AmUserPage fetchUsers(int page, int size);
 
         AmGroupPage fetchGroups(int page, int size);
 
         AmRolePage fetchRoles(int page, int size);
+
+        AmAgentPage fetchAgents(int page, int size);
 
         @Override
         void close();

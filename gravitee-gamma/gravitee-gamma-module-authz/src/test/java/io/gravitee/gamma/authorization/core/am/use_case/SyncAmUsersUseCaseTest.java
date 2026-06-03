@@ -30,6 +30,8 @@ import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
 import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 import io.gravitee.gamma.authorization.api.AuthzEntityAdminApi;
 import io.gravitee.gamma.authorization.core.am.exception.AmSyncException;
+import io.gravitee.gamma.authorization.core.am.model.AmAgent;
+import io.gravitee.gamma.authorization.core.am.model.AmAgentPage;
 import io.gravitee.gamma.authorization.core.am.model.AmGroup;
 import io.gravitee.gamma.authorization.core.am.model.AmGroupPage;
 import io.gravitee.gamma.authorization.core.am.model.AmRole;
@@ -39,6 +41,7 @@ import io.gravitee.gamma.authorization.core.am.model.AmUserPage;
 import io.gravitee.gamma.authorization.core.am.service_provider.AmDirectoryClient;
 import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
 import io.gravitee.gamma.authorization.service.CreateOrReplaceAuthzEntityCommand;
+import io.gravitee.gamma.definition.authz.AgentEntityId;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,7 +56,7 @@ class SyncAmUsersUseCaseTest {
     private static final AuthzCallerContext CALLER = AuthzCallerContext.ofUser("org-1", "env-1", "user-1");
     private static final AmConnection CONNECTION = new AmConnection("http://am:8093", "token", "domain-1", "domain-hrid", null);
 
-    private static final int MAX_USERS = 1000;
+    private static final int MAX_ENTITIES = 1000;
     private static final int PAGE_SIZE = 50;
     private static final int BATCH_SIZE = 50;
 
@@ -70,10 +73,11 @@ class SyncAmUsersUseCaseTest {
         authzEntityAdminApi = mock(AuthzEntityAdminApi.class);
         when(session.fetchGroups(anyInt(), anyInt())).thenReturn(new AmGroupPage(List.of(), 0));
         when(session.fetchRoles(anyInt(), anyInt())).thenReturn(new AmRolePage(List.of(), 0));
+        when(session.fetchAgents(anyInt(), anyInt())).thenReturn(new AmAgentPage(List.of(), 0));
     }
 
     private SyncAmUsersUseCase.Output run() {
-        return run(new SyncAmUsersUseCase.SyncConfig(MAX_USERS, PAGE_SIZE, BATCH_SIZE));
+        return run(new SyncAmUsersUseCase.SyncConfig(MAX_ENTITIES, PAGE_SIZE, BATCH_SIZE));
     }
 
     private SyncAmUsersUseCase.Output run(SyncAmUsersUseCase.SyncConfig syncConfig) {
@@ -91,6 +95,10 @@ class SyncAmUsersUseCaseTest {
 
     private void stubRolePage(int page, AmRolePage rolePage) {
         when(session.fetchRoles(eq(page), eq(50))).thenReturn(rolePage);
+    }
+
+    private void stubAgentPage(int page, AmAgentPage agentPage) {
+        when(session.fetchAgents(eq(page), eq(50))).thenReturn(agentPage);
     }
 
     private static AmUser user(String id, String username, String email, String displayName, Boolean enabled) {
@@ -125,7 +133,7 @@ class SyncAmUsersUseCaseTest {
 
         SyncAmUsersUseCase.Output result = run();
 
-        assertThat(result).isEqualTo(new SyncAmUsersUseCase.Output(2, 2));
+        assertThat(result).isEqualTo(new SyncAmUsersUseCase.Output(2, 0, 2));
         List<CreateOrReplaceAuthzEntityCommand> commands = captureSingleBulkUpsert();
         assertThat(commands).hasSize(2);
         CreateOrReplaceAuthzEntityCommand first = commands.get(0);
@@ -201,7 +209,7 @@ class SyncAmUsersUseCaseTest {
 
         SyncAmUsersUseCase.Output result = run();
 
-        assertThat(result).isEqualTo(new SyncAmUsersUseCase.Output(0, 0));
+        assertThat(result).isEqualTo(new SyncAmUsersUseCase.Output(0, 0, 0));
         verify(authzEntityAdminApi, never()).bulkUpsert(any(), any());
     }
 
@@ -215,7 +223,7 @@ class SyncAmUsersUseCaseTest {
 
         SyncAmUsersUseCase.Output result = run();
 
-        assertThat(result).isEqualTo(new SyncAmUsersUseCase.Output(120, 120));
+        assertThat(result).isEqualTo(new SyncAmUsersUseCase.Output(120, 0, 120));
         ArgumentCaptor<List<CreateOrReplaceAuthzEntityCommand>> captor = ArgumentCaptor.forClass(List.class);
         verify(authzEntityAdminApi, times(3)).bulkUpsert(eq(CALLER), captor.capture());
         assertThat(captor.getAllValues().get(0)).hasSize(50);
@@ -234,7 +242,7 @@ class SyncAmUsersUseCaseTest {
 
         SyncAmUsersUseCase.Output result = run(new SyncAmUsersUseCase.SyncConfig(20, PAGE_SIZE, BATCH_SIZE));
 
-        assertThat(result).isEqualTo(new SyncAmUsersUseCase.Output(20, 20));
+        assertThat(result).isEqualTo(new SyncAmUsersUseCase.Output(20, 0, 20));
         verify(session).fetchUsers(eq(0), eq(50));
         verify(session, never()).fetchUsers(eq(1), eq(50));
     }
@@ -303,5 +311,107 @@ class SyncAmUsersUseCaseTest {
 
         List<CreateOrReplaceAuthzEntityCommand> commands = captureSingleBulkUpsert();
         assertThat(commands.get(0).parents()).isEmpty();
+    }
+
+    private static AmAgent agent(String id, String clientId, String name, String agentType) {
+        return new AmAgent(id, clientId, name, agentType);
+    }
+
+    @Test
+    void maps_each_am_agent_to_a_generic_principal_entity() {
+        stubPage(0, page(0)); // no users — exercise only the agent path
+        stubAgentPage(0, new AmAgentPage(List.of(agent("app-1", "agent-client", "Booking bot", "AUTONOMOUS")), 1L));
+
+        SyncAmUsersUseCase.Output result = run();
+
+        assertThat(result).isEqualTo(new SyncAmUsersUseCase.Output(0, 1, 1));
+        List<CreateOrReplaceAuthzEntityCommand> commands = captureSingleBulkUpsert();
+        assertThat(commands).hasSize(1);
+        CreateOrReplaceAuthzEntityCommand cmd = commands.get(0);
+        assertThat(cmd.environmentId()).isEqualTo("env-1");
+        assertThat(cmd.kind()).isEqualTo(AuthzEntityKind.PRINCIPAL);
+        assertThat(cmd.source()).isEqualTo("gravitee_am");
+        // Agent identities are generic — no parents.
+        assertThat(cmd.parents()).isEmpty();
+        assertThat(cmd.attributes())
+            .containsEntry("_kind", "agent-identity")
+            .containsEntry("clientId", "agent-client")
+            .containsEntry("domain", "domain-1")
+            .containsEntry("name", "Booking bot")
+            .containsEntry("agentType", "AUTONOMOUS");
+    }
+
+    @Test
+    void keys_the_agent_entity_on_the_id_the_pep_derives_from_domain_and_client_id() {
+        stubPage(0, page(0));
+        stubAgentPage(0, new AmAgentPage(List.of(agent("app-1", "agent-client", "Bot", "AUTONOMOUS")), 1L));
+
+        run();
+
+        // CONNECTION.defaultDomainId() == "domain-1"; the entity id must equal the shared derivation.
+        String expectedId = AgentEntityId.derive("domain-1", "agent-client");
+        List<CreateOrReplaceAuthzEntityCommand> commands = captureSingleBulkUpsert();
+        assertThat(commands.get(0).entityId()).isEqualTo(expectedId);
+    }
+
+    @Test
+    void omits_agent_name_and_type_when_am_did_not_populate_them() {
+        stubPage(0, page(0));
+        stubAgentPage(0, new AmAgentPage(List.of(agent("app-1", "agent-client", null, null)), 1L));
+
+        run();
+
+        List<CreateOrReplaceAuthzEntityCommand> commands = captureSingleBulkUpsert();
+        // _kind, clientId, domain are always set; name/agentType only carry through when AM populated them.
+        assertThat(commands.get(0).attributes()).containsOnlyKeys("_kind", "clientId", "domain");
+    }
+
+    @Test
+    void skips_agents_with_a_null_or_blank_client_id() {
+        stubPage(0, page(0));
+        stubAgentPage(
+            0,
+            new AmAgentPage(
+                List.of(agent("app-1", null, "no client", "AUTONOMOUS"), agent("app-2", "  ", "blank client", "AUTONOMOUS"), agent("app-3", "ok", "good", "AUTONOMOUS")),
+                3L
+            )
+        );
+
+        SyncAmUsersUseCase.Output result = run();
+
+        // Only the agent with a usable client_id is fetched and upserted; the two others are skipped.
+        assertThat(result).isEqualTo(new SyncAmUsersUseCase.Output(0, 1, 1));
+        List<CreateOrReplaceAuthzEntityCommand> commands = captureSingleBulkUpsert();
+        assertThat(commands).hasSize(1);
+        assertThat(commands.get(0).attributes()).containsEntry("clientId", "ok");
+    }
+
+    @Test
+    void pages_through_all_agents_until_total_count_is_reached() {
+        stubPage(0, page(0));
+        stubAgentPage(0, new AmAgentPage(List.of(agent("app-1", "c-1", null, null), agent("app-2", "c-2", null, null)), 3L));
+        stubAgentPage(1, new AmAgentPage(List.of(agent("app-3", "c-3", null, null)), 3L));
+
+        SyncAmUsersUseCase.Output result = run();
+
+        assertThat(result.agentsFetched()).isEqualTo(3);
+        verify(session).fetchAgents(eq(0), eq(50));
+        verify(session).fetchAgents(eq(1), eq(50));
+    }
+
+    @Test
+    void stops_syncing_agents_once_the_configured_max_is_reached() {
+        stubPage(0, page(0));
+        List<AmAgent> firstPage = new ArrayList<>();
+        for (int i = 0; i < 50; i++) {
+            firstPage.add(agent("app-" + i, "c-" + i, null, null));
+        }
+        stubAgentPage(0, new AmAgentPage(firstPage, 500L));
+
+        SyncAmUsersUseCase.Output result = run(new SyncAmUsersUseCase.SyncConfig(20, PAGE_SIZE, BATCH_SIZE));
+
+        assertThat(result.agentsFetched()).isEqualTo(20);
+        verify(session).fetchAgents(eq(0), eq(50));
+        verify(session, never()).fetchAgents(eq(1), eq(50));
     }
 }
