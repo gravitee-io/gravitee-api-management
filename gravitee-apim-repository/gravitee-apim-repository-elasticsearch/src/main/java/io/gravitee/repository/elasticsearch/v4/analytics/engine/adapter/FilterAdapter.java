@@ -31,6 +31,8 @@ public class FilterAdapter {
     private record StatusCodeRange(int min, int max) {}
 
     static final String ENTRYPOINT_FIELD = "entrypoint-id";
+    static final String HTTP_GET_ENTRYPOINT_ID = "http-get";
+    static final String HTTP_POST_ENTRYPOINT_ID = "http-post";
     static final String HTTP_PROXY_ENTRYPOINT_ID = "http-proxy";
     static final String LLM_PROXY_ENTRYPOINT_ID = "llm-proxy";
     static final String MCP_PROXY_ENTRYPOINT_ID = "mcp-proxy";
@@ -184,7 +186,16 @@ public class FilterAdapter {
     public JsonObject httpFilter() {
         JsonObject termsFilter = JsonObject.of(
             "terms",
-            JsonObject.of(ENTRYPOINT_FIELD, JsonArray.of(HTTP_PROXY_ENTRYPOINT_ID, LLM_PROXY_ENTRYPOINT_ID, MCP_PROXY_ENTRYPOINT_ID))
+            JsonObject.of(
+                ENTRYPOINT_FIELD,
+                JsonArray.of(
+                    HTTP_GET_ENTRYPOINT_ID,
+                    HTTP_POST_ENTRYPOINT_ID,
+                    HTTP_PROXY_ENTRYPOINT_ID,
+                    LLM_PROXY_ENTRYPOINT_ID,
+                    MCP_PROXY_ENTRYPOINT_ID
+                )
+            )
         );
 
         // This is needed for now to get APIs that don't pass the security chain.
