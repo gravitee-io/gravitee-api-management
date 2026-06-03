@@ -162,6 +162,32 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
     }
 
     @Test
+    void should_return_async_api_page_content_when_navigation_page_found() {
+        var contentId = PortalPageContentId.random();
+        var pageId = "00000000-0000-0000-0000-000000000098";
+        var content = "asyncapi: '3.0.0'\ninfo:\n  title: Test";
+        var page = PortalNavigationItemFixtures.aPage(pageId, "AsyncAPI page", null, contentId);
+        page.markAsRoot();
+        var asyncApiContent = PortalPageContentFixtures.anAsyncApiPageContent(contentId, ORGANIZATION_ID, ENVIRONMENT_ID, content);
+
+        pageContentQueryService.initWith(List.of(asyncApiContent));
+        navigationItemsQueryService.initWith(List.of(page));
+
+        var output = useCase.execute(
+            new GetPortalPageContentByNavigationIdUseCase.Input(
+                pageId,
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                PortalNavigationItemViewerContext.forConsole()
+            )
+        );
+
+        assertThat(output.renderedContent()).isNotNull();
+        assertThat(output.renderedContent().type()).isEqualTo(PortalPageContentType.ASYNCAPI);
+        assertThat(output.renderedContent().value()).isEqualTo(content);
+    }
+
+    @Test
     void should_apply_portal_navigation_templating_to_gravitee_markdown() {
         doReturn(RenderedPageContent.of("templated", PortalPageContentType.GRAVITEE_MARKDOWN))
             .when(portalNavigationTemplatingService)
