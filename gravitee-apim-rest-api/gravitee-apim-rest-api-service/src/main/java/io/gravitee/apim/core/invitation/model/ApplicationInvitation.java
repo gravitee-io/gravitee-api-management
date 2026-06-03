@@ -30,4 +30,8 @@ public record ApplicationInvitation(
         var now = TimeProvider.now();
         return new ApplicationInvitation(InvitationId.random(), applicationId, email, roleName, now, now);
     }
+
+    public ApplicationInvitation updateRole(String roleName) {
+        return new ApplicationInvitation(id, applicationId, email, roleName, createdAt, TimeProvider.now());
+    }
 }
