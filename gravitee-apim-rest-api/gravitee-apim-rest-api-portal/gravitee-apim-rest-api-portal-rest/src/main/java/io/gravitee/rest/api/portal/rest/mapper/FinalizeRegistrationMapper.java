@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.apim.core.invitation.use_case.AcceptUserInvitationUseCase;
+import io.gravitee.apim.core.invitation.use_case.AcceptUserInvitationUseCase.ApplicationInvitationAction;
 import io.gravitee.apim.core.invitation.use_case.AcceptUserInvitationUseCase.GroupInvitationAction;
 import io.gravitee.apim.core.invitation.use_case.AcceptUserInvitationUseCase.UserRegistrationAction;
 import io.gravitee.apim.core.user.model.DecodedToken;
@@ -34,9 +35,17 @@ public class FinalizeRegistrationMapper {
         DecodedToken decoded,
         FinalizeRegistrationInput input
     ) {
-        var action = JWTHelper.ACTION.GROUP_INVITATION.name().equals(decoded.action())
-            ? new GroupInvitationAction(decoded.email(), decoded.subject())
-            : new UserRegistrationAction(decoded.email(), decoded.subject());
+        var action = switch (decoded.action()) {
+            case String s when JWTHelper.ACTION.GROUP_INVITATION.name().equals(s) -> new GroupInvitationAction(
+                decoded.email(),
+                decoded.subject()
+            );
+            case String s when JWTHelper.ACTION.APPLICATION_INVITATION.name().equals(s) -> new ApplicationInvitationAction(
+                decoded.email(),
+                decoded.subject()
+            );
+            default -> new UserRegistrationAction(decoded.email(), decoded.subject());
+        };
 
         return new AcceptUserInvitationUseCase.Input(
             executionContext,
