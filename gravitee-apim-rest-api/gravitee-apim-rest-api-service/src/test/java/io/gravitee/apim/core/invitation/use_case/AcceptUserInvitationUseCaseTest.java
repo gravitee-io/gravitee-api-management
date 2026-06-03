@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.invitation.use_case;
 
+import static fixtures.core.model.ApplicationInvitationFixtures.anApplicationInvitation;
 import static fixtures.core.model.BaseUserEntityFixtures.aBaseUserEntity;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -32,6 +33,7 @@ import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.invitation.exception.InvitationCanceledException;
 import io.gravitee.apim.core.invitation.model.GroupInvitation;
 import io.gravitee.apim.core.invitation.model.InvitationId;
+import io.gravitee.apim.core.invitation.use_case.AcceptUserInvitationUseCase.ApplicationInvitationAction;
 import io.gravitee.apim.core.invitation.use_case.AcceptUserInvitationUseCase.GroupInvitationAction;
 import io.gravitee.apim.core.invitation.use_case.AcceptUserInvitationUseCase.UserRegistrationAction;
 import io.gravitee.apim.core.user.model.EncodedPassword;
@@ -42,6 +44,7 @@ import io.gravitee.apim.infra.domain_service.user.UserPasswordServiceImpl;
 import io.gravitee.apim.infra.domain_service.user.UserPortalNotificationServiceImpl;
 import io.gravitee.apim.infra.domain_service.user.UserRegistrationEnabledServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.NotifierService;
@@ -459,6 +462,104 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
                     new AcceptUserInvitationUseCase.Input(
                         executionContext,
                         new GroupInvitationAction(USER_EMAIL, Optional.empty()),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty()
+                    )
+                )
+            )
+                .isInstanceOf(InvitationCanceledException.class)
+                .hasMessageContaining("user@example.com");
+        }
+    }
+
+    @Nested
+    class ApplicationInvitationAction_Tests {
+
+        @Test
+        void should_create_new_user_and_accept_application_invitation() {
+            var invitation = anApplicationInvitation("00000000-0000-0000-0000-000000000001", "app-1", USER_EMAIL, "USER");
+            invitationCrudService.initWith(List.of(invitation));
+
+            var output = cut.execute(
+                new AcceptUserInvitationUseCase.Input(
+                    executionContext,
+                    new ApplicationInvitationAction(USER_EMAIL, Optional.empty()),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty()
+                )
+            );
+
+            assertThat(output.user().getId()).isEqualTo(GENERATED_UUID);
+            assertThat(invitationCrudService.storage()).isEmpty();
+            assertThat(membershipDomainService.storage())
+                .hasSize(1)
+                .first()
+                .satisfies(m -> {
+                    assertThat(m.getReferenceType()).isEqualTo(MembershipReferenceType.APPLICATION);
+                    assertThat(m.getReferenceId()).isEqualTo("app-1");
+                    assertThat(m.getId()).isEqualTo(GENERATED_UUID);
+                });
+            verify(notifierService).trigger(eq(executionContext), eq(PortalHook.USER_REGISTERED), any());
+        }
+
+        @Test
+        void should_accept_multiple_application_invitations() {
+            var inv1 = anApplicationInvitation("00000000-0000-0000-0000-000000000001", "app-1", USER_EMAIL, "USER");
+            var inv2 = anApplicationInvitation("00000000-0000-0000-0000-000000000002", "app-2", USER_EMAIL, "OWNER");
+            invitationCrudService.initWith(List.of(inv1, inv2));
+
+            cut.execute(
+                new AcceptUserInvitationUseCase.Input(
+                    executionContext,
+                    new ApplicationInvitationAction(USER_EMAIL, Optional.empty()),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty()
+                )
+            );
+
+            assertThat(invitationCrudService.storage()).isEmpty();
+            assertThat(membershipDomainService.storage())
+                .hasSize(2)
+                .allSatisfy(m -> assertThat(m.getReferenceType()).isEqualTo(MembershipReferenceType.APPLICATION));
+        }
+
+        @Test
+        void should_finalize_existing_user_and_accept_application_invitation() {
+            var invitation = anApplicationInvitation("00000000-0000-0000-0000-000000000001", "app-1", USER_EMAIL, "USER");
+            invitationCrudService.initWith(List.of(invitation));
+            var existingUser = aBaseUserEntity(EXISTING_USER_ID, USER_EMAIL);
+            userCrudService.initWith(List.of(existingUser));
+            when(passwordValidator.validate(RAW_PASSWORD.value())).thenReturn(true);
+
+            var output = cut.execute(
+                new AcceptUserInvitationUseCase.Input(
+                    executionContext,
+                    new ApplicationInvitationAction(USER_EMAIL, Optional.of(EXISTING_USER_ID)),
+                    Optional.of(RAW_PASSWORD),
+                    Optional.empty(),
+                    Optional.empty()
+                )
+            );
+
+            assertThat(output.user().getId()).isEqualTo(EXISTING_USER_ID);
+            assertThat(invitationCrudService.storage()).isEmpty();
+            assertThat(userCrudService.getStoredPassword(EXISTING_USER_ID)).isPresent();
+            assertThat(membershipDomainService.storage())
+                .hasSize(1)
+                .first()
+                .satisfies(m -> assertThat(m.getReferenceType()).isEqualTo(MembershipReferenceType.APPLICATION));
+        }
+
+        @Test
+        void should_throw_when_no_pending_invitations() {
+            assertThatThrownBy(() ->
+                cut.execute(
+                    new AcceptUserInvitationUseCase.Input(
+                        executionContext,
+                        new ApplicationInvitationAction(USER_EMAIL, Optional.empty()),
                         Optional.empty(),
                         Optional.empty(),
                         Optional.empty()
