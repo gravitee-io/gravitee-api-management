@@ -52,4 +52,8 @@ export class ApplicationInvitationService {
   ): Observable<ApplicationInvitationsResponse> {
     return this.http.post<ApplicationInvitationsResponse>(`${this.configService.baseURL}/applications/${applicationId}/invitations`, input);
   }
+
+  deleteApplicationInvitation(applicationId: string, invitationId: string): Observable<void> {
+    return this.http.delete<void>(`${this.configService.baseURL}/applications/${applicationId}/invitations/${invitationId}`);
+  }
 }

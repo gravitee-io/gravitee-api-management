@@ -25,6 +25,7 @@ export class ApplicationTabInvitationsComponentHarness extends ComponentHarness 
   private readonly locateLoader = this.locatorForOptional(LoaderHarness);
   private readonly locateSectionTitle = this.locatorForOptional('[data-testid="invitations-section-title"]');
   private readonly locateErrorMessage = this.locatorForOptional('[data-testid="invitations-list-error"]');
+  private readonly locateDeleteErrorMessage = this.locatorForOptional('[data-testid="invitations-delete-error"]');
   private readonly locateEmptyState = this.locatorForOptional('[data-testid="invitations-empty-state"]');
   private readonly locateSearchBar = this.locatorForOptional('app-search-bar');
   private readonly locateSearchNoMatch = this.locatorForOptional('[data-testid="invitations-search-no-match"]');
@@ -43,6 +44,10 @@ export class ApplicationTabInvitationsComponentHarness extends ComponentHarness 
 
   public async getErrorMessage(): Promise<TestElement | null> {
     return this.locateErrorMessage();
+  }
+
+  public async getDeleteErrorMessage(): Promise<TestElement | null> {
+    return this.locateDeleteErrorMessage();
   }
 
   public async getEmptyState(): Promise<TestElement | null> {
@@ -67,5 +72,13 @@ export class ApplicationTabInvitationsComponentHarness extends ComponentHarness 
 
   public async getPaginatedTable(): Promise<PaginatedTableHarness | null> {
     return this.locatePaginatedTable();
+  }
+
+  public async getDeleteInvitationButton(): Promise<MatButtonHarness | null> {
+    return (await this.locatePaginatedTable())?.getActionButton('delete') ?? null;
+  }
+
+  public async clickDeleteInvitation(): Promise<void> {
+    return (await this.getDeleteInvitationButton())!.click();
   }
 }

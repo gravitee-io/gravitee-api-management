@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { InteractivityChecker } from '@angular/cdk/a11y';
+import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -24,6 +26,8 @@ import { Subject } from 'rxjs';
 
 import { ApplicationTabInvitationsComponent } from './application-tab-invitations.component';
 import { ApplicationTabInvitationsComponentHarness } from './application-tab-invitations.component.harness';
+import { ConfirmDialogComponent } from '../../../../components/confirm-dialog/confirm-dialog.component';
+import { ConfirmDialogHarness } from '../../../../components/confirm-dialog/confirm-dialog.harness';
 import {
   ApplicationInvitationsResponse,
   ApplicationInvitationsSearchFilters,
@@ -40,11 +44,12 @@ import { ApplicationInvitationCreateDialogComponent } from '../application-invit
 describe('ApplicationTabInvitationsComponent', () => {
   let fixture: ComponentFixture<ApplicationTabInvitationsComponent>;
   let httpTestingController: HttpTestingController;
+  let rootLoader: HarnessLoader;
   const applicationId = 'app-1';
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ApplicationTabInvitationsComponent],
+      imports: [ApplicationTabInvitationsComponent, ConfirmDialogComponent],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -52,10 +57,13 @@ describe('ApplicationTabInvitationsComponent', () => {
         provideRouter([]),
         { provide: ConfigService, useValue: { baseURL: TESTING_BASE_URL } },
       ],
-    }).compileComponents();
+    })
+      .overrideProvider(InteractivityChecker, { useValue: { isFocusable: () => true, isTabbable: () => true } })
+      .compileComponents();
 
     fixture = TestBed.createComponent(ApplicationTabInvitationsComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     fixture.componentRef.setInput('applicationId', applicationId);
     fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R'] }));
   });
@@ -87,8 +95,8 @@ describe('ApplicationTabInvitationsComponent', () => {
     expect(await harness.getPaginatedTable()).not.toBeNull();
   });
 
-  it('should show invitation data columns and an empty actions column', () => {
-    expect(fixture.componentInstance.tableColumns.map(column => column.id)).toEqual(['email', 'role', 'actions']);
+  it('should show invitation data columns', () => {
+    expect(fixture.componentInstance.tableColumns.map(column => column.id)).toEqual(['email', 'role']);
   });
 
   it('should show section title with total invitation count from paginate metadata', async () => {
@@ -326,11 +334,123 @@ describe('ApplicationTabInvitationsComponent', () => {
     expect((await roleCell!.text()).trim()).toBe('POC');
   });
 
-  it('should render empty actions cell', async () => {
-    const harness = await flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()]));
-    const table = await harness.getPaginatedTable();
-    const actionsCell = await table!.getCellElement(0, 'actions');
-    expect((await actionsCell!.text()).trim()).toBe('');
+  describe('delete action', () => {
+    it('should not show delete button when user lacks MEMBER[D] permission', async () => {
+      const harness = await flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()]));
+
+      expect(await harness.getDeleteInvitationButton()).toBeNull();
+    });
+
+    it('should show delete button when user has MEMBER[D] permission', async () => {
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'D'] }));
+
+      const harness = await flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()]));
+
+      expect(await harness.getDeleteInvitationButton()).not.toBeNull();
+    });
+
+    it('should open confirmation dialog on delete click', async () => {
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'D'] }));
+      const harness = await flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation({ email: 'alice@example.com' })]));
+
+      await harness.clickDeleteInvitation();
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarnessOrNull(ConfirmDialogHarness);
+      expect(dialog).not.toBeNull();
+      expect(await dialog!.getTitle()).toBe('Delete invitation?');
+      expect(await dialog!.getContent()).toContain('alice@example.com');
+      await dialog!.cancel();
+    });
+
+    it('should not send DELETE request when dialog is cancelled', async () => {
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'D'] }));
+      const harness = await flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()]));
+
+      await harness.clickDeleteInvitation();
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarnessOrNull(ConfirmDialogHarness);
+      await dialog!.cancel();
+      fixture.detectChanges();
+
+      httpTestingController.expectNone(r => r.method === 'DELETE');
+    });
+
+    it('should send DELETE request and reload list on confirm', async () => {
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'D'] }));
+      const invitation = fakeApplicationInvitation({ id: 'invitation-1', email: 'alice@example.com' });
+      const harness = await flush(fakeApplicationInvitationsResponse([invitation]));
+
+      await harness.clickDeleteInvitation();
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarnessOrNull(ConfirmDialogHarness);
+      await dialog!.confirm();
+      fixture.detectChanges();
+
+      httpTestingController
+        .expectOne(r => r.url === `${TESTING_BASE_URL}/applications/${applicationId}/invitations/${invitation.id}` && r.method === 'DELETE')
+        .flush(null, { status: 204, statusText: 'No Content' });
+      fixture.detectChanges();
+
+      httpTestingController.expectOne(r => r.url.includes('invitations/_search')).flush(fakeApplicationInvitationsResponse([]));
+      await fixture.whenStable();
+    });
+
+    it('should move to previous page after deleting the last invitation from the current page', async () => {
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'D'] }));
+      const invitation = fakeApplicationInvitation({ id: 'invitation-last-page' });
+      await flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation({ id: 'invitation-page-1' })], 11));
+      fixture.componentInstance.onPageChange(2);
+      fixture.detectChanges();
+      const pageTwoRequest = httpTestingController.expectOne(r => r.url.includes('invitations/_search') && r.params.get('page') === '2');
+      pageTwoRequest.flush(fakeApplicationInvitationsResponse([invitation], 11));
+      await fixture.whenStable();
+      fixture.detectChanges();
+      const harness = await getHarness();
+
+      await harness.clickDeleteInvitation();
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarnessOrNull(ConfirmDialogHarness);
+      await dialog!.confirm();
+      fixture.detectChanges();
+
+      httpTestingController
+        .expectOne(r => r.url === `${TESTING_BASE_URL}/applications/${applicationId}/invitations/${invitation.id}` && r.method === 'DELETE')
+        .flush(null, { status: 204, statusText: 'No Content' });
+      fixture.detectChanges();
+
+      const reloadRequest = httpTestingController.expectOne(r => r.url.includes('invitations/_search') && r.params.get('page') === '1');
+      expect(reloadRequest.request.params.get('size')).toBe('10');
+      reloadRequest.flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation({ id: 'remaining-invitation' })], 10));
+      await fixture.whenStable();
+    });
+
+    it('should show inline error when delete fails', async () => {
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'D'] }));
+      const invitation = fakeApplicationInvitation({ id: 'invitation-1' });
+      const harness = await flush(fakeApplicationInvitationsResponse([invitation]));
+
+      await harness.clickDeleteInvitation();
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarnessOrNull(ConfirmDialogHarness);
+      await dialog!.confirm();
+      fixture.detectChanges();
+
+      httpTestingController
+        .expectOne(r => r.url === `${TESTING_BASE_URL}/applications/${applicationId}/invitations/${invitation.id}` && r.method === 'DELETE')
+        .flush({ error: 'Server error' }, { status: 500, statusText: 'Internal Server Error' });
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const error = await harness.getDeleteErrorMessage();
+      expect(error).not.toBeNull();
+      expect(await error!.getAttribute('role')).toBe('alert');
+      expect(await error!.text()).toContain('An error occurred while deleting the invitation');
+    });
   });
 
   it('should POST with page=2 when page changes', async () => {

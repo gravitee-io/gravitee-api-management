@@ -84,4 +84,15 @@ describe('ApplicationInvitationService', () => {
     expect(req.request.body).toEqual(input);
     req.flush(response);
   });
+
+  it('should delete application invitation', done => {
+    const invitationId = 'invitation-1';
+
+    service.deleteApplicationInvitation(applicationId, invitationId).subscribe(() => done());
+
+    const req = httpTestingController.expectOne(
+      r => r.url === `${TESTING_BASE_URL}/applications/${applicationId}/invitations/${invitationId}` && r.method === 'DELETE',
+    );
+    req.flush(null, { status: 204, statusText: 'No Content' });
+  });
 });
