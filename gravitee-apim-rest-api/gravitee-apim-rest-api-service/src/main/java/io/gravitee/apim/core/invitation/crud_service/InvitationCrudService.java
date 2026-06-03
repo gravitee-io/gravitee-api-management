@@ -23,6 +23,17 @@ import java.util.List;
 public interface InvitationCrudService {
     ApplicationInvitation create(ApplicationInvitation invitation);
 
+<<<<<<< HEAD
+=======
+    default ApplicationInvitation update(ApplicationInvitation invitation) {
+        throw new UnsupportedOperationException("update not implemented");
+    }
+
+    default Optional<ApplicationInvitation> findApplicationInvitationById(InvitationId invitationId) {
+        throw new UnsupportedOperationException("findApplicationInvitationById not implemented");
+    }
+
+>>>>>>> 856b68e43b (feat: add application invitation role update)
     default List<Invitation> findByEmail(String email) {
         throw new UnsupportedOperationException("findByEmail not implemented");
     }

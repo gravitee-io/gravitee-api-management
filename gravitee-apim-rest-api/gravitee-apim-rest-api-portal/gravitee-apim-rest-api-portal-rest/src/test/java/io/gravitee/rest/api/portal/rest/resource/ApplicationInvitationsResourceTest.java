@@ -41,6 +41,7 @@ import io.gravitee.rest.api.portal.rest.model.ApplicationInvitationsSearchFilter
 import io.gravitee.rest.api.portal.rest.model.ApplicationInvitationsSearchInput;
 import io.gravitee.rest.api.portal.rest.model.InvitationCreateInput;
 import io.gravitee.rest.api.portal.rest.model.InvitationRecipientInput;
+import io.gravitee.rest.api.portal.rest.model.InvitationUpdateInput;
 import io.gravitee.rest.api.portal.rest.model.InvitationsResponse;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
@@ -58,6 +59,7 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
     private static final String INVITATION_ID_1 = "00000000-0000-0000-0000-000000000001";
     private static final String INVITATION_ID_2 = "00000000-0000-0000-0000-000000000002";
     private static final String ROLE_NAME = "USER";
+    private static final String UPDATED_ROLE_NAME = "OWNER";
 
     @Autowired
     private InvitationQueryService invitationQueryService;
@@ -84,7 +86,7 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
         applicationCrudService.reset();
         roleQueryService.reset();
         applicationCrudService.initWith(List.of(BaseApplicationEntity.builder().id(APPLICATION).environmentId("DEFAULT").build()));
-        roleQueryService.initWith(List.of(applicationRole()));
+        roleQueryService.initWith(List.of(applicationRole(ROLE_NAME), applicationRole(UPDATED_ROLE_NAME)));
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
     }
 
@@ -251,6 +253,164 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
         verify(invitationQueryService, never()).findByApplicationId(anyString(), any(), any());
     }
 
+<<<<<<< HEAD
+=======
+    @Test
+    void should_delete_invitation() {
+        var invitationId = InvitationId.of(INVITATION_ID_1);
+        when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(
+            Optional.of(anInvitation(INVITATION_ID_1, "alice@example.com"))
+        );
+
+        var response = target(APPLICATION).path("invitations").path(INVITATION_ID_1).request().delete();
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
+        verify(invitationCrudService).delete(invitationId);
+    }
+
+    @Test
+    void should_return_not_found_when_deleting_invitation_for_unknown_application() {
+        var response = target(UNKNOWN_APPLICATION).path("invitations").path(INVITATION_ID_1).request().delete();
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        verify(invitationCrudService, never()).findApplicationInvitationById(any());
+        verify(invitationCrudService, never()).delete(any());
+    }
+
+    @Test
+    void should_return_not_found_when_deleting_unknown_invitation() {
+        var invitationId = InvitationId.of(INVITATION_ID_1);
+        when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(Optional.empty());
+
+        var response = target(APPLICATION).path("invitations").path(INVITATION_ID_1).request().delete();
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        verify(invitationCrudService, never()).delete(any());
+    }
+
+    @Test
+    void should_return_not_found_when_deleting_invitation_from_another_application() {
+        var invitationId = InvitationId.of(INVITATION_ID_1);
+        when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(
+            Optional.of(anInvitation(INVITATION_ID_1, OTHER_APPLICATION, "alice@example.com"))
+        );
+
+        var response = target(APPLICATION).path("invitations").path(INVITATION_ID_1).request().delete();
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        verify(invitationCrudService, never()).delete(any());
+    }
+
+    @Test
+    void should_update_invitation_role() {
+        var invitationId = InvitationId.of(INVITATION_ID_1);
+        when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(
+            Optional.of(anInvitation(INVITATION_ID_1, "alice@example.com"))
+        );
+        when(invitationCrudService.update(any(ApplicationInvitation.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        var response = target(APPLICATION)
+            .path("invitations")
+            .path(INVITATION_ID_1)
+            .request()
+            .put(Entity.json(new InvitationUpdateInput().role(" " + UPDATED_ROLE_NAME + " ")));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        var invitation = response.readEntity(io.gravitee.rest.api.portal.rest.model.Invitation.class);
+        assertThat(invitation.getId()).isEqualTo(INVITATION_ID_1);
+        assertThat(invitation.getEmail()).isEqualTo("alice@example.com");
+        assertThat(invitation.getRole()).isEqualTo(UPDATED_ROLE_NAME);
+        verify(invitationCrudService).update(
+            argThat(
+                updatedInvitation ->
+                    updatedInvitation.id().equals(invitationId) &&
+                    updatedInvitation.applicationId().equals(APPLICATION) &&
+                    updatedInvitation.email().equals("alice@example.com") &&
+                    updatedInvitation.roleName().equals(UPDATED_ROLE_NAME)
+            )
+        );
+    }
+
+    @Test
+    void should_return_not_found_when_updating_invitation_for_unknown_application() {
+        var response = target(UNKNOWN_APPLICATION)
+            .path("invitations")
+            .path(INVITATION_ID_1)
+            .request()
+            .put(Entity.json(new InvitationUpdateInput().role(UPDATED_ROLE_NAME)));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        verify(invitationCrudService, never()).findApplicationInvitationById(any());
+        verify(invitationCrudService, never()).update(any());
+    }
+
+    @Test
+    void should_return_not_found_when_updating_unknown_invitation() {
+        var invitationId = InvitationId.of(INVITATION_ID_1);
+        when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(Optional.empty());
+
+        var response = target(APPLICATION)
+            .path("invitations")
+            .path(INVITATION_ID_1)
+            .request()
+            .put(Entity.json(new InvitationUpdateInput().role(UPDATED_ROLE_NAME)));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        verify(invitationCrudService, never()).update(any());
+    }
+
+    @Test
+    void should_return_not_found_when_updating_invitation_from_another_application() {
+        var invitationId = InvitationId.of(INVITATION_ID_1);
+        when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(
+            Optional.of(anInvitation(INVITATION_ID_1, OTHER_APPLICATION, "alice@example.com"))
+        );
+
+        var response = target(APPLICATION)
+            .path("invitations")
+            .path(INVITATION_ID_1)
+            .request()
+            .put(Entity.json(new InvitationUpdateInput().role(UPDATED_ROLE_NAME)));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        verify(invitationCrudService, never()).update(any());
+    }
+
+    @Test
+    void should_return_bad_request_when_updating_invitation_with_blank_role() {
+        var invitationId = InvitationId.of(INVITATION_ID_1);
+        when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(
+            Optional.of(anInvitation(INVITATION_ID_1, "alice@example.com"))
+        );
+
+        var response = target(APPLICATION)
+            .path("invitations")
+            .path(INVITATION_ID_1)
+            .request()
+            .put(Entity.json(new InvitationUpdateInput().role(" ")));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        verify(invitationCrudService, never()).update(any());
+    }
+
+    @Test
+    void should_return_bad_request_when_updating_invitation_with_unknown_role() {
+        var invitationId = InvitationId.of(INVITATION_ID_1);
+        when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(
+            Optional.of(anInvitation(INVITATION_ID_1, "alice@example.com"))
+        );
+
+        var response = target(APPLICATION)
+            .path("invitations")
+            .path(INVITATION_ID_1)
+            .request()
+            .put(Entity.json(new InvitationUpdateInput().role("UNKNOWN")));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        verify(invitationCrudService, never()).update(any());
+    }
+
+>>>>>>> 856b68e43b (feat: add application invitation role update)
     private ApplicationInvitation anInvitation(String id, String email) {
         return new ApplicationInvitation(
             InvitationId.of(id),
@@ -269,10 +429,10 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
             .notify(notify);
     }
 
-    private Role applicationRole() {
+    private Role applicationRole(String roleName) {
         return Role.builder()
-            .id("application-user-role")
-            .name(ROLE_NAME)
+            .id("application-%s-role".formatted(roleName.toLowerCase()))
+            .name(roleName)
             .referenceId("DEFAULT")
             .referenceType(Role.ReferenceType.ORGANIZATION)
             .scope(Role.Scope.APPLICATION)

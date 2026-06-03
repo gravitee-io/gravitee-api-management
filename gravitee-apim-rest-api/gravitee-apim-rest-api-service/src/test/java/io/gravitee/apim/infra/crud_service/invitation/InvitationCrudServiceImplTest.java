@@ -84,6 +84,29 @@ class InvitationCrudServiceImplTest {
         assertThat(throwable).isInstanceOf(TechnicalDomainException.class).hasMessageContaining("create application invitation");
     }
 
+    @Test
+    void should_update_application_invitation() {
+        invitationRepository.initWith(List.of(aRepositoryApplicationInvitation(INVITATION_ID_1, APPLICATION_ID, "alice@example.com")));
+        var invitationToUpdate = anApplicationInvitation(INVITATION_ID_1, APPLICATION_ID, "alice@example.com", "OWNER");
+
+        var result = cut.update(invitationToUpdate);
+
+        assertThat(result.id().toString()).isEqualTo(INVITATION_ID_1);
+        assertThat(result.roleName()).isEqualTo("OWNER");
+        assertThat(invitationRepository.storage().get(INVITATION_ID_1).getApplicationRole()).isEqualTo("OWNER");
+    }
+
+    @Test
+    void should_throw_technical_domain_exception_when_update_fails() {
+        invitationRepository.failsWith(new TechnicalException("error"));
+
+        var throwable = catchThrowable(() ->
+            cut.update(anApplicationInvitation(INVITATION_ID_1, APPLICATION_ID, "alice@example.com", ROLE))
+        );
+
+        assertThat(throwable).isInstanceOf(TechnicalDomainException.class).hasMessageContaining("update application invitation");
+    }
+
     @Nested
     class FindByEmail {
 

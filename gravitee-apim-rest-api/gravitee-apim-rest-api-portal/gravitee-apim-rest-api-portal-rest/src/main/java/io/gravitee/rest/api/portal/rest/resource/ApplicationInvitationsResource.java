@@ -17,15 +17,18 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.apim.core.invitation.use_case.CreateApplicationInvitationsUseCase;
 import io.gravitee.apim.core.invitation.use_case.SearchApplicationInvitationsUseCase;
+import io.gravitee.apim.core.invitation.use_case.UpdateApplicationInvitationUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationInvitationMapper;
+import io.gravitee.rest.api.portal.rest.mapper.ApplicationInvitationUpdateInputMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationInvitationsCreateInputMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationInvitationsSearchCriteriaMapper;
 import io.gravitee.rest.api.portal.rest.model.ApplicationInvitationsSearchInput;
 import io.gravitee.rest.api.portal.rest.model.InvitationCreateInput;
+import io.gravitee.rest.api.portal.rest.model.InvitationUpdateInput;
 import io.gravitee.rest.api.portal.rest.model.InvitationsResponse;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.rest.annotation.Permission;
@@ -38,6 +41,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -56,6 +60,15 @@ public class ApplicationInvitationsResource extends AbstractResource {
     @Inject
     private CreateApplicationInvitationsUseCase createApplicationInvitationsUseCase;
 
+<<<<<<< HEAD
+=======
+    @Inject
+    private DeleteApplicationInvitationUseCase deleteApplicationInvitationUseCase;
+
+    @Inject
+    private UpdateApplicationInvitationUseCase updateApplicationInvitationUseCase;
+
+>>>>>>> 856b68e43b (feat: add application invitation role update)
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -104,4 +117,49 @@ public class ApplicationInvitationsResource extends AbstractResource {
 
         return createListResponse(executionContext, invitations, paginationParam, metadata);
     }
+<<<<<<< HEAD
+=======
+
+    @DELETE
+    @Path("/{invitationId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.DELETE) })
+    public Response deleteApplicationInvitation(
+        @PathParam("applicationId") String applicationId,
+        @PathParam("invitationId") String invitationId
+    ) {
+        deleteApplicationInvitationUseCase.execute(
+            new DeleteApplicationInvitationUseCase.Input(
+                GraviteeContext.getCurrentEnvironment(),
+                applicationId,
+                InvitationId.of(invitationId)
+            )
+        );
+
+        return Response.noContent().build();
+    }
+
+    @PUT
+    @Path("/{invitationId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.UPDATE) })
+    public Response updateApplicationInvitation(
+        @PathParam("applicationId") String applicationId,
+        @PathParam("invitationId") String invitationId,
+        @Valid @NotNull(message = "Input must not be null.") InvitationUpdateInput input
+    ) {
+        var output = updateApplicationInvitationUseCase.execute(
+            new UpdateApplicationInvitationUseCase.Input(
+                GraviteeContext.getCurrentOrganization(),
+                GraviteeContext.getCurrentEnvironment(),
+                applicationId,
+                InvitationId.of(invitationId),
+                ApplicationInvitationUpdateInputMapper.INSTANCE.toUpdateApplicationInvitation(input)
+            )
+        );
+
+        return Response.ok(INVITATION_MAPPER.toInvitation(output.invitation())).build();
+    }
+>>>>>>> 856b68e43b (feat: add application invitation role update)
 }

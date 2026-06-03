@@ -70,7 +70,11 @@ class CreateApplicationInvitationsDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        cut = new CreateApplicationInvitationsDomainService(invitationQueryService, invitationCrudService, roleQueryService);
+        cut = new CreateApplicationInvitationsDomainService(
+            invitationQueryService,
+            invitationCrudService,
+            new ValidateApplicationInvitationRoleDomainService(roleQueryService)
+        );
     }
 
     @Test

@@ -49,6 +49,32 @@ public class InvitationCrudServiceImpl extends TransactionalService implements I
     }
 
     @Override
+<<<<<<< HEAD
+=======
+    public ApplicationInvitation update(ApplicationInvitation invitation) {
+        try {
+            return InvitationAdapter.INSTANCE.toApplicationInvitation(
+                invitationRepository.update(InvitationAdapter.INSTANCE.toRepository(invitation))
+            );
+        } catch (TechnicalException | IllegalStateException e) {
+            throw new TechnicalDomainException("An error occurs while trying to update application invitation", e);
+        }
+    }
+
+    @Override
+    public Optional<ApplicationInvitation> findApplicationInvitationById(InvitationId invitationId) {
+        try {
+            return invitationRepository
+                .findById(invitationId.toString())
+                .filter(invitation -> InvitationReferenceType.APPLICATION.name().equals(invitation.getReferenceType()))
+                .map(InvitationAdapter.INSTANCE::toApplicationInvitation);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to find application invitation by id", e);
+        }
+    }
+
+    @Override
+>>>>>>> 856b68e43b (feat: add application invitation role update)
     public List<Invitation> findByEmail(String email) {
         try {
             return invitationRepository.findByEmail(email).stream().map(InvitationAdapter.INSTANCE::toEntity).toList();
