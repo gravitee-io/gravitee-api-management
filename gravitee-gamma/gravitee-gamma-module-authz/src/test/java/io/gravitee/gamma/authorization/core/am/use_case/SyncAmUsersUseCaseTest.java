@@ -41,7 +41,6 @@ import io.gravitee.gamma.authorization.core.am.model.AmUserPage;
 import io.gravitee.gamma.authorization.core.am.service_provider.AmDirectoryClient;
 import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
 import io.gravitee.gamma.authorization.service.CreateOrReplaceAuthzEntityCommand;
-import io.gravitee.gamma.definition.authz.AgentEntityId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -350,8 +349,8 @@ class SyncAmUsersUseCaseTest {
 
         run();
 
-        // The entity id must equal the shared derivation from the agent's client_id.
-        String expectedId = AgentEntityId.derive("agent-client");
+        // The entity id must equal the name-UUID derivation from the agent's client_id.
+        String expectedId = java.util.UUID.nameUUIDFromBytes("agent-client".getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString();
         List<CreateOrReplaceAuthzEntityCommand> commands = captureSingleBulkUpsert();
         assertThat(commands.get(0).entityId()).isEqualTo(expectedId);
     }
