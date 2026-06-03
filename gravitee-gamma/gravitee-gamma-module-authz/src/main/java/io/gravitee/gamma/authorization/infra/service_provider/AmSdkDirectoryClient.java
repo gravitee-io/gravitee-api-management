@@ -15,12 +15,8 @@
  */
 package io.gravitee.gamma.authorization.infra.service_provider;
 
-<<<<<<< HEAD
-=======
 import io.gravitee.am.sdk.management.model.ApplicationPage;
 import io.gravitee.am.sdk.management.model.FilteredApplication;
-import io.gravitee.am.sdk.management.model.FilteredIdentityProviderInfo;
->>>>>>> 786ba43924 (feat(authz): sync am agents into the entity store as agent-identity principals)
 import io.gravitee.am.sdk.management.model.Group;
 import io.gravitee.am.sdk.management.model.GroupPage;
 import io.gravitee.am.sdk.management.model.Role;

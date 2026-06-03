@@ -24,6 +24,8 @@ import io.gravitee.am.sdk.management.api.ApplicationApi;
 import io.gravitee.am.sdk.management.api.ApplicationApiImpl;
 import io.gravitee.am.sdk.management.api.GroupApi;
 import io.gravitee.am.sdk.management.api.GroupApiImpl;
+import io.gravitee.am.sdk.management.api.IdentityProviderApi;
+import io.gravitee.am.sdk.management.api.IdentityProviderApiImpl;
 import io.gravitee.am.sdk.management.api.RoleApi;
 import io.gravitee.am.sdk.management.api.RoleApiImpl;
 import io.gravitee.am.sdk.management.api.UserApi;
@@ -38,11 +40,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
 /**
-<<<<<<< HEAD
- * Builds the AM management API facades (user, group, role) from a stored {@link AmConnection},
-=======
  * Builds the AM management API facades (user, group, role, identity provider, application) from a stored {@link AmConnection},
->>>>>>> 786ba43924 (feat(authz): sync am agents into the entity store as agent-identity principals)
  * all sharing one {@link ApiClient} (and thus one Vert.x WebClient connection pool). No caching — a
  * sync opens one set per run (see {@code AmSdkDirectoryClient.openSession}) and closes the shared
  * client when done, so an updated connection takes effect on the next sync.
@@ -55,14 +53,6 @@ public class AmSdkDirectoryClientFactory {
         this.vertx = vertx;
     }
 
-<<<<<<< HEAD
-    /** The three AM API facades for a connection plus the shared client that owns their HTTP pool. */
-    public record AmSdkApis(ApiClient apiClient, UserApi userApi, GroupApi groupApi, RoleApi roleApi) {}
-
-    public AmSdkApis create(AmConnection connection) {
-        ApiClient apiClient = buildApiClient(connection);
-        return new AmSdkApis(apiClient, new UserApiImpl(apiClient), new GroupApiImpl(apiClient), new RoleApiImpl(apiClient));
-=======
     /** The AM API facades for a connection plus the shared client that owns their HTTP pool. */
     public record AmSdkApis(
         ApiClient apiClient,
@@ -83,7 +73,6 @@ public class AmSdkDirectoryClientFactory {
             new IdentityProviderApiImpl(apiClient),
             new ApplicationApiImpl(apiClient)
         );
->>>>>>> 786ba43924 (feat(authz): sync am agents into the entity store as agent-identity principals)
     }
 
     private ApiClient buildApiClient(AmConnection connection) {
