@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.plan.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -25,6 +26,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PlanFixtures;
+import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.plan.domain_service.PlanExcludedGroupsDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanSearchQueryService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
@@ -57,11 +61,22 @@ class GetPlansUseCaseTest {
     @Mock
     private SubscriptionQueryService subscriptionQueryService;
 
+    @Mock
+    private ApiProductCrudService apiProductCrudService;
+
+    @Mock
+    private PlanExcludedGroupsDomainService planExcludedGroupsDomainService;
+
     private GetPlansUseCase getPlansUseCase;
 
     @BeforeEach
     void setUp() {
-        getPlansUseCase = new GetPlansUseCase(planSearchQueryService, subscriptionQueryService);
+        getPlansUseCase = new GetPlansUseCase(
+            planSearchQueryService,
+            subscriptionQueryService,
+            apiProductCrudService,
+            planExcludedGroupsDomainService
+        );
     }
 
     @Nested
@@ -219,6 +234,43 @@ class GetPlansUseCaseTest {
 
             assertThat(output.plans()).hasSize(2);
             assertThat(output.plans()).extracting(Plan::getId).containsExactly("plan-1", "plan-2");
+        }
+
+        @Test
+        void should_filter_plans_by_excluded_groups_for_non_admin_api_product() {
+            Plan allowedPlan = PlanFixtures.HttpV4.anApiKey().toBuilder().id("allowed-plan").order(1).build();
+            Plan restrictedPlan = PlanFixtures.HttpV4.anApiKey()
+                .toBuilder()
+                .id("restricted-plan")
+                .order(2)
+                .excludedGroups(List.of("grp-excluded"))
+                .build();
+
+            PlanQuery query = PlanQuery.builder().referenceId(API_PRODUCT_ID).build();
+            ApiProduct apiProduct = ApiProduct.builder().id(API_PRODUCT_ID).environmentId("DEFAULT").build();
+
+            when(
+                planSearchQueryService.searchPlans(
+                    eq(API_PRODUCT_ID),
+                    eq(GenericPlanEntity.ReferenceType.API_PRODUCT),
+                    eq(query),
+                    eq(USER),
+                    eq(false)
+                )
+            ).thenReturn(List.of(allowedPlan, restrictedPlan));
+            when(apiProductCrudService.get(API_PRODUCT_ID)).thenReturn(apiProduct);
+            when(planExcludedGroupsDomainService.isUserAuthorizedToAccessApiProductPlan(eq(apiProduct), any(), eq(USER))).thenAnswer(
+                invocation -> {
+                    List<String> excludedGroups = invocation.getArgument(1);
+                    return excludedGroups == null || excludedGroups.isEmpty();
+                }
+            );
+
+            var input = GetPlansUseCase.Input.of(API_PRODUCT_ID, GenericPlanEntity.ReferenceType.API_PRODUCT, USER, false, query, null);
+            var output = getPlansUseCase.execute(input);
+
+            assertThat(output.plans()).hasSize(1);
+            assertThat(output.plans()).extracting(Plan::getId).containsExactly("allowed-plan");
         }
 
         @Test

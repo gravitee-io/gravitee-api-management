@@ -22,6 +22,7 @@ import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
+import io.gravitee.apim.core.plan.domain_service.PlanExcludedGroupsDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
@@ -36,12 +37,15 @@ public class CreateApiProductPlanUseCase {
 
     private final CreatePlanDomainService createPlanDomainService;
     private final ApiProductCrudService apiProductCrudService;
+    private final PlanExcludedGroupsDomainService planExcludedGroupsDomainService;
 
     public Output execute(Input input) {
         log.debug("Creating plan for reference {}", input.referenceId());
         var apiProduct = apiProductCrudService.get(input.referenceId());
 
         var plan = input.toPlan.apply(apiProduct);
+
+        planExcludedGroupsDomainService.validateExcludedGroups(apiProduct.getEnvironmentId(), plan.getExcludedGroups());
 
         plan.setEnvironmentId(apiProduct.getEnvironmentId());
         //setting this to not null because jdbc looks for a not null value in this column
