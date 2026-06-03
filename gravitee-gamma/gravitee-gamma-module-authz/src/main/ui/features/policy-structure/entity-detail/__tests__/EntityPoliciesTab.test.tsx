@@ -22,7 +22,19 @@ import { EntityPoliciesTab } from '../EntityPoliciesTab';
 const server: EntityInstance = { uid: { type: 'MCPServer', id: 'flight-status-mcp' }, attrs: {}, parents: [], source: 'gravitee-catalog' };
 
 function policy(over: Partial<PolicyResponse>): PolicyResponse {
-    return { id: 'x', name: 'p', kind: 'RESOURCE', entityId: 'mcp.flight-status-mcp', policyText: '', status: 'DRAFT', ...over };
+    return {
+        id: 'x',
+        environmentId: 'env',
+        name: 'p',
+        description: null,
+        policyText: '',
+        type: 'MCP',
+        target: { id: 'mcp.flight-status-mcp', label: 'flight-status-mcp' },
+        status: 'DRAFT',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+        ...over,
+    };
 }
 
 describe('EntityPoliciesTab', () => {
@@ -30,16 +42,21 @@ describe('EntityPoliciesTab', () => {
         render(
             <EntityPoliciesTab
                 entity={server}
-                policies={[policy({ id: '1', name: 'allow-invoke', status: 'PUBLISHED' }), policy({ id: '2', name: 'rate-limit' })]}
+                policies={[policy({ id: '1', name: 'allow-invoke', status: 'DEPLOYED' }), policy({ id: '2', name: 'rate-limit' })]}
             />,
         );
         expect(screen.getByText('allow-invoke')).toBeInTheDocument();
-        expect(screen.getByText('PUBLISHED')).toBeInTheDocument();
+        expect(screen.getByText('DEPLOYED')).toBeInTheDocument();
         expect(screen.getByText('rate-limit')).toBeInTheDocument();
     });
 
     it('ignores policies that target other entities', () => {
-        render(<EntityPoliciesTab entity={server} policies={[policy({ name: 'elsewhere', entityId: 'mcp.payments-mcp' })]} />);
+        render(
+            <EntityPoliciesTab
+                entity={server}
+                policies={[policy({ name: 'elsewhere', target: { id: 'mcp.payments-mcp', label: 'payments-mcp' } })]}
+            />,
+        );
         expect(screen.getByText('No policies reference this entity.')).toBeInTheDocument();
     });
 

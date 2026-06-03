@@ -35,5 +35,5 @@ export function childrenByType(entity: EntityInstance, all: readonly EntityInsta
 /** Policies whose target entityId equals this entity's canonical uid. */
 export function policiesFor(entity: EntityInstance, policies: readonly PolicyResponse[]): PolicyResponse[] {
     const uid = formatEntityUid(entity.uid);
-    return policies.filter(p => p.entityId === uid);
+    return policies.filter(p => p.target?.id === uid);
 }

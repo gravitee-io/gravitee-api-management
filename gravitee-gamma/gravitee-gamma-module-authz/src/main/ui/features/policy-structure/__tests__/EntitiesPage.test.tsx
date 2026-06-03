@@ -469,7 +469,20 @@ describe('EntitiesPage', () => {
     it('counts an entity targeted by a policy in the Policy-Linked KPI', async () => {
         mockByKind({ resources: [makeEntity({ id: 'r1', uid: 'mcp.flight', attributes: { _displayName: 'Flight' } })] });
         listPoliciesSpy.mockResolvedValue({
-            data: [{ id: '1', name: 'allow', kind: 'RESOURCE', entityId: 'mcp.flight', policyText: '', status: 'DRAFT' }],
+            data: [
+                {
+                    id: '1',
+                    environmentId: 'DEFAULT',
+                    name: 'allow',
+                    description: null,
+                    policyText: '',
+                    type: 'MCP',
+                    target: { id: 'mcp.flight', label: 'flight' },
+                    status: 'DRAFT',
+                    createdAt: '2026-04-27T10:00:00.000Z',
+                    updatedAt: '2026-04-27T10:00:00.000Z',
+                },
+            ],
             total: 1,
             page: 1,
             perPage: 100,

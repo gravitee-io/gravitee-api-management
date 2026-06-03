@@ -42,7 +42,20 @@ const catalog: EntityInstance = {
     parents: [],
     source: 'gravitee-catalog',
 };
-const policies: PolicyResponse[] = [{ id: '1', name: 'allow', kind: 'RESOURCE', entityId: 'user.alice', policyText: '', status: 'DRAFT' }];
+const policies: PolicyResponse[] = [
+    {
+        id: '1',
+        environmentId: 'env',
+        name: 'allow',
+        description: null,
+        policyText: '',
+        type: 'CUSTOM',
+        target: { id: 'user.alice', label: 'alice' },
+        status: 'DRAFT',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+    },
+];
 
 function renderSheet(entity: EntityInstance, onEdit = vi.fn()) {
     render(<EntityDetailSheet entity={entity} allEntities={[entity]} policies={policies} open onOpenChange={vi.fn()} onEdit={onEdit} />);
@@ -88,5 +101,31 @@ describe('EntityDetailSheet', () => {
         renderSheet(local);
         fireEvent.click(screen.getByRole('button', { name: 'Copy user.alice' }));
         await waitFor(() => expect(writeText).toHaveBeenCalledWith('user.alice'));
+    });
+
+    it('does not throw when the clipboard rejects', async () => {
+        const writeText = vi.fn().mockRejectedValue(new Error('denied'));
+        Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+        renderSheet(local);
+        fireEvent.click(screen.getByRole('button', { name: 'Copy user.alice' }));
+        await waitFor(() => expect(writeText).toHaveBeenCalledWith('user.alice'));
+        // The rejection is swallowed: the sheet stays rendered and never enters the copied state.
+        expect(screen.getByText('Alice')).toBeInTheDocument();
+    });
+
+    it('resets to the Overview tab when a different entity is opened', async () => {
+        // Same effect clears the copied indicator, so this guards the whole reset-on-open path.
+        const user = userEvent.setup();
+        const { rerender } = render(
+            <EntityDetailSheet entity={local} allEntities={[local]} policies={policies} open onOpenChange={vi.fn()} onEdit={vi.fn()} />,
+        );
+        await user.click(screen.getByRole('tab', { name: /GAPL shape/i }));
+        expect(screen.getByTestId('gapl-json')).toBeInTheDocument();
+
+        rerender(
+            <EntityDetailSheet entity={catalog} allEntities={[catalog]} policies={policies} open onOpenChange={vi.fn()} onEdit={vi.fn()} />,
+        );
+        expect(screen.queryByTestId('gapl-json')).not.toBeInTheDocument();
+        expect(screen.getByText('Flight')).toBeInTheDocument();
     });
 });

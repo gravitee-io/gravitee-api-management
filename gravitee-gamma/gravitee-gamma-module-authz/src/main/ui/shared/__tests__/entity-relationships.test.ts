@@ -47,7 +47,19 @@ const all = [
 ];
 
 function policy(over: Partial<PolicyResponse>): PolicyResponse {
-    return { id: 'x', name: 'p', kind: 'RESOURCE', entityId: 'mcp.flight-status-mcp', policyText: '', status: 'DRAFT', ...over };
+    return {
+        id: 'x',
+        environmentId: 'env',
+        name: 'p',
+        description: null,
+        policyText: '',
+        type: 'MCP',
+        target: { id: 'mcp.flight-status-mcp', label: 'flight-status-mcp' },
+        status: 'DRAFT',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+        ...over,
+    };
 }
 
 describe('referencedBy', () => {
@@ -85,17 +97,17 @@ describe('childrenByType', () => {
 });
 
 describe('policiesFor', () => {
-    it('matches policies whose entityId equals the canonical uid', () => {
+    it('matches policies whose target id equals the canonical uid', () => {
         const policies = [
             policy({ id: '1', name: 'p1' }),
-            policy({ id: '2', name: 'global', kind: 'GLOBAL', entityId: null }),
-            policy({ id: '3', name: 'other', entityId: 'mcp.payments-mcp' }),
+            policy({ id: '2', name: 'global', target: null }),
+            policy({ id: '3', name: 'other', target: { id: 'mcp.payments-mcp', label: 'payments-mcp' } }),
         ];
         expect(policiesFor(server, policies).map(p => p.name)).toEqual(['p1']);
     });
 
-    it('excludes GLOBAL (entityId null) policies', () => {
-        expect(policiesFor(server, [policy({ kind: 'GLOBAL', entityId: null })])).toEqual([]);
+    it('excludes GLOBAL (target null) policies', () => {
+        expect(policiesFor(server, [policy({ target: null })])).toEqual([]);
     });
 
     it('returns empty when no policy targets the entity', () => {
