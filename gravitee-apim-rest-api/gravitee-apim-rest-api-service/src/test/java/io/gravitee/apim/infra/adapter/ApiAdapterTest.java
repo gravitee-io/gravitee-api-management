@@ -394,6 +394,26 @@ class ApiAdapterTest {
                     .isEqualTo(model.getApiDefinitionHttpV4().getListeners().getFirst());
             });
         }
+
+        @Test
+        void should_propagate_null_resources_and_responseTemplates_to_UpdateApiEntity() {
+            // A definition that has no resources and no responseTemplates (as stored by an API
+            // created without those fields — the sync check compares against such an event payload)
+            var definition = io.gravitee.definition.model.v4.Api.builder()
+                .id("my-api")
+                .name("My Api")
+                .apiVersion("1.0.0")
+                .definitionVersion(io.gravitee.definition.model.DefinitionVersion.V4)
+                .build();
+            var model = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(definition).build();
+
+            var updateApiEntity = ApiAdapter.INSTANCE.toUpdateApiEntity(model, definition);
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(updateApiEntity.getResources()).isNull();
+                soft.assertThat(updateApiEntity.getResponseTemplates()).isNull();
+            });
+        }
     }
 
     private Api.ApiBuilder apiV4() {
