@@ -18,10 +18,11 @@ import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
-import { filter, map, of, tap } from 'rxjs';
+import { EMPTY, filter, map, of, switchMap, tap } from 'rxjs';
 
+import { ConfirmDialogComponent, ConfirmDialogData } from '../../../../components/confirm-dialog/confirm-dialog.component';
 import { LoaderComponent } from '../../../../components/loader/loader.component';
-import { PaginatedTableComponent, TableColumn } from '../../../../components/paginated-table/paginated-table.component';
+import { PaginatedTableComponent, TableAction, TableColumn } from '../../../../components/paginated-table/paginated-table.component';
 import { TableCellDirective } from '../../../../components/paginated-table/table-cell.directive';
 import { SearchBarComponent } from '../../../../components/search-bar/search-bar.component';
 import {
@@ -72,6 +73,7 @@ export class ApplicationTabInvitationsComponent {
   readonly currentPage = signal(1);
   readonly pageSize = signal(10);
   readonly searchTerm = signal('');
+  readonly error = signal<string | null>(null);
   readonly displayedTotalElements = signal<number | null>(null);
   readonly sectionTitle = computed(() => {
     const totalElements = this.displayedTotalElements();
@@ -84,16 +86,29 @@ export class ApplicationTabInvitationsComponent {
   readonly tableColumns: TableColumn[] = [
     { id: 'email', label: $localize`:@@applicationInvitationsColumnEmail:Email` },
     { id: 'role', label: $localize`:@@applicationInvitationsColumnRole:Role` },
-    { id: 'actions', label: $localize`:@@applicationInvitationsColumnActions:Actions` },
   ];
 
   readonly canRead = computed(() => this.userApplicationPermissions().MEMBER?.includes('R') ?? false);
   readonly canCreate = computed(() => this.userApplicationPermissions().MEMBER?.includes('C') ?? false);
+  readonly canDelete = computed(() => this.userApplicationPermissions().MEMBER?.includes('D') ?? false);
   readonly hasSearchTerm = computed(() => this.searchTerm().trim().length > 0);
   readonly searchFilters = computed<ApplicationInvitationsSearchFilters>(() => {
     const email = this.searchTerm().trim();
     return email ? { email } : {};
   });
+
+  readonly actions = computed<TableAction<InvitationTableRow>[]>(() =>
+    this.canDelete()
+      ? [
+          {
+            id: 'delete',
+            icon: 'delete_outline',
+            ariaLabel: $localize`:@@deleteApplicationInvitationAriaLabel:Delete invitation`,
+            color: 'warn',
+          },
+        ]
+      : [],
+  );
 
   readonly requestParams = computed<InvitationsRequestParams | null>(() =>
     this.canRead()
@@ -157,7 +172,14 @@ export class ApplicationTabInvitationsComponent {
     this.currentPage.set(1);
   }
 
+  onActionClick({ actionId, row }: { actionId: string; row: InvitationTableRow }): void {
+    if (actionId === 'delete') {
+      this.openDeleteConfirmation(row);
+    }
+  }
+
   openCreateInvitationDialog(): void {
+    this.error.set(null);
     this.matDialog
       .open<ApplicationInvitationCreateDialogComponent, ApplicationInvitationCreateDialogData, boolean>(
         ApplicationInvitationCreateDialogComponent,
@@ -173,6 +195,44 @@ export class ApplicationTabInvitationsComponent {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
+  }
+
+  private openDeleteConfirmation(invitation: InvitationTableRow): void {
+    this.error.set(null);
+    this.matDialog
+      .open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
+        role: 'alertdialog',
+        data: {
+          title: $localize`:@@deleteApplicationInvitationDialogTitle:Delete invitation?`,
+          content: $localize`:@@deleteApplicationInvitationDialogContent:Are you sure you want to delete the invitation for ${invitation.email}:invitationEmail:?`,
+          confirmLabel: $localize`:@@deleteApplicationInvitationDialogConfirm:Delete`,
+          cancelLabel: $localize`:@@deleteApplicationInvitationDialogCancel:Cancel`,
+        },
+      })
+      .afterClosed()
+      .pipe(
+        switchMap(confirmed =>
+          confirmed ? this.applicationInvitationService.deleteApplicationInvitation(this.applicationId(), invitation.id) : EMPTY,
+        ),
+        tap(() => this.reloadInvitationsAfterDelete()),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        error: () =>
+          this.error.set($localize`:@@deleteApplicationInvitationError:An error occurred while deleting the invitation. Please try again.`),
+      });
+  }
+
+  private reloadInvitationsAfterDelete(): void {
+    const totalElementsAfterDelete = Math.max(this.totalElements() - 1, 0);
+    const lastPageAfterDelete = Math.max(1, Math.ceil(totalElementsAfterDelete / this.pageSize()));
+
+    if (this.currentPage() > lastPageAfterDelete) {
+      this.currentPage.set(lastPageAfterDelete);
+      return;
+    }
+
+    this.invitationsResource.reload();
   }
 
   private toRow(invitation: ApplicationInvitation): InvitationTableRow {
