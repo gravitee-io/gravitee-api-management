@@ -156,18 +156,38 @@ public class ContentTemplateVariableProvider implements ExecutionContextTemplate
      * @return the sanitized XML
      */
     private String sanitizeContent(Buffer buffer) throws XMLStreamException {
-        XMLStreamReader sr = XML_INPUT_FACTORY.createXMLStreamReader(new ByteArrayInputStream(buffer.getBytes()));
-        while (!sr.isStartElement() && sr.hasNext()) {
-            try {
-                sr.next();
-            } catch (Exception e) {
-                log.debug("Ignoring error while parsing XML content to find a start element", e);
-            }
-        }
+        byte[] bytes = buffer.getBytes();
+        XMLStreamReader sr = XML_INPUT_FACTORY.createXMLStreamReader(new ByteArrayInputStream(bytes));
+        skipToStartElement(sr, bytes.length);
         if (sr.isStartElement()) {
             return buffer.toString().substring(sr.getLocation().getCharacterOffset());
         }
         return "";
+    }
+
+    /**
+     * Advance the reader to the first start element, skipping the prolog and DocType while
+     * tolerating recoverable parse errors (e.g. an unresolved external DocType).
+     * <p>
+     * The scan is bounded by {@code maxSteps} (the input length): some parsers report {@code next()}
+     * failures without ever advancing, so swallowing the error and retrying would spin forever on
+     * the event loop. Capping the number of steps to the input length guarantees termination since a
+     * productive scan cannot need more steps than there are bytes to read (APIM-14280).
+     * Package-private for testing.
+     */
+    static void skipToStartElement(XMLStreamReader sr, int maxSteps) throws XMLStreamException {
+        int steps = 0;
+        while (!sr.isStartElement() && sr.hasNext()) {
+            if (++steps > maxSteps) {
+                log.debug("Stopping XML scan after {} steps: parser is not advancing past invalid content", maxSteps);
+                return;
+            }
+            try {
+                sr.next();
+            } catch (Exception e) {
+                log.debug("Ignoring error while scanning for an XML start element", e);
+            }
+        }
     }
 
     /**

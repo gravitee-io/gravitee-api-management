@@ -26,9 +26,12 @@ import static io.gravitee.gateway.reactive.handlers.api.el.ContentTemplateVariab
 import static java.util.Map.entry;
 import static java.util.Map.ofEntries;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -43,9 +46,12 @@ import io.gravitee.gateway.reactive.api.el.EvaluableResponse;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.observers.TestObserver;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -53,6 +59,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -302,6 +310,26 @@ class ContentTemplateVariableProviderTest {
             obs.assertComplete();
 
             // An empty map is expected if the content isn't a valid xml.
+            verify(evaluableRequest).setXmlContent(Collections.emptyMap());
+        }
+
+        @Test
+        void should_provide_empty_xml_content_without_blocking_on_unquoted_root_attribute() {
+            // '<a b=c/>' makes the real StAX parser throw on next() at a fixed offset forever (APIM-14280):
+            // the unbounded scan spun the event-loop thread. The bounded scan must terminate quickly and
+            // yield an empty map. assertTimeoutPreemptively turns a regression (re-introduced spin) into a
+            // failure instead of a hung build.
+            when(request.bodyOrEmpty()).thenReturn(Single.just(Buffer.buffer("<a b=c/>")));
+            when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
+
+            cut.provide(ctx);
+
+            ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
+            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
+
+            final Completable contentCompletable = completableCaptor.getValue();
+            assertTimeoutPreemptively(Duration.ofSeconds(5), () -> contentCompletable.test().assertComplete());
+
             verify(evaluableRequest).setXmlContent(Collections.emptyMap());
         }
 
@@ -620,6 +648,31 @@ class ContentTemplateVariableProviderTest {
 
             // An empty map is expected if the content isn't a valid xml.
             verify(evaluableRequest).setXmlContent(Collections.emptyMap());
+        }
+    }
+
+    @Nested
+    @MockitoSettings(strictness = Strictness.LENIENT)
+    class SkipToStartElement {
+
+        @Test
+        void stops_after_maxSteps_when_parser_never_advances() throws XMLStreamException {
+            // Reader never reaches a start element, always reports more events and always fails to
+            // advance on next() - the pathological shape that spun forever before the fix and blocked
+            // the event loop (APIM-14280). The step cap must break the scan.
+            int maxSteps = 10;
+            XMLStreamReader reader = mock(XMLStreamReader.class);
+            when(reader.isStartElement()).thenReturn(false);
+            when(reader.hasNext()).thenReturn(true);
+            when(reader.next()).thenThrow(new XMLStreamException("Simulated unparseable XML content"));
+
+            assertTimeoutPreemptively(
+                Duration.ofSeconds(5),
+                () -> ContentTemplateVariableProvider.skipToStartElement(reader, maxSteps),
+                "skipToStartElement must stop once the step cap is reached, otherwise the event loop blocks (APIM-14280)"
+            );
+
+            verify(reader, times(maxSteps)).next();
         }
     }
 }
