@@ -50,7 +50,7 @@ import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFact
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.policy.cache.CachePolicy;
-import io.gravitee.policy.cache.CacheResponse;
+import io.gravitee.policy.cache.CachedResponse;
 import io.gravitee.policy.cache.configuration.CachePolicyConfiguration;
 import io.gravitee.policy.interrupt.InterruptPolicy;
 import io.gravitee.policy.interrupt.configuration.InterruptPolicyConfiguration;
@@ -268,9 +268,9 @@ class SharedPolicyGroupV4IntegrationTest {
                     .withHeader("X-Request-Header-Outside-1", equalTo("Header Outside 1"))
             );
             DummyCacheResource.checkNumberOfCacheEntries(1);
-            CacheResponse firstEntry = DummyCacheResource.getFirstEntry();
+            CachedResponse firstEntry = DummyCacheResource.getFirstEntry();
             assertThat(firstEntry).isNotNull();
-            assertThat(firstEntry.getContent()).hasToString("response from backend");
+            assertThat(firstEntry.body()).hasToString("response from backend");
         }
     }
 
