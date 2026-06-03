@@ -44,6 +44,7 @@ import io.gravitee.gamma.authorization.service.CreateOrReplaceAuthzEntityCommand
 import io.gravitee.gamma.definition.authz.AgentEntityId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -364,7 +365,30 @@ class SyncAmUsersUseCaseTest {
 
         List<CreateOrReplaceAuthzEntityCommand> commands = captureSingleBulkUpsert();
         // _kind, sub, clientId, domain are always set; displayName/agentType only carry through when AM populated them.
+        // A plain client_id is neither a SPIFFE id nor a CIMD url, so no workload-identity attribute is added.
         assertThat(commands.get(0).attributes()).containsOnlyKeys("_kind", "sub", "clientId", "domain");
+    }
+
+    @Test
+    void records_a_spiffe_client_id_as_a_workload_id_attribute() {
+        stubPage(0, page(0));
+        stubAgentPage(0, new AmAgentPage(List.of(agent("app-1", "spiffe://example.org/agent/bot", "Bot", "AUTONOMOUS")), 1L));
+
+        run();
+
+        Map<String, Object> attributes = captureSingleBulkUpsert().get(0).attributes();
+        assertThat(attributes).containsEntry("workloadId", "spiffe://example.org/agent/bot").doesNotContainKey("cimdUrl");
+    }
+
+    @Test
+    void records_an_http_url_client_id_as_a_cimd_url_attribute() {
+        stubPage(0, page(0));
+        stubAgentPage(0, new AmAgentPage(List.of(agent("app-1", "https://issuer.example.com/agents/bot-42", "Bot", "AUTONOMOUS")), 1L));
+
+        run();
+
+        Map<String, Object> attributes = captureSingleBulkUpsert().get(0).attributes();
+        assertThat(attributes).containsEntry("cimdUrl", "https://issuer.example.com/agents/bot-42").doesNotContainKey("workloadId");
     }
 
     @Test
