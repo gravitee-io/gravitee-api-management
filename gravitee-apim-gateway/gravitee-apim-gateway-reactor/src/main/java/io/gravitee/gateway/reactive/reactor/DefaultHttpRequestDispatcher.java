@@ -43,6 +43,7 @@ import io.gravitee.gateway.reactive.api.ListenerType;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.hook.ProcessorHook;
+import io.gravitee.gateway.reactive.core.context.AbstractExecutionContext;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
@@ -266,6 +267,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
             // parameters() keep reading the untouched native request, and MetricsProcessor reports
             // both forms from those two — received and routed — with no custom metric needed.
             MutableExecutionContext mutableCtx = prepareExecutionContext(
+                apiReactor,
                 httpServerRequest,
                 serverId,
                 pathWasNormalized ? normalizedPath : null,
@@ -391,6 +393,20 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         final String path,
         final long receivedAt
     ) {
+        return prepareExecutionContext(null, httpServerRequest, serverId, path, receivedAt);
+    }
+
+    /**
+     * The reactor-aware form: an {@link ApiReactor} may supply its own execution context, so the
+     * routed branch passes the reactor it matched. A null reactor falls back to the default context.
+     */
+    private MutableExecutionContext prepareExecutionContext(
+        final ApiReactor<?> apiReactor,
+        final HttpServerRequest httpServerRequest,
+        String serverId,
+        final String path,
+        final long receivedAt
+    ) {
         VertxHttpServerRequest request = new VertxHttpServerRequest(
             httpServerRequest,
             idGenerator,
@@ -401,7 +417,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                 .build()
         );
 
-        MutableExecutionContext ctx = createExecutionContext(request);
+        MutableExecutionContext ctx = createExecutionContext(apiReactor, request);
         ctx.componentProvider(globalComponentProvider);
         ctx.setInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE, ListenerType.HTTP);
         ctx.setInternalAttribute(ATTR_INTERNAL_SERVER_ID, serverId);
@@ -409,9 +425,18 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         return ctx;
     }
 
-    protected DefaultExecutionContext createExecutionContext(VertxHttpServerRequest request) {
-        DefaultExecutionContext context = new DefaultExecutionContext(request, request.response());
-        context.setWarningsEnabled(warningsEnabled);
+    protected MutableExecutionContext createExecutionContext(ApiReactor<?> apiReactor, VertxHttpServerRequest request) {
+        MutableExecutionContext context;
+
+        if (apiReactor != null) {
+            context = apiReactor.createExecutionContext(request, request.response());
+        } else {
+            context = new DefaultExecutionContext(request, request.response());
+        }
+
+        if (context instanceof AbstractExecutionContext<?, ?> abstractContext) {
+            abstractContext.setWarningsEnabled(warningsEnabled);
+        }
         return context;
     }
 

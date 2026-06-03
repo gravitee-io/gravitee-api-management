@@ -176,7 +176,7 @@ public class DebugHttpRequestDispatcher extends DefaultHttpRequestDispatcher {
     }
 
     @Override
-    protected DefaultExecutionContext createExecutionContext(VertxHttpServerRequest request) {
+    protected DefaultExecutionContext createExecutionContext(ApiReactor<?> apiReactor, VertxHttpServerRequest request) {
         return new DebugExecutionContext(request, request.response());
     }
 
