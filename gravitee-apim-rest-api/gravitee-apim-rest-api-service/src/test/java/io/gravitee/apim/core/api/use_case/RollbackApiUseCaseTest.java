@@ -402,6 +402,77 @@ class RollbackApiUseCaseTest {
     }
 
     @Test
+    void should_rollback_api_with_null_resources_and_responseTemplates() throws JsonProcessingException {
+        // Given — an event whose definition has no resources and no responseTemplates (as created by
+        // the original deploy before any management-API update touched those fields)
+        var eventApiDefinition = io.gravitee.definition.model.v4.Api.builder()
+            .id(existingApi.getId())
+            .name("api-previous-name")
+            .apiVersion("api-previous-version")
+            .listeners(
+                List.of(
+                    io.gravitee.definition.model.v4.listener.http.HttpListener.builder()
+                        .paths(List.of(io.gravitee.definition.model.v4.listener.http.Path.builder().path("/api-previous-path").build()))
+                        .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
+                        .build()
+                )
+            )
+            // resources and responseTemplates intentionally absent (null in definition)
+            .build();
+
+        var apiRepositoryModel = io.gravitee.repository.management.model.Api.builder()
+            .id(eventApiDefinition.getId())
+            .name(eventApiDefinition.getName())
+            .version(eventApiDefinition.getApiVersion())
+            .definitionVersion(eventApiDefinition.getDefinitionVersion())
+            .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(eventApiDefinition))
+            .build();
+
+        var event = Event.builder()
+            .id("event-id")
+            .type(EventType.PUBLISH_API)
+            .environments(Set.of(ENVIRONMENT_ID))
+            .payload(GraviteeJacksonMapper.getInstance().writeValueAsString(apiRepositoryModel))
+            .build();
+        eventQueryService.initWith(List.of(event));
+
+        when(
+            delegateApiService.update(
+                eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+                eq(existingApi.getId()),
+                any(),
+                eq(false),
+                eq(USER_ID)
+            )
+        ).thenAnswer(invocation -> {
+            var api = apiCrudService.get(existingApi.getId());
+            api.setUpdatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()));
+            apiCrudService.update(api);
+            return ApiModelFixtures.aModelHttpApiV4()
+                .toBuilder()
+                .id(existingApi.getId())
+                .updatedAt(Date.from(INSTANT_NOW.atZone(ZoneId.systemDefault()).toInstant()))
+                .build();
+        });
+
+        // When
+        useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+
+        // Then — null must be propagated, not replaced by empty-collection defaults
+        verify(delegateApiService).update(
+            eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+            eq(existingApi.getId()),
+            argThat(updateApiEntity -> {
+                assertThat(updateApiEntity.getResources()).isNull();
+                assertThat(updateApiEntity.getResponseTemplates()).isNull();
+                return true;
+            }),
+            eq(false),
+            eq(USER_ID)
+        );
+    }
+
+    @Test
     void should_rollback_api_with_plans() throws JsonProcessingException {
         // Given
 
