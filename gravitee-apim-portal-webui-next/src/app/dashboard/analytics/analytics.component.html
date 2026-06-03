@@ -24,8 +24,11 @@
 </div>
 
 @if (pinnedDashboards().length > 0) {
-  <div class="analytics-list__pinned">
-    <h2 class="next-gen-h5" i18n="@@analyticsPinnedTitle">Pinned</h2>
+  <div class="analytics-list__pinned" data-testid="pinned-row">
+    <h2 class="analytics-list__section-title analytics-list__section-title--pinned next-gen-h5">
+      <mat-icon class="analytics-list__section-icon" aria-hidden="true">push_pin</mat-icon>
+      <span i18n="@@analyticsPinnedTitle">Pinned</span> ({{ pinnedDashboards().length }})
+    </h2>
     <app-cards-grid class="analytics-list__pinned-row" [cards]="pinnedDashboards()">
       <ng-template #cardTemplate let-dashboard>
         <app-analytics-dashboard-card
@@ -42,6 +45,9 @@
 }
 
 <div class="analytics-list__content">
+  <h2 class="analytics-list__section-title next-gen-h5">
+    <span i18n="@@analyticsAllDashboardsTitle">All Dashboards</span> ({{ dashboardPaginator().totalResults }})
+  </h2>
   @if (dashboardsResource.isLoading()) {
     <app-loader class="analytics-list__loader" />
   } @else if (dashboardsResource.error()) {
