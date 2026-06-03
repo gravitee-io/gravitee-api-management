@@ -93,6 +93,33 @@ class SearchUsersUseCaseTest {
     }
 
     @Test
+    void should_ignore_users_without_id_when_enriching_application_membership() {
+        var executionContext = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
+        var userWithoutId = aUser(null, "ref-1", "External", "Adams", "External Adams", "external.adams@example.com");
+        var userWithId = aUser("user-1", "ref-2", "John", "Smith", "John Smith", "john.smith@example.com");
+
+        when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID)).thenReturn(new BaseApplicationEntity());
+        when(userQueryService.search(new UserSearchQuery("body-query"))).thenReturn(List.of(userWithoutId, userWithId));
+        when(
+            membershipQueryService.findByMemberIdsAndMemberTypeAndReferenceType(
+                List.of("user-1"),
+                Membership.Type.USER,
+                Membership.ReferenceType.APPLICATION
+            )
+        ).thenReturn(List.of());
+
+        var result = cut.execute(
+            new SearchUsersUseCase.Input(executionContext, new UserSearchQuery("body-query"), Optional.of(APPLICATION_ID))
+        );
+
+        assertThat(result.totalCount()).isEqualTo(2);
+        assertThat(result.data()).extracting(User::id).containsExactly(null, "user-1");
+        assertThat(result.applicationMembership()).hasSize(1).containsEntry("user-1", false);
+        verify(userQueryService).search(new UserSearchQuery("body-query"));
+        verify(applicationCrudService).findById(APPLICATION_ID, ENVIRONMENT_ID);
+    }
+
+    @Test
     void should_fallback_to_wildcard_query_when_no_query_is_provided() {
         var executionContext = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
         var user = aUser("user-1", null, null, "Smith", "John Smith", null);
