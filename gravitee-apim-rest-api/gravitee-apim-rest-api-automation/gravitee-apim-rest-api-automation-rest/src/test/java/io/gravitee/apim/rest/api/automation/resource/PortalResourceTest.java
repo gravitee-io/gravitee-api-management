@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
+import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.use_case.DeletePortalUseCase;
@@ -30,6 +31,7 @@ import io.gravitee.apim.rest.api.automation.model.PortalState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
+import java.util.List;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
@@ -62,7 +64,7 @@ class PortalResourceTest extends AbstractResourceTest {
         @Test
         void should_return_portal_by_hrid() {
             var persisted = Portal.of(PORTAL_ID, ENVIRONMENT, ORGANIZATION, "Default Portal");
-            when(getPortalUseCase.execute(any())).thenReturn(new GetPortalUseCase.Output(persisted));
+            when(getPortalUseCase.execute(any())).thenReturn(new GetPortalUseCase.Output(persisted, List.of()));
 
             try (var response = rootTarget(HRID).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
                 assertThat(response.getStatus()).isEqualTo(200);
@@ -73,7 +75,24 @@ class PortalResourceTest extends AbstractResourceTest {
                     soft.assertThat(state.getId()).isEqualTo(PORTAL_ID.toString());
                     soft.assertThat(state.getHrid()).isEqualTo(HRID);
                     soft.assertThat(state.getName()).isEqualTo("Default Portal");
+                    soft.assertThat(state.getNavigation()).isNullOrEmpty();
                 });
+            }
+        }
+
+        @Test
+        void should_return_navigation_alongside_portal() {
+            var persisted = Portal.of(PORTAL_ID, ENVIRONMENT, ORGANIZATION, "Default Portal");
+            var navigation = List.of(new NavigationPath("/projects", null), new NavigationPath("/projects/alpha", "Alpha"));
+            when(getPortalUseCase.execute(any())).thenReturn(new GetPortalUseCase.Output(persisted, navigation));
+
+            try (var response = rootTarget(HRID).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
+                assertThat(response.getStatus()).isEqualTo(200);
+                var state = response.readEntity(PortalState.class);
+                assertThat(state.getNavigation())
+                    .extracting(io.gravitee.apim.rest.api.automation.model.NavigationPath::getPath)
+                    .containsExactly("/projects", "/projects/alpha");
+                assertThat(state.getNavigation().get(1).getDisplayName()).isEqualTo("Alpha");
             }
         }
 

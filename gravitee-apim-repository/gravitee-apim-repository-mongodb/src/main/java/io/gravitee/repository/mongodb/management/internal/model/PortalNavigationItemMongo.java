@@ -28,6 +28,7 @@ public class PortalNavigationItemMongo {
     private String organizationId;
     private String environmentId;
     private String title;
+    private String segment;
     private PortalNavigationItem.Type type;
     private PortalNavigationItem.Area area;
     private String parentId;

@@ -43,6 +43,14 @@ public abstract sealed class PortalNavigationItem
     @Nonnull
     private String title;
 
+    /**
+     * Canonical path segment used to reconstruct hierarchical paths. Optional on read for legacy rows;
+     * readers should fall back to {@link #title} when {@code segment} is null.
+     */
+    @Setter
+    @Nullable
+    private String segment;
+
     @Setter
     @Nonnull
     private PortalArea area;
@@ -89,6 +97,11 @@ public abstract sealed class PortalNavigationItem
     }
 
     public abstract PortalNavigationItemType getType();
+
+    /** Canonical path segment for this item; falls back to title for legacy rows persisted before the segment column existed. */
+    public String getEffectiveSegment() {
+        return segment != null ? segment : title;
+    }
 
     public void markAsRoot() {
         this.parentId = null;
@@ -143,6 +156,7 @@ public abstract sealed class PortalNavigationItem
             case LINK -> new PortalNavigationLink(id, organizationId, environmentId, title, area, order, url, published, visibility);
             case API -> new PortalNavigationApi(id, organizationId, environmentId, title, area, order, apiId, published, visibility);
         };
+        newItem.setSegment(item.getSegment() != null ? item.getSegment() : title);
         if (parent == null) {
             newItem.markAsRoot();
         } else {
@@ -156,5 +170,8 @@ public abstract sealed class PortalNavigationItem
         this.setOrder(navItem.getOrder());
         this.setPublished(navItem.getPublished());
         this.setVisibility(navItem.getVisibility());
+        if (navItem.getSegment() != null) {
+            this.setSegment(navItem.getSegment());
+        }
     }
 }

@@ -369,3 +369,7 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_12_0/11_add_portals_table.yml
     - include:
         - file: liquibase/changelogs/v4_12_0/12_add_root_id_index_to_portal_navigation_items.yml
+    - include:
+        - file: liquibase/changelogs/v4_12_0/13_add_segment_to_portal_navigation_items.yml
+    - include:
+        - file: liquibase/changelogs/v4_12_0/14_backfill_segment_from_title_on_portal_navigation_items.yml

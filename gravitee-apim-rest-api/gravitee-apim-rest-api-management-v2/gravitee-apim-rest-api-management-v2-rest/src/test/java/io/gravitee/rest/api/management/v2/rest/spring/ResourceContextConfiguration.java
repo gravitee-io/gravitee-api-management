@@ -36,7 +36,6 @@ import inmemory.NewtAIProviderInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
-import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
@@ -1351,11 +1350,6 @@ public class ResourceContextConfiguration {
             portalNavigationItemValidatorService,
             domainService
         );
-    }
-
-    @Bean
-    public PortalNavigationItemCrudService portalNavigationItemCrudService() {
-        return new PortalNavigationItemsCrudServiceInMemory();
     }
 
     @Bean

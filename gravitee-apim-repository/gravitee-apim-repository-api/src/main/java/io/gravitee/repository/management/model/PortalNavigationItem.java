@@ -59,6 +59,9 @@ public class PortalNavigationItem {
 
     private String title;
 
+    /** Canonical path segment used to reconstruct hierarchical paths; falls back to {@code title} for legacy rows. */
+    private String segment;
+
     private Type type;
 
     private Area area;

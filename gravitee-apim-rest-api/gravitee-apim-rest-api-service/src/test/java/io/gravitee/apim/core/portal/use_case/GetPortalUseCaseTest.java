@@ -20,9 +20,15 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 
 import fixtures.core.model.PortalFixtures;
 import inmemory.PortalCrudServiceInMemory;
+import inmemory.PortalNavigationItemsCrudServiceInMemory;
+import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import inmemory.PortalPageContentCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal.domain_service.PortalNavigationListingDomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
+import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.PortalId;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -41,16 +47,28 @@ class GetPortalUseCaseTest {
         .build();
 
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
+    private final PortalNavigationItemsCrudServiceInMemory navCrudService = new PortalNavigationItemsCrudServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory(
+        navCrudService.storage()
+    );
+    private final PortalPageContentCrudServiceInMemory pageContentCrudService = new PortalPageContentCrudServiceInMemory();
+    private PortalNavigationSyncDomainService syncDomainService;
     private GetPortalUseCase useCase;
+
+    private PortalNavigationListingDomainService listingDomainService;
 
     @BeforeEach
     void setUp() {
-        useCase = new GetPortalUseCase(portalCrudService);
+        syncDomainService = new PortalNavigationSyncDomainService(navCrudService, navQueryService, pageContentCrudService);
+        listingDomainService = new PortalNavigationListingDomainService(navQueryService);
+        useCase = new GetPortalUseCase(portalCrudService, listingDomainService);
     }
 
     @AfterEach
     void tearDown() {
         portalCrudService.reset();
+        navCrudService.reset();
+        pageContentCrudService.reset();
     }
 
     @Test
@@ -61,6 +79,7 @@ class GetPortalUseCaseTest {
         var output = useCase.execute(new GetPortalUseCase.Input(AUDIT_INFO, portal.getId()));
 
         assertThat(output.portal()).isEqualTo(portal);
+        assertThat(output.navigation()).isEmpty();
     }
 
     @Test
@@ -85,5 +104,16 @@ class GetPortalUseCaseTest {
         var throwable = catchThrowable(() -> useCase.execute(new GetPortalUseCase.Input(otherEnvAudit, portal.getId())));
 
         assertThat(throwable).isInstanceOf(PortalNotFoundException.class);
+    }
+
+    @Test
+    void should_return_navigation_paths_from_stored_folders() {
+        var portal = PortalFixtures.aPortal();
+        portalCrudService.initWith(List.of(portal));
+        syncDomainService.sync(AUDIT_INFO, List.of(new NavigationPath("/a", null), new NavigationPath("/a/b", null)));
+
+        var output = useCase.execute(new GetPortalUseCase.Input(AUDIT_INFO, portal.getId()));
+
+        assertThat(output.navigation()).extracting(NavigationPath::path).containsExactly("/a", "/a/b");
     }
 }

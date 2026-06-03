@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.use_case.CreateOrUpdatePortalUseCase;
@@ -30,10 +31,12 @@ import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
+import java.util.List;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class PortalsResourceTest extends AbstractResourceTest {
 
@@ -77,6 +80,26 @@ class PortalsResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_echo_navigation_in_dry_run() {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", true)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("portal-with-navigation.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(200);
+                verifyNoInteractions(createOrUpdatePortalUseCase);
+
+                var state = response.readEntity(PortalState.class);
+                assertThat(state.getNavigation())
+                    .extracting(io.gravitee.apim.rest.api.automation.model.NavigationPath::getPath)
+                    .containsExactly("/projects/alpha", "/projects/alpha/docs");
+                assertThat(state.getNavigation().get(0).getDisplayName()).isEqualTo("Alpha");
+            }
+        }
+
+        @Test
         void should_return_400_when_hrid_is_missing() {
             try (
                 var response = rootTarget()
@@ -97,7 +120,7 @@ class PortalsResourceTest extends AbstractResourceTest {
         @Test
         void should_create_or_update_portal() {
             var persisted = Portal.of(PortalId.of("00000000-0000-0000-0000-0000000000a1"), ENVIRONMENT, ORGANIZATION, "Default Portal");
-            when(createOrUpdatePortalUseCase.execute(any())).thenReturn(new CreateOrUpdatePortalUseCase.Output(persisted));
+            when(createOrUpdatePortalUseCase.execute(any())).thenReturn(new CreateOrUpdatePortalUseCase.Output(persisted, List.of()));
 
             try (var response = rootTarget().request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON("portal.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
@@ -110,14 +133,20 @@ class PortalsResourceTest extends AbstractResourceTest {
                     soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
                     soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                     soft.assertThat(state.getName()).isEqualTo("Default Portal");
+                    soft.assertThat(state.getNavigation()).isNullOrEmpty();
                 });
             }
         }
 
         @Test
-        void should_silently_ignore_navigation_field() {
+        void should_pass_navigation_to_use_case_and_echo_in_response() {
             var persisted = Portal.of(PortalId.of("00000000-0000-0000-0000-0000000000a1"), ENVIRONMENT, ORGANIZATION, "Default Portal");
-            when(createOrUpdatePortalUseCase.execute(any())).thenReturn(new CreateOrUpdatePortalUseCase.Output(persisted));
+            var echoed = List.of(
+                new NavigationPath("/projects", null),
+                new NavigationPath("/projects/alpha", "Alpha"),
+                new NavigationPath("/projects/alpha/docs", null)
+            );
+            when(createOrUpdatePortalUseCase.execute(any())).thenReturn(new CreateOrUpdatePortalUseCase.Output(persisted, echoed));
 
             try (
                 var response = rootTarget()
@@ -126,10 +155,19 @@ class PortalsResourceTest extends AbstractResourceTest {
                     .put(Entity.json(readJSON("portal-with-navigation.json")))
             ) {
                 assertThat(response.getStatus()).isEqualTo(200);
-                verify(createOrUpdatePortalUseCase).execute(any(CreateOrUpdatePortalUseCase.Input.class));
+
+                var inputCaptor = ArgumentCaptor.forClass(CreateOrUpdatePortalUseCase.Input.class);
+                verify(createOrUpdatePortalUseCase).execute(inputCaptor.capture());
+                assertThat(inputCaptor.getValue().navigation())
+                    .extracting(NavigationPath::path)
+                    .containsExactly("/projects/alpha", "/projects/alpha/docs");
+                assertThat(inputCaptor.getValue().navigation().get(0).displayName()).isEqualTo("Alpha");
 
                 var state = response.readEntity(PortalState.class);
-                assertThat(state.getNavigation()).isNullOrEmpty();
+                assertThat(state.getNavigation())
+                    .extracting(io.gravitee.apim.rest.api.automation.model.NavigationPath::getPath)
+                    .containsExactly("/projects", "/projects/alpha", "/projects/alpha/docs");
+                assertThat(state.getNavigation().get(1).getDisplayName()).isEqualTo("Alpha");
             }
         }
     }

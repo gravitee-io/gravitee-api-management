@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.12.0_14_backfill_segment_from_title_on_portal_navigation_items
+      author: GraviteeSource Team
+      changes:
+        - sql:
+            sql: UPDATE ${gravitee_prefix}portal_navigation_items SET segment = title WHERE segment IS NULL

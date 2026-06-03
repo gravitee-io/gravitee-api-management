@@ -13,25 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.model;
+package io.gravitee.apim.core.portal.domain_service.navigation.actions;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder(toBuilder = true)
-public final class UpdatePortalNavigationItem {
-
-    private String title;
-    private String segment;
-    private Integer order;
-    private PortalNavigationItemType type;
-    private PortalNavigationItemId parentId;
-    private String url;
-    private Boolean published;
-    private PortalVisibility visibility;
-}
+/** Extension point — future slices add {@code PageAction}, {@code ApiAction}, {@code LinkAction} to permits. */
+public sealed interface NavigationAction permits FolderActions.FolderAction {}

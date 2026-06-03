@@ -18,7 +18,11 @@ package io.gravitee.apim.core.portal.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
+import io.gravitee.apim.core.portal.domain_service.PortalNavigationListingDomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
+import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -26,15 +30,23 @@ import lombok.RequiredArgsConstructor;
 public class CreateOrUpdatePortalUseCase {
 
     private final PortalCrudService portalCrudService;
+    private final PortalNavigationSyncDomainService portalNavigationSyncDomainService;
+    private final PortalNavigationListingDomainService portalNavigationListingDomainService;
 
-    public record Input(AuditInfo auditInfo, Portal portal) {}
+    public record Input(AuditInfo auditInfo, Portal portal, List<NavigationPath> navigation) {
+        public Input(AuditInfo auditInfo, Portal portal) {
+            this(auditInfo, portal, List.of());
+        }
+    }
 
-    public record Output(Portal portal) {}
+    public record Output(Portal portal, List<NavigationPath> navigation) {}
 
     public Output execute(Input input) {
         var portal = input.portal();
         var existing = portalCrudService.findByIdAndEnvironmentId(portal.getId(), input.auditInfo().environmentId());
         var saved = existing.isPresent() ? portalCrudService.update(portal) : portalCrudService.create(portal);
-        return new Output(saved);
+        portalNavigationSyncDomainService.sync(input.auditInfo(), input.navigation());
+        var navigation = portalNavigationListingDomainService.listAsNavigationPaths(input.auditInfo().environmentId());
+        return new Output(saved, navigation);
     }
 }
