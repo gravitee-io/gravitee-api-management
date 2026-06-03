@@ -93,7 +93,7 @@ public class AmSdkDirectoryClient implements AmDirectoryClient {
                 List<FilteredIdentityProviderInfo> idps = AmSdkInvocations.await(
                     apis.identityProviderApi().listIdentityProviders(AM_DEFAULT_ORGANIZATION, AM_DEFAULT_ENVIRONMENT, domainId, null)
                 );
-                idpIdByName = stream(idps)
+                idpIdByName = idps.stream()
                     .filter(idp -> idp.getName() != null && idp.getId() != null)
                     .collect(Collectors.toMap(FilteredIdentityProviderInfo::getName, FilteredIdentityProviderInfo::getId, (first, ignored) -> first));
             }
