@@ -39,6 +39,7 @@ import io.gravitee.gateway.reactive.api.ListenerType;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.hook.ProcessorHook;
+import io.gravitee.gateway.reactive.core.context.AbstractExecutionContext;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
@@ -152,7 +153,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         Context vertxContext = VertxContext.createNewDuplicatedContext(vertx.getOrCreateContext());
         if (httpAcceptor == null || httpAcceptor.reactor() == null) {
             log.debug("No acceptor found for host {} and path {}, handling as not found", host, httpServerRequest.path());
-            MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest, serverId);
+            MutableExecutionContext mutableCtx = prepareExecutionContext(null, httpServerRequest, serverId);
             mutableCtx.tracer(
                 new io.gravitee.gateway.reactive.api.tracing.Tracer(vertxContext, gatewayTracingContext.opentelemetryTracer())
             );
@@ -190,7 +191,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
             }
         } else if (httpAcceptor.reactor() instanceof ApiReactor<?> apiReactor) {
             log.debug("Request routed to API reactor on path [{}]", httpAcceptor.path());
-            MutableExecutionContext mutableCtx = prepareExecutionContext(httpServerRequest, serverId);
+            MutableExecutionContext mutableCtx = prepareExecutionContext(apiReactor, httpServerRequest, serverId);
             mutableCtx.request().contextPath(httpAcceptor.path());
             TracingContext tracingContext = apiReactor.tracingContext();
             mutableCtx.tracer(new io.gravitee.gateway.reactive.api.tracing.Tracer(vertxContext, tracingContext.opentelemetryTracer()));
@@ -287,14 +288,18 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         }
     }
 
-    private MutableExecutionContext prepareExecutionContext(final HttpServerRequest httpServerRequest, String serverId) {
+    private MutableExecutionContext prepareExecutionContext(
+        ApiReactor<?> apiReactor,
+        final HttpServerRequest httpServerRequest,
+        String serverId
+    ) {
         VertxHttpServerRequest request = new VertxHttpServerRequest(
             httpServerRequest,
             idGenerator,
             new VertxHttpServerRequest.VertxHttpServerRequestOptions(requestClientAuthConfiguration.getHeaderName())
         );
 
-        MutableExecutionContext ctx = createExecutionContext(request);
+        MutableExecutionContext ctx = createExecutionContext(apiReactor, request);
         ctx.componentProvider(globalComponentProvider);
         ctx.setInternalAttribute(ATTR_INTERNAL_LISTENER_TYPE, ListenerType.HTTP);
         ctx.setInternalAttribute(ATTR_INTERNAL_SERVER_ID, serverId);
@@ -302,9 +307,18 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         return ctx;
     }
 
-    protected DefaultExecutionContext createExecutionContext(VertxHttpServerRequest request) {
-        DefaultExecutionContext context = new DefaultExecutionContext(request, request.response());
-        context.setWarningsEnabled(warningsEnabled);
+    protected MutableExecutionContext createExecutionContext(ApiReactor<?> apiReactor, VertxHttpServerRequest request) {
+        MutableExecutionContext context;
+
+        if (apiReactor != null) {
+            context = apiReactor.createExecutionContext(request, request.response());
+        } else {
+            context = new DefaultExecutionContext(request, request.response());
+        }
+
+        if (context instanceof AbstractExecutionContext<?, ?> abstractContext) {
+            abstractContext.setWarningsEnabled(warningsEnabled);
+        }
         return context;
     }
 
