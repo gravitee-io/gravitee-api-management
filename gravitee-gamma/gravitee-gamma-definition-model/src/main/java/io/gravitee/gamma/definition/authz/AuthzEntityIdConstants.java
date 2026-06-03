@@ -34,7 +34,6 @@ public final class AuthzEntityIdConstants {
     public static final String API_PREFIX = "api.";
     public static final String MCP_PREFIX = "mcp.";
     public static final String AGENT_PREFIX = "agent.";
-    public static final String AGENT_IDENTITY_PREFIX = "agent-identity.";
 
     public static final String TOOLS_CALL_METHOD = "tools/call";
 

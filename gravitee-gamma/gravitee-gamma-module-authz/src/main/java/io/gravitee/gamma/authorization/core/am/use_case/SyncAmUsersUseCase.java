@@ -42,7 +42,7 @@ import lombok.CustomLog;
  * as a PRINCIPAL authz entity via {@link AuthzEntityAdminApi#bulkUpsert}. Groups and roles are synced
  * first (they are the parent entities users reference); each user's {@code parents} is then set to
  * its group + role ids. Agents (AM applications of type AGENT) are projected last as generic,
- * user-independent principals keyed on {@link AgentEntityId#derive(String, String)} so the request-time
+ * user-independent principals keyed on {@link AgentEntityId#derive(String)} so the request-time
  * PEP matches them. Upsert-only: entities removed in AM are left as stale entities. Invoked on a
  * worker thread by the infra job manager.
  *
@@ -240,17 +240,21 @@ public class SyncAmUsersUseCase {
     }
 
     private CreateOrReplaceAuthzEntityCommand agentCommand(String environmentId, String domain, AmAgent agent) {
-        // The entity id must equal what the PEP derives at request time from domain + token client_id.
-        String entityId = AgentEntityId.derive(domain, agent.clientId());
+        // The entity id must equal what the PEP derives at request time from the token client_id.
+        String entityId = AgentEntityId.derive(agent.clientId());
         // Map.copyOf (inside the command) rejects null values, so only put attributes AM populated.
         Map<String, Object> attributes = new LinkedHashMap<>();
-        // "agent-identity" (not "agent"): the UI's entity-kind registry maps this to the AgentIdentity
-        // type, matching the agent-identity.<domain>.<uuid> entity id. "agent" is the catalog/A2A kind.
+        // The entityId is a bare name-UUID (like a user's sub); _kind carries the type. The UI's
+        // entity-kind registry maps "agent-identity" to the AgentIdentity type ("agent" is the
+        // catalog/A2A kind).
         attributes.put("_kind", "agent-identity");
+        // The agent's AM application id — the actual token subject — surfaced like a user's `sub`,
+        // distinct from the derived entityId (which is keyed on the client_id).
+        attributes.put("sub", agent.id());
         attributes.put("clientId", agent.clientId());
         attributes.put("domain", domain);
         if (agent.name() != null) {
-            attributes.put("name", agent.name());
+            attributes.put("displayName", agent.name());
         }
         if (agent.agentType() != null) {
             attributes.put("agentType", agent.agentType());

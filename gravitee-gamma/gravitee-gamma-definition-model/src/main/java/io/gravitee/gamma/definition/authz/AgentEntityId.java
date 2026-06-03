@@ -19,26 +19,24 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 /**
- * Single source of truth for an agent's PRINCIPAL entity id. The id is derived purely from the AM
- * domain and the agent's OAuth {@code client_id}, so the offline AM→entity sync and the request-time
- * PEP both compute the same value and policies match.
+ * Single source of truth for an agent's PRINCIPAL entity id, so the offline AM→entity sync and the
+ * request-time PEP both compute the same value and policies match.
  *
- * <p>The leaf is a name-based UUID of {@code "<domain>/<clientId>"}; hashing the client_id is what
- * keeps the id within {@link AuthzEntityIdConstants#FORMAT_REGEX} even when the client_id is itself
- * illegal in the grammar (mixed case, slashes, dots — e.g. a CIMD URL).
+ * <p>Like every other synced principal (users keyed on their {@code sub}, groups/roles on their id),
+ * the id is a bare value with the type carried in the {@code _kind} attribute — no kind prefix. It is
+ * a name-based UUID of the agent's OAuth {@code client_id}: hashing keeps it within
+ * {@link AuthzEntityIdConstants#FORMAT_REGEX} even when the client_id is itself illegal in the grammar
+ * (mixed case, slashes, dots — e.g. a CIMD URL). The {@code client_id} is unique within an org's single
+ * AM connection, so the domain is not folded in here; that can change if multiple domains are synced.
  */
 public final class AgentEntityId {
 
     private AgentEntityId() {}
 
-    public static String derive(String domain, String clientId) {
-        if (domain == null || domain.isBlank()) {
-            throw new IllegalArgumentException("domain must not be null or blank");
-        }
+    public static String derive(String clientId) {
         if (clientId == null || clientId.isBlank()) {
             throw new IllegalArgumentException("clientId must not be null or blank");
         }
-        String leaf = UUID.nameUUIDFromBytes((domain + "/" + clientId).getBytes(StandardCharsets.UTF_8)).toString();
-        return AuthzEntityIdConstants.AGENT_IDENTITY_PREFIX + domain + "." + leaf;
+        return UUID.nameUUIDFromBytes(clientId.getBytes(StandardCharsets.UTF_8)).toString();
     }
 }
