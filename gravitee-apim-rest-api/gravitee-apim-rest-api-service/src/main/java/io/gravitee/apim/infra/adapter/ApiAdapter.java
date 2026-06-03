@@ -89,6 +89,8 @@ public interface ApiAdapter {
     @Mapping(target = "tags", source = "api.tags")
     @Mapping(target = "apiVersion", source = "api.version")
     @Mapping(target = "lifecycleState", source = "api.apiLifecycleState")
+    @Mapping(target = "resources", expression = "java(apiDefinitionV4 != null ? apiDefinitionV4.getResources() : null)")
+    @Mapping(target = "responseTemplates", expression = "java(apiDefinitionV4 != null ? apiDefinitionV4.getResponseTemplates() : null)")
     UpdateApiEntity toUpdateApiEntity(Api api, io.gravitee.definition.model.v4.Api apiDefinitionV4);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
