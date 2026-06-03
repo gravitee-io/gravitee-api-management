@@ -2052,6 +2052,19 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.gamma</groupId>
+                    <artifactId>gravitee-policy-authz-pdp-authzen</artifactId>
+                    <version>${gravitee-policy-authz-pdp-authzen.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
 
                 <!-- Reactors -->
                 <dependency>

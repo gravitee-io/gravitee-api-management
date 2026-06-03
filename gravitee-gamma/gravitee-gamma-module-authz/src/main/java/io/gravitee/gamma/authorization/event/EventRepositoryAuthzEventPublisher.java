@@ -71,7 +71,8 @@ public final class EventRepositoryAuthzEventPublisher implements AuthzEventPubli
             policy.environmentId(),
             EventType.PUBLISH_AUTHZ_POLICY,
             wire,
-            Map.of(Event.EventProperties.AUTHZ_POLICY_ID.getValue(), policy.id())
+            Map.of(Event.EventProperties.AUTHZ_POLICY_ID.getValue(), policy.id()),
+                policy.id()
         );
     }
 
@@ -94,7 +95,8 @@ public final class EventRepositoryAuthzEventPublisher implements AuthzEventPubli
             policy.environmentId(),
             EventType.UNPUBLISH_AUTHZ_POLICY,
             wire,
-            Map.of(Event.EventProperties.AUTHZ_POLICY_ID.getValue(), policy.id())
+            Map.of(Event.EventProperties.AUTHZ_POLICY_ID.getValue(), policy.id()),
+                policy.id()
         );
     }
 
@@ -117,7 +119,8 @@ public final class EventRepositoryAuthzEventPublisher implements AuthzEventPubli
             entity.environmentId(),
             EventType.PUBLISH_AUTHZ_ENTITY,
             wire,
-            Map.of(Event.EventProperties.AUTHZ_ENTITY_ID.getValue(), entity.entityId())
+            Map.of(Event.EventProperties.AUTHZ_ENTITY_ID.getValue(), entity.entityId()),
+                entity.id()
         );
     }
 
@@ -138,7 +141,8 @@ public final class EventRepositoryAuthzEventPublisher implements AuthzEventPubli
             entity.environmentId(),
             EventType.UNPUBLISH_AUTHZ_ENTITY,
             wire,
-            Map.of(Event.EventProperties.AUTHZ_ENTITY_ID.getValue(), entity.entityId())
+            Map.of(Event.EventProperties.AUTHZ_ENTITY_ID.getValue(), entity.entityId()),
+                entity.id()
         );
     }
 
@@ -149,23 +153,16 @@ public final class EventRepositoryAuthzEventPublisher implements AuthzEventPubli
      * a deleted resource. Order matters: if the second write fails the canonical log still has the
      * entry and a later emit for the same id reconciles the latest collection.
      */
-    private void emit(String environmentId, EventType type, Object payload, Map<String, String> properties) {
+    private void emit(String environmentId, EventType type, Object payload, Map<String, String> properties, String sourceId) {
         Event event = buildEvent(environmentId, type, payload, properties);
         Event latest = buildEvent(environmentId, type, payload, properties);
-        latest.setId(latestEventId(properties));
+        latest.setId(sourceId);
         try {
             eventRepository.create(event);
             eventLatestRepository.createOrUpdate(latest);
         } catch (TechnicalException e) {
             throw new AuthzEventPublishException("Failed to emit authz event " + type + " for env " + environmentId, e);
         }
-    }
-
-    private static String latestEventId(Map<String, String> properties) {
-        // events_latest must hold one row per resource; reuse the single {AUTHZ_*_ID: id} property,
-        // prefixed with its key to avoid _id collisions across resource types in the shared collection.
-        Map.Entry<String, String> resource = properties.entrySet().iterator().next();
-        return resource.getKey() + ":" + resource.getValue();
     }
 
     private Event buildEvent(String environmentId, EventType type, Object payload, Map<String, String> properties) {
