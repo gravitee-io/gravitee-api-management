@@ -240,8 +240,9 @@ public class SyncAmUsersUseCase {
     }
 
     private CreateOrReplaceAuthzEntityCommand agentCommand(String environmentId, String domain, AmAgent agent) {
+        String clientId = agent.clientId();
         // The entity id must equal what the PEP derives at request time from the token client_id.
-        String entityId = AgentEntityId.derive(agent.clientId());
+        String entityId = AgentEntityId.derive(clientId);
         // Map.copyOf (inside the command) rejects null values, so only put attributes AM populated.
         Map<String, Object> attributes = new LinkedHashMap<>();
         // The entityId is a bare name-UUID (like a user's sub); _kind carries the type. The UI's
@@ -251,8 +252,16 @@ public class SyncAmUsersUseCase {
         // The agent's AM application id — the actual token subject — surfaced like a user's `sub`,
         // distinct from the derived entityId (which is keyed on the client_id).
         attributes.put("sub", agent.id());
-        attributes.put("clientId", agent.clientId());
+        attributes.put("clientId", clientId);
         attributes.put("domain", domain);
+        // The client_id doubles as the agent's workload identifier: a spiffe:// id is a SPIFFE
+        // workloadId, a plain http(s) URL is a CIMD url. Surfaced as a typed attribute when it
+        // matches; a plain id is neither.
+        if (clientId.startsWith("spiffe://")) {
+            attributes.put("workloadId", clientId);
+        } else if (clientId.startsWith("http://") || clientId.startsWith("https://")) {
+            attributes.put("cimdUrl", clientId);
+        }
         if (agent.name() != null) {
             attributes.put("displayName", agent.name());
         }
