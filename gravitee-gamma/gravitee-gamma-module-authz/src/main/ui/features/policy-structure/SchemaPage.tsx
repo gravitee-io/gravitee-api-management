@@ -218,20 +218,7 @@ export function SchemaPage() {
                             Save
                         </Button>
                     </div>
-                    {draftDiagnostics.length > 0 && (
-                        <Alert variant="destructive">
-                            <AlertTitle>Schema could not be fully parsed</AlertTitle>
-                            <AlertDescription>
-                                <ul className="list-disc pl-4">
-                                    {draftDiagnostics.map((diagnostic, index) => (
-                                        <li key={`${index}-${diagnostic}`} className="font-mono text-xs">
-                                            {diagnostic}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </AlertDescription>
-                        </Alert>
-                    )}
+                    <DiagnosticsAlert diagnostics={draftDiagnostics} />
                     <div className="overflow-hidden rounded-lg border">
                         <MonacoEditor value={draft} onChange={setDraft} height={560} ariaLabel="Schema definition" />
                     </div>
@@ -240,20 +227,7 @@ export function SchemaPage() {
 
             {!isLoading && error === undefined && !isEmpty && (
                 <>
-                    {parsed.diagnostics.length > 0 && (
-                        <Alert variant="destructive">
-                            <AlertTitle>Schema could not be fully parsed</AlertTitle>
-                            <AlertDescription>
-                                <ul className="list-disc pl-4">
-                                    {parsed.diagnostics.map((diagnostic, index) => (
-                                        <li key={`${index}-${diagnostic}`} className="font-mono text-xs">
-                                            {diagnostic}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </AlertDescription>
-                        </Alert>
-                    )}
+                    <DiagnosticsAlert diagnostics={parsed.diagnostics} />
 
                     <div className="grid grid-cols-4 gap-4" aria-label="Schema summary">
                         <KpiTile
@@ -377,20 +351,7 @@ export function SchemaPage() {
                                 )}
                             </div>
 
-                            {editing && draftDiagnostics.length > 0 && (
-                                <Alert variant="destructive">
-                                    <AlertTitle>Schema could not be fully parsed</AlertTitle>
-                                    <AlertDescription>
-                                        <ul className="list-disc pl-4">
-                                            {draftDiagnostics.map((diagnostic, index) => (
-                                                <li key={`${index}-${diagnostic}`} className="font-mono text-xs">
-                                                    {diagnostic}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </AlertDescription>
-                                </Alert>
-                            )}
+                            {editing && <DiagnosticsAlert diagnostics={draftDiagnostics} />}
 
                             <TabsContent value="code">
                                 <div className="overflow-hidden rounded-lg border">
@@ -465,5 +426,23 @@ export function SchemaPage() {
                 </>
             )}
         </div>
+    );
+}
+
+function DiagnosticsAlert({ diagnostics }: { diagnostics: readonly string[] }) {
+    if (diagnostics.length === 0) return null;
+    return (
+        <Alert variant="destructive">
+            <AlertTitle>Schema could not be fully parsed</AlertTitle>
+            <AlertDescription>
+                <ul className="list-disc pl-4">
+                    {diagnostics.map((diagnostic, index) => (
+                        <li key={`${index}-${diagnostic}`} className="font-mono text-xs">
+                            {diagnostic}
+                        </li>
+                    ))}
+                </ul>
+            </AlertDescription>
+        </Alert>
     );
 }
