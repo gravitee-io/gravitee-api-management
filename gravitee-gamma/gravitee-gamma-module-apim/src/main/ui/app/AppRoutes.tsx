@@ -19,6 +19,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 
+import { ApimToaster } from './ApimToaster';
 import { NAV_GROUPS } from '../config/navigation';
 import { APIM_ROUTE_CONFIG } from '../config/routes';
 import { ApiProductDetailLayout, ApiProductIndexRedirect } from '../features/api-products/components';
@@ -90,6 +91,7 @@ function ModuleLayout() {
 export function AppRoutes() {
     return (
         <QueryClientProvider client={queryClient}>
+            <ApimToaster />
             <Routes>
                 <Route element={<ModuleLayout />}>
                     <Route index element={<DashboardPage />} />

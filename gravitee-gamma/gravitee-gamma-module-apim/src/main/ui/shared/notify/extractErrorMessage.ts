@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { FeatureTile } from './FeatureTile';
-export { CircularProgress } from './CircularProgress';
-export { ConfirmDialog } from './ConfirmDialog';
-export type { ConfirmDialogProps } from './ConfirmDialog';
-export { MultiSelectFilter } from './MultiSelectFilter';
-export type { MultiSelectFilterOption } from './MultiSelectFilter';
-export { OverviewChecklistCard } from './OverviewChecklistCard';
-export type { OverviewChecklistItem } from './OverviewChecklistCard';
+import { ApimApiError } from '../api/apimClient';
+
+export function extractErrorMessage(error: unknown, fallback = 'Something went wrong.'): string {
+    if (error instanceof ApimApiError) {
+        return error.message;
+    }
+    if (error instanceof Error) {
+        return error.message;
+    }
+    if (typeof error === 'string' && error.trim()) {
+        return error;
+    }
+    return fallback;
+}

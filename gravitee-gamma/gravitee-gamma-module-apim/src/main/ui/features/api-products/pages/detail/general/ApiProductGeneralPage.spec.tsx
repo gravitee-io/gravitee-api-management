@@ -104,6 +104,7 @@ describe('ApiProductGeneralPage', () => {
                     // apiIds must be passed through unchanged — a save must not wipe the API list
                     apiIds: ['api-1', 'api-2'],
                 }),
+                expect.objectContaining({ onSuccess: expect.any(Function), onError: expect.any(Function) }),
             );
         });
 
@@ -111,7 +112,10 @@ describe('ApiProductGeneralPage', () => {
             renderPage();
             fireEvent.change(screen.getByDisplayValue('My product description'), { target: { value: '' } });
             fireEvent.click(screen.getByRole('button', { name: /Save changes/i }));
-            expect(mockUpdateProduct).toHaveBeenCalledWith(expect.objectContaining({ description: undefined }));
+            expect(mockUpdateProduct).toHaveBeenCalledWith(
+                expect.objectContaining({ description: undefined }),
+                expect.objectContaining({ onSuccess: expect.any(Function), onError: expect.any(Function) }),
+            );
         });
     });
 
@@ -132,7 +136,10 @@ describe('ApiProductGeneralPage', () => {
             fireEvent.click(screen.getByRole('button', { name: /Remove all APIs/i }));
             const confirmBtn = await screen.findByRole('button', { name: 'Remove all' });
             fireEvent.click(confirmBtn);
-            expect(mockUpdateProduct).toHaveBeenCalledWith(expect.objectContaining({ apiIds: [] }));
+            expect(mockUpdateProduct).toHaveBeenCalledWith(
+                expect.objectContaining({ apiIds: [] }),
+                expect.objectContaining({ onSuccess: expect.any(Function), onError: expect.any(Function) }),
+            );
         });
 
         it('does not call updateProduct when the remove-all dialog is cancelled', async () => {

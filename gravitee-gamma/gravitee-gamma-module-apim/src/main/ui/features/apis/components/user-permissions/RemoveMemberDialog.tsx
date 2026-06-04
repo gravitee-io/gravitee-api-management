@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@gravitee/graphene-core';
-
+import { ConfirmDialog } from '../../../../shared/components';
 import type { Member } from '../../types/members.types';
 
 export function RemoveMemberDialog({
@@ -24,24 +23,20 @@ export function RemoveMemberDialog({
     onCancel,
 }: Readonly<{ member: Member | null; isRemoving: boolean; onConfirm: () => void; onCancel: () => void }>) {
     return (
-        <Dialog open={member !== null} onOpenChange={open => !open && onCancel()}>
-            <DialogContent className="max-w-sm">
-                <DialogHeader>
-                    <DialogTitle>Remove API member</DialogTitle>
-                    <DialogDescription>
-                        Are you sure you want to remove <span className="font-semibold text-foreground">{member?.displayName}</span> from
-                        this API? They will lose all access immediately.
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter className="border-t px-6 py-4 gap-2">
-                    <Button type="button" variant="outline" onClick={onCancel} disabled={isRemoving}>
-                        Cancel
-                    </Button>
-                    <Button type="button" variant="destructive" onClick={onConfirm} disabled={isRemoving}>
-                        Remove
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+        <ConfirmDialog
+            open={member !== null}
+            onOpenChange={open => !open && onCancel()}
+            title="Remove API member"
+            description={
+                <>
+                    Are you sure you want to remove <span className="font-semibold text-foreground">{member?.displayName}</span> from this
+                    API? They will lose all access immediately.
+                </>
+            }
+            confirmLabel="Remove"
+            destructive
+            isPending={isRemoving}
+            onConfirm={onConfirm}
+        />
     );
 }

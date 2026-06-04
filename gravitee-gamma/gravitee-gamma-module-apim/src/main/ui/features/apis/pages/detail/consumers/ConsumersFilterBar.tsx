@@ -13,25 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-    Button,
-    Card,
-    CardContent,
-    Input,
-    Label,
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@gravitee/graphene-core';
+import { Button, Card, CardContent, Input, Label } from '@gravitee/graphene-core';
 import { XIcon } from '@gravitee/graphene-core/icons';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 
+import { MultiSelectFilter, type MultiSelectFilterOption } from '../../../../../shared/components';
 import { isSubscriptionFiltersDirty } from '../../../hooks/useSubscriptions';
 import type { Plan, SubscriptionFilters, SubscriptionStatus } from '../../../types/subscription';
 
 const ALL_STATUSES: SubscriptionStatus[] = ['PENDING', 'ACCEPTED', 'REJECTED', 'CLOSED', 'PAUSED', 'RESUMED'];
+
+const STATUS_OPTIONS: MultiSelectFilterOption[] = ALL_STATUSES.map(s => ({
+    value: s,
+    label: s.charAt(0) + s.slice(1).toLowerCase(),
+}));
 
 interface ConsumersFilterBarProps {
     filters: SubscriptionFilters;
@@ -42,20 +37,18 @@ interface ConsumersFilterBarProps {
 export function ConsumersFilterBar({ filters, plans, onChange }: Readonly<ConsumersFilterBarProps>) {
     const isDirty = isSubscriptionFiltersDirty(filters);
 
-    const handleStatus = useCallback(
-        (value: string) => {
-            if (value === '__all__') {
-                onChange({ ...filters, statuses: [] });
-            } else {
-                onChange({ ...filters, statuses: [value as SubscriptionStatus] });
-            }
+    const planOptions = useMemo<MultiSelectFilterOption[]>(() => plans.map(p => ({ value: p.id, label: p.name })), [plans]);
+
+    const handleStatuses = useCallback(
+        (values: string[]) => {
+            onChange({ ...filters, statuses: values as SubscriptionStatus[] });
         },
         [filters, onChange],
     );
 
-    const handlePlan = useCallback(
-        (value: string) => {
-            onChange({ ...filters, planIds: value === '__all__' ? [] : [value] });
+    const handlePlans = useCallback(
+        (values: string[]) => {
+            onChange({ ...filters, planIds: values });
         },
         [filters, onChange],
     );
@@ -71,45 +64,31 @@ export function ConsumersFilterBar({ filters, plans, onChange }: Readonly<Consum
         onChange({ statuses: [], planIds: [], applicationIds: [], apiKey: '' });
     }, [onChange]);
 
-    const currentStatus = filters.statuses.length === 1 ? filters.statuses[0] : '__all__';
-    const currentPlan = filters.planIds.length === 1 ? filters.planIds[0] : '__all__';
-
     return (
         <Card>
             <CardContent className="pt-4 pb-4">
                 <div className="flex flex-wrap gap-4">
                     <div className="flex-1 space-y-1.5" style={{ minWidth: '140px' }}>
                         <Label className="text-xs">Status</Label>
-                        <Select value={currentStatus} onValueChange={handleStatus}>
-                            <SelectTrigger className="w-full">
-                                <SelectValue placeholder="All statuses" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="__all__">All statuses</SelectItem>
-                                {ALL_STATUSES.map(s => (
-                                    <SelectItem key={s} value={s}>
-                                        {s.charAt(0) + s.slice(1).toLowerCase()}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <MultiSelectFilter
+                            placeholder="All statuses"
+                            ariaLabel="Filter by status"
+                            options={STATUS_OPTIONS}
+                            selectedValues={filters.statuses}
+                            onSelectedValuesChange={handleStatuses}
+                        />
                     </div>
 
                     <div className="flex-1 space-y-1.5" style={{ minWidth: '140px' }}>
                         <Label className="text-xs">Plan</Label>
-                        <Select value={currentPlan} onValueChange={handlePlan}>
-                            <SelectTrigger className="w-full">
-                                <SelectValue placeholder="All plans" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="__all__">All plans</SelectItem>
-                                {plans.map(p => (
-                                    <SelectItem key={p.id} value={p.id}>
-                                        {p.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <MultiSelectFilter
+                            placeholder="All plans"
+                            ariaLabel="Filter by plan"
+                            options={planOptions}
+                            selectedValues={filters.planIds}
+                            onSelectedValuesChange={handlePlans}
+                            emptyMessage="No plans available"
+                        />
                     </div>
 
                     <div className="flex-1 space-y-1.5" style={{ minWidth: '160px' }}>
