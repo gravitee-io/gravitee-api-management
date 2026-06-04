@@ -64,11 +64,11 @@ describe('ApiResourcesAddDialogComponent', () => {
       TestBed.overrideProvider(MAT_DIALOG_DATA, {
         useValue: {
           resources: [
-            fakeResourcePlugin({ name: 'Cache', category: 'Cache' }),
-            fakeResourcePlugin({ name: 'Cache Redis', category: 'Cache' }),
-            fakeResourcePlugin({ name: 'OAuth2', category: 'oauth2' }),
-            fakeResourcePlugin({ name: 'Category others', category: 'others' }),
-            fakeResourcePlugin({ name: 'Category undefined', category: undefined }),
+            fakeResourcePlugin({ id: 'a-cache', name: 'Cache', category: 'Cache' }),
+            fakeResourcePlugin({ id: 'b-cache-redis', name: 'Cache Redis', category: 'Cache' }),
+            fakeResourcePlugin({ id: 'c-oauth2', name: 'OAuth2', category: 'oauth2' }),
+            fakeResourcePlugin({ id: 'd-category-others', name: 'Category others', category: 'others' }),
+            fakeResourcePlugin({ id: 'e-category-undefined', name: 'Category undefined', category: undefined }),
           ],
         },
       });
