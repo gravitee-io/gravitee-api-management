@@ -74,6 +74,7 @@ public class UpdateIntegrationUseCase {
                 input.auditInfo.environmentId(),
                 input.updateFields().groups(),
                 null,
+                null,
                 Group.GroupEvent.API_CREATE,
                 false
             )
