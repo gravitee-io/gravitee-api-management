@@ -15,7 +15,6 @@
  */
 import { Badge, Button, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Switch, cn } from '@gravitee/graphene-core';
 import { PlusIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
-import { useId } from 'react';
 import { ATTR_TYPES, ATTR_TYPE_LABELS, coerce, policyFnHint, validateKey, type AttrType } from '../../shared/attribute-codec';
 
 export interface AttributeRow {
@@ -30,7 +29,6 @@ export interface AttributeEditorProps {
     readonly value: AttributeRow[];
     readonly onChange: (rows: AttributeRow[]) => void;
     readonly readOnly?: boolean;
-    readonly keySuggestions: readonly string[];
 }
 
 let rowSeq = 0;
@@ -41,12 +39,12 @@ export function newAttributeRow(): AttributeRow {
 
 function rawForType(type: AttrType, raw: string | string[]): string | string[] {
     if (type === 'set') return Array.isArray(raw) ? raw : raw.split(',');
-    return Array.isArray(raw) ? (raw[0] ?? '') : raw;
+    const scalar = Array.isArray(raw) ? (raw[0] ?? '') : raw;
+    if (type === 'boolean') return scalar === 'true' ? 'true' : 'false';
+    return scalar;
 }
 
-export function AttributeEditor({ value, onChange, readOnly = false, keySuggestions }: AttributeEditorProps) {
-    const listId = useId();
-
+export function AttributeEditor({ value, onChange, readOnly = false }: AttributeEditorProps) {
     function patch(id: string, next: Partial<AttributeRow>) {
         onChange(value.map(r => (r.id === id ? { ...r, ...next } : r)));
     }
@@ -73,11 +71,6 @@ export function AttributeEditor({ value, onChange, readOnly = false, keySuggesti
 
     return (
         <div className="flex flex-col gap-3">
-            <datalist id={listId}>
-                {keySuggestions.map(k => (
-                    <option key={k} value={k} />
-                ))}
-            </datalist>
             {value.map(r => {
                 const keyError = validateKey(
                     r.key,
@@ -95,7 +88,6 @@ export function AttributeEditor({ value, onChange, readOnly = false, keySuggesti
                                 onChange={e => patch(r.id, { key: e.target.value })}
                                 placeholder="key"
                                 aria-label="Attribute key"
-                                list={listId}
                                 aria-invalid={keyError !== null}
                                 className="w-40 font-mono"
                             />
@@ -106,7 +98,7 @@ export function AttributeEditor({ value, onChange, readOnly = false, keySuggesti
                                     patch(r.id, { type, raw: rawForType(type, r.raw) });
                                 }}
                             >
-                                <SelectTrigger aria-label="Attribute type" className="w-36">
+                                <SelectTrigger aria-label="Attribute type" className="min-w-32 shrink-0">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -125,6 +117,7 @@ export function AttributeEditor({ value, onChange, readOnly = false, keySuggesti
                                 onClick={() => remove(r.id)}
                                 aria-label={`Remove ${r.key || 'attribute'}`}
                                 title="Remove"
+                                className="ml-auto shrink-0"
                             >
                                 <Trash2Icon className="size-4 text-muted-foreground" aria-hidden />
                             </Button>

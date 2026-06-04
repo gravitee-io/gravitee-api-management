@@ -21,11 +21,14 @@ import { AttributeEditor, type AttributeRow } from '../AttributeEditor';
 
 beforeAll(() => {
     if (!Element.prototype.scrollIntoView) Element.prototype.scrollIntoView = () => undefined;
+    if (!Element.prototype.hasPointerCapture) Element.prototype.hasPointerCapture = () => false;
+    if (!Element.prototype.setPointerCapture) Element.prototype.setPointerCapture = () => undefined;
+    if (!Element.prototype.releasePointerCapture) Element.prototype.releasePointerCapture = () => undefined;
 });
 
 function Harness({ initial = [] as AttributeRow[], readOnly = false }: { initial?: AttributeRow[]; readOnly?: boolean }) {
     const [rows, setRows] = useState<AttributeRow[]>(initial);
-    return <AttributeEditor value={rows} onChange={setRows} readOnly={readOnly} keySuggestions={[]} />;
+    return <AttributeEditor value={rows} onChange={setRows} readOnly={readOnly} />;
 }
 
 const row = (over: Partial<AttributeRow> = {}): AttributeRow => ({ id: 'r1', key: 'dept', type: 'string', raw: 'eng', ...over });
@@ -55,6 +58,16 @@ describe('AttributeEditor', () => {
     it('shows the policy-function hint for string-backed types', () => {
         render(<Harness initial={[row({ key: 'srcIp', type: 'ip', raw: '10.0.0.1' })]} />);
         expect(screen.getByText(/ip\(\.\.\.\)/)).toBeInTheDocument();
+    });
+
+    it('defaults the value to false when switching a row to boolean, with no error', async () => {
+        const user = userEvent.setup();
+        render(<Harness initial={[row({ key: 'flag', type: 'string', raw: '' })]} />);
+        await user.click(screen.getByRole('combobox', { name: /Attribute type/i }));
+        await user.click(screen.getByRole('option', { name: 'Boolean' }));
+        expect(screen.getByRole('switch', { name: /Attribute value/i })).not.toBeChecked();
+        expect(screen.getByText('false')).toBeInTheDocument();
+        expect(screen.queryByText(/true or false/i)).not.toBeInTheDocument();
     });
 
     it('removes a row', async () => {
