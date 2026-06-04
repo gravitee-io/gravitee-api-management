@@ -14,17 +14,7 @@
  * limitations under the License.
  */
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
-import {
-    Alert,
-    AlertDescription,
-    Button,
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@gravitee/graphene-core';
+import { Alert, AlertDescription, Button } from '@gravitee/graphene-core';
 import { PlusIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -32,45 +22,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { NotificationsEmptyState } from './NotificationsEmptyState';
 import { NotificationsSummaryCards } from './NotificationsSummaryCards';
 import { NotificationsTable } from './NotificationsTable';
+import { ConfirmDialog } from '../../../../../shared/components';
+import { notify } from '../../../../../shared/notify';
 import type { NotificationRow } from '../../../hooks/useApiNotifications';
 import { useApiNotifications, useDeleteNotification } from '../../../hooks/useApiNotifications';
-
-// ─── Delete confirm dialog ────────────────────────────────────────────────────
-
-interface DeleteConfirmDialogProps {
-    row: NotificationRow | null;
-    isPending: boolean;
-    onConfirm: () => void;
-    onCancel: () => void;
-}
-
-function DeleteConfirmDialog({ row, isPending, onConfirm, onCancel }: Readonly<DeleteConfirmDialogProps>) {
-    return (
-        <Dialog
-            open={row !== null}
-            onOpenChange={open => {
-                if (!open) onCancel();
-            }}
-        >
-            <DialogContent style={{ maxWidth: '24rem' }}>
-                <DialogHeader>
-                    <DialogTitle>Delete notification</DialogTitle>
-                    <DialogDescription>
-                        <strong>{row?.notification.name}</strong> will be permanently deleted. This cannot be undone.
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                    <Button type="button" variant="outline" onClick={onCancel} disabled={isPending}>
-                        Cancel
-                    </Button>
-                    <Button type="button" variant="destructive" onClick={onConfirm} disabled={isPending}>
-                        {isPending ? 'Deleting…' : 'Delete'}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    );
-}
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -87,7 +42,6 @@ export function ApiNotificationsPage() {
     const deleteMutation = useDeleteNotification(apiId ?? '');
 
     const [deletingRow, setDeletingRow] = useState<NotificationRow | null>(null);
-    const [deleteError, setDeleteError] = useState<string | null>(null);
 
     // ─── Handlers ──────────────────────────────────────────────────────────────
 
@@ -95,13 +49,10 @@ export function ApiNotificationsPage() {
         if (!deletingRow?.notification.id) return;
         deleteMutation.mutate(deletingRow.notification.id, {
             onSuccess: () => {
-                setDeleteError(null);
+                notify.success('Notification deleted');
                 setDeletingRow(null);
             },
-            onError: (err: unknown) => {
-                const message = err instanceof Error ? err.message : 'Failed to delete notification.';
-                setDeleteError(message);
-            },
+            onError: error => notify.error(error, 'Failed to delete notification.'),
         });
     }, [deletingRow, deleteMutation]);
 
@@ -137,13 +88,6 @@ export function ApiNotificationsPage() {
                 )}
             </div>
 
-            {/* Delete error banner */}
-            {deleteError && (
-                <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3">
-                    <p className="text-sm text-destructive">{deleteError}</p>
-                </div>
-            )}
-
             {/* Summary cards — always visible (shows 0 when empty) */}
             <NotificationsSummaryCards rows={rows} isLoading={isLoading} />
 
@@ -164,11 +108,20 @@ export function ApiNotificationsPage() {
             )}
 
             {/* Delete confirmation */}
-            <DeleteConfirmDialog
-                row={deletingRow}
+            <ConfirmDialog
+                open={deletingRow !== null}
+                onOpenChange={open => !open && setDeletingRow(null)}
+                title="Delete notification"
+                description={
+                    <>
+                        <strong>{deletingRow?.notification.name}</strong> will be permanently deleted. This cannot be undone.
+                    </>
+                }
+                confirmLabel="Delete"
+                pendingLabel="Deleting…"
+                destructive
                 isPending={deleteMutation.isPending}
                 onConfirm={handleDeleteConfirm}
-                onCancel={() => setDeletingRow(null)}
             />
         </div>
     );

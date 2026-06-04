@@ -22,6 +22,7 @@ import { ConsumersFilterBar } from './ConsumersFilterBar';
 import { ConsumersSummaryCards } from './ConsumersSummaryCards';
 import { ConsumersTable } from './ConsumersTable';
 import { CreateSubscription } from './CreateSubscription';
+import { notify } from '../../../../../shared/notify';
 import { useCreateSubscription } from '../../../hooks/useSubscriptionActions';
 import { isSubscriptionFiltersDirty, useApiPlans, useSubscriptionCount, useSubscriptionList } from '../../../hooks/useSubscriptions';
 import type { SubscriptionContext, SubscriptionFilters } from '../../../types/subscription';
@@ -65,7 +66,15 @@ export function ConsumersPage({ ctx, canCreate, canRead }: ConsumersPageProps) {
 
     const handleCreate = useCallback(
         (applicationId: string, planId: string) => {
-            createMutation.mutate({ applicationId, planId }, { onSuccess: () => setDialogOpen(false) });
+            createMutation.mutate(
+                { applicationId, planId },
+                {
+                    onSuccess: () => {
+                        notify.success('Subscription created');
+                        setDialogOpen(false);
+                    },
+                },
+            );
         },
         [createMutation],
     );

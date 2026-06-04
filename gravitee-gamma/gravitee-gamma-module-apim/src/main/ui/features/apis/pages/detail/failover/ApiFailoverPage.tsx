@@ -35,6 +35,7 @@ import { useParams } from 'react-router-dom';
 import { CircuitBreakerDialog } from './CircuitBreakerDialog';
 import { NumberField } from './NumberField';
 import { ToggleSetting } from './ToggleSetting';
+import { notify } from '../../../../../shared/notify';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import { updateApiFailover } from '../../../services/apis';
 import type { Failover } from '../../../types';
@@ -101,7 +102,9 @@ export function ApiFailoverPage() {
         mutationFn: (failover: Failover) => updateApiFailover(env!.id, apiId!, failover),
         onSuccess: () => {
             void queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env?.id ?? '', apiId ?? '') });
+            notify.success('Failover settings saved');
         },
+        onError: error => notify.error(error, 'Failed to save failover settings.'),
     });
 
     const handleSave = () => {
@@ -163,13 +166,6 @@ export function ApiFailoverPage() {
                         <AlertDescription>
                             This API is managed by the Kubernetes operator. Failover settings are read-only.
                         </AlertDescription>
-                    </Alert>
-                )}
-
-                {/* ─── Mutation error ──────────────────────────────────────────── */}
-                {mutation.isError && (
-                    <Alert variant="destructive">
-                        <AlertDescription>{mutation.error?.message ?? 'Failed to save failover settings.'}</AlertDescription>
                     </Alert>
                 )}
 

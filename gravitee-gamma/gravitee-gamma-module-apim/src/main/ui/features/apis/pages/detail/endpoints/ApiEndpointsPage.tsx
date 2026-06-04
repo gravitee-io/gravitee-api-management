@@ -26,6 +26,7 @@ import { EndpointsLanding } from './EndpointsLanding';
 import { EndpointGroupForm } from './group-form/EndpointGroupForm';
 import type { EndpointFormState, EndpointGroupFormState } from './types';
 import { buildDefaultEndpointForGroup, DEFAULT_GROUP_FORM, DEFAULT_SHARED_CONFIG, newEndpointRow, parseSharedConfigDto } from './types';
+import { notify } from '../../../../../shared/notify';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import { updateApiEndpointGroups } from '../../../services/apis';
 import type { EndpointGroupDto, EndpointGroupSharedConfiguration } from '../../../types';
@@ -202,8 +203,11 @@ export function ApiEndpointsPage() {
             setEndpointFormMode('hidden');
             setEndpointGroupIndex(null);
             setEndpointIndex(null);
+            notify.success('Endpoints updated');
         },
         onError: (err: unknown) => {
+            // Group/endpoint form views surface this inline via `saveError`.
+            // List-view actions (delete/reorder) additionally pass their own toast `onError`.
             setSaveError(err instanceof Error ? err.message : 'Failed to save.');
         },
     });
@@ -322,12 +326,15 @@ export function ApiEndpointsPage() {
     }
 
     function handleDeleteGroup(idx: number) {
-        mutation.mutate(groups.filter((_, i) => i !== idx));
+        mutation.mutate(
+            groups.filter((_, i) => i !== idx),
+            { onError: error => notify.error(error, 'Failed to delete endpoint group.') },
+        );
     }
 
     function handleDeleteEndpoint(groupIdx: number, epIdx: number) {
         const updated = groups.map((g, i) => (i === groupIdx ? { ...g, endpoints: (g.endpoints ?? []).filter((_, j) => j !== epIdx) } : g));
-        mutation.mutate(updated);
+        mutation.mutate(updated, { onError: error => notify.error(error, 'Failed to delete endpoint.') });
     }
 
     function handleReorderEndpoints(groupIdx: number, fromIdx: number, toIdx: number) {
@@ -338,7 +345,7 @@ export function ApiEndpointsPage() {
             endpoints.splice(toIdx, 0, moved);
             return { ...g, endpoints };
         });
-        mutation.mutate(updated);
+        mutation.mutate(updated, { onError: error => notify.error(error, 'Failed to reorder endpoints.') });
     }
 
     // ── Loading ──
@@ -417,13 +424,6 @@ export function ApiEndpointsPage() {
                         <AlertDescription>
                             This API is managed by the Kubernetes operator. Endpoint configuration is read-only.
                         </AlertDescription>
-                    </Alert>
-                )}
-
-                {/* ── Mutation error (list view) ── */}
-                {showList && mutation.isError && (
-                    <Alert variant="destructive">
-                        <AlertDescription>{saveError ?? 'An error occurred.'}</AlertDescription>
                     </Alert>
                 )}
 

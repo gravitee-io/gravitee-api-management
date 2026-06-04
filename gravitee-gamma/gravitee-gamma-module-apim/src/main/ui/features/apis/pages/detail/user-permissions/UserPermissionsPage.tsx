@@ -32,6 +32,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
+import { notify } from '../../../../../shared/notify';
 import { AddMembers } from '../../../components/user-permissions/AddMembers';
 import { DirectMembersTable } from '../../../components/user-permissions/DirectMembersTable';
 import { GroupMembersSection } from '../../../components/user-permissions/GroupMembersSection';
@@ -88,7 +89,9 @@ export function UserPermissionsPage() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: apiMemberKeys.list(env!.id, apiId!) });
             setAddMembersOpen(false);
+            notify.success('Members added');
         },
+        onError: error => notify.error(error, 'Failed to add members.'),
     });
 
     const updateMutation = useMutation({
@@ -97,7 +100,9 @@ export function UserPermissionsPage() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: apiMemberKeys.list(env!.id, apiId!) });
             setEditState(null);
+            notify.success('Member role updated');
         },
+        onError: error => notify.error(error, 'Failed to update member role.'),
     });
 
     const deleteMutation = useMutation({
@@ -105,7 +110,9 @@ export function UserPermissionsPage() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: apiMemberKeys.list(env!.id, apiId!) });
             setMemberToRemove(null);
+            notify.success('Member removed');
         },
+        onError: error => notify.error(error, 'Failed to remove member.'),
     });
 
     const transferMutation = useMutation({
@@ -114,7 +121,9 @@ export function UserPermissionsPage() {
             queryClient.invalidateQueries({ queryKey: apiMemberKeys.list(env!.id, apiId!) });
             queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env!.id, apiId!) });
             setTransferOpen(false);
+            notify.success('Ownership transferred');
         },
+        onError: error => notify.error(error, 'Failed to transfer ownership.'),
     });
 
     const groupsMutation = useMutation({
@@ -124,14 +133,18 @@ export function UserPermissionsPage() {
             queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env!.id, apiId!) });
             queryClient.invalidateQueries({ queryKey: groupKeys.list(env!.id) });
             setManageGroupsOpen(false);
+            notify.success('Groups updated');
         },
+        onError: error => notify.error(error, 'Failed to update groups.'),
     });
 
     const notificationMutation = useMutation({
         mutationFn: (disable: boolean) => updateApiNotifications(env!.id, apiId!, disable),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env!.id, apiId!) });
+            notify.success('Notification setting updated');
         },
+        onError: error => notify.error(error, 'Failed to update notification setting.'),
     });
 
     const handleStartEdit = useCallback((member: Member) => setEditState({ memberId: member.id, role: getApiRole(member) }), []);

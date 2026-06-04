@@ -43,6 +43,7 @@ import {
 import { useCallback, useMemo, useState } from 'react';
 
 import { SubscriptionApproveDialog } from './SubscriptionApproveDialog';
+import { notify } from '../../../../../../shared/notify';
 import {
     useApproveSubscription,
     useCloseSubscription,
@@ -97,18 +98,34 @@ export function SubscriptionActionsBar({ ctx, subscription, canUpdate, canDelete
     const anyInlinePending =
         pauseMutation.isPending || resumeMutation.isPending || closeMutation.isPending || resumeFailedMutation.isPending;
 
-    const inlineActionError = pauseMutation.error ?? resumeMutation.error ?? closeMutation.error ?? resumeFailedMutation.error ?? null;
-
     const confirmInline = useCallback(() => {
-        if (inlineAction === 'pause') pauseMutation.mutate(undefined, { onSuccess: () => setInlineAction(null) });
-        else if (inlineAction === 'resume') resumeMutation.mutate(undefined, { onSuccess: () => setInlineAction(null) });
-        else if (inlineAction === 'close') closeMutation.mutate(undefined, { onSuccess: () => setInlineAction(null) });
-        else if (inlineAction === 'resumeFailure') resumeFailedMutation.mutate(undefined, { onSuccess: () => setInlineAction(null) });
+        const done = (message: string) => () => {
+            notify.success(message);
+            setInlineAction(null);
+        };
+        const fail = (fallback: string) => (error: unknown) => notify.error(error, fallback);
+        if (inlineAction === 'pause')
+            pauseMutation.mutate(undefined, { onSuccess: done('Subscription paused'), onError: fail('Failed to pause subscription.') });
+        else if (inlineAction === 'resume')
+            resumeMutation.mutate(undefined, { onSuccess: done('Subscription resumed'), onError: fail('Failed to resume subscription.') });
+        else if (inlineAction === 'close')
+            closeMutation.mutate(undefined, { onSuccess: done('Subscription closed'), onError: fail('Failed to close subscription.') });
+        else if (inlineAction === 'resumeFailure')
+            resumeFailedMutation.mutate(undefined, {
+                onSuccess: done('Subscription resumed'),
+                onError: fail('Failed to resume subscription.'),
+            });
     }, [inlineAction, pauseMutation, resumeMutation, closeMutation, resumeFailedMutation]);
 
     const handleApprove = useCallback(
         (payload: ApproveSubscriptionPayload) => {
-            approveMutation.mutate(payload, { onSuccess: () => setApproveOpen(false) });
+            approveMutation.mutate(payload, {
+                onSuccess: () => {
+                    notify.success('Subscription approved');
+                    setApproveOpen(false);
+                },
+                onError: error => notify.error(error, 'Failed to approve subscription.'),
+            });
         },
         [approveMutation],
     );
@@ -122,9 +139,11 @@ export function SubscriptionActionsBar({ ctx, subscription, canUpdate, canDelete
         if (!rejectReason.trim()) return;
         rejectMutation.mutate(rejectReason.trim(), {
             onSuccess: () => {
+                notify.success('Subscription rejected');
                 setRejectOpen(false);
                 setRejectReason('');
             },
+            onError: error => notify.error(error, 'Failed to reject subscription.'),
         });
     }, [rejectReason, rejectMutation]);
 
@@ -138,18 +157,22 @@ export function SubscriptionActionsBar({ ctx, subscription, canUpdate, canDelete
         if (!selectedPlanId) return;
         transferMutation.mutate(selectedPlanId, {
             onSuccess: () => {
+                notify.success('Subscription transferred');
                 setTransferOpen(false);
                 setSelectedPlanId('');
             },
+            onError: error => notify.error(error, 'Failed to transfer subscription.'),
         });
     }, [selectedPlanId, transferMutation]);
 
     const handleEndDate = useCallback(() => {
         endDateMutation.mutate(endDate || null, {
             onSuccess: () => {
+                notify.success('End date updated');
                 setEndDateOpen(false);
                 setEndDate('');
             },
+            onError: error => notify.error(error, 'Failed to update end date.'),
         });
     }, [endDate, endDateMutation]);
 
@@ -271,18 +294,11 @@ export function SubscriptionActionsBar({ ctx, subscription, canUpdate, canDelete
                 </div>
             )}
 
-            {inlineActionError && (
-                <Alert variant="destructive">
-                    <AlertDescription>{inlineActionError.message}</AlertDescription>
-                </Alert>
-            )}
-
             {/* Approve dialog */}
             <SubscriptionApproveDialog
                 open={approveOpen}
                 isApiKeyPlan={isApiKeyPlan}
                 isPending={approveMutation.isPending}
-                error={approveMutation.error?.message ?? null}
                 onConfirm={handleApprove}
                 onClose={handleApproveClose}
             />
@@ -302,11 +318,6 @@ export function SubscriptionActionsBar({ ctx, subscription, canUpdate, canDelete
                             placeholder="Explain why this subscription is rejected…"
                             rows={3}
                         />
-                        {rejectMutation.error && (
-                            <Alert variant="destructive">
-                                <AlertDescription>{rejectMutation.error.message}</AlertDescription>
-                            </Alert>
-                        )}
                     </div>
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={handleRejectClose} disabled={rejectMutation.isPending}>
@@ -347,11 +358,6 @@ export function SubscriptionActionsBar({ ctx, subscription, canUpdate, canDelete
                         {transferPlans.length === 0 && (
                             <p className="text-xs text-muted-foreground">No compatible plans available for transfer.</p>
                         )}
-                        {transferMutation.error && (
-                            <Alert variant="destructive">
-                                <AlertDescription>{transferMutation.error.message}</AlertDescription>
-                            </Alert>
-                        )}
                     </div>
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setTransferOpen(false)}>
@@ -373,11 +379,6 @@ export function SubscriptionActionsBar({ ctx, subscription, canUpdate, canDelete
                     <div className="space-y-2 py-2">
                         <Label htmlFor="end-date">End date (leave empty to remove)</Label>
                         <Input id="end-date" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
-                        {endDateMutation.error && (
-                            <Alert variant="destructive">
-                                <AlertDescription>{endDateMutation.error.message}</AlertDescription>
-                            </Alert>
-                        )}
                     </div>
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setEndDateOpen(false)}>
