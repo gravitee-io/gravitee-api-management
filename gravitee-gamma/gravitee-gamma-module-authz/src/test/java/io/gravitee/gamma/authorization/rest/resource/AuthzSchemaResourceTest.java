@@ -16,8 +16,12 @@
 package io.gravitee.gamma.authorization.rest.resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.gamma.authorization.rest.dto.AuthzSchemaRequest;
 import io.gravitee.gamma.authorization.rest.dto.AuthzSchemaResponse;
 import jakarta.ws.rs.core.Response;
 import java.util.Optional;
@@ -46,5 +50,24 @@ class AuthzSchemaResourceTest extends AbstractAuthorizationResourceTest {
             assertThat(response.getStatus()).isEqualTo(200);
             assertThat(response.readEntity(AuthzSchemaResponse.class).schema()).isEmpty();
         }
+    }
+
+    @Test
+    void put_saves_schema_and_returns_200() {
+        when(schemaService.getSchema(any())).thenReturn(java.util.Optional.of("entity Edited {};"));
+        try (Response response = target("/schema").request().put(jakarta.ws.rs.client.Entity.json(new AuthzSchemaRequest("entity Edited {};")))) {
+            assertThat(response.getStatus()).isEqualTo(200);
+            assertThat(response.readEntity(AuthzSchemaResponse.class).schema()).isEqualTo("entity Edited {};");
+        }
+        verify(schemaService).saveSchema(any(), eq("entity Edited {};"));
+    }
+
+    @Test
+    void delete_removes_schema_and_returns_204() {
+        when(schemaService.deleteSchema(any())).thenReturn(true);
+        try (Response response = target("/schema").request().delete()) {
+            assertThat(response.getStatus()).isEqualTo(204);
+        }
+        verify(schemaService).deleteSchema(any());
     }
 }
