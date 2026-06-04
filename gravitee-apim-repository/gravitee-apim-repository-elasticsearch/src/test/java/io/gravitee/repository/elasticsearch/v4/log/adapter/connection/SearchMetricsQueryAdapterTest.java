@@ -505,28 +505,6 @@ class SearchMetricsQueryAdapterTest {
             Arguments.of(
                 MetricsQuery.Filter.builder().entrypointIds(Set.of("http-post", "http-get")).build(),
                 """
-<<<<<<< HEAD
-                                         {
-                                             "from": 0,
-                                             "size": 20,
-                                             "query": {
-                                                 "bool": {
-                                                     "must": [
-                                                         {
-                                                             "terms": {
-                                                                 "entrypoint-id": ["http-post", "http-get"]
-                                                             }
-                                                         }
-                                                     ]
-                                                 }
-                                             },
-                                             "sort": {
-                                                 "@timestamp": {
-                                                     "order": "desc"
-                                                 }
-                                             }
-                                          }
-=======
                 {
                     "from": 0,
                     "size": 20,
@@ -557,12 +535,12 @@ class SearchMetricsQueryAdapterTest {
                             ]
                         }
                     },
-                    "sort": [
-                        { "@timestamp": { "order": "desc" } },
-                        { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
-                    ]
+                    "sort": {
+                        "@timestamp": {
+                            "order": "desc"
+                        }
+                    }
                 }
->>>>>>> 8b7a7311c0 (fix(logs): include metrics without entrypoint-id in logs search)
                 """
             ),
             Arguments.of(
@@ -748,8 +726,6 @@ class SearchMetricsQueryAdapterTest {
             assertThat(hasErrorKeysFilter).isFalse();
         }
     }
-<<<<<<< HEAD
-=======
 
     @Nested
     class EntrypointIdsFilter {
@@ -798,10 +774,11 @@ class SearchMetricsQueryAdapterTest {
                                 ]
                             }
                         },
-                        "sort": [
-                            { "@timestamp": { "order": "desc" } },
-                            { "request-id": { "order": "asc", "unmapped_type": "keyword" } }
-                        ]
+                        "sort": {
+                            "@timestamp": {
+                                "order": "desc"
+                            }
+                        }
                     }
                     """
                 );
@@ -843,59 +820,4 @@ class SearchMetricsQueryAdapterTest {
             ).isTrue();
         }
     }
-
-    @Nested
-    class ApiProductIdsFilter {
-
-        @Test
-        void should_add_api_product_ids_terms_filter_when_provided() {
-            var query = MetricsQuery.builder()
-                .filter(
-                    MetricsQuery.Filter.builder()
-                        .apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9"))
-                        .apiProductIds(Set.of("f5e6a5a0-1234-4b3a-9c1e-000000000001", "f5e6a5a0-1234-4b3a-9c1e-000000000002"))
-                        .build()
-                )
-                .build();
-
-            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.API_PRODUCT_ID.v4Metrics())).isTrue();
-        }
-
-        @Test
-        void should_not_add_api_product_ids_filter_when_null() {
-            var query = MetricsQuery.builder()
-                .filter(MetricsQuery.Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).apiProductIds(null).build())
-                .build();
-
-            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.API_PRODUCT_ID.v4Metrics())).isFalse();
-        }
-
-        @Test
-        void should_not_add_api_product_ids_filter_when_empty() {
-            var query = MetricsQuery.builder()
-                .filter(
-                    MetricsQuery.Filter.builder().apiIds(Set.of("f1608475-dd77-4603-a084-75dd775603e9")).apiProductIds(Set.of()).build()
-                )
-                .build();
-
-            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.API_PRODUCT_ID.v4Metrics())).isFalse();
-        }
-    }
-
-    private boolean hasTermsOn(MetricsQuery query, String field) {
-        var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
-        var queryNode = result.getJsonObject("query");
-        if (queryNode == null || queryNode.getJsonObject("bool") == null) {
-            return false;
-        }
-        var mustClauses = queryNode.getJsonObject("bool").getJsonArray("must");
-        if (mustClauses == null) {
-            return false;
-        }
-        return mustClauses
-            .stream()
-            .map(o -> (JsonObject) o)
-            .anyMatch(clause -> clause.containsKey("terms") && clause.getJsonObject("terms").containsKey(field));
-    }
->>>>>>> 8b7a7311c0 (fix(logs): include metrics without entrypoint-id in logs search)
 }
