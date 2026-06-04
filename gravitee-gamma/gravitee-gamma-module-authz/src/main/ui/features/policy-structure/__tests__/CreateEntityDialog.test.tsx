@@ -40,6 +40,15 @@ vi.mock('../../../shared/api/authz-api.service', () => ({
     },
 }));
 
+const useParsedSchemaSpy = vi.fn();
+vi.mock('../../../shared/hooks/useParsedSchema', () => ({
+    useParsedSchema: (env: string) => useParsedSchemaSpy(env),
+}));
+
+function parsedResult(actions: Array<{ name: string; principals: string[]; resources: string[] }>) {
+    return { parsed: { entities: [], actions }, isLoading: false, error: undefined };
+}
+
 vi.mock('@gravitee/graphene-core', async importOriginal => {
     const actual = await importOriginal<Record<string, unknown>>();
     return {
@@ -78,6 +87,8 @@ beforeEach(() => {
     getEntitySpy.mockReset();
     createEntitySpy.mockReset();
     toastSuccessSpy.mockReset();
+    useParsedSchemaSpy.mockReset();
+    useParsedSchemaSpy.mockReturnValue(parsedResult([]));
     seedParents([]);
     getEntitySpy.mockResolvedValue(null);
     createEntitySpy.mockResolvedValue({
@@ -306,5 +317,78 @@ describe('CreateEntityDialog', () => {
 
         expect(screen.getByText(/"mcp" is a preset type/i)).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /Create Resource/i })).toBeDisabled();
+    });
+
+    const SCHEMA_ACTIONS = [{ name: 'read', principals: ['User', 'Subject'], resources: ['Report'] }];
+
+    it('drives the PRINCIPAL type list from the schema and sends the chosen schema type', async () => {
+        const user = userEvent.setup();
+        useParsedSchemaSpy.mockReturnValue(parsedResult(SCHEMA_ACTIONS));
+        renderDialog({ kind: 'PRINCIPAL' });
+
+        await user.click(screen.getByLabelText('Entity type'));
+        expect(await screen.findByRole('option', { name: /User/i })).toBeInTheDocument();
+        expect(screen.getByRole('option', { name: /Subject/i })).toBeInTheDocument();
+        // Hardcoded presets are not offered when the schema declares principals.
+        expect(screen.queryByRole('option', { name: /Service Account/i })).not.toBeInTheDocument();
+
+        await user.click(screen.getByRole('option', { name: /Subject/i }));
+        await user.type(screen.getByLabelText(/Display name/i), 'alice');
+        await user.click(screen.getByRole('button', { name: /Create Principal/i }));
+
+        await waitFor(() => expect(createEntitySpy).toHaveBeenCalledTimes(1));
+        const [, req] = createEntitySpy.mock.calls[0];
+        expect(req).toMatchObject({ entityType: 'Subject', entityId: 'subject.alice', kind: 'PRINCIPAL' });
+    });
+
+    it('drives the RESOURCE type list from the schema and sends the chosen schema type', async () => {
+        const user = userEvent.setup();
+        useParsedSchemaSpy.mockReturnValue(parsedResult(SCHEMA_ACTIONS));
+        renderDialog({ kind: 'RESOURCE' });
+
+        await user.click(screen.getByLabelText('Entity type'));
+        expect(await screen.findByRole('option', { name: /Report/i })).toBeInTheDocument();
+
+        await user.click(screen.getByRole('option', { name: /Report/i }));
+        await user.type(screen.getByLabelText(/Display name/i), 'q1');
+        await user.click(screen.getByRole('button', { name: /Create Resource/i }));
+
+        await waitFor(() => expect(createEntitySpy).toHaveBeenCalledTimes(1));
+        const [, req] = createEntitySpy.mock.calls[0];
+        expect(req).toMatchObject({ entityType: 'Report', entityId: 'report.q1', kind: 'RESOURCE' });
+    });
+
+    it('falls back to built-in presets when there is no schema and sends the built-in entityType', async () => {
+        const user = userEvent.setup();
+        useParsedSchemaSpy.mockReturnValue(parsedResult([]));
+        renderDialog({ kind: 'PRINCIPAL' });
+
+        await user.click(screen.getByLabelText('Entity type'));
+        // Built-in presets are offered (User is the default selection).
+        expect(await screen.findByRole('option', { name: /Service Account/i })).toBeInTheDocument();
+        await user.keyboard('{Escape}');
+
+        await user.type(screen.getByLabelText(/Display name/i), 'Alice');
+        await user.click(screen.getByRole('button', { name: /Create Principal/i }));
+
+        await waitFor(() => expect(createEntitySpy).toHaveBeenCalledTimes(1));
+        const [, req] = createEntitySpy.mock.calls[0];
+        expect(req).toMatchObject({ entityType: 'User', entityId: 'user.alice', kind: 'PRINCIPAL' });
+    });
+
+    it('sends the kind umbrella entityType for an "Other" custom prefix', async () => {
+        const user = userEvent.setup();
+        useParsedSchemaSpy.mockReturnValue(parsedResult([]));
+        renderDialog({ kind: 'RESOURCE' });
+
+        await user.click(screen.getByLabelText('Entity type'));
+        await user.click(await screen.findByRole('option', { name: /Other \(custom prefix\)/i }));
+        await user.type(screen.getByLabelText(/Custom prefix/i), 'webhook');
+        await user.type(screen.getByLabelText(/Display name/i), 'Slack hook');
+
+        await user.click(screen.getByRole('button', { name: /Create Resource/i }));
+        await waitFor(() => expect(createEntitySpy).toHaveBeenCalledTimes(1));
+        const [, req] = createEntitySpy.mock.calls[0];
+        expect(req).toMatchObject({ entityType: 'Resource', entityId: 'webhook.slack-hook' });
     });
 });

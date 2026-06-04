@@ -20,7 +20,6 @@ const get = vi.fn();
 const post = vi.fn();
 const put = vi.fn();
 const del = vi.fn();
-const post = vi.fn();
 vi.mock('../authz-api-client', () => ({
     authzCoreApiClient: {
         get: (path: string) => get(path),

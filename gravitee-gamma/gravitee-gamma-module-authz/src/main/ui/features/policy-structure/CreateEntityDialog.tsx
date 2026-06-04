@@ -48,8 +48,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { authzApiService } from '../../shared/api/authz-api.service';
 import { authzQueryKeys } from '../../shared/api/query-keys';
 import { formatEntityUid, fromBackend } from '../../shared/entity-adapter';
-import { ENTITY_KIND_REGISTRY } from '../../shared/entity-kind-registry';
+import { ENTITY_KIND_REGISTRY, kindToUiType, uiTypeToKind } from '../../shared/entity-kind-registry';
+import { type ParsedSchema } from '../../shared/engine-schema';
 import { useEntities } from '../../shared/hooks/useEntities';
+import { useParsedSchema } from '../../shared/hooks/useParsedSchema';
 import { AttributeEditor, type AttributeRow } from './AttributeEditor';
 import { attrsFromRows } from './attribute-rows';
 
@@ -82,6 +84,46 @@ const RESOURCE_PRESETS: readonly { canonical: string; label: string }[] = [
 
 const CUSTOM_TYPE = '__custom__';
 
+const UMBRELLA_TYPE: Record<EntityKind, string> = {
+    PRINCIPAL: 'Principal',
+    RESOURCE: 'Resource',
+};
+
+interface TypeOption {
+    readonly value: string;
+    readonly label: string;
+    readonly badge: string;
+    readonly prefix: string;
+    readonly entityType: string;
+}
+
+function presetOptions(kind: EntityKind): TypeOption[] {
+    const presets = kind === 'PRINCIPAL' ? PRINCIPAL_PRESETS : RESOURCE_PRESETS;
+    return presets.map(p => ({
+        value: p.canonical,
+        label: p.label,
+        badge: p.canonical,
+        prefix: p.canonical,
+        entityType: kindToUiType(p.canonical) ?? p.label,
+    }));
+}
+
+function schemaOptions(parsed: ParsedSchema, kind: EntityKind): TypeOption[] {
+    const names = new Set<string>();
+    for (const action of parsed.actions) {
+        for (const name of kind === 'PRINCIPAL' ? action.principals : action.resources) {
+            names.add(name);
+        }
+    }
+    return [...names].map(name => ({
+        value: name,
+        label: name,
+        badge: uiTypeToKind(name),
+        prefix: uiTypeToKind(name),
+        entityType: name,
+    }));
+}
+
 function slugify(value: string): string {
     return value
         .normalize('NFD')
@@ -105,9 +147,16 @@ export interface CreateEntityDialogProps {
 
 export function CreateEntityDialog({ open, kind, environmentId, onOpenChange, onCreated }: CreateEntityDialogProps) {
     const queryClient = useQueryClient();
-    const presets = kind === 'PRINCIPAL' ? PRINCIPAL_PRESETS : RESOURCE_PRESETS;
+    const { parsed } = useParsedSchema(environmentId);
 
-    const [typeSelection, setTypeSelection] = useState<string>(presets[0]!.canonical);
+    const typeOptions = useMemo<TypeOption[]>(() => {
+        const fromSchema = schemaOptions(parsed, kind);
+        return fromSchema.length > 0 ? fromSchema : presetOptions(kind);
+    }, [parsed, kind]);
+
+    const defaultSelection = typeOptions[0]!.value;
+
+    const [typeSelection, setTypeSelection] = useState<string>(defaultSelection);
     const [customPrefix, setCustomPrefix] = useState('');
     const [slug, setSlug] = useState('');
     const [slugTouched, setSlugTouched] = useState(false);
@@ -122,7 +171,7 @@ export function CreateEntityDialog({ open, kind, environmentId, onOpenChange, on
     // resets (e.g. from successful import) don't fight the local state machine.
     useEffect(() => {
         if (!open) {
-            setTypeSelection(presets[0]!.canonical);
+            setTypeSelection(defaultSelection);
             setCustomPrefix('');
             setSlug('');
             setSlugTouched(false);
@@ -133,7 +182,15 @@ export function CreateEntityDialog({ open, kind, environmentId, onOpenChange, on
             setSubmitError(null);
             setSubmitting(false);
         }
-    }, [open, presets]);
+    }, [open, defaultSelection]);
+
+    // When the schema resolves after the dialog is already open, a stale preset
+    // selection can no longer exist in the new options — snap back to the default.
+    useEffect(() => {
+        if (typeSelection !== CUSTOM_TYPE && !typeOptions.some(o => o.value === typeSelection)) {
+            setTypeSelection(defaultSelection);
+        }
+    }, [typeOptions, typeSelection, defaultSelection]);
 
     // Auto-derive slug from displayName until the user touches the slug field.
     useEffect(() => {
@@ -141,7 +198,9 @@ export function CreateEntityDialog({ open, kind, environmentId, onOpenChange, on
     }, [displayName, slugTouched]);
 
     const isCustom = typeSelection === CUSTOM_TYPE;
-    const canonicalPrefix = isCustom ? customPrefix.trim().toLowerCase() : typeSelection;
+    const selectedOption = typeOptions.find(o => o.value === typeSelection);
+    const canonicalPrefix = isCustom ? customPrefix.trim().toLowerCase() : (selectedOption?.prefix ?? typeSelection);
+    const entityType = isCustom ? UMBRELLA_TYPE[kind] : (selectedOption?.entityType ?? UMBRELLA_TYPE[kind]);
     const entityId = canonicalPrefix && slug ? `${canonicalPrefix}.${slug}` : '';
 
     const customPrefixError =
@@ -209,6 +268,7 @@ export function CreateEntityDialog({ open, kind, environmentId, onOpenChange, on
             await authzApiService.createEntity(environmentId, {
                 entityId,
                 kind,
+                entityType,
                 attributes,
                 parents: parentIds,
                 source: 'local',
@@ -265,11 +325,11 @@ export function CreateEntityDialog({ open, kind, environmentId, onOpenChange, on
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {presets.map(p => (
-                                        <SelectItem key={p.canonical} value={p.canonical}>
-                                            {p.label}
+                                    {typeOptions.map(option => (
+                                        <SelectItem key={option.value} value={option.value}>
+                                            {option.label}
                                             <Badge variant="outline" className="ml-2 font-mono text-xs">
-                                                {p.canonical}
+                                                {option.badge}
                                             </Badge>
                                         </SelectItem>
                                     ))}
