@@ -28,11 +28,22 @@ public class ApiProduct {
     @ParameterKey(Key.API_PRODUCT_PRIMARY_OWNER_MODE)
     private String primaryOwnerMode;
 
+    @ParameterKey(Key.API_PRODUCT_PLAN_SECURITY_KEYLESS_ENABLED)
+    private Enabled keylessPlan;
+
     public String getPrimaryOwnerMode() {
         return primaryOwnerMode;
     }
 
     public void setPrimaryOwnerMode(String primaryOwnerMode) {
         this.primaryOwnerMode = primaryOwnerMode;
+    }
+
+    public Enabled getKeylessPlan() {
+        return keylessPlan;
+    }
+
+    public void setKeylessPlan(Enabled keylessPlan) {
+        this.keylessPlan = keylessPlan;
     }
 }

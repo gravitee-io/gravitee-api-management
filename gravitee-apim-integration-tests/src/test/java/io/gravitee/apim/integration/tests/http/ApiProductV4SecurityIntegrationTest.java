@@ -68,6 +68,7 @@ import io.gravitee.policy.apikey.ApiKeyPolicyInitializer;
 import io.gravitee.policy.apikey.configuration.ApiKeyPolicyConfiguration;
 import io.gravitee.policy.jwt.JWTPolicy;
 import io.gravitee.policy.jwt.configuration.JWTPolicyConfiguration;
+import io.gravitee.policy.keyless.KeylessPolicy;
 import io.gravitee.policy.mtls.MtlsPolicy;
 import io.gravitee.policy.mtls.configuration.MtlsPolicyConfiguration;
 import io.vertx.core.http.HttpClientOptions;
@@ -288,6 +289,38 @@ class ApiProductV4SecurityIntegrationTest {
         }
     }
 
+    @Nested
+    class KeylessSecurityTypeScenarios extends SecurityTestPreparer {
+
+        @Test
+        @DeployApi(
+            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
+        )
+        void should_allow_call_without_credentials_with_published_keyless_plan_on_api_product(HttpClient client) {
+            final String productId = "keyless-product-published";
+            final String planId = "keyless-product-plan-published";
+            ReactableApiProduct p = product(productId, Set.of(API_1_ID));
+            registerProductPlans(p, List.of(productPlan(planId, "key-less", PlanStatus.PUBLISHED)));
+            deployApiProduct(p);
+
+            assertThat(getStatus(client, API_1_PATH)).isEqualTo(200);
+        }
+
+        @Test
+        @DeployApi(
+            { "/apis/v4/http/api-product/api-1.json", "/apis/v4/http/api-product/api-2.json", "/apis/v4/http/api-product/api-3.json" }
+        )
+        void should_allow_call_without_credentials_with_deprecated_keyless_plan_on_api_product(HttpClient client) {
+            final String productId = "keyless-product-deprecated";
+            final String planId = "keyless-product-plan-deprecated";
+            ReactableApiProduct p = product(productId, Set.of(API_1_ID));
+            registerProductPlans(p, List.of(productPlan(planId, "key-less", PlanStatus.DEPRECATED)));
+            deployApiProduct(p);
+
+            assertThat(getStatus(client, API_1_PATH)).isEqualTo(200);
+        }
+    }
+
     @GatewayTest
     // Empty @DeployApiProducts({}) signals that this test class needs the "universe" license tier for API Product features.
     @DeployApiProducts({})
@@ -341,6 +374,7 @@ class ApiProductV4SecurityIntegrationTest {
             );
             policies.put("jwt", PolicyBuilder.build("jwt", JWTPolicy.class, JWTPolicyConfiguration.class));
             policies.put("mtls", PolicyBuilder.build("mtls", MtlsPolicy.class, MtlsPolicyConfiguration.class));
+            policies.put("key-less", PolicyBuilder.build("key-less", KeylessPolicy.class));
         }
 
         @Override

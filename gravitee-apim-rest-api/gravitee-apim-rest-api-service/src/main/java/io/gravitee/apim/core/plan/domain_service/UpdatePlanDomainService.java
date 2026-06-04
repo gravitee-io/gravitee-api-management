@@ -355,7 +355,7 @@ public class UpdatePlanDomainService {
 
     private void updatePreFlightChecksForApiProduct(Plan planToUpdate, Map<String, PlanStatus> existingPlanStatuses, AuditInfo auditInfo) {
         assertNotClosedStatus(planToUpdate, existingPlanStatuses);
-        planValidatorDomainService.validatePlanSecurity(planToUpdate, auditInfo.organizationId(), auditInfo.environmentId(), null);
+        planValidatorDomainService.validatePlanSecurity(planToUpdate, auditInfo.organizationId(), auditInfo.environmentId(), null, true);
         planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
     }
 

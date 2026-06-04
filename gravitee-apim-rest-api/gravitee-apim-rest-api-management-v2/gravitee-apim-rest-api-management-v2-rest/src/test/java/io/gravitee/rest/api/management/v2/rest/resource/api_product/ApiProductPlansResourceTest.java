@@ -25,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -41,7 +40,6 @@ import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.management.v2.rest.model.ApiProductPlansResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CreateApiProductPlan;
-import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -278,22 +276,35 @@ class ApiProductPlansResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_return_400_when_creating_plan_with_keyless_security() {
+        void should_delegate_keyless_plan_creation_to_use_case() {
+            // Keyless is no longer hard-blocked at the REST layer; authorization is enforced by the domain validator
+            // against the api.product.plan.security.keyless.enabled setting.
+            String createdPlanId = "keyless-plan-id";
+            Plan createdPlan = Plan.builder()
+                .id(createdPlanId)
+                .name("Keyless plan")
+                .referenceId(API_PRODUCT_ID)
+                .definitionVersion(DefinitionVersion.V4)
+                .planDefinitionHttpV4(
+                    io.gravitee.definition.model.v4.plan.Plan.builder()
+                        .id(createdPlanId)
+                        .name("Keyless plan")
+                        .security(PlanSecurity.builder().type("KEY_LESS").build())
+                        .mode(PlanMode.STANDARD)
+                        .status(PlanStatus.STAGING)
+                        .build()
+                )
+                .build();
+            when(createPlanUseCase.execute(any())).thenReturn(new CreateApiProductPlanUseCase.Output(createdPlanId, createdPlan));
+
             CreateApiProductPlan createPayload = new CreateApiProductPlan();
             createPayload.setName("Keyless plan");
-            createPayload.setDescription("Keyless plan description");
-            io.gravitee.rest.api.management.v2.rest.model.PlanSecurity planSecurity =
-                new io.gravitee.rest.api.management.v2.rest.model.PlanSecurity();
-            planSecurity.setType(PlanSecurityType.KEY_LESS);
-            createPayload.setSecurity(planSecurity);
+            createPayload.setSecurity(new io.gravitee.rest.api.management.v2.rest.model.PlanSecurity().type(PlanSecurityType.KEY_LESS));
 
-            Response response = rootTarget().request().post(json(createPayload));
-
-            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
-            Error error = response.readEntity(Error.class);
-            assertThat(error.getMessage()).isEqualTo("Plan Security Type KeyLess is not allowed.");
-            assertThat(error.getTechnicalCode()).isEqualTo("planSecurity.invalid");
-            verify(createPlanUseCase, never()).execute(any());
+            try (Response response = rootTarget().request().post(json(createPayload))) {
+                assertThat(response.getStatus()).isEqualTo(CREATED_201);
+            }
+            verify(createPlanUseCase).execute(any());
         }
     }
 }

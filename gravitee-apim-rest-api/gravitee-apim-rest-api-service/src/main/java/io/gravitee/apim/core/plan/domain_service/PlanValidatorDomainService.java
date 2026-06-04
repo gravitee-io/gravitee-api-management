@@ -59,13 +59,28 @@ public class PlanValidatorDomainService {
     }
 
     public void validatePlanSecurity(Plan plan, String currentOrganizationId, String currentEnvironmentId, ApiType apiType) {
+        validatePlanSecurity(plan, currentOrganizationId, currentEnvironmentId, apiType, false);
+    }
+
+    /**
+     * Validates the plan security type, resolving keyless authorization against the API Product setting
+     * ({@code api.product.plan.security.keyless.enabled}) when {@code apiProductPlan} is {@code true}, and against
+     * the API setting ({@code plan.security.keyless.enabled}) otherwise. The two settings are independent.
+     */
+    public void validatePlanSecurity(
+        Plan plan,
+        String currentOrganizationId,
+        String currentEnvironmentId,
+        ApiType apiType,
+        boolean apiProductPlan
+    ) {
         var planMode = plan.getPlanMode();
         var security = plan.getPlanSecurity();
         if (planMode.equals(PlanMode.STANDARD)) {
             if (security == null) {
                 throw new PlanInvalidException("Security type is required for plan with 'STANDARD' mode");
             }
-            ensurePlanSecurityIsAllowed(security.getType(), currentOrganizationId, currentEnvironmentId);
+            ensurePlanSecurityIsAllowed(security.getType(), currentOrganizationId, currentEnvironmentId, apiProductPlan);
             policyValidationDomainService.validateAndSanitizeConfiguration(security.getType(), security.getConfiguration());
         }
 
@@ -120,11 +135,16 @@ public class PlanValidatorDomainService {
         }
     }
 
-    private void ensurePlanSecurityIsAllowed(String securityType, String currentOrganizationId, String currentEnvironmentId) {
+    private void ensurePlanSecurityIsAllowed(
+        String securityType,
+        String currentOrganizationId,
+        String currentEnvironmentId,
+        boolean apiProductPlan
+    ) {
         PlanSecurityType planSecurityType = PlanSecurityType.valueOfLabel(securityType);
         Key securityKey = switch (planSecurityType) {
             case API_KEY -> Key.PLAN_SECURITY_APIKEY_ENABLED;
-            case KEY_LESS -> Key.PLAN_SECURITY_KEYLESS_ENABLED;
+            case KEY_LESS -> apiProductPlan ? Key.API_PRODUCT_PLAN_SECURITY_KEYLESS_ENABLED : Key.PLAN_SECURITY_KEYLESS_ENABLED;
             case JWT -> Key.PLAN_SECURITY_JWT_ENABLED;
             case OAUTH2 -> Key.PLAN_SECURITY_OAUTH2_ENABLED;
             case MTLS -> Key.PLAN_SECURITY_MTLS_ENABLED;

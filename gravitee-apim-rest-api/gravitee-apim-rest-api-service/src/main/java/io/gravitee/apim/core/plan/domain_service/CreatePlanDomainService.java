@@ -211,7 +211,7 @@ public class CreatePlanDomainService {
             throw new ApiDeprecatedException(plan.getApiId());
         }*/
 
-        planValidatorDomainService.validatePlanSecurity(plan, auditInfo.organizationId(), auditInfo.environmentId(), null);
+        planValidatorDomainService.validatePlanSecurity(plan, auditInfo.organizationId(), auditInfo.environmentId(), null, true);
         planValidatorDomainService.validateGeneralConditionsPageStatus(plan);
         var createdPlan = planCrudService.create(
             plan

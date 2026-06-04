@@ -848,7 +848,13 @@ paths:
       tags:
         - API Product Plans
       summary: Create a plan for the API Product
-      description: Create a new plan. User must have API_PRODUCT_PLAN[CREATE] permission.
+      description: |
+        Create a new plan. User must have API_PRODUCT_PLAN[CREATE] permission.
+
+        Allowed security types depend on the environment settings. `KEY_LESS` plans require the
+        `api.product.plan.security.keyless.enabled` setting to be enabled (this setting is independent from the
+        API-level `plan.security.keyless.enabled`). Creating a plan with a security type that is not enabled
+        returns a `400`.
       operationId: createApiProductPlan
       requestBody:
         required: true
@@ -912,7 +918,12 @@ paths:
       tags:
         - API Product Plans
       summary: Update an API Product plan
-      description: User must have API_PRODUCT_PLAN[UPDATE] permission.
+      description: |
+        User must have API_PRODUCT_PLAN[UPDATE] permission.
+
+        The "security type enabled" check only applies when the plan's security type is changed. An existing plan
+        keeps being editable (publish, close, edit) even if its security type was later disabled in the environment
+        settings.
       operationId: updateApiProductPlan
       requestBody:
         required: true

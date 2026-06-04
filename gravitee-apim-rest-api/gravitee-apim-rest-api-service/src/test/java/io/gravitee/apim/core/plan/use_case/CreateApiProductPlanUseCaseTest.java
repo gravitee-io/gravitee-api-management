@@ -117,7 +117,12 @@ class CreateApiProductPlanUseCaseTest {
     void setUp() {
         parametersQueryService.initWith(
             List.of(
-                new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true"),
+                new Parameter(
+                    Key.API_PRODUCT_PLAN_SECURITY_KEYLESS_ENABLED.key(),
+                    ENVIRONMENT_ID,
+                    ParameterReferenceType.ENVIRONMENT,
+                    "true"
+                ),
                 new Parameter(Key.PLAN_SECURITY_MTLS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
             )
         );
@@ -170,6 +175,41 @@ class CreateApiProductPlanUseCaseTest {
                 PlanStatus.STAGING,
                 DefinitionVersion.V4
             );
+    }
+
+    @Test
+    void should_not_allow_keyless_plan_when_api_product_keyless_setting_disabled() {
+        // Given the API Product keyless setting is disabled, even though the API-level keyless setting is enabled
+        parametersQueryService.initWith(
+            List.of(
+                new Parameter(
+                    Key.API_PRODUCT_PLAN_SECURITY_KEYLESS_ENABLED.key(),
+                    ENVIRONMENT_ID,
+                    ParameterReferenceType.ENVIRONMENT,
+                    "false"
+                ),
+                new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
+            )
+        );
+        var api = givenExistingApiProduct(API_PRODUCT);
+        var input = new Input(
+            api.getId(),
+            _api ->
+                PlanFixtures.HttpV4.aKeyless()
+                    .toBuilder()
+                    .id(null)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .referenceId(api.getId())
+                    .apiType(null)
+                    .build(),
+            AUDIT_INFO
+        );
+
+        // When
+        var throwable = Assertions.catchThrowable(() -> createPlanUseCase.execute(input));
+
+        // Then
+        Assertions.assertThat(throwable).isInstanceOf(UnauthorizedPlanSecurityTypeException.class);
     }
 
     @Test
