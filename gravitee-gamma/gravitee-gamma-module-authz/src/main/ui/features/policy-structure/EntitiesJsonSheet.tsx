@@ -36,8 +36,9 @@ export function EntitiesJsonSheet({ entities, open, onOpenChange }: EntitiesJson
     }, [copied]);
 
     async function copy() {
+        if (!navigator.clipboard) return;
         try {
-            await navigator.clipboard?.writeText(json);
+            await navigator.clipboard.writeText(json);
             setCopied(true);
         } catch {
             // clipboard unavailable — the JSON stays visible for manual copy
@@ -50,7 +51,9 @@ export function EntitiesJsonSheet({ entities, open, onOpenChange }: EntitiesJson
         const anchor = document.createElement('a');
         anchor.href = url;
         anchor.download = 'entities.json';
+        document.body.appendChild(anchor);
         anchor.click();
+        document.body.removeChild(anchor);
         setTimeout(() => URL.revokeObjectURL(url), 10_000);
     }
 
@@ -66,7 +69,8 @@ export function EntitiesJsonSheet({ entities, open, onOpenChange }: EntitiesJson
                 <div className="flex flex-col gap-2 border-b px-6 py-4">
                     <SheetTitle className="font-mono text-lg font-semibold">entities.json</SheetTitle>
                     <p className="text-sm text-muted-foreground">
-                        The canonical GAPL shape of all {entities.length} principals and resources the Policy Decision Point evaluates against.
+                        The canonical GAPL shape of all {entities.length} principals and resources the Policy Decision Point evaluates
+                        against.
                     </p>
                     <div className="flex items-center gap-2">
                         <Button type="button" variant="outline" size="sm" onClick={copy}>
