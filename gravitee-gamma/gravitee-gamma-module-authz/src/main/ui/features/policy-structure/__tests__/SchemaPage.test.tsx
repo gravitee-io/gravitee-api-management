@@ -88,11 +88,10 @@ describe('SchemaPage', () => {
 
     it('renders summary chips computed from the parsed schema', () => {
         render(<SchemaPage />);
-        const summary = screen.getByLabelText('Schema summary');
-        expect(summary).toHaveTextContent('3 entities');
-        expect(summary).toHaveTextContent('1 actions');
-        expect(summary).toHaveTextContent('2 principal kinds');
-        expect(summary).toHaveTextContent('1 resource kinds');
+        expect(screen.getByLabelText('Entities')).toHaveTextContent('3');
+        expect(screen.getByLabelText('Actions')).toHaveTextContent('1');
+        expect(screen.getByLabelText('Principal kinds')).toHaveTextContent('2');
+        expect(screen.getByLabelText('Resource kinds')).toHaveTextContent('1');
     });
 
     it('surfaces parser diagnostics instead of silently looking empty', () => {
@@ -123,8 +122,8 @@ describe('SchemaPage', () => {
     it('does not render an Actions tab (actions have their own page)', () => {
         render(<SchemaPage />);
         expect(screen.queryByRole('tab', { name: /Actions/i })).not.toBeInTheDocument();
-        // The actions count is still surfaced as a summary chip.
-        expect(screen.getByLabelText('Schema summary')).toHaveTextContent('1 actions');
+        // The actions count is still surfaced as a summary KPI tile.
+        expect(screen.getByLabelText('Actions')).toHaveTextContent('1');
     });
 
     it('jumps from the outline to the entity in the Entities tab', async () => {
