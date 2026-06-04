@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.policy.adapter.context;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyDouble;
@@ -35,6 +36,7 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -596,11 +598,19 @@ class MetricsAdapterTest {
         // Then
         verify(metricsV4, never()).setLog(any());
 
+        // Given an underlying v4 metrics already carrying the scoping fields populated upstream
+        // (DefaultApiReactor.prepareMetrics / SyncApiReactor) — the adapted v4 Log inherits them.
+        when(metricsV4.getOrganizationId()).thenReturn("orgId");
+        when(metricsV4.getEnvironmentId()).thenReturn("envId");
+
         // When
         metricsAdapter.setLog(mock(Log.class));
 
         // Then
-        verify(metricsV4).setLog(any());
+        ArgumentCaptor<io.gravitee.reporter.api.v4.log.Log> captor = ArgumentCaptor.forClass(io.gravitee.reporter.api.v4.log.Log.class);
+        verify(metricsV4).setLog(captor.capture());
+        assertThat(captor.getValue().getOrganizationId()).isEqualTo("orgId");
+        assertThat(captor.getValue().getEnvironmentId()).isEqualTo("envId");
     }
 
     @Test
