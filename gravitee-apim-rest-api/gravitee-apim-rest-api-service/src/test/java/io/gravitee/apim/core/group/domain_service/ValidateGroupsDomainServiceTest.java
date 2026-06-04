@@ -22,6 +22,7 @@ import inmemory.GroupQueryServiceInMemory;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.group.model.Group.GroupEventRule;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import java.util.Collections;
 import java.util.List;
@@ -74,7 +75,14 @@ class ValidateGroupsDomainServiceTest {
     void should_return_warnings_with_group_with_primary_owner_and_sanitize_v2() {
         var givenGroups = Set.of("group-with-po-id", "group-without-po");
 
-        var input = new ValidateGroupsDomainService.Input(ENVIRONMENT, givenGroups, DefinitionVersion.V2.getLabel(), API_CREATE, true);
+        var input = new ValidateGroupsDomainService.Input(
+            ENVIRONMENT,
+            givenGroups,
+            DefinitionVersion.V2.getLabel(),
+            DefinitionContext.ORIGIN_KUBERNETES,
+            API_CREATE,
+            true
+        );
 
         var result = validateGroupsDomainService.validateAndSanitize(input);
 
@@ -98,7 +106,14 @@ class ValidateGroupsDomainServiceTest {
     void should_return_groups_without_default_groups_v2() {
         var givenGroups = Set.of("group-without-po");
 
-        var input = new ValidateGroupsDomainService.Input(ENVIRONMENT, givenGroups, DefinitionVersion.V2.getLabel(), API_CREATE, false);
+        var input = new ValidateGroupsDomainService.Input(
+            ENVIRONMENT,
+            givenGroups,
+            DefinitionVersion.V2.getLabel(),
+            DefinitionContext.ORIGIN_KUBERNETES,
+            API_CREATE,
+            false
+        );
 
         var result = validateGroupsDomainService.validateAndSanitize(input);
 
@@ -110,10 +125,61 @@ class ValidateGroupsDomainServiceTest {
     }
 
     @Test
+    void should_sanitize_v2_groups_as_ids_for_management_origin() {
+        var givenGroups = Set.of("group-without-po");
+
+        var input = new ValidateGroupsDomainService.Input(
+            ENVIRONMENT,
+            givenGroups,
+            DefinitionVersion.V2.getLabel(),
+            DefinitionContext.ORIGIN_MANAGEMENT,
+            API_CREATE,
+            false
+        );
+
+        var result = validateGroupsDomainService.validateAndSanitize(input);
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(result.value()).isNotEmpty();
+            soft.assertThat(result.value()).hasValue(input.sanitized(Set.of("group-without-po-id")));
+            soft.assertThat(result.errors()).isEmpty();
+        });
+    }
+
+    @Test
+    void should_sanitize_v2_groups_as_ids_when_origin_is_null() {
+        var givenGroups = Set.of("group-without-po");
+
+        var input = new ValidateGroupsDomainService.Input(
+            ENVIRONMENT,
+            givenGroups,
+            DefinitionVersion.V2.getLabel(),
+            null,
+            API_CREATE,
+            false
+        );
+
+        var result = validateGroupsDomainService.validateAndSanitize(input);
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(result.value()).isNotEmpty();
+            soft.assertThat(result.value()).hasValue(input.sanitized(Set.of("group-without-po-id")));
+            soft.assertThat(result.errors()).isEmpty();
+        });
+    }
+
+    @Test
     void should_return_warnings_with_group_with_primary_owner_and_sanitize_v4() {
         var givenGroups = Set.of("group-with-po", "group-without-po-id");
 
-        var input = new ValidateGroupsDomainService.Input(ENVIRONMENT, givenGroups, DefinitionVersion.V4.getLabel(), API_CREATE, true);
+        var input = new ValidateGroupsDomainService.Input(
+            ENVIRONMENT,
+            givenGroups,
+            DefinitionVersion.V4.getLabel(),
+            null,
+            API_CREATE,
+            true
+        );
 
         var result = validateGroupsDomainService.validateAndSanitize(input);
 
@@ -137,7 +203,14 @@ class ValidateGroupsDomainServiceTest {
     void should_return_groups_without_default_groups_v4() {
         var givenGroups = Set.of("group-without-po-id");
 
-        var input = new ValidateGroupsDomainService.Input(ENVIRONMENT, givenGroups, DefinitionVersion.V4.getLabel(), API_CREATE, false);
+        var input = new ValidateGroupsDomainService.Input(
+            ENVIRONMENT,
+            givenGroups,
+            DefinitionVersion.V4.getLabel(),
+            null,
+            API_CREATE,
+            false
+        );
 
         var result = validateGroupsDomainService.validateAndSanitize(input);
 
@@ -150,7 +223,7 @@ class ValidateGroupsDomainServiceTest {
 
     @Test
     void should_return_original_input_when_groups_are_empty() {
-        var input = new ValidateGroupsDomainService.Input(ENVIRONMENT, Collections.emptySet(), DefinitionVersion.V4.getLabel());
+        var input = new ValidateGroupsDomainService.Input(ENVIRONMENT, Collections.emptySet(), DefinitionVersion.V4.getLabel(), null);
 
         var result = validateGroupsDomainService.validateAndSanitize(input);
 
@@ -162,7 +235,7 @@ class ValidateGroupsDomainServiceTest {
 
     @Test
     void should_return_original_input_when_groups_are_null() {
-        var input = new ValidateGroupsDomainService.Input(ENVIRONMENT, null, DefinitionVersion.V4.getLabel());
+        var input = new ValidateGroupsDomainService.Input(ENVIRONMENT, null, DefinitionVersion.V4.getLabel(), null);
 
         var result = validateGroupsDomainService.validateAndSanitize(input);
 
@@ -178,6 +251,7 @@ class ValidateGroupsDomainServiceTest {
             ENVIRONMENT,
             Collections.emptySet(),
             DefinitionVersion.V4.getLabel(),
+            null,
             API_CREATE,
             true
         );
@@ -194,7 +268,14 @@ class ValidateGroupsDomainServiceTest {
     void should_warn_when_group_is_unknown() {
         var givenGroups = Set.of("does-not-exist");
 
-        var input = new ValidateGroupsDomainService.Input(ENVIRONMENT, givenGroups, DefinitionVersion.V4.getLabel(), API_CREATE, false);
+        var input = new ValidateGroupsDomainService.Input(
+            ENVIRONMENT,
+            givenGroups,
+            DefinitionVersion.V4.getLabel(),
+            null,
+            API_CREATE,
+            false
+        );
 
         var result = validateGroupsDomainService.validateAndSanitize(input);
 
@@ -211,7 +292,14 @@ class ValidateGroupsDomainServiceTest {
     void should_resolve_group_by_hrid_v4() {
         var givenGroups = Set.of("my-hrid-group");
 
-        var input = new ValidateGroupsDomainService.Input(ENVIRONMENT, givenGroups, DefinitionVersion.V4.getLabel(), API_CREATE, false);
+        var input = new ValidateGroupsDomainService.Input(
+            ENVIRONMENT,
+            givenGroups,
+            DefinitionVersion.V4.getLabel(),
+            null,
+            API_CREATE,
+            false
+        );
 
         var result = validateGroupsDomainService.validateAndSanitize(input);
 
@@ -225,7 +313,14 @@ class ValidateGroupsDomainServiceTest {
     void should_warn_and_discard_group_resolved_by_hrid_with_primary_owner() {
         var givenGroups = Set.of("my-hrid-group-with-po");
 
-        var input = new ValidateGroupsDomainService.Input(ENVIRONMENT, givenGroups, DefinitionVersion.V4.getLabel(), API_CREATE, false);
+        var input = new ValidateGroupsDomainService.Input(
+            ENVIRONMENT,
+            givenGroups,
+            DefinitionVersion.V4.getLabel(),
+            null,
+            API_CREATE,
+            false
+        );
 
         var result = validateGroupsDomainService.validateAndSanitize(input);
 
