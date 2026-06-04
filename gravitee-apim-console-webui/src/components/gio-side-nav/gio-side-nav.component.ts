@@ -15,8 +15,8 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { GioLicenseService, GioMenuSearchService, LicenseOptions, MenuSearchItem, SelectorItem } from '@gravitee/ui-particles-angular';
-import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
-import { Observable, of, Subject } from 'rxjs';
+import { catchError, distinctUntilChanged, map, switchMap, takeUntil } from 'rxjs/operators';
+import { EMPTY, Observable, of, Subject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
@@ -75,10 +75,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
       .pipe(
         map(p => p.envHrid),
         distinctUntilChanged(),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe({
-        next: _ => {
+        switchMap(_ => {
           this.environments = this.constants.org.environments.map(env => ({ value: env.id, displayValue: env.name }));
           this.currentEnv = this.constants.org.currentEnv;
 
@@ -86,7 +83,13 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
           this.footerMenuItems = this.buildFooterMenuItems();
           this.gioMenuSearchService.removeMenuSearchItems([SIDE_NAV_GROUP_ID]);
           this.gioMenuSearchService.addMenuSearchItems(this.getSideNaveMenuSearchItems());
-        },
+
+          return this.environmentSettingsService.get().pipe(catchError(() => EMPTY));
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(envSettings => {
+        this.mainMenuItems = this.buildMainMenuItems(envSettings);
       });
 
     if (this.constants.org.settings?.licenseExpirationNotification?.enabled !== undefined) {
@@ -94,10 +97,6 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
     }
 
     this.licenseExpirationDate$ = this.gioLicenseService.getExpiresAt$().pipe(distinctUntilChanged(), takeUntil(this.unsubscribe$));
-
-    this.environmentSettingsService.get().subscribe(envSettings => {
-      this.mainMenuItems = this.buildMainMenuItems(envSettings);
-    });
   }
 
   ngOnDestroy(): void {

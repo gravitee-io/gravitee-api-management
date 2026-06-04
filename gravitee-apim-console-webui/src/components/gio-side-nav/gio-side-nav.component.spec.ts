@@ -26,7 +26,7 @@ import {
   LICENSE_CONFIGURATION_TESTING,
 } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 
 import { GioSideNavComponent, SIDE_NAV_GROUP_ID } from './gio-side-nav.component';
 import { GioSideNavModule } from './gio-side-nav.module';
@@ -251,6 +251,73 @@ describe('GioSideNavComponent', () => {
 
       const apiProductsItem = fixture.componentInstance.mainMenuItems.find(item => item.displayName === 'API Products');
       expect(apiProductsItem).toBeDefined();
+    });
+  });
+
+  describe('navigation race condition regression (APIM-14285)', () => {
+    it('should set currentEnv before environmentSettingsService.get resolves so menu paths use correct env hrid', async () => {
+      const envSettingsSubject = new Subject<{ apiScore: { enabled: boolean } }>();
+      const envHrid = 'my-env';
+
+      await TestBed.configureTestingModule({
+        declarations: [GioSideNavComponent],
+        imports: [NoopAnimationsModule, GioTestingModule, GioSideNavModule, MatIconTestingModule],
+        providers: [
+          {
+            provide: GioPermissionService,
+            useValue: { hasAnyMatching: () => true },
+          },
+          {
+            provide: Constants,
+            useFactory: () => {
+              const constants = CONSTANTS_TESTING;
+              constants.org.settings = {
+                ...constants.org.settings,
+                licenseExpirationNotification: { enabled: true },
+              };
+              constants.org.currentEnv = { id: 'DEFAULT', name: 'default', hrids: [envHrid], organizationId: 'org' } as any;
+              constants.org.environments = [{ id: 'DEFAULT', name: 'default', hrids: [envHrid], organizationId: 'org' }];
+              return constants;
+            },
+          },
+          {
+            provide: EnvironmentSettingsService,
+            useValue: { get: () => envSettingsSubject.asObservable() },
+          },
+          { provide: 'LicenseConfiguration', useValue: LICENSE_CONFIGURATION_TESTING },
+          { provide: ActivatedRoute, useValue: { params: of({ envHrid }) } },
+          { provide: GioMenuSearchService, useValue: menuSearchService },
+        ],
+      })
+        .overrideProvider(InteractivityChecker, {
+          useValue: { isFocusable: () => true, isTabbable: () => true },
+        })
+        .compileComponents();
+
+      const fix = TestBed.createComponent(GioSideNavComponent);
+      const ctrl = TestBed.inject(HttpTestingController);
+
+      fix.detectChanges();
+      ctrl.expectOne(`${LICENSE_CONFIGURATION_TESTING.resourceURL}`).flush({ tier: '', features: [], packs: [], expiresAt: new Date() });
+
+      // Settings haven't resolved yet — menu built without envSettings
+      const observabilityBefore = fix.componentInstance.mainMenuItems.find(i => i.displayName === 'Observability');
+      expect(observabilityBefore?.routerBasePath).toContain(envHrid);
+
+      // Now resolve env settings
+      envSettingsSubject.next({ apiScore: { enabled: true } });
+      fix.detectChanges();
+
+      // After settings resolve, menu is rebuilt — paths must still use correct env hrid
+      const observability = fix.componentInstance.mainMenuItems.find(i => i.displayName === 'Observability');
+      const analytics = fix.componentInstance.mainMenuItems.find(i => i.displayName === 'Analytics');
+      const kafka = fix.componentInstance.mainMenuItems.find(i => i.displayName === 'Kafka');
+
+      expect(observability?.routerBasePath).toBe(`/${envHrid}/observability`);
+      expect(analytics?.routerBasePath).toBe(`/${envHrid}/analytics`);
+      expect(kafka?.routerBasePath).toBe(`/${envHrid}/clusters`);
+
+      ctrl.verify();
     });
   });
 
