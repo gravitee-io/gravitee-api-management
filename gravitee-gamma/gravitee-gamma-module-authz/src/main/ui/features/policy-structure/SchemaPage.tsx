@@ -52,8 +52,11 @@ import { useEffect, useMemo, useRef, useState, type ComponentType, type SVGProps
 import { KpiTile } from '../../components/KpiTile';
 import { MonacoEditor } from '../../components/MonacoEditor';
 import { parseGaplSchema, type ParsedEntity } from '../../shared/gapl-parser';
+import { useDeleteSchema } from '../../shared/hooks/useDeleteSchema';
 import { useSchema } from '../../shared/hooks/useSchema';
+import { useUpdateSchema } from '../../shared/hooks/useUpdateSchema';
 import { CATEGORIES, getEntityCategoryId, type EntityCategoryId } from './entity-types';
+import { schemaDiagnostics } from './schema-validation';
 
 type SchemaTab = 'code' | 'entities';
 type IconType = ComponentType<SVGProps<SVGSVGElement>>;
@@ -94,6 +97,12 @@ export function SchemaPage() {
     const env = useEnvironment();
     const environmentId = env?.id ?? '';
     const { schema, notFound, isLoading, error } = useSchema(environmentId);
+    const update = useUpdateSchema(environmentId);
+    const remove = useDeleteSchema(environmentId);
+
+    const [editing, setEditing] = useState(false);
+    const [draft, setDraft] = useState('');
+    const draftDiagnostics = useMemo(() => (editing ? schemaDiagnostics(draft) : []), [editing, draft]);
 
     const schemaText = schema?.schemaText ?? '';
     const parsed = useMemo(() => parseGaplSchema(schemaText), [schemaText]);
@@ -141,6 +150,20 @@ export function SchemaPage() {
         });
     }
 
+    function startEdit() {
+        setDraft(schemaText);
+        setEditing(true);
+    }
+
+    function startCreate() {
+        setDraft('');
+        setEditing(true);
+    }
+
+    function saveDraft() {
+        update.mutate(draft, { onSuccess: () => setEditing(false) });
+    }
+
     const isEmpty = !isLoading && error === undefined && (notFound || schemaText.trim() === '');
 
     return (
@@ -151,7 +174,7 @@ export function SchemaPage() {
                     <h1 className="text-xl font-semibold">Schema</h1>
                     <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
                         The entity types, their relationships, and the actions the policy engine can reason about — the contract your
-                        policies are written against. This view is read-only.
+                        policies are written against.
                     </p>
                 </div>
             </header>
@@ -172,7 +195,7 @@ export function SchemaPage() {
                 </div>
             )}
 
-            {isEmpty && (
+            {isEmpty && !editing && (
                 <Empty>
                     <EmptyHeader>
                         <EmptyTitle>No schema defined yet</EmptyTitle>
@@ -181,7 +204,38 @@ export function SchemaPage() {
                             actions will appear here.
                         </EmptyDescription>
                     </EmptyHeader>
+                    <Button onClick={startCreate}>Create schema</Button>
                 </Empty>
+            )}
+
+            {isEmpty && editing && (
+                <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-end gap-2">
+                        <Button variant="outline" onClick={() => setEditing(false)}>
+                            Cancel
+                        </Button>
+                        <Button onClick={saveDraft} disabled={draftDiagnostics.length > 0 || update.isPending}>
+                            Save
+                        </Button>
+                    </div>
+                    {draftDiagnostics.length > 0 && (
+                        <Alert variant="destructive">
+                            <AlertTitle>Schema could not be fully parsed</AlertTitle>
+                            <AlertDescription>
+                                <ul className="list-disc pl-4">
+                                    {draftDiagnostics.map((diagnostic, index) => (
+                                        <li key={`${index}-${diagnostic}`} className="font-mono text-xs">
+                                            {diagnostic}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </AlertDescription>
+                        </Alert>
+                    )}
+                    <div className="overflow-hidden rounded-lg border">
+                        <MonacoEditor value={draft} onChange={setDraft} height={560} ariaLabel="Schema definition" />
+                    </div>
+                </div>
             )}
 
             {!isLoading && error === undefined && !isEmpty && (
@@ -302,12 +356,55 @@ export function SchemaPage() {
                                         <Badge variant="secondary">{parsed.entities.length}</Badge>
                                     </TabsTrigger>
                                 </TabsList>
-                                <span className="hidden shrink-0 font-mono text-xs text-muted-foreground sm:inline">{'</>'} GAPL</span>
+                                {editing ? (
+                                    <div className="flex shrink-0 items-center gap-2">
+                                        <Button variant="outline" size="sm" onClick={() => setEditing(false)}>
+                                            Cancel
+                                        </Button>
+                                        <Button size="sm" onClick={saveDraft} disabled={draftDiagnostics.length > 0 || update.isPending}>
+                                            Save
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <div className="flex shrink-0 items-center gap-2">
+                                        <Button variant="outline" size="sm" onClick={startEdit}>
+                                            Edit
+                                        </Button>
+                                        <Button variant="outline" size="sm" onClick={() => remove.mutate()} disabled={remove.isPending}>
+                                            Delete
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
+
+                            {editing && draftDiagnostics.length > 0 && (
+                                <Alert variant="destructive">
+                                    <AlertTitle>Schema could not be fully parsed</AlertTitle>
+                                    <AlertDescription>
+                                        <ul className="list-disc pl-4">
+                                            {draftDiagnostics.map((diagnostic, index) => (
+                                                <li key={`${index}-${diagnostic}`} className="font-mono text-xs">
+                                                    {diagnostic}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </AlertDescription>
+                                </Alert>
+                            )}
 
                             <TabsContent value="code">
                                 <div className="overflow-hidden rounded-lg border">
-                                    <MonacoEditor value={schemaText} readOnly height={560} ariaLabel="Schema definition (read-only)" />
+                                    {editing ? (
+                                        <MonacoEditor
+                                            value={draft}
+                                            onChange={setDraft}
+                                            readOnly={false}
+                                            height={560}
+                                            ariaLabel="Schema definition"
+                                        />
+                                    ) : (
+                                        <MonacoEditor value={schemaText} readOnly height={560} ariaLabel="Schema definition (read-only)" />
+                                    )}
                                 </div>
                             </TabsContent>
 

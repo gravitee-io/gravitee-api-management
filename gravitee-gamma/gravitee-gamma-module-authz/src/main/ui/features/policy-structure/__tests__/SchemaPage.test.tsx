@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { UseSchemaResult } from '../../../shared/hooks/useSchema';
@@ -29,6 +29,11 @@ vi.mock('@gravitee/gamma-modules-sdk', async importOriginal => ({
 vi.mock('../../../shared/hooks/useSchema', () => ({
     useSchema: () => useSchemaMock(),
 }));
+
+const mutateMock = vi.fn();
+const deleteMock = vi.fn();
+vi.mock('../../../shared/hooks/useUpdateSchema', () => ({ useUpdateSchema: () => ({ mutate: mutateMock, isPending: false }) }));
+vi.mock('../../../shared/hooks/useDeleteSchema', () => ({ useDeleteSchema: () => ({ mutate: deleteMock, isPending: false }) }));
 
 // Monaco can't render under jsdom — stub it to surface the value as plain text.
 vi.mock('../../../components/MonacoEditor', () => ({
@@ -63,6 +68,8 @@ beforeAll(() => {
 beforeEach(() => {
     useSchemaMock.mockReset();
     useSchemaMock.mockReturnValue(loaded());
+    mutateMock.mockReset();
+    deleteMock.mockReset();
 });
 
 describe('SchemaPage', () => {
@@ -131,5 +138,36 @@ describe('SchemaPage', () => {
 
         // Outline click switches to the Entities tab and reveals the entity's attributes.
         await waitFor(() => expect(screen.getByText('url: String')).toBeInTheDocument());
+    });
+
+    it('edits and saves a valid schema', () => {
+        useSchemaMock.mockReturnValue({
+            schema: { environmentId: 'e', schemaText: 'entity User {};', updatedAt: null },
+            notFound: false,
+            isLoading: false,
+            error: undefined,
+        });
+        render(<SchemaPage />);
+        fireEvent.click(screen.getByRole('button', { name: /edit/i }));
+        fireEvent.click(screen.getByRole('button', { name: /save/i }));
+        expect(mutateMock).toHaveBeenCalledWith('entity User {};', expect.anything());
+    });
+
+    it('disables save when the draft has diagnostics', () => {
+        useSchemaMock.mockReturnValue({
+            schema: { environmentId: 'e', schemaText: 'action "x" { principal: [User] };', updatedAt: null },
+            notFound: false,
+            isLoading: false,
+            error: undefined,
+        });
+        render(<SchemaPage />);
+        fireEvent.click(screen.getByRole('button', { name: /edit/i }));
+        expect(screen.getByRole('button', { name: /save/i })).toBeDisabled();
+    });
+
+    it('offers create when no schema exists', () => {
+        useSchemaMock.mockReturnValue({ schema: null, notFound: true, isLoading: false, error: undefined });
+        render(<SchemaPage />);
+        expect(screen.getByRole('button', { name: /create schema/i })).toBeInTheDocument();
     });
 });
