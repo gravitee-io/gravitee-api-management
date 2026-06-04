@@ -20,6 +20,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.rest.api.model.notification.NotificationConfigType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ public class ValidatePortalNotificationDomainService implements Validator<Valida
     public record Input(
         PortalNotificationConfigEntity portalNotificationConfig,
         String definitionVersion,
+        String origin,
         Set<String> allowedGroups,
         AuditInfo auditInfo
     ) implements Validator.Input {}
@@ -58,6 +60,7 @@ public class ValidatePortalNotificationDomainService implements Validator<Valida
                         input.auditInfo.environmentId(),
                         CollectionUtils.stream(consoleNotification.getGroups()).collect(Collectors.toSet()),
                         input.definitionVersion(),
+                        input.origin(),
                         null,
                         false
                     )
