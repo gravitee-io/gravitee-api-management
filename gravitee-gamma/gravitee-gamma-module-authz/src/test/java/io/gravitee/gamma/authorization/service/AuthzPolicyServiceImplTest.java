@@ -60,7 +60,7 @@ class AuthzPolicyServiceImplTest {
         schemaService = new AuthzSchemaServiceImpl(entityRepository, repository);
         events = new RecordingAuthzEventPublisher();
         audit = new RecordingAuthzAuditPort();
-        service = new AuthzPolicyServiceImpl(repository, new AuthzEntityIdValidator(), schemaService, events, audit);
+        service = new AuthzPolicyServiceImpl(repository, new AuthzEntityIdValidator(), events, audit);
     }
 
     @AfterEach

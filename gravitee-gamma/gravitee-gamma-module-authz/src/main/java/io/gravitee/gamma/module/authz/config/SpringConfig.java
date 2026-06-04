@@ -109,11 +109,10 @@ public class SpringConfig {
     public AuthzPolicyAdminApi policyService(
         @Lazy @Qualifier("authzPolicyRepository") AuthzPolicyRepository policyRepository,
         AuthzEntityIdValidator entityIdValidator,
-        AuthzSchemaAdminApi schemaService,
         AuthzEventPublisher eventPublisher,
         AuthzAuditPort auditPort
     ) {
-        return new AuthzPolicyServiceImpl(policyRepository, entityIdValidator, schemaService, eventPublisher, auditPort);
+        return new AuthzPolicyServiceImpl(policyRepository, entityIdValidator, eventPublisher, auditPort);
     }
 
     @Bean
@@ -129,7 +128,6 @@ public class SpringConfig {
         @Lazy @Qualifier("authzEntityRepository") AuthzEntityRepository entityRepository,
         @Lazy @Qualifier("authzPolicyRepository") AuthzPolicyRepository policyRepository,
         AuthzEntityIdValidator entityIdValidator,
-        AuthzSchemaAdminApi schemaService,
         AuthzEventPublisher eventPublisher,
         AuthzAuditPort auditPort,
         @Value("${gravitee.authz.cascade-hard-limit:500}") int cascadeHardLimit
@@ -138,7 +136,6 @@ public class SpringConfig {
             entityRepository,
             policyRepository,
             entityIdValidator,
-            schemaService,
             eventPublisher,
             auditPort,
             cascadeHardLimit

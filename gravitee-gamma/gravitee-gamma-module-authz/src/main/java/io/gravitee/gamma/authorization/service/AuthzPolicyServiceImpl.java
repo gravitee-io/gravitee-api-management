@@ -24,7 +24,6 @@ import io.gravitee.gamma.authorization.api.AuthzPolicyAdminApi;
 import io.gravitee.gamma.authorization.api.AuthzPolicyAuditEvent;
 import io.gravitee.gamma.authorization.api.AuthzPolicyAuditSnapshot;
 import io.gravitee.gamma.authorization.api.AuthzPolicyRepository;
-import io.gravitee.gamma.authorization.api.AuthzSchemaAdminApi;
 import io.gravitee.gamma.authorization.api.AuthzValidators;
 import io.gravitee.gamma.authorization.domain.AuthzPolicy;
 import io.gravitee.gamma.authorization.domain.AuthzPolicyKind;
@@ -43,20 +42,17 @@ public class AuthzPolicyServiceImpl implements AuthzPolicyAdminApi {
 
     private final AuthzPolicyRepository repository;
     private final AuthzEntityIdValidator entityIdValidator;
-    private final AuthzSchemaAdminApi schemaService;
     private final AuthzEventPublisher eventPublisher;
     private final AuthzAuditPort auditPort;
 
     public AuthzPolicyServiceImpl(
         AuthzPolicyRepository repository,
         AuthzEntityIdValidator entityIdValidator,
-        AuthzSchemaAdminApi schemaService,
         AuthzEventPublisher eventPublisher,
         AuthzAuditPort auditPort
     ) {
         this.repository = repository;
         this.entityIdValidator = entityIdValidator;
-        this.schemaService = schemaService;
         this.eventPublisher = eventPublisher;
         this.auditPort = auditPort;
     }
@@ -83,7 +79,6 @@ public class AuthzPolicyServiceImpl implements AuthzPolicyAdminApi {
         );
 
         AuthzPolicy saved = repository.save(policy);
-        schemaService.invalidate(saved.environmentId());
         if (!caller.isSystem()) {
             auditPort.record(
                 AuthzAuditEntry.policy(caller, AuthzPolicyAuditEvent.POLICY_CREATED, saved.id(), null, AuthzPolicyAuditSnapshot.of(saved))
@@ -117,7 +112,6 @@ public class AuthzPolicyServiceImpl implements AuthzPolicyAdminApi {
         if (saved.status() == AuthzPolicyStatus.DEPLOYED) {
             eventPublisher.publishPolicyDeployed(saved);
         }
-        schemaService.invalidate(saved.environmentId());
         if (!caller.isSystem()) {
             auditPort.record(
                 AuthzAuditEntry.policy(
@@ -147,7 +141,6 @@ public class AuthzPolicyServiceImpl implements AuthzPolicyAdminApi {
         AuthzPolicy deployed = transitionTo(existing, AuthzPolicyStatus.DEPLOYED);
         AuthzPolicy saved = repository.save(deployed);
         eventPublisher.publishPolicyDeployed(saved);
-        schemaService.invalidate(saved.environmentId());
         if (!caller.isSystem()) {
             auditPort.record(
                 AuthzAuditEntry.policy(
@@ -180,7 +173,6 @@ public class AuthzPolicyServiceImpl implements AuthzPolicyAdminApi {
         AuthzPolicy disabled = transitionTo(existing, AuthzPolicyStatus.DISABLED);
         AuthzPolicy saved = repository.save(disabled);
         eventPublisher.unpublishPolicy(saved);
-        schemaService.invalidate(saved.environmentId());
         if (!caller.isSystem()) {
             auditPort.record(
                 AuthzAuditEntry.policy(
@@ -244,7 +236,6 @@ public class AuthzPolicyServiceImpl implements AuthzPolicyAdminApi {
         if (existing.get().status() == AuthzPolicyStatus.DEPLOYED) {
             eventPublisher.unpublishPolicy(existing.get());
         }
-        schemaService.invalidate(caller.environmentId());
         if (!caller.isSystem()) {
             auditPort.record(
                 AuthzAuditEntry.policy(caller, AuthzPolicyAuditEvent.POLICY_DELETED, id, AuthzPolicyAuditSnapshot.of(existing.get()), null)

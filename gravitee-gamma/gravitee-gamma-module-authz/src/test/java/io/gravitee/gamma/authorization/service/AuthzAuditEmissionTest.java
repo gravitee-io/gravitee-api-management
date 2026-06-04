@@ -64,12 +64,11 @@ class AuthzAuditEmissionTest {
         AuthzEntityIdValidator validator = new AuthzEntityIdValidator();
         audit = new RecordingAuthzAuditPort();
         AuthzSchemaServiceImpl schemaService = new AuthzSchemaServiceImpl(entityRepository, policyRepository);
-        policyService = new AuthzPolicyServiceImpl(policyRepository, validator, schemaService, mock(AuthzEventPublisher.class), audit);
+        policyService = new AuthzPolicyServiceImpl(policyRepository, validator, mock(AuthzEventPublisher.class), audit);
         entityService = new AuthzEntityServiceImpl(
             entityRepository,
             policyRepository,
             validator,
-            schemaService,
             mock(AuthzEventPublisher.class),
             audit
         );

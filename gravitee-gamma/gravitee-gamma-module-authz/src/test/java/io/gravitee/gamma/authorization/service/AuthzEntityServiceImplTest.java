@@ -63,8 +63,8 @@ class AuthzEntityServiceImplTest {
         events = new RecordingAuthzEventPublisher();
         audit = new RecordingAuthzAuditPort();
         AuthzSchemaServiceImpl schemaService = new AuthzSchemaServiceImpl(entityRepository, policyRepository);
-        policyService = new AuthzPolicyServiceImpl(policyRepository, validator, schemaService, events, audit);
-        entityService = new AuthzEntityServiceImpl(entityRepository, policyRepository, validator, schemaService, events, audit);
+        policyService = new AuthzPolicyServiceImpl(policyRepository, validator, events, audit);
+        entityService = new AuthzEntityServiceImpl(entityRepository, policyRepository, validator, events, audit);
     }
 
     @AfterEach
@@ -101,7 +101,6 @@ class AuthzEntityServiceImplTest {
             entityRepository,
             policyRepository,
             validator,
-            schemaService,
             events,
             audit,
             DEFAULT_CASCADE_HARD_LIMIT
@@ -519,7 +518,6 @@ class AuthzEntityServiceImplTest {
             entityRepository,
             policyRepository,
             validator,
-            schemaService,
             failingPublisher,
             audit,
             DEFAULT_CASCADE_HARD_LIMIT
@@ -562,7 +560,6 @@ class AuthzEntityServiceImplTest {
             racingRepo,
             policyRepository,
             validator,
-            schemaService,
             failingPublisher,
             audit,
             DEFAULT_CASCADE_HARD_LIMIT

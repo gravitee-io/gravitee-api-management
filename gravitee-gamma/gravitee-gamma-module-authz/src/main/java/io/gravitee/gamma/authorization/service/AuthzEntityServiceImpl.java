@@ -27,7 +27,6 @@ import io.gravitee.gamma.authorization.api.AuthzEventPublisher;
 import io.gravitee.gamma.authorization.api.AuthzPolicyAuditEvent;
 import io.gravitee.gamma.authorization.api.AuthzPolicyAuditSnapshot;
 import io.gravitee.gamma.authorization.api.AuthzPolicyRepository;
-import io.gravitee.gamma.authorization.api.AuthzSchemaAdminApi;
 import io.gravitee.gamma.authorization.api.AuthzValidators;
 import io.gravitee.gamma.authorization.domain.AuthzEntity;
 import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
@@ -61,7 +60,6 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
     private final AuthzEntityRepository entityRepository;
     private final AuthzPolicyRepository policyRepository;
     private final AuthzEntityIdValidator entityIdValidator;
-    private final AuthzSchemaAdminApi schemaService;
     private final AuthzEventPublisher eventPublisher;
     private final AuthzAuditPort auditPort;
     private final int cascadeHardLimit;
@@ -70,18 +68,16 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
         AuthzEntityRepository entityRepository,
         AuthzPolicyRepository policyRepository,
         AuthzEntityIdValidator entityIdValidator,
-        AuthzSchemaAdminApi schemaService,
         AuthzEventPublisher eventPublisher,
         AuthzAuditPort auditPort
     ) {
-        this(entityRepository, policyRepository, entityIdValidator, schemaService, eventPublisher, auditPort, DEFAULT_CASCADE_HARD_LIMIT);
+        this(entityRepository, policyRepository, entityIdValidator, eventPublisher, auditPort, DEFAULT_CASCADE_HARD_LIMIT);
     }
 
     public AuthzEntityServiceImpl(
         AuthzEntityRepository entityRepository,
         AuthzPolicyRepository policyRepository,
         AuthzEntityIdValidator entityIdValidator,
-        AuthzSchemaAdminApi schemaService,
         AuthzEventPublisher eventPublisher,
         AuthzAuditPort auditPort,
         int cascadeHardLimit
@@ -89,7 +85,6 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
         this.entityRepository = entityRepository;
         this.policyRepository = policyRepository;
         this.entityIdValidator = entityIdValidator;
-        this.schemaService = schemaService;
         this.eventPublisher = eventPublisher;
         this.auditPort = auditPort;
         if (cascadeHardLimit < 1) {
@@ -112,7 +107,6 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
             outcome = doUpsert(command, null);
         }
         eventPublisher.publishEntityUpserted(outcome.saved());
-        schemaService.invalidate(command.environmentId());
         recordUpsertAudit(caller, outcome);
         return new AuthzUpsertResult(outcome.saved(), outcome.wasNew());
     }
@@ -143,7 +137,6 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
         for (UpsertOutcome outcome : outcomes) {
             eventPublisher.publishEntityUpserted(outcome.saved());
         }
-        schemaService.invalidate(environmentId);
         for (UpsertOutcome outcome : outcomes) {
             recordUpsertAudit(caller, outcome);
         }
@@ -255,7 +248,6 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
         );
         AuthzEntity saved = entityRepository.save(updated);
         eventPublisher.publishEntityUpserted(saved);
-        schemaService.invalidate(caller.environmentId());
         if (!caller.isSystem()) {
             auditPort.record(
                 AuthzAuditEntry.entity(
@@ -347,10 +339,6 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
         }
         for (AuthzPolicy p : affectedPolicies.values()) {
             eventPublisher.unpublishPolicy(p);
-        }
-
-        if (!affectedEntities.isEmpty() || !affectedPolicies.isEmpty()) {
-            schemaService.invalidate(environmentId);
         }
 
         if (!caller.isSystem()) {

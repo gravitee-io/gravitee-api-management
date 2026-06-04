@@ -63,8 +63,8 @@ class AuthzSchemaServiceImplTest {
         AuthzEntityIdValidator validator = new AuthzEntityIdValidator();
         AuthzEventPublisher events = mock(AuthzEventPublisher.class);
         AuthzAuditPort audit = mock(AuthzAuditPort.class);
-        entityService = new AuthzEntityServiceImpl(entityRepository, policyRepository, validator, schemaService, events, audit);
-        policyService = new AuthzPolicyServiceImpl(policyRepository, validator, schemaService, events, audit);
+        entityService = new AuthzEntityServiceImpl(entityRepository, policyRepository, validator, events, audit);
+        policyService = new AuthzPolicyServiceImpl(policyRepository, validator, events, audit);
     }
 
     @AfterEach
