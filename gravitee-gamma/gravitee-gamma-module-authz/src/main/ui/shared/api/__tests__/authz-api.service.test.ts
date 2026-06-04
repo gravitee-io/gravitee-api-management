@@ -17,6 +17,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { authzApiService } from '../authz-api.service';
 
 const get = vi.fn();
+const post = vi.fn();
 const put = vi.fn();
 const del = vi.fn();
 const post = vi.fn();
@@ -102,6 +103,31 @@ function canonicalEntity(overrides: Record<string, unknown> = {}) {
         ...overrides,
     };
 }
+
+describe('authzApiService.createEntity', () => {
+    beforeEach(() => post.mockReset());
+
+    it('POSTs the request verbatim (including entityType) and returns the adapted entity', async () => {
+        post.mockResolvedValue(canonicalEntity({ entityType: 'User' }));
+
+        const req = {
+            entityId: 'user.alice',
+            kind: 'PRINCIPAL' as const,
+            entityType: 'User',
+            attributes: { _displayName: 'Alice' },
+            parents: [],
+            source: 'local',
+        };
+        const res = await authzApiService.createEntity('DEFAULT', req);
+
+        expect(post).toHaveBeenCalledTimes(1);
+        const [path, sentBody] = post.mock.calls[0];
+        expect(path).toBe('/environments/DEFAULT/modules/authz/entities');
+        expect(sentBody).toEqual(req);
+        expect((sentBody as { entityType: string }).entityType).toBe('User');
+        expect(res.uid).toBe('user.alice');
+    });
+});
 
 describe('authzApiService.updateEntity', () => {
     beforeEach(() => put.mockReset());

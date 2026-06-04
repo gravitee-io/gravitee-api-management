@@ -345,6 +345,7 @@ export const authzApiService = {
 export interface CreateEntityRequest {
     readonly entityId: string;
     readonly kind: 'PRINCIPAL' | 'RESOURCE';
+    readonly entityType?: string;
     readonly attributes: Record<string, unknown>;
     readonly parents: readonly string[];
     readonly source: string;
