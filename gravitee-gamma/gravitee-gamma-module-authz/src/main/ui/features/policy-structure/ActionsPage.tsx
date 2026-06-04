@@ -201,8 +201,14 @@ export function ActionsPage() {
                 </div>
             </header>
 
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4" aria-label="Key metrics">
-                <KpiTile label="Total actions" value={total} loading={actionsQuery.isLoading} />
+            <div className="grid grid-cols-4 gap-4" aria-label="Key metrics">
+                <KpiTile
+                    label="Total actions"
+                    value={total}
+                    loading={actionsQuery.isLoading}
+                    Icon={ZapIcon}
+                    iconClassName="bg-warning/10 text-warning"
+                />
             </div>
 
             {actionsQuery.error !== undefined && (

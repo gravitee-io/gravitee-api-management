@@ -54,8 +54,10 @@ import {
     DownloadIcon,
     PencilIcon,
     PlusIcon,
+    PuzzleIcon,
     RefreshCwIcon,
     SettingsIcon,
+    ShieldCheckIcon,
     ShieldIcon,
     Trash2Icon,
     UsersIcon,
@@ -601,12 +603,42 @@ export function EntitiesPage() {
                 </DropdownMenu>
             </header>
 
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-5" aria-label="Key metrics">
-                <KpiTile label="Total entities" value={kpis.total} loading={isLoading} />
-                <KpiTile label="Types" value={kpis.types} loading={isLoading} />
-                <KpiTile label="Principals" value={kpis.principals} loading={isLoading} />
-                <KpiTile label="Resources" value={kpis.resources} loading={isLoading} />
-                <KpiTile label="Policy-Linked" value={policyLinkedCount} loading={isLoading} />
+            <div className="grid grid-cols-5 gap-4" aria-label="Key metrics">
+                <KpiTile
+                    label="Total entities"
+                    value={kpis.total}
+                    loading={isLoading}
+                    Icon={BoxesIcon}
+                    iconClassName="bg-primary/10 text-primary"
+                />
+                <KpiTile
+                    label="Types"
+                    value={kpis.types}
+                    loading={isLoading}
+                    Icon={PuzzleIcon}
+                    iconClassName="bg-highlight/10 text-highlight"
+                />
+                <KpiTile
+                    label="Principals"
+                    value={kpis.principals}
+                    loading={isLoading}
+                    Icon={UsersIcon}
+                    iconClassName="bg-success/10 text-success"
+                />
+                <KpiTile
+                    label="Resources"
+                    value={kpis.resources}
+                    loading={isLoading}
+                    Icon={ShieldIcon}
+                    iconClassName="bg-warning/10 text-warning"
+                />
+                <KpiTile
+                    label="Policy-Linked"
+                    value={policyLinkedCount}
+                    loading={isLoading}
+                    Icon={ShieldCheckIcon}
+                    iconClassName="bg-highlight/10 text-highlight"
+                />
             </div>
 
             {error !== undefined && (
