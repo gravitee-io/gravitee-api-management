@@ -37,8 +37,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
-import java.io.IOException;
-import java.net.ServerSocket;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,25 +45,20 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class DebugHttpProtocolVerticleTest {
 
-    private VertxHttpServerOptions httpOptions;
     private HttpRequestDispatcher mockRequestDispatcher;
     private VertxHttpServer vertxHttpServer;
 
     @BeforeEach
     @DisplayName("Deploy a new http protocol verticle")
-    void deployVerticle(Vertx vertx, VertxTestContext testContext) throws IOException {
-        ServerSocket socket = new ServerSocket(0);
-        int randomPort = socket.getLocalPort();
-        socket.close();
-
+    void deployVerticle(Vertx vertx, VertxTestContext testContext) {
         final VertxHttpServerFactory vertxHttpServerFactory = new VertxHttpServerFactory(
             io.vertx.rxjava3.core.Vertx.newInstance(vertx),
             new DefaultKeyStoreLoaderFactoryRegistry<>(),
             new DefaultKeyStoreLoaderFactoryRegistry<>()
         );
-        httpOptions = VertxHttpServerOptions.builder()
+        VertxHttpServerOptions httpOptions = VertxHttpServerOptions.builder()
             .id("UnitTest")
-            .port(randomPort)
+            .port(0)
             .keyStoreLoaderOptions(KeyStoreLoaderOptions.builder().build())
             .trustStoreLoaderOptions(TrustStoreLoaderOptions.builder().build())
             .build();
@@ -83,11 +76,15 @@ class DebugHttpProtocolVerticleTest {
         assertThat(vertx.deploymentIDs()).isNotEmpty().hasSize(1);
     }
 
+    private int actualPort() {
+        return vertxHttpServer.instances().getFirst().actualPort();
+    }
+
     @Test
     void http_server_should_listen(Vertx vertx, VertxTestContext testContext) {
         HttpClient client = vertx.createHttpClient();
         client
-            .request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
+            .request(HttpMethod.GET, actualPort(), "127.0.0.1", "/")
             .compose(HttpClientRequest::send)
             .onComplete(
                 testContext.succeeding(response ->
@@ -107,14 +104,14 @@ class DebugHttpProtocolVerticleTest {
             .dispatch(any(), anyString());
         HttpClient client = vertx.createHttpClient();
         client
-            .request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
+            .request(HttpMethod.GET, actualPort(), "127.0.0.1", "/")
             .compose(HttpClientRequest::send)
             .onComplete(
                 testContext.succeeding(response ->
                     testContext.verify(() -> assertThat(response.statusCode()).isEqualTo(HttpStatusCode.INTERNAL_SERVER_ERROR_500))
                 )
             )
-            .compose(httpClientResponse -> client.request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/"))
+            .compose(httpClientResponse -> client.request(HttpMethod.GET, actualPort(), "127.0.0.1", "/"))
             .compose(HttpClientRequest::send)
             .onComplete(
                 testContext.succeeding(response ->
@@ -133,7 +130,7 @@ class DebugHttpProtocolVerticleTest {
             .dispatch(any(), anyString());
         HttpClient client = vertx.createHttpClient();
         client
-            .request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
+            .request(HttpMethod.GET, actualPort(), "127.0.0.1", "/")
             .compose(request -> {
                 request.send().otherwiseEmpty();
                 return request.connection().close();
@@ -156,14 +153,14 @@ class DebugHttpProtocolVerticleTest {
 
         HttpClient client = vertx.createHttpClient();
         client
-            .request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
+            .request(HttpMethod.GET, actualPort(), "127.0.0.1", "/")
             .compose(HttpClientRequest::send)
             .onComplete(
                 testContext.succeeding(response ->
                     testContext.verify(() -> assertThat(response.statusCode()).isEqualTo(SERVICE_UNAVAILABLE_503))
                 )
             )
-            .compose(httpClientResponse -> client.request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/"))
+            .compose(httpClientResponse -> client.request(HttpMethod.GET, actualPort(), "127.0.0.1", "/"))
             .compose(HttpClientRequest::send)
             .onComplete(
                 testContext.succeeding(response ->
