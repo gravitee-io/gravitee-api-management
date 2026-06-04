@@ -18,6 +18,7 @@ package io.gravitee.repository.redis.common;
 import io.gravitee.node.vertx.client.redis.VertxRedisClientFactory;
 import io.gravitee.plugin.configurations.redis.HostAndPort;
 import io.gravitee.plugin.configurations.redis.RedisClientOptions;
+import io.gravitee.plugin.configurations.redis.RedisClusterOptions;
 import io.gravitee.plugin.configurations.redis.RedisSentinelOptions;
 import io.gravitee.plugin.configurations.ssl.KeyStore;
 import io.gravitee.plugin.configurations.ssl.SslOptions;
@@ -52,6 +53,7 @@ public class RedisConnectionFactory {
     private final Map<String, String> scripts;
 
     private static final String SENTINEL_PARAMETER_PREFIX = "sentinel.";
+    private static final String CLUSTER_PARAMETER_PREFIX = "cluster.";
     private static final String PASSWORD_PARAMETER = "password";
 
     private static final String STORE_FORMAT_JKS = "JKS";
@@ -110,6 +112,13 @@ public class RedisConnectionFactory {
             );
         } else {
             log.debug("Redis repository configured to use standalone connection");
+        }
+
+        if (isClusterEnabled()) {
+            log.debug("Redis repository configured to use Cluster connection");
+            // useReplicas is pinned to NEVER: rate limiting relies on master-consistent
+            // counters, so reads must never be served from cluster replicas.
+            builder.cluster(RedisClusterOptions.builder().nodes(getClusterNodes()).useReplicas("NEVER").build());
         }
 
         if (ssl) {
@@ -290,6 +299,23 @@ public class RedisConnectionFactory {
         ) {
             String host = readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "nodes[" + idx + "].host", String.class);
             int port = readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "nodes[" + idx + "].port", int.class);
+            nodes.add(HostAndPort.builder().host(host).port(port).build());
+        }
+        return nodes;
+    }
+
+    private boolean isClusterEnabled() {
+        return StringUtils.hasLength(readPropertyValue(propertyPrefix + CLUSTER_PARAMETER_PREFIX + "nodes[0].host", String.class));
+    }
+
+    private List<HostAndPort> getClusterNodes() {
+        final List<HostAndPort> nodes = new ArrayList<>();
+        for (int idx = 0; ; idx++) {
+            String host = readPropertyValue(propertyPrefix + CLUSTER_PARAMETER_PREFIX + "nodes[" + idx + "].host", String.class);
+            if (!StringUtils.hasText(host)) {
+                break;
+            }
+            int port = readPropertyValue(propertyPrefix + CLUSTER_PARAMETER_PREFIX + "nodes[" + idx + "].port", int.class);
             nodes.add(HostAndPort.builder().host(host).port(port).build());
         }
         return nodes;
