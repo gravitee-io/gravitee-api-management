@@ -122,6 +122,7 @@ jest.mock('@gravitee/graphene-core', () => ({
         disabled?: boolean;
     }) => <textarea id={id} value={value} onChange={onChange} placeholder={placeholder} disabled={disabled} />,
     cn: (...args: string[]) => args.filter(Boolean).join(' '),
+    toast: { success: jest.fn(), error: jest.fn(), warning: jest.fn(), info: jest.fn() },
 }));
 
 jest.mock('@gravitee/graphene-core/icons', () => new Proxy({}, { get: () => () => null }));

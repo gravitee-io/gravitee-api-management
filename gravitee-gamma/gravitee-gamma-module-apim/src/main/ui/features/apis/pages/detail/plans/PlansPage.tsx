@@ -14,26 +14,15 @@
  * limitations under the License.
  */
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
-import {
-    Alert,
-    AlertDescription,
-    Button,
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    Label,
-    Skeleton,
-    Switch,
-} from '@gravitee/graphene-core';
+import { Label, Skeleton, Switch } from '@gravitee/graphene-core';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
 import { CreatePlanDropdown } from './CreatePlanDropdown';
 import { PlansLearningPage } from './PlansLearningPage';
 import { PlansListPage } from './PlansListPage';
+import { ConfirmDialog } from '../../../../../shared/components';
+import { notify } from '../../../../../shared/notify';
 import { useApiDetail } from '../../../hooks/useApiDetail';
 import { usePlanStatusCounts } from '../../../hooks/usePlans';
 import { updateAllowMultiJwtOauth2Subscriptions } from '../../../services/apis';
@@ -59,7 +48,9 @@ function AllowMultiSubscriptionsToggle({ apiId, canUpdate }: { apiId: string; ca
         onSuccess: () => {
             void queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env?.id ?? '', apiId) });
             setConfirmOpen(false);
+            notify.success('Subscription setting updated');
         },
+        onError: error => notify.error(error, 'Failed to update subscription setting.'),
     });
 
     const currentValue = api?.allowMultiJwtOauth2Subscriptions ?? false;
@@ -91,36 +82,18 @@ function AllowMultiSubscriptionsToggle({ apiId, canUpdate }: { apiId: string; ca
                 />
             </div>
 
-            <Dialog
+            <ConfirmDialog
                 open={confirmOpen}
                 onOpenChange={open => {
                     if (!open && !mutation.isPending) setConfirmOpen(false);
                 }}
-            >
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Allow multiple JWT/OAuth2 subscriptions?</DialogTitle>
-                        <DialogDescription>
-                            By turning on this option, you will allow an application to subscribe to more than one JWT/OAuth2 plan. Be sure
-                            you understand the consequences, and you have configured Selection Rules or Sharding Tags on plans. Otherwise,
-                            it cannot be predicted which plan will be used to secure requests.
-                        </DialogDescription>
-                    </DialogHeader>
-                    {mutation.error && (
-                        <Alert variant="destructive">
-                            <AlertDescription>{(mutation.error as Error).message}</AlertDescription>
-                        </Alert>
-                    )}
-                    <DialogFooter className="sm:justify-end gap-2">
-                        <Button size="sm" variant="outline" onClick={() => setConfirmOpen(false)} disabled={mutation.isPending}>
-                            Cancel
-                        </Button>
-                        <Button size="sm" onClick={() => mutation.mutate(true)} disabled={mutation.isPending}>
-                            {mutation.isPending ? 'Saving…' : 'Enable'}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                title="Allow multiple JWT/OAuth2 subscriptions?"
+                description="By turning on this option, you will allow an application to subscribe to more than one JWT/OAuth2 plan. Be sure you understand the consequences, and you have configured Selection Rules or Sharding Tags on plans. Otherwise, it cannot be predicted which plan will be used to secure requests."
+                confirmLabel="Enable"
+                pendingLabel="Saving…"
+                isPending={mutation.isPending}
+                onConfirm={() => mutation.mutate(true)}
+            />
         </>
     );
 }

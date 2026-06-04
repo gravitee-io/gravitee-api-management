@@ -13,27 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-    Button,
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    Input,
-    Label,
-    Textarea,
-} from '@gravitee/graphene-core';
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label, Textarea } from '@gravitee/graphene-core';
 import { BoxesIcon, CheckIcon, ClockIcon, ServerIcon, Trash2Icon, UserIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { ConfirmDialog } from '../../../../../shared/components';
+import { notify } from '../../../../../shared/notify';
 import { SyncStatusBadge } from '../../../components/SyncStatusBadge';
 import { useApiProductDetailContext } from '../../../context/ApiProductDetailContext';
 import { useDeleteApiProduct } from '../../../hooks/useDeleteApiProduct';
@@ -53,7 +39,6 @@ export function ApiProductGeneralPage() {
     const [name, setName] = useState(product?.name ?? '');
     const [version, setVersion] = useState(product?.version ?? '');
     const [description, setDescription] = useState(product?.description ?? '');
-    const [deleteConfirm, setDeleteConfirm] = useState('');
     const [confirmAction, setConfirmAction] = useState<'remove-apis' | 'delete' | null>(null);
     const [debouncedName, setDebouncedName] = useState('');
 
@@ -64,7 +49,6 @@ export function ApiProductGeneralPage() {
             setName(product.name);
             setVersion(product.version);
             setDescription(product.description ?? '');
-            setDeleteConfirm('');
             setDebouncedName('');
         }
     }
@@ -79,7 +63,7 @@ export function ApiProductGeneralPage() {
     // uniqueness hint clears immediately without a synchronous setState in the effect.
     const effectiveDebouncedName = name !== product?.name ? debouncedName : '';
 
-    const { mutate: updateProduct, isPending: isSaving, error: saveError } = useUpdateApiProduct(productId ?? '');
+    const { mutate: updateProduct, isPending: isSaving } = useUpdateApiProduct(productId ?? '');
     const { mutate: deleteProduct, isPending: isDeleting } = useDeleteApiProduct();
     const { data: verifyResult, isChecking } = useVerifyApiProductName(effectiveDebouncedName, productId);
     const nameError =
@@ -93,23 +77,41 @@ export function ApiProductGeneralPage() {
     function handleSave(e: React.FormEvent) {
         e.preventDefault();
         if (!canSave || !product) return;
-        updateProduct({
-            name: name.trim(),
-            version: version.trim(),
-            description: description.trim() || undefined,
-            apiIds: product.apiIds ?? [],
-        });
+        updateProduct(
+            {
+                name: name.trim(),
+                version: version.trim(),
+                description: description.trim() || undefined,
+                apiIds: product.apiIds ?? [],
+            },
+            {
+                onSuccess: () => notify.success('API product saved'),
+                onError: error => notify.error(error, 'Failed to save API product.'),
+            },
+        );
     }
 
     function handleRemoveAllApis() {
         if (!product) return;
-        updateProduct({ name: product.name, version: product.version, description: product.description, apiIds: [] });
+        updateProduct(
+            { name: product.name, version: product.version, description: product.description, apiIds: [] },
+            {
+                onSuccess: () => notify.success('All APIs removed from the product'),
+                onError: error => notify.error(error, 'Failed to remove APIs from the product.'),
+            },
+        );
         setConfirmAction(null);
     }
 
     function handleDelete() {
         if (!productId) return;
-        deleteProduct(productId, { onSuccess: () => navigate('../..') });
+        deleteProduct(productId, {
+            onSuccess: () => {
+                notify.success('API product deleted');
+                navigate('../..');
+            },
+            onError: error => notify.error(error, 'Failed to delete API product.'),
+        });
         setConfirmAction(null);
     }
 
@@ -185,12 +187,6 @@ export function ApiProductGeneralPage() {
                                         style={{ fieldSizing: 'fixed' } as React.CSSProperties}
                                     />
                                 </div>
-
-                                {saveError ? (
-                                    <p className="text-sm text-destructive rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2">
-                                        {saveError.message}
-                                    </p>
-                                ) : null}
                             </div>
 
                             {/* Right: details panel separated by left border */}
@@ -289,75 +285,35 @@ export function ApiProductGeneralPage() {
             </Card>
 
             {/* Remove all APIs confirmation */}
-            <Dialog
+            <ConfirmDialog
                 open={confirmAction === 'remove-apis'}
-                onOpenChange={open => {
-                    if (!open) setConfirmAction(null);
-                }}
-            >
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Remove all APIs?</DialogTitle>
-                        <DialogDescription>
-                            Consumers will lose access through this product until you add APIs again. Plans stay attached.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setConfirmAction(null)}>
-                            Cancel
-                        </Button>
-                        <Button variant="destructive" disabled={isSaving} onClick={handleRemoveAllApis}>
-                            Remove all
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                onOpenChange={open => !open && setConfirmAction(null)}
+                title="Remove all APIs?"
+                description="Consumers will lose access through this product until you add APIs again. Plans stay attached."
+                confirmLabel="Remove all"
+                destructive
+                isPending={isSaving}
+                onConfirm={handleRemoveAllApis}
+            />
 
             {/* Delete product confirmation */}
-            <Dialog
+            <ConfirmDialog
                 open={confirmAction === 'delete'}
-                onOpenChange={open => {
-                    if (!open) {
-                        setConfirmAction(null);
-                        setDeleteConfirm('');
-                    }
-                }}
-            >
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Delete product permanently?</DialogTitle>
-                        <DialogDescription>
-                            This will permanently delete <strong>{product?.name}</strong> and all its configuration.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="py-2 space-y-2">
-                        <Label htmlFor="del-prod-confirm" className="text-sm">
-                            Type <span className="font-mono font-semibold">{product?.name}</span> to confirm
-                        </Label>
-                        <Input
-                            id="del-prod-confirm"
-                            value={deleteConfirm}
-                            onChange={e => setDeleteConfirm(e.target.value)}
-                            placeholder={product?.name ?? ''}
-                        />
-                    </div>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => {
-                                setConfirmAction(null);
-                                setDeleteConfirm('');
-                            }}
-                        >
-                            Cancel
-                        </Button>
-                        <Button variant="destructive" disabled={isDeleting || deleteConfirm !== product?.name} onClick={handleDelete}>
-                            <Trash2Icon className="size-4" aria-hidden />
-                            {isDeleting ? 'Deleting…' : 'Delete permanently'}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                onOpenChange={open => !open && setConfirmAction(null)}
+                title="Delete product permanently?"
+                description={
+                    <>
+                        This will permanently delete <strong>{product?.name}</strong> and all its configuration.
+                    </>
+                }
+                confirmLabel="Delete permanently"
+                pendingLabel="Deleting…"
+                destructive
+                confirmKeyword={product?.name}
+                icon={<Trash2Icon className="size-4" aria-hidden />}
+                isPending={isDeleting}
+                onConfirm={handleDelete}
+            />
         </div>
     );
 }

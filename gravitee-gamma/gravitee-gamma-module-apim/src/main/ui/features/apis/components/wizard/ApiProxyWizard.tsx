@@ -31,6 +31,7 @@ import { useNavigate } from 'react-router-dom';
 import { ProxyFlowVisualization } from './ProxyFlowVisualization';
 import type { StepConfig } from './StepProgress';
 import { StepProgress } from './StepProgress';
+import { notify } from '../../../../shared/notify';
 import { useCreateApiProxy } from '../../hooks/useCreateApiProxy';
 import { useApiCreation } from '../../store/apiCreationStore';
 import type { ApiProxyDraft, ValidationErrors } from '../../types/apiCreation';
@@ -97,7 +98,10 @@ export function ApiProxyWizard({ mode }: ApiProxyWizardProps) {
     const StepContent = contentMap[activeStep];
 
     useEffect(() => {
-        if (isSuccess && data) navigate(`../../${data.id}/overview`);
+        if (isSuccess && data) {
+            notify.success('API created');
+            navigate(`../../${data.id}/overview`);
+        }
     }, [isSuccess, data, navigate]);
 
     function handleNext() {

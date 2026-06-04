@@ -36,12 +36,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { CategorySelectInput } from './CategorySelectInput';
 import { ChipInput } from './ChipInput';
-import { DeleteDialog } from './DeleteDialog';
 import { DuplicateApi } from './DuplicateApi';
 import { ExportApi } from './ExportApi';
 import { ImagePicker } from './ImagePicker';
 import { ImportDialog } from './ImportDialog';
 import { PromoteDialog } from './PromoteDialog';
+import { ConfirmDialog } from '../../../../../shared/components';
+import { notify } from '../../../../../shared/notify';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import { useApiGeneralMutations } from '../../../hooks/useApiGeneralMutations';
 import { useEnvCategories } from '../../../hooks/useEnvCategories';
@@ -115,7 +116,6 @@ export function ApiGeneralPage() {
 
     const [form, setForm] = useState<GeneralForm | null>(null);
     const [savedForm, setSavedForm] = useState<GeneralForm | null>(null);
-    const [saveError, setSaveError] = useState<string | null>(null);
 
     const [exportOpen, setExportOpen] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
@@ -143,7 +143,6 @@ export function ApiGeneralPage() {
 
     const setField = useCallback(<K extends keyof GeneralForm>(key: K, value: GeneralForm[K]) => {
         setForm(prev => (prev ? { ...prev, [key]: value } : prev));
-        setSaveError(null);
     }, []);
 
     // ── Mutations ─────────────────────────────────────────────────────────────
@@ -162,6 +161,7 @@ export function ApiGeneralPage() {
     } = useApiGeneralMutations(api, {
         onDeleteSuccess: () => {
             setDeleteOpen(false);
+            notify.success('API deleted');
             navigate('../..');
         },
         onDuplicateSuccess: newApi => {
@@ -190,9 +190,9 @@ export function ApiGeneralPage() {
             {
                 onSuccess: () => {
                     setSavedForm(form);
-                    setSaveError(null);
+                    notify.success('Changes saved');
                 },
-                onError: (e: unknown) => setSaveError(e instanceof Error ? e.message : 'Failed to save changes.'),
+                onError: (e: unknown) => notify.error(e, 'Failed to save changes.'),
             },
         );
     }, [form, saveMutation]);
@@ -224,22 +224,20 @@ export function ApiGeneralPage() {
 
     const apiStarted = api?.state === 'STARTED';
 
-    const startStopError =
-        startMutation.isError || stopMutation.isError
-            ? startMutation.isError
-                ? startMutation.error instanceof Error
-                    ? startMutation.error.message
-                    : 'Failed to start API.'
-                : stopMutation.error instanceof Error
-                  ? stopMutation.error.message
-                  : 'Failed to stop API.'
-            : null;
-
-    const deleteError = deleteMutation.isError
-        ? deleteMutation.error instanceof Error
-            ? deleteMutation.error.message
-            : 'Failed to delete API.'
-        : null;
+    const handleToggleApiState = useCallback(() => {
+        if (isReadOnly) return;
+        if (apiStarted) {
+            stopMutation.mutate(undefined, {
+                onSuccess: () => notify.success('API stopped'),
+                onError: e => notify.error(e, 'Failed to stop API.'),
+            });
+        } else {
+            startMutation.mutate(undefined, {
+                onSuccess: () => notify.success('API started'),
+                onError: e => notify.error(e, 'Failed to start API.'),
+            });
+        }
+    }, [apiStarted, isReadOnly, startMutation, stopMutation]);
 
     const duplicateError = duplicateMutation.isError
         ? duplicateMutation.error instanceof Error
@@ -283,10 +281,7 @@ export function ApiGeneralPage() {
                             type="button"
                             variant="outline"
                             size="sm"
-                            onClick={() => {
-                                setForm(savedForm);
-                                setSaveError(null);
-                            }}
+                            onClick={() => setForm(savedForm)}
                             disabled={saveMutation.isPending}
                         >
                             Discard
@@ -298,12 +293,6 @@ export function ApiGeneralPage() {
                     </div>
                 )}
             </div>
-
-            {saveError && (
-                <Card className="border-destructive/30 bg-destructive/5 p-4">
-                    <p className="text-sm text-destructive">{saveError}</p>
-                </Card>
-            )}
 
             {isKubernetesManaged && (
                 <Card className="border-primary/20 bg-primary/5 p-4">
@@ -412,8 +401,14 @@ export function ApiGeneralPage() {
                                         preview={api?._links?.pictureUrl}
                                         width={88}
                                         height={88}
-                                        onSelect={b64 => pictureMutation.mutate(b64)}
-                                        onRemove={() => removePictureMutation.mutate()}
+                                        onSelect={b64 =>
+                                            pictureMutation.mutate(b64, { onError: e => notify.error(e, 'Failed to update picture.') })
+                                        }
+                                        onRemove={() =>
+                                            removePictureMutation.mutate(undefined, {
+                                                onError: e => notify.error(e, 'Failed to remove picture.'),
+                                            })
+                                        }
                                         disabled={isReadOnly || pictureMutation.isPending || removePictureMutation.isPending}
                                     />
                                     <ImagePicker
@@ -421,36 +416,22 @@ export function ApiGeneralPage() {
                                         preview={api?._links?.backgroundUrl}
                                         width={152}
                                         height={88}
-                                        onSelect={b64 => backgroundMutation.mutate(b64)}
-                                        onRemove={() => removeBackgroundMutation.mutate()}
+                                        onSelect={b64 =>
+                                            backgroundMutation.mutate(b64, {
+                                                onError: e => notify.error(e, 'Failed to update background.'),
+                                            })
+                                        }
+                                        onRemove={() =>
+                                            removeBackgroundMutation.mutate(undefined, {
+                                                onError: e => notify.error(e, 'Failed to remove background.'),
+                                            })
+                                        }
                                         disabled={isReadOnly || backgroundMutation.isPending || removeBackgroundMutation.isPending}
                                     />
                                 </div>
                                 <p className="text-center text-muted-foreground" style={{ fontSize: '10px' }}>
                                     PNG, JPG, SVG · max 500 KB
                                 </p>
-                                {(pictureMutation.isError ||
-                                    removePictureMutation.isError ||
-                                    backgroundMutation.isError ||
-                                    removeBackgroundMutation.isError) && (
-                                    <p className="text-xs text-destructive text-center">
-                                        {pictureMutation.isError
-                                            ? pictureMutation.error instanceof Error
-                                                ? pictureMutation.error.message
-                                                : 'Failed to update picture.'
-                                            : removePictureMutation.isError
-                                              ? removePictureMutation.error instanceof Error
-                                                  ? removePictureMutation.error.message
-                                                  : 'Failed to remove picture.'
-                                              : backgroundMutation.isError
-                                                ? backgroundMutation.error instanceof Error
-                                                    ? backgroundMutation.error.message
-                                                    : 'Failed to update background.'
-                                                : removeBackgroundMutation.error instanceof Error
-                                                  ? removeBackgroundMutation.error.message
-                                                  : 'Failed to remove background.'}
-                                    </p>
-                                )}
                             </div>
 
                             <Separator />
@@ -583,7 +564,7 @@ export function ApiGeneralPage() {
                                                 ? 'cursor-not-allowed opacity-50'
                                                 : 'cursor-pointer hover:bg-muted/50',
                                         )}
-                                        onClick={() => !isReadOnly && (apiStarted ? stopMutation.mutate() : startMutation.mutate())}
+                                        onClick={handleToggleApiState}
                                         disabled={isReadOnly || startMutation.isPending || stopMutation.isPending}
                                     >
                                         <div className={cn('shrink-0 rounded-lg p-2', apiStarted ? 'bg-warning/10' : 'bg-success/10')}>
@@ -635,7 +616,6 @@ export function ApiGeneralPage() {
                                     </button>
                                 )}
                             </div>
-                            {startStopError && <p className="text-sm text-destructive">{startStopError}</p>}
                         </div>
                     </CardContent>
                 </Card>
@@ -671,13 +651,23 @@ export function ApiGeneralPage() {
                 error={duplicateError}
             />
             <PromoteDialog open={promoteOpen} onOpenChange={setPromoteOpen} />
-            <DeleteDialog
+            <ConfirmDialog
                 open={deleteOpen}
                 onOpenChange={setDeleteOpen}
-                apiName={api?.name ?? ''}
-                onDelete={() => deleteMutation.mutate()}
-                isLoading={deleteMutation.isPending}
-                error={deleteError}
+                title="Delete API permanently?"
+                description={
+                    <>
+                        This will permanently delete <strong>{api?.name}</strong> along with all plans, subscriptions, and analytics data.
+                        This action cannot be undone.
+                    </>
+                }
+                confirmLabel="Delete permanently"
+                pendingLabel="Deleting…"
+                destructive
+                confirmKeyword={api?.name ?? ''}
+                icon={<Trash2Icon className="size-4" />}
+                isPending={deleteMutation.isPending}
+                onConfirm={() => deleteMutation.mutate(undefined, { onError: e => notify.error(e, 'Failed to delete API.') })}
             />
         </div>
     );

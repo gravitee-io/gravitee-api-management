@@ -17,6 +17,7 @@ import { Button, Card, CardContent, Input, Label, Textarea } from '@gravitee/gra
 import { ArrowLeftIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useState } from 'react';
 
+import { notify } from '../../../../shared/notify';
 import { useCreateApiProduct } from '../../hooks/useCreateApiProduct';
 import { useVerifyApiProductName } from '../../hooks/useVerifyApiProductName';
 import type { CreateApiProductRequest } from '../../types/apiProduct';
@@ -62,7 +63,12 @@ export function CreateApiProductForm({ onBack, onCreated }: CreateApiProductForm
             version: version.trim(),
             description: description.trim() || undefined,
         };
-        createProduct(request, { onSuccess: product => onCreated(product.id) });
+        createProduct(request, {
+            onSuccess: product => {
+                notify.success('API product created');
+                onCreated(product.id);
+            },
+        });
     }
 
     return (

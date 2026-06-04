@@ -33,6 +33,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { SpanRedactionRules } from './SpanRedactionRules';
+import { notify } from '../../../../../shared/notify';
 import { useApiDetail } from '../../../hooks/useApiDetail';
 import { updateApiAnalytics } from '../../../services/apis';
 import type { Analytics, RedactionRule } from '../../../types';
@@ -92,7 +93,6 @@ export function ApiReporterSettingsPage() {
     const [otelLogsEnabled, setOtelLogsEnabled] = useState(false);
     const [redactionRules, setRedactionRules] = useState<RedactionRule[]>([]);
     const [isDirty, setIsDirty] = useState(false);
-    const [saveError, setSaveError] = useState<string | null>(null);
 
     const applyAnalyticsToForm = useCallback((analytics: Analytics | undefined) => {
         setEnabled(analytics?.enabled ?? false);
@@ -108,12 +108,10 @@ export function ApiReporterSettingsPage() {
         setOtelLogsEnabled(analytics?.otelLogs?.enabled ?? false);
         setRedactionRules(analytics?.tracing?.redaction?.rules ?? []);
         setIsDirty(false);
-        setSaveError(null);
     }, []);
 
     function markDirty() {
         setIsDirty(true);
-        setSaveError(null);
     }
 
     // Initialize form once per apiId — prevents background refetches from wiping in-progress edits
@@ -141,11 +139,9 @@ export function ApiReporterSettingsPage() {
             void queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env?.id ?? '', apiId ?? '') });
             initializedForApiIdRef.current = undefined;
             setIsDirty(false);
-            setSaveError(null);
+            notify.success('Reporter settings saved');
         },
-        onError: (e: Error) => {
-            setSaveError(e.message || 'Failed to save reporter settings.');
-        },
+        onError: error => notify.error(error, 'Failed to save reporter settings.'),
     });
 
     const handleSave = () => {
@@ -225,13 +221,6 @@ export function ApiReporterSettingsPage() {
                     </div>
                 )}
             </div>
-
-            {/* ─── Save error ──────────────────────────────────────────────── */}
-            {saveError && (
-                <Alert variant="destructive">
-                    <AlertDescription>{saveError}</AlertDescription>
-                </Alert>
-            )}
 
             {/* ─── Info banner ─────────────────────────────────────────────── */}
             <Alert>

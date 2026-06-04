@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { FeatureTile } from './FeatureTile';
-export { CircularProgress } from './CircularProgress';
-export { ConfirmDialog } from './ConfirmDialog';
-export type { ConfirmDialogProps } from './ConfirmDialog';
-export { MultiSelectFilter } from './MultiSelectFilter';
-export type { MultiSelectFilterOption } from './MultiSelectFilter';
-export { OverviewChecklistCard } from './OverviewChecklistCard';
-export type { OverviewChecklistItem } from './OverviewChecklistCard';
+import { Toaster } from '@gravitee/graphene-core';
+
+/** APIM module toast host (standalone and federated). Mounted once in `AppRoutes`. */
+export function ApimToaster() {
+    return <Toaster position="bottom-right" richColors closeButton />;
+}

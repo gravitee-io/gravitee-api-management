@@ -19,6 +19,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
+import { notify } from '../../../../../shared/notify';
 import { useApiDetail } from '../../../hooks/useApiDetail';
 import { useOrgTags } from '../../../hooks/useOrgTags';
 import { updateApiShardingTags } from '../../../services/apis';
@@ -35,7 +36,6 @@ export function DeploymentConfigurationPage() {
     const [editedTags, setEditedTags] = useState<string[] | null>(null);
     const selectedTagIds = editedTags ?? api?.tags ?? [];
     const [isSaving, setIsSaving] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     const isDirty = useMemo(() => {
         if (editedTags === null) return false;
@@ -56,13 +56,13 @@ export function DeploymentConfigurationPage() {
         if (!apiId) return;
         const tagsToSave = editedTags ?? api?.tags ?? [];
         setIsSaving(true);
-        setError(null);
         try {
             await updateApiShardingTags(env!.id, apiId, tagsToSave);
             await queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env!.id, apiId) });
             setEditedTags(null);
+            notify.success('Deployment configuration saved');
         } catch (e) {
-            setError(e instanceof Error ? e.message : 'Failed to save changes.');
+            notify.error(e, 'Failed to save changes.');
         } finally {
             setIsSaving(false);
         }
@@ -70,7 +70,6 @@ export function DeploymentConfigurationPage() {
 
     const handleDiscard = useCallback(() => {
         setEditedTags(null);
-        setError(null);
     }, []);
 
     const isLoading = apiLoading || tagsLoading;
@@ -84,12 +83,6 @@ export function DeploymentConfigurationPage() {
                     load this API definition.
                 </p>
             </div>
-
-            {error ? (
-                <Card className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-                    <p className="text-sm text-destructive">{error}</p>
-                </Card>
-            ) : null}
 
             <Card className="rounded-xl p-4 sm:p-6 space-y-4">
                 <div>
