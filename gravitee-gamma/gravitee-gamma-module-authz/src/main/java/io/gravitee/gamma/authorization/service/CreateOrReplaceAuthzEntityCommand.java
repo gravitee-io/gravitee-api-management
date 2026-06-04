@@ -17,6 +17,7 @@ package io.gravitee.gamma.authorization.service;
 
 import io.gravitee.gamma.authorization.api.AuthzValidators;
 import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
+import io.gravitee.gamma.definition.authz.AuthzEntityIdConstants;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
@@ -32,11 +33,12 @@ public record CreateOrReplaceAuthzEntityCommand(
     @NotBlank String source
 ) {
     public CreateOrReplaceAuthzEntityCommand {
-        // Backwards-compatible: legacy callers (no entityType) fall back to the kind-default.
-        // Done before validate so the value seen by hibernate-validator matches the canonical
-        // constructor parameter list.
+        // Derive a granular engine type from the _kind hint (principals) or the entityId prefix
+        // (resources) when the caller didn't supply one; fall back to the kind-default umbrella.
+        // A supplied entityType is kept verbatim. Done before validate so the validator sees the
+        // canonical value.
         if (entityType == null || entityType.isBlank()) {
-            entityType = kind != null ? kind.defaultEntityType() : null;
+            entityType = deriveEntityType(kind, entityId, attributes);
         }
         AuthzValidators.validateCtor(
             CreateOrReplaceAuthzEntityCommand.class,
@@ -50,6 +52,24 @@ public record CreateOrReplaceAuthzEntityCommand(
         );
         attributes = Map.copyOf(attributes);
         parents = List.copyOf(parents);
+    }
+
+    private static String deriveEntityType(AuthzEntityKind kind, String entityId, Map<String, Object> attributes) {
+        Object kindHint = attributes == null ? null : attributes.get("_kind");
+        String byKind = kindHint instanceof String s ? AuthzEntityIdConstants.engineTypeForHint(s) : null;
+        if (byKind != null) {
+            return byKind;
+        }
+        if (entityId != null) {
+            int dot = entityId.indexOf('.');
+            if (dot > 0) {
+                String byPrefix = AuthzEntityIdConstants.engineTypeForHint(entityId.substring(0, dot));
+                if (byPrefix != null) {
+                    return byPrefix;
+                }
+            }
+        }
+        return kind != null ? kind.defaultEntityType() : null;
     }
 
     /**

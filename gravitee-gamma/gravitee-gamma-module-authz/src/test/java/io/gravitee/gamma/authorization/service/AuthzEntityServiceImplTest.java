@@ -128,7 +128,7 @@ class AuthzEntityServiceImplTest {
     void upsert_without_entityType_defaults_to_kind_default_at_domain_level() {
         AuthzUpsertResult resource = entityService.upsert(
             CALLER,
-            new CreateOrReplaceAuthzEntityCommand(ENV, "api.123", AuthzEntityKind.RESOURCE, Map.of(), List.of(), "apim")
+            new CreateOrReplaceAuthzEntityCommand(ENV, "webhook.123", AuthzEntityKind.RESOURCE, Map.of(), List.of(), "apim")
         );
         AuthzUpsertResult principal = entityService.upsert(
             CALLER,
