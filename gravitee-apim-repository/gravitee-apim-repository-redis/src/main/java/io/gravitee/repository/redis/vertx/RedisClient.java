@@ -25,8 +25,8 @@ import io.vertx.redis.client.RedisAPI;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -45,7 +45,8 @@ public class RedisClient {
     private final VertxRedisClientFactory factory;
     private final RedisClientOptions clientOptions;
     private final Map<String, String> scripts;
-    private final Map<String, String> scriptsSha = new HashMap<>();
+    private final Map<String, String> scriptsSha = new ConcurrentHashMap<>();
+    private final Map<String, String> scriptsSource = new ConcurrentHashMap<>();
     private Future<RedisAPI> redisAPIFuture;
 
     private final AtomicBoolean connected = new AtomicBoolean(false);
@@ -119,15 +120,24 @@ public class RedisClient {
                         String key = entry.getKey();
                         String script = entry.getValue();
                         try (InputStream stream = RedisRateLimitRepository.class.getClassLoader().getResourceAsStream(script)) {
+                            if (stream == null) {
+                                return Future.failedFuture(new IllegalStateException("Lua script not found on classpath: " + script));
+                            }
+                            String source = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+                            // Keep the source so consumers can fall back to EVAL when a clustered
+                            // node returns NOSCRIPT (SCRIPT LOAD only reaches the contacted node).
+                            scriptsSource.put(key, source);
                             return redisAPI
-                                .script(Arrays.asList(SCRIPT_LOAD_COMMAND, new String(stream.readAllBytes(), StandardCharsets.UTF_8)))
+                                .script(Arrays.asList(SCRIPT_LOAD_COMMAND, source))
                                 .onSuccess(response -> {
                                     log.debug("Lua script '{}' registered to Redis", script);
                                     scriptsSha.put(key, response.toString());
                                 })
                                 .mapEmpty();
                         } catch (Exception ex) {
-                            return Future.failedFuture("Unexpected error while loading lua script");
+                            return Future.failedFuture(
+                                new IllegalStateException("Unexpected error while loading lua script '" + script + "'", ex)
+                            );
                         }
                     })
                     .collect(Collectors.toList())
@@ -142,5 +152,9 @@ public class RedisClient {
 
     public String scriptSha1(final String key) {
         return scriptsSha.get(key);
+    }
+
+    public String scriptSource(final String key) {
+        return scriptsSource.get(key);
     }
 }
