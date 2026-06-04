@@ -114,6 +114,7 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
                     input.auditInfo.environmentId(),
                     input.spec().getGroups(),
                     input.spec().getDefinitionVersion(),
+                    input.spec().getDefinitionContext() != null ? input.spec().getDefinitionContext().getOrigin() : null,
                     Group.GroupEvent.API_CREATE,
                     true
                 )
@@ -125,6 +126,7 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
                 new ValidatePortalNotificationDomainService.Input(
                     input.spec().getConsoleNotificationConfiguration(),
                     input.spec().getDefinitionVersion(),
+                    input.spec().getDefinitionContext() != null ? input.spec().getDefinitionContext().getOrigin() : null,
                     sanitizedBuilder.build().getGroups(),
                     input.auditInfo()
                 )
