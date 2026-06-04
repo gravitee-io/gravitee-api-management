@@ -223,6 +223,13 @@ export const authzApiService = {
         };
     },
 
+    updateSchema: async (environmentId: string, schemaText: string): Promise<SchemaResponse> => {
+        const c = await authzCoreApiClient.put<CanonicalSchema>(corePath(environmentId, '/schema'), { schema: schemaText });
+        return { environmentId, schemaText: c.schema ?? '', updatedAt: null };
+    },
+
+    deleteSchema: (environmentId: string): Promise<void> => authzCoreApiClient.delete<void>(corePath(environmentId, '/schema')),
+
     listPolicies: async (environmentId: string, params?: PolicyListParams): Promise<PagedResponse<PolicyResponse>> => {
         // The canonical backend has no concept of the UI 'type' (MCP/LLM/API/…);
         // it derives only from the entityId prefix on the client. Filtering a single
