@@ -17,6 +17,7 @@ package io.gravitee.gamma.authorization.infra.service_provider;
 
 import io.gravitee.am.sdk.management.model.ApplicationPage;
 import io.gravitee.am.sdk.management.model.FilteredApplication;
+import io.gravitee.am.sdk.management.model.FilteredIdentityProviderInfo;
 import io.gravitee.am.sdk.management.model.Group;
 import io.gravitee.am.sdk.management.model.GroupPage;
 import io.gravitee.am.sdk.management.model.Role;
