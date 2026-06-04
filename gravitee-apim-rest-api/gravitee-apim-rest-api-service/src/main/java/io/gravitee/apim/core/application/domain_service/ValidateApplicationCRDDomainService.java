@@ -65,6 +65,7 @@ public class ValidateApplicationCRDDomainService implements Validator<ValidateAp
                     input.auditInfo.environmentId(),
                     input.spec().getGroups(),
                     null,
+                    null,
                     Group.GroupEvent.APPLICATION_CREATE,
                     true
                 )
