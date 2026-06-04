@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { Card, Skeleton, cn } from '@gravitee/graphene-core';
+import type { ComponentType, SVGProps } from 'react';
 
 const TONE_CLASS = {
     default: '',
@@ -26,13 +27,28 @@ export interface KpiTileProps {
     readonly value: number | string;
     readonly loading?: boolean;
     readonly tone?: keyof typeof TONE_CLASS;
+    readonly Icon?: ComponentType<SVGProps<SVGSVGElement>>;
+    readonly iconClassName?: string;
 }
 
-export function KpiTile({ label, value, loading = false, tone = 'default' }: KpiTileProps) {
+export function KpiTile({ label, value, loading = false, tone = 'default', Icon, iconClassName }: KpiTileProps) {
     return (
-        <Card className="p-4" aria-label={label}>
-            {loading ? <Skeleton className="h-8 w-12" /> : <div className={cn('text-2xl', TONE_CLASS[tone])}>{value}</div>}
-            <p className="text-xs text-muted-foreground">{label}</p>
+        <Card className="flex flex-col gap-3 p-5" aria-label={label}>
+            {Icon && (
+                <div
+                    className={cn('flex size-10 items-center justify-center rounded-lg', iconClassName ?? 'bg-muted text-muted-foreground')}
+                >
+                    <Icon className="size-5" aria-hidden />
+                </div>
+            )}
+            <div className="flex flex-col gap-0.5">
+                {loading ? (
+                    <Skeleton className="h-8 w-12" />
+                ) : (
+                    <div className={cn('text-3xl font-semibold leading-none', TONE_CLASS[tone])}>{value}</div>
+                )}
+                <p className="text-sm font-medium">{label}</p>
+            </div>
         </Card>
     );
 }

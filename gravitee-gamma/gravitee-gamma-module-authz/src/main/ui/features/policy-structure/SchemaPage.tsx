@@ -49,6 +49,7 @@ import {
     ZapIcon,
 } from '@gravitee/graphene-core/icons';
 import { useEffect, useMemo, useRef, useState, type ComponentType, type SVGProps } from 'react';
+import { KpiTile } from '../../components/KpiTile';
 import { MonacoEditor } from '../../components/MonacoEditor';
 import { parseGaplSchema, type ParsedEntity } from '../../shared/gapl-parser';
 import { useSchema } from '../../shared/hooks/useSchema';
@@ -200,23 +201,26 @@ export function SchemaPage() {
                         </Alert>
                     )}
 
-                    <div className="flex flex-wrap gap-2" aria-label="Schema summary">
-                        <Badge variant="outline" className="gap-1.5">
-                            <BoxesIcon className="size-3.5" aria-hidden />
-                            {parsed.entities.length} entities
-                        </Badge>
-                        <Badge variant="outline" className="gap-1.5">
-                            <ZapIcon className="size-3.5" aria-hidden />
-                            {parsed.actions.length} actions
-                        </Badge>
-                        <Badge variant="outline" className="gap-1.5">
-                            <UsersIcon className="size-3.5" aria-hidden />
-                            {principalKinds} principal kinds
-                        </Badge>
-                        <Badge variant="outline" className="gap-1.5">
-                            <ShieldIcon className="size-3.5" aria-hidden />
-                            {resourceKinds} resource kinds
-                        </Badge>
+                    <div className="grid grid-cols-4 gap-4" aria-label="Schema summary">
+                        <KpiTile
+                            label="Entities"
+                            value={parsed.entities.length}
+                            Icon={BoxesIcon}
+                            iconClassName="bg-primary/10 text-primary"
+                        />
+                        <KpiTile label="Actions" value={parsed.actions.length} Icon={ZapIcon} iconClassName="bg-warning/10 text-warning" />
+                        <KpiTile
+                            label="Principal kinds"
+                            value={principalKinds}
+                            Icon={UsersIcon}
+                            iconClassName="bg-success/10 text-success"
+                        />
+                        <KpiTile
+                            label="Resource kinds"
+                            value={resourceKinds}
+                            Icon={ShieldIcon}
+                            iconClassName="bg-highlight/10 text-highlight"
+                        />
                     </div>
 
                     <div className="flex flex-col gap-4 md:flex-row md:items-start">
