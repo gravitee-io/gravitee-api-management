@@ -456,14 +456,14 @@ describe('EntitiesPage', () => {
         await waitFor(() => expect(screen.getByLabelText('Copy user.alice')).toBeInTheDocument());
     });
 
-    it('renders the Policy-Linked KPI and a settings menu with Open entities.json', async () => {
+    it('renders the Policy-Linked KPI and a settings menu with View entities.json', async () => {
         mockByKind({ principals: [makeEntity({ id: 'p1', uid: 'user.alice' })] });
         renderPage();
 
         const user = userEvent.setup();
         await waitFor(() => expect(screen.getByLabelText('Policy-Linked')).toBeInTheDocument());
         await user.click(screen.getByRole('button', { name: /Entities settings/i }));
-        expect(await screen.findByRole('menuitem', { name: /Open entities\.json/i })).toBeInTheDocument();
+        expect(await screen.findByRole('menuitem', { name: /View entities\.json/i })).toBeInTheDocument();
     });
 
     it('counts an entity targeted by a policy in the Policy-Linked KPI', async () => {
@@ -499,25 +499,16 @@ describe('EntitiesPage', () => {
         await waitFor(() => expect(screen.getByText('in 1')).toBeInTheDocument());
     });
 
-    it('opens a generated entities.json blob from the settings menu', async () => {
+    it('opens the entities.json side panel from the settings menu', async () => {
         mockByKind({ principals: [makeEntity({ id: 'p1', uid: 'user.alice' })] });
-        const createObjectURL = vi.fn(() => 'blob:entities');
-        Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: createObjectURL });
-        Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: vi.fn() });
-        const openSpy = vi.fn();
-        const originalOpen = window.open;
-        window.open = openSpy;
-        try {
-            renderPage();
-            const user = userEvent.setup();
-            await waitFor(() => expect(screen.getByRole('button', { name: /Entities settings/i })).toBeInTheDocument());
-            await user.click(screen.getByRole('button', { name: /Entities settings/i }));
-            await user.click(await screen.findByRole('menuitem', { name: /Open entities\.json/i }));
+        renderPage();
 
-            expect(createObjectURL).toHaveBeenCalledTimes(1);
-            expect(openSpy).toHaveBeenCalledWith('blob:entities', '_blank', 'noopener');
-        } finally {
-            window.open = originalOpen;
-        }
+        const user = userEvent.setup();
+        await waitFor(() => expect(screen.getByRole('button', { name: /Entities settings/i })).toBeInTheDocument());
+        await user.click(screen.getByRole('button', { name: /Entities settings/i }));
+        await user.click(await screen.findByRole('menuitem', { name: /View entities\.json/i }));
+
+        const json = await screen.findByTestId('entities-json');
+        expect(json).toHaveTextContent('user.alice');
     });
 });
