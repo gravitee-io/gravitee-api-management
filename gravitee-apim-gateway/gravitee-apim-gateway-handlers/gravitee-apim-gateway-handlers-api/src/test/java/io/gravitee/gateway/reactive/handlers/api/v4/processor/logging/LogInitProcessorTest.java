@@ -47,6 +47,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class LogInitProcessorTest extends AbstractV4ProcessorTest {
 
     protected static final String REQUEST_ID = "requestId";
+    protected static final String ORGANIZATION_ID = "orgId";
+    protected static final String ENVIRONMENT_ID = "envId";
     private final LogInitProcessor cut = LogInitProcessor.instance();
 
     @Mock
@@ -92,6 +94,8 @@ class LogInitProcessorTest extends AbstractV4ProcessorTest {
         when(loggingContext.entrypointRequest()).thenReturn(false);
         when(mockRequest.timestamp()).thenReturn(timestamp);
         when(mockRequest.id()).thenReturn(REQUEST_ID);
+        when(mockMetrics.getOrganizationId()).thenReturn(ORGANIZATION_ID);
+        when(mockMetrics.getEnvironmentId()).thenReturn(ENVIRONMENT_ID);
 
         final TestObserver<Void> obs = cut.execute(ctx).test();
         obs.assertComplete();
@@ -103,6 +107,8 @@ class LogInitProcessorTest extends AbstractV4ProcessorTest {
         assertNotNull(log);
         assertEquals(timestamp, log.getTimestamp());
         assertEquals(REQUEST_ID, log.getRequestId());
+        assertEquals(ORGANIZATION_ID, log.getOrganizationId());
+        assertEquals(ENVIRONMENT_ID, log.getEnvironmentId());
         assertNull(log.getEntrypointRequest());
     }
 

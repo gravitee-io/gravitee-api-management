@@ -341,6 +341,8 @@ public class MetricsAdapter extends Metrics {
             metrics.setLog(
                 io.gravitee.reporter.api.v4.log.Log.builder()
                     .timestamp(log.getTimestamp())
+                    .organizationId(metrics.getOrganizationId())
+                    .environmentId(metrics.getEnvironmentId())
                     .entrypointRequest(log.getClientRequest())
                     .entrypointResponse(log.getClientResponse())
                     .endpointRequest(log.getProxyRequest())
