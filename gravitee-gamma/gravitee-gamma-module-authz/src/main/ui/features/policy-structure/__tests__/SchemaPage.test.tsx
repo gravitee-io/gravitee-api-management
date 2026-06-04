@@ -150,7 +150,32 @@ describe('SchemaPage', () => {
         render(<SchemaPage />);
         fireEvent.click(screen.getByRole('button', { name: /edit/i }));
         fireEvent.click(screen.getByRole('button', { name: /save/i }));
-        expect(mutateMock).toHaveBeenCalledWith('entity User {};', expect.anything());
+        expect(mutateMock).toHaveBeenCalledWith('entity User {};', expect.objectContaining({ onSuccess: expect.any(Function) }));
+    });
+
+    it('deletes the schema when Delete is clicked', () => {
+        render(<SchemaPage />);
+        fireEvent.click(screen.getByRole('button', { name: /delete/i }));
+        expect(deleteMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('cancels editing without saving', () => {
+        render(<SchemaPage />);
+        fireEvent.click(screen.getByRole('button', { name: /edit/i }));
+        fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
+        expect(screen.queryByRole('button', { name: /save/i })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /cancel/i })).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument();
+        expect(mutateMock).not.toHaveBeenCalled();
+    });
+
+    it('opens the editor in create mode with Save disabled for a blank draft', () => {
+        useSchemaMock.mockReturnValue({ schema: null, notFound: true, isLoading: false, error: undefined });
+        render(<SchemaPage />);
+        fireEvent.click(screen.getByRole('button', { name: /create schema/i }));
+        expect(screen.getByTestId('monaco')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /save/i })).toBeDisabled();
+        expect(mutateMock).not.toHaveBeenCalled();
     });
 
     it('disables save when the draft has diagnostics', () => {

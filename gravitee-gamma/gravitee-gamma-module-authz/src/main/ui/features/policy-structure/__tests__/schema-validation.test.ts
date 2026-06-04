@@ -26,4 +26,26 @@ describe('schemaDiagnostics', () => {
     it('treats blank as a diagnostic', () => {
         expect(schemaDiagnostics('   ').length).toBeGreaterThan(0);
     });
+    it('returns no diagnostics for a valid multi-entity schema', () => {
+        const src = `entity Group {
+  name: String
+};
+entity User in [Group] {
+  name: String,
+  email: String
+};`;
+        expect(schemaDiagnostics(src)).toEqual([]);
+    });
+    it('returns no diagnostics for a valid action with appliesTo', () => {
+        const src = `entity User {};
+entity MCPServer {};
+action "can_invoke" appliesTo {
+  principal: [User],
+  resource: [MCPServer]
+};`;
+        expect(schemaDiagnostics(src)).toEqual([]);
+    });
+    it('flags an entity with a syntax error', () => {
+        expect(schemaDiagnostics('entity {').length).toBeGreaterThan(0);
+    });
 });

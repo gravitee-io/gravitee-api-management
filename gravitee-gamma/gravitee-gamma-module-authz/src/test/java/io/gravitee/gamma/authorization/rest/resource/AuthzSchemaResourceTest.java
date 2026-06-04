@@ -70,4 +70,15 @@ class AuthzSchemaResourceTest extends AbstractAuthorizationResourceTest {
         }
         verify(schemaService).deleteSchema(any());
     }
+
+    @Test
+    void put_with_null_schema_returns_400() {
+        try (
+            Response response = target("/schema")
+                .request()
+                .put(jakarta.ws.rs.client.Entity.json(new AuthzSchemaRequest(null)))
+        ) {
+            assertThat(response.getStatus()).isEqualTo(400);
+        }
+    }
 }

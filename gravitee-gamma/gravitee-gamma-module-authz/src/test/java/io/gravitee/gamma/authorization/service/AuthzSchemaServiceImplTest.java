@@ -16,6 +16,7 @@
 package io.gravitee.gamma.authorization.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.gamma.authorization.repository.InMemoryAuthzSchemaRepository;
 import org.junit.jupiter.api.Test;
@@ -41,5 +42,35 @@ class AuthzSchemaServiceImplTest {
         service.saveSchema("env-1", "entity Edited {};");
         assertThat(service.deleteSchema("env-1")).isTrue();
         assertThat(service.getSchema("env-1")).isEmpty();
+    }
+
+    @Test
+    void deleteSchema_returns_false_when_nothing_stored() {
+        AuthzSchemaServiceImpl service = new AuthzSchemaServiceImpl(new InMemoryAuthzSchemaRepository());
+        assertThat(service.deleteSchema("env-1")).isFalse();
+    }
+
+    @Test
+    void getSchema_rejects_null_environmentId() {
+        AuthzSchemaServiceImpl service = new AuthzSchemaServiceImpl(new InMemoryAuthzSchemaRepository());
+        assertThatThrownBy(() -> service.getSchema(null)).isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void saveSchema_rejects_null_environmentId() {
+        AuthzSchemaServiceImpl service = new AuthzSchemaServiceImpl(new InMemoryAuthzSchemaRepository());
+        assertThatThrownBy(() -> service.saveSchema(null, "entity X {};")).isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void saveSchema_rejects_null_schemaText() {
+        AuthzSchemaServiceImpl service = new AuthzSchemaServiceImpl(new InMemoryAuthzSchemaRepository());
+        assertThatThrownBy(() -> service.saveSchema("env-1", null)).isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void deleteSchema_rejects_null_environmentId() {
+        AuthzSchemaServiceImpl service = new AuthzSchemaServiceImpl(new InMemoryAuthzSchemaRepository());
+        assertThatThrownBy(() -> service.deleteSchema(null)).isInstanceOf(NullPointerException.class);
     }
 }

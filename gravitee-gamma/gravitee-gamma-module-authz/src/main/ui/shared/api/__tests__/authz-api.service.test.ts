@@ -152,3 +152,32 @@ describe('authzApiService.deleteEntity', () => {
         expect(del.mock.calls[0][0]).toContain('/entities/custom%20prefix.id');
     });
 });
+
+describe('authzApiService.updateSchema', () => {
+    beforeEach(() => put.mockReset());
+
+    it('PUTs the schema text to the schema path and maps the canonical response', async () => {
+        put.mockResolvedValue({ schema: 'entity Edited {};' });
+
+        const res = await authzApiService.updateSchema('DEFAULT', 'entity Edited {};');
+
+        expect(put).toHaveBeenCalledTimes(1);
+        const [path, sentBody] = put.mock.calls[0];
+        expect(path).toBe('/environments/DEFAULT/modules/authz/schema');
+        expect(sentBody).toEqual({ schema: 'entity Edited {};' });
+        expect(res).toEqual({ environmentId: 'DEFAULT', schemaText: 'entity Edited {};', updatedAt: null });
+    });
+});
+
+describe('authzApiService.deleteSchema', () => {
+    beforeEach(() => del.mockReset());
+
+    it('DELETEs the schema path', async () => {
+        del.mockResolvedValue(undefined);
+
+        await authzApiService.deleteSchema('DEFAULT');
+
+        expect(del).toHaveBeenCalledTimes(1);
+        expect(del.mock.calls[0][0]).toBe('/environments/DEFAULT/modules/authz/schema');
+    });
+});
