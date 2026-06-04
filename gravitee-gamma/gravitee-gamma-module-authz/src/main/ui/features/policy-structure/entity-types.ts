@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export type EntityCategoryId = 'principal' | 'mcp' | 'api' | 'agent' | 'model' | 'event' | 'custom';
+export type EntityCategoryId = 'principal' | 'mcp' | 'api' | 'agent' | 'model' | 'event' | 'resource' | 'custom';
 
 export interface EntityCategory {
     id: EntityCategoryId;
@@ -31,8 +31,16 @@ export const CATEGORIES: EntityCategory[] = [
     { id: 'agent', label: 'Agents', textColor: 'text-chart-7' },
     { id: 'model', label: 'AI Models', textColor: 'text-chart-5' },
     { id: 'event', label: 'Events', textColor: 'text-chart-10' },
+    { id: 'resource', label: 'Resources', textColor: 'text-chart-3' },
     { id: 'custom', label: 'Custom', textColor: 'text-muted-foreground' },
 ];
+
+// Categories that count as "resource kinds" (everything resource-side, generic or service-specific).
+const RESOURCE_CATEGORIES: ReadonlySet<EntityCategoryId> = new Set(['mcp', 'api', 'agent', 'model', 'event', 'resource']);
+
+export function isResourceCategory(id: EntityCategoryId): boolean {
+    return RESOURCE_CATEGORIES.has(id);
+}
 
 export function getCategory(id: EntityCategoryId): EntityCategory | undefined {
     return CATEGORIES.find(c => c.id === id);
@@ -72,6 +80,20 @@ const ENTITY_CATEGORIES: Readonly<Record<string, EntityCategoryId>> = {
 
 export function getEntityCategoryId(name: string): EntityCategoryId | undefined {
     return ENTITY_CATEGORIES[name];
+}
+
+/**
+ * Classify an entity type for the schema outline/KPIs. The schema's own `appliesTo`
+ * declarations are authoritative: a type used as a `principal` is a principal; a type
+ * used as a `resource` is a resource (keeping its specific service category when the
+ * built-in name map knows it, otherwise the generic `resource` category). Types not
+ * referenced by any action fall back to the built-in name map, then to `custom`.
+ */
+export function classifyEntity(name: string, principals: ReadonlySet<string>, resources: ReadonlySet<string>): EntityCategoryId {
+    if (principals.has(name)) return 'principal';
+    const byName = getEntityCategoryId(name);
+    if (resources.has(name)) return byName && byName !== 'principal' ? byName : 'resource';
+    return byName ?? 'custom';
 }
 
 export type { AttrValue, EntityInstance, EntitySource } from '../../shared/entity.types';

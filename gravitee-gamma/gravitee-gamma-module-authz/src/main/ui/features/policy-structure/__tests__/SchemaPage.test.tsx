@@ -94,6 +94,19 @@ describe('SchemaPage', () => {
         expect(screen.getByLabelText('Resource kinds')).toHaveTextContent('1');
     });
 
+    it('classifies custom-named types via appliesTo, not the built-in name map', () => {
+        useSchemaMock.mockReturnValue(
+            loaded('entity Subject {};\nentity Report {};\naction "read" appliesTo {\n  principal: [Subject],\n  resource: [Report]\n};'),
+        );
+        render(<SchemaPage />);
+        // Subject is used as a principal, Report as a resource — so they are NOT "Custom".
+        expect(screen.getByLabelText('Principal kinds')).toHaveTextContent('1');
+        expect(screen.getByLabelText('Resource kinds')).toHaveTextContent('1');
+        expect(screen.getByText('Principals')).toBeInTheDocument();
+        expect(screen.getByText('Resources')).toBeInTheDocument();
+        expect(screen.queryByText('Custom')).not.toBeInTheDocument();
+    });
+
     it('surfaces parser diagnostics instead of silently looking empty', () => {
         useSchemaMock.mockReturnValue(loaded('entity {'));
         render(<SchemaPage />);

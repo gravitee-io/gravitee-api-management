@@ -55,7 +55,7 @@ import { parseGaplSchema, type ParsedEntity } from '../../shared/gapl-parser';
 import { useDeleteSchema } from '../../shared/hooks/useDeleteSchema';
 import { useSchema } from '../../shared/hooks/useSchema';
 import { useUpdateSchema } from '../../shared/hooks/useUpdateSchema';
-import { CATEGORIES, getEntityCategoryId, type EntityCategoryId } from './entity-types';
+import { CATEGORIES, classifyEntity, isResourceCategory, type EntityCategoryId } from './entity-types';
 import { schemaDiagnostics } from './schema-validation';
 
 type SchemaTab = 'code' | 'entities';
@@ -68,6 +68,7 @@ const CATEGORY_ICONS = {
     agent: BotIcon,
     model: BrainIcon,
     event: RadioIcon,
+    resource: ShieldIcon,
     custom: BoxesIcon,
 } as const satisfies Record<EntityCategoryId, IconType>;
 
@@ -78,10 +79,14 @@ interface CategoryGroup {
     readonly entities: ParsedEntity[];
 }
 
-function groupByCategory(entities: readonly ParsedEntity[]): CategoryGroup[] {
+function groupByCategory(
+    entities: readonly ParsedEntity[],
+    principals: ReadonlySet<string>,
+    resources: ReadonlySet<string>,
+): CategoryGroup[] {
     const byId = new Map<EntityCategoryId, ParsedEntity[]>();
     for (const entity of entities) {
-        const id = getEntityCategoryId(entity.name) ?? 'custom';
+        const id = classifyEntity(entity.name, principals, resources);
         const bucket = byId.get(id);
         if (bucket) bucket.push(entity);
         else byId.set(id, [entity]);
@@ -106,19 +111,23 @@ export function SchemaPage() {
 
     const schemaText = schema?.schemaText ?? '';
     const parsed = useMemo(() => parseGaplSchema(schemaText), [schemaText]);
-    const groups = useMemo(() => groupByCategory(parsed.entities), [parsed.entities]);
+    // The schema's own appliesTo declarations classify types into principal/resource;
+    // the built-in name map and 'custom' are only fallbacks for types no action references.
+    const principalTypes = useMemo(() => new Set(parsed.actions.flatMap(a => a.principals)), [parsed.actions]);
+    const resourceTypes = useMemo(() => new Set(parsed.actions.flatMap(a => a.resources)), [parsed.actions]);
+
+    const groups = useMemo(
+        () => groupByCategory(parsed.entities, principalTypes, resourceTypes),
+        [parsed.entities, principalTypes, resourceTypes],
+    );
 
     const principalKinds = useMemo(
-        () => parsed.entities.filter(e => getEntityCategoryId(e.name) === 'principal').length,
-        [parsed.entities],
+        () => parsed.entities.filter(e => classifyEntity(e.name, principalTypes, resourceTypes) === 'principal').length,
+        [parsed.entities, principalTypes, resourceTypes],
     );
     const resourceKinds = useMemo(
-        () =>
-            parsed.entities.filter(e => {
-                const category = getEntityCategoryId(e.name);
-                return category !== undefined && category !== 'principal';
-            }).length,
-        [parsed.entities],
+        () => parsed.entities.filter(e => isResourceCategory(classifyEntity(e.name, principalTypes, resourceTypes))).length,
+        [parsed.entities, principalTypes, resourceTypes],
     );
 
     const [activeTab, setActiveTab] = useState<SchemaTab>('code');
