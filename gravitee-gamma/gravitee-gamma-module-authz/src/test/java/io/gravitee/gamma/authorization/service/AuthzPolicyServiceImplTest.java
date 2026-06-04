@@ -47,7 +47,6 @@ class AuthzPolicyServiceImplTest {
 
     private InMemoryAuthzPolicyRepository repository;
     private InMemoryAuthzEntityRepository entityRepository;
-    private AuthzSchemaServiceImpl schemaService;
     private AuthzPolicyServiceImpl service;
     private RecordingAuthzEventPublisher events;
     private RecordingAuthzAuditPort audit;
@@ -57,7 +56,6 @@ class AuthzPolicyServiceImplTest {
         TimeProvider.overrideClock(Clock.fixed(FIXED, ZoneOffset.UTC));
         repository = new InMemoryAuthzPolicyRepository();
         entityRepository = new InMemoryAuthzEntityRepository();
-        schemaService = new AuthzSchemaServiceImpl(entityRepository, repository);
         events = new RecordingAuthzEventPublisher();
         audit = new RecordingAuthzAuditPort();
         service = new AuthzPolicyServiceImpl(repository, new AuthzEntityIdValidator(), events, audit);

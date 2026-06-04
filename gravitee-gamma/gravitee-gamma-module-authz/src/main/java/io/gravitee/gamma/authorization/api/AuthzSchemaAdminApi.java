@@ -15,8 +15,12 @@
  */
 package io.gravitee.gamma.authorization.api;
 
-public interface AuthzSchemaAdminApi {
-    String currentGaplSchema(String environmentId);
+import java.util.Optional;
 
-    void invalidate(String environmentId);
+public interface AuthzSchemaAdminApi {
+    Optional<String> getSchema(String environmentId);
+
+    void saveSchema(String environmentId, String schemaText);
+
+    boolean deleteSchema(String environmentId);
 }

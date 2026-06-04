@@ -63,7 +63,6 @@ class AuthzAuditEmissionTest {
         entityRepository = new InMemoryAuthzEntityRepository();
         AuthzEntityIdValidator validator = new AuthzEntityIdValidator();
         audit = new RecordingAuthzAuditPort();
-        AuthzSchemaServiceImpl schemaService = new AuthzSchemaServiceImpl(entityRepository, policyRepository);
         policyService = new AuthzPolicyServiceImpl(policyRepository, validator, mock(AuthzEventPublisher.class), audit);
         entityService = new AuthzEntityServiceImpl(
             entityRepository,

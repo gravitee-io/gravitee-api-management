@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.gamma.authorization.rest.dto.AuthzSchemaResponse;
 import jakarta.ws.rs.core.Response;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class AuthzSchemaResourceTest extends AbstractAuthorizationResourceTest {
@@ -28,7 +29,7 @@ class AuthzSchemaResourceTest extends AbstractAuthorizationResourceTest {
 
     @Test
     void get_schema_returns_payload_from_service() {
-        when(schemaService.currentGaplSchema(ENV)).thenReturn("entity Api {\n  owner: String\n}\n");
+        when(schemaService.getSchema(ENV)).thenReturn(Optional.of("entity Api {\n  owner: String\n}\n"));
 
         try (Response response = target("/schema").request().get()) {
             assertThat(response.getStatus()).isEqualTo(200);
@@ -38,12 +39,12 @@ class AuthzSchemaResourceTest extends AbstractAuthorizationResourceTest {
     }
 
     @Test
-    void get_schema_when_environment_empty_returns_placeholder() {
-        when(schemaService.currentGaplSchema(ENV)).thenReturn("// No entities or policies defined yet.\n");
+    void get_schema_when_nothing_stored_returns_empty_string() {
+        when(schemaService.getSchema(ENV)).thenReturn(Optional.empty());
 
         try (Response response = target("/schema").request().get()) {
             assertThat(response.getStatus()).isEqualTo(200);
-            assertThat(response.readEntity(AuthzSchemaResponse.class).schema()).isEqualTo("// No entities or policies defined yet.\n");
+            assertThat(response.readEntity(AuthzSchemaResponse.class).schema()).isEmpty();
         }
     }
 }

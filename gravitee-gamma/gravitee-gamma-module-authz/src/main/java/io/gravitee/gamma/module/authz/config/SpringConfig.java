@@ -28,6 +28,7 @@ import io.gravitee.gamma.authorization.api.AuthzEventPublisher;
 import io.gravitee.gamma.authorization.api.AuthzPolicyAdminApi;
 import io.gravitee.gamma.authorization.api.AuthzPolicyRepository;
 import io.gravitee.gamma.authorization.api.AuthzSchemaAdminApi;
+import io.gravitee.gamma.authorization.api.AuthzSchemaRepository;
 import io.gravitee.gamma.authorization.audit.ApimAuthzAuditAdapter;
 import io.gravitee.gamma.authorization.core.am.service_provider.AmDirectoryClient;
 import io.gravitee.gamma.authorization.core.am.service_provider.AmUserSyncRunner;
@@ -37,6 +38,7 @@ import io.gravitee.gamma.authorization.core.am.use_case.SyncAmUsersUseCase;
 import io.gravitee.gamma.authorization.event.EventRepositoryAuthzEventPublisher;
 import io.gravitee.gamma.authorization.infra.repository.MongoAuthzEntityRepository;
 import io.gravitee.gamma.authorization.infra.repository.MongoAuthzPolicyRepository;
+import io.gravitee.gamma.authorization.infra.repository.MongoAuthzSchemaRepository;
 import io.gravitee.gamma.authorization.infra.service_provider.AmSdkDirectoryClient;
 import io.gravitee.gamma.authorization.infra.service_provider.AmSdkDirectoryClientFactory;
 import io.gravitee.gamma.authorization.infra.service_provider.AmUserSyncRunnerImpl;
@@ -116,11 +118,13 @@ public class SpringConfig {
     }
 
     @Bean
-    public AuthzSchemaAdminApi schemaService(
-        @Lazy @Qualifier("authzEntityRepository") AuthzEntityRepository entityRepository,
-        @Lazy @Qualifier("authzPolicyRepository") AuthzPolicyRepository policyRepository
-    ) {
-        return new AuthzSchemaServiceImpl(entityRepository, policyRepository);
+    public AuthzSchemaRepository authzSchemaRepository(@Qualifier("managementMongoTemplate") MongoOperations mongoOperations) {
+        return new MongoAuthzSchemaRepository(mongoOperations);
+    }
+
+    @Bean
+    public AuthzSchemaAdminApi schemaService(@Lazy @Qualifier("authzSchemaRepository") AuthzSchemaRepository schemaRepository) {
+        return new AuthzSchemaServiceImpl(schemaRepository);
     }
 
     @Bean

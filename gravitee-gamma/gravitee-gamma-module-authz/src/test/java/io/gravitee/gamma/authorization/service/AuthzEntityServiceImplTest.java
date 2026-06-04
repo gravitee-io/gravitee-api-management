@@ -62,7 +62,6 @@ class AuthzEntityServiceImplTest {
         AuthzEntityIdValidator validator = new AuthzEntityIdValidator();
         events = new RecordingAuthzEventPublisher();
         audit = new RecordingAuthzAuditPort();
-        AuthzSchemaServiceImpl schemaService = new AuthzSchemaServiceImpl(entityRepository, policyRepository);
         policyService = new AuthzPolicyServiceImpl(policyRepository, validator, events, audit);
         entityService = new AuthzEntityServiceImpl(entityRepository, policyRepository, validator, events, audit);
     }
@@ -96,7 +95,6 @@ class AuthzEntityServiceImplTest {
         Instant later = FIXED.plusSeconds(60);
         TimeProvider.overrideClock(Clock.fixed(later, ZoneOffset.UTC));
         AuthzEntityIdValidator validator = new AuthzEntityIdValidator();
-        AuthzSchemaServiceImpl schemaService = new AuthzSchemaServiceImpl(entityRepository, policyRepository);
         entityService = new AuthzEntityServiceImpl(
             entityRepository,
             policyRepository,
@@ -513,7 +511,6 @@ class AuthzEntityServiceImplTest {
             public void unpublishEntity(io.gravitee.gamma.authorization.domain.AuthzEntity entity) {}
         };
         AuthzEntityIdValidator validator = new AuthzEntityIdValidator();
-        AuthzSchemaServiceImpl schemaService = new AuthzSchemaServiceImpl(entityRepository, policyRepository);
         AuthzEntityServiceImpl failingService = new AuthzEntityServiceImpl(
             entityRepository,
             policyRepository,
@@ -555,7 +552,6 @@ class AuthzEntityServiceImplTest {
             public void unpublishEntity(io.gravitee.gamma.authorization.domain.AuthzEntity entity) {}
         };
         AuthzEntityIdValidator validator = new AuthzEntityIdValidator();
-        AuthzSchemaServiceImpl schemaService = new AuthzSchemaServiceImpl(racingRepo, policyRepository);
         AuthzEntityServiceImpl racingService = new AuthzEntityServiceImpl(
             racingRepo,
             policyRepository,

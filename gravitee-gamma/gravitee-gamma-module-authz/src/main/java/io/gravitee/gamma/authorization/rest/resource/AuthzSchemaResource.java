@@ -30,10 +30,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import java.util.Objects;
 
-// TODO(authz): when a write endpoint (POST/PUT) is added here, wire schema
-//   cache invalidation across pods. Today this resource is read-only so a
-//   per-pod cache is safe; a write that bypasses cross-pod invalidation will
-//   leave stale schemas on every other replica.
 @Path("/schema")
 @Produces(MediaType.APPLICATION_JSON)
 public class AuthzSchemaResource {
@@ -48,6 +44,7 @@ public class AuthzSchemaResource {
     @GET
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.READ }) })
     public AuthzSchemaResponse currentSchema() {
-        return AuthzCalls.execute(() -> new AuthzSchemaResponse(schemaService.currentGaplSchema(GraviteeContext.getCurrentEnvironment())));
+        return AuthzCalls.execute(() ->
+            new AuthzSchemaResponse(schemaService.getSchema(GraviteeContext.getCurrentEnvironment()).orElse("")));
     }
 }
