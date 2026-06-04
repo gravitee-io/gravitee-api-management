@@ -23,6 +23,7 @@ import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -45,15 +46,16 @@ public class ValidateGroupsDomainService implements Validator<ValidateGroupsDoma
         String environmentId,
         Set<String> groups,
         String definitionVersion,
+        String origin,
         Group.GroupEvent groupEvent,
         boolean addDefaultGroups
     ) implements Validator.Input {
-        public Input(String environmentId, Set<String> groups, String definitionVersion) {
-            this(environmentId, groups, definitionVersion, null, false);
+        public Input(String environmentId, Set<String> groups, String definitionVersion, String origin) {
+            this(environmentId, groups, definitionVersion, origin, null, false);
         }
 
         Input sanitized(Set<String> sanitizedGroups) {
-            return new Input(environmentId, sanitizedGroups, definitionVersion, groupEvent, addDefaultGroups);
+            return new Input(environmentId, sanitizedGroups, definitionVersion, origin, groupEvent, addDefaultGroups);
         }
     }
 
@@ -112,7 +114,10 @@ public class ValidateGroupsDomainService implements Validator<ValidateGroupsDoma
         var sanitizedFromHRIDs = noPrimaryOwnerResultFromHRIDs.value().orElse(List.of());
         var sanitizedFromNames = noPrimaryOwnerResultFromNames.value().orElse(List.of());
 
-        if (DefinitionVersion.V2.getLabel().equals(input.definitionVersion)) {
+        if (
+            DefinitionVersion.V2.getLabel().equals(input.definitionVersion) &&
+            DefinitionContext.ORIGIN_KUBERNETES.equalsIgnoreCase(input.origin)
+        ) {
             sanitizedGroups.addAll(sanitizedFromIds.stream().map(Group::getName).toList());
             sanitizedGroups.addAll(sanitizedFromHRIDs.stream().map(Group::getName).toList());
             sanitizedGroups.addAll(sanitizedFromNames.stream().map(Group::getName).toList());

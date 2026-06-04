@@ -193,6 +193,7 @@ public class ApiValidationServiceImplTest {
                 new ValidatePortalNotificationDomainService.Input(
                     new PortalNotificationConfigEntity(),
                     "2.0.0",
+                    null,
                     Set.of(),
                     new AuditInfo("mock", "mock", null)
                 )

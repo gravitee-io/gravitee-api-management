@@ -109,6 +109,7 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
                     executionContext.getEnvironmentId(),
                     api.getGroups(),
                     api.getGraviteeDefinitionVersion(),
+                    api.getDefinitionContext() != null ? api.getDefinitionContext().getOrigin() : null,
                     Group.GroupEvent.API_CREATE,
                     false
                 )
@@ -120,6 +121,7 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
                 new ValidatePortalNotificationDomainService.Input(
                     api.getConsoleNotificationConfiguration(),
                     api.getGraviteeDefinitionVersion(),
+                    api.getDefinitionContext() != null ? api.getDefinitionContext().getOrigin() : null,
                     api.getGroups(),
                     auditInfo
                 )
