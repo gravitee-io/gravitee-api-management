@@ -67,7 +67,6 @@ import { KpiTile } from '../../components/KpiTile';
 import { authzApiService, DEFAULT_PER_PAGE, MAX_PER_PAGE } from '../../shared/api/authz-api.service';
 import type { PolicyResponse } from '../../shared/api/authz-api.types';
 import { authzQueryKeys } from '../../shared/api/query-keys';
-import { buildEntitiesJson } from '../../shared/entities-json';
 import { formatEntityUid, fromBackend } from '../../shared/entity-adapter';
 import { childrenByType, policiesFor } from '../../shared/entity-relationships';
 import { useAllEntities } from '../../shared/hooks/useAllEntities';
@@ -75,6 +74,7 @@ import { usePolicies } from '../../shared/hooks/usePolicies';
 import { useUserSync } from '../../shared/hooks/useUserSync';
 import { CreateEntityDialog } from './CreateEntityDialog';
 import { EditEntityDialog } from './EditEntityDialog';
+import { EntitiesJsonSheet } from './EntitiesJsonSheet';
 import { ImportFromCatalogDialog } from './ImportFromCatalogDialog';
 import { EntityDetailSheet } from './entity-detail/EntityDetailSheet';
 import { CATEGORIES, getEntityCategoryId, type EntityInstance } from './entity-types';
@@ -471,6 +471,7 @@ export function EntitiesPage() {
     const [pendingDelete, setPendingDelete] = useState<EntityInstance | null>(null);
     const [deletingEntityId, setDeletingEntityId] = useState<string | undefined>();
     const [viewing, setViewing] = useState<EntityInstance | null>(null);
+    const [jsonOpen, setJsonOpen] = useState(false);
 
     const pendingDeleteUid = pendingDelete ? formatEntityUid(pendingDelete.uid) : '';
     const pendingDeleteName = pendingDelete ? displayNameOf(pendingDelete) : '';
@@ -496,13 +497,6 @@ export function EntitiesPage() {
 
     function handleImported() {
         void queryClient.invalidateQueries({ queryKey: authzQueryKeys.entities.all(environmentId) });
-    }
-
-    function openEntitiesJson() {
-        const url = URL.createObjectURL?.(new Blob([buildEntitiesJson(allEntities)], { type: 'application/json' }));
-        if (!url) return;
-        window.open?.(url, '_blank', 'noopener');
-        setTimeout(() => URL.revokeObjectURL(url), 10_000);
     }
 
     const deferredPrincipalSearch = useDeferredValue(principalSearch);
@@ -592,10 +586,10 @@ export function EntitiesPage() {
                             <SettingsIcon className="size-4" aria-hidden />
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={openEntitiesJson}>
-                            <BoxesIcon className="mr-2 size-4" aria-hidden />
-                            Open entities.json
+                    <DropdownMenuContent align="end" className="min-w-48">
+                        <DropdownMenuItem onClick={() => setJsonOpen(true)}>
+                            <BoxesIcon className="mr-2 size-4 shrink-0" aria-hidden />
+                            View entities.json
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -777,6 +771,8 @@ export function EntitiesPage() {
                     setEditing({ entity, kind: principals.includes(entity) ? 'PRINCIPAL' : 'RESOURCE' });
                 }}
             />
+
+            <EntitiesJsonSheet entities={allEntities} open={jsonOpen} onOpenChange={setJsonOpen} />
 
             <Dialog
                 open={pendingDelete !== null}
