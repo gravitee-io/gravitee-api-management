@@ -18,12 +18,17 @@ package io.gravitee.plugin.gamma.internal;
 import static io.gravitee.plugin.gamma.internal.GammaModulePlugin.PLUGIN_TYPE;
 
 import io.gravitee.apim.plugin.gamma.api.GammaModule;
+import io.gravitee.node.api.upgrader.UpgradeRecord;
+import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderRepository;
 import io.gravitee.plugin.core.api.AbstractPluginHandler;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.core.api.PluginClassLoaderFactory;
 import io.gravitee.plugin.core.api.PluginContextFactory;
 import io.gravitee.plugin.core.internal.AnnotationBasedPluginContextConfigurer;
 import io.gravitee.plugin.gamma.spring.GammaModuleConfiguration;
+import java.util.Comparator;
+import java.util.Date;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -115,9 +120,47 @@ public class GammaModulePluginHandler extends AbstractPluginHandler {
                     }
                 }
             }
+
+            // The node UpgraderService only collects Upgrader beans from the node context, not a plugin's, so a
+            // Gamma module's upgraders are run here instead, once each, tracked by the shared UpgraderRepository.
+            runPluginUpgraders(plugin, pluginCtx);
         } catch (Exception ex) {
             logger.error("Failed to create plugin context for Gamma module '{}'", plugin.id(), ex);
             pluginContextFactory.remove(plugin);
+        }
+    }
+
+    // A failing upgrader is logged, never propagated, so it does not unload the module.
+    private void runPluginUpgraders(Plugin plugin, ApplicationContext pluginCtx) {
+        try {
+            var upgraders = pluginCtx.getBeansOfType(Upgrader.class).values();
+            if (upgraders.isEmpty()) {
+                return;
+            }
+            UpgraderRepository upgraderRepository = applicationContext.getBean(UpgraderRepository.class);
+            logger.info("Gamma module '{}': running {} contributed upgrader(s)", plugin.id(), upgraders.size());
+            upgraders
+                .stream()
+                .sorted(Comparator.comparingInt(Upgrader::getOrder))
+                .forEach(upgrader -> {
+                    String id = upgrader.identifier();
+                    try {
+                        if (upgraderRepository.findById(id).blockingGet() != null) {
+                            logger.debug("Upgrader '{}' (module '{}') already applied, skipping", id, plugin.id());
+                            return;
+                        }
+                        if (upgrader.upgrade()) {
+                            upgraderRepository.create(new UpgradeRecord(id, new Date())).blockingGet();
+                            logger.info("Upgrader '{}' (module '{}') applied", id, plugin.id());
+                        } else {
+                            logger.error("Upgrader '{}' (module '{}') returned false", id, plugin.id());
+                        }
+                    } catch (Exception e) {
+                        logger.error("Upgrader '{}' (module '{}') failed", id, plugin.id(), e);
+                    }
+                });
+        } catch (Exception e) {
+            logger.error("Failed to run upgraders for Gamma module '{}'", plugin.id(), e);
         }
     }
 

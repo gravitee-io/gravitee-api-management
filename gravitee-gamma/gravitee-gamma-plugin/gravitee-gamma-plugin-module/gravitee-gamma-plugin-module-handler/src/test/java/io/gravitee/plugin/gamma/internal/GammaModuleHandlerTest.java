@@ -20,6 +20,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.node.api.upgrader.UpgradeRecord;
+import io.gravitee.node.api.upgrader.Upgrader;
+import io.gravitee.node.api.upgrader.UpgraderException;
+import io.gravitee.node.api.upgrader.UpgraderRepository;
 import io.gravitee.plugin.api.PluginDeploymentContext;
 import io.gravitee.plugin.api.PluginDeploymentContextFactory;
 import io.gravitee.plugin.core.api.Plugin;
@@ -27,9 +31,13 @@ import io.gravitee.plugin.core.api.PluginClassLoader;
 import io.gravitee.plugin.core.api.PluginClassLoaderFactory;
 import io.gravitee.plugin.core.api.PluginContextFactory;
 import io.gravitee.plugin.core.api.PluginManifest;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.net.URL;
+import java.util.Date;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationContext;
@@ -195,5 +203,78 @@ class GammaModuleHandlerTest {
         handler.handle(plugin);
 
         assertThat(manager.getResourceClass("test-plugin")).isNull();
+    }
+
+    @Test
+    void should_run_contributed_upgrader_once_when_not_applied() throws Exception {
+        Upgrader upgrader = mock(Upgrader.class);
+        when(upgrader.identifier()).thenReturn("module.SomeUpgrader");
+        when(upgrader.getOrder()).thenReturn(1);
+        when(upgrader.upgrade()).thenReturn(true);
+
+        UpgraderRepository upgraderRepository = mock(UpgraderRepository.class);
+        when(applicationContext.getBean(UpgraderRepository.class)).thenReturn(upgraderRepository);
+        when(upgraderRepository.findById("module.SomeUpgrader")).thenReturn(Maybe.empty());
+        when(upgraderRepository.create(any())).thenReturn(Single.just(new UpgradeRecord("module.SomeUpgrader", new Date())));
+
+        handler.handle(aGammaPluginWithUpgrader(upgrader));
+
+        verify(upgrader).upgrade();
+        verify(upgraderRepository).create(any());
+    }
+
+    @Test
+    void should_skip_contributed_upgrader_when_already_applied() throws Exception {
+        Upgrader upgrader = mock(Upgrader.class);
+        when(upgrader.identifier()).thenReturn("module.SomeUpgrader");
+        when(upgrader.getOrder()).thenReturn(1);
+
+        UpgraderRepository upgraderRepository = mock(UpgraderRepository.class);
+        when(applicationContext.getBean(UpgraderRepository.class)).thenReturn(upgraderRepository);
+        when(upgraderRepository.findById("module.SomeUpgrader")).thenReturn(
+            Maybe.just(new UpgradeRecord("module.SomeUpgrader", new Date()))
+        );
+
+        handler.handle(aGammaPluginWithUpgrader(upgrader));
+
+        verify(upgrader, never()).upgrade();
+        verify(upgraderRepository, never()).create(any());
+    }
+
+    @Test
+    void should_not_break_module_when_contributed_upgrader_fails() throws Exception {
+        Upgrader upgrader = mock(Upgrader.class);
+        when(upgrader.identifier()).thenReturn("module.SomeUpgrader");
+        when(upgrader.getOrder()).thenReturn(1);
+        when(upgrader.upgrade()).thenThrow(new UpgraderException(new RuntimeException("boom")));
+
+        UpgraderRepository upgraderRepository = mock(UpgraderRepository.class);
+        when(applicationContext.getBean(UpgraderRepository.class)).thenReturn(upgraderRepository);
+        when(upgraderRepository.findById(anyString())).thenReturn(Maybe.empty());
+
+        handler.handle(aGammaPluginWithUpgrader(upgrader));
+
+        // A failing upgrader is swallowed: the module still loads and registers.
+        assertThat(manager.findAll()).hasSize(1);
+    }
+
+    private Plugin aGammaPluginWithUpgrader(Upgrader upgrader) {
+        Plugin plugin = mock(Plugin.class);
+        PluginManifest manifest = mock(PluginManifest.class);
+        when(plugin.id()).thenReturn("aim");
+        when(plugin.type()).thenReturn("gamma-module");
+        when(plugin.manifest()).thenReturn(manifest);
+        when(plugin.clazz()).thenReturn(AGammaModule.class.getName());
+        when(manifest.version()).thenReturn("1.0.0");
+        when(plugin.deployed()).thenReturn(true);
+        when(plugin.dependencies()).thenReturn(
+            new URL[] { GammaModuleHandlerTest.class.getProtectionDomain().getCodeSource().getLocation() }
+        );
+
+        ApplicationContext pluginCtx = mock(ApplicationContext.class);
+        when(pluginCtx.getBeanDefinitionNames()).thenReturn(new String[0]);
+        when(pluginCtx.getBeansOfType(Upgrader.class)).thenReturn(Map.of("someUpgrader", upgrader));
+        when(pluginContextFactory.create(any(GammaModulePluginHandler.GammaModulePluginContextConfigurer.class))).thenReturn(pluginCtx);
+        return plugin;
     }
 }
