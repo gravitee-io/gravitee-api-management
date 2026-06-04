@@ -69,7 +69,7 @@ class ValidatePortalNotificationDomainServiceTest {
 
     @Test
     void should_validate_null_notification() {
-        var input = new ValidatePortalNotificationDomainService.Input(null, "4.0.0", null, AUDIT_INFO);
+        var input = new ValidatePortalNotificationDomainService.Input(null, "4.0.0", null, null, AUDIT_INFO);
         var result = underTest.validateAndSanitize(input);
 
         verify(groupValidator, never()).validateAndSanitize(any());
@@ -84,7 +84,7 @@ class ValidatePortalNotificationDomainServiceTest {
         when(groupValidator.validateAndSanitize(groupInput)).thenReturn(Validator.Result.ofValue(groupInput));
 
         PortalNotificationConfigEntity notification = portalNotification(NotificationConfigType.PORTAL);
-        var input = new ValidatePortalNotificationDomainService.Input(notification, "4.0.0", null, AUDIT_INFO);
+        var input = new ValidatePortalNotificationDomainService.Input(notification, "4.0.0", null, null, AUDIT_INFO);
 
         var result = underTest.validateAndSanitize(input);
         assertThat(result.value()).isPresent();
@@ -97,7 +97,7 @@ class ValidatePortalNotificationDomainServiceTest {
         when(groupValidator.validateAndSanitize(groupInput)).thenReturn(Validator.Result.ofValue(groupInput));
 
         PortalNotificationConfigEntity notification = portalNotification(NotificationConfigType.GENERIC);
-        var input = new ValidatePortalNotificationDomainService.Input(notification, "4.0.0", null, AUDIT_INFO);
+        var input = new ValidatePortalNotificationDomainService.Input(notification, "4.0.0", null, null, AUDIT_INFO);
 
         var result = underTest.validateAndSanitize(input);
 
@@ -115,7 +115,7 @@ class ValidatePortalNotificationDomainServiceTest {
         when(groupValidator.validateAndSanitize(any())).thenReturn(Validator.Result.ofErrors(List.of(Validator.Error.severe("failed!"))));
 
         PortalNotificationConfigEntity notification = portalNotification(NotificationConfigType.PORTAL);
-        var input = new ValidatePortalNotificationDomainService.Input(notification, "4.0.0", null, AUDIT_INFO);
+        var input = new ValidatePortalNotificationDomainService.Input(notification, "4.0.0", null, null, AUDIT_INFO);
 
         var result = underTest.validateAndSanitize(input);
 
@@ -146,7 +146,7 @@ class ValidatePortalNotificationDomainServiceTest {
 
         PortalNotificationConfigEntity notification = portalNotification(NotificationConfigType.PORTAL);
         notification.setGroups(CollectionUtils.stream(consoleNotificationGroup).toList());
-        var input = new ValidatePortalNotificationDomainService.Input(notification, "4.0.0", allowedGroups, AUDIT_INFO);
+        var input = new ValidatePortalNotificationDomainService.Input(notification, "4.0.0", null, allowedGroups, AUDIT_INFO);
 
         var result = underTest.validateAndSanitize(input);
 
@@ -178,6 +178,6 @@ class ValidatePortalNotificationDomainServiceTest {
     }
 
     private static ValidateGroupsDomainService.Input groupInput(Set<String> groups) {
-        return new ValidateGroupsDomainService.Input(ENVIRONMENT_ID, groups, "4.0.0", null, false);
+        return new ValidateGroupsDomainService.Input(ENVIRONMENT_ID, groups, "4.0.0", null, null, false);
     }
 }
