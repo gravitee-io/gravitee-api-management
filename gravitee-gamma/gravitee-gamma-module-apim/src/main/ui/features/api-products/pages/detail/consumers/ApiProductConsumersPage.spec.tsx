@@ -57,7 +57,14 @@ jest.mock('@gravitee/graphene-core', () => {
     const React = require('react');
 
     return {
+        cn: (...args: unknown[]) => args.filter(Boolean).join(' '),
         Badge: ({ children }: { children: ReactNode }) => <span>{children}</span>,
+        Checkbox: ({ checked, onCheckedChange }: { checked?: boolean; onCheckedChange?: (v: boolean) => void }) => (
+            <input type="checkbox" checked={Boolean(checked)} onChange={() => onCheckedChange?.(!checked)} />
+        ),
+        Popover: ({ children }: { children: ReactNode }) => <>{children}</>,
+        PopoverTrigger: ({ children }: { children: ReactNode }) => <>{children}</>,
+        PopoverContent: ({ children }: { children: ReactNode }) => <div>{children}</div>,
         Button: ({
             children,
             disabled,

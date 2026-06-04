@@ -32,6 +32,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
+import { notify } from '../../../../../shared/notify';
 import { AddMembers } from '../../../../apis/components/user-permissions/AddMembers';
 import { DirectMembersTable } from '../../../../apis/components/user-permissions/DirectMembersTable';
 import { GroupMembersSection } from '../../../../apis/components/user-permissions/GroupMembersSection';
@@ -93,7 +94,9 @@ export function ApiProductUserPermissionsPage() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: apiProductKeys.members(env!.id, productId!) });
             setAddMembersOpen(false);
+            notify.success('Members added');
         },
+        onError: error => notify.error(error, 'Failed to add members.'),
     });
 
     const updateMutation = useMutation({
@@ -102,7 +105,9 @@ export function ApiProductUserPermissionsPage() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: apiProductKeys.members(env!.id, productId!) });
             setEditState(null);
+            notify.success('Member role updated');
         },
+        onError: error => notify.error(error, 'Failed to update member role.'),
     });
 
     const deleteMutation = useMutation({
@@ -110,7 +115,9 @@ export function ApiProductUserPermissionsPage() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: apiProductKeys.members(env!.id, productId!) });
             setMemberToRemove(null);
+            notify.success('Member removed');
         },
+        onError: error => notify.error(error, 'Failed to remove member.'),
     });
 
     const transferMutation = useMutation({
@@ -119,7 +126,9 @@ export function ApiProductUserPermissionsPage() {
             queryClient.invalidateQueries({ queryKey: apiProductKeys.members(env!.id, productId!) });
             queryClient.invalidateQueries({ queryKey: apiProductKeys.detail(env!.id, productId!) });
             setTransferOpen(false);
+            notify.success('Ownership transferred');
         },
+        onError: error => notify.error(error, 'Failed to transfer ownership.'),
     });
 
     function handleSaveGroups(groupIds: string[]) {
@@ -133,7 +142,13 @@ export function ApiProductUserPermissionsPage() {
                 groups: groupIds,
                 disableMembershipNotifications: product.disableMembershipNotifications,
             },
-            { onSuccess: () => setManageGroupsOpen(false) },
+            {
+                onSuccess: () => {
+                    setManageGroupsOpen(false);
+                    notify.success('Groups updated');
+                },
+                onError: error => notify.error(error, 'Failed to update groups.'),
+            },
         );
     }
 
@@ -142,14 +157,20 @@ export function ApiProductUserPermissionsPage() {
     const handleNotificationToggle = useCallback(
         (checked: boolean) => {
             if (!product) return;
-            updateProduct({
-                name: product.name,
-                version: product.version,
-                description: product.description,
-                apiIds: product.apiIds ?? [],
-                groups: product.groups,
-                disableMembershipNotifications: !checked,
-            });
+            updateProduct(
+                {
+                    name: product.name,
+                    version: product.version,
+                    description: product.description,
+                    apiIds: product.apiIds ?? [],
+                    groups: product.groups,
+                    disableMembershipNotifications: !checked,
+                },
+                {
+                    onSuccess: () => notify.success('Notification setting updated'),
+                    onError: error => notify.error(error, 'Failed to update notification setting.'),
+                },
+            );
         },
         [product, updateProduct],
     );

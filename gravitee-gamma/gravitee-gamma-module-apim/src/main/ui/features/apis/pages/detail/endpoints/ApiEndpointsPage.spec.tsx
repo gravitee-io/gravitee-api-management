@@ -32,6 +32,7 @@ jest.mock('@gravitee/gamma-modules-sdk', () => ({
 }));
 
 jest.mock('@gravitee/graphene-core', () => ({
+    toast: { success: jest.fn(), error: jest.fn(), warning: jest.fn(), info: jest.fn() },
     Alert: ({ children, variant }: { children?: React.ReactNode; variant?: string }) => (
         <div role="alert" data-variant={variant}>
             {children}
@@ -164,6 +165,7 @@ jest.mock('../../../utils/queryKeys', () => ({
 // ─── Actual imports (after mocks) ─────────────────────────────────────────────
 
 import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
+import { toast } from '@gravitee/graphene-core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useParams } from 'react-router-dom';
@@ -174,6 +176,7 @@ import type { EndpointGroupDto } from '../../../types';
 
 // ─── Typed mock refs ──────────────────────────────────────────────────────────
 
+const mockToast = jest.mocked(toast);
 const mockUseEnvironment = useEnvironment as jest.Mock;
 const mockUseHasPermission = useHasPermission as jest.Mock;
 const mockUseApiDetailContext = useApiDetailContext as jest.Mock;
@@ -555,18 +558,23 @@ describe('ApiEndpointsPage', () => {
         expect(saveBtn).toBeDisabled();
     });
 
-    // ── Error banner ───────────────────────────────────────────────────────────
+    // ── Error feedback ─────────────────────────────────────────────────────────
 
-    it('shows a mutation error banner in the list view when saving fails', () => {
+    it('surfaces a toast when a list-view action (delete group) fails', () => {
         mockUseMutation.mockReturnValue({
-            mutate: mockMutate,
+            mutate: (_groups: unknown, opts?: { onError?: (e: unknown) => void }) => opts?.onError?.(new Error('Network error')),
             isPending: false,
-            isError: true,
-            error: new Error('Network error'),
+            isError: false,
+            error: null,
             reset: mockReset,
         });
+        mockUseApiDetailContext.mockReturnValue({ api: API_TWO_GROUPS, isLoading: false });
         renderPage();
-        expect(screen.getByRole('alert')).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', { name: 'Delete group default-group' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+
+        expect(mockToast.error).toHaveBeenCalled();
     });
 
     // ── Read-only mode ─────────────────────────────────────────────────────────

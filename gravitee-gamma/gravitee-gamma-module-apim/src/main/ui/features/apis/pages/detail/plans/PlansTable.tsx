@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 import {
-    Alert,
-    AlertDescription,
     Badge,
     Button,
     DataTablePagination,
@@ -34,12 +32,41 @@ import { ArrowDownIcon, ArrowUpIcon, CircleXIcon, EyeIcon, GlobeIcon, PencilIcon
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { PlanActionConfirmDialog } from './PlanActionConfirmDialog';
-import type { PlanDialogAction } from './PlanActionConfirmDialog';
 import { PlanStatusBadge } from './PlanStatusBadge';
+import { ConfirmDialog } from '../../../../../shared/components';
+import { notify } from '../../../../../shared/notify';
 import { usePlanTransition, useReorderPlan } from '../../../hooks/usePlans';
 import type { ManagedPlan, PlanContext } from '../../../types/plan';
 import { PLAN_SECURITY_LABELS } from '../../../types/plan';
+
+type PlanTransitionDialogAction = 'publish' | 'deprecate' | 'close';
+
+const PLAN_ACTION_CONFIG: Record<
+    PlanTransitionDialogAction,
+    { title: string; body: string; confirmLabel: string; destructive: boolean; success: string }
+> = {
+    publish: {
+        title: 'Publish plan?',
+        body: 'This will make the plan available for subscriptions.',
+        confirmLabel: 'Publish',
+        destructive: false,
+        success: 'Plan published',
+    },
+    deprecate: {
+        title: 'Deprecate plan?',
+        body: 'Existing subscriptions continue. No new subscriptions will be accepted.',
+        confirmLabel: 'Deprecate',
+        destructive: false,
+        success: 'Plan deprecated',
+    },
+    close: {
+        title: 'Close plan?',
+        body: 'All active subscriptions will be closed. This cannot be undone.',
+        confirmLabel: 'Close',
+        destructive: true,
+        success: 'Plan closed',
+    },
+};
 
 interface PlansTableProps {
     ctx: PlanContext;
@@ -56,7 +83,7 @@ interface PlansTableProps {
 interface PendingAction {
     planId: string;
     plan: ManagedPlan;
-    action: Exclude<PlanDialogAction, 'delete'>;
+    action: PlanTransitionDialogAction;
 }
 
 export function PlansTable({ ctx, plans, totalCount, page, perPage, isLoading, canUpdate, onPage, onPerPage }: Readonly<PlansTableProps>) {
@@ -66,20 +93,25 @@ export function PlansTable({ ctx, plans, totalCount, page, perPage, isLoading, c
     const transitionMutation = usePlanTransition(ctx);
     const reorderMutation = useReorderPlan(ctx);
 
-    const mutationError = (transitionMutation.error ?? reorderMutation.error)?.message ?? null;
     const isMutating = transitionMutation.isPending;
 
-    const openDialog = useCallback(
-        (plan: ManagedPlan, action: Exclude<PlanDialogAction, 'delete'>) => {
-            transitionMutation.reset();
-            setPending({ planId: plan.id, plan, action });
-        },
-        [transitionMutation],
-    );
+    const openDialog = useCallback((plan: ManagedPlan, action: PlanTransitionDialogAction) => {
+        setPending({ planId: plan.id, plan, action });
+    }, []);
 
     const handleConfirm = useCallback(() => {
         if (!pending) return;
-        transitionMutation.mutate({ planId: pending.planId, action: pending.action }, { onSuccess: () => setPending(null) });
+        const { success } = PLAN_ACTION_CONFIG[pending.action];
+        transitionMutation.mutate(
+            { planId: pending.planId, action: pending.action },
+            {
+                onSuccess: () => {
+                    notify.success(success);
+                    setPending(null);
+                },
+                onError: error => notify.error(error, 'Failed to update plan.'),
+            },
+        );
     }, [pending, transitionMutation]);
 
     const handleReorder = useCallback(
@@ -89,7 +121,10 @@ export function PlansTable({ ctx, plans, totalCount, page, perPage, isLoading, c
             // Use 1-based target position (matching legacy console behaviour) so the
             // backend can renumber correctly even when order values have gaps.
             const newOrder = direction === 'up' ? idx : idx + 2;
-            reorderMutation.mutate({ planId: plan.id, fullPlan: plan, newOrder });
+            reorderMutation.mutate(
+                { planId: plan.id, fullPlan: plan, newOrder },
+                { onError: error => notify.error(error, 'Failed to reorder plan.') },
+            );
         },
         [plans, reorderMutation],
     );
@@ -287,23 +322,18 @@ export function PlansTable({ ctx, plans, totalCount, page, perPage, isLoading, c
 
             {pagination}
 
-            {mutationError && (
-                <Alert variant="destructive">
-                    <AlertDescription>{mutationError}</AlertDescription>
-                </Alert>
+            {pending && (
+                <ConfirmDialog
+                    open
+                    onOpenChange={open => !open && setPending(null)}
+                    title={PLAN_ACTION_CONFIG[pending.action].title}
+                    description={PLAN_ACTION_CONFIG[pending.action].body}
+                    confirmLabel={PLAN_ACTION_CONFIG[pending.action].confirmLabel}
+                    destructive={PLAN_ACTION_CONFIG[pending.action].destructive}
+                    isPending={isMutating}
+                    onConfirm={handleConfirm}
+                />
             )}
-
-            <PlanActionConfirmDialog
-                open={Boolean(pending)}
-                action={pending?.action ?? null}
-                isPending={isMutating}
-                error={mutationError}
-                onConfirm={handleConfirm}
-                onClose={() => {
-                    transitionMutation.reset();
-                    setPending(null);
-                }}
-            />
         </div>
     );
 }

@@ -21,12 +21,6 @@ import {
     CardHeader,
     CardTitle,
     DataTablePagination,
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -54,6 +48,8 @@ import {
 import { useEffect, useId, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
+import { ConfirmDialog } from '../../../../../shared/components';
+import { notify } from '../../../../../shared/notify';
 import type { ApiListItem } from '../../../../apis/types';
 import { AddApiToProduct } from '../../../components/apis/AddApiToProduct';
 import { useApiProductDetailContext } from '../../../context/ApiProductDetailContext';
@@ -238,14 +234,20 @@ export function ApiProductApisPage() {
     const apis = apisData?.data ?? [];
     const totalApiCount = apisData?.pagination?.totalCount ?? 0;
 
-    const { mutate: updateProduct, isPending: isUpdating, error: updateError } = useUpdateApiProduct(productId ?? '');
+    const { mutate: updateProduct, isPending: isUpdating } = useUpdateApiProduct(productId ?? '');
 
     function handleAddApis(newIds: string[]) {
         if (!product) return;
         const merged = [...new Set([...(product.apiIds ?? []), ...newIds])];
         updateProduct(
             { name: product.name, version: product.version, description: product.description, apiIds: merged },
-            { onSuccess: () => setDialogOpen(false) },
+            {
+                onSuccess: () => {
+                    notify.success('APIs added to the product');
+                    setDialogOpen(false);
+                },
+                onError: error => notify.error(error, 'Failed to add APIs to the product.'),
+            },
         );
     }
 
@@ -254,7 +256,13 @@ export function ApiProductApisPage() {
         const updated = (product.apiIds ?? []).filter(id => id !== apiToRemove.id);
         updateProduct(
             { name: product.name, version: product.version, description: product.description, apiIds: updated },
-            { onSuccess: () => setApiToRemove(null) },
+            {
+                onSuccess: () => {
+                    notify.success('API removed from the product');
+                    setApiToRemove(null);
+                },
+                onError: error => notify.error(error, 'Failed to remove API from the product.'),
+            },
         );
     }
 
@@ -273,8 +281,6 @@ export function ApiProductApisPage() {
                     Add API
                 </Button>
             </div>
-
-            {updateError ? <p className="text-sm text-destructive">{updateError.message}</p> : null}
 
             {isApisError ? (
                 <p className="text-sm text-destructive">Failed to load APIs for this product. Please refresh and try again.</p>
@@ -377,29 +383,17 @@ export function ApiProductApisPage() {
                 isAdding={isUpdating}
             />
 
-            <Dialog
+            <ConfirmDialog
                 open={apiToRemove !== null}
-                onOpenChange={open => {
-                    if (!open) setApiToRemove(null);
-                }}
-            >
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Remove API</DialogTitle>
-                        <DialogDescription>
-                            Please note that once your API is removed from this API Product, consumers will lose access to this API.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setApiToRemove(null)} disabled={isUpdating}>
-                            Cancel
-                        </Button>
-                        <Button variant="destructive" onClick={handleConfirmRemove} disabled={isUpdating}>
-                            {isUpdating ? 'Removing…' : 'Remove'}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                onOpenChange={open => !open && setApiToRemove(null)}
+                title="Remove API"
+                description="Please note that once your API is removed from this API Product, consumers will lose access to this API."
+                confirmLabel="Remove"
+                pendingLabel="Removing…"
+                destructive
+                isPending={isUpdating}
+                onConfirm={handleConfirmRemove}
+            />
         </div>
     );
 }

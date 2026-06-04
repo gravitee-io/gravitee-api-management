@@ -13,19 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-    Alert,
-    AlertDescription,
-    Button,
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    Input,
-    Label,
-    Textarea,
-} from '@gravitee/graphene-core';
+import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Label, Textarea } from '@gravitee/graphene-core';
 import { CircleCheckIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useState } from 'react';
 
@@ -35,7 +23,6 @@ interface SubscriptionApproveDialogProps {
     open: boolean;
     isApiKeyPlan: boolean;
     isPending: boolean;
-    error: string | null;
     onConfirm: (payload: ApproveSubscriptionPayload) => void;
     onClose: () => void;
 }
@@ -49,14 +36,7 @@ interface FormState {
 
 const EMPTY_FORM: FormState = { startingAt: '', endingAt: '', customApiKey: '', reason: '' };
 
-export function SubscriptionApproveDialog({
-    open,
-    isApiKeyPlan,
-    isPending,
-    error,
-    onConfirm,
-    onClose,
-}: Readonly<SubscriptionApproveDialogProps>) {
+export function SubscriptionApproveDialog({ open, isApiKeyPlan, isPending, onConfirm, onClose }: Readonly<SubscriptionApproveDialogProps>) {
     const [form, setForm] = useState<FormState>(EMPTY_FORM);
 
     const set = useCallback(<K extends keyof FormState>(key: K, value: FormState[K]) => {
@@ -132,12 +112,6 @@ export function SubscriptionApproveDialog({
                             rows={3}
                         />
                     </div>
-
-                    {error && (
-                        <Alert variant="destructive">
-                            <AlertDescription>{error}</AlertDescription>
-                        </Alert>
-                    )}
                 </div>
 
                 <DialogFooter>

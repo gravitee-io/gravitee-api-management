@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 import {
-    Alert,
-    AlertDescription,
     Button,
     Card,
     CardContent,
@@ -37,6 +35,7 @@ import {
 import { CalendarIcon, CircleCheckIcon, CircleXIcon, CopyIcon, RefreshCwIcon, XIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useState } from 'react';
 
+import { notify } from '../../../../../../shared/notify';
 import { useApiKeyList, useExpireApiKey, useRenewApiKey, useRevokeApiKey } from '../../../../hooks/useSubscriptionApiKeys';
 import type { ApiKey, Subscription, SubscriptionContext } from '../../../../types/subscription';
 import { formatDate } from '../../../../utils/formatDate';
@@ -126,16 +125,25 @@ export function SubscriptionApiKeysCard({ ctx, subscription, canUpdate }: Readon
     const revokeMutation = useRevokeApiKey(ctx, subscription.id);
     const expireMutation = useExpireApiKey(ctx, subscription.id);
 
-    const handleRevoke = useCallback((keyId: string) => revokeMutation.mutate(keyId), [revokeMutation]);
+    const handleRevoke = useCallback(
+        (keyId: string) =>
+            revokeMutation.mutate(keyId, {
+                onSuccess: () => notify.success('API key revoked'),
+                onError: error => notify.error(error, 'Failed to revoke API key.'),
+            }),
+        [revokeMutation],
+    );
     const handleExpireConfirm = useCallback(() => {
         if (!expiringKeyId || !expireDate) return;
         expireMutation.mutate(
             { apiKeyId: expiringKeyId, expireAt: new Date(expireDate + 'T23:59:59').toISOString() },
             {
                 onSuccess: () => {
+                    notify.success('API key expiry updated');
                     setExpiringKeyId(null);
                     setExpireDate('');
                 },
+                onError: error => notify.error(error, 'Failed to update API key expiry.'),
             },
         );
     }, [expiringKeyId, expireDate, expireMutation]);
@@ -169,7 +177,12 @@ export function SubscriptionApiKeysCard({ ctx, subscription, canUpdate }: Readon
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => renewMutation.mutate()}
+                        onClick={() =>
+                            renewMutation.mutate(undefined, {
+                                onSuccess: () => notify.success('API key renewed'),
+                                onError: error => notify.error(error, 'Failed to renew API key.'),
+                            })
+                        }
                         disabled={renewMutation.isPending}
                     >
                         <RefreshCwIcon className="size-3.5" aria-hidden />
@@ -180,14 +193,6 @@ export function SubscriptionApiKeysCard({ ctx, subscription, canUpdate }: Readon
             <CardContent className="space-y-3">
                 {isShared && (
                     <InfoBanner>This subscription uses a shared API Key. You can renew or revoke it at the application level.</InfoBanner>
-                )}
-
-                {(renewMutation.error || revokeMutation.error || expireMutation.error) && (
-                    <Alert variant="destructive">
-                        <AlertDescription>
-                            {(renewMutation.error ?? revokeMutation.error ?? expireMutation.error)?.message}
-                        </AlertDescription>
-                    </Alert>
                 )}
 
                 <div className="rounded-md border">
