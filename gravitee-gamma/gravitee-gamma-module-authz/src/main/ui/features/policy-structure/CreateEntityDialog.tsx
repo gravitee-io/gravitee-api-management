@@ -49,9 +49,7 @@ import { authzApiService } from '../../shared/api/authz-api.service';
 import { authzQueryKeys } from '../../shared/api/query-keys';
 import { formatEntityUid, fromBackend } from '../../shared/entity-adapter';
 import { ENTITY_KIND_REGISTRY } from '../../shared/entity-kind-registry';
-import { parseGaplSchema } from '../../shared/gapl-parser';
 import { useEntities } from '../../shared/hooks/useEntities';
-import { useSchema } from '../../shared/hooks/useSchema';
 import { AttributeEditor, type AttributeRow } from './AttributeEditor';
 import { attrsFromRows } from './attribute-rows';
 
@@ -167,19 +165,6 @@ export function CreateEntityDialog({ open, kind, environmentId, onOpenChange, on
     // Parents come from the same kind: a Group is a parent of a User; a generic
     // Resource can be a parent of an MCP/Model/etc. Fetching a reasonable page
     // covers most envs without pulling thousands of options into the picker.
-    const { schema } = useSchema(environmentId);
-    const keySuggestions = useMemo(() => {
-        try {
-            const parsed = parseGaplSchema(schema?.schemaText ?? '');
-            const names = new Set<string>();
-            for (const ent of parsed.entities) for (const a of ent.attributes) if (!a.name.startsWith('_')) names.add(a.name);
-            return Array.from(names).sort();
-        } catch (err) {
-            console.error('Failed to parse GAPL schema for attribute key suggestions', err);
-            return [];
-        }
-    }, [schema?.schemaText]);
-
     const parentsQuery = useEntities(environmentId, 200, { kind });
     const parentOptions = useMemo(() => {
         const all = parentsQuery.data?.data ?? [];
@@ -428,7 +413,7 @@ export function CreateEntityDialog({ open, kind, environmentId, onOpenChange, on
                             <Label>
                                 Attributes <span className="text-xs text-muted-foreground">(optional)</span>
                             </Label>
-                            <AttributeEditor value={attrRows} onChange={setAttrRows} keySuggestions={keySuggestions} />
+                            <AttributeEditor value={attrRows} onChange={setAttrRows} />
                         </div>
                     </div>
                 </form>

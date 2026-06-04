@@ -43,9 +43,7 @@ import { authzApiService } from '../../shared/api/authz-api.service';
 import { authzQueryKeys } from '../../shared/api/query-keys';
 import { formatEntityUid, fromBackend, toBackend } from '../../shared/entity-adapter';
 import type { EntityInstance } from '../../shared/entity.types';
-import { parseGaplSchema } from '../../shared/gapl-parser';
 import { useEntities } from '../../shared/hooks/useEntities';
-import { useSchema } from '../../shared/hooks/useSchema';
 import { AttributeEditor, type AttributeRow } from './AttributeEditor';
 import { attrsFromRows, rowsFromAttrs } from './attribute-rows';
 
@@ -98,19 +96,6 @@ export function EditEntityDialog({ open, entity, kind, environmentId, onOpenChan
     const canSubmit = !submitting && entity !== null && displayName.trim().length > 0 && !displayNameError;
 
     // Parents come from the same kind, mirroring the create flow.
-    const { schema } = useSchema(environmentId);
-    const keySuggestions = useMemo(() => {
-        try {
-            const parsed = parseGaplSchema(schema?.schemaText ?? '');
-            const names = new Set<string>();
-            for (const ent of parsed.entities) for (const a of ent.attributes) if (!a.name.startsWith('_')) names.add(a.name);
-            return Array.from(names).sort();
-        } catch (err) {
-            console.error('Failed to parse GAPL schema for attribute key suggestions', err);
-            return [];
-        }
-    }, [schema?.schemaText]);
-
     const parentsQuery = useEntities(environmentId, 200, { kind });
     const parentOptions = useMemo(() => {
         const all = parentsQuery.data?.data ?? [];
@@ -265,12 +250,7 @@ export function EditEntityDialog({ open, entity, kind, environmentId, onOpenChan
                             <Label>
                                 Attributes <span className="text-xs text-muted-foreground">(optional)</span>
                             </Label>
-                            <AttributeEditor
-                                value={attrRows}
-                                onChange={setAttrRows}
-                                readOnly={entity?.source !== 'local'}
-                                keySuggestions={keySuggestions}
-                            />
+                            <AttributeEditor value={attrRows} onChange={setAttrRows} readOnly={entity?.source !== 'local'} />
                             {entity?.source !== 'local' && (
                                 <p className="text-xs text-muted-foreground">Attributes are managed by the source and are read-only.</p>
                             )}
