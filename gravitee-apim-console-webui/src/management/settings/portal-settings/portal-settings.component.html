@@ -130,6 +130,22 @@
             aria-label="mTLS plans ( only available for API V4 )"
           ></mat-slide-toggle>
         </gio-form-slide-toggle>
+        <ng-container [formGroup]="portalForm.controls.apiProduct">
+          <gio-form-slide-toggle
+            [matTooltip]="'Configuration provided by the system'"
+            [matTooltipDisabled]="!isReadonly('api.product.plan.security.keyless.enabled')"
+            formGroupName="keylessPlan"
+            class="portal__form__card__form-field"
+          >
+            <gio-form-label>Keyless plans ( Available for API Products )</gio-form-label>
+            <mat-slide-toggle
+              formControlName="enabled"
+              gioFormSlideToggle
+              aria-label="Keyless plans ( Available for API Products )"
+              data-testid="api-product-keyless-plans-toggle"
+            ></mat-slide-toggle>
+          </gio-form-slide-toggle>
+        </ng-container>
       </mat-card-content>
 
       <mat-card-content formGroupName="api">

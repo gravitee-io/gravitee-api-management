@@ -78,6 +78,24 @@ export class ConstantsService {
     });
   }
 
+  /**
+   * Plan types available for API Products. Keyless is gated by the dedicated API Product setting
+   * (`apiProduct.keylessPlan.enabled`), independently from the API-level `plan.security.keyless.enabled`.
+   */
+  getEnabledApiProductPlanMenuItems(): PlanMenuItemVM[] {
+    const apiProductPlanTypes: PlanFormType[] = ['API_KEY', 'JWT', 'MTLS'];
+    const enabledItems = this.getEnabledPlanMenuItems().filter(planMenuItem => apiProductPlanTypes.includes(planMenuItem.planFormType));
+
+    if (this.constants.env?.settings?.apiProduct?.keylessPlan?.enabled) {
+      const keylessItem = AVAILABLE_PLANS_FOR_MENU.find(planMenuItem => planMenuItem.planFormType === 'KEY_LESS');
+      if (keylessItem) {
+        enabledItems.push(keylessItem);
+      }
+    }
+
+    return enabledItems;
+  }
+
   getPlanMenuItems(definitionVersion: DefinitionVersion, listenerTypes: ListenerType[]): PlanMenuItemVM[] {
     const availablePlanMenuItems = this.getEnabledPlanMenuItems();
 

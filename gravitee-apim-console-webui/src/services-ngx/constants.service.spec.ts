@@ -106,6 +106,55 @@ describe('ConstantsService', () => {
     });
   });
 
+  describe('get enabled API product plan menu items', () => {
+    const initApiProduct = async (securityValue: any, apiProductKeylessEnabled?: boolean) => {
+      TestBed.configureTestingModule({
+        imports: [GioTestingModule],
+        providers: [
+          {
+            provide: Constants,
+            useFactory: () => {
+              const constants = CONSTANTS_TESTING;
+              set(constants, 'env.settings.plan.security', securityValue);
+              set(constants, 'env.settings.apiProduct.keylessPlan', { enabled: apiProductKeylessEnabled });
+              return constants;
+            },
+          },
+        ],
+      });
+      constantsService = TestBed.inject<ConstantsService>(ConstantsService);
+    };
+
+    const allApiPlansEnabled = {
+      apikey: { enabled: true },
+      jwt: { enabled: true },
+      mtls: { enabled: true },
+      keyless: { enabled: true },
+      oauth2: { enabled: true },
+    };
+
+    it('excludes keyless when API product keyless setting is disabled, even if API-level keyless is enabled', async () => {
+      await initApiProduct(allApiPlansEnabled, false);
+
+      const planFormTypes = constantsService.getEnabledApiProductPlanMenuItems().map(item => item.planFormType);
+
+      expect(planFormTypes).toEqual(expect.arrayContaining(['API_KEY', 'JWT', 'MTLS']));
+      expect(planFormTypes).not.toContain('KEY_LESS');
+      expect(planFormTypes).not.toContain('OAUTH2');
+      expect(planFormTypes).not.toContain('PUSH');
+    });
+
+    it('includes keyless when API product keyless setting is enabled', async () => {
+      await initApiProduct(allApiPlansEnabled, true);
+
+      const planFormTypes = constantsService.getEnabledApiProductPlanMenuItems().map(item => item.planFormType);
+
+      expect(planFormTypes).toEqual(expect.arrayContaining(['API_KEY', 'JWT', 'MTLS', 'KEY_LESS']));
+      expect(planFormTypes).not.toContain('OAUTH2');
+      expect(planFormTypes).not.toContain('PUSH');
+    });
+  });
+
   describe('get plan menu items by listeners types', () => {
     describe('with all plans enabled', () => {
       const everythingEnabled = {

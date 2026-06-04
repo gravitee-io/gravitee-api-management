@@ -65,6 +65,9 @@ interface PortalForm {
   }>;
   apiProduct: FormGroup<{
     primaryOwnerMode: FormControl<string>;
+    keylessPlan: FormGroup<{
+      enabled: FormControl<boolean>;
+    }>;
   }>;
   dashboards: FormGroup<{
     apiStatus: FormGroup<{
@@ -316,6 +319,12 @@ export class PortalSettingsComponent implements OnInit {
         primaryOwnerMode: new FormControl({
           value: this.settings.apiProduct?.primaryOwnerMode ?? 'HYBRID',
           disabled: this.isReadonly('apiProduct.primaryOwnerMode'),
+        }),
+        keylessPlan: new FormGroup({
+          enabled: new FormControl({
+            value: this.settings.apiProduct?.keylessPlan?.enabled ?? false,
+            disabled: this.isReadonly('api.product.plan.security.keyless.enabled'),
+          }),
         }),
       }),
       dashboards: new FormGroup({

@@ -190,6 +190,9 @@ export interface PortalSettingsApi {
 
 export interface PortalSettingsApiProduct {
   primaryOwnerMode?: string;
+  keylessPlan?: {
+    enabled: boolean;
+  };
 }
 
 export interface PortalSettingsDashboards {

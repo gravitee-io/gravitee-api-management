@@ -60,6 +60,9 @@ export interface EnvSettings {
   };
   apiProduct: {
     primaryOwnerMode: string;
+    keylessPlan?: {
+      enabled: boolean;
+    };
   };
   apiScore: {
     enabled: boolean;

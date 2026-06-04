@@ -50,7 +50,10 @@ describe('ApiProductPlanListComponent', () => {
   let notifyApiProductChangedSpy: jest.SpyInstance;
   const snackBarService = { error: jest.fn(), success: jest.fn() };
 
-  async function init(permissions: string[] = ['api_product-plan-u', 'api_product-plan-r', 'api_product-plan-c']) {
+  async function init(
+    permissions: string[] = ['api_product-plan-u', 'api_product-plan-r', 'api_product-plan-c'],
+    apiProductKeylessEnabled = false,
+  ) {
     await TestBed.configureTestingModule({
       imports: [ApiProductPlanListComponent, NoopAnimationsModule, GioTestingModule, MatIconTestingModule],
       providers: [
@@ -71,6 +74,7 @@ describe('ApiProductPlanListComponent', () => {
               keyless: { enabled: true },
               oauth2: { enabled: true },
             });
+            set(constants, 'env.settings.apiProduct.keylessPlan', { enabled: apiProductKeylessEnabled });
             return constants;
           },
         },
@@ -141,7 +145,7 @@ describe('ApiProductPlanListComponent', () => {
   });
 
   describe('plan type menu', () => {
-    it('add plan menu shows only API Key JWT and mTLS types', fakeAsync(async () => {
+    it('add plan menu shows only API Key JWT and mTLS types when API Product keyless setting is disabled', fakeAsync(async () => {
       await init();
       fixture.detectChanges();
       flushPlansList([]);
@@ -152,6 +156,20 @@ describe('ApiProductPlanListComponent', () => {
 
       expect(texts).toEqual(expect.arrayContaining(['API Key', 'JWT', 'mTLS']));
       expect(texts).not.toContain('Keyless (public)');
+      expect(texts).not.toContain('OAuth2');
+      expect(texts).not.toContain('Push plan');
+    }));
+
+    it('add plan menu includes Keyless when API Product keyless setting is enabled', fakeAsync(async () => {
+      await init(['api_product-plan-u', 'api_product-plan-r', 'api_product-plan-c'], true);
+      fixture.detectChanges();
+      flushPlansList([]);
+      tick();
+      fixture.detectChanges();
+
+      const texts = await planListHarness.getAddPlanMenuItems();
+
+      expect(texts).toEqual(expect.arrayContaining(['API Key', 'JWT', 'mTLS', 'Keyless (public)']));
       expect(texts).not.toContain('OAuth2');
       expect(texts).not.toContain('Push plan');
     }));

@@ -297,6 +297,42 @@ describe('PortalSettingsComponent', () => {
         },
       });
     });
+
+    it('should reflect the API Product keyless plans setting when it is enabled', async () => {
+      portalSettingsMock = fakePortalSettings({ apiProduct: { primaryOwnerMode: 'HYBRID', keylessPlan: { enabled: true } } });
+      expectPortalSettingsGetRequest(portalSettingsMock);
+
+      const keylessToggle = await loader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[data-testid="api-product-keyless-plans-toggle"]' }),
+      );
+      expect(await keylessToggle.isChecked()).toBe(true);
+    });
+
+    it('should enable the API Product keyless plans setting and save it', async () => {
+      portalSettingsMock = fakePortalSettings();
+      expectPortalSettingsGetRequest(portalSettingsMock);
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(false);
+
+      const keylessToggle = await loader.getHarness(
+        MatSlideToggleHarness.with({ selector: '[data-testid="api-product-keyless-plans-toggle"]' }),
+      );
+      expect(await keylessToggle.isChecked()).toBe(false);
+
+      await keylessToggle.toggle();
+      expect(await keylessToggle.isChecked()).toBe(true);
+
+      await saveBar.clickSubmit();
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings`);
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body.apiProduct).toEqual({
+        primaryOwnerMode: 'HYBRID',
+        keylessPlan: {
+          enabled: true,
+        },
+      });
+    });
   });
   describe('Portal next setting form', () => {
     beforeEach(() => {

@@ -123,6 +123,9 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
     },
     apiProduct: {
       primaryOwnerMode: 'HYBRID',
+      keylessPlan: {
+        enabled: false,
+      },
     },
     apiQualityMetrics: {
       enabled: false,

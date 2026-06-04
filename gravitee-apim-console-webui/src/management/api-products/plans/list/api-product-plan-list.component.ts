@@ -36,8 +36,6 @@ import { ConstantsService, PlanMenuItemVM } from '../../../../services-ngx/const
 import { Plan, PLAN_STATUS, PlanStatus } from '../../../../entities/management-api-v2';
 import { PlanActionEvent, PlanListComponent, PlanDS } from '../../../api/component/plan/plan-list/plan-list.component';
 
-const API_PRODUCT_PLAN_TYPES = ['API_KEY', 'JWT', 'MTLS'] as const;
-
 @Component({
   selector: 'api-product-plan-list',
   templateUrl: './api-product-plan-list.component.html',
@@ -110,9 +108,7 @@ export class ApiProductPlanListComponent {
     }));
   });
 
-  protected readonly planMenuItems: PlanMenuItemVM[] = this.constantsService
-    .getEnabledPlanMenuItems()
-    .filter(p => (API_PRODUCT_PLAN_TYPES as readonly string[]).includes(p.planFormType));
+  protected readonly planMenuItems: PlanMenuItemVM[] = this.constantsService.getEnabledApiProductPlanMenuItems();
 
   protected triggerReload(): void {
     this.plansResource.reload();
