@@ -17,6 +17,7 @@ package io.gravitee.gamma.authorization.infra.service_provider;
 
 import io.gravitee.am.sdk.management.model.ApplicationPage;
 import io.gravitee.am.sdk.management.model.FilteredApplication;
+import io.gravitee.am.sdk.management.model.FilteredIdentityProviderInfo;
 import io.gravitee.am.sdk.management.model.Group;
 import io.gravitee.am.sdk.management.model.GroupPage;
 import io.gravitee.am.sdk.management.model.Role;
@@ -35,6 +36,8 @@ import io.gravitee.gamma.authorization.core.am.model.AmUserPage;
 import io.gravitee.gamma.authorization.core.am.service_provider.AmDirectoryClient;
 import io.gravitee.gamma.authorization.infra.service_provider.AmSdkDirectoryClientFactory.AmSdkApis;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * AM SDK-backed {@link AmDirectoryClient}. Owns the SDK specifics — client construction, the
@@ -69,6 +72,10 @@ public class AmSdkDirectoryClient implements AmDirectoryClient {
         private final AmSdkApis apis;
         private final String domainId;
 
+        // IdP display name -> id, lazily loaded once per session. Reverses AM's management API,
+        // which overwrites a user's `source` (the IdP id) with the IdP name on the way out.
+        private Map<String, String> idpIdByName;
+
         private SdkSession(AmSdkApis apis, String domainId) {
             this.apis = apis;
             this.domainId = domainId;
@@ -79,12 +86,27 @@ public class AmSdkDirectoryClient implements AmDirectoryClient {
             UserPage userPage = AmSdkInvocations.await(
                 apis.userApi().listUsers(AM_DEFAULT_ORGANIZATION, AM_DEFAULT_ENVIRONMENT, domainId, null, null, page, size)
             );
+            Map<String, String> idpIds = idpIdByName();
             List<AmUser> users = (userPage.getData() == null ? List.<User>of() : userPage.getData())
                 .stream()
-                .map(AmSdkDirectoryClient::toAmUser)
+                .map(user -> toAmUser(user, idpIds))
                 .toList();
             long totalCount = userPage.getTotalCount() == null ? 0 : userPage.getTotalCount();
             return new AmUserPage(users, totalCount);
+        }
+
+        // The user `sub` AM issues hashes the IdP *id*, but listUsers returns the IdP *name* in
+        // `source`; map name -> id so the synced PRINCIPAL entity is keyed on the same value.
+        private Map<String, String> idpIdByName() {
+            if (idpIdByName == null) {
+                List<FilteredIdentityProviderInfo> idps = AmSdkInvocations.await(
+                    apis.identityProviderApi().listIdentityProviders(AM_DEFAULT_ORGANIZATION, AM_DEFAULT_ENVIRONMENT, domainId, null)
+                );
+                idpIdByName = idps.stream()
+                    .filter(idp -> idp.getName() != null && idp.getId() != null)
+                    .collect(Collectors.toMap(FilteredIdentityProviderInfo::getName, FilteredIdentityProviderInfo::getId, (first, ignored) -> first));
+            }
+            return idpIdByName;
         }
 
         @Override
@@ -144,15 +166,19 @@ public class AmSdkDirectoryClient implements AmDirectoryClient {
 
         @Override
         public void close() {
-            // Release the underlying Vert.x WebClient pool shared by all three API facades.
+            // Release the underlying Vert.x WebClient pool shared by all the API facades.
             apis.apiClient().getWebClient().close();
         }
     }
 
-    static AmUser toAmUser(User user) {
+    static AmUser toAmUser(User user, Map<String, String> idpIdByName) {
+        // listUsers returns the IdP name in `source`; resolve it back to the IdP id so the entity
+        // matches AM's token `sub`. Fall back to the raw value when the IdP can't be resolved.
+        String source = user.getSource();
+        String sourceId = source == null ? null : idpIdByName.getOrDefault(source, source);
         return new AmUser(
             user.getId(),
-            user.getSource(),
+            sourceId,
             user.getExternalId(),
             user.getEmail(),
             user.getUsername(),
