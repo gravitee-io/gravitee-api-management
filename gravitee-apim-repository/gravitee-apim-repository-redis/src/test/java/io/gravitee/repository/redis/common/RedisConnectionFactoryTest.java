@@ -96,6 +96,24 @@ public class RedisConnectionFactoryTest {
     }
 
     @Test
+    void shouldReturnRedisClientOptionsWithCluster() {
+        environment.setProperty(PROPERTY_PREFIX + ".redis.cluster.nodes[0].host", "node1");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.cluster.nodes[0].port", "6379");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.cluster.nodes[1].host", "node2");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.cluster.nodes[1].port", "6380");
+
+        RedisClientOptions options = redisConnectionFactory.buildRedisClientOptions();
+
+        assertThat(options).isNotNull();
+        assertThat(options.getCluster()).isNotNull();
+        assertThat(options.getCluster().getNodes()).hasSize(2);
+        assertThat(options.getCluster().getNodes().get(0).getHost()).isEqualTo("node1");
+        assertThat(options.getCluster().getNodes().get(1).getPort()).isEqualTo(6380);
+        // Rate limiting must read master-consistent counters — never from replicas.
+        assertThat(options.getCluster().getUseReplicas()).isEqualTo("NEVER");
+    }
+
+    @Test
     void shouldReturnRedisClientOptionsWithSentinelAndSsl() {
         environment.setProperty(PROPERTY_PREFIX + ".redis.ssl", "true");
         environment.setProperty(PROPERTY_PREFIX + ".redis.sentinel.master", "redis-master");
