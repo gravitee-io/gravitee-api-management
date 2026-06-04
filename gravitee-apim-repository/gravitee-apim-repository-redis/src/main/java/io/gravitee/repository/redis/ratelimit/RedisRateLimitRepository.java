@@ -24,6 +24,7 @@ import io.gravitee.repository.ratelimit.model.RateLimit;
 import io.gravitee.repository.redis.vertx.RedisClient;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.redis.client.Response;
 import io.vertx.rxjava3.SingleHelper;
@@ -68,9 +69,37 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
                 redisClient
                     .redisApi()
                     .flatMap(redisAPI ->
-                        redisAPI.evalsha(
-                            convertToList(this.redisClient.scriptSha1(SCRIPT_RATELIMIT_KEY), REDIS_KEY_PREFIX + key, weight, newRate)
-                        )
+                        redisAPI
+                            .evalsha(
+                                convertToList(this.redisClient.scriptSha1(SCRIPT_RATELIMIT_KEY), REDIS_KEY_PREFIX + key, weight, newRate)
+                            )
+                            .recover(t -> {
+                                if (!isNoScript(t)) {
+                                    return Future.failedFuture(t);
+                                }
+                                final String source = this.redisClient.scriptSource(SCRIPT_RATELIMIT_KEY);
+                                if (source == null) {
+                                    return Future.failedFuture(
+                                        new IllegalStateException(
+                                            "Cannot recover from NOSCRIPT: rate-limit script source unavailable (script was never loaded)"
+                                        )
+                                    );
+                                }
+                                // On Redis Cluster, SCRIPT LOAD only reaches the contacted node, so an
+                                // EVALSHA routed by hash slot to another master returns NOSCRIPT. Fall back
+                                // to EVAL with the script source, which caches it on that node for next time.
+                                // NOSCRIPT means the script did not execute, so replaying via EVAL cannot double-count.
+                                log.debug(
+                                    "EVALSHA returned NOSCRIPT; falling back to EVAL to load the rate-limit script on the target node"
+                                );
+                                return redisAPI
+                                    .eval(convertToList(source, REDIS_KEY_PREFIX + key, weight, newRate))
+                                    .recover(evalError -> {
+                                        // Preserve the original NOSCRIPT cause for diagnostics under a fallback storm.
+                                        evalError.addSuppressed(t);
+                                        return Future.failedFuture(evalError);
+                                    });
+                            })
                     )
                     .onFailure(this::logOperationFailure)
                     .onComplete(asyncResultHandler)
@@ -93,6 +122,25 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
             .timeout(operationTimeout, TimeUnit.MILLISECONDS, Single.error(new RedisOperationTimeoutException(operationTimeout)));
     }
 
+    private static final String NOSCRIPT_PREFIX = "NOSCRIPT";
+
+    /**
+     * Returns true only when the error (or one of its causes) is a Redis {@code NOSCRIPT} reply.
+     * Matches the error-code prefix (Redis error replies start with the uppercase code), not a
+     * substring, so unrelated messages can't trigger a (non-idempotent) EVAL replay; walks the
+     * cause chain and is case-insensitive to survive wrapping.
+     */
+    private static boolean isNoScript(Throwable t) {
+        int depth = 0;
+        for (Throwable cause = t; cause != null && depth < 20; cause = cause.getCause(), depth++) {
+            String message = cause.getMessage();
+            if (message != null && message.stripLeading().regionMatches(true, 0, NOSCRIPT_PREFIX, 0, NOSCRIPT_PREFIX.length())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void logOperationFailure(Throwable t) {
         long failureCount = operationFailureCounter.getAndIncrement();
         if (failureCount < 10) {
@@ -102,10 +150,13 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
         }
     }
 
-    private List<String> convertToList(String scriptSha1, String key, long weight, RateLimit rate) {
+    // numkeys is "1": only the rate-limit key is a KEY, so all keys touched by the command share
+    // one Redis Cluster hash slot (avoids CROSSSLOT). The weight is passed as an ARGV value, not a key.
+    // scriptRef is a SHA on the EVALSHA path and the script source on the EVAL fallback path.
+    static List<String> convertToList(String scriptRef, String key, long weight, RateLimit rate) {
         return Arrays.asList(
-            scriptSha1,
-            "2", // Number of keys
+            scriptRef,
+            "1", // numkeys
             key,
             Long.toString(weight),
             Long.toString(rate.getCounter()),
