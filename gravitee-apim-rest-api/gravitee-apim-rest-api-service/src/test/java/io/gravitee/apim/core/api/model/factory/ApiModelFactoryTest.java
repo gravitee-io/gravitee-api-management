@@ -25,6 +25,8 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
@@ -132,6 +134,27 @@ class ApiModelFactoryTest {
 
         assertThat(api.isAllowMultiJwtOauth2Subscriptions()).isTrue();
         assertThat(api.getApiDefinitionHttpV4().getAllowedInApiProducts()).isTrue();
+    }
+
+    @Test
+    void fromCrd_should_preserve_flowExecution_when_specified() {
+        var flowExecution = new FlowExecution();
+        flowExecution.setMode(FlowMode.BEST_MATCH);
+        flowExecution.setMatchRequired(true);
+        var crd = minimalProxyCrd(true, true).toBuilder().flowExecution(flowExecution).build();
+
+        Api api = ApiModelFactory.fromCrd(crd, ENVIRONMENT_ID);
+
+        assertThat(api.getApiDefinitionHttpV4().getFlowExecution()).isEqualTo(flowExecution);
+    }
+
+    @Test
+    void fromCrd_should_default_flowExecution_when_omitted() {
+        var crd = minimalProxyCrd(true, true);
+
+        Api api = ApiModelFactory.fromCrd(crd, ENVIRONMENT_ID);
+
+        assertThat(api.getApiDefinitionHttpV4().getFlowExecution()).isEqualTo(new FlowExecution());
     }
 
     private static ApiCRDSpec minimalProxyCrd(boolean allowedInApiProducts, boolean allowMultiJwtOauth2Subscriptions) {
