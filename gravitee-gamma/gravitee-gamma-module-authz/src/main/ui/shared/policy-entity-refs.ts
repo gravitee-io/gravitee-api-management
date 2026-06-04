@@ -13,10 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { PolicyResponse } from './api/authz-api.types';
-import { formatEntityUid } from './entity-adapter';
 import { canonicalKindOf, deriveServiceType } from './entity-kind-registry';
-import type { EntityInstance } from './entity.types';
 
 export type PolicyClause = 'principal' | 'action' | 'resource';
 
@@ -24,11 +21,6 @@ export interface EntityRefInPolicy {
     readonly type: string;
     readonly id: string;
     readonly clause: PolicyClause;
-}
-
-export interface PolicyRef {
-    readonly policy: PolicyResponse;
-    readonly clauses: PolicyClause[];
 }
 
 const CLAUSE_KEYWORDS: PolicyClause[] = ['principal', 'action', 'resource'];
@@ -93,61 +85,4 @@ export function deriveTargetEntityId(policyText: string | null | undefined): str
         return `${kind}.${server}`;
     }
     return null;
-}
-
-function entityKey(type: string, id: string): string {
-    return `${type}::${id}`;
-}
-
-/**
- * For each entity, find the policies whose GAPL text references it in any
- * clause. Returns a map keyed by `Type::id` so the EntitiesPage can do an
- * O(1) lookup per row.
- *
- * - Policies with malformed `policyText` simply contribute no refs.
- * - Multiple references to the same entity in the same policy are folded
- *   into a single `PolicyRef` whose `clauses` array lists each distinct
- *   clause kind.
- * - Entities with no matching policy still appear in the map with an empty
- *   array, so callers can distinguish "no matches" from "not yet computed".
- */
-export function buildPolicyEntityRefs(entities: readonly EntityInstance[], policies: readonly PolicyResponse[]): Map<string, PolicyRef[]> {
-    const result = new Map<string, PolicyRef[]>();
-    for (const e of entities) {
-        result.set(entityKey(e.uid.type, e.uid.id), []);
-    }
-    if (entities.length === 0 || policies.length === 0) return result;
-
-    const policyRefs: Array<{ policy: PolicyResponse; refs: EntityRefInPolicy[] }> = policies.map(p => ({
-        policy: p,
-        refs: extractEntityRefsFromPolicyText(p.policyText ?? ''),
-    }));
-
-    for (const e of entities) {
-        const key = entityKey(e.uid.type, e.uid.id);
-        const entityUid = formatEntityUid(e.uid);
-        const matches: PolicyRef[] = [];
-
-        for (const { policy, refs } of policyRefs) {
-            const clauseSet = new Set<PolicyClause>();
-            for (const r of refs) {
-                if (r.type === e.uid.type && r.id === e.uid.id) {
-                    clauseSet.add(r.clause);
-                }
-            }
-            // Policy.target.id is the explicit target attachment (e.g. policy created via
-            // "+ Create Policy for LLM" → target.id="llm.gog"). Treat it as a resource-clause
-            // reference even when the policyText body uses the unbound `resource` keyword.
-            if (policy.target?.id === entityUid) {
-                clauseSet.add('resource');
-            }
-            if (clauseSet.size > 0) {
-                matches.push({ policy, clauses: Array.from(clauseSet) });
-            }
-        }
-
-        result.set(key, matches);
-    }
-
-    return result;
 }
