@@ -159,6 +159,21 @@ describe('AnalyticsComponent', () => {
       fixture.detectChanges();
     }
 
+    it('should_show_pinned_card_optimistically_before_http_responds', async () => {
+      await clickPinButtonForCard(0);
+      fixture.detectChanges();
+
+      // Assert pinned row is populated before any HTTP response (non-stabilizing to avoid rxResource deadlock)
+      expect(AnalyticsComponentHarness.getPinnedCardCountFromNativeElement(fixture.nativeElement)).toBe(1);
+
+      // Flush pending requests so httpTestingController.verify() passes
+      httpTestingController
+        .match(r => r.url.includes('/analytics/dashboards/dash-1'))
+        .forEach(req => req.flush(fakeDashboard({ id: 'dash-1', name: 'Dashboard 1' })));
+      await fixture.whenStable();
+      fixture.detectChanges();
+    });
+
     it('should_toggle_pin_and_persist_to_local_storage', async () => {
       await pinAndFlush(0, 'dash-1', 'Dashboard 1');
       const pinned = await harness.getPinnedDashboards();

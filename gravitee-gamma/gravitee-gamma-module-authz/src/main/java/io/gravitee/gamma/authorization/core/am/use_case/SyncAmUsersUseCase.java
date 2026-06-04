@@ -18,6 +18,7 @@ package io.gravitee.gamma.authorization.core.am.use_case;
 import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
 import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 import io.gravitee.gamma.authorization.api.AuthzEntityAdminApi;
+import io.gravitee.gamma.authorization.core.am.model.AmAgent;
 import io.gravitee.gamma.authorization.core.am.model.AmGroup;
 import io.gravitee.gamma.authorization.core.am.model.AmRole;
 import io.gravitee.gamma.authorization.core.am.model.AmUser;
@@ -33,16 +34,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.UUID;
+import lombok.CustomLog;
 
 /**
- * Pages every user, group, and role out of the AM domain on the connection and upserts each as a
- * PRINCIPAL authz entity via {@link AuthzEntityAdminApi#bulkUpsert}. Groups and roles are synced
+ * Pages every user, group, role, and agent out of the AM domain on the connection and upserts each
+ * as a PRINCIPAL authz entity via {@link AuthzEntityAdminApi#bulkUpsert}. Groups and roles are synced
  * first (they are the parent entities users reference); each user's {@code parents} is then set to
- * its group + role ids. Upsert-only: entities removed in AM are left as stale entities. Invoked on a
+ * its group + role ids. Agents (AM applications of type AGENT) are projected last as generic,
+ * user-independent principals keyed on a name-UUID of their OAuth {@code client_id} so the
+ * request-time PEP matches them. Upsert-only: entities removed in AM are left as stale entities. Invoked on a
  * worker thread by the infra job manager.
  *
  * @author GraviteeSource Team
  */
+@CustomLog
 public class SyncAmUsersUseCase {
 
     static final String SOURCE = "gravitee_am";
@@ -60,8 +65,10 @@ public class SyncAmUsersUseCase {
     public Output execute(Input input) {
         AuthzCallerContext caller = input.caller();
         String env = caller.environmentId();
+        String domain = input.connection().defaultDomainId();
 
         int usersFetched = 0;
+        int agentsFetched = 0;
         int entitiesUpserted = 0;
         List<CreateOrReplaceAuthzEntityCommand> batch = new ArrayList<>();
 
@@ -98,13 +105,35 @@ public class SyncAmUsersUseCase {
                     entitiesUpserted += flush(caller, batch);
                 }
                 // Cap the sync at the configured ceiling; the lazy cursor stops paging once we break.
-                if (usersFetched >= syncConfig.maxUsers()) {
+                if (usersFetched >= syncConfig.maxEntities()) {
+                    break;
+                }
+            }
+            // Flush the user remainder so the agent phase starts on a clean batch.
+            entitiesUpserted += flush(caller, batch);
+
+            for (AmAgent agent : pageThrough((p, s) -> {
+                var ap = session.fetchAgents(p, s);
+                return new Page<>(ap.agents(), ap.totalCount());
+            }, syncConfig.pageSize())) {
+                // The entity id is derived from the client_id; without one there is nothing the PEP
+                // could match at request time, so skip the agent rather than upsert an unmatchable entity.
+                if (agent.clientId() == null || agent.clientId().isBlank()) {
+                    log.warn("Skipping AM agent {} in domain {}: it has no client_id", agent.id(), domain);
+                    continue;
+                }
+                agentsFetched++;
+                batch.add(agentCommand(env, domain, agent));
+                if (batch.size() >= syncConfig.batchSize()) {
+                    entitiesUpserted += flush(caller, batch);
+                }
+                if (agentsFetched >= syncConfig.maxEntities()) {
                     break;
                 }
             }
         }
         entitiesUpserted += flush(caller, batch);
-        return new Output(usersFetched, entitiesUpserted);
+        return new Output(usersFetched, agentsFetched, entitiesUpserted);
     }
 
     /**
@@ -209,6 +238,40 @@ public class SyncAmUsersUseCase {
         return new CreateOrReplaceAuthzEntityCommand(environmentId, role.id(), AuthzEntityKind.PRINCIPAL, null, attributes, List.of(), SOURCE);
     }
 
+    private CreateOrReplaceAuthzEntityCommand agentCommand(String environmentId, String domain, AmAgent agent) {
+        String clientId = agent.clientId();
+        // The entity id must equal what the PEP derives at request time from the token client_id: a
+        // name-UUID of the client_id. Hashing keeps the id within the entity-id grammar even when the
+        // client_id is itself illegal there (mixed case, slashes, dots — e.g. a CIMD URL).
+        String entityId = UUID.nameUUIDFromBytes(clientId.getBytes(StandardCharsets.UTF_8)).toString();
+        // Map.copyOf (inside the command) rejects null values, so only put attributes AM populated.
+        Map<String, Object> attributes = new LinkedHashMap<>();
+        // The entityId is a bare name-UUID (like a user's sub); _kind carries the type. The UI's
+        // entity-kind registry maps "agent-identity" to the AgentIdentity type ("agent" is the
+        // catalog/A2A kind).
+        attributes.put("_kind", "agent-identity");
+        // The agent's AM application id — the actual token subject — surfaced like a user's `sub`,
+        // distinct from the derived entityId (which is keyed on the client_id).
+        attributes.put("sub", agent.id());
+        attributes.put("clientId", clientId);
+        attributes.put("domain", domain);
+        // A CIMD agent's client_id is its CIMD url (a normal http(s) URL); surface it as a typed
+        // attribute. (A SPIFFE agent's workload id lives in the application's workload-identity
+        // settings, not the client_id, so AM's app list can't surface it here yet.)
+        if (clientId.startsWith("http://") || clientId.startsWith("https://")) {
+            attributes.put("cimdUrl", clientId);
+        }
+        if (agent.name() != null) {
+            attributes.put("displayName", agent.name());
+        }
+        if (agent.agentType() != null) {
+            attributes.put("agentType", agent.agentType());
+        }
+        // Agent identities are generic and user-independent: no parents. User-specific rules belong in
+        // policy conditions, not the entity graph.
+        return new CreateOrReplaceAuthzEntityCommand(environmentId, entityId, AuthzEntityKind.PRINCIPAL, null, attributes, List.of(), SOURCE);
+    }
+
     // Mirrors AM's SubjectManagerV2: the token `sub` a V2 domain issues is an MD5-based UUID of
     // "source:externalId", not the user id. PRINCIPAL entities must be keyed on that `sub` for the
     // PEP's Principal::"<sub>" to match at eval time. When either source or externalId is absent
@@ -223,7 +286,7 @@ public class SyncAmUsersUseCase {
 
     public record Input(AuthzCallerContext caller, AmConnection connection) {}
 
-    public record Output(int usersFetched, int entitiesUpserted) {}
+    public record Output(int usersFetched, int agentsFetched, int entitiesUpserted) {}
 
-    public record SyncConfig(int maxUsers, int pageSize, int batchSize) {}
+    public record SyncConfig(int maxEntities, int pageSize, int batchSize) {}
 }

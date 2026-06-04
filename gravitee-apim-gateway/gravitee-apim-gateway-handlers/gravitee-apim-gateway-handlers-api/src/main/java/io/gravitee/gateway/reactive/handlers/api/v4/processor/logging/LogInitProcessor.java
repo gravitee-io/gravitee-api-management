@@ -80,6 +80,8 @@ public class LogInitProcessor implements Processor {
             .clientIdentifier(request.clientIdentifier())
             .apiId(ctx.getAttribute(ATTR_API))
             .apiName(ctx.getAttribute(ContextAttributes.ATTR_API_NAME))
+            .organizationId(ctx.metrics().getOrganizationId())
+            .environmentId(ctx.metrics().getEnvironmentId())
             .build();
         ctx.metrics().setLog(log);
 

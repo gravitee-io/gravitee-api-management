@@ -16,6 +16,7 @@
 
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { MatIcon } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, forkJoin, map, of } from 'rxjs';
 
@@ -44,7 +45,7 @@ export interface DashboardPaginatorVM {
 
 @Component({
   selector: 'app-analytics',
-  imports: [AnalyticsDashboardCardComponent, CardsGridComponent, PaginationComponent, LoaderComponent, BannerComponent],
+  imports: [AnalyticsDashboardCardComponent, CardsGridComponent, PaginationComponent, LoaderComponent, BannerComponent, MatIcon],
   templateUrl: './analytics.component.html',
   styleUrl: './analytics.component.scss',
 })
@@ -57,7 +58,7 @@ export default class AnalyticsComponent {
   private readonly router = inject(Router);
   private readonly breadcrumbService = inject(BreadcrumbService);
 
-  readonly pageSize = 20;
+  readonly pageSize = signal(20);
   private readonly currentPage = signal(1);
 
   readonly pinnedIds = signal<string[]>(this.loadPinnedIds());
@@ -65,7 +66,7 @@ export default class AnalyticsComponent {
   readonly canPinMore = computed(() => this.pinnedIds().length < AnalyticsComponent.MAX_PINNED);
 
   protected readonly dashboardsResource = rxResource<AnalyticsDashboardsResponse | undefined, DashboardsListParams>({
-    params: () => ({ page: this.currentPage(), pageSize: this.pageSize }),
+    params: () => ({ page: this.currentPage(), pageSize: this.pageSize() }),
     stream: ({ params }) => this.dashboardService.list(params.page, params.pageSize),
   });
 
@@ -108,6 +109,11 @@ export default class AnalyticsComponent {
     this.currentPage.set(page);
   }
 
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.currentPage.set(1);
+  }
+
   navigateToDashboard(dashboardId: string): void {
     this.router.navigate([dashboardId], { relativeTo: this.activatedRoute });
   }
@@ -117,6 +123,19 @@ export default class AnalyticsComponent {
     const isPinned = current.includes(dashboardId);
     if (!isPinned && current.length >= AnalyticsComponent.MAX_PINNED) return;
     const updated = isPinned ? current.filter(id => id !== dashboardId) : [...current, dashboardId];
+
+    // Optimistically update the cached pinned dashboards so the UI reflects the change instantly,
+    // without waiting for the rxResource HTTP round-trip.
+    if (isPinned) {
+      this.cachedPinnedDashboards.update(cached => cached.filter(d => d.id !== dashboardId));
+    } else {
+      const dashboard =
+        this.dashboardPaginator().data.find(d => d.id === dashboardId) ?? this.cachedPinnedDashboards().find(d => d.id === dashboardId);
+      if (dashboard) {
+        this.cachedPinnedDashboards.update(cached => [...cached, dashboard]);
+      }
+    }
+
     this.pinnedIds.set(updated);
     localStorage.setItem(AnalyticsComponent.PINNED_KEY, JSON.stringify(updated));
   }

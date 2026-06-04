@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
+import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.FilterAdapter.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -331,6 +332,43 @@ class FilterAdapterTest {
             assertThat(termsFilter.size()).isEqualTo(2);
             assertThat(termsFilter.get(0).asText()).isEqualTo("cf52e8b7-0000-0000-0000-000000000001");
             assertThat(termsFilter.get(1).asText()).isEqualTo("cf52e8b7-0000-0000-0000-000000000002");
+        }
+    }
+
+    @Nested
+    class HttpEntrypointFilter {
+
+        private final FilterAdapter filterAdapter = new FilterAdapter(new HTTPFieldResolver());
+
+        @Test
+        void should_include_all_http_entrypoint_ids_in_http_filter() {
+            var httpFilter = filterAdapter.httpFilter();
+
+            var termsFilter = httpFilter.getJsonObject("bool").getJsonArray("should").getJsonObject(0);
+
+            var entrypointIds = termsFilter.getJsonObject("terms").getJsonArray(ENTRYPOINT_FIELD);
+
+            assertThat(entrypointIds.getList()).containsExactly(
+                HTTP_GET_ENTRYPOINT_ID,
+                HTTP_POST_ENTRYPOINT_ID,
+                HTTP_PROXY_ENTRYPOINT_ID,
+                LLM_PROXY_ENTRYPOINT_ID,
+                MCP_PROXY_ENTRYPOINT_ID
+            );
+        }
+
+        @Test
+        void should_include_field_missing_clause_in_http_filter() {
+            var httpFilter = filterAdapter.httpFilter();
+
+            var shouldClauses = httpFilter.getJsonObject("bool").getJsonArray("should");
+            assertThat(shouldClauses).hasSize(2);
+
+            var fieldMissingClause = shouldClauses.getJsonObject(1);
+            var mustNot = fieldMissingClause.getJsonObject("bool").getJsonObject("must_not");
+            var existsField = mustNot.getJsonObject("exists").getString("field");
+
+            assertThat(existsField).isEqualTo(ENTRYPOINT_FIELD);
         }
     }
 }
