@@ -13,18 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-export interface AddCertificateSubmit {
-    name: string;
-    certificate: string;
-    endsAt?: string;
-    gracePeriodEnd?: string;
-    activeCertificateId?: string;
-}
-
-export const PEM_PLACEHOLDER = '-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----';
-
-export const INVALID_CERTIFICATE_MESSAGE = 'Invalid certificate format';
-
-/** Console `GIO_DIALOG_WIDTH.MEDIUM` (~600px); step content uses `min-width: 500px` in the add-certificate sheet. */
-export const ADD_CERTIFICATE_SHEET_WIDTH = '37.5rem';
+export { ApplicationAddCertificateSheet, type AddCertificateSubmit } from './add-certificate/ApplicationAddCertificateSheet';

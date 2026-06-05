@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { useState } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
-import { ApplicationSubscriptionCreateDialog } from './ApplicationSubscriptionCreateDialog';
+import { ApplicationSubscriptionCreateSheet } from './ApplicationSubscriptionCreateSheet';
 import {
     useApplicationApiKeySubscriptions,
     useCreateApplicationSubscription,
@@ -25,6 +26,7 @@ import {
 } from '../../hooks/useCreateApplicationSubscription';
 import { useEnvironmentPortalConfiguration } from '../../hooks/useEnvironmentPortalConfiguration';
 import type { ApplicationListItem } from '../../types/application';
+import { querySheetHeading } from '../test/sheetSpecHelpers';
 
 jest.mock('../../hooks/useCreateApplicationSubscription');
 jest.mock('../../hooks/useEnvironmentPortalConfiguration');
@@ -51,12 +53,19 @@ const apiKeyPlan = {
     security: { type: 'API_KEY' },
 };
 
-function renderDialog() {
-    return render(
+function renderSheet(open = true) {
+    const onOpenChange = jest.fn();
+    render(
         <MemoryRouter>
-            <ApplicationSubscriptionCreateDialog application={application} basePath="/applications/app-1" open onOpenChange={jest.fn()} />
+            <ApplicationSubscriptionCreateSheet
+                application={application}
+                basePath="/applications/app-1"
+                open={open}
+                onOpenChange={onOpenChange}
+            />
         </MemoryRouter>,
     );
+    return { onOpenChange };
 }
 
 async function selectApiReference() {
@@ -64,7 +73,7 @@ async function selectApiReference() {
     fireEvent.click(await screen.findByRole('button', { name: /Payments API/i }));
 }
 
-describe('ApplicationSubscriptionCreateDialog', () => {
+describe('ApplicationSubscriptionCreateSheet', () => {
     const mutateAsync = jest.fn();
 
     beforeEach(() => {
@@ -89,8 +98,55 @@ describe('ApplicationSubscriptionCreateDialog', () => {
         } as ReturnType<typeof useCreateApplicationSubscription>);
     });
 
+    it('does not show sheet content when closed', () => {
+        renderSheet(false);
+        expect(querySheetHeading('Create a subscription')).toBeNull();
+    });
+
+    it('invokes onOpenChange(false) when Cancel is clicked', () => {
+        const { onOpenChange } = renderSheet(true);
+        fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+        expect(onOpenChange).toHaveBeenCalledWith(false);
+    });
+
+    it('resets form state when the sheet closes and reopens', async () => {
+        function ControlledSheet() {
+            const [open, setOpen] = useState(true);
+            return (
+                <>
+                    <button type="button" onClick={() => setOpen(true)}>
+                        Reopen
+                    </button>
+                    <ApplicationSubscriptionCreateSheet
+                        application={application}
+                        basePath="/applications/app-1"
+                        open={open}
+                        onOpenChange={setOpen}
+                    />
+                </>
+            );
+        }
+
+        render(
+            <MemoryRouter>
+                <ControlledSheet />
+            </MemoryRouter>,
+        );
+
+        const searchInput = screen.getByLabelText(/Search an API or API Product/i) as HTMLInputElement;
+        fireEvent.change(searchInput, { target: { value: 'pay' } });
+        await selectApiReference();
+        expect(screen.getByText(/Select a plan to subscribe/i)).not.toBeNull();
+
+        fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Reopen' }));
+
+        expect((screen.getByLabelText(/Search an API or API Product/i) as HTMLInputElement).value).toBe('');
+        expect(screen.queryByText(/Select a plan to subscribe/i)).toBeNull();
+    });
+
     it('shows API key mode choice and sends EXCLUSIVE in payload', async () => {
-        renderDialog();
+        renderSheet();
         await selectApiReference();
 
         expect(await screen.findByText(/this choice is permanent/i)).not.toBeNull();
@@ -115,7 +171,7 @@ describe('ApplicationSubscriptionCreateDialog', () => {
             isFetching: false,
         } as ReturnType<typeof useSubscriptionReferenceSearch>);
 
-        renderDialog();
+        renderSheet();
         fireEvent.change(screen.getByLabelText(/Search an API or API Product/i), { target: { value: 'api' } });
 
         const list = await screen.findByTestId('subscription-reference-search-results');
@@ -124,7 +180,7 @@ describe('ApplicationSubscriptionCreateDialog', () => {
     });
 
     it('sends SHARED apiKeyMode when shared mode is selected', async () => {
-        renderDialog();
+        renderSheet();
         await selectApiReference();
 
         fireEvent.click(screen.getByRole('button', { name: 'Shared API Key' }));

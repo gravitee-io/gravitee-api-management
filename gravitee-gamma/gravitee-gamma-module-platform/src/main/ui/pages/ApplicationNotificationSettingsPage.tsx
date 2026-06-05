@@ -13,13 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { ApplicationMetadataSection } from '../features/applications/components/metadata/ApplicationMetadataSection';
 import { DeleteNotificationDialog } from '../features/applications/components/notifications/DeleteNotificationDialog';
-import { EditNotificationDialog } from '../features/applications/components/notifications/EditNotificationDialog';
-import { notifierTypeLabel } from '../features/applications/components/notifications/notificationHelpers';
+import {
+    EditNotificationSheet,
+    type NotificationSheetCreatePayload,
+} from '../features/applications/components/notifications/EditNotificationSheet';
+import {
+    buildNewNotificationRow,
+    notificationNotifierOptions,
+} from '../features/applications/components/notifications/notificationHelpers';
 import { NotificationsSection } from '../features/applications/components/notifications/NotificationsSection';
 import { useApplicationDetailContext } from '../features/applications/context/ApplicationDetailContext';
 import { useApplicationNotificationPermissions } from '../features/applications/hooks/useApplicationNotificationPermissions';
@@ -67,41 +73,49 @@ export function ApplicationNotificationSettingsPage() {
     const [notificationToDelete, setNotificationToDelete] = useState<ApplicationNotificationRow | null>(null);
 
     const isReadOnly = application?.origin === 'KUBERNETES';
-    const canAddNotification = canCreateNotification && !isReadOnly;
+    const hasConfigurableNotifiers = notificationNotifierOptions(notifiers).length > 0;
+    const canAddNotification = canCreateNotification && !isReadOnly && hasConfigurableNotifiers;
     const canEditNotification = canUpdateNotification && !isReadOnly;
     const canRemoveNotification = canDeleteNotification && !isReadOnly;
     const canAddMetadata = canCreateMetadata && !isReadOnly;
     const canEditMetadata = canUpdateMetadata && !isReadOnly;
     const canRemoveMetadata = canDeleteMetadata && !isReadOnly;
 
-    async function handleAddNotification(name: string, notifierId: string): Promise<boolean> {
+    const handleCreateNotificationClick = useCallback(() => {
+        if (!applicationId || !hasConfigurableNotifiers) {
+            return;
+        }
+        setNotificationToEdit(buildNewNotificationRow(applicationId, notifiers));
+    }, [applicationId, hasConfigurableNotifiers, notifiers]);
+
+    async function handleCreateNotification(payload: NotificationSheetCreatePayload) {
         if (!applicationId) {
-            return false;
+            return;
         }
         try {
             const created = await createNotificationMutation.mutateAsync({
-                name,
-                notifier: notifierId,
+                name: payload.name,
+                notifier: payload.notifier,
                 referenceType: 'APPLICATION',
                 referenceId: applicationId,
                 config_type: 'GENERIC',
-                hooks: [],
+                hooks: payload.hooks,
             });
+
+            const needsFollowUpUpdate = Boolean(payload.config) || Boolean(payload.useSystemProxy);
+            if (needsFollowUpUpdate) {
+                await updateNotificationMutation.mutateAsync({
+                    ...created,
+                    config: payload.config ?? created.config,
+                    useSystemProxy: payload.useSystemProxy ?? created.useSystemProxy,
+                    hooks: payload.hooks,
+                });
+            }
+
             notify.success('Notification created successfully');
-            const notifier = notifiers.find(item => item.id === created.notifier);
-            setNotificationToEdit({
-                key: created.id ?? created.config_type,
-                name: created.name,
-                subscribedEvents: (created.hooks ?? []).length + (created.groupHooks ?? []).length,
-                notifierName: notifier ? notifierTypeLabel(notifier) : (created.notifier ?? '—'),
-                notification: created,
-                notifier,
-                isReadonly: Boolean(created.origin && created.origin !== 'MANAGEMENT'),
-            });
-            return true;
+            setNotificationToEdit(null);
         } catch (error: unknown) {
             notify.error(error, 'Failed to create notification.');
-            return false;
         }
     }
 
@@ -131,15 +145,30 @@ export function ApplicationNotificationSettingsPage() {
     }
 
     async function handleCreateMetadata(payload: NewApplicationMetadata) {
-        await createMetadataMutation.mutateAsync(payload);
+        try {
+            await createMetadataMutation.mutateAsync(payload);
+            notify.success('Metadata created successfully');
+        } catch (error) {
+            notify.error(error, 'Failed to create metadata.');
+        }
     }
 
     async function handleUpdateMetadata(payload: UpdateApplicationMetadata) {
-        await updateMetadataMutation.mutateAsync(payload);
+        try {
+            await updateMetadataMutation.mutateAsync(payload);
+            notify.success('Metadata saved successfully');
+        } catch (error) {
+            notify.error(error, 'Failed to save metadata.');
+        }
     }
 
     async function handleDeleteMetadata(metadataKey: string) {
-        await deleteMetadataMutation.mutateAsync(metadataKey);
+        try {
+            await deleteMetadataMutation.mutateAsync(metadataKey);
+            notify.success('Metadata deleted successfully');
+        } catch (error) {
+            notify.error(error, 'Failed to delete metadata.');
+        }
     }
 
     const metadataMutationError = createMetadataMutation.error ?? updateMetadataMutation.error ?? deleteMetadataMutation.error;
@@ -159,14 +188,12 @@ export function ApplicationNotificationSettingsPage() {
 
             <NotificationsSection
                 rows={rows}
-                notifiers={notifiers}
                 isLoading={notificationsLoading}
                 isError={notificationsError}
                 canCreate={canAddNotification}
                 canUpdate={canEditNotification}
                 canDelete={canRemoveNotification}
-                isCreating={createNotificationMutation.isPending}
-                onAdd={handleAddNotification}
+                onCreateClick={handleCreateNotificationClick}
                 onEdit={row => setNotificationToEdit(row)}
                 onDelete={row => setNotificationToDelete(row)}
             />
@@ -187,13 +214,15 @@ export function ApplicationNotificationSettingsPage() {
                 onDelete={handleDeleteMetadata}
             />
 
-            <EditNotificationDialog
+            <EditNotificationSheet
                 row={notificationToEdit}
+                notifiers={notifiers}
                 hookCategories={hookCategories}
                 isLoadingHooks={isLoadingHooks}
-                isSaving={updateNotificationMutation.isPending}
+                isSaving={createNotificationMutation.isPending || updateNotificationMutation.isPending}
                 onCancel={() => setNotificationToEdit(null)}
                 onSave={handleUpdateNotification}
+                onCreate={handleCreateNotification}
             />
             <DeleteNotificationDialog
                 row={notificationToDelete}

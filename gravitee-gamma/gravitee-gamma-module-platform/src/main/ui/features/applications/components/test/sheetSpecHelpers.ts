@@ -13,4 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { ApplicationAddCertificateDialog, type AddCertificateSubmit } from './add-certificate/ApplicationAddCertificateDialog';
+import { screen } from '@testing-library/react';
+
+export function querySheetHeading(name: string | RegExp) {
+    return screen.queryByRole('heading', { name });
+}

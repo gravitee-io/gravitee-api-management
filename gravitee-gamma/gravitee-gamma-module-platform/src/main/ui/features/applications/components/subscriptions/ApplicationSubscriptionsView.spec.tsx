@@ -32,8 +32,8 @@ jest.mock('../../hooks/useCloseApplicationSubscription');
 jest.mock('../../../shared/hooks/useDetailBasePath', () => ({
     useDetailBasePath: () => '/applications/app-1',
 }));
-jest.mock('./ApplicationSubscriptionCreateDialog', () => ({
-    ApplicationSubscriptionCreateDialog: () => <div data-testid="create-dialog" />,
+jest.mock('./ApplicationSubscriptionCreateSheet', () => ({
+    ApplicationSubscriptionCreateSheet: () => <div data-testid="create-sheet" />,
 }));
 jest.mock('./ApplicationSubscriptionCloseDialog', () => ({
     ApplicationSubscriptionCloseDialog: () => <div data-testid="close-dialog" />,
@@ -108,7 +108,7 @@ describe('ApplicationSubscriptionsView', () => {
         });
         renderView();
         expect(screen.getByRole('button', { name: /Create a subscription/i })).not.toBeNull();
-        expect(screen.getByTestId('create-dialog')).not.toBeNull();
+        expect(screen.getByTestId('create-sheet')).not.toBeNull();
     });
 
     it('hides Create a subscription when the user cannot create', () => {
@@ -122,7 +122,7 @@ describe('ApplicationSubscriptionsView', () => {
         });
         renderView();
         expect(screen.queryByRole('button', { name: /Create a subscription/i })).toBeNull();
-        expect(screen.queryByTestId('create-dialog')).toBeNull();
+        expect(screen.queryByTestId('create-sheet')).toBeNull();
     });
 
     it('shows a toaster error and inline alert without the table when subscriptions fail to load', () => {
@@ -160,6 +160,6 @@ describe('ApplicationSubscriptionsView', () => {
             </MemoryRouter>,
         );
         expect(screen.queryByRole('button', { name: /Create a subscription/i })).toBeNull();
-        expect(screen.queryByTestId('create-dialog')).toBeNull();
+        expect(screen.queryByTestId('create-sheet')).toBeNull();
     });
 });

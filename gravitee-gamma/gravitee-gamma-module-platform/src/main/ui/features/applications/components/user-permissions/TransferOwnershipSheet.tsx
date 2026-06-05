@@ -16,20 +16,19 @@
 import {
     Button,
     cn,
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
     Input,
     Label,
-    ScrollArea,
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
     Skeleton,
 } from '@gravitee/graphene-core';
 import { SearchIcon, TriangleAlertIcon, XIcon } from '@gravitee/graphene-core/icons';
@@ -42,7 +41,10 @@ import { searchUsers } from '../../services/applicationMembers';
 import type { ApplicationTransferOwnershipPayload, ApplicationUiMember, SearchableUser } from '../../types/applicationMembers.types';
 import { applicationMemberKeys } from '../../utils/queryKeys';
 
-export function TransferOwnershipDialog({
+/** Matches AddMembersSheet search dropdown cap (~12rem). */
+const USER_SEARCH_RESULTS_MAX_HEIGHT_CLASS = 'max-h-48';
+
+export function TransferOwnershipSheet({
     open,
     members,
     roles,
@@ -110,42 +112,44 @@ export function TransferOwnershipDialog({
     }
 
     return (
-        <Dialog open={open} onOpenChange={isOpen => !isOpen && handleClose()}>
-            <DialogContent className="overflow-visible" style={{ width: 'min(90vw, 38rem)', maxWidth: 'min(90vw, 38rem)' }}>
-                <DialogHeader>
-                    <DialogTitle>Transfer ownership</DialogTitle>
-                    <DialogDescription>Transfer primary ownership of this application to another user.</DialogDescription>
-                </DialogHeader>
+        <Sheet open={open} onOpenChange={isOpen => !isOpen && handleClose()}>
+            <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: '480px' }}>
+                <SheetHeader>
+                    <SheetTitle>Transfer ownership</SheetTitle>
+                    <SheetDescription>Transfer primary ownership of this application to another user.</SheetDescription>
+                </SheetHeader>
 
-                <div className="space-y-8">
+                <div className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto px-4">
                     <div className="flex rounded-lg border overflow-hidden">
-                        <button
+                        <Button
                             type="button"
+                            variant={tab === 'member' ? 'default' : 'ghost'}
+                            className={cn(
+                                'h-auto flex-1 rounded-none px-4 py-2.5 text-sm font-semibold',
+                                tab !== 'member' && 'text-muted-foreground',
+                            )}
                             onClick={() => {
                                 setTab('member');
                                 setSelectedUser(null);
                                 setUserSearch('');
                             }}
-                            className={cn(
-                                'flex-1 px-4 py-2.5 text-sm font-semibold transition-colors',
-                                tab === 'member' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground',
-                            )}
                         >
                             Application member
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type="button"
+                            variant={tab === 'user' ? 'default' : 'ghost'}
+                            className={cn(
+                                'h-auto flex-1 rounded-none border-l px-4 py-2.5 text-sm font-semibold',
+                                tab !== 'user' && 'text-muted-foreground',
+                            )}
                             onClick={() => {
                                 setTab('user');
                                 setSelectedMemberId('');
                             }}
-                            className={cn(
-                                'flex-1 px-4 py-2.5 text-sm font-semibold transition-colors border-l',
-                                tab === 'user' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground',
-                            )}
                         >
                             Other user
-                        </button>
+                        </Button>
                     </div>
 
                     {tab === 'member' ? (
@@ -176,23 +180,25 @@ export function TransferOwnershipDialog({
                                             <p className="text-xs text-muted-foreground truncate">{selectedUser.email}</p>
                                         ) : null}
                                     </div>
-                                    <button
+                                    <Button
                                         type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="size-8 shrink-0 opacity-60 hover:opacity-100"
                                         onClick={() => setSelectedUser(null)}
-                                        className="rounded-sm opacity-60 hover:opacity-100 transition-opacity shrink-0"
                                         aria-label={`Remove ${selectedUser.displayName}`}
                                     >
-                                        <XIcon className="size-4" />
-                                    </button>
+                                        <XIcon className="size-4" aria-hidden />
+                                    </Button>
                                 </div>
                             ) : (
                                 <div className="relative">
                                     <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
                                     <Input
+                                        className="pl-10"
                                         placeholder="Type at least 2 characters…"
                                         value={userSearch}
                                         onChange={e => setUserSearch(e.target.value)}
-                                        style={{ paddingLeft: '2.5rem' }}
                                     />
                                     {userSearch.trim().length >= 2 && (
                                         <div className="absolute z-50 w-full top-full mt-1 rounded-lg border shadow-md overflow-hidden bg-background">
@@ -204,27 +210,31 @@ export function TransferOwnershipDialog({
                                             ) : (searchResults ?? []).length === 0 ? (
                                                 <p className="px-3 py-4 text-sm text-center text-muted-foreground">No users found.</p>
                                             ) : (
-                                                <ScrollArea className="max-h-48">
+                                                <div
+                                                    className={`${USER_SEARCH_RESULTS_MAX_HEIGHT_CLASS} overflow-y-auto overscroll-y-contain`}
+                                                    data-testid="transfer-ownership-user-search-results"
+                                                >
                                                     {(searchResults ?? []).map(u => (
-                                                        <button
+                                                        <Button
                                                             key={u.reference}
                                                             type="button"
+                                                            variant="ghost"
+                                                            className="h-auto w-full justify-start gap-3 rounded-none px-3 py-2.5 font-normal hover:bg-muted/50"
                                                             onClick={() => {
                                                                 setSelectedUser(u);
                                                                 setUserSearch('');
                                                             }}
-                                                            className="w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted/50"
                                                         >
                                                             <MemberAvatar name={u.displayName} />
-                                                            <div className="min-w-0">
+                                                            <div className="min-w-0 text-left">
                                                                 <p className="font-medium truncate">{u.displayName}</p>
                                                                 {u.email ? (
                                                                     <p className="text-xs text-muted-foreground truncate">{u.email}</p>
                                                                 ) : null}
                                                             </div>
-                                                        </button>
+                                                        </Button>
                                                     ))}
-                                                </ScrollArea>
+                                                </div>
                                             )}
                                         </div>
                                     )}
@@ -261,15 +271,15 @@ export function TransferOwnershipDialog({
                     </div>
                 </div>
 
-                <DialogFooter className="border-t px-6 py-4 gap-2">
+                <SheetFooter className="flex-row justify-end border-t">
                     <Button type="button" variant="outline" onClick={handleClose} disabled={isTransferring}>
                         Cancel
                     </Button>
                     <Button type="button" onClick={handleSubmit} disabled={!canSubmit || isTransferring}>
                         Transfer
                     </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </SheetFooter>
+            </SheetContent>
+        </Sheet>
     );
 }

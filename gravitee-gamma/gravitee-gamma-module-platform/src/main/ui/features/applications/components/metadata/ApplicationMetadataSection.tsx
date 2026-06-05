@@ -13,38 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-    Alert,
-    AlertDescription,
-    Button,
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-    Input,
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@gravitee/graphene-core';
+import { Alert, AlertDescription, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@gravitee/graphene-core';
 import { PlusIcon } from '@gravitee/graphene-core/icons';
-import { type FormEvent, useMemo, useState } from 'react';
+import { useState } from 'react';
 
+import { AddMetadataSheet } from './AddMetadataSheet';
 import { DeleteMetadataDialog } from './DeleteMetadataDialog';
-import { EditMetadataDialog } from './EditMetadataDialog';
-import { METADATA_FORMATS } from './metadataConstants';
-import { deriveMetadataKey } from './metadataHelpers';
+import { EditMetadataSheet } from './EditMetadataSheet';
 import { MetadataTable } from './MetadataTable';
-import { MetadataValueField } from './MetadataValueField';
-import type {
-    ApplicationMetadata,
-    ApplicationMetadataFormat,
-    NewApplicationMetadata,
-    UpdateApplicationMetadata,
-} from '../../types/applicationNotification';
-import { RequiredLabel } from '../notification-settings/RequiredLabel';
+import type { ApplicationMetadata, NewApplicationMetadata, UpdateApplicationMetadata } from '../../types/applicationNotification';
 
 export function ApplicationMetadataSection({
     metadata,
@@ -75,30 +52,9 @@ export function ApplicationMetadataSection({
     onUpdate: (payload: UpdateApplicationMetadata) => Promise<void>;
     onDelete: (metadataKey: string) => Promise<void>;
 }>) {
-    const [metadataName, setMetadataName] = useState('');
-    const [metadataFormat, setMetadataFormat] = useState<ApplicationMetadataFormat>('STRING');
-    const [metadataValue, setMetadataValue] = useState('');
+    const [addOpen, setAddOpen] = useState(false);
     const [metadataToEdit, setMetadataToEdit] = useState<ApplicationMetadata | null>(null);
     const [metadataToDelete, setMetadataToDelete] = useState<ApplicationMetadata | null>(null);
-
-    const metadataKey = useMemo(() => deriveMetadataKey(metadataName), [metadataName]);
-    const canSubmitMetadata =
-        canCreate && metadataKey.length > 0 && metadataName.trim().length > 0 && metadataFormat.length > 0 && metadataValue.length > 0;
-
-    async function handleAddMetadata(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault();
-        if (!canSubmitMetadata) {
-            return;
-        }
-        try {
-            await onCreate({ name: metadataName.trim(), format: metadataFormat, value: metadataValue });
-            setMetadataName('');
-            setMetadataFormat('STRING');
-            setMetadataValue('');
-        } catch {
-            // Error surfaced via mutationErrorMessage from the page
-        }
-    }
 
     async function handleDeleteMetadataConfirm() {
         if (!metadataToDelete) {
@@ -124,11 +80,19 @@ export function ApplicationMetadataSection({
     return (
         <>
             <Card>
-                <CardHeader>
-                    <CardTitle className="text-base">Metadata</CardTitle>
-                    <CardDescription>
-                        Custom metadata available in notification templates. Key is assigned when metadata is created.
-                    </CardDescription>
+                <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
+                    <div className="space-y-1.5">
+                        <CardTitle className="text-base">Metadata</CardTitle>
+                        <CardDescription>
+                            Custom metadata available in notification templates. Key is assigned when metadata is created.
+                        </CardDescription>
+                    </div>
+                    {canCreate ? (
+                        <Button type="button" size="sm" className="shrink-0" onClick={() => setAddOpen(true)}>
+                            <PlusIcon className="size-4" aria-hidden />
+                            Add metadata
+                        </Button>
+                    ) : null}
                 </CardHeader>
                 <CardContent className="space-y-6">
                     {isError ? (
@@ -142,63 +106,6 @@ export function ApplicationMetadataSection({
                         </Alert>
                     ) : null}
 
-                    {canCreate ? (
-                        <form className="space-y-3" onSubmit={handleAddMetadata}>
-                            <div className="grid gap-3 md:grid-cols-3">
-                                <div className="space-y-2">
-                                    <RequiredLabel htmlFor="metadata-name">Name</RequiredLabel>
-                                    <Input
-                                        id="metadata-name"
-                                        value={metadataName}
-                                        onChange={event => setMetadataName(event.target.value)}
-                                        placeholder="Department"
-                                        disabled={isCreating}
-                                        required
-                                        aria-required="true"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <RequiredLabel htmlFor="metadata-format">Format</RequiredLabel>
-                                    <Select
-                                        value={metadataFormat}
-                                        onValueChange={value => {
-                                            const nextFormat = value as ApplicationMetadataFormat;
-                                            setMetadataFormat(nextFormat);
-                                            setMetadataValue(nextFormat === 'BOOLEAN' ? 'false' : '');
-                                        }}
-                                        disabled={isCreating}
-                                        required
-                                    >
-                                        <SelectTrigger id="metadata-format" className="w-full" aria-required="true">
-                                            <SelectValue placeholder="Select a format" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {METADATA_FORMATS.map(format => (
-                                                <SelectItem key={format} value={format}>
-                                                    {format.toLowerCase()}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="space-y-2">
-                                    <RequiredLabel htmlFor="metadata-value">Value</RequiredLabel>
-                                    <MetadataValueField
-                                        id="metadata-value"
-                                        format={metadataFormat}
-                                        value={metadataValue}
-                                        disabled={isCreating}
-                                        onChange={setMetadataValue}
-                                    />
-                                </div>
-                            </div>
-                            <Button type="submit" size="sm" disabled={!canSubmitMetadata || isCreating}>
-                                <PlusIcon className="size-4" aria-hidden />
-                                {isCreating ? 'Adding…' : 'Add metadata'}
-                            </Button>
-                        </form>
-                    ) : null}
-
                     <MetadataTable
                         metadata={metadata}
                         isLoading={isLoading}
@@ -210,13 +117,16 @@ export function ApplicationMetadataSection({
                     />
                 </CardContent>
             </Card>
+
+            {canCreate ? <AddMetadataSheet open={addOpen} onOpenChange={setAddOpen} isCreating={isCreating} onCreate={onCreate} /> : null}
+
             <DeleteMetadataDialog
                 metadata={metadataToDelete}
                 isDeleting={isDeleting}
                 onCancel={() => setMetadataToDelete(null)}
                 onConfirm={handleDeleteMetadataConfirm}
             />
-            <EditMetadataDialog
+            <EditMetadataSheet
                 metadata={metadataToEdit}
                 isSaving={isUpdating}
                 onCancel={() => setMetadataToEdit(null)}
