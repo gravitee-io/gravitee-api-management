@@ -35,7 +35,9 @@
          io/gravitee/am/sdk/management/api/UserApi) and every sync REST path 404s.
          gravitee-gamma-definition-model carries io.gravitee.gamma.definition.authz.AuthzEntity,
          used on the entity-upsert path; core ships gravitee-apim-definition-model but not this
-         gamma artifact, so without it the user sync fails with NoClassDefFoundError at runtime. -->
+         gamma artifact, so without it the user sync fails with NoClassDefFoundError at runtime.
+         gravitee-authz-engine parses the stored schema; the engine artifact resolves with no
+         transitive deps, so its matching ANTLR runtime (4.13.2) must be bundled alongside it. -->
     <dependencySets>
         <dependencySet>
             <outputDirectory>lib</outputDirectory>
@@ -45,6 +47,8 @@
                 <include>io.gravitee.am:gravitee-am-management-api-sdk-java</include>
                 <include>com.fasterxml.jackson.datatype:jackson-datatype-jsr310</include>
                 <include>io.gravitee.gamma.definition:gravitee-gamma-definition-model</include>
+                <include>io.gravitee.authorization:gravitee-authz-engine</include>
+                <include>org.antlr:antlr4-runtime</include>
             </includes>
         </dependencySet>
     </dependencySets>

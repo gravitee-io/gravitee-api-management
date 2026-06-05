@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.gamma.authorization.repository.InMemoryAuthzSchemaRepository;
+import io.gravitee.gamma.authorization.service.exception.AuthzInvalidArgumentException;
 import org.junit.jupiter.api.Test;
 
 class AuthzSchemaServiceImplTest {
@@ -72,5 +73,47 @@ class AuthzSchemaServiceImplTest {
     void deleteSchema_rejects_null_environmentId() {
         AuthzSchemaServiceImpl service = new AuthzSchemaServiceImpl(new InMemoryAuthzSchemaRepository());
         assertThatThrownBy(() -> service.deleteSchema(null)).isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void parsedSchema_is_empty_object_when_nothing_stored() {
+        AuthzSchemaServiceImpl service = new AuthzSchemaServiceImpl(new InMemoryAuthzSchemaRepository());
+        assertThat(service.parsedSchema("env-1")).isEqualTo("{}");
+    }
+
+    @Test
+    void parsedSchema_returns_engine_json_after_save() {
+        AuthzSchemaServiceImpl service = new AuthzSchemaServiceImpl(new InMemoryAuthzSchemaRepository());
+        service.saveSchema("env-1", "entity User {};");
+        assertThat(service.parsedSchema("env-1")).contains("entityTypes").contains("User");
+    }
+
+    @Test
+    void validate_returns_empty_for_valid_schema() {
+        AuthzSchemaServiceImpl service = new AuthzSchemaServiceImpl(new InMemoryAuthzSchemaRepository());
+        assertThat(service.validate("entity X {};")).isEmpty();
+    }
+
+    @Test
+    void validate_returns_errors_for_invalid_schema() {
+        AuthzSchemaServiceImpl service = new AuthzSchemaServiceImpl(new InMemoryAuthzSchemaRepository());
+        assertThat(service.validate("@@@ not gapl")).isNotEmpty();
+    }
+
+    @Test
+    void saveSchema_rejects_invalid_schema_and_stores_nothing() {
+        AuthzSchemaServiceImpl service = new AuthzSchemaServiceImpl(new InMemoryAuthzSchemaRepository());
+        assertThatThrownBy(() -> service.saveSchema("env-1", "@@@ not gapl"))
+            .isInstanceOf(AuthzInvalidArgumentException.class);
+        assertThat(service.getSchema("env-1")).isEmpty();
+    }
+
+    @Test
+    void parsedSchema_returns_empty_object_when_stored_schema_is_unparseable() {
+        InMemoryAuthzSchemaRepository repository = new InMemoryAuthzSchemaRepository();
+        // Seed directly to bypass save-time validation, emulating legacy/externally-written data.
+        repository.save("env-1", "@@@ not valid gapl", java.time.Instant.now());
+        AuthzSchemaServiceImpl service = new AuthzSchemaServiceImpl(repository);
+        assertThat(service.parsedSchema("env-1")).isEqualTo("{}");
     }
 }

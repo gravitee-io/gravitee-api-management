@@ -15,9 +15,12 @@
  */
 package io.gravitee.gamma.authorization.service;
 
+import io.gravitee.authz.engine.parser.AuthzParseException;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.gamma.authorization.api.AuthzSchemaAdminApi;
 import io.gravitee.gamma.authorization.api.AuthzSchemaRepository;
+import io.gravitee.gamma.authorization.service.exception.AuthzInvalidArgumentException;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -36,9 +39,34 @@ public class AuthzSchemaServiceImpl implements AuthzSchemaAdminApi {
     }
 
     @Override
+    public String parsedSchema(String environmentId) {
+        Objects.requireNonNull(environmentId, "environmentId must not be null");
+        String text = getSchema(environmentId).orElse("");
+        if (text.isBlank()) {
+            return "{}";
+        }
+        try {
+            return AuthzSchemaParsing.toJson(text);
+        } catch (IllegalArgumentException | IllegalStateException | AuthzParseException e) {
+            // Legacy/externally-written schemas may predate save-time validation; don't 500 the read path.
+            return "{}";
+        }
+    }
+
+    @Override
+    public List<String> validate(String schemaText) {
+        Objects.requireNonNull(schemaText, "schemaText must not be null");
+        return AuthzSchemaParsing.validate(schemaText);
+    }
+
+    @Override
     public void saveSchema(String environmentId, String schemaText) {
         Objects.requireNonNull(environmentId, "environmentId must not be null");
         Objects.requireNonNull(schemaText, "schemaText must not be null");
+        List<String> errors = AuthzSchemaParsing.validate(schemaText);
+        if (!errors.isEmpty()) {
+            throw new AuthzInvalidArgumentException(String.join("; ", errors));
+        }
         schemaRepository.save(environmentId, schemaText, TimeProvider.instantNow());
     }
 

@@ -35,6 +35,13 @@
     <properties>
         <skip.ui.build>false</skip.ui.build>
         <gravitee-am-management-api-sdk-java.version>4.12.0-alpha.4</gravitee-am-management-api-sdk-java.version>
+        <!-- Engine used to parse/validate the editable schema for this module's UI. The schema is
+             module-local (not shipped to the PDP), so this tracks the latest engine grammar fix
+             rather than being pinned to the PDP's evaluation version. -->
+        <gravitee-authz-engine.version>1.0.0-alpha.14</gravitee-authz-engine.version>
+        <!-- The engine artifact resolves with no transitive deps (its declared antlr/jackson don't come
+             through — engine publishing defect), so its ANTLR-generated parser needs antlr pinned here -->
+        <antlr4-runtime.version>4.13.2</antlr4-runtime.version>
     </properties>
 
     <dependencyManagement>
@@ -150,8 +157,12 @@
         <dependency>
             <groupId>io.gravitee.authorization</groupId>
             <artifactId>gravitee-authz-engine</artifactId>
-            <version>1.0.0-alpha.7</version>
-            <scope>test</scope>
+            <version>${gravitee-authz-engine.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4-runtime</artifactId>
+            <version>${antlr4-runtime.version}</version>
         </dependency>
         <dependency>
             <groupId>org.hibernate.validator</groupId>

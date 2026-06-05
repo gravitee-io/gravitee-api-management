@@ -102,6 +102,8 @@ class AuthzPermissionContractTest {
         m.put("AuthzEntitiesResource.update", Set.of(RolePermissionAction.UPDATE));
         m.put("AuthzEntitiesResource.delete", Set.of(RolePermissionAction.DELETE));
         m.put("AuthzSchemaResource.currentSchema", Set.of(RolePermissionAction.READ));
+        m.put("AuthzSchemaResource.parsedSchema", Set.of(RolePermissionAction.READ));
+        m.put("AuthzSchemaResource.validateSchema", Set.of(RolePermissionAction.READ));
         m.put("AuthzSchemaResource.updateSchema", Set.of(RolePermissionAction.UPDATE));
         m.put("AuthzSchemaResource.deleteSchema", Set.of(RolePermissionAction.DELETE));
         m.put("AuthzAmUserSyncResource.sync", Set.of(RolePermissionAction.CREATE, RolePermissionAction.UPDATE));

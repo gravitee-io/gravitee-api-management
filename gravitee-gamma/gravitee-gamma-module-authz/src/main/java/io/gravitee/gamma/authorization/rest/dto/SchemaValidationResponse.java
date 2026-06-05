@@ -13,19 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.authorization.api;
+package io.gravitee.gamma.authorization.rest.dto;
 
 import java.util.List;
-import java.util.Optional;
 
-public interface AuthzSchemaAdminApi {
-    Optional<String> getSchema(String environmentId);
-
-    String parsedSchema(String environmentId);
-
-    List<String> validate(String schemaText);
-
-    void saveSchema(String environmentId, String schemaText);
-
-    boolean deleteSchema(String environmentId);
-}
+public record SchemaValidationResponse(boolean valid, List<String> errors) {}

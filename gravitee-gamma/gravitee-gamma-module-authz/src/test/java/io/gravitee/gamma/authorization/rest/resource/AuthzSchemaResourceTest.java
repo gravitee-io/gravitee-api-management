@@ -18,12 +18,17 @@ package io.gravitee.gamma.authorization.rest.resource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gamma.authorization.rest.dto.AuthzSchemaRequest;
 import io.gravitee.gamma.authorization.rest.dto.AuthzSchemaResponse;
+import io.gravitee.gamma.authorization.rest.dto.SchemaValidationResponse;
+import io.gravitee.gamma.authorization.service.exception.AuthzInvalidArgumentException;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
@@ -79,6 +84,51 @@ class AuthzSchemaResourceTest extends AbstractAuthorizationResourceTest {
                 .put(jakarta.ws.rs.client.Entity.json(new AuthzSchemaRequest(null)))
         ) {
             assertThat(response.getStatus()).isEqualTo(400);
+        }
+    }
+
+    @Test
+    void put_with_invalid_schema_returns_400_and_does_not_persist() {
+        doThrow(new AuthzInvalidArgumentException("line 1:7 extraneous input '{'"))
+            .when(schemaService)
+            .saveSchema(any(), eq("entity { broken"));
+
+        try (Response response = target("/schema").request().put(Entity.json(new AuthzSchemaRequest("entity { broken")))) {
+            assertThat(response.getStatus()).isEqualTo(400);
+        }
+    }
+
+    @Test
+    void get_parsed_schema_returns_engine_json_from_service() {
+        when(schemaService.parsedSchema(ENV)).thenReturn("{\"\":{\"entityTypes\":{\"User\":{}}}}");
+
+        try (Response response = target("/schema/parsed").request().get()) {
+            assertThat(response.getStatus()).isEqualTo(200);
+            assertThat(response.readEntity(String.class)).contains("entityTypes").contains("User");
+        }
+    }
+
+    @Test
+    void post_validate_returns_valid_true_when_no_errors() {
+        when(schemaService.validate("entity X {};")).thenReturn(List.of());
+
+        try (Response response = target("/schema/validate").request().post(Entity.json(new AuthzSchemaRequest("entity X {};")))) {
+            assertThat(response.getStatus()).isEqualTo(200);
+            SchemaValidationResponse body = response.readEntity(SchemaValidationResponse.class);
+            assertThat(body.valid()).isTrue();
+            assertThat(body.errors()).isEmpty();
+        }
+    }
+
+    @Test
+    void post_validate_returns_errors_when_invalid() {
+        when(schemaService.validate("bad")).thenReturn(List.of("boom"));
+
+        try (Response response = target("/schema/validate").request().post(Entity.json(new AuthzSchemaRequest("bad")))) {
+            assertThat(response.getStatus()).isEqualTo(200);
+            SchemaValidationResponse body = response.readEntity(SchemaValidationResponse.class);
+            assertThat(body.valid()).isFalse();
+            assertThat(body.errors()).containsExactly("boom");
         }
     }
 }
