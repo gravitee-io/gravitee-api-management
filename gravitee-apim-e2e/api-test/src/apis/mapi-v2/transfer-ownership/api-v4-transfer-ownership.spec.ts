@@ -17,7 +17,7 @@ import { test, describe, expect, afterAll } from '@jest/globals';
 import { APIMembersApi, APIsApi, Api, MembersResponse } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { API_USER, forManagementAsAdminUser, forManagementV2AsAdminUser, forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
-import { created, fail, forbidden, noContent, succeed } from '@lib/jest-utils';
+import { describeIfV4EmulationEngine, created, fail, forbidden, noContent, succeed } from '@lib/jest-utils';
 import { UsersFaker } from '@gravitee/fixtures/management/UsersFaker';
 import { UsersApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
 import { RoleScope } from '@gravitee/management-webclient-sdk/src/lib/models';
@@ -39,7 +39,7 @@ const v2ApisResourceAsAdmin = new APIsApi(forManagementV2AsAdminUser());
 const v2ApiMembersResourceAsApiPublisher = new APIMembersApi(forManagementV2AsApiUser());
 const v2ApiMembersResourceAsAdmin = new APIMembersApi(forManagementV2AsAdminUser());
 
-describe('API - V4 - Transfer Ownership', () => {
+describeIfV4EmulationEngine('API - V4 - Transfer Ownership', () => {
   describe('Transfer ownership to other user', () => {
     const roleName = 'TRANSFER_OWNERSHIP_ROLE';
     let importedApi;

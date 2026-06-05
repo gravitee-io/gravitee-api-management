@@ -17,7 +17,7 @@ import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 import fetch from 'node-fetch';
 import { APIAnalyticsApi, APIsApi, ApiV4 } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
-import { created, fail, noContent, succeed } from '@lib/jest-utils';
+import { describeIfV4EmulationEngine, created, fail, noContent, succeed } from '@lib/jest-utils';
 import { API_USER, forManagementV2AsApiUser, forManagementV2AsAppUser } from '@gravitee/utils/configuration';
 
 const ENV_ID = 'DEFAULT';
@@ -37,7 +37,7 @@ const rawApiUserGet = (path: string) =>
     headers: { Authorization: basicAuthHeader },
   });
 
-describe('API V4 - Native API Logs', () => {
+describeIfV4EmulationEngine('API V4 - Native API Logs', () => {
   let api: ApiV4;
 
   beforeAll(async () => {

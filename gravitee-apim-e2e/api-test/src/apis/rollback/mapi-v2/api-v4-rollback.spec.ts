@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { created, noContent, succeed } from '@lib/jest-utils';
+import { describeIfV4EmulationEngine, created, noContent, succeed } from '@lib/jest-utils';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
 import {
@@ -30,7 +30,7 @@ import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { beforeEach, expect, test } from '@jest/globals';
 import { faker } from '@faker-js/faker';
 
-describe('API - V4 - Rollback', () => {
+describeIfV4EmulationEngine('API - V4 - Rollback', () => {
   describe('Rollback API to eventId', () => {
     const envId = 'DEFAULT';
     const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
