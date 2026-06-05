@@ -16,7 +16,7 @@
 import { ApiAggregatedMessageLogsResponse, ApiLogsResponse, APIsApi, HttpListener } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { afterAll, describe, expect, test } from '@jest/globals';
-import { created, noContent } from '@lib/jest-utils';
+import { describeIfV4EmulationEngine, created, noContent } from '@lib/jest-utils';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { APIAnalyticsApi, APIPlansApi, ApiV4, Pagination } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
@@ -28,7 +28,7 @@ const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 const v2PlansResourceAsApiPublisher = new APIPlansApi(forManagementV2AsApiUser());
 const v2ApiLogsResourceAsApiPublisher = new APIAnalyticsApi(forManagementV2AsApiUser());
 
-describe('API - V4 - MESSAGE - Search logs', () => {
+describeIfV4EmulationEngine('API - V4 - MESSAGE - Search logs', () => {
   describe('Search Message API connection and message logs', () => {
     let importedApi: ApiV4;
     let apiPath;
