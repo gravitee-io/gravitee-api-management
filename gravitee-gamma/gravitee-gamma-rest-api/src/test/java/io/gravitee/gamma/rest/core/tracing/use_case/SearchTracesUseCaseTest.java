@@ -18,7 +18,7 @@ package io.gravitee.gamma.rest.core.tracing.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import io.gravitee.gamma.rest.core.tracing.TracingResourceFilters;
+import io.gravitee.gamma.rest.core.tracing.TraceScopeFilters;
 import io.gravitee.gamma.rest.core.tracing.exception.UnsupportedFilterException;
 import io.gravitee.gamma.rest.core.tracing.inmemory.InMemoryTracingPort;
 import io.gravitee.gamma.rest.core.tracing.model.FilterCondition;
@@ -65,8 +65,8 @@ class SearchTracesUseCaseTest {
         // Module isn't part of the scope envelope — apiId alone is sufficient since each apiId belongs
         // to exactly one module (api type → module). Asserting env + api is enough to prove scoping.
         assertThat(tracingPort.getLastResourceAttributeFilters())
-            .containsEntry(TracingResourceFilters.ENV_ID_KEY, ENV)
-            .containsEntry(TracingResourceFilters.API_ID_KEY, API_ID)
+            .containsEntry(TraceScopeFilters.ENV_ID_KEY, ENV)
+            .containsEntry(TraceScopeFilters.API_ID_KEY, API_ID)
             .doesNotContainKey("gravitee.module");
     }
 
@@ -150,7 +150,7 @@ class SearchTracesUseCaseTest {
         tracingPort.givenTrace(
             ORG,
             ENV,
-            Map.of(TracingResourceFilters.ENV_ID_KEY, ENV, TracingResourceFilters.API_ID_KEY, apiId),
+            Map.of(TraceScopeFilters.ENV_ID_KEY, ENV, TraceScopeFilters.API_ID_KEY, apiId),
             new Trace(traceId, startTime, 1_000L, "gateway", "GET /pets", SpanStatus.OK, 1),
             null
         );

@@ -17,7 +17,7 @@ package io.gravitee.gamma.rest.core.tracing.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.gravitee.gamma.rest.core.tracing.TracingResourceFilters;
+import io.gravitee.gamma.rest.core.tracing.TraceScopeFilters;
 import io.gravitee.gamma.rest.core.tracing.inmemory.InMemoryOtelLogPort;
 import io.gravitee.gamma.rest.core.tracing.inmemory.InMemoryTracingPort;
 import io.gravitee.gamma.rest.core.tracing.model.PayloadLog;
@@ -51,6 +51,21 @@ class GetTraceDetailUseCaseTest {
     void reset() {
         tracingPort.reset();
         otelLogPort.reset();
+    }
+
+    @Test
+    void should_pass_resource_filters_to_spans_port_and_attribute_filters_to_logs_port() {
+        // Same scope envelope travels to both ports, but the use case is responsible for routing
+        // it to the right slot on each — resource-attribute scope for spans (per-API tracer puts
+        // Gravitee attributes on the OTel resource), record-attribute scope for logs
+        // (gravitee-reporter-otel only carries gravitee.org.id on the per-org Logger's resource).
+        givenTraceWithSpans(List.of(span("root", null, "GET /pets", Instant.parse("2026-05-26T15:00:00Z"))));
+
+        useCase.execute(input());
+
+        Map<String, String> expected = Map.of(TraceScopeFilters.ENV_ID_KEY, ENV, TraceScopeFilters.API_ID_KEY, API_ID);
+        assertThat(tracingPort.getLastResourceAttributeFilters()).isEqualTo(expected);
+        assertThat(otelLogPort.lastAttributeFilters()).isEqualTo(expected);
     }
 
     @Test
@@ -226,7 +241,7 @@ class GetTraceDetailUseCaseTest {
         tracingPort.givenTrace(
             ORG,
             ENV,
-            Map.of(TracingResourceFilters.ENV_ID_KEY, ENV, TracingResourceFilters.API_ID_KEY, API_ID),
+            Map.of(TraceScopeFilters.ENV_ID_KEY, ENV, TraceScopeFilters.API_ID_KEY, API_ID),
             new Trace(TRACE_ID, spans.get(0).startTime(), 1_000L, "gateway", spans.get(0).operationName(), SpanStatus.UNSET, 0),
             spans
         );

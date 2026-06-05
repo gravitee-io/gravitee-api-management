@@ -35,8 +35,16 @@ public interface OtelLogPort {
      * {@link PayloadLog}. Returns empty lists when the trace has nothing (or the backing data stream
      * isn't configured — the SPI degrades to empty rather than erroring so the trace's spans still
      * render).
+     * <p>
+     * {@code attributeFilters} entries are emitted as {@code term { attributes.<key>: <value> }}
+     * filters server-side — record-attribute scope, not resource-attribute scope, because
+     * {@code gravitee-reporter-otel} only carries {@code gravitee.org.id} as a Logger resource
+     * attribute (one per-org Logger serves every env/API through tag-based sharding); env, api,
+     * api.name, … all live in each {@code LogRecord}'s attributes map. The spans port takes the
+     * same scope envelope as resource-attribute filters because the per-API tracer puts ALL
+     * Gravitee attributes on its resource.
      */
-    TraceLogs findLogs(String orgId, String envId, String traceId, Map<String, String> resourceAttributeFilters);
+    TraceLogs findLogs(String orgId, String envId, String traceId, Map<String, String> attributeFilters);
 
     /** Container for the partitioned result so the port returns both shapes in one call. */
     record TraceLogs(List<SpanEvent> events, List<PayloadLog> payloadLogs) {}
