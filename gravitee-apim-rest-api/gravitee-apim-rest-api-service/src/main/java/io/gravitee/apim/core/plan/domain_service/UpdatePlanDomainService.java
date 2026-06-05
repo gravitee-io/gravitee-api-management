@@ -136,6 +136,11 @@ public class UpdatePlanDomainService {
         };
     }
 
+    public void validate(Plan planToUpdate, List<Flow> flows, Api api, AuditInfo auditInfo) {
+        updatePreFlightChecks(planToUpdate, getPlanStatusMap(api), api, auditInfo);
+        validateAndSanitizeHttpV4Flows(flows, api);
+    }
+
     private Map<String, PlanStatus> getPlanStatusMap(Api api) {
         return getPlanStatusMap(api.getId(), GenericPlanEntity.ReferenceType.API);
     }
@@ -194,12 +199,7 @@ public class UpdatePlanDomainService {
         AuditInfo auditInfo,
         BinaryOperator<Plan> updateFunction
     ) {
-        var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), flows);
-        flowValidationDomainService.validatePathParameters(
-            api.getType(),
-            api.getApiDefinitionHttpV4().getFlows() != null ? api.getApiDefinitionHttpV4().getFlows().stream() : Stream.empty(),
-            sanitizedFlows.stream()
-        );
+        var sanitizedFlows = validateAndSanitizeHttpV4Flows(flows, api);
 
         if (!planSynchronizationService.checkSynchronized(existingPlan, List.of(), updatePlan, sanitizedFlows)) {
             updatePlan.setNeedRedeployAt(Date.from(updatePlan.getUpdatedAt().toInstant()));
@@ -211,6 +211,16 @@ public class UpdatePlanDomainService {
 
         createAuditLog(existingPlan, updated, auditInfo);
         return updated;
+    }
+
+    private List<Flow> validateAndSanitizeHttpV4Flows(List<Flow> flows, Api api) {
+        var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), flows);
+        flowValidationDomainService.validatePathParameters(
+            api.getType(),
+            api.getApiDefinitionHttpV4().getFlows() != null ? api.getApiDefinitionHttpV4().getFlows().stream() : Stream.empty(),
+            sanitizedFlows.stream()
+        );
+        return sanitizedFlows;
     }
 
     private Plan updateNativeV4ApiPlan(

@@ -32,6 +32,7 @@ import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
 import inmemory.GroupCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
+import inmemory.KafkaPortRangeCrudServiceInMemory;
 import inmemory.NewtAIProviderInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
@@ -174,6 +175,7 @@ import io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainServi
 import io.gravitee.apim.core.plan.use_case.CreateApiProductPlanUseCase;
 import io.gravitee.apim.core.plan.use_case.CreatePlanUseCase;
 import io.gravitee.apim.core.plan.use_case.GetPlansUseCase;
+import io.gravitee.apim.core.plan.use_case.PatchPlanUseCase.PlanFlowsConverter;
 import io.gravitee.apim.core.plan.use_case.PlanOperationsUseCase;
 import io.gravitee.apim.core.plan.use_case.UpdateApiProductPlanUseCase;
 import io.gravitee.apim.core.plan.use_case.UpdateFederatedPlanUseCase;
@@ -273,6 +275,7 @@ import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.CustomDashboardRepository;
+import io.gravitee.rest.api.management.v2.rest.adapter.PatchPlanFlowsDeserializer;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.utils.SubscriptionExpandHelper;
@@ -332,6 +335,11 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiV4Deserializer apiV4Deserializer(ObjectMapper objectMapper) {
         return new io.gravitee.rest.api.management.v2.rest.adapter.PatchApiV4Deserializer(objectMapper);
+    }
+
+    @Bean
+    public PlanFlowsConverter planFlowsDeserializer(ObjectMapper objectMapper) {
+        return new PatchPlanFlowsDeserializer(objectMapper);
     }
 
     @Bean
@@ -803,6 +811,11 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public KafkaPortRangeCrudServiceInMemory kafkaPortRangeCrudService() {
+        return new KafkaPortRangeCrudServiceInMemory();
+    }
+
+    @Bean
     public ValidateApiCRDUseCase validateApiCRDUseCase(
         CategoryQueryServiceInMemory categoryQueryService,
         UserDomainServiceInMemory userDomainService,
@@ -817,7 +830,7 @@ public class ResourceContextConfiguration {
         ParametersQueryService parametersQueryService,
         PolicyValidationDomainService policyValidationDomainService,
         PageCrudService pageCrudService,
-        VerifyPlanPortRangesDomainService verifyPlanPortRangesDomainService
+        KafkaPortRangeCrudServiceInMemory kafkaPortRangeCrudService
     ) {
         ValidateGroupsDomainService groupsValidator = new ValidateGroupsDomainService(groupQueryService);
         return new ValidateApiCRDUseCase(
@@ -835,7 +848,7 @@ public class ResourceContextConfiguration {
                 ),
                 new ValidatePlanDomainService(
                     new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService),
-                    verifyPlanPortRangesDomainService
+                    new VerifyPlanPortRangesDomainService(kafkaPortRangeCrudService)
                 ),
                 new ValidatePortalNotificationDomainService(groupsValidator)
             )

@@ -16,13 +16,14 @@
 package io.gravitee.apim.core.plan.exception;
 
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import java.util.Map;
 
 /**
  * @author GraviteeSource Team
  */
-public class PlanInvalidException extends ValidationDomainException {
+public class PlanPatchNotAllowedException extends ValidationDomainException {
 
-    public PlanInvalidException(String message) {
-        super(message);
+    public PlanPatchNotAllowedException(String fieldName, String reason) {
+        super("Field '" + fieldName + "' cannot be patched: " + reason, Map.of("field", fieldName), "plan.patch.fieldNotAllowed");
     }
 }

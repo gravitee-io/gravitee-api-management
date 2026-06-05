@@ -20,6 +20,7 @@ import static java.util.Comparator.comparingInt;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.plan.use_case.CreatePlanUseCase;
+import io.gravitee.apim.core.plan.use_case.PatchPlanUseCase;
 import io.gravitee.apim.core.plan.use_case.UpdateFederatedPlanUseCase;
 import io.gravitee.apim.core.plan.use_case.UpdatePlanUseCase;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
@@ -57,6 +58,7 @@ import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
+import io.gravitee.rest.api.service.exceptions.PreconditionFailedException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import jakarta.annotation.Nonnull;
@@ -68,15 +70,19 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -91,11 +97,19 @@ public class ApiPlansResource extends AbstractResource {
     private static final Logger log = NodeLoggerFactory.getLogger(ApiPlansResource.class);
     private static final String FLOW = "flow";
 
+    private static final jakarta.ws.rs.core.MediaType JSON_PATCH_MEDIA_TYPE = new jakarta.ws.rs.core.MediaType(
+        "application",
+        "json-patch+json"
+    );
+
     private final PlanMapper planMapper = PlanMapper.INSTANCE;
     private final FlowMapper flowMapper = FlowMapper.INSTANCE;
 
     @Inject
     private PlanService planServiceV4;
+
+    @Inject
+    private PatchPlanUseCase patchPlanUseCase;
 
     @Inject
     private CreatePlanUseCase createPlanUseCase;
@@ -238,10 +252,7 @@ public class ApiPlansResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
 
-        if (
-            GenericPlanEntity.ReferenceType.API.equals(planEntity.getReferenceType()) &&
-            !java.util.Objects.equals(apiId, planEntity.getReferenceId())
-        ) {
+        if (planDoesNotBelongToApi(planEntity)) {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 
@@ -270,10 +281,7 @@ public class ApiPlansResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
 
-        if (
-            GenericPlanEntity.ReferenceType.API.equals(planEntity.getReferenceType()) &&
-            !java.util.Objects.equals(apiId, planEntity.getReferenceId())
-        ) {
+        if (planDoesNotBelongToApi(planEntity)) {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 
@@ -332,6 +340,65 @@ public class ApiPlansResource extends AbstractResource {
         };
     }
 
+    @PATCH
+    @Path("/{planId}")
+    @Consumes({ MediaType.APPLICATION_JSON, "application/merge-patch+json", "application/json-patch+json" })
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.UPDATE }) })
+    public Response patchApiPlan(
+        @PathParam("planId") String planId,
+        @QueryParam("dryRun") @DefaultValue("false") boolean dryRun,
+        @Context HttpHeaders headers,
+        String body
+    ) {
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
+
+        if (planDoesNotBelongToApi(planEntity)) {
+            return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
+        }
+
+        Date precondition = resolvePlanUpdatedAt(planEntity);
+        if (precondition != null) {
+            evaluateIfMatchStrictly(headers, Long.toString(precondition.getTime()));
+        } else {
+            String ifMatch = headers.getHeaderString(HttpHeaders.IF_MATCH);
+            if (ifMatch != null && !ifMatch.isEmpty() && !"*".equals(ifMatch)) {
+                throw new PreconditionFailedException();
+            }
+        }
+
+        var plan = patchPlanUseCase
+            .execute(
+                PatchPlanUseCase.Input.builder()
+                    .apiId(apiId)
+                    .planId(planId)
+                    .patchType(resolvePatchType(headers))
+                    .patchBody(body)
+                    .dryRun(dryRun)
+                    .auditInfo(getAuditInfo())
+                    .build()
+            )
+            .plan();
+
+        var planV4 = planMapper.map(plan);
+        var updatedAt = plan.getUpdatedAt();
+        return applyCacheHeaders(Response.ok(planV4), updatedAt == null ? null : Date.from(updatedAt.toInstant())).build();
+    }
+
+    private PatchPlanUseCase.PatchType resolvePatchType(HttpHeaders headers) {
+        var contentType = headers.getMediaType();
+        return contentType != null && JSON_PATCH_MEDIA_TYPE.isCompatible(contentType)
+            ? PatchPlanUseCase.PatchType.JSON_PATCH
+            : PatchPlanUseCase.PatchType.MERGE_PATCH;
+    }
+
+    private boolean planDoesNotBelongToApi(GenericPlanEntity planEntity) {
+        return (
+            GenericPlanEntity.ReferenceType.API.equals(planEntity.getReferenceType()) && !Objects.equals(apiId, planEntity.getReferenceId())
+        );
+    }
+
     @DELETE
     @Path("/{planId}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -340,10 +407,7 @@ public class ApiPlansResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
 
-        if (
-            GenericPlanEntity.ReferenceType.API.equals(planEntity.getReferenceType()) &&
-            !java.util.Objects.equals(apiId, planEntity.getReferenceId())
-        ) {
+        if (planDoesNotBelongToApi(planEntity)) {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 
@@ -360,10 +424,7 @@ public class ApiPlansResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
 
-        if (
-            GenericPlanEntity.ReferenceType.API.equals(planEntity.getReferenceType()) &&
-            !java.util.Objects.equals(apiId, planEntity.getReferenceId())
-        ) {
+        if (planDoesNotBelongToApi(planEntity)) {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 
@@ -378,10 +439,7 @@ public class ApiPlansResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
 
-        if (
-            GenericPlanEntity.ReferenceType.API.equals(planEntity.getReferenceType()) &&
-            !java.util.Objects.equals(apiId, planEntity.getReferenceId())
-        ) {
+        if (planDoesNotBelongToApi(planEntity)) {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 
@@ -400,10 +458,7 @@ public class ApiPlansResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         final GenericPlanEntity planEntity = planSearchService.findById(executionContext, planId);
 
-        if (
-            GenericPlanEntity.ReferenceType.API.equals(planEntity.getReferenceType()) &&
-            !java.util.Objects.equals(apiId, planEntity.getReferenceId())
-        ) {
+        if (planDoesNotBelongToApi(planEntity)) {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 

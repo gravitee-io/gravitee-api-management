@@ -15,14 +15,14 @@
  */
 package io.gravitee.apim.core.plan.exception;
 
-import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.exception.NotFoundDomainException;
 
 /**
  * @author GraviteeSource Team
  */
-public class PlanInvalidException extends ValidationDomainException {
+public class PlanForApiNotFoundException extends NotFoundDomainException {
 
-    public PlanInvalidException(String message) {
-        super(message);
+    public PlanForApiNotFoundException(String planId, String apiId) {
+        super("Plan [" + planId + "] not found for API [" + apiId + "]", planId);
     }
 }
