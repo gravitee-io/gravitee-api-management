@@ -1715,7 +1715,7 @@ components:
         hrid:
           $ref: "#/components/schemas/Hrid"
         apiType:
-          $ref: "#/components/schemas/ApiType"
+          $ref: "#/components/schemas/SharedPolicyGroupApiType"
         description:
           type: string
           description: The description of the shared policy group
@@ -1746,14 +1746,18 @@ components:
         - apiType
         - name
         - phase
+    SharedPolicyGroupApiType:
+      type: string
+      description: API type compatible with a shared policy group.
+      enum:
+        - PROXY
+        - MESSAGE
     FlowPhase:
       type: string
-      description: The execution phase of a policy.
+      description: The execution phase of a shared policy group policy. Only phases compatible with PROXY and MESSAGE API types are supported.
       enum:
         - REQUEST
         - RESPONSE
-        - ENTRYPOINT_CONNECT
-        - INTERACT
         - PUBLISH
         - SUBSCRIBE
     PlanV4:

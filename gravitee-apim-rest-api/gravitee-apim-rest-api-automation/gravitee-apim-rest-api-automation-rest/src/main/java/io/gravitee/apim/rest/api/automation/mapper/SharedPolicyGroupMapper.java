@@ -15,12 +15,15 @@
  */
 package io.gravitee.apim.rest.api.automation.mapper;
 
+import io.gravitee.apim.core.plugin.model.FlowPhase;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroup;
 import io.gravitee.apim.core.shared_policy_group.model.SharedPolicyGroupCRDStatus;
 import io.gravitee.apim.rest.api.automation.model.Errors;
 import io.gravitee.apim.rest.api.automation.model.LegacySharedPolicyGroupSpec;
+import io.gravitee.apim.rest.api.automation.model.SharedPolicyGroupApiType;
 import io.gravitee.apim.rest.api.automation.model.SharedPolicyGroupState;
 import io.gravitee.apim.rest.api.automation.model.StepV4;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.rest.api.management.v2.rest.mapper.ConfigurationSerializationMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.DateMapper;
@@ -40,10 +43,19 @@ import org.mapstruct.factory.Mappers;
 public interface SharedPolicyGroupMapper {
     SharedPolicyGroupMapper INSTANCE = Mappers.getMapper(SharedPolicyGroupMapper.class);
 
-    @ValueMapping(source = "EDGE", target = MappingConstants.THROW_EXCEPTION)
-    io.gravitee.apim.rest.api.automation.model.ApiType map(io.gravitee.definition.model.v4.ApiType apiType);
+    ApiType mapApiType(SharedPolicyGroupApiType apiType);
 
-    io.gravitee.definition.model.v4.ApiType map(io.gravitee.apim.rest.api.automation.model.ApiType apiType);
+    FlowPhase mapFlowPhase(io.gravitee.apim.rest.api.automation.model.FlowPhase phase);
+
+    @ValueMapping(source = "PROXY", target = "PROXY")
+    @ValueMapping(source = "MESSAGE", target = "MESSAGE")
+    @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.THROW_EXCEPTION)
+    SharedPolicyGroupApiType mapSharedPolicyGroupApiType(ApiType apiType);
+
+    @ValueMapping(source = "ENTRYPOINT_CONNECT", target = MappingConstants.THROW_EXCEPTION)
+    @ValueMapping(source = "INTERACT", target = MappingConstants.THROW_EXCEPTION)
+    @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.THROW_EXCEPTION)
+    io.gravitee.apim.rest.api.automation.model.FlowPhase mapAutomationFlowPhase(FlowPhase phase);
 
     @Mapping(target = "sharedPolicyGroupId", ignore = true)
     @Mapping(target = "originContext", ignore = true)
