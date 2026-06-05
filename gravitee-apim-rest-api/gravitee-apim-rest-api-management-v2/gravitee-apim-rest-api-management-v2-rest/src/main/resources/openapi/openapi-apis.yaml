@@ -1366,6 +1366,116 @@ paths:
                                 $ref: "#/components/schemas/Plan"
                 default:
                     $ref: "#/components/responses/Error"
+        patch:
+            tags:
+                - API Plans
+            summary: Partially update one API's plan
+            description: |-
+                Apply a partial update to an API's plan using JSON Merge Patch (RFC 7396) or JSON Patch (RFC 6902).
+
+                Only v4 HTTP Proxy API plans support this operation.
+
+                Only the following fields are patchable: name, description, security (configuration only),
+                validation, selectionRule, tags, excludedGroups, characteristics, commentRequired,
+                generalConditions, flows.
+
+                The status field cannot be patched — use the dedicated plan lifecycle endpoints
+                (_close, _publish, _deprecate) to change a plan's status. Targeting status or any other
+                non-allow-listed field is rejected with 400.
+
+                A request sent with the application/json content type is treated as JSON Merge Patch
+                (RFC 7396); only application/json-patch+json is interpreted as JSON Patch (RFC 6902).
+
+                Optimistic concurrency is supported via the optional If-Match precondition. Read the plan
+                first to obtain its ETag, then send that value in the If-Match request header on the patch.
+                If the plan has been modified since (ETag mismatch), the request is rejected with 412. The
+                response echoes the new ETag so callers can chain further updates.
+
+                Use dryRun=true to preview the result without persisting.
+
+                User must have the API_PLAN[UPDATE] permission.
+            operationId: patchApiPlan
+            parameters:
+                - name: dryRun
+                  in: query
+                  required: false
+                  schema:
+                      type: boolean
+                      default: false
+                - name: If-Match
+                  in: header
+                  required: false
+                  description: |-
+                      Optional optimistic-concurrency precondition. Supply the plan's current ETag (as returned by a prior read or patch).
+                      If the plan was modified since that ETag was read, the request is rejected with 412.
+                  schema:
+                      type: string
+            requestBody:
+                content:
+                    application/merge-patch+json:
+                        schema:
+                            type: object
+                    application/json-patch+json:
+                        schema:
+                            type: array
+                            items:
+                                type: object
+                    application/json:
+                        schema:
+                            type: object
+                required: true
+            responses:
+                "200":
+                    description: API's plan successfully patched
+                    headers:
+                        ETag:
+                            description: |-
+                                Entity tag identifying the plan version. Value is the plan's last-updated timestamp expressed as epoch milliseconds (quoted per RFC 7232).
+                                Clients may pass this value back in `If-Match` on subsequent mutating requests to detect concurrent updates.
+                            schema:
+                                type: string
+                                example: '"1705314645123"'
+                        Last-Modified:
+                            description: |-
+                                Plan's last-updated timestamp as an RFC 7231 HTTP-date (one-second resolution). Informational only.
+                                Use the `ETag` value, not `Last-Modified`, for `If-Match` requests — `Last-Modified` loses millisecond precision.
+                            schema:
+                                type: string
+                                example: "Mon, 15 Jan 2024 10:30:45 GMT"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Plan"
+                "400":
+                    description: |-
+                        Invalid patch request — for example targeting the status field or any other
+                        non-allow-listed field, a malformed patch body, or a plan that is not a v4 HTTP Proxy plan.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: No plan with the given identifier exists for this API (including a plan that belongs to a different API).
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "412":
+                    description: The If-Match precondition failed — the plan was modified since the supplied ETag was read.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "415":
+                    description: |-
+                        Unsupported media type. The request body must be sent with one of application/json,
+                        application/merge-patch+json, or application/json-patch+json.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                default:
+                    $ref: "#/components/responses/Error"
         delete:
             tags:
                 - API Plans

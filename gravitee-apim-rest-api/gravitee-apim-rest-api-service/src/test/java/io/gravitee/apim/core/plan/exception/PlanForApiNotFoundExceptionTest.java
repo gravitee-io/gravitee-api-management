@@ -15,14 +15,19 @@
  */
 package io.gravitee.apim.core.plan.exception;
 
-import io.gravitee.apim.core.exception.ValidationDomainException;
+import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * @author GraviteeSource Team
- */
-public class PlanInvalidException extends ValidationDomainException {
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Test;
 
-    public PlanInvalidException(String message) {
-        super(message);
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+class PlanForApiNotFoundExceptionTest {
+
+    @Test
+    void message_identifies_both_plan_id_and_api_id() {
+        var ex = new PlanForApiNotFoundException("p1", "api1");
+
+        assertThat(ex.getMessage()).contains("p1").contains("api1");
     }
 }

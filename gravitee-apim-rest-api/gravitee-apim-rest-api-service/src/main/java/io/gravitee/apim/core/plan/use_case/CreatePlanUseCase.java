@@ -34,6 +34,9 @@ import java.util.List;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * @author GraviteeSource Team
+ */
 @RequiredArgsConstructor
 @UseCase
 public class CreatePlanUseCase {
