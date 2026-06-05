@@ -17,7 +17,6 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
-import static io.gravitee.common.http.HttpStatusCode.INTERNAL_SERVER_ERROR_500;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -34,6 +33,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.vertx.core.buffer.Buffer;
 import jakarta.ws.rs.client.Entity;
@@ -223,7 +223,78 @@ class ApiResource_UpdateApiWithDefinitionFromUrlTest extends ApiResourceTest {
     }
 
     @Test
-    public void should_return_internal_server_error_when_http_client_throws() {
+    public void should_return_bad_request_when_remote_returns_error_status() {
+        // Defect A: the remote URL responds with a non-success status (e.g. 404). HttpClientService surfaces this
+        // as a TechnicalManagementException; it must become a clean 4xx, not a 500 leaking the remote response.
+        grantUpdatePermission();
+
+        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenThrow(
+            new TechnicalManagementException(" Error on url '" + TEST_URL + "'. Status code: 404. Message: Not Found", null)
+        );
+
+        Response response = rootTarget().request().put(Entity.text(TEST_URL));
+
+        assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        String body = response.readEntity(String.class);
+        assertThat(body)
+            .contains("Unable to fetch the API definition")
+            .doesNotContain("io.gravitee", "TechnicalManagementException", "Status code", "404");
+    }
+
+    @Test
+    public void should_return_bad_request_when_remote_host_unreachable() {
+        // Defect B: the remote host cannot be resolved/reached. Must become a clean 4xx without leaking the
+        // UnknownHostException or the failing host.
+        grantUpdatePermission();
+
+        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenThrow(
+            new TechnicalManagementException(
+                "Failed to resolve 'nonexistent-host-xyz.invalid'",
+                new java.net.UnknownHostException("nonexistent-host-xyz.invalid")
+            )
+        );
+
+        Response response = rootTarget().request().put(Entity.text(TEST_URL));
+
+        assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        String body = response.readEntity(String.class);
+        assertThat(body)
+            .contains("Unable to fetch the API definition")
+            .doesNotContain("io.gravitee", "UnknownHostException", "Failed to resolve", "nonexistent-host");
+    }
+
+    @Test
+    public void should_return_bad_request_when_definition_is_not_a_gravitee_export() {
+        // Defect C: valid JSON that is not a Gravitee export (missing 'api'). Must be a clean 400, not an NPE → 500.
+        grantUpdatePermission();
+
+        Buffer buffer = Buffer.buffer("{\"hello\":\"world\"}");
+        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
+
+        Response response = rootTarget().request().put(Entity.text(TEST_URL));
+
+        assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        String body = response.readEntity(String.class);
+        assertThat(body).contains("Invalid API definition").doesNotContain("io.gravitee", "NullPointerException");
+    }
+
+    @Test
+    public void should_return_bad_request_when_definition_fails_bean_validation() {
+        // Valid JSON that deserializes into an ExportApiV4 with a non-null 'api' but violates a Bean Validation
+        // constraint (member displayName is @Size(min=1)). Must surface as a clean 400, not a 500.
+        grantUpdatePermission();
+
+        Buffer buffer = Buffer.buffer("{\"api\":{\"definitionVersion\":\"V4\"},\"members\":[{\"displayName\":\"\"}]}");
+        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenReturn(buffer);
+
+        Response response = rootTarget().request().put(Entity.text(TEST_URL));
+
+        assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        String body = response.readEntity(String.class);
+        assertThat(body).contains("Validation error").doesNotContain("io.gravitee", "ConstraintViolationException");
+    }
+
+    private void grantUpdatePermission() {
         when(
             permissionService.hasPermission(
                 GraviteeContext.getExecutionContext(),
@@ -232,14 +303,6 @@ class ApiResource_UpdateApiWithDefinitionFromUrlTest extends ApiResourceTest {
                 RolePermissionAction.UPDATE
             )
         ).thenReturn(true);
-
-        when(httpClientService.request(eq(HttpMethod.GET), eq(TEST_URL), any(), any(), any())).thenThrow(
-            new RuntimeException("Connection refused")
-        );
-
-        Response response = rootTarget().request().put(Entity.text(TEST_URL));
-
-        assertThat(response.getStatus()).isEqualTo(INTERNAL_SERVER_ERROR_500);
     }
 
     @Test
