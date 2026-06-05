@@ -35,6 +35,7 @@ export const authzQueryKeys = {
             ['authz', 'policies', environmentId, page, perPage, type, status] as const,
     },
     schema: (environmentId: string) => ['authz', 'schema', environmentId] as const,
+    parsedSchema: (environmentId: string) => ['authz', 'schema', environmentId, 'parsed'] as const,
     entityOptions: (environmentId: string) => ['authz', 'entity-options', environmentId] as const,
     importedCatalogIds: (environmentId: string) => ['authz', 'imported-catalog-ids', environmentId] as const,
     userSync: (environmentId: string) => ['authz', 'user-sync', environmentId] as const,

@@ -15,16 +15,20 @@
  */
 import { describe, expect, it } from 'vitest';
 import type { EntityResponse } from '../../../shared/api/authz-api.types';
+import type { ParsedAction } from '../../../shared/engine-schema';
 import { buildActionOptions } from '../action-options';
 
 function entity(uid: string, attributes: Record<string, unknown> = {}): EntityResponse {
     return { uid, attributes } as EntityResponse;
 }
 
+function action(name: string): ParsedAction {
+    return { name, principals: [], resources: [] };
+}
+
 describe('buildActionOptions', () => {
     it('merges schema actions and action.* entities into the Action group', () => {
-        const schema = 'action "read" appliesTo {}; action "write" appliesTo {};';
-        const result = buildActionOptions(schema, [entity('action.delete', { name: 'delete' })], []);
+        const result = buildActionOptions([action('read'), action('write')], [entity('action.delete', { name: 'delete' })], []);
 
         expect(result.map(o => o.label)).toEqual(['read', 'write', 'delete']);
         expect(result.every(o => o.group === 'Action')).toBe(true);
@@ -36,7 +40,7 @@ describe('buildActionOptions', () => {
             entity('mcptool.get_forecast', { _displayName: 'get_forecast', description: 'Forecast' }),
             entity('mcptool.get_current_weather', { _displayName: 'get_current_weather' }),
         ];
-        const result = buildActionOptions(undefined, [], tools);
+        const result = buildActionOptions([], [], tools);
 
         expect(result.map(o => ({ label: o.label, group: o.group, id: o.id }))).toEqual([
             { label: 'get_current_weather', group: 'MCP Tools', id: 'Action::"get_current_weather"' },
@@ -46,28 +50,20 @@ describe('buildActionOptions', () => {
     });
 
     it('keeps actions first and tools after, as distinct groups', () => {
-        const result = buildActionOptions(
-            'action "read" appliesTo {};',
-            [],
-            [entity('mcptool.get_forecast', { _displayName: 'get_forecast' })],
-        );
+        const result = buildActionOptions([action('read')], [], [entity('mcptool.get_forecast', { _displayName: 'get_forecast' })]);
 
         expect(result.map(o => o.group)).toEqual(['Action', 'MCP Tools']);
     });
 
     it('falls back to the uid slug when a tool has no display name', () => {
-        const result = buildActionOptions(undefined, [], [entity('mcptool.search_locations')]);
+        const result = buildActionOptions([], [], [entity('mcptool.search_locations')]);
 
         expect(result[0].label).toBe('search_locations');
         expect(result[0].id).toBe('Action::"search_locations"');
     });
 
     it('deduplicates by action id across schema, action.* and tools (first wins)', () => {
-        const result = buildActionOptions(
-            'action "read" appliesTo {};',
-            [entity('action.read', { name: 'read' })],
-            [entity('mcptool.read', { _displayName: 'read' })],
-        );
+        const result = buildActionOptions([action('read')], [entity('action.read', { name: 'read' })], [entity('mcptool.read', { _displayName: 'read' })]);
 
         expect(result).toHaveLength(1);
         expect(result[0].group).toBe('Action');

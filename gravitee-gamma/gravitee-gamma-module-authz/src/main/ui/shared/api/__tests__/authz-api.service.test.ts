@@ -19,10 +19,11 @@ import { authzApiService } from '../authz-api.service';
 const get = vi.fn();
 const put = vi.fn();
 const del = vi.fn();
+const post = vi.fn();
 vi.mock('../authz-api-client', () => ({
     authzCoreApiClient: {
         get: (path: string) => get(path),
-        post: vi.fn(),
+        post: (path: string, body: unknown) => post(path, body),
         put: (path: string, body: unknown) => put(path, body),
         delete: (path: string) => del(path),
     },
@@ -179,5 +180,35 @@ describe('authzApiService.deleteSchema', () => {
 
         expect(del).toHaveBeenCalledTimes(1);
         expect(del.mock.calls[0][0]).toBe('/environments/DEFAULT/modules/authz/schema');
+    });
+});
+
+describe('authzApiService.getParsedSchema', () => {
+    beforeEach(() => get.mockReset());
+
+    it('GETs the engine-parsed schema path and returns the JSON as-is', async () => {
+        const engineJson = { myapp: { entityTypes: { Report: {} }, actions: {} } };
+        get.mockResolvedValue(engineJson);
+
+        const result = await authzApiService.getParsedSchema('DEFAULT');
+
+        expect(get).toHaveBeenCalledTimes(1);
+        expect(get.mock.calls[0][0]).toBe('/environments/DEFAULT/modules/authz/schema/parsed');
+        expect(result).toBe(engineJson);
+    });
+});
+
+describe('authzApiService.validateSchema', () => {
+    beforeEach(() => post.mockReset());
+
+    it('POSTs the schema text to the validate path', async () => {
+        post.mockResolvedValue({ valid: false, errors: ['boom'] });
+
+        const result = await authzApiService.validateSchema('DEFAULT', 'entity X {};');
+
+        expect(post).toHaveBeenCalledTimes(1);
+        expect(post.mock.calls[0][0]).toBe('/environments/DEFAULT/modules/authz/schema/validate');
+        expect(post.mock.calls[0][1]).toEqual({ schema: 'entity X {};' });
+        expect(result).toEqual({ valid: false, errors: ['boom'] });
     });
 });

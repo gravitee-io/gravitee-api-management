@@ -51,12 +51,13 @@ import {
 import { useEffect, useMemo, useRef, useState, type ComponentType, type SVGProps } from 'react';
 import { KpiTile } from '../../components/KpiTile';
 import { MonacoEditor } from '../../components/MonacoEditor';
-import { parseGaplSchema, type ParsedEntity } from '../../shared/gapl-parser';
+import { type ParsedEntity } from '../../shared/engine-schema';
 import { useDeleteSchema } from '../../shared/hooks/useDeleteSchema';
+import { useParsedSchema } from '../../shared/hooks/useParsedSchema';
 import { useSchema } from '../../shared/hooks/useSchema';
+import { useSchemaValidation } from '../../shared/hooks/useSchemaValidation';
 import { useUpdateSchema } from '../../shared/hooks/useUpdateSchema';
 import { CATEGORIES, classifyEntity, isResourceCategory, type EntityCategoryId } from './entity-types';
-import { schemaDiagnostics } from './schema-validation';
 
 type SchemaTab = 'code' | 'entities';
 type IconType = ComponentType<SVGProps<SVGSVGElement>>;
@@ -107,10 +108,10 @@ export function SchemaPage() {
 
     const [editing, setEditing] = useState(false);
     const [draft, setDraft] = useState('');
-    const draftDiagnostics = useMemo(() => (editing ? schemaDiagnostics(draft) : []), [editing, draft]);
+    const { errors: draftDiagnostics, validating } = useSchemaValidation(environmentId, draft, editing);
 
     const schemaText = schema?.schemaText ?? '';
-    const parsed = useMemo(() => parseGaplSchema(schemaText), [schemaText]);
+    const { parsed } = useParsedSchema(environmentId);
     // The schema's own appliesTo declarations classify types into principal/resource;
     // the built-in name map and 'custom' are only fallbacks for types no action references.
     const principalTypes = useMemo(() => new Set(parsed.actions.flatMap(a => a.principals)), [parsed.actions]);
@@ -223,11 +224,12 @@ export function SchemaPage() {
                         <Button variant="outline" onClick={() => setEditing(false)}>
                             Cancel
                         </Button>
-                        <Button onClick={saveDraft} disabled={draftDiagnostics.length > 0 || update.isPending}>
+                        <Button onClick={saveDraft} disabled={draftDiagnostics.length > 0 || validating || update.isPending}>
                             Save
                         </Button>
                     </div>
                     <DiagnosticsAlert diagnostics={draftDiagnostics} />
+                    <SaveError error={update.isError ? update.error : null} />
                     <div className="overflow-hidden rounded-lg border">
                         <MonacoEditor value={draft} onChange={setDraft} height={560} ariaLabel="Schema definition" />
                     </div>
@@ -236,8 +238,6 @@ export function SchemaPage() {
 
             {!isLoading && error === undefined && !isEmpty && (
                 <>
-                    <DiagnosticsAlert diagnostics={parsed.diagnostics} />
-
                     <div className="grid grid-cols-4 gap-4" aria-label="Schema summary">
                         <KpiTile
                             label="Entities"
@@ -344,7 +344,7 @@ export function SchemaPage() {
                                         <Button variant="outline" size="sm" onClick={() => setEditing(false)}>
                                             Cancel
                                         </Button>
-                                        <Button size="sm" onClick={saveDraft} disabled={draftDiagnostics.length > 0 || update.isPending}>
+                                        <Button size="sm" onClick={saveDraft} disabled={draftDiagnostics.length > 0 || validating || update.isPending}>
                                             Save
                                         </Button>
                                     </div>
@@ -361,6 +361,7 @@ export function SchemaPage() {
                             </div>
 
                             {editing && <DiagnosticsAlert diagnostics={draftDiagnostics} />}
+                            {editing && <SaveError error={update.isError ? update.error : null} />}
 
                             <TabsContent value="code">
                                 <div className="overflow-hidden rounded-lg border">
@@ -435,6 +436,16 @@ export function SchemaPage() {
                 </>
             )}
         </div>
+    );
+}
+
+function SaveError({ error }: { error: unknown }) {
+    if (!error) return null;
+    return (
+        <Alert variant="destructive">
+            <AlertTitle>Could not save schema</AlertTitle>
+            <AlertDescription>{error instanceof Error ? error.message : 'Save failed'}</AlertDescription>
+        </Alert>
     );
 }
 

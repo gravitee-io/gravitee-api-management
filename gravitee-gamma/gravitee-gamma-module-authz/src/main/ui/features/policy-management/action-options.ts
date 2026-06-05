@@ -15,7 +15,7 @@
  */
 import type { EntityResponse } from '../../shared/api/authz-api.types';
 import type { ChipOption } from '../../shared/chip-option';
-import { parseGaplSchema } from '../../shared/gapl-parser';
+import type { ParsedAction } from '../../shared/engine-schema';
 
 function firstString(...values: unknown[]): string | undefined {
     for (const v of values) {
@@ -25,20 +25,18 @@ function firstString(...values: unknown[]): string | undefined {
 }
 
 export function buildActionOptions(
-    schemaText: string | undefined,
+    schemaActions: readonly ParsedAction[],
     actionRows: readonly EntityResponse[],
     mcpToolRows: readonly EntityResponse[],
 ): readonly ChipOption[] {
     const seen = new Set<string>();
     const actions: ChipOption[] = [];
 
-    if (schemaText) {
-        for (const a of parseGaplSchema(schemaText).actions) {
-            const id = `Action::"${a.name}"`;
-            if (seen.has(id)) continue;
-            seen.add(id);
-            actions.push({ id, label: a.name, group: 'Action' });
-        }
+    for (const a of schemaActions) {
+        const id = `Action::"${a.name}"`;
+        if (seen.has(id)) continue;
+        seen.add(id);
+        actions.push({ id, label: a.name, group: 'Action' });
     }
 
     for (const e of actionRows) {

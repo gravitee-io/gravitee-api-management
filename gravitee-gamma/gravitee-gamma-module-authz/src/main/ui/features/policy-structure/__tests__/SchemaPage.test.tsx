@@ -16,10 +16,15 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ParsedSchema } from '../../../shared/engine-schema';
+import type { UseParsedSchemaResult } from '../../../shared/hooks/useParsedSchema';
 import type { UseSchemaResult } from '../../../shared/hooks/useSchema';
+import type { UseSchemaValidationResult } from '../../../shared/hooks/useSchemaValidation';
 import { SchemaPage } from '../SchemaPage';
 
 const useSchemaMock = vi.fn<[], UseSchemaResult>();
+const useParsedSchemaMock = vi.fn<[], UseParsedSchemaResult>();
+const useSchemaValidationMock = vi.fn<[], UseSchemaValidationResult>();
 
 vi.mock('@gravitee/gamma-modules-sdk', async importOriginal => ({
     ...(await importOriginal<object>()),
@@ -30,9 +35,18 @@ vi.mock('../../../shared/hooks/useSchema', () => ({
     useSchema: () => useSchemaMock(),
 }));
 
+vi.mock('../../../shared/hooks/useParsedSchema', () => ({
+    useParsedSchema: () => useParsedSchemaMock(),
+}));
+
+vi.mock('../../../shared/hooks/useSchemaValidation', () => ({
+    useSchemaValidation: () => useSchemaValidationMock(),
+}));
+
 const mutateMock = vi.fn();
 const deleteMock = vi.fn();
-vi.mock('../../../shared/hooks/useUpdateSchema', () => ({ useUpdateSchema: () => ({ mutate: mutateMock, isPending: false }) }));
+let updateState: { mutate: () => void; isPending: boolean; isError: boolean; error: unknown };
+vi.mock('../../../shared/hooks/useUpdateSchema', () => ({ useUpdateSchema: () => updateState }));
 vi.mock('../../../shared/hooks/useDeleteSchema', () => ({ useDeleteSchema: () => ({ mutate: deleteMock, isPending: false }) }));
 
 // Monaco can't render under jsdom — stub it to surface the value as plain text.
@@ -55,8 +69,17 @@ action "can_invoke" appliesTo {
   resource: [MCPServer]
 };`;
 
+const SAMPLE_PARSED: ParsedSchema = {
+    entities: [
+        { name: 'Group', parents: [], attributes: [{ name: 'name', type: 'String' }] },
+        { name: 'User', parents: ['Group'], attributes: [{ name: 'name', type: 'String' }, { name: 'email', type: 'String' }] },
+        { name: 'MCPServer', parents: [], attributes: [{ name: 'url', type: 'String' }] },
+    ],
+    actions: [{ name: 'can_invoke', principals: ['User'], resources: ['MCPServer'] }],
+};
+
 function loaded(schemaText = SAMPLE): UseSchemaResult {
-    return { schema: { schemaText }, notFound: false, isLoading: false, error: undefined };
+    return { schema: { schemaText }, notFound: false, isLoading: false, error: undefined } as UseSchemaResult;
 }
 
 beforeAll(() => {
@@ -68,8 +91,13 @@ beforeAll(() => {
 beforeEach(() => {
     useSchemaMock.mockReset();
     useSchemaMock.mockReturnValue(loaded());
+    useParsedSchemaMock.mockReset();
+    useParsedSchemaMock.mockReturnValue({ parsed: SAMPLE_PARSED, isLoading: false, error: undefined });
+    useSchemaValidationMock.mockReset();
+    useSchemaValidationMock.mockReturnValue({ errors: [], validating: false });
     mutateMock.mockReset();
     deleteMock.mockReset();
+    updateState = { mutate: mutateMock, isPending: false, isError: false, error: undefined };
 });
 
 describe('SchemaPage', () => {
@@ -95,9 +123,17 @@ describe('SchemaPage', () => {
     });
 
     it('classifies custom-named types via appliesTo, not the built-in name map', () => {
-        useSchemaMock.mockReturnValue(
-            loaded('entity Subject {};\nentity Report {};\naction "read" appliesTo {\n  principal: [Subject],\n  resource: [Report]\n};'),
-        );
+        useParsedSchemaMock.mockReturnValue({
+            parsed: {
+                entities: [
+                    { name: 'Subject', parents: [], attributes: [] },
+                    { name: 'Report', parents: [], attributes: [] },
+                ],
+                actions: [{ name: 'read', principals: ['Subject'], resources: ['Report'] }],
+            },
+            isLoading: false,
+            error: undefined,
+        });
         render(<SchemaPage />);
         // Subject is used as a principal, Report as a resource — so they are NOT "Custom".
         expect(screen.getByLabelText('Principal kinds')).toHaveTextContent('1');
@@ -107,10 +143,17 @@ describe('SchemaPage', () => {
         expect(screen.queryByText('Custom')).not.toBeInTheDocument();
     });
 
-    it('surfaces parser diagnostics instead of silently looking empty', () => {
-        useSchemaMock.mockReturnValue(loaded('entity {'));
+    it('qualifies namespaced types in the outline', () => {
+        useParsedSchemaMock.mockReturnValue({
+            parsed: {
+                entities: [{ name: 'myapp::Report', parents: [], attributes: [] }],
+                actions: [{ name: 'read', principals: [], resources: ['myapp::Report'] }],
+            },
+            isLoading: false,
+            error: undefined,
+        });
         render(<SchemaPage />);
-        expect(screen.getByText('Schema could not be fully parsed')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'myapp::Report' })).toBeInTheDocument();
     });
 
     it('does not show the diagnostics alert for a well-formed schema', () => {
@@ -153,12 +196,7 @@ describe('SchemaPage', () => {
     });
 
     it('edits and saves a valid schema', () => {
-        useSchemaMock.mockReturnValue({
-            schema: { environmentId: 'e', schemaText: 'entity User {};', updatedAt: null },
-            notFound: false,
-            isLoading: false,
-            error: undefined,
-        });
+        useSchemaMock.mockReturnValue(loaded('entity User {};'));
         render(<SchemaPage />);
         fireEvent.click(screen.getByRole('button', { name: /edit/i }));
         fireEvent.click(screen.getByRole('button', { name: /save/i }));
@@ -183,6 +221,7 @@ describe('SchemaPage', () => {
 
     it('opens the editor in create mode with Save disabled for a blank draft', () => {
         useSchemaMock.mockReturnValue({ schema: null, notFound: true, isLoading: false, error: undefined });
+        useSchemaValidationMock.mockReturnValue({ errors: ['Schema must not be empty.'], validating: false });
         render(<SchemaPage />);
         fireEvent.click(screen.getByRole('button', { name: /create schema/i }));
         expect(screen.getByTestId('monaco')).toBeInTheDocument();
@@ -191,15 +230,26 @@ describe('SchemaPage', () => {
     });
 
     it('disables save when the draft has diagnostics', () => {
-        useSchemaMock.mockReturnValue({
-            schema: { environmentId: 'e', schemaText: 'action "x" { principal: [User] };', updatedAt: null },
-            notFound: false,
-            isLoading: false,
-            error: undefined,
-        });
+        useSchemaMock.mockReturnValue(loaded('action "x" { principal: [User] };'));
+        useSchemaValidationMock.mockReturnValue({ errors: ["missing 'appliesTo'"], validating: false });
         render(<SchemaPage />);
         fireEvent.click(screen.getByRole('button', { name: /edit/i }));
         expect(screen.getByRole('button', { name: /save/i })).toBeDisabled();
+    });
+
+    it('disables save while a draft validation is still in flight', () => {
+        useSchemaValidationMock.mockReturnValue({ errors: [], validating: true });
+        render(<SchemaPage />);
+        fireEvent.click(screen.getByRole('button', { name: /edit/i }));
+        expect(screen.getByRole('button', { name: /save/i })).toBeDisabled();
+    });
+
+    it('surfaces a backend error when the save is rejected', () => {
+        updateState = { mutate: mutateMock, isPending: false, isError: true, error: new Error("line 1:7 extraneous input '{'") };
+        render(<SchemaPage />);
+        fireEvent.click(screen.getByRole('button', { name: /edit/i }));
+        expect(screen.getByText('Could not save schema')).toBeInTheDocument();
+        expect(screen.getByText("line 1:7 extraneous input '{'")).toBeInTheDocument();
     });
 
     it('offers create when no schema exists', () => {

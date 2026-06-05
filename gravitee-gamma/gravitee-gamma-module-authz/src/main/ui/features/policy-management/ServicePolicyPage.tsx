@@ -45,7 +45,7 @@ import type { ChipOption } from '../../shared/chip-option';
 import { useEntities } from '../../shared/hooks/useEntities';
 import { useEntityOptions } from '../../shared/hooks/useEntityOptions';
 import { usePolicies } from '../../shared/hooks/usePolicies';
-import { useSchema } from '../../shared/hooks/useSchema';
+import { useParsedSchema } from '../../shared/hooks/useParsedSchema';
 import { PolicyEditorSheet } from './PolicyEditorSheet';
 import { PolicyListTable } from './PolicyListTable';
 import { buildActionOptions } from './action-options';
@@ -109,7 +109,7 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
         type: config.type,
         status: statusFilter === 'ALL' ? undefined : statusFilter,
     });
-    const schema = useSchema(envId);
+    const { parsed: schemaParsed } = useParsedSchema(envId);
     // Catalog: targets of this policy type (mcp.*, llm.*, api.*). Scoped to the
     // service prefix instead of "fetch all" so envs with 10k+ entities still load fast.
     const catalogEntities = useEntities(envId, 200, {
@@ -175,8 +175,8 @@ export function ServicePolicyPage({ config }: { readonly config: ServicePageConf
 
     const actionOptions = useMemo(
         (): readonly ChipOption[] =>
-            buildActionOptions(schema.schema?.schemaText, actionEntities.data?.data ?? [], mcpToolEntities.data?.data ?? []),
-        [schema.schema, actionEntities.data, mcpToolEntities.data],
+            buildActionOptions(schemaParsed.actions, actionEntities.data?.data ?? [], mcpToolEntities.data?.data ?? []),
+        [schemaParsed.actions, actionEntities.data, mcpToolEntities.data],
     );
 
     const { options: principalOptions } = useEntityOptions(envId, {

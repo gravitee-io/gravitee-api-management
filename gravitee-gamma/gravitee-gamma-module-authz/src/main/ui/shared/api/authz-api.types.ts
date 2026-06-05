@@ -65,6 +65,39 @@ export interface SchemaResponse {
     readonly updatedAt: string | null;
 }
 
+export interface EngineSchemaType {
+    readonly type?: string;
+    readonly name?: string;
+    readonly element?: EngineSchemaType;
+    readonly attributes?: Record<string, EngineSchemaType>;
+    readonly additionalAttributes?: boolean;
+}
+
+export interface EngineEntityType {
+    readonly shape?: EngineSchemaType;
+    readonly memberOfTypes?: readonly string[];
+}
+
+export interface EngineAction {
+    readonly appliesTo?: {
+        readonly principalTypes?: readonly string[];
+        readonly resourceTypes?: readonly string[];
+        readonly context?: EngineSchemaType;
+    };
+}
+
+export interface EngineNamespace {
+    readonly entityTypes?: Record<string, EngineEntityType>;
+    readonly actions?: Record<string, EngineAction>;
+}
+
+export type EngineSchemaJson = Record<string, EngineNamespace>;
+
+export interface SchemaValidation {
+    readonly valid: boolean;
+    readonly errors: readonly string[];
+}
+
 export interface PagedResponse<T> {
     readonly data: readonly T[];
     readonly total: number;

@@ -19,6 +19,7 @@ import { ApiError, authzCoreApiClient } from './authz-api-client';
 import type {
     AmSyncStartResponse,
     AmSyncStatusResponse,
+    EngineSchemaJson,
     EntityResponse,
     PagedResponse,
     PolicyRequest,
@@ -26,6 +27,7 @@ import type {
     PolicyStatus,
     PolicyType,
     SchemaResponse,
+    SchemaValidation,
 } from './authz-api.types';
 
 export const DEFAULT_PER_PAGE = 10;
@@ -229,6 +231,12 @@ export const authzApiService = {
     },
 
     deleteSchema: (environmentId: string): Promise<void> => authzCoreApiClient.delete<void>(corePath(environmentId, '/schema')),
+
+    getParsedSchema: (environmentId: string): Promise<EngineSchemaJson> =>
+        authzCoreApiClient.get<EngineSchemaJson>(corePath(environmentId, '/schema/parsed')),
+
+    validateSchema: (environmentId: string, schemaText: string): Promise<SchemaValidation> =>
+        authzCoreApiClient.post<SchemaValidation>(corePath(environmentId, '/schema/validate'), { schema: schemaText }),
 
     listPolicies: async (environmentId: string, params?: PolicyListParams): Promise<PagedResponse<PolicyResponse>> => {
         // The canonical backend has no concept of the UI 'type' (MCP/LLM/API/…);
