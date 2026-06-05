@@ -15,7 +15,12 @@
  */
 import { isFunction } from 'lodash';
 
-import { ApplicationInvitation, ApplicationInvitationsCreateInput, ApplicationInvitationsResponse } from './application-invitation';
+import {
+  ApplicationInvitation,
+  ApplicationInvitationsCreateInput,
+  ApplicationInvitationsResponse,
+  ApplicationInvitationUpdateInput,
+} from './application-invitation';
 
 export function fakeApplicationInvitation(
   modifier?: Partial<ApplicationInvitation> | ((base: ApplicationInvitation) => ApplicationInvitation),
@@ -54,6 +59,15 @@ export function fakeApplicationInvitationsCreateInput(
     recipients: [{ email: 'alice@example.com' }],
     role: 'USER',
     notify: false,
+    ...modifier,
+  };
+}
+
+export function fakeApplicationInvitationUpdateInput(
+  modifier?: Partial<ApplicationInvitationUpdateInput>,
+): ApplicationInvitationUpdateInput {
+  return {
+    role: 'OWNER',
     ...modifier,
   };
 }

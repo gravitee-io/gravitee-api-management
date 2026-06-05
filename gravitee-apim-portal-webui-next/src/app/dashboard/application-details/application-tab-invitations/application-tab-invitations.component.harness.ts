@@ -81,4 +81,12 @@ export class ApplicationTabInvitationsComponentHarness extends ComponentHarness 
   public async clickDeleteInvitation(): Promise<void> {
     return (await this.getDeleteInvitationButton())!.click();
   }
+
+  public async getEditInvitationButton(): Promise<MatButtonHarness | null> {
+    return (await this.locatePaginatedTable())?.getActionButton('edit') ?? null;
+  }
+
+  public async clickEditInvitation(): Promise<void> {
+    return (await this.getEditInvitationButton())!.click();
+  }
 }

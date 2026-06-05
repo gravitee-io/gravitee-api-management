@@ -40,6 +40,10 @@ import { fakeUserApplicationPermissions } from '../../../../entities/permission/
 import { ConfigService } from '../../../../services/config.service';
 import { TESTING_BASE_URL } from '../../../../testing/app-testing.module';
 import { ApplicationInvitationCreateDialogComponent } from '../application-invitation-create-dialog/application-invitation-create-dialog.component';
+import {
+  ApplicationInvitationEditDialogComponent,
+  ApplicationInvitationEditDialogData,
+} from '../application-invitation-edit-dialog/application-invitation-edit-dialog.component';
 
 describe('ApplicationTabInvitationsComponent', () => {
   let fixture: ComponentFixture<ApplicationTabInvitationsComponent>;
@@ -332,6 +336,52 @@ describe('ApplicationTabInvitationsComponent', () => {
     expect(emailIcon).not.toBeNull();
     expect(email.textContent.trim()).toBe('bob@example.com');
     expect((await roleCell!.text()).trim()).toBe('POC');
+  });
+
+  describe('edit action', () => {
+    it('should not show edit button when user lacks MEMBER[U] permission', async () => {
+      const harness = await flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()]));
+
+      expect(await harness.getEditInvitationButton()).toBeNull();
+    });
+
+    it('should show edit button when user has MEMBER[U] permission', async () => {
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'U'] }));
+
+      const harness = await flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()]));
+
+      expect(await harness.getEditInvitationButton()).not.toBeNull();
+    });
+
+    it('should open edit dialog and reload invitations after successful update', async () => {
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'U'] }));
+      const afterClosed = new Subject<boolean>();
+      const invitation = fakeApplicationInvitation({ id: 'invitation-1', email: 'alice@example.com', role: 'USER' });
+      const openDialogSpy = jest.spyOn(fixture.debugElement.injector.get(MatDialog), 'open').mockReturnValue({
+        afterClosed: () => afterClosed.asObservable(),
+      } as MatDialogRef<ApplicationInvitationEditDialogComponent, boolean>);
+      const harness = await flush(fakeApplicationInvitationsResponse([invitation]));
+
+      await harness.clickEditInvitation();
+      fixture.detectChanges();
+
+      expect(openDialogSpy).toHaveBeenCalledWith(ApplicationInvitationEditDialogComponent, {
+        data: {
+          applicationId,
+          invitationId: invitation.id,
+          invitationEmail: invitation.email,
+          currentRole: invitation.role,
+        } satisfies ApplicationInvitationEditDialogData,
+      });
+
+      afterClosed.next(true);
+      afterClosed.complete();
+      fixture.detectChanges();
+      httpTestingController
+        .expectOne(req => req.url.includes('invitations/_search'))
+        .flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation({ id: invitation.id, role: 'OWNER' })]));
+      await fixture.whenStable();
+    });
   });
 
   describe('delete action', () => {
