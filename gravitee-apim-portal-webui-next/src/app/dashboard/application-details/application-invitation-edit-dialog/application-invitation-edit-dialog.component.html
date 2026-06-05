@@ -1,0 +1,88 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<h2 mat-dialog-title i18n="@@editApplicationInvitationDialogTitle">Edit Invitation</h2>
+
+<mat-dialog-content class="application-invitation-edit-dialog">
+  <p class="application-invitation-edit-dialog__description next-gen-body" i18n="@@editApplicationInvitationDialogDescription">
+    Update application role for <span class="next-gen-body-strong">{{ invitationEmail }}</span
+    >.
+  </p>
+
+  @if (rolesResource.isLoading()) {
+    <div class="application-invitation-edit-dialog__loading" aria-live="polite" data-testid="edit-invitation-roles-loading">
+      <mat-progress-spinner diameter="20" mode="indeterminate" />
+      <span class="next-gen-small" i18n="@@editApplicationInvitationRolesLoading">Loading roles...</span>
+    </div>
+  } @else if (rolesResource.error()) {
+    <p
+      class="application-invitation-edit-dialog__error next-gen-small"
+      role="alert"
+      data-testid="edit-invitation-roles-error"
+      i18n="@@editApplicationInvitationRolesError"
+    >
+      An error occurred while loading application roles. Please try again.
+    </p>
+  } @else {
+    <mat-form-field appearance="outline" class="application-invitation-edit-dialog__field">
+      <mat-label i18n="@@editApplicationInvitationRoleLabel">Invitation Role</mat-label>
+      <mat-select
+        [formControl]="roleControl"
+        data-testid="edit-invitation-role-select"
+        aria-label="Invitation role"
+        i18n-aria-label="@@editApplicationInvitationRoleAriaLabel"
+      >
+        @for (role of assignableRoles(); track role.name) {
+          <mat-option [value]="role.name">{{ role.name }}</mat-option>
+        }
+      </mat-select>
+      @if (roleControl.hasError('required') && roleControl.touched) {
+        <mat-error i18n="@@editApplicationInvitationRoleRequired">Application role is required.</mat-error>
+      }
+    </mat-form-field>
+  }
+
+  @if (submitError(); as error) {
+    <p class="application-invitation-edit-dialog__error next-gen-small" data-testid="edit-invitation-submit-error" role="alert">
+      {{ error }}
+    </p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button
+    mat-stroked-button
+    type="button"
+    [disabled]="isSubmitting()"
+    (click)="onCancel()"
+    data-testid="edit-invitation-cancel-button"
+    i18n="@@editApplicationInvitationCancelButton"
+  >
+    Cancel
+  </button>
+  <button
+    mat-flat-button
+    color="primary"
+    type="button"
+    [disabled]="!canSubmit()"
+    (click)="onSubmit()"
+    data-testid="edit-invitation-save-button"
+    i18n="@@editApplicationInvitationSaveButton"
+  >
+    Save
+  </button>
+</mat-dialog-actions>
