@@ -53,7 +53,9 @@ public class RemoteApiDefinitionParser {
      * plain Java methods (not via JAX-RS dispatch), which would otherwise bypass {@code @Valid} constraints
      * on those endpoint parameters.
      *
-     * @throws BadRequestException if the content is not parseable JSON. The Jackson exception detail is
+     * @throws BadRequestException if the content is not parseable JSON, or if it is valid JSON that is not a
+     *     Gravitee export (e.g. {@code {"hello":"world"}} deserializes into an {@link ExportApiV4} with a null
+     *     {@code api}, which would otherwise NPE in the downstream mapper). The Jackson exception detail is
      *     logged at warn level but never returned to the caller, to avoid leaking internal class paths or
      *     fragments of the remote body through the error message.
      * @throws ConstraintViolationException if the parsed definition fails Bean Validation.
@@ -65,6 +67,10 @@ public class RemoteApiDefinitionParser {
         } catch (JsonProcessingException e) {
             log.warn("Failed to parse API definition fetched from URL", e);
             throw new BadRequestException("Invalid API definition format");
+        }
+        if (apiToImport == null || apiToImport.getApi() == null) {
+            log.warn("API definition fetched from URL is valid JSON but is missing the required 'api' object");
+            throw new BadRequestException("Invalid API definition");
         }
         Set<ConstraintViolation<ExportApiV4>> violations = VALIDATOR.validate(apiToImport);
         if (!violations.isEmpty()) {

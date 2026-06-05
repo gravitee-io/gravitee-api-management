@@ -98,6 +98,32 @@ class OAIDomainServiceImplTest {
         ).isExactlyInstanceOf(SwaggerDescriptorException.class);
     }
 
+    @Test
+    void should_throw_clean_exception_when_remote_url_is_unreachable() {
+        // Given an allowed, syntactically-valid URL whose host refuses the connection. The swagger parser fetches
+        // the URL server-side; allow loopback here so we exercise the fetch failure, not the SSRF guard.
+        when(importConfiguration.isAllowImportFromPrivate()).thenReturn(true);
+        var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
+        importSwaggerDescriptor.setPayload("http://127.0.0.1:1/openapi.json");
+
+        // When / Then a fetch failure surfaces as a clean 400 SwaggerDescriptorException, never a 500 leaking internals.
+        assertThatThrownBy(() -> oaiDomainService.convert(ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor, false, false))
+            .isExactlyInstanceOf(SwaggerDescriptorException.class)
+            .hasMessageNotContainingAny("io.swagger", "java.net", "Connection", "ConnectException");
+    }
+
+    @Test
+    void should_throw_clean_exception_when_payload_is_valid_json_but_not_a_spec() {
+        // Given valid JSON that is not an OpenAPI document (parity with the Gravitee-definition non-export case).
+        var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
+        importSwaggerDescriptor.setPayload("{ \"hello\": \"world\" }");
+
+        // When / Then it is rejected as a clean 400, never an NPE/500.
+        assertThatThrownBy(() -> oaiDomainService.convert(ORGANIZATION_ID, ENVIRONMENT_ID, importSwaggerDescriptor, false, false))
+            .isExactlyInstanceOf(SwaggerDescriptorException.class)
+            .hasMessageNotContainingAny("io.swagger", "NullPointerException", "java.net");
+    }
+
     @Nested
     @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
     class DeferredResponseValidation {
