@@ -20,6 +20,8 @@ import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
+import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
+import io.gravitee.apim.core.flow.exception.InvalidFlowException;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
@@ -28,6 +30,8 @@ import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificat
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.rest.api.service.common.IdBuilder;
@@ -153,6 +157,28 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
                 new VerifyApiPathDomainService.Input(input.auditInfo.environmentId(), input.spec.getId(), input.spec.getPaths())
             )
             .peek(sanitized -> sanitizedBuilder.paths(sanitized.paths()), errors::addAll);
+
+        checkApiFlowsPathOperator(input.spec.getFlows());
+    }
+
+    private void checkApiFlowsPathOperator(List<? extends AbstractFlow> flows) {
+        if (flows == null) {
+            return;
+        }
+        flows
+            .stream()
+            .filter(Flow.class::isInstance)
+            .map(Flow.class::cast)
+            .filter(flow -> flow.getSelectors() != null)
+            .forEach(flow -> {
+                boolean hasNullPathOperator = flow
+                    .getSelectors()
+                    .stream()
+                    .anyMatch(FlowValidationDomainService.HTTP_SELECTOR_WITH_NULL_PATH_OPERATOR);
+                if (hasNullPathOperator) {
+                    throw InvalidFlowException.missingPathOperator(flow.getName());
+                }
+            });
     }
 
     private void validateAndSanitizeNativeV4ForCreation(
