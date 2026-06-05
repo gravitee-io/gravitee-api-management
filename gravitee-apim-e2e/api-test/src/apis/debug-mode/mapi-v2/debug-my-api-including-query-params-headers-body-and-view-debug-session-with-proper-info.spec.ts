@@ -60,7 +60,10 @@ describeIfClientGatewayCompatible('Debug my API (incl. query params, Headers and
     ]);
   });
 
-  describe('V4 API Proxy', () => {
+  // V4 APIs run on the v4 engine regardless of V4_EMULATION_ENGINE_DEFAULT, so debugging a V4 API
+  // behaves identically in both matrix legs. Gate it on the v4 emulation leg to avoid running it
+  // twice (the V2 sections below already cover the v3 vs emulation distinction).
+  describeIfV4EmulationEngine('V4 API Proxy', () => {
     let api: any;
     beforeAll(async () => {
       api = await importV4Api({
