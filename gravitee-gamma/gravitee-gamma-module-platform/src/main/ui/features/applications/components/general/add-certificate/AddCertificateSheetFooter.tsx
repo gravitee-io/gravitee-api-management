@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, DialogClose, DialogFooter } from '@gravitee/graphene-core';
+import { Button, SheetFooter } from '@gravitee/graphene-core';
 
 import { ADD_CERTIFICATE_TEST_IDS } from './addCertificateTestIds';
 
-export function AddCertificateDialogFooter({
+export function AddCertificateSheetFooter({
     stepIndex,
     isValidating,
     isSubmitting,
@@ -26,6 +26,7 @@ export function AddCertificateDialogFooter({
     onValidateAndContinue,
     onContinueToConfirm,
     onSubmit,
+    onCancel,
 }: Readonly<{
     stepIndex: number;
     isValidating: boolean;
@@ -35,9 +36,10 @@ export function AddCertificateDialogFooter({
     onValidateAndContinue: () => void;
     onContinueToConfirm: () => void;
     onSubmit: () => void;
+    onCancel: () => void;
 }>) {
     return (
-        <DialogFooter className="mx-0 mb-0 flex shrink-0 flex-row items-center gap-2 rounded-none border-t border-border bg-popover p-0 px-6 py-4 sm:justify-between">
+        <SheetFooter className="mx-0 mb-0 flex shrink-0 flex-row items-center gap-2 rounded-none border-t border-border bg-popover p-0 px-6 py-4 sm:justify-between">
             {stepIndex > 0 ? (
                 <Button
                     type="button"
@@ -52,11 +54,9 @@ export function AddCertificateDialogFooter({
                 <span className="mr-auto" />
             )}
             <div className="flex gap-2">
-                <DialogClose asChild>
-                    <Button type="button" variant="outline" data-testid={ADD_CERTIFICATE_TEST_IDS.cancelButton}>
-                        Cancel
-                    </Button>
-                </DialogClose>
+                <Button type="button" variant="outline" data-testid={ADD_CERTIFICATE_TEST_IDS.cancelButton} onClick={onCancel}>
+                    Cancel
+                </Button>
                 {stepIndex === 0 ? (
                     <Button
                         type="button"
@@ -83,6 +83,6 @@ export function AddCertificateDialogFooter({
                     </Button>
                 ) : null}
             </div>
-        </DialogFooter>
+        </SheetFooter>
     );
 }

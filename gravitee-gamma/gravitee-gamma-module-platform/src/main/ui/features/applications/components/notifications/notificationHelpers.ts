@@ -37,6 +37,33 @@ export function notifierTypeLabel(notifier: ApplicationNotifier): string {
     return notifier.name ?? notifier.id ?? 'Notifier';
 }
 
+export const NOTIFICATION_CREATE_ROW_KEY = '__new__';
+
+export function isCreateNotificationRow(row: ApplicationNotificationRow | null): boolean {
+    return row?.key === NOTIFICATION_CREATE_ROW_KEY;
+}
+
+export function buildNewNotificationRow(applicationId: string, notifiers: ApplicationNotifier[]): ApplicationNotificationRow {
+    const defaultNotifier = notifiers.find(item => item.id);
+    const notifierId = defaultNotifier?.id ?? '';
+    return {
+        key: NOTIFICATION_CREATE_ROW_KEY,
+        name: '',
+        subscribedEvents: 0,
+        notifierName: defaultNotifier ? notifierTypeLabel(defaultNotifier) : '—',
+        notification: {
+            name: '',
+            referenceType: 'APPLICATION',
+            referenceId: applicationId,
+            notifier: notifierId,
+            config_type: 'GENERIC',
+            hooks: [],
+        },
+        notifier: defaultNotifier,
+        isReadonly: false,
+    };
+}
+
 export function notificationNotifierOptions(notifiers: ApplicationNotifier[]): NotificationNotifierOption[] {
     return notifiers
         .filter((notifier): notifier is ApplicationNotifier & { id: string } => Boolean(notifier.id))

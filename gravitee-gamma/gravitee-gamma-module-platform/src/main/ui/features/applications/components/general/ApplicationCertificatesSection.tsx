@@ -31,8 +31,8 @@ import { FileUpIcon, PlusIcon } from '@gravitee/graphene-core/icons';
 import type { UseMutationResult } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 
-import { ApplicationAddCertificateDialog, type AddCertificateSubmit } from './ApplicationAddCertificateDialog';
-import { ApplicationCertificateDetailDialog } from './ApplicationCertificateDetailDialog';
+import { ApplicationAddCertificateSheet, type AddCertificateSubmit } from './ApplicationAddCertificateSheet';
+import { ApplicationCertificateDetailSheet } from './ApplicationCertificateDetailSheet';
 import { ApplicationRevokeCertificateDialog } from './ApplicationRevokeCertificateDialog';
 import { certificateStatusLabel, certificateStatusVariant } from './certificateUtils';
 import { notify } from '../../../../shared/notify';
@@ -282,7 +282,7 @@ export function ApplicationCertificatesSection({
                 </CardContent>
             </Card>
 
-            <ApplicationAddCertificateDialog
+            <ApplicationAddCertificateSheet
                 open={certDialogOpen}
                 onOpenChange={setCertDialogOpen}
                 applicationId={applicationId}
@@ -291,7 +291,7 @@ export function ApplicationCertificatesSection({
                 isSubmitting={addCertificateWithGraceMutation.isPending}
             />
 
-            <ApplicationCertificateDetailDialog certificate={viewCert} onClose={() => setViewCert(null)} />
+            <ApplicationCertificateDetailSheet certificate={viewCert} onClose={() => setViewCert(null)} />
 
             <ApplicationRevokeCertificateDialog
                 certificate={revokeCert}

@@ -32,8 +32,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ApplicationSubscriptionApiKeysCard } from './ApplicationSubscriptionApiKeysCard';
 import { ApplicationSubscriptionCloseDialog } from './ApplicationSubscriptionCloseDialog';
 import { ApplicationSubscriptionDetailsTable } from './ApplicationSubscriptionDetailsTable';
-import { ApplicationSubscriptionEditRequestDialog } from './ApplicationSubscriptionEditRequestDialog';
-import { ApplicationSubscriptionExpireApiKeyDialog } from './ApplicationSubscriptionExpireApiKeyDialog';
+import { ApplicationSubscriptionEditRequestSheet } from './ApplicationSubscriptionEditRequestSheet';
+import { ApplicationSubscriptionExpireApiKeySheet } from './ApplicationSubscriptionExpireApiKeySheet';
 import { ApplicationSubscriptionRevokeApiKeyDialog } from './ApplicationSubscriptionRevokeApiKeyDialog';
 import { SubscriptionStatusLabel } from './SubscriptionStatusLabel';
 import { notify } from '../../../../shared/notify';
@@ -253,7 +253,7 @@ export function ApplicationSubscriptionDetailView({
                 />
             ) : null}
 
-            <ApplicationSubscriptionEditRequestDialog
+            <ApplicationSubscriptionEditRequestSheet
                 open={editOpen}
                 initialRequest={detail.request ?? ''}
                 onOpenChange={setEditOpen}
@@ -275,7 +275,7 @@ export function ApplicationSubscriptionDetailView({
                 isLoading={revokeMutation.isPending}
             />
 
-            <ApplicationSubscriptionExpireApiKeyDialog
+            <ApplicationSubscriptionExpireApiKeySheet
                 apiKey={expireTarget}
                 onClose={() => setExpireTarget(null)}
                 onConfirm={at => void handleExpireConfirm(at)}

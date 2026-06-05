@@ -15,18 +15,18 @@
  */
 import {
     Button,
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
     Label,
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
     Textarea,
 } from '@gravitee/graphene-core';
 import { useEffect, useState } from 'react';
 
-export function ApplicationSubscriptionEditRequestDialog({
+export function ApplicationSubscriptionEditRequestSheet({
     open,
     initialRequest,
     onOpenChange,
@@ -46,25 +46,27 @@ export function ApplicationSubscriptionEditRequestDialog({
     }, [open, initialRequest]);
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-md" style={{ width: 'min(90vw, 28rem)', maxWidth: 'min(90vw, 28rem)' }}>
-                <DialogHeader>
-                    <DialogTitle>Edit subscription message</DialogTitle>
-                    <DialogDescription>Update this message while the subscription is pending.</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-2 py-2">
+        <Sheet open={open} onOpenChange={onOpenChange}>
+            <SheetContent side="right" style={{ maxWidth: '480px' }}>
+                <SheetHeader>
+                    <SheetTitle>Edit subscription message</SheetTitle>
+                    <SheetDescription>Update this message while the subscription is pending.</SheetDescription>
+                </SheetHeader>
+
+                <div className="space-y-2 px-4 py-2">
                     <Label htmlFor="edit-subscription-request">Publisher message to subscriber</Label>
                     <Textarea id="edit-subscription-request" value={request} onChange={e => setRequest(e.target.value)} rows={4} />
                 </div>
-                <DialogFooter className="sm:justify-end gap-2">
+
+                <SheetFooter className="flex-row justify-end border-t gap-2">
                     <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
                         Cancel
                     </Button>
                     <Button type="button" disabled={!request.trim() || isLoading} onClick={() => onSave(request.trim())}>
                         {isLoading ? 'Saving…' : 'Save changes'}
                     </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </SheetFooter>
+            </SheetContent>
+        </Sheet>
     );
 }
