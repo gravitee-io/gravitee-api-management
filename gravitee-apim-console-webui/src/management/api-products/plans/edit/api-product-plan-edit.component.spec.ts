@@ -84,6 +84,12 @@ describe('ApiProductPlanEditComponent', () => {
 
   afterEach(() => {
     flushGroupsRequest();
+    // The plan form now constrains sharding tags to the API Product's tags, which triggers these ambient loads.
+    httpTestingController
+      .match(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${API_PRODUCT_ID}`)
+      .forEach(r => r.flush({ id: API_PRODUCT_ID, name: 'Product', version: '1.0', tags: [] }));
+    httpTestingController.match(req => req.url.endsWith('/configuration/tags')).forEach(r => r.flush([]));
+    httpTestingController.match(req => req.url.endsWith('/user/tags')).forEach(r => r.flush([]));
     httpTestingController.verify();
     jest.clearAllMocks();
   });

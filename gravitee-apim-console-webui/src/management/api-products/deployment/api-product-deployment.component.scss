@@ -14,34 +14,35 @@
  * limitations under the License.
  */
 
-export interface UpdateApiProduct {
-  /**
-   * API Product's name. Must be unique within the environment.
-   */
-  name: string;
-  /**
-   * API Product's version.
-   */
-  version: string;
-  /**
-   * API Product's description.
-   */
-  description?: string;
-  /**
-   * List of API IDs included in the product.
-   */
-  apiIds?: string[];
-  /**
-   * Groups attached to this API Product.
-   */
-  groups?: string[];
-  /**
-   * The list of sharding tags associated with this API Product.
-   */
-  tags?: string[];
-  /**
-   * Disable membership notifications.
-   * @default false
-   */
-  disableMembershipNotifications?: boolean;
+@use '../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+}
+
+.deployment {
+  &__card {
+    margin-bottom: 24px;
+
+    &__title {
+      margin: 0 0 4px;
+    }
+
+    &__subtitle {
+      margin: 0 0 24px;
+    }
+
+    &__field-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    &__field-description {
+      margin: 0 0 16px;
+    }
+
+    &__field {
+      width: 100%;
+    }
+  }
 }

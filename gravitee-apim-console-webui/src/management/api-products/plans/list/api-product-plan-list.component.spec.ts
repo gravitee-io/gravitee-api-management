@@ -130,13 +130,17 @@ describe('ApiProductPlanListComponent', () => {
       expect(row).toContain('JWT Plan');
     }));
 
-    it('omits deploy-on column for API product plans table', fakeAsync(async () => {
+    it('shows deploy-on column with sharding tags for API product plans table', fakeAsync(async () => {
       await init();
       fixture.detectChanges();
-      flushPlansList([]);
+      const plan = { ...fakePlanV4({ name: 'JWT Plan', security: { type: 'JWT' }, status: 'PUBLISHED', tags: ['tag-1', 'tag-2'] }) };
+      flushPlansList([plan]);
 
       const headers = await planListHarness.getHeaderColumnNames();
-      expect(headers['deploy-on']).toBeUndefined();
+      expect(headers['deploy-on']).toBe('Deploy on');
+
+      const [row] = await planListHarness.getRowCells();
+      expect(row).toContain('tag-1, tag-2');
     }));
   });
 
