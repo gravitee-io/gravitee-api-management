@@ -27,6 +27,7 @@ import fixtures.core.model.ApiCRDFixtures;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
+import io.gravitee.apim.core.flow.exception.InvalidFlowException;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.member.domain_service.ValidateCRDMembersDomainService;
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
@@ -34,9 +35,12 @@ import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificat
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.rest.api.model.notification.NotificationConfigType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.service.common.IdBuilder;
+import java.util.List;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -263,5 +267,22 @@ class ValidateApiCRDDomainServiceTest {
                 sanitized -> Assertions.assertThat(sanitized.spec()).isEqualTo(expected),
                 errors -> Assertions.assertThat(errors).isEmpty()
             );
+    }
+
+    @Test
+    void should_reject_api_flow_with_null_path_operator() {
+        var corruptFlow = Flow.builder()
+            .name("api-flow")
+            .selectors(List.of(HttpSelector.builder().path("/calls").pathOperator(null).build()))
+            .build();
+        var spec = ApiCRDFixtures.newBaseSpec().flows(List.of(corruptFlow)).build();
+        var input = new ValidateApiCRDDomainService.Input(AuditInfo.builder().environmentId(ENV_ID).build(), spec);
+
+        var throwable = Assertions.catchThrowable(() -> cut.validateAndSanitize(input));
+
+        Assertions.assertThat(throwable)
+            .isInstanceOf(InvalidFlowException.class)
+            .hasMessage("The flow [api-flow] contains an HTTP selector with a missing pathOperator");
+        Assertions.assertThat(((InvalidFlowException) throwable).getParameters()).containsEntry("flowName", "api-flow");
     }
 }
