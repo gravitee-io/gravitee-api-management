@@ -25,10 +25,16 @@ import java.util.List;
 
 public class FakePolicyValidationDomainService implements PolicyValidationDomainService {
 
+    public static final String SANITIZING_POLICY = "sanitize-config-policy";
+    public static final String SANITIZED_CONFIGURATION = "{\"sanitized\":true}";
+
     @Override
     public String validateAndSanitizeConfiguration(String policyName, String configuration) {
         if (policyName.contains("throw_invalid_data_exception")) {
             throw new InvalidDataException("Invalid configuration for policy " + policyName);
+        }
+        if (SANITIZING_POLICY.equals(policyName)) {
+            return SANITIZED_CONFIGURATION;
         }
         return configuration;
     }
