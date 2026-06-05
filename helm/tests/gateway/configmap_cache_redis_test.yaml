@@ -1,0 +1,81 @@
+suite: Test Gateway default configmap - Redis resource pools
+templates:
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Does not render resources block when no Redis resource pool is configured
+    template: gateway/gateway-configmap.yaml
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "cacheRedis:"
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "aiVectorStoreRedis:"
+  - it: Renders resources.cacheRedis pool settings when configured
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        cacheRedis:
+          maxPoolSize: 60
+          maxPoolWaiting: 1024
+          poolCleanerInterval: 30000
+          poolRecycleTimeout: 180000
+          maxWaitingHandlers: 1024
+          connectTimeout: 2000
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            resources:
+            \s+cacheRedis:
+            \s+connectTimeout: 2000
+            \s+maxPoolSize: 60
+            \s+maxPoolWaiting: 1024
+            \s+maxWaitingHandlers: 1024
+            \s+poolCleanerInterval: 30000
+            \s+poolRecycleTimeout: 180000
+  - it: Renders only the overridden cacheRedis pool settings
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        cacheRedis:
+          maxPoolSize: 60
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            resources:
+            \s+cacheRedis:
+            \s+maxPoolSize: 60
+  - it: Renders resources.aiVectorStoreRedis pool settings when configured
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        aiVectorStoreRedis:
+          maxPoolSize: 12
+          connectTimeout: 2000
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            resources:
+            \s+aiVectorStoreRedis:
+            \s+connectTimeout: 2000
+            \s+maxPoolSize: 12
+  - it: Renders both Redis resource pools under a single resources block
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        cacheRedis:
+          maxPoolSize: 60
+        aiVectorStoreRedis:
+          maxPoolSize: 12
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            resources:
+            \s+cacheRedis:
+            \s+maxPoolSize: 60
+            \s+aiVectorStoreRedis:
+            \s+maxPoolSize: 12
