@@ -95,6 +95,7 @@ public class PatchApiUseCase {
     private static final String FIELD_RESOURCES = "resources";
     private static final String FIELD_LISTENERS = "listeners";
     private static final String FIELD_ENDPOINT_GROUPS = "endpointGroups";
+    private static final String FIELD_GROUPS = "groups";
 
     private static final String JSON_PATCH_PATH_PREFIX = "/";
 
@@ -139,7 +140,8 @@ public class PatchApiUseCase {
         FIELD_FLOWS,
         FIELD_RESOURCES,
         FIELD_LISTENERS,
-        FIELD_ENDPOINT_GROUPS
+        FIELD_ENDPOINT_GROUPS,
+        FIELD_GROUPS
     );
 
     private static final int MAX_PATCH_OPS = 200;
@@ -488,7 +490,7 @@ public class PatchApiUseCase {
             .categories(categories)
             .allowMultiJwtOauth2Subscriptions(allowMultiJwt)
             .disableMembershipNotifications(disableMembershipNotifications)
-            .groups(existingApi.getGroups())
+            .groups(resolveNullableSet(patchType, rawPatchNode, patchedNode, FIELD_GROUPS, existingApi.getGroups()))
             .apiDefinitionValue(updatedDefinition)
             .build();
     }
@@ -951,6 +953,7 @@ public class PatchApiUseCase {
         Set<String> tags,
         String lifecycleState,
         Set<String> categories,
+        Set<String> groups,
         PatchableAnalytics analytics,
         Failover failover,
         PatchableFlowExecution flowExecution,
@@ -976,6 +979,7 @@ public class PatchApiUseCase {
                 httpV4.getTags(),
                 api.getApiLifecycleState() != null ? api.getApiLifecycleState().name() : null,
                 api.getCategories(),
+                api.getGroups(),
                 PatchableAnalytics.from(httpV4.getAnalytics()),
                 httpV4.getFailover(),
                 PatchableFlowExecution.from(httpV4.getFlowExecution()),
