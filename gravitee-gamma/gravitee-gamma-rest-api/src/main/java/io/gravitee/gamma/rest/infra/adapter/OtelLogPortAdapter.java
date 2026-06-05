@@ -46,11 +46,13 @@ public class OtelLogPortAdapter implements OtelLogPort {
     private final OtelLogRepository otelLogRepository;
 
     @Override
-    public TraceLogs findLogs(String orgId, String envId, String traceId, Map<String, String> resourceAttributeFilters) {
+    public TraceLogs findLogs(String orgId, String envId, String traceId, Map<String, String> attributeFilters) {
         QueryContext queryContext = new QueryContext(orgId, envId);
-        // Pin to this trace + apply the env scope; let the SPI's default record cap (5000) bound the
-        // result. Time range / record-attribute filters aren't useful at the trace-detail granularity.
-        OtelLogSearchCriteria criteria = new OtelLogSearchCriteria(traceId, Map.of(), resourceAttributeFilters, null, null, null);
+        // Pin to this trace + apply the per-record scope; let the SPI's default record cap (5000)
+        // bound the result. Time range isn't useful at the trace-detail granularity. The caller
+        // (GetTraceDetailUseCase) decides which keys go where — env / api / … land in the record-
+        // attribute slot here because that's where gravitee-reporter-otel stamps them.
+        OtelLogSearchCriteria criteria = new OtelLogSearchCriteria(traceId, attributeFilters, Map.of(), null, null, null);
 
         List<SpanEvent> events = new ArrayList<>();
         List<PayloadLog> payloadLogs = new ArrayList<>();

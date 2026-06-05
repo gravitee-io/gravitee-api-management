@@ -16,7 +16,7 @@
 package io.gravitee.gamma.rest.core.tracing.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.gamma.rest.core.tracing.TracingResourceFilters;
+import io.gravitee.gamma.rest.core.tracing.TraceScopeFilters;
 import io.gravitee.gamma.rest.core.tracing.model.PayloadLog;
 import io.gravitee.gamma.rest.core.tracing.model.Span;
 import io.gravitee.gamma.rest.core.tracing.model.SpanEvent;
@@ -60,17 +60,23 @@ public class GetTraceDetailUseCase {
     public record Output(Optional<TraceDetail> trace) {}
 
     public Output execute(Input input) {
-        Map<String, String> resourceFilters = TracingResourceFilters.forApi(input.environmentId, input.apiId);
+        // Same scope envelope (env + api) goes to both signals, but each port interprets it
+        // differently — the per-API tracer emits Gravitee attributes on the OTel resource, while
+        // gravitee-reporter-otel stamps them on each log record's attributes map (only
+        // gravitee.org.id is on the per-org Logger's resource).
+        Map<String, String> traceResourceFilters = TraceScopeFilters.forApi(input.environmentId, input.apiId);
+        Map<String, String> logAttributeFilters = TraceScopeFilters.forApi(input.environmentId, input.apiId);
+
         Optional<List<Span>> spansOpt = tracingPort.getTraceSpans(
             input.organizationId,
             input.environmentId,
             input.traceId,
-            resourceFilters
+            traceResourceFilters
         );
         if (spansOpt.isEmpty()) {
             return new Output(Optional.empty());
         }
-        OtelLogPort.TraceLogs logs = otelLogPort.findLogs(input.organizationId, input.environmentId, input.traceId, resourceFilters);
+        OtelLogPort.TraceLogs logs = otelLogPort.findLogs(input.organizationId, input.environmentId, input.traceId, logAttributeFilters);
 
         // Group by spanId once, then look up per span — O(events + spans) instead of nested-loop O(n*m).
         Map<String, List<SpanEvent>> eventsBySpan = logs.events().stream().collect(Collectors.groupingBy(SpanEvent::spanId));
