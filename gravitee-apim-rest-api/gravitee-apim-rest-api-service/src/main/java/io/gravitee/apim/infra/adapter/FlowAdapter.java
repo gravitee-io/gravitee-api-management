@@ -111,6 +111,7 @@ public interface FlowAdapter {
 
     FlowHttpSelector toRepository(HttpSelector source);
 
+    @Mapping(target = "pathOperator", source = "pathOperator", defaultValue = "STARTS_WITH")
     HttpSelector toModel(FlowHttpSelector source);
 
     FlowChannelSelector toRepository(ChannelSelector source);

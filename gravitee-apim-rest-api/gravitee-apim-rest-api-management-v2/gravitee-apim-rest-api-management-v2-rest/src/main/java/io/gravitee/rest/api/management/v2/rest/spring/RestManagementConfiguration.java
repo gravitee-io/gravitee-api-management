@@ -22,6 +22,7 @@ import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransfor
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.api.use_case.PatchApiUseCase.ApiV4Deserializer;
+import io.gravitee.apim.core.plan.use_case.PatchPlanUseCase.PlanFlowsConverter;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.infra.domain_service.analytics_engine.ManagementContextLoader;
 import io.gravitee.apim.infra.domain_service.analytics_engine.processors.ApiTypeFilterTransformer;
@@ -33,6 +34,7 @@ import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.kafkaexplorer.spring.KafkaExplorerSpringConfiguration;
 import io.gravitee.rest.api.management.v2.rest.adapter.PatchApiV4Deserializer;
+import io.gravitee.rest.api.management.v2.rest.adapter.PatchPlanFlowsDeserializer;
 import io.gravitee.rest.api.management.v2.rest.mapper.FlowMapper;
 import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.resource.api.RemoteApiDefinitionParser;
@@ -60,6 +62,11 @@ public class RestManagementConfiguration {
     @Bean
     public ApiV4Deserializer apiV4Deserializer(ObjectMapper objectMapper) {
         return new PatchApiV4Deserializer(objectMapper);
+    }
+
+    @Bean
+    public PlanFlowsConverter planFlowsDeserializer(ObjectMapper objectMapper) {
+        return new PatchPlanFlowsDeserializer(objectMapper);
     }
 
     @Bean

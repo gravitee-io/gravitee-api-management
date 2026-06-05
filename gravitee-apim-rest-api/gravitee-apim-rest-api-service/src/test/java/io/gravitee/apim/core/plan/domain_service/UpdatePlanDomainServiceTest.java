@@ -497,6 +497,43 @@ class UpdatePlanDomainServiceTest {
     }
 
     @Nested
+    class Validate {
+
+        @ParameterizedTest
+        @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#v4testData")
+        void should_not_throw_for_a_valid_plan_and_flows(Api api, Plan plan, List<Flow> flows) {
+            givenExistingPlan(plan);
+
+            Assertions.assertThatCode(() -> service.validate(plan, flows, api, AUDIT_INFO)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_throw_when_flows_are_invalid() {
+            var plan = PlanFixtures.HttpV4.anApiKey()
+                .toBuilder()
+                .apiId(API_ID)
+                .planDefinitionHttpV4(
+                    fixtures.definition.PlanFixtures.HttpV4Definition.anApiKeyV4()
+                        .toBuilder()
+                        .tags(Set.of(TAG))
+                        .status(PlanStatus.STAGING)
+                        .build()
+                )
+                .build();
+            givenExistingPlan(plan);
+            List<Flow> invalidFlows = List.of(
+                Flow.builder().name("invalid").selectors(List.of(new HttpSelector(), new ChannelSelector())).build()
+            );
+
+            var throwable = Assertions.catchThrowable(() -> service.validate(plan, invalidFlows, API_PROXY_V4, AUDIT_INFO));
+
+            assertThat(throwable)
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("The flow [invalid] contains selectors that couldn't apply");
+        }
+    }
+
+    @Nested
     class Common {
 
         @ParameterizedTest

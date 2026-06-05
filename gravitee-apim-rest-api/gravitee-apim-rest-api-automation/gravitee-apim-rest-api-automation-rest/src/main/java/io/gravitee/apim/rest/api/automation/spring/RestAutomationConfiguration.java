@@ -17,9 +17,11 @@ package io.gravitee.apim.rest.api.automation.spring;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.use_case.PatchApiUseCase.ApiV4Deserializer;
+import io.gravitee.apim.core.plan.use_case.PatchPlanUseCase.PlanFlowsConverter;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.rest.api.management.v2.rest.adapter.PatchApiV4Deserializer;
+import io.gravitee.rest.api.management.v2.rest.adapter.PatchPlanFlowsDeserializer;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,6 +40,11 @@ public class RestAutomationConfiguration {
     @Bean
     public ApiV4Deserializer apiV4Deserializer(ObjectMapper objectMapper) {
         return new PatchApiV4Deserializer(objectMapper);
+    }
+
+    @Bean
+    public PlanFlowsConverter planFlowsDeserializer(ObjectMapper objectMapper) {
+        return new PatchPlanFlowsDeserializer(objectMapper);
     }
 
     @Bean

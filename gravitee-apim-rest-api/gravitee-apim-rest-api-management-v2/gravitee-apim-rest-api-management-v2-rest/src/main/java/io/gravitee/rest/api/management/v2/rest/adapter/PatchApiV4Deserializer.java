@@ -28,6 +28,9 @@ import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * @author GraviteeSource Team
+ */
 public class PatchApiV4Deserializer implements ApiV4Deserializer {
 
     private static final List<String> POLYMORPHIC_LIST_FIELDS = List.of("listeners", "endpointGroups", "flows", "resources");

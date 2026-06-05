@@ -21,6 +21,12 @@ import java.util.Map;
 
 public class PreconditionFailedException extends AbstractManagementException {
 
+    public PreconditionFailedException() {}
+
+    public PreconditionFailedException(Throwable cause) {
+        super(cause);
+    }
+
     @Override
     public int getHttpStatusCode() {
         return HttpStatusCode.PRECONDITION_FAILED_412;
@@ -28,7 +34,7 @@ public class PreconditionFailedException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return "Precondition failed";
+        return getCause() != null ? "Precondition failed: " + getCause().getMessage() : "Precondition failed";
     }
 
     @Override

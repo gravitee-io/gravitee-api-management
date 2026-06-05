@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import fixtures.definition.FlowFixtures;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.utils.TimeProvider;
@@ -515,6 +517,21 @@ class FlowAdapterTest {
                         .build()
                 );
         });
+    }
+
+    @Test
+    void should_default_http_selector_path_operator_to_starts_with_when_repository_path_operator_is_null() {
+        var repository = Flow.builder()
+            .name("my-flow")
+            .enabled(true)
+            .selectors(List.of(FlowHttpSelector.builder().path("/").pathOperator(null).methods(Set.of(HttpMethod.GET)).build()))
+            .build();
+
+        var result = FlowAdapter.INSTANCE.toFlowV4(repository);
+
+        assertThat(result.getSelectors()).containsExactly(
+            HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).methods(Set.of(HttpMethod.GET)).build()
+        );
     }
 
     @Test
