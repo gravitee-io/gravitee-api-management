@@ -323,9 +323,9 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>io.gravitee.gamma.module</groupId>
+            <groupId>com.graviteesource.gamma.module</groupId>
             <artifactId>gravitee-gamma-module-authz</artifactId>
-            <version>${project.version}</version>
+            <version>${gravitee-gamma-module-authz.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
             <exclusions>
