@@ -17,14 +17,14 @@ import { test, describe, expect, afterAll } from '@jest/globals';
 import { APIsApi, ApiV4, HttpListener, PlanMode, PlanSecurityType } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
-import { created, fail, noContent, succeed } from '@lib/jest-utils';
+import { describeIfV4EmulationEngine, created, fail, noContent, succeed } from '@lib/jest-utils';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
 
 const envId = 'DEFAULT';
 
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 
-describe('API - V4 - Proxy - Import - Gravitee Definition - Only API -', () => {
+describeIfV4EmulationEngine('API - V4 - Proxy - Import - Gravitee Definition - Only API -', () => {
   test('should fail because of plan mode is invalid', async () => {
     await fail(
       v2ApisResourceAsApiPublisher.createApiWithImportDefinitionRaw({

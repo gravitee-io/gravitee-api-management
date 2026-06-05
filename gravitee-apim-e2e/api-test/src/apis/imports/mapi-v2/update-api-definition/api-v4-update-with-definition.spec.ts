@@ -17,13 +17,13 @@ import { afterAll, describe, expect, test } from '@jest/globals';
 import { APIsApi, ApiV4 } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
-import { created, fail, noContent, succeed } from '@lib/jest-utils';
+import { describeIfV4EmulationEngine, created, fail, noContent, succeed } from '@lib/jest-utils';
 
 const envId = 'DEFAULT';
 
 const v2ApisResource = new APIsApi(forManagementV2AsApiUser());
 
-describe('API - V4 - Update via definition import', () => {
+describeIfV4EmulationEngine('API - V4 - Update via definition import', () => {
   describe('Update an existing PROXY API with a new definition', () => {
     let createdApi: ApiV4;
     const originalDefinition = MAPIV2ApisFaker.apiImportV4();

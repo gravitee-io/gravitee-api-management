@@ -17,7 +17,7 @@ import { afterAll, describe, expect, test } from '@jest/globals';
 import { APIPlansApi, APIsApi, ApiV4, PlanSecurityType, PlanV4 } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
-import { created, noContent, succeed } from '@lib/jest-utils';
+import { describeIfV4EmulationEngine, created, noContent, succeed } from '@lib/jest-utils';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
 import { faker } from '@faker-js/faker';
 
@@ -26,7 +26,7 @@ const envId = 'DEFAULT';
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 const v2APlansResourceAsApiPublisher = new APIPlansApi(forManagementV2AsApiUser());
 
-describe('API - V4 - Proxy - Import - Gravitee Definition - With plans', () => {
+describeIfV4EmulationEngine('API - V4 - Proxy - Import - Gravitee Definition - With plans', () => {
   describe('Create v4 API from import with plans', () => {
     describe('Create v4 API with two plans', () => {
       const keylessPlan = MAPIV2PlansFaker.planV4();

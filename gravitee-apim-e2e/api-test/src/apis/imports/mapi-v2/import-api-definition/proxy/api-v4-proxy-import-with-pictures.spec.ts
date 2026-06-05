@@ -16,7 +16,7 @@
 import { afterAll, describe, expect, test } from '@jest/globals';
 import { APIsApi, ApiV4 } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
-import { created, noContent, succeed } from '@lib/jest-utils';
+import { describeIfV4EmulationEngine, created, noContent, succeed } from '@lib/jest-utils';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { ImagesUtils } from '@gravitee/utils/images';
 
@@ -24,7 +24,7 @@ const envId = 'DEFAULT';
 
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 
-describe('API - V4 - Proxy - Import - Gravitee Definition - With pictures', () => {
+describeIfV4EmulationEngine('API - V4 - Proxy - Import - Gravitee Definition - With pictures', () => {
   describe('Create v4 API from import with pictures', () => {
     let importedApi: ApiV4;
 
