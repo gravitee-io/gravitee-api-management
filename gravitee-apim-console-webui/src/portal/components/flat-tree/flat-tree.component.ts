@@ -186,7 +186,7 @@ export class FlatTreeComponent {
     return this.getPublishActionState(node).tooltip;
   }
 
-  treeBase = viewChild(MatTree);
+  treeBase = viewChild<MatTree<SectionNode, string>>(MatTree);
   contextMenuTrigger = viewChild('contextMenuTrigger', { read: MatMenuTrigger });
   contextMenuAnchor = viewChild('contextMenuTrigger', { read: ElementRef });
   contextMenuNode = signal<FlatTreeNode | null>(null);
@@ -194,6 +194,12 @@ export class FlatTreeComponent {
   canCreate: boolean;
   canUpdate: boolean;
   canDelete: boolean;
+
+  // Used by MatTree's [expansionKey] so expansion state is keyed by id, not object reference,
+  // and therefore preserved across [dataSource] refreshes (after publish/delete/move).
+  readonly getNodeId = (node: SectionNode): string => node.id;
+
+  private treeInitialized = false;
 
   constructor() {
     this.canCreate = this.permissionService.hasAnyMatching(['environment-documentation-c']);
@@ -203,12 +209,12 @@ export class FlatTreeComponent {
     effect(() => {
       const nodes = this.tree();
       const tree = this.treeBase();
+      if (nodes.length === 0 || !tree || this.treeInitialized) return;
 
-      if (nodes.length > 0 && tree) {
-        queueMicrotask(() => {
-          tree.expandAll();
-        });
-      }
+      queueMicrotask(() => {
+        tree.expandAll();
+        this.treeInitialized = true;
+      });
     });
   }
 
