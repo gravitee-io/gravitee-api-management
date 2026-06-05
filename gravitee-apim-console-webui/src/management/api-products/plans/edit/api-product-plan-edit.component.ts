@@ -28,6 +28,7 @@ import { GioPermissionService } from '../../../../shared/components/gio-permissi
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { AVAILABLE_PLANS_FOR_MENU, PlanFormType, PlanMenuItemVM } from '../../../../services-ngx/constants.service';
 import { CreatePlanV4, Plan, PlanStatus } from '../../../../entities/management-api-v2';
+import { ApiProduct } from '../../../../entities/management-api-v2/api-product';
 import { ApiPlanFormModule } from '../../../api/component/plan/api-plan-form.module';
 import { ApiPlanFormComponent, PlanFormValue } from '../../../api/component/plan/api-plan-form.component';
 import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
@@ -68,6 +69,16 @@ export class ApiProductPlanEditComponent {
 
   private readonly apiProductId = toSignal(this.activatedRoute.paramMap.pipe(map(p => p.get('apiProductId') ?? '')), { initialValue: '' });
   private readonly planId = toSignal(this.activatedRoute.paramMap.pipe(map(p => p.get('planId') ?? null)), { initialValue: null });
+
+  private readonly apiProduct = toSignal(
+    toObservable(this.apiProductId).pipe(
+      switchMap(id => (id ? this.apiProductV2Service.get(id).pipe(catchError(() => of(null))) : of(null))),
+    ),
+    { initialValue: null as ApiProduct | null },
+  );
+
+  // Sharding tags available for product plans are constrained to the API Product's own tags.
+  protected readonly shardingTags = computed(() => this.apiProduct()?.tags ?? []);
 
   protected readonly mode = computed(() => (this.planId() ? 'edit' : 'create') as 'create' | 'edit');
   protected readonly isReadOnly = computed(() => !this.permissionService.hasAnyMatching(['api_product-plan-u']));

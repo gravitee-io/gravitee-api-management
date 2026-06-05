@@ -44,6 +44,10 @@ export interface ApiProduct {
    */
   groups?: string[];
   /**
+   * The list of sharding tags associated with this API Product.
+   */
+  tags?: string[];
+  /**
    * The date (as timestamp) when the API Product was created.
    */
   createdAt?: Date;

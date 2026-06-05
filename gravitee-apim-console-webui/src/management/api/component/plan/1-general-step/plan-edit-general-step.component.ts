@@ -27,7 +27,7 @@ import {
 } from '@angular/forms';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { includes } from 'lodash';
-import { combineLatest, of, ReplaySubject } from 'rxjs';
+import { BehaviorSubject, combineLatest, ReplaySubject } from 'rxjs';
 import { map, startWith, switchMap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -98,6 +98,15 @@ export class PlanEditGeneralStepComponent implements OnInit {
 
   public api$ = new ReplaySubject<ApiV2 | ApiV4 | ApiFederated>(1);
 
+  /**
+   * Tags allowed for this reference (e.g. an API Product's sharding tags) when there is no API context.
+   * When set (even to an empty array), the Deployment / sharding-tags section is shown and the selectable
+   * tags are constrained to this list (intersected with the user's allowed tags). When left undefined, the
+   * section is driven by the API ({@link api}) as before.
+   */
+  private readonly referenceTags$ = new BehaviorSubject<string[] | null>(null);
+  public hasReferenceTags = false;
+
   public generalForm: UntypedFormGroup;
 
   @Input()
@@ -105,6 +114,12 @@ export class PlanEditGeneralStepComponent implements OnInit {
     if (api) {
       this.api$.next(api);
     }
+  }
+
+  @Input()
+  public set referenceTags(tags: string[] | undefined) {
+    this.hasReferenceTags = tags != null;
+    this.referenceTags$.next(tags ?? null);
   }
 
   @Input()
@@ -154,13 +169,18 @@ export class PlanEditGeneralStepComponent implements OnInit {
     ),
     map(pages => pages.filter(page => page.published)),
   );
-  shardingTags$ = this.api$.pipe(
-    // Only load tags if api is defined
-    switchMap(api => combineLatest([this.tagService.list(), of(api), this.currentUserService.getTags()])),
-    map(([tags, api, userTags]) => {
+  shardingTags$ = combineLatest([
+    this.referenceTags$,
+    this.api$.pipe(startWith(null)),
+    this.tagService.list(),
+    this.currentUserService.getTags(),
+  ]).pipe(
+    map(([referenceTags, api, tags, userTags]) => {
+      // Reference tags (API Product) take precedence; otherwise fall back to the API's tags.
+      const allowedTags = referenceTags ?? api?.tags ?? [];
       return tags.map(tag => ({
         ...tag,
-        disabled: !includes(userTags, tag.key) || !includes(api.tags, tag.key),
+        disabled: !includes(userTags, tag.key) || !includes(allowedTags, tag.key),
       }));
     }),
   );

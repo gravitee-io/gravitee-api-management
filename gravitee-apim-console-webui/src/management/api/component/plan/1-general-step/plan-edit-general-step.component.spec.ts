@@ -20,13 +20,15 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatFormFieldHarness } from '@angular/material/form-field/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { PlanEditGeneralStepComponent } from './plan-edit-general-step.component';
 
 import { ApiPlanFormModule } from '../api-plan-form.module';
 import { GioTestingModule, CONSTANTS_TESTING } from '../../../../../shared/testing';
-import { fakeNativeKafkaApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
+import { ApiV4, fakeNativeKafkaApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
+import { Tag } from '../../../../../entities/tag/tag';
 
 describe('PlanEditGeneralStepComponent — Kafka port routing', () => {
   let fixture: ComponentFixture<PlanEditGeneralStepComponent>;
@@ -328,6 +330,134 @@ describe('PlanEditGeneralStepComponent — Kafka port routing', () => {
 
       expect(component.generalForm.get('brokerRangeStart').value).toBe(9200);
       expect(component.generalForm.get('brokerRangeEnd').value).toBe(9202);
+    });
+  });
+});
+
+describe('PlanEditGeneralStepComponent — reference tags (API Product context)', () => {
+  let fixture: ComponentFixture<PlanEditGeneralStepComponent>;
+  let component: PlanEditGeneralStepComponent;
+  let loader: HarnessLoader;
+  let httpTestingController: HttpTestingController;
+
+  const fakeTag = (key: string): Tag => ({ id: key, key, name: key, description: '' });
+
+  const setupComponent = (referenceTags: string[] | undefined, api?: ApiV4) => {
+    TestBed.configureTestingModule({
+      declarations: [PlanEditGeneralStepComponent],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiPlanFormModule, MatIconTestingModule],
+    });
+
+    fixture = TestBed.createComponent(PlanEditGeneralStepComponent);
+    component = fixture.componentInstance;
+    loader = TestbedHarnessEnvironment.loader(fixture);
+    httpTestingController = TestBed.inject(HttpTestingController);
+
+    component.mode = 'create';
+    component.referenceTags = referenceTags;
+    if (api) {
+      component.api = api;
+    }
+    fixture.detectChanges();
+  };
+
+  const flushRequests = ({ tags = [], userTags = [], apiId }: { tags?: Tag[]; userTags?: string[]; apiId?: string } = {}) => {
+    if (apiId) {
+      httpTestingController
+        .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/pages?type=MARKDOWN&api=${apiId}` })
+        .flush([]);
+    }
+    httpTestingController.expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags` }).flush(tags);
+    httpTestingController.expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.org.baseURL}/user/tags` }).flush(userTags);
+    httpTestingController.expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups` }).flush([]);
+    fixture.detectChanges();
+  };
+
+  const getShardingTagsSelectOrNull = () =>
+    loader.getHarnessOrNull(MatSelectHarness.with({ selector: '[aria-label="Sharding tags selection"]' }));
+
+  afterEach(() => {
+    httpTestingController.verify();
+  });
+
+  describe('hasReferenceTags flag', () => {
+    it('should be true when referenceTags is provided (even an empty array)', () => {
+      setupComponent([]);
+      flushRequests();
+
+      expect(component.hasReferenceTags).toBe(true);
+    });
+
+    it('should be false when referenceTags is left undefined', () => {
+      setupComponent(undefined);
+      // Without referenceTags or an API the Deployment section is not rendered, so only the
+      // always-visible Access-Control groups request is issued.
+      httpTestingController.expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups` }).flush([]);
+      fixture.detectChanges();
+
+      expect(component.hasReferenceTags).toBe(false);
+    });
+  });
+
+  describe('Deployment section visibility', () => {
+    it('should show the Deployment (sharding tags) section when referenceTags is set even without an API context', async () => {
+      setupComponent([]);
+      flushRequests();
+
+      expect((fixture.nativeElement as HTMLElement).textContent).toContain('Deployment');
+      expect(await getShardingTagsSelectOrNull()).not.toBeNull();
+    });
+
+    it('should NOT show the Deployment (sharding tags) section when neither referenceTags nor an API are set', async () => {
+      setupComponent(undefined);
+      // The Deployment section is not rendered, so shardingTags$ is never subscribed and only the
+      // always-visible Access-Control groups request is issued.
+      httpTestingController.expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups` }).flush([]);
+      fixture.detectChanges();
+
+      expect(await getShardingTagsSelectOrNull()).toBeNull();
+    });
+  });
+
+  describe('Sharding tags intersection', () => {
+    it('should only enable tags that belong to both the reference tags and the user tags', async () => {
+      setupComponent(['tag-a']);
+      flushRequests({ tags: [fakeTag('tag-a'), fakeTag('tag-b'), fakeTag('tag-c')], userTags: ['tag-a', 'tag-b'] });
+
+      const shardingTagsSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Sharding tags selection"]' }));
+      await shardingTagsSelect.open();
+      const options = await shardingTagsSelect.getOptions();
+      const optionStates = await Promise.all(
+        options.map(async option => ({ text: await option.getText(), disabled: await option.isDisabled() })),
+      );
+
+      expect(optionStates).toEqual(
+        expect.arrayContaining([
+          { text: 'tag-a', disabled: false },
+          { text: 'tag-b', disabled: true },
+          { text: 'tag-c', disabled: true },
+        ]),
+      );
+    });
+
+    it('should let referenceTags take precedence over the API tags when both are present', async () => {
+      const api = fakeApiV4({ type: 'PROXY', tags: ['tag-b'] });
+      setupComponent(['tag-a'], api);
+      flushRequests({ tags: [fakeTag('tag-a'), fakeTag('tag-b')], userTags: ['tag-a', 'tag-b'], apiId: api.id });
+
+      const shardingTagsSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Sharding tags selection"]' }));
+      await shardingTagsSelect.open();
+      const options = await shardingTagsSelect.getOptions();
+      const optionStates = await Promise.all(
+        options.map(async option => ({ text: await option.getText(), disabled: await option.isDisabled() })),
+      );
+
+      expect(optionStates).toEqual(
+        expect.arrayContaining([
+          { text: 'tag-a', disabled: false },
+          { text: 'tag-b', disabled: true },
+        ]),
+      );
     });
   });
 });

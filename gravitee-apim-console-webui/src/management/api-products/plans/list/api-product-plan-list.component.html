@@ -19,7 +19,7 @@
   [plans]="plansTableDS()"
   [planMenuItems]="planMenuItems"
   [isLoadingData]="isLoadingData()"
-  [context]="{ isReadOnly: isReadOnly(), isV2Api: false, showDeployOnColumn: false }"
+  [context]="{ isReadOnly: isReadOnly(), isV2Api: false, showDeployOnColumn: true }"
   [filterState]="{ statuses: apiPlanStatus(), selectedStatus: selectedStatus() }"
   (typeSelected)="onPlanTypeSelected($event)"
   (planSelected)="onPlanSelected($event)"

@@ -166,6 +166,12 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
   @Input({ required: true }) isTcpApi!: boolean;
 
   /**
+   * Allowed sharding tags when there is no API context (e.g. an API Product's tags). When provided, the plan's
+   * sharding-tags section is shown and constrained to these tags. Leave undefined for the API-driven behavior.
+   */
+  @Input() referenceTags?: string[];
+
+  /**
    * When set, overrides the default restriction step visibility (e.g. use false to hide for API Product).
    * When undefined, restriction step is shown in create mode for non-TCP, non-native APIs.
    */
