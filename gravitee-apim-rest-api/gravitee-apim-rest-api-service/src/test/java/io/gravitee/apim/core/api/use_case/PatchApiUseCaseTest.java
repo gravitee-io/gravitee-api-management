@@ -302,8 +302,16 @@ class PatchApiUseCaseTest {
         return clearFieldVariants("tags");
     }
 
+    static Stream<Arguments> clearGroupsVariants() {
+        return clearFieldVariants("groups");
+    }
+
     static Stream<Arguments> clearDescriptionVariants() {
         return clearFieldVariants("description");
+    }
+
+    static Api apiWithGroups(Set<String> groups) {
+        return ApiFixtures.aProxyApiV4().toBuilder().groups(groups).build();
     }
 
     static Api apiWithServices(ApiServices services) {
@@ -624,15 +632,109 @@ class PatchApiUseCaseTest {
                 .isInstanceOf(ApiPatchNotAllowedException.class)
                 .hasMessageContaining("type");
         }
+    }
+
+    @Nested
+    class Groups {
 
         @ParameterizedTest
         @EnumSource(PatchApiUseCase.PatchType.class)
-        void groups_field_is_rejected(PatchApiUseCase.PatchType type) {
-            givenExistingApi(ApiFixtures.aProxyApiV4().toBuilder().groups(new HashSet<>(List.of("g-1"))).build());
+        void groups_field_is_set(PatchApiUseCase.PatchType type) {
+            givenExistingApi(apiWithGroups(new HashSet<>(List.of("group-1"))));
 
-            assertThatThrownBy(() -> execute(type, setField(type, "groups", List.of("g-2")), false)).isInstanceOf(
-                ValidationDomainException.class
-            );
+            var output = execute(type, setField(type, "groups", List.of("group-2")), false);
+
+            assertThat(output.api().getGroups()).containsExactly("group-2");
+        }
+
+        @Test
+        void json_patch_add_sets_groups() {
+            givenExistingApi(apiWithGroups(new HashSet<>(List.of("group-1"))));
+
+            var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("add", "/groups", List.of("group-2")), false);
+
+            assertThat(output.api().getGroups()).containsExactly("group-2");
+        }
+
+        @ParameterizedTest
+        @MethodSource("io.gravitee.apim.core.api.use_case.PatchApiUseCaseTest#clearGroupsVariants")
+        void groups_field_is_cleared(PatchApiUseCase.PatchType type, String body) {
+            givenExistingApi(apiWithGroups(new HashSet<>(List.of("group-1"))));
+
+            var output = execute(type, body, false);
+
+            assertThat(output.api().getGroups()).isEmpty();
+        }
+
+        @ParameterizedTest
+        @EnumSource(PatchApiUseCase.PatchType.class)
+        void omitting_groups_preserves_existing_groups(PatchApiUseCase.PatchType type) {
+            givenExistingApi(apiWithGroups(new HashSet<>(List.of("group-1"))));
+
+            var output = execute(type, setField(type, "name", "new-name"), false);
+
+            assertThat(output.api().getGroups()).containsExactly("group-1");
+        }
+
+        @ParameterizedTest
+        @EnumSource(PatchApiUseCase.PatchType.class)
+        void patched_groups_flow_through_to_update_unsanitized(PatchApiUseCase.PatchType type) {
+            givenExistingApi(apiWithGroups(new HashSet<>(List.of("group-1"))));
+
+            execute(type, setField(type, "groups", List.of("foreign-po-group", "missing-group")), false);
+
+            var apiCaptor = ArgumentCaptor.forClass(Api.class);
+            verify(updateApiDomainService).updateV4(apiCaptor.capture(), any());
+            assertThat(apiCaptor.getValue().getGroups()).containsExactlyInAnyOrder("foreign-po-group", "missing-group");
+        }
+
+        @ParameterizedTest
+        @EnumSource(PatchApiUseCase.PatchType.class)
+        void groups_field_is_set_when_stored_groups_is_null(PatchApiUseCase.PatchType type) {
+            givenExistingApi(apiWithGroups(null));
+
+            var output = execute(type, setField(type, "groups", List.of("group-2")), false);
+
+            assertThat(output.api().getGroups()).containsExactly("group-2");
+        }
+
+        @Test
+        void json_patch_add_sets_groups_when_stored_groups_is_null() {
+            givenExistingApi(apiWithGroups(null));
+
+            var output = execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("add", "/groups", List.of("group-2")), false);
+
+            assertThat(output.api().getGroups()).containsExactly("group-2");
+        }
+
+        @ParameterizedTest
+        @MethodSource("io.gravitee.apim.core.api.use_case.PatchApiUseCaseTest#clearGroupsVariants")
+        void groups_field_is_cleared_when_stored_groups_is_null(PatchApiUseCase.PatchType type, String body) {
+            givenExistingApi(apiWithGroups(null));
+
+            var output = execute(type, body, false);
+
+            assertThat(output.api().getGroups()).isEmpty();
+        }
+
+        @ParameterizedTest
+        @EnumSource(PatchApiUseCase.PatchType.class)
+        void invalid_groups_value_produces_400(PatchApiUseCase.PatchType type) {
+            assertThatThrownBy(() -> execute(type, setField(type, "groups", Map.of("not", "an-array")), false))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("groups");
+        }
+
+        @ParameterizedTest
+        @EnumSource(PatchApiUseCase.PatchType.class)
+        void dry_run_invokes_validation_with_patched_groups(PatchApiUseCase.PatchType type) {
+            stubValidateV4ReturnsArgument();
+
+            execute(type, setField(type, "groups", List.of("group-2")), true);
+
+            var apiCaptor = ArgumentCaptor.forClass(Api.class);
+            verify(updateApiDomainService).validateV4(apiCaptor.capture(), any());
+            assertThat(apiCaptor.getValue().getGroups()).containsExactly("group-2");
         }
     }
 
