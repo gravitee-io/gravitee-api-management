@@ -167,6 +167,13 @@ function isClientGatewaySupportingApiProductFeature(): boolean {
 }
 
 export const describeIfClientGatewayCompatible = describeIf(isClientGatewaySupportingV4APIDebugFeature());
-export const describeIfClientGatewaySupportingApiProduct = describeIf(isClientGatewaySupportingApiProductFeature());
+
+// API Products are V4-only: the v3 execution mode (V4_EMULATION_ENGINE_DEFAULT=no) only affects how
+// V2 APIs are executed and changes nothing for V4 APIs. Running these tests in the v3 matrix leg is
+// therefore pure duplication with no extra coverage, so we additionally gate them on the v4 emulation
+// engine leg to run them exactly once.
+export const describeIfClientGatewaySupportingApiProduct = describeIf(
+  isClientGatewaySupportingApiProductFeature() && process.env.V4_EMULATION_ENGINE_DEFAULT == 'yes',
+);
 
 export * from './jest-retry';
