@@ -516,6 +516,19 @@ gateway:
 |`+gateway.ratelimit.redis.password+` |Redis password |`+false+`
 |`+gateway.ratelimit.hazelcast.configPath+` |Hazelcast rate-limit configuration file path |`+${gravitee.home}/config/hazelcast-ratelimit.xml+`
 |`+gateway.ratelimit.hazelcast.port+` |Hazelcast rate-limit member and Kubernetes discovery service port |`+5901+`
+|`+gateway.cacheRedis.maxPoolSize+` |Redis cache resource (cache-redis) max connections per endpoint (gateway-wide, rendered to `resources.cacheRedis`) |`+6+`
+|`+gateway.cacheRedis.maxPoolWaiting+` |Redis cache resource max queued requests waiting for a connection |`+1024+`
+|`+gateway.cacheRedis.poolCleanerInterval+` |Redis cache resource idle-connection cleaner interval (ms) |`+30000+`
+|`+gateway.cacheRedis.poolRecycleTimeout+` |Redis cache resource idle connection recycle timeout (ms) |`+180000+`
+|`+gateway.cacheRedis.maxWaitingHandlers+` |Redis cache resource max queued commands on a connection |`+1024+`
+|`+gateway.cacheRedis.connectTimeout+` |Redis cache resource TCP connect timeout (ms) |`+2000+`
+|`+gateway.ratelimit.redis.cluster.nodes+` |Redis Cluster nodes (`host`/`port`) for cluster-safe rate limiting; mutually exclusive with `sentinel` |`+unset+`
+|`+gateway.aiVectorStoreRedis.maxPoolSize+` |AI vector store Redis resource (ai-vector-store-redis, APIM 4.12+) max connections per endpoint (rendered to `resources.aiVectorStoreRedis`) |`+6+`
+|`+gateway.aiVectorStoreRedis.maxPoolWaiting+` |AI vector store Redis resource max queued requests waiting for a connection |`+1024+`
+|`+gateway.aiVectorStoreRedis.poolCleanerInterval+` |AI vector store Redis resource idle-connection cleaner interval (ms) |`+30000+`
+|`+gateway.aiVectorStoreRedis.poolRecycleTimeout+` |AI vector store Redis resource idle connection recycle timeout (ms) |`+180000+`
+|`+gateway.aiVectorStoreRedis.maxWaitingHandlers+` |AI vector store Redis resource max queued commands on a connection |`+1024+`
+|`+gateway.aiVectorStoreRedis.connectTimeout+` |AI vector store Redis resource TCP connect timeout (ms) |`+2000+`
 |===
 
 

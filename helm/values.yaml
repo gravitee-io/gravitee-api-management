@@ -1735,11 +1735,44 @@ gateway:
     #         port: 26379
     #       - host: sentinel2
     #         port: 26379
+    #   # Redis Cluster (cluster-safe rate limiting). Mutually exclusive with sentinel.
+    #   # Enabled implicitly when nodes are set; replicas are never used for rate-limit counters.
+    #   cluster:
+    #     nodes:
+    #       - host: redis-node1
+    #         port: 6379
+    #       - host: redis-node2
+    #         port: 6379
+    #       - host: redis-node3
+    #         port: 6379
     #   operation:
     #     timeout: 10 # in milliseconds
     #   tcp:
     #     connectTimeout: 5000 # in milliseconds
     #     idleTimeout: 0 # in milliseconds
+  # Global connection-pool / timeout settings for the Redis cache resource (cache-redis plugin).
+  # Rendered into gravitee.yml under resources.cacheRedis.*. A single shared Vert.x Redis client
+  # is used for all cache-redis resources pointing at the same endpoint, and Vert.x pools cannot
+  # be resized at runtime, so these are gateway-wide (not per-API) and apply on restart.
+  # Uncomment to override the plugin defaults shown below.
+  # cacheRedis:
+  #   maxPoolSize: 6           # max simultaneous connections per Redis endpoint
+  #   maxPoolWaiting: 1024     # max queued requests waiting for a connection
+  #   poolCleanerInterval: 30000   # idle-connection cleaner interval (ms)
+  #   poolRecycleTimeout: 180000   # idle connection recycle timeout (ms)
+  #   maxWaitingHandlers: 1024 # max queued commands on a connection
+  #   connectTimeout: 2000     # TCP connect timeout (ms)
+  # Global connection-pool / timeout settings for the AI vector store Redis resource
+  # (ai-vector-store-redis plugin, APIM 4.12+). Rendered into gravitee.yml under
+  # resources.aiVectorStoreRedis.*. Same shared-client / gateway-wide semantics as cacheRedis.
+  # Uncomment to override the plugin defaults shown below.
+  # aiVectorStoreRedis:
+  #   maxPoolSize: 6           # max simultaneous connections per Redis endpoint
+  #   maxPoolWaiting: 1024     # max queued requests waiting for a connection
+  #   poolCleanerInterval: 30000   # idle-connection cleaner interval (ms)
+  #   poolRecycleTimeout: 180000   # idle connection recycle timeout (ms)
+  #   maxWaitingHandlers: 1024 # max queued commands on a connection
+  #   connectTimeout: 2000     # TCP connect timeout (ms)
   management:
       http:
       #  url: "https://bridge.example.com:18092"
