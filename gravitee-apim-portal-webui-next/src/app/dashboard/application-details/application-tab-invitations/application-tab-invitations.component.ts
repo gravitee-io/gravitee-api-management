@@ -36,6 +36,10 @@ import {
   ApplicationInvitationCreateDialogComponent,
   ApplicationInvitationCreateDialogData,
 } from '../application-invitation-create-dialog/application-invitation-create-dialog.component';
+import {
+  ApplicationInvitationEditDialogComponent,
+  ApplicationInvitationEditDialogData,
+} from '../application-invitation-edit-dialog/application-invitation-edit-dialog.component';
 
 interface InvitationTableRow {
   id: string;
@@ -90,6 +94,7 @@ export class ApplicationTabInvitationsComponent {
 
   readonly canRead = computed(() => this.userApplicationPermissions().MEMBER?.includes('R') ?? false);
   readonly canCreate = computed(() => this.userApplicationPermissions().MEMBER?.includes('C') ?? false);
+  readonly canUpdate = computed(() => this.userApplicationPermissions().MEMBER?.includes('U') ?? false);
   readonly canDelete = computed(() => this.userApplicationPermissions().MEMBER?.includes('D') ?? false);
   readonly hasSearchTerm = computed(() => this.searchTerm().trim().length > 0);
   readonly searchFilters = computed<ApplicationInvitationsSearchFilters>(() => {
@@ -97,18 +102,28 @@ export class ApplicationTabInvitationsComponent {
     return email ? { email } : {};
   });
 
-  readonly actions = computed<TableAction<InvitationTableRow>[]>(() =>
-    this.canDelete()
-      ? [
-          {
-            id: 'delete',
-            icon: 'delete_outline',
-            ariaLabel: $localize`:@@deleteApplicationInvitationAriaLabel:Delete invitation`,
-            color: 'warn',
-          },
-        ]
-      : [],
-  );
+  readonly actions = computed<TableAction<InvitationTableRow>[]>(() => {
+    const actions: TableAction<InvitationTableRow>[] = [];
+
+    if (this.canUpdate()) {
+      actions.push({
+        id: 'edit',
+        icon: 'edit',
+        ariaLabel: $localize`:@@editApplicationInvitationAriaLabel:Edit invitation role`,
+      });
+    }
+
+    if (this.canDelete()) {
+      actions.push({
+        id: 'delete',
+        icon: 'delete_outline',
+        ariaLabel: $localize`:@@deleteApplicationInvitationAriaLabel:Delete invitation`,
+        color: 'warn',
+      });
+    }
+
+    return actions;
+  });
 
   readonly requestParams = computed<InvitationsRequestParams | null>(() =>
     this.canRead()
@@ -173,7 +188,9 @@ export class ApplicationTabInvitationsComponent {
   }
 
   onActionClick({ actionId, row }: { actionId: string; row: InvitationTableRow }): void {
-    if (actionId === 'delete') {
+    if (actionId === 'edit') {
+      this.openEditInvitationDialog(row);
+    } else if (actionId === 'delete') {
       this.openDeleteConfirmation(row);
     }
   }
@@ -191,6 +208,29 @@ export class ApplicationTabInvitationsComponent {
       .afterClosed()
       .pipe(
         filter((invitationsCreated): invitationsCreated is true => invitationsCreated === true),
+        tap(() => this.invitationsResource.reload()),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  private openEditInvitationDialog(invitation: InvitationTableRow): void {
+    this.error.set(null);
+    this.matDialog
+      .open<ApplicationInvitationEditDialogComponent, ApplicationInvitationEditDialogData, boolean>(
+        ApplicationInvitationEditDialogComponent,
+        {
+          data: {
+            applicationId: this.applicationId(),
+            invitationId: invitation.id,
+            invitationEmail: invitation.email,
+            currentRole: invitation.role,
+          },
+        },
+      )
+      .afterClosed()
+      .pipe(
+        filter(invitationUpdated => invitationUpdated === true),
         tap(() => this.invitationsResource.reload()),
         takeUntilDestroyed(this.destroyRef),
       )

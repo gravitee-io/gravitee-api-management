@@ -19,9 +19,11 @@ import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
 import {
+  ApplicationInvitation,
   ApplicationInvitationsCreateInput,
   ApplicationInvitationsResponse,
   ApplicationInvitationsSearchFilters,
+  ApplicationInvitationUpdateInput,
 } from '../entities/application/application-invitation';
 
 @Injectable({
@@ -55,5 +57,16 @@ export class ApplicationInvitationService {
 
   deleteApplicationInvitation(applicationId: string, invitationId: string): Observable<void> {
     return this.http.delete<void>(`${this.configService.baseURL}/applications/${applicationId}/invitations/${invitationId}`);
+  }
+
+  updateApplicationInvitation(
+    applicationId: string,
+    invitationId: string,
+    input: ApplicationInvitationUpdateInput,
+  ): Observable<ApplicationInvitation> {
+    return this.http.put<ApplicationInvitation>(
+      `${this.configService.baseURL}/applications/${applicationId}/invitations/${invitationId}`,
+      input,
+    );
   }
 }

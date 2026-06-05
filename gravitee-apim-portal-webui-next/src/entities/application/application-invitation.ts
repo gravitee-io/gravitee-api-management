@@ -29,6 +29,10 @@ export interface ApplicationInvitationsCreateInput {
   notify: boolean;
 }
 
+export interface ApplicationInvitationUpdateInput {
+  role: string;
+}
+
 export interface ApplicationInvitationsSearchFilters {
   email?: string;
 }

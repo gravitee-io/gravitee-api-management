@@ -18,8 +18,10 @@ import { TestBed } from '@angular/core/testing';
 
 import { ApplicationInvitationService } from './application-invitation.service';
 import {
+  fakeApplicationInvitation,
   fakeApplicationInvitationsCreateInput,
   fakeApplicationInvitationsResponse,
+  fakeApplicationInvitationUpdateInput,
 } from '../entities/application/application-invitation.fixture';
 import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
 
@@ -94,5 +96,22 @@ describe('ApplicationInvitationService', () => {
       r => r.url === `${TESTING_BASE_URL}/applications/${applicationId}/invitations/${invitationId}` && r.method === 'DELETE',
     );
     req.flush(null, { status: 204, statusText: 'No Content' });
+  });
+
+  it('should update application invitation role', done => {
+    const invitationId = 'invitation-1';
+    const input = fakeApplicationInvitationUpdateInput({ role: 'OWNER' });
+    const response = fakeApplicationInvitation({ id: invitationId, role: 'OWNER' });
+
+    service.updateApplicationInvitation(applicationId, invitationId, input).subscribe(res => {
+      expect(res).toEqual(response);
+      done();
+    });
+
+    const req = httpTestingController.expectOne(
+      r => r.url === `${TESTING_BASE_URL}/applications/${applicationId}/invitations/${invitationId}` && r.method === 'PUT',
+    );
+    expect(req.request.body).toEqual(input);
+    req.flush(response);
   });
 });
