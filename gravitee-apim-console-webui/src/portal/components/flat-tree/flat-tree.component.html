@@ -21,6 +21,7 @@
     class="flat-tree"
     [dataSource]="tree()"
     [childrenAccessor]="childrenAccessor"
+    [expansionKey]="getNodeId"
     cdkDropList
     (cdkDropListDropped)="onDrop($event)"
   >
