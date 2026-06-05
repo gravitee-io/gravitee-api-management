@@ -54,7 +54,9 @@ import io.gravitee.apim.infra.domain_service.json_patch.JsonMergePatchServiceImp
 import io.gravitee.apim.infra.domain_service.json_patch.JsonPatchServiceImpl;
 import io.gravitee.apim.infra.domain_service.plan.PlanSynchronizationLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -841,6 +843,49 @@ class PatchPlanUseCaseTest {
             assertThat(output.plan().getName()).isEqualTo("Scalar Only");
             assertThat(flowCrudService.getPlanV4Flows(PLAN_ID)).hasSize(1);
             assertThat(flowCrudService.getPlanV4Flows(PLAN_ID).get(0).getId()).isEqualTo("flow-id");
+        }
+    }
+
+    @Nested
+    class FlowSanitizationReflectedInResponse {
+
+        @Test
+        void persist_returns_sanitized_flow_configuration_matching_stored_state() {
+            seedPlanWithSanitizingFlow();
+
+            var output = executeMerge("{\"name\":\"Renamed\"}");
+
+            var responseConfiguration = firstRequestStepConfiguration(output.plan().getFlows());
+            assertThat(responseConfiguration).isEqualTo(FakePolicyValidationDomainService.SANITIZED_CONFIGURATION);
+
+            var storedConfiguration = flowCrudService.getPlanV4Flows(PLAN_ID).get(0).getRequest().get(0).getConfiguration();
+            assertThat(responseConfiguration).isEqualTo(storedConfiguration);
+        }
+
+        @Test
+        void dry_run_returns_sanitized_flow_configuration_in_preview() {
+            seedPlanWithSanitizingFlow();
+
+            var output = useCase.execute(
+                baseInput().patchType(PatchPlanUseCase.PatchType.MERGE_PATCH).patchBody("{\"name\":\"Renamed\"}").dryRun(true).build()
+            );
+
+            assertThat(firstRequestStepConfiguration(output.plan().getFlows())).isEqualTo(
+                FakePolicyValidationDomainService.SANITIZED_CONFIGURATION
+            );
+        }
+
+        private void seedPlanWithSanitizingFlow() {
+            var step = Step.builder()
+                .name("policy-step")
+                .policy(FakePolicyValidationDomainService.SANITIZING_POLICY)
+                .configuration("{\"raw\":\"value\"}")
+                .build();
+            flowCrudService.savePlanFlows(PLAN_ID, List.of(Flow.builder().name("Flow").enabled(true).request(List.of(step)).build()));
+        }
+
+        private String firstRequestStepConfiguration(List<? extends AbstractFlow> flows) {
+            return ((Flow) flows.get(0)).getRequest().get(0).getConfiguration();
         }
     }
 
