@@ -32,6 +32,7 @@ public class InMemoryOtelLogPort implements OtelLogPort {
 
     private final Map<String, List<SpanEvent>> eventsByTraceId = new HashMap<>();
     private final Map<String, List<PayloadLog>> payloadsByTraceId = new HashMap<>();
+    private Map<String, String> lastAttributeFilters;
 
     public void givenEvents(String traceId, List<SpanEvent> events) {
         eventsByTraceId.put(traceId, new ArrayList<>(events));
@@ -41,13 +42,20 @@ public class InMemoryOtelLogPort implements OtelLogPort {
         payloadsByTraceId.put(traceId, new ArrayList<>(payloadLogs));
     }
 
+    /** Last attributeFilters map passed to {@link #findLogs} — for asserting the use case sends the right scope. */
+    public Map<String, String> lastAttributeFilters() {
+        return lastAttributeFilters;
+    }
+
     public void reset() {
         eventsByTraceId.clear();
         payloadsByTraceId.clear();
+        lastAttributeFilters = null;
     }
 
     @Override
-    public TraceLogs findLogs(String orgId, String envId, String traceId, Map<String, String> resourceAttributeFilters) {
+    public TraceLogs findLogs(String orgId, String envId, String traceId, Map<String, String> attributeFilters) {
+        this.lastAttributeFilters = attributeFilters;
         return new TraceLogs(eventsByTraceId.getOrDefault(traceId, List.of()), payloadsByTraceId.getOrDefault(traceId, List.of()));
     }
 }

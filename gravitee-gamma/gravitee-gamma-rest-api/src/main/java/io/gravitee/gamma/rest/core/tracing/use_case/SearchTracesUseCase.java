@@ -17,7 +17,7 @@ package io.gravitee.gamma.rest.core.tracing.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.gamma.rest.core.tracing.TracingResourceFilters;
+import io.gravitee.gamma.rest.core.tracing.TraceScopeFilters;
 import io.gravitee.gamma.rest.core.tracing.model.FilterCondition;
 import io.gravitee.gamma.rest.core.tracing.model.Trace;
 import io.gravitee.gamma.rest.core.tracing.port.service_provider.TracingPort;
@@ -29,7 +29,7 @@ import lombok.AllArgsConstructor;
 
 /**
  * Lists traces for the trace explorer view. Scopes hard on the caller-supplied {@code module}
- * value + env via {@link TracingResourceFilters} so traces from other modules / envs never appear.
+ * value + env via {@link TraceScopeFilters} so traces from other modules / envs never appear.
  *
  * <p>Filter input is the abstract {@link FilterCondition} shape the UI knows — the use case
  * delegates to {@link SearchTraceFilterTranslator} to turn each condition into the underlying OTel
@@ -93,7 +93,7 @@ public class SearchTracesUseCase {
         Page<Trace> traces = tracingPort.searchTraces(
             input.organizationId,
             input.environmentId,
-            TracingResourceFilters.forApi(input.environmentId, input.apiId),
+            TraceScopeFilters.forApi(input.environmentId, input.apiId),
             attributeFilters,
             resolvedStart,
             resolvedEnd,

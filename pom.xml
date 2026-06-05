@@ -265,7 +265,7 @@
         <!-- Gateway Only -->
         <gravitee-reporter-tcp.version>5.0.0-alpha.1</gravitee-reporter-tcp.version>
         <gravitee-reporter-cloud.version>4.0.0-alpha.1</gravitee-reporter-cloud.version>
-        <gravitee-reporter-otel.version>1.1.0</gravitee-reporter-otel.version>
+        <gravitee-reporter-otel.version>1.2.0</gravitee-reporter-otel.version>
         <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
         <!--    <gravitee-gateway-services-ratelimit.version>3.0.0</gravitee-gateway-services-ratelimit.version>    -->
         <gravitee-tracer-jaeger.version>3.0.1</gravitee-tracer-jaeger.version>
@@ -308,7 +308,7 @@
         <gravitee-resource-schema-registry-confluent.version>5.0.0-alpha.1</gravitee-resource-schema-registry-confluent.version>
         <gravitee-resource-schema-registry-embedded.version>1.0.0-alpha.1</gravitee-resource-schema-registry-embedded.version>
         <gravitee-resource-storage-azure-blob.version>1.1.0</gravitee-resource-storage-azure-blob.version>
-        <gravitee-reactor-message.version>11.0.0-alpha.3</gravitee-reactor-message.version>
+        <gravitee-reactor-message.version>11.0.0-alpha.4</gravitee-reactor-message.version>
         <gravitee-reactor-native-kafka.version>7.0.0-alpha.20</gravitee-reactor-native-kafka.version>
         <gravitee-reactor-mcp-proxy.version>3.0.0-feat-mcp-studio-schema-SNAPSHOT</gravitee-reactor-mcp-proxy.version>
         <gravitee-reactor-llm-proxy.version>3.0.0-alpha.6</gravitee-reactor-llm-proxy.version>
