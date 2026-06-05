@@ -22,62 +22,38 @@ import {
     CardDescription,
     CardHeader,
     CardTitle,
-    Input,
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
     DataTable,
     Skeleton,
     type DataTableProps,
 } from '@gravitee/graphene-core';
 import { PencilIcon, PlusIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
-import { type FormEvent, useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
-import { notificationNotifierOptions } from './notificationHelpers';
-import type { ApplicationNotificationRow, ApplicationNotifier } from '../../types/applicationNotification';
+import type { ApplicationNotificationRow } from '../../types/applicationNotification';
 import { NON_SORTABLE_COLUMN } from '../../utils/dataTableHeaders';
 import type { ColCell } from '../../utils/dataTableTypes';
-import { RequiredLabel } from '../notification-settings/RequiredLabel';
 
 export function NotificationsSection({
     rows,
-    notifiers,
     isLoading,
     isError,
     canCreate,
     canUpdate,
     canDelete,
-    isCreating,
-    onAdd,
+    onCreateClick,
     onEdit,
     onDelete,
 }: {
     readonly rows: ApplicationNotificationRow[];
-    readonly notifiers: ApplicationNotifier[];
     readonly isLoading: boolean;
     readonly isError: boolean;
     readonly canCreate: boolean;
     readonly canUpdate: boolean;
     readonly canDelete: boolean;
-    readonly isCreating: boolean;
-    readonly onAdd: (name: string, notifierId: string) => Promise<boolean>;
+    readonly onCreateClick: () => void;
     readonly onEdit: (row: ApplicationNotificationRow) => void;
     readonly onDelete: (row: ApplicationNotificationRow) => void;
 }) {
-    const notifierOptions = useMemo(() => notificationNotifierOptions(notifiers), [notifiers]);
-    const [name, setName] = useState('');
-    const [notifierId, setNotifierId] = useState('');
-
-    useEffect(() => {
-        if (!notifierId && notifierOptions[0]) {
-            setNotifierId(notifierOptions[0].id);
-        }
-    }, [notifierId, notifierOptions]);
-
-    const canSubmit = Boolean(canCreate && name.trim() && notifierId);
-
     const notificationColumns = useMemo((): DataTableProps<ApplicationNotificationRow>['columns'] => {
         return [
             {
@@ -150,66 +126,21 @@ export function NotificationsSection({
         ];
     }, [canDelete, canUpdate, onDelete, onEdit]);
 
-    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault();
-        if (!canSubmit) {
-            return;
-        }
-        const created = await onAdd(name.trim(), notifierId);
-        if (created) {
-            setName('');
-            setNotifierId(notifierOptions[0]?.id ?? '');
-        }
-    }
-
     return (
         <Card>
-            <CardHeader>
-                <CardTitle className="text-base">Notifications</CardTitle>
-                <CardDescription>Events that trigger notifiers for this application.</CardDescription>
+            <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
+                <div className="space-y-1.5">
+                    <CardTitle className="text-base">Notifications</CardTitle>
+                    <CardDescription>Events that trigger notifiers for this application.</CardDescription>
+                </div>
+                {canCreate ? (
+                    <Button type="button" size="sm" className="shrink-0" onClick={onCreateClick}>
+                        <PlusIcon className="size-4" aria-hidden />
+                        Add notification
+                    </Button>
+                ) : null}
             </CardHeader>
             <CardContent className="space-y-6">
-                {canCreate ? (
-                    <form className="space-y-3" onSubmit={handleSubmit}>
-                        <div className="grid gap-3 md:grid-cols-2">
-                            <div className="space-y-2">
-                                <RequiredLabel htmlFor="notification-name">Name</RequiredLabel>
-                                <Input
-                                    id="notification-name"
-                                    value={name}
-                                    onChange={event => setName(event.target.value)}
-                                    placeholder="Notification name"
-                                    disabled={isCreating}
-                                    required
-                                    aria-required="true"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <RequiredLabel htmlFor="notification-notifier">Notifier</RequiredLabel>
-                                <Select
-                                    value={notifierId}
-                                    onValueChange={setNotifierId}
-                                    disabled={isCreating || notifierOptions.length === 0}
-                                >
-                                    <SelectTrigger id="notification-notifier" className="w-full" aria-required="true">
-                                        <SelectValue placeholder="Select a notifier" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {notifierOptions.map(option => (
-                                            <SelectItem key={option.id} value={option.id}>
-                                                {option.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                        <Button type="submit" size="sm" disabled={!canSubmit || isCreating}>
-                            <PlusIcon className="size-4" aria-hidden />
-                            {isCreating ? 'Adding…' : 'Add notification'}
-                        </Button>
-                    </form>
-                ) : null}
                 {isError ? (
                     <Alert variant="destructive">
                         <AlertDescription>Failed to load notification settings. Please refresh the page.</AlertDescription>

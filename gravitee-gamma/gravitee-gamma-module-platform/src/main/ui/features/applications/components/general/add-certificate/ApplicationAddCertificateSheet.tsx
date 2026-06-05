@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from '@gravitee/graphene-core';
+import { Button, Sheet, SheetContent, SheetHeader, SheetTitle } from '@gravitee/graphene-core';
 import { XIcon } from '@gravitee/graphene-core/icons';
 
 import { AddCertificateConfigureStep } from './AddCertificateConfigureStep';
 import { AddCertificateConfirmStep } from './AddCertificateConfirmStep';
-import { AddCertificateDialogFooter } from './AddCertificateDialogFooter';
+import { AddCertificateSheetFooter } from './AddCertificateSheetFooter';
 import { AddCertificateStepIndicator } from './AddCertificateStepIndicator';
-import { ADD_CERTIFICATE_DIALOG_WIDTH, type AddCertificateSubmit } from './addCertificateTypes';
+import { ADD_CERTIFICATE_SHEET_WIDTH, type AddCertificateSubmit } from './addCertificateTypes';
 import { AddCertificateUploadStep } from './AddCertificateUploadStep';
 import { useAddCertificateWizard } from './useAddCertificateWizard';
 import type { ClientCertificate } from '../../../types/applicationCertificate';
 
 export type { AddCertificateSubmit } from './addCertificateTypes';
 
-export function ApplicationAddCertificateDialog({
+export function ApplicationAddCertificateSheet({
     open,
     onOpenChange,
     applicationId,
@@ -45,23 +45,26 @@ export function ApplicationAddCertificateDialog({
     const wizard = useAddCertificateWizard({ open, applicationId, certificates, onSubmit });
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent
-                className="flex max-h-[min(90vh,48rem)] flex-col gap-0 overflow-hidden p-0"
-                style={{
-                    width: `min(calc(100vw - 2rem), ${ADD_CERTIFICATE_DIALOG_WIDTH})`,
-                    maxWidth: `min(calc(100vw - 2rem), ${ADD_CERTIFICATE_DIALOG_WIDTH})`,
-                }}
+        <Sheet open={open} onOpenChange={onOpenChange}>
+            <SheetContent
+                side="right"
                 showCloseButton={false}
+                className="flex max-h-full flex-col gap-0 p-0"
+                style={{ maxWidth: ADD_CERTIFICATE_SHEET_WIDTH, width: `min(100vw, ${ADD_CERTIFICATE_SHEET_WIDTH})` }}
             >
-                <DialogHeader className="flex-row items-start justify-between gap-3 space-y-0 border-b border-border px-6 py-4">
-                    <DialogTitle className="text-left">Add certificate</DialogTitle>
-                    <DialogClose asChild>
-                        <Button type="button" variant="ghost" size="icon" className="size-8 shrink-0" aria-label="Close">
-                            <XIcon className="size-4" aria-hidden />
-                        </Button>
-                    </DialogClose>
-                </DialogHeader>
+                <SheetHeader className="flex-row items-start justify-between gap-3 space-y-0 border-b border-border px-6 py-4">
+                    <SheetTitle className="text-left">Add certificate</SheetTitle>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 shrink-0"
+                        aria-label="Close"
+                        onClick={() => onOpenChange(false)}
+                    >
+                        <XIcon className="size-4" aria-hidden />
+                    </Button>
+                </SheetHeader>
 
                 <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
                     <AddCertificateStepIndicator stepIndex={wizard.stepIndex} />
@@ -100,7 +103,7 @@ export function ApplicationAddCertificateDialog({
                     </div>
                 </div>
 
-                <AddCertificateDialogFooter
+                <AddCertificateSheetFooter
                     stepIndex={wizard.stepIndex}
                     isValidating={wizard.isValidating}
                     isSubmitting={isSubmitting}
@@ -109,8 +112,9 @@ export function ApplicationAddCertificateDialog({
                     onValidateAndContinue={() => void wizard.handleValidateAndContinue()}
                     onContinueToConfirm={wizard.goToConfirmStep}
                     onSubmit={wizard.handleSubmit}
+                    onCancel={() => onOpenChange(false)}
                 />
-            </DialogContent>
-        </Dialog>
+            </SheetContent>
+        </Sheet>
     );
 }

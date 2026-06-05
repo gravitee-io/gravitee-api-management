@@ -19,7 +19,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { ApplicationSubscriptionCloseDialog } from './ApplicationSubscriptionCloseDialog';
-import { ApplicationSubscriptionCreateDialog } from './ApplicationSubscriptionCreateDialog';
+import { ApplicationSubscriptionCreateSheet } from './ApplicationSubscriptionCreateSheet';
 import { ApplicationSubscriptionMultiSelectFilter } from './ApplicationSubscriptionMultiSelectFilter';
 import { ApplicationSubscriptionsTable } from './ApplicationSubscriptionsTable';
 import { ApplicationSubscriptionStatusDetails } from './ApplicationSubscriptionStatusDetails';
@@ -171,33 +171,46 @@ export function ApplicationSubscriptionsView({ application }: Readonly<{ applica
 
             <ApplicationSubscriptionStatusDetails />
 
-            <div className="flex flex-wrap items-center gap-3">
-                <ApplicationSubscriptionMultiSelectFilter
-                    placeholder="API"
-                    ariaLabel="Filter by API"
-                    options={apiOptions}
-                    selectedValues={apiFilters}
-                    onSelectedValuesChange={setApiFilters}
-                    emptyMessage="No subscribed APIs yet"
-                />
-                <ApplicationSubscriptionMultiSelectFilter
-                    placeholder="Status"
-                    ariaLabel="Filter by status"
-                    options={statusOptions}
-                    selectedValues={statusFilters}
-                    onSelectedValuesChange={values => setStatusFilters(values as SubscriptionStatus[])}
-                />
-                <Input
-                    placeholder="API Key"
-                    value={apiKeyInput}
-                    onChange={e => setApiKeyInput(e.target.value)}
-                    className={cn(FILTER_FIELD_WIDTH, 'h-9 shrink-0')}
-                    aria-label="Filter by API key"
-                />
-                <Button type="button" variant="outline" size="sm" className="shrink-0" onClick={resetFilters}>
-                    <RefreshCwIcon className="size-4" aria-hidden />
-                    Reset filters
-                </Button>
+            <div className="flex items-center justify-between gap-4">
+                <div className="flex min-w-0 flex-wrap items-center gap-3">
+                    <ApplicationSubscriptionMultiSelectFilter
+                        placeholder="API"
+                        ariaLabel="Filter by API"
+                        options={apiOptions}
+                        selectedValues={apiFilters}
+                        onSelectedValuesChange={setApiFilters}
+                        emptyMessage="No subscribed APIs yet"
+                    />
+                    <ApplicationSubscriptionMultiSelectFilter
+                        placeholder="Status"
+                        ariaLabel="Filter by status"
+                        options={statusOptions}
+                        selectedValues={statusFilters}
+                        onSelectedValuesChange={values => setStatusFilters(values as SubscriptionStatus[])}
+                    />
+                    <Input
+                        placeholder="API Key"
+                        value={apiKeyInput}
+                        onChange={e => setApiKeyInput(e.target.value)}
+                        className={cn(FILTER_FIELD_WIDTH, 'h-9 shrink-0')}
+                        aria-label="Filter by API key"
+                    />
+                    <Button type="button" variant="outline" size="sm" className="shrink-0" onClick={resetFilters}>
+                        <RefreshCwIcon className="size-4" aria-hidden />
+                        Reset filters
+                    </Button>
+                </div>
+
+                <div className="shrink-0">
+                    <DataTablePagination
+                        page={page}
+                        pageSize={pageSize}
+                        totalCount={totalCount}
+                        pageSizeOptions={SUBSCRIPTION_PAGE_SIZE_OPTIONS}
+                        onPageChange={setPage}
+                        onPageSizeChange={handlePageSizeChange}
+                    />
+                </div>
             </div>
 
             {isError ? (
@@ -206,17 +219,6 @@ export function ApplicationSubscriptionsView({ application }: Readonly<{ applica
                 </Alert>
             ) : (
                 <>
-                    <div className="flex justify-end">
-                        <DataTablePagination
-                            page={page}
-                            pageSize={pageSize}
-                            totalCount={totalCount}
-                            pageSizeOptions={SUBSCRIPTION_PAGE_SIZE_OPTIONS}
-                            onPageChange={setPage}
-                            onPageSizeChange={handlePageSizeChange}
-                        />
-                    </div>
-
                     <ApplicationSubscriptionsTable
                         rows={rows}
                         isLoading={isLoading}
@@ -242,7 +244,7 @@ export function ApplicationSubscriptionsView({ application }: Readonly<{ applica
             )}
 
             {canCreateSubscription ? (
-                <ApplicationSubscriptionCreateDialog
+                <ApplicationSubscriptionCreateSheet
                     application={application}
                     basePath={basePath}
                     open={createOpen}

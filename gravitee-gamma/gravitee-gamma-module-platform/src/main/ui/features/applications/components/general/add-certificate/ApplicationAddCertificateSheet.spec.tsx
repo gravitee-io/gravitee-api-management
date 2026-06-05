@@ -16,9 +16,10 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { ADD_CERTIFICATE_TEST_IDS } from './addCertificateTestIds';
-import { ApplicationAddCertificateDialog } from './ApplicationAddCertificateDialog';
+import { ApplicationAddCertificateSheet } from './ApplicationAddCertificateSheet';
 import { validateApplicationCertificate } from '../../../services/applicationDetail';
 import type { ClientCertificate } from '../../../types/applicationCertificate';
+import { querySheetHeading } from '../../test/sheetSpecHelpers';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     useEnvironment: jest.fn(() => ({ id: 'env-1' })),
@@ -37,19 +38,20 @@ const MOCK_VALIDATION_RESPONSE = {
     issuer: 'CN=issuer',
 };
 
-function renderDialog(certificates: ClientCertificate[] = []) {
+function renderSheet(certificates: ClientCertificate[] = [], open = true) {
     const onSubmit = jest.fn();
+    const onOpenChange = jest.fn();
     render(
-        <ApplicationAddCertificateDialog
-            open
-            onOpenChange={jest.fn()}
+        <ApplicationAddCertificateSheet
+            open={open}
+            onOpenChange={onOpenChange}
             applicationId="app-1"
             certificates={certificates}
             onSubmit={onSubmit}
             isSubmitting={false}
         />,
     );
-    return { onSubmit };
+    return { onSubmit, onOpenChange };
 }
 
 async function fillUploadForm(name = 'my-cert', certificate = VALID_PEM) {
@@ -64,22 +66,33 @@ async function advanceToConfigureStep(name = 'my-cert', certificate = VALID_PEM)
     await waitFor(() => expect(screen.getByTestId(ADD_CERTIFICATE_TEST_IDS.validationSuccessBanner)).toBeTruthy());
 }
 
-describe('ApplicationAddCertificateDialog', () => {
+describe('ApplicationAddCertificateSheet', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockValidate.mockResolvedValue(MOCK_VALIDATION_RESPONSE);
     });
 
+    it('does not show sheet content when closed', () => {
+        renderSheet([], false);
+        expect(querySheetHeading('Add certificate')).toBeNull();
+    });
+
+    it('invokes onOpenChange(false) when Cancel is clicked', () => {
+        const { onOpenChange } = renderSheet();
+        fireEvent.click(screen.getByTestId(ADD_CERTIFICATE_TEST_IDS.cancelButton));
+        expect(onOpenChange).toHaveBeenCalledWith(false);
+    });
+
     describe('first certificate (no active certificates)', () => {
         it('renders name and certificate fields on the upload step', () => {
-            renderDialog();
+            renderSheet();
             expect(screen.getByTestId(ADD_CERTIFICATE_TEST_IDS.nameInput)).toBeTruthy();
             expect(screen.getByTestId(ADD_CERTIFICATE_TEST_IDS.pemInput)).toBeTruthy();
             expect(screen.queryByTestId(ADD_CERTIFICATE_TEST_IDS.gracePeriodInput)).toBeNull();
         });
 
         it('stays on upload when continue is clicked with an empty form', async () => {
-            renderDialog();
+            renderSheet();
             fireEvent.click(screen.getByTestId(ADD_CERTIFICATE_TEST_IDS.validateButton));
             expect(screen.getByText('Certificate name is required.')).toBeTruthy();
             expect(screen.getByText('Certificate is required.')).toBeTruthy();
@@ -88,7 +101,7 @@ describe('ApplicationAddCertificateDialog', () => {
 
         it('shows validation error banner when validation fails', async () => {
             mockValidate.mockRejectedValueOnce(new Error('bad'));
-            renderDialog();
+            renderSheet();
             await fillUploadForm();
             fireEvent.click(screen.getByTestId(ADD_CERTIFICATE_TEST_IDS.validateButton));
             await waitFor(() => expect(screen.getByTestId(ADD_CERTIFICATE_TEST_IDS.validationErrorBanner)).toBeTruthy());
@@ -96,7 +109,7 @@ describe('ApplicationAddCertificateDialog', () => {
         });
 
         it('populates the certificate field when a PEM file is uploaded', async () => {
-            renderDialog();
+            renderSheet();
             const pemContent = '-----BEGIN CERTIFICATE-----\nfiletest\n-----END CERTIFICATE-----';
             const file = new File([pemContent], 'cert.pem', { type: 'application/x-pem-file' });
             const input = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -107,7 +120,7 @@ describe('ApplicationAddCertificateDialog', () => {
         });
 
         it('submits with name and certificate after the confirm step', async () => {
-            const { onSubmit } = renderDialog();
+            const { onSubmit } = renderSheet();
             await advanceToConfigureStep();
             fireEvent.click(screen.getByTestId(ADD_CERTIFICATE_TEST_IDS.continueButton));
             await waitFor(() => expect(screen.getByTestId(ADD_CERTIFICATE_TEST_IDS.submitButton)).toBeTruthy());
@@ -123,7 +136,7 @@ describe('ApplicationAddCertificateDialog', () => {
         });
 
         it('shows the summary on the confirm step', async () => {
-            renderDialog();
+            renderSheet();
             await advanceToConfigureStep();
             fireEvent.click(screen.getByTestId(ADD_CERTIFICATE_TEST_IDS.continueButton));
             expect(screen.getByTestId(ADD_CERTIFICATE_TEST_IDS.summary)).toBeTruthy();
@@ -142,7 +155,7 @@ describe('ApplicationAddCertificateDialog', () => {
         };
 
         it('shows grace period controls when an active certificate exists', async () => {
-            renderDialog([activeCert]);
+            renderSheet([activeCert]);
             await advanceToConfigureStep();
             expect(screen.getByTestId(ADD_CERTIFICATE_TEST_IDS.gracePeriodInput)).toBeTruthy();
             expect(screen.getByText(/Both certificates will remain active/i)).toBeTruthy();
@@ -151,7 +164,7 @@ describe('ApplicationAddCertificateDialog', () => {
 
     describe('upload revalidation', () => {
         it('returns to the upload step when the PEM changes after validation', async () => {
-            renderDialog();
+            renderSheet();
             await advanceToConfigureStep();
             fireEvent.click(screen.getByTestId(ADD_CERTIFICATE_TEST_IDS.previousButton));
             fireEvent.change(screen.getByTestId(ADD_CERTIFICATE_TEST_IDS.pemInput), {
