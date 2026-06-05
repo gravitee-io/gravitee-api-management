@@ -323,4 +323,34 @@ class SharedPolicyGroupResourceTest extends AbstractResourceTest {
             }
         }
     }
+
+    @Nested
+    class InvalidSpec {
+
+        @Test
+        void should_return_400_when_api_type_is_native() {
+            putInvalidSpecAndAssertBadRequest(readJSON("shared-policy-group.json").replace("\"PROXY\"", "\"NATIVE\""));
+        }
+
+        @Test
+        void should_return_400_when_phase_is_entrypoint_connect() {
+            putInvalidSpecAndAssertBadRequest(readJSON("shared-policy-group.json").replace("\"REQUEST\"", "\"ENTRYPOINT_CONNECT\""));
+        }
+
+        @Test
+        void should_return_400_when_phase_is_interact() {
+            putInvalidSpecAndAssertBadRequest(readJSON("shared-policy-group.json").replace("\"REQUEST\"", "\"INTERACT\""));
+        }
+
+        @Test
+        void should_return_400_when_proxy_api_type_has_subscribe_phase() {
+            putInvalidSpecAndAssertBadRequest(readJSON("shared-policy-group.json").replace("\"REQUEST\"", "\"SUBSCRIBE\""));
+        }
+
+        private void putInvalidSpecAndAssertBadRequest(String spec) {
+            try (var response = rootTarget().request().put(Entity.json(spec))) {
+                assertThat(response.getStatus()).isEqualTo(400);
+            }
+        }
+    }
 }
