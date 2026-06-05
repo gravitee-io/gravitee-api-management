@@ -39,7 +39,6 @@ import { useParams } from 'react-router-dom';
 
 import { AddMembersSheet } from '../features/applications/components/user-permissions/AddMembersSheet';
 import { DirectMembersTable } from '../features/applications/components/user-permissions/DirectMembersTable';
-import { EditRoleSheet } from '../features/applications/components/user-permissions/EditRoleSheet';
 import { GroupMembersSection } from '../features/applications/components/user-permissions/GroupMembersSection';
 import { ManageGroupsSheet } from '../features/applications/components/user-permissions/ManageGroupsSheet';
 import { formatAddMembersResultMessage, getApplicationRole } from '../features/applications/components/user-permissions/memberHelpers';
@@ -65,6 +64,7 @@ import {
 import type {
     ApplicationTransferOwnershipPayload,
     ApplicationUiMember,
+    EditState,
     SearchableUser,
 } from '../features/applications/types/applicationMembers.types';
 import { toApplicationMemberEntity } from '../features/applications/utils/applicationMemberMapper';
@@ -92,7 +92,7 @@ export function ApplicationUserPermissionsPage() {
 
     const isReadOnly = application?.origin === 'KUBERNETES';
 
-    const [memberToEdit, setMemberToEdit] = useState<ApplicationUiMember | null>(null);
+    const [editState, setEditState] = useState<EditState>(null);
     const [memberToRemove, setMemberToRemove] = useState<ApplicationUiMember | null>(null);
     const [addMembersOpen, setAddMembersOpen] = useState(false);
     const [transferOpen, setTransferOpen] = useState(false);
@@ -174,7 +174,7 @@ export function ApplicationUserPermissionsPage() {
                     queryKey: applicationMemberKeys.list(env.id, applicationId),
                 });
             }
-            setMemberToEdit(null);
+            setEditState(null);
         },
     });
 
@@ -225,27 +225,27 @@ export function ApplicationUserPermissionsPage() {
         },
     });
 
-    const handleEditRole = useCallback(
+    const handleStartEdit = useCallback(
         (member: ApplicationUiMember) => {
             if (!canUpdate || isReadOnly) return;
-            setMemberToEdit(member);
+            setEditState({ memberId: member.id, role: getApplicationRole(member) });
         },
         [canUpdate, isReadOnly],
     );
-    const handleSaveEditRole = useCallback(
-        (roleName: string) => {
-            if (!memberToEdit || !canUpdate || isReadOnly) return;
-            updateMutation.mutate(
-                { member: memberToEdit, roleName },
-                {
-                    onSuccess: () => notify.success('Changes successfully saved!'),
-                    onError: error => notify.error(error),
-                },
-            );
-        },
-        [canUpdate, isReadOnly, memberToEdit, updateMutation],
-    );
-    const handleCloseEditRole = useCallback(() => setMemberToEdit(null), []);
+    const handleRoleChange = useCallback((role: string) => setEditState(prev => (prev ? { ...prev, role } : null)), []);
+    const handleSaveRole = useCallback(() => {
+        if (!editState || !canUpdate || isReadOnly) return;
+        const member = members.find(m => m.id === editState.memberId);
+        if (!member || editState.role === getApplicationRole(member)) return;
+        updateMutation.mutate(
+            { member, roleName: editState.role },
+            {
+                onSuccess: () => notify.success('Changes successfully saved!'),
+                onError: error => notify.error(error),
+            },
+        );
+    }, [canUpdate, editState, isReadOnly, members, updateMutation]);
+    const handleCancelEdit = useCallback(() => setEditState(null), []);
     const handleRemoveRequest = useCallback(
         (member: ApplicationUiMember) => {
             if (!canDelete || isReadOnly) return;
@@ -372,8 +372,14 @@ export function ApplicationUserPermissionsPage() {
                     ) : (
                         <DirectMembersTable
                             members={members}
-                            onEditRole={handleEditRole}
+                            roles={roleNames}
+                            editState={editState}
+                            onStartEdit={handleStartEdit}
+                            onRoleChange={handleRoleChange}
+                            onSaveRole={handleSaveRole}
+                            onCancelEdit={handleCancelEdit}
                             onRemove={handleRemoveRequest}
+                            isSaving={updateMutation.isPending}
                             isRemoving={deleteMutation.isPending}
                             getRoleName={getApplicationRole}
                             canManageMembers={!isReadOnly && (canUpdate || canDelete)}
@@ -421,13 +427,6 @@ export function ApplicationUserPermissionsPage() {
                 </Card>
             ) : null}
 
-            <EditRoleSheet
-                member={memberToEdit}
-                roles={roleNames}
-                onClose={handleCloseEditRole}
-                onSave={handleSaveEditRole}
-                isSaving={updateMutation.isPending}
-            />
             <RemoveMemberDialog
                 member={memberToRemove}
                 isRemoving={deleteMutation.isPending}

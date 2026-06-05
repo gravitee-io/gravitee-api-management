@@ -34,6 +34,9 @@ export interface ApplicationUiMember {
     roles: MemberRole[];
 }
 
+/** Inline role-edit state for direct members table. */
+export type EditState = { memberId: string; role: string } | null;
+
 export interface ApplicationRole {
     name: string;
     scope: string;
