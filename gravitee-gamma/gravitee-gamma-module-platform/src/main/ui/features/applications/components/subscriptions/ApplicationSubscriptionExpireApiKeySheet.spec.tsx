@@ -15,8 +15,9 @@
  */
 import { fireEvent, render, screen } from '@testing-library/react';
 
-import { ApplicationSubscriptionExpireApiKeyDialog } from './ApplicationSubscriptionExpireApiKeyDialog';
+import { ApplicationSubscriptionExpireApiKeySheet } from './ApplicationSubscriptionExpireApiKeySheet';
 import type { ApplicationSubscriptionApiKeyRow } from '../../types/applicationSubscription';
+import { querySheetHeading } from '../test/sheetSpecHelpers';
 
 const apiKey: ApplicationSubscriptionApiKeyRow = {
     id: 'key-1',
@@ -26,9 +27,9 @@ const apiKey: ApplicationSubscriptionApiKeyRow = {
     expireAt: new Date('2099-01-01T10:00:00').getTime(),
 };
 
-function renderDialog(overrides: Partial<Parameters<typeof ApplicationSubscriptionExpireApiKeyDialog>[0]> = {}) {
+function renderSheet(overrides: Partial<Parameters<typeof ApplicationSubscriptionExpireApiKeySheet>[0]> = {}) {
     return render(
-        <ApplicationSubscriptionExpireApiKeyDialog
+        <ApplicationSubscriptionExpireApiKeySheet
             apiKey={apiKey}
             onClose={jest.fn()}
             onConfirm={jest.fn()}
@@ -38,7 +39,7 @@ function renderDialog(overrides: Partial<Parameters<typeof ApplicationSubscripti
     );
 }
 
-describe('ApplicationSubscriptionExpireApiKeyDialog', () => {
+describe('ApplicationSubscriptionExpireApiKeySheet', () => {
     beforeEach(() => {
         jest.useFakeTimers();
         jest.setSystemTime(new Date('2025-01-01T12:00:00'));
@@ -52,20 +53,32 @@ describe('ApplicationSubscriptionExpireApiKeyDialog', () => {
         return screen.getByRole('button', { name: /Change expiration date/i }) as HTMLButtonElement;
     }
 
+    it('does not show sheet content when apiKey is null', () => {
+        render(<ApplicationSubscriptionExpireApiKeySheet apiKey={null} onClose={jest.fn()} onConfirm={jest.fn()} isLoading={false} />);
+        expect(querySheetHeading(/Change your API Key/i)).toBeNull();
+    });
+
+    it('invokes onClose when Cancel is clicked', () => {
+        const onClose = jest.fn();
+        renderSheet({ onClose });
+        fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+        expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
     it('disables submit until the user changes the expiration date', () => {
-        renderDialog();
+        renderSheet();
         expect(submitButton().disabled).toBe(true);
     });
 
     it('enables submit after choosing a future date', () => {
-        renderDialog();
+        renderSheet();
         const input = screen.getByLabelText(/Expire date/i);
         fireEvent.change(input, { target: { value: '2099-06-15T14:00' } });
         expect(submitButton().disabled).toBe(false);
     });
 
     it('shows validation when the chosen date is not in the future', () => {
-        renderDialog();
+        renderSheet();
         const input = screen.getByLabelText(/Expire date/i);
         fireEvent.change(input, { target: { value: '2020-01-01T00:00' } });
         expect(screen.getByText(/Date and time must be in the future/i)).not.toBeNull();
@@ -73,7 +86,7 @@ describe('ApplicationSubscriptionExpireApiKeyDialog', () => {
     });
 
     it('shows validation when the chosen date is not a valid datetime', () => {
-        renderDialog();
+        renderSheet();
         const input = screen.getByLabelText(/Expire date/i);
         fireEvent.change(input, { target: { value: '2025-02-31T12:00' } });
         expect(screen.getByText(/Enter a valid date and time/i)).not.toBeNull();
@@ -82,7 +95,7 @@ describe('ApplicationSubscriptionExpireApiKeyDialog', () => {
 
     it('submits a strictly parsed local datetime', () => {
         const onConfirm = jest.fn();
-        renderDialog({ onConfirm });
+        renderSheet({ onConfirm });
         const input = screen.getByLabelText(/Expire date/i);
 
         fireEvent.change(input, { target: { value: '2099-06-15T14:00' } });

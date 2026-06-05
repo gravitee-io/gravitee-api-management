@@ -15,26 +15,26 @@
  */
 import {
     Button,
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
     Label,
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
 } from '@gravitee/graphene-core';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { MemberAvatar } from './MemberAvatar';
 import { formatRoleLabel, getApplicationRole } from './memberHelpers';
 import type { ApplicationUiMember } from '../../types/applicationMembers.types';
 
-export function EditRoleDialog({
+export function EditRoleSheet({
     member,
     roles,
     onClose,
@@ -53,20 +53,26 @@ export function EditRoleDialog({
         setRole(member ? getApplicationRole(member) : '');
     }, [member]);
 
-    const handleOpenChange = (open: boolean) => {
-        if (!open) onClose();
-    };
+    const currentRole = member ? getApplicationRole(member) : '';
+    const hasChange = Boolean(member) && role !== currentRole;
+
+    const handleOpenChange = useCallback(
+        (open: boolean) => {
+            if (!open) onClose();
+        },
+        [onClose],
+    );
 
     return (
-        <Dialog open={member !== null} onOpenChange={handleOpenChange}>
-            <DialogContent className="max-w-sm">
-                <DialogHeader>
-                    <DialogTitle>Edit Role</DialogTitle>
-                    <DialogDescription>Change the role for {member?.displayName}.</DialogDescription>
-                </DialogHeader>
+        <Sheet open={member !== null} onOpenChange={handleOpenChange}>
+            <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: '480px' }}>
+                <SheetHeader>
+                    <SheetTitle>Edit Role</SheetTitle>
+                    <SheetDescription>Change the role for {member?.displayName}.</SheetDescription>
+                </SheetHeader>
 
                 {member ? (
-                    <div className="space-y-4 py-2">
+                    <div className="min-h-0 flex-1 space-y-4 px-4">
                         <div className="flex items-center gap-3">
                             <MemberAvatar name={member.displayName} />
                             <div className="min-w-0">
@@ -93,15 +99,15 @@ export function EditRoleDialog({
                     </div>
                 ) : null}
 
-                <DialogFooter className="border-t px-6 py-4 gap-2">
+                <SheetFooter className="shrink-0 flex-row justify-end border-t">
                     <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>
                         Cancel
                     </Button>
-                    <Button type="button" onClick={() => onSave(role)} disabled={isSaving || !role || !member}>
-                        Save
+                    <Button type="button" onClick={() => onSave(role)} disabled={isSaving || !role || !member || !hasChange}>
+                        {isSaving ? 'Saving…' : 'Save'}
                     </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </SheetFooter>
+            </SheetContent>
+        </Sheet>
     );
 }

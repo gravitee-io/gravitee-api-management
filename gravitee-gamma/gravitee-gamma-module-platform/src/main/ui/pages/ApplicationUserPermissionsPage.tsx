@@ -37,14 +37,14 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { AddMembersDialog } from '../features/applications/components/user-permissions/AddMembersDialog';
+import { AddMembersSheet } from '../features/applications/components/user-permissions/AddMembersSheet';
 import { DirectMembersTable } from '../features/applications/components/user-permissions/DirectMembersTable';
-import { EditRoleDialog } from '../features/applications/components/user-permissions/EditRoleDialog';
+import { EditRoleSheet } from '../features/applications/components/user-permissions/EditRoleSheet';
 import { GroupMembersSection } from '../features/applications/components/user-permissions/GroupMembersSection';
-import { ManageGroupsDialog } from '../features/applications/components/user-permissions/ManageGroupsDialog';
+import { ManageGroupsSheet } from '../features/applications/components/user-permissions/ManageGroupsSheet';
 import { formatAddMembersResultMessage, getApplicationRole } from '../features/applications/components/user-permissions/memberHelpers';
 import { RemoveMemberDialog } from '../features/applications/components/user-permissions/RemoveMemberDialog';
-import { TransferOwnershipDialog } from '../features/applications/components/user-permissions/TransferOwnershipDialog';
+import { TransferOwnershipSheet } from '../features/applications/components/user-permissions/TransferOwnershipSheet';
 import { useApplicationDetailContext } from '../features/applications/context/ApplicationDetailContext';
 import { useApplicationGroupMembers } from '../features/applications/hooks/useApplicationGroupMembers';
 import { useApplicationMemberPermissions } from '../features/applications/hooks/useApplicationMemberPermissions';
@@ -421,7 +421,7 @@ export function ApplicationUserPermissionsPage() {
                 </Card>
             ) : null}
 
-            <EditRoleDialog
+            <EditRoleSheet
                 member={memberToEdit}
                 roles={roleNames}
                 onClose={handleCloseEditRole}
@@ -434,7 +434,7 @@ export function ApplicationUserPermissionsPage() {
                 onConfirm={handleRemoveConfirm}
                 onCancel={handleRemoveCancel}
             />
-            <AddMembersDialog
+            <AddMembersSheet
                 open={addMembersOpen}
                 roles={roleNames}
                 existingMembers={members}
@@ -442,7 +442,7 @@ export function ApplicationUserPermissionsPage() {
                 onAdd={(users, roleName) => void handleAddMembers(users, roleName)}
                 isAdding={addMutation.isPending}
             />
-            <TransferOwnershipDialog
+            <TransferOwnershipSheet
                 open={transferOpen}
                 members={members}
                 roles={roleNames}
@@ -455,7 +455,7 @@ export function ApplicationUserPermissionsPage() {
                 }
                 isTransferring={transferMutation.isPending}
             />
-            <ManageGroupsDialog
+            <ManageGroupsSheet
                 open={manageGroupsOpen}
                 allGroups={allGroups}
                 currentGroupIds={currentGroupIds}

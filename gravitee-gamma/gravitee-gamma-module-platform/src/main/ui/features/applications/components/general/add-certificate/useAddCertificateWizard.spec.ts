@@ -105,4 +105,36 @@ describe('useAddCertificateWizard', () => {
         expect(result.current.configureErrors.gracePeriodEnd).toBeTruthy();
         expect(result.current.canContinueConfigure).toBe(false);
     });
+
+    it('resets wizard state when the sheet closes', async () => {
+        const { result, rerender } = renderHook(
+            ({ open }) =>
+                useAddCertificateWizard({
+                    open,
+                    applicationId: 'app-1',
+                    certificates: [],
+                    onSubmit,
+                }),
+            { initialProps: { open: true } },
+        );
+
+        act(() => {
+            result.current.handleNameChange('my-cert');
+            result.current.handleCertificateChange('-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----');
+        });
+
+        await act(async () => {
+            await result.current.handleValidateAndContinue();
+        });
+
+        await waitFor(() => expect(result.current.stepIndex).toBe(1));
+
+        rerender({ open: false });
+
+        await waitFor(() => {
+            expect(result.current.stepIndex).toBe(0);
+            expect(result.current.name).toBe('');
+            expect(result.current.certificate).toBe('');
+        });
+    });
 });

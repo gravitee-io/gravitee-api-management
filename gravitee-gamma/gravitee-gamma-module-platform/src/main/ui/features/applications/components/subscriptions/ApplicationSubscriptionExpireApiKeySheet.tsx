@@ -13,19 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-    Button,
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    Input,
-    Label,
-} from '@gravitee/graphene-core';
-import { useEffect, useMemo, useState } from 'react';
+import { Button, Input, Label, Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@gravitee/graphene-core';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { ApplicationSubscriptionApiKeyRow } from '../../types/applicationSubscription';
 import {
@@ -49,7 +38,7 @@ function defaultExpirationDraft(apiKey: ApplicationSubscriptionApiKeyRow): Date 
     return d;
 }
 
-export function ApplicationSubscriptionExpireApiKeyDialog({
+export function ApplicationSubscriptionExpireApiKeySheet({
     apiKey,
     onClose,
     onConfirm,
@@ -76,17 +65,24 @@ export function ApplicationSubscriptionExpireApiKeyDialog({
     const hasInvalidRange = dirty && Boolean(parsedExpirationDate) && !isAfterMinCandidate(value, minMs);
     const canSubmit = canSubmitApiKeyExpirationChange(dirty, value, minMs);
 
+    const handleOpenChange = useCallback(
+        (open: boolean) => {
+            if (!open) onClose();
+        },
+        [onClose],
+    );
+
     return (
-        <Dialog open={Boolean(apiKey)} onOpenChange={open => !open && onClose()}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Change your API Key&apos;s expiration date</DialogTitle>
-                    <DialogDescription>
+        <Sheet open={Boolean(apiKey)} onOpenChange={handleOpenChange}>
+            <SheetContent side="right" style={{ maxWidth: '480px' }}>
+                <SheetHeader>
+                    <SheetTitle>Change your API Key&apos;s expiration date</SheetTitle>
+                    <SheetDescription>
                         Set a new expiration for key <span className="font-mono text-foreground">{apiKey?.maskedKey}</span>.
-                    </DialogDescription>
-                </DialogHeader>
+                    </SheetDescription>
+                </SheetHeader>
                 {apiKey ? (
-                    <div className="space-y-2">
+                    <div className="space-y-2 px-4">
                         <Label htmlFor="api-key-expire-at">Expire date</Label>
                         <Input
                             id="api-key-expire-at"
@@ -102,12 +98,10 @@ export function ApplicationSubscriptionExpireApiKeyDialog({
                         {hasInvalidRange ? <p className="text-sm text-destructive">Date and time must be in the future.</p> : null}
                     </div>
                 ) : null}
-                <DialogFooter>
-                    <DialogClose asChild>
-                        <Button type="button" variant="outline" disabled={isLoading}>
-                            Cancel
-                        </Button>
-                    </DialogClose>
+                <SheetFooter className="flex-row justify-end border-t gap-2">
+                    <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+                        Cancel
+                    </Button>
                     <Button
                         type="button"
                         disabled={isLoading || !canSubmit}
@@ -115,8 +109,8 @@ export function ApplicationSubscriptionExpireApiKeyDialog({
                     >
                         {isLoading ? 'Saving…' : 'Change expiration date'}
                     </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </SheetFooter>
+            </SheetContent>
+        </Sheet>
     );
 }

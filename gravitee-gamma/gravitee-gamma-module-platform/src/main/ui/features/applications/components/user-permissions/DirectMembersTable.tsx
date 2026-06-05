@@ -103,6 +103,9 @@ function buildColumns({
             cell: ({ row }: ColCell<ApplicationUiMember>) => {
                 const member = row.original;
                 const isPO = isMemberPrimaryOwner(member);
+                if (isPO) {
+                    return null;
+                }
                 return (
                     <div className="flex justify-end">
                         <DropdownMenu>
@@ -112,13 +115,13 @@ function buildColumns({
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                {canEditRole && !isPO ? (
+                                {canEditRole ? (
                                     <DropdownMenuItem onSelect={() => onEditRole(member)}>
                                         <PencilIcon className="size-4 mr-2" aria-hidden />
                                         Edit role
                                     </DropdownMenuItem>
                                 ) : null}
-                                {canRemoveMember && !isPO ? (
+                                {canRemoveMember ? (
                                     <>
                                         {canEditRole ? <DropdownMenuSeparator /> : null}
                                         <DropdownMenuItem
