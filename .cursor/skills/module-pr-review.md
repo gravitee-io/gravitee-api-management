@@ -26,7 +26,7 @@ Execute these steps sequentially. Do not modify any codebase files.
      - `gravitee-gamma/gravitee-gamma-module-apim/src/main/ui/` (APIM features)
      - `gravitee-gamma/gravitee-gamma-module-platform/src/main/ui/` (platform features)
      - `gravitee-gamma/gravitee-gamma-control-plane-webui/` (console shell, routing)
-   - **Module roots:** `gravitee-gamma-module-apim`, `gravitee-gamma-module-platform`, `gravitee-gamma-module-authz`, and `gravitee-gamma-control-plane-webui`. Java-only paths under `gravitee-gamma-plugin/` are out of scope for front-end review unless the diff includes UI.
+   - **Module roots:** `gravitee-gamma-module-apim`, `gravitee-gamma-module-platform`, and `gravitee-gamma-control-plane-webui`. Java-only paths under `gravitee-gamma-plugin/` are out of scope for front-end review unless the diff includes UI.
 
 3. **Evaluate Holistically & Score**:
    Critique the diff acting as a Senior Front-End React Developer. Focus strictly on:
