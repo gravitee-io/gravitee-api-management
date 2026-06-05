@@ -18,8 +18,7 @@ package io.gravitee.apim.infra.domain_service.api;
 import io.gravitee.apim.core.api.domain_service.FetchApiDefinitionFromUrlDomainService;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.rest.api.service.HttpClientService;
-import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.ApiDefinitionFetchException;
 import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
 import io.vertx.core.buffer.Buffer;
 import java.util.List;
@@ -38,6 +37,7 @@ public class FetchApiDefinitionFromUrlDomainServiceImpl implements FetchApiDefin
 
     @Override
     public String fetch(String url, List<String> whitelist, boolean allowPrivate) {
+        // URL allow-listing runs before the fetch; its UrlForbiddenException (400) must propagate untouched.
         UrlSanitizerUtils.checkAllowed(url, whitelist, allowPrivate);
 
         log.debug("Fetching API definition from URL '{}'", url);
@@ -46,12 +46,12 @@ public class FetchApiDefinitionFromUrlDomainServiceImpl implements FetchApiDefin
             String body = buffer == null ? "" : buffer.toString();
             log.debug("Fetched API definition from URL '{}' ({} bytes)", url, body.length());
             return body;
-        } catch (AbstractManagementException e) {
-            log.warn("Failed to fetch API definition from URL '{}': {}", url, e.getMessage());
-            throw e;
         } catch (RuntimeException e) {
+            // Any failure raised while fetching (non-success status, unreachable host, DNS failure, …) is a
+            // client-fixable problem with the supplied URL, not a server fault. Translate it to a clean 4xx and
+            // keep the cause for server-side logging only — never echo it back to the caller.
             log.warn("Failed to fetch API definition from URL '{}'", url, e);
-            throw new TechnicalManagementException("Failed to fetch API definition from URL '" + url + "'", e);
+            throw new ApiDefinitionFetchException(e);
         }
     }
 }
