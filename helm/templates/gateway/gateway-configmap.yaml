@@ -604,6 +604,14 @@ data:
                 port: {{ .port }}
               {{- end }}
           {{- end }}
+          {{- if (not (empty ((.Values.gateway.ratelimit.redis.cluster).nodes))) }}
+          cluster:
+            nodes:
+              {{- range .Values.gateway.ratelimit.redis.cluster.nodes }}
+              - host: {{ .host }}
+                port: {{ .port }}
+              {{- end }}
+          {{- end }}
           {{- if (not (empty (.Values.gateway.ratelimit.redis.operation))) }}
           operation:
             timeout: {{ .Values.gateway.ratelimit.redis.operation.timeout | default "10" }}
@@ -619,6 +627,21 @@ data:
         hazelcast:
           config-path: {{ $hzCfg.configPath | default "${gravitee.home}/config/hazelcast-ratelimit.xml" }}
         {{- end }}
+
+    {{- if or .Values.gateway.cacheRedis .Values.gateway.aiVectorStoreRedis }}
+    # Global connection-pool / timeout settings for Redis-backed resource plugins.
+    # Each block is shared across every resource of that type targeting the same Redis
+    # endpoint (single shared Vert.x client; Vert.x does not support runtime pool resize).
+    resources:
+      {{- if .Values.gateway.cacheRedis }}
+      cacheRedis:
+        {{- toYaml .Values.gateway.cacheRedis | nindent 8 }}
+      {{- end }}
+      {{- if .Values.gateway.aiVectorStoreRedis }}
+      aiVectorStoreRedis:
+        {{- toYaml .Values.gateway.aiVectorStoreRedis | nindent 8 }}
+      {{- end }}
+    {{- end }}
 
     # Sharding tags configuration
     # Allows to define inclusion/exclusion sharding tags to only deploy a part of APIs. To exclude just prefix the tag with '!'.

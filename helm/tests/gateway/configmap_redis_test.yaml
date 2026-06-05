@@ -125,6 +125,39 @@ tests:
             \s           port: 26379
             \s         - host: sent2
             \s           port: 26379
+  - it: Set configuration with Redis Cluster nodes
+    template: gateway/gateway-configmap.yaml
+    set:
+      ratelimit:
+        type: redis
+      gateway:
+        ratelimit:
+          redis:
+            host: redis
+            port: 6379
+            cluster:
+              nodes:
+                - host: node1
+                  port: 6379
+                - host: node2
+                  port: 6379
+                - host: node3
+                  port: 6379
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \s   redis:
+            \s     host: redis
+            \s     port: 6379
+            \s     cluster:
+            \s       nodes:
+            \s         - host: node1
+            \s           port: 6379
+            \s         - host: node2
+            \s           port: 6379
+            \s         - host: node3
+            \s           port: 6379
   - it: Set full SSL configuration
     template: gateway/gateway-configmap.yaml
     set:
