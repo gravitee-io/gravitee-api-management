@@ -359,7 +359,7 @@ paths:
                 Partially update a V4 HTTP Proxy API using JSON Patch (RFC 6902) or JSON Merge Patch (RFC 7396).
 
                 Only the following fields are patchable: name, description, apiVersion, visibility, labels, tags,
-                lifecycleState, categories, analytics, failover, flowExecution, flows, services, resources, endpointGroups,
+                lifecycleState, categories, groups, analytics, failover, flowExecution, flows, services, resources, endpointGroups,
                 allowedInApiProducts, allowMultiJwtOauth2Subscriptions, disableMembershipNotifications,
                 properties, responseTemplates, listeners.
 
