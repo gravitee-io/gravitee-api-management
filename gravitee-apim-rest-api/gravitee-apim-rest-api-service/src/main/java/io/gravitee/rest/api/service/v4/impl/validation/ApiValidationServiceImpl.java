@@ -196,7 +196,9 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
             analyticsValidationService.validateAndSanitize(executionContext, updateApiEntity.getType(), updateApiEntity.getAnalytics())
         );
         // Validate and clean flow
-        updateApiEntity.setFlows(flowValidationService.validateAndSanitize(updateApiEntity.getType(), updateApiEntity.getFlows()));
+        updateApiEntity.setFlows(
+            flowValidationDomainService.validateAndSanitizeHttpV4(updateApiEntity.getType(), updateApiEntity.getFlows())
+        );
 
         // Validate and clean plans
         updateApiEntity.setPlans(planValidationService.validateAndSanitize(updateApiEntity.getType(), updateApiEntity.getPlans()));
