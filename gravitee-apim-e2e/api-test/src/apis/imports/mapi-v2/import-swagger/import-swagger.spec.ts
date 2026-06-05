@@ -19,7 +19,7 @@ import { CategoryEntity, GroupEntity, TagEntity } from '../../../../../../lib/ma
 import * as openapiv3 from '@api-test-resources/openapi-withExtensions.json';
 import { afterAll, afterEach, beforeAll, describe, expect, test } from '@jest/globals';
 import { ShardingTagsApi } from '../../../../../../lib/management-webclient-sdk/src/lib/apis/ShardingTagsApi';
-import { created, succeed } from '@lib/jest-utils';
+import { describeIfV4EmulationEngine, created, succeed } from '@lib/jest-utils';
 import { GroupsApi } from '../../../../../../lib/management-webclient-sdk/src/lib/apis/GroupsApi';
 import { CategoriesApi } from '../../../../../../lib/management-webclient-sdk/src/lib/apis/CategoriesApi';
 
@@ -32,7 +32,7 @@ const groupsAsAdmin = new GroupsApi(forManagementAsAdminUser());
 const categoryAsAdmin = new CategoriesApi(forManagementAsAdminUser());
 const documentationAsAdmin = new APIDocumentationApi(forManagementV2AsAdminUser());
 
-describe('API - Imports OpenAPI specification', () => {
+describeIfV4EmulationEngine('API - Imports OpenAPI specification', () => {
   let specification = JSON.stringify(openapiv3);
   let createdTag: TagEntity;
   let createdGroup: GroupEntity;

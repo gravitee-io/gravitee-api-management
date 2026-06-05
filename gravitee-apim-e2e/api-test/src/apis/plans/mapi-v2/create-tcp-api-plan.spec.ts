@@ -18,7 +18,7 @@ import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { APIPlansApi, APIsApi, ApiV4, ListenerType, PlanSecurityType, UpdateApi } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
-import { created, fail, noContent, succeed } from '@lib/jest-utils';
+import { describeIfV4EmulationEngine, created, fail, noContent, succeed } from '@lib/jest-utils';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { faker } from '@faker-js/faker';
 
@@ -27,7 +27,7 @@ const envId = 'DEFAULT';
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 const v2APlansResourceAsApiPublisher = new APIPlansApi(forManagementV2AsApiUser());
 
-describe('With a TCP API', () => {
+describeIfV4EmulationEngine('With a TCP API', () => {
   let importedApi: ApiV4;
 
   beforeAll(async () => {

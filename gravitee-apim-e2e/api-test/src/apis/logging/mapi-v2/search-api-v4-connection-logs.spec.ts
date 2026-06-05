@@ -24,7 +24,7 @@ import {
 } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { forManagementAsAppUser, forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { afterAll, beforeEach, describe, expect, test } from '@jest/globals';
-import { created, noContent, succeed } from '@lib/jest-utils';
+import { describeIfV4EmulationEngine, created, noContent, succeed } from '@lib/jest-utils';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { APIAnalyticsApi, APIPlansApi } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
@@ -40,7 +40,7 @@ const applicationManagementApiAsAppUser = new ApplicationsApi(forManagementAsApp
 const v2ApiSubscriptionApiAsApiUser = new APISubscriptionsApi(forManagementV2AsApiUser());
 const v2ApiPlanApiAsApiUser = new APIPlansApi(forManagementV2AsApiUser());
 
-describe('API - V4 - Connection Logs', () => {
+describeIfV4EmulationEngine('API - V4 - Connection Logs', () => {
   describe('WITH V4 API with full logging enabled and API_KEY plan', () => {
     let testContext: Record<string, any>;
 

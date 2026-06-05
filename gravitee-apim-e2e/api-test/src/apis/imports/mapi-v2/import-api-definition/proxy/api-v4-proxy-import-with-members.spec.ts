@@ -16,7 +16,7 @@
 import { afterAll, describe, expect, test } from '@jest/globals';
 import { APIsApi, ApiV4 } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { forManagementAsAdminUser, forManagementV2AsAdminUser, forManagementV2AsApiUser } from '@gravitee/utils/configuration';
-import { created, noContent, succeed } from '@lib/jest-utils';
+import { describeIfV4EmulationEngine, created, noContent, succeed } from '@lib/jest-utils';
 import { RoleEntity, RoleScope, UserEntity } from '@gravitee/management-webclient-sdk/src/lib/models';
 import { APIsApi as v1APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { UsersApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
@@ -35,7 +35,7 @@ const v2ApisResourceAsAdmin = new APIsApi(forManagementV2AsAdminUser());
 const v1UsersResourceAsAdmin = new UsersApi(forManagementAsAdminUser());
 const v1ConfigurationResourceAsAdmin = new ConfigurationApi(forManagementAsAdminUser());
 
-describe('API - V4 - Proxy - Import - Gravitee Definition - With members', () => {
+describeIfV4EmulationEngine('API - V4 - Proxy - Import - Gravitee Definition - With members', () => {
   describe('Create v4 API from import with members', () => {
     const roleName = 'IMPORT_TEST_ROLE';
     let importedApi: ApiV4;

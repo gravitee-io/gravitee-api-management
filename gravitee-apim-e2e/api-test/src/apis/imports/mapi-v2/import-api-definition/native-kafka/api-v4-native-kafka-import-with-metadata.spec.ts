@@ -16,7 +16,7 @@
 import { afterAll, describe, expect, test } from '@jest/globals';
 import { APIsApi, ApiV4, Listener, ListenerType } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { forManagementAsAdminUser, forManagementAsApiUser, forManagementV2AsApiUser } from '@gravitee/utils/configuration';
-import { created, noContent, succeed } from '@lib/jest-utils';
+import { describeIfV4EmulationEngine, created, noContent, succeed } from '@lib/jest-utils';
 import { APIsApi as v1APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { MAPIV2MetadataFaker } from '@gravitee/fixtures/management/MAPIV2MetadataFaker';
@@ -30,7 +30,7 @@ const v1ApisResourceAsApiPublisher = new v1APIsApi(forManagementAsApiUser());
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 const v1MetadataResourceAsApiPublisher = new MetadataApi(forManagementAsAdminUser());
 
-describe('API - V4 - Native Kafka - Import - Gravitee Definition - With metadata', () => {
+describeIfV4EmulationEngine('API - V4 - Native Kafka - Import - Gravitee Definition - With metadata', () => {
   describe('Create v4 API from import with metadata', () => {
     let importedApiWithApimTeam,
       importedSecondApiWithApimTeam,

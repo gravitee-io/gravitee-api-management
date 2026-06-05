@@ -17,7 +17,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, test } from '@jest/gl
 import { APIsApi, ApiV4 } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { forManagementV2AsAdminUser } from '@gravitee/utils/configuration';
 import * as openapiv3 from '@api-test-resources/openapi-withExtensions.json';
-import { created, fail, noContent, succeed } from '@lib/jest-utils';
+import { describeIfV4EmulationEngine, created, fail, noContent, succeed } from '@lib/jest-utils';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import { faker } from '@faker-js/faker';
 
@@ -25,7 +25,7 @@ const envId = 'DEFAULT';
 
 const v2ApisResource = new APIsApi(forManagementV2AsAdminUser());
 
-describe('API - V4 - Update via Swagger/OpenAPI import', () => {
+describeIfV4EmulationEngine('API - V4 - Update via Swagger/OpenAPI import', () => {
   const specification = JSON.stringify(openapiv3);
 
   describe('Update an existing API from an OpenAPI specification', () => {
