@@ -119,9 +119,17 @@ $typography: map.get(gio.$mat-theme, typography);
 
 .mat-column-apis,
 .mat-column-version,
+.mat-column-tags,
 .mat-column-owner,
 .mat-column-actions {
   padding: 0 8px;
+}
+
+.mat-column-tags {
+  .tags__badge {
+    margin-left: 4px;
+    cursor: default;
+  }
 }
 
 .mat-column-name {

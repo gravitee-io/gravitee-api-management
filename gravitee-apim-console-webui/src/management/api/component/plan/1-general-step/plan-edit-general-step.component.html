@@ -98,7 +98,7 @@
       </mat-form-field>
     }
 
-    @if (!isFederated && (api$ | async)) {
+    @if (!isFederated && (hasReferenceTags || (api$ | async))) {
       <h2>Deployment</h2>
 
       <mat-form-field>

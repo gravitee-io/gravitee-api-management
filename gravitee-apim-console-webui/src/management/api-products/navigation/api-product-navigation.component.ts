@@ -263,25 +263,32 @@ export class ApiProductNavigationComponent {
 
     const hasPlanRead = this.permissionService.hasAnyMatching(['api_product-plan-r']);
     const hasSubscriptionRead = this.permissionService.hasAnyMatching(['api_product-subscription-r']);
-    if (!hasPlanRead && !hasSubscriptionRead) {
-      return items;
+    if (hasPlanRead || hasSubscriptionRead) {
+      const tabs: ApiProductTabMenuItem[] = [];
+      if (hasPlanRead) {
+        tabs.push({ displayName: 'Plans', routerLink: 'consumers/plans' });
+      }
+      if (hasSubscriptionRead) {
+        tabs.push({ displayName: 'Subscriptions', routerLink: 'consumers/subscriptions' });
+      }
+
+      items.push({
+        displayName: 'Consumers',
+        routerLink: 'consumers',
+        icon: 'gio:cloud-consumers',
+        header: { title: 'Consumers', subtitle: 'Manage how your API Product is consumed' },
+        tabs,
+      });
     }
 
-    const tabs: ApiProductTabMenuItem[] = [];
-    if (hasPlanRead) {
-      tabs.push({ displayName: 'Plans', routerLink: 'consumers/plans' });
+    if (this.canAccessApiProductDefinition()) {
+      items.push({
+        displayName: 'Deployment',
+        routerLink: 'deployment',
+        icon: 'gio:rocket',
+        header: { title: 'Deployment', subtitle: 'Manage sharding tags and where this API Product is deployed.' },
+      });
     }
-    if (hasSubscriptionRead) {
-      tabs.push({ displayName: 'Subscriptions', routerLink: 'consumers/subscriptions' });
-    }
-
-    items.push({
-      displayName: 'Consumers',
-      routerLink: 'consumers',
-      icon: 'gio:cloud-consumers',
-      header: { title: 'Consumers', subtitle: 'Manage how your API Product is consumed' },
-      tabs,
-    });
 
     return items;
   }

@@ -68,6 +68,7 @@ export type ApiProductTableDS = {
   version: string;
   numberOfApis: number;
   owner: string;
+  tags: string[];
   picture?: string;
 }[];
 
@@ -111,7 +112,7 @@ export class ApiProductListComponent {
   private readonly snackBarService = inject(SnackBarService);
   private readonly permissionService = inject(GioPermissionService);
 
-  displayedColumns = ['picture', 'name', 'apis', 'version', 'owner', 'actions'];
+  displayedColumns = ['picture', 'name', 'apis', 'version', 'tags', 'owner', 'actions'];
   searchLabel = 'Search';
   canCreateApiProduct = this.permissionService.hasAnyMatching(['environment-api_product-c']);
 
@@ -198,6 +199,7 @@ export class ApiProductListComponent {
       version: product.version,
       numberOfApis: product.apiIds?.length || 0,
       owner: product.primaryOwner?.displayName || 'N/A',
+      tags: product.tags ?? [],
       picture: product._links?.pictureUrl,
     }));
   }

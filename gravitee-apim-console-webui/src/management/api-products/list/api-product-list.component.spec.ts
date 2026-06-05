@@ -111,6 +111,7 @@ describe('ApiProductListComponent', () => {
       name: 'Payments API Product',
       version: '1.0',
       apiIds: ['api-1', 'api-2'],
+      tags: ['tag-1'],
       primaryOwner: { displayName: 'Jane Doe' } as any,
     };
 
@@ -124,7 +125,27 @@ describe('ApiProductListComponent', () => {
     expect(rowCells[1]).toContain('Payments API Product');
     expect(rowCells[2]).toContain('2');
     expect(rowCells[3]).toContain('1.0');
-    expect(rowCells[4]).toContain('Jane Doe');
+    expect(rowCells[4]).toContain('tag-1');
+    expect(rowCells[5]).toContain('Jane Doe');
+  });
+
+  it('should display sharding tags with a "more" badge when several tags are assigned', async () => {
+    const apiProduct: ApiProduct = {
+      id: 'product-1',
+      name: 'Payments API Product',
+      version: '1.0',
+      apiIds: ['api-1'],
+      tags: ['tag-1', 'tag-2', 'tag-3'],
+      primaryOwner: { displayName: 'Jane Doe' } as any,
+    };
+
+    await initComponent([apiProduct]);
+
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '#apiProductsTable' }));
+    const rows = await table.getRows();
+    const rowCells = await rows[0].getCellTextByIndex();
+    expect(rowCells[4]).toContain('tag-1');
+    expect(rowCells[4]).toContain('2 more');
   });
 
   it('should display multiple API products', async () => {
@@ -280,7 +301,7 @@ describe('ApiProductListComponent', () => {
     const table = await loader.getHarness(MatTableHarness.with({ selector: '#apiProductsTable' }));
     const rows = await table.getRows();
     const rowCells = await rows[0].getCellTextByIndex();
-    expect(rowCells[4]).toContain('N/A');
+    expect(rowCells[5]).toContain('N/A');
   });
 
   it('should display zero APIs count when apiIds is empty', async () => {

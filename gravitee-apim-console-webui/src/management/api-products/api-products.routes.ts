@@ -124,6 +124,15 @@ export const API_PRODUCTS_ROUTES: Routes = [
           },
         },
       },
+      {
+        path: 'deployment',
+        loadComponent: () => import('./deployment/api-product-deployment.component').then(m => m.ApiProductDeploymentComponent),
+        data: {
+          permissions: {
+            anyOf: ['api_product-definition-r'],
+          },
+        },
+      },
     ],
   },
 ];
