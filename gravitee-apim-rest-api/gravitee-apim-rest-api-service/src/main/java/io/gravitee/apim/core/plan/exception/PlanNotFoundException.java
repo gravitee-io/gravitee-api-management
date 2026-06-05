@@ -17,6 +17,9 @@ package io.gravitee.apim.core.plan.exception;
 
 import io.gravitee.apim.core.exception.ValidationDomainException;
 
+/**
+ * @author GraviteeSource Team
+ */
 public class PlanNotFoundException extends ValidationDomainException {
 
     public PlanNotFoundException(String planId) {

@@ -21,6 +21,7 @@ import static io.gravitee.rest.api.model.MembershipReferenceType.GROUP;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationLinks;
@@ -292,25 +293,53 @@ public abstract class AbstractResource {
     }
 
     protected void evaluateIfMatch(final HttpHeaders headers, final String etagValue) {
+        evaluateIfMatch(headers, etagValue, false);
+    }
+
+    protected void evaluateIfMatchStrictly(final HttpHeaders headers, final String etagValue) {
+        evaluateIfMatch(headers, etagValue, true);
+    }
+
+    private void evaluateIfMatch(final HttpHeaders headers, final String etagValue, final boolean strict) {
         String ifMatch = headers.getHeaderString(HttpHeaders.IF_MATCH);
 
-        if (Objects.nonNull(ifMatch) && !ifMatch.isEmpty()) {
-            // Handle case for -gzip appended automatically (and sadly) by Apache
-            ifMatch = ifMatch.replaceAll("-gzip", "");
+        if (StringUtils.isEmpty(ifMatch)) {
+            return;
+        }
+        // If-Match: * matches any tag; resource existence is the caller's responsibility.
+        if (strict && "*".equals(ifMatch)) {
+            return;
+        }
 
-            Set<MatchingEntityTag> matchingTags;
-            try {
-                matchingTags = HttpHeaderReader.readMatchingEntityTag(ifMatch);
-            } catch (java.text.ParseException e) {
-                return;
+        // Handle case for -gzip appended automatically (and sadly) by Apache.
+        // Weak validators (W/"...") are accepted as-is: with epoch-millis ETags every comparison is byte-identical,
+        // so the RFC 7232 strong-comparison distinction has no practical effect here.
+        var normalizedIfMatch = ifMatch.replace("-gzip", "");
+
+        Set<MatchingEntityTag> matchingTags;
+        try {
+            matchingTags = HttpHeaderReader.readMatchingEntityTag(normalizedIfMatch);
+        } catch (java.text.ParseException e) {
+            if (strict) {
+                throw new PreconditionFailedException(e);
             }
+            log.debug("Ignoring unparseable If-Match header '{}' on non-strict precondition path", ifMatch);
+            return;
+        }
 
-            MatchingEntityTag ifMatchHeader = matchingTags.iterator().next();
-            EntityTag eTag = new EntityTag(etagValue, ifMatchHeader.isWeak());
-
-            if (matchingTags != MatchingEntityTag.ANY_MATCH && !matchingTags.contains(eTag)) {
+        if (matchingTags.isEmpty()) {
+            if (strict) {
                 throw new PreconditionFailedException();
             }
+            log.debug("Ignoring If-Match header '{}' resolving to an empty tag set on non-strict precondition path", ifMatch);
+            return;
+        }
+
+        var ifMatchHeader = matchingTags.iterator().next();
+        var eTag = new EntityTag(etagValue, ifMatchHeader.isWeak());
+
+        if (matchingTags != MatchingEntityTag.ANY_MATCH && !matchingTags.contains(eTag)) {
+            throw new PreconditionFailedException();
         }
     }
 

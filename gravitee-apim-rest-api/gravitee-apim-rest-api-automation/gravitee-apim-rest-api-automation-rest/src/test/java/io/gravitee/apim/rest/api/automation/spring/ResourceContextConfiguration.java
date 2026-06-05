@@ -138,6 +138,7 @@ import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.plan.query_service.PlanSearchQueryService;
+import io.gravitee.apim.core.plan.use_case.PatchPlanUseCase.PlanFlowsConverter;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
@@ -214,6 +215,7 @@ import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.rest.api.management.v2.rest.adapter.PatchApiV4Deserializer;
+import io.gravitee.rest.api.management.v2.rest.adapter.PatchPlanFlowsDeserializer;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApiMetadataService;
@@ -261,6 +263,11 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiV4Deserializer apiV4Deserializer(ObjectMapper objectMapper) {
         return new PatchApiV4Deserializer(objectMapper);
+    }
+
+    @Bean
+    public PlanFlowsConverter planFlowsDeserializer(ObjectMapper objectMapper) {
+        return new PatchPlanFlowsDeserializer(objectMapper);
     }
 
     @Bean

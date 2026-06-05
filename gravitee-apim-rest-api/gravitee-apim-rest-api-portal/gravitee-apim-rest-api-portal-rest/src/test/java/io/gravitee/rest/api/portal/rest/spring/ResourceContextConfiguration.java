@@ -140,6 +140,7 @@ import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plan.query_service.PlanSearchQueryService;
+import io.gravitee.apim.core.plan.use_case.PatchPlanUseCase.PlanFlowsConverter;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
@@ -210,6 +211,7 @@ import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.rest.api.portal.rest.mapper.AnalyticsMapper;
@@ -283,6 +285,7 @@ import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.vertx.rxjava3.core.Vertx;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -729,6 +732,11 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiV4Deserializer apiV4Deserializer() {
         return new V4PatchNotSupportedDeserializer();
+    }
+
+    @Bean
+    public PlanFlowsConverter planFlowsDeserializer() {
+        return new PlanFlowsPatchNotSupportedDeserializer();
     }
 
     @Bean
@@ -1526,6 +1534,21 @@ public class ResourceContextConfiguration {
 
         @Override
         public ApiV4Fields fromPatchedNode(JsonNode patchedNode) {
+            throw new UnsupportedOperationException(MESSAGE);
+        }
+    }
+
+    private static class PlanFlowsPatchNotSupportedDeserializer implements PlanFlowsConverter {
+
+        private static final String MESSAGE = "plan flows PATCH is served only by management-v2 REST API";
+
+        @Override
+        public JsonNode toCurrentFlowsNode(List<Flow> flows) {
+            throw new UnsupportedOperationException(MESSAGE);
+        }
+
+        @Override
+        public List<Flow> fromPatchedFlowsNode(JsonNode flowsNode) {
             throw new UnsupportedOperationException(MESSAGE);
         }
     }

@@ -19,11 +19,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.use_case.PatchApiUseCase.ApiV4Deserializer;
 import io.gravitee.apim.core.api.use_case.PatchApiUseCase.ApiV4Fields;
+import io.gravitee.apim.core.plan.use_case.PatchPlanUseCase.PlanFlowsConverter;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.plugin.core.spring.PluginConfiguration;
 import io.gravitee.rest.api.idp.core.spring.IdentityProviderPluginConfiguration;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -44,6 +47,11 @@ public class RestManagementConfiguration {
     }
 
     @Bean
+    public PlanFlowsConverter planFlowsDeserializer() {
+        return new PlanFlowsPatchNotSupportedDeserializer();
+    }
+
+    @Bean
     public ExpressionLanguageInitializer expressionLanguageInitializer() {
         return new ExpressionLanguageInitializer();
     }
@@ -59,6 +67,21 @@ public class RestManagementConfiguration {
 
         @Override
         public ApiV4Fields fromPatchedNode(JsonNode patchedNode) {
+            throw new UnsupportedOperationException(MESSAGE);
+        }
+    }
+
+    private static class PlanFlowsPatchNotSupportedDeserializer implements PlanFlowsConverter {
+
+        private static final String MESSAGE = "plan flows PATCH is served only by management-v2 REST API";
+
+        @Override
+        public JsonNode toCurrentFlowsNode(List<Flow> flows) {
+            throw new UnsupportedOperationException(MESSAGE);
+        }
+
+        @Override
+        public List<Flow> fromPatchedFlowsNode(JsonNode flowsNode) {
             throw new UnsupportedOperationException(MESSAGE);
         }
     }
