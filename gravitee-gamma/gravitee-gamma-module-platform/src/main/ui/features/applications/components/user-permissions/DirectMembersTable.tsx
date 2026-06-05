@@ -22,14 +22,19 @@ import {
     DropdownMenuItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
     type DataTableProps,
 } from '@gravitee/graphene-core';
-import { MoreHorizontalIcon, PencilIcon, ShieldCheckIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
+import { MoreHorizontalIcon, PencilIcon, ShieldCheckIcon, Trash2Icon, XIcon } from '@gravitee/graphene-core/icons';
 import { useMemo } from 'react';
 
 import { MemberAvatar } from './MemberAvatar';
 import { formatRoleLabel, getApplicationRole, isMemberPrimaryOwner } from './memberHelpers';
-import type { ApplicationUiMember } from '../../types/applicationMembers.types';
+import type { ApplicationUiMember, EditState } from '../../types/applicationMembers.types';
 import { NON_SORTABLE_COLUMN } from '../../utils/dataTableHeaders';
 import type { ColCell } from '../../utils/dataTableTypes';
 
@@ -54,16 +59,28 @@ function buildColumns({
     canEditRole,
     canRemoveMember,
     isRemoving,
+    isSaving,
+    roles,
+    editState,
     getRoleName,
-    onEditRole,
+    onStartEdit,
+    onRoleChange,
+    onSaveRole,
+    onCancelEdit,
     onRemove,
 }: {
     showActionsMenu: boolean;
     canEditRole: boolean;
     canRemoveMember: boolean;
     isRemoving: boolean;
+    isSaving: boolean;
+    roles: string[];
+    editState: EditState;
     getRoleName?: (member: ApplicationUiMember) => string;
-    onEditRole: (member: ApplicationUiMember) => void;
+    onStartEdit: (member: ApplicationUiMember) => void;
+    onRoleChange: (role: string) => void;
+    onSaveRole: () => void;
+    onCancelEdit: () => void;
     onRemove: (member: ApplicationUiMember) => void;
 }): DataTableProps<ApplicationUiMember>['columns'] {
     const columns: DataTableProps<ApplicationUiMember>['columns'] = [
@@ -88,8 +105,50 @@ function buildColumns({
             header: 'Role',
             ...NON_SORTABLE_COLUMN,
             cell: ({ row }: ColCell<ApplicationUiMember>) => {
-                const isPO = isMemberPrimaryOwner(row.original);
-                const currentRole = getRoleName ? getRoleName(row.original) : getApplicationRole(row.original);
+                const member = row.original;
+                const isPO = isMemberPrimaryOwner(member);
+                const currentRole = getRoleName ? getRoleName(member) : getApplicationRole(member);
+                const isEditing = editState?.memberId === member.id;
+
+                if (isEditing && editState) {
+                    return (
+                        <div className="flex items-center gap-1.5">
+                            <Select value={editState.role} onValueChange={onRoleChange}>
+                                <SelectTrigger className="h-8 flex-1 min-w-0">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {roles.map(roleName => (
+                                        <SelectItem key={roleName} value={roleName}>
+                                            {formatRoleLabel(roleName)}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Button
+                                type="button"
+                                size="sm"
+                                className="h-8 shrink-0"
+                                onClick={onSaveRole}
+                                disabled={isSaving || !editState.role || editState.role === currentRole}
+                            >
+                                {isSaving ? 'Saving…' : 'Save'}
+                            </Button>
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                className="size-8 p-0 shrink-0"
+                                onClick={onCancelEdit}
+                                disabled={isSaving}
+                                aria-label="Cancel edit"
+                            >
+                                <XIcon className="size-4" aria-hidden="true" />
+                            </Button>
+                        </div>
+                    );
+                }
+
                 return <RoleBadge roleName={currentRole} isPO={isPO} />;
             },
         },
@@ -103,7 +162,8 @@ function buildColumns({
             cell: ({ row }: ColCell<ApplicationUiMember>) => {
                 const member = row.original;
                 const isPO = isMemberPrimaryOwner(member);
-                if (isPO) {
+                const isEditing = editState?.memberId === member.id;
+                if (isPO || isEditing) {
                     return null;
                 }
                 return (
@@ -116,7 +176,7 @@ function buildColumns({
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 {canEditRole ? (
-                                    <DropdownMenuItem onSelect={() => onEditRole(member)}>
+                                    <DropdownMenuItem onSelect={() => onStartEdit(member)}>
                                         <PencilIcon className="size-4 mr-2" aria-hidden />
                                         Edit role
                                     </DropdownMenuItem>
@@ -124,11 +184,7 @@ function buildColumns({
                                 {canRemoveMember ? (
                                     <>
                                         {canEditRole ? <DropdownMenuSeparator /> : null}
-                                        <DropdownMenuItem
-                                            className="text-destructive focus:text-destructive"
-                                            disabled={isRemoving}
-                                            onSelect={() => onRemove(member)}
-                                        >
+                                        <DropdownMenuItem variant="destructive" disabled={isRemoving} onSelect={() => onRemove(member)}>
                                             <Trash2Icon className="size-4 mr-2" aria-hidden />
                                             Remove member
                                         </DropdownMenuItem>
@@ -149,8 +205,14 @@ function buildColumns({
 
 export function DirectMembersTable({
     members,
-    onEditRole,
+    roles,
+    editState,
+    onStartEdit,
+    onRoleChange,
+    onSaveRole,
+    onCancelEdit,
     onRemove,
+    isSaving,
     isRemoving,
     getRoleName,
     canManageMembers = true,
@@ -158,8 +220,14 @@ export function DirectMembersTable({
     canRemoveMember = true,
 }: Readonly<{
     members: ApplicationUiMember[];
-    onEditRole: (member: ApplicationUiMember) => void;
+    roles: string[];
+    editState: EditState;
+    onStartEdit: (member: ApplicationUiMember) => void;
+    onRoleChange: (role: string) => void;
+    onSaveRole: () => void;
+    onCancelEdit: () => void;
     onRemove: (member: ApplicationUiMember) => void;
+    isSaving: boolean;
     isRemoving: boolean;
     getRoleName?: (member: ApplicationUiMember) => string;
     canManageMembers?: boolean;
@@ -174,11 +242,31 @@ export function DirectMembersTable({
                 canEditRole,
                 canRemoveMember,
                 isRemoving,
+                isSaving,
+                roles,
+                editState,
                 getRoleName,
-                onEditRole,
+                onStartEdit,
+                onRoleChange,
+                onSaveRole,
+                onCancelEdit,
                 onRemove,
             }),
-        [showActionsMenu, canEditRole, canRemoveMember, isRemoving, getRoleName, onEditRole, onRemove],
+        [
+            showActionsMenu,
+            canEditRole,
+            canRemoveMember,
+            isRemoving,
+            isSaving,
+            roles,
+            editState,
+            getRoleName,
+            onStartEdit,
+            onRoleChange,
+            onSaveRole,
+            onCancelEdit,
+            onRemove,
+        ],
     );
 
     return <DataTable columns={columns} data={members} emptyMessage="No members found." />;
