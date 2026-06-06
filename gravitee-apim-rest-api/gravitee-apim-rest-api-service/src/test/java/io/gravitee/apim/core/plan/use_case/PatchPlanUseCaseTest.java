@@ -890,6 +890,27 @@ class PatchPlanUseCaseTest {
     }
 
     @Nested
+    class NonFlowPatchDoesNotForceRedeploy {
+
+        @Test
+        void name_only_patch_on_plan_without_flows_does_not_set_needRedeployAt() {
+            var output = executeMerge("{\"name\":\"Renamed\"}");
+
+            assertThat(output.plan().getNeedRedeployAt()).isNull();
+        }
+
+        @Test
+        void name_only_patch_on_plan_with_unchanged_flows_does_not_set_needRedeployAt() {
+            var step = Step.builder().name("policy-step").policy("a-policy").configuration("{\"k\":\"v\"}").build();
+            flowCrudService.savePlanFlows(PLAN_ID, List.of(Flow.builder().name("Flow").enabled(true).request(List.of(step)).build()));
+
+            var output = executeMerge("{\"name\":\"Renamed\"}");
+
+            assertThat(output.plan().getNeedRedeployAt()).isNull();
+        }
+    }
+
+    @Nested
     class DryRunJsonPatch {
 
         @Test
