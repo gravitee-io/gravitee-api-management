@@ -375,30 +375,34 @@ public class PatchPlanUseCase {
             .characteristics(characteristics)
             .build();
 
+        return applyPlanDefinition(updatedPlan, existing, patchedNode, explicitNulls, name);
+    }
+
+    private Plan applyPlanDefinition(Plan updatedPlan, Plan existing, JsonNode patchedNode, Set<String> explicitNulls, String name) {
         var def = existing.getPlanDefinitionHttpV4();
-        if (def != null) {
-            var selectionRule = textOrDefault(patchedNode, FIELD_SELECTION_RULE, explicitNulls, def.getSelectionRule());
-
-            var existingSecurityType = def.getSecurity() != null ? def.getSecurity().getType() : null;
-            var securityNode = patchedNode.get(FIELD_SECURITY_CONFIGURATION);
-            PlanSecurity security;
-            if (securityNode != null && !securityNode.isNull()) {
-                var convertedSecurity = convertField(securityNode, PlanSecurity.class, FIELD_SECURITY_CONFIGURATION);
-                if (convertedSecurity == null) {
-                    throw new ValidationDomainException("Invalid value for field 'security'");
-                }
-                security = convertedSecurity.withType(existingSecurityType);
-            } else {
-                security = def.getSecurity();
-            }
-
-            var tags = explicitNulls.contains(FIELD_TAGS) ? null : tagsOrDefault(patchedNode, def.getTags());
-
-            var updatedDef = def.toBuilder().name(name).selectionRule(selectionRule).security(security).tags(tags).build();
-            updatedPlan = updatedPlan.toBuilder().planDefinitionHttpV4(updatedDef).build();
+        if (def == null) {
+            return updatedPlan;
         }
 
-        return updatedPlan;
+        var selectionRule = textOrDefault(patchedNode, FIELD_SELECTION_RULE, explicitNulls, def.getSelectionRule());
+
+        var existingSecurityType = def.getSecurity() != null ? def.getSecurity().getType() : null;
+        var securityNode = patchedNode.get(FIELD_SECURITY_CONFIGURATION);
+        PlanSecurity security;
+        if (securityNode != null && !securityNode.isNull()) {
+            var convertedSecurity = convertField(securityNode, PlanSecurity.class, FIELD_SECURITY_CONFIGURATION);
+            if (convertedSecurity == null) {
+                throw new ValidationDomainException("Invalid value for field 'security'");
+            }
+            security = convertedSecurity.withType(existingSecurityType);
+        } else {
+            security = def.getSecurity();
+        }
+
+        var tags = explicitNulls.contains(FIELD_TAGS) ? null : tagsOrDefault(patchedNode, def.getTags());
+
+        var updatedDef = def.toBuilder().name(name).selectionRule(selectionRule).security(security).tags(tags).build();
+        return updatedPlan.toBuilder().planDefinitionHttpV4(updatedDef).build();
     }
 
     private List<Flow> extractFlows(JsonNode patchedNode, List<Flow> currentFlows, Set<String> explicitNulls, boolean patchTargetsFlows) {
