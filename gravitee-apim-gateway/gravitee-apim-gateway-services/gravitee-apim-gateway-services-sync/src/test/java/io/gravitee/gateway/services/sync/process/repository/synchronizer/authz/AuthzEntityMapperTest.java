@@ -102,7 +102,30 @@ class AuthzEntityMapperTest {
         assertThat(d).isNotNull();
         assertThat(d.engineUid()).isEqualTo("Principal::\"idp.am.alice\"");
         assertThat(d.kind()).isEqualTo(AuthzEntityReactorDeployable.Kind.PRINCIPAL);
+        // A typeless bare-id parent passes through untouched.
         assertThat(d.parents()).containsExactly("idp.am.admins");
+    }
+
+    @Test
+    void toDeploy_normalizes_typed_parent_uids_to_the_canonical_quoted_form() {
+        Event event = event(
+            "evt-parents",
+            """
+            {
+              "entityId": "alice",
+              "entityType": "User",
+              "kind": "PRINCIPAL",
+              "attributes": {},
+              "parents": ["Group::engineering", "Role::\\"admin\\"", "bare-id"]
+            }
+            """
+        );
+
+        AuthzEntityReactorDeployable d = mapper.toDeploy(event).blockingGet();
+
+        assertThat(d).isNotNull();
+        // Unquoted typed parent is re-quoted; already-quoted stays; bare id passes through.
+        assertThat(d.parents()).containsExactly("Group::\"engineering\"", "Role::\"admin\"", "bare-id");
     }
 
     @Test

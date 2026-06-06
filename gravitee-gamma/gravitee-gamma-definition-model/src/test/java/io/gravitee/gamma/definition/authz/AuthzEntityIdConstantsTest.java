@@ -51,4 +51,31 @@ class AuthzEntityIdConstantsTest {
         assertThat(AuthzEntityIdConstants.engineTypeForHint("")).isNull();
         assertThat(AuthzEntityIdConstants.engineTypeForHint(null)).isNull();
     }
+
+    @Test
+    void toEngineUid_builds_the_canonical_quoted_form() {
+        assertThat(AuthzEntityIdConstants.toEngineUid("User", "alice")).isEqualTo("User::\"alice\"");
+        assertThat(AuthzEntityIdConstants.toEngineUid("API", "api.payments")).isEqualTo("API::\"api.payments\"");
+    }
+
+    @Test
+    void normalizeParentUid_requotes_unquoted_typed_uids() {
+        assertThat(AuthzEntityIdConstants.normalizeParentUid("Group::engineering")).isEqualTo("Group::\"engineering\"");
+        // Namespaced type: split on the LAST '::' so the type keeps its inner '::'.
+        assertThat(AuthzEntityIdConstants.normalizeParentUid("myapp::Report::r1")).isEqualTo("myapp::Report::\"r1\"");
+    }
+
+    @Test
+    void normalizeParentUid_leaves_canonical_bare_and_null_untouched() {
+        assertThat(AuthzEntityIdConstants.normalizeParentUid("Group::\"engineering\"")).isEqualTo("Group::\"engineering\"");
+        assertThat(AuthzEntityIdConstants.normalizeParentUid("bare-id")).isEqualTo("bare-id");
+        assertThat(AuthzEntityIdConstants.normalizeParentUid(null)).isNull();
+    }
+
+    @Test
+    void normalizeParentUid_does_not_manufacture_empty_component_uids() {
+        // Malformed Type::/::id must pass through unchanged, not become Type::"" / ::"id".
+        assertThat(AuthzEntityIdConstants.normalizeParentUid("Group::")).isEqualTo("Group::");
+        assertThat(AuthzEntityIdConstants.normalizeParentUid("::engineering")).isEqualTo("::engineering");
+    }
 }

@@ -22,6 +22,7 @@ import io.gravitee.gamma.definition.authz.AuthzEntityKind;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.repository.management.model.Event;
 import io.reactivex.rxjava3.core.Maybe;
+import java.util.List;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -46,7 +47,7 @@ public class AuthzEntityMapper {
                     .kind(kind)
                     .entityType(wire.getEntityType())
                     .attributes(wire.getAttributes())
-                    .parents(wire.getParents())
+                    .parents(normalizeParents(wire.getParents()))
                     .syncAction(SyncAction.DEPLOY)
                     .build();
             } catch (Exception e) {
@@ -85,6 +86,14 @@ public class AuthzEntityMapper {
 
     private static AuthzEntityReactorDeployable.Kind toGatewayKind(AuthzEntityKind wireKind) {
         return AuthzEntityReactorDeployable.Kind.valueOf(wireKind.name());
+    }
+
+    // Emit parents in the engine's canonical quoted form Type::"id" so the PDP can parse them directly.
+    private static List<String> normalizeParents(List<String> parents) {
+        if (parents == null) {
+            return null;
+        }
+        return parents.stream().map(AuthzEntityIdConstants::normalizeParentUid).toList();
     }
 
     /**
