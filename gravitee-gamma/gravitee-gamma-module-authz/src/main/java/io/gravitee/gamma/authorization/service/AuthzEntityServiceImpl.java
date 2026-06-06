@@ -23,6 +23,7 @@ import io.gravitee.gamma.authorization.api.AuthzEntityAdminApi;
 import io.gravitee.gamma.authorization.api.AuthzEntityAuditEvent;
 import io.gravitee.gamma.authorization.api.AuthzEntityAuditSnapshot;
 import io.gravitee.gamma.authorization.api.AuthzEntityRepository;
+import io.gravitee.gamma.authorization.api.AuthzEntityTypeMigrationReport;
 import io.gravitee.gamma.authorization.api.AuthzEventPublisher;
 import io.gravitee.gamma.authorization.api.AuthzPolicyAuditEvent;
 import io.gravitee.gamma.authorization.api.AuthzPolicyAuditSnapshot;
@@ -293,6 +294,49 @@ public class AuthzEntityServiceImpl implements AuthzEntityAdminApi {
         Objects.requireNonNull(pageable, "pageable must not be null");
         validateFilter(filter);
         return entityRepository.findPage(environmentId, filter, pageable);
+    }
+
+    private static final int MIGRATION_APPLY_BATCH_SIZE = 100;
+
+    @Override
+    public AuthzEntityTypeMigrationReport migrateEntityTypes(AuthzCallerContext caller, boolean apply) {
+        Objects.requireNonNull(caller, "caller must not be null");
+        // apply=false is a dry-run: it returns the inventory of changes (review before applying).
+        // Only entities whose stored type is umbrella AND re-derives to something else are touched;
+        // such rows are legacy null-typed artifacts, not deliberate umbrellas.
+        String env = caller.environmentId();
+        List<AuthzEntity> all = entityRepository
+            .findPage(env, new AuthzEntityFilter(null, null, null, null), Pageable.unbounded())
+            .data();
+
+        List<AuthzEntityTypeMigrationReport.Change> changes = new ArrayList<>();
+        List<CreateOrReplaceAuthzEntityCommand> toApply = new ArrayList<>();
+        for (AuthzEntity entity : all) {
+            // Re-derive by clearing the type: the command's derivation maps _kind/prefix to the
+            // granular engine type, leaving the umbrella default only when nothing can be derived.
+            CreateOrReplaceAuthzEntityCommand rederived = new CreateOrReplaceAuthzEntityCommand(
+                env,
+                entity.entityId(),
+                entity.kind(),
+                null,
+                entity.attributes(),
+                entity.parents(),
+                entity.source()
+            );
+            if (!rederived.entityType().equals(entity.entityType())) {
+                changes.add(new AuthzEntityTypeMigrationReport.Change(entity.entityId(), entity.entityType(), rederived.entityType()));
+                toApply.add(rederived);
+            }
+        }
+
+        if (apply) {
+            // Apply in bounded batches so a large migration doesn't fan out one giant upsert /
+            // event burst (mirrors the AM-sync batching).
+            for (int i = 0; i < toApply.size(); i += MIGRATION_APPLY_BATCH_SIZE) {
+                bulkUpsert(caller, toApply.subList(i, Math.min(i + MIGRATION_APPLY_BATCH_SIZE, toApply.size())));
+            }
+        }
+        return new AuthzEntityTypeMigrationReport(all.size(), changes.size(), apply, changes);
     }
 
     private void validateFilter(AuthzEntityFilter filter) {

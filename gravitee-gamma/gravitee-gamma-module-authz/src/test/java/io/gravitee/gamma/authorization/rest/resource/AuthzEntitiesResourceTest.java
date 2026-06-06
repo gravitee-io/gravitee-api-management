@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gamma.authorization.api.AuthzCallerContext;
+import io.gravitee.gamma.authorization.api.AuthzEntityTypeMigrationReport;
 import io.gravitee.gamma.authorization.domain.AuthzEntity;
 import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
 import io.gravitee.gamma.authorization.paging.Pageable;
@@ -312,5 +313,21 @@ class AuthzEntitiesResourceTest extends AbstractAuthorizationResourceTest {
     ) {
         Instant now = Instant.parse("2026-05-14T10:00:00Z");
         return new AuthzEntity("id-" + entityId, entityId, kind, entityType, attributes, parents, source, ENV, now, now);
+    }
+
+    @Test
+    void post_migrate_types_defaults_to_dry_run_and_returns_the_report() {
+        when(entityService.migrateEntityTypes(any(AuthzCallerContext.class), eq(false))).thenReturn(
+            new AuthzEntityTypeMigrationReport(3, 1, false, List.of(new AuthzEntityTypeMigrationReport.Change("user.alice", "Principal", "User")))
+        );
+
+        try (Response response = target("/entities/migrate-types").request().post(jakarta.ws.rs.client.Entity.json(Map.of()))) {
+            assertThat(response.getStatus()).isEqualTo(200);
+            AuthzEntityTypeMigrationReport body = response.readEntity(AuthzEntityTypeMigrationReport.class);
+            assertThat(body.scanned()).isEqualTo(3);
+            assertThat(body.migrated()).isEqualTo(1);
+            assertThat(body.applied()).isFalse();
+            assertThat(body.changes()).singleElement().extracting(AuthzEntityTypeMigrationReport.Change::to).isEqualTo("User");
+        }
     }
 }

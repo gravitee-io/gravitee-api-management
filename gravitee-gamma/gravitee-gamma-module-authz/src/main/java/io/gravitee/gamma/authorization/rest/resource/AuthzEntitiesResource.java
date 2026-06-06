@@ -17,6 +17,7 @@ package io.gravitee.gamma.authorization.rest.resource;
 
 import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 import io.gravitee.gamma.authorization.api.AuthzEntityAdminApi;
+import io.gravitee.gamma.authorization.api.AuthzEntityTypeMigrationReport;
 import io.gravitee.gamma.authorization.domain.AuthzEntity;
 import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
 import io.gravitee.gamma.authorization.paging.Pageable;
@@ -41,6 +42,7 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
@@ -96,6 +98,13 @@ public class AuthzEntitiesResource {
             Response.Status status = result.created() ? Response.Status.CREATED : Response.Status.OK;
             return Response.status(status).entity(AuthzEntityResponse.from(result.entity())).build();
         });
+    }
+
+    @POST
+    @Path("/migrate-types")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AUTHORIZATION, acls = { RolePermissionAction.UPDATE }) })
+    public AuthzEntityTypeMigrationReport migrateEntityTypes(@QueryParam("apply") @DefaultValue("false") boolean apply) {
+        return AuthzCalls.execute(() -> service.migrateEntityTypes(AuthzCallerResolver.resolve(securityContext), apply));
     }
 
     @GET

@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.gamma.authorization.api.AuthzCallerContext;
 import io.gravitee.gamma.authorization.api.AuthzEntityRepository;
+import io.gravitee.gamma.authorization.api.AuthzEntityTypeMigrationReport;
 import io.gravitee.gamma.authorization.audit.RecordingAuthzAuditPort;
 import io.gravitee.gamma.authorization.domain.AuthzEntity;
 import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
@@ -691,5 +692,66 @@ class AuthzEntityServiceImplTest {
 
         assertThat(entityRepository.findByEntityId(ENV, "api.huge")).isPresent();
         assertThat(events.events()).isEmpty();
+    }
+
+    @Test
+    void migrateEntityTypes_rederives_umbrella_entities_with_a_hint_to_granular() {
+        // Legacy umbrella row carrying a _kind hint → migratable to User.
+        entityService.upsert(
+            CALLER,
+            new CreateOrReplaceAuthzEntityCommand(ENV, "user.alice", AuthzEntityKind.PRINCIPAL, "Principal", Map.of("_kind", "user"), List.of(), "local")
+        );
+        // Already-granular row → left alone.
+        entityService.upsert(
+            CALLER,
+            new CreateOrReplaceAuthzEntityCommand(ENV, "user.bob", AuthzEntityKind.PRINCIPAL, "User", Map.of("_kind", "user"), List.of(), "local")
+        );
+        // Umbrella with no derivable hint → stays umbrella.
+        entityService.upsert(
+            CALLER,
+            new CreateOrReplaceAuthzEntityCommand(ENV, "thing-1", AuthzEntityKind.PRINCIPAL, "Principal", Map.of(), List.of(), "local")
+        );
+
+        AuthzEntityTypeMigrationReport dry = entityService.migrateEntityTypes(CALLER, false);
+        assertThat(dry.scanned()).isEqualTo(3);
+        assertThat(dry.migrated()).isEqualTo(1);
+        assertThat(dry.applied()).isFalse();
+        assertThat(dry.changes())
+            .singleElement()
+            .satisfies(c -> {
+                assertThat(c.entityId()).isEqualTo("user.alice");
+                assertThat(c.from()).isEqualTo("Principal");
+                assertThat(c.to()).isEqualTo("User");
+            });
+        // Dry-run persists nothing.
+        assertThat(entityRepository.findByEntityId(ENV, "user.alice").orElseThrow().entityType()).isEqualTo("Principal");
+
+        AuthzEntityTypeMigrationReport applied = entityService.migrateEntityTypes(CALLER, true);
+        assertThat(applied.applied()).isTrue();
+        assertThat(applied.migrated()).isEqualTo(1);
+        assertThat(entityRepository.findByEntityId(ENV, "user.alice").orElseThrow().entityType()).isEqualTo("User");
+        assertThat(entityRepository.findByEntityId(ENV, "user.bob").orElseThrow().entityType()).isEqualTo("User");
+        assertThat(entityRepository.findByEntityId(ENV, "thing-1").orElseThrow().entityType()).isEqualTo("Principal");
+
+        // Idempotent: a second run finds nothing to migrate.
+        assertThat(entityService.migrateEntityTypes(CALLER, true).migrated()).isZero();
+    }
+
+    @Test
+    void migrateEntityTypes_rederives_resource_prefix_to_granular() {
+        // Umbrella RESOURCE with an api. prefix → API (derived from the prefix, no _kind needed).
+        entityService.upsert(
+            CALLER,
+            new CreateOrReplaceAuthzEntityCommand(ENV, "api.payments", AuthzEntityKind.RESOURCE, "Resource", Map.of(), List.of(), "apim")
+        );
+
+        AuthzEntityTypeMigrationReport applied = entityService.migrateEntityTypes(CALLER, true);
+
+        assertThat(applied.migrated()).isEqualTo(1);
+        assertThat(applied.changes()).singleElement().satisfies(c -> {
+            assertThat(c.from()).isEqualTo("Resource");
+            assertThat(c.to()).isEqualTo("API");
+        });
+        assertThat(entityRepository.findByEntityId(ENV, "api.payments").orElseThrow().entityType()).isEqualTo("API");
     }
 }

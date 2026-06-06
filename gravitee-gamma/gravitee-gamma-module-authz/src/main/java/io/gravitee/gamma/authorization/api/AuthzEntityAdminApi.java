@@ -43,4 +43,10 @@ public interface AuthzEntityAdminApi {
     Set<String> findApiAliases(String environmentId, String apiId);
 
     AuthzCascadeResult delete(AuthzCallerContext caller, String entityId);
+
+    /**
+     * Backfill umbrella entityTypes to granular ones, re-deriving from {@code _kind}/prefix.
+     * {@code apply=false} reports the changes without persisting (dry-run inventory).
+     */
+    AuthzEntityTypeMigrationReport migrateEntityTypes(AuthzCallerContext caller, boolean apply);
 }
