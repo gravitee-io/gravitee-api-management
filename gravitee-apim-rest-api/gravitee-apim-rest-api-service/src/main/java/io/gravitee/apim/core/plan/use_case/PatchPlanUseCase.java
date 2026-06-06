@@ -272,35 +272,42 @@ public class PatchPlanUseCase {
     private Set<String> collectExplicitNulls(PatchType patchType, JsonNode patchNode) {
         var explicitNulls = new HashSet<String>();
         if (patchType == PatchType.JSON_PATCH) {
-            for (JsonNode op : patchNode) {
-                var opName = op.path("op").asText();
-                var pointer = op.path("path").asText();
-                var topLevelField = extractTopLevelField(pointer);
-                boolean clearsField;
-                if ("remove".equals(opName)) {
-                    clearsField = true;
-                } else if ("add".equals(opName) || "replace".equals(opName)) {
-                    clearsField = op.path("value").isNull();
-                } else {
-                    clearsField = false;
-                }
-                if (!clearsField) {
-                    continue;
-                }
-                if (pointer.equals("/" + topLevelField)) {
-                    explicitNulls.add(topLevelField);
-                }
-            }
+            collectJsonPatchExplicitNulls(patchNode, explicitNulls);
         } else {
-            var fields = patchNode.fields();
-            while (fields.hasNext()) {
-                var entry = fields.next();
-                if (entry.getValue().isNull()) {
-                    explicitNulls.add(entry.getKey());
-                }
-            }
+            collectMergePatchExplicitNulls(patchNode, explicitNulls);
         }
         return explicitNulls;
+    }
+
+    private void collectJsonPatchExplicitNulls(JsonNode patchNode, Set<String> explicitNulls) {
+        for (JsonNode op : patchNode) {
+            var opName = op.path("op").asText();
+            var pointer = op.path("path").asText();
+            var topLevelField = extractTopLevelField(pointer);
+            if (clearsField(op, opName) && pointer.equals("/" + topLevelField)) {
+                explicitNulls.add(topLevelField);
+            }
+        }
+    }
+
+    private boolean clearsField(JsonNode op, String opName) {
+        if ("remove".equals(opName)) {
+            return true;
+        }
+        if ("add".equals(opName) || "replace".equals(opName)) {
+            return op.path("value").isNull();
+        }
+        return false;
+    }
+
+    private void collectMergePatchExplicitNulls(JsonNode patchNode, Set<String> explicitNulls) {
+        var fields = patchNode.fields();
+        while (fields.hasNext()) {
+            var entry = fields.next();
+            if (entry.getValue().isNull()) {
+                explicitNulls.add(entry.getKey());
+            }
+        }
     }
 
     private void rejectNullOnNonNullableFields(Set<String> explicitNulls) {
