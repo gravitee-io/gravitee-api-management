@@ -131,7 +131,7 @@ public class PatchPlanUseCase {
         var patchedNode = applyPatch(input.patchType(), patchNode, currentNode, input.planId(), input.apiId());
 
         var patched = applyPatchedValues(plan, patchedNode, explicitNulls);
-        var patchedFlows = extractFlows(patchedNode, currentFlows, explicitNulls);
+        var patchedFlows = extractFlows(patchedNode, currentFlows, explicitNulls, patchTargetsFlows(input.patchType(), patchNode));
 
         if (input.dryRun()) {
             updatePlanDomainService.validate(patched, patchedFlows, api, input.auditInfo());
@@ -394,15 +394,41 @@ public class PatchPlanUseCase {
         return updatedPlan;
     }
 
-    private List<Flow> extractFlows(JsonNode patchedNode, List<Flow> currentFlows, Set<String> explicitNulls) {
+    private List<Flow> extractFlows(JsonNode patchedNode, List<Flow> currentFlows, Set<String> explicitNulls, boolean patchTargetsFlows) {
         if (explicitNulls.contains(FIELD_FLOWS)) {
             return List.of();
+        }
+        if (!patchTargetsFlows) {
+            return currentFlows;
         }
         var flowsNode = patchedNode.get(FIELD_FLOWS);
         if (flowsNode == null || flowsNode.isNull()) {
             return currentFlows;
         }
         return planFlowsConverter.fromPatchedFlowsNode(flowsNode);
+    }
+
+    private boolean patchTargetsFlows(PatchType patchType, JsonNode patchNode) {
+        if (patchType == PatchType.MERGE_PATCH) {
+            return patchNode.has(FIELD_FLOWS);
+        }
+        if (!patchNode.isArray()) {
+            return false;
+        }
+        var flowsPointer = "/" + FIELD_FLOWS;
+        for (JsonNode op : patchNode) {
+            if (pointerTargetsFlows(op.path("path").asText(), flowsPointer)) {
+                return true;
+            }
+            if ("move".equals(op.path("op").asText()) && pointerTargetsFlows(op.path("from").asText(), flowsPointer)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean pointerTargetsFlows(String pointer, String flowsPointer) {
+        return pointer.equals(flowsPointer) || pointer.startsWith(flowsPointer + "/");
     }
 
     private <T> T convertField(JsonNode node, Class<T> type, String fieldName) {
