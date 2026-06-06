@@ -47,6 +47,9 @@ export interface EntityResponse {
     readonly id: string;
     readonly environmentId: string;
     readonly uid: string;
+    /** Canonical engine type (e.g. User, Group, API). Authoritative when present; the FE should
+     *  prefer it over deriving the type from the uid prefix or the _kind attribute. */
+    readonly entityType?: string;
     readonly attributes: Record<string, unknown>;
     readonly parents: string[];
     readonly createdAt: string;
