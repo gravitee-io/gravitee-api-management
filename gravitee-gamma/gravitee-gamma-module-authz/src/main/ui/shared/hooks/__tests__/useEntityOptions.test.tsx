@@ -164,6 +164,20 @@ describe('useEntityOptions', () => {
         expect(item.textContent).toBe(`User::"${sub}"`);
     });
 
+    it('resolves a bare-sub principal via the stored entityType (preferred over _kind)', async () => {
+        const sub = 'a1b2c3d4-0000-0000-0000-000000000000';
+        listEntitiesSpy.mockResolvedValue(paged([{ ...entity(sub, { displayName: 'Carol' }), entityType: 'User' }]));
+
+        const { getByTestId } = render(<Probe env="env-1" opts={{ typeFilter: ['User', 'Group', 'ServiceAccount', 'AgentIdentity'] }} />, {
+            wrapper: makeWrapper(),
+        });
+
+        await waitFor(() => expect(getByTestId('count').textContent).toBe('1'));
+        const item = getByTestId('options').querySelector('li')!;
+        expect(item.getAttribute('data-group')).toBe('User');
+        expect(item.textContent).toBe(`User::"${sub}"`);
+    });
+
     it('labels a locally-added principal by its _displayName meta attribute, not the entity id', async () => {
         // The "Add principal" form stores the human name under the `_displayName` meta key (not the
         // plain `displayName` the AM sync uses). The chip label must surface it so the user sees the

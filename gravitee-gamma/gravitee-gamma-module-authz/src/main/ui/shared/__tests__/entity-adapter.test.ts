@@ -102,6 +102,30 @@ describe('fromBackend', () => {
         expect(inst.uid).toEqual({ type: 'Group', id: 'eng' });
     });
 
+    it('prefers the stored entityType over the uid prefix and _kind', () => {
+        // A bare (prefixless) uid still resolves its type from entityType.
+        expect(fromBackend({ ...base, uid: 'abc-123', entityType: 'User', attributes: {} }).uid).toEqual({
+            type: 'User',
+            id: 'abc-123',
+        });
+        // entityType wins over a stale/mismatched _kind, and the matching prefix is still stripped.
+        expect(fromBackend({ ...base, uid: 'mcp.weather', entityType: 'MCPServer', attributes: { _kind: 'user' } }).uid).toEqual({
+            type: 'MCPServer',
+            id: 'weather',
+        });
+    });
+
+    it('falls back to _kind / prefix when entityType is blank', () => {
+        expect(fromBackend({ ...base, uid: 'group.eng', entityType: '   ', attributes: {} }).uid).toEqual({ type: 'Group', id: 'eng' });
+    });
+
+    it('passes a custom/namespaced entityType through verbatim (id kept whole)', () => {
+        expect(fromBackend({ ...base, uid: 'report.q1', entityType: 'myapp::Report', attributes: {} }).uid).toEqual({
+            type: 'myapp::Report',
+            id: 'report.q1',
+        });
+    });
+
     it('defaults source to local when not in attributes', () => {
         const inst = fromBackend(base);
         expect(inst.source).toBe('local');

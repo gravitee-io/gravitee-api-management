@@ -74,7 +74,7 @@ function summarizeAttributes(attrs: Record<string, unknown>): string | undefined
 }
 
 function toChipOption(entity: EntityResponse): ChipOption {
-    const { type, id } = resolveEntityRef(entity.uid, entity.attributes);
+    const { type, id } = resolveEntityRef(entity.uid, entity.attributes, entity.entityType);
     return {
         id: `${type}::"${id}"`,
         label: readableLabel(entity.attributes, id),

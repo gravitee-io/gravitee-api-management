@@ -46,8 +46,19 @@ export function parseEntityUid(uid: string): { type: string; id: string } {
  * only in `_kind` — so a raw {@link parseEntityUid} would mislabel them as
  * `Unknown`. Falls back to uid parsing when `_kind` is absent or unknown.
  */
-export function resolveEntityRef(uid: string, attributes: Record<string, unknown>): { type: string; id: string } {
-    return resolveUid(uid, kindToUiType(attributes['_kind']));
+// The stored entityType is the canonical engine type (== the registry uiType); prefer it, falling
+// back to the legacy derivation for entities that predate typed entityType. One definition so the
+// picker path and fromBackend never diverge.
+function preferType(entityType: string | undefined, fallback: string | undefined): string | undefined {
+    return entityType && entityType.trim() ? entityType : fallback;
+}
+
+export function resolveEntityRef(
+    uid: string,
+    attributes: Record<string, unknown>,
+    entityType?: string,
+): { type: string; id: string } {
+    return resolveUid(uid, preferType(entityType, kindToUiType(attributes['_kind'])));
 }
 
 /**
@@ -64,13 +75,9 @@ export function formatEntityUid(u: { type: string; id: string }): string {
 
 /**
  * Convert a backend EntityResponse to the richer frontend EntityInstance.
- *
- * - Splits reserved meta keys out of attributes.
- * - Parses parents from string form to structured objects.
- * - For dotted entityIds, strips the kind prefix from the structured `id`
- *   when an explicit `_kind` attribute matches the prefix — keeps round-trip
- *   stable for both single-segment (`user.alice`) and multi-segment
- *   (`mcp.flight-api.search`) ids.
+ * Splits reserved meta out of attributes and parses parents. The structured uid type comes from
+ * {@link preferType} (entityType first, then `_kind`/uid-prefix); the matching prefix is stripped
+ * from the id, keeping round-trip stable for bare and dotted ids alike.
  */
 export function fromBackend(e: EntityResponse): EntityInstance {
     const attrs: Record<string, AttrValue> = {};
@@ -99,7 +106,7 @@ export function fromBackend(e: EntityResponse): EntityInstance {
         }
     }
 
-    const uid = resolveUid(e.uid, kindOverride);
+    const uid = resolveUid(e.uid, preferType(e.entityType, kindOverride));
 
     const parents = e.parents.map(parseEntityUid);
 
