@@ -55,6 +55,7 @@ export interface EntityListParams extends PaginationParams {
 interface CanonicalEntity {
     readonly id: string;
     readonly entityId: string;
+    readonly entityType?: string;
     readonly kind: 'PRINCIPAL' | 'RESOURCE';
     readonly attributes: Record<string, unknown>;
     readonly parents: readonly string[];
@@ -119,6 +120,7 @@ function adaptEntityResponse(c: CanonicalEntity): EntityResponse {
         id: c.id,
         environmentId: c.environmentId,
         uid: c.entityId,
+        entityType: c.entityType,
         attributes: attrs,
         parents: [...c.parents],
         createdAt: c.createdAt,
