@@ -200,8 +200,9 @@ public class UpdatePlanDomainService {
         BinaryOperator<Plan> updateFunction
     ) {
         var sanitizedFlows = validateAndSanitizeHttpV4Flows(flows, api);
+        var existingFlows = flowCrudService.getPlanV4Flows(existingPlan.getId());
 
-        if (!planSynchronizationService.checkSynchronized(existingPlan, List.of(), updatePlan, sanitizedFlows)) {
+        if (!planSynchronizationService.checkSynchronized(existingPlan, existingFlows, updatePlan, sanitizedFlows)) {
             updatePlan.setNeedRedeployAt(Date.from(updatePlan.getUpdatedAt().toInstant()));
         }
 
