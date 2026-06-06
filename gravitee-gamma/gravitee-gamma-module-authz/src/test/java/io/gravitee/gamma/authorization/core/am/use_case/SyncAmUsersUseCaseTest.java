@@ -152,6 +152,25 @@ class SyncAmUsersUseCaseTest {
     }
 
     @Test
+    void derives_granular_entity_type_per_kind_from_the_kind_hint() {
+        // AM sync passes entityType=null + _kind; CreateOrReplaceAuthzEntityCommand must derive the
+        // granular engine type (not the umbrella Principal) so synced principals match typed policies.
+        stubGroupPage(0, new AmGroupPage(List.of(new AmGroup("g-1", "Engineering")), 1L));
+        stubRolePage(0, new AmRolePage(List.of(new AmRole("r-1", "ADMIN")), 1L));
+        stubAgentPage(0, new AmAgentPage(List.of(agent("app-1", "agent-client", "Bot", "AUTONOMOUS")), 1L));
+        stubPage(0, page(1, user("sub-1", "alice", null, null, null)));
+
+        run();
+
+        List<CreateOrReplaceAuthzEntityCommand> all = captureAllUpserts();
+        assertThat(all.stream().filter(c -> c.entityId().equals("sub-1")).findFirst().orElseThrow().entityType()).isEqualTo("User");
+        assertThat(all.stream().filter(c -> c.entityId().equals("g-1")).findFirst().orElseThrow().entityType()).isEqualTo("Group");
+        assertThat(all.stream().filter(c -> c.entityId().equals("r-1")).findFirst().orElseThrow().entityType()).isEqualTo("Role");
+        String agentId = java.util.UUID.nameUUIDFromBytes("agent-client".getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString();
+        assertThat(all.stream().filter(c -> c.entityId().equals(agentId)).findFirst().orElseThrow().entityType()).isEqualTo("AgentIdentity");
+    }
+
+    @Test
     void keys_the_entity_on_the_token_sub_when_source_is_present() {
         // AM V2 issues sub = MD5-UUID("source:externalId"); the entity must be keyed on that, not the user id.
         AmUser user = new AmUser("internal-id", "github", "ext-42", null, "alice", null, null, List.of(), List.of());
