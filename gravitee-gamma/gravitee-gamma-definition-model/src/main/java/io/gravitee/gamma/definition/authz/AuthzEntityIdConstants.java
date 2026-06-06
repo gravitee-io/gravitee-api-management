@@ -90,5 +90,34 @@ public final class AuthzEntityIdConstants {
         return ENGINE_TYPE_BY_HINT.get(hint.toLowerCase(Locale.ROOT));
     }
 
+    /**
+     * Canonical engine UID wire form: {@code Type::"id"} (the quoted form the engine's parser expects).
+     * No escaping is applied: entityIds are constrained by {@link #FORMAT_REGEX} (lowercase, digits,
+     * {@code _ : - .}) and types are canonical names, so neither can contain a quote/backslash.
+     */
+    public static String toEngineUid(String entityType, String entityId) {
+        return entityType + "::\"" + entityId + "\"";
+    }
+
+    /**
+     * Normalize a reference UID to the canonical quoted form {@code Type::"id"} so the engine parser
+     * accepts it directly. Re-quotes the unquoted legacy {@code Type::id}; leaves an already-quoted
+     * UID, a typeless bare id (no {@code ::}), and null untouched. The type/id split is the last
+     * {@code ::}, mirroring the engine's own parse (a namespaced type keeps its inner {@code ::}).
+     */
+    public static String normalizeParentUid(String uid) {
+        if (uid == null || uid.contains("::\"") || !uid.contains("::")) {
+            return uid;
+        }
+        int sep = uid.lastIndexOf("::");
+        String type = uid.substring(0, sep);
+        String id = uid.substring(sep + 2);
+        if (type.isBlank() || id.isBlank()) {
+            // Not a normalizable Type::id (e.g. "Type::" or "::id") — leave it for the parser to reject.
+            return uid;
+        }
+        return toEngineUid(type, id);
+    }
+
     private AuthzEntityIdConstants() {}
 }
