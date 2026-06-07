@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -40,8 +41,10 @@ import lombok.CustomLog;
 /**
  * Pages every user, group, role, and agent out of the AM domain on the connection and upserts each
  * as a PRINCIPAL authz entity via {@link AuthzEntityAdminApi#bulkUpsert}. Groups and roles are synced
- * first (they are the parent entities users reference); each user's {@code parents} is then set to
- * its group + role ids. Agents (AM applications of type AGENT) are projected last as generic,
+ * first (they are the parent entities users reference); each user's {@code parents} is then set to the
+ * canonical engine UIDs ({@code Group::"id"} / {@code Role::"id"}) of its groups and roles. Group
+ * membership is inverted from {@code group.members} (AM does not expose a user's groups on the user).
+ * Agents (AM applications of type AGENT) are projected last as generic,
  * user-independent principals keyed on a name-UUID of their OAuth {@code client_id} so the
  * request-time PEP matches them. Upsert-only: entities removed in AM are left as stale entities. Invoked on a
  * worker thread by the infra job manager.
@@ -73,6 +76,13 @@ public class SyncAmUsersUseCase {
         int entitiesUpserted = 0;
         List<CreateOrReplaceAuthzEntityCommand> batch = new ArrayList<>();
 
+        // AM keeps group membership on the group (group.members), not on the user — listUsers never
+        // returns a user's groups. So we invert it here: while paging groups, page each group's
+        // members and record group-id per member, then attach those ids to the member's parents in
+        // the user phase. Keyed by AM user id (== AmUser.id()).
+        Map<String, List<String>> groupIdsByUserId = new LinkedHashMap<>();
+        int membershipEntries = 0;
+
         try (AmDirectoryClient.Session session = directoryClient.openSession(input.connection())) {
             // Groups and roles first: they are the parent entities the user upserts reference.
             for (AmGroup group : pageThrough((p, s) -> {
@@ -82,6 +92,27 @@ public class SyncAmUsersUseCase {
                 batch.add(groupCommand(env, group));
                 if (batch.size() >= syncConfig.batchSize()) {
                     entitiesUpserted += flush(caller, batch);
+                }
+                // Bound membership inversion by the same ceiling as users/agents so a large directory
+                // can't blow up memory / AM round-trips. Groups past the cap are still upserted as
+                // entities — only their member edges are skipped — and we log rather than truncate
+                // silently. The lazy member cursor stops paging once we break.
+                if (membershipEntries >= syncConfig.maxEntities()) {
+                    continue;
+                }
+                for (String memberId : pageThrough((p, s) -> {
+                    var mp = session.fetchGroupMembers(group.id(), p, s);
+                    return new Page<>(mp.memberUserIds(), mp.totalCount());
+                }, syncConfig.pageSize())) {
+                    groupIdsByUserId.computeIfAbsent(memberId, k -> new ArrayList<>()).add(group.id());
+                    if (++membershipEntries >= syncConfig.maxEntities()) {
+                        log.warn(
+                            "AM sync: group-membership cap ({}) reached for domain {}; remaining group memberships skipped this run",
+                            syncConfig.maxEntities(),
+                            domain
+                        );
+                        break;
+                    }
                 }
             }
             for (AmRole role : pageThrough((p, s) -> {
@@ -101,7 +132,7 @@ public class SyncAmUsersUseCase {
                 return new Page<>(up.users(), up.totalCount());
             }, syncConfig.pageSize())) {
                 usersFetched++;
-                batch.add(userCommand(env, user));
+                batch.add(userCommand(env, user, groupIdsByUserId.getOrDefault(user.id(), List.of())));
                 if (batch.size() >= syncConfig.batchSize()) {
                     entitiesUpserted += flush(caller, batch);
                 }
@@ -192,7 +223,7 @@ public class SyncAmUsersUseCase {
         return count;
     }
 
-    private CreateOrReplaceAuthzEntityCommand userCommand(String environmentId, AmUser user) {
+    private CreateOrReplaceAuthzEntityCommand userCommand(String environmentId, AmUser user, List<String> groupIdsFromMembership) {
         String sub = computeSub(user);
         // Map.copyOf (inside the command) rejects null values, so only put attributes AM populated.
         Map<String, Object> attributes = new LinkedHashMap<>();
@@ -217,16 +248,26 @@ public class SyncAmUsersUseCase {
             attributes.put("enabled", user.enabled());
         }
 
-        // Membership: the user's parents are the canonical engine UIDs of its AM group + role
-        // entities (Group::"id" / Role::"id"), matching the type those entities derive from their
-        // _kind so the PDP resolves `principal in Group::"id"`; a bare id would not match the typed
-        // entity. Replaced wholesale on every upsert, so a membership dropped in AM disappears from
-        // parents on the next sync.
-        List<String> parents = new ArrayList<>();
+        // Membership: the user's parents are the canonical engine UIDs (Group::"id" / Role::"id")
+        // of its AM groups + roles, matching the type those entities derive from their _kind so the
+        // PDP resolves `principal in Group::"id"`. Group ids come from inverting group.members (AM
+        // does not expose a user's groups on the user); user.groups() is also honoured for IdP-mapped
+        // groups AM may set on the user. Deduped, and replaced wholesale on every upsert so a
+        // membership dropped in AM disappears from parents on the next sync.
+        LinkedHashSet<String> parents = new LinkedHashSet<>();
         user.groups().forEach(g -> parents.add(membershipUid("group", g)));
+        groupIdsFromMembership.forEach(g -> parents.add(membershipUid("group", g)));
         user.roles().forEach(r -> parents.add(membershipUid("role", r)));
 
-        return new CreateOrReplaceAuthzEntityCommand(environmentId, sub, AuthzEntityKind.PRINCIPAL, null, attributes, parents, SOURCE);
+        return new CreateOrReplaceAuthzEntityCommand(
+            environmentId,
+            sub,
+            AuthzEntityKind.PRINCIPAL,
+            null,
+            attributes,
+            new ArrayList<>(parents),
+            SOURCE
+        );
     }
 
     private static String membershipUid(String kindHint, String id) {

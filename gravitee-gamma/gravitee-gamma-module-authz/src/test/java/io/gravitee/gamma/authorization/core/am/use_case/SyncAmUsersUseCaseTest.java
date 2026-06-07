@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -33,6 +34,7 @@ import io.gravitee.gamma.authorization.core.am.exception.AmSyncException;
 import io.gravitee.gamma.authorization.core.am.model.AmAgent;
 import io.gravitee.gamma.authorization.core.am.model.AmAgentPage;
 import io.gravitee.gamma.authorization.core.am.model.AmGroup;
+import io.gravitee.gamma.authorization.core.am.model.AmGroupMembersPage;
 import io.gravitee.gamma.authorization.core.am.model.AmGroupPage;
 import io.gravitee.gamma.authorization.core.am.model.AmRole;
 import io.gravitee.gamma.authorization.core.am.model.AmRolePage;
@@ -72,8 +74,13 @@ class SyncAmUsersUseCaseTest {
         when(amDirectoryClient.openSession(CONNECTION)).thenReturn(session);
         authzEntityAdminApi = mock(AuthzEntityAdminApi.class);
         when(session.fetchGroups(anyInt(), anyInt())).thenReturn(new AmGroupPage(List.of(), 0));
+        when(session.fetchGroupMembers(anyString(), anyInt(), anyInt())).thenReturn(new AmGroupMembersPage(List.of(), 0));
         when(session.fetchRoles(anyInt(), anyInt())).thenReturn(new AmRolePage(List.of(), 0));
         when(session.fetchAgents(anyInt(), anyInt())).thenReturn(new AmAgentPage(List.of(), 0));
+    }
+
+    private void stubGroupMembers(String groupId, int page, AmGroupMembersPage membersPage) {
+        when(session.fetchGroupMembers(eq(groupId), eq(page), eq(50))).thenReturn(membersPage);
     }
 
     private SyncAmUsersUseCase.Output run() {
@@ -308,6 +315,111 @@ class SyncAmUsersUseCaseTest {
         // Role::"id"), matching the type those entities derive from their _kind, so `principal in
         // Group::"g-1"` resolves in the PDP. A bare "g-1" would not match the typed group entity.
         assertThat(user.parents()).containsExactlyInAnyOrder("Group::\"g-1\"", "Role::\"r-1\"");
+    }
+
+    @Test
+    void links_users_to_groups_via_group_membership_when_the_user_object_carries_no_groups() {
+        // Real AM shape: listUsers returns no groups on the user; membership lives in group.members.
+        // The sync must invert group.members so the member still gets the group in its parents.
+        stubGroupPage(0, new AmGroupPage(List.of(new AmGroup("g-1", "Engineering")), 1L));
+        stubGroupMembers("g-1", 0, new AmGroupMembersPage(List.of("sub-1"), 1L));
+        stubRolePage(0, new AmRolePage(List.of(new AmRole("r-1", "ADMIN")), 1L));
+        stubPage(0, page(1, userWithMemberships("sub-1", List.of(), List.of("r-1"))));
+
+        run();
+
+        CreateOrReplaceAuthzEntityCommand user = captureAllUpserts()
+            .stream()
+            .filter(c -> c.entityId().equals("sub-1"))
+            .findFirst()
+            .orElseThrow();
+        assertThat(user.parents()).containsExactlyInAnyOrder("Group::\"g-1\"", "Role::\"r-1\"");
+    }
+
+    @Test
+    void does_not_duplicate_a_group_present_both_on_the_user_and_in_group_membership() {
+        stubGroupPage(0, new AmGroupPage(List.of(new AmGroup("g-1", "Engineering")), 1L));
+        stubGroupMembers("g-1", 0, new AmGroupMembersPage(List.of("sub-1"), 1L));
+        // user.groups() already carries g-1 (e.g. an IdP-mapped group) AND the user is a group member.
+        stubPage(0, page(1, userWithMemberships("sub-1", List.of("g-1"), List.of())));
+
+        run();
+
+        CreateOrReplaceAuthzEntityCommand user = captureAllUpserts()
+            .stream()
+            .filter(c -> c.entityId().equals("sub-1"))
+            .findFirst()
+            .orElseThrow();
+        assertThat(user.parents()).containsExactly("Group::\"g-1\"");
+    }
+
+    @Test
+    void resolves_membership_with_one_member_fetch_per_group_independent_of_user_count() {
+        // Performance guard: membership is joined by paging each group's members once (per group),
+        // never per user. With G groups and U users the member fetches stay O(G + members/page),
+        // not O(G * U). Here 2 groups + 3 users => exactly 2 member fetches.
+        stubGroupPage(0, new AmGroupPage(List.of(new AmGroup("g-1", "G1"), new AmGroup("g-2", "G2")), 2L));
+        stubGroupMembers("g-1", 0, new AmGroupMembersPage(List.of("sub-1"), 1L));
+        stubGroupMembers("g-2", 0, new AmGroupMembersPage(List.of("sub-2"), 1L));
+        stubPage(
+            0,
+            page(
+                3,
+                userWithMemberships("sub-1", List.of(), List.of()),
+                userWithMemberships("sub-2", List.of(), List.of()),
+                userWithMemberships("sub-3", List.of(), List.of())
+            )
+        );
+
+        run();
+
+        verify(session, times(2)).fetchGroupMembers(anyString(), anyInt(), anyInt());
+        verify(session).fetchGroupMembers(eq("g-1"), eq(0), anyInt());
+        verify(session).fetchGroupMembers(eq("g-2"), eq(0), anyInt());
+    }
+
+    @Test
+    void leaves_a_non_member_user_without_the_group() {
+        stubGroupPage(0, new AmGroupPage(List.of(new AmGroup("g-1", "Engineering")), 1L));
+        stubGroupMembers("g-1", 0, new AmGroupMembersPage(List.of("sub-1"), 1L));
+        stubPage(0, page(2, userWithMemberships("sub-1", List.of(), List.of()), userWithMemberships("sub-2", List.of(), List.of())));
+
+        run();
+
+        List<CreateOrReplaceAuthzEntityCommand> all = captureAllUpserts();
+        assertThat(all.stream().filter(c -> c.entityId().equals("sub-1")).findFirst().orElseThrow().parents()).containsExactly("Group::\"g-1\"");
+        assertThat(all.stream().filter(c -> c.entityId().equals("sub-2")).findFirst().orElseThrow().parents()).isEmpty();
+    }
+
+    @Test
+    void pages_through_multi_page_group_membership() {
+        // totalCount=2 with one member per page forces the nested member cursor onto page 1.
+        stubGroupPage(0, new AmGroupPage(List.of(new AmGroup("g-1", "Engineering")), 1L));
+        stubGroupMembers("g-1", 0, new AmGroupMembersPage(List.of("sub-1"), 2L));
+        stubGroupMembers("g-1", 1, new AmGroupMembersPage(List.of("sub-2"), 2L));
+        stubPage(0, page(2, userWithMemberships("sub-1", List.of(), List.of()), userWithMemberships("sub-2", List.of(), List.of())));
+
+        run();
+
+        List<CreateOrReplaceAuthzEntityCommand> all = captureAllUpserts();
+        assertThat(all.stream().filter(c -> c.entityId().equals("sub-1")).findFirst().orElseThrow().parents()).containsExactly("Group::\"g-1\"");
+        assertThat(all.stream().filter(c -> c.entityId().equals("sub-2")).findFirst().orElseThrow().parents()).containsExactly("Group::\"g-1\"");
+        verify(session).fetchGroupMembers(eq("g-1"), eq(0), anyInt());
+        verify(session).fetchGroupMembers(eq("g-1"), eq(1), anyInt());
+    }
+
+    @Test
+    void caps_group_membership_inversion_at_max_entities_and_stops_fetching_members() {
+        // maxEntities=1: g-1's single member fills the cap, so g-2's members are never fetched.
+        stubGroupPage(0, new AmGroupPage(List.of(new AmGroup("g-1", "G1"), new AmGroup("g-2", "G2")), 2L));
+        stubGroupMembers("g-1", 0, new AmGroupMembersPage(List.of("sub-1"), 1L));
+        stubGroupMembers("g-2", 0, new AmGroupMembersPage(List.of("sub-2"), 1L));
+        stubPage(0, page(1, userWithMemberships("sub-1", List.of(), List.of())));
+
+        run(new SyncAmUsersUseCase.SyncConfig(1, PAGE_SIZE, BATCH_SIZE));
+
+        verify(session).fetchGroupMembers(eq("g-1"), eq(0), anyInt());
+        verify(session, never()).fetchGroupMembers(eq("g-2"), anyInt(), anyInt());
     }
 
     @Test

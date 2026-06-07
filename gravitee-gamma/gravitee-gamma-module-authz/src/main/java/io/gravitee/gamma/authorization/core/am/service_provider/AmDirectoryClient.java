@@ -17,6 +17,7 @@ package io.gravitee.gamma.authorization.core.am.service_provider;
 
 import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
 import io.gravitee.gamma.authorization.core.am.model.AmAgentPage;
+import io.gravitee.gamma.authorization.core.am.model.AmGroupMembersPage;
 import io.gravitee.gamma.authorization.core.am.model.AmGroupPage;
 import io.gravitee.gamma.authorization.core.am.model.AmRolePage;
 import io.gravitee.gamma.authorization.core.am.model.AmUserPage;
@@ -38,6 +39,9 @@ public interface AmDirectoryClient {
         AmUserPage fetchUsers(int page, int size);
 
         AmGroupPage fetchGroups(int page, int size);
+
+        /** One page of a group's member user ids. AM keeps membership on the group, not the user. */
+        AmGroupMembersPage fetchGroupMembers(String groupId, int page, int size);
 
         AmRolePage fetchRoles(int page, int size);
 

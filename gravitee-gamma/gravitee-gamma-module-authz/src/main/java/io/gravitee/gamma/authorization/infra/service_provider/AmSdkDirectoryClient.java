@@ -28,6 +28,7 @@ import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
 import io.gravitee.gamma.authorization.core.am.model.AmAgent;
 import io.gravitee.gamma.authorization.core.am.model.AmAgentPage;
 import io.gravitee.gamma.authorization.core.am.model.AmGroup;
+import io.gravitee.gamma.authorization.core.am.model.AmGroupMembersPage;
 import io.gravitee.gamma.authorization.core.am.model.AmGroupPage;
 import io.gravitee.gamma.authorization.core.am.model.AmRole;
 import io.gravitee.gamma.authorization.core.am.model.AmRolePage;
@@ -37,6 +38,7 @@ import io.gravitee.gamma.authorization.core.am.service_provider.AmDirectoryClien
 import io.gravitee.gamma.authorization.infra.service_provider.AmSdkDirectoryClientFactory.AmSdkApis;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -120,6 +122,20 @@ public class AmSdkDirectoryClient implements AmDirectoryClient {
                 .toList();
             long totalCount = groupPage.getTotalCount() == null ? 0 : groupPage.getTotalCount();
             return new AmGroupPage(groups, totalCount);
+        }
+
+        @Override
+        public AmGroupMembersPage fetchGroupMembers(String groupId, int page, int size) {
+            UserPage memberPage = AmSdkInvocations.await(
+                apis.groupApi().getGroupMembers(AM_DEFAULT_ORGANIZATION, AM_DEFAULT_ENVIRONMENT, domainId, groupId, page, size)
+            );
+            List<String> memberUserIds = (memberPage.getData() == null ? List.<User>of() : memberPage.getData())
+                .stream()
+                .map(User::getId)
+                .filter(Objects::nonNull)
+                .toList();
+            long totalCount = memberPage.getTotalCount() == null ? 0 : memberPage.getTotalCount();
+            return new AmGroupMembersPage(memberUserIds, totalCount);
         }
 
         @Override
