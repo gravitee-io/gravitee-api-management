@@ -1327,6 +1327,76 @@ paths:
     });
   });
 
+  describe('nullable keyword handling', () => {
+    const nullableSpec = JSON.stringify({
+      openapi: '3.0.0',
+      info: { title: 'Test API', version: '1.0.0' },
+      paths: {
+        '/users': {
+          post: {
+            operationId: 'createUser',
+            summary: 'Create user',
+            parameters: [{ name: 'familyId', in: 'query', schema: { type: 'string', nullable: true } }],
+            requestBody: {
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: { nickname: { type: 'string', nullable: true } },
+                    required: ['nickname'],
+                  },
+                },
+              },
+            },
+            responses: { '201': { description: 'Created' } },
+          },
+        },
+      },
+    });
+
+    it('replaces the nullable keyword with a null type union', async () => {
+      const { result, errors } = await convertOpenApiToMcpTools(nullableSpec);
+
+      expect(errors).toHaveLength(0);
+      expect(result).toHaveLength(1);
+
+      const properties = result[0].toolDefinition.inputSchema['properties'];
+
+      expect(properties['familyId'].type).toEqual(['string', 'null']);
+      expect(properties['familyId']).not.toHaveProperty('nullable');
+
+      expect(properties['bodySchema'].properties['nickname'].type).toEqual(['string', 'null']);
+      expect(properties['bodySchema'].properties['nickname']).not.toHaveProperty('nullable');
+    });
+
+    it('preserves a schema property literally named nullable', async () => {
+      const spec = JSON.stringify({
+        openapi: '3.0.0',
+        info: { title: 'Test API', version: '1.0.0' },
+        paths: {
+          '/flags': {
+            post: {
+              operationId: 'setFlags',
+              requestBody: {
+                content: {
+                  'application/json': { schema: { type: 'object', properties: { nullable: { type: 'boolean' } } } },
+                },
+              },
+              responses: { '201': { description: 'Created' } },
+            },
+          },
+        },
+      });
+
+      const { result, errors } = await convertOpenApiToMcpTools(spec);
+
+      expect(errors).toHaveLength(0);
+      const bodySchema = result[0].toolDefinition.inputSchema['properties']['bodySchema'];
+      expect(bodySchema.properties).toHaveProperty('nullable');
+      expect(bodySchema.properties['nullable'].type).toBe('boolean');
+    });
+  });
+
   describe('Error cases', () => {
     it.each([
       [
