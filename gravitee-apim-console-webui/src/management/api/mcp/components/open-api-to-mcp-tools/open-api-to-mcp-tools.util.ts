@@ -62,6 +62,48 @@ function removeCircularRefs(obj: unknown, ancestors = new Set<object>()): unknow
   return result;
 }
 
+/**
+ * Translates the OpenAPI 3.0.x `nullable` keyword into valid JSON Schema. `nullable` is not a
+ * JSON Schema keyword, so MCP consumers (e.g. JSON-Schema-validating agent SDKs) reject it.
+ * A `nullable: true` schema is rewritten so that `"null"` becomes a member of its `type`, and the
+ * keyword is dropped in all cases. Expects an acyclic input (run after {@link removeCircularRefs}).
+ */
+function normalizeNullableTypes(obj: unknown): unknown {
+  if (!angular.isObject(obj)) {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map((item) => normalizeNullableTypes(item));
+  }
+
+  const source = obj as Record<string, unknown>;
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(source)) {
+    // `nullable` is the OpenAPI keyword only when it carries a boolean; a property literally named
+    // "nullable" inside a `properties` map holds a schema object and must be preserved.
+    if (key === 'nullable' && typeof value === 'boolean') {
+      continue;
+    }
+    result[key] = normalizeNullableTypes(value);
+  }
+
+  // A nullable schema without a `type` is already unconstrained (null is allowed), so only a typed
+  // schema needs `"null"` added; dropping the keyword alone is enough for the untyped case.
+  if (source.nullable === true && result.type !== undefined) {
+    result.type = withNullType(result.type);
+  }
+
+  return result;
+}
+
+function withNullType(type: unknown): unknown {
+  if (Array.isArray(type)) {
+    return type.includes('null') ? type : [...type, 'null'];
+  }
+  return [type, 'null'];
+}
+
 type ParameterSchema = {
   pathParams: Record<string, SchemaObject>;
   queryParams: Record<string, SchemaObject>;
@@ -267,7 +309,7 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
       const toolDefinition: MCPToolDefinition = {
         name: toolName,
         description,
-        inputSchema: removeCircularRefs(mergedParameters),
+        inputSchema: normalizeNullableTypes(removeCircularRefs(mergedParameters)),
       };
 
       const gatewayMapping: MCPToolGatewayMapping = generateGatewayMapping(op, method, path, paramSchema);
