@@ -72,7 +72,14 @@ action "can_invoke" appliesTo {
 const SAMPLE_PARSED: ParsedSchema = {
     entities: [
         { name: 'Group', parents: [], attributes: [{ name: 'name', type: 'String' }] },
-        { name: 'User', parents: ['Group'], attributes: [{ name: 'name', type: 'String' }, { name: 'email', type: 'String' }] },
+        {
+            name: 'User',
+            parents: ['Group'],
+            attributes: [
+                { name: 'name', type: 'String' },
+                { name: 'email', type: 'String' },
+            ],
+        },
         { name: 'MCPServer', parents: [], attributes: [{ name: 'url', type: 'String' }] },
     ],
     actions: [{ name: 'can_invoke', principals: ['User'], resources: ['MCPServer'] }],

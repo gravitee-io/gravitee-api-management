@@ -38,7 +38,9 @@ function Probe({ env }: { env: string }) {
     return (
         <div>
             <span data-testid="ents">{parsed.entities.map(e => e.name).join(',') || 'none'}</span>
-            <span data-testid="acts">{parsed.actions.map(a => `${a.name}:${a.principals.join('+')}/${a.resources.join('+')}`).join(',') || 'none'}</span>
+            <span data-testid="acts">
+                {parsed.actions.map(a => `${a.name}:${a.principals.join('+')}/${a.resources.join('+')}`).join(',') || 'none'}
+            </span>
         </div>
     );
 }

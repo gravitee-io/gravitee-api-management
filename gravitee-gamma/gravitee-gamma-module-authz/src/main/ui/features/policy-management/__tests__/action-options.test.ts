@@ -63,7 +63,11 @@ describe('buildActionOptions', () => {
     });
 
     it('deduplicates by action id across schema, action.* and tools (first wins)', () => {
-        const result = buildActionOptions([action('read')], [entity('action.read', { name: 'read' })], [entity('mcptool.read', { _displayName: 'read' })]);
+        const result = buildActionOptions(
+            [action('read')],
+            [entity('action.read', { name: 'read' })],
+            [entity('mcptool.read', { _displayName: 'read' })],
+        );
 
         expect(result).toHaveLength(1);
         expect(result[0].group).toBe('Action');

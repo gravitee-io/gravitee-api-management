@@ -344,7 +344,11 @@ export function SchemaPage() {
                                         <Button variant="outline" size="sm" onClick={() => setEditing(false)}>
                                             Cancel
                                         </Button>
-                                        <Button size="sm" onClick={saveDraft} disabled={draftDiagnostics.length > 0 || validating || update.isPending}>
+                                        <Button
+                                            size="sm"
+                                            onClick={saveDraft}
+                                            disabled={draftDiagnostics.length > 0 || validating || update.isPending}
+                                        >
                                             Save
                                         </Button>
                                     </div>
