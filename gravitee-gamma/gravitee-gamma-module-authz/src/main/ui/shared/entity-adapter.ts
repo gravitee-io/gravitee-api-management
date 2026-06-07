@@ -53,11 +53,7 @@ function preferType(entityType: string | undefined, fallback: string | undefined
     return entityType && entityType.trim() ? entityType : fallback;
 }
 
-export function resolveEntityRef(
-    uid: string,
-    attributes: Record<string, unknown>,
-    entityType?: string,
-): { type: string; id: string } {
+export function resolveEntityRef(uid: string, attributes: Record<string, unknown>, entityType?: string): { type: string; id: string } {
     return resolveUid(uid, preferType(entityType, kindToUiType(attributes['_kind'])));
 }
 
