@@ -304,7 +304,10 @@ class SyncAmUsersUseCaseTest {
 
         CreateOrReplaceAuthzEntityCommand user = all.stream().filter(c -> c.entityId().equals("sub-1")).findFirst().orElseThrow();
         assertThat(user.attributes()).containsEntry("_kind", "user");
-        assertThat(user.parents()).containsExactlyInAnyOrder("g-1", "r-1");
+        // Parents carry the canonical engine UID of the referenced group/role entities (Group::"id" /
+        // Role::"id"), matching the type those entities derive from their _kind, so `principal in
+        // Group::"g-1"` resolves in the PDP. A bare "g-1" would not match the typed group entity.
+        assertThat(user.parents()).containsExactlyInAnyOrder("Group::\"g-1\"", "Role::\"r-1\"");
     }
 
     @Test

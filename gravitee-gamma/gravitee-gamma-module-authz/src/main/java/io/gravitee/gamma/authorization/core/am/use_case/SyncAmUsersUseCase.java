@@ -25,6 +25,7 @@ import io.gravitee.gamma.authorization.core.am.model.AmUser;
 import io.gravitee.gamma.authorization.core.am.service_provider.AmDirectoryClient;
 import io.gravitee.gamma.authorization.domain.AuthzEntityKind;
 import io.gravitee.gamma.authorization.service.CreateOrReplaceAuthzEntityCommand;
+import io.gravitee.gamma.definition.authz.AuthzEntityIdConstants;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -216,12 +217,21 @@ public class SyncAmUsersUseCase {
             attributes.put("enabled", user.enabled());
         }
 
-        // Membership: the user's parents are its AM group + role ids. Replaced wholesale on every
-        // upsert, so a membership dropped in AM disappears from parents on the next sync.
-        List<String> parents = new ArrayList<>(user.groups());
-        parents.addAll(user.roles());
+        // Membership: the user's parents are the canonical engine UIDs of its AM group + role
+        // entities (Group::"id" / Role::"id"), matching the type those entities derive from their
+        // _kind so the PDP resolves `principal in Group::"id"`; a bare id would not match the typed
+        // entity. Replaced wholesale on every upsert, so a membership dropped in AM disappears from
+        // parents on the next sync.
+        List<String> parents = new ArrayList<>();
+        user.groups().forEach(g -> parents.add(membershipUid("group", g)));
+        user.roles().forEach(r -> parents.add(membershipUid("role", r)));
 
         return new CreateOrReplaceAuthzEntityCommand(environmentId, sub, AuthzEntityKind.PRINCIPAL, null, attributes, parents, SOURCE);
+    }
+
+    private static String membershipUid(String kindHint, String id) {
+        String type = AuthzEntityIdConstants.engineTypeForHint(kindHint);
+        return type != null ? AuthzEntityIdConstants.toEngineUid(type, id) : id;
     }
 
     private CreateOrReplaceAuthzEntityCommand groupCommand(String environmentId, AmGroup group) {
