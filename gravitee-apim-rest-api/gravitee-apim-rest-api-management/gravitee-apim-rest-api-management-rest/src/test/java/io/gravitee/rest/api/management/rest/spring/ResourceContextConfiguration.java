@@ -109,6 +109,7 @@ import io.gravitee.apim.core.group.use_case.ImportGroupCRDUseCase;
 import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.invitation.crud_service.InvitationCrudService;
+import io.gravitee.apim.core.invitation.domain_service.AcceptInvitationDomainService;
 import io.gravitee.apim.core.invitation.query_service.InvitationQueryService;
 import io.gravitee.apim.core.json.JsonSchemaChecker;
 import io.gravitee.apim.core.json_patch.domain_service.JsonMergePatchService;
@@ -173,7 +174,11 @@ import io.gravitee.apim.core.subscription.use_case.ImportSubscriptionCRDUseCase;
 import io.gravitee.apim.core.subscription.use_case.UpdateSubscriptionUseCase;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSchemaGenerator;
 import io.gravitee.apim.core.subscription_form.query_service.SubscriptionFormQueryService;
+import io.gravitee.apim.core.user.domain_service.CreateUserDomainService;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
+import io.gravitee.apim.core.user.service_provider.UserPasswordService;
+import io.gravitee.apim.core.user.service_provider.UserPortalNotificationService;
+import io.gravitee.apim.core.user.service_provider.UserRegistrationEnabledService;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
@@ -1155,6 +1160,36 @@ public class ResourceContextConfiguration {
         ApiExposedEntrypointDomainServiceInMemory apiExposedEntrypointDomainServiceInMemory
     ) {
         return new GetExposedEntrypointsUseCase(apiCrudServiceInMemory, apiExposedEntrypointDomainServiceInMemory);
+    }
+
+    @Bean
+    public io.gravitee.apim.core.user.service_provider.TokenService registrationTokenService() {
+        return mock(io.gravitee.apim.core.user.service_provider.TokenService.class);
+    }
+
+    @Bean
+    public CreateUserDomainService createUserDomainService() {
+        return mock(CreateUserDomainService.class);
+    }
+
+    @Bean
+    public AcceptInvitationDomainService acceptInvitationDomainService() {
+        return mock(AcceptInvitationDomainService.class);
+    }
+
+    @Bean
+    public UserRegistrationEnabledService userRegistrationEnabledService() {
+        return mock(UserRegistrationEnabledService.class);
+    }
+
+    @Bean
+    public UserPasswordService userPasswordService() {
+        return mock(UserPasswordService.class);
+    }
+
+    @Bean
+    public UserPortalNotificationService userPortalNotificationService() {
+        return mock(UserPortalNotificationService.class);
     }
 
     @Bean

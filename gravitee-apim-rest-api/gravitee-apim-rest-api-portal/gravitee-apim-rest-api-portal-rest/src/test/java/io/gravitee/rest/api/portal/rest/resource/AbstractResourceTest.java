@@ -23,6 +23,7 @@ import io.gravitee.apim.core.application_certificate.use_case.GetClientCertifica
 import io.gravitee.apim.core.application_certificate.use_case.GetClientCertificatesUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.UpdateClientCertificateUseCase;
 import io.gravitee.apim.core.application_certificate.use_case.ValidateClientCertificateUseCase;
+import io.gravitee.apim.core.invitation.use_case.AcceptUserInvitationUseCase;
 import io.gravitee.apim.core.subscription.use_case.CreateSubscriptionUseCase;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSchemaGenerator;
 import io.gravitee.rest.api.portal.rest.JerseySpringTest;
@@ -120,6 +121,12 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ContextConfiguration(classes = { ResourceContextConfiguration.class })
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class AbstractResourceTest extends JerseySpringTest {
+
+    @Autowired
+    protected AcceptUserInvitationUseCase acceptUserInvitationUseCase;
+
+    @Autowired
+    protected io.gravitee.apim.core.user.service_provider.TokenService registrationTokenService;
 
     @Autowired
     protected CreateSubscriptionUseCase createSubscriptionUseCase;

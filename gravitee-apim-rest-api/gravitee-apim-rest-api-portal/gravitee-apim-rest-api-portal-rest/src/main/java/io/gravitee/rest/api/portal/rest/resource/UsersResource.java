@@ -18,14 +18,18 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 import static java.util.function.Predicate.not;
 
+import io.gravitee.apim.core.invitation.use_case.AcceptUserInvitationUseCase;
 import io.gravitee.apim.core.user.model.UserSearchQuery;
+import io.gravitee.apim.core.user.service_provider.TokenService;
 import io.gravitee.apim.core.user.use_case.SearchUsersUseCase;
+import io.gravitee.apim.infra.adapter.UserAdapter;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.PictureEntity;
 import io.gravitee.rest.api.model.UrlPictureEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.portal.rest.mapper.FinalizeRegistrationMapper;
 import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
 import io.gravitee.rest.api.portal.rest.mapper.UsersSearchQueryMapper;
 import io.gravitee.rest.api.portal.rest.model.*;
@@ -35,9 +39,11 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.JWTHelper;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.PasswordAlreadyResetException;
+import io.gravitee.rest.api.service.exceptions.UserStateConflictException;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -62,6 +68,15 @@ public class UsersResource extends AbstractResource {
 
     @Inject
     private UserService userService;
+
+    @Inject
+    private TokenService tokenService;
+
+    @Inject
+    private AcceptUserInvitationUseCase acceptUserInvitationUseCase;
+
+    @Inject
+    private FinalizeRegistrationMapper finalizeRegistrationMapper;
 
     @Inject
     private SearchUsersUseCase searchUsersUseCase;
@@ -96,15 +111,16 @@ public class UsersResource extends AbstractResource {
     public Response finalizeRegistration(
         @Valid @NotNull(message = "Input must not be null.") FinalizeRegistrationInput finalizeRegistrationInput
     ) {
-        UserEntity newUser = userService.finalizeRegistration(
-            GraviteeContext.getExecutionContext(),
-            userMapper.convert(finalizeRegistrationInput)
-        );
-        if (newUser != null) {
-            return Response.ok().entity(userMapper.convert(newUser)).build();
+        var decoded = tokenService.decode(finalizeRegistrationInput.getToken());
+
+        if (JWTHelper.ACTION.RESET_PASSWORD.name().equals(decoded.action())) {
+            throw new UserStateConflictException("Reset password forbidden on this resource");
         }
 
-        return Response.serverError().build();
+        var executionContext = GraviteeContext.getExecutionContext();
+        var useCaseInput = finalizeRegistrationMapper.toUseCaseInput(executionContext, decoded, finalizeRegistrationInput);
+        var output = acceptUserInvitationUseCase.execute(useCaseInput);
+        return Response.ok().entity(userMapper.convert(UserAdapter.INSTANCE.toUserEntity(output.user()))).build();
     }
 
     @POST
