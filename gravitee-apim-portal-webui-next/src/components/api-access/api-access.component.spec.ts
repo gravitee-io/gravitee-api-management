@@ -106,6 +106,45 @@ describe('ApiAccessComponent', () => {
     });
   });
 
+  describe('Federated API (empty entrypoints)', () => {
+    it('should hide the whole API access card for a keyless plan with empty entrypoints', async () => {
+      component.planSecurity = 'KEY_LESS';
+      component.entrypointUrls = [];
+
+      fixture.detectChanges();
+
+      expect(apiAccessCardShown()).toBeFalsy();
+      expect(apiAccessShellShown()).toBeFalsy();
+      expect(await commandLineShown()).toBeFalsy();
+    });
+
+    it('should hide the whole API access card for a keyless plan with undefined entrypoints', async () => {
+      component.planSecurity = 'KEY_LESS';
+      component.entrypointUrls = undefined;
+
+      fixture.detectChanges();
+
+      expect(apiAccessCardShown()).toBeFalsy();
+      expect(apiAccessShellShown()).toBeFalsy();
+      expect(await commandLineShown()).toBeFalsy();
+    });
+
+    it('should still show api keys but hide calling the API content for an api key plan with empty entrypoints', async () => {
+      component.planSecurity = 'API_KEY';
+      component.subscription = { status: 'ACCEPTED' } as Subscription;
+      component.entrypointUrls = [];
+      component.apiKeys = [{ key: 'api-key', application: { id: 'app-id', name: 'app-name' } }];
+
+      fixture.detectChanges();
+
+      expect(apiAccessCardShown()).toBeTruthy();
+      expect(apiAccessShellShown()).toBeTruthy();
+      expect(await apiKeysTableShown()).toBeTruthy();
+      expect(await baseUrlShown()).toBeFalsy();
+      expect(await commandLineShown()).toBeFalsy();
+    });
+  });
+
   describe('Accepted', () => {
     describe('HTTP API', () => {
       describe('API Key', () => {
@@ -875,6 +914,9 @@ describe('ApiAccessComponent', () => {
   }
   function apiAccessShellShown() {
     return !!fixture.debugElement.query(By.css('.api-access__copy-code-content'));
+  }
+  function apiAccessCardShown() {
+    return !!fixture.debugElement.query(By.css('.api-access'));
   }
   async function getRevokeApiKeyButton() {
     return await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid="api-key-revoke-button"]' }));
