@@ -56,7 +56,8 @@ public class DefaultSharedPolicyGroupReactorFactory implements SharedPolicyGroup
             return false;
         }
         return switch (phase) {
-            case REQUEST, RESPONSE, PUBLISH, SUBSCRIBE, MESSAGE_REQUEST, MESSAGE_RESPONSE -> true;
+            case REQUEST, RESPONSE -> true;
+            case PUBLISH, SUBSCRIBE, MESSAGE_REQUEST, MESSAGE_RESPONSE -> false;
         };
     }
 
