@@ -28,18 +28,24 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
+import inmemory.GroupQueryServiceInMemory;
 import inmemory.KafkaPortRangeCrudServiceInMemory;
+import inmemory.MembershipCrudServiceInMemory;
+import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
+import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
+import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.json.JsonDiffProcessor;
 import io.gravitee.apim.core.json_patch.domain_service.JsonPatchDomainService;
+import io.gravitee.apim.core.plan.domain_service.PlanExcludedGroupsDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
@@ -60,6 +66,7 @@ import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import java.io.IOException;
 import java.util.List;
@@ -109,6 +116,15 @@ class PatchPlanUseCaseTest {
     private final AuditDomainService auditDomainService = new AuditDomainService(auditCrudService, userCrudService, jsonDiffProcessor);
     private final ReorderPlanDomainService reorderPlanDomainService = new ReorderPlanDomainService(planQueryService, planCrudService);
     private final KafkaPortRangeCrudServiceInMemory kafkaPortRanges = new KafkaPortRangeCrudServiceInMemory();
+    private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
+    private final MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
+    private final MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
+    private final RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
+    private final PlanExcludedGroupsDomainService planExcludedGroupsDomainService = new PlanExcludedGroupsDomainService(
+        groupQueryService,
+        membershipQueryService,
+        roleQueryService
+    );
     private final UpdatePlanDomainService updatePlanDomainService = new UpdatePlanDomainService(
         planQueryService,
         planCrudService,
@@ -132,6 +148,8 @@ class PatchPlanUseCaseTest {
         flowCrudService.reset();
         auditCrudService.reset();
         userCrudService.reset();
+        groupQueryService.reset();
+        groupQueryService.initWith(List.of(group("g1"), group("g2"), group("a"), group("b")));
         var plans = List.of(PlanFixtures.aPlanHttpV4());
         useCase = new PatchPlanUseCase(
             apiCrudService,
@@ -154,7 +172,8 @@ class PatchPlanUseCaseTest {
                         throw new ValidationDomainException("Invalid value for field 'flows': " + e.getMessage(), e);
                     }
                 }
-            }
+            },
+            planExcludedGroupsDomainService
         );
         apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4()));
         planCrudService.initWith(plans);
@@ -189,6 +208,10 @@ class PatchPlanUseCaseTest {
         var planList = List.of(plans);
         planCrudService.initWith(planList);
         planQueryService.initWith(planList);
+    }
+
+    private static Group group(String id) {
+        return Group.builder().id(id).environmentId("env-id").name(id).build();
     }
 
     @Nested
@@ -749,6 +772,41 @@ class PatchPlanUseCaseTest {
             var output = executeMerge("{\"description\":\"x\"}");
 
             assertThat(output.plan().isCommentRequired()).isTrue();
+        }
+    }
+
+    @Nested
+    class ExcludedGroupsValidation {
+
+        @Test
+        void merge_with_unknown_excluded_group_throws_GroupNotFoundException() {
+            assertThatThrownBy(() -> executeMerge("{\"excludedGroups\":[\"does-not-exist\"]}")).isInstanceOf(GroupNotFoundException.class);
+
+            assertThat(planCrudService.storage().get(0).getExcludedGroups()).doesNotContain("does-not-exist");
+        }
+
+        @Test
+        void json_patch_with_unknown_excluded_group_throws_GroupNotFoundException() {
+            assertThatThrownBy(() ->
+                executeJsonPatch("[{\"op\":\"replace\",\"path\":\"/excludedGroups\",\"value\":[\"g1\",\"does-not-exist\"]}]")
+            ).isInstanceOf(GroupNotFoundException.class);
+        }
+
+        @Test
+        void merge_with_known_excluded_groups_succeeds() {
+            var output = executeMerge("{\"excludedGroups\":[\"g1\",\"g2\"]}");
+
+            assertThat(output.plan().getExcludedGroups()).containsExactly("g1", "g2");
+        }
+
+        @Test
+        void patch_not_targeting_excluded_groups_does_not_validate_existing_groups() {
+            var seeded = PlanFixtures.aPlanHttpV4().toBuilder().excludedGroups(List.of("stale-group")).build();
+            seed(seeded);
+
+            var output = executeMerge("{\"description\":\"x\"}");
+
+            assertThat(output.plan().getExcludedGroups()).containsExactly("stale-group");
         }
     }
 
