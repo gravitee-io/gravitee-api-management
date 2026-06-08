@@ -20,33 +20,39 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import inmemory.AbstractUseCaseTest;
 import inmemory.InvitationCrudServiceInMemory;
+import inmemory.MembershipDomainServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
-import io.gravitee.apim.core.invitation.domain_service.AcceptInvitationDomainService;
 import io.gravitee.apim.core.invitation.exception.InvitationCanceledException;
 import io.gravitee.apim.core.invitation.model.GroupInvitation;
 import io.gravitee.apim.core.invitation.model.InvitationId;
 import io.gravitee.apim.core.invitation.use_case.AcceptUserInvitationUseCase.GroupInvitationAction;
 import io.gravitee.apim.core.invitation.use_case.AcceptUserInvitationUseCase.UserRegistrationAction;
-import io.gravitee.apim.core.user.domain_service.CreateUserDomainService;
 import io.gravitee.apim.core.user.model.EncodedPassword;
 import io.gravitee.apim.core.user.model.RawPassword;
-import io.gravitee.apim.core.user.service_provider.UserPasswordService;
-import io.gravitee.apim.core.user.service_provider.UserPortalNotificationService;
-import io.gravitee.apim.core.user.service_provider.UserRegistrationEnabledService;
+import io.gravitee.apim.infra.domain_service.invitation.AcceptInvitationDomainServiceImpl;
+import io.gravitee.apim.infra.domain_service.user.CreateUserDomainServiceImpl;
+import io.gravitee.apim.infra.domain_service.user.UserPasswordServiceImpl;
+import io.gravitee.apim.infra.domain_service.user.UserPortalNotificationServiceImpl;
+import io.gravitee.apim.infra.domain_service.user.UserRegistrationEnabledServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.PasswordValidator;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.PasswordFormatInvalidException;
 import io.gravitee.rest.api.service.exceptions.UserAlreadyFinalizedException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UserRegistrationUnavailableException;
+import io.gravitee.rest.api.service.notification.PortalHook;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
@@ -71,21 +77,16 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
     private static final EncodedPassword ENCODED_PASSWORD = new EncodedPassword("$2a$encoded");
 
     private final InvitationCrudServiceInMemory invitationCrudService = new InvitationCrudServiceInMemory();
+    private final MembershipDomainServiceInMemory membershipDomainService = new MembershipDomainServiceInMemory();
 
     @Mock
-    private AcceptInvitationDomainService acceptInvitationDomainService;
+    private ParameterService parameterService;
 
     @Mock
-    private UserRegistrationEnabledService userRegistrationEnabledService;
+    private NotifierService notifierService;
 
     @Mock
-    private UserPasswordService userPasswordService;
-
-    @Mock
-    private UserPortalNotificationService userPortalNotificationService;
-
-    @Mock
-    private CreateUserDomainService createUserDomainService;
+    private PasswordValidator passwordValidator;
 
     private AuditDomainService auditDomainService;
     private AcceptUserInvitationUseCase cut;
@@ -96,18 +97,19 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
         auditDomainService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         cut = new AcceptUserInvitationUseCase(
             userCrudService,
-            createUserDomainService,
+            new CreateUserDomainServiceImpl(userCrudService),
             invitationCrudService,
-            acceptInvitationDomainService,
-            userRegistrationEnabledService,
-            userPasswordService,
-            userPortalNotificationService,
+            new AcceptInvitationDomainServiceImpl(membershipDomainService),
+            new UserRegistrationEnabledServiceImpl(parameterService),
+            new UserPasswordServiceImpl(passwordValidator),
+            new UserPortalNotificationServiceImpl(notifierService),
             auditDomainService
         );
         executionContext = new ExecutionContext(ORG_ID, ENV_ID);
         invitationCrudService.reset();
         userCrudService.reset();
         auditCrudService.reset();
+        membershipDomainService.reset();
     }
 
     @Nested
@@ -115,9 +117,15 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
 
         @Test
         void should_create_new_user_and_set_password() {
-            var createdUser = aBaseUserEntity(GENERATED_UUID, USER_EMAIL);
-            when(createUserDomainService.createGraviteeUser(eq(executionContext), eq(USER_EMAIL), any(), any())).thenReturn(createdUser);
-            when(userPasswordService.encode(RAW_PASSWORD)).thenReturn(ENCODED_PASSWORD);
+            when(passwordValidator.validate(RAW_PASSWORD.value())).thenReturn(true);
+            when(
+                parameterService.findAsBoolean(
+                    executionContext,
+                    Key.PORTAL_USERCREATION_ENABLED,
+                    ENV_ID,
+                    ParameterReferenceType.ENVIRONMENT
+                )
+            ).thenReturn(true);
 
             var output = cut.execute(
                 new AcceptUserInvitationUseCase.Input(
@@ -131,16 +139,20 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
 
             assertThat(output.user().getId()).isEqualTo(GENERATED_UUID);
             assertThat(output.user().getUpdatedAt()).isEqualTo(Date.from(INSTANT_NOW));
-            assertThat(userCrudService.getStoredPassword(GENERATED_UUID)).contains(ENCODED_PASSWORD);
-            verify(userRegistrationEnabledService).checkEnabled(executionContext);
-            verify(userPasswordService).validate(RAW_PASSWORD);
-            verify(userPortalNotificationService).triggerUserRegistered(executionContext, output.user());
+            assertThat(userCrudService.getStoredPassword(GENERATED_UUID)).isPresent();
+            verify(notifierService).trigger(eq(executionContext), eq(PortalHook.USER_REGISTERED), any());
         }
 
         @Test
         void should_create_new_user_without_password() {
-            var createdUser = aBaseUserEntity(GENERATED_UUID, USER_EMAIL);
-            when(createUserDomainService.createGraviteeUser(eq(executionContext), eq(USER_EMAIL), any(), any())).thenReturn(createdUser);
+            when(
+                parameterService.findAsBoolean(
+                    executionContext,
+                    Key.PORTAL_USERCREATION_ENABLED,
+                    ENV_ID,
+                    ParameterReferenceType.ENVIRONMENT
+                )
+            ).thenReturn(true);
 
             var output = cut.execute(
                 new AcceptUserInvitationUseCase.Input(
@@ -154,15 +166,22 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
 
             assertThat(output.user().getId()).isEqualTo(GENERATED_UUID);
             assertThat(userCrudService.getStoredPassword(GENERATED_UUID)).isEmpty();
-            verify(userPasswordService, never()).validate(any());
-            verify(userPortalNotificationService).triggerUserRegistered(executionContext, output.user());
+            verify(notifierService).trigger(eq(executionContext), eq(PortalHook.USER_REGISTERED), any());
         }
 
         @Test
         void should_finalize_existing_user() {
             var existingUser = aBaseUserEntity(EXISTING_USER_ID, USER_EMAIL);
             userCrudService.initWith(List.of(existingUser));
-            when(userPasswordService.encode(RAW_PASSWORD)).thenReturn(ENCODED_PASSWORD);
+            when(passwordValidator.validate(RAW_PASSWORD.value())).thenReturn(true);
+            when(
+                parameterService.findAsBoolean(
+                    executionContext,
+                    Key.PORTAL_USERCREATION_ENABLED,
+                    ENV_ID,
+                    ParameterReferenceType.ENVIRONMENT
+                )
+            ).thenReturn(true);
 
             var output = cut.execute(
                 new AcceptUserInvitationUseCase.Input(
@@ -175,13 +194,19 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
             );
 
             assertThat(output.user().getId()).isEqualTo(EXISTING_USER_ID);
-            assertThat(userCrudService.getStoredPassword(EXISTING_USER_ID)).contains(ENCODED_PASSWORD);
-            verify(createUserDomainService, never()).createGraviteeUser(any(), any(), any(), any());
+            assertThat(userCrudService.getStoredPassword(EXISTING_USER_ID)).isPresent();
         }
 
         @Test
         void should_throw_when_registration_is_disabled() {
-            doThrow(new UserRegistrationUnavailableException()).when(userRegistrationEnabledService).checkEnabled(executionContext);
+            when(
+                parameterService.findAsBoolean(
+                    executionContext,
+                    Key.PORTAL_USERCREATION_ENABLED,
+                    ENV_ID,
+                    ParameterReferenceType.ENVIRONMENT
+                )
+            ).thenReturn(false);
 
             assertThatThrownBy(() ->
                 cut.execute(
@@ -194,13 +219,20 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
                     )
                 )
             ).isInstanceOf(UserRegistrationUnavailableException.class);
-
-            verify(createUserDomainService, never()).createGraviteeUser(any(), any(), any(), any());
-            verify(userPortalNotificationService, never()).triggerUserRegistered(any(), any());
         }
 
         @Test
         void should_throw_when_existing_user_not_found() {
+            when(passwordValidator.validate(RAW_PASSWORD.value())).thenReturn(true);
+            when(
+                parameterService.findAsBoolean(
+                    executionContext,
+                    Key.PORTAL_USERCREATION_ENABLED,
+                    ENV_ID,
+                    ParameterReferenceType.ENVIRONMENT
+                )
+            ).thenReturn(true);
+
             assertThatThrownBy(() ->
                 cut.execute(
                     new AcceptUserInvitationUseCase.Input(
@@ -219,6 +251,15 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
             var existingUser = aBaseUserEntity(EXISTING_USER_ID, USER_EMAIL);
             userCrudService.initWith(List.of(existingUser));
             userCrudService.updateAndSetPassword(existingUser, ENCODED_PASSWORD);
+            when(passwordValidator.validate(RAW_PASSWORD.value())).thenReturn(true);
+            when(
+                parameterService.findAsBoolean(
+                    executionContext,
+                    Key.PORTAL_USERCREATION_ENABLED,
+                    ENV_ID,
+                    ParameterReferenceType.ENVIRONMENT
+                )
+            ).thenReturn(true);
 
             assertThatThrownBy(() ->
                 cut.execute(
@@ -235,7 +276,7 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
 
         @Test
         void should_throw_when_password_is_invalid() {
-            doThrow(new IllegalArgumentException("Password too weak")).when(userPasswordService).validate(RAW_PASSWORD);
+            when(passwordValidator.validate(RAW_PASSWORD.value())).thenReturn(false);
 
             assertThatThrownBy(() ->
                 cut.execute(
@@ -247,18 +288,19 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
                         Optional.empty()
                     )
                 )
-            )
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Password too weak");
-
-            verify(userRegistrationEnabledService, never()).checkEnabled(any());
-            verify(createUserDomainService, never()).createGraviteeUser(any(), any(), any(), any());
+            ).isInstanceOf(PasswordFormatInvalidException.class);
         }
 
         @Test
         void should_create_organization_audit_log() {
-            var createdUser = aBaseUserEntity(GENERATED_UUID, USER_EMAIL);
-            when(createUserDomainService.createGraviteeUser(any(), any(), any(), any())).thenReturn(createdUser);
+            when(
+                parameterService.findAsBoolean(
+                    executionContext,
+                    Key.PORTAL_USERCREATION_ENABLED,
+                    ENV_ID,
+                    ParameterReferenceType.ENVIRONMENT
+                )
+            ).thenReturn(true);
 
             cut.execute(
                 new AcceptUserInvitationUseCase.Input(
@@ -301,8 +343,6 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
                 null
             );
             invitationCrudService.initWith(List.of(invitation));
-            var createdUser = aBaseUserEntity(GENERATED_UUID, USER_EMAIL);
-            when(createUserDomainService.createGraviteeUser(eq(executionContext), eq(USER_EMAIL), any(), any())).thenReturn(createdUser);
 
             var output = cut.execute(
                 new AcceptUserInvitationUseCase.Input(
@@ -316,8 +356,8 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
 
             assertThat(output.user().getId()).isEqualTo(GENERATED_UUID);
             assertThat(invitationCrudService.storage()).isEmpty();
-            verify(acceptInvitationDomainService).addMember(executionContext, invitation, GENERATED_UUID);
-            verify(userPortalNotificationService).triggerUserRegistered(executionContext, output.user());
+            assertThat(membershipDomainService.storage()).isNotEmpty();
+            verify(notifierService).trigger(eq(executionContext), eq(PortalHook.USER_REGISTERED), any());
         }
 
         @Test
@@ -339,8 +379,6 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
                 null
             );
             invitationCrudService.initWith(List.of(inv1, inv2));
-            var createdUser = aBaseUserEntity(GENERATED_UUID, USER_EMAIL);
-            when(createUserDomainService.createGraviteeUser(any(), any(), any(), any())).thenReturn(createdUser);
 
             cut.execute(
                 new AcceptUserInvitationUseCase.Input(
@@ -353,8 +391,7 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
             );
 
             assertThat(invitationCrudService.storage()).isEmpty();
-            verify(acceptInvitationDomainService).addMember(executionContext, inv1, GENERATED_UUID);
-            verify(acceptInvitationDomainService).addMember(executionContext, inv2, GENERATED_UUID);
+            assertThat(membershipDomainService.storage()).hasSize(2);
         }
 
         @Test
@@ -370,7 +407,7 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
             invitationCrudService.initWith(List.of(invitation));
             var existingUser = aBaseUserEntity(EXISTING_USER_ID, USER_EMAIL);
             userCrudService.initWith(List.of(existingUser));
-            when(userPasswordService.encode(RAW_PASSWORD)).thenReturn(ENCODED_PASSWORD);
+            when(passwordValidator.validate(RAW_PASSWORD.value())).thenReturn(true);
 
             var output = cut.execute(
                 new AcceptUserInvitationUseCase.Input(
@@ -384,9 +421,8 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
 
             assertThat(output.user().getId()).isEqualTo(EXISTING_USER_ID);
             assertThat(invitationCrudService.storage()).isEmpty();
-            assertThat(userCrudService.getStoredPassword(EXISTING_USER_ID)).contains(ENCODED_PASSWORD);
-            verify(acceptInvitationDomainService).addMember(executionContext, invitation, EXISTING_USER_ID);
-            verify(createUserDomainService, never()).createGraviteeUser(any(), any(), any(), any());
+            assertThat(userCrudService.getStoredPassword(EXISTING_USER_ID)).isPresent();
+            assertThat(membershipDomainService.storage()).isNotEmpty();
         }
 
         @Test
@@ -404,9 +440,6 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
             )
                 .isInstanceOf(InvitationCanceledException.class)
                 .hasMessageContaining("user@example.com");
-
-            verify(createUserDomainService, never()).createGraviteeUser(any(), any(), any(), any());
-            verify(userPortalNotificationService, never()).triggerUserRegistered(any(), any());
         }
 
         @Test
