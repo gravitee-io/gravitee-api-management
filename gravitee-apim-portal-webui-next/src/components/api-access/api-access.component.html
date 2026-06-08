@@ -15,152 +15,154 @@
     limitations under the License.
 
 -->
-<mat-card appearance="outlined" class="api-access">
-  @if (subscription?.status === 'ACCEPTED' || planSecurity === 'KEY_LESS') {
-    <mat-card-header>
-      <div class="api-access__header-row">
-        <div class="next-gen-h5 api-access__header" i18n="@@subscriptionDetailsApiAccessHeader">API access</div>
-        @if (planSecurity === 'API_KEY' && subscription?.status === 'ACCEPTED' && canManageApiKey) {
-          <button
-            mat-stroked-button
-            type="button"
-            matTooltip="Renew API Key"
-            i18n-matTooltip="@@subscriptionDetailsRenewApiKeyTooltip"
-            [disabled]="isRenewingApiKey()"
-            data-testid="renew-api-key-button"
-            (click)="renewApiKey()"
-          >
-            <span class="next-gen-small-bold" i18n="@@subscriptionDetailsRenewApiKey">Renew API Key</span>
-          </button>
-        }
-      </div>
-    </mat-card-header>
-    <mat-card-content class="api-access__copy-code-content">
-      @if (planSecurity === 'OAUTH2' || planSecurity === 'JWT') {
-        <app-copy-code id="client-id" title="Client ID" [text]="clientId ?? ''" />
+@if (shouldRenderApiAccessCard()) {
+  <mat-card appearance="outlined" class="api-access">
+    @if (subscription?.status === 'ACCEPTED' || planSecurity === 'KEY_LESS') {
+      <mat-card-header>
+        <div class="api-access__header-row">
+          <div class="next-gen-h5 api-access__header" i18n="@@subscriptionDetailsApiAccessHeader">API access</div>
+          @if (planSecurity === 'API_KEY' && subscription?.status === 'ACCEPTED' && canManageApiKey) {
+            <button
+              mat-stroked-button
+              type="button"
+              matTooltip="Renew API Key"
+              i18n-matTooltip="@@subscriptionDetailsRenewApiKeyTooltip"
+              [disabled]="isRenewingApiKey()"
+              data-testid="renew-api-key-button"
+              (click)="renewApiKey()"
+            >
+              <span class="next-gen-small-bold" i18n="@@subscriptionDetailsRenewApiKey">Renew API Key</span>
+            </button>
+          }
+        </div>
+      </mat-card-header>
+      <mat-card-content class="api-access__copy-code-content">
+        @if (planSecurity === 'OAUTH2' || planSecurity === 'JWT') {
+          <app-copy-code id="client-id" title="Client ID" [text]="clientId ?? ''" />
 
-        @if (!!clientSecret) {
-          <app-copy-code id="client-secret" title="Client Secret" [text]="clientSecret" mode="PASSWORD" />
+          @if (!!clientSecret) {
+            <app-copy-code id="client-secret" title="Client Secret" [text]="clientSecret" mode="PASSWORD" />
+          }
         }
-      }
-      @if (apiType === 'NATIVE') {
-        <app-native-kafka-api-access
-          [entrypointUrls]="entrypointUrlValues()"
-          [planSecurity]="planSecurity"
-          [apiKey]="primaryApiKey()"
-          [apiKeyConfigUsername]="resolvedApiKeyConfigUsername()"
-          [clientId]="clientId ?? ''"
-        />
-      } @else {
-        @if (planSecurity === 'API_KEY') {
-          <div class="api-access__copy-code-content__api-keys-list">
-            <div class="next-gen-h5" i18n="@@subscriptionDetailsApiAccessApiKeysHeader">API keys</div>
-            @if (apiKeyRenewFeedback(); as renewFeedback) {
-              <div
-                class="next-gen-body api-access__renew-feedback"
-                [class.api-access__renew-feedback--error]="renewFeedback.type === 'error'"
-                [class.api-access__renew-feedback--success]="renewFeedback.type === 'success'"
-                [attr.role]="renewFeedback.type === 'error' ? 'alert' : null"
-                [attr.aria-live]="renewFeedback.type === 'success' ? 'polite' : null"
-                data-testid="renew-api-key-feedback"
-              >
-                {{ renewFeedback.message }}
-              </div>
-            }
-            @if (apiKeyRows().length > 0) {
-              <app-paginated-table
-                [columns]="apiKeysColumns"
-                [rows]="displayedApiKeyRows()"
-                [totalElements]="totalApiKeyElements()"
-                [currentPage]="apiKeysCurrentPage()"
-                [pageSize]="apiKeysPageSize()"
-                [pageSizeOptions]="apiKeysPageSizeOptions"
-                [navigable]="false"
-                (pageChange)="onApiKeysPageChange($event)"
-                (pageSizeChange)="onApiKeysPageSizeChange($event)"
-              >
-                <ng-template appTableCell="status" let-apiKey>
-                  <mat-icon
-                    [svgIcon]="apiKey.statusIcon"
-                    [attr.aria-label]="apiKey.statusLabel"
-                    [attr.data-status-icon]="apiKey.statusIcon"
-                    data-testid="api-key-status-icon"
-                  />
-                </ng-template>
-                <ng-template appTableCell="revoke" let-apiKey>
-                  @if (canManageApiKey && apiKey.isActive) {
-                    <button
-                      mat-icon-button
-                      type="button"
-                      color="warn"
-                      [disabled]="isRevokingApiKey || isRevokeApiKeyDialogOpen"
-                      matTooltip="Revoke"
-                      i18n-matTooltip="@@subscriptionDetailsApiAccessRevokeTooltip"
-                      [attr.aria-label]="apiKey.revokeAriaLabel"
-                      [attr.data-api-key]="apiKey.key"
-                      data-testid="api-key-revoke-button"
-                      (click)="revokeApiKeyRow(apiKey)"
-                    >
-                      <mat-icon svgIcon="gio:x-circle" />
-                    </button>
-                  }
-                </ng-template>
-              </app-paginated-table>
-            } @else {
-              <div class="next-gen-body" i18n="@@subscriptionDetailsApiAccessApiKeysEmpty">No API keys available.</div>
-            }
-          </div>
-        }
-        @if (shouldShowApiAccessContent()) {
-          <div class="api-access__copy-code-content__calling-api">
-            <div class="next-gen-h5" i18n="@@subscriptionDetailsApiAccessCallingTheApi">Calling the API</div>
-            @if (entrypointUrlValues().length === 1) {
-              <app-copy-code id="base-url" title="Base URL" [text]="entrypointUrlValues()[0]" />
-            } @else if (entrypointUrlValues().length > 1) {
-              <mat-form-field appearance="outline" subscriptSizing="dynamic">
-                <mat-label class="next-gen-body" i18n="@@subscriptionDetailsApiAccessBaseUrls">Base URLs</mat-label>
-                <mat-select
-                  [value]="selectedEntrypointUrlValue()"
-                  id="select-entrypoints"
-                  (selectionChange)="selectedEntrypointUrl.set($event.value)"
+        @if (apiType === 'NATIVE') {
+          <app-native-kafka-api-access
+            [entrypointUrls]="entrypointUrlValues()"
+            [planSecurity]="planSecurity"
+            [apiKey]="primaryApiKey()"
+            [apiKeyConfigUsername]="resolvedApiKeyConfigUsername()"
+            [clientId]="clientId ?? ''"
+          />
+        } @else {
+          @if (planSecurity === 'API_KEY') {
+            <div class="api-access__copy-code-content__api-keys-list">
+              <div class="next-gen-h5" i18n="@@subscriptionDetailsApiAccessApiKeysHeader">API keys</div>
+              @if (apiKeyRenewFeedback(); as renewFeedback) {
+                <div
+                  class="next-gen-body api-access__renew-feedback"
+                  [class.api-access__renew-feedback--error]="renewFeedback.type === 'error'"
+                  [class.api-access__renew-feedback--success]="renewFeedback.type === 'success'"
+                  [attr.role]="renewFeedback.type === 'error' ? 'alert' : null"
+                  [attr.aria-live]="renewFeedback.type === 'success' ? 'polite' : null"
+                  data-testid="renew-api-key-feedback"
                 >
-                  @for (entrypointUrl of entrypointUrlValues(); track entrypointUrl) {
-                    <mat-option [value]="entrypointUrl">{{ entrypointUrl }}</mat-option>
-                  }
-                </mat-select>
-                <app-copy-code-icon
-                  matSuffix
-                  (click)="$event.stopPropagation()"
-                  [contentToCopy]="selectedEntrypointUrlValue()"
-                  [label]="selectedEntrypointUrlValue()"
-                />
-              </mat-form-field>
-            }
+                  {{ renewFeedback.message }}
+                </div>
+              }
+              @if (apiKeyRows().length > 0) {
+                <app-paginated-table
+                  [columns]="apiKeysColumns"
+                  [rows]="displayedApiKeyRows()"
+                  [totalElements]="totalApiKeyElements()"
+                  [currentPage]="apiKeysCurrentPage()"
+                  [pageSize]="apiKeysPageSize()"
+                  [pageSizeOptions]="apiKeysPageSizeOptions"
+                  [navigable]="false"
+                  (pageChange)="onApiKeysPageChange($event)"
+                  (pageSizeChange)="onApiKeysPageSizeChange($event)"
+                >
+                  <ng-template appTableCell="status" let-apiKey>
+                    <mat-icon
+                      [svgIcon]="apiKey.statusIcon"
+                      [attr.aria-label]="apiKey.statusLabel"
+                      [attr.data-status-icon]="apiKey.statusIcon"
+                      data-testid="api-key-status-icon"
+                    />
+                  </ng-template>
+                  <ng-template appTableCell="revoke" let-apiKey>
+                    @if (canManageApiKey && apiKey.isActive) {
+                      <button
+                        mat-icon-button
+                        type="button"
+                        color="warn"
+                        [disabled]="isRevokingApiKey || isRevokeApiKeyDialogOpen"
+                        matTooltip="Revoke"
+                        i18n-matTooltip="@@subscriptionDetailsApiAccessRevokeTooltip"
+                        [attr.aria-label]="apiKey.revokeAriaLabel"
+                        [attr.data-api-key]="apiKey.key"
+                        data-testid="api-key-revoke-button"
+                        (click)="revokeApiKeyRow(apiKey)"
+                      >
+                        <mat-icon svgIcon="gio:x-circle" />
+                      </button>
+                    }
+                  </ng-template>
+                </app-paginated-table>
+              } @else {
+                <div class="next-gen-body" i18n="@@subscriptionDetailsApiAccessApiKeysEmpty">No API keys available.</div>
+              }
+            </div>
+          }
+          @if (shouldShowApiAccessContent()) {
+            <div class="api-access__copy-code-content__calling-api">
+              <div class="next-gen-h5" i18n="@@subscriptionDetailsApiAccessCallingTheApi">Calling the API</div>
+              @if (entrypointUrlValues().length === 1) {
+                <app-copy-code id="base-url" title="Base URL" [text]="entrypointUrlValues()[0]" />
+              } @else if (entrypointUrlValues().length > 1) {
+                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                  <mat-label class="next-gen-body" i18n="@@subscriptionDetailsApiAccessBaseUrls">Base URLs</mat-label>
+                  <mat-select
+                    [value]="selectedEntrypointUrlValue()"
+                    id="select-entrypoints"
+                    (selectionChange)="selectedEntrypointUrl.set($event.value)"
+                  >
+                    @for (entrypointUrl of entrypointUrlValues(); track entrypointUrl) {
+                      <mat-option [value]="entrypointUrl">{{ entrypointUrl }}</mat-option>
+                    }
+                  </mat-select>
+                  <app-copy-code-icon
+                    matSuffix
+                    (click)="$event.stopPropagation()"
+                    [contentToCopy]="selectedEntrypointUrlValue()"
+                    [label]="selectedEntrypointUrlValue()"
+                  />
+                </mat-form-field>
+              }
 
-            <app-copy-code id="command-line" [text]="curlCmd()" />
-          </div>
+              <app-copy-code id="command-line" [text]="curlCmd()" />
+            </div>
+          }
         }
-      }
-    </mat-card-content>
-  } @else {
-    <mat-card-content class="api-access__message">
-      @switch (subscription?.status) {
-        @case ('PENDING') {
-          <div class="next-gen-h5 api-access__message__content" i18n="@@subscriptionDetailsPendingHeader">Subscription in progress</div>
-          <div class="next-gen-body" i18n="@@subscriptionDetailsPendingContent">
-            Your subscription request is being validated. Come back later.
-          </div>
+      </mat-card-content>
+    } @else {
+      <mat-card-content class="api-access__message">
+        @switch (subscription?.status) {
+          @case ('PENDING') {
+            <div class="next-gen-h5 api-access__message__content" i18n="@@subscriptionDetailsPendingHeader">Subscription in progress</div>
+            <div class="next-gen-body" i18n="@@subscriptionDetailsPendingContent">
+              Your subscription request is being validated. Come back later.
+            </div>
+          }
+          @case ('REJECTED') {
+            <div class="next-gen-h5 api-access__message__content" i18n="@@subscriptionDetailsRejectedHeader">Subscription rejected</div>
+          }
+          @case ('PAUSED') {
+            <div class="next-gen-h5 api-access__message__content" i18n="@@subscriptionDetailsPasueddHeader">Subscription paused</div>
+          }
+          @case ('CLOSED') {
+            <div class="next-gen-h5 api-access__message__content" i18n="@@subscriptionDetailsClosedHeader">Subscription closed</div>
+          }
         }
-        @case ('REJECTED') {
-          <div class="next-gen-h5 api-access__message__content" i18n="@@subscriptionDetailsRejectedHeader">Subscription rejected</div>
-        }
-        @case ('PAUSED') {
-          <div class="next-gen-h5 api-access__message__content" i18n="@@subscriptionDetailsPasueddHeader">Subscription paused</div>
-        }
-        @case ('CLOSED') {
-          <div class="next-gen-h5 api-access__message__content" i18n="@@subscriptionDetailsClosedHeader">Subscription closed</div>
-        }
-      }
-    </mat-card-content>
-  }
-</mat-card>
+      </mat-card-content>
+    }
+  </mat-card>
+}
