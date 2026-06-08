@@ -200,11 +200,11 @@ export function ApplicationSubscriptionCreateSheet({
             setSelectedPlan(null);
             return;
         }
-        if (!selectedPlan || !plans.find(p => p.id === selectedPlan.id)) {
-            const firstEnabled = plans.find(plan => !isPlanDisabled(plan));
-            setSelectedPlan(firstEnabled ?? null);
-        }
-    }, [selectedReference, plans, selectedPlan]);
+        setSelectedPlan(prev => {
+            if (prev && plans.some(p => p.id === prev.id)) return prev;
+            return plans.find(plan => !isPlanDisabled(plan)) ?? null;
+        });
+    }, [selectedReference, plans]);
 
     useEffect(() => {
         if (!showApiKeyModeChoice) {
@@ -321,7 +321,7 @@ export function ApplicationSubscriptionCreateSheet({
                                                             {version ? ` — ${version}` : ''}
                                                             {owner ? ` (${owner})` : ''}
                                                         </p>
-                                                        <p className="text-[11px] text-muted-foreground">{searchResultTypeLabel(item)}</p>
+                                                        <p className="text-xs text-muted-foreground">{searchResultTypeLabel(item)}</p>
                                                     </div>
                                                 </Button>
                                             );
