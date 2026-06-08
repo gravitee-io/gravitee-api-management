@@ -782,7 +782,7 @@ class PatchPlanUseCaseTest {
         void merge_with_unknown_excluded_group_throws_GroupNotFoundException() {
             assertThatThrownBy(() -> executeMerge("{\"excludedGroups\":[\"does-not-exist\"]}")).isInstanceOf(GroupNotFoundException.class);
 
-            assertThat(planCrudService.storage().get(0).getExcludedGroups()).doesNotContain("does-not-exist");
+            assertThat(planCrudService.storage().get(0).getExcludedGroups()).isNullOrEmpty();
         }
 
         @Test
@@ -793,10 +793,31 @@ class PatchPlanUseCaseTest {
         }
 
         @Test
+        void json_patch_move_from_excluded_groups_triggers_validation() {
+            var seeded = PlanFixtures.aPlanHttpV4().toBuilder().excludedGroups(List.of("does-not-exist")).build();
+            seed(seeded);
+
+            assertThatThrownBy(() ->
+                executeJsonPatch("[{\"op\":\"move\",\"from\":\"/excludedGroups/0\",\"path\":\"/excludedGroups/0\"}]")
+            ).isInstanceOf(GroupNotFoundException.class);
+        }
+
+        @Test
         void merge_with_known_excluded_groups_succeeds() {
             var output = executeMerge("{\"excludedGroups\":[\"g1\",\"g2\"]}");
 
             assertThat(output.plan().getExcludedGroups()).containsExactly("g1", "g2");
+            assertThat(planCrudService.storage().get(0).getExcludedGroups()).containsExactly("g1", "g2");
+        }
+
+        @Test
+        void json_patch_not_targeting_excluded_groups_skips_validation() {
+            var seeded = PlanFixtures.aPlanHttpV4().toBuilder().excludedGroups(List.of("stale-group")).build();
+            seed(seeded);
+
+            var output = executeJsonPatch("[{\"op\":\"replace\",\"path\":\"/name\",\"value\":\"Renamed\"}]");
+
+            assertThat(output.plan().getExcludedGroups()).containsExactly("stale-group");
         }
 
         @Test
