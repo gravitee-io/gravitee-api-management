@@ -26,6 +26,7 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.json_patch.domain_service.JsonPatchDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
+import io.gravitee.apim.core.plan.domain_service.PlanExcludedGroupsDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.exception.PlanForApiNotFoundException;
 import io.gravitee.apim.core.plan.exception.PlanPatchNotAllowedException;
@@ -93,6 +94,7 @@ public class PatchPlanUseCase {
     private final JsonPatchDomainService jsonPatchDomainService;
     private final ObjectMapper objectMapper;
     private final PlanFlowsConverter planFlowsConverter;
+    private final PlanExcludedGroupsDomainService planExcludedGroupsDomainService;
 
     public interface PlanFlowsConverter {
         JsonNode toCurrentFlowsNode(@Nonnull List<Flow> flows);
@@ -132,6 +134,10 @@ public class PatchPlanUseCase {
 
         var patched = applyPatchedValues(plan, patchedNode, explicitNulls);
         var patchedFlows = extractFlows(patchedNode, currentFlows, explicitNulls, patchTargetsFlows(input.patchType(), patchNode));
+
+        if (patchTargetsExcludedGroups(input.patchType(), patchNode)) {
+            planExcludedGroupsDomainService.validateExcludedGroups(input.auditInfo().environmentId(), patched.getExcludedGroups());
+        }
 
         if (input.dryRun()) {
             updatePlanDomainService.validate(patched, patchedFlows, api, input.auditInfo());
@@ -440,6 +446,24 @@ public class PatchPlanUseCase {
 
     private boolean pointerTargetsFlows(String pointer, String flowsPointer) {
         return pointer.equals(flowsPointer) || pointer.startsWith(flowsPointer + "/");
+    }
+
+    private boolean patchTargetsExcludedGroups(PatchType patchType, JsonNode patchNode) {
+        if (patchType == PatchType.MERGE_PATCH) {
+            return patchNode.has(FIELD_EXCLUDED_GROUPS);
+        }
+        if (!patchNode.isArray()) {
+            return false;
+        }
+        for (JsonNode op : patchNode) {
+            if (FIELD_EXCLUDED_GROUPS.equals(extractTopLevelField(op.path("path").asText()))) {
+                return true;
+            }
+            if ("move".equals(op.path("op").asText()) && FIELD_EXCLUDED_GROUPS.equals(extractTopLevelField(op.path("from").asText()))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private <T> T convertField(JsonNode node, Class<T> type, String fieldName) {
