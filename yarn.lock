@@ -4564,9 +4564,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/graphene-core@npm:^2.38.1":
-  version: 2.38.1
-  resolution: "@gravitee/graphene-core@npm:2.38.1"
+"@gravitee/graphene-core@npm:^2.39.2":
+  version: 2.39.2
+  resolution: "@gravitee/graphene-core@npm:2.39.2"
   dependencies:
     "@base-ui/react": "npm:1.4.1"
     "@types/json-schema": "npm:7.0.15"
@@ -4627,13 +4627,13 @@ __metadata:
       optional: true
   bin:
     graphene-sync-ai-rules: scripts/sync-ai-rules.mjs
-  checksum: 10c0/a9699867404740af04c4adade8b2acf4e1c96ac6383ed48ca624df0dd7afe373f14e8d5336f445da10d3738f2a94054a96acc476b46a13b5a62de9c3f4522682
+  checksum: 10c0/ad26f431915031b43cbd8a3be64cafccb015cd5efe6400f38e14aeceafa64b86a3ddd963ed4be83e2c69da01b45a375f7852ab75c8adc71e31d378b22f1690c5
   languageName: node
   linkType: hard
 
-"@gravitee/graphene-policy-studio@npm:2.38.1":
-  version: 2.38.1
-  resolution: "@gravitee/graphene-policy-studio@npm:2.38.1"
+"@gravitee/graphene-policy-studio@npm:2.39.2":
+  version: 2.39.2
+  resolution: "@gravitee/graphene-policy-studio@npm:2.39.2"
   dependencies:
     "@asciidoctor/core": "npm:3.0.4"
     "@dnd-kit/core": "npm:6.3.1"
@@ -4656,7 +4656,7 @@ __metadata:
   peerDependenciesMeta:
     tailwindcss:
       optional: true
-  checksum: 10c0/0f0e7e0613ffc325b6c34c326f4d0e244b938a5f73fc3d08de90ec362902bcf25845def3d1f5bf7be7d7a8ed78785773f86737afeceb75b4350119c7d9b90ba3
+  checksum: 10c0/34ef56fecb83359e5c4967cf262076e917e5a65e7934e1e211aa0a3aade9404976e642f09b5018829503182667c52204f3e40b8e84883bf928e169bf4b7560f3
   languageName: node
   linkType: hard
 
@@ -21469,8 +21469,8 @@ __metadata:
     "@fontsource/montserrat": "npm:5.2.5"
     "@fontsource/roboto": "npm:5.2.5"
     "@gravitee/gamma-modules-sdk": "npm:1.0.0-alpha.4"
-    "@gravitee/graphene-core": "npm:^2.38.1"
-    "@gravitee/graphene-policy-studio": "npm:2.38.1"
+    "@gravitee/graphene-core": "npm:^2.39.2"
+    "@gravitee/graphene-policy-studio": "npm:2.39.2"
     "@gravitee/ui-analytics": "npm:17.8.0"
     "@gravitee/ui-components": "npm:4.4.0"
     "@gravitee/ui-particles-angular": "npm:17.8.0"
