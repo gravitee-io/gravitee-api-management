@@ -31,8 +31,6 @@ import inmemory.GroupQueryServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
-import inmemory.PortalNavigationItemsCrudServiceInMemory;
-import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.SharedPolicyGroupHistoryCrudServiceInMemory;
@@ -146,7 +144,6 @@ import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService
 import io.gravitee.apim.core.portal.use_case.CreateOrUpdatePortalUseCase;
 import io.gravitee.apim.core.portal.use_case.DeletePortalUseCase;
 import io.gravitee.apim.core.portal.use_case.GetPortalUseCase;
-import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
@@ -1135,16 +1132,6 @@ public class ResourceContextConfiguration {
         PortalNavigationItemDomainService domainService
     ) {
         return new UpdatePortalNavigationItemUseCase(portalNavigationItemsQueryService, validatorService, domainService);
-    }
-
-    @Bean
-    public PortalNavigationItemCrudService portalNavigationItemCrudService() {
-        return new PortalNavigationItemsCrudServiceInMemory();
-    }
-
-    @Bean
-    public PortalNavigationItemsQueryService portalNavigationItemsQueryService() {
-        return new PortalNavigationItemsQueryServiceInMemory();
     }
 
     @Bean

@@ -72,6 +72,10 @@ public final class HRIDToUUID {
         return new SubResourceBuilder();
     }
 
+    public static NavigationBuilder navigation() {
+        return new NavigationBuilder();
+    }
+
     public static class TopLevelBuilder {
 
         public TopLevelWithContext context(AuditInfo audit) {
@@ -137,6 +141,34 @@ public final class HRIDToUUID {
 
         public String crossId() {
             return UuidString.generateFrom(apiCrossId, extraHrid);
+        }
+    }
+
+    public static class NavigationBuilder {
+
+        public NavigationWithContext context(AuditInfo audit) {
+            return new NavigationWithContext(audit.organizationId(), audit.environmentId());
+        }
+    }
+
+    public record NavigationWithContext(String organizationId, String environmentId) {
+        public NavigationInPortal portal(String portalId) {
+            return new NavigationInPortal(organizationId, environmentId, portalId);
+        }
+    }
+
+    public record NavigationInPortal(String organizationId, String environmentId, String portalId) {
+        public NavigationItemResult folder(String path) {
+            return new NavigationItemResult(organizationId, environmentId, portalId, "folder", path);
+        }
+        // Future:
+        // public NavigationItemResult documentation(String docHrid) { … }
+        // public NavigationItemResult listingApi(String apiHrid)    { … }
+    }
+
+    public record NavigationItemResult(String organizationId, String environmentId, String portalId, String kind, String identifier) {
+        public String id() {
+            return UuidString.generateFrom(organizationId, environmentId, portalId, kind, identifier);
         }
     }
 }
