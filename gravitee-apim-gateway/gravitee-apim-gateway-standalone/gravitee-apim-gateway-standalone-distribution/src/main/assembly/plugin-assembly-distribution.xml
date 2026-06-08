@@ -152,7 +152,6 @@
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <fileMode>644</fileMode>
         </dependencySet>
-
         <dependencySet>
             <outputDirectory>plugins</outputDirectory>
             <unpack>false</unpack>
@@ -164,6 +163,8 @@
                 <exclude>io.gravitee.notifier:*:zip</exclude>
                 <exclude>io.gravitee.apim.plugin.apiservice.dynamicproperties:gravitee-apim-plugin-apiservice-dynamicproperties-http:zip</exclude>
                 <exclude>com.graviteesource.connector:gravitee-*-native-kafka:zip</exclude>
+                <exclude>io.gravitee.gamma.module:*:zip</exclude>
+                <exclude>com.graviteesource.gamma.module:*:zip</exclude>
             </excludes>
             <useProjectArtifact>false</useProjectArtifact>
             <fileMode>755</fileMode>

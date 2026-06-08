@@ -268,6 +268,34 @@
             </exclusions>
         </dependency>
 
+        <!-- Gamma Modules -->
+        <dependency>
+            <groupId>io.gravitee.gamma.module</groupId>
+            <artifactId>gravitee-gamma-module-apim</artifactId>
+            <version>${project.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.gamma.module</groupId>
+            <artifactId>gravitee-gamma-module-platform</artifactId>
+            <version>${project.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <!-- Notifiers -->
         <dependency>
             <groupId>io.gravitee.notifier</groupId>
@@ -1681,6 +1709,33 @@
                     </exclusions>
                 </dependency>
 
+                <!-- Gamma -->
+                <dependency>
+                    <groupId>com.graviteesource.gamma.module</groupId>
+                    <artifactId>gravitee-gamma-module-aim</artifactId>
+                    <version>${gravitee-gamma-module-aim.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.gamma.module</groupId>
+                    <artifactId>gravitee-gamma-module-authz</artifactId>
+                    <version>${gravitee-gamma-module-authz.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
 
                 <!-- Reporters -->
                 <dependency>
