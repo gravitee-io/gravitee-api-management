@@ -7329,6 +7329,9 @@ components:
                     description: Whether invitation notifications should be sent when invitations are created.
                     type: boolean
                     default: true
+                confirmation_page_url:
+                    description: URL of the confirmation page to be used in the application invitation email.
+                    type: string
         InvitationRecipientInput:
             type: object
             required:
