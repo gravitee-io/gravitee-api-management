@@ -394,13 +394,9 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
       const toolDefinition: MCPToolDefinition = {
         name: toolName,
         description,
-<<<<<<< HEAD
-        inputSchema: removeCircularRefs(inputSchema),
+        inputSchema: normalizeNullableTypes(removeCircularRefs(inputSchema)),
         ...(outputSchema ? { outputSchema: removeCircularRefs(outputSchema) } : {}),
         ...(annotations ? { annotations } : {}),
-=======
-        inputSchema: normalizeNullableTypes(removeCircularRefs(mergedParameters)),
->>>>>>> 28588812ab (fix(console): nullable field handling in open api import)
       };
 
       const gatewayMapping: MCPToolGatewayMapping = generateGatewayMapping(op, method, path, paramSchema);
