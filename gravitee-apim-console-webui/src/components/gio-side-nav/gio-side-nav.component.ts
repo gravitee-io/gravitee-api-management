@@ -29,6 +29,7 @@ import { EnvironmentSettingsService } from '../../services-ngx/environment-setti
 interface MenuItem {
   icon?: string;
   routerLink?: string;
+  target?: string;
   displayName: string;
   permissions?: string[];
   licenseOptions?: LicenseOptions;
@@ -38,9 +39,24 @@ interface MenuItem {
   category: string;
   items?: MenuItem[];
   routerBasePath?: string;
+  externalLink?: boolean;
 }
 
 export const SIDE_NAV_GROUP_ID = 'side-nav-items';
+
+// prettier-ignore
+export const PORTAL_SETTINGS_PERMISSIONS = [
+  'environment-settings-r',
+  'environment-settings-u',
+  'environment-theme-r',
+  'environment-theme-u',
+  'environment-category-r',
+  'environment-category-u',
+  'environment-documentation-r',
+  'environment-documentation-u',
+  'environment-metadata-r',
+  'environment-metadata-u',
+];
 
 @Component({
   selector: 'gio-side-nav',
@@ -274,6 +290,18 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
       });
     }
 
+    if (envSettings?.portalNext?.access?.enabled) {
+      mainMenuItems.push({
+        icon: 'gio:monitor',
+        routerLink: './_portal',
+        displayName: 'Portal Settings',
+        category: 'Portal Settings',
+        permissions: PORTAL_SETTINGS_PERMISSIONS,
+        target: '_blank',
+        externalLink: true,
+      });
+    }
+
     mainMenuItems.push({
       icon: 'gio:settings',
       routerLink: './settings',
@@ -350,6 +378,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
 
   private getSideNaveMenuSearchItems(): MenuSearchItem[] {
     return this.mainMenuItems
+      .filter(item => !!item.routerLink)
       .map(item => {
         return {
           name: item.displayName,
@@ -359,12 +388,14 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
         };
       })
       .concat(
-        this.footerMenuItems.map(item => ({
-          name: item.displayName,
-          routerLink: `/${cleanRouterLink(item.routerLink)}`,
-          category: item.category,
-          groupIds: [SIDE_NAV_GROUP_ID],
-        })),
+        this.footerMenuItems
+          .filter(item => !!item.routerLink)
+          .map(item => ({
+            name: item.displayName,
+            routerLink: `/${cleanRouterLink(item.routerLink)}`,
+            category: item.category,
+            groupIds: [SIDE_NAV_GROUP_ID],
+          })),
       );
   }
 }
