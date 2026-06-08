@@ -33,7 +33,8 @@ public interface ApplicationInvitationsCreateInputMapper {
         return new CreateApplicationInvitations(
             toRecipientEmails(input.getRecipients()),
             normalizeRoleName(input.getRole()),
-            input.getNotify() == null || input.getNotify()
+            input.getNotify() == null || input.getNotify(),
+            normalizeConfirmationPageUrl(input.getConfirmationPageUrl())
         );
     }
 
@@ -53,5 +54,9 @@ public interface ApplicationInvitationsCreateInputMapper {
 
     private String normalizeRoleName(String roleName) {
         return roleName == null ? null : roleName.trim();
+    }
+
+    private String normalizeConfirmationPageUrl(String confirmationPageUrl) {
+        return confirmationPageUrl == null || confirmationPageUrl.isBlank() ? null : confirmationPageUrl.trim();
     }
 }
