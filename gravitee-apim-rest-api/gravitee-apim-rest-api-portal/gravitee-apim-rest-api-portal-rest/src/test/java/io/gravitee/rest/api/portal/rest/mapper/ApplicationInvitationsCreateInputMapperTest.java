@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.rest.api.portal.rest.model.InvitationCreateInput;
 import io.gravitee.rest.api.portal.rest.model.InvitationRecipientInput;
+import java.net.URI;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +37,7 @@ class ApplicationInvitationsCreateInputMapperTest {
                 )
             )
             .role(" USER ")
-            .confirmationPageUrl(" https://portal.example.com/user/registration/confirm ");
+            .confirmationPageUrl(URI.create("https://portal.example.com/user/registration/confirm"));
         input.setNotify(null);
 
         var result = cut.toCreateApplicationInvitations(input);
