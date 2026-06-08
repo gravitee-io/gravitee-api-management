@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.domain_service.json_patch;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,5 +38,15 @@ class JsonPatchServiceImplTest {
         var patch = objectMapper.readTree("[{\"op\":\"replace\",\"path\":\"/name\",\"value\":\"new\"}]");
 
         assertThatThrownBy(() -> cut.applyJsonPatch(patch, null)).isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void out_of_bounds_array_index_add_is_wrapped_as_validation_exception() throws Exception {
+        var target = objectMapper.readTree("{\"labels\":[\"a\"]}");
+        var patch = objectMapper.readTree("[{\"op\":\"add\",\"path\":\"/labels/5\",\"value\":\"x\"}]");
+
+        assertThatThrownBy(() -> cut.applyJsonPatch(patch, target)).isInstanceOf(ValidationDomainException.class);
+
+        assertThat(target.get("labels").size()).isEqualTo(1);
     }
 }
