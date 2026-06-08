@@ -32,19 +32,19 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class TokenServiceImplTest {
+class RegistrationTokenServiceImplTest {
 
     private static final String JWT_SECRET = "my-test-secret-at-least-256-bits-long-padding-here";
     private static final String USER_EMAIL = "user@example.com";
 
     private MockEnvironment environment;
-    private TokenServiceImpl cut;
+    private RegistrationTokenServiceImpl cut;
 
     @BeforeEach
     void setUp() {
         environment = new MockEnvironment();
         environment.setProperty("jwt.secret", JWT_SECRET);
-        cut = new TokenServiceImpl(environment);
+        cut = new RegistrationTokenServiceImpl(environment);
     }
 
     private String buildToken(String action, String email, String subject) {
@@ -109,7 +109,7 @@ class TokenServiceImplTest {
         @Test
         void should_throw_when_jwt_secret_is_missing() {
             environment = new MockEnvironment();
-            cut = new TokenServiceImpl(environment);
+            cut = new RegistrationTokenServiceImpl(environment);
 
             assertThatThrownBy(() -> cut.decode("any-token"))
                 .isInstanceOf(IllegalStateException.class)

@@ -27,11 +27,11 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 @Service
-public class TokenServiceImpl implements TokenService {
+public class RegistrationTokenServiceImpl implements TokenService {
 
     private final Environment environment;
 
-    public TokenServiceImpl(Environment environment) {
+    public RegistrationTokenServiceImpl(Environment environment) {
         this.environment = environment;
     }
 
