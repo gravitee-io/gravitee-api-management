@@ -220,8 +220,24 @@ export class ApiAccessComponent {
   protected readonly primaryApiKey = computed(() => this.activeApiKey()?.key ?? '');
   protected readonly resolvedApiKeyConfigUsername = computed(() => this.apiKeyConfigUsernameInput() ?? this.activeApiKey()?.hash ?? '');
   protected readonly shouldShowApiAccessContent = computed(
-    () => this.planSecurityInput() !== 'API_KEY' || this.subscriptionInput()?.status !== 'ACCEPTED' || this.hasActiveApiKey(),
+    () =>
+      this.entrypointUrlValues().length > 0 &&
+      (this.planSecurityInput() !== 'API_KEY' || this.subscriptionInput()?.status !== 'ACCEPTED' || this.hasActiveApiKey()),
   );
+  protected readonly hasApiAccessContent = computed(() => {
+    if (this.apiTypeInput() === 'NATIVE') {
+      return true;
+    }
+    const security = this.planSecurityInput();
+    if (security === 'OAUTH2' || security === 'JWT' || security === 'API_KEY') {
+      return true;
+    }
+    return this.shouldShowApiAccessContent();
+  });
+  protected readonly shouldRenderApiAccessCard = computed(() => {
+    const isAccessVisible = this.subscriptionInput()?.status === 'ACCEPTED' || this.planSecurityInput() === 'KEY_LESS';
+    return isAccessVisible ? this.hasApiAccessContent() : true;
+  });
   protected isRevokingApiKey = false;
   protected isRevokeApiKeyDialogOpen = false;
   private readonly defaultSnackBarOptions: MatSnackBarConfig = {
