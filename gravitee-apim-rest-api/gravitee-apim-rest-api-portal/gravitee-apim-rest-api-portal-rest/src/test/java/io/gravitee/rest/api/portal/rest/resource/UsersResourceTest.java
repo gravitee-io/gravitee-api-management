@@ -309,6 +309,22 @@ public class UsersResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    public void should_finalize_registration_for_application_invitation_action() {
+        var input = new FinalizeRegistrationInput().token("my-jwt").password("P4s5vv0Rd").firstname("John").lastname("Doe");
+        var decoded = new DecodedToken(JWTHelper.ACTION.APPLICATION_INVITATION.name(), "user@example.com", Optional.of("user-id"));
+        var user = BaseUserEntity.builder().id("user-id").email("user@example.com").build();
+
+        doReturn(decoded).when(registrationTokenService).decode("my-jwt");
+        doReturn(new AcceptUserInvitationUseCase.Output(user)).when(acceptUserInvitationUseCase).execute(any());
+        doReturn(new io.gravitee.rest.api.portal.rest.model.User()).when(userMapper).convert(any(UserEntity.class));
+
+        final Response response = target("registration/_finalize").request().post(Entity.json(input));
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        verify(acceptUserInvitationUseCase).execute(any());
+    }
+
+    @Test
     public void should_return_conflict_when_reset_password_action() {
         var input = new FinalizeRegistrationInput().token("my-jwt").password("P4s5vv0Rd").firstname("John").lastname("Doe");
         var decoded = new DecodedToken(JWTHelper.ACTION.RESET_PASSWORD.name(), "user@example.com", Optional.empty());

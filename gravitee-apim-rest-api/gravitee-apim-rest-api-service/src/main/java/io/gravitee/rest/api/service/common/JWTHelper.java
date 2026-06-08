@@ -24,6 +24,7 @@ public interface JWTHelper {
         RESET_PASSWORD,
         USER_REGISTRATION,
         GROUP_INVITATION,
+        APPLICATION_INVITATION,
         USER_CREATION,
     }
 

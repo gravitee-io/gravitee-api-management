@@ -63,7 +63,7 @@ public class AcceptUserInvitationUseCase {
                 userRegistrationEnabledService.checkEnabled(input.executionContext());
                 yield List.<Invitation>of();
             }
-            case GroupInvitationAction a -> {
+            case InvitationBasedAction a -> {
                 var invitations = invitationCrudService.findByEmail(a.email());
                 if (invitations.isEmpty()) {
                     throw new InvitationCanceledException(a.email());
@@ -87,7 +87,7 @@ public class AcceptUserInvitationUseCase {
 
         switch (input.action()) {
             case UserRegistrationAction ignored -> {}
-            case GroupInvitationAction ignored -> pendingInvitations.forEach(invitation ->
+            case InvitationBasedAction ignored -> pendingInvitations.forEach(invitation ->
                 processInvitation(input.executionContext(), invitation, user.getId())
             );
         }
@@ -129,15 +129,19 @@ public class AcceptUserInvitationUseCase {
         invitationCrudService.delete(invitation.id());
     }
 
-    public sealed interface Action permits UserRegistrationAction, GroupInvitationAction {
+    public sealed interface Action permits UserRegistrationAction, InvitationBasedAction {
         String email();
 
         Optional<String> existingUserId();
     }
 
+    public sealed interface InvitationBasedAction extends Action permits GroupInvitationAction, ApplicationInvitationAction {}
+
     public record UserRegistrationAction(String email, Optional<String> existingUserId) implements Action {}
 
-    public record GroupInvitationAction(String email, Optional<String> existingUserId) implements Action {}
+    public record GroupInvitationAction(String email, Optional<String> existingUserId) implements InvitationBasedAction {}
+
+    public record ApplicationInvitationAction(String email, Optional<String> existingUserId) implements InvitationBasedAction {}
 
     public record Input(
         ExecutionContext executionContext,
