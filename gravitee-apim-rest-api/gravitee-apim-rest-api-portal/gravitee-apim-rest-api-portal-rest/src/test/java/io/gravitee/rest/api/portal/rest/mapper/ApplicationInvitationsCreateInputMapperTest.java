@@ -35,7 +35,8 @@ class ApplicationInvitationsCreateInputMapperTest {
                     new InvitationRecipientInput().email("BOB@example.com")
                 )
             )
-            .role(" USER ");
+            .role(" USER ")
+            .confirmationPageUrl(" https://portal.example.com/user/registration/confirm ");
         input.setNotify(null);
 
         var result = cut.toCreateApplicationInvitations(input);
@@ -43,6 +44,7 @@ class ApplicationInvitationsCreateInputMapperTest {
         assertThat(result.recipientEmails()).containsExactly("alice@example.com", "bob@example.com");
         assertThat(result.roleName()).isEqualTo("USER");
         assertThat(result.notifyUsers()).isTrue();
+        assertThat(result.confirmationPageUrl()).isEqualTo("https://portal.example.com/user/registration/confirm");
     }
 
     @Test
@@ -56,6 +58,7 @@ class ApplicationInvitationsCreateInputMapperTest {
 
         assertThat(result.recipientEmails()).containsExactly("alice@example.com");
         assertThat(result.notifyUsers()).isFalse();
+        assertThat(result.confirmationPageUrl()).isNull();
     }
 
     @Test
