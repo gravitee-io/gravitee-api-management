@@ -56,6 +56,14 @@
           </gio-license-banner>
         </div>
 
+        @if (
+          dangerActions.canChangeApiLifecycle || dangerActions.canChangeVisibilityToPublic || dangerActions.canChangeVisibilityToPrivate
+        ) {
+          <classic-portal-only-banner
+            body="These actions only affect Classic Developer Portal visibility and publication. Manage Next Gen Portal API visibility in Next Gen Portal settings."
+          />
+        }
+
         <div *ngIf="dangerActions.canChangeApiLifecycle" class="danger-card__actions__action">
           <ng-container *ngIf="dangerActions.canPublish">
             <span> Publish the {{ subject }}. It will be available on portal (depending on visibility/rights). </span>

@@ -28,7 +28,8 @@ import {
 import { ActivatedRoute } from '@angular/router';
 import { of, Subject } from 'rxjs';
 
-import { GioSideNavComponent, SIDE_NAV_GROUP_ID } from './gio-side-nav.component';
+import { GioSideNavComponent, PORTAL_SETTINGS_PERMISSIONS, SIDE_NAV_GROUP_ID } from './gio-side-nav.component';
+import { GioSideNavHarness } from './gio-side-nav.component.harness';
 import { GioSideNavModule } from './gio-side-nav.module';
 
 import { License } from '../../entities/license/License';
@@ -36,6 +37,8 @@ import { GioPermissionService } from '../../shared/components/gio-permission/gio
 import { CONSTANTS_TESTING, GioTestingModule } from '../../shared/testing';
 import { Constants } from '../../entities/Constants';
 import { EnvironmentSettingsService } from '../../services-ngx/environment-settings.service';
+
+const PORTAL_SETTINGS_PERMISSIONS_SET = new Set(PORTAL_SETTINGS_PERMISSIONS);
 
 describe('GioSideNavComponent', () => {
   let fixture: ComponentFixture<GioSideNavComponent>;
@@ -51,6 +54,8 @@ describe('GioSideNavComponent', () => {
     hasLicenseMgmtPermission = true,
     scoringEnabled = true,
     hasApiProductPermission = true,
+    hasPortalSettingsPermission = true,
+    portalNextEnabled = true,
   ) => {
     await TestBed.configureTestingModule({
       declarations: [GioSideNavComponent],
@@ -67,6 +72,12 @@ describe('GioSideNavComponent', () => {
               }
               const isMatchingApiProductPermission = permissions.length === 1 && permissions[0] === 'environment-api_product-r';
               if (isMatchingApiProductPermission && !hasApiProductPermission) {
+                return false;
+              }
+              const isMatchingPortalSettingsPermissions =
+                permissions.length === PORTAL_SETTINGS_PERMISSIONS_SET.size &&
+                permissions.every(p => PORTAL_SETTINGS_PERMISSIONS_SET.has(p));
+              if (isMatchingPortalSettingsPermissions && !hasPortalSettingsPermission) {
                 return false;
               }
               // Return default true for all the rest of 'hasMatching' permission checks
@@ -98,7 +109,7 @@ describe('GioSideNavComponent', () => {
           provide: EnvironmentSettingsService,
           useValue: {
             get: () => {
-              return of({ apiScore: { enabled: scoringEnabled } });
+              return of({ apiScore: { enabled: scoringEnabled }, portalNext: { access: { enabled: portalNextEnabled } } });
             },
           },
         },
@@ -187,18 +198,17 @@ describe('GioSideNavComponent', () => {
       expect(removeSearchItemByGroupIds).toHaveBeenCalledTimes(1);
       expect(removeSearchItemByGroupIds).toHaveBeenCalledWith([SIDE_NAV_GROUP_ID]);
       expect(addSearchItemByGroupIds).toHaveBeenCalledTimes(1);
-      expect(addSearchItemByGroupIds).toHaveBeenCalledWith(
-        expect.arrayContaining([
-          expect.objectContaining({ name: 'Dashboard', routerLink: expect.not.stringContaining('./') }),
-          expect.objectContaining({ name: 'APIs', routerLink: expect.not.stringContaining('./') }),
-          expect.objectContaining({ name: 'API Products', routerLink: expect.not.stringContaining('./') }),
-          expect.objectContaining({ name: 'Applications', routerLink: expect.not.stringContaining('./') }),
-          expect.objectContaining({ name: 'Gateways', routerLink: expect.not.stringContaining('./') }),
-          expect.objectContaining({ name: 'Audit', routerLink: expect.not.stringContaining('./') }),
-          expect.objectContaining({ name: 'Analytics', routerLink: expect.not.stringContaining('./') }),
-          expect.objectContaining({ name: 'Settings', routerLink: expect.not.stringContaining('./') }),
-        ]),
+      const searchItems: { name: string }[] = addSearchItemByGroupIds.mock.calls[0][0];
+      const searchItemNames = searchItems.map(i => i.name);
+
+      // flat items with real routerLinks must appear
+      expect(searchItemNames).toEqual(
+        expect.arrayContaining(['Dashboard', 'APIs', 'API Products', 'Applications', 'Gateways', 'Audit', 'Settings']),
       );
+      // group-only items (no routerLink of their own) must NOT appear in search
+      expect(searchItemNames).not.toContain('Kafka');
+      expect(searchItemNames).not.toContain('Observability');
+      expect(searchItemNames).not.toContain('Analytics');
     });
   });
 
@@ -251,6 +261,33 @@ describe('GioSideNavComponent', () => {
 
       const apiProductsItem = fixture.componentInstance.mainMenuItems.find(item => item.displayName === 'API Products');
       expect(apiProductsItem).toBeDefined();
+    });
+
+    it('should show Portal Settings menu item when user has required portal permissions', async () => {
+      await init(true, true, false, true, true);
+      expectLicense({ tier: '', features: [], packs: [], expiresAt: new Date() });
+
+      const portalSettingsItem = fixture.componentInstance.mainMenuItems.find(item => item.displayName === 'Portal Settings');
+      expect(portalSettingsItem).toBeDefined();
+      expect(portalSettingsItem?.routerLink).toBe('./_portal');
+      expect(portalSettingsItem?.icon).toBe('gio:monitor');
+      expect(portalSettingsItem?.externalLink).toBe(true);
+    });
+
+    it('should hide Portal Settings menu item when user lacks all portal permissions', async () => {
+      await init(true, true, false, true, false);
+      expectLicense({ tier: '', features: [], packs: [], expiresAt: new Date() });
+
+      const portalSettingsItem = fixture.componentInstance.mainMenuItems.find(item => item.displayName === 'Portal Settings');
+      expect(portalSettingsItem).toBeUndefined();
+    });
+
+    it('should hide Portal Settings menu item when portal next is disabled', async () => {
+      await init(true, true, true, true, true, false);
+      expectLicense({ tier: '', features: [], packs: [], expiresAt: new Date() });
+
+      const portalSettingsItem = fixture.componentInstance.mainMenuItems.find(item => item.displayName === 'Portal Settings');
+      expect(portalSettingsItem).toBeUndefined();
     });
   });
 
@@ -318,6 +355,85 @@ describe('GioSideNavComponent', () => {
       expect(kafka?.routerBasePath).toBe(`/${envHrid}/clusters`);
 
       ctrl.verify();
+    });
+  });
+
+  describe('target attribute on menu item anchors', () => {
+    let sideNavHarness: GioSideNavHarness;
+
+    beforeEach(async () => {
+      await init();
+      // Use a non-expiring license to prevent GioLicenseExpirationNotificationComponent from
+      // rendering its own <a target="_blank"> "Contact Gravitee" link (shown when daysRemaining <= 30).
+      expectLicense({ tier: '', features: [], packs: [], expiresAt: expirationDateInOneYear });
+      sideNavHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, GioSideNavHarness);
+      fixture.detectChanges();
+    });
+
+    it('should not add target or rel attribute to anchor elements when menu items have no target', async () => {
+      fixture.componentInstance.mainMenuItems = [{ icon: 'gio:home', routerLink: './test', displayName: 'Test', category: 'test' }];
+      fixture.componentInstance.footerMenuItems = [];
+      fixture.detectChanges();
+
+      expect(await sideNavHarness.countAnchorsWithAnyTarget()).toBe(0);
+      expect(await sideNavHarness.countAnchorsWithAnyRel()).toBe(0);
+    });
+
+    it('should set target="_blank" and rel="noopener noreferrer" on anchor when main menu item has target set', async () => {
+      fixture.componentInstance.mainMenuItems = [
+        { icon: 'gio:home', routerLink: './test', displayName: 'Test', category: 'test', target: '_blank' },
+      ];
+      fixture.detectChanges();
+
+      const anchors = await sideNavHarness.getAnchorsWithTarget('_blank');
+      expect(anchors.length).toBe(1);
+      expect(await anchors[0].getAttribute('rel')).toBe('noopener noreferrer');
+    });
+
+    it('should not set target or rel on anchor when main menu item target is absent', async () => {
+      fixture.componentInstance.mainMenuItems = [{ icon: 'gio:home', routerLink: './test', displayName: 'Test', category: 'test' }];
+      fixture.detectChanges();
+
+      expect(await sideNavHarness.countAnchorsWithAnyTarget()).toBe(0);
+      expect(await sideNavHarness.countAnchorsWithAnyRel()).toBe(0);
+    });
+
+    it('should set target="_blank" and rel="noopener noreferrer" on anchor when submenu child item has target set', async () => {
+      fixture.componentInstance.mainMenuItems = [
+        {
+          displayName: 'Group',
+          category: 'test',
+          routerBasePath: '/test/group',
+          items: [{ displayName: 'Child', routerLink: './child', category: 'test', target: '_blank' }],
+        },
+      ];
+      fixture.detectChanges();
+
+      const anchors = await sideNavHarness.getAnchorsWithTarget('_blank');
+      expect(anchors.length).toBe(1);
+      expect(await anchors[0].getAttribute('rel')).toBe('noopener noreferrer');
+    });
+
+    it('should set target="_blank" and rel="noopener noreferrer" on anchor when footer menu item has target set', async () => {
+      fixture.componentInstance.mainMenuItems = [];
+      fixture.componentInstance.footerMenuItems = [
+        { icon: 'gio:building', routerLink: './test-footer', displayName: 'Test Footer', category: 'test', target: '_blank' },
+      ];
+      fixture.detectChanges();
+
+      const anchors = await sideNavHarness.getAnchorsWithTarget('_blank');
+      expect(anchors.length).toBe(1);
+      expect(await anchors[0].getAttribute('rel')).toBe('noopener noreferrer');
+    });
+
+    it('should not set rel on footer anchor when target is absent', async () => {
+      fixture.componentInstance.mainMenuItems = [];
+      fixture.componentInstance.footerMenuItems = [
+        { icon: 'gio:building', routerLink: './test-footer', displayName: 'Test Footer', category: 'test' },
+      ];
+      fixture.detectChanges();
+
+      expect(await sideNavHarness.countAnchorsWithAnyRel()).toBe(0);
     });
   });
 

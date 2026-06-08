@@ -32,7 +32,7 @@
     <gio-menu-list>
       <ng-container *ngFor="let item of mainMenuItems">
         <ng-container *ngIf="!item.items; else menuItemsGroup">
-          <a [routerLink]="item.routerLink">
+          <a [routerLink]="item.routerLink" [target]="item.target" [attr.rel]="item.target === '_blank' ? 'noopener noreferrer' : null">
             <gio-menu-item
               tabIndex="1"
               routerLinkActive
@@ -42,8 +42,13 @@
               [active]="rla.isActive"
               [gioLicense]="item?.licenseOptions"
               [iconRight]="item?.iconRight$ | async"
-              >{{ item.displayName }}</gio-menu-item
             >
+              @if (item.externalLink) {
+                <span class="gio-side-nav__external-label">{{ item.displayName }}<mat-icon svgIcon="gio:external-link"></mat-icon></span>
+              } @else {
+                {{ item.displayName }}
+              }
+            </gio-menu-item>
           </a>
         </ng-container>
 
@@ -57,7 +62,12 @@
             iconRightTooltip="{{ item.iconRightTooltip }}"
           >
             <ng-container *ngFor="let child of item.items">
-              <a [routerLink]="child.routerLink" [tabindex]="1">
+              <a
+                [routerLink]="child.routerLink"
+                [tabindex]="1"
+                [target]="child.target"
+                [attr.rel]="child.target === '_blank' ? 'noopener noreferrer' : null"
+              >
                 <gio-menu-item routerLinkActive>{{ child.displayName }}</gio-menu-item>
               </a>
             </ng-container>
@@ -74,7 +84,7 @@
     </gio-menu-license-expiration-notification>
     <gio-menu-footer *ngIf="footerMenuItems.length > 0">
       <ng-container *ngFor="let item of footerMenuItems">
-        <a [routerLink]="item.routerLink">
+        <a [routerLink]="item.routerLink" [target]="item.target" [attr.rel]="item.target === '_blank' ? 'noopener noreferrer' : null">
           <gio-menu-item
             tabIndex="1"
             routerLinkActive

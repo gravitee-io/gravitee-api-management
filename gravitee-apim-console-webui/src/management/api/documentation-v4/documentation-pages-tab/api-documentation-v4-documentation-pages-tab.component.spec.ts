@@ -39,6 +39,11 @@ import { GioTestingPermissionProvider } from '../../../../shared/components/gio-
 import { PageType } from '../../../../entities/page';
 import { Constants } from '../../../../entities/Constants';
 import { ApiSpecGenRequestState, ApiSpecGenState } from '../../../../services-ngx/api-spec-gen.service';
+import { EnvironmentSettingsService } from '../../../../services-ngx/environment-settings.service';
+import { PortalNavigationItemService } from '../../../../services-ngx/portal-navigation-item.service';
+import { ClassicPortalOnlyBannerHarness } from '../../../../shared/components/classic-portal-only-banner/classic-portal-only-banner.component.harness';
+
+const ENV_HRID = 'my-env';
 
 describe('ApiDocumentationV4DocumentationPagesTab', () => {
   let fixture: ComponentFixture<ApiDocumentationV4DocumentationPagesTabComponent>;
@@ -54,6 +59,8 @@ describe('ApiDocumentationV4DocumentationPagesTab', () => {
     portalUrl = 'portal.url',
     apiLifecycleStatus: ApiLifecycleState = 'PUBLISHED',
     apiSpecGenState: ApiSpecGenState = ApiSpecGenState.UNAVAILABLE,
+    portalNextEnabled = false,
+    permissions: string[] = ['api-documentation-u', 'api-documentation-c', 'api-documentation-r', 'api-documentation-d'],
   ) => {
     await TestBed.configureTestingModule({
       declarations: [ApiDocumentationV4DocumentationPagesTabComponent],
@@ -64,11 +71,12 @@ describe('ApiDocumentationV4DocumentationPagesTab', () => {
           useValue: {
             params: of({ apiId: API_ID }),
             queryParams: new BehaviorSubject({ parentId }),
+            snapshot: { params: { apiId: API_ID, envHrid: ENV_HRID } },
           },
         },
         {
           provide: GioTestingPermissionProvider,
-          useValue: ['api-documentation-u', 'api-documentation-c', 'api-documentation-r', 'api-documentation-d'],
+          useValue: permissions,
         },
         {
           provide: Constants,
@@ -81,6 +89,14 @@ describe('ApiDocumentationV4DocumentationPagesTab', () => {
             });
             return constants;
           },
+        },
+        {
+          provide: EnvironmentSettingsService,
+          useValue: { isPortalNextEnabled: () => of(portalNextEnabled) },
+        },
+        {
+          provide: PortalNavigationItemService,
+          useValue: { getNavigationItems: () => of({ items: [] }) },
         },
       ],
     })
@@ -108,6 +124,53 @@ describe('ApiDocumentationV4DocumentationPagesTab', () => {
   afterEach(() => {
     httpTestingController.verify();
     jest.resetAllMocks();
+  });
+
+  describe('Classic Portal Only banner', () => {
+    it('should show the banner when portalNext is enabled', async () => {
+      await init([], [], 'ROOT', 'portal.url', 'PUBLISHED', ApiSpecGenState.UNAVAILABLE, true);
+      const banner = await harnessLoader.getHarness(ClassicPortalOnlyBannerHarness);
+      expect(await banner.isBannerContentVisible()).toBe(true);
+    });
+
+    it('should hide the banner when portalNext is disabled', async () => {
+      await init([], [], 'ROOT', 'portal.url', 'PUBLISHED', ApiSpecGenState.UNAVAILABLE, false);
+      const banner = await harnessLoader.getHarness(ClassicPortalOnlyBannerHarness);
+      expect(await banner.isBannerContentVisible()).toBe(false);
+    });
+
+    it('should show the settings action when portalNext is enabled and user has environment-settings permission', async () => {
+      await init([], [], 'ROOT', 'portal.url', 'PUBLISHED', ApiSpecGenState.UNAVAILABLE, true, [
+        'api-documentation-u',
+        'api-documentation-c',
+        'api-documentation-r',
+        'api-documentation-d',
+        'environment-settings-r',
+      ]);
+      const banner = await harnessLoader.getHarness(ClassicPortalOnlyBannerHarness);
+      expect(await banner.isSettingsActionVisible()).toBe(true);
+    });
+
+    it('should hide the settings action when user lacks environment-settings permission', async () => {
+      await init([], [], 'ROOT', 'portal.url', 'PUBLISHED', ApiSpecGenState.UNAVAILABLE, true, [
+        'api-documentation-u',
+        'api-documentation-c',
+        'api-documentation-r',
+        'api-documentation-d',
+      ]);
+      const banner = await harnessLoader.getHarness(ClassicPortalOnlyBannerHarness);
+      expect(await banner.isSettingsActionVisible()).toBe(false);
+    });
+
+    it('should show the settings action with a link when envHrid is in route and user has environment-settings permission', async () => {
+      await init([], [], 'ROOT', 'portal.url', 'PUBLISHED', ApiSpecGenState.UNAVAILABLE, true, [
+        'api-documentation-u',
+        'environment-settings-r',
+      ]);
+      fixture.detectChanges();
+      const banner = await harnessLoader.getHarness(ClassicPortalOnlyBannerHarness);
+      expect(await banner.isSettingsActionVisible()).toBe(true);
+    });
   });
 
   describe('Custom section', () => {

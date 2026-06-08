@@ -75,6 +75,42 @@ describe('EnvironmentSettingsService', () => {
     expect(expectedGetSettingsSecondValue).toEqual([envSettingsMock]);
   });
 
+  describe('isPortalNextEnabled', () => {
+    it('should emit true when portalNext.access.enabled is true', () => {
+      const emitted: boolean[] = [];
+      environmentSettingsService.isPortalNextEnabled().subscribe(value => emitted.push(value));
+
+      environmentSettingsService.load().subscribe();
+      expectGetEnvironmentSettingsRequest({
+        portalNext: { access: { enabled: true }, banner: { enabled: false, title: '', subtitle: '' } },
+      });
+
+      expect(emitted).toEqual([true]);
+    });
+
+    it('should emit false when portalNext.access.enabled is false', () => {
+      const emitted: boolean[] = [];
+      environmentSettingsService.isPortalNextEnabled().subscribe(value => emitted.push(value));
+
+      environmentSettingsService.load().subscribe();
+      expectGetEnvironmentSettingsRequest({
+        portalNext: { access: { enabled: false }, banner: { enabled: false, title: '', subtitle: '' } },
+      });
+
+      expect(emitted).toEqual([false]);
+    });
+
+    it('should emit false when portalNext is missing from settings', () => {
+      const emitted: boolean[] = [];
+      environmentSettingsService.isPortalNextEnabled().subscribe(value => emitted.push(value));
+
+      environmentSettingsService.load().subscribe();
+      expectGetEnvironmentSettingsRequest({ analytics: { clientTimeout: 300 } } as Partial<EnvSettings>);
+
+      expect(emitted).toEqual([false]);
+    });
+  });
+
   function expectGetEnvironmentSettingsRequest(envSettings: Partial<EnvSettings>) {
     httpTestingController
       .expectOne({
