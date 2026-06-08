@@ -24,6 +24,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.definition.model.v4.ApiType;
@@ -117,6 +118,7 @@ class PortalContextLoaderTest {
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
             .title(apiId)
+            .segment(PortalNavigationItem.slugify(apiId).value())
             .area(PortalArea.TOP_NAVBAR)
             .order(0)
             .apiId(apiId)

@@ -37,6 +37,7 @@ import io.gravitee.apim.core.category.model.ApiCategoryOrder;
 import io.gravitee.apim.core.category.model.Category;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.common.http.HttpStatusCode;
@@ -756,6 +757,7 @@ public class ApisResourceTest extends AbstractResourceTest {
                     .apiId("ng-api")
                     .published(true)
                     .visibility(PortalVisibility.PUBLIC)
+                    .segment(PortalNavigationItem.slugify("Nav for ng-api").value())
                     .build()
             )
         );

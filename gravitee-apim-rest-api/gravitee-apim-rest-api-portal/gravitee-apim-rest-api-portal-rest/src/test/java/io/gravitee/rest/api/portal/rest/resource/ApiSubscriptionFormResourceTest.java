@@ -24,6 +24,7 @@ import inmemory.SubscriptionFormQueryServiceInMemory;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.common.http.HttpStatusCode;
@@ -73,6 +74,7 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
                     .apiId(API_ID)
                     .published(true)
                     .visibility(PortalVisibility.PUBLIC)
+                    .segment(PortalNavigationItem.slugify("Nav for " + API_ID).value())
                     .build()
             )
         );
@@ -128,6 +130,7 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
                     .apiId(API_ID)
                     .published(true)
                     .visibility(PortalVisibility.PRIVATE)
+                    .segment(PortalNavigationItem.slugify("Private " + API_ID).value())
                     .build()
             )
         );

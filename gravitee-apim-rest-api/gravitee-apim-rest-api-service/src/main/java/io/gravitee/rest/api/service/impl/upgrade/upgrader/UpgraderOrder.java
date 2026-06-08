@@ -67,6 +67,7 @@ public class UpgraderOrder {
     public static final int SUBSCRIPTION_FORM_CONSTRAINTS_UPGRADER = 718;
     public static final int ENVIRONMENTS_DEFAULT_PORTAL_UPGRADER = 719;
     public static final int OPENAPI_PORTAL_PAGE_CONTENT_CONFIGURATION_UPGRADER = 720;
+    public static final int PORTAL_NAVIGATION_ITEM_DEFAULT_SEGMENT_UPGRADER = 721;
     public static final int CLUSTER_ROLES_UPGRADER = 900;
     public static final int CLUSTER_CROSS_ID_UPGRADER = 901;
     public static final int API_ENDPOINT_WEIGHT_UPGRADER = 560;

@@ -174,6 +174,53 @@ public class PortalNavigationItemDomainServiceTest {
             // Then: resolveRootId walked up to the root (which has rootId set) and returned root.getId()
             assertThat(created.getRootId()).isEqualTo(root.getId());
         }
+
+        @Test
+        void should_derive_segment_from_title_when_not_provided() {
+            var toCreate = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.FOLDER)
+                .title("My Cool Folder")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .build();
+
+            var created = domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
+
+            assertThat(created.getSegment()).isEqualTo("my-cool-folder");
+        }
+
+        @Test
+        void should_use_explicit_segment_over_title_fallback() {
+            var toCreate = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.FOLDER)
+                .title("My Cool Folder")
+                .segment("custom-slug")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .build();
+
+            var created = domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
+
+            assertThat(created.getSegment()).isEqualTo("custom-slug");
+        }
+
+        @Test
+        void should_append_suffix_when_sibling_has_same_slug() {
+            var existing = PortalNavigationItemFixtures.aFolder("00000000-0000-0000-0000-000000000099", "Q&A", null);
+            portalNavigationItemsCrudService.initWith(List.of(existing));
+            portalNavigationItemsQueryService.initWith(List.of(existing));
+
+            var toCreate = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.FOLDER)
+                .title("Q/A")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .build();
+
+            var created = domainService.create(PortalNavigationItemFixtures.ORG_ID, PortalNavigationItemFixtures.ENV_ID, toCreate);
+
+            assertThat(created.getSegment()).isEqualTo("q-a-2");
+        }
     }
 
     @Nested
@@ -477,6 +524,68 @@ public class PortalNavigationItemDomainServiceTest {
             assertThat(updated.getTitle()).isEqualTo("updated-name");
             assertThat(portalNavigationItemsCrudService.storage()).hasSize(1);
             assertThat(portalNavigationItemsCrudService.storage().getFirst().getTitle()).isEqualTo("updated-name");
+        }
+
+        @Test
+        void should_re_derive_segment_from_new_title_when_not_provided() {
+            var existing = PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE11_ID, "page11", null);
+            portalNavigationItemsCrudService.initWith(List.of(existing));
+            portalNavigationItemsQueryService.initWith(List.of(existing));
+
+            var toUpdate = UpdatePortalNavigationItem.builder()
+                .title("New Page Title")
+                .visibility(existing.getVisibility())
+                .type(existing.getType())
+                .order(existing.getOrder())
+                .parentId(existing.getParentId())
+                .published(existing.getPublished())
+                .build();
+
+            var updated = domainService.update(toUpdate, existing);
+
+            assertThat(updated.getSegment()).isEqualTo("new-page-title");
+        }
+
+        @Test
+        void should_use_explicit_segment_on_update_over_title_derived_one() {
+            var existing = PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE11_ID, "page11", null);
+            portalNavigationItemsCrudService.initWith(List.of(existing));
+            portalNavigationItemsQueryService.initWith(List.of(existing));
+
+            var toUpdate = UpdatePortalNavigationItem.builder()
+                .title("New Page Title")
+                .segment("explicit-slug")
+                .visibility(existing.getVisibility())
+                .type(existing.getType())
+                .order(existing.getOrder())
+                .parentId(existing.getParentId())
+                .published(existing.getPublished())
+                .build();
+
+            var updated = domainService.update(toUpdate, existing);
+
+            assertThat(updated.getSegment()).isEqualTo("explicit-slug");
+        }
+
+        @Test
+        void should_append_suffix_when_sibling_has_same_slug_after_rename() {
+            var existing = PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE11_ID, "Old Title", null);
+            var sibling = PortalNavigationItemFixtures.aPage("00000000-0000-0000-0000-000000000099", "Q&A", null);
+            portalNavigationItemsCrudService.initWith(List.of(existing, sibling));
+            portalNavigationItemsQueryService.initWith(List.of(existing, sibling));
+
+            var toUpdate = UpdatePortalNavigationItem.builder()
+                .title("Q/A")
+                .visibility(existing.getVisibility())
+                .type(existing.getType())
+                .order(existing.getOrder())
+                .parentId(existing.getParentId())
+                .published(existing.getPublished())
+                .build();
+
+            var updated = domainService.update(toUpdate, existing);
+
+            assertThat(updated.getSegment()).isEqualTo("q-a-2");
         }
 
         @Test
