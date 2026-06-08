@@ -43,6 +43,7 @@ import type {
     UpdateApplicationNotification,
 } from '../../types/applicationNotification';
 import { RequiredLabel } from '../notification-settings/RequiredLabel';
+import { WIDE_SHEET_WIDTH } from '../sheetLayout';
 
 export type NotificationSheetCreatePayload = {
     name: string;
@@ -174,7 +175,7 @@ export function EditNotificationSheet({
             <SheetContent
                 side="right"
                 className="flex max-h-full flex-col"
-                style={{ width: 'min(98vw, 51.84rem)', maxWidth: 'min(98vw, 51.84rem)' }}
+                style={{ maxWidth: WIDE_SHEET_WIDTH, width: `min(100vw, ${WIDE_SHEET_WIDTH})` }}
             >
                 <SheetHeader>
                     <SheetTitle>Edit Console Notification</SheetTitle>
