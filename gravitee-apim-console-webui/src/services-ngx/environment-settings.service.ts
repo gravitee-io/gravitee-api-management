@@ -53,4 +53,8 @@ export class EnvironmentSettingsService {
   getSnapshot(): EnvSettings {
     return this.currentSettings.getValue();
   }
+
+  isPortalNextEnabled(): Observable<boolean> {
+    return this.get().pipe(map(settings => settings?.portalNext?.access?.enabled === true));
+  }
 }

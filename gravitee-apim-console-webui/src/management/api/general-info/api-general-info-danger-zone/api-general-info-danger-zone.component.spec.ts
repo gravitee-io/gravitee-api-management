@@ -24,10 +24,13 @@ import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { GioConfirmAndValidateDialogHarness, LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { SimpleChange } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { of } from 'rxjs';
 
 import { ApiGeneralInfoDangerZoneComponent } from './api-general-info-danger-zone.component';
 
+import { EnvironmentSettingsService } from '../../../../services-ngx/environment-settings.service';
+import { ClassicPortalOnlyBannerHarness } from '../../../../shared/components/classic-portal-only-banner/classic-portal-only-banner.component.harness';
 import { ApiGeneralInfoModule } from '../api-general-info.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { Api, fakeApiV2, fakeApiV4 } from '../../../../entities/management-api-v2';
@@ -43,6 +46,7 @@ describe('ApiGeneralInfoDangerZoneComponent', () => {
   let httpTestingController: HttpTestingController;
   let routerNavigateSpy: jest.SpyInstance;
   let component: ApiGeneralInfoDangerZoneComponent;
+  let portalNextEnabled = false;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -76,6 +80,14 @@ describe('ApiGeneralInfoDangerZoneComponent', () => {
               },
             },
           },
+        },
+        {
+          provide: EnvironmentSettingsService,
+          useValue: { isPortalNextEnabled: () => of(portalNextEnabled) },
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { params: { envHrid: 'test-env' } } },
         },
       ],
     }).overrideProvider(InteractivityChecker, {
@@ -328,6 +340,71 @@ describe('ApiGeneralInfoDangerZoneComponent', () => {
     const detachButtons = await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Detach the API' }));
 
     expect(detachButtons.length).toBe(0);
+  });
+
+  describe('Classic Developer Portal Only banner', () => {
+    it('should show banner when portalNext is enabled and publish action is present', async () => {
+      portalNextEnabled = true;
+      const api = fakeApiV2({ id: API_ID, lifecycleState: 'CREATED' });
+      createComponent(api);
+
+      const banner = await loader.getHarness(ClassicPortalOnlyBannerHarness);
+      expect(await banner.isBannerContentVisible()).toBe(true);
+    });
+
+    it('should show banner when portalNext is enabled and visibility action is present', async () => {
+      portalNextEnabled = true;
+      const api = fakeApiV2({ id: API_ID, visibility: 'PRIVATE', lifecycleState: 'PUBLISHED' });
+      createComponent(api);
+
+      const banner = await loader.getHarness(ClassicPortalOnlyBannerHarness);
+      expect(await banner.isBannerContentVisible()).toBe(true);
+    });
+
+    it('should hide banner when portalNext is disabled', async () => {
+      portalNextEnabled = false;
+      const api = fakeApiV2({ id: API_ID, lifecycleState: 'CREATED' });
+      createComponent(api);
+
+      const banner = await loader.getHarness(ClassicPortalOnlyBannerHarness);
+      expect(await banner.isBannerContentVisible()).toBe(false);
+    });
+
+    it('should hide banner when no portal-affecting actions are visible', async () => {
+      portalNextEnabled = true;
+      // DEPRECATED api with DRAFT workflowState: canChangeApiLifecycle=false, canChangeVisibilityToPublic=false, canChangeVisibilityToPrivate=false
+      const api = fakeApiV2({ id: API_ID, lifecycleState: 'DEPRECATED', workflowState: 'DRAFT' });
+      createComponent(api);
+
+      const banners = await loader.getAllHarnesses(ClassicPortalOnlyBannerHarness);
+      for (const banner of banners) {
+        expect(await banner.isBannerContentVisible()).toBe(false);
+      }
+    });
+
+    it('should hide settings action when environment-settings permission is missing', async () => {
+      portalNextEnabled = true;
+      // GioTestingPermissionProvider only provides api-definition-u and api-definition-d, no environment-settings
+      const api = fakeApiV2({ id: API_ID, lifecycleState: 'CREATED' });
+      createComponent(api);
+
+      const banner = await loader.getHarness(ClassicPortalOnlyBannerHarness);
+      expect(await banner.isBannerContentVisible()).toBe(true);
+      expect(await banner.isSettingsActionVisible()).toBe(false);
+    });
+
+    it('should show settings action when user has environment-settings-r permission', async () => {
+      TestBed.overrideProvider(GioTestingPermissionProvider, {
+        useValue: ['api-definition-u', 'api-definition-d', 'environment-settings-r'],
+      });
+      portalNextEnabled = true;
+      const api = fakeApiV2({ id: API_ID, lifecycleState: 'CREATED' });
+      createComponent(api);
+
+      const banner = await loader.getHarness(ClassicPortalOnlyBannerHarness);
+      expect(await banner.isBannerContentVisible()).toBe(true);
+      expect(await banner.isSettingsActionVisible()).toBe(true);
+    });
   });
 
   function expectApiGetRequest(api: Api) {
