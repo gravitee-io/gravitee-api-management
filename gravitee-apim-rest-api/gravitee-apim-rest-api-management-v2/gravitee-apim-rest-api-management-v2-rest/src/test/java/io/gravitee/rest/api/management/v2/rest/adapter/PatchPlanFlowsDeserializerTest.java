@@ -19,11 +19,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -123,5 +127,110 @@ class PatchPlanFlowsDeserializerTest {
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getId()).isEqualTo(FLOW_ID);
+    }
+
+    @Test
+    void round_trip_preserves_populated_tags() throws IOException {
+        var flow = Flow.builder()
+            .id(FLOW_ID)
+            .name("my-flow")
+            .enabled(true)
+            .selectors(List.of(HttpSelector.builder().path("/api").build()))
+            .tags(Set.of("tag1", "tag2"))
+            .build();
+
+        var result = deserializer.fromPatchedFlowsNode(deserializer.toCurrentFlowsNode(List.of(flow)));
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getTags()).containsExactlyInAnyOrder("tag1", "tag2");
+    }
+
+    @Test
+    void round_trip_normalizes_null_tags_to_empty() throws IOException {
+        var flow = Flow.builder()
+            .id(FLOW_ID)
+            .name("my-flow")
+            .enabled(true)
+            .selectors(List.of(HttpSelector.builder().path("/api").build()))
+            .build();
+
+        var result = deserializer.fromPatchedFlowsNode(deserializer.toCurrentFlowsNode(List.of(flow)));
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getTags()).isEmpty();
+        assertThat(result.get(0).getSubscribe()).isEmpty();
+        assertThat(result.get(0).getPublish()).isEmpty();
+    }
+
+    @Test
+    void round_trip_preserves_populated_methods() throws IOException {
+        var flow = Flow.builder()
+            .id(FLOW_ID)
+            .name("my-flow")
+            .enabled(true)
+            .selectors(List.of(HttpSelector.builder().path("/api").methods(Set.of(HttpMethod.GET, HttpMethod.POST)).build()))
+            .build();
+
+        var result = deserializer.fromPatchedFlowsNode(deserializer.toCurrentFlowsNode(List.of(flow)));
+
+        assertThat(result).hasSize(1);
+        var selector = (HttpSelector) result.get(0).getSelectors().get(0);
+        assertThat(selector.getMethods()).containsExactlyInAnyOrder(HttpMethod.GET, HttpMethod.POST);
+    }
+
+    @Test
+    void round_trip_normalizes_null_methods_to_empty() throws IOException {
+        var flow = Flow.builder()
+            .id(FLOW_ID)
+            .name("my-flow")
+            .enabled(true)
+            .selectors(List.of(HttpSelector.builder().path("/api").build()))
+            .build();
+
+        var result = deserializer.fromPatchedFlowsNode(deserializer.toCurrentFlowsNode(List.of(flow)));
+
+        assertThat(result).hasSize(1);
+        var selector = (HttpSelector) result.get(0).getSelectors().get(0);
+        assertThat(selector.getMethods()).isEmpty();
+    }
+
+    @Test
+    void round_trip_preserves_request_and_response_steps() throws IOException {
+        var requestStep = Step.builder().name("req-step").policy("transform-headers").build();
+        var responseStep = Step.builder().name("resp-step").policy("cache").build();
+        var flow = Flow.builder()
+            .id(FLOW_ID)
+            .name("my-flow")
+            .enabled(true)
+            .selectors(List.of(HttpSelector.builder().path("/api").build()))
+            .request(List.of(requestStep))
+            .response(List.of(responseStep))
+            .build();
+
+        var result = deserializer.fromPatchedFlowsNode(deserializer.toCurrentFlowsNode(List.of(flow)));
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getRequest()).hasSize(1);
+        assertThat(result.get(0).getRequest().get(0).getName()).isEqualTo("req-step");
+        assertThat(result.get(0).getRequest().get(0).getPolicy()).isEqualTo("transform-headers");
+        assertThat(result.get(0).getResponse()).hasSize(1);
+        assertThat(result.get(0).getResponse().get(0).getName()).isEqualTo("resp-step");
+        assertThat(result.get(0).getResponse().get(0).getPolicy()).isEqualTo("cache");
+    }
+
+    @Test
+    void round_trip_preserves_condition_selector() throws IOException {
+        var flow = Flow.builder()
+            .id(FLOW_ID)
+            .name("my-flow")
+            .enabled(true)
+            .selectors(List.of(ConditionSelector.builder().condition("{#request.content.length() > 10}").build()))
+            .build();
+
+        var result = deserializer.fromPatchedFlowsNode(deserializer.toCurrentFlowsNode(List.of(flow)));
+
+        assertThat(result).hasSize(1);
+        var selector = (ConditionSelector) result.get(0).getSelectors().get(0);
+        assertThat(selector.getCondition()).isEqualTo("{#request.content.length() > 10}");
     }
 }
