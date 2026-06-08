@@ -55,7 +55,7 @@ export function ManageGroupsSheet({
         }
         setSelected(new Set(currentGroupIds));
         setSearch('');
-    }, [open]);
+    }, [open, currentGroupIds]);
 
     const handleOpen = useCallback(
         (isOpen: boolean) => {
