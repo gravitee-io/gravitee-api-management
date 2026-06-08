@@ -29,6 +29,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.model.Slug;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.ArrayList;
@@ -81,6 +82,15 @@ public class PortalNavigationItemDomainService {
 
         var parentId = createPortalNavigationItem.getParentId();
         var parent = parentId != null ? resolveParentContainer(parentId, environmentId) : null;
+
+        if (createPortalNavigationItem.getSegment() == null) {
+            var usedSegments = retrieveSiblingItems(parentId, environmentId, createPortalNavigationItem.getArea())
+                .stream()
+                .map(item -> new Slug(item.getSegment()))
+                .collect(Collectors.toSet());
+            createPortalNavigationItem.setSegment(Slug.from(createPortalNavigationItem.getTitle(), usedSegments).value());
+        }
+
         var itemToCreate = PortalNavigationItem.from(createPortalNavigationItem, organizationId, environmentId, parent);
         final var portalNavigationItem = this.crudService.create(itemToCreate);
 
@@ -213,6 +223,16 @@ public class PortalNavigationItemDomainService {
             );
 
         toUpdate.setOrder(sanitizedOrder);
+
+        if (toUpdate.getSegment() == null) {
+            var targetParentId = isMoveToNewParent ? toUpdate.getParentId() : originalItem.getParentId();
+            var usedSegments = retrieveSiblingItems(targetParentId, originalItem.getEnvironmentId(), originalItem.getArea())
+                .stream()
+                .filter(sibling -> !Objects.equals(sibling.getId(), originalItem.getId()))
+                .map(sibling -> new Slug(sibling.getSegment()))
+                .collect(Collectors.toSet());
+            toUpdate.setSegment(Slug.from(toUpdate.getTitle(), usedSegments).value());
+        }
 
         originalItem.update(toUpdate);
 

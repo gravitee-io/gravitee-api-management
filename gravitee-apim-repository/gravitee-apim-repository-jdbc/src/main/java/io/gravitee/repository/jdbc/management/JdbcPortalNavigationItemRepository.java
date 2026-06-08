@@ -52,6 +52,7 @@ public class JdbcPortalNavigationItemRepository
             .addColumn("organization_id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("title", Types.NVARCHAR, String.class)
+            .addColumn("segment", Types.NVARCHAR, String.class)
             .addColumn("type", Types.NVARCHAR, PortalNavigationItem.Type.class)
             .addColumn("area", Types.NVARCHAR, PortalNavigationItem.Area.class)
             .addColumn("parent_id", Types.NVARCHAR, String.class)

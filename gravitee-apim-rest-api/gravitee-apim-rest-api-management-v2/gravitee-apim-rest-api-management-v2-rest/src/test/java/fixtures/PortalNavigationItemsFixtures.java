@@ -34,6 +34,8 @@ import java.util.UUID;
 
 public class PortalNavigationItemsFixtures {
 
+    static final String MY_FOLDER = "My Folder";
+
     private PortalNavigationItemsFixtures() {}
 
     public static BaseCreatePortalNavigationItem aCreatePortalNavigationPage() {
@@ -53,13 +55,12 @@ public class PortalNavigationItemsFixtures {
     }
 
     public static BaseCreatePortalNavigationItem aCreatePortalNavigationFolder() {
-        var title = "My Folder";
         var id = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001");
         var parentId = UUID.fromString("00000000-0000-0000-0000-000000000002");
         return new CreatePortalNavigationFolder()
             .type(PortalNavigationItemType.FOLDER)
             .id(id)
-            .title(title)
+            .title(MY_FOLDER)
             .area(io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
             .order(2)
             .parentId(parentId)
@@ -120,6 +121,7 @@ public class PortalNavigationItemsFixtures {
             .organizationId(organizationId)
             .environmentId(environmentId)
             .title("My Page")
+            .segment(PortalNavigationItem.slugify("My Page").value())
             .area(PortalArea.TOP_NAVBAR)
             .order(1)
             .portalPageContentId(PortalPageContentId.of("00000000-0000-0000-0000-000000000003"))
@@ -134,7 +136,8 @@ public class PortalNavigationItemsFixtures {
             .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000001"))
             .organizationId(organizationId)
             .environmentId(environmentId)
-            .title("My Folder")
+            .title(MY_FOLDER)
+            .segment(PortalNavigationItem.slugify(MY_FOLDER).value())
             .area(PortalArea.TOP_NAVBAR)
             .order(2)
             .parentId(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000002"))
@@ -149,6 +152,7 @@ public class PortalNavigationItemsFixtures {
             .organizationId(organizationId)
             .environmentId(environmentId)
             .title("My Link")
+            .segment(PortalNavigationItem.slugify("My Link").value())
             .area(PortalArea.TOP_NAVBAR)
             .order(3)
             .url("http://example.com")
@@ -164,6 +168,7 @@ public class PortalNavigationItemsFixtures {
             .organizationId(organizationId)
             .environmentId(environmentId)
             .title("My Link")
+            .segment(PortalNavigationItem.slugify("My Link").value())
             .area(PortalArea.TOP_NAVBAR)
             .order(3)
             .apiId("apiId")
@@ -179,6 +184,7 @@ public class PortalNavigationItemsFixtures {
             .organizationId(organizationId)
             .environmentId(environmentId)
             .title("My Page")
+            .segment(PortalNavigationItem.slugify("My Page").value())
             .area(PortalArea.TOP_NAVBAR)
             .order(1)
             .portalPageContentId(PortalPageContentId.of("00000000-0000-0000-0000-000000000003"))

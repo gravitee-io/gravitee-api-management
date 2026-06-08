@@ -31,6 +31,7 @@ import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoundException;
@@ -166,6 +167,7 @@ class GetSubscriptionFormForApiPortalUseCaseTest {
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
             .title("Nav for " + apiId)
+            .segment(PortalNavigationItem.slugify("Nav for " + apiId).value())
             .area(PortalArea.TOP_NAVBAR)
             .order(0)
             .apiId(apiId)

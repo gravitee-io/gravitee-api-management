@@ -43,6 +43,11 @@ public abstract sealed class PortalNavigationItem
     @Nonnull
     private String title;
 
+    /** Canonical path segment used to reconstruct hierarchical paths. Guaranteed non-null after the segment backfill upgrader runs. */
+    @Setter
+    @Nonnull
+    private String segment;
+
     @Setter
     @Nonnull
     private PortalArea area;
@@ -89,6 +94,18 @@ public abstract sealed class PortalNavigationItem
     }
 
     public abstract PortalNavigationItemType getType();
+
+    public String getEffectiveSegment() {
+        return segment;
+    }
+
+    public boolean isRoot() {
+        return parentId == null;
+    }
+
+    public boolean hasParent() {
+        return parentId != null;
+    }
 
     public void markAsRoot() {
         this.parentId = null;
@@ -143,6 +160,7 @@ public abstract sealed class PortalNavigationItem
             case LINK -> new PortalNavigationLink(id, organizationId, environmentId, title, area, order, url, published, visibility);
             case API -> new PortalNavigationApi(id, organizationId, environmentId, title, area, order, apiId, published, visibility);
         };
+        newItem.setSegment(segmentFor(item));
         if (parent == null) {
             newItem.markAsRoot();
         } else {
@@ -151,10 +169,23 @@ public abstract sealed class PortalNavigationItem
         return newItem;
     }
 
+    public static Slug slugify(String value) {
+        return Slug.from(value);
+    }
+
+    private static String segmentFor(CreatePortalNavigationItem item) {
+        return slugify(item.getSegment()).value();
+    }
+
+    private static String segmentFor(UpdatePortalNavigationItem item) {
+        return slugify(item.getSegment() != null ? item.getSegment() : item.getTitle().trim()).value();
+    }
+
     public void update(UpdatePortalNavigationItem navItem) {
         this.setTitle(navItem.getTitle().trim());
         this.setOrder(navItem.getOrder());
         this.setPublished(navItem.getPublished());
         this.setVisibility(navItem.getVisibility());
+        this.setSegment(segmentFor(navItem));
     }
 }

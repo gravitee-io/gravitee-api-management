@@ -59,6 +59,8 @@ public class PortalNavigationItem {
 
     private String title;
 
+    private String segment;
+
     private Type type;
 
     private Area area;
