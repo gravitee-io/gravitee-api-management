@@ -7332,6 +7332,7 @@ components:
                 confirmation_page_url:
                     description: URL of the confirmation page to be used in the application invitation email.
                     type: string
+                    format: uri
         InvitationRecipientInput:
             type: object
             required:
