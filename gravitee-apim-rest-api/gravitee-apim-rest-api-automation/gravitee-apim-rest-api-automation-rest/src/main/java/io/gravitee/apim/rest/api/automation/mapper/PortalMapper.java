@@ -16,7 +16,11 @@
 package io.gravitee.apim.rest.api.automation.mapper;
 
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.rest.api.automation.model.NavigationPath;
 import io.gravitee.apim.rest.api.automation.model.PortalState;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -29,7 +33,7 @@ import org.mapstruct.factory.Mappers;
 public interface PortalMapper {
     PortalMapper INSTANCE = Mappers.getMapper(PortalMapper.class);
 
-    default PortalState toPortalState(Portal portal, String hrid) {
+    default PortalState toPortalState(Portal portal, String hrid, List<io.gravitee.apim.core.portal.model.NavigationPath> navigation) {
         var state = new PortalState(
             portal.getId() != null ? portal.getId().toString() : null,
             portal.getEnvironmentId(),
@@ -38,6 +42,7 @@ public interface PortalMapper {
         );
         state.setHrid(hrid);
         mapPortalToState(portal, state);
+        state.setNavigation(toApiNavigation(navigation));
         return state;
     }
 
@@ -48,4 +53,30 @@ public interface PortalMapper {
     @Mapping(target = "hrid", ignore = true)
     @Mapping(target = "navigation", ignore = true)
     void mapPortalToState(Portal portal, @MappingTarget PortalState state);
+
+    default List<io.gravitee.apim.core.portal.model.NavigationPath> toCoreNavigation(List<NavigationPath> navigation) {
+        if (navigation == null) {
+            return List.of();
+        }
+        return navigation
+            .stream()
+            .filter(PortalMapper::isValidNavigationPath)
+            .map(n -> new io.gravitee.apim.core.portal.model.NavigationPath(n.getPath(), Optional.ofNullable(n.getDisplayName())))
+            .toList();
+    }
+
+    default List<NavigationPath> toApiNavigation(List<io.gravitee.apim.core.portal.model.NavigationPath> navigation) {
+        if (navigation == null) {
+            return List.of();
+        }
+        return navigation
+            .stream()
+            .filter(Objects::nonNull)
+            .map(n -> new NavigationPath().path(n.path()).displayName(n.displayName().orElse(null)))
+            .toList();
+    }
+
+    private static boolean isValidNavigationPath(NavigationPath n) {
+        return n != null && n.getPath() != null && !n.getPath().isBlank();
+    }
 }
