@@ -100,6 +100,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
                 .type(PortalNavigationItemType.FOLDER)
                 .title("title")
+                .segment("title")
                 .area(PortalArea.HOMEPAGE)
                 .order(0)
                 .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
