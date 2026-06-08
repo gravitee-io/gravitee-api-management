@@ -25,6 +25,7 @@ import lombok.Singular;
 import org.bson.BsonDocument;
 import org.bson.BsonValue;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.springframework.data.mongodb.core.index.IndexDefinition;
 
 /**
@@ -44,6 +45,8 @@ public class Index {
     private boolean unique;
 
     private Collation collation;
+
+    private Bson partialFilterExpression;
 
     public BsonDocument bson() {
         BsonDocument bson = new BsonDocument();
@@ -80,6 +83,9 @@ public class Index {
                         "collation",
                         Document.parse(collation.asDocument().toJson())
                     );
+                }
+                if (partialFilterExpression != null) {
+                    doc.append("partialFilterExpression", partialFilterExpression);
                 }
                 return doc;
             }

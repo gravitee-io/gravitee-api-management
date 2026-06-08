@@ -27,6 +27,7 @@ import lombok.NoArgsConstructor;
 public final class UpdatePortalNavigationItem {
 
     private String title;
+    private String segment;
     private Integer order;
     private PortalNavigationItemType type;
     private PortalNavigationItemId parentId;

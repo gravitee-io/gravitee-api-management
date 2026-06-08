@@ -235,6 +235,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
             .apiId("api-uuid-1")
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
+            .segment(PortalNavigationItem.slugify("Auth API").value())
             .build();
         portalNavigationItemsQueryService.initWith(List.of(apiItem));
         apiPortalSearchQueryService.initWith(List.of(Api.builder().id("api-uuid-1").name("Auth API").environmentId(ENV_ID).build()));
@@ -278,6 +279,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
             .apiId("api-uuid-1")
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
+            .segment(PortalNavigationItem.slugify("Auth API").value())
             .build();
         portalNavigationItemsQueryService.initWith(List.of(apiItem));
 
@@ -306,6 +308,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
             .apiId(apiId)
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
+            .segment(PortalNavigationItem.slugify("Auth API").value())
             .build();
         portalNavigationItemsQueryService.initWith(List.of(apiItem));
         apiPortalSearchQueryService.initWith(List.of(Api.builder().id(apiId).name("Auth API").environmentId(ENV_ID).build()));
