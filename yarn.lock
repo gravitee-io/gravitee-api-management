@@ -4551,16 +4551,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/gamma-modules-sdk@npm:1.0.0-alpha.4":
-  version: 1.0.0-alpha.4
-  resolution: "@gravitee/gamma-modules-sdk@npm:1.0.0-alpha.4"
+"@gravitee/gamma-modules-sdk@npm:1.0.0-alpha.10":
+  version: 1.0.0-alpha.10
+  resolution: "@gravitee/gamma-modules-sdk@npm:1.0.0-alpha.10"
   dependencies:
     yaml: "npm:2.9.0"
   peerDependencies:
     react: ">=19"
     react-dom: ">=19"
     react-router-dom: ">=6"
-  checksum: 10c0/ec8fb0b23bfd5197643530bbf2b94a2f5d5143e7cc10f8c754f3fac9d4c90b3faeb4a51dd2acd04b1a3aae8d99302993a02664377be7ce32d51f85b931f5da68
+  checksum: 10c0/69bfb0f87c622f9d23b1cb2a413cb3d77c85f7d1120f3dd6d5eae94a0f5f4d14da3bdebe01129c96903d78278fab4c7b82fbf1affe1a5cc6a390a47408e408a7
   languageName: node
   linkType: hard
 
@@ -21468,7 +21468,7 @@ __metadata:
     "@fontsource/material-icons-two-tone": "npm:5.2.5"
     "@fontsource/montserrat": "npm:5.2.5"
     "@fontsource/roboto": "npm:5.2.5"
-    "@gravitee/gamma-modules-sdk": "npm:1.0.0-alpha.4"
+    "@gravitee/gamma-modules-sdk": "npm:1.0.0-alpha.10"
     "@gravitee/graphene-core": "npm:^2.39.2"
     "@gravitee/graphene-policy-studio": "npm:2.39.2"
     "@gravitee/ui-analytics": "npm:17.8.0"
