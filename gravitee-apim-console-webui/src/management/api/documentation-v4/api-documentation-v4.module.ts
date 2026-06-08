@@ -61,6 +61,7 @@ import { ApiDocumentationV4NewtAiDialogComponent } from './dialog/documentation-
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioTooltipOnEllipsisModule } from '../../../shared/components/gio-tooltip-on-ellipsis/gio-tooltip-on-ellipsis.module';
+import { ClassicPortalOnlyBannerComponent } from '../../../shared/components/classic-portal-only-banner/classic-portal-only-banner.component';
 import { GioSwaggerUiModule } from '../../../components/documentation/gio-swagger-ui/gio-swagger-ui.module';
 import { GioAsyncApiModule } from '../../../components/documentation/gio-async-api/gio-async-api-module';
 import { GioMetadataModule } from '../../../components/gio-metadata/gio-metadata.module';
@@ -124,6 +125,7 @@ import { GioApiMetadataListModule } from '../component/gio-api-metadata-list/gio
     ApiDocumentationV4BreadcrumbComponent,
     ApiDocumentationV4FileUploadComponent,
     GioBannerModule,
+    ClassicPortalOnlyBannerComponent,
   ],
 })
 export class ApiDocumentationV4Module {}

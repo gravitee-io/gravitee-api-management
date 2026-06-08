@@ -16,6 +16,11 @@
 
 -->
 <mat-card>
+  <mat-card-content>
+    <classic-portal-only-banner
+      body="This documentation is used by the Classic Developer Portal. Manage Next Gen Portal API content in Next Gen Portal settings."
+    />
+  </mat-card-content>
   @if (data$ | async; as data) {
     <div class="homepage__header">
       <h3 class="homepage__header__title">Homepage</h3>

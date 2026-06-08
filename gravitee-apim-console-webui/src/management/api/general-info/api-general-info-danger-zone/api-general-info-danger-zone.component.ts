@@ -42,6 +42,17 @@ import { ApimFeature, UTMTags } from '../../../../shared/components/gio-license/
   standalone: false,
 })
 export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, OnInit {
+  constructor(
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly apiReviewV2Service: ApiReviewV2Service,
+    private readonly apiService: ApiV2Service,
+    private readonly matDialog: MatDialog,
+    private readonly snackBarService: SnackBarService,
+    @Inject(Constants) private readonly constants: Constants,
+    private readonly licenseService: GioLicenseService,
+  ) {}
+
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   private licenseOptions = {
@@ -79,17 +90,6 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
   public isOEM$: Observable<boolean>;
   public shouldUpgrade: boolean;
   public subject = 'API';
-
-  constructor(
-    private readonly router: Router,
-    private readonly activatedRoute: ActivatedRoute,
-    private readonly apiReviewV2Service: ApiReviewV2Service,
-    private readonly apiService: ApiV2Service,
-    private readonly matDialog: MatDialog,
-    private readonly snackBarService: SnackBarService,
-    @Inject(Constants) private readonly constants: Constants,
-    private readonly licenseService: GioLicenseService,
-  ) {}
 
   ngOnInit(): void {
     this.updateOriginContextState();
