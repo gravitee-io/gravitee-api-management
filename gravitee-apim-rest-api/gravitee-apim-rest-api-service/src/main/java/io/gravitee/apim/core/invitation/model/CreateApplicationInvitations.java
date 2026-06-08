@@ -17,4 +17,8 @@ package io.gravitee.apim.core.invitation.model;
 
 import java.util.Set;
 
-public record CreateApplicationInvitations(Set<String> recipientEmails, String roleName, boolean notifyUsers, String confirmationPageUrl) {}
+public record CreateApplicationInvitations(Set<String> recipientEmails, String roleName, boolean notifyUsers, String confirmationPageUrl) {
+    public CreateApplicationInvitations(Set<String> recipientEmails, String roleName, boolean notifyUsers) {
+        this(recipientEmails, roleName, notifyUsers, null);
+    }
+}
