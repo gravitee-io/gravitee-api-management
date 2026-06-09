@@ -15,7 +15,6 @@
  */
 package io.gravitee.gamma.module.platform.rest.resource.am;
 
-import io.gravitee.gamma.module.platform.core.am.use_case.connection.DeleteAmConnectionUseCase;
 import io.gravitee.gamma.module.platform.core.am.use_case.connection.GetAmConnectionUseCase;
 import io.gravitee.gamma.module.platform.core.am.use_case.connection.SaveAmConnectionUseCase;
 import io.gravitee.gamma.module.platform.core.am.use_case.connection.TestAmConnectionUseCase;
@@ -27,7 +26,6 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
@@ -35,7 +33,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -46,9 +43,6 @@ public class AmConnectionResource {
 
     @Inject
     private SaveAmConnectionUseCase saveAmConnectionUseCase;
-
-    @Inject
-    private DeleteAmConnectionUseCase deleteAmConnectionUseCase;
 
     @Inject
     private TestAmConnectionUseCase testAmConnectionUseCase;
@@ -84,12 +78,6 @@ public class AmConnectionResource {
             output.defaultDomainHrid(),
             output.gatewayUrl()
         );
-    }
-
-    @DELETE
-    public Response delete(@PathParam("orgId") String orgId) {
-        deleteAmConnectionUseCase.execute(new DeleteAmConnectionUseCase.Input(orgId));
-        return Response.noContent().build();
     }
 
     @POST
