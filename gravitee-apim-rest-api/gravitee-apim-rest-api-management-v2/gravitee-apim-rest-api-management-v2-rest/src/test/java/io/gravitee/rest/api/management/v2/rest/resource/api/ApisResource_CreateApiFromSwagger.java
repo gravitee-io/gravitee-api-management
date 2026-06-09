@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
+import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -25,18 +26,22 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+import fixtures.core.model.ApiFixtures;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
+import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
+import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.ImportSwaggerDescriptor;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -111,6 +116,46 @@ public class ApisResource_CreateApiFromSwagger extends AbstractResourceTest {
 
         // Then
         assertThat(response.getStatus()).isEqualTo(FORBIDDEN_403);
+    }
+
+    @Test
+    @SneakyThrows
+    public void should_return_resources_in_response_on_success() {
+        // Given
+        when(oaiDomainService.convert(any(), any(), any(), anyBoolean(), anyBoolean())).thenReturn(
+            ImportDefinition.builder()
+                .apiExport(
+                    ApiExport.builder()
+                        .definitionVersion(DefinitionVersion.V4)
+                        .listeners(List.of(HttpListener.builder().paths(List.of(Path.builder().path("/path").build())).build()))
+                        .build()
+                )
+                .build()
+        );
+
+        var resource = Resource.builder().name("cache-resource").type("cache").enabled(true).configuration("{\"key\":\"value\"}").build();
+        var baseApi = ApiFixtures.aProxyApiV4();
+        var createdApi = baseApi
+            .toBuilder()
+            .id("imported-api-id")
+            .environmentId(ENVIRONMENT_ID)
+            .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder().resources(List.of(resource)).build())
+            .build();
+        var apiWithFlows = new ApiWithFlows(createdApi, List.of());
+        when(createApiDomainService.create(any(), any(), any(), any(), any())).thenReturn(apiWithFlows);
+
+        var swagger = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
+
+        // When
+        var response = rootTarget()
+            .request()
+            .post(Entity.json(new ImportSwaggerDescriptor().payload(Resources.toString(swagger, Charsets.UTF_8))));
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(CREATED_201);
+        var body = response.readEntity(ApiV4.class);
+        assertThat(body.getResources()).isNotNull().hasSize(1);
+        assertThat(body.getResources().getFirst().getName()).isEqualTo("cache-resource");
     }
 
     @Test

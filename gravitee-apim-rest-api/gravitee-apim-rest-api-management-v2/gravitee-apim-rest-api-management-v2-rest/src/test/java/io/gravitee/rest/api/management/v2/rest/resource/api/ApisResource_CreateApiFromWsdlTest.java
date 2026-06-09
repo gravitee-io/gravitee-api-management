@@ -23,12 +23,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.ApiFixtures;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.api.use_case.WsdlToImportApiUseCase;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
@@ -105,6 +107,28 @@ public class ApisResource_CreateApiFromWsdlTest extends AbstractResourceTest {
         var api = response.readEntity(ApiV4.class);
         assertThat(api.getId()).isEqualTo("wsdl-api-id");
         assertThat(api.getName()).isEqualTo("CalculatorService");
+    }
+
+    @Test
+    public void should_return_resources_in_response_on_success() {
+        var resource = Resource.builder().name("cache-resource").type("cache").enabled(true).configuration("{\"key\":\"value\"}").build();
+        var baseApi = ApiFixtures.aProxyApiV4();
+        var createdApi = baseApi
+            .toBuilder()
+            .id("wsdl-api-id")
+            .environmentId(ENVIRONMENT_ID)
+            .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder().resources(List.of(resource)).build())
+            .build();
+        when(wsdlToImportApiUseCase.execute(any())).thenReturn(new WsdlToImportApiUseCase.Output(new ApiWithFlows(createdApi, List.of())));
+
+        var descriptor = new ImportWsdlDescriptor().payload("<definitions/>").withDocumentation(false).withOASValidationPolicy(false);
+
+        var response = rootTarget().request().post(Entity.json(descriptor));
+
+        assertThat(response.getStatus()).isEqualTo(CREATED_201);
+        var api = response.readEntity(ApiV4.class);
+        assertThat(api.getResources()).isNotNull().hasSize(1);
+        assertThat(api.getResources().getFirst().getName()).isEqualTo("cache-resource");
     }
 
     @Test
