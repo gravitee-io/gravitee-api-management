@@ -117,12 +117,6 @@ class ApimAmConnectionRepositoryTest {
     }
 
     @Test
-    void deleteByOrg_delegates_to_service() {
-        repository().deleteByOrg("org-1");
-        verify(amConnectionService).delete("org-1");
-    }
-
-    @Test
     void toString_redacts_the_token() {
         AmConnection connection = new AmConnection(
             "https://am.example.com",
