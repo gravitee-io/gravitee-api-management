@@ -157,7 +157,15 @@ public class ContentTemplateVariableProvider implements ExecutionContextTemplate
      */
     private String sanitizeContent(Buffer buffer) throws XMLStreamException {
         XMLStreamReader sr = XML_INPUT_FACTORY.createXMLStreamReader(new ByteArrayInputStream(buffer.getBytes()));
+        // A malformed body can make next() throw at the same offset without ever advancing,
+        // so the swallow-and-retry loop would spin the event-loop thread forever. Bound the scan to the
+        // input length: a productive scan can't need more steps than there are bytes to read.
+        int maxSteps = buffer.length();
+        int steps = 0;
         while (!sr.isStartElement() && sr.hasNext()) {
+            if (++steps > maxSteps) {
+                break;
+            }
             try {
                 sr.next();
             } catch (Exception e) {
