@@ -33,6 +33,12 @@
     width: 100%;
   }
 
+  &__email-enter-icon {
+    color: app-theme.$paragraph-color;
+    opacity: 0.72;
+    pointer-events: none;
+  }
+
   &__section:first-child &__field {
     margin-top: app-theme.$form-field-container-vertical-padding;
   }
