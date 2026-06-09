@@ -33,9 +33,14 @@ public class AverageHealthCheckResponseTimeAdapter implements QueryResponseAdapt
     }
 
     public Maybe<AverageHealthCheckResponseTime> adaptResponse(SearchResponse response) {
+        var aggregations = response.getAggregations();
+        if (aggregations == null || !aggregations.containsKey("terms")) {
+            return Maybe.empty();
+        }
+
         var group = new HashMap<String, Long>();
 
-        var groupedBuckets = response.getAggregations().get("terms").getBuckets();
+        var groupedBuckets = aggregations.get("terms").getBuckets();
         for (var groupBucket : groupedBuckets) {
             var key = groupBucket.get("key").asText();
 
