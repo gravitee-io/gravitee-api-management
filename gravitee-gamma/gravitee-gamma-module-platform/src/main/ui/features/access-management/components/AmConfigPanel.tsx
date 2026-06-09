@@ -81,19 +81,24 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
     const [domains, setDomains] = useState<AmDomain[] | null>(null);
     const [loadingScope, setLoadingScope] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    // Derived from domains + cfg.domainId — no separate state needed.
-    const domainHrid = domains?.find(d => d.id === cfg.domainId)?.hrid ?? null;
+    // AM forbids fetching a domain by id, so we persist the hrid and use it as the label on reload.
+    const [savedDomain, setSavedDomain] = useState<{ id: string; hrid: string | null } | null>(null);
+    const [pickedDomain, setPickedDomain] = useState<{ id: string; hrid: string | null } | null>(null);
+    // hrid for the selected domain, each source matched to cfg.domainId so it can't go stale.
+    const domainHrid =
+        (pickedDomain?.id === cfg.domainId ? pickedDomain.hrid : null) ??
+        (savedDomain?.id === cfg.domainId ? savedDomain.hrid : null) ??
+        domains?.find(d => d.id === cfg.domainId)?.hrid ??
+        null;
     const [gatewayUrl, setGatewayUrl] = useState<string | null>(null);
     const [gatewayEntrypoints, setGatewayEntrypoints] = useState<AmGatewayEntrypoint[] | null>(null);
     const [testing, setTesting] = useState(false);
     const [testResult, setTestResult] = useState<{ ok: boolean; message?: string } | null>(null);
     const [saving, setSaving] = useState(false);
-    // True only after the connection has been verified — either a successful Test, a successful Save,
-    // or because GET /am-config returned a previously-saved working connection. Editing any field
-    // resets it so users must re-verify before they can pick an env/domain.
+    // Gates the env/domain picker; set by a successful test/save or a previously-saved connection,
+    // reset when any field is edited so the user must re-verify.
     const [connectionVerified, setConnectionVerified] = useState(false);
-    // Bump to force the env/domain effects to re-query, even when connectionVerified
-    // doesn't change (e.g. a second Test after editing credentials).
+    // Bumped to force the env/domain effects to re-query when connectionVerified hasn't changed.
     const [scopeRefreshKey, setScopeRefreshKey] = useState(0);
 
     const set = <K extends keyof AmConfig>(key: K, value: AmConfig[K]) => setCfg(prev => ({ ...prev, [key]: value }));
@@ -105,8 +110,7 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
 
     const { organizationId, environmentId } = cfg;
 
-    // Seed the organization from the bootstrap context the console runs under, instead of forcing
-    // the user to type it. Only fills in when nothing is stored yet.
+    // Seed the organization from the bootstrap context when nothing is stored yet.
     useEffect(() => {
         if (organizationId) return;
         let cancelled = false;
@@ -116,8 +120,7 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
             })
             .catch(e => {
                 if (cancelled) return;
-                // Bootstrap couldn't resolve the org — the connection effect can't run without one,
-                // so drop the loading spinner and surface the error instead of spinning forever.
+                // No org → the connection effect can't run; drop the spinner and surface the error.
                 console.error('Failed to resolve organization', e);
                 setError(e instanceof Error ? e.message : String(e));
                 setLoadingConn(false);
@@ -127,11 +130,9 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
         };
     }, [organizationId]);
 
-    // The connection/env/domain fetches only need the organization (the module base URL is scoped to
-    // it); keeping this stable stops them re-running when the user just changes the selected domain.
+    // Stable org-only cfg so the connection/env/domain fetches don't re-run on domain changes.
     const orgCfg = useMemo<AmConfig>(() => ({ organizationId, environmentId: '', domainId: '' }), [organizationId]);
 
-    // Load saved AM connection from server
     useEffect(() => {
         if (!organizationId) return;
         let cancelled = false;
@@ -146,16 +147,15 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
                     accessToken: '',
                     hadAccessToken: view.hasAccessToken,
                 });
-                // Restore domain from server if localStorage doesn't have one.
-                // Reads prev.domainId inside the updater to avoid adding cfg.domainId
-                // to the effect deps (which would re-run the connection fetch on every domain change).
+                setSavedDomain(view.defaultDomainId ? { id: view.defaultDomainId, hrid: view.defaultDomainHrid ?? null } : null);
+                // Restore the server's domain only when localStorage has none; reading prev inside
+                // the updater keeps cfg.domainId out of the effect deps.
                 if (view.defaultDomainId) {
                     setCfg(prev => (prev.domainId ? prev : { ...prev, domainId: view.defaultDomainId! }));
                 }
                 if (view.gatewayUrl) {
                     setGatewayUrl(view.gatewayUrl);
                 }
-                // Trust a previously-saved connection on first load.
                 setConnectionVerified(Boolean(view.baseUrl && view.hasAccessToken));
             } catch (e) {
                 if (!cancelled) {
@@ -230,14 +230,12 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
         };
     }, [organizationId, environmentId, connectionVerified, scopeRefreshKey, orgCfg]);
 
-    // Stable cfg slice for the entrypoints call — only the three primitives the service needs.
-    // Memoising avoids re-running the effect when unrelated cfg fields change.
+    // Stable cfg slice so the entrypoints effect doesn't re-run on unrelated cfg changes.
     const entrypointCfg = useMemo(
         () => ({ organizationId, environmentId, domainId: cfg.domainId }),
         [organizationId, environmentId, cfg.domainId],
     );
 
-    // Discover gateway entrypoints whenever the selected domain changes.
     useEffect(() => {
         if (!entrypointCfg.organizationId || !entrypointCfg.environmentId || !entrypointCfg.domainId || !connectionVerified) return;
         let cancelled = false;
@@ -284,18 +282,14 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
                 message: result.ok ? 'Connection succeeded' : `${result.status ?? '?'}: ${result.message ?? 'failed'}`,
             });
             if (result.ok) {
-                // Persist the credentials immediately so the env/domain queries below run
-                // against the just-tested baseUrl + token, not whatever is still saved
-                // server-side from a previous (now stale) configuration.
+                // Persist immediately so the env/domain queries below run against the tested creds,
+                // not whatever is still saved server-side.
                 try {
                     const updated = await saveAmConnection(cfg, buildRequest());
                     setForm(prev => ({ ...prev, accessToken: '', hadAccessToken: updated.hasAccessToken }));
                 } catch (saveErr) {
                     console.warn('Failed to persist tested AM connection', saveErr);
                 }
-                // Force the env/domain effects to re-query against the freshly-saved
-                // connection. Bumping the refresh key triggers a re-run even when
-                // connectionVerified was already true (second Test after editing creds).
                 setScopeRefreshKey(k => k + 1);
             }
             setConnectionVerified(result.ok);
@@ -409,6 +403,7 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
                                 onChange={id => {
                                     set('environmentId', id);
                                     set('domainId', '');
+                                    setPickedDomain(null);
                                 }}
                                 options={envs.map(e => ({ value: e.id, label: e.name ? `${e.name} (${e.id})` : e.id }))}
                             />
@@ -429,10 +424,11 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
                                         envId={environmentId}
                                         initialDomains={domains}
                                         value={cfg.domainId}
-                                        onChange={id => {
+                                        valueLabel={domainHrid}
+                                        onChange={(id, hrid) => {
                                             set('domainId', id);
-                                            // Reset gateway state on domain change; the discovery
-                                            // useEffect will re-run and re-populate them.
+                                            setPickedDomain(id ? { id, hrid } : null);
+                                            // Reset gateway state; the discovery effect re-populates it.
                                             setGatewayEntrypoints(null);
                                             setGatewayUrl(null);
                                         }}
@@ -561,14 +557,14 @@ interface DomainOption {
     label: string;
 }
 
-// Searchable domain picker. AM returns at most the first 50 domains by default, so client-side
-// filtering would never reach domain 51. Typing debounces into a server-side ?q= search instead.
+// Searchable domain picker — AM pages domains, so typing debounces into a server-side ?q= search.
 function DomainComboboxField({
     label,
     cfg,
     envId,
     initialDomains,
     value,
+    valueLabel,
     onChange,
 }: {
     label: string;
@@ -576,13 +572,14 @@ function DomainComboboxField({
     envId: string;
     initialDomains: AmDomain[];
     value: string;
-    onChange: (v: string) => void;
+    // Saved hrid used to label a value outside the first-page list, skipping the forbidden by-id fetch.
+    valueLabel?: string | null;
+    onChange: (v: string, hrid: string | null) => void;
 }) {
     const id = useId();
-    // null = no active search, fall back to the first-page list the parent already loaded.
+    // null = no active search, fall back to the parent's first-page list.
     const [searchResults, setSearchResults] = useState<AmDomain[] | null>(null);
-    // Option captured when a domain is picked or fetched by id, so a selection outside the
-    // first-page list keeps its name. Tied to its id so it is ignored once the value changes.
+    // Label captured on pick/by-id fetch so a selection outside the first-page list keeps its name.
     const [pickedOption, setPickedOption] = useState<DomainOption | null>(null);
     const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     // Bumped per search so a slow earlier response can't overwrite a newer query's results.
@@ -591,21 +588,20 @@ function DomainComboboxField({
     const domains = searchResults ?? initialDomains;
     const options = useMemo<DomainOption[]>(() => domains.map(d => ({ value: d.id, label: domainLabel(d) })), [domains]);
 
-    // Resolve the selected option from stable sources only (the first-page list + the label picked
-    // on selection), never from the live search results — otherwise its reference would churn while
-    // the user types and reset the focused input. base-ui reads the label from the value object.
+    // Resolve from stable sources only (not live search results), or base-ui's value reference
+    // churns while typing and resets the focused input.
     const selected = useMemo<DomainOption | null>(() => {
         if (!value) return null;
         const match = initialDomains.find(d => d.id === value);
         if (match) return { value, label: domainLabel(match) };
         if (pickedOption?.value === value) return pickedOption;
+        if (valueLabel) return { value, label: valueLabel };
         return { value, label: value };
-    }, [value, pickedOption, initialDomains]);
+    }, [value, pickedOption, initialDomains, valueLabel]);
 
-    // A saved domain beyond the first page won't be in the list, so fetch it by id to show its name
-    // instead of the raw id. On failure fall back to the id so the field still renders.
+    // Last-resort label for a saved domain with no hrid: fetch by id, falling back to the raw id.
     useEffect(() => {
-        if (!value || pickedOption?.value === value || initialDomains.some(d => d.id === value)) return;
+        if (!value || valueLabel || pickedOption?.value === value || initialDomains.some(d => d.id === value)) return;
         let cancelled = false;
         getDomain(cfg, envId, value)
             .then(d => {
@@ -618,14 +614,12 @@ function DomainComboboxField({
         return () => {
             cancelled = true;
         };
-    }, [value, pickedOption, initialDomains, cfg, envId]);
+    }, [value, valueLabel, pickedOption, initialDomains, cfg, envId]);
 
-    // Clear any pending debounced search when the field unmounts.
     useEffect(() => () => clearTimeout(timer.current), []);
 
     const search = (term: string, details: { reason: string }) => {
-        // base-ui fires onInputValueChange for blur/selection resets too; only react to the user
-        // actually editing the query, otherwise losing focus would kick off a spurious search.
+        // base-ui also fires this on blur/selection resets; only react to real query edits.
         if (!USER_INPUT_REASONS.has(details.reason)) return;
         if (timer.current) clearTimeout(timer.current);
         if (!term) {
@@ -644,9 +638,8 @@ function DomainComboboxField({
         }, 300);
     };
 
-    // While a saved domain outside the first page is being fetched by id, show a loading state
-    // rather than briefly flashing the raw id.
-    const resolving = Boolean(value) && !initialDomains.some(d => d.id === value) && pickedOption?.value !== value;
+    // Show a loading state while a by-id fetch resolves, rather than flashing the raw id.
+    const resolving = Boolean(value) && !valueLabel && !initialDomains.some(d => d.id === value) && pickedOption?.value !== value;
     if (resolving) {
         return (
             <Field>
@@ -666,7 +659,8 @@ function DomainComboboxField({
                 value={selected}
                 onValueChange={(v: DomainOption | null) => {
                     setPickedOption(v);
-                    onChange(v?.value ?? '');
+                    const picked = v ? domains.find(d => d.id === v.value) : undefined;
+                    onChange(v?.value ?? '', picked?.hrid ?? null);
                 }}
                 onInputValueChange={search}
                 filter={null}
