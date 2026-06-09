@@ -396,25 +396,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular-devkit/core@npm:20.3.26":
-  version: 20.3.26
-  resolution: "@angular-devkit/core@npm:20.3.26"
-  dependencies:
-    ajv: "npm:8.18.0"
-    ajv-formats: "npm:3.0.1"
-    jsonc-parser: "npm:3.3.1"
-    picomatch: "npm:4.0.4"
-    rxjs: "npm:7.8.2"
-    source-map: "npm:0.7.6"
-  peerDependencies:
-    chokidar: ^4.0.0
-  peerDependenciesMeta:
-    chokidar:
-      optional: true
-  checksum: 10c0/48477a051d8a13fd64b4b1cc2a8cb2ba165d1e7b7611acbf6a0dfd067b2dfbf6416385d7abac2cf59a5d1801a8d080609ebdadede1bcccbd2a740df82d38311e
-  languageName: node
-  linkType: hard
-
 "@angular-devkit/schematics@npm:20.3.14":
   version: 20.3.14
   resolution: "@angular-devkit/schematics@npm:20.3.14"
@@ -428,20 +409,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular-devkit/schematics@npm:20.3.26":
-  version: 20.3.26
-  resolution: "@angular-devkit/schematics@npm:20.3.26"
-  dependencies:
-    "@angular-devkit/core": "npm:20.3.26"
-    jsonc-parser: "npm:3.3.1"
-    magic-string: "npm:0.30.17"
-    ora: "npm:8.2.0"
-    rxjs: "npm:7.8.2"
-  checksum: 10c0/840ad1073a98387f213220fcaea25de3bcd4f668a11ce674ffa2b75aca4c6a410232845f77c4c8daa9d61d512fa76d168aa19718057578bf4b6b6537ca11b34b
-  languageName: node
-  linkType: hard
-
-"@angular-devkit/schematics@npm:>= 20.0.0 < 21.0.0":
+"@angular-devkit/schematics@npm:20.3.26, @angular-devkit/schematics@npm:>= 20.0.0 < 21.0.0":
   version: 20.3.26
   resolution: "@angular-devkit/schematics@npm:20.3.26"
   dependencies:
