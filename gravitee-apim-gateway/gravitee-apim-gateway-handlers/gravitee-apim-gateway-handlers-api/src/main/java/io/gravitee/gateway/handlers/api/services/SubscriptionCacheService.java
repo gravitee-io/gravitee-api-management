@@ -264,7 +264,16 @@ public class SubscriptionCacheService implements SubscriptionService {
 
     private void updateSubscriptionIdById(Subscription subscription) {
         cacheBySubscriptionId.put(subscription.getId(), subscription);
-        cacheBySubscriptionIdAll.computeIfAbsent(subscription.getId(), k -> ConcurrentHashMap.newKeySet()).add(subscription);
+        cacheBySubscriptionIdAll.compute(subscription.getId(), (id, existing) -> {
+            Set<Subscription> set = existing != null ? existing : ConcurrentHashMap.newKeySet();
+            set.removeIf(
+                s ->
+                    Objects.equals(s.getApi(), subscription.getApi()) &&
+                    Objects.equals(s.getEnvironmentId(), subscription.getEnvironmentId())
+            );
+            set.add(subscription);
+            return set;
+        });
     }
 
     private void unregisterFromClientId(final Subscription subscription) {
