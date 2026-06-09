@@ -48,6 +48,27 @@ jobs:
                   token: ${{ secrets.BOT_GITHUB_TOKEN || github.token }}
                   ref: master
 
+            - name: Check Graphene cohesion
+              # Modules and the gamma host share @gravitee/graphene-core as a Module Federation singleton.
+              # If a module needs a newer graphene than the gamma stack ships, it resolves to undefined at
+              # runtime and the UI crashes. Fail the bump so master stays coherent.
+              env:
+                  GH_TOKEN: ${{ secrets.BOT_GITHUB_TOKEN || github.token }}
+                  MODULE: ${{ inputs.module }}
+                  VERSION: ${{ inputs.version }}
+              run: |
+                  graphene() { jq -r '.dependencies["@gravitee/graphene-core"] // ""' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || true; }
+                  PKG=$(gh api -H "Accept: application/vnd.github.raw" \
+                    "repos/gravitee-io/${MODULE}/contents/package.json?ref=${VERSION}" 2>/dev/null || true)
+                  MODULE_G=$(printf '%s' "$PKG" | graphene)
+                  STACK_G=$(graphene < gravitee-gamma/gravitee-gamma-module-apim/package.json)
+                  echo "${MODULE} needs graphene ${MODULE_G:-?}; gamma stack ships ${STACK_G:-?}"
+                  if [ -n "$MODULE_G" ] && [ -n "$STACK_G" ] && [ "$MODULE_G" != "$STACK_G" ] \
+                     && [ "$(printf '%s\n%s\n' "$MODULE_G" "$STACK_G" | sort -V | tail -1)" = "$MODULE_G" ]; then
+                    echo "::error::${MODULE} ${VERSION} needs graphene ${MODULE_G}, newer than the gamma stack (${STACK_G}). Bump the gamma stack graphene first, or it crashes at runtime (MF singleton)."
+                    exit 1
+                  fi
+
             - name: Update version property in pom.xml
               env:
                   MODULE: ${{ inputs.module }}
