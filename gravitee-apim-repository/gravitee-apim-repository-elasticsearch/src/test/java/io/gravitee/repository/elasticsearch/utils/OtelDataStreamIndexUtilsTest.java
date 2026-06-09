@@ -27,11 +27,49 @@ import org.junit.jupiter.api.Test;
 class OtelDataStreamIndexUtilsTest {
 
     @Test
-    void should_replace_hyphens_in_substituted_values_with_underscore() {
-        // Original bug: orgId "my-org-1" against a Gravitee-side template stays "my-org-1", but the
-        // OTel collector wrote the data stream with hyphens converted to underscores — query misses.
+    void should_replace_hyphens_in_dataset_position_with_underscore() {
+        // Dataset-position placeholder: the OTel exporter strips hyphens from the dataset component,
+        // so we must do the same on the read side or every query misses.
         String result = OtelDataStreamIndexUtils.format("traces-gamma_{orgId}.otel-dev_apim_master", Map.of("orgId", "my-org-1"));
         assertThat(result).isEqualTo("traces-gamma_my_org_1.otel-dev_apim_master");
+    }
+
+    @Test
+    void should_keep_hyphens_in_namespace_position() {
+        // Namespace-position placeholder: the OTel exporter's namespace rule keeps hyphens, so
+        // stripping them on the read side would query an index the collector never wrote (this is
+        // the bug the position-aware fix addresses for the shipped logs-apim.otel-{orgId} default).
+        String result = OtelDataStreamIndexUtils.format("traces-apim.otel-{orgId}", Map.of("orgId", "my-super-org"));
+        assertThat(result).isEqualTo("traces-apim.otel-my-super-org");
+    }
+
+    @Test
+    void should_apply_namespace_rule_to_every_placeholder_right_of_the_otel_marker() {
+        // Multi-segment namespace (e.g. "{orgId}-{envId}") — each placeholder lands right of .otel-
+        // and keeps its hyphens. The structural hyphen between the two placeholders is part of the
+        // template, not a value, so it's preserved untouched.
+        var params = new LinkedHashMap<String, String>();
+        params.put("orgId", "my-org");
+        params.put("envId", "my-env");
+        String result = OtelDataStreamIndexUtils.format("logs-apim.otel-{orgId}-{envId}", params);
+        assertThat(result).isEqualTo("logs-apim.otel-my-org-my-env");
+    }
+
+    @Test
+    void should_apply_dataset_rule_when_placeholder_lives_in_both_slots() {
+        // Same placeholder used in both dataset and namespace position — pick the stricter rule so
+        // the substituted value is legal in the dataset slot too (hyphens are disallowed there).
+        // Unusual shape but legal — the namespace ends up with the stripped form too, which is fine.
+        String result = OtelDataStreamIndexUtils.format("traces-gamma_{orgId}.otel-{orgId}", Map.of("orgId", "my-org"));
+        assertThat(result).isEqualTo("traces-gamma_my_org.otel-my_org");
+    }
+
+    @Test
+    void should_fall_back_to_dataset_rule_when_template_has_no_otel_marker() {
+        // Legacy or custom template without the .otel- separator — no position info, so apply the
+        // stricter rule. Conservative: never produce an index name the exporter would reject.
+        String result = OtelDataStreamIndexUtils.format("custom-{orgId}", Map.of("orgId", "my-org"));
+        assertThat(result).isEqualTo("custom-my_org");
     }
 
     @Test
@@ -63,17 +101,17 @@ class OtelDataStreamIndexUtilsTest {
     }
 
     @Test
-    void should_apply_multiple_substitutions_in_one_pass() {
+    void should_apply_multiple_substitutions_in_one_pass_with_position_aware_rules() {
         // LinkedHashMap to make the ordering explicit — substitution order doesn't matter functionally
         // (no value contains another placeholder pattern), but pinning it makes the assertion stable.
+        // Dataset-position placeholders ({module}, {orgId}) get the strict rule; namespace-position
+        // ({namespace}) gets the looser rule that preserves hyphens.
         var params = new LinkedHashMap<String, String>();
         params.put("module", "gamma");
         params.put("orgId", "DEFAULT");
         params.put("namespace", "prod-eu");
         String result = OtelDataStreamIndexUtils.format("traces-{module}_{orgId}.otel-{namespace}", params);
-        // namespace placeholder goes through the dataset rule too — hyphens in user-supplied values
-        // are universally converted, per the always-strict design choice.
-        assertThat(result).isEqualTo("traces-gamma_default.otel-prod_eu");
+        assertThat(result).isEqualTo("traces-gamma_default.otel-prod-eu");
     }
 
     @Test

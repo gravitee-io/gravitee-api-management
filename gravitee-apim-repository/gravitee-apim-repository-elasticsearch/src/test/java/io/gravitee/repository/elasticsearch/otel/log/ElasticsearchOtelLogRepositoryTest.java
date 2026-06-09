@@ -64,9 +64,10 @@ class ElasticsearchOtelLogRepositoryTest {
         ArgumentCaptor<String> bodyCaptor = ArgumentCaptor.forClass(String.class);
         Mockito.verify(client).search(indexCaptor.capture(), eq(null), bodyCaptor.capture());
 
-        // Hyphen in orgId converted to underscore by the OTel-mode dataset normalisation — matches
-        // the data stream the collector wrote (see OtelDataStreamIndexUtils javadoc).
-        assertThat(indexCaptor.getValue()).isEqualTo("logs-apim.otel-test_org");
+        // Hyphen in orgId preserved: the {orgId} placeholder lives in the namespace slot of the
+        // shipped template (logs-apim.otel-{orgId}), and the OTel namespace rule keeps hyphens —
+        // matches what the collector writes (see OtelDataStreamIndexUtils javadoc).
+        assertThat(indexCaptor.getValue()).isEqualTo("logs-apim.otel-test-org");
 
         JsonNode body = MAPPER.readTree(bodyCaptor.getValue());
         JsonNode filter = body.path("query").path("bool").path("filter");
@@ -420,9 +421,9 @@ class ElasticsearchOtelLogRepositoryTest {
 
         ArgumentCaptor<String> indexCaptor = ArgumentCaptor.forClass(String.class);
         Mockito.verify(client).search(indexCaptor.capture(), eq(null), any());
-        // Both placeholders go through the same dataset normalisation, so hyphens in either
-        // value become underscores.
-        assertThat(indexCaptor.getValue()).isEqualTo("logs-apim.otel-test_org-test_env");
+        // Both placeholders live in namespace position (right of .otel-) so the namespace rule
+        // applies — hyphens in either value are preserved, matching what the OTel exporter writes.
+        assertThat(indexCaptor.getValue()).isEqualTo("logs-apim.otel-test-org-test-env");
     }
 
     @Test

@@ -266,16 +266,24 @@ repositories:
 # OTel traces repository — feeds the gamma APIM tracing resource. Defaults to "none" so a dev install
 # bootstraps without OTel infra; the NoOpTracingRepository returns empty results so any consumer code
 # stays bean-resolvable. Set type to "elasticsearch" and fill in the block below to wire the real
-# ES-backed TracingRepository. Configuration is fully independent from analytics (same per-scope
-# pattern as ratelimit.redis / distributed-sync.redis). When enabled, the ES cluster declared below
+# ES-backed TracingRepository. When enabled, the ES cluster declared below
 # must be the one the OTel collector / Elastic Cloud OTLP endpoint writes traces to.
   otel-traces:
     type: none # or "elasticsearch" to enable the block below
 #    elasticsearch:
-#      # Index/data-stream template — {orgId} / {envId} placeholders are substituted (lowercased) from the
-#      # caller's QueryContext at query time, matching the analytics IndexNameUtils.format convention.
-#      # Should match the data-stream name the OTel collector elasticsearch exporter (mapping.mode: otel)
-#      # writes to.
+#      # Index/data-stream template — must follow the OTel data-stream shape:
+#      #     <type>-<dataset>.otel-<namespace>
+#      # `<type>` is fixed by the signal (`traces` here), and the literal `.otel-` segment is part of
+#      # the OTel naming convention — neither is configurable. Only the dataset and namespace halves
+#      # are yours to shape; the template needs both halves around the `.otel-` separator or the
+#      # reader can't match what the OTel exporter writes.
+#      # {orgId} / {envId} placeholders are substituted (lowercased) from the caller's QueryContext
+#      # at query time, then sanitised position-aware to mirror the OTel collector's two disallowed-
+#      # runes sets:
+#      #   - Placeholders left of `.otel-` (dataset slot)   strip `-\/*?"<>| ,#:` to `_`
+#      #   - Placeholders right of `.otel-` (namespace slot) strip `\/*?"<>| ,#:` to `_` (hyphen kept)
+#      # So an org id like `my-org-1` becomes `my_org_1` in dataset position and stays `my-org-1` in
+#      # namespace position — matching what the exporter writes on either side.
 #      index: traces-apim.otel-{orgId}
 #      endpoints:
 #        - http://${ds.elastic.host}:${ds.elastic.port}
@@ -315,9 +323,19 @@ repositories:
   otel-logs:
     type: none # or "elasticsearch" to enable the block below
 #    elasticsearch:
-#      # Index/data-stream template — {orgId} / {envId} placeholders are substituted (lowercased) from the
-#      # caller's QueryContext at query time. Should match the data-stream name the OTel collector
-#      # elasticsearch exporter (mapping.mode: otel) writes to AND the one gravitee-reporter-otel ships to.
+#      # Index/data-stream template — must follow the OTel data-stream shape:
+#      #     <type>-<dataset>.otel-<namespace>
+#      # `<type>` is fixed by the signal (`logs` here), and the literal `.otel-` segment is part of
+#      # the OTel naming convention — neither is configurable. Only the dataset and namespace halves
+#      # are yours to shape; the template needs both halves around the `.otel-` separator or the
+#      # reader can't match what the OTel exporter (and gravitee-reporter-otel) writes.
+#      # {orgId} / {envId} placeholders are substituted (lowercased) from the caller's QueryContext
+#      # at query time, then sanitised position-aware to mirror the OTel collector's two disallowed-
+#      # runes sets:
+#      #   - Placeholders left of `.otel-` (dataset slot)   strip `-\/*?"<>| ,#:` to `_`
+#      #   - Placeholders right of `.otel-` (namespace slot) strip `\/*?"<>| ,#:` to `_` (hyphen kept)
+#      # So an org id like `my-org-1` becomes `my_org_1` in dataset position and stays `my-org-1` in
+#      # namespace position — matching what the writers produce on either side.
 #      index: logs-apim.otel-{orgId}
 #      endpoints:
 #        - http://${ds.elastic.host}:${ds.elastic.port}
