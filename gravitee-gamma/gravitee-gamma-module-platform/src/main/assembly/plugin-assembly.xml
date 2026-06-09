@@ -30,6 +30,21 @@
 		</file>
 	</files>
 
+	<!-- Bundle runtime deps that APIM rest-api doesn't already provide on the plugin classpath.
+	     The AM SDK (and its jsr310 datatype) back the AM connection test + directory lookups;
+	     without these the module's Spring context fails to refresh at runtime. -->
+	<dependencySets>
+		<dependencySet>
+			<outputDirectory>lib</outputDirectory>
+			<scope>runtime</scope>
+			<useProjectArtifact>false</useProjectArtifact>
+			<includes>
+				<include>io.gravitee.am:gravitee-am-management-api-sdk-java</include>
+				<include>com.fasterxml.jackson.datatype:jackson-datatype-jsr310</include>
+			</includes>
+		</dependencySet>
+	</dependencySets>
+
 	<!-- Include UI assets (manifest.json + compiled JS) -->
 	<fileSets>
 		<fileSet>
