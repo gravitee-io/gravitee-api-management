@@ -154,7 +154,7 @@ export class ApplicationInvitationCreateDialogComponent {
         recipients: this.selectedEmails().map(selectedEmail => ({ email: selectedEmail.email })),
         role: this.roleControl.value,
         notify: this.notifyControl.value,
-        confirmation_page_url: this.buildRegistrationConfirmationUrl(),
+        confirmation_page_url: this.buildInvitationConfirmationUrl(),
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -217,11 +217,11 @@ export class ApplicationInvitationCreateDialogComponent {
     return value.trim().toLowerCase();
   }
 
-  private buildRegistrationConfirmationUrl(): string {
+  private buildInvitationConfirmationUrl(): string {
     const baseHref = this.platformLocation.getBaseHrefFromDOM() || '/';
     const normalizedBaseHref = baseHref.endsWith('/') ? baseHref : `${baseHref}/`;
 
-    return new URL(`${normalizedBaseHref}user/registration/confirm`, globalThis.location.origin).toString();
+    return new URL(`${normalizedBaseHref}user/invitation/confirm`, globalThis.location.origin).toString();
   }
 
   private handleSubmitError(error: HttpErrorResponse): void {
