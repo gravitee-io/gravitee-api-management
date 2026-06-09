@@ -34,7 +34,9 @@ export function listDomains(cfg: AmConfig, envId: string, q?: string): Promise<A
 }
 
 export function getDomain(cfg: AmConfig, envId: string, domainId: string): Promise<AmDomain> {
-    return gammaFetchJson<AmDomain>(`${moduleBaseUrl(cfg)}/environments/${encodeURIComponent(envId)}/domains/${encodeURIComponent(domainId)}`);
+    return gammaFetchJson<AmDomain>(
+        `${moduleBaseUrl(cfg)}/environments/${encodeURIComponent(envId)}/domains/${encodeURIComponent(domainId)}`,
+    );
 }
 
 export function listDomainEntrypoints(cfg: AmConfig, envId: string, domainId: string): Promise<AmGatewayEntrypoint[]> {
@@ -56,7 +58,10 @@ export function deleteAmConnection(cfg: AmConfig): Promise<void> {
 }
 
 export function testAmConnection(cfg: AmConfig, payload: AmConnectionRequest): Promise<AmConnectionTestResult> {
-    return gammaFetchJson<AmConnectionTestResult>(`${moduleBaseUrl(cfg)}/am-config/_test`, { method: 'POST', body: JSON.stringify(payload) });
+    return gammaFetchJson<AmConnectionTestResult>(`${moduleBaseUrl(cfg)}/am-config/_test`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+    });
 }
 
 /** True when the module reports AM is unreachable or not yet configured — a recoverable state. */

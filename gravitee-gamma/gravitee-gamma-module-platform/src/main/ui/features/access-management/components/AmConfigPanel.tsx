@@ -241,11 +241,7 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
         let cancelled = false;
         const run = async () => {
             try {
-                const entries = await listDomainEntrypoints(
-                    entrypointCfg,
-                    entrypointCfg.environmentId,
-                    entrypointCfg.domainId,
-                );
+                const entries = await listDomainEntrypoints(entrypointCfg, entrypointCfg.environmentId, entrypointCfg.domainId);
                 if (cancelled) return;
                 setGatewayEntrypoints(entries);
                 const def = entries.find(e => e.defaultEntrypoint) ?? entries[0];
