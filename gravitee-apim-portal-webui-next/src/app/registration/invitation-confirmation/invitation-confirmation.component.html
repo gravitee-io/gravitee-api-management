@@ -1,0 +1,131 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<mat-card appearance="outlined" class="invitation-confirmation invitation-confirmation__form__container content">
+  @if (tokenInvalid()) {
+    <mat-card-header class="invitation-confirmation__form__header">
+      <mat-card-title class="invitation-confirmation__form__title m3-headline-small" i18n="@@invitationConfirmationTokenErrorTitle">
+        Invalid token
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="invitation-confirmation__form__content">
+      <mat-error i18n="@@invitationConfirmationBadToken">Invalid token value</mat-error>
+    </mat-card-content>
+  } @else if (!submitted() && invitationConfirmationForm) {
+    <mat-card-header class="invitation-confirmation__form__header">
+      <mat-card-title class="invitation-confirmation__form__title m3-headline-small" i18n="@@invitationConfirmationTitle"
+        >Accept your invitation
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="invitation-confirmation__form__content">
+      <form
+        [formGroup]="invitationConfirmationForm"
+        (ngSubmit)="confirmInvitation()"
+        [appIsMobile]="'invitation-confirmation__form__container--mobile'"
+      >
+        <div class="invitation-confirmation__form">
+          <div class="invitation-confirmation__form__section">
+            <div class="invitation-confirmation__form__section-title m3-title-small" i18n="@@invitationConfirmationDetailsTitle">
+              Your details
+            </div>
+            <div class="invitation-confirmation__form__fields">
+              <mat-form-field appearance="outline" class="invitation-confirmation__form__input">
+                <mat-label i18n="@@invitationConfirmationFirstname">First name</mat-label>
+                <input type="text" matInput formControlName="firstname" />
+                @if (invitationConfirmationForm.controls.firstname.hasError('required')) {
+                  <mat-error i18n="@@invitationConfirmationFirstnameErrorRequired">First name is required</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="invitation-confirmation__form__input">
+                <mat-label i18n="@@invitationConfirmationLastname">Last name</mat-label>
+                <input type="text" matInput formControlName="lastname" />
+                @if (invitationConfirmationForm.controls.lastname.hasError('required')) {
+                  <mat-error i18n="@@invitationConfirmationLastnameErrorRequired">Last name is required</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="invitation-confirmation__form__input">
+                <mat-label i18n="@@invitationConfirmationEmail">Email</mat-label>
+                <input type="email" matInput formControlName="email" />
+              </mat-form-field>
+            </div>
+          </div>
+          <div class="invitation-confirmation__form__section">
+            <div class="invitation-confirmation__form__section-title m3-title-small" i18n="@@invitationConfirmationPasswordTitle">
+              Create your password
+            </div>
+            <div class="invitation-confirmation__form__fields">
+              <mat-form-field appearance="outline" class="invitation-confirmation__form__input">
+                <mat-label i18n="@@invitationConfirmationChoosePassword">Password</mat-label>
+                <input type="password" matInput formControlName="password" />
+                @if (invitationConfirmationForm.controls.password.hasError('required')) {
+                  <mat-error i18n="@@invitationConfirmationPasswordErrorRequired">Password is required</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="invitation-confirmation__form__input">
+                <mat-label i18n="@@invitationConfirmationConfirmPassword">Confirm password</mat-label>
+                <input type="password" matInput formControlName="confirmedPassword" />
+                @if (invitationConfirmationForm.controls.confirmedPassword.hasError('required')) {
+                  <mat-error i18n="@@invitationConfirmationPasswordErrorRequired">Password is required</mat-error>
+                }
+                @if (invitationConfirmationForm.controls.confirmedPassword.hasError('passwordMismatch')) {
+                  <mat-error i18n="@@invitationConfirmationPasswordErrorMismatch">Passwords do not match</mat-error>
+                }
+              </mat-form-field>
+            </div>
+          </div>
+          @if (submitFailed()) {
+            <mat-error i18n="@@invitationConfirmationSubmitError">Unable to accept the invitation. Please try again.</mat-error>
+          }
+          <div class="invitation-confirmation__form__buttons">
+            <button
+              [disabled]="invitationConfirmationForm.invalid"
+              type="submit"
+              mat-flat-button
+              i18n="@@invitationConfirmationAction"
+              class="invitation-confirmation__form__submit"
+            >
+              Accept invitation
+            </button>
+            <div class="invitation-confirmation__form__login m3-label-large">
+              <span i18n="@@invitationConfirmationLoginLabel">Already have an account?</span>
+              <a routerLink="/log-in" class="internal-link" i18n="@@invitationConfirmationLoginAction">Login</a>
+            </div>
+          </div>
+        </div>
+      </form>
+    </mat-card-content>
+  } @else if (submitted()) {
+    <mat-card-header class="invitation-confirmation__form__header">
+      <mat-card-title class="invitation-confirmation__form__title m3-headline-small" i18n="@@invitationConfirmationSuccessTitle"
+        >Invitation accepted
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="invitation-confirmation__success__content">
+      <div class="invitation-confirmation__success__text m3-body-medium" i18n="@@invitationConfirmationSuccessMessage">
+        Your account has been successfully activated. You can now sign in using your email address and password.
+      </div>
+      <a
+        i18n="@@invitationConfirmationSuccessAction"
+        class="invitation-confirmation__success__action internal-link m3-label-large"
+        routerLink="/log-in"
+      >
+        Back to login
+      </a>
+    </mat-card-content>
+  }
+</mat-card>

@@ -39,6 +39,7 @@ import { ApplicationTabMembersComponent } from './dashboard/application-details/
 import { ApplicationTabSettingsComponent } from './dashboard/application-details/application-tab-settings/application-tab-settings.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { DocumentationSubscribeComponent } from './documentation/components/documentation-subscribe/documentation-subscribe.component';
+import { InvitationConfirmationComponent } from './registration/invitation-confirmation/invitation-confirmation.component';
 import { RegistrationConfirmationComponent } from './registration/registration-confirmation/registration-confirmation.component';
 import { ServiceUnavailableComponent } from './service-unavailable/service-unavailable.component';
 import { NavigationPageFullWidthComponent } from '../components/navigation-page-full-width/navigation-page-full-width.component';
@@ -307,6 +308,11 @@ export const routes: Routes = [
       {
         path: 'registration/confirm/:token',
         component: RegistrationConfirmationComponent,
+        canActivate: [anonymousGuard],
+      },
+      {
+        path: 'invitation/confirm/:token',
+        component: InvitationConfirmationComponent,
         canActivate: [anonymousGuard],
       },
     ],

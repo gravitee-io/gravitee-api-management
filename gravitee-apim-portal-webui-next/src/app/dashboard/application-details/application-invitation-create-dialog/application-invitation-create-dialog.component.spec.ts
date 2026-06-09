@@ -194,7 +194,7 @@ describe('ApplicationInvitationCreateDialogComponent', () => {
       recipients: [{ email: 'alice@example.com' }, { email: 'bob@example.com' }],
       role: 'USER',
       notify: true,
-      confirmation_page_url: `${globalThis.location.origin}/user/registration/confirm`,
+      confirmation_page_url: `${globalThis.location.origin}/user/invitation/confirm`,
     });
     request.flush(fakeApplicationInvitationsResponse());
     await fixture.whenStable();
@@ -215,7 +215,7 @@ describe('ApplicationInvitationCreateDialogComponent', () => {
       recipients: [{ email: 'alice@example.com' }],
       role: 'USER',
       notify: false,
-      confirmation_page_url: `${globalThis.location.origin}/user/registration/confirm`,
+      confirmation_page_url: `${globalThis.location.origin}/user/invitation/confirm`,
     });
     request.flush(fakeApplicationInvitationsResponse());
     await fixture.whenStable();

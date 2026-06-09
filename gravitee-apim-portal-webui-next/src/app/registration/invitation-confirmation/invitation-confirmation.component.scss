@@ -1,0 +1,93 @@
+/*
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '../../../scss/theme';
+@use '../../../scss/layout' as layout;
+
+:host {
+  @include layout.small-container-legacy();
+}
+
+.invitation-confirmation {
+  display: flex;
+  flex-flow: column;
+  gap: 16px;
+
+  &__success {
+    &__content {
+      display: flex;
+      flex-flow: column;
+      align-items: flex-start;
+      gap: 16px;
+      text-align: left;
+    }
+
+    &__text {
+      margin-top: 6px;
+      color: theme.$paragraph-color;
+    }
+
+    &__action {
+      align-self: center;
+      color: theme.$primary-main-color;
+    }
+  }
+
+  &__form {
+    display: flex;
+    flex-flow: column;
+    gap: 20px;
+
+    &__container {
+      border-radius: 8px;
+
+      &--mobile {
+        max-width: 75vw;
+      }
+    }
+
+    &__section {
+      display: flex;
+      flex-flow: column;
+      gap: 12px;
+    }
+
+    &__section-title {
+      color: theme.$paragraph-color;
+    }
+
+    &__fields {
+      display: flex;
+      flex-flow: column;
+      gap: 12px;
+    }
+
+    &__buttons {
+      display: flex;
+      flex-flow: column;
+      gap: 12px;
+    }
+
+    &__submit {
+      width: 100%;
+    }
+
+    &__login {
+      display: inline-flex;
+      justify-content: center;
+      gap: 6px;
+    }
+  }
+}
