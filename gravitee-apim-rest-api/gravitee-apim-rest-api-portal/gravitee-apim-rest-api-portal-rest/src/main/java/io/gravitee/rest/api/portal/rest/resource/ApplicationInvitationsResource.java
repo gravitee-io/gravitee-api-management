@@ -18,6 +18,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 import io.gravitee.apim.core.invitation.model.InvitationId;
 import io.gravitee.apim.core.invitation.use_case.CreateApplicationInvitationsUseCase;
 import io.gravitee.apim.core.invitation.use_case.DeleteApplicationInvitationUseCase;
+import io.gravitee.apim.core.invitation.use_case.ResendApplicationInvitationUseCase;
 import io.gravitee.apim.core.invitation.use_case.SearchApplicationInvitationsUseCase;
 import io.gravitee.apim.core.invitation.use_case.UpdateApplicationInvitationUseCase;
 import io.gravitee.common.http.MediaType;
@@ -25,11 +26,13 @@ import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationInvitationMapper;
+import io.gravitee.rest.api.portal.rest.mapper.ApplicationInvitationResendInputMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationInvitationUpdateInputMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationInvitationsCreateInputMapper;
 import io.gravitee.rest.api.portal.rest.mapper.ApplicationInvitationsSearchCriteriaMapper;
 import io.gravitee.rest.api.portal.rest.model.ApplicationInvitationsSearchInput;
 import io.gravitee.rest.api.portal.rest.model.InvitationCreateInput;
+import io.gravitee.rest.api.portal.rest.model.InvitationResendInput;
 import io.gravitee.rest.api.portal.rest.model.InvitationUpdateInput;
 import io.gravitee.rest.api.portal.rest.model.InvitationsResponse;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
@@ -68,6 +71,9 @@ public class ApplicationInvitationsResource extends AbstractResource {
 
     @Inject
     private UpdateApplicationInvitationUseCase updateApplicationInvitationUseCase;
+
+    @Inject
+    private ResendApplicationInvitationUseCase resendApplicationInvitationUseCase;
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -159,5 +165,29 @@ public class ApplicationInvitationsResource extends AbstractResource {
         );
 
         return Response.ok(INVITATION_MAPPER.toInvitation(output.invitation())).build();
+    }
+
+    @POST
+    @Path("/{invitationId}/_resend")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_MEMBER, acls = RolePermissionAction.UPDATE) })
+    public Response resendApplicationInvitation(
+        @PathParam("applicationId") String applicationId,
+        @PathParam("invitationId") String invitationId,
+        @Valid @NotNull(message = "Input must not be null.") InvitationResendInput input
+    ) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        resendApplicationInvitationUseCase.execute(
+            new ResendApplicationInvitationUseCase.Input(
+                executionContext.getOrganizationId(),
+                executionContext.getEnvironmentId(),
+                applicationId,
+                InvitationId.of(invitationId),
+                ApplicationInvitationResendInputMapper.INSTANCE.toConfirmationPageUrl(input)
+            )
+        );
+
+        return Response.noContent().build();
     }
 }
