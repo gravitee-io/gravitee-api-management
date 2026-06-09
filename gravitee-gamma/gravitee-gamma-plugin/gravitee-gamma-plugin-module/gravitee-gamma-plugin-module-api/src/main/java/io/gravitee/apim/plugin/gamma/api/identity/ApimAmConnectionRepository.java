@@ -44,11 +44,6 @@ public class ApimAmConnectionRepository implements AmConnectionRepository {
         return toModel(amConnectionService.save(orgId, toEntity(orgId, connection)));
     }
 
-    @Override
-    public void deleteByOrg(String orgId) {
-        amConnectionService.delete(orgId);
-    }
-
     private AmConnection toModel(AmConnectionEntity e) {
         return new AmConnection(
             e.getBaseUrl(),

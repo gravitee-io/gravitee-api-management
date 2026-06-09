@@ -34,8 +34,6 @@ public interface AmConnectionRepository {
      */
     AmConnection save(String orgId, AmConnection connection);
 
-    void deleteByOrg(String orgId);
-
     default AmConnection requireByOrg(String orgId) {
         return findByOrg(orgId).filter(AmConnection::isConfigured).orElseThrow(AmNotConfiguredException::new);
     }
