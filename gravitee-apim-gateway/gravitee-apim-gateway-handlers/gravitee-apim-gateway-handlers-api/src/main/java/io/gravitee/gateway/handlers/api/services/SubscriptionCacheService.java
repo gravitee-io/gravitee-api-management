@@ -190,6 +190,7 @@ public class SubscriptionCacheService implements SubscriptionService {
         cacheByApiId.put(apiId, subscriptionsByApi);
     }
 
+<<<<<<< HEAD
     private void removeKeyForApi(final String apiId, final String cacheKey) {
         Set<String> keysByApi = cacheByApiId.get(apiId);
         if (keysByApi != null && keysByApi.remove(cacheKey)) {
@@ -219,6 +220,20 @@ public class SubscriptionCacheService implements SubscriptionService {
         // In case new one has different client id than the one in cache
         unregisterFromClientId(subscription);
         unregisterFromClientCertificate(subscription);
+=======
+    private void updateSubscriptionIdById(Subscription subscription) {
+        cacheBySubscriptionId.put(subscription.getId(), subscription);
+        cacheBySubscriptionIdAll.compute(subscription.getId(), (id, existing) -> {
+            Set<Subscription> set = existing != null ? existing : ConcurrentHashMap.newKeySet();
+            set.removeIf(
+                s ->
+                    Objects.equals(s.getApi(), subscription.getApi()) &&
+                    Objects.equals(s.getEnvironmentId(), subscription.getEnvironmentId())
+            );
+            set.add(subscription);
+            return set;
+        });
+>>>>>>> 381bd54a08 (fix: subscription metadata not synced to gateway in live requires restart to take effect)
     }
 
     private void unregisterFromClientId(final Subscription subscription) {
