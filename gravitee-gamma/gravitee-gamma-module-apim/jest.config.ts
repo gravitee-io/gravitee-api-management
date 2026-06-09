@@ -28,6 +28,8 @@ export default {
         '^@tanstack/query-core$': '<rootDir>/../../node_modules/@tanstack/query-core/build/modern/index.cjs',
         '^@gravitee/graphene-core$': '<rootDir>/../../node_modules/@gravitee/graphene-core/dist/index.js',
         '^@gravitee/graphene-core/(.*)$': '<rootDir>/../../node_modules/@gravitee/graphene-core/dist/$1',
+        '^@gravitee/graphene-charts$': '<rootDir>/../../node_modules/@gravitee/graphene-charts/dist/index.js',
+        '^@gravitee/graphene-charts/(.*)$': '<rootDir>/../../node_modules/@gravitee/graphene-charts/dist/$1',
         '^@gravitee/gamma-modules-sdk$': '<rootDir>/src/main/ui/shared/gamma-modules-sdk.ts',
         '^@gravitee/gamma-ui-shared/api$': '<rootDir>/../gamma-ui-shared/src/api/apimClient.ts',
     },
