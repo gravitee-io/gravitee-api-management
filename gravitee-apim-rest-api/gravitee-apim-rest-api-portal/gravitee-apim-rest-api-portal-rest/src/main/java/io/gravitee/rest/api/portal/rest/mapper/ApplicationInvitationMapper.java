@@ -29,6 +29,8 @@ import org.mapstruct.factory.Mappers;
 public interface ApplicationInvitationMapper {
     ApplicationInvitationMapper INSTANCE = Mappers.getMapper(ApplicationInvitationMapper.class);
 
+    @Mapping(target = "id", expression = "java(map(invitation.id()))")
+    @Mapping(target = "email", expression = "java(invitation.email())")
     @Mapping(target = "role", source = "roleName")
     Invitation toInvitation(ApplicationInvitation invitation);
 
