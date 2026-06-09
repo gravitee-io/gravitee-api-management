@@ -45,6 +45,8 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
+import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
@@ -60,6 +62,7 @@ import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedExc
 import io.gravitee.rest.api.service.v4.ApiServicePluginService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.exception.ApiTypeException;
+import io.gravitee.rest.api.service.v4.exception.ListenerMissingException;
 import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationService;
@@ -168,10 +171,12 @@ public class ApiValidationServiceImplTest {
     @Test
     public void shouldCallOtherServicesWhenValidatingImportApiForCreation() {
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
-        ApiEntity apiEntity = new ApiEntity();
+        var apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setType(ApiType.PROXY);
         apiEntity.setLifecycleState(CREATED);
+        List<Listener> listeners = List.of(new HttpListener());
+        apiEntity.setListeners(listeners);
         apiValidationService.validateAndSanitizeImportApiForCreation(GraviteeContext.getExecutionContext(), apiEntity, primaryOwnerEntity);
 
         assertNull(apiEntity.getLifecycleState());
@@ -185,7 +190,7 @@ public class ApiValidationServiceImplTest {
             primaryOwnerEntity,
             true
         );
-        verify(listenerValidationService, times(1)).validateAndSanitizeHttpV4(GraviteeContext.getExecutionContext(), null, null, null);
+        verify(listenerValidationService, times(1)).validateAndSanitizeHttpV4(GraviteeContext.getExecutionContext(), null, listeners, null);
         verify(endpointGroupsValidationService, times(1)).validateAndSanitizeHttpV4(apiEntity.getType(), null);
         verify(loggingValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), apiEntity.getType(), null);
         verify(flowValidationService, times(1)).validateAndSanitize(apiEntity.getType(), null);
@@ -464,15 +469,27 @@ public class ApiValidationServiceImplTest {
         apiEntity.setType(ApiType.PROXY);
         apiEntity.setLifecycleState(CREATED);
         apiEntity.setDescription("\"A<img src=\\\"../../../image.png\\\"> Description\"");
+        apiEntity.setListeners(List.of(new HttpListener()));
 
         apiValidationService.validateAndSanitizeImportApiForCreation(GraviteeContext.getExecutionContext(), apiEntity, primaryOwnerEntity);
 
         assertEquals("\"A Description\"", apiEntity.getDescription());
     }
 
+    @Test(expected = ListenerMissingException.class)
+    public void shouldThrowExceptionWhenImportApiForCreationHasNullListeners() {
+        var primaryOwnerEntity = new PrimaryOwnerEntity();
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setType(ApiType.PROXY);
+        apiEntity.setListeners(null);
+
+        apiValidationService.validateAndSanitizeImportApiForCreation(GraviteeContext.getExecutionContext(), apiEntity, primaryOwnerEntity);
+    }
+
     @Test
     public void shouldSanitizeApiDefinitionOnCreate() {
-        PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
+        var primaryOwnerEntity = new PrimaryOwnerEntity();
         NewApiEntity newApiEntity = new NewApiEntity();
         newApiEntity.setType(ApiType.PROXY);
         newApiEntity.setDescription("\"A<img src=\\\"../../../image.png\\\"> Description\"");

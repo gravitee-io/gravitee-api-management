@@ -60,6 +60,7 @@ import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointMissingTypeEx
 import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedDlqException;
 import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedListenerTypeException;
 import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedQosException;
+import io.gravitee.rest.api.service.v4.exception.ListenerMissingException;
 import io.gravitee.rest.api.service.v4.exception.ListenersDuplicatedException;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import java.util.ArrayList;
@@ -129,15 +130,23 @@ class ListenerValidationServiceImplTest {
     class ValidateAndSanitizeHttpV4 {
 
         @Test
-        void should_ignore_empty_list() {
+        void should_reject_empty_list() {
             List<Listener> emptyListeners = List.of();
-            List<Listener> validatedListeners = listenerValidationService.validateAndSanitizeHttpV4(
-                GraviteeContext.getExecutionContext(),
-                null,
-                emptyListeners,
-                emptyList()
+            assertThatExceptionOfType(ListenerMissingException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeHttpV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    emptyListeners,
+                    emptyList()
+                )
             );
-            assertThat(validatedListeners).isEmpty();
+        }
+
+        @Test
+        void should_allow_null_list() {
+            assertThat(
+                listenerValidationService.validateAndSanitizeHttpV4(GraviteeContext.getExecutionContext(), null, null, emptyList())
+            ).isNull();
         }
 
         @Test
@@ -691,15 +700,23 @@ class ListenerValidationServiceImplTest {
     class ValidateAndSanitizeNativeV4 {
 
         @Test
-        void should_ignore_empty_list() {
+        void should_reject_empty_list() {
             List<NativeListener> emptyListeners = List.of();
-            List<NativeListener> validatedListeners = listenerValidationService.validateAndSanitizeNativeV4(
-                GraviteeContext.getExecutionContext(),
-                null,
-                emptyListeners,
-                emptyList()
+            assertThatExceptionOfType(ListenerMissingException.class).isThrownBy(() ->
+                listenerValidationService.validateAndSanitizeNativeV4(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    emptyListeners,
+                    emptyList()
+                )
             );
-            assertThat(validatedListeners).isEmpty();
+        }
+
+        @Test
+        void should_allow_null_list() {
+            assertThat(
+                listenerValidationService.validateAndSanitizeNativeV4(GraviteeContext.getExecutionContext(), null, null, emptyList())
+            ).isNull();
         }
 
         @Test
