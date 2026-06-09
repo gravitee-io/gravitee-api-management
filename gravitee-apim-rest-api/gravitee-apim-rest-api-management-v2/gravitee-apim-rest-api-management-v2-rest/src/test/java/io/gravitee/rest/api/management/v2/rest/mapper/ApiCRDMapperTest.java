@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import fixtures.AnalyticsFixtures;
 import fixtures.definition.FlowFixtures;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
@@ -46,7 +49,7 @@ import org.junit.jupiter.api.Test;
 class ApiCRDMapperTest {
 
     @Test
-    void should_map_to_rest_model_unpublished() {
+    void should_map_to_rest_model_created() {
         var restModel = ApiCRDMapper.INSTANCE.map(aCoreCRD().build());
 
         SoftAssertions.assertSoftly(soft -> {
@@ -58,9 +61,44 @@ class ApiCRDMapperTest {
             soft.assertThat(restModel.getEndpointGroups()).hasSize(1);
             soft.assertThat(restModel.getPlans()).hasSize(1);
             soft.assertThat(restModel.getPlans()).containsKey("keyless-key");
-            soft.assertThat(restModel.getLifecycleState()).isEqualTo(ApiLifecycleState.UNPUBLISHED);
+            soft.assertThat(restModel.getLifecycleState()).isEqualTo(ApiLifecycleState.CREATED);
             soft.assertThat(restModel.getTags()).contains("tag");
         });
+    }
+
+    @Test
+    void should_map_to_rest_model_unpublished() {
+        var restModel = ApiCRDMapper.INSTANCE.map(aCoreCRD().lifecycleState("UNPUBLISHED").build());
+
+        assertThat(restModel.getLifecycleState()).isEqualTo(ApiLifecycleState.UNPUBLISHED);
+    }
+
+    @Test
+    void should_map_to_rest_model_deprecated() {
+        var restModel = ApiCRDMapper.INSTANCE.map(aCoreCRD().lifecycleState("DEPRECATED").build());
+
+        assertThat(restModel.getLifecycleState()).isEqualTo(ApiLifecycleState.DEPRECATED);
+    }
+
+    @Test
+    void should_map_to_rest_model_archived() {
+        var restModel = ApiCRDMapper.INSTANCE.map(aCoreCRD().lifecycleState("ARCHIVED").build());
+
+        assertThat(restModel.getLifecycleState()).isEqualTo(ApiLifecycleState.ARCHIVED);
+    }
+
+    @Test
+    void should_map_null_lifecycle_state_to_null() {
+        var restModel = ApiCRDMapper.INSTANCE.map(aCoreCRD().lifecycleState(null).build());
+
+        assertThat(restModel.getLifecycleState()).isNull();
+    }
+
+    @Test
+    void should_throw_when_lifecycle_state_is_unknown() {
+        var spec = aCoreCRD().lifecycleState("UNKNOWN_STATE").build();
+
+        assertThatThrownBy(() -> ApiCRDMapper.INSTANCE.map(spec)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
