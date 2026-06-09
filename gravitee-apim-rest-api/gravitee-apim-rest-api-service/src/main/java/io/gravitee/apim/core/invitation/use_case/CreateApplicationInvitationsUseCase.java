@@ -20,7 +20,6 @@ import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.invitation.domain_service.CreateApplicationInvitationsDomainService;
 import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
 import io.gravitee.apim.core.invitation.model.CreateApplicationInvitations;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
 
 @UseCase
@@ -38,22 +37,25 @@ public class CreateApplicationInvitationsUseCase {
     }
 
     public Output execute(Input input) {
-        applicationCrudService.findById(input.applicationId(), input.executionContext().getEnvironmentId());
+        applicationCrudService.findById(input.applicationId(), input.environmentId());
         var createApplicationInvitations = input.createApplicationInvitations();
 
         return new Output(
             createApplicationInvitationsDomainService.create(
-                input.executionContext().getOrganizationId(),
+                input.organizationId(),
+                input.environmentId(),
                 input.applicationId(),
                 createApplicationInvitations.recipientEmails(),
                 createApplicationInvitations.roleName(),
-                createApplicationInvitations.notifyUsers()
+                createApplicationInvitations.notifyUsers(),
+                createApplicationInvitations.confirmationPageUrl()
             )
         );
     }
 
     public record Input(
-        ExecutionContext executionContext,
+        String organizationId,
+        String environmentId,
         String applicationId,
         CreateApplicationInvitations createApplicationInvitations
     ) {}

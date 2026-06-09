@@ -25,6 +25,8 @@ import org.junit.jupiter.api.Test;
 
 class ApplicationInvitationsCreateInputMapperTest {
 
+    private static final URI CONFIRMATION_PAGE_URL = URI.create("https://portal.example.com/user/registration/confirm");
+
     private final ApplicationInvitationsCreateInputMapper cut = ApplicationInvitationsCreateInputMapper.INSTANCE;
 
     @Test
@@ -37,7 +39,7 @@ class ApplicationInvitationsCreateInputMapperTest {
                 )
             )
             .role(" USER ")
-            .confirmationPageUrl(URI.create("https://portal.example.com/user/registration/confirm"));
+            .confirmationPageUrl(CONFIRMATION_PAGE_URL);
         input.setNotify(null);
 
         var result = cut.toCreateApplicationInvitations(input);
@@ -45,7 +47,7 @@ class ApplicationInvitationsCreateInputMapperTest {
         assertThat(result.recipientEmails()).containsExactly("alice@example.com", "bob@example.com");
         assertThat(result.roleName()).isEqualTo("USER");
         assertThat(result.notifyUsers()).isTrue();
-        assertThat(result.confirmationPageUrl()).isEqualTo("https://portal.example.com/user/registration/confirm");
+        assertThat(result.confirmationPageUrl()).isEqualTo(CONFIRMATION_PAGE_URL);
     }
 
     @Test

@@ -253,6 +253,11 @@ public class EmailNotificationBuilder {
             "groupInvitation.html",
             "Group invitation - ${group.name}"
         ),
+        TEMPLATES_FOR_ACTION_USER_APPLICATION_INVITATION(
+            ActionHook.USER_APPLICATION_INVITATION,
+            "applicationInvitation.html",
+            "Application invitation - ${application.name}"
+        ),
         TEMPLATES_FOR_ACTION_USER_PASSWORD_RESET(
             ActionHook.USER_PASSWORD_RESET,
             "passwordReset.html",
