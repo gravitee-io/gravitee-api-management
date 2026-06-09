@@ -25,6 +25,7 @@ import { applicationDetailTabElement } from '../config/applicationDetailPages';
 import { NAV_GROUPS } from '../config/navigation';
 import { PLATFORM_ROUTE_CONFIG } from '../config/routes';
 import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../features/applications/components/detail';
+import { AccessManagementPage } from '../pages/AccessManagementPage';
 import { ApplicationDetailSubscriptionPage } from '../pages/ApplicationDetailSubscriptionPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
@@ -84,6 +85,7 @@ export function AppRoutes() {
                                 <Route path="*" element={<ApplicationDetailIndexRedirect />} />
                             </Route>
                         </Route>
+                        <Route path="access-management" element={<AccessManagementPage />} />
                     </Route>
                 </Routes>
             </ConsoleSettingsProvider>
