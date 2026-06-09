@@ -16,6 +16,7 @@
 
 export interface ApimBootstrap {
     managementBaseURL: string;
+    gammaBaseURL: string;
     organizationId: string;
 }
 
@@ -52,6 +53,7 @@ async function resolveBootstrap(): Promise<ApimBootstrap> {
 
             _bootstrap = {
                 managementBaseURL: trimTrailingSlash(requireNonEmptyString(bootstrap.managementBaseURL, 'managementBaseURL')),
+                gammaBaseURL: gammaBase,
                 organizationId: requireNonEmptyString(bootstrap.organizationId, 'organizationId'),
             };
             return _bootstrap;
@@ -163,6 +165,21 @@ export async function apimFetchJsonV1Env<T>(environmentId: string, path: string,
 export async function apimFetchJsonOrg<T>(path: string, init?: RequestInit): Promise<T> {
     const { organizationId } = await resolveBootstrap();
     return apimFetchJson<T>(organizationId, path, init);
+}
+
+/**
+ * Gamma module-scoped: `{gammaBaseURL}{path}`. Unlike the helpers above (which target the
+ * management API), this hits the gamma rest-api where module plugin resources live. The caller
+ * owns the full path, including the `/organizations/{orgId}/modules/{moduleId}/...` prefix.
+ */
+export async function gammaFetchJson<T>(path: string, init?: RequestInit): Promise<T> {
+    const { gammaBaseURL } = await resolveBootstrap();
+    return doFetch<T>(`${gammaBaseURL}${path}`, path, init);
+}
+
+/** The bootstrap-resolved organization id the console runs under. */
+export async function resolveOrganizationId(): Promise<string> {
+    return (await resolveBootstrap()).organizationId;
 }
 
 /** Clears cached bootstrap config between tests (MSW / fetch interception). */
