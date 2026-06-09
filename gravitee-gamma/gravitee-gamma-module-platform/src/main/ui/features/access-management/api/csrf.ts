@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { NavGroup } from '@gravitee/graphene-core';
-import { AppWindowIcon, ShieldIcon } from '@gravitee/graphene-core/icons';
 
-import { ROUTES } from './routes';
+// Shares the CSRF token with the rest of the console via the same localStorage key the
+// gamma-ui-shared apimClient uses.
+const CSRF_STORAGE_KEY = 'XSRF-TOKEN';
 
-export const NAV_GROUPS: NavGroup[] = [
-    {
-        label: 'Overview',
-        items: [{ key: 'applications', title: ROUTES.applications.label, icon: AppWindowIcon }],
-    },
-    {
-        label: 'System & Security',
-        items: [{ key: 'access-management', title: ROUTES['access-management'].label, icon: ShieldIcon }],
-    },
-];
+export function getCsrfToken(): string | null {
+    return localStorage.getItem(CSRF_STORAGE_KEY);
+}
+
+export function setCsrfToken(value: string): void {
+    localStorage.setItem(CSRF_STORAGE_KEY, value);
+}
