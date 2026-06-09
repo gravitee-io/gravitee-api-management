@@ -81,9 +81,10 @@ class ElasticsearchTracingRepositoryTest {
         ArgumentCaptor<String> bodyCaptor = ArgumentCaptor.forClass(String.class);
         Mockito.verify(client).search(indexCaptor.capture(), eq(null), bodyCaptor.capture());
 
-        // Hyphen in orgId converted to underscore by the OTel-mode dataset normalisation — matches
-        // the data stream the collector wrote (see OtelDataStreamIndexUtils javadoc).
-        assertThat(indexCaptor.getValue()).isEqualTo("traces-apim.otel-test_org");
+        // Hyphen in orgId preserved: the {orgId} placeholder lives in the namespace slot of the
+        // shipped template (traces-apim.otel-{orgId}), and the OTel namespace rule keeps hyphens —
+        // matches what the collector writes (see OtelDataStreamIndexUtils javadoc).
+        assertThat(indexCaptor.getValue()).isEqualTo("traces-apim.otel-test-org");
 
         JsonNode body = MAPPER.readTree(bodyCaptor.getValue());
         JsonNode filter = body.path("query").path("bool").path("filter");
