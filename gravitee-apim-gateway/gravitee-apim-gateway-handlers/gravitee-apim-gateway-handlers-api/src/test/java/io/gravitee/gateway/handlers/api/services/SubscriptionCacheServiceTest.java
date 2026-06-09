@@ -30,6 +30,7 @@ import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.security.core.SubscriptionTrustStoreLoaderManager;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CyclicBarrier;
@@ -362,6 +363,70 @@ class SubscriptionCacheServiceTest {
 
             // Trust store loaders should have been re-registered with the new cert
             verify(subscriptionTrustStoreLoaderManager).registerSubscription(eq(updatedWithEmptyCert), eq(Set.of()));
+        }
+
+        @Test
+        void should_replace_stale_metadata_when_api_key_subscription_is_re_registered_with_updated_metadata() {
+            // Simulates incremental gateway sync after a PUT /subscriptions/{id} that only changes metadata.
+            // Before the fix, cacheBySubscriptionIdAll accumulated both old and new entries (because
+            // Subscription.equals() is deep and includes metadata), causing getByApiAndId / getByApiAndSecurityToken
+            // to non-deterministically return the stale subscription.
+            Subscription initial = buildAcceptedSubscription(SUB_ID, API_ID);
+            initial.setMetadata(Map.of("key", "foo"));
+            initial.setEnvironmentId("env-1");
+            subscriptionService.register(initial);
+
+            Subscription updated = buildAcceptedSubscription(SUB_ID, API_ID);
+            updated.setMetadata(Map.of("key", "bar"));
+            updated.setEnvironmentId("env-1");
+            subscriptionService.register(updated);
+
+            // getById must return the updated subscription
+            assertThat(subscriptionService.getById(SUB_ID))
+                .isPresent()
+                .get()
+                .extracting(s -> s.getMetadata().get("key"))
+                .isEqualTo("bar");
+
+            // getAllById must contain exactly one entry (no stale accumulation)
+            assertThat(subscriptionService.getAllById(SUB_ID)).hasSize(1);
+
+            // API key lookup path (getByApiAndId) must also return the fresh metadata
+            ApiKey apiKey = new ApiKey();
+            apiKey.setSubscription(SUB_ID);
+            when(apiKeyService.getByApiAndKey(API_ID, "someKey")).thenReturn(Optional.of(apiKey));
+            assertThat(
+                subscriptionService
+                    .getByApiAndSecurityToken(API_ID, SecurityToken.forApiKey("someKey"), PLAN_ID)
+                    .flatMap(s -> Optional.ofNullable(s.getMetadata()))
+                    .map(m -> m.get("key"))
+            ).hasValue("bar");
+        }
+
+        @Test
+        void should_not_evict_subscription_from_another_environment_with_same_id_and_api() {
+            // Guards against CRD subscriptions where operators control the ID and could (by misconfiguration)
+            // use the same id across environments on the same gateway instance.
+            Subscription envA = buildAcceptedSubscription(SUB_ID, API_ID);
+            envA.setMetadata(Map.of("key", "env-a-value"));
+            envA.setEnvironmentId("env-a");
+            subscriptionService.register(envA);
+
+            Subscription envB = buildAcceptedSubscription(SUB_ID, API_ID);
+            envB.setMetadata(Map.of("key", "env-b-value"));
+            envB.setEnvironmentId("env-b");
+            subscriptionService.register(envB);
+
+            // Both legs must coexist since they belong to different environments
+            assertThat(subscriptionService.getAllById(SUB_ID)).hasSize(2);
+
+            // Updating env-a metadata must not evict env-b's entry
+            Subscription envAUpdated = buildAcceptedSubscription(SUB_ID, API_ID);
+            envAUpdated.setMetadata(Map.of("key", "env-a-updated"));
+            envAUpdated.setEnvironmentId("env-a");
+            subscriptionService.register(envAUpdated);
+
+            assertThat(subscriptionService.getAllById(SUB_ID)).hasSize(2);
         }
 
         @Test
