@@ -27,6 +27,7 @@ export interface ApplicationInvitationsCreateInput {
   recipients: ApplicationInvitationRecipientInput[];
   role: string;
   notify: boolean;
+  confirmation_page_url?: string;
 }
 
 export interface ApplicationInvitationsSearchFilters {
