@@ -20,6 +20,7 @@ export * from './api';
 export * from './apiCreation';
 export * from './auditLogs.types';
 export * from './broadcast';
+export * from './healthCheck';
 export * from './members.types';
 export * from './notification';
 export * from './plan';

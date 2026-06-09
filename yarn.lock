@@ -3399,10 +3399,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@dagrejs/dagre@npm:3.0.0":
+  version: 3.0.0
+  resolution: "@dagrejs/dagre@npm:3.0.0"
+  dependencies:
+    "@dagrejs/graphlib": "npm:4.0.1"
+  checksum: 10c0/f5d43819697b33864e8aced460fbf972a7151758b5f0aea8ee47315b9ab957782b2ab8beb4e1e2bff892b1820b0ff8ab8a22abc12a65ebb37e205e3a7f63a6e0
+  languageName: node
+  linkType: hard
+
 "@dagrejs/graphlib@npm:2.2.4":
   version: 2.2.4
   resolution: "@dagrejs/graphlib@npm:2.2.4"
   checksum: 10c0/14597ea9294c46b2571aee78bcaad3a24e3e5e0ebcdf198b6eae5b3805f99af727ac54a477dd9152e8b0a576efea0528fb7d4919c74801e9f669c90e5e6f5bd9
+  languageName: node
+  linkType: hard
+
+"@dagrejs/graphlib@npm:4.0.1":
+  version: 4.0.1
+  resolution: "@dagrejs/graphlib@npm:4.0.1"
+  checksum: 10c0/03ab574f2eb7d87173af0b9d8bbae87c10e225778b8144a800c663afe307ff71d851c13d96d32ec91db85e325d64914cdabbab1ce76fb043e0a5538e60bb51bd
   languageName: node
   linkType: hard
 
@@ -4561,6 +4577,32 @@ __metadata:
     react-dom: ">=19"
     react-router-dom: ">=6"
   checksum: 10c0/69bfb0f87c622f9d23b1cb2a413cb3d77c85f7d1120f3dd6d5eae94a0f5f4d14da3bdebe01129c96903d78278fab4c7b82fbf1affe1a5cc6a390a47408e408a7
+  languageName: node
+  linkType: hard
+
+"@gravitee/graphene-charts@npm:2.39.2":
+  version: 2.39.2
+  resolution: "@gravitee/graphene-charts@npm:2.39.2"
+  dependencies:
+    "@dagrejs/dagre": "npm:3.0.0"
+    d3-array: "npm:3.2.4"
+    d3-scale: "npm:4.0.2"
+    d3-shape: "npm:3.2.0"
+  peerDependencies:
+    "@gravitee/graphene-core": ^2.31.0
+    "@xyflow/react": ^12.0.0
+    react: ^19.0.0
+    react-dom: ^19.0.0
+    react-grid-layout: ^2.0.0
+    tailwindcss: ^4.0.0
+  peerDependenciesMeta:
+    "@xyflow/react":
+      optional: true
+    react-grid-layout:
+      optional: true
+    tailwindcss:
+      optional: true
+  checksum: 10c0/6620d7d75ab1faf75bcd13faf8ecc46e025dc4b02f9668d984af273a68a09fd2a656cacfd404920ab52305ded09c9e9c52da79cbb4bf251212cf19430b2b7ecb
   languageName: node
   linkType: hard
 
@@ -17785,7 +17827,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-array@npm:2 - 3, d3-array@npm:2.10.0 - 3, d3-array@npm:2.5.0 - 3, d3-array@npm:3, d3-array@npm:^3.2.0":
+"d3-array@npm:2 - 3, d3-array@npm:2.10.0 - 3, d3-array@npm:2.5.0 - 3, d3-array@npm:3, d3-array@npm:3.2.4, d3-array@npm:^3.2.0":
   version: 3.2.4
   resolution: "d3-array@npm:3.2.4"
   dependencies:
@@ -18000,7 +18042,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-scale@npm:4":
+"d3-scale@npm:4, d3-scale@npm:4.0.2":
   version: 4.0.2
   resolution: "d3-scale@npm:4.0.2"
   dependencies:
@@ -18020,7 +18062,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-shape@npm:3":
+"d3-shape@npm:3, d3-shape@npm:3.2.0":
   version: 3.2.0
   resolution: "d3-shape@npm:3.2.0"
   dependencies:
@@ -21469,6 +21511,7 @@ __metadata:
     "@fontsource/montserrat": "npm:5.2.5"
     "@fontsource/roboto": "npm:5.2.5"
     "@gravitee/gamma-modules-sdk": "npm:1.0.0-alpha.10"
+    "@gravitee/graphene-charts": "npm:2.39.2"
     "@gravitee/graphene-core": "npm:^2.39.2"
     "@gravitee/graphene-policy-studio": "npm:2.39.2"
     "@gravitee/ui-analytics": "npm:17.8.0"

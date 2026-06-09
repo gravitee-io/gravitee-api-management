@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { Timeframe } from './healthTimeframe';
+import type { HealthField } from '../types/healthCheck';
 import type { PlanContext, PlanStatus } from '../types/plan';
 import type { SubscriptionContext } from '../types/subscription';
 
@@ -119,6 +121,17 @@ export const apiPlanKeys = {
         [...apiPlanKeys.all, ctx.type, ctx.entityId, 'detail', envId, planId] as const,
     count: (envId: string, ctx: PlanContext, status: PlanStatus) =>
         [...apiPlanKeys.all, ctx.type, ctx.entityId, 'count', envId, status] as const,
+};
+
+export const apiHealthCheckKeys = {
+    all: ['api-health-check'] as const,
+    availability: (envId: string, apiId: string, field: HealthField, timeframe: Timeframe) =>
+        [...apiHealthCheckKeys.all, 'availability', envId, apiId, field, timeframe] as const,
+    avgResponseTime: (envId: string, apiId: string, field: HealthField, timeframe: Timeframe) =>
+        [...apiHealthCheckKeys.all, 'avg-response-time', envId, apiId, field, timeframe] as const,
+    trend: (envId: string, apiId: string, timeframe: Timeframe) => [...apiHealthCheckKeys.all, 'trend', envId, apiId, timeframe] as const,
+    logs: (envId: string, apiId: string, timeframe: Timeframe, page: number, perPage: number) =>
+        [...apiHealthCheckKeys.all, 'logs', envId, apiId, timeframe, page, perPage] as const,
 };
 
 export const tenantKeys = {

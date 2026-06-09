@@ -94,8 +94,8 @@ describe('ApiDetailSidebarNav — collapsible items', () => {
     it('is open by default when current URL matches a child path', () => {
         renderNav(`${BASE}/endpoints/list`);
         expect(screen.getByRole('link', { name: /failover/i })).toBeInTheDocument();
-        // "Health Check Dashboard" is a coming-soon child and is hidden.
-        expect(screen.queryByText(/health check dashboard/i)).not.toBeInTheDocument();
+        // "Health Check Dashboard" is now a shipped child and is shown as a link.
+        expect(screen.getByRole('link', { name: /health check dashboard/i })).toBeInTheDocument();
     });
 
     it('is open by default when current URL matches the parent path exactly', () => {

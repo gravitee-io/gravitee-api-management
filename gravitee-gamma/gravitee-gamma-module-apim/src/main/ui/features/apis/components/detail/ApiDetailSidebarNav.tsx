@@ -93,7 +93,7 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
                 children: [
                     { path: 'list', label: 'Endpoints' },
                     { path: 'failover', label: 'Failover' },
-                    { path: 'health-check-dashboard', label: 'Health Check Dashboard', comingSoon: true },
+                    { path: 'health-check-dashboard', label: 'Health Check Dashboard' },
                 ],
             },
             { path: 'reporter-settings', label: 'Reporter Settings', icon: ListIcon },
