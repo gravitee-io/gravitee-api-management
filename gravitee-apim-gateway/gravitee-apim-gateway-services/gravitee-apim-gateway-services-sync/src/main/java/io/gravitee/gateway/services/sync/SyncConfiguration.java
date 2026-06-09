@@ -47,7 +47,6 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.Noo
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.PlanAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.SubscriptionAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEnginePort;
-import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityIdExtractor;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.EventBusAuthzEnginePort;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.GammaDisabledCondition;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.GammaEnabledCondition;
@@ -281,11 +280,6 @@ public class SyncConfiguration {
             apiProductSubscriptionRefresher,
             authzEnginePort
         );
-    }
-
-    @Bean
-    public AuthzEntityIdExtractor authzEntityIdExtractor() {
-        return AuthzEntityIdExtractor.INSTANCE;
     }
 
     @Bean
