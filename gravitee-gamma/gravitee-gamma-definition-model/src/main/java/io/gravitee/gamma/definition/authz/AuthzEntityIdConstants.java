@@ -15,6 +15,9 @@
  */
 package io.gravitee.gamma.definition.authz;
 
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 public final class AuthzEntityIdConstants {
@@ -49,6 +52,71 @@ public final class AuthzEntityIdConstants {
             }
         }
         return false;
+    }
+
+    // Transitional bridge: maps a _kind attribute value (principals) or an entityId prefix segment
+    // (resources) to the canonical engine type name. Mirrors the FE entity-kind-registry.ts. The
+    // schema is the source of truth for which types are valid; this only types legacy/sync data
+    // that carries _kind/prefix rather than an explicit entityType.
+    private static final Map<String, String> ENGINE_TYPE_BY_HINT = new HashMap<>();
+
+    static {
+        registerEngineType("User", "user");
+        registerEngineType("Group", "group");
+        registerEngineType("Role", "role");
+        registerEngineType("ServiceAccount", "serviceaccount", "service-account", "service_account");
+        registerEngineType("AgentIdentity", "agent-identity", "agentidentity");
+        registerEngineType("MCPServer", "mcp", "mcpserver");
+        registerEngineType("MCPTool", "mcptool");
+        registerEngineType("Model", "model", "llm", "llmmodel", "llmroute");
+        registerEngineType("Agent", "agent", "a2a", "a2aagent");
+        registerEngineType("API", "api");
+        registerEngineType("Event", "event");
+        registerEngineType("Resource", "resource");
+        registerEngineType("Action", "action");
+    }
+
+    private static void registerEngineType(String engineType, String... hints) {
+        for (String hint : hints) {
+            ENGINE_TYPE_BY_HINT.put(hint.toLowerCase(Locale.ROOT), engineType);
+        }
+    }
+
+    /** A {@code _kind} value or entityId prefix segment → canonical engine type, or {@code null} when unknown. */
+    public static String engineTypeForHint(String hint) {
+        if (hint == null || hint.isBlank()) {
+            return null;
+        }
+        return ENGINE_TYPE_BY_HINT.get(hint.toLowerCase(Locale.ROOT));
+    }
+
+    /**
+     * Canonical engine UID wire form: {@code Type::"id"} (the quoted form the engine's parser expects).
+     * No escaping is applied: entityIds are constrained by {@link #FORMAT_REGEX} (lowercase, digits,
+     * {@code _ : - .}) and types are canonical names, so neither can contain a quote/backslash.
+     */
+    public static String toEngineUid(String entityType, String entityId) {
+        return entityType + "::\"" + entityId + "\"";
+    }
+
+    /**
+     * Normalize a reference UID to the canonical quoted form {@code Type::"id"} so the engine parser
+     * accepts it directly. Re-quotes the unquoted legacy {@code Type::id}; leaves an already-quoted
+     * UID, a typeless bare id (no {@code ::}), and null untouched. The type/id split is the last
+     * {@code ::}, mirroring the engine's own parse (a namespaced type keeps its inner {@code ::}).
+     */
+    public static String normalizeParentUid(String uid) {
+        if (uid == null || uid.contains("::\"") || !uid.contains("::")) {
+            return uid;
+        }
+        int sep = uid.lastIndexOf("::");
+        String type = uid.substring(0, sep);
+        String id = uid.substring(sep + 2);
+        if (type.isBlank() || id.isBlank()) {
+            // Not a normalizable Type::id (e.g. "Type::" or "::id") — leave it for the parser to reject.
+            return uid;
+        }
+        return toEngineUid(type, id);
     }
 
     private AuthzEntityIdConstants() {}
