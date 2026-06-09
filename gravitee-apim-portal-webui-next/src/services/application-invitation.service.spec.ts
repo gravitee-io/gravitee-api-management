@@ -114,4 +114,17 @@ describe('ApplicationInvitationService', () => {
     expect(req.request.body).toEqual(input);
     req.flush(response);
   });
+
+  it('should resend application invitation', done => {
+    const invitationId = 'invitation-1';
+    const input = { confirmation_page_url: 'http://example.local/user/invitation/confirm' };
+
+    service.resendApplicationInvitation(applicationId, invitationId, input).subscribe(() => done());
+
+    const req = httpTestingController.expectOne(
+      r => r.url === `${TESTING_BASE_URL}/applications/${applicationId}/invitations/${invitationId}/_resend` && r.method === 'POST',
+    );
+    expect(req.request.body).toEqual(input);
+    req.flush(null, { status: 204, statusText: 'No Content' });
+  });
 });

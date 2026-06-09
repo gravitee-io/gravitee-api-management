@@ -384,6 +384,110 @@ describe('ApplicationTabInvitationsComponent', () => {
     });
   });
 
+  describe('resend action', () => {
+    it('should not show resend button when user lacks MEMBER[U] permission', async () => {
+      const harness = await flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()]));
+
+      expect(await harness.getResendInvitationButton()).toBeNull();
+    });
+
+    it('should show resend button when user has MEMBER[U] permission', async () => {
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'U'] }));
+
+      const harness = await flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()]));
+
+      expect(await harness.getResendInvitationButton()).not.toBeNull();
+    });
+
+    it('should open confirmation dialog on resend click', async () => {
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'U'] }));
+      const harness = await flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation({ email: 'alice@example.com' })]));
+
+      await harness.clickResendInvitation();
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarnessOrNull(ConfirmDialogHarness);
+      expect(dialog).not.toBeNull();
+      expect(await dialog!.getTitle()).toBe('Resend invitation?');
+      expect(await dialog!.getContent()).toContain('alice@example.com');
+      expect(await dialog!.getConfirmText()).toBe('Resend');
+      expect(await dialog!.getCancelText()).toBe('Cancel');
+      await dialog!.cancel();
+    });
+
+    it('should not send resend request when dialog is cancelled', async () => {
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'U'] }));
+      const harness = await flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()]));
+
+      await harness.clickResendInvitation();
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarnessOrNull(ConfirmDialogHarness);
+      await dialog!.cancel();
+      fixture.detectChanges();
+
+      httpTestingController.expectNone(r => r.url.includes('_resend'));
+    });
+
+    it('should send resend request, disable row action, reload list and show success message on confirm', async () => {
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'U'] }));
+      const invitation = fakeApplicationInvitation({ id: 'invitation-1', email: 'alice@example.com' });
+      const harness = await flush(fakeApplicationInvitationsResponse([invitation]));
+
+      await harness.clickResendInvitation();
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarnessOrNull(ConfirmDialogHarness);
+      await dialog!.confirm();
+      fixture.detectChanges();
+
+      const request = httpTestingController.expectOne(
+        r => r.url === `${TESTING_BASE_URL}/applications/${applicationId}/invitations/${invitation.id}/_resend` && r.method === 'POST',
+      );
+      expect(request.request.body).toEqual({
+        confirmation_page_url: `${globalThis.location.origin}/user/invitation/confirm`,
+      });
+      expect(await (await harness.getResendInvitationButton())!.isDisabled()).toBe(true);
+      request.flush(null, { status: 204, statusText: 'No Content' });
+      fixture.detectChanges();
+
+      httpTestingController.expectOne(r => r.url.includes('invitations/_search')).flush(fakeApplicationInvitationsResponse([invitation]));
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const success = await harness.getActionSuccessMessage();
+      expect(success).not.toBeNull();
+      expect(await success!.getAttribute('aria-live')).toBe('polite');
+      expect(await success!.text()).toContain('Invitation email resent to alice@example.com');
+    });
+
+    it('should show inline error when resend fails', async () => {
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'U'] }));
+      const invitation = fakeApplicationInvitation({ id: 'invitation-1' });
+      const harness = await flush(fakeApplicationInvitationsResponse([invitation]));
+
+      await harness.clickResendInvitation();
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarnessOrNull(ConfirmDialogHarness);
+      await dialog!.confirm();
+      fixture.detectChanges();
+
+      httpTestingController
+        .expectOne(
+          r => r.url === `${TESTING_BASE_URL}/applications/${applicationId}/invitations/${invitation.id}/_resend` && r.method === 'POST',
+        )
+        .flush({ error: 'Server error' }, { status: 500, statusText: 'Internal Server Error' });
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const error = await harness.getActionErrorMessage();
+      expect(error).not.toBeNull();
+      expect(await error!.getAttribute('role')).toBe('alert');
+      expect(await error!.text()).toContain('An error occurred while resending the invitation');
+    });
+  });
+
   describe('delete action', () => {
     it('should not show delete button when user lacks MEMBER[D] permission', async () => {
       const harness = await flush(fakeApplicationInvitationsResponse([fakeApplicationInvitation()]));
@@ -496,7 +600,7 @@ describe('ApplicationTabInvitationsComponent', () => {
       await fixture.whenStable();
       fixture.detectChanges();
 
-      const error = await harness.getDeleteErrorMessage();
+      const error = await harness.getActionErrorMessage();
       expect(error).not.toBeNull();
       expect(await error!.getAttribute('role')).toBe('alert');
       expect(await error!.text()).toContain('An error occurred while deleting the invitation');

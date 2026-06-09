@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { PlatformLocation } from '@angular/common';
 import { Component, computed, DestroyRef, inject, input, signal } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
-import { EMPTY, filter, map, of, switchMap, tap } from 'rxjs';
+import { EMPTY, filter, finalize, map, of, switchMap, tap } from 'rxjs';
 
 import { ConfirmDialogComponent, ConfirmDialogData } from '../../../../components/confirm-dialog/confirm-dialog.component';
 import { LoaderComponent } from '../../../../components/loader/loader.component';
@@ -70,6 +71,7 @@ export class ApplicationTabInvitationsComponent {
   private readonly applicationInvitationService = inject(ApplicationInvitationService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly matDialog = inject(MatDialog);
+  private readonly platformLocation = inject(PlatformLocation);
 
   readonly applicationId = input.required<string>();
   readonly userApplicationPermissions = input.required<UserApplicationPermissions>();
@@ -78,6 +80,8 @@ export class ApplicationTabInvitationsComponent {
   readonly pageSize = signal(10);
   readonly searchTerm = signal('');
   readonly error = signal<string | null>(null);
+  readonly successMessage = signal<string | null>(null);
+  readonly resendingInvitationId = signal<string | null>(null);
   readonly displayedTotalElements = signal<number | null>(null);
   readonly sectionTitle = computed(() => {
     const totalElements = this.displayedTotalElements();
@@ -103,26 +107,34 @@ export class ApplicationTabInvitationsComponent {
   });
 
   readonly actions = computed<TableAction<InvitationTableRow>[]>(() => {
-    const actions: TableAction<InvitationTableRow>[] = [];
+    const updateActions: TableAction<InvitationTableRow>[] = this.canUpdate()
+      ? [
+          {
+            id: 'resend',
+            icon: 'send',
+            ariaLabel: $localize`:@@resendApplicationInvitationAriaLabel:Resend invitation`,
+            isDisabled: invitation => this.resendingInvitationId() === invitation.id,
+          },
+          {
+            id: 'edit',
+            icon: 'edit',
+            ariaLabel: $localize`:@@editApplicationInvitationAriaLabel:Edit invitation role`,
+          },
+        ]
+      : [];
 
-    if (this.canUpdate()) {
-      actions.push({
-        id: 'edit',
-        icon: 'edit',
-        ariaLabel: $localize`:@@editApplicationInvitationAriaLabel:Edit invitation role`,
-      });
-    }
+    const deleteActions: TableAction<InvitationTableRow>[] = this.canDelete()
+      ? [
+          {
+            id: 'delete',
+            icon: 'delete_outline',
+            ariaLabel: $localize`:@@deleteApplicationInvitationAriaLabel:Delete invitation`,
+            color: 'warn',
+          },
+        ]
+      : [];
 
-    if (this.canDelete()) {
-      actions.push({
-        id: 'delete',
-        icon: 'delete_outline',
-        ariaLabel: $localize`:@@deleteApplicationInvitationAriaLabel:Delete invitation`,
-        color: 'warn',
-      });
-    }
-
-    return actions;
+    return [...updateActions, ...deleteActions];
   });
 
   readonly requestParams = computed<InvitationsRequestParams | null>(() =>
@@ -188,15 +200,21 @@ export class ApplicationTabInvitationsComponent {
   }
 
   onActionClick({ actionId, row }: { actionId: string; row: InvitationTableRow }): void {
-    if (actionId === 'edit') {
-      this.openEditInvitationDialog(row);
-    } else if (actionId === 'delete') {
-      this.openDeleteConfirmation(row);
+    switch (actionId) {
+      case 'resend':
+        this.openResendConfirmation(row);
+        break;
+      case 'edit':
+        this.openEditInvitationDialog(row);
+        break;
+      case 'delete':
+        this.openDeleteConfirmation(row);
+        break;
     }
   }
 
   openCreateInvitationDialog(): void {
-    this.error.set(null);
+    this.clearActionFeedback();
     this.matDialog
       .open<ApplicationInvitationCreateDialogComponent, ApplicationInvitationCreateDialogData, boolean>(
         ApplicationInvitationCreateDialogComponent,
@@ -215,7 +233,7 @@ export class ApplicationTabInvitationsComponent {
   }
 
   private openEditInvitationDialog(invitation: InvitationTableRow): void {
-    this.error.set(null);
+    this.clearActionFeedback();
     this.matDialog
       .open<ApplicationInvitationEditDialogComponent, ApplicationInvitationEditDialogData, boolean>(
         ApplicationInvitationEditDialogComponent,
@@ -237,8 +255,50 @@ export class ApplicationTabInvitationsComponent {
       .subscribe();
   }
 
+  private openResendConfirmation(invitation: InvitationTableRow): void {
+    this.clearActionFeedback();
+    this.matDialog
+      .open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
+        role: 'alertdialog',
+        data: {
+          title: $localize`:@@resendApplicationInvitationDialogTitle:Resend invitation?`,
+          content: $localize`:@@resendApplicationInvitationDialogContent:This will send a new invitation email to ${invitation.email}:invitationEmail: and refresh its validity period.`,
+          confirmLabel: $localize`:@@resendApplicationInvitationDialogConfirm:Resend`,
+          cancelLabel: $localize`:@@resendApplicationInvitationDialogCancel:Cancel`,
+        },
+      })
+      .afterClosed()
+      .pipe(
+        switchMap(confirmed => {
+          if (!confirmed) {
+            return EMPTY;
+          }
+
+          this.resendingInvitationId.set(invitation.id);
+          return this.applicationInvitationService
+            .resendApplicationInvitation(this.applicationId(), invitation.id, {
+              confirmation_page_url: this.buildRegistrationConfirmationPageUrl(),
+            })
+            .pipe(finalize(() => this.resendingInvitationId.set(null)));
+        }),
+        tap(() => {
+          this.successMessage.set(
+            $localize`:@@resendApplicationInvitationSuccess:Invitation email resent to ${invitation.email}:invitationEmail:.`,
+          );
+          this.invitationsResource.reload();
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        error: () =>
+          this.error.set(
+            $localize`:@@resendApplicationInvitationError:An error occurred while resending the invitation. Please try again.`,
+          ),
+      });
+  }
+
   private openDeleteConfirmation(invitation: InvitationTableRow): void {
-    this.error.set(null);
+    this.clearActionFeedback();
     this.matDialog
       .open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
         role: 'alertdialog',
@@ -261,6 +321,18 @@ export class ApplicationTabInvitationsComponent {
         error: () =>
           this.error.set($localize`:@@deleteApplicationInvitationError:An error occurred while deleting the invitation. Please try again.`),
       });
+  }
+
+  private clearActionFeedback(): void {
+    this.error.set(null);
+    this.successMessage.set(null);
+  }
+
+  private buildRegistrationConfirmationPageUrl(): string {
+    const baseHref = this.platformLocation.getBaseHrefFromDOM() || '/';
+    const normalizedBaseHref = baseHref.endsWith('/') ? baseHref : `${baseHref}/`;
+
+    return new URL(`${normalizedBaseHref}user/invitation/confirm`, globalThis.location.origin).toString();
   }
 
   private reloadInvitationsAfterDelete(): void {
