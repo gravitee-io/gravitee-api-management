@@ -29,6 +29,7 @@ import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.api.use_case.UpdateApiDefinitionFromImportUseCase;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -38,6 +39,7 @@ import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedE
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class ApiResource_UpdateApiWithDefinitionTest extends ApiResourceTest {
@@ -104,6 +106,31 @@ class ApiResource_UpdateApiWithDefinitionTest extends ApiResourceTest {
         var body = response.readEntity(ApiV4.class);
         assertThat(body).isNotNull();
         assertThat(body.getId()).isEqualTo(API);
+    }
+
+    @Test
+    void should_return_resources_in_response_on_success() {
+        var resource = Resource.builder().name("cache-resource").type("cache").enabled(true).configuration("{\"key\":\"value\"}").build();
+        var baseApi = ApiFixtures.aProxyApiV4();
+        var existingApi = baseApi
+            .toBuilder()
+            .id(API)
+            .environmentId(ENVIRONMENT)
+            .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder().resources(List.of(resource)).build())
+            .build();
+        var apiWithFlows = new ApiWithFlows(existingApi, List.of());
+
+        when(updateApiDefinitionUseCase.execute(any())).thenReturn(new UpdateApiDefinitionFromImportUseCase.Output(apiWithFlows));
+        when(apiSearchServiceV4.findById(GraviteeContext.getExecutionContext(), API)).thenReturn(
+            io.gravitee.rest.api.model.v4.api.ApiEntity.builder().id(API).name("Test API").apiVersion("1.0").build()
+        );
+
+        Response response = rootTarget().request().put(Entity.entity(buildMinimalExportApiV4(), MediaType.APPLICATION_JSON));
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        var body = response.readEntity(ApiV4.class);
+        assertThat(body.getResources()).isNotNull().hasSize(1);
+        assertThat(body.getResources().getFirst().getName()).isEqualTo("cache-resource");
     }
 
     @Test
