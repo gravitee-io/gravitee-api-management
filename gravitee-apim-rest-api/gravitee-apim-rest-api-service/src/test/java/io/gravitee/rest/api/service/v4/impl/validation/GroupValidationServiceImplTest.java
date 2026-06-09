@@ -423,6 +423,50 @@ public class GroupValidationServiceImplTest {
     }
 
     @Test
+    public void shouldRetainPrimaryOwnerOwnGroupWhenApiPrimaryOwnerIsUser() {
+        // Given
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        String apiId = "apiId";
+
+        String poGroupId = "po-group";
+        GroupEntity poGroupEntity = new GroupEntity();
+        poGroupEntity.setId(poGroupId);
+        poGroupEntity.setApiPrimaryOwner("user");
+
+        String foreignGroupId = "foreign-group";
+        GroupEntity foreignGroupEntity = new GroupEntity();
+        foreignGroupEntity.setId(foreignGroupId);
+        foreignGroupEntity.setApiPrimaryOwner("other");
+
+        Set<String> groups = Set.of(poGroupId, foreignGroupId);
+        when(groupService.findByIds(groups)).thenReturn(Set.of(poGroupEntity, foreignGroupEntity));
+
+        MembershipEntity membershipEntity = new MembershipEntity();
+        membershipEntity.setMemberType(MembershipMemberType.USER);
+        membershipEntity.setMemberId("user");
+        when(membershipService.getPrimaryOwner(executionContext.getOrganizationId(), MembershipReferenceType.API, apiId)).thenReturn(
+            membershipEntity
+        );
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId("user");
+
+        // When
+        Set<String> validatedGroups = groupValidationService.validateAndSanitize(
+            executionContext,
+            apiId,
+            groups,
+            null,
+            new PrimaryOwnerEntity(userEntity),
+            false
+        );
+
+        // Then
+        Assertions.assertThat(validatedGroups).contains(poGroupId);
+        Assertions.assertThat(validatedGroups).doesNotContain(foreignGroupId);
+    }
+
+    @Test
     public void shouldReturnExistingGroupsWhenGroupsIsNull() {
         Set<String> existingGroups = Set.of("existing1", "existing2");
 

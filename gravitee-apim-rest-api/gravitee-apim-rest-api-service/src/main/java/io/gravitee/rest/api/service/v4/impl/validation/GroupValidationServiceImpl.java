@@ -112,7 +112,10 @@ public class GroupValidationServiceImpl extends TransactionalService implements 
                     group -> StringUtils.isEmpty(group.getApiPrimaryOwner()) || group.getId().equals(primaryOwner.getMemberId())
                 );
             } else {
-                groupEntityStream = groupEntityStream.filter(group -> StringUtils.isEmpty(group.getApiPrimaryOwner()));
+                groupEntityStream = groupEntityStream.filter(
+                    group ->
+                        StringUtils.isEmpty(group.getApiPrimaryOwner()) || group.getApiPrimaryOwner().equals(primaryOwner.getMemberId())
+                );
             }
         } else {
             groupEntityStream = groupEntityStream.filter(group -> StringUtils.isEmpty(group.getApiPrimaryOwner()));
