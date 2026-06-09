@@ -23,7 +23,6 @@ import io.gravitee.gamma.module.platform.core.am.use_case.GetDomainUseCase;
 import io.gravitee.gamma.module.platform.core.am.use_case.ListDomainEntrypointsUseCase;
 import io.gravitee.gamma.module.platform.core.am.use_case.ListDomainsUseCase;
 import io.gravitee.gamma.module.platform.core.am.use_case.ListEnvironmentsUseCase;
-import io.gravitee.gamma.module.platform.core.am.use_case.connection.DeleteAmConnectionUseCase;
 import io.gravitee.gamma.module.platform.core.am.use_case.connection.GetAmConnectionUseCase;
 import io.gravitee.gamma.module.platform.core.am.use_case.connection.SaveAmConnectionUseCase;
 import io.gravitee.gamma.module.platform.core.am.use_case.connection.TestAmConnectionUseCase;
@@ -79,13 +78,6 @@ public class AccessManagementConfiguration {
         @Qualifier("platformAmConnectionRepository") AmConnectionRepository amConnectionRepository
     ) {
         return new SaveAmConnectionUseCase(amConnectionRepository);
-    }
-
-    @Bean
-    public DeleteAmConnectionUseCase deleteAmConnectionUseCase(
-        @Qualifier("platformAmConnectionRepository") AmConnectionRepository amConnectionRepository
-    ) {
-        return new DeleteAmConnectionUseCase(amConnectionRepository);
     }
 
     @Bean
