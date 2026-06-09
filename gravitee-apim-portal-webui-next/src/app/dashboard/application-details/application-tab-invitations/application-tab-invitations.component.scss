@@ -50,6 +50,11 @@ app-search-bar {
     color: app-theme.$error-main-color;
   }
 
+  &__success {
+    padding: 24px 0;
+    color: app-theme.$primary-main-color;
+  }
+
   &__email {
     display: flex;
     align-items: center;

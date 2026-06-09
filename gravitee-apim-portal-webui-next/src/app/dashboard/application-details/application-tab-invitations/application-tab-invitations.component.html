@@ -37,8 +37,11 @@
   <h4 class="next-gen-h4 invitations__title" data-testid="invitations-section-title">
     {{ sectionTitle() }}
   </h4>
+  @if (successMessage(); as successText) {
+    <p class="invitations__success next-gen-small" data-testid="invitations-action-success" aria-live="polite">{{ successText }}</p>
+  }
   @if (error(); as errorText) {
-    <p class="invitations__error next-gen-small" data-testid="invitations-delete-error" role="alert">{{ errorText }}</p>
+    <p class="invitations__error next-gen-small" data-testid="invitations-action-error" role="alert">{{ errorText }}</p>
   }
   @if (invitationsResource.isLoading()) {
     <app-loader />

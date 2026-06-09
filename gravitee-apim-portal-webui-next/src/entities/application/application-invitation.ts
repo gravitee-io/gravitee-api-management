@@ -34,6 +34,10 @@ export interface ApplicationInvitationUpdateInput {
   role: string;
 }
 
+export interface ApplicationInvitationResendInput {
+  confirmation_page_url: string;
+}
+
 export interface ApplicationInvitationsSearchFilters {
   email?: string;
 }

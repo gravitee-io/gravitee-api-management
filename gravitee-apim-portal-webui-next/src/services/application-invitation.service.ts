@@ -20,6 +20,7 @@ import { Observable } from 'rxjs';
 import { ConfigService } from './config.service';
 import {
   ApplicationInvitation,
+  ApplicationInvitationResendInput,
   ApplicationInvitationsCreateInput,
   ApplicationInvitationsResponse,
   ApplicationInvitationsSearchFilters,
@@ -68,5 +69,9 @@ export class ApplicationInvitationService {
       `${this.configService.baseURL}/applications/${applicationId}/invitations/${invitationId}`,
       input,
     );
+  }
+
+  resendApplicationInvitation(applicationId: string, invitationId: string, input: ApplicationInvitationResendInput): Observable<void> {
+    return this.http.post<void>(`${this.configService.baseURL}/applications/${applicationId}/invitations/${invitationId}/_resend`, input);
   }
 }
