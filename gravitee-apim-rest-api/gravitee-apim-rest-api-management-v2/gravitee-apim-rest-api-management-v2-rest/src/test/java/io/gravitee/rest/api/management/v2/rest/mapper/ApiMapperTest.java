@@ -26,6 +26,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.rest.api.management.v2.rest.model.Analytics;
 import io.gravitee.rest.api.management.v2.rest.model.ApiType;
@@ -44,8 +45,11 @@ import jakarta.ws.rs.core.UriBuilder;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -208,6 +212,59 @@ public class ApiMapperTest {
         assertThat(apiV4.getFailover().getEnabled()).isTrue();
         assertThat(apiV4.getServices()).isNotNull();
         assertThat(apiV4.getAllowedInApiProducts()).isTrue();
+    }
+
+    @Test
+    void map_to_http_v4_preserves_resources_from_definition() {
+        var uriInfo = Mockito.mock(UriInfo.class);
+        Mockito.when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri("http://localhost/"));
+
+        var resource = Resource.builder().name("cache-resource").type("cache").enabled(true).build();
+
+        var baseApi = fixtures.core.model.ApiFixtures.aProxyApiV4();
+        var api = baseApi
+            .toBuilder()
+            .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder().resources(List.of(resource)).build())
+            .build();
+
+        var apiV4 = apiMapper.mapToHttpV4(api, uriInfo, null);
+
+        Assertions.assertThat(apiV4.getResources()).isNotNull().hasSize(1);
+        assertThat(apiV4.getResources().get(0).getName()).isEqualTo("cache-resource");
+    }
+
+    @Test
+    void map_to_http_v4_deserializes_resource_configuration() {
+        var uriInfo = Mockito.mock(UriInfo.class);
+        Mockito.when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri("http://localhost/"));
+
+        var resource = Resource.builder().name("cache-resource").type("cache").enabled(true).configuration("{\"key\":\"value\"}").build();
+
+        var baseApi = fixtures.core.model.ApiFixtures.aProxyApiV4();
+        var api = baseApi
+            .toBuilder()
+            .apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder().resources(List.of(resource)).build())
+            .build();
+
+        var apiV4 = apiMapper.mapToHttpV4(api, uriInfo, null);
+
+        Assertions.assertThat(apiV4.getResources()).hasSize(1);
+        var configuration = apiV4.getResources().get(0).getConfiguration();
+        assertThat(configuration).isInstanceOf(Map.class);
+        Assertions.assertThat(configuration).asInstanceOf(InstanceOfAssertFactories.MAP).containsEntry("key", "value");
+    }
+
+    @Test
+    void map_to_http_v4_propagates_null_resources() {
+        var uriInfo = Mockito.mock(UriInfo.class);
+        Mockito.when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri("http://localhost/"));
+
+        var baseApi = fixtures.core.model.ApiFixtures.aProxyApiV4();
+        var api = baseApi.toBuilder().apiDefinitionValue(baseApi.getApiDefinitionHttpV4().toBuilder().resources(null).build()).build();
+
+        var apiV4 = apiMapper.mapToHttpV4(api, uriInfo, null);
+
+        assertThat(apiV4.getResources()).isNull();
     }
 
     @Test
