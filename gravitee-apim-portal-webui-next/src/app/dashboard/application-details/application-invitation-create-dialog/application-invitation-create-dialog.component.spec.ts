@@ -138,11 +138,11 @@ describe('ApplicationInvitationCreateDialogComponent', () => {
     expect(await harness.getSubmitButtonText()).toBe('Send invitation');
   });
 
-  it('should keep notify unchecked and disabled while backend notifications are unavailable', async () => {
+  it('should enable notify checked by default when backend notifications are available', async () => {
     await init();
 
-    expect(await harness.isNotifyChecked()).toBe(false);
-    expect(await harness.isNotifyDisabled()).toBe(true);
+    expect(await harness.isNotifyChecked()).toBe(true);
+    expect(await harness.isNotifyDisabled()).toBe(false);
   });
 
   it('should reject invalid email address', async () => {
@@ -193,7 +193,8 @@ describe('ApplicationInvitationCreateDialogComponent', () => {
     expect(request.request.body).toEqual({
       recipients: [{ email: 'alice@example.com' }, { email: 'bob@example.com' }],
       role: 'USER',
-      notify: false,
+      notify: true,
+      confirmation_page_url: `${globalThis.location.origin}/user/registration/confirm`,
     });
     request.flush(fakeApplicationInvitationsResponse());
     await fixture.whenStable();
@@ -201,9 +202,10 @@ describe('ApplicationInvitationCreateDialogComponent', () => {
     expect(dialogRef.close).toHaveBeenCalledWith(true);
   });
 
-  it('should submit notify disabled default value', async () => {
+  it('should submit notify false when checkbox is unchecked', async () => {
     await init();
     await enterEmail('alice@example.com');
+    await harness.toggleNotify();
 
     await harness.clickSubmit();
     fixture.detectChanges();
@@ -213,6 +215,7 @@ describe('ApplicationInvitationCreateDialogComponent', () => {
       recipients: [{ email: 'alice@example.com' }],
       role: 'USER',
       notify: false,
+      confirmation_page_url: `${globalThis.location.origin}/user/registration/confirm`,
     });
     request.flush(fakeApplicationInvitationsResponse());
     await fixture.whenStable();

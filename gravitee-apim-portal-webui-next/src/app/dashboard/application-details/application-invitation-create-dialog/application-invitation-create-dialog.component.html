@@ -66,6 +66,14 @@
         placeholder="name@example.com"
         i18n-placeholder="@@createApplicationInvitationEmailPlaceholder"
       />
+      <mat-icon
+        matIconSuffix
+        class="application-invitation-create-dialog__email-enter-icon"
+        data-testid="create-invitation-email-enter-icon"
+        aria-hidden="true"
+      >
+        keyboard_return
+      </mat-icon>
       <mat-hint i18n="@@createApplicationInvitationEmailHint">Press Enter to add each email address.</mat-hint>
     </mat-form-field>
     @if (selectedEmails().length > 0) {

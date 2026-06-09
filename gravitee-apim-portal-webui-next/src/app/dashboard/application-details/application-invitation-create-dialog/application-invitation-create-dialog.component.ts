@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { PlatformLocation } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, DestroyRef, effect, inject, signal } from '@angular/core';
 import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -64,10 +65,11 @@ export class ApplicationInvitationCreateDialogComponent {
   private readonly applicationService = inject(ApplicationService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly dialogRef = inject(MatDialogRef<ApplicationInvitationCreateDialogComponent, boolean>);
+  private readonly platformLocation = inject(PlatformLocation);
   private readonly data: ApplicationInvitationCreateDialogData = inject(MAT_DIALOG_DATA);
 
   readonly emailControl = new FormControl('', { nonNullable: true, validators: [Validators.email] });
-  readonly notifyControl = new FormControl({ value: false, disabled: true }, { nonNullable: true });
+  readonly notifyControl = new FormControl(true, { nonNullable: true });
   readonly roleControl = new FormControl('', { nonNullable: true, validators: [Validators.required] });
 
   readonly selectedEmails = signal<SelectedInvitationEmail[]>([]);
@@ -152,6 +154,7 @@ export class ApplicationInvitationCreateDialogComponent {
         recipients: this.selectedEmails().map(selectedEmail => ({ email: selectedEmail.email })),
         role: this.roleControl.value,
         notify: this.notifyControl.value,
+        confirmation_page_url: this.buildRegistrationConfirmationUrl(),
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -212,6 +215,13 @@ export class ApplicationInvitationCreateDialogComponent {
 
   private normalizeEmail(value: string): string {
     return value.trim().toLowerCase();
+  }
+
+  private buildRegistrationConfirmationUrl(): string {
+    const baseHref = this.platformLocation.getBaseHrefFromDOM() || '/';
+    const normalizedBaseHref = baseHref.endsWith('/') ? baseHref : `${baseHref}/`;
+
+    return new URL(`${normalizedBaseHref}user/registration/confirm`, globalThis.location.origin).toString();
   }
 
   private handleSubmitError(error: HttpErrorResponse): void {
