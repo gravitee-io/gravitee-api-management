@@ -48,6 +48,7 @@ import { ApiCorsPage } from '../features/apis/pages/detail/cors/ApiCorsPage';
 import { DeploymentConfigurationPage } from '../features/apis/pages/detail/deployment/DeploymentConfigurationPage';
 import { DeploymentHistoryPage } from '../features/apis/pages/detail/deployment/DeploymentHistoryPage';
 import { ApiEndpointsPage } from '../features/apis/pages/detail/endpoints/ApiEndpointsPage';
+import { ApiHealthCheckDashboardPage } from '../features/apis/pages/detail/endpoints/health-check-dashboard/ApiHealthCheckDashboardPage';
 import { ApiEntrypointsPage } from '../features/apis/pages/detail/entrypoints/ApiEntrypointsPage';
 import { ApiFailoverPage } from '../features/apis/pages/detail/failover/ApiFailoverPage';
 import { ApiGeneralPage } from '../features/apis/pages/detail/general/ApiGeneralPage';
@@ -122,10 +123,7 @@ export function AppRoutes() {
                                 <Route index element={<Navigate to="list" replace />} />
                                 <Route path="list" element={<ApiEndpointsPage />} />
                                 <Route path="failover" element={<ApiFailoverPage />} />
-                                <Route
-                                    path="health-check-dashboard"
-                                    element={<ApiDetailPlaceholderPage title="Health Check Dashboard" />}
-                                />
+                                <Route path="health-check-dashboard" element={<ApiHealthCheckDashboardPage />} />
                             </Route>
                             <Route path="reporter-settings" element={<ApiReporterSettingsPage />} />
                             <Route path="policy-studio" element={<PolicyStudioPage />} />
