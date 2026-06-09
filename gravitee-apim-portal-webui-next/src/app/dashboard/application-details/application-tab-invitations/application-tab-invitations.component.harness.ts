@@ -25,7 +25,8 @@ export class ApplicationTabInvitationsComponentHarness extends ComponentHarness 
   private readonly locateLoader = this.locatorForOptional(LoaderHarness);
   private readonly locateSectionTitle = this.locatorForOptional('[data-testid="invitations-section-title"]');
   private readonly locateErrorMessage = this.locatorForOptional('[data-testid="invitations-list-error"]');
-  private readonly locateDeleteErrorMessage = this.locatorForOptional('[data-testid="invitations-delete-error"]');
+  private readonly locateActionErrorMessage = this.locatorForOptional('[data-testid="invitations-action-error"]');
+  private readonly locateActionSuccessMessage = this.locatorForOptional('[data-testid="invitations-action-success"]');
   private readonly locateEmptyState = this.locatorForOptional('[data-testid="invitations-empty-state"]');
   private readonly locateSearchBar = this.locatorForOptional('app-search-bar');
   private readonly locateSearchNoMatch = this.locatorForOptional('[data-testid="invitations-search-no-match"]');
@@ -46,8 +47,12 @@ export class ApplicationTabInvitationsComponentHarness extends ComponentHarness 
     return this.locateErrorMessage();
   }
 
-  public async getDeleteErrorMessage(): Promise<TestElement | null> {
-    return this.locateDeleteErrorMessage();
+  public async getActionErrorMessage(): Promise<TestElement | null> {
+    return this.locateActionErrorMessage();
+  }
+
+  public async getActionSuccessMessage(): Promise<TestElement | null> {
+    return this.locateActionSuccessMessage();
   }
 
   public async getEmptyState(): Promise<TestElement | null> {
@@ -88,5 +93,13 @@ export class ApplicationTabInvitationsComponentHarness extends ComponentHarness 
 
   public async clickEditInvitation(): Promise<void> {
     return (await this.getEditInvitationButton())!.click();
+  }
+
+  public async getResendInvitationButton(): Promise<MatButtonHarness | null> {
+    return (await this.locatePaginatedTable())?.getActionButton('resend') ?? null;
+  }
+
+  public async clickResendInvitation(): Promise<void> {
+    return (await this.getResendInvitationButton())!.click();
   }
 }
