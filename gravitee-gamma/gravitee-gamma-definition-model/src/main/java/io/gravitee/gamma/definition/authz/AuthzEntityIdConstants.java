@@ -15,8 +15,6 @@
  */
 package io.gravitee.gamma.definition.authz;
 
-import java.util.Set;
-
 public final class AuthzEntityIdConstants {
 
     public static final int MAX_ENTITY_ID_LENGTH = 255;
@@ -34,22 +32,6 @@ public final class AuthzEntityIdConstants {
     public static final String API_PREFIX = "api.";
     public static final String MCP_PREFIX = "mcp.";
     public static final String AGENT_PREFIX = "agent.";
-
-    public static final String TOOLS_CALL_METHOD = "tools/call";
-
-    private static final Set<String> AUTO_DERIVED_PREFIXES = Set.of(API_PREFIX, MCP_PREFIX, AGENT_PREFIX);
-
-    public static boolean isAutoDerived(String entityId) {
-        if (entityId == null) {
-            return false;
-        }
-        for (String prefix : AUTO_DERIVED_PREFIXES) {
-            if (entityId.startsWith(prefix)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     private AuthzEntityIdConstants() {}
 }
