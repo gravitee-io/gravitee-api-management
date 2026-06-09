@@ -109,19 +109,21 @@ public class GroupValidationServiceImpl extends TransactionalService implements 
             if (primaryOwner.getMemberType() == MembershipMemberType.GROUP) {
                 // don't remove the primary owner group of this API.
                 groupEntityStream = groupEntityStream.filter(
-                    group -> StringUtils.isEmpty(group.getApiPrimaryOwner()) || group.getId().equals(primaryOwner.getMemberId())
+                    group -> isNotPrimaryOwnerGroup(group) || group.getId().equals(primaryOwner.getMemberId())
                 );
             } else {
                 groupEntityStream = groupEntityStream.filter(
-                    group ->
-                        StringUtils.isEmpty(group.getApiPrimaryOwner()) ||
-                        StringUtils.equals(group.getApiPrimaryOwner(), primaryOwner.getMemberId())
+                    group -> isNotPrimaryOwnerGroup(group) || StringUtils.equals(group.getApiPrimaryOwner(), primaryOwner.getMemberId())
                 );
             }
         } else {
-            groupEntityStream = groupEntityStream.filter(group -> StringUtils.isEmpty(group.getApiPrimaryOwner()));
+            groupEntityStream = groupEntityStream.filter(this::isNotPrimaryOwnerGroup);
         }
 
         return groupEntityStream.map(GroupEntity::getId).collect(Collectors.toSet());
+    }
+
+    private boolean isNotPrimaryOwnerGroup(GroupEntity group) {
+        return StringUtils.isEmpty(group.getApiPrimaryOwner());
     }
 }
