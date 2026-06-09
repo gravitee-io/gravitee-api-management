@@ -42,10 +42,19 @@ import {
 } from '@gravitee/graphene-core';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 
-import { type AmConfig, loadAmConfig, saveAmConfig } from '../api/am-config';
-import { amManagementApi, ModuleApiError } from '../api/am-management-api-client';
-import { amManagementApiService } from '../api/am-management-api.service';
-import type { AmConnectionRequest, AmConnectionView, AmDomain, AmEnvironment, AmGatewayEntrypoint } from '../api/am-management-api.types';
+import { resolveOrganizationId } from '../../../shared/api/apimClient';
+import {
+    getAmConnection,
+    getDomain,
+    isAmUnavailable,
+    listDomainEntrypoints,
+    listDomains,
+    listEnvironments,
+    saveAmConnection,
+    testAmConnection,
+} from '../services/amManagement';
+import type { AmConnectionRequest, AmConnectionView, AmDomain, AmEnvironment, AmGatewayEntrypoint } from '../types/amManagement';
+import { type AmConfig, loadAmConfig, saveAmConfig } from '../utils/amConfig';
 
 interface Props {
     onSaved: (cfg: AmConfig) => void;
@@ -101,12 +110,18 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
     useEffect(() => {
         if (organizationId) return;
         let cancelled = false;
-        amManagementApi
-            .resolveOrganizationId()
+        resolveOrganizationId()
             .then(org => {
-                if (!cancelled && org) setCfg(prev => (prev.organizationId ? prev : { ...prev, organizationId: org }));
+                if (!cancelled) setCfg(prev => (prev.organizationId ? prev : { ...prev, organizationId: org }));
             })
-            .catch(e => console.error('Failed to resolve organization', e));
+            .catch(e => {
+                if (cancelled) return;
+                // Bootstrap couldn't resolve the org — the connection effect can't run without one,
+                // so drop the loading spinner and surface the error instead of spinning forever.
+                console.error('Failed to resolve organization', e);
+                setError(e instanceof Error ? e.message : String(e));
+                setLoadingConn(false);
+            });
         return () => {
             cancelled = true;
         };
@@ -124,7 +139,7 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
             setLoadingConn(true);
             setError(null);
             try {
-                const view: AmConnectionView = await amManagementApiService.getAmConnection(orgCfg);
+                const view: AmConnectionView = await getAmConnection(orgCfg);
                 if (cancelled) return;
                 setForm({
                     baseUrl: view.baseUrl,
@@ -164,7 +179,7 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
             setLoadingScope(true);
             setError(null);
             try {
-                const list = await amManagementApiService.listEnvironments(orgCfg);
+                const list = await listEnvironments(orgCfg);
                 if (cancelled) return;
                 setEnvs(list);
                 if (list.length === 1) {
@@ -174,7 +189,7 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
                 if (!cancelled) {
                     setEnvs(null);
                     console.error('Failed to list environments', e);
-                    if (e instanceof ModuleApiError && e.isAmUnavailable) {
+                    if (isAmUnavailable(e)) {
                         setError('Gravitee Access Management is not reachable. Check the connection and try again.');
                     } else {
                         setError(e instanceof Error ? e.message : String(e));
@@ -196,7 +211,7 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
         const run = async () => {
             setError(null);
             try {
-                const list = await amManagementApiService.listDomains(orgCfg, environmentId);
+                const list = await listDomains(orgCfg, environmentId);
                 if (cancelled) return;
                 setDomains(list);
                 if (list.length === 1) {
@@ -228,7 +243,7 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
         let cancelled = false;
         const run = async () => {
             try {
-                const entries = await amManagementApiService.listDomainEntrypoints(
+                const entries = await listDomainEntrypoints(
                     entrypointCfg,
                     entrypointCfg.environmentId,
                     entrypointCfg.domainId,
@@ -263,7 +278,7 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
         setTesting(true);
         setTestResult(null);
         try {
-            const result = await amManagementApiService.testAmConnection(cfg, buildRequest());
+            const result = await testAmConnection(cfg, buildRequest());
             setTestResult({
                 ok: result.ok,
                 message: result.ok ? 'Connection succeeded' : `${result.status ?? '?'}: ${result.message ?? 'failed'}`,
@@ -273,7 +288,7 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
                 // against the just-tested baseUrl + token, not whatever is still saved
                 // server-side from a previous (now stale) configuration.
                 try {
-                    const updated = await amManagementApiService.saveAmConnection(cfg, buildRequest());
+                    const updated = await saveAmConnection(cfg, buildRequest());
                     setForm(prev => ({ ...prev, accessToken: '', hadAccessToken: updated.hasAccessToken }));
                 } catch (saveErr) {
                     console.warn('Failed to persist tested AM connection', saveErr);
@@ -301,7 +316,7 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
         setSaving(true);
         setError(null);
         try {
-            const updated = await amManagementApiService.saveAmConnection(cfg, buildRequest());
+            const updated = await saveAmConnection(cfg, buildRequest());
             setForm(prev => ({
                 ...prev,
                 accessToken: '',
@@ -592,8 +607,7 @@ function DomainComboboxField({
     useEffect(() => {
         if (!value || pickedOption?.value === value || initialDomains.some(d => d.id === value)) return;
         let cancelled = false;
-        amManagementApiService
-            .getDomain(cfg, envId, value)
+        getDomain(cfg, envId, value)
             .then(d => {
                 if (!cancelled) setPickedOption({ value: d.id, label: domainLabel(d) });
             })
@@ -622,7 +636,7 @@ function DomainComboboxField({
         const seq = (searchSeq.current += 1);
         timer.current = setTimeout(async () => {
             try {
-                const list = await amManagementApiService.listDomains(cfg, envId, term);
+                const list = await listDomains(cfg, envId, term);
                 if (seq === searchSeq.current) setSearchResults(list);
             } catch (e) {
                 console.error('Failed to search domains', e);
