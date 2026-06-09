@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.v4.impl.validation;
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
+import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.infra.adapter.PathAdapter;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorFeature;
@@ -92,7 +93,11 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
         final List<Listener> listeners,
         final List<EndpointGroup> endpointGroups
     ) {
-        if (listeners != null && !listeners.isEmpty()) {
+        if (CollectionUtils.isInitializedAndEmpty(listeners)) {
+            throw new ListenerMissingException();
+        }
+        // null means "no change" for PATCH (JSON Merge Patch null-removal); only an explicit empty list is invalid.
+        if (listeners != null) {
             checkDuplicatedListeners(listeners);
             listeners.forEach(listener -> {
                 switch (listener.getType()) {
@@ -120,7 +125,12 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
         List<NativeListener> listeners,
         List<NativeEndpointGroup> endpointGroups
     ) {
-        if (listeners != null && !listeners.isEmpty()) {
+        // NativeApi.getListeners() overrides the Lombok getter to return List.of() instead of null,
+        // so the null guard here is defensive and unreachable for native APIs.
+        if (CollectionUtils.isInitializedAndEmpty(listeners)) {
+            throw new ListenerMissingException();
+        }
+        if (listeners != null) {
             checkDuplicatedListeners(listeners);
             listeners.forEach(listener -> {
                 if (listener.getType() == ListenerType.KAFKA) {
