@@ -117,6 +117,7 @@ import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainS
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.invitation.crud_service.InvitationCrudService;
 import io.gravitee.apim.core.invitation.domain_service.AcceptInvitationDomainService;
+import io.gravitee.apim.core.invitation.domain_service.ApplicationInvitationNotificationDomainService;
 import io.gravitee.apim.core.invitation.query_service.InvitationQueryService;
 import io.gravitee.apim.core.json.JsonSchemaChecker;
 import io.gravitee.apim.core.json_patch.domain_service.JsonMergePatchService;
@@ -486,6 +487,11 @@ public class ResourceContextConfiguration {
     @Bean
     public InvitationCrudService invitationCrudService() {
         return mock(InvitationCrudService.class);
+    }
+
+    @Bean
+    public ApplicationInvitationNotificationDomainService applicationInvitationNotificationDomainService() {
+        return mock(ApplicationInvitationNotificationDomainService.class);
     }
 
     @Bean

@@ -26,8 +26,8 @@ import io.gravitee.apim.core.invitation.domain_service.CreateApplicationInvitati
 import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
 import io.gravitee.apim.core.invitation.model.CreateApplicationInvitations;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
+import java.net.URI;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +43,7 @@ class CreateApplicationInvitationsUseCaseTest {
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ROLE_NAME = "USER";
+    private static final URI CONFIRMATION_PAGE_URL = URI.create("https://portal.example.com/user/registration/confirm");
 
     @Mock
     private ApplicationCrudService applicationCrudService;
@@ -59,15 +60,15 @@ class CreateApplicationInvitationsUseCaseTest {
 
     @Test
     void should_validate_application_existence_before_creating_invitations() {
-        var executionContext = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
         when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID)).thenThrow(new ApplicationNotFoundException(APPLICATION_ID));
 
         Throwable throwable = catchThrowable(() ->
             cut.execute(
                 new CreateApplicationInvitationsUseCase.Input(
-                    executionContext,
+                    ORGANIZATION_ID,
+                    ENVIRONMENT_ID,
                     APPLICATION_ID,
-                    new CreateApplicationInvitations(Set.of("alice@example.com"), ROLE_NAME, false)
+                    new CreateApplicationInvitations(Set.of("alice@example.com"), ROLE_NAME, false, null)
                 )
             )
         );
@@ -78,48 +79,80 @@ class CreateApplicationInvitationsUseCaseTest {
 
     @Test
     void should_create_application_invitations() {
-        var executionContext = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
         var recipients = Set.of("alice@example.com", "bob@example.com");
         var application = BaseApplicationEntity.builder().id(APPLICATION_ID).environmentId(ENVIRONMENT_ID).build();
         var invitations = List.of(anInvitation("alice@example.com"), anInvitation("bob@example.com"));
         when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID)).thenReturn(application);
-        when(createApplicationInvitationsDomainService.create(ORGANIZATION_ID, APPLICATION_ID, recipients, ROLE_NAME, false)).thenReturn(
-            invitations
-        );
+        when(
+            createApplicationInvitationsDomainService.create(
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                APPLICATION_ID,
+                recipients,
+                ROLE_NAME,
+                false,
+                CONFIRMATION_PAGE_URL
+            )
+        ).thenReturn(invitations);
 
         var result = cut.execute(
             new CreateApplicationInvitationsUseCase.Input(
-                executionContext,
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
                 APPLICATION_ID,
-                new CreateApplicationInvitations(recipients, ROLE_NAME, false)
+                new CreateApplicationInvitations(recipients, ROLE_NAME, false, CONFIRMATION_PAGE_URL)
             )
         );
 
         assertThat(result.invitations()).isEqualTo(invitations);
-        verify(createApplicationInvitationsDomainService).create(ORGANIZATION_ID, APPLICATION_ID, recipients, ROLE_NAME, false);
+        verify(createApplicationInvitationsDomainService).create(
+            ORGANIZATION_ID,
+            ENVIRONMENT_ID,
+            APPLICATION_ID,
+            recipients,
+            ROLE_NAME,
+            false,
+            CONFIRMATION_PAGE_URL
+        );
     }
 
     @Test
-    void should_propagate_notify_not_implemented_exception() {
-        var executionContext = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
+    void should_create_application_invitations_with_notifications() {
         var recipients = Set.of("alice@example.com");
         var application = BaseApplicationEntity.builder().id(APPLICATION_ID).environmentId(ENVIRONMENT_ID).build();
+        var invitations = List.of(anInvitation("alice@example.com"));
         when(applicationCrudService.findById(APPLICATION_ID, ENVIRONMENT_ID)).thenReturn(application);
-        when(createApplicationInvitationsDomainService.create(ORGANIZATION_ID, APPLICATION_ID, recipients, ROLE_NAME, true)).thenThrow(
-            new UnsupportedOperationException("Application invitation notifications are not implemented yet.")
-        );
+        when(
+            createApplicationInvitationsDomainService.create(
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                APPLICATION_ID,
+                recipients,
+                ROLE_NAME,
+                true,
+                CONFIRMATION_PAGE_URL
+            )
+        ).thenReturn(invitations);
 
-        Throwable throwable = catchThrowable(() ->
-            cut.execute(
-                new CreateApplicationInvitationsUseCase.Input(
-                    executionContext,
-                    APPLICATION_ID,
-                    new CreateApplicationInvitations(recipients, ROLE_NAME, true)
-                )
+        var result = cut.execute(
+            new CreateApplicationInvitationsUseCase.Input(
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                APPLICATION_ID,
+                new CreateApplicationInvitations(recipients, ROLE_NAME, true, CONFIRMATION_PAGE_URL)
             )
         );
 
-        assertThat(throwable).isInstanceOf(UnsupportedOperationException.class).hasMessageContaining("not implemented yet");
+        assertThat(result.invitations()).isEqualTo(invitations);
+        verify(createApplicationInvitationsDomainService).create(
+            ORGANIZATION_ID,
+            ENVIRONMENT_ID,
+            APPLICATION_ID,
+            recipients,
+            ROLE_NAME,
+            true,
+            CONFIRMATION_PAGE_URL
+        );
     }
 
     private ApplicationInvitation anInvitation(String email) {
