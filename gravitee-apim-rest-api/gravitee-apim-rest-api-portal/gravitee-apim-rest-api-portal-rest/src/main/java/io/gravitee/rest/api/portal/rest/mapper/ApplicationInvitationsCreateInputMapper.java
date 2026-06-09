@@ -18,7 +18,6 @@ package io.gravitee.rest.api.portal.rest.mapper;
 import io.gravitee.apim.core.invitation.model.CreateApplicationInvitations;
 import io.gravitee.rest.api.portal.rest.model.InvitationCreateInput;
 import io.gravitee.rest.api.portal.rest.model.InvitationRecipientInput;
-import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -35,7 +34,7 @@ public interface ApplicationInvitationsCreateInputMapper {
             toRecipientEmails(input.getRecipients()),
             normalizeRoleName(input.getRole()),
             input.getNotify() == null || input.getNotify(),
-            normalizeConfirmationPageUrl(input.getConfirmationPageUrl())
+            input.getConfirmationPageUrl()
         );
     }
 
@@ -55,9 +54,5 @@ public interface ApplicationInvitationsCreateInputMapper {
 
     private String normalizeRoleName(String roleName) {
         return roleName == null ? null : roleName.trim();
-    }
-
-    private String normalizeConfirmationPageUrl(URI confirmationPageUrl) {
-        return confirmationPageUrl == null || confirmationPageUrl.toString().isBlank() ? null : confirmationPageUrl.toString();
     }
 }

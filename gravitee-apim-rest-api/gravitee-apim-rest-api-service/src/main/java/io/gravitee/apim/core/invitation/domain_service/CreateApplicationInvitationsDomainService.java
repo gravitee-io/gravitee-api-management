@@ -25,6 +25,7 @@ import io.gravitee.apim.core.invitation.query_service.InvitationQueryService;
 import jakarta.annotation.Nonnull;
 import jakarta.mail.internet.AddressException;
 import jakarta.mail.internet.InternetAddress;
+import java.net.URI;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -36,27 +37,38 @@ public class CreateApplicationInvitationsDomainService {
     private final InvitationQueryService invitationQueryService;
     private final InvitationCrudService invitationCrudService;
     private final ValidateApplicationInvitationRoleDomainService validateApplicationInvitationRoleDomainService;
+    private final ApplicationInvitationNotificationDomainService applicationInvitationNotificationDomainService;
 
     public List<ApplicationInvitation> create(
         @Nonnull String organizationId,
+        @Nonnull String environmentId,
         @Nonnull String applicationId,
         @Nonnull Set<String> recipientEmails,
         @Nonnull String roleName,
-        boolean notifyUsers
+        boolean notifyUsers,
+        URI confirmationPageUrl
     ) {
-        if (notifyUsers) {
-            throw new UnsupportedOperationException("Application invitation notifications are not implemented yet.");
-        }
-
         validateApplicationInvitationRoleDomainService.validate(organizationId, roleName);
         var emails = validateRecipients(recipientEmails);
 
         validateNoPendingInvitation(applicationId, emails);
-        return emails
+        var createdInvitations = emails
             .stream()
             .map(email -> ApplicationInvitation.create(applicationId, email, roleName))
             .map(invitationCrudService::create)
             .toList();
+
+        if (notifyUsers) {
+            applicationInvitationNotificationDomainService.dispatchAsync(
+                organizationId,
+                environmentId,
+                applicationId,
+                createdInvitations,
+                confirmationPageUrl
+            );
+        }
+
+        return createdInvitations;
     }
 
     private Set<String> validateRecipients(Set<String> recipients) {

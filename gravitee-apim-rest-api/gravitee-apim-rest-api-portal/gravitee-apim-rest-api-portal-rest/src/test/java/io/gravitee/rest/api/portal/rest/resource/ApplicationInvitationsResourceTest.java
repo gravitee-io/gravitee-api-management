@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import io.gravitee.apim.core.invitation.crud_service.InvitationCrudService;
+import io.gravitee.apim.core.invitation.domain_service.ApplicationInvitationNotificationDomainService;
 import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
 import io.gravitee.apim.core.invitation.model.InvitationId;
 import io.gravitee.apim.core.invitation.model.SearchApplicationInvitationsCriteria;
@@ -45,6 +46,7 @@ import io.gravitee.rest.api.portal.rest.model.InvitationUpdateInput;
 import io.gravitee.rest.api.portal.rest.model.InvitationsResponse;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
+import java.net.URI;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -61,12 +63,16 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
     private static final String INVITATION_ID_2 = "00000000-0000-0000-0000-000000000002";
     private static final String ROLE_NAME = "USER";
     private static final String UPDATED_ROLE_NAME = "OWNER";
+    private static final URI CONFIRMATION_PAGE_URL = URI.create("https://portal.example.com/user/registration/confirm");
 
     @Autowired
     private InvitationQueryService invitationQueryService;
 
     @Autowired
     private InvitationCrudService invitationCrudService;
+
+    @Autowired
+    private ApplicationInvitationNotificationDomainService applicationInvitationNotificationDomainService;
 
     @Autowired
     private ApplicationCrudServiceInMemory applicationCrudService;
@@ -84,6 +90,7 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
         resetAllMocks();
         reset(invitationQueryService);
         reset(invitationCrudService);
+        reset(applicationInvitationNotificationDomainService);
         applicationCrudService.reset();
         roleQueryService.reset();
         applicationCrudService.initWith(List.of(BaseApplicationEntity.builder().id(APPLICATION).environmentId("DEFAULT").build()));
@@ -167,11 +174,20 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    void should_return_internal_server_error_when_notify_is_not_supported_yet() {
+    void should_create_invitations_and_dispatch_notifications_when_notify_is_true() {
+        when(invitationQueryService.findByReference(any())).thenReturn(List.of());
+        when(invitationCrudService.create(any(ApplicationInvitation.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
         var response = target(APPLICATION).path("invitations").request().post(Entity.json(createInput(true)));
 
-        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
-        verify(invitationCrudService, never()).create(any());
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
+        verify(applicationInvitationNotificationDomainService).dispatchAsync(
+            anyString(),
+            anyString(),
+            eq(APPLICATION),
+            argThat(invitations -> invitations.size() == 1 && invitations.get(0).email().equals("alice@example.com")),
+            eq(CONFIRMATION_PAGE_URL)
+        );
     }
 
     @Test
@@ -428,7 +444,8 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
         return new InvitationCreateInput()
             .recipients(List.of(new InvitationRecipientInput().email("alice@example.com")))
             .role(ROLE_NAME)
-            .notify(notify);
+            .notify(notify)
+            .confirmationPageUrl(CONFIRMATION_PAGE_URL);
     }
 
     private Role applicationRole(String roleName) {
