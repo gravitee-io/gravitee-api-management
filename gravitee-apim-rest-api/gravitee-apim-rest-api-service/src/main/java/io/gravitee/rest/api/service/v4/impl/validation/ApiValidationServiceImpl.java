@@ -45,6 +45,7 @@ import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.ApiServicePluginService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.exception.ApiTypeException;
+import io.gravitee.rest.api.service.v4.exception.ListenerMissingException;
 import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationService;
@@ -240,6 +241,9 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
             groupValidationService.validateAndSanitize(executionContext, null, apiEntity.getGroups(), null, primaryOwnerEntity, true)
         );
         // Validate and clean listeners
+        if (apiEntity.getListeners() == null) {
+            throw new ListenerMissingException();
+        }
         apiEntity.setListeners(
             listenerValidationService.validateAndSanitizeHttpV4(
                 executionContext,
