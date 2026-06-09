@@ -17,21 +17,130 @@ package io.gravitee.apim.core.invitation.model;
 
 import io.gravitee.common.utils.TimeProvider;
 import java.time.ZonedDateTime;
+import java.util.Objects;
+import lombok.Getter;
 
-public record ApplicationInvitation(
-    InvitationId id,
-    String applicationId,
-    String email,
-    String roleName,
-    ZonedDateTime createdAt,
-    ZonedDateTime updatedAt
-) implements Invitation {
+public final class ApplicationInvitation implements Invitation {
+
+    private final InvitationId id;
+
+    @Getter
+    private final String applicationId;
+
+    private final String email;
+
+    @Getter
+    private String roleName;
+
+    @Getter
+    private final ZonedDateTime createdAt;
+
+    @Getter
+    private ZonedDateTime updatedAt;
+
+    private ApplicationInvitation(
+        InvitationId id,
+        String applicationId,
+        String email,
+        String roleName,
+        ZonedDateTime createdAt,
+        ZonedDateTime updatedAt
+    ) {
+        this.id = id;
+        this.applicationId = applicationId;
+        this.email = email;
+        this.roleName = roleName;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
     public static ApplicationInvitation create(String applicationId, String email, String roleName) {
         var now = TimeProvider.now();
         return new ApplicationInvitation(InvitationId.random(), applicationId, email, roleName, now, now);
     }
 
-    public ApplicationInvitation updateRole(String roleName) {
-        return new ApplicationInvitation(id, applicationId, email, roleName, createdAt, TimeProvider.now());
+    public static ApplicationInvitation of(
+        InvitationId id,
+        String applicationId,
+        String email,
+        String roleName,
+        ZonedDateTime createdAt,
+        ZonedDateTime updatedAt
+    ) {
+        return new ApplicationInvitation(id, applicationId, email, roleName, createdAt, updatedAt);
+    }
+
+    public void updateRole(String roleName) {
+        this.roleName = roleName;
+        this.updatedAt = TimeProvider.now();
+    }
+
+    public void markResendAttempted() {
+        this.updatedAt = TimeProvider.now();
+    }
+
+    @Override
+    public InvitationId id() {
+        return id;
+    }
+
+    public String applicationId() {
+        return applicationId;
+    }
+
+    @Override
+    public String email() {
+        return email;
+    }
+
+    public String roleName() {
+        return roleName;
+    }
+
+    public ZonedDateTime createdAt() {
+        return createdAt;
+    }
+
+    public ZonedDateTime updatedAt() {
+        return updatedAt;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (!(object instanceof ApplicationInvitation that)) {
+            return false;
+        }
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return (
+            "ApplicationInvitation{" +
+            "id=" +
+            id +
+            ", applicationId='" +
+            applicationId +
+            '\'' +
+            ", email='" +
+            email +
+            '\'' +
+            ", roleName='" +
+            roleName +
+            '\'' +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            '}'
+        );
     }
 }

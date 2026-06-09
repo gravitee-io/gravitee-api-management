@@ -42,6 +42,7 @@ import io.gravitee.rest.api.portal.rest.model.ApplicationInvitationsSearchFilter
 import io.gravitee.rest.api.portal.rest.model.ApplicationInvitationsSearchInput;
 import io.gravitee.rest.api.portal.rest.model.InvitationCreateInput;
 import io.gravitee.rest.api.portal.rest.model.InvitationRecipientInput;
+import io.gravitee.rest.api.portal.rest.model.InvitationResendInput;
 import io.gravitee.rest.api.portal.rest.model.InvitationUpdateInput;
 import io.gravitee.rest.api.portal.rest.model.InvitationsResponse;
 import jakarta.ws.rs.client.Entity;
@@ -317,6 +318,87 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    void should_resend_invitation() {
+        var invitationId = InvitationId.of(INVITATION_ID_1);
+        when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(
+            Optional.of(anInvitation(INVITATION_ID_1, "alice@example.com"))
+        );
+        when(invitationCrudService.update(any(ApplicationInvitation.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        var response = target(APPLICATION)
+            .path("invitations")
+            .path(INVITATION_ID_1)
+            .path("_resend")
+            .request()
+            .post(Entity.json(new InvitationResendInput().confirmationPageUrl(CONFIRMATION_PAGE_URL)));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
+        verify(invitationCrudService).update(
+            argThat(
+                updatedInvitation ->
+                    updatedInvitation.id().equals(invitationId) &&
+                    updatedInvitation.applicationId().equals(APPLICATION) &&
+                    updatedInvitation.email().equals("alice@example.com") &&
+                    updatedInvitation.roleName().equals(ROLE_NAME)
+            )
+        );
+        verify(applicationInvitationNotificationDomainService).dispatchAsync(
+            anyString(),
+            anyString(),
+            eq(APPLICATION),
+            argThat(invitations -> invitations.size() == 1 && invitations.get(0).email().equals("alice@example.com")),
+            eq(CONFIRMATION_PAGE_URL)
+        );
+    }
+
+    @Test
+    void should_return_bad_request_when_resending_invitation_without_confirmation_page_url() {
+        var response = target(APPLICATION)
+            .path("invitations")
+            .path(INVITATION_ID_1)
+            .path("_resend")
+            .request()
+            .post(Entity.json(new InvitationResendInput()));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        verify(invitationCrudService, never()).findApplicationInvitationById(any());
+        verify(invitationCrudService, never()).update(any());
+        verifyNoInvitationNotificationDispatch();
+    }
+
+    @Test
+    void should_return_not_found_when_resending_invitation_for_unknown_application() {
+        var response = target(UNKNOWN_APPLICATION)
+            .path("invitations")
+            .path(INVITATION_ID_1)
+            .path("_resend")
+            .request()
+            .post(Entity.json(new InvitationResendInput().confirmationPageUrl(CONFIRMATION_PAGE_URL)));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        verify(invitationCrudService, never()).findApplicationInvitationById(any());
+        verify(invitationCrudService, never()).update(any());
+        verifyNoInvitationNotificationDispatch();
+    }
+
+    @Test
+    void should_return_not_found_when_resending_unknown_invitation() {
+        var invitationId = InvitationId.of(INVITATION_ID_1);
+        when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(Optional.empty());
+
+        var response = target(APPLICATION)
+            .path("invitations")
+            .path(INVITATION_ID_1)
+            .path("_resend")
+            .request()
+            .post(Entity.json(new InvitationResendInput().confirmationPageUrl(CONFIRMATION_PAGE_URL)));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        verify(invitationCrudService, never()).update(any());
+        verifyNoInvitationNotificationDispatch();
+    }
+
+    @Test
     void should_update_invitation_role() {
         var invitationId = InvitationId.of(INVITATION_ID_1);
         when(invitationCrudService.findApplicationInvitationById(invitationId)).thenReturn(
@@ -430,7 +512,7 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
     }
 
     private ApplicationInvitation anInvitation(String id, String applicationId, String email) {
-        return new ApplicationInvitation(
+        return ApplicationInvitation.of(
             InvitationId.of(id),
             applicationId,
             email,
@@ -446,6 +528,10 @@ class ApplicationInvitationsResourceTest extends AbstractResourceTest {
             .role(ROLE_NAME)
             .notify(notify)
             .confirmationPageUrl(CONFIRMATION_PAGE_URL);
+    }
+
+    private void verifyNoInvitationNotificationDispatch() {
+        verify(applicationInvitationNotificationDomainService, never()).dispatchAsync(anyString(), anyString(), anyString(), any(), any());
     }
 
     private Role applicationRole(String roleName) {

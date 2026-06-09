@@ -30,7 +30,7 @@ class ApplicationInvitationMapperTest {
     @Test
     void should_map_application_invitation_item() {
         var invitationId = "00000000-0000-0000-0000-000000000001";
-        var invitationItem = new ApplicationInvitation(
+        var invitationItem = ApplicationInvitation.of(
             InvitationId.of(invitationId),
             "application-id",
             "alice@example.com",
