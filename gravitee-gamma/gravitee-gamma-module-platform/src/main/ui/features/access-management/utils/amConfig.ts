@@ -43,7 +43,6 @@ export function isAmConfigured(cfg: AmConfig): boolean {
 }
 
 export function moduleBaseUrl(cfg: AmConfig): string {
-    // Path relative to the bootstrap-resolved gammaBaseURL. The client prepends the absolute base.
-    // AM settings are sub-located off PlatformRootResource at /am (see PlatformRootResource.java).
+    // Relative to the bootstrap-resolved gammaBaseURL; AM settings hang off PlatformRootResource at /am.
     return `/organizations/${encodeURIComponent(cfg.organizationId)}/modules/${PLUGIN_ID}/am`;
 }

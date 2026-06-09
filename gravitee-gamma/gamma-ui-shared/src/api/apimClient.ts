@@ -168,9 +168,8 @@ export async function apimFetchJsonOrg<T>(path: string, init?: RequestInit): Pro
 }
 
 /**
- * Gamma module-scoped: `{gammaBaseURL}{path}`. Unlike the helpers above (which target the
- * management API), this hits the gamma rest-api where module plugin resources live. The caller
- * owns the full path, including the `/organizations/{orgId}/modules/{moduleId}/...` prefix.
+ * Gamma module-scoped: `{gammaBaseURL}{path}` (the gamma rest-api, not the management API).
+ * The caller owns the full path, including the `/organizations/{orgId}/modules/{moduleId}/...` prefix.
  */
 export async function gammaFetchJson<T>(path: string, init?: RequestInit): Promise<T> {
     const { gammaBaseURL } = await resolveBootstrap();
