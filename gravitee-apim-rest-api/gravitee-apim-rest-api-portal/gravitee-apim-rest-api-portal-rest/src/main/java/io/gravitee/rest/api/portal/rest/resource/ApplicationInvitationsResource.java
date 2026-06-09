@@ -80,7 +80,8 @@ public class ApplicationInvitationsResource extends AbstractResource {
         var executionContext = GraviteeContext.getExecutionContext();
         var output = createApplicationInvitationsUseCase.execute(
             new CreateApplicationInvitationsUseCase.Input(
-                executionContext,
+                executionContext.getOrganizationId(),
+                executionContext.getEnvironmentId(),
                 applicationId,
                 ApplicationInvitationsCreateInputMapper.INSTANCE.toCreateApplicationInvitations(input)
             )

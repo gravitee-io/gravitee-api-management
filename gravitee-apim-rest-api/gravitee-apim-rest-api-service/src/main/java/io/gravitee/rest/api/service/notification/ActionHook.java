@@ -40,6 +40,7 @@ public enum ActionHook implements Hook {
     ),
     GENERIC_MESSAGE("Generic message", "Email sent when using the messaging service.", "SUPPORT", true),
     USER_GROUP_INVITATION("User group invitation", "Email sent when using the messaging service.", "USER"),
+    USER_APPLICATION_INVITATION("User application invitation", "Email sent to a user invited to an application.", "USER"),
     USER_PASSWORD_RESET("User password reset", "Email sent to a user which password has been reset.", "USER"),
     SUBSCRIPTION_PRE_EXPIRATION(
         "Subscription pre-expiration notification",

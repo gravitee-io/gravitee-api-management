@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.invitation.model;
+package io.gravitee.apim.core.invitation.domain_service;
 
+import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
 import java.net.URI;
-import java.util.Set;
+import java.util.List;
 
-public record CreateApplicationInvitations(Set<String> recipientEmails, String roleName, boolean notifyUsers, URI confirmationPageUrl) {
-    public CreateApplicationInvitations(Set<String> recipientEmails, String roleName, boolean notifyUsers) {
-        this(recipientEmails, roleName, notifyUsers, null);
-    }
+public interface ApplicationInvitationNotificationDomainService {
+    void dispatchAsync(
+        String organizationId,
+        String environmentId,
+        String applicationId,
+        List<ApplicationInvitation> invitations,
+        URI confirmationPageUrl
+    );
 }
