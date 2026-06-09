@@ -26,6 +26,7 @@ import static io.gravitee.gateway.reactive.handlers.api.el.ContentTemplateVariab
 import static java.util.Map.entry;
 import static java.util.Map.ofEntries;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.lenient;
@@ -43,6 +44,7 @@ import io.gravitee.gateway.reactive.api.el.EvaluableResponse;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.observers.TestObserver;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -304,6 +306,26 @@ class ContentTemplateVariableProviderTest {
             obs.assertComplete();
 
             // An empty map is expected if the content isn't a valid xml.
+            verify(evaluableRequest).setXmlContent(Collections.emptyMap());
+        }
+
+        @Test
+        void should_provide_empty_xml_content_without_blocking_on_unquoted_root_attribute() {
+            // '<a b=c/>' makes the real StAX parser throw on next() at a fixed offset forever:
+            // the unbounded scan spun the event-loop thread. The bounded scan must terminate quickly and
+            // yield an empty map. assertTimeoutPreemptively turns a regression (re-introduced spin) into a
+            // failure instead of a hung build.
+            when(request.bodyOrEmpty()).thenReturn(Single.just(Buffer.buffer("<a b=c/>")));
+            when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
+
+            cut.provide(ctx);
+
+            ArgumentCaptor<Completable> completableCaptor = ArgumentCaptor.forClass(Completable.class);
+            verify(templateContext).setDeferredVariable(eq(TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML), completableCaptor.capture());
+
+            final Completable contentCompletable = completableCaptor.getValue();
+            assertTimeoutPreemptively(Duration.ofSeconds(5), () -> contentCompletable.test().assertComplete());
+
             verify(evaluableRequest).setXmlContent(Collections.emptyMap());
         }
 
