@@ -20,32 +20,41 @@ import io.gravitee.apim.core.invitation.crud_service.InvitationCrudService;
 import io.gravitee.apim.core.invitation.exception.ApplicationInvitationNotFoundException;
 import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
 import io.gravitee.apim.core.invitation.model.InvitationId;
-import io.gravitee.apim.core.invitation.model.UpdateApplicationInvitation;
 import jakarta.annotation.Nonnull;
+import java.net.URI;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
 @RequiredArgsConstructor
-public class UpdateApplicationInvitationDomainService {
+public class ResendApplicationInvitationDomainService {
 
     private final InvitationCrudService invitationCrudService;
-    private final ValidateApplicationInvitationRoleDomainService validateApplicationInvitationRoleDomainService;
+    private final ApplicationInvitationNotificationDomainService applicationInvitationNotificationDomainService;
 
-    public ApplicationInvitation update(
+    public ApplicationInvitation resend(
         @Nonnull String organizationId,
+        @Nonnull String environmentId,
         @Nonnull String applicationId,
         @Nonnull InvitationId invitationId,
-        @Nonnull UpdateApplicationInvitation updateApplicationInvitation
+        URI confirmationPageUrl
     ) {
         var invitation = invitationCrudService
             .findApplicationInvitationById(invitationId)
             .filter(applicationInvitation -> applicationId.equals(applicationInvitation.applicationId()))
             .orElseThrow(() -> new ApplicationInvitationNotFoundException(invitationId.toString()));
 
-        validateApplicationInvitationRoleDomainService.validate(organizationId, updateApplicationInvitation.roleName());
+        invitation.markResendAttempted();
 
-        invitation.updateRole(updateApplicationInvitation.roleName());
+        var resentInvitation = invitationCrudService.update(invitation);
+        applicationInvitationNotificationDomainService.dispatchAsync(
+            organizationId,
+            environmentId,
+            applicationId,
+            List.of(resentInvitation),
+            confirmationPageUrl
+        );
 
-        return invitationCrudService.update(invitation);
+        return resentInvitation;
     }
 }

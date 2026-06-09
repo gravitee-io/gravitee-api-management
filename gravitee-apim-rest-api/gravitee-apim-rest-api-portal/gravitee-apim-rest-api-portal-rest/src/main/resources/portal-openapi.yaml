@@ -1527,6 +1527,13 @@ paths:
         post:
             tags:
                 - Application
+            requestBody:
+                description: Use to configure the resent application invitation email.
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/InvitationResendInput"
             summary: Resend an application invitation
             description: |
                 Resend an application invitation.
@@ -7331,6 +7338,15 @@ components:
                     default: true
                 confirmation_page_url:
                     description: URL of the confirmation page to be used in the application invitation email.
+                    type: string
+                    format: uri
+        InvitationResendInput:
+            type: object
+            required:
+                - confirmation_page_url
+            properties:
+                confirmation_page_url:
+                    description: URL of the confirmation page to be used in the resent application invitation email.
                     type: string
                     format: uri
         InvitationRecipientInput:

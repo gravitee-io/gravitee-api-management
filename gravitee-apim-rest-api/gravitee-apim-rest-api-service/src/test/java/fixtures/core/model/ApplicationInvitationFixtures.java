@@ -37,7 +37,7 @@ public class ApplicationInvitationFixtures {
     }
 
     public static ApplicationInvitation anApplicationInvitation(String id, String applicationId, String email, String role) {
-        return new ApplicationInvitation(InvitationId.of(id), applicationId, email, role, date(), date());
+        return ApplicationInvitation.of(InvitationId.of(id), applicationId, email, role, date(), date());
     }
 
     private static ZonedDateTime date() {

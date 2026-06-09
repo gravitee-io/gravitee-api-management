@@ -32,9 +32,19 @@ import org.mapstruct.factory.Mappers;
 public interface InvitationAdapter {
     InvitationAdapter INSTANCE = Mappers.getMapper(InvitationAdapter.class);
 
-    @Mapping(target = "roleName", source = "applicationRole")
-    @Mapping(target = "applicationId", source = "referenceId")
-    ApplicationInvitation toApplicationInvitation(io.gravitee.repository.management.model.Invitation invitation);
+    default ApplicationInvitation toApplicationInvitation(io.gravitee.repository.management.model.Invitation invitation) {
+        if (invitation == null) {
+            return null;
+        }
+        return ApplicationInvitation.of(
+            map(invitation.getId()),
+            invitation.getReferenceId(),
+            invitation.getEmail(),
+            invitation.getApplicationRole(),
+            map(invitation.getCreatedAt()),
+            map(invitation.getUpdatedAt())
+        );
+    }
 
     @Mapping(target = "id", source = "id")
     @Mapping(target = "referenceId", source = "referenceId")
@@ -44,9 +54,11 @@ public interface InvitationAdapter {
     @Mapping(target = "applicationRole", source = "applicationRole")
     GroupInvitation toGroupInvitation(io.gravitee.repository.management.model.Invitation invitation);
 
-    @Mapping(target = "applicationRole", source = "roleName")
+    @Mapping(target = "id", expression = "java(map(invitation.id()))")
     @Mapping(target = "referenceId", source = "applicationId")
     @Mapping(target = "referenceType", constant = "APPLICATION")
+    @Mapping(target = "email", expression = "java(invitation.email())")
+    @Mapping(target = "applicationRole", source = "roleName")
     @Mapping(target = "apiRole", ignore = true)
     io.gravitee.repository.management.model.Invitation toRepository(ApplicationInvitation invitation);
 
