@@ -13,15 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform;
+package io.gravitee.gamma.module.platform.core.am.port.service_provider;
 
-import io.gravitee.apim.plugin.gamma.api.GammaModule;
-import io.gravitee.gamma.module.platform.rest.PlatformRootResource;
+import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
+import io.gravitee.gamma.module.platform.core.am.model.AmModels.AmConnectionTestResult;
 
-public class PlatformModule implements GammaModule {
-
-    @Override
-    public Class<?> restResource() {
-        return PlatformRootResource.class;
-    }
+public interface AmConnectionTester {
+    AmConnectionTestResult test(String orgId, AmConnection connection);
 }

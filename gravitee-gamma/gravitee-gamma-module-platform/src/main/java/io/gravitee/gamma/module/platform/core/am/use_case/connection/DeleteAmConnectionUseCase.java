@@ -13,15 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gamma.module.platform;
+package io.gravitee.gamma.module.platform.core.am.use_case.connection;
 
-import io.gravitee.apim.plugin.gamma.api.GammaModule;
-import io.gravitee.gamma.module.platform.rest.PlatformRootResource;
+import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.plugin.gamma.api.identity.AmConnectionRepository;
+import lombok.RequiredArgsConstructor;
 
-public class PlatformModule implements GammaModule {
+@UseCase
+@RequiredArgsConstructor
+public class DeleteAmConnectionUseCase {
 
-    @Override
-    public Class<?> restResource() {
-        return PlatformRootResource.class;
+    private final AmConnectionRepository amConnectionRepository;
+
+    public record Input(String orgId) {}
+
+    public record Output() {}
+
+    public Output execute(Input input) {
+        amConnectionRepository.deleteByOrg(input.orgId());
+        return new Output();
     }
 }
