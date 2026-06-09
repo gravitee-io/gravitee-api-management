@@ -101,7 +101,10 @@ public interface ApiCRDMapper {
 
     @Named("mapLifecycleState")
     default ApiLifecycleState mapLifecycleState(String lifecycleState) {
-        return ApiLifecycleState.PUBLISHED.name().equals(lifecycleState) ? ApiLifecycleState.PUBLISHED : ApiLifecycleState.UNPUBLISHED;
+        if (lifecycleState == null) {
+            return null;
+        }
+        return ApiLifecycleState.fromValue(lifecycleState);
     }
 
     @Named("mapPlanTypeCoreToRest")
