@@ -176,6 +176,9 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
                     if (apiCriteria.getApiTypes() != null && !apiCriteria.getApiTypes().isEmpty()) {
                         criteria.add(where("type").in(apiCriteria.getApiTypes()));
                     }
+                    if (apiCriteria.getNotApiTypes() != null && !apiCriteria.getNotApiTypes().isEmpty()) {
+                        criteria.add(where("type").not().in(apiCriteria.getNotApiTypes()));
+                    }
                     if (apiCriteria.getUpdatedAtFrom() != null) {
                         criteria.add(where("updatedAt").gte(apiCriteria.getUpdatedAtFrom()));
                     }
