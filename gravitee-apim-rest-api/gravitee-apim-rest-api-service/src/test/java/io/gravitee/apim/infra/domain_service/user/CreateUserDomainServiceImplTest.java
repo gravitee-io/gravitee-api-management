@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.domain_service.user;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.UserCrudServiceInMemory;
+import io.gravitee.apim.core.user.domain_service.AssignUserDefaultRolesDomainService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.core.user.model.IdpSource;
 import io.gravitee.common.utils.TimeProvider;
@@ -25,7 +26,9 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
@@ -40,6 +43,7 @@ class CreateUserDomainServiceImplTest {
     private static final ExecutionContext EXECUTION_CONTEXT = new ExecutionContext("org-id", "env-id");
 
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
+    RecordingAssignUserDefaultRoles assignUserDefaultRoles = new RecordingAssignUserDefaultRoles();
     CreateUserDomainServiceImpl service;
 
     @BeforeAll
@@ -54,7 +58,7 @@ class CreateUserDomainServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        service = new CreateUserDomainServiceImpl(userCrudService);
+        service = new CreateUserDomainServiceImpl(userCrudService, assignUserDefaultRoles);
     }
 
     @AfterEach
@@ -93,5 +97,25 @@ class CreateUserDomainServiceImplTest {
         service.createGraviteeUser(EXECUTION_CONTEXT, "stored@example.com", Optional.empty(), Optional.empty());
 
         assertThat(userCrudService.storage()).hasSize(1).extracting(BaseUserEntity::getEmail).containsExactly("stored@example.com");
+    }
+
+    @Test
+    void should_assign_default_roles_to_the_created_user() {
+        var result = service.createGraviteeUser(EXECUTION_CONTEXT, "jane@example.com", Optional.of("Jane"), Optional.of("Doe"));
+
+        assertThat(assignUserDefaultRoles.assignedUserIds).containsExactly(result.getId());
+        assertThat(assignUserDefaultRoles.lastOrganizationId).isEqualTo("org-id");
+    }
+
+    private static class RecordingAssignUserDefaultRoles implements AssignUserDefaultRolesDomainService {
+
+        final List<String> assignedUserIds = new ArrayList<>();
+        String lastOrganizationId;
+
+        @Override
+        public void assignDefaultRoles(ExecutionContext executionContext, String userId) {
+            this.lastOrganizationId = executionContext.getOrganizationId();
+            this.assignedUserIds.add(userId);
+        }
     }
 }

@@ -44,6 +44,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
+import io.gravitee.apim.core.user.domain_service.AssignUserDefaultRolesDomainService;
 import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.el.TemplateEngine;
@@ -123,7 +124,6 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.gravitee.rest.api.service.converter.UserConverter;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
-import io.gravitee.rest.api.service.exceptions.DefaultRoleNotFoundException;
 import io.gravitee.rest.api.service.exceptions.EmailFormatInvalidException;
 import io.gravitee.rest.api.service.exceptions.EmailRequiredException;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
@@ -224,6 +224,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     @Autowired
     private MembershipService membershipService;
+
+    @Autowired
+    private AssignUserDefaultRolesDomainService assignUserDefaultRolesDomainService;
 
     @Lazy
     @Autowired
@@ -816,41 +819,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     private void addDefaultMembership(ExecutionContext executionContext, User user) {
-        RoleScope[] scopes = { RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT };
-        List<RoleEntity> defaultRoleByScopes = roleService.findDefaultRoleByScopes(executionContext.getOrganizationId(), scopes);
-        if (defaultRoleByScopes == null || defaultRoleByScopes.isEmpty()) {
-            throw new DefaultRoleNotFoundException(scopes);
-        }
-        for (RoleEntity defaultRoleByScope : defaultRoleByScopes) {
-            switch (defaultRoleByScope.getScope()) {
-                case ORGANIZATION:
-                    membershipService.addRoleToMemberOnReference(
-                        executionContext,
-                        new MembershipService.MembershipReference(
-                            MembershipReferenceType.ORGANIZATION,
-                            executionContext.getOrganizationId()
-                        ),
-                        new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER),
-                        new MembershipService.MembershipRole(RoleScope.ORGANIZATION, defaultRoleByScope.getName())
-                    );
-                    break;
-                case ENVIRONMENT:
-                    membershipService.addRoleToMemberOnReference(
-                        executionContext,
-                        new MembershipService.MembershipReference(
-                            MembershipReferenceType.ENVIRONMENT,
-                            executionContext.hasEnvironmentId()
-                                ? executionContext.getEnvironmentId()
-                                : GraviteeContext.getDefaultEnvironment()
-                        ),
-                        new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER),
-                        new MembershipService.MembershipRole(RoleScope.ENVIRONMENT, defaultRoleByScope.getName())
-                    );
-                    break;
-                default:
-                    break;
-            }
-        }
+        assignUserDefaultRolesDomainService.assignDefaultRoles(executionContext, user.getId());
     }
 
     @Override

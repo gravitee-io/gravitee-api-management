@@ -57,6 +57,7 @@ import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UserRegistrationUnavailableException;
 import io.gravitee.rest.api.service.notification.PortalHook;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -81,6 +82,7 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
 
     private final InvitationCrudServiceInMemory invitationCrudService = new InvitationCrudServiceInMemory();
     private final MembershipDomainServiceInMemory membershipDomainService = new MembershipDomainServiceInMemory();
+    private final List<String> assignedDefaultRoleUserIds = new ArrayList<>();
 
     @Mock
     private ParameterService parameterService;
@@ -100,7 +102,7 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
         auditDomainService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         cut = new AcceptUserInvitationUseCase(
             userCrudService,
-            new CreateUserDomainServiceImpl(userCrudService),
+            new CreateUserDomainServiceImpl(userCrudService, (ctx, userId) -> assignedDefaultRoleUserIds.add(userId)),
             invitationCrudService,
             new AcceptInvitationDomainServiceImpl(membershipDomainService),
             new UserRegistrationEnabledServiceImpl(parameterService),
@@ -113,6 +115,7 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
         userCrudService.reset();
         auditCrudService.reset();
         membershipDomainService.reset();
+        assignedDefaultRoleUserIds.clear();
     }
 
     @Nested
@@ -143,6 +146,7 @@ class AcceptUserInvitationUseCaseTest extends AbstractUseCaseTest {
             assertThat(output.user().getId()).isEqualTo(GENERATED_UUID);
             assertThat(output.user().getUpdatedAt()).isEqualTo(Date.from(INSTANT_NOW));
             assertThat(userCrudService.getStoredPassword(GENERATED_UUID)).isPresent();
+            assertThat(assignedDefaultRoleUserIds).containsExactly(GENERATED_UUID);
             verify(notifierService).trigger(eq(executionContext), eq(PortalHook.USER_REGISTERED), any());
         }
 
