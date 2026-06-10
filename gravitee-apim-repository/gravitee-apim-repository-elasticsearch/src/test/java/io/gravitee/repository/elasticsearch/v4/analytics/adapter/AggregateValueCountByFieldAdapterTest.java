@@ -43,7 +43,7 @@ class AggregateValueCountByFieldAdapterTest {
         @Nested
         class Query {
 
-            private static final List<String> APP_ID_FIELD_NAMES = List.of("application-id", "application");
+            private static final List<String> APP_ID_FIELD_NAMES = List.of("application-id");
 
             @Test
             void should_build_top_apps_query_searching_for_top_ids_and_time_ranges() {
@@ -108,18 +108,6 @@ class AggregateValueCountByFieldAdapterTest {
                                       }
                                   }
                               }
-                          },
-                          "top_hits_count_application": {
-                              "terms": {
-                                  "field": "application"
-                              },
-                              "aggs": {
-                                  "hits_count": {
-                                      "value_count": {
-                                          "field": "application"
-                                      }
-                                  }
-                              }
                           }
                       }
                  }\s
@@ -151,18 +139,6 @@ class AggregateValueCountByFieldAdapterTest {
                                   "hits_count": {
                                       "value_count": {
                                           "field": "application-id"
-                                      }
-                                  }
-                              }
-                          },
-                          "top_hits_count_application": {
-                              "terms": {
-                                  "field": "application"
-                              },
-                              "aggs": {
-                                  "hits_count": {
-                                      "value_count": {
-                                          "field": "application"
                                       }
                                   }
                               }
@@ -205,18 +181,6 @@ class AggregateValueCountByFieldAdapterTest {
                                   "hits_count": {
                                       "value_count": {
                                           "field": "application-id"
-                                      }
-                                  }
-                              }
-                          },
-                          "top_hits_count_application": {
-                              "terms": {
-                                  "field": "application"
-                              },
-                              "aggs": {
-                                  "hits_count": {
-                                      "value_count": {
-                                          "field": "application"
                                       }
                                   }
                               }
@@ -278,7 +242,7 @@ class AggregateValueCountByFieldAdapterTest {
     @Nested
     class TopHitsApis {
 
-        private static final List<String> API_ID_FIELD_NAMES = List.of("api-id", "api");
+        private static final List<String> API_ID_FIELD_NAMES = List.of("api-id");
 
         @Nested
         class Query {
@@ -346,18 +310,6 @@ class AggregateValueCountByFieldAdapterTest {
                                           }
                                       }
                                   }
-                              },
-                              "top_hits_count_api": {
-                                  "terms": {
-                                      "field": "api"
-                                  },
-                                  "aggs": {
-                                      "hits_count": {
-                                          "value_count": {
-                                              "field": "api"
-                                          }
-                                      }
-                                  }
                               }
                           }
                       }
@@ -390,18 +342,6 @@ class AggregateValueCountByFieldAdapterTest {
                                       "hits_count": {
                                           "value_count": {
                                               "field": "api-id"
-                                          }
-                                      }
-                                  }
-                              },
-                              "top_hits_count_api": {
-                                  "terms": {
-                                      "field": "api"
-                                  },
-                                  "aggs": {
-                                      "hits_count": {
-                                          "value_count": {
-                                              "field": "api"
                                           }
                                       }
                                   }
@@ -445,18 +385,6 @@ class AggregateValueCountByFieldAdapterTest {
                                       "hits_count": {
                                           "value_count": {
                                               "field": "api-id"
-                                          }
-                                      }
-                                  }
-                              },
-                              "top_hits_count_api": {
-                                  "terms": {
-                                      "field": "api"
-                                  },
-                                  "aggs": {
-                                      "hits_count": {
-                                          "value_count": {
-                                              "field": "api"
                                           }
                                       }
                                   }
