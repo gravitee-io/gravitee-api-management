@@ -37,19 +37,16 @@ async function transferOwnership(
   userType: 'USER' | 'GROUP',
   opts?: { userReference?: string; currentPrimaryOwnerNewRole?: string },
 ): Promise<number> {
-  const response = await fetch(
-    `${managementV2BaseUrl}/environments/${envId}/api-products/${apiProductId}/members/_transfer-ownership`,
-    {
-      method: 'POST',
-      headers: { Authorization: adminAuthHeader, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        newPrimaryOwnerId,
-        userType,
-        userReference: opts?.userReference,
-        currentPrimaryOwnerNewRole: opts?.currentPrimaryOwnerNewRole ?? 'USER',
-      }),
-    },
-  );
+  const response = await fetch(`${managementV2BaseUrl}/environments/${envId}/api-products/${apiProductId}/members/_transfer-ownership`, {
+    method: 'POST',
+    headers: { Authorization: adminAuthHeader, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      newPrimaryOwnerId,
+      userType,
+      userReference: opts?.userReference,
+      currentPrimaryOwnerNewRole: opts?.currentPrimaryOwnerNewRole ?? 'USER',
+    }),
+  });
   return response.status;
 }
 
