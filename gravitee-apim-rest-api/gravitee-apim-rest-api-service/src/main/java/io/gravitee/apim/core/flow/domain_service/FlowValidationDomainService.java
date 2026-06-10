@@ -30,7 +30,6 @@ import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
-import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -73,8 +72,14 @@ public class FlowValidationDomainService {
             .selectorByType(SelectorType.HTTP)
             .stream()
             .map(selector -> ((HttpSelector) selector).getPath())
-            .filter(Objects::nonNull)
             .findFirst();
+
+    public static final Predicate<Selector> HTTP_SELECTOR_WITH_INVALID_WILDCARD_PATH = selector ->
+        selector instanceof HttpSelector httpSelector && hasInvalidWildcardPath(httpSelector.getPath());
+
+    public static boolean hasInvalidWildcardPath(final String path) {
+        return path != null && path.contains("**");
+    }
 
     private static final Map<ApiType, Function<Flow, Optional<String>>> PATH_EXTRACTOR = Map.of(
         ApiType.PROXY,
@@ -105,6 +110,9 @@ public class FlowValidationDomainService {
 
                 // Check HTTP selectors carry a non-null pathOperator
                 checkHttpSelectorsPathOperator(flow);
+
+                // Check HTTP selectors do not use unsupported wildcard paths (e.g. /**)
+                checkHttpSelectorsInvalidWildcardPath(flow);
 
                 // Validate policy
                 var steps = Stream.of(flow.getRequest(), flow.getResponse(), flow.getPublish(), flow.getSubscribe())
@@ -142,6 +150,20 @@ public class FlowValidationDomainService {
             if (hasNullPathOperator) {
                 throw InvalidFlowException.missingPathOperator(flow.getName());
             }
+        }
+    }
+
+    private void checkHttpSelectorsInvalidWildcardPath(final Flow flow) {
+        if (flow.getSelectors() != null) {
+            flow
+                .getSelectors()
+                .stream()
+                .filter(HTTP_SELECTOR_WITH_INVALID_WILDCARD_PATH)
+                .map(HttpSelector.class::cast)
+                .findFirst()
+                .ifPresent(httpSelector -> {
+                    throw InvalidFlowException.invalidWildcardPath(flow.getName(), httpSelector.getPath());
+                });
         }
     }
 
@@ -239,25 +261,11 @@ public class FlowValidationDomainService {
     }
 
     public void validatePathParameters(ApiType apiType, Stream<Flow> apiFlows, Stream<Flow> planFlows) {
-        var apiFlowList = apiFlows == null ? List.<Flow>of() : apiFlows.toList();
-        var planFlowList = planFlows == null ? List.<Flow>of() : planFlows.toList();
-        checkForInvalidSelectors(apiFlowList, planFlowList);
-        final var flowsWithPathParam = filterFlowsWithPathParam(apiType, apiFlowList.stream(), planFlowList.stream());
+        apiFlows = apiFlows == null ? Stream.empty() : apiFlows;
+        planFlows = planFlows == null ? Stream.empty() : planFlows;
+        // group all flows in one stream
+        final Stream<Flow> flowsWithPathParam = filterFlowsWithPathParam(apiType, apiFlows, planFlows);
         checkOverlappingPaths(apiType, flowsWithPathParam);
-    }
-
-    private static void checkForInvalidSelectors(List<Flow> apiFlowList, List<Flow> planFlowList) {
-        var httpSelectors = Stream.concat(apiFlowList.stream(), planFlowList.stream())
-            .flatMap(flow -> flow.selectorByType(SelectorType.HTTP).stream())
-            .map(HttpSelector.class::cast)
-            .toList();
-
-        if (httpSelectors.stream().anyMatch(selector -> selector.getPath() == null)) {
-            throw new InvalidDataException("flows[].selectors[].path is required");
-        }
-        if (httpSelectors.stream().anyMatch(selector -> selector.getPathOperator() == null)) {
-            throw new InvalidDataException("flows[].selectors[].pathOperator is required");
-        }
     }
 
     private Stream<Flow> filterFlowsWithPathParam(ApiType apiType, Stream<Flow> apiFlows, Stream<Flow> planFlows) {
