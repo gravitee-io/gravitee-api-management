@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.domain_service.user;
 
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
+import io.gravitee.apim.core.user.domain_service.AssignUserDefaultRolesDomainService;
 import io.gravitee.apim.core.user.domain_service.CreateUserDomainService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.utils.TimeProvider;
@@ -30,6 +31,7 @@ import org.springframework.stereotype.Service;
 public class CreateUserDomainServiceImpl implements CreateUserDomainService {
 
     private final UserCrudService userCrudService;
+    private final AssignUserDefaultRolesDomainService assignUserDefaultRolesDomainService;
 
     @Override
     public BaseUserEntity createGraviteeUser(
@@ -39,8 +41,10 @@ public class CreateUserDomainServiceImpl implements CreateUserDomainService {
         Optional<String> lastname
     ) {
         var now = Date.from(TimeProvider.now().toInstant());
-        return userCrudService.create(
+        var created = userCrudService.create(
             BaseUserEntity.createGraviteeUser(executionContext.getOrganizationId(), email, firstname, lastname, now)
         );
+        assignUserDefaultRolesDomainService.assignDefaultRoles(executionContext, created.getId());
+        return created;
     }
 }
