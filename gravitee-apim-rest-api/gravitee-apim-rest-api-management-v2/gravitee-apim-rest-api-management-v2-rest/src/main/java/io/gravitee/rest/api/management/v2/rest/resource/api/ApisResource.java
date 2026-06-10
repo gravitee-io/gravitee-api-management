@@ -180,13 +180,14 @@ public class ApisResource extends AbstractResource {
         var createdApi = api.getType() == ApiType.NATIVE
             ? createNativeApiUseCase.execute(new CreateNativeApiUseCase.Input(ApiMapper.INSTANCE.mapToNewNativeApi(api), audit)).api()
             : createHttpApiUseCase.execute(new CreateHttpApiUseCase.Input(ApiMapper.INSTANCE.mapToNewHttpApi(api), audit)).api();
+        var v4Definition = createdApi.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api def ? def : null;
 
         boolean isSynchronized = apiStateDomainService.isSynchronized(createdApi, audit);
         GenericApi.DeploymentStateEnum deploymentState = isSynchronized
             ? GenericApi.DeploymentStateEnum.DEPLOYED
             : GenericApi.DeploymentStateEnum.NEED_REDEPLOY;
         return Response.created(this.getLocationHeader(createdApi.getId()))
-            .entity(ApiMapper.INSTANCE.mapToV4(createdApi, uriInfo, deploymentState))
+            .entity(ApiMapper.INSTANCE.mapToV4(createdApi, v4Definition, uriInfo, deploymentState))
             .build();
     }
 

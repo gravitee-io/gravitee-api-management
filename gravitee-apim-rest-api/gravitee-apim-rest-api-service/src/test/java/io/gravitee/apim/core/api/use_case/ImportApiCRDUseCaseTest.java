@@ -39,7 +39,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fixtures.ApplicationModelFixtures;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.PlanFixtures;
 import fixtures.definition.ApiDefinitionFixtures;
@@ -529,7 +528,7 @@ class ImportApiCRDUseCaseTest {
 
         applicationCrudService.initWith(
             List.of(
-                ApplicationModelFixtures.anApplicationEntity()
+                anApplicationEntity()
                     .toBuilder()
                     .id(APPLICATION_ID)
                     .primaryOwner(io.gravitee.rest.api.model.PrimaryOwnerEntity.builder().id(USER_ID).displayName("Jane").build())
@@ -616,7 +615,8 @@ class ImportApiCRDUseCaseTest {
         @Test
         void should_create_and_index_a_new_api() {
             var expected = expectedApiV4Proxy().toBuilder().id(API_ID).crossId(API_CROSS_ID).build();
-            expected.getApiDefinitionHttpV4().setPlans(List.of());
+            ((io.gravitee.definition.model.v4.Api) expected.getApiDefinitionValue()).setPlans(List.of());
+            expected.setHrid(expected.getCrossId());
 
             useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().plans(Map.of()).build()));
 

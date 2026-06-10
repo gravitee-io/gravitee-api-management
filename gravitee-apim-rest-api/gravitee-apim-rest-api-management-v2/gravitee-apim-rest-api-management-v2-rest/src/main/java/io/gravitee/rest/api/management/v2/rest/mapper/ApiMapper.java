@@ -36,6 +36,7 @@ import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeAnalytics;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.AbstractApiServices;
 import io.gravitee.node.logging.NodeLoggerFactory;
@@ -83,6 +84,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+import org.jspecify.annotations.Nullable;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -258,10 +260,11 @@ public interface ApiMapper {
     ApiV4 mapToV4(NativeApiEntity apiEntity);
 
     default ApiV4 mapToV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState) {
-        if (ApiType.NATIVE.equals(source.getType())) {
-            return mapToNativeV4(source, uriInfo, deploymentState);
-        }
-        return mapToHttpV4(source, uriInfo, deploymentState);
+        return switch (source.getApiDefinitionValue()) {
+            case NativeApi nativeApi -> mapToNativeV4(source, nativeApi, uriInfo, deploymentState);
+            case io.gravitee.definition.model.v4.Api v4Api -> mapToHttpV4(source, v4Api, uriInfo, deploymentState);
+            default -> throw new IllegalStateException("Unexpected API definition value: " + source.getApiDefinitionValue());
+        };
     }
 
     default PrimaryOwner map(PrimaryOwnerEntity entity) {
@@ -275,60 +278,90 @@ public interface ApiMapper {
             .type(entity.type() != null ? MembershipMemberType.valueOf(entity.type().name()) : null);
     }
 
+    @Nullable
     default ApiV4 mapToV4(GenericApiEntity genericApiEntity) {
-        if (genericApiEntity instanceof ApiEntity asApiEntity) {
-            return mapToV4(asApiEntity);
-        } else if (genericApiEntity instanceof NativeApiEntity asNativeApiEntity) {
-            return mapToV4(asNativeApiEntity);
-        }
-        return null;
+        return switch (genericApiEntity) {
+            case ApiEntity asApiEntity -> mapToV4(asApiEntity);
+            case NativeApiEntity asNativeApiEntity -> mapToV4(asNativeApiEntity);
+            case null, default -> null;
+        };
     }
 
+    @Mapping(target = "name", source = "source.name")
+    @Mapping(target = "definitionVersion", source = "source.definitionVersion")
+    @Mapping(target = "tags", source = "source.tags")
+    @Mapping(target = "type", source = "source.type")
+    @Mapping(target = "id", source = "source.id")
     @Mapping(target = "definitionContext", source = "source.originContext")
     @Mapping(target = "apiVersion", source = "source.version")
-    @Mapping(target = "analytics", source = "source.apiDefinitionHttpV4.analytics")
-    @Mapping(target = "allowedInApiProducts", source = "source.apiDefinitionHttpV4.allowedInApiProducts", defaultValue = "false")
+    @Mapping(target = "analytics", source = "definition.analytics")
+    @Mapping(target = "allowedInApiProducts", source = "definition.allowedInApiProducts", defaultValue = "false")
     @Mapping(target = "deploymentState", source = "deploymentState")
-    @Mapping(target = "endpointGroups", source = "source.apiDefinitionHttpV4.endpointGroups")
-    @Mapping(target = "failover", source = "source.apiDefinitionHttpV4.failover")
-    @Mapping(target = "flowExecution", source = "source.apiDefinitionHttpV4.flowExecution")
-    @Mapping(target = "flows", source = "source.apiDefinitionHttpV4.flows")
+    @Mapping(target = "endpointGroups", source = "definition.endpointGroups")
+    @Mapping(target = "failover", source = "definition.failover")
+    @Mapping(target = "flowExecution", source = "definition.flowExecution")
+    @Mapping(target = "flows", source = "definition.flows")
     @Mapping(target = "lifecycleState", source = "source.apiLifecycleState")
     @Mapping(target = "links", expression = "java(computeCoreApiLinks(source, uriInfo))")
-    @Mapping(target = "listeners", source = "source.apiDefinitionHttpV4.listeners", qualifiedByName = "fromHttpListeners")
+    @Mapping(target = "listeners", source = "definition.listeners", qualifiedByName = "fromHttpListeners")
     @Mapping(
         target = "responseTemplates",
-        expression = "java(source != null && source.getApiDefinitionHttpV4() != null ? responseTemplateMapper.mapResponseTemplateToApiModel(source.getApiDefinitionHttpV4().getResponseTemplates()) : null)"
+        expression = "java(definition != null ? responseTemplateMapper.mapResponseTemplateToApiModel(definition.getResponseTemplates()) : null)"
     )
-    @Mapping(target = "properties", source = "source.apiDefinitionHttpV4.properties")
-    @Mapping(target = "services", source = "source.apiDefinitionHttpV4.services")
+    @Mapping(target = "properties", source = "definition.properties")
+    @Mapping(target = "services", source = "definition.services")
     @Mapping(target = "state", source = "source.lifecycleState")
-    ApiV4 mapToHttpV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
+    ApiV4 mapToHttpV4(
+        io.gravitee.apim.core.api.model.Api source,
+        io.gravitee.definition.model.v4.Api definition,
+        UriInfo uriInfo,
+        GenericApi.DeploymentStateEnum deploymentState
+    );
 
     @Mapping(target = "definitionContext", source = "source.originContext")
     @Mapping(target = "apiVersion", source = "source.version")
     @Mapping(target = "deploymentState", source = "deploymentState")
-    @Mapping(target = "endpointGroups", source = "source.apiDefinitionNativeV4.endpointGroups")
-    @Mapping(target = "flows", source = "source.apiDefinitionNativeV4.flows")
+    @Mapping(target = "endpointGroups", source = "definition.endpointGroups")
+    @Mapping(target = "flows", source = "definition.flows")
     @Mapping(target = "lifecycleState", source = "source.apiLifecycleState")
     @Mapping(target = "links", expression = "java(computeCoreApiLinks(source, uriInfo))")
-    @Mapping(target = "listeners", source = "source.apiDefinitionNativeV4.listeners", qualifiedByName = "fromNativeListeners")
+    @Mapping(target = "listeners", source = "definition.listeners", qualifiedByName = "fromNativeListeners")
     @Mapping(target = "state", source = "source.lifecycleState")
-    @Mapping(target = "analytics", source = "source.apiDefinitionNativeV4.analytics")
-    ApiV4 mapToNativeV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
+    @Mapping(target = "analytics", source = "definition.analytics")
+    @Mapping(target = "id", source = "source.id")
+    @Mapping(target = "name", source = "source.name")
+    @Mapping(target = "definitionVersion", source = "source.definitionVersion")
+    @Mapping(target = "tags", source = "source.tags")
+    @Mapping(target = "type", source = "source.type")
+    ApiV4 mapToNativeV4(
+        io.gravitee.apim.core.api.model.Api source,
+        NativeApi definition,
+        UriInfo uriInfo,
+        GenericApi.DeploymentStateEnum deploymentState
+    );
 
+    @Mapping(target = "id", source = "source.id")
+    @Mapping(target = "name", source = "source.name")
+    @Mapping(target = "definitionVersion", source = "source.definitionVersion")
+    @Mapping(target = "tags", source = "source.tags")
+    @Mapping(target = "type", source = "source.type")
     @Mapping(target = "definitionContext", source = "source.originContext")
     @Mapping(target = "apiVersion", source = "source.version")
-    @Mapping(target = "analytics", source = "source.apiDefinitionHttpV4.analytics")
+    @Mapping(target = "analytics", source = "definition.analytics")
     @Mapping(target = "deploymentState", source = "deploymentState")
-    @Mapping(target = "endpointGroups", source = "source.apiDefinitionHttpV4.endpointGroups")
-    @Mapping(target = "flowExecution", source = "source.apiDefinitionHttpV4.flowExecution")
+    @Mapping(target = "endpointGroups", source = "definition.endpointGroups")
+    @Mapping(target = "flowExecution", source = "definition.flowExecution")
     @Mapping(target = "flows", source = "source.flows", qualifiedByName = "mapToFlowV4List")
     @Mapping(target = "lifecycleState", source = "source.apiLifecycleState")
     @Mapping(target = "links", expression = "java(computeCoreApiLinks(source, uriInfo))")
-    @Mapping(target = "listeners", source = "source.apiDefinitionHttpV4.listeners", qualifiedByName = "fromHttpListeners")
+    @Mapping(target = "listeners", source = "definition.listeners", qualifiedByName = "fromHttpListeners")
     @Mapping(target = "state", source = "source.lifecycleState")
-    ApiV4 mapToV4(io.gravitee.apim.core.api.model.ApiWithFlows source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
+    ApiV4 mapToV4(
+        io.gravitee.apim.core.api.model.ApiWithFlows source,
+        io.gravitee.definition.model.v4.Api definition,
+        UriInfo uriInfo,
+        GenericApi.DeploymentStateEnum deploymentState
+    );
 
     @Mapping(target = "definitionContext", source = "apiEntity.originContext")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")

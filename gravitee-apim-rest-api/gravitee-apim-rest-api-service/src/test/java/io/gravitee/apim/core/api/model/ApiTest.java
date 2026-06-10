@@ -39,20 +39,22 @@ class ApiTest {
     @Test
     void does_not_need_to_update() {
         final Api api = ApiFixtures.aProxyApiV4();
-        api
-            .getApiDefinitionHttpV4()
-            .setProperties(List.of(new Property("key", "value", false, false), new Property("dynamic", "value", false, true)));
+        var apiDefinition = (io.gravitee.definition.model.v4.Api) api.getApiDefinitionValue();
+        apiDefinition.setProperties(List.of(new Property("key", "value", false, false), new Property("dynamic", "value", false, true)));
         assertThat(
             api.updateDynamicProperties(List.of(new Property("key", "value", false, true), new Property("dynamic", "value", false, true)))
         ).isFalse();
         // keys must be sorted by natural order
-        assertThat(api.getApiDefinitionHttpV4().getProperties()).extracting(Property::getKey).containsExactly("dynamic", "key");
+        assertThat(((io.gravitee.definition.model.v4.Api) api.getApiDefinitionValue()).getProperties())
+            .extracting(Property::getKey)
+            .containsExactly("dynamic", "key");
     }
 
     @Test
     void needs_to_update() {
         final Api api = ApiFixtures.aProxyApiV4();
-        api.getApiDefinitionHttpV4().setProperties(List.of(new Property("key", "value", false, false)));
+        var apiDefinition = (io.gravitee.definition.model.v4.Api) api.getApiDefinitionValue();
+        apiDefinition.setProperties(List.of(new Property("key", "value", false, false)));
         assertThat(
             api.updateDynamicProperties(
                 List.of(
@@ -63,6 +65,8 @@ class ApiTest {
             )
         ).isTrue();
         // keys must be sorted by natural order
-        assertThat(api.getApiDefinitionHttpV4().getProperties()).extracting(Property::getKey).containsExactly("X-Other", "dynamic", "key");
+        assertThat(((io.gravitee.definition.model.v4.Api) api.getApiDefinitionValue()).getProperties())
+            .extracting(Property::getKey)
+            .containsExactly("X-Other", "dynamic", "key");
     }
 }

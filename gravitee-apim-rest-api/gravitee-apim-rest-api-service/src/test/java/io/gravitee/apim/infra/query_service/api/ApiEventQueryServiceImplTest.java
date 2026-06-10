@@ -93,9 +93,9 @@ class ApiEventQueryServiceImplTest {
         );
         when(eventLatestRepository.search(any(), eq(Event.EventProperties.API_ID), eq(0L), eq(1L))).thenReturn(List.of(event));
         final Optional<Api> lastPublishedApi = cut.findLastPublishedApi("org-id", "env-id", "api-id");
-        assertThat(lastPublishedApi).hasValueSatisfying(result -> {
-            assertThat(result.getApiDefinitionHttpV4()).isEqualTo(api.getApiDefinitionHttpV4());
-        });
+        assertThat(lastPublishedApi).hasValueSatisfying(result ->
+            assertThat(result.getApiDefinitionValue()).isEqualTo(api.getApiDefinitionValue())
+        );
         verifyEventCriteria();
     }
 

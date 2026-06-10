@@ -75,15 +75,18 @@ public interface ApiAdapter {
 
     Stream<io.gravitee.repository.management.model.Api> toRepositoryStream(Stream<Api> source);
 
-    @Mapping(target = "apiVersion", source = "version")
-    @Mapping(target = "tags", source = "apiDefinitionHttpV4.tags")
-    @Mapping(target = "listeners", source = "apiDefinitionHttpV4.listeners")
-    @Mapping(target = "endpointGroups", source = "apiDefinitionHttpV4.endpointGroups")
-    @Mapping(target = "analytics", source = "apiDefinitionHttpV4.analytics")
-    @Mapping(target = "flowExecution", source = "apiDefinitionHttpV4.flowExecution")
-    @Mapping(target = "flows", source = "apiDefinitionHttpV4.flows")
-    @Mapping(target = "failover", source = "apiDefinitionHttpV4.failover")
-    NewApiEntity toNewApiEntity(Api source);
+    @Mapping(target = "name", source = "source.name")
+    @Mapping(target = "definitionVersion", source = "source.definitionVersion")
+    @Mapping(target = "type", source = "source.type")
+    @Mapping(target = "apiVersion", source = "source.version")
+    @Mapping(target = "tags", source = "apiDefinition.tags")
+    @Mapping(target = "listeners", source = "apiDefinition.listeners")
+    @Mapping(target = "endpointGroups", source = "apiDefinition.endpointGroups")
+    @Mapping(target = "analytics", source = "apiDefinition.analytics")
+    @Mapping(target = "flowExecution", source = "apiDefinition.flowExecution")
+    @Mapping(target = "flows", source = "apiDefinition.flows")
+    @Mapping(target = "failover", source = "apiDefinition.failover")
+    NewApiEntity toNewApiEntity(Api source, io.gravitee.definition.model.v4.Api apiDefinition);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(source = "version", target = "apiVersion")
@@ -120,7 +123,7 @@ public interface ApiAdapter {
     ApiEntity toApiEntity(Api api);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
-    @Mapping(source = "version", target = "apiVersion")
+    @Mapping(target = "apiVersion", source = "api.version")
     @Mapping(target = "metadata", ignore = true)
     @Mapping(target = "tags", source = "apiDefinitionNativeV4.tags")
     @Mapping(target = "listeners", source = "apiDefinitionNativeV4.listeners")
@@ -129,9 +132,13 @@ public interface ApiAdapter {
     @Mapping(target = "resources", source = "apiDefinitionNativeV4.resources")
     @Mapping(target = "services", source = "apiDefinitionNativeV4.services")
     @Mapping(target = "properties", source = "apiDefinitionNativeV4.properties")
-    @Mapping(target = "state", source = "lifecycleState")
-    @Mapping(target = "lifecycleState", source = "apiLifecycleState")
-    NativeApiEntity toNativeApiEntity(Api api);
+    @Mapping(target = "state", source = "api.lifecycleState")
+    @Mapping(target = "lifecycleState", source = "api.apiLifecycleState")
+    @Mapping(target = "id", source = "api.id")
+    @Mapping(target = "name", source = "api.name")
+    @Mapping(target = "type", source = "api.type")
+    @Mapping(target = "definitionVersion", source = "api.definitionVersion")
+    NativeApiEntity toNativeApiEntity(Api api, NativeApi apiDefinitionNativeV4);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(source = "source.version", target = "apiVersion")

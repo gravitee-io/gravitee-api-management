@@ -53,7 +53,7 @@ class ApiModelFactoryTest {
 
         Api api = ApiModelFactory.fromApiExport(apiExport, ENVIRONMENT_ID);
 
-        var definition = api.getApiDefinitionHttpV4();
+        var definition = ((io.gravitee.definition.model.v4.Api) api.getApiDefinitionValue());
         assertThat(definition.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
         assertThat(definition.getType()).isEqualTo(ApiType.PROXY);
         assertThat(definition.getAllowedInApiProducts()).isNull();
@@ -71,7 +71,7 @@ class ApiModelFactoryTest {
 
         Api api = ApiModelFactory.fromApiExport(apiExport, ENVIRONMENT_ID);
 
-        var definition = api.getApiDefinitionHttpV4();
+        var definition = ((io.gravitee.definition.model.v4.Api) api.getApiDefinitionValue());
         assertThat(definition.getAllowedInApiProducts()).isTrue();
     }
 
@@ -87,7 +87,7 @@ class ApiModelFactoryTest {
 
         Api api = ApiModelFactory.fromApiExport(apiExport, ENVIRONMENT_ID);
 
-        var definition = api.getApiDefinitionHttpV4();
+        var definition = ((io.gravitee.definition.model.v4.Api) api.getApiDefinitionValue());
         assertThat(definition.getAllowedInApiProducts()).isFalse();
     }
 
@@ -103,7 +103,7 @@ class ApiModelFactoryTest {
 
         Api api = ApiModelFactory.fromApiExport(apiExport, ENVIRONMENT_ID);
 
-        var definition = api.getApiDefinitionHttpV4();
+        var definition = ((io.gravitee.definition.model.v4.Api) api.getApiDefinitionValue());
         assertThat(definition.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
         assertThat(definition.getType()).isEqualTo(ApiType.MESSAGE);
         assertThat(definition.getAllowedInApiProducts()).isNull();
@@ -121,7 +121,7 @@ class ApiModelFactoryTest {
 
         Api api = ApiModelFactory.fromApiExport(apiExport, ENVIRONMENT_ID);
 
-        var definition = api.getApiDefinitionHttpV4();
+        var definition = ((io.gravitee.definition.model.v4.Api) api.getApiDefinitionValue());
         assertThat(definition.getType()).isEqualTo(ApiType.PROXY);
         assertThat(definition.getAllowedInApiProducts()).isNull();
     }

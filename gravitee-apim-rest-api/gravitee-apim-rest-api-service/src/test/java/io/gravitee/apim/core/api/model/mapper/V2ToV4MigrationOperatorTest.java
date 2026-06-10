@@ -32,6 +32,7 @@ import io.gravitee.apim.infra.json.jackson.JsonMapperFactory;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Cors;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Endpoint;
@@ -55,7 +56,6 @@ import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.definition.model.v4.service.Service;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -89,8 +89,8 @@ class V2ToV4MigrationOperatorTest {
         void should_preserve_api_metadata_when_mapping() {
             // Given
             var originalApi = ApiFixtures.aProxyApiV2();
-            originalApi
-                .getApiDefinition()
+            Api apiDefinition = (Api) originalApi.getApiDefinitionValue();
+            apiDefinition
                 .getProxy()
                 .getGroups()
                 .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -124,8 +124,8 @@ class V2ToV4MigrationOperatorTest {
         @Test
         void should_upgrade_definition_version_to_v4() {
             var v2Api = ApiFixtures.aProxyApiV2().toBuilder().definitionVersion(DefinitionVersion.V2).build();
-            v2Api
-                .getApiDefinition()
+            Api apiDefinition = (Api) v2Api.getApiDefinitionValue();
+            apiDefinition
                 .getProxy()
                 .getGroups()
                 .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
@@ -150,7 +150,7 @@ class V2ToV4MigrationOperatorTest {
             var proxy = new Proxy();
             proxy.setVirtualHosts(List.of(virtualHost));
 
-            var apiDef = new io.gravitee.definition.model.Api();
+            var apiDef = new Api();
             apiDef.setId("test-api");
             apiDef.setName("Test API");
             apiDef.setVersion("1.0");
@@ -162,7 +162,10 @@ class V2ToV4MigrationOperatorTest {
             var result = get(mapper.mapApi(api));
 
             // Then
-            if (result.getApiDefinitionHttpV4().getListeners().getFirst() instanceof HttpListener httpListener) {
+            if (
+                result.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api definition &&
+                definition.getListeners().getFirst() instanceof HttpListener httpListener
+            ) {
                 assertThat(httpListener.getPaths().getFirst().getPath()).endsWith("/");
             } else {
                 fail("Listener is not an HttpListener");
@@ -178,7 +181,7 @@ class V2ToV4MigrationOperatorTest {
             var proxy = new Proxy();
             proxy.setVirtualHosts(List.of(virtualHost));
 
-            var apiDef = new io.gravitee.definition.model.Api();
+            var apiDef = new Api();
             apiDef.setId("test-api");
             apiDef.setName("Test API");
             apiDef.setVersion("1.0");
@@ -188,7 +191,8 @@ class V2ToV4MigrationOperatorTest {
 
             var result = get(mapper.mapApi(api));
 
-            var httpListener = (HttpListener) result.getApiDefinitionHttpV4().getListeners().getFirst();
+            var apiDefinitionValue = (io.gravitee.definition.model.v4.Api) result.getApiDefinitionValue();
+            var httpListener = (HttpListener) apiDefinitionValue.getListeners().getFirst();
             var path = httpListener.getPaths().getFirst();
 
             assertThat(path.getHost()).isEqualTo("api.example.com");
@@ -208,7 +212,7 @@ class V2ToV4MigrationOperatorTest {
             proxy.setVirtualHosts(List.of(virtualHost1, virtualHost2));
             proxy.setServers(List.of("server1", "server2"));
 
-            var apiDef = new io.gravitee.definition.model.Api();
+            var apiDef = new Api();
             apiDef.setId("test-api");
             apiDef.setName("Test API");
             apiDef.setVersion("1.0");
@@ -218,8 +222,9 @@ class V2ToV4MigrationOperatorTest {
 
             var result = get(mapper.mapApi(api));
 
-            assertThat(result.getApiDefinitionHttpV4().getListeners()).hasSize(1);
-            var listener = result.getApiDefinitionHttpV4().getListeners().getFirst();
+            var apiDefinitionValue = (io.gravitee.definition.model.v4.Api) result.getApiDefinitionValue();
+            assertThat(apiDefinitionValue.getListeners()).hasSize(1);
+            var listener = apiDefinitionValue.getListeners().getFirst();
             assertThat(listener.getType()).isEqualTo(ListenerType.HTTP);
 
             var httpListener = (HttpListener) listener;
@@ -255,7 +260,7 @@ class V2ToV4MigrationOperatorTest {
             proxy.setVirtualHosts(List.of(new VirtualHost()));
             proxy.setGroups(Set.of(endpointGroup));
 
-            var apiDef = new io.gravitee.definition.model.Api();
+            var apiDef = new Api();
             apiDef.setId("test-api");
             apiDef.setName("Test API");
             apiDef.setVersion("1.0");
@@ -265,7 +270,8 @@ class V2ToV4MigrationOperatorTest {
 
             var result = get(mapper.mapApi(api));
 
-            var mappedEndpointGroup = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
+            var apiDefinitionValue = (io.gravitee.definition.model.v4.Api) result.getApiDefinitionValue();
+            var mappedEndpointGroup = apiDefinitionValue.getEndpointGroups().getFirst();
             if (expectedV4Type != null) {
                 assertThat(mappedEndpointGroup.getLoadBalancer().getType()).isEqualTo(expectedV4Type);
             } else {
@@ -285,7 +291,7 @@ class V2ToV4MigrationOperatorTest {
 
         @Test
         void should_set_api_properties_correctly() {
-            var apiDef = new io.gravitee.definition.model.Api();
+            var apiDef = new Api();
             apiDef.setId("test-api-id");
             apiDef.setName("Test API Name");
             apiDef.setVersion("2.0.1");
@@ -295,7 +301,7 @@ class V2ToV4MigrationOperatorTest {
             var api = ApiFixtures.aProxyApiV2().toBuilder().apiDefinition(apiDef).build();
 
             var result = get(mapper.mapApi(api));
-            var v4Definition = result.getApiDefinitionHttpV4();
+            var v4Definition = (io.gravitee.definition.model.v4.Api) result.getApiDefinitionValue();
 
             assertThat(v4Definition.getId()).isEqualTo("test-api-id");
             assertThat(v4Definition.getName()).isEqualTo("Test API Name");
@@ -328,7 +334,7 @@ class V2ToV4MigrationOperatorTest {
             proxy.setVirtualHosts(List.of(new VirtualHost()));
             proxy.setGroups(Set.of(endpointGroup));
 
-            var apiDef = new io.gravitee.definition.model.Api();
+            var apiDef = new Api();
             apiDef.setId("test-api");
             apiDef.setName("Test API");
             apiDef.setVersion("1.0");
@@ -338,7 +344,8 @@ class V2ToV4MigrationOperatorTest {
 
             var result = get(mapper.mapApi(api));
 
-            var mappedEndpoint = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst().getEndpoints().getFirst();
+            var apiDefinitionValue = (io.gravitee.definition.model.v4.Api) result.getApiDefinitionValue();
+            var mappedEndpoint = apiDefinitionValue.getEndpointGroups().getFirst().getEndpoints().getFirst();
             assertThat(mappedEndpoint.isSecondary()).isEqualTo(isBackup);
             assertThat(mappedEndpoint.getWeight()).isEqualTo(10);
             assertThat(mappedEndpoint.getTenants()).containsExactlyInAnyOrder("tenant1", "tenant2");
@@ -360,7 +367,7 @@ class V2ToV4MigrationOperatorTest {
             proxy.setVirtualHosts(List.of(new VirtualHost()));
             proxy.setGroups(Set.of(endpointGroup));
 
-            var apiDef = new io.gravitee.definition.model.Api();
+            var apiDef = new Api();
             apiDef.setId("test-api");
             apiDef.setName("Test API");
             apiDef.setVersion("1.0");
@@ -370,7 +377,8 @@ class V2ToV4MigrationOperatorTest {
 
             var result = get(mapper.mapApi(api));
 
-            var mappedEndpoint = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst().getEndpoints().getFirst();
+            var apiDefinitionValue = (io.gravitee.definition.model.v4.Api) result.getApiDefinitionValue();
+            var mappedEndpoint = apiDefinitionValue.getEndpointGroups().getFirst().getEndpoints().getFirst();
             assertSoftly(softly -> {
                 softly.assertThat(mappedEndpoint.getName()).isEqualTo("test-endpoint");
                 softly.assertThat(mappedEndpoint.getType()).isEqualTo("http-proxy");
@@ -442,7 +450,7 @@ class V2ToV4MigrationOperatorTest {
             proxy.setServers(List.of("localhost"));
 
             // Setup Api V2
-            var apiDef = new io.gravitee.definition.model.Api();
+            var apiDef = new Api();
             apiDef.setId("test-api");
             apiDef.setName("Test API");
             apiDef.setVersion("1.0");
@@ -453,11 +461,12 @@ class V2ToV4MigrationOperatorTest {
             var result = get(mapper.mapApi(api));
 
             // Check Endpoint Group
-            var group = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
+            var apiDefinitionValue = (io.gravitee.definition.model.v4.Api) result.getApiDefinitionValue();
+            var group = apiDefinitionValue.getEndpointGroups().getFirst();
             String configJson =
                 "{\"http\":{\"idleTimeout\":1000,\"keepAliveTimeout\":5,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":true,\"propagateClientHost\":false,\"followRedirects\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"openSsl\":false,\"alpn\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/a/b/c\",\"content\":\"abc\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/a/b/c\",\"keyContent\":\"abc\"}},\"headers\":[{\"name\":\"X-Test\",\"value\":\"yes\"}]}";
             assertSoftly(softly -> {
-                softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
+                softly.assertThat(apiDefinitionValue.getEndpointGroups()).hasSize(1);
                 softly.assertThat(group.getName()).isEqualTo("default-group");
                 softly.assertThat(group.getType()).isEqualTo("http-proxy");
                 softly.assertThat(group.getSharedConfiguration()).isNotNull();
@@ -542,7 +551,7 @@ class V2ToV4MigrationOperatorTest {
             proxy.setServers(List.of("localhost"));
 
             // Setup Api V2
-            var apiDef = new io.gravitee.definition.model.Api();
+            var apiDef = new Api();
             apiDef.setId("test-api");
             apiDef.setName("Test API");
             apiDef.setVersion("1.0");
@@ -555,11 +564,12 @@ class V2ToV4MigrationOperatorTest {
             // Check Endpoint Group
             String configJson =
                 "{\"http\":{\"idleTimeout\":1000,\"keepAliveTimeout\":5,\"connectTimeout\":2000,\"keepAlive\":true,\"readTimeout\":3000,\"pipelining\":false,\"maxConcurrentConnections\":5,\"useCompression\":true,\"propagateClientAcceptEncoding\":true,\"propagateClientHost\":false,\"followRedirects\":true,\"version\":\"HTTP_1_1\"},\"ssl\":{\"trustAll\":false,\"hostnameVerifier\":false,\"openSsl\":false,\"alpn\":false,\"trustStore\":{\"type\":\"PEM\",\"path\":\"/a/b/c\",\"content\":\"abc\"},\"keyStore\":{\"type\":\"PEM\",\"keyPath\":\"/a/b/c\",\"keyContent\":\"abc\"}},\"headers\":[{\"name\":\"X-Test\",\"value\":\"yes\"}]}";
-            assertThat(result.getApiDefinitionHttpV4().getEndpointGroups())
+            var apiDefinitionValue = (io.gravitee.definition.model.v4.Api) result.getApiDefinitionValue();
+            assertThat(apiDefinitionValue.getEndpointGroups())
                 .singleElement()
                 .satisfies(group -> {
                     assertSoftly(softly -> {
-                        softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
+                        softly.assertThat(apiDefinitionValue.getEndpointGroups()).hasSize(1);
                         softly.assertThat(group.getName()).isEqualTo("default-group");
                         softly.assertThat(group.getType()).isEqualTo("http-proxy");
                         softly.assertThat(group.getSharedConfiguration()).isNotNull();
@@ -632,7 +642,7 @@ class V2ToV4MigrationOperatorTest {
         proxy.setServers(List.of("localhost"));
 
         // Setup Api V2
-        var apiDef = new io.gravitee.definition.model.Api();
+        var apiDef = new Api();
         apiDef.setId("test-api");
         apiDef.setName("Test API");
         apiDef.setVersion("1.0");
@@ -646,7 +656,7 @@ class V2ToV4MigrationOperatorTest {
         step.setRequest(request);
         // Configure the expected response
         HealthCheckResponse response = new HealthCheckResponse();
-        response.setAssertions(java.util.List.of("#status == 200"));
+        response.setAssertions(List.of("#status == 200"));
         step.setResponse(response);
         HealthCheckService healthCheckService = HealthCheckService.builder()
             .enabled(true) // comes from ScheduledService (superclass)
@@ -662,11 +672,12 @@ class V2ToV4MigrationOperatorTest {
         var result = get(mapper.mapApi(api));
 
         // Check Endpoint Group
-        var group = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
+        var apiDefinitionValue = (io.gravitee.definition.model.v4.Api) result.getApiDefinitionValue();
+        var group = apiDefinitionValue.getEndpointGroups().getFirst();
         String configJson =
             "{\"schedule\":\"*/30 * * * * *\",\"failureThreshold\":2,\"successThreshold\":2,\"headers\":[],\"method\":\"POST\",\"target\":\"/hc\",\"assertion\":\"{#status == 200}\",\"overrideEndpointPath\":false}";
         assertSoftly(softly -> {
-            softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
+            softly.assertThat(apiDefinitionValue.getEndpointGroups()).hasSize(1);
             softly.assertThat(group.getName()).isEqualTo("default-group");
             softly.assertThat(group.getType()).isEqualTo("http-proxy");
             softly.assertThat(group.getSharedConfiguration()).isNotNull();
@@ -722,7 +733,7 @@ class V2ToV4MigrationOperatorTest {
         proxy.setServers(List.of("localhost"));
 
         // Setup Api V2
-        var apiDef = new io.gravitee.definition.model.Api();
+        var apiDef = new Api();
         apiDef.setId("test-api");
         apiDef.setName("Test API");
         apiDef.setVersion("1.0");
@@ -734,9 +745,10 @@ class V2ToV4MigrationOperatorTest {
         var result = get(mapper.mapApi(api));
 
         // Check Endpoint Group
-        var group = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
+        var apiDefinitionValue = (io.gravitee.definition.model.v4.Api) result.getApiDefinitionValue();
+        var group = apiDefinitionValue.getEndpointGroups().getFirst();
         assertSoftly(softly -> {
-            softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
+            softly.assertThat(apiDefinitionValue.getEndpointGroups()).hasSize(1);
             softly.assertThat(group.getName()).isEqualTo("default-group");
             softly.assertThat(group.getType()).isEqualTo("http-proxy");
         });
@@ -809,7 +821,7 @@ class V2ToV4MigrationOperatorTest {
         proxy.setServers(List.of("localhost"));
 
         // Setup Api V2
-        var apiDef = new io.gravitee.definition.model.Api();
+        var apiDef = new Api();
         apiDef.setId("test-api");
         apiDef.setName("Test API");
         apiDef.setVersion("1.0");
@@ -821,9 +833,10 @@ class V2ToV4MigrationOperatorTest {
         var result = get(mapper.mapApi(api));
 
         // Check Endpoint Group
-        var group = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
+        var apiDefinitionValue = (io.gravitee.definition.model.v4.Api) result.getApiDefinitionValue();
+        var group = apiDefinitionValue.getEndpointGroups().getFirst();
         assertSoftly(softly -> {
-            softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
+            softly.assertThat(apiDefinitionValue.getEndpointGroups()).hasSize(1);
             softly.assertThat(group.getName()).isEqualTo("default-group");
             softly.assertThat(group.getType()).isEqualTo("http-proxy");
         });
@@ -881,7 +894,7 @@ class V2ToV4MigrationOperatorTest {
         proxy.setVirtualHosts(List.of(new VirtualHost("localhost", "/api", false)));
 
         // Setup Api V2
-        var apiDef = new io.gravitee.definition.model.Api();
+        var apiDef = new Api();
         apiDef.setId("test-api");
         apiDef.setName("Test API");
         apiDef.setVersion("1.0");
@@ -893,9 +906,10 @@ class V2ToV4MigrationOperatorTest {
         var result = get(mapper.mapApi(api));
 
         // Check Endpoint Group
-        var group = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
+        var apiDefinitionValue = (io.gravitee.definition.model.v4.Api) result.getApiDefinitionValue();
+        var group = apiDefinitionValue.getEndpointGroups().getFirst();
         assertSoftly(softly -> {
-            softly.assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).hasSize(1);
+            softly.assertThat(apiDefinitionValue.getEndpointGroups()).hasSize(1);
             softly.assertThat(group.getName()).isEqualTo("default-group");
             softly.assertThat(group.getType()).isEqualTo("http-proxy");
         });
@@ -941,7 +955,7 @@ class V2ToV4MigrationOperatorTest {
             proxy.setGroups(Set.of(v2Group));
             proxy.setVirtualHosts(List.of(new VirtualHost()));
 
-            var apiDef = new io.gravitee.definition.model.Api();
+            var apiDef = new Api();
             apiDef.setId("test-api");
             apiDef.setName("Test API");
             apiDef.setVersion("1.0");
@@ -954,7 +968,7 @@ class V2ToV4MigrationOperatorTest {
             var result = get(mapper.mapApi(api));
 
             // Assert: healthCheck must not have been migrated because schedule is null
-            var group = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
+            var group = ((io.gravitee.definition.model.v4.Api) result.getApiDefinitionValue()).getEndpointGroups().getFirst();
             assertThat(group.getServices()).isNotNull();
             assertThat(group.getServices().getHealthCheck()).isNull();
         }
@@ -992,7 +1006,7 @@ class V2ToV4MigrationOperatorTest {
             proxy.setGroups(Set.of(v2Group));
             proxy.setVirtualHosts(List.of(new VirtualHost()));
 
-            var apiDef = new io.gravitee.definition.model.Api();
+            var apiDef = new Api();
             apiDef.setId("test-api");
             apiDef.setName("Test API");
             apiDef.setVersion("1.0");
@@ -1004,7 +1018,7 @@ class V2ToV4MigrationOperatorTest {
             var result = get(mapper.mapApi(api));
 
             // Assert: endpoint HC must not be migrated since schedule is null
-            var group = result.getApiDefinitionHttpV4().getEndpointGroups().getFirst();
+            var group = ((io.gravitee.definition.model.v4.Api) result.getApiDefinitionValue()).getEndpointGroups().getFirst();
             var endpoint = group.getEndpoints().getFirst();
             assertThat(endpoint.getServices()).isNotNull();
             assertThat(endpoint.getServices().getHealthCheck()).isNull();

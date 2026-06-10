@@ -70,9 +70,8 @@ class ApiAdapterTest {
                 soft.assertThat(api.getDescription()).isEqualTo("api-description");
                 soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
                 soft.assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
-                soft.assertThat(api.getApiDefinition()).isNull();
                 soft
-                    .assertThat(api.getApiDefinitionHttpV4())
+                    .assertThat(api.getApiDefinitionValue())
                     .isEqualTo(
                         io.gravitee.definition.model.v4.Api.builder()
                             .id("my-id")
@@ -153,8 +152,7 @@ class ApiAdapterTest {
                 soft.assertThat(api.getDescription()).isEqualTo("api-description");
                 soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
                 soft.assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
-                soft.assertThat(api.getApiDefinition()).isNull();
-                soft.assertThat(api.getApiDefinitionHttpV4()).isNull();
+                soft.assertThat(api.getApiDefinitionValue()).isNull();
                 soft.assertThat(api.getType()).isEqualTo(ApiType.PROXY);
                 soft.assertThat(api.getName()).isEqualTo("api-name");
                 soft.assertThat(api.getDeployedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
@@ -185,9 +183,8 @@ class ApiAdapterTest {
                 soft.assertThat(api.getDescription()).isEqualTo("api-description");
                 soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
                 soft.assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
-                soft.assertThat(api.getApiDefinitionHttpV4()).isNull();
                 soft
-                    .assertThat(api.getApiDefinition())
+                    .assertThat(api.getApiDefinitionValue())
                     // V2 Api definition is defining a equals/hashcode checking only the id
                     .isEqualTo(io.gravitee.definition.model.Api.builder().id("my-id").name("api-name").version("1.0.0").build());
                 soft.assertThat(api.getType()).isEqualTo(ApiType.PROXY);
@@ -220,8 +217,7 @@ class ApiAdapterTest {
                 soft.assertThat(api.getDescription()).isEqualTo("api-description");
                 soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
                 soft.assertThat(api.getDefinitionVersion()).isNull();
-                soft.assertThat(api.getApiDefinitionHttpV4()).isNull();
-                soft.assertThat(api.getApiDefinition()).isNull();
+                soft.assertThat(api.getApiDefinitionValue()).isNull();
                 soft.assertThat(api.getType()).isEqualTo(ApiType.PROXY);
                 soft.assertThat(api.getName()).isEqualTo("api-name");
                 soft.assertThat(api.getDeployedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
@@ -273,18 +269,16 @@ class ApiAdapterTest {
         @Test
         void should_convert_v4_api_to_repository() {
             var model = ApiFixtures.aProxyApiV4();
-            model
-                .getApiDefinitionHttpV4()
-                .setFailover(
-                    Failover.builder()
-                        .enabled(true)
-                        .maxRetries(7)
-                        .slowCallDuration(500)
-                        .openStateDuration(11000)
-                        .maxFailures(3)
-                        .perSubscription(false)
-                        .build()
-                );
+            ((io.gravitee.definition.model.v4.Api) model.getApiDefinitionValue()).setFailover(
+                Failover.builder()
+                    .enabled(true)
+                    .maxRetries(7)
+                    .slowCallDuration(500)
+                    .openStateDuration(11000)
+                    .maxFailures(3)
+                    .perSubscription(false)
+                    .build()
+            );
 
             var api = ApiAdapter.INSTANCE.toRepository(model);
 
@@ -297,7 +291,7 @@ class ApiAdapterTest {
                 try {
                     soft
                         .assertThat(api.getDefinition())
-                        .isEqualTo(GraviteeJacksonMapper.getInstance().writeValueAsString(model.getApiDefinitionHttpV4()));
+                        .isEqualTo(GraviteeJacksonMapper.getInstance().writeValueAsString(model.getApiDefinitionValue()));
                 } catch (JsonProcessingException e) {
                     soft.fail(e.getMessage());
                 }
@@ -405,7 +399,10 @@ class ApiAdapterTest {
                 .apiLifecycleState(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED)
                 .build();
 
-            var updateApiEntity = ApiAdapter.INSTANCE.toUpdateApiEntity(model, model.getApiDefinitionHttpV4());
+            var updateApiEntity = ApiAdapter.INSTANCE.toUpdateApiEntity(
+                model,
+                ((io.gravitee.definition.model.v4.Api) model.getApiDefinitionValue())
+            );
 
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(updateApiEntity.getId()).isEqualTo("my-api");
@@ -425,11 +422,11 @@ class ApiAdapterTest {
                 soft.assertThat(updateApiEntity.getEndpointGroups()).hasSize(1);
                 soft
                     .assertThat(updateApiEntity.getEndpointGroups().getFirst())
-                    .isEqualTo(model.getApiDefinitionHttpV4().getEndpointGroups().getFirst());
+                    .isEqualTo(((io.gravitee.definition.model.v4.Api) model.getApiDefinitionValue()).getEndpointGroups().getFirst());
                 soft.assertThat(updateApiEntity.getListeners()).hasSize(1);
                 soft
                     .assertThat(updateApiEntity.getListeners().getFirst())
-                    .isEqualTo(model.getApiDefinitionHttpV4().getListeners().getFirst());
+                    .isEqualTo(((io.gravitee.definition.model.v4.Api) model.getApiDefinitionValue()).getListeners().getFirst());
             });
         }
 

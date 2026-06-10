@@ -54,8 +54,9 @@ public class UpdateApiDomainServiceImpl implements UpdateApiDomainService {
     @Override
     public Api updateV4(Api api, AuditInfo auditInfo) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
+        var apiDefinition = (io.gravitee.definition.model.v4.Api) api.getApiDefinitionValue();
 
-        var updateApiEntity = ApiAdapter.INSTANCE.toUpdateApiEntity(api, api.getApiDefinitionHttpV4());
+        var updateApiEntity = ApiAdapter.INSTANCE.toUpdateApiEntity(api, apiDefinition);
 
         delegate.update(executionContext, api.getId(), updateApiEntity, false, auditInfo.actor().userId());
 
@@ -65,15 +66,19 @@ public class UpdateApiDomainServiceImpl implements UpdateApiDomainService {
     @Override
     public Api validateV4(Api api, AuditInfo auditInfo) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
-        var updateApiEntity = ApiAdapter.INSTANCE.toUpdateApiEntity(api, api.getApiDefinitionHttpV4());
+        var apiDefinition = (io.gravitee.definition.model.v4.Api) api.getApiDefinitionValue();
+        var updateApiEntity = ApiAdapter.INSTANCE.toUpdateApiEntity(api, apiDefinition);
 
         delegate.validate(executionContext, api.getId(), updateApiEntity, auditInfo.actor().userId());
 
-        return applySanitizedValues(api, updateApiEntity);
+        return applySanitizedValues(api, updateApiEntity, apiDefinition);
     }
 
-    private Api applySanitizedValues(Api original, io.gravitee.rest.api.model.v4.api.UpdateApiEntity sanitized) {
-        var originalDefinition = original.getApiDefinitionHttpV4();
+    private Api applySanitizedValues(
+        Api original,
+        io.gravitee.rest.api.model.v4.api.UpdateApiEntity sanitized,
+        io.gravitee.definition.model.v4.Api originalDefinition
+    ) {
         var sanitizedLifecycle = sanitized.getLifecycleState() != null
             ? Api.ApiLifecycleState.valueOf(sanitized.getLifecycleState().name())
             : original.getApiLifecycleState();

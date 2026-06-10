@@ -276,8 +276,6 @@ class UpdateFederatedApiUseCaseTest {
         assertThat(result.getCrossId()).isEqualTo("old");
         assertThat(result.getOriginContext()).isEqualTo(new OriginContext.Integration("old"));
         assertThat(result.getDefinitionVersion()).isEqualTo(DefinitionVersion.FEDERATED);
-        assertThat(result.getApiDefinitionHttpV4()).isEqualTo(null);
-        assertThat(result.getApiDefinition()).isEqualTo(null);
         assertThat(result.getApiDefinitionValue()).isEqualTo(FederatedApi.builder().build());
         assertThat(result.getType()).isEqualTo(ApiType.PROXY);
         assertThat(result.getDeployedAt()).isEqualTo(oldDate);

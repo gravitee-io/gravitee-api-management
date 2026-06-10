@@ -20,9 +20,7 @@ import static fixtures.core.model.ApiFixtures.aTcpApiV4;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
-import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
-import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.exception.DuplicatedHostException;
 import io.gravitee.apim.core.api.exception.HostAlreadyExistsException;
@@ -31,7 +29,6 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import java.util.List;
-import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -50,9 +47,7 @@ class VerifyApiHostsUseCaseTest {
         .id("tcp-api-uppercase-host")
         .environmentId(ENVIRONMENT_ID)
         .apiDefinitionHttpV4(
-            aTcpApiV4()
-                .getApiDefinitionHttpV4()
-                .toBuilder()
+            ((io.gravitee.definition.model.v4.Api) aTcpApiV4().getApiDefinitionValue()).toBuilder()
                 .listeners(List.of(TcpListener.builder().hosts(List.of("Tcp-API")).build()))
                 .build()
         )
@@ -121,7 +116,7 @@ class VerifyApiHostsUseCaseTest {
         var throwable = catchThrowable(() -> verifyApiHostsUseCase.execute(input));
 
         // then
-        AssertionsForClassTypes.assertThat(throwable).isInstanceOf(InvalidHostException.class);
+        assertThat(throwable).isInstanceOf(InvalidHostException.class);
     }
 
     @Test
@@ -138,7 +133,7 @@ class VerifyApiHostsUseCaseTest {
         var throwable = catchThrowable(() -> verifyApiHostsUseCase.execute(input));
 
         // then
-        AssertionsForClassTypes.assertThat(throwable).isInstanceOf(InvalidHostException.class);
+        assertThat(throwable).isInstanceOf(InvalidHostException.class);
     }
 
     @Test
@@ -155,7 +150,7 @@ class VerifyApiHostsUseCaseTest {
         var throwable = catchThrowable(() -> verifyApiHostsUseCase.execute(input));
 
         // then
-        AssertionsForClassTypes.assertThat(throwable).isInstanceOf(HostAlreadyExistsException.class);
+        assertThat(throwable).isInstanceOf(HostAlreadyExistsException.class);
     }
 
     @Test
@@ -172,7 +167,7 @@ class VerifyApiHostsUseCaseTest {
         var throwable = catchThrowable(() -> verifyApiHostsUseCase.execute(input));
 
         // then
-        AssertionsForClassTypes.assertThat(throwable).isInstanceOf(HostAlreadyExistsException.class);
+        assertThat(throwable).isInstanceOf(HostAlreadyExistsException.class);
     }
 
     @Test
@@ -189,6 +184,6 @@ class VerifyApiHostsUseCaseTest {
         var throwable = catchThrowable(() -> verifyApiHostsUseCase.execute(input));
 
         // then
-        AssertionsForClassTypes.assertThat(throwable).isInstanceOf(DuplicatedHostException.class);
+        assertThat(throwable).isInstanceOf(DuplicatedHostException.class);
     }
 }

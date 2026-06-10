@@ -50,6 +50,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.assertj.core.api.ObjectAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -89,7 +91,7 @@ class UpdateApiDomainServiceImplTest {
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getTags()).containsExactly("sanitized-tag");
+        assertThat(result.getApiDefinitionValue().getTags()).containsExactly("sanitized-tag");
     }
 
     @Test
@@ -120,7 +122,7 @@ class UpdateApiDomainServiceImplTest {
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getAnalytics()).isEqualTo(sanitizedAnalytics);
+        assertApiDefinition(result).extracting(io.gravitee.definition.model.v4.Api::getAnalytics).isEqualTo(sanitizedAnalytics);
     }
 
     @Test
@@ -139,23 +141,23 @@ class UpdateApiDomainServiceImplTest {
     @Test
     void should_preserve_original_tags_when_validator_returns_null() {
         var api = ApiFixtures.aProxyApiV4();
-        var originalTags = api.getApiDefinitionHttpV4().getTags();
+        var originalTags = api.getApiDefinitionValue().getTags();
         stubValidate(entity -> entity.setTags(null));
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getTags()).isEqualTo(originalTags);
+        assertThat(result.getApiDefinitionValue().getTags()).isEqualTo(originalTags);
     }
 
     @Test
     void should_preserve_original_analytics_when_validator_returns_null() {
         var api = ApiFixtures.aProxyApiV4();
-        var originalAnalytics = api.getApiDefinitionHttpV4().getAnalytics();
+        var originalAnalytics = asV4ApiDefinition(api).getAnalytics();
         stubValidate(entity -> entity.setAnalytics(null));
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getAnalytics()).isEqualTo(originalAnalytics);
+        assertApiDefinition(result).extracting(io.gravitee.definition.model.v4.Api::getAnalytics).isEqualTo(originalAnalytics);
     }
 
     @Test
@@ -187,7 +189,7 @@ class UpdateApiDomainServiceImplTest {
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getFailover()).isEqualTo(sanitizedFailover);
+        assertApiDefinition(result).extracting(io.gravitee.definition.model.v4.Api::getFailover).isEqualTo(sanitizedFailover);
     }
 
     @Test
@@ -198,7 +200,7 @@ class UpdateApiDomainServiceImplTest {
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getFlowExecution()).isEqualTo(sanitizedFlowExecution);
+        assertApiDefinition(result).extracting(io.gravitee.definition.model.v4.Api::getFlowExecution).isEqualTo(sanitizedFlowExecution);
     }
 
     @Test
@@ -209,7 +211,7 @@ class UpdateApiDomainServiceImplTest {
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getServices()).isEqualTo(sanitizedServices);
+        assertApiDefinition(result).extracting(io.gravitee.definition.model.v4.Api::getServices).isEqualTo(sanitizedServices);
     }
 
     @Test
@@ -220,7 +222,9 @@ class UpdateApiDomainServiceImplTest {
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getResponseTemplates()).isEqualTo(sanitizedResponseTemplates);
+        assertApiDefinition(result)
+            .extracting(io.gravitee.definition.model.v4.Api::getResponseTemplates)
+            .isEqualTo(sanitizedResponseTemplates);
     }
 
     @Test
@@ -231,32 +235,35 @@ class UpdateApiDomainServiceImplTest {
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getFlows()).isEqualTo(sanitizedFlows);
+        assertApiDefinition(result).extracting(io.gravitee.definition.model.v4.Api::getFlows).isEqualTo(sanitizedFlows);
         verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
     }
 
     @Test
     void should_preserve_original_flows_when_validator_returns_null() {
         var originalFlows = List.of(new Flow());
-        var originalDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder().flows(originalFlows).build();
+        var originalDefinition = asV4ApiDefinition(ApiFixtures.aProxyApiV4()).toBuilder().flows(originalFlows).build();
         var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(originalDefinition).build();
         stubValidate(entity -> entity.setFlows(null));
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getFlows()).isEqualTo(originalFlows);
+        assertApiDefinition(result).extracting(io.gravitee.definition.model.v4.Api::getFlows).isEqualTo(originalFlows);
         verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
     }
 
     @Test
     void should_return_null_flows_when_erased_definition_has_null_flows() {
-        var erasedDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder().flows(null).build();
+        var erasedDefinition = asV4ApiDefinition(ApiFixtures.aProxyApiV4()).toBuilder().flows(null).build();
         var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(erasedDefinition).build();
         stubValidate(entity -> entity.setFlows(null));
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getFlows()).isNull();
+        assertApiDefinition(result)
+            .extracting(io.gravitee.definition.model.v4.Api::getFlows)
+            .asInstanceOf(InstanceOfAssertFactories.collection(Flow.class))
+            .isNull();
         verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
     }
 
@@ -268,29 +275,28 @@ class UpdateApiDomainServiceImplTest {
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getResources()).isEqualTo(sanitizedResources);
+        assertApiDefinition(result).extracting(io.gravitee.definition.model.v4.Api::getResources).isEqualTo(sanitizedResources);
     }
 
     @Test
     void should_preserve_original_resources_when_validator_returns_null() {
         var existingResource = Resource.builder().name("r1").type("cache").configuration("{}").enabled(true).build();
-        var originalDefinition = ApiFixtures.aProxyApiV4()
-            .getApiDefinitionHttpV4()
-            .toBuilder()
-            .resources(List.of(existingResource))
-            .build();
+        var originalDefinition = asV4ApiDefinition(ApiFixtures.aProxyApiV4()).toBuilder().resources(List.of(existingResource)).build();
         var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(originalDefinition).build();
         stubValidate(entity -> entity.setResources(null));
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getResources()).containsExactly(existingResource);
+        assertApiDefinition(result)
+            .extracting(io.gravitee.definition.model.v4.Api::getResources)
+            .asInstanceOf(InstanceOfAssertFactories.collection(Resource.class))
+            .containsExactly(existingResource);
     }
 
     @Test
     void should_return_sanitized_endpoint_groups_from_mutated_update_api_entity() {
         var api = ApiFixtures.aProxyApiV4();
-        var sanitizedGroups = List.of(
+        List<EndpointGroup> sanitizedGroups = List.of(
             EndpointGroup.builder()
                 .name("sanitized-group")
                 .type("http-proxy")
@@ -302,13 +308,13 @@ class UpdateApiDomainServiceImplTest {
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).isEqualTo(sanitizedGroups);
+        assertApiDefinition(result).extracting(io.gravitee.definition.model.v4.Api::getEndpointGroups).isEqualTo(sanitizedGroups);
         verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
     }
 
     @Test
     void should_preserve_original_endpoint_groups_when_validator_returns_null() {
-        var originalGroups = List.of(
+        List<EndpointGroup> originalGroups = List.of(
             EndpointGroup.builder()
                 .name("original-group")
                 .type("http-proxy")
@@ -316,37 +322,40 @@ class UpdateApiDomainServiceImplTest {
                 .endpoints(List.of(Endpoint.builder().name("ep").type("http-proxy").weight(1).build()))
                 .build()
         );
-        var originalDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder().endpointGroups(originalGroups).build();
+        var originalDefinition = asV4ApiDefinition(ApiFixtures.aProxyApiV4()).toBuilder().endpointGroups(originalGroups).build();
         var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(originalDefinition).build();
         stubValidate(entity -> entity.setEndpointGroups(null));
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).isEqualTo(originalGroups);
+        assertApiDefinition(result).extracting(io.gravitee.definition.model.v4.Api::getEndpointGroups).isEqualTo(originalGroups);
         verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
     }
 
     @Test
     void should_return_null_endpoint_groups_when_erased_definition_has_null_endpoint_groups() {
-        var erasedDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder().endpointGroups(null).build();
+        var erasedDefinition = asV4ApiDefinition(ApiFixtures.aProxyApiV4()).toBuilder().endpointGroups(null).build();
         var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(erasedDefinition).build();
         stubValidate(entity -> entity.setEndpointGroups(null));
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getEndpointGroups()).isNull();
+        assertApiDefinition(result).extracting(io.gravitee.definition.model.v4.Api::getEndpointGroups).isNull();
         verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
     }
 
     @Test
     void should_preserve_original_allowed_in_api_products_when_validator_returns_null() {
-        var originalDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder().allowedInApiProducts(true).build();
+        var originalDefinition = asV4ApiDefinition(ApiFixtures.aProxyApiV4()).toBuilder().allowedInApiProducts(true).build();
         var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(originalDefinition).build();
         stubValidate(entity -> entity.setAllowedInApiProducts(null));
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getAllowedInApiProducts()).isTrue();
+        assertApiDefinition(result)
+            .extracting(io.gravitee.definition.model.v4.Api::getAllowedInApiProducts)
+            .asInstanceOf(InstanceOfAssertFactories.BOOLEAN)
+            .isTrue();
     }
 
     @Test
@@ -357,9 +366,10 @@ class UpdateApiDomainServiceImplTest {
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getProperties())
-            .hasSize(1)
-            .first()
+        assertApiDefinition(result)
+            .extracting(io.gravitee.definition.model.v4.Api::getProperties)
+            .asInstanceOf(InstanceOfAssertFactories.collection(Property.class))
+            .singleElement()
             .satisfies(p -> {
                 assertThat(p.getKey()).isEqualTo("k1");
                 assertThat(p.getValue()).isEqualTo("v1");
@@ -372,30 +382,26 @@ class UpdateApiDomainServiceImplTest {
         var existingProperty = new Property();
         existingProperty.setKey("k1");
         existingProperty.setValue("v1");
-        var originalDefinition = ApiFixtures.aProxyApiV4()
-            .getApiDefinitionHttpV4()
-            .toBuilder()
-            .properties(List.of(existingProperty))
-            .build();
+        var originalDefinition = asV4ApiDefinition(ApiFixtures.aProxyApiV4()).toBuilder().properties(List.of(existingProperty)).build();
         var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(originalDefinition).build();
-        var originalProperties = api.getApiDefinitionHttpV4().getProperties();
+        var originalProperties = asV4ApiDefinition(api).getProperties();
         stubValidate(entity -> entity.setProperties(null));
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getProperties()).isEqualTo(originalProperties);
+        assertApiDefinition(result).extracting(io.gravitee.definition.model.v4.Api::getProperties).isEqualTo(originalProperties);
         verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
     }
 
     @Test
     void should_return_null_properties_when_erased_definition_has_null_properties() {
-        var erasedDefinition = ApiFixtures.aProxyApiV4().getApiDefinitionHttpV4().toBuilder().properties(null).build();
+        var erasedDefinition = asV4ApiDefinition(ApiFixtures.aProxyApiV4()).toBuilder().properties(null).build();
         var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(erasedDefinition).build();
         stubValidate(entity -> entity.setProperties(null));
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getProperties()).isNull();
+        assertApiDefinition(result).extracting(io.gravitee.definition.model.v4.Api::getProperties).isNull();
         verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
     }
 
@@ -406,9 +412,10 @@ class UpdateApiDomainServiceImplTest {
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getProperties())
-            .hasSize(1)
-            .first()
+        assertApiDefinition(result)
+            .extracting(io.gravitee.definition.model.v4.Api::getProperties)
+            .asInstanceOf(InstanceOfAssertFactories.collection(Property.class))
+            .singleElement()
             .satisfies(p -> {
                 assertThat(p.isEncrypted()).isTrue();
                 assertThat(p.isDynamic()).isTrue();
@@ -423,7 +430,11 @@ class UpdateApiDomainServiceImplTest {
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getProperties()).hasSize(1).first().isNotInstanceOf(PropertyEntity.class);
+        assertApiDefinition(result)
+            .extracting(io.gravitee.definition.model.v4.Api::getProperties)
+            .asInstanceOf(InstanceOfAssertFactories.collection(Property.class))
+            .singleElement()
+            .isNotInstanceOf(PropertyEntity.class);
         verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
     }
 
@@ -433,17 +444,16 @@ class UpdateApiDomainServiceImplTest {
             .paths(List.of(Path.builder().path("/original").build()))
             .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
             .build();
-        var originalDefinition = ApiFixtures.aProxyApiV4()
-            .getApiDefinitionHttpV4()
-            .toBuilder()
-            .listeners(List.of(existingListener))
-            .build();
+        var originalDefinition = asV4ApiDefinition(ApiFixtures.aProxyApiV4()).toBuilder().listeners(List.of(existingListener)).build();
         var api = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionHttpV4(originalDefinition).build();
         stubValidate(entity -> entity.setListeners(null));
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getListeners()).containsExactly(existingListener);
+        assertApiDefinition(result)
+            .extracting(io.gravitee.definition.model.v4.Api::getListeners)
+            .asInstanceOf(InstanceOfAssertFactories.collection(Listener.class))
+            .containsExactly(existingListener);
     }
 
     @Test
@@ -459,7 +469,17 @@ class UpdateApiDomainServiceImplTest {
 
         var result = cut.validateV4(api, auditInfo);
 
-        assertThat(result.getApiDefinitionHttpV4().getListeners()).isEqualTo(sanitizedListeners);
+        assertApiDefinition(result).extracting(io.gravitee.definition.model.v4.Api::getListeners).isEqualTo(sanitizedListeners);
         verify(delegate, never()).update(any(), any(), any(), anyBoolean(), any());
+    }
+
+    private static io.gravitee.definition.model.v4.Api asV4ApiDefinition(Api result) {
+        return (io.gravitee.definition.model.v4.Api) result.getApiDefinitionValue();
+    }
+
+    private static ObjectAssert<io.gravitee.definition.model.v4.Api> assertApiDefinition(Api result) {
+        return assertThat(result.getApiDefinitionValue()).asInstanceOf(
+            InstanceOfAssertFactories.type(io.gravitee.definition.model.v4.Api.class)
+        );
     }
 }

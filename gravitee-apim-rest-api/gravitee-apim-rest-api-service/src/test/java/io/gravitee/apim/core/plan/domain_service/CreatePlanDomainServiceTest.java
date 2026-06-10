@@ -250,7 +250,7 @@ class CreatePlanDomainServiceTest {
         void should_throw_when_plan_tags_mismatch_with_tags_defined_in_api(Api api, Plan plan, List<Flow> flows) {
             // Given: use a copy so we do not mutate the static api
             var apiWithNoTags = api.toBuilder().build();
-            apiWithNoTags.setTags(Set.of());
+            apiWithNoTags.getApiDefinitionValue().setTags(Set.of());
 
             // When
             var throwable = Assertions.catchThrowable(() -> service.create(plan, flows, apiWithNoTags, AUDIT_INFO));

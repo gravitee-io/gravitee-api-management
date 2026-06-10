@@ -23,7 +23,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import fixtures.core.model.AuditInfoFixtures;
 import initializers.ImportDefinitionCreateDomainServiceTestInitializer;
@@ -41,6 +40,7 @@ import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.domain_service.api.OAIDomainServiceImpl;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.flow.Operator;
+import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.repository.management.model.Parameter;
@@ -50,6 +50,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.impl.swagger.policy.impl.PolicyOperationVisitorManagerImpl;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -142,7 +143,7 @@ class OAIToImportApiUseCaseTest {
         // Given
         var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
         var resource = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
-        importSwaggerDescriptor.setPayload(Resources.toString(resource, Charsets.UTF_8));
+        importSwaggerDescriptor.setPayload(Resources.toString(resource, StandardCharsets.UTF_8));
 
         // When
         var output = useCase.execute(new OAIToImportApiUseCase.Input(importSwaggerDescriptor, AUDIT_INFO));
@@ -161,7 +162,7 @@ class OAIToImportApiUseCaseTest {
         // Given
         var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
         var resource = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
-        importSwaggerDescriptor.setPayload(Resources.toString(resource, Charsets.UTF_8));
+        importSwaggerDescriptor.setPayload(Resources.toString(resource, StandardCharsets.UTF_8));
 
         // When
         var output = useCase.execute(new OAIToImportApiUseCase.Input(importSwaggerDescriptor, AUDIT_INFO));
@@ -180,7 +181,7 @@ class OAIToImportApiUseCaseTest {
         // Given
         var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
         var resource = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
-        importSwaggerDescriptor.setPayload(Resources.toString(resource, Charsets.UTF_8));
+        importSwaggerDescriptor.setPayload(Resources.toString(resource, StandardCharsets.UTF_8));
 
         // When
         var output = useCase.execute(new OAIToImportApiUseCase.Input(importSwaggerDescriptor, AUDIT_INFO));
@@ -190,7 +191,7 @@ class OAIToImportApiUseCaseTest {
 
         var importDefinition = output.apiWithFlows();
         assertThat(importDefinition).isNotNull();
-        assertThat(importDefinition.getApiDefinitionHttpV4().getEndpointGroups())
+        assertThat(((Api) importDefinition.getApiDefinitionValue()).getEndpointGroups())
             .hasSize(1)
             .extracting(EndpointGroup::getSharedConfiguration)
             .containsExactly(SHARED_CONFIGURATION);
@@ -222,7 +223,7 @@ class OAIToImportApiUseCaseTest {
             // Given
             var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
             var resource = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
-            final String openApiAsString = Resources.toString(resource, Charsets.UTF_8);
+            final String openApiAsString = Resources.toString(resource, StandardCharsets.UTF_8);
             importSwaggerDescriptor.setPayload(openApiAsString);
 
             // When
@@ -249,7 +250,7 @@ class OAIToImportApiUseCaseTest {
             // Given
             var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
             var resource = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
-            final String openApiAsString = Resources.toString(resource, Charsets.UTF_8);
+            final String openApiAsString = Resources.toString(resource, StandardCharsets.UTF_8);
             importSwaggerDescriptor.setPayload(openApiAsString);
 
             // When
@@ -273,7 +274,7 @@ class OAIToImportApiUseCaseTest {
             // Given
             var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
             var resource = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
-            final String openApiAsString = Resources.toString(resource, Charsets.UTF_8);
+            final String openApiAsString = Resources.toString(resource, StandardCharsets.UTF_8);
             importSwaggerDescriptor.setPayload(openApiAsString);
             policyPluginCrudService.initWith(
                 List.of(PolicyPlugin.builder().id("oas-validation").name("OpenAPI Specification Validation").build())
@@ -294,20 +295,21 @@ class OAIToImportApiUseCaseTest {
             var importDefinition = output.apiWithFlows();
             assertThat(importDefinition).isNotNull();
             // Check that the OAS validation policy is added
-            assertThat(importDefinition.getApiDefinitionHttpV4().getFlows())
+            Api apiDefinitionHttpV4 = ((Api) importDefinition.getApiDefinitionValue());
+            assertThat(apiDefinitionHttpV4.getFlows())
                 .first()
                 .satisfies(flow -> {
                     assertThat(flow.getName()).isEqualTo("OpenAPI Specification Validation");
                     assertThat(flow.getRequest()).isNotNull();
-                    assertThat(((HttpSelector) flow.getSelectors().get(0)).getPath()).isEqualTo("/");
-                    assertThat(((HttpSelector) flow.getSelectors().get(0)).getPathOperator()).isEqualTo(Operator.STARTS_WITH);
-                    var oasValidationStep = flow.getRequest().get(0);
+                    assertThat(((HttpSelector) flow.getSelectors().getFirst()).getPath()).isEqualTo("/");
+                    assertThat(((HttpSelector) flow.getSelectors().getFirst()).getPathOperator()).isEqualTo(Operator.STARTS_WITH);
+                    var oasValidationStep = flow.getRequest().getFirst();
                     assertThat(oasValidationStep.getPolicy()).isEqualTo("oas-validation");
                     assertThat(oasValidationStep.getConfiguration()).isEqualTo("{\"resourceName\":\"OpenAPI Specification\"}");
                 });
 
             // Check that the Resource is added
-            assertThat(importDefinition.getApiDefinitionHttpV4().getResources())
+            assertThat(apiDefinitionHttpV4.getResources())
                 .hasSize(1)
                 .first()
                 .satisfies(resource1 -> {
@@ -323,7 +325,7 @@ class OAIToImportApiUseCaseTest {
             // Given
             var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
             var resource = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
-            final String openApiAsString = Resources.toString(resource, Charsets.UTF_8);
+            final String openApiAsString = Resources.toString(resource, StandardCharsets.UTF_8);
             importSwaggerDescriptor.setPayload(openApiAsString);
 
             // When
@@ -349,7 +351,7 @@ class OAIToImportApiUseCaseTest {
             // Given
             var importSwaggerDescriptor = new ImportSwaggerDescriptorEntity();
             var resource = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
-            final String openApiAsString = Resources.toString(resource, Charsets.UTF_8);
+            final String openApiAsString = Resources.toString(resource, StandardCharsets.UTF_8);
             importSwaggerDescriptor.setPayload(openApiAsString);
 
             // When
@@ -367,11 +369,10 @@ class OAIToImportApiUseCaseTest {
             var importDefinition = output.apiWithFlows();
             assertThat(importDefinition).isNotNull();
             // Check that the OAS validation policy is not added
-            assertThat(importDefinition.getApiDefinitionHttpV4().getFlows()).noneMatch(flow ->
-                flow.getName().equals("OpenAPI Specification Validation")
-            );
+            Api apiDefinition = ((Api) importDefinition.getApiDefinitionValue());
+            assertThat(apiDefinition.getFlows()).noneMatch(flow -> flow.getName().equals("OpenAPI Specification Validation"));
             // Check that the Resource is not added
-            assertThat(importDefinition.getApiDefinitionHttpV4().getResources()).isEmpty();
+            assertThat(apiDefinition.getResources()).isEmpty();
         }
     }
 }

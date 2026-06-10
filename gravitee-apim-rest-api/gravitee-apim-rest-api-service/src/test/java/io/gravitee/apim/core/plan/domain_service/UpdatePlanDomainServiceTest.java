@@ -25,7 +25,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-import assertions.CoreAssertions;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.PlanFixtures;
 import inmemory.AuditCrudServiceInMemory;
@@ -311,7 +310,7 @@ class UpdatePlanDomainServiceTest {
             );
 
             // Then
-            CoreAssertions.assertThat(planCrudService.getById(plan.getId()))
+            assertThat(planCrudService.getById(plan.getId()))
                 .isEqualTo(result)
                 .extracting(
                     Plan::getName,
@@ -343,12 +342,12 @@ class UpdatePlanDomainServiceTest {
             );
 
             // When
-            var toUpdate = plans.get(0).toBuilder().order(2).build();
+            var toUpdate = plans.getFirst().toBuilder().order(2).build();
 
             service.update(toUpdate, List.of(), null, null, AUDIT_INFO);
 
             // Then
-            Assertions.assertThat(planCrudService.storage())
+            assertThat(planCrudService.storage())
                 .extracting(Plan::getId, Plan::getOrder)
                 .containsOnly(tuple("plan2", 1), tuple("plan1", 2), tuple("plan3", 3));
         }
@@ -381,7 +380,7 @@ class UpdatePlanDomainServiceTest {
             );
 
             // Then
-            Assertions.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class);
         }
     }
 
@@ -417,7 +416,7 @@ class UpdatePlanDomainServiceTest {
             var result = service.update(toUpdate, flows, null, api, AUDIT_INFO);
 
             // Then
-            Assertions.assertThat(planCrudService.storage()).hasSize(1).contains(result);
+            assertThat(planCrudService.storage()).hasSize(1).contains(result);
             assertThat(result)
                 .usingRecursiveComparison(RecursiveComparisonConfiguration.builder().build())
                 .isEqualTo(toUpdate.toBuilder().updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault())).build());
@@ -428,13 +427,13 @@ class UpdatePlanDomainServiceTest {
         void should_throw_when_a_plan_have_no_tag_matching_api_tags(Api api, Plan plan, List<Flow> flows) {
             // Given
             givenExistingPlan(plan);
-            api.getApiDefinitionHttpV4().setTags(Set.of("tag1", "tag2"));
+            api.getApiDefinitionValue().setTags(Set.of("tag1", "tag2"));
 
             // When
             var throwable = Assertions.catchThrowable(() -> service.update(plan.setPlanTags(Set.of("tag3")), flows, null, api, AUDIT_INFO));
 
             // Then
-            Assertions.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class);
         }
 
         @ParameterizedTest
@@ -546,7 +545,7 @@ class UpdatePlanDomainServiceTest {
             var throwable = Assertions.catchThrowable(() -> service.update(plan, flows, null, api, AUDIT_INFO));
 
             // Then
-            Assertions.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class);
         }
 
         @ParameterizedTest
@@ -625,11 +624,11 @@ class UpdatePlanDomainServiceTest {
             );
 
             // When
-            var toUpdate = plans.get(0).toBuilder().order(2).build();
+            var toUpdate = plans.getFirst().toBuilder().order(2).build();
             service.update(toUpdate, List.of(), null, API_PROXY_V4, AUDIT_INFO);
 
             // Then
-            Assertions.assertThat(planCrudService.storage())
+            assertThat(planCrudService.storage())
                 .extracting(Plan::getId, Plan::getOrder)
                 .containsOnly(tuple("plan2", 1), tuple("plan1", 2), tuple("plan3", 3));
         }
@@ -644,11 +643,11 @@ class UpdatePlanDomainServiceTest {
             );
 
             // When
-            var toUpdate = plans.get(0).toBuilder().order(2).build();
+            var toUpdate = plans.getFirst().toBuilder().order(2).build();
             service.update(toUpdate, List.of(), null, NATIVE_API, AUDIT_INFO);
 
             // Then
-            Assertions.assertThat(planCrudService.storage())
+            assertThat(planCrudService.storage())
                 .extracting(Plan::getId, Plan::getOrder)
                 .containsOnly(tuple("plan2", 1), tuple("plan1", 2), tuple("plan3", 3));
         }
@@ -746,7 +745,7 @@ class UpdatePlanDomainServiceTest {
             );
 
             // Then
-            CoreAssertions.assertThat(planCrudService.getById(plan.getId()))
+            assertThat(planCrudService.getById(plan.getId()))
                 .isEqualTo(result)
                 .extracting(
                     Plan::getName,
@@ -778,7 +777,7 @@ class UpdatePlanDomainServiceTest {
                     .build()
                     .setPlanStatus(PlanStatus.CLOSED)
             );
-            HashMap statusMap = new HashMap();
+            var statusMap = new HashMap<String, PlanStatus>();
             statusMap.put("plan-1", PlanStatus.CLOSED);
             // When
             var throwable = Assertions.catchThrowable(() ->
@@ -786,7 +785,7 @@ class UpdatePlanDomainServiceTest {
             );
 
             // Then
-            Assertions.assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining("Invalid status for plan");
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessageContaining("Invalid status for plan");
         }
 
         @Test
@@ -868,13 +867,13 @@ class UpdatePlanDomainServiceTest {
                     .build()
                     .setPlanStatus(PlanStatus.PUBLISHED)
             );
-            HashMap statusMap = new HashMap();
+            var statusMap = new HashMap<String, PlanStatus>();
             // When
-            var toUpdate = plans.get(0).toBuilder().order(2).build();
+            var toUpdate = plans.getFirst().toBuilder().order(2).build();
             service.updatePlanForApiProduct(toUpdate, statusMap, API_PRODUCT, AUDIT_INFO);
 
             // Then
-            Assertions.assertThat(planCrudService.storage())
+            assertThat(planCrudService.storage())
                 .extracting(Plan::getId, Plan::getOrder)
                 .contains(tuple("plan12", 1), tuple("plan11", 2), tuple("plan13", 3));
         }

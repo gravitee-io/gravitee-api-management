@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.infra.plugin;
 
+import static io.gravitee.apim.core.utils.CollectionUtils.isEmpty;
+
 import com.google.common.annotations.VisibleForTesting;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.rest.api.common.apiservices.DefaultManagementDeploymentContext;
@@ -105,16 +107,14 @@ public class ManagementApiServicesManager extends AbstractService {
     }
 
     public void startDynamicProperties(Api api) {
-        if (!api.getDefinitionVersion().equals(DefinitionVersion.V4)) {
+        if (!(api.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api apiDefinitionV4)) {
             return;
         }
         List<ManagementApiService> services = apiServicePluginManager
             .<ManagementApiServiceFactory<?>>getAllFactories(ManagementApiServiceFactory.class)
             .stream()
             .map(managementApiServiceFactory ->
-                managementApiServiceFactory.createService(
-                    new DefaultManagementDeploymentContext(api.getApiDefinitionHttpV4(), applicationContext)
-                )
+                managementApiServiceFactory.createService(new DefaultManagementDeploymentContext(apiDefinitionV4, applicationContext))
             )
             .filter(Objects::nonNull)
             .filter(service -> "http-dynamic-properties".equals(service.id()))
@@ -132,11 +132,11 @@ public class ManagementApiServicesManager extends AbstractService {
     public void updateServices(Api api) {
         log.debug("Restarting services for api: {}", api.getId());
         final List<ManagementApiService> managedApi = servicesByApi.get(api.getId());
-        if (managedApi != null && !managedApi.isEmpty()) {
+        if (!isEmpty(managedApi) && api.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api apiDefinitionV4) {
             Completable.concat(
                 managedApi
                     .stream()
-                    .map(managementApiService -> managementApiService.update(api.getApiDefinitionHttpV4()))
+                    .map(managementApiService -> managementApiService.update(apiDefinitionV4))
                     .collect(Collectors.toList())
             ).blockingAwait();
             return;

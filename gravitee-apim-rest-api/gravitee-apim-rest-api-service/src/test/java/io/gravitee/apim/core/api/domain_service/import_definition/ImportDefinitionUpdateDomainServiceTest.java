@@ -50,7 +50,6 @@ import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiService;
 import java.util.ArrayList;
 import java.util.List;
@@ -223,7 +222,9 @@ class ImportDefinitionUpdateDomainServiceTest {
         var updated = service.update(importDefinition, existingApi, AUDIT_INFO);
 
         assertThat(updated).isNotNull();
-        assertThat(updated.getApiDefinitionNativeV4().getProperties()).usingRecursiveComparison().isEqualTo(existingProperties);
+        assertThat(updated.getApiDefinitionValue()).isInstanceOfSatisfying(NativeApi.class, definition ->
+            assertThat(definition.getProperties()).usingRecursiveComparison().isEqualTo(existingProperties)
+        );
     }
 
     @Test
@@ -463,7 +464,7 @@ class ImportDefinitionUpdateDomainServiceTest {
         assertThat(api.isDisableMembershipNotifications()).isEqualTo(apiExport.isDisableMembershipNotifications());
         assertThat(api.getType()).isEqualTo(apiExport.getType());
 
-        var definition = api.getApiDefinitionNativeV4();
+        var definition = ((NativeApi) api.getApiDefinitionValue());
         assertThat(definition.getProperties()).usingRecursiveComparison().isEqualTo(apiExport.getProperties());
         assertThat(definition.getResources()).usingRecursiveComparison().isEqualTo(apiExport.getResources());
         assertThat(definition.getListeners()).usingRecursiveComparison().isEqualTo(apiExport.getListeners());

@@ -148,7 +148,11 @@ class UpdateDynamicPropertiesUseCaseTest {
 
         var receivedProperties = new ArrayList<>();
         when(apiStateDomainService.isSynchronized(any(), any())).thenAnswer(invocationOnMock -> {
-            receivedProperties.addAll(((Api) invocationOnMock.getArgument(0)).getApiDefinitionHttpV4().getProperties().stream().toList());
+            receivedProperties.addAll(
+                ((io.gravitee.definition.model.v4.Api) ((Api) invocationOnMock.getArgument(0)).getApiDefinitionValue()).getProperties()
+                    .stream()
+                    .toList()
+            );
             return true;
         });
 
@@ -183,7 +187,9 @@ class UpdateDynamicPropertiesUseCaseTest {
                 )
             );
 
-            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactlyInAnyOrder(
+            assertThat(
+                ((io.gravitee.definition.model.v4.Api) apiCrudServiceInMemory.get(api.getId()).getApiDefinitionValue()).getProperties()
+            ).containsExactlyInAnyOrder(
                 Property.builder().key("user-prop").value("value").dynamic(false).build(),
                 Property.builder().key("key").value("value").dynamic(true).build()
             );
@@ -206,7 +212,9 @@ class UpdateDynamicPropertiesUseCaseTest {
                 )
             );
 
-            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactlyInAnyOrder(
+            assertThat(
+                ((io.gravitee.definition.model.v4.Api) apiCrudServiceInMemory.get(api.getId()).getApiDefinitionValue()).getProperties()
+            ).containsExactlyInAnyOrder(
                 Property.builder().key("user-prop").value("value").dynamic(false).build(),
                 Property.builder().key("key").value("value").dynamic(true).build()
             );
@@ -256,7 +264,9 @@ class UpdateDynamicPropertiesUseCaseTest {
                 )
             );
 
-            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactlyInAnyOrder(
+            assertThat(
+                ((io.gravitee.definition.model.v4.Api) apiCrudServiceInMemory.get(api.getId()).getApiDefinitionValue()).getProperties()
+            ).containsExactlyInAnyOrder(
                 Property.builder().key("user-prop").value("value").dynamic(false).build(),
                 Property.builder().key("key").value("value").dynamic(true).build()
             );
@@ -282,7 +292,7 @@ class UpdateDynamicPropertiesUseCaseTest {
             verify(apiStateDomainService).deploy(apiCaptor.capture(), any(String.class), auditInfoCaptor.capture());
             assertSoftly(softly -> {
                 softly
-                    .assertThat(apiCaptor.getValue().getApiDefinitionHttpV4().getProperties())
+                    .assertThat(((io.gravitee.definition.model.v4.Api) apiCaptor.getValue().getApiDefinitionValue()).getProperties())
                     .containsExactlyInAnyOrder(
                         Property.builder().key("user-prop").value("value").dynamic(false).build(),
                         Property.builder().key("key").value("value").dynamic(true).build()
@@ -303,11 +313,13 @@ class UpdateDynamicPropertiesUseCaseTest {
         void should_redeploy_using_the_last_deployed_api_definition() {
             // Case were a user disable and save the API, but without deploying it
             var api = givenApi(buildApiWithProperties(List.of(Property.builder().key("user-prop").value("value").dynamic(false).build())));
-            api.getApiDefinitionHttpV4().getServices().getDynamicProperty().setEnabled(false);
+            ((io.gravitee.definition.model.v4.Api) api.getApiDefinitionValue()).getServices().getDynamicProperty().setEnabled(false);
 
             // Last event of the deployed api is with the service enabled
             final Api lastDeployedApi = api.toBuilder().build();
-            lastDeployedApi.getApiDefinitionHttpV4().getServices().getDynamicProperty().setEnabled(true);
+            ((io.gravitee.definition.model.v4.Api) lastDeployedApi.getApiDefinitionValue()).getServices()
+                .getDynamicProperty()
+                .setEnabled(true);
             apiEventQueryServiceInMemory.initWith(List.of(lastDeployedApi));
 
             cut.execute(
@@ -324,7 +336,7 @@ class UpdateDynamicPropertiesUseCaseTest {
 
             verify(apiStateDomainService).deploy(apiCaptor.capture(), any(String.class), auditInfoCaptor.capture());
             assertSoftly(softly -> {
-                var definition = api.getApiDefinitionHttpV4();
+                var definition = ((io.gravitee.definition.model.v4.Api) api.getApiDefinitionValue());
                 softly.assertThat(definition.getServices().getDynamicProperty().isEnabled()).isTrue();
                 softly
                     .assertThat(definition.getProperties())

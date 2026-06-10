@@ -71,9 +71,15 @@ import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.plugins.resources.Resource;
+import io.gravitee.definition.model.services.Services;
+import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.listener.http.Path;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
@@ -326,8 +332,8 @@ class RollbackApiUseCaseTest {
             .apiVersion("api-previous-version")
             .listeners(
                 List.of(
-                    io.gravitee.definition.model.v4.listener.http.HttpListener.builder()
-                        .paths(List.of(io.gravitee.definition.model.v4.listener.http.Path.builder().path("/api-previous-path").build()))
+                    HttpListener.builder()
+                        .paths(List.of(Path.builder().path("/api-previous-path").build()))
                         .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
                         .build()
                 )
@@ -336,13 +342,13 @@ class RollbackApiUseCaseTest {
             .build();
 
         // Api repository contained in the Event payload
-        var apiRepositoryModel = io.gravitee.repository.management.model.Api.builder()
+        var apiRepositoryModel = Api.builder()
             .id(eventApiDefinition.getId())
             .name(eventApiDefinition.getName())
             .version(eventApiDefinition.getApiVersion())
             .definitionVersion(eventApiDefinition.getDefinitionVersion())
             .description("api-previous-api-description")
-            .visibility(io.gravitee.repository.management.model.Visibility.PUBLIC)
+            .visibility(Visibility.PUBLIC)
             .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(eventApiDefinition))
             .build();
 
@@ -389,11 +395,9 @@ class RollbackApiUseCaseTest {
                 assertThat(updateApiEntity.getListeners().getFirst().getEntrypoints().getFirst()).isEqualTo(
                     Entrypoint.builder().type("http-proxy").configuration("{}").build()
                 );
-                assertThat(
-                    ((io.gravitee.definition.model.v4.listener.http.HttpListener) updateApiEntity.getListeners().getFirst()).getPaths()
-                        .getFirst()
-                        .getPath()
-                ).isEqualTo("/api-previous-path");
+                assertThat(((HttpListener) updateApiEntity.getListeners().getFirst()).getPaths().getFirst().getPath()).isEqualTo(
+                    "/api-previous-path"
+                );
                 assertThat(updateApiEntity.getFlows()).map(AbstractFlow::getName).first().isEqualTo("api-previous-flow-name");
 
                 // Not rollbacked
@@ -522,7 +526,7 @@ class RollbackApiUseCaseTest {
                         .flows(List.of(io.gravitee.definition.model.v4.flow.Flow.builder().name("flow-name").build()))
                         .tags(Set.of("tag"))
                         .selectionRule("selection-rule")
-                        .security(io.gravitee.definition.model.v4.plan.PlanSecurity.builder().type("KEY_LESS").build())
+                        .security(PlanSecurity.builder().type("KEY_LESS").build())
                         .build(),
                     "plan-to-update",
                     io.gravitee.definition.model.v4.plan.Plan.builder()
@@ -542,7 +546,7 @@ class RollbackApiUseCaseTest {
             .build();
 
         // Api repository contained in the Event payload
-        var apiRepositoryModel = io.gravitee.repository.management.model.Api.builder()
+        var apiRepositoryModel = Api.builder()
             .id(eventApiDefinition.getId())
             .name(eventApiDefinition.getName())
             .version(eventApiDefinition.getApiVersion())
@@ -661,18 +665,18 @@ class RollbackApiUseCaseTest {
             failOverV2.setMaxAttempts(5);
             failOverV2.setRetryTimeout(1000);
 
-            var resource = new io.gravitee.definition.model.plugins.resources.Resource();
+            var resource = new Resource();
             resource.setName("cache-resource");
             resource.setType("cache");
             resource.setConfiguration("{\"timeToLiveSeconds\": 3600}");
             resource.setEnabled(true);
 
-            var consulDiscoveryService = new io.gravitee.definition.model.services.discovery.EndpointDiscoveryService();
+            var consulDiscoveryService = new EndpointDiscoveryService();
             consulDiscoveryService.setEnabled(true);
             consulDiscoveryService.setProvider("consul-service-discovery");
             consulDiscoveryService.setConfiguration("{\"url\":\"http://localhost:8500\",\"service\":\"my-service\",\"dc\":\"dc1\"}");
 
-            var services = new io.gravitee.definition.model.services.Services();
+            var services = new Services();
             services.setDiscoveryService(consulDiscoveryService);
 
             var eventV2ApiDefinition = io.gravitee.definition.model.Api.builder()
@@ -681,8 +685,8 @@ class RollbackApiUseCaseTest {
                 .version("api-previous-version")
                 .definitionVersion(DefinitionVersion.V2)
                 .proxy(
-                    io.gravitee.definition.model.Proxy.builder()
-                        .virtualHosts(List.of(new io.gravitee.definition.model.VirtualHost("/api-previous-path")))
+                    Proxy.builder()
+                        .virtualHosts(List.of(new VirtualHost("/api-previous-path")))
                         .groups(
                             Set.of(
                                 EndpointGroup.builder()
@@ -711,12 +715,12 @@ class RollbackApiUseCaseTest {
                 .flowMode(FlowMode.BEST_MATCH)
                 .build();
 
-            var apiRepositoryModel = io.gravitee.repository.management.model.Api.builder()
+            var apiRepositoryModel = Api.builder()
                 .id(eventV2ApiDefinition.getId())
                 .name(eventV2ApiDefinition.getName())
                 .version(eventV2ApiDefinition.getVersion())
                 .definitionVersion(DefinitionVersion.V2)
-                .visibility(io.gravitee.repository.management.model.Visibility.PUBLIC)
+                .visibility(Visibility.PUBLIC)
                 .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(eventV2ApiDefinition))
                 .build();
 
@@ -740,7 +744,7 @@ class RollbackApiUseCaseTest {
                 softly.assertThat(rolledBackApi.getUpdatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
             });
 
-            var apiDefinition = rolledBackApi.getApiDefinition();
+            var apiDefinition = ((io.gravitee.definition.model.Api) rolledBackApi.getApiDefinitionValue());
             assertSoftly(softly -> {
                 softly.assertThat(apiDefinition.getName()).isEqualTo("api-previous-name");
                 softly.assertThat(apiDefinition.getVersion()).isEqualTo("api-previous-version");
@@ -755,7 +759,7 @@ class RollbackApiUseCaseTest {
                 softly.assertThat(apiDefinition.getProxy().getFailover().getRetryTimeout()).isEqualTo(1000);
                 softly.assertThat(apiDefinition.getFlowMode().name()).isEqualTo(FlowMode.BEST_MATCH.name());
 
-                var rolledBackResource = apiDefinition.getResources().get(0);
+                var rolledBackResource = apiDefinition.getResources().getFirst();
                 softly.assertThat(rolledBackResource.getName()).isEqualTo("cache-resource");
                 softly.assertThat(rolledBackResource.getType()).isEqualTo("cache");
                 softly.assertThat(rolledBackResource.getConfiguration()).isEqualTo("{\"timeToLiveSeconds\":3600}");
@@ -805,8 +809,8 @@ class RollbackApiUseCaseTest {
                 .version("api-previous-version")
                 .definitionVersion(DefinitionVersion.V2)
                 .proxy(
-                    io.gravitee.definition.model.Proxy.builder()
-                        .virtualHosts(List.of(new io.gravitee.definition.model.VirtualHost("/api-previous-path")))
+                    Proxy.builder()
+                        .virtualHosts(List.of(new VirtualHost("/api-previous-path")))
                         .groups(
                             Set.of(
                                 EndpointGroup.builder()
@@ -831,12 +835,12 @@ class RollbackApiUseCaseTest {
                 )
                 .build();
 
-            var apiRepositoryModel = io.gravitee.repository.management.model.Api.builder()
+            var apiRepositoryModel = Api.builder()
                 .id(eventV2ApiDefinition.getId())
                 .name(eventV2ApiDefinition.getName())
                 .version(eventV2ApiDefinition.getVersion())
                 .definitionVersion(DefinitionVersion.V2)
-                .visibility(io.gravitee.repository.management.model.Visibility.PUBLIC)
+                .visibility(Visibility.PUBLIC)
                 .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(eventV2ApiDefinition))
                 .build();
 
@@ -860,7 +864,7 @@ class RollbackApiUseCaseTest {
                 softly.assertThat(rolledBackApi.getUpdatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
             });
 
-            var apiDefinition = rolledBackApi.getApiDefinition();
+            var apiDefinition = ((io.gravitee.definition.model.Api) rolledBackApi.getApiDefinitionValue());
             assertSoftly(softly -> {
                 softly.assertThat(apiDefinition.getName()).isEqualTo("api-previous-name");
                 softly.assertThat(apiDefinition.getVersion()).isEqualTo("api-previous-version");
@@ -906,8 +910,8 @@ class RollbackApiUseCaseTest {
                 .version("api-previous-version")
                 .definitionVersion(DefinitionVersion.V2)
                 .proxy(
-                    io.gravitee.definition.model.Proxy.builder()
-                        .virtualHosts(List.of(new io.gravitee.definition.model.VirtualHost("/api-previous-path")))
+                    Proxy.builder()
+                        .virtualHosts(List.of(new VirtualHost("/api-previous-path")))
                         .groups(
                             Set.of(
                                 EndpointGroup.builder()
@@ -932,12 +936,12 @@ class RollbackApiUseCaseTest {
                 )
                 .build();
 
-            var apiRepositoryModel = io.gravitee.repository.management.model.Api.builder()
+            var apiRepositoryModel = Api.builder()
                 .id(eventV2ApiDefinition.getId())
                 .name(eventV2ApiDefinition.getName())
                 .version(eventV2ApiDefinition.getVersion())
                 .definitionVersion(DefinitionVersion.V2)
-                .visibility(io.gravitee.repository.management.model.Visibility.PUBLIC)
+                .visibility(Visibility.PUBLIC)
                 .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(eventV2ApiDefinition))
                 .build();
 
@@ -961,7 +965,7 @@ class RollbackApiUseCaseTest {
                 softly.assertThat(rolledBackApi.getUpdatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
             });
 
-            var apiDefinition = rolledBackApi.getApiDefinition();
+            var apiDefinition = ((io.gravitee.definition.model.Api) rolledBackApi.getApiDefinitionValue());
             assertSoftly(softly -> {
                 softly.assertThat(apiDefinition.getName()).isEqualTo("api-previous-name");
                 softly.assertThat(apiDefinition.getVersion()).isEqualTo("api-previous-version");
@@ -1086,7 +1090,7 @@ class RollbackApiUseCaseTest {
                 softly.assertThat(rolledBackApi.getUpdatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
             });
 
-            var apiDefinition = rolledBackApi.getApiDefinition();
+            var apiDefinition = ((io.gravitee.definition.model.Api) rolledBackApi.getApiDefinitionValue());
             assertSoftly(softly -> {
                 softly.assertThat(apiDefinition.getName()).isEqualTo("api-previous-name");
                 softly.assertThat(apiDefinition.getVersion()).isEqualTo("api-previous-version");
@@ -1134,8 +1138,8 @@ class RollbackApiUseCaseTest {
                 .version("api-previous-version")
                 .definitionVersion(DefinitionVersion.V2)
                 .proxy(
-                    io.gravitee.definition.model.Proxy.builder()
-                        .virtualHosts(List.of(new io.gravitee.definition.model.VirtualHost("/api-previous-path")))
+                    Proxy.builder()
+                        .virtualHosts(List.of(new VirtualHost("/api-previous-path")))
                         .groups(
                             Set.of(
                                 EndpointGroup.builder()
@@ -1148,12 +1152,12 @@ class RollbackApiUseCaseTest {
                 )
                 .build();
 
-            var apiRepositoryModel = io.gravitee.repository.management.model.Api.builder()
+            var apiRepositoryModel = Api.builder()
                 .id(eventV2ApiDefinition.getId())
                 .name(eventV2ApiDefinition.getName())
                 .version(eventV2ApiDefinition.getVersion())
                 .definitionVersion(DefinitionVersion.V2)
-                .visibility(io.gravitee.repository.management.model.Visibility.PUBLIC)
+                .visibility(Visibility.PUBLIC)
                 .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(eventV2ApiDefinition))
                 .build();
 
@@ -1246,7 +1250,7 @@ class RollbackApiUseCaseTest {
             .createdAt(java.util.Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
             .updatedAt(java.util.Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
             .deployedAt(java.util.Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
-            .visibility(io.gravitee.repository.management.model.Visibility.PUBLIC)
+            .visibility(Visibility.PUBLIC)
             .lifecycleState(LifecycleState.STARTED)
             .picture("my-picture")
             .groups(Set.of("group-1"))

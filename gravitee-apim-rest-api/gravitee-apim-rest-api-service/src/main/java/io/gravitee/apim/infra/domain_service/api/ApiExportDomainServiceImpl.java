@@ -19,6 +19,7 @@ import static io.gravitee.apim.core.audit.model.Excludable.GROUPS;
 import static io.gravitee.apim.core.audit.model.Excludable.MEMBERS;
 import static io.gravitee.apim.core.audit.model.Excludable.METADATA;
 import static io.gravitee.apim.core.audit.model.Excludable.PAGES_MEDIA;
+import static io.gravitee.apim.core.utils.CollectionUtils.isEmpty;
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_DOCUMENTATION;
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_MEMBER;
@@ -119,18 +120,18 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
             .orElse(null);
 
         var groups = !excluded.contains(GROUPS) ? api1.getGroups() : null;
-        return switch (apiType(api1)) {
-            case V2 -> {
+        return switch (api1.getApiDefinitionValue()) {
+            case io.gravitee.definition.model.Api v2 -> {
                 Function<Plan, PlanDescriptor.V2> mapPlanV2 = plan -> {
                     var mapped = DEFINITION_ADAPTER.mapPlanV2(plan, excludeIds);
                     return planWithFlowV2(mapped, plan.getId(), excludeIds);
                 };
                 var plans = mapPlan(apiId, mapPlanV2, excluded);
                 var flows = getApiV2Flows(apiId, excludeIds);
-                var api = DEFINITION_ADAPTER.mapV2(api1, apiPrimaryOwner, workflowState, groups, metadata, flows, excludeIds);
+                var api = DEFINITION_ADAPTER.mapV2(api1, v2, apiPrimaryOwner, workflowState, groups, metadata, flows, excludeIds);
                 yield GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
             }
-            case V4 -> {
+            case io.gravitee.definition.model.v4.Api apiV4 -> {
                 Function<Plan, PlanDescriptor.V4> mapPlanV4 = plan -> {
                     var mapped = DEFINITION_ADAPTER.mapPlanV4(plan, excludeIds);
                     return planWithFlowV4(mapped, plan.getId(), excludeIds);
@@ -140,6 +141,7 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
                 var apiWithCategoryKeys = apiWithCategoryKeys(api1);
                 var api = DEFINITION_ADAPTER.mapV4(
                     apiWithCategoryKeys,
+                    apiV4,
                     apiPrimaryOwner,
                     workflowState,
                     groups,
@@ -149,7 +151,7 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
                 );
                 yield GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
             }
-            case V4_NATIVE -> {
+            case NativeApi nativeApi -> {
                 Function<Plan, PlanDescriptor.Native> mapPlanNative = plan -> {
                     var mapped = DEFINITION_ADAPTER.mapPlanNative(plan, excludeIds);
                     return planWithFlowNative(mapped, plan.getId(), excludeIds);
@@ -159,6 +161,7 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
                 var apiWithCategoryKeys = apiWithCategoryKeys(api1);
                 var api = DEFINITION_ADAPTER.mapNative(
                     apiWithCategoryKeys,
+                    nativeApi,
                     apiPrimaryOwner,
                     workflowState,
                     groups,
@@ -168,16 +171,17 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
                 );
                 yield GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
             }
-            case FEDERATED -> {
+            case FederatedApi federatedApi -> {
                 Function<Plan, PlanDescriptor.Federated> mapPlanFederated = DEFINITION_ADAPTER::mapPlanFederated;
                 var plans = mapPlan(apiId, mapPlanFederated, excluded);
                 var integ = api1.getOriginContext() instanceof OriginContext.Integration ori && ori.integrationName() == null
                     ? integrationCrudService.findApiIntegrationById(ori.integrationId()).orElse(null)
                     : null;
-                var api = DEFINITION_ADAPTER.mapFederated(api1, apiPrimaryOwner, workflowState, groups, metadata, integ);
+                var api = DEFINITION_ADAPTER.mapFederated(api1, federatedApi, apiPrimaryOwner, workflowState, groups, metadata, integ);
                 yield GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
             }
-            case FEDERATED_AGENT -> null; // TODO
+            case FederatedAgent agent -> null; // TODO
+            default -> throw new ApiDefinitionVersionNotSupportedException(api1.getDefinitionVersion().toString());
         };
     }
 
@@ -230,27 +234,6 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
         return permissionService.hasPermission(executionContext, auditInfo.actor().userId(), API_DOCUMENTATION, apiId, READ)
             ? mediaService.findAllByApiId(apiId)
             : null;
-    }
-
-    private enum ValidatedType {
-        V2,
-        V4,
-        V4_NATIVE,
-        FEDERATED,
-        FEDERATED_AGENT,
-    }
-
-    private ValidatedType apiType(Api api1) {
-        return switch (api1.getApiDefinitionValue()) {
-            case io.gravitee.definition.model.v4.Api api -> ValidatedType.V4;
-            case NativeApi nativeApi -> ValidatedType.V4_NATIVE;
-            case FederatedApi federatedApi -> ValidatedType.FEDERATED;
-            case FederatedAgent federatedAgent -> ValidatedType.FEDERATED_AGENT;
-            case io.gravitee.definition.model.Api api -> ValidatedType.V2;
-            case null, default -> throw new ApiDefinitionVersionNotSupportedException(
-                api1.getDefinitionVersion() != null ? api1.getDefinitionVersion().getLabel() : null
-            );
-        };
     }
 
     @Nullable
@@ -310,7 +293,7 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
 
     private Api apiWithCategoryKeys(Api api) {
         var categoryKeys = apiCategoryQueryService.findApiCategoryKeys(api);
-        if (categoryKeys.isEmpty() && (api.getCategories() == null || api.getCategories().isEmpty())) {
+        if (categoryKeys.isEmpty() && isEmpty(api.getCategories())) {
             return api;
         }
         return api.toBuilder().categories(Set.copyOf(categoryKeys)).build();
