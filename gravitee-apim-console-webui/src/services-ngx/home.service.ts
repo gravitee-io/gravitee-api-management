@@ -24,16 +24,43 @@ import { timeFrameRangesParams, TimeRangeParams } from '../shared/utils/timeFram
 export class HomeService {
   private initialTimeRange = timeFrameRangesParams('1m');
   private timeRangeParams$ = new BehaviorSubject<TimeRangeParams>(this.initialTimeRange);
+  private selectedApiIds$ = new BehaviorSubject<string[]>([]);
 
   public timeRangeParams() {
     return this.timeRangeParams$.asObservable();
   }
 
+  public selectedApiIds() {
+    return this.selectedApiIds$.asObservable();
+  }
+
   public setTimeRangeParams(value: TimeRangeParams): void {
+    this.clearSelectedApiIds();
     this.timeRangeParams$.next(value);
   }
 
   public resetTimeRange(): void {
+    this.clearSelectedApiIds();
     this.timeRangeParams$.next(this.initialTimeRange);
+  }
+
+  public toggleSelectedApiId(apiId: string): void {
+    const selectedApiIds = this.selectedApiIds$.value;
+    if (selectedApiIds.includes(apiId)) {
+      this.selectedApiIds$.next(selectedApiIds.filter(id => id !== apiId));
+      return;
+    }
+    this.selectedApiIds$.next([...selectedApiIds, apiId]);
+  }
+
+  public isApiSelected(apiId: string): boolean {
+    return this.selectedApiIds$.value.includes(apiId);
+  }
+
+  public clearSelectedApiIds(): void {
+    if (this.selectedApiIds$.value.length === 0) {
+      return;
+    }
+    this.selectedApiIds$.next([]);
   }
 }

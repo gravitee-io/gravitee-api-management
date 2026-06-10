@@ -25,11 +25,13 @@ import { TopApisWidgetHarness } from './top-apis-widget.harness';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../testing';
 import { Constants } from '../../../entities/Constants';
 import { AnalyticsDefinitionVersion } from '../../../entities/analytics/analytics';
+import { HomeService } from '../../../services-ngx/home.service';
 
 describe('TopApisWidgetComponent', () => {
   let fixture: ComponentFixture<TopApisWidgetComponent>;
   let componentHarness: TopApisWidgetHarness;
   let httpTestingController: HttpTestingController;
+  let homeService: HomeService;
 
   const init = async () => {
     await TestBed.configureTestingModule({
@@ -52,6 +54,7 @@ describe('TopApisWidgetComponent', () => {
 
     fixture = TestBed.createComponent(TopApisWidgetComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
+    homeService = TestBed.inject(HomeService);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, TopApisWidgetHarness);
     fixture.componentInstance.data = [
       {
@@ -89,6 +92,18 @@ describe('TopApisWidgetComponent', () => {
     it('should have correct number of rows', async () => {
       const rows = await componentHarness.rowsNumber();
       expect(rows).toEqual(3);
+    });
+
+    it('should toggle API selection when a row is clicked', async () => {
+      const apiId = '7c316e07-7661-406b-b16e-077661f06b73';
+
+      await componentHarness.clickRow(0);
+      expect(homeService.isApiSelected(apiId)).toBe(true);
+      expect(await componentHarness.isRowSelected(0)).toBe(true);
+
+      await componentHarness.clickRow(0);
+      expect(homeService.isApiSelected(apiId)).toBe(false);
+      expect(await componentHarness.isRowSelected(0)).toBe(false);
     });
   });
 });
