@@ -316,6 +316,7 @@ public interface ApiMapper {
     @Mapping(target = "listeners", source = "source.apiDefinitionNativeV4.listeners", qualifiedByName = "fromNativeListeners")
     @Mapping(target = "state", source = "source.lifecycleState")
     @Mapping(target = "analytics", source = "source.apiDefinitionNativeV4.analytics")
+    @Mapping(target = "resources", source = "source.apiDefinitionNativeV4.resources")
     ApiV4 mapToNativeV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
     @Mapping(target = "definitionContext", source = "source.originContext")

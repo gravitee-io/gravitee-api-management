@@ -58,7 +58,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class ApisResource_CreateApiFromSwagger extends AbstractResourceTest {
+public class ApisResource_CreateApiFromSwaggerTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT_ID = "my-env";
 
