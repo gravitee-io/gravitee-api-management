@@ -15,12 +15,13 @@
  */
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { isEqual, toNumber } from 'lodash';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject, combineLatest, Observable, of } from 'rxjs';
 import { distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { EventService } from '../../../../services-ngx/event.service';
+import { HomeService } from '../../../../services-ngx/home.service';
 import { TimeRangeParams } from '../../../../shared/utils/timeFrameRanges';
 
 type TableDataSource = {
@@ -51,10 +52,12 @@ export class GioApiEventsTableComponent implements OnChanges {
     pagination: { index: 1, size: 5 },
   };
   displayedColumns = ['name', 'deployment', 'date', 'type'];
-  tableDataSource$: Observable<TableDataSource[]> = this.filters$.pipe(
-    distinctUntilChanged(isEqual),
+  tableDataSource$: Observable<TableDataSource[]> = combineLatest([this.filters$, this.homeService.selectedApiIds()]).pipe(
+    distinctUntilChanged(
+      ([prevFilters, prevIds], [currFilters, currIds]) => isEqual(prevFilters, currFilters) && isEqual(prevIds, currIds),
+    ),
     tap(() => (this.isLoading = true)),
-    switchMap((filters) => {
+    switchMap(([filters, apiIds]) => {
       if (filters === null) {
         return of([]);
       }
@@ -62,7 +65,7 @@ export class GioApiEventsTableComponent implements OnChanges {
       return this.eventService
         .search(
           'START_API,STOP_API,PUBLISH_API,UNPUBLISH_API',
-          '',
+          apiIds.join(','),
           filters.searchTerm,
           filters.from,
           filters.to,
@@ -102,6 +105,7 @@ export class GioApiEventsTableComponent implements OnChanges {
 
   constructor(
     private readonly eventService: EventService,
+    private readonly homeService: HomeService,
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
   ) {}

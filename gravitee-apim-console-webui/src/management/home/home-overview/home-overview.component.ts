@@ -207,6 +207,9 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    // HomeService is providedIn: 'root'; clear selection when leaving so it does not leak across routes.
+    this.homeService.clearSelectedApiIds();
+    this.homeService.resetTimeRange();
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
   }
