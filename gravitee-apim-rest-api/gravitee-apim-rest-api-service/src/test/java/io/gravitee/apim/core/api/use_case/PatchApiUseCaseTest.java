@@ -31,6 +31,8 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.WorkflowQueryServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
+import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
@@ -41,6 +43,7 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.json_patch.domain_service.JsonPatchDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.domain_service.json_patch.JsonMergePatchServiceImpl;
 import io.gravitee.apim.infra.domain_service.json_patch.JsonPatchServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JsonMapperFactory;
@@ -70,6 +73,11 @@ import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.service.Service;
+import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
+import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
+import io.gravitee.rest.api.service.v4.exception.ListenerMissingException;
+import io.gravitee.rest.api.service.v4.impl.validation.ListenerValidationServiceImpl;
+import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -2388,21 +2396,34 @@ class PatchApiUseCaseTest {
     class ListenersResolution {
 
         @Test
-        void merge_patch_with_null_listeners_erases_them() {
+        void merge_patch_with_null_listeners_is_a_no_op() {
             givenExistingApi(apiWithListeners(List.of(anHttpListener("/existing"))));
 
-            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("listeners", null), false);
-
-            assertThat(httpV4Def(output.api()).getListeners()).isEmpty();
+            assertThatNoException().isThrownBy(() -> execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("listeners", null), false));
         }
 
         @Test
-        void merge_patch_with_empty_array_clears_listeners() {
+        void merge_patch_with_empty_array_is_rejected() {
+            var listenerValidator = new ListenerValidationServiceImpl(
+                mock(VerifyApiPathDomainService.class),
+                mock(EntrypointConnectorPluginService.class),
+                mock(EndpointConnectorPluginService.class),
+                mock(CorsValidationService.class),
+                mock(VerifyApiHostsDomainService.class)
+            );
+            when(updateApiDomainService.validateV4(any(), any())).thenAnswer(inv -> {
+                var api = (Api) inv.getArgument(0);
+                var entity = ApiAdapter.INSTANCE.toUpdateApiEntity(api, api.getApiDefinitionHttpV4());
+                listenerValidator.validateAndSanitizeHttpV4(null, api.getId(), entity.getListeners(), entity.getEndpointGroups());
+                return api;
+            });
+
             givenExistingApi(apiWithListeners(List.of(anHttpListener("/existing"))));
 
-            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("listeners", List.of()), false);
-
-            assertThat(httpV4Def(output.api()).getListeners()).isEmpty();
+            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("listeners", List.of()), true))
+                .isInstanceOf(ListenerMissingException.class)
+                .asInstanceOf(org.assertj.core.api.InstanceOfAssertFactories.type(ListenerMissingException.class))
+                .satisfies(ex -> assertThat(ex.getTechnicalCode()).isEqualTo("listeners.missing"));
         }
 
         @Test
