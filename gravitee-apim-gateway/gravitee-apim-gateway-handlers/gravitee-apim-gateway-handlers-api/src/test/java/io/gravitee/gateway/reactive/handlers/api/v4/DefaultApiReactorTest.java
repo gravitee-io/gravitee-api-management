@@ -26,6 +26,7 @@ import static io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactor.REQ
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.atLeastOnce;
@@ -42,6 +43,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
@@ -66,6 +68,7 @@ import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.core.context.DefaultDeploymentContext;
+import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
@@ -90,6 +93,7 @@ import io.gravitee.gateway.report.guard.LogGuardService;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.logging.LogEntry;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.reporter.api.v4.metric.Metrics;
@@ -103,12 +107,18 @@ import io.reactivex.rxjava3.schedulers.TestScheduler;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Stream;
 import org.assertj.core.groups.Tuple;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.platform.commons.function.Try;
 import org.junit.platform.commons.util.ReflectionUtils;
 import org.mockito.ArgumentCaptor;
@@ -441,6 +451,39 @@ class DefaultApiReactorTest {
         verify(ctx).setAttribute(ContextAttributes.ATTR_API, API_ID);
         verify(ctx).setAttribute(ContextAttributes.ATTR_ORGANIZATION, ORGANIZATION_ID);
         verify(ctx).setAttribute(ContextAttributes.ATTR_ENVIRONMENT, ENVIRONMENT_ID);
+    }
+
+    private static LogEntry<?> requestMethodLogEntry;
+
+    @BeforeAll
+    @SuppressWarnings("unchecked")
+    static void extractRequestMethodLogEntry() {
+        Set<LogEntry<?>> logEntries = (Set<LogEntry<?>>) ReflectionTestUtils.getField(
+            DefaultApiReactor.class,
+            "DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES"
+        );
+        requestMethodLogEntry = logEntries
+            .stream()
+            .filter(entry -> "requestMethod".equals(entry.getKey()))
+            .findFirst()
+            .orElseThrow();
+    }
+
+    static Stream<Arguments> requestMethodAttributeShapes() {
+        return Stream.of(
+            arguments(HttpMethod.POST, "POST"),
+            arguments(io.vertx.core.http.HttpMethod.PUT, "PUT"),
+            arguments("GET", "GET"),
+            arguments(null, null)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("requestMethodAttributeShapes")
+    void shouldRenderRequestMethodMdcEntryAsString(Object attributeValue, String expectedMdcValue) {
+        DefaultExecutionContext context = new DefaultExecutionContext(null, null);
+        context.setAttribute(ContextAttributes.ATTR_REQUEST_METHOD, attributeValue);
+        assertThat(requestMethodLogEntry.resolve(context)).isEqualTo(expectedMdcValue);
     }
 
     @Test
