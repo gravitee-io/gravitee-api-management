@@ -61,7 +61,7 @@ import io.gravitee.rest.api.service.v4.PlanService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.CustomLog;
@@ -446,7 +446,7 @@ public class ApiMapper {
         repoApi.setCategories(categoryMapper.toCategoryId(executionContext.getEnvironmentId(), updateApiEntity.getCategories()));
 
         if (updateApiEntity.getLabels() != null) {
-            repoApi.setLabels(new ArrayList<>(new HashSet<>(updateApiEntity.getLabels())));
+            repoApi.setLabels(new ArrayList<>(new LinkedHashSet<>(updateApiEntity.getLabels())));
         }
 
         repoApi.setGroups(updateApiEntity.getGroups());
@@ -524,7 +524,7 @@ public class ApiMapper {
         repoApi.setGroups(apiEntity.getGroups());
         repoApi.setId(apiEntity.getId());
         if (apiEntity.getLabels() != null) {
-            repoApi.setLabels(new ArrayList<>(new HashSet<>(apiEntity.getLabels())));
+            repoApi.setLabels(new ArrayList<>(new LinkedHashSet<>(apiEntity.getLabels())));
         }
         if (apiEntity.getState() != null) {
             repoApi.setLifecycleState(LifecycleState.valueOf(apiEntity.getState().name()));
