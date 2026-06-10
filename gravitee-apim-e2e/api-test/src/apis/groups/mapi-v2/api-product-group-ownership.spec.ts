@@ -53,7 +53,7 @@ async function transferOwnership(
 describeIfClientGatewaySupportingApiProduct('API Product + Group — Section C: Ownership Transfer', () => {
   describe('C1: Transfer ownership from user to user', () => {
     let apiProduct: ApiProduct;
-    let user: { id: string; referenceId?: string };
+    let user: any;
 
     test('should create user and API Product', async () => {
       user = await succeed(
@@ -96,7 +96,7 @@ describeIfClientGatewaySupportingApiProduct('API Product + Group — Section C: 
 
   describe('C2: Transfer ownership from user to group', () => {
     let apiProduct: ApiProduct;
-    let user: { id: string; reference?: string };
+    let user: any;
     let group: GroupEntity;
 
     test('should create user, group, and API Product', async () => {
@@ -153,8 +153,8 @@ describeIfClientGatewaySupportingApiProduct('API Product + Group — Section C: 
 
   describe('C3: Transfer ownership from group to user', () => {
     let apiProduct: ApiProduct;
-    let user: { id: string; reference?: string };
-    let targetUser: { id: string; referenceId?: string };
+    let user: any;
+    let targetUser: any;
     let group: GroupEntity;
 
     test('should create users, group, and API Product with group as owner', async () => {
