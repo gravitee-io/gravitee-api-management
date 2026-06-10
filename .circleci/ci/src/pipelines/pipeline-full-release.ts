@@ -15,15 +15,10 @@
  */
 import { Config } from '@circleci/circleci-config-sdk';
 import { CircleCIEnvironment } from './circleci-environment';
-import { isSupportBranch } from '../utils';
 import { FullReleaseWorkflow } from '../workflows';
 import { initDynamicConfig } from './config-factory';
 
 export function generateFullReleaseConfig(environment: CircleCIEnvironment): Config {
-  if (!isSupportBranch(environment.branch)) {
-    throw new Error('Full release is only supported on support branches');
-  }
-
   const dynamicConfig = initDynamicConfig();
   const workflow = FullReleaseWorkflow.create(dynamicConfig, environment);
   dynamicConfig.addWorkflow(workflow);

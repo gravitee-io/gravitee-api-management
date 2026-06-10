@@ -60,6 +60,7 @@ Optional flag:
 
 * `--dry-run`: allow to run the pipeline in dry run mode (except for `nexus_sync` which does not have this mode)
 * `--latest`: to tag the docker image as the `latest`
+* `--branch=<name>`: target branch on which the pipeline is triggered. When omitted, the branch is derived from the version (e.g. `4.5.x` for `4.5.11`). Use it to release from any branch (the version bump commit and tag are pushed to that branch). You will be asked to confirm when it differs from the derived branch.
 
 Here is the command to fully release APIM (Releasing 3.15.11, in the following example):
 

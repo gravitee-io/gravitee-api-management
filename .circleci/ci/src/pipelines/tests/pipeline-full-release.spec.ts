@@ -45,24 +45,23 @@ describe('Full release tests', () => {
     },
   );
 
-  it('should throw error when branch is not a support branch', () => {
-    expect.assertions(1);
+  it('should build full release config from any branch (not only support branches)', () => {
+    const result = generateFullReleaseConfig({
+      action: 'full_release',
+      sha1: '784ff35ca',
+      changedFiles: [],
+      buildNum: '1234',
+      buildId: '1234',
+      graviteeioVersion: '4.1.0',
+      branch: 'apim-1234-dev',
+      baseBranch: 'master',
+      isDryRun: false,
+      apimVersionPath: './src/pipelines/tests/resources/common/pom-snapshot.xml',
+    });
 
-    try {
-      generateFullReleaseConfig({
-        action: 'release',
-        sha1: '784ff35ca',
-        changedFiles: [],
-        buildNum: '1234',
-        buildId: '1234',
-        graviteeioVersion: '4.1.0',
-        branch: 'apim-1234-dev',
-        baseBranch: 'master',
-        isDryRun: false,
-        apimVersionPath: './src/pipelines/tests/resources/common/pom.xml',
-      });
-    } catch (e) {
-      expect(e).toStrictEqual(new Error('Full release is only supported on support branches'));
-    }
+    const stringified = result.stringify();
+    expect(stringified).toContain('full_release');
+    // The version bump commit is pushed to the very branch that triggered the release.
+    expect(stringified).toContain('apim-1234-dev');
   });
 });
