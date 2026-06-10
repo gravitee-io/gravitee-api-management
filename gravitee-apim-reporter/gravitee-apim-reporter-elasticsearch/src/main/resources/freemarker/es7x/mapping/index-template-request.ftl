@@ -203,6 +203,42 @@
                             "index": true
                         }
                     }
+                },
+                "api-id": {
+                    "type": "alias",
+                    "path": "api"
+                },
+                "application-id": {
+                    "type": "alias",
+                    "path": "application"
+                },
+                "plan-id": {
+                    "type": "alias",
+                    "path": "plan"
+                },
+                "gateway-response-time-ms": {
+                    "type": "alias",
+                    "path": "response-time"
+                },
+                "http-method": {
+                    "type": "alias",
+                    "path": "method"
+                },
+                "transaction-id": {
+                    "type": "alias",
+                    "path": "transaction"
+                },
+                "client-identifier": {
+                    "type": "alias",
+                    "path": "subscription"
+                },
+                "gateway-latency-ms": {
+                    "type": "alias",
+                    "path": "proxy-latency"
+                },
+                "endpoint-response-time-ms": {
+                    "type": "alias",
+                    "path": "api-response-time"
                 }
                 <#if extendedRequestMappingTemplate??>,<#include "/${extendedRequestMappingTemplate}"></#if>
             },
