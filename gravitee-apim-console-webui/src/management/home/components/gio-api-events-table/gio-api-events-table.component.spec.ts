@@ -27,11 +27,13 @@ import { GioApiEventsTableComponent } from './gio-api-events-table.component';
 import { SEARCH_RESPONSE } from './gio-api-events-table.stories';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
+import { HomeService } from '../../../../services-ngx/home.service';
 
 describe('GioApiEventsTableComponent', () => {
   let fixture: ComponentFixture<GioApiEventsTableComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
+  let homeService: HomeService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -45,6 +47,7 @@ describe('GioApiEventsTableComponent', () => {
     loader = TestbedHarnessEnvironment.loader(fixture);
 
     httpTestingController = TestBed.inject(HttpTestingController);
+    homeService = TestBed.inject(HomeService);
 
     fixture.componentInstance.timeRangeParams = {
       id: '1M',
@@ -80,6 +83,23 @@ describe('GioApiEventsTableComponent', () => {
       ['LPI test (1)', '', 'Aug 29, 2023, 9:42:14 AM', 'Stop'],
       ['LPI test (1)', '', 'Aug 29, 2023, 9:42:04 AM', 'Start'],
     ]);
+  });
+
+  it('should filter events by selected API ids from home overview', async () => {
+    const tableHarness = await loader.getHarness(MatTableHarness);
+    expectSearchApiEventsRequest();
+    expect((await tableHarness.getRows()).length).toEqual(10);
+
+    homeService.toggleSelectedApiId('api-1');
+    fixture.detectChanges();
+
+    const req = httpTestingController.expectOne({
+      method: 'GET',
+      url: `${CONSTANTS_TESTING.env.baseURL}/platform/events?type=START_API,STOP_API,PUBLISH_API,UNPUBLISH_API&query=&api_ids=api-1&from=1691565599784&to=1694157599784&page=0&size=5`,
+    });
+    req.flush(SEARCH_RESPONSE);
+    fixture.detectChanges();
+    expect((await tableHarness.getRows()).length).toEqual(10);
   });
 
   function expectSearchApiEventsRequest() {

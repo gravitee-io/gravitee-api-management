@@ -28,4 +28,54 @@ describe('HomeService', () => {
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
+
+  it('should emit selected API ids', () => {
+    const emissions: string[][] = [];
+    service.selectedApiIds().subscribe((apiIds) => emissions.push(apiIds));
+
+    service.toggleSelectedApiId('api-1');
+    service.toggleSelectedApiId('api-2');
+
+    expect(emissions).toEqual([[], ['api-1'], ['api-1', 'api-2']]);
+  });
+
+  it('should toggle selected API ids', () => {
+    service.toggleSelectedApiId('api-1');
+    expect(service.isApiSelected('api-1')).toBe(true);
+
+    service.toggleSelectedApiId('api-2');
+    expect(service.isApiSelected('api-2')).toBe(true);
+    expect(service.isApiSelected('api-1')).toBe(true);
+
+    service.toggleSelectedApiId('api-1');
+    expect(service.isApiSelected('api-1')).toBe(false);
+  });
+
+  it('should clear selected API ids when time range changes', () => {
+    service.toggleSelectedApiId('api-1');
+    service.setTimeRangeParams({
+      id: 'custom',
+      from: 1,
+      to: 2,
+      interval: 1,
+    });
+
+    expect(service.isApiSelected('api-1')).toBe(false);
+  });
+
+  it('should clear selected API ids when resetTimeRange is called', () => {
+    service.toggleSelectedApiId('api-1');
+    service.resetTimeRange();
+    expect(service.isApiSelected('api-1')).toBe(false);
+  });
+
+  it('should not emit when clearing already empty API selection', () => {
+    const emissions: string[][] = [];
+    service.selectedApiIds().subscribe((apiIds) => emissions.push(apiIds));
+
+    service.clearSelectedApiIds();
+    service.clearSelectedApiIds();
+
+    expect(emissions).toEqual([[]]);
+  });
 });

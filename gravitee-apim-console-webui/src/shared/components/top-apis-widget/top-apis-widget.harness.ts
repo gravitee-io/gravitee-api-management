@@ -33,4 +33,18 @@ export class TopApisWidgetHarness extends ComponentHarness {
   public getPagination = async (): Promise<MatPaginatorHarness> => {
     return await this.paginationLocator();
   };
+
+  public clickRow = async (index: number): Promise<void> => {
+    const table = await this.tableLocator();
+    const rows = await table.getRows();
+    const rowHost = await rows[index].host();
+    await rowHost.click();
+  };
+
+  public isRowSelected = async (index: number): Promise<boolean> => {
+    const table = await this.tableLocator();
+    const rows = await table.getRows();
+    const rowHost = await rows[index].host();
+    return rowHost.hasClass('selected');
+  };
 }
