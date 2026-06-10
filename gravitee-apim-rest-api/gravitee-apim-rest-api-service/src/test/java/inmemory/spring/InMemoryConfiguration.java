@@ -559,6 +559,16 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public PortalListingCrudServiceInMemory portalListingCrudService() {
+        return new PortalListingCrudServiceInMemory();
+    }
+
+    @Bean
+    public ValidatePortalListingDomainServiceInMemory validatePortalListingDomainService() {
+        return new ValidatePortalListingDomainServiceInMemory();
+    }
+
+    @Bean
     public ApiProductCrudServiceInMemory apiProductCrudService() {
         return new ApiProductCrudServiceInMemory();
     }
