@@ -33,8 +33,8 @@ const v1UsersResourceAsAdmin = new UsersApi(forManagementAsAdminUser());
 
 describeIfClientGatewaySupportingApiProduct('API Product + Group — Section B: Member Management', () => {
   let apiProduct: ApiProduct;
-  let user: { id: string; reference?: string };
-  let groupUser: { id: string; reference?: string };
+  let user: any;
+  let groupUser: any;
   let group1: GroupEntity;
 
   beforeAll(async () => {
