@@ -24,6 +24,7 @@ import { HomeOverviewComponent } from './home-overview.component';
 import { HomeOverviewHarness } from './home-overview.harness';
 
 import { HomeModule } from '../home.module';
+import { HomeService } from '../../../services-ngx/home.service';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { fakeV4AnalyticsResponseStatus, fakeV4AnalyticsResponseTime } from '../../../entities/analytics/analytics.fixture';
@@ -142,13 +143,18 @@ describe('HomeOverviewComponent', () => {
       expect(await stats.getAverageResponseTime()).toEqual('234.76 ms ');
     });
 
-    // TODO in APIM-7863: uncomment test.
-    // it('should show requests that do not match a context path', async () => {
-    //   expectRequests();
-    //   const v2ApiCallsWithNoContextPathHarness = await componentHarness.getV2ApiCallsWithNoContextPathHarness();
-    //   const tableRowsNumber = await v2ApiCallsWithNoContextPathHarness.rowsNumber();
-    //   expect(tableRowsNumber).toEqual(1);
-    // });
+    it('should clear selected API ids and reset time range on destroy', () => {
+      expectRequests();
+
+      const homeService = TestBed.inject(HomeService);
+      const clearSelectedApiIdsSpy = jest.spyOn(homeService, 'clearSelectedApiIds');
+      const resetTimeRangeSpy = jest.spyOn(homeService, 'resetTimeRange').mockImplementation(() => undefined);
+
+      fixture.destroy();
+
+      expect(clearSelectedApiIdsSpy).toHaveBeenCalled();
+      expect(resetTimeRangeSpy).toHaveBeenCalled();
+    });
   });
 
   function expectRequests() {
