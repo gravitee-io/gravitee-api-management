@@ -112,6 +112,48 @@ public class FlowValidationDomainServiceTest {
         }
 
         @Test
+        public void should_reject_http_selector_with_equals_operator_and_wildcard_path() {
+            var flow = Flow.builder()
+                .name("wildcard-flow")
+                .selectors(List.of(HttpSelector.builder().path("/**").pathOperator(Operator.EQUALS).build()))
+                .build();
+
+            var throwable = catchThrowable(() -> service.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(flow)));
+
+            assertThat(throwable)
+                .isInstanceOf(InvalidFlowException.class)
+                .hasMessage("The flow [wildcard-flow] contains an HTTP selector with an invalid wildcard path")
+                .extracting(th -> ((InvalidFlowException) th).getParameters())
+                .asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
+                .contains(entry("flowName", "wildcard-flow"), entry("path", "/**"));
+        }
+
+        @Test
+        public void should_reject_http_selector_with_starts_with_operator_and_wildcard_path() {
+            var flow = Flow.builder()
+                .name("wildcard-flow")
+                .selectors(List.of(HttpSelector.builder().path("/**").pathOperator(Operator.STARTS_WITH).build()))
+                .build();
+
+            var throwable = catchThrowable(() -> service.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(flow)));
+
+            assertThat(throwable)
+                .isInstanceOf(InvalidFlowException.class)
+                .hasMessage("The flow [wildcard-flow] contains an HTTP selector with an invalid wildcard path");
+        }
+
+        @Test
+        public void should_accept_http_selector_with_single_asterisk_in_path() {
+            var flow = Flow.builder()
+                .selectors(List.of(HttpSelector.builder().path("/foo*").pathOperator(Operator.EQUALS).build()))
+                .build();
+
+            var result = service.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(flow));
+
+            assertThat(result).hasSize(1).containsExactly(flow);
+        }
+
+        @Test
         public void should_accept_flow_with_only_selectors() {
             var flow = Flow.builder()
                 .selectors(List.of(HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).build()))

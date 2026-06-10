@@ -15,8 +15,8 @@
  */
 
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { combineLatest, EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
-import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { combineLatest, EMPTY, forkJoin, Observable, Subject } from 'rxjs';
+import { catchError, finalize, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import {
   ConnectorInfo,
   Flow as PSFlow,
@@ -97,22 +97,113 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
           this.isLoading = true;
           this.changeDetectorRef.detectChanges();
         }),
-        switchMap((params) =>
-          combineLatest([
-            this.apiV2Service.get(this.activatedRoute.snapshot.params.apiId).pipe(map((api) => api as ApiV4)),
-            this.connectorPluginsV2Service.listEntrypointPlugins(),
-            this.connectorPluginsV2Service.listEndpointPlugins(),
-            this.apiPlanV2Service
-              .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED'], undefined, undefined, 1, 9999)
-              .pipe(map((apiPlansResponse) => apiPlansResponse.data)),
-            this.policyV2Service.list(),
-            this.sharedPolicyGroupsService.getSharedPolicyGroupPolicyPlugin(),
-            of(params),
-          ]),
-        ),
+        switchMap((params) => this.loadPolicyStudioData(params)),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe(([api, entrypoints, endpoints, plans, policies, sharedPolicyGroupPolicyPlugins, params]) => {
+      .subscribe();
+    this.trialURL = this.gioLicenseService.getTrialURL({ feature: ApimFeature.APIM_DEBUG_MODE, context: UTMTags.CONTEXT_API_V4 });
+  }
+
+  ngOnDestroy() {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
+  }
+
+  onSave(outputSave: SaveOutput) {
+    const { commonFlows, plansToUpdate, flowExecution } = outputSave;
+
+    const updates$: Observable<unknown>[] = [];
+    if (commonFlows || flowExecution) {
+      updates$.push(this.updateApiFlows(commonFlows, flowExecution));
+    }
+    if (plansToUpdate) {
+      updates$.push(this.updatePlans(plansToUpdate));
+    }
+    if (updates$.length === 0) {
+      return;
+    }
+
+    forkJoin(updates$)
+      .pipe(
+        tap(() => this.snackBarService.success('Policy Studio configuration saved')),
+        tap(() => this.router.navigateByUrl(this.location.path(), { skipLocationChange: true })),
+        catchError((err) => {
+          this.snackBarService.error(err.error?.message ?? err.message);
+          this.isLoading = true;
+          this.changeDetectorRef.detectChanges();
+          return this.loadPolicyStudioData(this.activatedRoute.snapshot.params).pipe(
+            catchError(() => EMPTY),
+            finalize(() => {
+              this.isLoading = false;
+              this.changeDetectorRef.detectChanges();
+            }),
+          );
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+  }
+
+  onFlowSelectionChange(flowSelection: FlowSelection) {
+    this.updateIndexesInURL(flowSelection);
+  }
+
+  private updateIndexesInURL(flowSelection: FlowSelection) {
+    const segments = this.location.path().split('/');
+    segments[segments.length - 2] = flowSelection.planIndex.toString();
+    segments[segments.length - 1] = flowSelection.flowIndex.toString();
+    this.location.go(segments.join('/'));
+  }
+
+  private checkAndAdjustIndexes() {
+    const totalPlans = this.plans.length + 1; // Adding 1 for common flows.
+    const { planIndex, flowIndex } = this.selectedFlowIndexes;
+
+    if (planIndex < 0 || planIndex >= totalPlans) {
+      this.selectedFlowIndexes = { planIndex: 0, flowIndex: 0 };
+      this.updateIndexesInURL(this.selectedFlowIndexes);
+    } else {
+      const currentPlanFlowsLength = planIndex < this.plans.length ? this.plans[planIndex].flows.length : this.commonFlows.length;
+
+      if (flowIndex < 0 || flowIndex >= currentPlanFlowsLength) {
+        const firstAvailableFlow = this.findFirstAvailableFlow();
+
+        if (firstAvailableFlow) {
+          this.selectedFlowIndexes = firstAvailableFlow;
+        } else {
+          this.selectedFlowIndexes = { planIndex: 0, flowIndex: 0 };
+        }
+        this.updateIndexesInURL(this.selectedFlowIndexes);
+      }
+    }
+  }
+
+  private findFirstAvailableFlow(): FlowSelection | null {
+    for (let planIdx = 0; planIdx < this.plans.length; planIdx++) {
+      if (this.plans[planIdx].flows.length > 0) {
+        return { planIndex: planIdx, flowIndex: 0 };
+      }
+    }
+
+    if (this.commonFlows.length > 0) {
+      return { planIndex: this.plans.length, flowIndex: 0 };
+    }
+
+    return null;
+  }
+
+  private loadPolicyStudioData(params: Record<string, string | number>) {
+    return combineLatest([
+      this.apiV2Service.get(this.activatedRoute.snapshot.params.apiId).pipe(map((api) => api as ApiV4)),
+      this.connectorPluginsV2Service.listEntrypointPlugins(),
+      this.connectorPluginsV2Service.listEndpointPlugins(),
+      this.apiPlanV2Service
+        .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED'], undefined, undefined, 1, 9999)
+        .pipe(map((apiPlansResponse) => apiPlansResponse.data)),
+      this.policyV2Service.list(),
+      this.sharedPolicyGroupsService.getSharedPolicyGroupPolicyPlugin(),
+    ]).pipe(
+      tap(([api, entrypoints, endpoints, plans, policies, sharedPolicyGroupPolicyPlugins]) => {
         this.apiType = api.type;
         this.flowExecution = api.flowExecution;
 
@@ -169,7 +260,6 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
           apiType: plugin.apiType,
         }));
 
-        // Set resources for specific json schema resource type component
         this.resourceTypeService.setResources(api.resources ?? []);
 
         this.selectedFlowIndexes.planIndex = Number(params['planIndex'] ?? 0);
@@ -177,79 +267,9 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
         this.checkAndAdjustIndexes();
         this.isReadOnly = !this.permissionsService.hasAnyMatching(['api-definition-u']) || api.definitionContext.origin === 'KUBERNETES';
         this.isLoading = false;
-      });
-    this.trialURL = this.gioLicenseService.getTrialURL({ feature: ApimFeature.APIM_DEBUG_MODE, context: UTMTags.CONTEXT_API_V4 });
-  }
-
-  ngOnDestroy() {
-    this.unsubscribe$.next(true);
-    this.unsubscribe$.unsubscribe();
-  }
-
-  onSave(outputSave: SaveOutput) {
-    const { commonFlows, plansToUpdate, flowExecution } = outputSave;
-
-    const updates$: Observable<unknown>[] = [];
-    if (commonFlows || flowExecution) {
-      updates$.push(this.updateApiFlows(commonFlows, flowExecution));
-    }
-    if (plansToUpdate) {
-      updates$.push(this.updatePlans(plansToUpdate));
-    }
-    forkJoin(updates$)
-      .pipe(
-        tap(() => this.snackBarService.success('Policy Studio configuration saved')),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe(() => this.router.navigateByUrl(this.location.path(), { skipLocationChange: true }));
-  }
-
-  onFlowSelectionChange(flowSelection: FlowSelection) {
-    this.updateIndexesInURL(flowSelection);
-  }
-
-  private updateIndexesInURL(flowSelection: FlowSelection) {
-    const segments = this.location.path().split('/');
-    segments[segments.length - 2] = flowSelection.planIndex.toString();
-    segments[segments.length - 1] = flowSelection.flowIndex.toString();
-    this.location.go(segments.join('/'));
-  }
-
-  private checkAndAdjustIndexes() {
-    const totalPlans = this.plans.length + 1; // Adding 1 for common flows.
-    const { planIndex, flowIndex } = this.selectedFlowIndexes;
-
-    if (planIndex < 0 || planIndex >= totalPlans) {
-      this.selectedFlowIndexes = { planIndex: 0, flowIndex: 0 };
-      this.updateIndexesInURL(this.selectedFlowIndexes);
-    } else {
-      const currentPlanFlowsLength = planIndex < this.plans.length ? this.plans[planIndex].flows.length : this.commonFlows.length;
-
-      if (flowIndex < 0 || flowIndex >= currentPlanFlowsLength) {
-        const firstAvailableFlow = this.findFirstAvailableFlow();
-
-        if (firstAvailableFlow) {
-          this.selectedFlowIndexes = firstAvailableFlow;
-        } else {
-          this.selectedFlowIndexes = { planIndex: 0, flowIndex: 0 };
-        }
-        this.updateIndexesInURL(this.selectedFlowIndexes);
-      }
-    }
-  }
-
-  private findFirstAvailableFlow(): FlowSelection | null {
-    for (let planIdx = 0; planIdx < this.plans.length; planIdx++) {
-      if (this.plans[planIdx].flows.length > 0) {
-        return { planIndex: planIdx, flowIndex: 0 };
-      }
-    }
-
-    if (this.commonFlows.length > 0) {
-      return { planIndex: this.plans.length, flowIndex: 0 };
-    }
-
-    return null;
+        this.changeDetectorRef.detectChanges();
+      }),
+    );
   }
 
   private updateApiFlows(commonFlows: PSFlow[], flowExecution: FlowExecution) {
@@ -262,10 +282,6 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
         };
 
         return this.apiV2Service.update(this.activatedRoute.snapshot.params.apiId, updatedApi);
-      }),
-      catchError((err) => {
-        this.snackBarService.error(err.error?.message ?? err.message);
-        return EMPTY;
       }),
       takeUntil(this.unsubscribe$),
     );
@@ -283,10 +299,6 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
           return this.apiPlanV2Service.update(this.activatedRoute.snapshot.params.apiId, apiPlan.id, updatedApiPlan);
         }),
         switchMap(() => this.apiV2Service.refreshLastApiFetch()),
-        catchError((err) => {
-          this.snackBarService.error(err.error?.message ?? err.message);
-          return EMPTY;
-        }),
       );
 
     return forkJoin(plans.map((plan) => updatePlan$(plan)));
