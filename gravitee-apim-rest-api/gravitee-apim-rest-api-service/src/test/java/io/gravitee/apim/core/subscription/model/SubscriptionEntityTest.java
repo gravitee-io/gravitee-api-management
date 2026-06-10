@@ -24,6 +24,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Map;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -142,6 +143,30 @@ class SubscriptionEntityTest {
             var closedSubscription = subscription.acceptBy("user-id", STARTING_AT, ENDING_AT, "my reason");
 
             assertThat(closedSubscription).isSameAs(subscription).isEqualTo(subscription);
+        }
+
+        @Test
+        void should_preserve_existing_metadata_when_accepting_without_metadata() {
+            var metadata = Map.of("key", "value");
+            var subscription = aSubscription().toBuilder().status(SubscriptionEntity.Status.PENDING).metadata(metadata).build();
+
+            var acceptedSubscription = subscription.acceptBy("user-id", STARTING_AT, ENDING_AT, "my reason");
+
+            assertThat(acceptedSubscription.getMetadata()).isEqualTo(metadata);
+        }
+
+        @Test
+        void should_override_existing_metadata_when_accepting_with_metadata() {
+            var subscription = aSubscription()
+                .toBuilder()
+                .status(SubscriptionEntity.Status.PENDING)
+                .metadata(Map.of("key", "value"))
+                .build();
+            var newMetadata = Map.of("integration-key", "integration-value");
+
+            var acceptedSubscription = subscription.acceptBy("user-id", STARTING_AT, ENDING_AT, "my reason", newMetadata);
+
+            assertThat(acceptedSubscription.getMetadata()).isEqualTo(newMetadata);
         }
     }
 }
