@@ -237,27 +237,32 @@ public class ApiResource_PatchApiListenersTest extends ApiResourceTest {
     }
 
     @Test
-    void merge_patch_listeners_null_is_a_no_op() {
+    void merge_patch_listeners_null_returns_400() {
         givenApiWithListeners(List.of(defaultHttpListener("/existing")));
+
+        wireRealListenerValidator();
 
         var body = "{\"listeners\":null}";
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, MERGE_PATCH_TYPE));
 
-        assertThat(response).hasStatus(OK_200);
+        var error = assertThat(response).hasStatus(BAD_REQUEST_400).asError().actual();
+        Assertions.assertThat(error.getTechnicalCode()).isEqualTo("listeners.missing");
     }
 
     @Test
-    void json_patch_remove_listeners_is_a_no_op() {
+    void json_patch_remove_listeners_returns_400() {
         givenApiWithListeners(List.of(defaultHttpListener("/existing")));
+
+        wireRealListenerValidator();
 
         var body = "[{\"op\":\"remove\",\"path\":\"/listeners\"}]";
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, JSON_PATCH_TYPE));
 
-        assertThat(response).hasStatus(OK_200);
+        var error = assertThat(response).hasStatus(BAD_REQUEST_400).asError().actual();
+        Assertions.assertThat(error.getTechnicalCode()).isEqualTo("listeners.missing");
     }
 
-    @Test
-    void merge_patch_with_empty_listeners_array_returns_400() {
+    private void wireRealListenerValidator() {
         var listenerValidator = new ListenerValidationServiceImpl(
             mock(VerifyApiPathDomainService.class),
             mock(EntrypointConnectorPluginService.class),
@@ -273,6 +278,11 @@ public class ApiResource_PatchApiListenersTest extends ApiResourceTest {
         })
             .when(updateApiDomainService)
             .updateV4(any(), any());
+    }
+
+    @Test
+    void merge_patch_with_empty_listeners_array_returns_400() {
+        wireRealListenerValidator();
 
         var body = "{\"listeners\":[]}";
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, MERGE_PATCH_TYPE));
