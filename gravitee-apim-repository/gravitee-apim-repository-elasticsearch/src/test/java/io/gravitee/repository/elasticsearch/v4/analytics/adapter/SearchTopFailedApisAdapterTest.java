@@ -52,24 +52,10 @@ class SearchTopFailedApisAdapterTest {
                     "bool": {
                         "filter": [
                             {
-                                "bool": {
-                                    "should": [
-                                        {
-                                            "terms": {
-                                                "api-id": [
-                                                    "api-id-1",
-                                                    "api-id-2"
-                                                ]
-                                            }
-                                        },
-                                        {
-                                            "terms": {
-                                                "api": [
-                                                    "api-id-1",
-                                                    "api-id-2"
-                                                ]
-                                            }
-                                        }
+                                "terms": {
+                                    "api-id": [
+                                        "api-id-1",
+                                        "api-id-2"
                                     ]
                                 }
                             },
@@ -93,44 +79,6 @@ class SearchTopFailedApisAdapterTest {
                             "total_requests": {
                                 "value_count": {
                                     "field": "api-id"
-                                }
-                            },
-                            "failed_requests": {
-                                "filter": {
-                                    "range": {
-                                        "status": {
-                                            "gte": 500,
-                                            "lt": 600
-                                        }
-                                    }
-                                },
-                                "aggs": {
-                                    "failed_requests_count": {
-                                        "value_count": {
-                                            "field": "status"
-                                        }
-                                    }
-                                }
-                            },
-                            "failed_requests_ratio": {
-                                "bucket_script": {
-                                    "buckets_path": {
-                                        "failed_count": "failed_requests>failed_requests_count",
-                                        "total_count": "total_requests"
-                                    },
-                                    "script": "params.failed_count / params.total_count"
-                                }
-                            }
-                        }
-                    },
-                    "failed_apis_agg_api": {
-                        "terms": {
-                            "field": "api"
-                        },
-                        "aggs": {
-                            "total_requests": {
-                                "value_count": {
-                                    "field": "api"
                                 }
                             },
                             "failed_requests": {

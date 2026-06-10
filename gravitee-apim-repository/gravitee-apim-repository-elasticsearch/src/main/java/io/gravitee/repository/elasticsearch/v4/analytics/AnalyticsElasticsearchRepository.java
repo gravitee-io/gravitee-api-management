@@ -137,7 +137,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         var indexV4Metrics = indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
         var indexes = String.join(",", List.of(indexV2Request, indexV4Metrics));
 
-        var apiIdFields = List.of("api-id", "api");
+        var apiIdFields = List.of("api-id");
         var esQuery = AggregateValueCountByFieldAdapter.adaptQueryForFields(apiIdFields, criteria);
 
         log.debug("Search response top hit query: {}", esQuery);
@@ -166,7 +166,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         var indexV4Metrics = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
         var indexes = String.join(",", List.of(indexV2Request, indexV4Metrics));
 
-        var applicationIdFields = List.of("application-id", "application");
+        var applicationIdFields = List.of("application-id");
         var esQuery = AggregateValueCountByFieldAdapter.adaptQueryForFields(applicationIdFields, criteria);
 
         log.debug("Search response top apps query: {}", esQuery);
