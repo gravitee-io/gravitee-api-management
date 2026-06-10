@@ -66,7 +66,7 @@ import {
   ApiFederated,
   McpSelector,
 } from '../../../../entities/management-api-v2';
-import { isApiV2FromMAPIV2 } from '../../../../util';
+import { isApiV2FromMAPIV2 } from '../../../../util/isApiV2orV4';
 import { PlanFormType, PlanMenuItemVM } from '../../../../services-ngx/constants.service';
 import { Constants } from '../../../../entities/Constants';
 
