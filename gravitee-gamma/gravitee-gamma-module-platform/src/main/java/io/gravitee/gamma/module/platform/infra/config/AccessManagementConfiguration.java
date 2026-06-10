@@ -17,6 +17,7 @@ package io.gravitee.gamma.module.platform.infra.config;
 
 import io.gravitee.apim.plugin.gamma.api.identity.AmConnectionRepository;
 import io.gravitee.apim.plugin.gamma.api.identity.ApimAmConnectionRepository;
+import io.gravitee.gamma.module.platform.core.am.domain_service.AmConnectionViewDomainService;
 import io.gravitee.gamma.module.platform.core.am.port.service_provider.AmConnectionTester;
 import io.gravitee.gamma.module.platform.core.am.port.service_provider.AmDirectoryClient;
 import io.gravitee.gamma.module.platform.core.am.use_case.GetDomainUseCase;
@@ -67,17 +68,23 @@ public class AccessManagementConfiguration {
     }
 
     @Bean
-    public GetAmConnectionUseCase getAmConnectionUseCase(
+    public AmConnectionViewDomainService amConnectionViewDomainService(
         @Qualifier("platformAmConnectionRepository") AmConnectionRepository amConnectionRepository
     ) {
-        return new GetAmConnectionUseCase(amConnectionRepository);
+        return new AmConnectionViewDomainService(amConnectionRepository);
+    }
+
+    @Bean
+    public GetAmConnectionUseCase getAmConnectionUseCase(AmConnectionViewDomainService amConnectionViewDomainService) {
+        return new GetAmConnectionUseCase(amConnectionViewDomainService);
     }
 
     @Bean
     public SaveAmConnectionUseCase saveAmConnectionUseCase(
-        @Qualifier("platformAmConnectionRepository") AmConnectionRepository amConnectionRepository
+        @Qualifier("platformAmConnectionRepository") AmConnectionRepository amConnectionRepository,
+        AmConnectionViewDomainService amConnectionViewDomainService
     ) {
-        return new SaveAmConnectionUseCase(amConnectionRepository);
+        return new SaveAmConnectionUseCase(amConnectionRepository, amConnectionViewDomainService);
     }
 
     @Bean

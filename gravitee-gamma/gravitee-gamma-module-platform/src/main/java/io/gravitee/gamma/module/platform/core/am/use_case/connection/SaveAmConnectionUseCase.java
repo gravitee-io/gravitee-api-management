@@ -18,6 +18,7 @@ package io.gravitee.gamma.module.platform.core.am.use_case.connection;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
 import io.gravitee.apim.plugin.gamma.api.identity.AmConnectionRepository;
+import io.gravitee.gamma.module.platform.core.am.domain_service.AmConnectionViewDomainService;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -25,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class SaveAmConnectionUseCase {
 
     private final AmConnectionRepository amConnectionRepository;
+    private final AmConnectionViewDomainService amConnectionViewDomainService;
 
     public record Input(
         String orgId,
@@ -48,12 +50,7 @@ public class SaveAmConnectionUseCase {
                 input.gatewayUrl()
             )
         );
-        var saved = amConnectionRepository.findByOrg(input.orgId());
-        String baseUrl = saved.map(c -> c.baseUrl() == null ? "" : c.baseUrl()).orElse("");
-        boolean hasToken = amConnectionRepository.hasTokenForOrg(input.orgId());
-        String defaultDomainId = saved.map(AmConnection::defaultDomainId).orElse(null);
-        String defaultDomainHrid = saved.map(AmConnection::defaultDomainHrid).orElse(null);
-        String gatewayUrl = saved.map(AmConnection::gatewayUrl).orElse(null);
-        return new Output(baseUrl, hasToken, defaultDomainId, defaultDomainHrid, gatewayUrl);
+        var view = amConnectionViewDomainService.forOrg(input.orgId());
+        return new Output(view.baseUrl(), view.hasAccessToken(), view.defaultDomainId(), view.defaultDomainHrid(), view.gatewayUrl());
     }
 }
