@@ -31,6 +31,7 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
+import io.gravitee.apim.core.user.domain_service.AssignUserDefaultRolesDomainService;
 import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.util.Maps;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -121,6 +122,9 @@ public class UserServiceTest {
 
     @Mock
     private MembershipService membershipService;
+
+    @Mock
+    private AssignUserDefaultRolesDomainService assignUserDefaultRolesDomainService;
 
     @Mock
     private MembershipRepository membershipRepository;
@@ -475,11 +479,6 @@ public class UserServiceTest {
         when(user.getCreatedAt()).thenReturn(date);
         when(user.getOrganizationId()).thenReturn(ORGANIZATION);
         when(userRepository.create(any(User.class))).thenReturn(user);
-        RoleEntity roleEnvironmentAdmin = mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN");
-        RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
-        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT)).thenReturn(
-            Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin)
-        );
         RoleEntity roleEnv = mock(RoleEntity.class);
         when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
         when(roleEnv.getName()).thenReturn("USER");
@@ -500,6 +499,7 @@ public class UserServiceTest {
         verify(newPreRegisterUserEntity, times(1)).setSourceId(EMAIL);
         verify(emailService, times(1)).sendAsyncEmailNotification(eq(EXECUTION_CONTEXT), any());
         verify(notifierService, times(1)).trigger(eq(EXECUTION_CONTEXT), eq(PortalHook.USER_CREATED), any());
+        verify(assignUserDefaultRolesDomainService, times(1)).assignDefaultRoles(eq(EXECUTION_CONTEXT), eq(USER_NAME));
     }
 
     @Test(expected = EmailFormatInvalidException.class)
@@ -534,11 +534,6 @@ public class UserServiceTest {
         when(user.getUpdatedAt()).thenReturn(date);
         when(user.getOrganizationId()).thenReturn(ORGANIZATION);
         when(userRepository.create(any(User.class))).thenReturn(user);
-        RoleEntity roleEnvironmentAdmin = mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN");
-        RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
-        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT)).thenReturn(
-            Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin)
-        );
         RoleEntity roleEnv = mock(RoleEntity.class);
         when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
         when(roleEnv.getName()).thenReturn("USER");
@@ -583,11 +578,6 @@ public class UserServiceTest {
         when(user.getUpdatedAt()).thenReturn(date);
         when(user.getOrganizationId()).thenReturn(ORGANIZATION);
         when(userRepository.create(any(User.class))).thenReturn(user);
-        RoleEntity roleEnvironmentAdmin = mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN");
-        RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
-        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT)).thenReturn(
-            Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin)
-        );
         RoleEntity roleEnv = mock(RoleEntity.class);
         when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
         when(roleEnv.getName()).thenReturn("USER");
@@ -2594,11 +2584,6 @@ public class UserServiceTest {
         when(user.getUpdatedAt()).thenReturn(date);
         when(user.getOrganizationId()).thenReturn(ORGANIZATION);
         when(userRepository.create(any(User.class))).thenReturn(user);
-        RoleEntity roleEnvironmentAdmin = mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN");
-        RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
-        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT)).thenReturn(
-            Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin)
-        );
         RoleEntity roleEnv = mock(RoleEntity.class);
         when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
         when(roleEnv.getName()).thenReturn("USER");
@@ -2644,11 +2629,6 @@ public class UserServiceTest {
         when(user.getUpdatedAt()).thenReturn(date);
         when(user.getOrganizationId()).thenReturn(ORGANIZATION);
         when(userRepository.create(any(User.class))).thenReturn(user);
-        RoleEntity roleEnvironmentAdmin = mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN");
-        RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
-        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT)).thenReturn(
-            Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin)
-        );
         RoleEntity roleEnv = mock(RoleEntity.class);
         when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
         when(roleEnv.getName()).thenReturn("USER");
