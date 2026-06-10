@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, forkJoin, Observable, Subject } from 'rxjs';
-import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, finalize, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import {
   ConnectorInfo,
   Flow as PSFlow,
@@ -79,10 +79,58 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
     private readonly sharedPolicyGroupsService: SharedPolicyGroupsService,
     private readonly resourceTypeService: ResourceTypeService,
     private readonly gioLicenseService: GioLicenseService,
+    private readonly changeDetectorRef: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
-    combineLatest([
+    this.loadPolicyStudioData().pipe(takeUntil(this.unsubscribe$)).subscribe();
+    this.trialURL = this.gioLicenseService.getTrialURL({ feature: ApimFeature.APIM_DEBUG_MODE, context: UTMTags.CONTEXT_API_V4 });
+  }
+
+  ngOnDestroy() {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
+  }
+
+  onSave(outputSave: SaveOutput) {
+    const { commonFlows, plansToUpdate, flowExecution } = outputSave;
+
+    const updates$: Observable<unknown>[] = [];
+    if (commonFlows || flowExecution) {
+      updates$.push(this.updateApiFlows(commonFlows, flowExecution));
+    }
+    if (plansToUpdate) {
+      updates$.push(this.updatePlans(plansToUpdate));
+    }
+    if (updates$.length === 0) {
+      return;
+    }
+
+    forkJoin(updates$)
+      .pipe(
+        tap(() => {
+          this.snackBarService.success('Policy Studio configuration saved');
+          this.ngOnInit();
+        }),
+        catchError((err) => {
+          this.snackBarService.error(err.error?.message ?? err.message);
+          this.isLoading = true;
+          this.changeDetectorRef.detectChanges();
+          return this.loadPolicyStudioData().pipe(
+            catchError(() => EMPTY),
+            finalize(() => {
+              this.isLoading = false;
+              this.changeDetectorRef.detectChanges();
+            }),
+          );
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+  }
+
+  private loadPolicyStudioData() {
+    return combineLatest([
       this.apiV2Service.get(this.activatedRoute.snapshot.params.apiId).pipe(map((api) => api as ApiV4)),
       this.connectorPluginsV2Service.listEntrypointPlugins(),
       this.connectorPluginsV2Service.listEndpointPlugins(),
@@ -99,9 +147,8 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
         .pipe(map((apiPlansResponse) => apiPlansResponse.data)),
       this.policyV2Service.list(),
       this.sharedPolicyGroupsService.getSharedPolicyGroupPolicyPlugin(),
-    ])
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe(([api, entrypoints, endpoints, plans, policies, sharedPolicyGroupPolicyPlugins]) => {
+    ]).pipe(
+      tap(([api, entrypoints, endpoints, plans, policies, sharedPolicyGroupPolicyPlugins]) => {
         this.apiType = api.type;
         this.flowExecution = api.flowExecution;
 
@@ -163,31 +210,9 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
 
         this.isReadOnly = api.definitionContext.origin === 'KUBERNETES';
         this.isLoading = false;
-      });
-    this.trialURL = this.gioLicenseService.getTrialURL({ feature: ApimFeature.APIM_DEBUG_MODE, context: UTMTags.CONTEXT_API_V4 });
-  }
-
-  ngOnDestroy() {
-    this.unsubscribe$.next(true);
-    this.unsubscribe$.unsubscribe();
-  }
-
-  onSave(outputSave: SaveOutput) {
-    const { commonFlows, plansToUpdate, flowExecution } = outputSave;
-
-    const updates$: Observable<unknown>[] = [];
-    if (commonFlows || flowExecution) {
-      updates$.push(this.updateApiFlows(commonFlows, flowExecution));
-    }
-    if (plansToUpdate) {
-      updates$.push(this.updatePlans(plansToUpdate));
-    }
-    forkJoin(updates$)
-      .pipe(
-        tap(() => this.snackBarService.success('Policy Studio configuration saved')),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe(() => this.ngOnInit());
+        this.changeDetectorRef.detectChanges();
+      }),
+    );
   }
 
   private updateApiFlows(commonFlows: PSFlow[], flowExecution: FlowExecution) {
@@ -200,10 +225,6 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
         };
 
         return this.apiV2Service.update(this.activatedRoute.snapshot.params.apiId, updatedApi);
-      }),
-      catchError((err) => {
-        this.snackBarService.error(err.error?.message ?? err.message);
-        return EMPTY;
       }),
       takeUntil(this.unsubscribe$),
     );
@@ -221,10 +242,6 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
           return this.apiPlanV2Service.update(this.activatedRoute.snapshot.params.apiId, apiPlan.id, updatedApiPlan);
         }),
         switchMap(() => this.apiV2Service.refreshLastApiFetch()),
-        catchError((err) => {
-          this.snackBarService.error(err.error?.message ?? err.message);
-          return EMPTY;
-        }),
       );
 
     return forkJoin(plans.map((plan) => updatePlan$(plan)));
