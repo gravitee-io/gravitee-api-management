@@ -169,3 +169,13 @@ tests:
                 - type: Percent
                   value: 10
                   periodSeconds: 60
+
+  - it: Check no HPA is rendered for DaemonSet workload type
+    set:
+      global:
+        kubeVersion: 1.23.0
+      gateway:
+        type: DaemonSet
+    asserts:
+      - hasDocuments:
+          count: 0
