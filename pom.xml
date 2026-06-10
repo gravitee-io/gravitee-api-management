@@ -161,7 +161,7 @@
         <tika.version>3.2.3</tika.version>
         <pdfbox.version>3.0.6</pdfbox.version>
 
-        <langchain4j.version>1.13.0</langchain4j.version>
+        <langchain4j.version>1.16.1</langchain4j.version>
 
         <!-- Plugins version -->
         <maven-clean-plugin.version>3.4.1</maven-clean-plugin.version>
