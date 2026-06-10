@@ -16,29 +16,21 @@
 package io.gravitee.gamma.module.platform.core.am.use_case.connection;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
-import io.gravitee.apim.plugin.gamma.api.identity.AmConnectionRepository;
+import io.gravitee.gamma.module.platform.core.am.domain_service.AmConnectionViewDomainService;
 import lombok.RequiredArgsConstructor;
 
-// hasAccessToken reflects ciphertext presence so the UI can render a "set" placeholder without
-// ever revealing the value.
 @UseCase
 @RequiredArgsConstructor
 public class GetAmConnectionUseCase {
 
-    private final AmConnectionRepository amConnectionRepository;
+    private final AmConnectionViewDomainService amConnectionViewDomainService;
 
     public record Input(String orgId) {}
 
     public record Output(String baseUrl, boolean hasAccessToken, String defaultDomainId, String defaultDomainHrid, String gatewayUrl) {}
 
     public Output execute(Input input) {
-        var connection = amConnectionRepository.findByOrg(input.orgId());
-        String baseUrl = connection.map(c -> c.baseUrl() == null ? "" : c.baseUrl()).orElse("");
-        boolean hasToken = amConnectionRepository.hasTokenForOrg(input.orgId());
-        String defaultDomainId = connection.map(AmConnection::defaultDomainId).orElse(null);
-        String defaultDomainHrid = connection.map(AmConnection::defaultDomainHrid).orElse(null);
-        String gatewayUrl = connection.map(AmConnection::gatewayUrl).orElse(null);
-        return new Output(baseUrl, hasToken, defaultDomainId, defaultDomainHrid, gatewayUrl);
+        var view = amConnectionViewDomainService.forOrg(input.orgId());
+        return new Output(view.baseUrl(), view.hasAccessToken(), view.defaultDomainId(), view.defaultDomainHrid(), view.gatewayUrl());
     }
 }

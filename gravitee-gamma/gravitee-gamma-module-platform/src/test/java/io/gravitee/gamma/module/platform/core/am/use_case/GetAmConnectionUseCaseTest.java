@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
 import io.gravitee.apim.plugin.gamma.api.identity.AmConnectionRepository;
+import io.gravitee.gamma.module.platform.core.am.domain_service.AmConnectionViewDomainService;
 import io.gravitee.gamma.module.platform.core.am.use_case.connection.GetAmConnectionUseCase;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,7 +38,7 @@ class GetAmConnectionUseCaseTest {
     @BeforeEach
     void setUp() {
         repository = Mockito.mock(AmConnectionRepository.class);
-        useCase = new GetAmConnectionUseCase(repository);
+        useCase = new GetAmConnectionUseCase(new AmConnectionViewDomainService(repository));
     }
 
     @Test
