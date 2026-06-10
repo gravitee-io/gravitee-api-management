@@ -2,7 +2,7 @@
 
 import { checkToken } from '../helpers/circleci-helper.mjs';
 import { computeVersion, extractVersion } from '../helpers/version-helper.mjs';
-import { isDryRun } from '../helpers/option-helper.mjs';
+import { isDryRun, getTargetBranch } from '../helpers/option-helper.mjs';
 
 await checkToken();
 
@@ -23,7 +23,7 @@ console.log(chalk.blue(`Triggering Docker Pipeline`));
 
 // Use the preconfigured payload from config folder with the good parameters
 const body = {
-  branch: versions.branch,
+  branch: getTargetBranch(versions),
   parameters: {
     gio_action: 'build_docker_images',
     docker_tag_as_latest: isLatest,
