@@ -1,0 +1,15 @@
+{
+  "hrid": "default-listing",
+  "apis": [
+    {
+      "apiHrid": "pets-api",
+      "location": "/projects/alpha",
+      "order": 1
+    },
+    {
+      "apiHrid": "shop-api",
+      "location": "/projects/beta",
+      "order": 2
+    }
+  ]
+}

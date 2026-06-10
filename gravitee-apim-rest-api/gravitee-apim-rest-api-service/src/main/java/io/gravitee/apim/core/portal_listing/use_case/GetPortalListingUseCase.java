@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_listing.use_case;
 
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal_listing.crud_service.PortalListingCrudService;
 import io.gravitee.apim.core.portal_listing.exception.PortalListingNotFoundException;
@@ -22,6 +23,7 @@ import io.gravitee.apim.core.portal_listing.model.PortalListing;
 import io.gravitee.apim.core.portal_listing.model.PortalListingId;
 import lombok.RequiredArgsConstructor;
 
+@UseCase
 @RequiredArgsConstructor
 public class GetPortalListingUseCase {
 

@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_listing.use_case;
 
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal.model.PortalId;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
+@UseCase
 @RequiredArgsConstructor
 public class CreateOrUpdatePortalListingUseCase {
 
