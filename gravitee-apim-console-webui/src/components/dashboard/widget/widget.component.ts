@@ -142,25 +142,20 @@ const WidgetComponent: ng.IComponentOptions = {
             this.results = response.data;
             if (this.widget.chart.type === 'line') {
               if (response.data.timestamp) {
+                const { from, to } = response.data.timestamp;
                 // call searchEvent only if there are some results to the aggregation call
                 if (this.activatedRoute.snapshot.params.apiId) {
-                  return this.ApiService.searchApiEvents(
-                    ['PUBLISH_API'],
-                    this.activatedRoute.snapshot.params.apiId,
-                    response.data.timestamp.from,
-                    response.data.timestamp.to,
-                    0,
-                    10,
-                  ).then((response) => {
-                    this.results.events = response.data;
-                  });
-                } else {
-                  return this.eventService
-                    .search(['PUBLISH_API'], [], response.data.timestamp.from, response.data.timestamp.to, 0, 10)
-                    .then((response) => {
+                  return this.ApiService.searchApiEvents(['PUBLISH_API'], this.activatedRoute.snapshot.params.apiId, from, to, 0, 10).then(
+                    (response) => {
                       this.results.events = response.data;
-                    });
+                    },
+                  );
                 }
+
+                const apiIds = queryFilters?.api?.join(',') ?? '';
+                return this.eventService.search(['PUBLISH_API'], apiIds, from, to, 0, 10).then((response) => {
+                  this.results.events = response.data;
+                });
               }
             } else if (this.widget.chart.percent) {
               delete chartRequest.query;
