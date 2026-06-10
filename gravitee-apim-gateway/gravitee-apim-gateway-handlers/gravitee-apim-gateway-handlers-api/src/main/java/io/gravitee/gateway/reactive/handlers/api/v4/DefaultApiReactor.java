@@ -118,7 +118,9 @@ public class DefaultApiReactor extends AbstractApiReactor {
     private static final Set<LogEntry<? extends HttpExecutionContextInternal>> DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES = Set.of(
         LogEntryFactory.cached("serverId", DefaultExecutionContext.class, context -> context.getInternalAttribute(ATTR_INTERNAL_SERVER_ID)),
         LogEntryFactory.refreshable("contextPath", DefaultExecutionContext.class, context -> context.getAttribute(ATTR_CONTEXT_PATH)),
-        LogEntryFactory.refreshable("requestMethod", DefaultExecutionContext.class, context -> context.getAttribute(ATTR_REQUEST_METHOD))
+        LogEntryFactory.refreshable("requestMethod", DefaultExecutionContext.class, context ->
+            Objects.toString(context.getAttribute(ATTR_REQUEST_METHOD), null)
+        )
     );
 
     public static final String API_VALIDATE_SUBSCRIPTION_PROPERTY = "api.validateSubscription";
