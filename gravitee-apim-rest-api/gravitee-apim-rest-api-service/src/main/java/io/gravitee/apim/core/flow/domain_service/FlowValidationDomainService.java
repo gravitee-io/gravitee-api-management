@@ -76,6 +76,13 @@ public class FlowValidationDomainService {
             .filter(Objects::nonNull)
             .findFirst();
 
+    public static final Predicate<Selector> HTTP_SELECTOR_WITH_INVALID_WILDCARD_PATH = selector ->
+        selector instanceof HttpSelector httpSelector && hasInvalidWildcardPath(httpSelector.getPath());
+
+    public static boolean hasInvalidWildcardPath(final String path) {
+        return path != null && path.contains("**");
+    }
+
     private static final Map<ApiType, Function<Flow, Optional<String>>> PATH_EXTRACTOR = Map.of(
         ApiType.PROXY,
         HTTP_PATH_EXTRACTOR,
@@ -105,6 +112,9 @@ public class FlowValidationDomainService {
 
                 // Check HTTP selectors carry a non-null pathOperator
                 checkHttpSelectorsPathOperator(flow);
+
+                // Check HTTP selectors do not use unsupported wildcard paths (e.g. /**)
+                checkHttpSelectorsInvalidWildcardPath(flow);
 
                 // Validate policy
                 var steps = Stream.of(flow.getRequest(), flow.getResponse(), flow.getPublish(), flow.getSubscribe())
@@ -142,6 +152,20 @@ public class FlowValidationDomainService {
             if (hasNullPathOperator) {
                 throw InvalidFlowException.missingPathOperator(flow.getName());
             }
+        }
+    }
+
+    private void checkHttpSelectorsInvalidWildcardPath(final Flow flow) {
+        if (flow.getSelectors() != null) {
+            flow
+                .getSelectors()
+                .stream()
+                .filter(HTTP_SELECTOR_WITH_INVALID_WILDCARD_PATH)
+                .map(HttpSelector.class::cast)
+                .findFirst()
+                .ifPresent(httpSelector -> {
+                    throw InvalidFlowException.invalidWildcardPath(flow.getName(), httpSelector.getPath());
+                });
         }
     }
 
