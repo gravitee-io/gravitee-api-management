@@ -30,6 +30,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
+import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
@@ -56,11 +58,15 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
 import io.gravitee.rest.api.service.v4.ApiServicePluginService;
+import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
+import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.exception.ApiTypeException;
 import io.gravitee.rest.api.service.v4.exception.ListenerMissingException;
+import io.gravitee.rest.api.service.v4.impl.validation.ListenerValidationServiceImpl;
 import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
+import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationService;
 import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
 import io.gravitee.rest.api.service.v4.validation.GroupValidationService;
@@ -498,6 +504,40 @@ public class ApiValidationServiceImplTest {
         apiEntity.setListeners(null);
 
         apiValidationService.validateAndSanitizeImportApiForCreation(GraviteeContext.getExecutionContext(), apiEntity, primaryOwnerEntity);
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenNewApiHasEmptyListeners() {
+        ApiValidationService sutWithRealListenerValidation = new ApiValidationServiceImpl(
+            tagsValidationService,
+            groupValidationService,
+            new ListenerValidationServiceImpl(
+                mock(VerifyApiPathDomainService.class),
+                mock(EntrypointConnectorPluginService.class),
+                mock(EndpointConnectorPluginService.class),
+                mock(CorsValidationService.class),
+                mock(VerifyApiHostsDomainService.class)
+            ),
+            endpointGroupsValidationService,
+            flowValidationService,
+            resourcesValidationService,
+            loggingValidationService,
+            planSearchService,
+            planValidationService,
+            apiServicePluginService,
+            flowValidationDomainService,
+            apiProductQueryService
+        );
+
+        var primaryOwnerEntity = new PrimaryOwnerEntity();
+        NewApiEntity newApiEntity = new NewApiEntity();
+        newApiEntity.setType(ApiType.PROXY);
+        newApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        newApiEntity.setListeners(List.of());
+
+        assertThatThrownBy(() ->
+            sutWithRealListenerValidation.validateAndSanitizeNewApi(GraviteeContext.getExecutionContext(), newApiEntity, primaryOwnerEntity)
+        ).isInstanceOf(ListenerMissingException.class);
     }
 
     @Test
