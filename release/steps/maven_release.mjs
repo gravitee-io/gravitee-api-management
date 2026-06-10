@@ -2,6 +2,7 @@
 
 import { checkToken } from '../helpers/circleci-helper.mjs';
 import { computeVersion, extractVersion } from '../helpers/version-helper.mjs';
+import { getTargetBranch } from '../helpers/option-helper.mjs';
 
 await checkToken();
 
@@ -21,11 +22,22 @@ if (hasRemovedAlpha === 'n') {
   }
 }
 
+const targetBranch = getTargetBranch(versions);
+if (argv.branch && argv.branch !== versions.branch) {
+  const confirmBranch = await question(
+    chalk.yellow(`⚠️ Releasing ${releasingVersion} from non-default branch '${targetBranch}'. Should we continue? (y/n)\n`),
+  );
+  if (confirmBranch === 'n') {
+    console.log(chalk.yellow(`🚦 Release process interrupted. Re-run with the right '--branch' (or none) and try again!`));
+    process.exit(1);
+  }
+}
+
 console.log(chalk.blue(`Version: ${releasingVersion}`));
-console.log(chalk.blue(`Branch: ${versions.branch}\n`));
+console.log(chalk.blue(`Branch: ${targetBranch}\n`));
 
 const body = {
-  branch: versions.branch,
+  branch: targetBranch,
   parameters: {
     gio_action: 'maven_release',
     dry_run: false,
