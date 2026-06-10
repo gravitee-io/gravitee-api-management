@@ -48,10 +48,14 @@ spec:
   {{- if eq .Values.gateway.type "Deployment" }}
   strategy: {{ toYaml .Values.gateway.deployment.strategy | nindent 4 }}
   {{- end }}
+  {{- if eq .Values.gateway.type "DaemonSet" }}
+  updateStrategy:
+    type: RollingUpdate
+  {{- end }}
   {{- if .Values.gateway.deployment.revisionHistoryLimit }}
   revisionHistoryLimit: {{ .Values.gateway.deployment.revisionHistoryLimit }}
   {{- end }}
-  {{- if not .Values.gateway.autoscaling.enabled }}
+  {{- if and (not .Values.gateway.autoscaling.enabled) (ne .Values.gateway.type "DaemonSet") }}
   replicas: {{ .Values.gateway.replicaCount }}
   {{- end }}
   selector:
