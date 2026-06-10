@@ -2,7 +2,7 @@
 
 import { checkToken } from '../helpers/circleci-helper.mjs';
 import { computeVersion, extractVersion } from '../helpers/version-helper.mjs';
-import { isDryRun } from '../helpers/option-helper.mjs';
+import { isDryRun, getTargetBranch } from '../helpers/option-helper.mjs';
 
 await checkToken();
 
@@ -12,7 +12,7 @@ const versions = computeVersion(releasingVersion);
 console.log(chalk.blue(`Triggering Helm Chart generation Pipeline`));
 
 const body = {
-  branch: versions.branch,
+  branch: getTargetBranch(versions),
   parameters: {
     gio_action: 'release_helm',
     dry_run: isDryRun(),
