@@ -22,11 +22,13 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
  * <p>
  * Top-level resources (API, Application, SharedPolicyGroup, Group) produce both {@code id()} and {@code crossId()}.
  * Sub-resources (Plan, Page, Subscription) are scoped to a parent API and only produce {@code id()}.
+ * Portal sub-resources (Portal Listing) are scoped to a parent Portal and only produce {@code id()}.
  * <p>
  * Examples:
  * <pre>
  * HRIDToUUID.api().context(audit).hrid("my-api").id()
  * HRIDToUUID.plan().context(audit).api("my-api").plan("my-plan").id()
+ * HRIDToUUID.portalListing().context(audit).portal("my-portal").hrid("my-listing").id()
  * </pre>
  *
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
@@ -74,6 +76,10 @@ public final class HRIDToUUID {
 
     public static NavigationBuilder navigation() {
         return new NavigationBuilder();
+    }
+
+    public static PortalSubResourceBuilder portalListing() {
+        return new PortalSubResourceBuilder();
     }
 
     public static class TopLevelBuilder {
@@ -169,6 +175,35 @@ public final class HRIDToUUID {
     public record NavigationItemResult(String organizationId, String environmentId, String portalId, String kind, String identifier) {
         public String id() {
             return UuidString.generateFrom(organizationId, environmentId, portalId, kind, identifier);
+        }
+    }
+
+    public static class PortalSubResourceBuilder {
+
+        public PortalSubResourceWithContext context(AuditInfo audit) {
+            return new PortalSubResourceWithContext(audit.organizationId(), audit.environmentId());
+        }
+
+        public PortalSubResourceWithContext context(ExecutionContext ctx) {
+            return new PortalSubResourceWithContext(ctx.getOrganizationId(), ctx.getEnvironmentId());
+        }
+    }
+
+    public record PortalSubResourceWithContext(String organizationId, String environmentId) {
+        public PortalSubResourceWithPortal portal(String portalHrid) {
+            return new PortalSubResourceWithPortal(UuidString.generateFrom(organizationId, "portal", portalHrid), environmentId);
+        }
+    }
+
+    public record PortalSubResourceWithPortal(String portalCrossId, String environmentId) {
+        public PortalSubResourceResult hrid(String hrid) {
+            return new PortalSubResourceResult(portalCrossId, environmentId, hrid);
+        }
+    }
+
+    public record PortalSubResourceResult(String portalCrossId, String environmentId, String hrid) {
+        public String id() {
+            return UuidString.generateFrom(portalCrossId, environmentId, hrid);
         }
     }
 }
