@@ -48,10 +48,13 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
+import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -84,6 +87,9 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
     @Inject
     private VerifyApiProductDeployUseCase verifyApiProductDeployUseCase;
+
+    @Inject
+    private TagsValidationService tagsValidationService;
 
     @Inject
     private LicenseManager licenseManager;
@@ -119,7 +125,8 @@ class ApiProductResourceTest extends AbstractResourceTest {
             deployApiProductUseCase,
             updateApiProductUseCase,
             verifyApiProductExistsUseCase,
-            verifyApiProductDeployUseCase
+            verifyApiProductDeployUseCase,
+            tagsValidationService
         );
         when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
@@ -221,6 +228,19 @@ class ApiProductResourceTest extends AbstractResourceTest {
     @Nested
     class UpdateApiProductTest {
 
+        @BeforeEach
+        void initUpdateApiProductTests() {
+            // OpenAPI UpdateApiProduct serializes tags as [] by default; the resource loads the existing
+            // product for tag validation whenever tags are present in the request body.
+            when(getApiProductByIdUseCase.execute(any())).thenReturn(
+                GetApiProductsUseCase.Output.single(
+                    Optional.of(
+                        ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENV_ID).name("Existing Product").tags(Set.of()).build()
+                    )
+                )
+            );
+        }
+
         @Test
         void should_update_api_product() {
             ApiProduct updatedApiProduct = ApiProduct.builder()
@@ -316,6 +336,26 @@ class ApiProductResourceTest extends AbstractResourceTest {
             shouldReturn403(RolePermission.API_PRODUCT_DEFINITION, API_PRODUCT_ID, RolePermissionAction.UPDATE, () ->
                 rootTarget().request().put(json(""))
             );
+        }
+
+        @Test
+        void should_return_400_when_user_not_allowed_to_use_restricted_tag() {
+            when(getApiProductByIdUseCase.execute(any())).thenReturn(
+                GetApiProductsUseCase.Output.single(
+                    Optional.of(ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENV_ID).tags(Set.of()).build())
+                )
+            );
+            when(tagsValidationService.validateAndSanitize(any(), any(), any())).thenThrow(
+                new TagNotAllowedException(new String[] { "restricted-tag" })
+            );
+
+            var updatePayload = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
+            updatePayload.setName("Updated Product");
+            updatePayload.setTags(List.of("restricted-tag"));
+
+            try (Response response = rootTarget().request().put(json(updatePayload))) {
+                assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+            }
         }
     }
 

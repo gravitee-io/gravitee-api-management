@@ -43,6 +43,7 @@ public class ApiProduct {
     private String version;
     private Set<String> apiIds;
     private Set<String> groups;
+    private Set<String> tags;
     private ZonedDateTime createdAt;
     private ZonedDateTime updatedAt;
     private PrimaryOwnerEntity primaryOwner;

@@ -1684,4 +1684,9 @@ public class ResourceContextConfiguration {
     public ValidatePortalListingDomainService validatePortalListingDomainService() {
         return new ValidatePortalListingDomainService();
     }
+
+    @Bean
+    public io.gravitee.rest.api.service.v4.validation.TagsValidationService tagsValidationService() {
+        return mock(io.gravitee.rest.api.service.v4.validation.TagsValidationService.class);
+    }
 }

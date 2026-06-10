@@ -88,7 +88,28 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
             softly.assertThat(found.getCreatedAt().getTime()).isEqualTo(1_470_157_767_000L);
             softly.assertThat(found.getUpdatedAt()).isNotNull();
             softly.assertThat(found.getUpdatedAt().getTime()).isEqualTo(1_470_157_767_000L);
+            softly.assertThat(found.getTags()).isNull();
         });
+    }
+
+    @Test
+    public void shouldReturnConsistentTagsBetweenFindByIdAndFindByEnvironmentId() throws TechnicalException {
+        var date = new Date();
+        var uuid = UUID.random().toString();
+        ApiProduct apiProduct = createApiProduct(uuid, date, "my-env", "tagged-api-product", "1.0.0", List.of("api1"));
+        apiProduct.setTags(Set.of("internal", "external"));
+        apiProductsRepository.create(apiProduct);
+
+        ApiProduct byId = apiProductsRepository.findById(uuid).orElseThrow();
+        ApiProduct byEnvironment = apiProductsRepository
+            .findByEnvironmentId("my-env")
+            .stream()
+            .filter(p -> uuid.equals(p.getId()))
+            .findFirst()
+            .orElseThrow();
+
+        assertThat(byId.getTags()).containsExactlyInAnyOrder("internal", "external");
+        assertThat(byEnvironment.getTags()).isEqualTo(byId.getTags());
     }
 
     @Test

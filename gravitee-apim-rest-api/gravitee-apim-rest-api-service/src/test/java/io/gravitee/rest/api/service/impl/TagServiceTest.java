@@ -24,15 +24,20 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.api_product.domain_service.ApiProductTagDomainService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.TagRepository;
 import io.gravitee.repository.management.model.Tag;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.NewTagEntity;
 import io.gravitee.rest.api.model.TagReferenceType;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.DuplicateTagKeyException;
+import io.gravitee.rest.api.service.v4.ApiTagService;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,6 +63,15 @@ public class TagServiceTest {
 
     @Mock
     private AuditService auditService;
+
+    @Mock
+    private ApiTagService apiTagService;
+
+    @Mock
+    private EnvironmentService environmentService;
+
+    @Mock
+    private ApiProductTagDomainService apiProductTagDomainService;
 
     @Test
     public void should_create_tag_when_key_does_not_exist() throws TechnicalException {
@@ -122,5 +136,35 @@ public class TagServiceTest {
 
         verify(tagRepository, never()).create(any());
         verifyNoInteractions(auditService);
+    }
+
+    @Test
+    public void should_delete_tag_key_from_apis_and_api_products() throws TechnicalException {
+        var tagKey = "external";
+        var tagId = "tag-uuid";
+        var environmentId = "env-1";
+        var executionContext = new ExecutionContext(REFERENCE_ID, environmentId);
+
+        var tag = new Tag();
+        tag.setId(tagId);
+        tag.setKey(tagKey);
+        tag.setReferenceId(REFERENCE_ID);
+        tag.setReferenceType(io.gravitee.repository.management.model.TagReferenceType.ORGANIZATION);
+
+        var environment = new EnvironmentEntity();
+        environment.setId(environmentId);
+        environment.setOrganizationId(REFERENCE_ID);
+
+        when(
+            tagRepository.findByKeyAndReference(tagKey, REFERENCE_ID, io.gravitee.repository.management.model.TagReferenceType.ORGANIZATION)
+        ).thenReturn(java.util.Optional.of(tag));
+        when(environmentService.findByOrganization(REFERENCE_ID)).thenReturn(List.of(environment));
+
+        tagService.delete(executionContext, tagKey, REFERENCE_ID, REFERENCE_TYPE);
+
+        verify(tagRepository).delete(tagId);
+        verify(apiTagService).deleteTagFromAPIs(executionContext, tagKey);
+        verify(apiProductTagDomainService).deleteTagFromApiProducts(environmentId, tagKey);
+        verify(auditService).createOrganizationAuditLog(eq(executionContext), any());
     }
 }

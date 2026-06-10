@@ -128,7 +128,12 @@ public class GetApiProductsUseCase {
                 return product;
             }
 
-            if (!apiIdsUnchanged(product.getApiIds(), deployedProduct.getApiIds())) {
+            if (!setsEqual(product.getApiIds(), deployedProduct.getApiIds())) {
+                product.setDeploymentState(ApiProduct.DeploymentState.NEED_REDEPLOY);
+                return product;
+            }
+
+            if (!setsEqual(product.getTags(), deployedProduct.getTags())) {
                 product.setDeploymentState(ApiProduct.DeploymentState.NEED_REDEPLOY);
                 return product;
             }
@@ -155,10 +160,9 @@ public class GetApiProductsUseCase {
     }
 
     /**
-     * True if the list of APIs in the product is unchanged compared to the deployed version.
-     * NEED_REDEPLOY when apiIds change (user must deploy to sync gateway).
+     * True when two sets carry the same elements (e.g. apiIds or sharding tags vs last deploy payload).
      */
-    private static boolean apiIdsUnchanged(Set<String> current, Set<String> deployed) {
+    private static boolean setsEqual(Set<String> current, Set<String> deployed) {
         if (current == null && deployed == null) return true;
         if (current == null || deployed == null) return false;
         return current.size() == deployed.size() && current.containsAll(deployed);

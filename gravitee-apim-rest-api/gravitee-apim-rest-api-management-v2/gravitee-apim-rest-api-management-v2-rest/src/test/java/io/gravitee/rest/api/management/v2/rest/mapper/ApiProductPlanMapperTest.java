@@ -26,9 +26,7 @@ class ApiProductPlanMapperTest {
     private final ApiProductPlanMapper apiProductPlanMapper = ApiProductPlanMapper.INSTANCE;
 
     @Test
-    void mapToPlanUpdates_should_set_empty_tags_when_source_has_null_tags() {
-        // API Products don't send tags in update requests - tags are null after mapping.
-        // @AfterMapping sets tags to empty set so PlanUpdates.applyTo() matches DB and deploy banner is correct.
+    void mapToPlanUpdates_should_leave_tags_empty_when_source_has_null_tags() {
         var updatePlan = new UpdateGenericApiProductPlan();
         updatePlan.setName("Updated Plan");
         updatePlan.setDescription("Updated description");
@@ -36,9 +34,18 @@ class ApiProductPlanMapperTest {
         PlanUpdates result = apiProductPlanMapper.mapToPlanUpdates(updatePlan);
 
         assertThat(result).isNotNull();
-        assertThat(result.getTags()).isNotNull();
         assertThat(result.getTags()).isEmpty();
         assertThat(result.getName()).isEqualTo("Updated Plan");
         assertThat(result.getDescription()).isEqualTo("Updated description");
+    }
+
+    @Test
+    void mapToPlanUpdates_should_map_tags_when_provided() {
+        var updatePlan = new UpdateGenericApiProductPlan();
+        updatePlan.setTags(java.util.List.of("eu", "secured-edge"));
+
+        PlanUpdates result = apiProductPlanMapper.mapToPlanUpdates(updatePlan);
+
+        assertThat(result.getTags()).containsExactlyInAnyOrder("eu", "secured-edge");
     }
 }

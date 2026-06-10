@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.process.repository.spring;
 import static io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_BULK_ITEMS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.env.GatewayConfiguration;
@@ -54,6 +55,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.Api
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.AuthzAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.PlanAppender;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.RepositoryApiMemberResyncTrigger;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.SubscriptionAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.ApiKeySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductSynchronizer;
@@ -92,6 +94,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -232,6 +235,15 @@ public class RepositorySyncConfiguration {
             syncDeployerExecutor,
             appenderParallelism
         );
+    }
+
+    @Bean(destroyMethod = "dispose")
+    public RepositoryApiMemberResyncTrigger apiMemberResyncTrigger(
+        @Lazy ApiSynchronizer apiSynchronizer,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+        EventManager eventManager
+    ) {
+        return new RepositoryApiMemberResyncTrigger(apiSynchronizer, syncDeployerExecutor, eventManager);
     }
 
     @Bean

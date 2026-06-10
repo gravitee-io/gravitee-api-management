@@ -92,6 +92,7 @@ public class CreateApiProductUseCase {
             .description(payload.getDescription())
             .version(payload.getVersion())
             .apiIds(apiIds)
+            .tags(payload.getTags() != null ? Set.copyOf(payload.getTags()) : null)
             .createdAt(now)
             .updatedAt(now)
             .build();

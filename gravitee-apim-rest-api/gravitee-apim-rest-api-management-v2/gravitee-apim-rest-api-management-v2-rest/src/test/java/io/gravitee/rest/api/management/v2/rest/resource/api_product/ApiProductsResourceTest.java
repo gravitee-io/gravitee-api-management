@@ -47,7 +47,9 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import io.gravitee.rest.api.service.notification.ApiProductHook;
+import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
@@ -78,6 +80,9 @@ class ApiProductsResourceTest extends AbstractResourceTest {
     private SearchApiProductsUseCase searchApiProductsUseCase;
 
     @Inject
+    private TagsValidationService tagsValidationService;
+
+    @Inject
     private LicenseManager licenseManager;
 
     @Override
@@ -105,7 +110,7 @@ class ApiProductsResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-        reset(createApiProductUseCase, getApiProductsUseCase, verifyApiProductNameUseCase, searchApiProductsUseCase);
+        reset(createApiProductUseCase, getApiProductsUseCase, verifyApiProductNameUseCase, searchApiProductsUseCase, tagsValidationService);
     }
 
     @Nested
@@ -262,6 +267,22 @@ class ApiProductsResourceTest extends AbstractResourceTest {
             shouldReturn403(RolePermission.ENVIRONMENT_API_PRODUCT, ENV_ID, RolePermissionAction.CREATE, () ->
                 rootTarget().request().post(json(new CreateApiProduct()))
             );
+        }
+
+        @Test
+        void should_return_400_when_user_not_allowed_to_use_restricted_tag() {
+            when(tagsValidationService.validateAndSanitize(any(), any(), any())).thenThrow(
+                new TagNotAllowedException(new String[] { "restricted-tag" })
+            );
+
+            CreateApiProduct createApiProduct = new CreateApiProduct();
+            createApiProduct.setName("My API Product");
+            createApiProduct.setVersion("1.0.0");
+            createApiProduct.setTags(List.of("restricted-tag"));
+
+            final Response response = rootTarget().request().post(json(createApiProduct));
+
+            assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
         }
     }
 

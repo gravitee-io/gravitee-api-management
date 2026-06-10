@@ -13,25 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api_product.model;
+package io.gravitee.gateway.handlers.api.registry;
 
-import java.util.List;
-import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
-
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class CreateApiProduct {
-
-    private String name;
-    private String description;
-    private String version;
-    private List<String> apiIds;
-    private Set<String> tags;
-}
+/**
+ * Registry key combining API Product ID and Environment ID for scoping.
+ */
+public record ApiProductRegistryKey(String apiProductId, String environmentId) {}

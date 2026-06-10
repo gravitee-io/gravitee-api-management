@@ -39,6 +39,7 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.notification.ApiProductHook;
+import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -77,6 +78,9 @@ public class ApiProductsResource extends AbstractResource {
 
     @Inject
     private SearchApiProductsUseCase searchApiProductsUseCase;
+
+    @Inject
+    private TagsValidationService tagsValidationService;
 
     @Path("{apiProductId}")
     public ApiProductResource getApiProductResource() {
@@ -119,6 +123,11 @@ public class ApiProductsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API_PRODUCT, acls = { RolePermissionAction.CREATE }) })
     public Response createApiProduct(@Valid @NotNull final CreateApiProduct createApiProduct) throws TechnicalException {
+        if (createApiProduct.getTags() != null && !createApiProduct.getTags().isEmpty()) {
+            var executionContext = GraviteeContext.getExecutionContext();
+            tagsValidationService.validateAndSanitize(executionContext, null, createApiProduct.getTags());
+        }
+
         AuditInfo audit = getAuditInfo();
         var input = new CreateApiProductUseCase.Input(createApiProduct, audit);
         log.debug("Creating API Product [{}]", createApiProduct.getName());

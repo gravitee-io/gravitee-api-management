@@ -16,6 +16,7 @@
 package io.gravitee.gateway.handlers.api.spring;
 
 import io.gravitee.common.event.EventManager;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiProductManagerImpl;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
@@ -32,16 +33,17 @@ import org.springframework.context.annotation.Configuration;
 public class ApiProductConfiguration {
 
     @Bean
-    public ApiProductRegistry apiProductRegistry() {
-        return new ApiProductRegistryImpl();
+    public ApiProductRegistry apiProductRegistry(GatewayConfiguration gatewayConfiguration) {
+        return new ApiProductRegistryImpl(gatewayConfiguration);
     }
 
     @Bean
     public ApiProductManager apiProductManager(
         ApiProductRegistry apiProductRegistry,
         EventManager eventManager,
-        LicenseManager licenseManager
+        LicenseManager licenseManager,
+        GatewayConfiguration gatewayConfiguration
     ) {
-        return new ApiProductManagerImpl(apiProductRegistry, eventManager, licenseManager);
+        return new ApiProductManagerImpl(apiProductRegistry, eventManager, licenseManager, gatewayConfiguration);
     }
 }

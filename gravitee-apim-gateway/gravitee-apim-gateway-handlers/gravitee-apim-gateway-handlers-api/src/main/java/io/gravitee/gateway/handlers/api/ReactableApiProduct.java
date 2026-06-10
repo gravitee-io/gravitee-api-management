@@ -58,6 +58,7 @@ public class ReactableApiProduct implements Reactable, Serializable {
     private Date deployedAt;
 
     private List<Plan> plans;
+    private Set<String> tags;
 
     @Override
     public boolean enabled() {

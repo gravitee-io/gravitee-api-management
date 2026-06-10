@@ -30,6 +30,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -45,6 +46,7 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.Set;
 import lombok.CustomLog;
 
 @CustomLog
@@ -70,6 +72,9 @@ public class ApiProductResource extends AbstractResource {
 
     @Inject
     private VerifyApiProductDeployUseCase verifyApiProductDeployUseCase;
+
+    @Inject
+    private TagsValidationService tagsValidationService;
 
     @Context
     private ResourceContext resourceContext;
@@ -130,6 +135,18 @@ public class ApiProductResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
     public Response updateApiProductById(@Valid @NotNull UpdateApiProduct updateApiProduct) {
+        if (updateApiProduct.getTags() != null) {
+            var executionContext = GraviteeContext.getExecutionContext();
+            var existingInput = GetApiProductsUseCase.Input.of(
+                executionContext.getEnvironmentId(),
+                apiProductId,
+                executionContext.getOrganizationId()
+            );
+            var existing = getApiProductByIdUseCase.execute(existingInput).apiProduct().orElse(null);
+            Set<String> oldTags = existing != null ? existing.getTags() : null;
+            tagsValidationService.validateAndSanitize(executionContext, oldTags, updateApiProduct.getTags());
+        }
+
         AuditInfo audit = getAuditInfo();
         var input = new UpdateApiProductUseCase.Input(apiProductId, updateApiProduct, audit);
         log.debug("Update API Product by id: {}", apiProductId);
