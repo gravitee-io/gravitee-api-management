@@ -96,25 +96,22 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
         if (CollectionUtils.isInitializedAndEmpty(listeners)) {
             throw new ListenerMissingException();
         }
-        // null means "no change" for PATCH (JSON Merge Patch null-removal); only an explicit empty list is invalid.
-        if (listeners != null) {
-            checkDuplicatedListeners(listeners);
-            listeners.forEach(listener -> {
-                switch (listener.getType()) {
-                    case HTTP:
-                        validateAndSanitizeHttpListener(executionContext, apiId, (HttpListener) listener, endpointGroups);
-                        break;
-                    case SUBSCRIPTION:
-                        validateAndSanitizeSubscriptionListener((SubscriptionListener) listener, endpointGroups);
-                        break;
-                    case TCP:
-                        validateAndSanitizeTcpListener(executionContext, apiId, (TcpListener) listener, endpointGroups);
-                        break;
-                    default:
-                        break;
-                }
-            });
-        }
+        checkDuplicatedListeners(listeners);
+        listeners.forEach(listener -> {
+            switch (listener.getType()) {
+                case HTTP:
+                    validateAndSanitizeHttpListener(executionContext, apiId, (HttpListener) listener, endpointGroups);
+                    break;
+                case SUBSCRIPTION:
+                    validateAndSanitizeSubscriptionListener((SubscriptionListener) listener, endpointGroups);
+                    break;
+                case TCP:
+                    validateAndSanitizeTcpListener(executionContext, apiId, (TcpListener) listener, endpointGroups);
+                    break;
+                default:
+                    break;
+            }
+        });
         return listeners;
     }
 
