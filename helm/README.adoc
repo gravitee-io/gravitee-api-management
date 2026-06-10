@@ -1022,7 +1022,7 @@ configuration |`+TimeBasedRollingPolicy+` for 30 days
 |`+gateway.node.logging.pattern.file+` |File log pattern when overrideLogbackXml is enabled |`+%d %-5p [%t] %c [%mdcList] : %m%n+`
 
 |`+gateway.type+` |Gateway deployment type: `+deployment+` or
-`+statefulSet+` |`+deployment+`
+`+statefulSet+` or `+DaemonSet+` |`+deployment+`
 
 |`+gateway.replicaCount+` |How many replicas of the Gateway pod |`+2+`
 
