@@ -1,0 +1,29 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.12.0_add_portal_listings
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}portal_listings
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: pk_portal_listings } }
+              - column: {name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: portal_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: apis, type: nclob, constraints: { nullable: false } }
+
+        - createIndex:
+            indexName: idx_${gravitee_prefix}portal_listings_environment_id
+            columns:
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)
+            tableName: ${gravitee_prefix}portal_listings
+
+        - createIndex:
+            indexName: idx_${gravitee_prefix}portal_listings_organization_id
+            columns:
+              - column:
+                  name: organization_id
+                  type: nvarchar(64)
+            tableName: ${gravitee_prefix}portal_listings

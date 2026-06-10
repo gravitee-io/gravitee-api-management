@@ -157,6 +157,45 @@ class HRIDToUUIDTest {
     }
 
     @Nested
+    class PortalListing {
+
+        @Test
+        void should_generate_same_id_for_same_inputs() {
+            assertThat(HRIDToUUID.portalListing().context(AUDIT).portal("my-portal").hrid("my-listing").id()).isEqualTo(
+                HRIDToUUID.portalListing().context(AUDIT).portal("my-portal").hrid("my-listing").id()
+            );
+        }
+
+        @Test
+        void should_generate_different_id_for_different_listing_hrid() {
+            assertThat(HRIDToUUID.portalListing().context(AUDIT).portal("my-portal").hrid("listing-a").id()).isNotEqualTo(
+                HRIDToUUID.portalListing().context(AUDIT).portal("my-portal").hrid("listing-b").id()
+            );
+        }
+
+        @Test
+        void should_generate_different_id_for_different_portal_hrid() {
+            assertThat(HRIDToUUID.portalListing().context(AUDIT).portal("portal-a").hrid("listing").id()).isNotEqualTo(
+                HRIDToUUID.portalListing().context(AUDIT).portal("portal-b").hrid("listing").id()
+            );
+        }
+
+        @Test
+        void should_produce_same_result_from_audit_info_and_execution_context() {
+            assertThat(HRIDToUUID.portalListing().context(AUDIT).portal("portal").hrid("listing").id()).isEqualTo(
+                HRIDToUUID.portalListing().context(EXEC_CTX).portal("portal").hrid("listing").id()
+            );
+        }
+
+        @Test
+        void should_not_collide_with_portal_top_level_id() {
+            String portalId = HRIDToUUID.portal().context(AUDIT).hrid("my-portal").id();
+            String listingId = HRIDToUUID.portalListing().context(AUDIT).portal("my-portal").hrid("my-portal").id();
+            assertThat(portalId).isNotEqualTo(listingId);
+        }
+    }
+
+    @Nested
     class CrossResourceConsistency {
 
         @Test
