@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.jackson.datatype;
 
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -25,7 +26,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.skyscreamer.jsonassert.JSONAssert;
 
 class SslOptionsMapperTest {
 
@@ -73,7 +73,7 @@ class SslOptionsMapperTest {
 
             var result = mapper.writeValueAsString(sslOptions);
 
-            JSONAssert.assertEquals("{\"hostnameVerifier\":true,\"trustAll\":false,\"trustStore\":{\"type\":\"NONE\"}}", result, true);
+            assertThatJson(result).isEqualTo("{\"hostnameVerifier\":true,\"trustAll\":false,\"trustStore\":{\"type\":\"NONE\"}}");
         }
 
         @Test
@@ -83,7 +83,7 @@ class SslOptionsMapperTest {
 
             var result = mapper.writeValueAsString(sslOptions);
 
-            JSONAssert.assertEquals("{\"hostnameVerifier\":true,\"trustAll\":false,\"keyStore\":{\"type\":\"NONE\"}}", result, true);
+            assertThatJson(result).isEqualTo("{\"hostnameVerifier\":true,\"trustAll\":false,\"keyStore\":{\"type\":\"NONE\"}}");
         }
     }
 }

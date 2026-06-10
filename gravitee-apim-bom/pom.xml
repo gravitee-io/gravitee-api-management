@@ -340,11 +340,6 @@
             </dependency>
 
             <dependency>
-                <groupId>org.skyscreamer</groupId>
-                <artifactId>jsonassert</artifactId>
-                <version>${jsonassert.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>net.javacrumbs.json-unit</groupId>
                 <artifactId>json-unit-assertj</artifactId>
                 <version>${json-unit.version}</version>

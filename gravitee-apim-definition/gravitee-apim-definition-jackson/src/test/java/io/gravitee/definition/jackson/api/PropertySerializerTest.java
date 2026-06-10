@@ -15,11 +15,11 @@
  */
 package io.gravitee.definition.jackson.api;
 
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.Property;
 import org.junit.jupiter.api.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
-import org.skyscreamer.jsonassert.JSONCompareMode;
 
 /**
  * @author GraviteeSource Team
@@ -30,10 +30,6 @@ public class PropertySerializerTest extends AbstractTest {
     public void serialize() throws Exception {
         Property property = new Property("key1", "myvalue", true);
         String generatedJsonDefinition = objectMapper().writeValueAsString(property);
-        JSONAssert.assertEquals(
-            "{\"key\" : \"key1\", \"value\" : \"myvalue\", \"encrypted\" : true}",
-            generatedJsonDefinition,
-            JSONCompareMode.STRICT
-        );
+        assertThatJson(generatedJsonDefinition).isEqualTo("{\"key\" : \"key1\", \"value\" : \"myvalue\", \"encrypted\" : true}");
     }
 }
