@@ -255,6 +255,25 @@ public class ApiMapperTest {
     }
 
     @Test
+    void map_to_native_v4_preserves_resources_from_definition() {
+        var uriInfo = Mockito.mock(UriInfo.class);
+        Mockito.when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri("http://localhost/"));
+
+        var resource = Resource.builder().name("cache-resource").type("cache").enabled(true).build();
+
+        var baseApi = fixtures.core.model.ApiFixtures.aNativeApi();
+        var api = baseApi
+            .toBuilder()
+            .apiDefinitionValue(baseApi.getApiDefinitionNativeV4().toBuilder().resources(List.of(resource)).build())
+            .build();
+
+        var apiV4 = apiMapper.mapToNativeV4(api, uriInfo, null);
+
+        Assertions.assertThat(apiV4.getResources()).isNotNull().hasSize(1);
+        assertThat(apiV4.getResources().get(0).getName()).isEqualTo("cache-resource");
+    }
+
+    @Test
     void map_to_http_v4_propagates_null_resources() {
         var uriInfo = Mockito.mock(UriInfo.class);
         Mockito.when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri("http://localhost/"));
