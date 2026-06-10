@@ -33,6 +33,7 @@ import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainServi
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.rest.api.service.common.IdBuilder;
@@ -193,6 +194,16 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
                 if (hasNullPathOperator) {
                     throw InvalidFlowException.missingPathOperator(flow.getName());
                 }
+                flow
+                    .getSelectors()
+                    .stream()
+                    .filter(FlowValidationDomainService.HTTP_SELECTOR_WITH_INVALID_WILDCARD_PATH)
+                    .findFirst()
+                    .ifPresent(selector -> {
+                        if (selector instanceof HttpSelector httpSelector) {
+                            throw InvalidFlowException.invalidWildcardPath(flow.getName(), httpSelector.getPath());
+                        }
+                    });
             });
     }
 

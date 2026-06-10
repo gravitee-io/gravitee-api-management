@@ -55,6 +55,13 @@ public class InvalidFlowException extends ValidationDomainException {
         );
     }
 
+    public static InvalidFlowException invalidWildcardPath(String flowName, String path) {
+        return new InvalidFlowException(
+            "The flow [" + flowName + "] contains an HTTP selector with an invalid wildcard path",
+            withFlowName(flowName, Map.of("path", path))
+        );
+    }
+
     private static Map<String, String> withFlowName(String flowName, Map<String, String> parameters) {
         if (flowName == null) {
             return parameters;
