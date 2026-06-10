@@ -24,6 +24,11 @@ $typography: map.get(gio.$mat-theme, typography);
 
 tr.mat-mdc-row {
   height: 28px;
+  cursor: pointer;
+
+  &.selected {
+    background-color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'lighter40');
+  }
 }
 
 .top-apis-table {

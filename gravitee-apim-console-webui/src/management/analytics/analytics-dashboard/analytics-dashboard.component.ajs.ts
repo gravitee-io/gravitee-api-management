@@ -22,7 +22,6 @@ import DashboardService from '../../../services/dashboard.service';
 class AnalyticsDashboardControllerAjs {
   private eventLabels: any;
   private eventTypes: any[];
-  private selectedAPIs: any[];
   private selectedApplications: any[];
   private selectedEventTypes: any[];
   private lastFrom: any;
@@ -31,6 +30,7 @@ class AnalyticsDashboardControllerAjs {
   private query: any;
   private dashboard: any;
   private dashboards: any;
+  private firstDashboardId: string | undefined;
   private activatedRoute: ActivatedRoute;
 
   constructor(
@@ -45,7 +45,6 @@ class AnalyticsDashboardControllerAjs {
   ) {
     this.eventLabels = {};
     this.eventTypes = [];
-    this.selectedAPIs = [];
     this.selectedApplications = [];
     this.selectedEventTypes = [];
 
@@ -95,6 +94,7 @@ class AnalyticsDashboardControllerAjs {
         });
       });
 
+      this.firstDashboardId = this.dashboards[0]?.id;
       this.searchEvents = this.searchEvents.bind(this);
     });
   }
@@ -114,7 +114,7 @@ class AnalyticsDashboardControllerAjs {
     this.lastTo = timeframe.to;
 
     // display events only on first dashboard
-    if (this.dashboard === this.dashboards[0]) {
+    if (this.dashboard?.id === this.firstDashboardId) {
       this.searchEvents();
     }
   }
@@ -129,13 +129,10 @@ class AnalyticsDashboardControllerAjs {
     this.searchEvents();
   }
 
-  searchEvents() {
-    // set apis
-    const apis = this.selectedAPIs
-      .map((api) => {
-        return api.id;
-      })
-      .join(',');
+  searchEvents(query?: string) {
+    const queryFilters =
+      query === undefined ? this.AnalyticsService.getQueryFilters(this.activatedRoute) : this.AnalyticsService.parseQueryFilters(query);
+    const apis = queryFilters?.api?.join(',') ?? '';
     // set event types
     // TODO: types is type any[], and then string !!! beurk beurk beurk
     let types: any = this.eventTypes;
@@ -176,6 +173,12 @@ class AnalyticsDashboardControllerAjs {
       relativeTo: this.activatedRoute,
       queryParamsHandling: 'preserve',
     });
+  }
+
+  onFilterChange(query?: string) {
+    if (this.dashboard?.id === this.firstDashboardId) {
+      this.searchEvents(query);
+    }
   }
 }
 AnalyticsDashboardControllerAjs.$inject = [
