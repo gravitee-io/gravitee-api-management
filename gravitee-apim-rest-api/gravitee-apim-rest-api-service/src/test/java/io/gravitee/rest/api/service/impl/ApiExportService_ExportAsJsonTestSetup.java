@@ -91,7 +91,7 @@ public class ApiExportService_ExportAsJsonTestSetup {
     private PlanService planService;
 
     @Mock
-    private GroupService groupService;
+    protected GroupService groupService;
 
     @Mock
     private ApplicationContext applicationContext;
