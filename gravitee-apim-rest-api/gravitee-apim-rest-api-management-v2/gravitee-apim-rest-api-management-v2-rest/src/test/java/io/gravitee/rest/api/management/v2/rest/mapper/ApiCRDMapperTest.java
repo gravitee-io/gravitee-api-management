@@ -15,13 +15,9 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-<<<<<<< HEAD
-=======
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import fixtures.AnalyticsFixtures;
->>>>>>> ee1b3cca36 (fix(crd-export): preserve DEPRECATED and ARCHIVED lifecycle states in CRD export)
 import fixtures.definition.FlowFixtures;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
@@ -69,8 +65,6 @@ class ApiCRDMapperTest {
     }
 
     @Test
-<<<<<<< HEAD
-=======
     void should_map_to_rest_model_unpublished() {
         var restModel = ApiCRDMapper.INSTANCE.map(aCoreCRD().lifecycleState("UNPUBLISHED").build());
 
@@ -106,19 +100,6 @@ class ApiCRDMapperTest {
     }
 
     @Test
-    void should_map_message_sampling_to_rest_sampling() {
-        var restModel = ApiCRDMapper.INSTANCE.map(aCoreCRD().type("MESSAGE").analytics(AnalyticsFixtures.anAnalytics()).build());
-
-        SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(restModel.getAnalytics()).isNotNull();
-            soft.assertThat(restModel.getAnalytics().getSampling()).isNotNull();
-            soft.assertThat(restModel.getAnalytics().getSampling().getType()).isEqualTo(Sampling.TypeEnum.COUNT);
-            soft.assertThat(restModel.getAnalytics().getSampling().getValue()).isEqualTo("10");
-        });
-    }
-
-    @Test
->>>>>>> ee1b3cca36 (fix(crd-export): preserve DEPRECATED and ARCHIVED lifecycle states in CRD export)
     void should_map_to_rest_model_published() {
         var restModel = ApiCRDMapper.INSTANCE.map(aCoreCRD().lifecycleState("PUBLISHED").build());
 
