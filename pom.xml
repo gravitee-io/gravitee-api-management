@@ -124,7 +124,6 @@
         <jmh.version>1.37</jmh.version>
         <jna.version>5.16.0</jna.version>
         <jolt.version>0.1.8</jolt.version>
-        <jsonassert.version>1.5.3</jsonassert.version>
         <json-patch.version>1.13</json-patch.version>
         <json-path.version>2.9.0</json-path.version>
         <json-smart.version>2.5.2</json-smart.version>

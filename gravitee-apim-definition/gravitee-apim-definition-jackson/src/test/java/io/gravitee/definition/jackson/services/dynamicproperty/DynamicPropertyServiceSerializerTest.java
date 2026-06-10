@@ -15,12 +15,15 @@
  */
 package io.gravitee.definition.jackson.services.dynamicproperty;
 
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+import static net.javacrumbs.jsonunit.core.Option.IGNORING_ARRAY_ORDER;
+import static net.javacrumbs.jsonunit.core.Option.IGNORING_EXTRA_FIELDS;
+
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.Api;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -39,7 +42,7 @@ public class DynamicPropertyServiceSerializerTest extends AbstractTest {
         Assertions.assertNotNull(generatedJsonDefinition);
 
         String expected = IOUtils.toString(read(expectedDefinition));
-        JSONAssert.assertEquals(expected, generatedJsonDefinition, false);
+        assertThatJson(generatedJsonDefinition).when(IGNORING_ARRAY_ORDER, IGNORING_EXTRA_FIELDS).isEqualTo(expected);
     }
 
     @Test
@@ -53,7 +56,7 @@ public class DynamicPropertyServiceSerializerTest extends AbstractTest {
         Assertions.assertNotNull(generatedJsonDefinition);
 
         String expected = IOUtils.toString(read(expectedDefinition));
-        JSONAssert.assertEquals(expected, generatedJsonDefinition, false);
+        assertThatJson(generatedJsonDefinition).when(IGNORING_ARRAY_ORDER, IGNORING_EXTRA_FIELDS).isEqualTo(expected);
     }
 
     @Test
@@ -67,6 +70,6 @@ public class DynamicPropertyServiceSerializerTest extends AbstractTest {
         Assertions.assertNotNull(generatedJsonDefinition);
 
         String expected = IOUtils.toString(read(expectedDefinition));
-        JSONAssert.assertEquals(expected, generatedJsonDefinition, false);
+        assertThatJson(generatedJsonDefinition).when(IGNORING_ARRAY_ORDER, IGNORING_EXTRA_FIELDS).isEqualTo(expected);
     }
 }
