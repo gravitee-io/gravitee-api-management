@@ -49,6 +49,7 @@ public class ApiCriteria {
     private List<DefinitionVersion> definitionVersion;
     private String integrationId;
     private List<ApiType> apiTypes;
+    private List<ApiType> notApiTypes;
     private Date updatedAtFrom;
 
     ApiCriteria(ApiCriteria.Builder builder) {
@@ -67,6 +68,7 @@ public class ApiCriteria {
         this.definitionVersion = builder.definitionVersion;
         this.integrationId = builder.integrationId;
         this.apiTypes = builder.apiTypes;
+        this.notApiTypes = builder.notApiTypes;
         this.updatedAtFrom = builder.updatedAtFrom;
     }
 
@@ -142,6 +144,10 @@ public class ApiCriteria {
         return apiTypes;
     }
 
+    public List<ApiType> getNotApiTypes() {
+        return notApiTypes;
+    }
+
     public Date getUpdatedAtFrom() {
         return updatedAtFrom;
     }
@@ -167,6 +173,7 @@ public class ApiCriteria {
             Objects.equals(definitionVersion, that.definitionVersion) &&
             Objects.equals(integrationId, that.integrationId) &&
             Objects.equals(apiTypes, that.apiTypes) &&
+            Objects.equals(notApiTypes, that.notApiTypes) &&
             Objects.equals(updatedAtFrom, that.updatedAtFrom)
         );
     }
@@ -189,6 +196,7 @@ public class ApiCriteria {
             definitionVersion,
             integrationId,
             apiTypes,
+            notApiTypes,
             updatedAtFrom
         );
     }
@@ -210,6 +218,7 @@ public class ApiCriteria {
         private List<DefinitionVersion> definitionVersion;
         private String integrationId;
         private List<ApiType> apiTypes;
+        private List<ApiType> notApiTypes;
         private Date updatedAtFrom;
 
         public ApiCriteria.Builder ids(final String... id) {
@@ -294,6 +303,11 @@ public class ApiCriteria {
 
         public ApiCriteria.Builder apiTypes(final List<ApiType> apiTypes) {
             this.apiTypes = apiTypes;
+            return this;
+        }
+
+        public ApiCriteria.Builder notApiTypes(final List<ApiType> notApiTypes) {
+            this.notApiTypes = notApiTypes;
             return this;
         }
 
