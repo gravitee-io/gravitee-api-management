@@ -33,6 +33,7 @@
       <gv-dashboard
         model="$ctrl.dashboard"
         on-timeframe-change="$ctrl.onTimeframeChange(timeframe)"
+        on-filter-change="$ctrl.onFilterChange(query)"
         on-view-log-click="$ctrl.viewLogs()"
         access-logs="true"
         activated-route="$ctrl.activatedRoute"
