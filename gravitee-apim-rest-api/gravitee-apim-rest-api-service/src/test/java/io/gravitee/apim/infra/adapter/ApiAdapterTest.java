@@ -452,6 +452,21 @@ class ApiAdapterTest {
                 soft.assertThat(updateApiEntity.getResponseTemplates()).isNull();
             });
         }
+
+        @Test
+        void should_coalesce_null_listeners_to_empty_list_in_UpdateApiEntity() {
+            var definition = io.gravitee.definition.model.v4.Api.builder()
+                .id("my-api")
+                .name("My Api")
+                .apiVersion("1.0.0")
+                .definitionVersion(io.gravitee.definition.model.DefinitionVersion.V4)
+                .build();
+            var model = ApiFixtures.aProxyApiV4().toBuilder().apiDefinitionValue(definition).build();
+
+            var updateApiEntity = ApiAdapter.INSTANCE.toUpdateApiEntity(model, definition);
+
+            assertThat(updateApiEntity.getListeners()).isEmpty();
+        }
     }
 
     private Api.ApiBuilder apiV4() {
