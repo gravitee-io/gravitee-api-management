@@ -15,11 +15,13 @@
  */
 package io.gravitee.apim.core.portal_listing.use_case;
 
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_listing.domain_service.ValidatePortalListingDomainService;
 import io.gravitee.apim.core.validation.Validator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
+@UseCase
 @RequiredArgsConstructor
 public class ValidatePortalListingUseCase {
 
