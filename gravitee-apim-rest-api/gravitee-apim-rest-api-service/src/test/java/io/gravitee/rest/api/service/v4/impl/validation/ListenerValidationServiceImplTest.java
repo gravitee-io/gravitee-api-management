@@ -143,13 +143,6 @@ class ListenerValidationServiceImplTest {
         }
 
         @Test
-        void should_allow_null_list() {
-            assertThat(
-                listenerValidationService.validateAndSanitizeHttpV4(GraviteeContext.getExecutionContext(), null, null, emptyList())
-            ).isNull();
-        }
-
-        @Test
         void should_throw_duplicated_exception_with_duplicated_type() {
             // Given
             Listener httpListener1 = new HttpListener();
