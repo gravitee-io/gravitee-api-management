@@ -15,12 +15,12 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
-import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
-import io.gravitee.apim.core.portal.model.PortalId;
-import io.gravitee.apim.core.portal.use_case.DeletePortalUseCase;
-import io.gravitee.apim.core.portal.use_case.GetPortalUseCase;
+import io.gravitee.apim.core.portal_listing.exception.PortalListingNotFoundException;
+import io.gravitee.apim.core.portal_listing.model.PortalListingId;
+import io.gravitee.apim.core.portal_listing.use_case.DeletePortalListingUseCase;
+import io.gravitee.apim.core.portal_listing.use_case.GetPortalListingUseCase;
 import io.gravitee.apim.rest.api.automation.exception.HRIDNotFoundException;
-import io.gravitee.apim.rest.api.automation.mapper.PortalMapper;
+import io.gravitee.apim.rest.api.automation.mapper.PortalListingMapper;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -30,55 +30,44 @@ import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.container.ResourceContext;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 
 /**
  * @author GraviteeSource Team
  */
-public class PortalResource extends AbstractResource {
-
-    @Context
-    private ResourceContext resourceContext;
+public class PortalListingResource extends AbstractResource {
 
     @Inject
-    private GetPortalUseCase getPortalUseCase;
+    private GetPortalListingUseCase getPortalListingUseCase;
 
     @Inject
-    private DeletePortalUseCase deletePortalUseCase;
-
-    @Path("/listings")
-    public PortalListingsResource getPortalListingsResource() {
-        return resourceContext.getResource(PortalListingsResource.class);
-    }
+    private DeletePortalListingUseCase deletePortalListingUseCase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = RolePermissionAction.READ) })
-    public Response getPortalByHRID(@PathParam("hrid") String hrid) {
+    public Response getPortalListingByHRID(@PathParam("hrid") String portalHrid, @PathParam("listingHrid") String listingHrid) {
         var auditInfo = getAuditInfo();
-        PortalId id = PortalId.of(HRIDToUUID.portal().context(auditInfo).hrid(hrid).id());
+        var listingId = PortalListingId.of(HRIDToUUID.portalListing().context(auditInfo).portal(portalHrid).hrid(listingHrid).id());
         try {
-            var output = getPortalUseCase.execute(new GetPortalUseCase.Input(auditInfo, id));
-            return Response.ok(PortalMapper.INSTANCE.toPortalState(output.portal(), hrid, output.navigation())).build();
-        } catch (PortalNotFoundException e) {
-            throw new HRIDNotFoundException(hrid);
+            var output = getPortalListingUseCase.execute(new GetPortalListingUseCase.Input(auditInfo, listingId));
+            return Response.ok(PortalListingMapper.INSTANCE.toPortalListingState(output.portalListing(), listingHrid, portalHrid)).build();
+        } catch (PortalListingNotFoundException e) {
+            throw new HRIDNotFoundException(listingHrid);
         }
     }
 
     @DELETE
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = RolePermissionAction.DELETE) })
-    public Response deletePortalByHrid(@PathParam("hrid") String hrid) {
+    public Response deletePortalListingByHrid(@PathParam("hrid") String portalHrid, @PathParam("listingHrid") String listingHrid) {
         var auditInfo = getAuditInfo();
-        PortalId id = PortalId.of(HRIDToUUID.portal().context(auditInfo).hrid(hrid).id());
+        var listingId = PortalListingId.of(HRIDToUUID.portalListing().context(auditInfo).portal(portalHrid).hrid(listingHrid).id());
         try {
-            deletePortalUseCase.execute(new DeletePortalUseCase.Input(auditInfo, id));
-        } catch (PortalNotFoundException e) {
-            throw new HRIDNotFoundException(hrid);
+            deletePortalListingUseCase.execute(new DeletePortalListingUseCase.Input(auditInfo, listingId));
+        } catch (PortalListingNotFoundException e) {
+            throw new HRIDNotFoundException(listingHrid);
         }
         return Response.noContent().build();
     }
