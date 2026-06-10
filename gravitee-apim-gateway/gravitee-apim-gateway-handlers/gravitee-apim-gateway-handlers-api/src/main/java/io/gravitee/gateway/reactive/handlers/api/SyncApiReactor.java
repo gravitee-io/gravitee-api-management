@@ -106,7 +106,9 @@ public class SyncApiReactor extends AbstractLifecycleComponent<ReactorHandler> i
 
     private static final Set<LogEntry<? extends HttpExecutionContextInternal>> DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES = Set.of(
         LogEntryFactory.refreshable("contextPath", DefaultExecutionContext.class, context -> context.getAttribute(ATTR_CONTEXT_PATH)),
-        LogEntryFactory.refreshable("requestMethod", DefaultExecutionContext.class, context -> context.getAttribute(ATTR_REQUEST_METHOD))
+        LogEntryFactory.refreshable("requestMethod", DefaultExecutionContext.class, context ->
+            Objects.toString(context.getAttribute(ATTR_REQUEST_METHOD), null)
+        )
     );
 
     protected final Api api;
