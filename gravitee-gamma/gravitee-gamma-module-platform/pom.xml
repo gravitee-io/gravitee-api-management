@@ -217,6 +217,10 @@
                         <configuration>
                             <executable>yarn</executable>
                             <workingDirectory>${project.basedir}/../..</workingDirectory>
+                            <environmentVariables>
+                                <NX_DAEMON>false</NX_DAEMON>
+                                <NODE_OPTIONS>--max-old-space-size=4096</NODE_OPTIONS>
+                            </environmentVariables>
                             <arguments>
                                 <argument>nx</argument>
                                 <argument>build</argument>
