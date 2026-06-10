@@ -950,6 +950,20 @@ public class ApiServiceImplTest {
     }
 
     @Test
+    public void shouldPreserveStoredLabelsOrderWhenUpdateLabelsAreNull() throws TechnicalException {
+        prepareUpdate();
+        api.setLabels(asList("z-label", "a-label", "m-label"));
+        updateApiEntity.setLabels(null);
+
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
+
+        ArgumentCaptor<Api> repositoryApiCaptor = ArgumentCaptor.forClass(Api.class);
+        verify(apiRepository).update(repositoryApiCaptor.capture());
+        assertThat(repositoryApiCaptor.getValue().getLabels()).isEqualTo(asList("z-label", "a-label", "m-label"));
+        assertNotNull(apiEntity);
+    }
+
+    @Test
     public void update_shouldNotChangeImages() throws TechnicalException {
         prepareUpdate();
         updateApiEntity.setLabels(asList("label1", "label1"));

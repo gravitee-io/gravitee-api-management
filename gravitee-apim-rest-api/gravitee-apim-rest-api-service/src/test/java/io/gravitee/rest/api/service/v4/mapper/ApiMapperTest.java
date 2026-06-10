@@ -533,6 +533,66 @@ public class ApiMapperTest {
     }
 
     @Test
+    public void shouldPreserveLabelsOrderWhenToRepositoryFromUpdateEntity() {
+        UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+        updateApiEntity.setId("id");
+        updateApiEntity.setName("name");
+        updateApiEntity.setApiVersion("version");
+        updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        updateApiEntity.setType(ApiType.PROXY);
+        updateApiEntity.setLabels(List.of("tc-1601-b", "tc-1601-a"));
+
+        Api api = apiMapper.toRepository(GraviteeContext.getExecutionContext(), updateApiEntity);
+
+        assertThat(api.getLabels()).containsExactly("tc-1601-b", "tc-1601-a");
+    }
+
+    @Test
+    public void shouldDeduplicateLabelsPreservingFirstOccurrenceOrderWhenToRepositoryFromUpdateEntity() {
+        UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+        updateApiEntity.setId("id");
+        updateApiEntity.setName("name");
+        updateApiEntity.setApiVersion("version");
+        updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        updateApiEntity.setType(ApiType.PROXY);
+        updateApiEntity.setLabels(List.of("a", "b", "a"));
+
+        Api api = apiMapper.toRepository(GraviteeContext.getExecutionContext(), updateApiEntity);
+
+        assertThat(api.getLabels()).containsExactly("a", "b");
+    }
+
+    @Test
+    public void shouldPreserveLabelsOrderWhenToRepositoryFromApiEntity() {
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setId("id");
+        apiEntity.setName("name");
+        apiEntity.setApiVersion("version");
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setType(ApiType.PROXY);
+        apiEntity.setLabels(List.of("tc-1601-b", "tc-1601-a"));
+
+        Api api = apiMapper.toRepository(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(api.getLabels()).containsExactly("tc-1601-b", "tc-1601-a");
+    }
+
+    @Test
+    public void shouldDeduplicateLabelsPreservingFirstOccurrenceOrderWhenToRepositoryFromApiEntity() {
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setId("id");
+        apiEntity.setName("name");
+        apiEntity.setApiVersion("version");
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setType(ApiType.PROXY);
+        apiEntity.setLabels(List.of("a", "b", "a"));
+
+        Api api = apiMapper.toRepository(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(api.getLabels()).containsExactly("a", "b");
+    }
+
+    @Test
     public void shouldCreateRepositoryApiFromApiEntity() throws JsonProcessingException {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId("id");

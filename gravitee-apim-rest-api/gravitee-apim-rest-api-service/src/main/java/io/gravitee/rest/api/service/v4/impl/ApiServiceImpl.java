@@ -123,6 +123,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -512,7 +513,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
 
             if (updateApiEntity.getLabels() == null && apiToUpdate.getLabels() != null) {
-                api.setLabels(new ArrayList<>(new HashSet<>(apiToUpdate.getLabels())));
+                api.setLabels(new ArrayList<>(new LinkedHashSet<>(apiToUpdate.getLabels())));
             }
             if (updateApiEntity.getCategories() == null) {
                 api.setCategories(apiToUpdate.getCategories());
