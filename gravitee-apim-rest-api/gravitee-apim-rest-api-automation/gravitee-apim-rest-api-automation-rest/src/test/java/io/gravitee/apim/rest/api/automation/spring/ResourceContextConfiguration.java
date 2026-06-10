@@ -144,6 +144,10 @@ import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService
 import io.gravitee.apim.core.portal.use_case.CreateOrUpdatePortalUseCase;
 import io.gravitee.apim.core.portal.use_case.DeletePortalUseCase;
 import io.gravitee.apim.core.portal.use_case.GetPortalUseCase;
+import io.gravitee.apim.core.portal_listing.use_case.CreateOrUpdatePortalListingUseCase;
+import io.gravitee.apim.core.portal_listing.use_case.DeletePortalListingUseCase;
+import io.gravitee.apim.core.portal_listing.use_case.GetPortalListingUseCase;
+import io.gravitee.apim.core.portal_listing.use_case.ValidatePortalListingUseCase;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
@@ -1307,5 +1311,25 @@ public class ResourceContextConfiguration {
     @Bean
     public DeletePortalUseCase deletePortalUseCase() {
         return mock(DeletePortalUseCase.class);
+    }
+
+    @Bean
+    public CreateOrUpdatePortalListingUseCase createOrUpdatePortalListingUseCase() {
+        return mock(CreateOrUpdatePortalListingUseCase.class);
+    }
+
+    @Bean
+    public GetPortalListingUseCase getPortalListingUseCase() {
+        return mock(GetPortalListingUseCase.class);
+    }
+
+    @Bean
+    public DeletePortalListingUseCase deletePortalListingUseCase() {
+        return mock(DeletePortalListingUseCase.class);
+    }
+
+    @Bean
+    public ValidatePortalListingUseCase validatePortalListingUseCase() {
+        return mock(ValidatePortalListingUseCase.class);
     }
 }
