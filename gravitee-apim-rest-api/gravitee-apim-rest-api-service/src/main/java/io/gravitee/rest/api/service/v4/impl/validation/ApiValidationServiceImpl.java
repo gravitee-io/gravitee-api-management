@@ -241,6 +241,8 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
             groupValidationService.validateAndSanitize(executionContext, null, apiEntity.getGroups(), null, primaryOwnerEntity, true)
         );
         // Validate and clean listeners
+        // ApiEntity.getListeners() is a plain Lombok getter (returns null when unset); unlike definition-layer models
+        // whose getters coalesce null → List.of(), an explicit null guard is required here before delegating.
         if (apiEntity.getListeners() == null) {
             throw new ListenerMissingException();
         }
