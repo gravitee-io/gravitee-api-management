@@ -29,7 +29,7 @@ import { AVAILABLE_PLANS_FOR_MENU, PlanFormType, PlanMenuItemVM } from '../../..
 import { Api, ApiV4, CreatePlanV2, CreatePlanV4, KafkaListener, Plan, PlanStatus } from '../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
-import { isApiV4 } from '../../../../util';
+import { isApiV4 } from '../../../../util/isApiV2orV4';
 
 @Component({
   selector: 'api-plan-edit',

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, DestroyRef, inject, Input, OnChanges, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -29,6 +30,7 @@ import { GioTableWrapperFilters } from '../gio-table-wrapper/gio-table-wrapper.c
 import { gioTableFilterCollection } from '../gio-table-wrapper/gio-table-wrapper.util';
 import { TimeRangeParams } from '../../utils/timeFrameRanges';
 import { AnalyticsDefinitionVersion, AnalyticsTopApis } from '../../../entities/analytics/analytics';
+import { HomeService } from '../../../services-ngx/home.service';
 
 @Component({
   selector: 'app-top-apis-widget',
@@ -46,7 +48,9 @@ import { AnalyticsDefinitionVersion, AnalyticsTopApis } from '../../../entities/
   templateUrl: './top-apis-widget.component.html',
   styleUrl: './top-apis-widget.component.scss',
 })
-export class TopApisWidgetComponent implements OnChanges {
+export class TopApisWidgetComponent implements OnChanges, OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+
   @Input() data: AnalyticsTopApis[];
   @Input() period: TimeRangeParams;
 
@@ -57,14 +61,29 @@ export class TopApisWidgetComponent implements OnChanges {
     searchTerm: '',
   };
   totalLength: number;
+  selectedApiIds: string[] = [];
 
   constructor(
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
+    private readonly homeService: HomeService,
   ) {}
+
+  ngOnInit(): void {
+    this.homeService
+      .selectedApiIds()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(ids => {
+        this.selectedApiIds = ids;
+      });
+  }
 
   ngOnChanges() {
     this.runFilters(this.tableFilters);
+  }
+
+  toggleApiSelection(apiId: string): void {
+    this.homeService.toggleSelectedApiId(apiId);
   }
 
   navigateToApi(apiKey: string, definitionVersion: AnalyticsDefinitionVersion): void {

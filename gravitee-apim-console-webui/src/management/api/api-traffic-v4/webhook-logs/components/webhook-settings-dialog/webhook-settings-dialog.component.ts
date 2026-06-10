@@ -30,7 +30,7 @@ import { catchError, finalize, tap } from 'rxjs/operators';
 import { ApiV2Service } from '../../../../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
 import { Analytics, Api, ApiV4, Entrypoint, SamplingTypeEnum } from '../../../../../../entities/management-api-v2';
-import { isApiV4 } from '../../../../../../util';
+import { isApiV4 } from '../../../../../../util/isApiV2orV4';
 import { WindowedCount } from '../../../../reporter-settings/reporter-settings-message/windowed-count';
 
 export interface WebhookSettingsDialogData {
