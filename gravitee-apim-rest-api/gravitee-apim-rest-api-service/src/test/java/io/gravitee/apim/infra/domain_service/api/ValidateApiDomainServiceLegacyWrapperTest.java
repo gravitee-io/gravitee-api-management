@@ -54,6 +54,8 @@ import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.v4.exception.ListenerMissingException;
+import io.gravitee.rest.api.service.v4.impl.validation.ListenerValidationServiceImpl;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationService;
 import io.gravitee.rest.api.service.v4.validation.ListenerValidationService;
@@ -115,6 +117,26 @@ class ValidateApiDomainServiceLegacyWrapperTest {
     private static Api nativeApiWithAnalytics(NativeAnalytics analytics) {
         var base = ApiFixtures.aNativeApi();
         return base.toBuilder().apiDefinitionNativeV4(base.getApiDefinitionNativeV4().toBuilder().analytics(analytics).build()).build();
+    }
+
+    private static Api nativeApiWithEmptyListeners() {
+        var base = ApiFixtures.aNativeApi();
+        return base.toBuilder().apiDefinitionNativeV4(base.getApiDefinitionNativeV4().toBuilder().listeners(List.of()).build()).build();
+    }
+
+    private ValidateApiDomainServiceLegacyWrapper wrapperWithRealListenerValidation() {
+        var realListenerValidationService = new ListenerValidationServiceImpl(null, null, null, null, null);
+        return new ValidateApiDomainServiceLegacyWrapper(
+            apiValidationService,
+            categoryDomainService,
+            flowValidationDomainService,
+            tagsValidationService,
+            groupValidationService,
+            realListenerValidationService,
+            endpointGroupsValidationService,
+            resourcesValidationService,
+            apiLifecycleStateDomainService
+        );
     }
 
     @Nested
@@ -388,6 +410,18 @@ class ValidateApiDomainServiceLegacyWrapperTest {
             Assertions.assertThat(analytics.isEnabled()).isTrue();
             Assertions.assertThat(analytics.isReporterMetricsEnabled()).isTrue();
         }
+
+        @Test
+        void should_throw_when_listeners_empty() {
+            var serviceWithRealListenerValidation = wrapperWithRealListenerValidation();
+            var api = nativeApiWithEmptyListeners();
+
+            var throwable = Assertions.catchThrowable(() ->
+                serviceWithRealListenerValidation.validateAndSanitizeForCreation(api, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID)
+            );
+
+            Assertions.assertThat(throwable).isInstanceOf(ListenerMissingException.class);
+        }
     }
 
     @Nested
@@ -576,6 +610,25 @@ class ValidateApiDomainServiceLegacyWrapperTest {
             );
 
             Assertions.assertThat(throwable).isInstanceOf(InvalidApiLifecycleStateException.class);
+        }
+
+        @Test
+        void should_throw_when_listeners_empty() {
+            var serviceWithRealListenerValidation = wrapperWithRealListenerValidation();
+            var existingApi = ApiFixtures.aNativeApi();
+            var newApi = nativeApiWithEmptyListeners();
+
+            var throwable = Assertions.catchThrowable(() ->
+                serviceWithRealListenerValidation.validateAndSanitizeForUpdate(
+                    existingApi,
+                    newApi,
+                    PRIMARY_OWNER,
+                    ENVIRONMENT_ID,
+                    ORGANIZATION_ID
+                )
+            );
+
+            Assertions.assertThat(throwable).isInstanceOf(ListenerMissingException.class);
         }
     }
 }
