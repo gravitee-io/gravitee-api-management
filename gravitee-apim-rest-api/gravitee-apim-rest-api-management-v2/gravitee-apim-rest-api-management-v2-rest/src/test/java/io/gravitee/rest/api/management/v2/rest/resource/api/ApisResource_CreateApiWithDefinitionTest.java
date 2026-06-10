@@ -17,13 +17,9 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
-<<<<<<< HEAD
-import static org.junit.jupiter.api.Assertions.assertEquals;
-=======
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
->>>>>>> 6edb785a69 (fix(rest-api): PATCH /apis/{apiId} response returned empty resources)
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
