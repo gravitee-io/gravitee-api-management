@@ -77,23 +77,26 @@ class AnalyticsService {
   }
 
   getQueryFilters(activatedRoute: ActivatedRoute) {
-    const q = activatedRoute?.snapshot?.queryParams?.q;
-    if (q) {
-      const queryFilters = {};
-      q.split(/\s(OR|AND)\s/).forEach(q => {
-        if (q.includes(':')) {
-          const keyParam = this.cleanParam(q.substring(0, q.indexOf(':')));
-          const valueParam = this.cleanParam(q.substring(q.indexOf(':') + 1));
-          if (queryFilters[keyParam]) {
-            queryFilters[keyParam].push(valueParam);
-          } else {
-            queryFilters[keyParam] = [valueParam];
-          }
-        }
-      });
-      return queryFilters;
+    return this.parseQueryFilters(activatedRoute?.snapshot?.queryParams?.q);
+  }
+
+  parseQueryFilters(q?: string) {
+    if (!q) {
+      return null;
     }
-    return null;
+    const queryFilters = {};
+    q.split(/\s(OR|AND)\s/).forEach(q => {
+      if (q.includes(':')) {
+        const keyParam = this.cleanParam(q.substring(0, q.indexOf(':')));
+        const valueParam = this.cleanParam(q.substring(q.indexOf(':') + 1));
+        if (queryFilters[keyParam]) {
+          queryFilters[keyParam].push(valueParam);
+        } else {
+          queryFilters[keyParam] = [valueParam];
+        }
+      }
+    });
+    return queryFilters;
   }
 
   buildQueryParam(queryParam, q: string) {
