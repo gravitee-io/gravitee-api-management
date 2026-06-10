@@ -163,7 +163,7 @@ public class SubscriptionEntity {
                     .processedAt(now)
                     .status(Status.ACCEPTED)
                     .reasonMessage(reasonMessage)
-                    .metadata(metadata)
+                    .metadata(metadata != null ? metadata : this.metadata)
                     .build();
             }
             case ACCEPTED -> this;
