@@ -21,6 +21,7 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -29,9 +30,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.core.model.ApiFixtures;
 import inmemory.InMemoryAlternative;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
+import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.Listener;
@@ -41,6 +45,10 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
+import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
+import io.gravitee.rest.api.service.v4.impl.validation.ListenerValidationServiceImpl;
+import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import java.time.Instant;
@@ -229,25 +237,48 @@ public class ApiResource_PatchApiListenersTest extends ApiResourceTest {
     }
 
     @Test
-    void merge_patch_listeners_null_clears_listeners() {
+    void merge_patch_listeners_null_is_a_no_op() {
         givenApiWithListeners(List.of(defaultHttpListener("/existing")));
 
         var body = "{\"listeners\":null}";
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, MERGE_PATCH_TYPE));
 
-        var apiV4 = assertThat(response).hasStatus(OK_200).asEntity(ApiV4.class).actual();
-        Assertions.assertThat(apiV4.getListeners()).isNullOrEmpty();
+        assertThat(response).hasStatus(OK_200);
     }
 
     @Test
-    void json_patch_remove_listeners_clears_listeners() {
+    void json_patch_remove_listeners_is_a_no_op() {
         givenApiWithListeners(List.of(defaultHttpListener("/existing")));
 
         var body = "[{\"op\":\"remove\",\"path\":\"/listeners\"}]";
         var response = rootTarget(API).request().method("PATCH", Entity.entity(body, JSON_PATCH_TYPE));
 
-        var apiV4 = assertThat(response).hasStatus(OK_200).asEntity(ApiV4.class).actual();
-        Assertions.assertThat(apiV4.getListeners()).isNullOrEmpty();
+        assertThat(response).hasStatus(OK_200);
+    }
+
+    @Test
+    void merge_patch_with_empty_listeners_array_returns_400() {
+        var listenerValidator = new ListenerValidationServiceImpl(
+            mock(VerifyApiPathDomainService.class),
+            mock(EntrypointConnectorPluginService.class),
+            mock(EndpointConnectorPluginService.class),
+            mock(CorsValidationService.class),
+            mock(VerifyApiHostsDomainService.class)
+        );
+        doAnswer(inv -> {
+            var api = (Api) inv.getArgument(0);
+            var entity = ApiAdapter.INSTANCE.toUpdateApiEntity(api, api.getApiDefinitionHttpV4());
+            listenerValidator.validateAndSanitizeHttpV4(null, api.getId(), entity.getListeners(), entity.getEndpointGroups());
+            return api;
+        })
+            .when(updateApiDomainService)
+            .updateV4(any(), any());
+
+        var body = "{\"listeners\":[]}";
+        var response = rootTarget(API).request().method("PATCH", Entity.entity(body, MERGE_PATCH_TYPE));
+
+        var error = assertThat(response).hasStatus(BAD_REQUEST_400).asError().actual();
+        Assertions.assertThat(error.getTechnicalCode()).isEqualTo("listeners.missing");
     }
 
     @ParameterizedTest
