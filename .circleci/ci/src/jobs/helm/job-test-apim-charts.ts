@@ -47,6 +47,19 @@ export class TestApimChartsJob {
         command: `helm lint helm/`,
       }),
       new commands.Run({
+        name: 'Install Artifact Hub CLI (ah)',
+        command: `curl -fsSL "https://github.com/artifacthub/hub/releases/download/v${config.helm.artifactHubVersion}/ah_${config.helm.artifactHubVersion}_linux_amd64.tar.gz" | tar -xz -C /tmp ah
+sudo mv /tmp/ah /usr/local/bin/ah
+ah version`,
+      }),
+      new commands.Run({
+        // 'helm lint' treats the artifacthub.io/changes annotation as an opaque string and never validates its
+        // content. Artifact Hub re-parses it at publish time, so malformed entries (invalid kind, broken YAML)
+        // are only caught after the chart is published. 'ah lint' applies the exact same checks locally/in CI.
+        name: 'Validate Artifact Hub annotations (artifacthub.io/changes) in helm/',
+        command: `ah lint -k helm -p helm`,
+      }),
+      new commands.Run({
         name: 'Execute the units tests in helm/',
         command: "helm unittest -f 'tests/**/*.yaml' helm/ -t JUnit -o apim-result.xml",
       }),
