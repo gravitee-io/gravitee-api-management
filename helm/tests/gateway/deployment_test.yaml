@@ -397,3 +397,27 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].volumeMounts[0].name
           value: vault-token
+
+  - it: Check DaemonSet workload type
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        type: DaemonSet
+        autoscaling:
+          enabled: false
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: DaemonSet
+      - isAPIVersion:
+          of: apps/v1
+      - equal:
+          path: spec.updateStrategy.type
+          value: RollingUpdate
+      - notExists:
+          path: spec.replicas
+      - notExists:
+          path: spec.strategy
+      - notExists:
+          path: spec.serviceName

@@ -1262,6 +1262,7 @@ gateway:
   # if enabled, the gateway will run without any database meaning that kubernetes sync should be enabled
   # to retrieve api definitions from config maps
   dbLess: false
+  # Gateway workload type: Deployment, StatefulSet, or DaemonSet
   type: Deployment
   name: gateway
 
