@@ -103,12 +103,8 @@ public class ApiExportServiceImpl extends AbstractService implements ApiExportSe
         try {
             return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(apiEntity);
         } catch (final Exception e) {
-<<<<<<< HEAD
             LOGGER.error("An error occurs while trying to JSON serialize the API {}", apiEntity, e);
-=======
-            log.error("An error occurs while trying to JSON serialize the API {}", apiEntity, e);
             throw new TechnicalManagementException(e);
->>>>>>> dd949b5fe5 (fix(rest-api): fail API export when serialization fails instead of returning empty)
         }
     }
 
