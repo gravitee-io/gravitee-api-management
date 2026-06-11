@@ -98,6 +98,30 @@ tests:
               tcpKeepAlive: 42
               instances: 42
               requestTimeout: 42
+  - it: Enable Kafka and set multiple custom domains
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          routingMode: host
+          routingHostMode:
+            domains:
+              - kafka.gravitee.io
+              - kafka.mycompany.org
+            defaultPort: 9092
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            kafka:
+              enabled: true
+              routingMode: host
+              routingHostMode:
+                domains:
+                  - "kafka.gravitee.io"
+                  - "kafka.mycompany.org"
+                defaultPort: 9092
   - it: Enable Kafka and set ssl values
     template: gateway/gateway-configmap.yaml
     set:
