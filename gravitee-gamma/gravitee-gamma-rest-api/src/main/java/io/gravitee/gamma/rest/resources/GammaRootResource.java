@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.resources;
 
 import io.gravitee.gamma.rest.resources.observability.filters.ObservabilityFiltersResource;
+import io.gravitee.gamma.rest.resources.observability.logs.LogsResource;
 import io.gravitee.gamma.rest.resources.tracing.TracingResource;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.container.ResourceContext;
@@ -58,5 +59,14 @@ public class GammaRootResource {
     @Path("/organizations/{orgId}/environments/{envId}/observability/filters")
     public ObservabilityFiltersResource getObservabilityFiltersResource() {
         return resourceContext.getResource(ObservabilityFiltersResource.class);
+    }
+
+    /**
+     * Environment-wide logs search (light rows, v4-only). Server-side RBAC scoping — no mandatory
+     * {@code apiId}. See {@link LogsResource} for the contract.
+     */
+    @Path("/organizations/{orgId}/environments/{envId}/observability/logs")
+    public LogsResource getLogsResource() {
+        return resourceContext.getResource(LogsResource.class);
     }
 }
