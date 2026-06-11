@@ -31,17 +31,25 @@ public class AmConnectionViewDomainService {
 
     private final AmConnectionRepository amConnectionRepository;
 
-    public record View(String baseUrl, boolean hasAccessToken, String defaultDomainId, String defaultDomainHrid, String gatewayUrl) {}
+    public record View(
+        String baseUrl,
+        boolean hasAccessToken,
+        String environmentId,
+        String defaultDomainId,
+        String defaultDomainHrid,
+        String gatewayUrl
+    ) {}
 
     public View forOrg(String orgId) {
         var connection = amConnectionRepository.findByOrg(orgId);
         boolean hasToken = amConnectionRepository.hasTokenForOrg(orgId);
 
         String baseUrl = connection.map(c -> c.baseUrl() == null ? "" : c.baseUrl()).orElse("");
+        String environmentId = connection.map(AmConnection::environmentId).orElse(null);
         String defaultDomainId = connection.map(AmConnection::defaultDomainId).orElse(null);
         String defaultDomainHrid = connection.map(AmConnection::defaultDomainHrid).orElse(null);
         String gatewayUrl = connection.map(AmConnection::gatewayUrl).orElse(null);
 
-        return new View(baseUrl, hasToken, defaultDomainId, defaultDomainHrid, gatewayUrl);
+        return new View(baseUrl, hasToken, environmentId, defaultDomainId, defaultDomainHrid, gatewayUrl);
     }
 }

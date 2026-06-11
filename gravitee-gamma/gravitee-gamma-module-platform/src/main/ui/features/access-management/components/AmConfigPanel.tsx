@@ -151,8 +151,11 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
                     hadAccessToken: view.hasAccessToken,
                 });
                 setSavedDomain(view.defaultDomainId ? { id: view.defaultDomainId, hrid: view.defaultDomainHrid ?? null } : null);
-                // Restore the server's domain only when localStorage has none; reading prev inside
-                // the updater keeps cfg.domainId out of the effect deps.
+                // Restore the server's environment/domain only when localStorage has none; reading prev
+                // inside the updater keeps cfg.environmentId/domainId out of the effect deps.
+                if (view.environmentId) {
+                    setCfg(prev => (prev.environmentId ? prev : { ...prev, environmentId: view.environmentId! }));
+                }
                 if (view.defaultDomainId) {
                     setCfg(prev => (prev.domainId ? prev : { ...prev, domainId: view.defaultDomainId! }));
                 }
@@ -276,6 +279,7 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
     const buildRequest = (): AmConnectionRequest => ({
         baseUrl: form.baseUrl,
         serviceAccountAccessToken: form.accessToken || undefined,
+        environmentId: cfg.environmentId || null,
         defaultDomainId: cfg.domainId || null,
         defaultDomainHrid: domainHrid || null,
         gatewayUrl: gatewayUrl || null,

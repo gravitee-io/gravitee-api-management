@@ -28,6 +28,7 @@ export interface AmDomain {
 export interface AmConnectionView {
     baseUrl: string;
     hasAccessToken: boolean;
+    environmentId?: string | null;
     defaultDomainId?: string | null;
     defaultDomainHrid?: string | null;
     gatewayUrl?: string | null;
@@ -36,6 +37,7 @@ export interface AmConnectionView {
 export interface AmConnectionRequest {
     baseUrl: string;
     serviceAccountAccessToken?: string | null;
+    environmentId?: string | null;
     defaultDomainId?: string | null;
     defaultDomainHrid?: string | null;
     gatewayUrl?: string | null;

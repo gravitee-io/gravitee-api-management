@@ -44,6 +44,7 @@ public class JdbcAmConnectionRepository extends JdbcAbstractRepository<AmConnect
             .addColumn("organization_id", Types.NVARCHAR, String.class)
             .addColumn("base_url", Types.NVARCHAR, String.class)
             .addColumn("service_account_access_token_encrypted", Types.CLOB, String.class)
+            .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("default_domain_id", Types.NVARCHAR, String.class)
             .addColumn("default_domain_hrid", Types.NVARCHAR, String.class)
             .addColumn("gateway_url", Types.NVARCHAR, String.class)

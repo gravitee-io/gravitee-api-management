@@ -29,6 +29,7 @@ public class AmConnectionEntity {
     private String organizationId;
     private String baseUrl;
     private String serviceAccountAccessToken;
+    private String environmentId;
     private String defaultDomainId;
     private String defaultDomainHrid;
     private String gatewayUrl;

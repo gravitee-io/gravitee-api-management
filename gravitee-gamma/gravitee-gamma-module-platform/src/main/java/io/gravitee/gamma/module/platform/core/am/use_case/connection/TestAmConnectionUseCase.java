@@ -45,11 +45,15 @@ public class TestAmConnectionUseCase {
             ? (input.inboundAccessToken().isEmpty() ? null : input.inboundAccessToken())
             : stored.map(AmConnection::serviceAccountAccessToken).orElse(null);
 
+        String environmentId = stored.map(AmConnection::environmentId).orElse(null);
         String defaultDomainId = stored.map(AmConnection::defaultDomainId).orElse(null);
         String defaultDomainHrid = stored.map(AmConnection::defaultDomainHrid).orElse(null);
         String gatewayUrl = stored.map(AmConnection::gatewayUrl).orElse(null);
         return new Output(
-            amConnectionTester.test(input.orgId(), new AmConnection(baseUrl, accessToken, defaultDomainId, defaultDomainHrid, gatewayUrl))
+            amConnectionTester.test(
+                input.orgId(),
+                new AmConnection(baseUrl, accessToken, environmentId, defaultDomainId, defaultDomainHrid, gatewayUrl)
+            )
         );
     }
 }
