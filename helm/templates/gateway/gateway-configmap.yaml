@@ -277,6 +277,12 @@ data:
         {{- if hasKey .Values.gateway.kafka.routingHostMode "domainSeparator" }}
         domainSeparator: {{ .Values.gateway.kafka.routingHostMode.domainSeparator | quote }}
         {{- end}}
+        {{- if hasKey .Values.gateway.kafka.routingHostMode "domains" }}
+        domains:
+          {{- range .Values.gateway.kafka.routingHostMode.domains }}
+          - {{ . | quote }}
+          {{- end }}
+        {{- end}}
         {{- if hasKey .Values.gateway.kafka.routingHostMode "defaultDomain" }}
         defaultDomain: {{ .Values.gateway.kafka.routingHostMode.defaultDomain | quote }}
         {{- end}}

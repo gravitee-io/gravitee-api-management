@@ -1422,7 +1422,14 @@ gateway:
 #      brokerPrefix: broker-          # default is broker-
 #      domainSeparator: -             # Used to separate broker's name from api & defaultDomain. Default is '-'
 #
+#      # The domains where the Kafka APIs are exposed. ex: `myapi` will be exposed as `myapi.mycompany.org` and `myapi.mycompany.com`
+#      # Each domain should be set according to a public wildcard DNS/Certificate.
+#      domains:
+#        - mycompany.org
+#        - mycompany.com
+#
 #      # The default domain where the Kafka APIs are exposed. ex: `myapi` will be exposed as `myapi.mycompany.org`
+#      # Deprecated: use `domains` instead. Ignored when `domains` is set.
 #      defaultDomain: mycompany.org   # Should set according to the public wildcard DNS/Certificate. Default is empty
 #      defaultPort:   9092            # Default public port for Kafka APIs. Default is 9092
 #
@@ -1996,6 +2003,11 @@ gateway:
       prometheus:
         enabled: true
         concurrencyLimit: 3
+#     # Native Kafka APIs metrics
+#     kafka:
+#       durations:
+#         # Add the `principal_name` tag to Kafka duration metrics. Disabled by default as it can lead to high cardinality.
+#         principalName: false
 #   opentelemetry:
 #      enabled: false
 #      verbose: false
