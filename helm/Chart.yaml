@@ -58,3 +58,14 @@ annotations:
       links:
         - name: Github PR
           url: https://github.com/gravitee-io/gravitee-api-management/pull/17159
+    - kind: added
+      description: "Support multiple custom domains for native Kafka APIs with `gateway.kafka.routingHostMode.domains` (list)"
+      links:
+        - name: Jira
+          url: https://gravitee.atlassian.net/browse/APIM-14274
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/17690
+    - kind: deprecated
+      description: "`gateway.kafka.routingHostMode.defaultDomain` is deprecated in favor of `domains` and ignored when `domains` is set"
+    - kind: added
+      description: "Document `gateway.services.metrics.kafka.durations.principalName` to add the principal_name tag to Kafka duration metrics (disabled by default)"
