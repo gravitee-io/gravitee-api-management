@@ -35,6 +35,14 @@ tags:
           return distinct values from the data store, NUMBER and STRING filters have no enumerable
           values (400). Id-based KEYWORD filters (API, APPLICATION, PLAN, API_PRODUCT) return
           entity ids as values; use the `resolve` endpoint to hydrate them into display labels.
+    - name: Logs
+      description: |
+          Environment-wide log search returning light rows from the `v4-metrics` index. Results
+          are RBAC-scoped: the caller only sees logs for APIs they have read access to.
+
+          Filter conditions reference the shared filter catalog narrowed to the `LOGS` signal.
+          When no explicit entrypoint filter is supplied, the server injects the canonical HTTP
+          entrypoints so table totals match the analytics dashboard.
 
 paths:
     /organizations/{orgId}/environments/{envId}/observability/filters/definition:
@@ -345,6 +353,235 @@ paths:
                                 httpStatus: 403
                                 message: "Insufficient permissions to access observability metadata."
 
+    /organizations/{orgId}/environments/{envId}/observability/logs/search:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+        post:
+            tags:
+                - Logs
+            summary: Search environment-wide logs
+            description: |
+                Paginated log search across all APIs the caller has access to in the given
+                environment. Returns light rows from the `v4-metrics` Elasticsearch index — no
+                HTTP bodies or headers (those live in the detail endpoint, planned in GMA-424).
+
+                **RBAC scoping**: the response only contains logs for APIs the caller has `READ`
+                access to. When the caller requests specific APIs via an `API` filter, the server
+                intersects that set with the caller's accessible APIs. If the intersection is
+                empty, the response is an empty page (not 403).
+
+                **Filter validation**: every `FilterCondition` in the request body is validated
+                against the shared filter catalog (see the *Filters* tag) narrowed to the `LOGS`
+                signal. Unknown filter names or filters that do not apply to the `LOGS` signal
+                are rejected with 400. Use `GET /observability/filters/definition?signal=LOGS` to
+                discover valid filters.
+
+                **Default entrypoint scoping**: when no explicit `ENTRYPOINT` filter is supplied,
+                the server injects the canonical HTTP entrypoints (`http-get`, `http-post`,
+                `http-proxy`, `llm-proxy`, `mcp-proxy`) so log table totals match the analytics
+                dashboard for the same time range.
+
+                **Enrichment**: each log entry is enriched server-side with display names for API,
+                plan, application, gateway hostname, and API product. Use the `resolve` endpoint
+                from the *Filters* tag for batch id-to-label resolution on saved filter values.
+
+                **Pagination**: 1-based. `perPage` defaults to 20 and is clamped server-side at
+                100. The response `pagination` object reflects the effective (clamped) values.
+
+                **Supported API types**: only logs from `HTTP_PROXY`, `LLM`, and `MCP` APIs are
+                returned. `MESSAGE` and `NATIVE` APIs are excluded from the logs signal.
+            operationId: searchObservabilityLogs
+            parameters:
+                - name: page
+                  in: query
+                  required: false
+                  description: 1-based page number.
+                  schema:
+                      type: integer
+                      default: 1
+                      minimum: 1
+                - name: perPage
+                  in: query
+                  required: false
+                  description: Page size (capped server-side at 100).
+                  schema:
+                      type: integer
+                      default: 20
+                      minimum: 1
+                      maximum: 100
+            requestBody:
+                required: false
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/SearchLogsRequest"
+                        examples:
+                            with-time-range-and-filters:
+                                summary: Search with time range and status filter
+                                value:
+                                    timeRange:
+                                        from: "2026-06-10T00:00:00Z"
+                                        to: "2026-06-11T00:00:00Z"
+                                    filters:
+                                        - name: "HTTP_STATUS"
+                                          operator: "EQ"
+                                          value: "200"
+                            with-api-filter:
+                                summary: Search scoped to specific APIs
+                                value:
+                                    filters:
+                                        - name: "API"
+                                          operator: "IN"
+                                          value:
+                                              - "67e246cb-ab02-4da4-8f47-f9fa3e061d6b"
+                                              - "a1b2c3d4-0000-1111-2222-333344445555"
+                            with-response-time-range:
+                                summary: Search with response time bounds
+                                value:
+                                    timeRange:
+                                        from: "2026-06-10T00:00:00Z"
+                                        to: "2026-06-11T00:00:00Z"
+                                    filters:
+                                        - name: "HTTP_GATEWAY_RESPONSE_TIME"
+                                          operator: "GTE"
+                                          value: "500"
+                                        - name: "HTTP_GATEWAY_RESPONSE_TIME"
+                                          operator: "LTE"
+                                          value: "5000"
+                            with-multiple-filters:
+                                summary: Combine status, method, and application filters
+                                value:
+                                    timeRange:
+                                        from: "2026-06-10T00:00:00Z"
+                                        to: "2026-06-11T00:00:00Z"
+                                    filters:
+                                        - name: "HTTP_STATUS"
+                                          operator: "GTE"
+                                          value: "500"
+                                        - name: "HTTP_METHOD"
+                                          operator: "IN"
+                                          value: ["GET", "POST"]
+                                        - name: "APPLICATION"
+                                          operator: "EQ"
+                                          value: "b5c6d7e8-9999-aaaa-bbbb-ccccddddeeee"
+                            empty-body:
+                                summary: Search with defaults (all accessible APIs, no filter)
+                                value: {}
+            responses:
+                "200":
+                    description: A page of log entries enriched with display names.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/LogsSearchResponse"
+                            examples:
+                                single-entry:
+                                    summary: Single HTTP proxy log entry
+                                    value:
+                                        data:
+                                            - apiId: "67e246cb-ab02-4da4-8f47-f9fa3e061d6b"
+                                              apiName: "Petstore API"
+                                              apiType: "HTTP_PROXY"
+                                              timestamp: "2026-06-10T14:32:01Z"
+                                              requestId: "req-abc-123"
+                                              transactionId: "txn-xyz-789"
+                                              method: "GET"
+                                              uri: "/pets/42"
+                                              status: 200
+                                              requestEnded: true
+                                              gatewayResponseTime: 12
+                                              planId: "plan-001"
+                                              planName: "Gold"
+                                              applicationId: "app-001"
+                                              applicationName: "Mobile App"
+                                              gateway: "gw-eu-1"
+                                              gatewayHostname: "gateway-eu-west-1.example.com"
+                                              apiProductName: "Standalone API"
+                                        pagination:
+                                            totalCount: 1
+                                            page: 1
+                                            perPage: 20
+                                            pageCount: 1
+                                            pageItemsCount: 1
+                                with-warnings:
+                                    summary: Log entry with policy warnings
+                                    value:
+                                        data:
+                                            - apiId: "67e246cb-ab02-4da4-8f47-f9fa3e061d6b"
+                                              apiName: "Petstore API"
+                                              timestamp: "2026-06-10T14:33:00Z"
+                                              requestId: "req-def-456"
+                                              method: "POST"
+                                              uri: "/pets"
+                                              status: 200
+                                              gatewayResponseTime: 85
+                                              warnings:
+                                                  - componentType: "policy"
+                                                    componentName: "rate-limit"
+                                                    key: "RATE_LIMIT_NOT_APPLIED"
+                                                    message: "Request bypassed rate limit policy due to internal error"
+                                        pagination:
+                                            totalCount: 1
+                                            page: 1
+                                            perPage: 20
+                                            pageCount: 1
+                                            pageItemsCount: 1
+                                empty-result:
+                                    summary: No logs match (empty page)
+                                    value:
+                                        data: []
+                                        pagination:
+                                            totalCount: 0
+                                            page: 1
+                                            perPage: 20
+                                            pageCount: 0
+                                            pageItemsCount: 0
+                "400":
+                    description: |
+                        A filter condition is invalid. Possible causes:
+                        - Unknown filter name (`observability.filter.unknown_name`)
+                        - Filter does not apply to the LOGS signal (`observability.filter.signal_mismatch`)
+                        - Filter is valid for LOGS but not yet supported by log search (`observability.filter.search_translation_not_supported`)
+                        - `from` is after `to` in the time range
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            examples:
+                                unknown-filter:
+                                    summary: Unknown filter name
+                                    value:
+                                        httpStatus: 400
+                                        message: "Filter 'UNKNOWN_FILTER' is not supported by this backend"
+                                        technicalCode: "observability.filter.unknown_name"
+                                signal-mismatch:
+                                    summary: Filter not applicable to LOGS signal
+                                    value:
+                                        httpStatus: 400
+                                        message: "Filter 'GATEWAY' does not apply to signal LOGS"
+                                        technicalCode: "observability.filter.signal_mismatch"
+                                search-translation-not-supported:
+                                    summary: Filter valid for LOGS but not yet translated by log search
+                                    value:
+                                        httpStatus: 400
+                                        message: "Filter 'HTTP_STATUS_CODE_GROUP' is not yet supported for log search"
+                                        technicalCode: "observability.filter.search_translation_not_supported"
+                                invalid-time-range:
+                                    summary: Invalid time range (from > to)
+                                    value:
+                                        httpStatus: 400
+                                        message: "Invalid time range: 'from' must be before 'to'."
+                "403":
+                    description: The caller cannot read observability data in this environment (missing `ENVIRONMENT_DASHBOARD:READ` or `ENVIRONMENT_API:READ` permission).
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 403
+                                message: "Insufficient permissions to access observability data."
+
 components:
     securitySchemes:
         CookieAuth:
@@ -387,7 +624,7 @@ components:
         FilterOperator:
             type: string
             description: Comparison operator supported by a filter.
-            enum: [EQ, IN, GTE, LTE]
+            enum: [EQ, IN, NOT_IN, GTE, LTE]
 
         EnumValue:
             type: object
@@ -567,6 +804,207 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/ResolveFilterLabelsResponseEntry"
+
+        SearchLogsRequest:
+            type: object
+            description: Request body for the logs search endpoint.
+            properties:
+                timeRange:
+                    $ref: "#/components/schemas/TimeRange"
+                filters:
+                    type: array
+                    description: Filter conditions to apply. Validated against the LOGS signal catalog.
+                    items:
+                        $ref: "#/components/schemas/FilterCondition"
+
+        TimeRange:
+            type: object
+            description: |
+                ISO-8601 time window. Both bounds are optional; omitting either defers to server
+                defaults (no constraint on that side). When both are provided, `from` must be
+                before `to` — otherwise the server returns 400.
+            properties:
+                from:
+                    type: string
+                    format: date-time
+                    description: Start of the time window (inclusive).
+                    example: "2026-06-10T00:00:00Z"
+                to:
+                    type: string
+                    format: date-time
+                    description: End of the time window (inclusive).
+                    example: "2026-06-11T00:00:00Z"
+
+        FilterCondition:
+            type: object
+            description: |
+                A single filter condition. `operator` is uppercase (`EQ`, `IN`, `GTE`, `LTE`).
+                `value` is a scalar string for `EQ`/`GTE`/`LTE`, or an array of strings for `IN`.
+            required: [name, operator, value]
+            properties:
+                name:
+                    type: string
+                    description: Canonical filter name from the catalog.
+                    example: HTTP_STATUS
+                operator:
+                    $ref: "#/components/schemas/FilterOperator"
+                value:
+                    description: Scalar for EQ/GTE/LTE, array of strings for IN/NOT_IN.
+                    oneOf:
+                        - type: string
+                        - type: array
+                          items:
+                              type: string
+                    example: "200"
+
+        LogEntry:
+            type: object
+            description: |
+                Light log row from the `v4-metrics` Elasticsearch index. Fields are enriched
+                server-side with display names so the UI can render without additional round-trips.
+                Null fields are omitted from the JSON response (`@JsonInclude(NON_NULL)`).
+            properties:
+                apiId:
+                    type: string
+                    description: Unique identifier of the API that handled the request.
+                    example: "67e246cb-ab02-4da4-8f47-f9fa3e061d6b"
+                apiName:
+                    type: string
+                    description: Display name of the API (enriched server-side).
+                    example: "Petstore API"
+                apiType:
+                    type: string
+                    description: API kind as stored in the definition (e.g. `HTTP_PROXY`, `LLM`, `MCP`).
+                    example: "HTTP_PROXY"
+                timestamp:
+                    type: string
+                    format: date-time
+                    description: ISO-8601 instant the request was received by the gateway.
+                    example: "2026-06-10T14:32:01Z"
+                requestId:
+                    type: string
+                    description: Unique identifier of the gateway request.
+                    example: "req-abc-123"
+                method:
+                    type: string
+                    description: HTTP method of the client request.
+                    example: "GET"
+                clientIdentifier:
+                    type: string
+                    description: Client identifier extracted by the gateway (e.g. subscription id, IP, header value).
+                planId:
+                    type: string
+                    description: Identifier of the plan the request was matched to.
+                    example: "plan-001"
+                planName:
+                    type: string
+                    description: Display name of the plan (enriched server-side).
+                    example: "Gold"
+                applicationId:
+                    type: string
+                    description: Identifier of the consuming application.
+                    example: "app-001"
+                applicationName:
+                    type: string
+                    description: Display name of the application (enriched server-side).
+                    example: "Mobile App"
+                transactionId:
+                    type: string
+                    description: Correlation id shared across chained requests in the same transaction.
+                    example: "txn-xyz-789"
+                status:
+                    type: integer
+                    description: HTTP status code returned to the client.
+                    example: 200
+                requestEnded:
+                    type: boolean
+                    description: Whether the full request/response cycle completed.
+                gatewayResponseTime:
+                    type: integer
+                    description: Total response time measured by the gateway, in milliseconds.
+                    example: 42
+                gateway:
+                    type: string
+                    description: Identifier of the gateway instance that processed the request.
+                    example: "gw-eu-1"
+                gatewayHostname:
+                    type: string
+                    description: Hostname of the gateway instance (enriched server-side).
+                    example: "gateway-eu-west-1.example.com"
+                uri:
+                    type: string
+                    description: Request URI path.
+                    example: "/pets/42"
+                endpoint:
+                    type: string
+                    description: Backend endpoint the request was proxied to.
+                message:
+                    type: string
+                    description: Error or diagnostic message attached to the log entry.
+                errorKey:
+                    type: string
+                    description: Machine-readable error key (e.g. `CORS_PREFLIGHT_FAILED`, `RATE_LIMIT_TOO_MANY_REQUESTS`).
+                errorComponentName:
+                    type: string
+                    description: Name of the component (policy, connector) that produced the error.
+                errorComponentType:
+                    type: string
+                    description: Type of the component that produced the error (e.g. `policy`, `connector`).
+                warnings:
+                    type: array
+                    description: Diagnostic warnings from policies that did not interrupt the request flow.
+                    items:
+                        $ref: "#/components/schemas/LogEntryWarning"
+                additionalMetrics:
+                    type: object
+                    description: Extra metrics attached by plugins or custom policies.
+                    additionalProperties: true
+                mcpMethod:
+                    type: string
+                    description: MCP method name (present only for `MCP` API type requests).
+                    example: "tools/list"
+                apiProductId:
+                    type: string
+                    description: Identifier of the API product the API belongs to (`null` for standalone APIs).
+                apiProductName:
+                    type: string
+                    description: Display name of the API product (enriched server-side). Returns `"Standalone API"` when the API has no product.
+                    example: "Standalone API"
+
+        LogEntryWarning:
+            type: object
+            description: |
+                A diagnostic warning attached to a log entry. Warnings are produced by policies
+                or connectors that encountered an issue but did not interrupt the request flow
+                (e.g. rate-limit bypass due to internal error).
+            properties:
+                componentType:
+                    type: string
+                    description: Type of the component that raised the warning (e.g. `policy`, `connector`).
+                    example: "policy"
+                componentName:
+                    type: string
+                    description: Name of the component.
+                    example: "rate-limit"
+                key:
+                    type: string
+                    description: Machine-readable warning key.
+                    example: "RATE_LIMIT_NOT_APPLIED"
+                message:
+                    type: string
+                    description: Human-readable description of what happened.
+                    example: "Request bypassed rate limit policy due to internal error"
+
+        LogsSearchResponse:
+            type: object
+            required: [data, pagination]
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/LogEntry"
+                pagination:
+                    $ref: "#/components/schemas/Pagination"
 
         Error:
             type: object
