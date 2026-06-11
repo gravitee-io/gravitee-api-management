@@ -43,6 +43,15 @@ public class PortalNext {
     @ParameterKey(Key.PORTAL_NEXT_ANALYTICS_ENABLED)
     private Enabled analytics;
 
+    @ParameterKey(Key.PORTAL_NEXT_MEMBER_MAPPING_ENABLED)
+    private Enabled memberMapping;
+
+    @ParameterKey(Key.PORTAL_NEXT_TRANSFER_OWNERSHIP_ENABLED)
+    private Enabled transferOwnership;
+
+    @ParameterKey(Key.PORTAL_NEXT_INVITATIONS_ENABLED)
+    private Enabled invitations;
+
     private Banner banner;
 
     private Catalog catalog;
