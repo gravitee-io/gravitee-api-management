@@ -91,6 +91,8 @@ const executor = {
 const helm = {
   defaultVersion: 'v3.12.3',
   helmUnitVersion: '0.5.1',
+  // Artifact Hub CLI, used to validate the artifacthub.io/* annotations (e.g. changes) before publishing
+  artifactHubVersion: '1.22.0',
 };
 
 const jobContext = ['cicd-orchestrator'];
