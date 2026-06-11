@@ -751,7 +751,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final Sortable sortable,
         final Pageable pageable
     ) {
-        ApiCriteria.Builder criteria = new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId());
+        ApiCriteria.Builder criteria = new ApiCriteria.Builder()
+            .environmentId(executionContext.getEnvironmentId())
+            .notApiTypes(List.of(ApiType.EDGE));
 
         // If user is not admin, get list of apiIds in their scope and add it to the criteria
         if (!isAdmin) {

@@ -74,6 +74,11 @@ public class QueryBuilder<T extends Indexable> {
         return this;
     }
 
+    public QueryBuilder<T> addExcludedFilter(String name, Collection<String> values) {
+        query.getExcludedFilters().put(name, values);
+        return this;
+    }
+
     public QueryBuilder<T> setPage(Pageable pageable) {
         query.setPage(pageable);
         return this;
