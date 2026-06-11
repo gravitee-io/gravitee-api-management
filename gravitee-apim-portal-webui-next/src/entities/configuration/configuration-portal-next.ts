@@ -34,6 +34,13 @@ export class ConfigurationPortalNext {
   analytics?: {
     enabled?: boolean;
   };
+  applications?: {
+    membership?: {
+      enabled?: { enabled?: boolean };
+      transferOwnership?: { enabled?: boolean };
+      invitations?: { enabled?: boolean };
+    };
+  };
 }
 
 export interface BannerButton {

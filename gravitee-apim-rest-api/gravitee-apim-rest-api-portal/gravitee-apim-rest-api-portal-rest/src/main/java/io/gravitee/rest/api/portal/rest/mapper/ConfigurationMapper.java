@@ -61,16 +61,40 @@ public class ConfigurationMapper {
         if (portalNext.getAnalytics() != null) {
             configuration.setAnalytics(convert(portalNext.getAnalytics()));
         }
-        if (portalNext.getMemberMapping() != null) {
-            configuration.setMemberMapping(convert(portalNext.getMemberMapping()));
-        }
-        if (portalNext.getTransferOwnership() != null) {
-            configuration.setTransferOwnership(convert(portalNext.getTransferOwnership()));
-        }
-        if (portalNext.getInvitations() != null) {
-            configuration.setInvitations(convert(portalNext.getInvitations()));
+        if (portalNext.getApplications() != null) {
+            configuration.setApplications(convert(portalNext.getApplications()));
         }
         return configuration;
+    }
+
+    private ConfigurationPortalNextApplications convert(PortalNext.Applications applications) {
+        if (applications.getMembership() == null) {
+            return null;
+        }
+        ConfigurationPortalNextApplicationsMembership membership = convert(applications.getMembership());
+        if (membership == null) {
+            return null;
+        }
+        ConfigurationPortalNextApplications config = new ConfigurationPortalNextApplications();
+        config.setMembership(membership);
+        return config;
+    }
+
+    private ConfigurationPortalNextApplicationsMembership convert(PortalNext.Applications.Membership membership) {
+        if (membership.getEnabled() == null && membership.getTransferOwnership() == null && membership.getInvitations() == null) {
+            return null;
+        }
+        ConfigurationPortalNextApplicationsMembership config = new ConfigurationPortalNextApplicationsMembership();
+        if (membership.getEnabled() != null) {
+            config.setEnabled(convert(membership.getEnabled()));
+        }
+        if (membership.getTransferOwnership() != null) {
+            config.setTransferOwnership(convert(membership.getTransferOwnership()));
+        }
+        if (membership.getInvitations() != null) {
+            config.setInvitations(convert(membership.getInvitations()));
+        }
+        return config;
     }
 
     private ConfigurationPortalNextBanner convert(PortalNext.Banner banner) {

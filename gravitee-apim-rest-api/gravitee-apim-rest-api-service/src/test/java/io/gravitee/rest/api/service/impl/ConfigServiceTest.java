@@ -299,9 +299,15 @@ class ConfigServiceTest {
 
         PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
 
-        assertThat(portalSettings.getPortalNext().getMemberMapping().isEnabled()).as("portalNext memberMapping enabled").isTrue();
-        assertThat(portalSettings.getPortalNext().getTransferOwnership().isEnabled()).as("portalNext transferOwnership enabled").isTrue();
-        assertThat(portalSettings.getPortalNext().getInvitations().isEnabled()).as("portalNext invitations enabled").isTrue();
+        assertThat(portalSettings.getPortalNext().getApplications().getMembership().getEnabled().isEnabled())
+            .as("portalNext applications.membership.enabled enabled")
+            .isTrue();
+        assertThat(portalSettings.getPortalNext().getApplications().getMembership().getTransferOwnership().isEnabled())
+            .as("portalNext applications.membership.transferOwnership enabled")
+            .isTrue();
+        assertThat(portalSettings.getPortalNext().getApplications().getMembership().getInvitations().isEnabled())
+            .as("portalNext applications.membership.invitations enabled")
+            .isTrue();
     }
 
     @Test
@@ -320,21 +326,23 @@ class ConfigServiceTest {
 
         PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
 
-        assertThat(portalSettings.getPortalNext().getMemberMapping().isEnabled())
-            .as("portalNext memberMapping disabled by default")
+        assertThat(portalSettings.getPortalNext().getApplications().getMembership().getEnabled().isEnabled())
+            .as("portalNext applications.membership.enabled disabled by default")
             .isFalse();
-        assertThat(portalSettings.getPortalNext().getTransferOwnership().isEnabled())
-            .as("portalNext transferOwnership disabled by default")
+        assertThat(portalSettings.getPortalNext().getApplications().getMembership().getTransferOwnership().isEnabled())
+            .as("portalNext applications.membership.transferOwnership disabled by default")
             .isFalse();
-        assertThat(portalSettings.getPortalNext().getInvitations().isEnabled()).as("portalNext invitations disabled by default").isFalse();
+        assertThat(portalSettings.getPortalNext().getApplications().getMembership().getInvitations().isEnabled())
+            .as("portalNext applications.membership.invitations disabled by default")
+            .isFalse();
     }
 
     @Test
     void shouldSavePortalNextToggles() {
         PortalSettingsEntity portalSettingsEntity = new PortalSettingsEntity();
-        portalSettingsEntity.getPortalNext().setMemberMapping(new Enabled(true));
-        portalSettingsEntity.getPortalNext().setTransferOwnership(new Enabled(false));
-        portalSettingsEntity.getPortalNext().setInvitations(new Enabled(true));
+        portalSettingsEntity.getPortalNext().getApplications().getMembership().setEnabled(new Enabled(true));
+        portalSettingsEntity.getPortalNext().getApplications().getMembership().setTransferOwnership(new Enabled(false));
+        portalSettingsEntity.getPortalNext().getApplications().getMembership().setInvitations(new Enabled(true));
 
         configService.save(GraviteeContext.getExecutionContext(), portalSettingsEntity);
 
