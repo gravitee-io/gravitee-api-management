@@ -45,6 +45,9 @@ import static io.gravitee.rest.api.model.parameters.Key.LOGGING_USER_DISPLAYED;
 import static io.gravitee.rest.api.model.parameters.Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_ANALYTICS_ENABLED;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED;
+import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_INVITATIONS_ENABLED;
+import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_MEMBER_MAPPING_ENABLED;
+import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_TRANSFER_OWNERSHIP_ENABLED;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_SCHEDULER_NOTIFICATIONS;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_URL;
 import static io.gravitee.rest.api.model.parameters.Key.USER_GROUP_REQUIRED_ENABLED;
@@ -272,6 +275,89 @@ class ConfigServiceTest {
             GraviteeContext.getExecutionContext(),
             PORTAL_URL,
             "ACME",
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
+    }
+
+    @Test
+    void shouldGetPortalSettingsWithPortalNextTogglesEnabled() {
+        Map<String, List<String>> params = new HashMap<>();
+        params.put(PORTAL_NEXT_MEMBER_MAPPING_ENABLED.key(), singletonList("true"));
+        params.put(PORTAL_NEXT_TRANSFER_OWNERSHIP_ENABLED.key(), singletonList("true"));
+        params.put(PORTAL_NEXT_INVITATIONS_ENABLED.key(), singletonList("true"));
+
+        when(
+            mockParameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                any(List.class),
+                any(Function.class),
+                eq("DEFAULT"),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        ).thenReturn(params);
+        when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
+        when(reCaptchaService.isEnabled()).thenReturn(false);
+
+        PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
+
+        assertThat(portalSettings.getPortalNext().getMemberMapping().isEnabled()).as("portalNext memberMapping enabled").isTrue();
+        assertThat(portalSettings.getPortalNext().getTransferOwnership().isEnabled()).as("portalNext transferOwnership enabled").isTrue();
+        assertThat(portalSettings.getPortalNext().getInvitations().isEnabled()).as("portalNext invitations enabled").isTrue();
+    }
+
+    @Test
+    void shouldGetPortalSettingsWithPortalNextTogglesDefaultedToDisabled() {
+        when(
+            mockParameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                any(List.class),
+                any(Function.class),
+                eq("DEFAULT"),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        ).thenReturn(new HashMap<>());
+        when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
+        when(reCaptchaService.isEnabled()).thenReturn(false);
+
+        PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
+
+        assertThat(portalSettings.getPortalNext().getMemberMapping().isEnabled())
+            .as("portalNext memberMapping disabled by default")
+            .isFalse();
+        assertThat(portalSettings.getPortalNext().getTransferOwnership().isEnabled())
+            .as("portalNext transferOwnership disabled by default")
+            .isFalse();
+        assertThat(portalSettings.getPortalNext().getInvitations().isEnabled()).as("portalNext invitations disabled by default").isFalse();
+    }
+
+    @Test
+    void shouldSavePortalNextToggles() {
+        PortalSettingsEntity portalSettingsEntity = new PortalSettingsEntity();
+        portalSettingsEntity.getPortalNext().setMemberMapping(new Enabled(true));
+        portalSettingsEntity.getPortalNext().setTransferOwnership(new Enabled(false));
+        portalSettingsEntity.getPortalNext().setInvitations(new Enabled(true));
+
+        configService.save(GraviteeContext.getExecutionContext(), portalSettingsEntity);
+
+        verify(mockParameterService, times(1)).save(
+            GraviteeContext.getExecutionContext(),
+            PORTAL_NEXT_MEMBER_MAPPING_ENABLED,
+            "true",
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
+        verify(mockParameterService, times(1)).save(
+            GraviteeContext.getExecutionContext(),
+            PORTAL_NEXT_TRANSFER_OWNERSHIP_ENABLED,
+            "false",
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
+        verify(mockParameterService, times(1)).save(
+            GraviteeContext.getExecutionContext(),
+            PORTAL_NEXT_INVITATIONS_ENABLED,
+            "true",
             "DEFAULT",
             ParameterReferenceType.ENVIRONMENT
         );
