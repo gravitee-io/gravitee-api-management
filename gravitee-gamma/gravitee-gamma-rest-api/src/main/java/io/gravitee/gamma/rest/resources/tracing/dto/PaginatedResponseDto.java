@@ -24,10 +24,10 @@ import java.util.List;
  * {@code totalCount} and the request's {@code perPage}.
  */
 public record PaginatedResponseDto<T>(List<T> data, Pagination pagination) {
-    public record Pagination(long totalCount, int page, int pageCount) {}
+    public record Pagination(long totalCount, int page, int perPage, int pageCount, int pageItemsCount) {}
 
     public static <T> PaginatedResponseDto<T> of(List<T> data, long totalCount, int page, int perPage) {
         int pageCount = totalCount == 0 || perPage <= 0 ? 0 : (int) Math.ceil((double) totalCount / perPage);
-        return new PaginatedResponseDto<>(data, new Pagination(totalCount, page, pageCount));
+        return new PaginatedResponseDto<>(data, new Pagination(totalCount, page, perPage, pageCount, data.size()));
     }
 }

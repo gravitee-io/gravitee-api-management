@@ -24,6 +24,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterType;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
+import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterContributor;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
 import io.gravitee.gamma.rest.infra.adapter.SpiFilterRegistry;
@@ -44,7 +45,12 @@ class SpiFilterRegistryTest {
 
         List<FilterSpec> result = registry.getFilters(null, null);
 
-        assertThat(result).extracting(FilterSpec::name).containsExactly("API", "HTTP_STATUS", "API_TYPE");
+        // Full unified vocabulary: every static filter plus the extensible API_TYPE (no contributors).
+        assertThat(result).hasSize(StaticFilters.values().length + ExtensibleFilters.values().length);
+        assertThat(result)
+            .extracting(FilterSpec::name)
+            .contains("API", "HTTP_STATUS", "API_TYPE", "HTTP_GATEWAY_RESPONSE_TIME", "MCP_PROXY_METHOD", "URI")
+            .doesNotContain("HTTP_PATH", "HTTP_PATH_MAPPING");
     }
 
     @Test
@@ -69,10 +75,13 @@ class SpiFilterRegistryTest {
     void should_scope_http_status_to_http_based_api_kinds() {
         FilterRegistry registry = registryWith();
 
-        // NATIVE (Kafka) context: API + API_TYPE are cross-cutting; HTTP_STATUS is HTTP-only.
+        // NATIVE (Kafka) context: cross-cutting + native-relevant filters only; HTTP / gateway filters drop out.
         List<FilterSpec> result = registry.getFilters(null, Set.of(ApiType.NATIVE));
 
-        assertThat(result).extracting(FilterSpec::name).containsExactly("API", "API_TYPE");
+        assertThat(result)
+            .extracting(FilterSpec::name)
+            .contains("API", "APPLICATION", "PLAN", "NATIVE_CONNECTION_STATUS", "API_TYPE")
+            .doesNotContain("HTTP_STATUS", "GATEWAY", "API_PRODUCT", "MCP_PROXY_METHOD");
     }
 
     @Test
@@ -81,7 +90,9 @@ class SpiFilterRegistryTest {
 
         List<FilterSpec> result = registry.getFilters(null, null);
 
-        assertThat(result).extracting(FilterSpec::name).containsExactly("API", "HTTP_STATUS", "API_TYPE", "LLM_MODEL");
+        // Contributor filters are appended after the host catalog.
+        assertThat(result).extracting(FilterSpec::name).contains("API", "API_TYPE", "LLM_MODEL");
+        assertThat(result).last().extracting(FilterSpec::name).isEqualTo("LLM_MODEL");
     }
 
     @Test
@@ -155,10 +166,11 @@ class SpiFilterRegistryTest {
     void should_apply_both_axes_to_host_and_contributor_filters() {
         FilterRegistry registry = registryWith(filtersContributor(llmModel()));
 
-        // LOGS + NATIVE: only the cross-cutting host filters; HTTP_STATUS (HTTP-only) and LLM_MODEL (LLM-only) are excluded.
+        // LOGS + NATIVE: logs-served filters relevant to native APIs. ANALYTICS-only (NATIVE_CONNECTION_STATUS),
+        // HTTP-only and LLM_MODEL (LLM-only) are all excluded by one axis or the other.
         List<FilterSpec> result = registry.getFilters(Set.of(Signal.LOGS), Set.of(ApiType.NATIVE));
 
-        assertThat(result).extracting(FilterSpec::name).containsExactly("API", "API_TYPE");
+        assertThat(result).extracting(FilterSpec::name).containsExactly("API", "APPLICATION", "PLAN", "API_TYPE");
     }
 
     private static FilterRegistry registryWith(FilterContributor... contributors) {

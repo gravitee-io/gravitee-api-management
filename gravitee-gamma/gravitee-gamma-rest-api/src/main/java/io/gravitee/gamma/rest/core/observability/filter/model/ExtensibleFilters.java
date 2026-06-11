@@ -38,7 +38,8 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public enum ExtensibleFilters {
-    API_TYPE("API type", Signal.ALL, ApiType.ALL);
+    // signals = served today (logs + analytics); traces join in a later lot. Cross-cutting on every API kind.
+    API_TYPE("API Type", Set.of(Signal.LOGS, Signal.ANALYTICS), ApiType.ALL);
 
     private final String label;
     private final Set<Signal> signals;

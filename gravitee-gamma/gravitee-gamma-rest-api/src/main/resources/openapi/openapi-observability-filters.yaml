@@ -1,0 +1,584 @@
+openapi: 3.0.3
+info:
+    title: Gravitee.io Gamma - Observability
+    description: |
+        Observability API surface exposed by Gravitee Gamma. Groups all endpoints related to
+        logs, analytics, traces, and their shared building blocks (filters, definitions).
+
+        ## Filters
+
+        Shared filter catalog for observability views. Provides three capabilities: discover
+        available filters for a given signal and API type, list the selectable values for a
+        filter, and resolve entity ids into human-readable labels in bulk.
+
+        Each filter declares which signals and API types it applies to, its data type, supported
+        operators, and — for ENUM filters — its allowed values with labels.
+
+        Value listing is type-driven: ENUM filters return their static values, KEYWORD filters
+        return distinct values from the data store, NUMBER and STRING filters have no enumerable
+        values (400). Id-based KEYWORD filters (API, APPLICATION, PLAN, API_PRODUCT) return
+        entity ids as values; use the `resolve` endpoint to hydrate them into display labels.
+    contact:
+        email: team-apim@graviteesource.com
+    license:
+        name: Apache 2.0
+        url: http://www.apache.org/licenses/LICENSE-2.0.html
+    version: 1.0.0
+
+security:
+    - CookieAuth: []
+
+servers:
+    - url: "/gamma"
+      description: Gravitee.io Gamma host application
+
+tags:
+    - name: Observability Filters
+      description: Filter catalog for observability views.
+
+paths:
+    /organizations/{orgId}/environments/{envId}/observability/filters/definition:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+        get:
+            tags:
+                - Observability Filters
+            summary: List the observability filter catalog
+            description: |
+                Returns the filter catalog, optionally narrowed by signal and/or API type. Both axes
+                are optional and multi-valued; omitting an axis means no constraint on it. A filter is
+                included when its declared signals/apiTypes intersect the requested values.
+            operationId: getObservabilityFilterDefinitions
+            parameters:
+                - name: signal
+                  in: query
+                  required: false
+                  description: Observability signal(s) to narrow by. Repeat for multiple values.
+                  example: LOGS
+                  schema:
+                      type: array
+                      items:
+                          $ref: "#/components/schemas/Signal"
+                - name: apiType
+                  in: query
+                  required: false
+                  description: API kind(s) to narrow by. Repeat for multiple values.
+                  example: HTTP_PROXY
+                  schema:
+                      type: array
+                      items:
+                          $ref: "#/components/schemas/ApiType"
+            responses:
+                "200":
+                    description: The filter catalog narrowed by the requested axes.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/FilterSpecsResponse"
+                            examples:
+                                full-catalog:
+                                    summary: Full catalog (no filter)
+                                    value:
+                                        data:
+                                            - name: "API_TYPE"
+                                              label: "API Type"
+                                              type: "enum"
+                                              operators: ["EQ", "IN"]
+                                              enumValues:
+                                                  - value: "HTTP_PROXY"
+                                                    label: "HTTP Proxy"
+                                                  - value: "NATIVE"
+                                                    label: "Kafka (native)"
+                                              signals: ["LOGS", "ANALYTICS"]
+                                              apiTypes: ["HTTP_PROXY", "LLM", "MESSAGE", "MCP", "NATIVE"]
+                                            - name: "HTTP_STATUS"
+                                              label: "Status Code"
+                                              type: "number"
+                                              operators: ["EQ", "GTE", "LTE"]
+                                              range:
+                                                  min: 100
+                                                  max: 599
+                                              signals: ["LOGS", "ANALYTICS"]
+                                              apiTypes: ["HTTP_PROXY", "LLM"]
+                                            - name: "API"
+                                              label: "API"
+                                              type: "keyword"
+                                              operators: ["EQ", "IN"]
+                                              signals: ["LOGS", "ANALYTICS", "TRACES"]
+                                              apiTypes: ["HTTP_PROXY", "LLM", "MESSAGE", "MCP", "NATIVE"]
+                                narrowed-by-signal:
+                                    summary: Narrowed by signal=TRACES
+                                    value:
+                                        data:
+                                            - name: "API"
+                                              label: "API"
+                                              type: "keyword"
+                                              operators: ["EQ", "IN"]
+                                              signals: ["LOGS", "ANALYTICS", "TRACES"]
+                                              apiTypes: ["HTTP_PROXY", "LLM", "MESSAGE", "MCP", "NATIVE"]
+                "400":
+                    description: An unknown `signal` or `apiType` value was supplied.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 400
+                                message: "Unknown signal value 'INVALID'"
+                "403":
+                    description: The caller cannot read observability metadata in this environment.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 403
+                                message: "Insufficient permissions to access observability metadata."
+
+    /organizations/{orgId}/environments/{envId}/observability/filters/{filterName}/values:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+        get:
+            tags:
+                - Observability Filters
+            summary: List selectable values for a filter
+            description: |
+                Paginated selectable values for one filter. ENUM filters return their static labelled
+                values (optionally filtered by a case-insensitive substring `query`). KEYWORD filters
+                return distinct values from the data store. NUMBER and STRING filters have no
+                enumerable values and return 400.
+            operationId: getObservabilityFilterValues
+            parameters:
+                - name: filterName
+                  in: path
+                  required: true
+                  description: Canonical filter name (e.g. `API_TYPE`, `HTTP_METHOD`, `API`).
+                  example: API_TYPE
+                  schema:
+                      type: string
+                - name: query
+                  in: query
+                  required: false
+                  description: Case-insensitive substring filter applied to the value or label.
+                  example: proxy
+                  schema:
+                      type: string
+                - name: from
+                  in: query
+                  required: false
+                  description: Start of time range (epoch milliseconds). Only applies to KEYWORD filters.
+                  example: 1717200000000
+                  schema:
+                      type: integer
+                      format: int64
+                - name: to
+                  in: query
+                  required: false
+                  description: End of time range (epoch milliseconds). Only applies to KEYWORD filters.
+                  example: 1717286400000
+                  schema:
+                      type: integer
+                      format: int64
+                - name: page
+                  in: query
+                  required: false
+                  description: 1-based page number.
+                  schema:
+                      type: integer
+                      default: 1
+                      minimum: 1
+                - name: perPage
+                  in: query
+                  required: false
+                  description: Page size (capped server-side at 100).
+                  schema:
+                      type: integer
+                      default: 10
+                      minimum: 1
+                      maximum: 100
+            responses:
+                "200":
+                    description: A page of selectable values.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/FilterValuesResponse"
+                            examples:
+                                enum-values:
+                                    summary: ENUM filter values (static)
+                                    value:
+                                        data:
+                                            - value: "HTTP_PROXY"
+                                              label: "HTTP Proxy"
+                                            - value: "NATIVE"
+                                              label: "Kafka (native)"
+                                        pagination:
+                                            totalCount: 6
+                                            page: 1
+                                            perPage: 10
+                                            pageCount: 1
+                                            pageItemsCount: 2
+                                keyword-id-based:
+                                    summary: KEYWORD filter values (id-based, e.g. API)
+                                    value:
+                                        data:
+                                            - value: "67e246cb-ab02-4da4-8f47-f9fa3e061d6b"
+                                              label: "Petstore API"
+                                            - value: "a1b2c3d4-0000-1111-2222-333344445555"
+                                              label: "Weather Service"
+                                        pagination:
+                                            totalCount: 42
+                                            page: 1
+                                            perPage: 10
+                                            pageCount: 5
+                                            pageItemsCount: 2
+                                keyword-direct:
+                                    summary: KEYWORD filter values (direct, e.g. GATEWAY)
+                                    value:
+                                        data:
+                                            - value: "gateway-eu-west-1"
+                                            - value: "gateway-us-east-1"
+                                            - value: "gateway-ap-south-1"
+                                        pagination:
+                                            totalCount: 3
+                                            page: 1
+                                            perPage: 10
+                                            pageCount: 1
+                                            pageItemsCount: 3
+                "400":
+                    description: The filter type does not support value listing (NUMBER / STRING).
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 400
+                                message: "Filter type NUMBER does not support value listing."
+                                technicalCode: "filter.values.unsupported"
+                "403":
+                    description: The caller cannot read observability metadata in this environment.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 403
+                                message: "Insufficient permissions to access observability metadata."
+                "404":
+                    description: No filter with the given name exists in the catalog.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 404
+                                message: "Filter 'UNKNOWN_FILTER' not found in the catalog."
+
+    /organizations/{orgId}/environments/{envId}/observability/filters/resolve:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+        post:
+            tags:
+                - Observability Filters
+            summary: Resolve stored filter ids into labels
+            description: |
+                Resolves entity ids into display labels in bulk. Only id-based filters (API,
+                APPLICATION, PLAN, API_PRODUCT) produce labels; other filters return an empty label
+                map. Limits: at most 10 entries, at most 100 ids per entry.
+            operationId: resolveObservabilityFilterLabels
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ResolveFilterLabelsRequest"
+                        examples:
+                            resolve-apis:
+                                summary: Resolve API and APPLICATION ids
+                                value:
+                                    entries:
+                                        - filterName: "API"
+                                          ids:
+                                              - "67e246cb-ab02-4da4-8f47-f9fa3e061d6b"
+                                              - "a1b2c3d4-0000-1111-2222-333344445555"
+                                        - filterName: "APPLICATION"
+                                          ids:
+                                              - "b5c6d7e8-9999-aaaa-bbbb-ccccddddeeee"
+            responses:
+                "200":
+                    description: The requested ids resolved to labels, grouped by filter.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ResolveFilterLabelsResponse"
+                            examples:
+                                resolved-labels:
+                                    summary: Resolved labels for API and APPLICATION
+                                    value:
+                                        entries:
+                                            - filterName: "API"
+                                              labels:
+                                                  "67e246cb-ab02-4da4-8f47-f9fa3e061d6b": "Petstore API"
+                                                  "a1b2c3d4-0000-1111-2222-333344445555": "Weather Service"
+                                            - filterName: "APPLICATION"
+                                              labels:
+                                                  "b5c6d7e8-9999-aaaa-bbbb-ccccddddeeee": "Mobile App"
+                "400":
+                    description: The request exceeds the entry / id limits.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 400
+                                message: "Request exceeds the maximum of 10 entries."
+                "403":
+                    description: The caller cannot read observability metadata in this environment.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 403
+                                message: "Insufficient permissions to access observability metadata."
+
+components:
+    securitySchemes:
+        CookieAuth:
+            type: apiKey
+            in: cookie
+            name: Auth-Graviteeio-APIM
+
+    parameters:
+        orgIdParam:
+            name: orgId
+            in: path
+            required: true
+            description: Organization id or hrid.
+            schema:
+                type: string
+        envIdParam:
+            name: envId
+            in: path
+            required: true
+            description: Environment id or hrid.
+            schema:
+                type: string
+
+    schemas:
+        Signal:
+            type: string
+            description: Observability signal a filter applies to.
+            enum: [LOGS, ANALYTICS, TRACES]
+
+        ApiType:
+            type: string
+            description: API kind a filter is relevant to.
+            enum: [HTTP_PROXY, LLM, MESSAGE, MCP, NATIVE, EDGE]
+
+        FilterType:
+            type: string
+            description: Data type of the filter.
+            enum: [keyword, string, number, enum, boolean]
+
+        FilterOperator:
+            type: string
+            description: Comparison operator supported by a filter.
+            enum: [EQ, IN, GTE, LTE]
+
+        EnumValue:
+            type: object
+            description: One allowed value of an ENUM filter with its display label.
+            required: [value, label]
+            properties:
+                value:
+                    type: string
+                    description: Stable technical value sent in filter queries.
+                    example: NATIVE
+                label:
+                    type: string
+                    description: Human-readable display text.
+                    example: Kafka (native)
+
+        Range:
+            type: object
+            description: Inclusive numeric bounds for NUMBER filters.
+            required: [min, max]
+            properties:
+                min:
+                    type: number
+                    description: Lower bound (inclusive).
+                    example: 100
+                max:
+                    type: number
+                    description: Upper bound (inclusive).
+                    example: 599
+
+        FilterSpec:
+            type: object
+            description: Specification of one filterable field in the catalog.
+            required: [name, label, type, operators, signals, apiTypes]
+            properties:
+                name:
+                    type: string
+                    description: Canonical unique identifier for this filter.
+                    example: HTTP_GATEWAY_RESPONSE_TIME
+                label:
+                    type: string
+                    description: Human-readable display name.
+                    example: Gateway Response Time
+                type:
+                    $ref: "#/components/schemas/FilterType"
+                operators:
+                    type: array
+                    description: Supported comparison operators for this filter.
+                    items:
+                        $ref: "#/components/schemas/FilterOperator"
+                enumValues:
+                    type: array
+                    nullable: true
+                    description: Allowed values. Present only for ENUM filters.
+                    items:
+                        $ref: "#/components/schemas/EnumValue"
+                range:
+                    nullable: true
+                    description: Numeric bounds. Present only for NUMBER filters.
+                    $ref: "#/components/schemas/Range"
+                signals:
+                    type: array
+                    description: Observability signals this filter applies to.
+                    items:
+                        $ref: "#/components/schemas/Signal"
+                apiTypes:
+                    type: array
+                    description: API kinds this filter is relevant to.
+                    items:
+                        $ref: "#/components/schemas/ApiType"
+
+        FilterSpecsResponse:
+            type: object
+            required: [data]
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/FilterSpec"
+
+        FilterValue:
+            type: object
+            description: A selectable value for a filter.
+            required: [value]
+            properties:
+                value:
+                    type: string
+                    description: Technical value used in filter queries. For id-based filters, this is the entity id.
+                    example: "67e246cb-ab02-4da4-8f47-f9fa3e061d6b"
+                label:
+                    type: string
+                    nullable: true
+                    description: Human-readable display text. Absent when identical to `value`.
+                    example: Petstore API
+
+        Pagination:
+            type: object
+            required: [totalCount, page, perPage, pageCount, pageItemsCount]
+            properties:
+                totalCount:
+                    type: integer
+                    format: int64
+                    description: Total number of items across all pages.
+                page:
+                    type: integer
+                    description: Current page number (1-based).
+                perPage:
+                    type: integer
+                    description: Effective page size (may be clamped by the server).
+                pageCount:
+                    type: integer
+                    description: Total number of pages.
+                pageItemsCount:
+                    type: integer
+                    description: Number of items in the current page.
+
+        FilterValuesResponse:
+            type: object
+            required: [data, pagination]
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/FilterValue"
+                pagination:
+                    $ref: "#/components/schemas/Pagination"
+
+        ResolveFilterLabelsRequestEntry:
+            type: object
+            description: A group of entity ids to resolve for one filter.
+            required: [filterName, ids]
+            properties:
+                filterName:
+                    type: string
+                    description: Name of the id-based filter (e.g. API, APPLICATION, PLAN).
+                    example: API
+                ids:
+                    type: array
+                    description: Entity ids to resolve into display labels.
+                    maxItems: 100
+                    items:
+                        type: string
+                    example: ["67e246cb-ab02-4da4-8f47-f9fa3e061d6b"]
+
+        ResolveFilterLabelsRequest:
+            type: object
+            required: [entries]
+            properties:
+                entries:
+                    type: array
+                    description: Filter groups to resolve. At most 10 entries.
+                    maxItems: 10
+                    items:
+                        $ref: "#/components/schemas/ResolveFilterLabelsRequestEntry"
+
+        ResolveFilterLabelsResponseEntry:
+            type: object
+            description: Resolved labels for one filter.
+            required: [filterName, labels]
+            properties:
+                filterName:
+                    type: string
+                    description: Name of the filter these labels belong to.
+                    example: API
+                labels:
+                    type: object
+                    description: Map of entity id to resolved display label.
+                    additionalProperties:
+                        type: string
+                    example:
+                        "67e246cb-ab02-4da4-8f47-f9fa3e061d6b": "Petstore API"
+
+        ResolveFilterLabelsResponse:
+            type: object
+            required: [entries]
+            properties:
+                entries:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ResolveFilterLabelsResponseEntry"
+
+        Error:
+            type: object
+            description: Standard error response.
+            required: [httpStatus, message]
+            properties:
+                httpStatus:
+                    type: integer
+                    description: HTTP status code.
+                message:
+                    type: string
+                    description: Human-readable error message.
+                technicalCode:
+                    type: string
+                    description: Machine-readable error code for programmatic handling.
