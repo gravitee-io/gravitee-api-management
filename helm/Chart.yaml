@@ -33,8 +33,6 @@ annotations:
     - kind: added
       description: "Support multiple custom domains for native Kafka APIs with `gateway.kafka.routingHostMode.domains` (list)"
       links:
-        - name: Jira
-          url: https://gravitee.atlassian.net/browse/APIM-14274
         - name: Github PR
           url: https://github.com/gravitee-io/gravitee-api-management/pull/17691
     - kind: deprecated
