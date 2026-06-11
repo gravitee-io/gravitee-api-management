@@ -228,14 +228,12 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
       analytics: {
         enabled: false,
       },
-      memberMapping: {
-        enabled: false,
-      },
-      transferOwnership: {
-        enabled: false,
-      },
-      invitations: {
-        enabled: false,
+      applications: {
+        membership: {
+          enabled: { enabled: false },
+          transferOwnership: { enabled: false },
+          invitations: { enabled: false },
+        },
       },
       banner: {
         enabled: true,

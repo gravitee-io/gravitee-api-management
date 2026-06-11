@@ -258,14 +258,12 @@ export interface PortalSettingsPortalNext {
   analytics?: {
     enabled?: boolean;
   };
-  memberMapping?: {
-    enabled?: boolean;
-  };
-  transferOwnership?: {
-    enabled?: boolean;
-  };
-  invitations?: {
-    enabled?: boolean;
+  applications?: {
+    membership?: {
+      enabled?: { enabled?: boolean };
+      transferOwnership?: { enabled?: boolean };
+      invitations?: { enabled?: boolean };
+    };
   };
   banner?: {
     title?: string;

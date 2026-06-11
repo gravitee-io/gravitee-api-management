@@ -465,6 +465,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             portalConfigEntity.getPortal().getUploadMedia(),
             portalConfigEntity.getPortal().getUserCreation(),
             portalConfigEntity.getPortalNext(),
+            portalConfigEntity.getPortalNext().getApplications().getMembership(),
             portalConfigEntity.getPortalNext().getBanner(),
             portalConfigEntity.getPortalNext().getBanner().getPrimaryButton(),
             portalConfigEntity.getPortalNext().getBanner().getSecondaryButton(),
