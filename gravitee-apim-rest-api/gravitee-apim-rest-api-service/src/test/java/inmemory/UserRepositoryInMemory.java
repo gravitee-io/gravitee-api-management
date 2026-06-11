@@ -101,7 +101,7 @@ public class UserRepositoryInMemory implements UserRepository {
         return storage
             .values()
             .stream()
-            .filter(u -> Objects.equals(u.getEmail(), email))
+            .filter(u -> u.getEmail() != null && u.getEmail().equalsIgnoreCase(email))
             .filter(u -> Objects.equals(u.getOrganizationId(), organizationId))
             .toList();
     }
