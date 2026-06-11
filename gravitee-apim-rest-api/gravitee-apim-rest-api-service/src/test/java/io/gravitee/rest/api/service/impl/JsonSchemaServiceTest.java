@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -76,7 +77,7 @@ public class JsonSchemaServiceTest {
               }
             }""";
         String validate = jsonSchemaService.validate(schema, configuration);
-        assertThat(validate).isEqualTo(
+        assertThatJson(validate).isEqualTo(
             """
             {"http":{"keepAliveTimeout":30000,"readTimeout":7777,"idleTimeout":60000,"connectTimeout":5000,"maxConcurrentConnections":100},"ssl":{"trustStore":{"path":"...","type":"PEM"},"hostnameVerifier":false,"trustAll":false}}"""
         );
@@ -112,7 +113,7 @@ public class JsonSchemaServiceTest {
 
         String result = jsonSchemaService.validate(schema, configuration);
 
-        assertThat(result).isEqualTo(
+        assertThatJson(result).isEqualTo(
             """
             {"obj":{"field1":"value1","field2":"default2"}}"""
         );
