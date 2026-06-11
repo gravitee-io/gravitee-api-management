@@ -69,6 +69,17 @@ public class UserCrudServiceImpl implements UserCrudService {
     }
 
     @Override
+    public List<BaseUserEntity> findBaseUsersByEmail(String organizationId, String email) {
+        try {
+            log.debug("Find users [organizationId={}, email={}]", organizationId, email);
+            return userRepository.findByEmail(email, organizationId).stream().map(UserAdapter.INSTANCE::fromUser).toList();
+        } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to find users using [organizationId={}, email={}]", organizationId, email, ex);
+            throw new TechnicalManagementException(ex);
+        }
+    }
+
+    @Override
     public BaseUserEntity getBaseUser(String id) {
         try {
             log.debug("Find user [userId={}]", id);
