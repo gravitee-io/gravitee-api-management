@@ -115,6 +115,9 @@ interface PortalForm {
     access: FormGroup<{ enabled: FormControl<boolean> }>;
     mtls: FormGroup<{ enabled: FormControl<boolean> }>;
     analytics: FormGroup<{ enabled: FormControl<boolean> }>;
+    memberMapping: FormGroup<{ enabled: FormControl<boolean> }>;
+    transferOwnership: FormGroup<{ enabled: FormControl<boolean> }>;
+    invitations: FormGroup<{ enabled: FormControl<boolean> }>;
   }>;
   scheduler: FormGroup<{
     tasks: FormControl<number>;
@@ -418,19 +421,37 @@ export class PortalSettingsComponent implements OnInit {
         access: new FormGroup({
           enabled: new FormControl({
             value: !!this.settings.portalNext?.access?.enabled,
-            disabled: this.isReadonly('portalNext.access.enabled'),
+            disabled: this.isReadonly('portal.next.access.enabled'),
           }),
         }),
         mtls: new FormGroup({
           enabled: new FormControl({
             value: !!this.settings.portalNext?.mtls?.enabled,
-            disabled: this.isReadonly('portalNext.mtls.enabled'),
+            disabled: this.isReadonly('portal.next.mtls.enabled'),
           }),
         }),
         analytics: new FormGroup({
           enabled: new FormControl({
             value: !!this.settings.portalNext?.analytics?.enabled,
-            disabled: this.isReadonly('portalNext.analytics.enabled'),
+            disabled: this.isReadonly('portal.next.analytics.enabled'),
+          }),
+        }),
+        memberMapping: new FormGroup({
+          enabled: new FormControl({
+            value: !!this.settings.portalNext?.memberMapping?.enabled,
+            disabled: this.isReadonly('portal.next.memberMapping.enabled'),
+          }),
+        }),
+        transferOwnership: new FormGroup({
+          enabled: new FormControl({
+            value: !!this.settings.portalNext?.transferOwnership?.enabled,
+            disabled: this.isReadonly('portal.next.transferOwnership.enabled'),
+          }),
+        }),
+        invitations: new FormGroup({
+          enabled: new FormControl({
+            value: !!this.settings.portalNext?.invitations?.enabled,
+            disabled: this.isReadonly('portal.next.invitations.enabled'),
           }),
         }),
       }),
@@ -690,8 +711,11 @@ export class PortalSettingsComponent implements OnInit {
           ...this.settings.portalNext.access,
           ...this.portalForm.get('portalNext.access').value,
         },
-        mtls: this.portalForm.get('portalNext.mtls').value,
-        analytics: this.portalForm.get('portalNext.analytics').value,
+        mtls: this.portalForm.controls.portalNext.controls.mtls.value,
+        analytics: this.portalForm.controls.portalNext.controls.analytics.value,
+        memberMapping: this.portalForm.controls.portalNext.controls.memberMapping.value,
+        transferOwnership: this.portalForm.controls.portalNext.controls.transferOwnership.value,
+        invitations: this.portalForm.controls.portalNext.controls.invitations.value,
       },
     };
 
