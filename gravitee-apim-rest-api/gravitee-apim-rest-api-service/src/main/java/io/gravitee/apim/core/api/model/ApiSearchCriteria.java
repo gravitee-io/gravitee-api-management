@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api.model;
 
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
@@ -40,5 +41,6 @@ public class ApiSearchCriteria {
     private String crossId;
     private Collection<DefinitionVersion> definitionVersion;
     private String integrationId;
+    private List<ApiType> notApiTypes;
     private Instant updatedAtFrom;
 }
