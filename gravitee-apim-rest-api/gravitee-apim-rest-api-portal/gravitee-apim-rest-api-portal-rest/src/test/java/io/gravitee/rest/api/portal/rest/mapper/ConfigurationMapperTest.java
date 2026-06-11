@@ -230,4 +230,64 @@ public class ConfigurationMapperTest {
         result = configurationMapper.convert(portalNext);
         Assertions.assertNull(result.getAnalytics());
     }
+
+    @Test
+    public void convertPortalNextShouldMapMemberMappingEnabled() {
+        PortalNext portalNext = new PortalNext();
+        portalNext.setAccess(new Enabled(false));
+
+        portalNext.setMemberMapping(new Enabled(true));
+        ConfigurationPortalNext result = configurationMapper.convert(portalNext);
+        Assertions.assertNotNull(result.getMemberMapping());
+        Assertions.assertEquals(Boolean.TRUE, result.getMemberMapping().getEnabled());
+
+        portalNext.setMemberMapping(new Enabled(false));
+        result = configurationMapper.convert(portalNext);
+        Assertions.assertNotNull(result.getMemberMapping());
+        Assertions.assertEquals(Boolean.FALSE, result.getMemberMapping().getEnabled());
+
+        portalNext.setMemberMapping(null);
+        result = configurationMapper.convert(portalNext);
+        Assertions.assertNull(result.getMemberMapping());
+    }
+
+    @Test
+    public void convertPortalNextShouldMapTransferOwnershipEnabled() {
+        PortalNext portalNext = new PortalNext();
+        portalNext.setAccess(new Enabled(false));
+
+        portalNext.setTransferOwnership(new Enabled(true));
+        ConfigurationPortalNext result = configurationMapper.convert(portalNext);
+        Assertions.assertNotNull(result.getTransferOwnership());
+        Assertions.assertEquals(Boolean.TRUE, result.getTransferOwnership().getEnabled());
+
+        portalNext.setTransferOwnership(new Enabled(false));
+        result = configurationMapper.convert(portalNext);
+        Assertions.assertNotNull(result.getTransferOwnership());
+        Assertions.assertEquals(Boolean.FALSE, result.getTransferOwnership().getEnabled());
+
+        portalNext.setTransferOwnership(null);
+        result = configurationMapper.convert(portalNext);
+        Assertions.assertNull(result.getTransferOwnership());
+    }
+
+    @Test
+    public void convertPortalNextShouldMapInvitationsEnabled() {
+        PortalNext portalNext = new PortalNext();
+        portalNext.setAccess(new Enabled(false));
+
+        portalNext.setInvitations(new Enabled(true));
+        ConfigurationPortalNext result = configurationMapper.convert(portalNext);
+        Assertions.assertNotNull(result.getInvitations());
+        Assertions.assertEquals(Boolean.TRUE, result.getInvitations().getEnabled());
+
+        portalNext.setInvitations(new Enabled(false));
+        result = configurationMapper.convert(portalNext);
+        Assertions.assertNotNull(result.getInvitations());
+        Assertions.assertEquals(Boolean.FALSE, result.getInvitations().getEnabled());
+
+        portalNext.setInvitations(null);
+        result = configurationMapper.convert(portalNext);
+        Assertions.assertNull(result.getInvitations());
+    }
 }

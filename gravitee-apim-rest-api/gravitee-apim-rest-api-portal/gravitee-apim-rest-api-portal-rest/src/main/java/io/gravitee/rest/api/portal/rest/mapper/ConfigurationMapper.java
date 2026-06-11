@@ -61,6 +61,15 @@ public class ConfigurationMapper {
         if (portalNext.getAnalytics() != null) {
             configuration.setAnalytics(convert(portalNext.getAnalytics()));
         }
+        if (portalNext.getMemberMapping() != null) {
+            configuration.setMemberMapping(convert(portalNext.getMemberMapping()));
+        }
+        if (portalNext.getTransferOwnership() != null) {
+            configuration.setTransferOwnership(convert(portalNext.getTransferOwnership()));
+        }
+        if (portalNext.getInvitations() != null) {
+            configuration.setInvitations(convert(portalNext.getInvitations()));
+        }
         return configuration;
     }
 
