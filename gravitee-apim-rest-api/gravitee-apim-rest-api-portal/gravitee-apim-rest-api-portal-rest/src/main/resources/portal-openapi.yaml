@@ -6930,7 +6930,19 @@ components:
                     $ref: "#/components/schemas/Enabled"
                 analytics:
                     $ref: "#/components/schemas/Enabled"
-                memberMapping:
+                applications:
+                    $ref: "#/components/schemas/ConfigurationPortalNextApplications"
+        ConfigurationPortalNextApplications:
+            type: object
+            description: Configuration of application-level features for Portal Next
+            properties:
+                membership:
+                    $ref: "#/components/schemas/ConfigurationPortalNextApplicationsMembership"
+        ConfigurationPortalNextApplicationsMembership:
+            type: object
+            description: Configuration of membership-related features for Portal Next applications
+            properties:
+                enabled:
                     $ref: "#/components/schemas/Enabled"
                 transferOwnership:
                     $ref: "#/components/schemas/Enabled"
