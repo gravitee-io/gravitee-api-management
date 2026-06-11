@@ -52,6 +52,28 @@ describe('Installation Plugins Service', () => {
           })
           .flush(fakeConnectors);
       });
+
+      it('should exclude gamma-only endpoint plugins', done => {
+        const fakeConnectors = [
+          fakeConnectorPlugin({ id: 'http-proxy' }),
+          fakeConnectorPlugin({ id: 'tools-mcp' }),
+          fakeConnectorPlugin({ id: 'tools-http' }),
+          fakeConnectorPlugin({ id: 'kafka' }),
+        ];
+
+        service.listEndpointPlugins().subscribe(connectors => {
+          expect(connectors).toHaveLength(2);
+          expect(connectors.map(c => c.id)).toEqual(['http-proxy', 'kafka']);
+          done();
+        });
+
+        httpTestingController
+          .expectOne({
+            url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints`,
+            method: 'GET',
+          })
+          .flush(fakeConnectors);
+      });
     });
 
     describe('listEndpointPluginsByApiType', () => {
@@ -97,6 +119,29 @@ describe('Installation Plugins Service', () => {
   });
 
   describe('Entrypoints', () => {
+    describe('listEntrypointPlugins', () => {
+      it('should exclude gamma-only entrypoint plugins', done => {
+        const fakeConnectors = [
+          fakeConnectorPlugin({ id: 'http-proxy', supportedApiType: 'PROXY' }),
+          fakeConnectorPlugin({ id: 'mcp-studio', supportedApiType: 'PROXY' }),
+          fakeConnectorPlugin({ id: 'webhook', supportedApiType: 'MESSAGE' }),
+        ];
+
+        service.listEntrypointPlugins().subscribe(connectors => {
+          expect(connectors).toHaveLength(2);
+          expect(connectors.map(c => c.id)).toEqual(['http-proxy', 'webhook']);
+          done();
+        });
+
+        httpTestingController
+          .expectOne({
+            url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints`,
+            method: 'GET',
+          })
+          .flush(fakeConnectors);
+      });
+    });
+
     describe('listSyncEntrypointPlugins', () => {
       it('should call the API', done => {
         const fakeConnectors = [fakeConnectorPlugin({ supportedApiType: 'PROXY' }), fakeConnectorPlugin({ supportedApiType: 'MESSAGE' })];
