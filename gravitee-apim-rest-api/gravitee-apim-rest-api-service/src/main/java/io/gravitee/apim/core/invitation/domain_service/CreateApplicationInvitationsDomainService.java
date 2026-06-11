@@ -26,6 +26,8 @@ import io.gravitee.apim.core.invitation.model.InvitationReference;
 import io.gravitee.apim.core.invitation.query_service.InvitationQueryService;
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
 import io.gravitee.apim.core.membership.domain_service.MembershipDomainService;
+import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -36,7 +38,9 @@ import jakarta.mail.internet.InternetAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
@@ -48,6 +52,7 @@ public class CreateApplicationInvitationsDomainService {
     private final ValidateApplicationInvitationRoleDomainService validateApplicationInvitationRoleDomainService;
     private final ApplicationInvitationNotificationDomainService applicationInvitationNotificationDomainService;
     private final UserCrudService userCrudService;
+    private final MembershipQueryService membershipQueryService;
     private final MembershipDomainService membershipDomainService;
 
     public List<ApplicationInvitation> create(
@@ -109,7 +114,7 @@ public class CreateApplicationInvitationsDomainService {
         var invitationRecipients = new ArrayList<String>();
 
         emails.forEach(email -> {
-            var users = userCrudService.findBaseUsersByEmail(organizationId, email);
+            var users = userCrudService.findBaseUsersByEmail(organizationId, email.toLowerCase(Locale.ROOT));
             if (users.size() > 1) {
                 throw new ConflictDomainException("Application invitation email [" + email + "] matches multiple users.", email);
             }
@@ -137,18 +142,35 @@ public class CreateApplicationInvitationsDomainService {
         ResolvedRecipients resolvedRecipients
     ) {
         var executionContext = new ExecutionContext(organizationId, environmentId);
-        resolvedRecipients
-            .existingUserRecipients()
-            .forEach(recipient ->
-                membershipDomainService.createNewMembership(
-                    executionContext,
-                    MembershipReferenceType.APPLICATION,
-                    applicationId,
-                    recipient.userId(),
-                    null,
-                    roleName
-                )
-            );
+        filterAlreadyApplicationMembers(applicationId, resolvedRecipients.existingUserRecipients()).forEach(recipient ->
+            membershipDomainService.createNewMembership(
+                executionContext,
+                MembershipReferenceType.APPLICATION,
+                applicationId,
+                recipient.userId(),
+                null,
+                roleName
+            )
+        );
+    }
+
+    private List<ExistingUserRecipient> filterAlreadyApplicationMembers(String applicationId, List<ExistingUserRecipient> recipients) {
+        if (recipients.isEmpty()) {
+            return recipients;
+        }
+
+        var userIds = recipients.stream().map(ExistingUserRecipient::userId).collect(Collectors.toSet());
+        var existingApplicationMemberIds = membershipQueryService
+            .findByMemberIdsAndMemberTypeAndReferenceType(userIds, Membership.Type.USER, Membership.ReferenceType.APPLICATION)
+            .stream()
+            .filter(membership -> applicationId.equals(membership.getReferenceId()))
+            .map(Membership::getMemberId)
+            .collect(Collectors.toSet());
+
+        return recipients
+            .stream()
+            .filter(recipient -> !existingApplicationMemberIds.contains(recipient.userId()))
+            .toList();
     }
 
     private boolean isValidEmail(String email) {
