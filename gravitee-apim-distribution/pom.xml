@@ -1228,21 +1228,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
-        <!-- Tracers -->
-        <dependency>
-            <groupId>io.gravitee.tracer</groupId>
-            <artifactId>gravitee-tracer-jaeger</artifactId>
-            <version>${gravitee-tracer-jaeger.version}</version>
-            <type>zip</type>
-            <scope>runtime</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
     </dependencies>
 
     <build>
