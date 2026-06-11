@@ -143,6 +143,43 @@ public class UserCrudServiceImplTest {
     }
 
     @Nested
+    class FindBaseUsersByEmail {
+
+        @Test
+        void should_find_users_by_email_in_organization_and_adapt_them() {
+            userRepository.initWith(
+                List.of(
+                    aRepositoryUser("1", "source-1", "source-id-1", "same@gravitee.io", "Jane 1", "Doe 1"),
+                    aRepositoryUser("2", "source-2", "source-id-2", "same@gravitee.io", "Jane 2", "Doe 2"),
+                    User.builder().id("3").organizationId("other-organization").email("same@gravitee.io").build()
+                )
+            );
+
+            var users = service.findBaseUsersByEmail("organization-id", "same@gravitee.io");
+
+            assertThat(users).extracting(BaseUserEntity::getId).containsExactly("1", "2");
+        }
+
+        @Test
+        void should_return_empty_when_no_matching_email() {
+            userRepository.initWith(List.of(aRepositoryUser()));
+
+            var result = service.findBaseUsersByEmail("organization-id", "unknown@gravitee.io");
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() {
+            userRepository.failsWith(new TechnicalException("technical exception"));
+
+            var throwable = catchThrowable(() -> service.findBaseUsersByEmail("organization-id", "same@gravitee.io"));
+
+            assertThat(throwable).isInstanceOf(TechnicalManagementException.class).hasMessageContaining("technical exception");
+        }
+    }
+
+    @Nested
     class Create {
 
         @Test
