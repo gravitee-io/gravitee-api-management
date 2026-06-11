@@ -97,7 +97,13 @@ public class UserRepositoryInMemory implements UserRepository {
 
     @Override
     public List<User> findByEmail(String email, String organizationId) throws TechnicalException {
-        throw new UnsupportedOperationException();
+        maybeThrow();
+        return storage
+            .values()
+            .stream()
+            .filter(u -> Objects.equals(u.getEmail(), email))
+            .filter(u -> Objects.equals(u.getOrganizationId(), organizationId))
+            .toList();
     }
 
     @Override
