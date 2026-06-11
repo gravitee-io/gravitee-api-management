@@ -194,7 +194,7 @@ services:
             - KAFKA_GRAVITEE_MANAGEMENTAPIORGADMINPASSWORD=admin
 
     kafka-init:
-        image: apache/kafka:3.9.1
+        image: apache/kafka:3.9.2
         container_name: kafka-init
         volumes:
             - data-kafka:/var/lib/kafka/data
@@ -210,7 +210,7 @@ services:
             "
 
     kafka:
-        image: apache/kafka:3.9.1
+        image: apache/kafka:3.9.2
         container_name: gio_apim_kafka
         hostname: kafka
         networks:

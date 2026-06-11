@@ -202,7 +202,7 @@ services:
             - email
 
     kafka-init:
-        image: apache/kafka:3.9.1
+        image: apache/kafka:3.9.2
         container_name: kafka-init
         volumes:
             - data-kafka:/var/lib/kafka/data
@@ -218,7 +218,7 @@ services:
             "
 
     kafka:
-        image: apache/kafka:3.9.1
+        image: apache/kafka:3.9.2
         container_name: gio_apim_kafka
         hostname: kafka
         networks:
@@ -264,7 +264,7 @@ services:
             - kafka
 
     kafka-client:
-        image: apache/kafka:3.9.1
+        image: apache/kafka:3.9.2
         container_name: gio_apim_kafka-client
         volumes:
             - ./.kafka-client-config:/app/config
