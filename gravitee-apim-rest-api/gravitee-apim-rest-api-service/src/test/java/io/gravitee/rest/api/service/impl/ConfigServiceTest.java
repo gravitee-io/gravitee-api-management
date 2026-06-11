@@ -45,9 +45,9 @@ import static io.gravitee.rest.api.model.parameters.Key.LOGGING_USER_DISPLAYED;
 import static io.gravitee.rest.api.model.parameters.Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_ANALYTICS_ENABLED;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED;
-import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_INVITATIONS_ENABLED;
-import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_MEMBER_MAPPING_ENABLED;
-import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_TRANSFER_OWNERSHIP_ENABLED;
+import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_ENABLED;
+import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_INVITATIONS_ENABLED;
+import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_TRANSFER_OWNERSHIP_ENABLED;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_SCHEDULER_NOTIFICATIONS;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_URL;
 import static io.gravitee.rest.api.model.parameters.Key.USER_GROUP_REQUIRED_ENABLED;
@@ -283,9 +283,9 @@ class ConfigServiceTest {
     @Test
     void shouldGetPortalSettingsWithPortalNextTogglesEnabled() {
         Map<String, List<String>> params = new HashMap<>();
-        params.put(PORTAL_NEXT_MEMBER_MAPPING_ENABLED.key(), singletonList("true"));
-        params.put(PORTAL_NEXT_TRANSFER_OWNERSHIP_ENABLED.key(), singletonList("true"));
-        params.put(PORTAL_NEXT_INVITATIONS_ENABLED.key(), singletonList("true"));
+        params.put(PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_ENABLED.key(), singletonList("true"));
+        params.put(PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_TRANSFER_OWNERSHIP_ENABLED.key(), singletonList("true"));
+        params.put(PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_INVITATIONS_ENABLED.key(), singletonList("true"));
 
         when(
             mockParameterService.findAll(
@@ -350,21 +350,21 @@ class ConfigServiceTest {
 
         verify(mockParameterService, times(1)).save(
             GraviteeContext.getExecutionContext(),
-            PORTAL_NEXT_MEMBER_MAPPING_ENABLED,
+            PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_ENABLED,
             "true",
             "DEFAULT",
             ParameterReferenceType.ENVIRONMENT
         );
         verify(mockParameterService, times(1)).save(
             GraviteeContext.getExecutionContext(),
-            PORTAL_NEXT_TRANSFER_OWNERSHIP_ENABLED,
+            PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_TRANSFER_OWNERSHIP_ENABLED,
             "false",
             "DEFAULT",
             ParameterReferenceType.ENVIRONMENT
         );
         verify(mockParameterService, times(1)).save(
             GraviteeContext.getExecutionContext(),
-            PORTAL_NEXT_INVITATIONS_ENABLED,
+            PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_INVITATIONS_ENABLED,
             "true",
             "DEFAULT",
             ParameterReferenceType.ENVIRONMENT

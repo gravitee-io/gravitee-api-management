@@ -69,13 +69,13 @@ public class PortalNext {
         @JsonIgnoreProperties(ignoreUnknown = true)
         public static class Membership {
 
-            @ParameterKey(Key.PORTAL_NEXT_MEMBER_MAPPING_ENABLED)
+            @ParameterKey(Key.PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_ENABLED)
             private Enabled enabled;
 
-            @ParameterKey(Key.PORTAL_NEXT_TRANSFER_OWNERSHIP_ENABLED)
+            @ParameterKey(Key.PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_TRANSFER_OWNERSHIP_ENABLED)
             private Enabled transferOwnership;
 
-            @ParameterKey(Key.PORTAL_NEXT_INVITATIONS_ENABLED)
+            @ParameterKey(Key.PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_INVITATIONS_ENABLED)
             private Enabled invitations;
         }
     }
