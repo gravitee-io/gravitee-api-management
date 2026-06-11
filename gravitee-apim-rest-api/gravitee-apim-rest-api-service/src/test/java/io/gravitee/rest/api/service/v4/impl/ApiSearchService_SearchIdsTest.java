@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_TYPE;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -24,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -153,6 +155,7 @@ public class ApiSearchService_SearchIdsTest {
         var filters = new HashMap<String, Object>();
         filters.put("api", ids);
         apiEntityQueryBuilder.setFilters(filters);
+        apiEntityQueryBuilder.addExcludedFilter(FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
 
         when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build()))).thenReturn(
             new SearchResult(List.of())
@@ -178,6 +181,7 @@ public class ApiSearchService_SearchIdsTest {
         var filters = new HashMap<String, Object>();
         filters.put("api", ids);
         apiEntityQueryBuilder.setFilters(filters);
+        apiEntityQueryBuilder.addExcludedFilter(FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
 
         when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build()))).thenReturn(
             new SearchResult(List.of("api-id"))
@@ -204,6 +208,7 @@ public class ApiSearchService_SearchIdsTest {
         var filters = new HashMap<String, Object>();
         filters.put("api", ids);
         apiEntityQueryBuilder.setFilters(filters);
+        apiEntityQueryBuilder.addExcludedFilter(FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
 
         when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build()))).thenReturn(
             new SearchResult(List.of("api-id"))
@@ -230,6 +235,7 @@ public class ApiSearchService_SearchIdsTest {
         var filters = new HashMap<String, Object>();
         filters.put("api", ids);
         apiEntityQueryBuilder.setFilters(filters);
+        apiEntityQueryBuilder.addExcludedFilter(FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
 
         when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build()))).thenReturn(
             new SearchResult(List.of("api-id"))

@@ -223,5 +223,22 @@
         "lifecycleState": "STARTED",
         "apiLifecycleState": "CREATED",
         "disableMembershipNotifications": true
+    },
+    {
+        "id": "edge-api",
+        "environmentId": "DEFAULT",
+        "origin": "management",
+        "mode": "fully_managed",
+        "name": "edge api for test",
+        "definitionVersion": "4.0.0",
+        "type": "edge",
+        "version": "1.0",
+        "definition": "{\"id\":\"edge-api\",\"name\":\"edge api\",\"type\":\"edge\"}",
+        "visibility": "PRIVATE",
+        "createdAt": 1439022010883,
+        "updatedAt": 1439022010883,
+        "lifecycleState": "STARTED",
+        "apiLifecycleState": "CREATED",
+        "disableMembershipNotifications": false
     }
 ]

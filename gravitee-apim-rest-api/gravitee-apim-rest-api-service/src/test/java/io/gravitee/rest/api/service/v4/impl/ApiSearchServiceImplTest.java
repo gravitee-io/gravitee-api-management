@@ -428,7 +428,11 @@ public class ApiSearchServiceImplTest {
         api2.setName("api2");
 
         when(
-            apiRepository.search(eq(new ApiCriteria.Builder().environmentId("DEFAULT").build()), isNull(), eq(ApiFieldFilter.allFields()))
+            apiRepository.search(
+                eq(new ApiCriteria.Builder().environmentId("DEFAULT").notApiTypes(List.of(ApiType.EDGE)).build()),
+                isNull(),
+                eq(ApiFieldFilter.allFields())
+            )
         ).thenReturn(Stream.of(api1));
 
         UserEntity admin = new UserEntity();
@@ -458,7 +462,13 @@ public class ApiSearchServiceImplTest {
 
         when(
             apiRepository.search(
-                eq(new ApiCriteria.Builder().environmentId("DEFAULT").definitionVersion(definitionList).build()),
+                eq(
+                    new ApiCriteria.Builder()
+                        .environmentId("DEFAULT")
+                        .notApiTypes(List.of(ApiType.EDGE))
+                        .definitionVersion(definitionList)
+                        .build()
+                ),
                 isNull(),
                 eq(ApiFieldFilter.allFields())
             )
@@ -500,6 +510,7 @@ public class ApiSearchServiceImplTest {
                 eq(
                     new ApiCriteria.Builder()
                         .environmentId("DEFAULT")
+                        .notApiTypes(List.of(ApiType.EDGE))
                         .category("cat1")
                         .groups(List.of("group1"))
                         .state(LifecycleState.STARTED)

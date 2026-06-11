@@ -35,6 +35,7 @@ import io.gravitee.apim.core.api_product.domain_service.RemoveApiFromApiProducts
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -301,7 +302,12 @@ public class ApiServiceImpl_findAllTest {
 
         when(
             apiRepository.search(
-                eq(new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).build()),
+                eq(
+                    new ApiCriteria.Builder()
+                        .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
+                        .notApiTypes(List.of(ApiType.EDGE))
+                        .build()
+                ),
                 isNull(),
                 eq(pageable),
                 eq(new ApiFieldFilter.Builder().excludePicture().build())
@@ -335,7 +341,12 @@ public class ApiServiceImpl_findAllTest {
 
         when(
             apiRepository.search(
-                eq(new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).build()),
+                eq(
+                    new ApiCriteria.Builder()
+                        .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
+                        .notApiTypes(List.of(ApiType.EDGE))
+                        .build()
+                ),
                 isNull(),
                 eq(pageable),
                 eq(new ApiFieldFilter.Builder().excludePicture().build())
@@ -377,6 +388,7 @@ public class ApiServiceImpl_findAllTest {
                     new ApiCriteria.Builder()
                         .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
                         .ids(Set.of("API_1"))
+                        .notApiTypes(List.of(ApiType.EDGE))
                         .build()
                 ),
                 isNull(),
@@ -432,7 +444,12 @@ public class ApiServiceImpl_findAllTest {
 
         when(
             apiRepository.search(
-                eq(new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).build()),
+                eq(
+                    new ApiCriteria.Builder()
+                        .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
+                        .notApiTypes(List.of(ApiType.EDGE))
+                        .build()
+                ),
                 eq(sortable),
                 eq(pageable),
                 eq(new ApiFieldFilter.Builder().excludePicture().build())
@@ -470,7 +487,12 @@ public class ApiServiceImpl_findAllTest {
 
         when(
             apiRepository.search(
-                eq(new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).build()),
+                eq(
+                    new ApiCriteria.Builder()
+                        .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
+                        .notApiTypes(List.of(ApiType.EDGE))
+                        .build()
+                ),
                 eq(sortable),
                 eq(pageable),
                 eq(new ApiFieldFilter.Builder().excludePicture().build())
@@ -503,7 +525,12 @@ public class ApiServiceImpl_findAllTest {
 
         when(
             apiRepository.search(
-                eq(new ApiCriteria.Builder().environmentId(GraviteeContext.getExecutionContext().getEnvironmentId()).build()),
+                eq(
+                    new ApiCriteria.Builder()
+                        .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
+                        .notApiTypes(List.of(ApiType.EDGE))
+                        .build()
+                ),
                 eq(sortable),
                 eq(pageable),
                 eq(new ApiFieldFilter.Builder().excludePicture().build())
