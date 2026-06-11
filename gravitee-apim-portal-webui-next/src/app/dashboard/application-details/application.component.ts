@@ -20,6 +20,7 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Application } from '../../../entities/application/application';
 import { UserApplicationPermissions } from '../../../entities/permission/permission';
 import { BreadcrumbService } from '../../../services/breadcrumb.service';
+import { ConfigService } from '../../../services/config.service';
 import { applicationListBreadcrumb } from '../applications/application-breadcrumbs';
 
 @Component({
@@ -30,12 +31,19 @@ import { applicationListBreadcrumb } from '../applications/application-breadcrum
 })
 export default class ApplicationComponent {
   private readonly breadcrumbService = inject(BreadcrumbService);
+  private readonly configService = inject(ConfigService);
 
   readonly application = input.required<Application>();
   readonly userApplicationPermissions = input.required<UserApplicationPermissions>();
 
-  readonly canViewMembersTab = computed(() => this.userApplicationPermissions().MEMBER?.includes('R') ?? false);
-  readonly canViewInvitationsTab = computed(() => this.userApplicationPermissions().MEMBER?.includes('R') ?? false);
+  readonly canViewMembersTab = computed(() => {
+    const memberMappingEnabled = this.configService.configuration.portalNext?.applications?.membership?.enabled?.enabled === true;
+    return memberMappingEnabled && (this.userApplicationPermissions().MEMBER?.includes('R') ?? false);
+  });
+  readonly canViewInvitationsTab = computed(() => {
+    const invitationsEnabled = this.configService.configuration.portalNext?.applications?.membership?.invitations?.enabled === true;
+    return invitationsEnabled && (this.userApplicationPermissions().MEMBER?.includes('R') ?? false);
+  });
 
   constructor() {
     effect(() => {
