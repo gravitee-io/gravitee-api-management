@@ -23,6 +23,9 @@ import { isEmpty } from 'lodash';
 import { Constants } from '../entities/Constants';
 import { ApiType, ConnectorPlugin, ConnectorVM, MoreInformation } from '../entities/management-api-v2';
 
+const EXCLUDED_ENTRYPOINT_IDS: string[] = ['mcp-studio'];
+const EXCLUDED_ENDPOINT_IDS: string[] = ['tools-mcp', 'tools-http'];
+
 @Injectable({
   providedIn: 'root',
 })
@@ -33,7 +36,9 @@ export class ConnectorPluginsV2Service {
   ) {}
 
   listEndpointPlugins(): Observable<ConnectorPlugin[]> {
-    return this.http.get<ConnectorPlugin[]>(`${this.constants.org.v2BaseURL}/plugins/endpoints`);
+    return this.http
+      .get<ConnectorPlugin[]>(`${this.constants.org.v2BaseURL}/plugins/endpoints`)
+      .pipe(map(plugins => plugins.filter(p => !EXCLUDED_ENDPOINT_IDS.includes(p.id))));
   }
 
   listEndpointPluginsByApiType(apiType: ApiType): Observable<ConnectorPlugin[]> {
@@ -51,7 +56,9 @@ export class ConnectorPluginsV2Service {
   }
 
   listEntrypointPlugins(): Observable<ConnectorPlugin[]> {
-    return this.http.get<ConnectorPlugin[]>(`${this.constants.org.v2BaseURL}/plugins/entrypoints`);
+    return this.http
+      .get<ConnectorPlugin[]>(`${this.constants.org.v2BaseURL}/plugins/entrypoints`)
+      .pipe(map(plugins => plugins.filter(p => !EXCLUDED_ENTRYPOINT_IDS.includes(p.id))));
   }
 
   listSyncEntrypointPlugins(): Observable<ConnectorPlugin[]> {
