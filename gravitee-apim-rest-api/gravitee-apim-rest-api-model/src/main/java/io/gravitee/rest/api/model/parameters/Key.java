@@ -145,17 +145,21 @@ public enum Key {
     PORTAL_NEXT_CATALOG_VIEW_MODE("portal.next.catalog.viewMode", new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_MTLS_ENABLED("portal.next.mtls.enabled", new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_ANALYTICS_ENABLED("portal.next.analytics.enabled", Boolean.FALSE.toString(), new HashSet<>(singletonList(ENVIRONMENT))),
-    PORTAL_NEXT_MEMBER_MAPPING_ENABLED(
-        "portal.next.memberMapping.enabled",
+    PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_ENABLED(
+        "portal.next.applications.membership.enabled",
         Boolean.FALSE.toString(),
         new HashSet<>(singletonList(ENVIRONMENT))
     ),
-    PORTAL_NEXT_TRANSFER_OWNERSHIP_ENABLED(
-        "portal.next.transferOwnership.enabled",
+    PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_TRANSFER_OWNERSHIP_ENABLED(
+        "portal.next.applications.membership.transferOwnership.enabled",
         Boolean.FALSE.toString(),
         new HashSet<>(singletonList(ENVIRONMENT))
     ),
-    PORTAL_NEXT_INVITATIONS_ENABLED("portal.next.invitations.enabled", Boolean.FALSE.toString(), new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_INVITATIONS_ENABLED(
+        "portal.next.applications.membership.invitations.enabled",
+        Boolean.FALSE.toString(),
+        new HashSet<>(singletonList(ENVIRONMENT))
+    ),
 
     MANAGEMENT_TITLE("management.title", "Gravitee.io Management", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     MANAGEMENT_URL("management.url", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),

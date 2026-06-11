@@ -445,19 +445,19 @@ export class PortalSettingsComponent implements OnInit {
             enabled: new FormGroup({
               enabled: new FormControl({
                 value: !!this.settings.portalNext?.applications?.membership?.enabled?.enabled,
-                disabled: this.isReadonly('portal.next.memberMapping.enabled'),
+                disabled: this.isReadonly('portal.next.applications.membership.enabled'),
               }),
             }),
             transferOwnership: new FormGroup({
               enabled: new FormControl({
                 value: !!this.settings.portalNext?.applications?.membership?.transferOwnership?.enabled,
-                disabled: this.isReadonly('portal.next.transferOwnership.enabled'),
+                disabled: this.isReadonly('portal.next.applications.membership.transferOwnership.enabled'),
               }),
             }),
             invitations: new FormGroup({
               enabled: new FormControl({
                 value: !!this.settings.portalNext?.applications?.membership?.invitations?.enabled,
-                disabled: this.isReadonly('portal.next.invitations.enabled'),
+                disabled: this.isReadonly('portal.next.applications.membership.invitations.enabled'),
               }),
             }),
           }),
