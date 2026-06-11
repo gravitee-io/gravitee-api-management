@@ -50,6 +50,15 @@ public class UserCrudServiceInMemory implements UserCrudService, InMemoryAlterna
     }
 
     @Override
+    public List<BaseUserEntity> findBaseUsersByEmail(String organizationId, String email) {
+        return storage
+            .stream()
+            .filter(user -> organizationId.equals(user.getOrganizationId()))
+            .filter(user -> email.equals(user.getEmail()))
+            .toList();
+    }
+
+    @Override
     public BaseUserEntity getBaseUser(String userId) {
         return storage
             .stream()

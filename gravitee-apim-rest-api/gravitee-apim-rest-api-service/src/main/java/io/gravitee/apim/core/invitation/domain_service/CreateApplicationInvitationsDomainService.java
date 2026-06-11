@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.invitation.domain_service;
 
+import static io.gravitee.apim.core.member.model.SystemRole.PRIMARY_OWNER;
+
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.exception.ConflictDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -22,10 +24,17 @@ import io.gravitee.apim.core.invitation.crud_service.InvitationCrudService;
 import io.gravitee.apim.core.invitation.model.ApplicationInvitation;
 import io.gravitee.apim.core.invitation.model.InvitationReference;
 import io.gravitee.apim.core.invitation.query_service.InvitationQueryService;
+import io.gravitee.apim.core.member.model.MembershipReferenceType;
+import io.gravitee.apim.core.membership.domain_service.MembershipDomainService;
+import io.gravitee.apim.core.user.crud_service.UserCrudService;
+import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.SinglePrimaryOwnerException;
 import jakarta.annotation.Nonnull;
 import jakarta.mail.internet.AddressException;
 import jakarta.mail.internet.InternetAddress;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +47,8 @@ public class CreateApplicationInvitationsDomainService {
     private final InvitationCrudService invitationCrudService;
     private final ValidateApplicationInvitationRoleDomainService validateApplicationInvitationRoleDomainService;
     private final ApplicationInvitationNotificationDomainService applicationInvitationNotificationDomainService;
+    private final UserCrudService userCrudService;
+    private final MembershipDomainService membershipDomainService;
 
     public List<ApplicationInvitation> create(
         @Nonnull String organizationId,
@@ -52,13 +63,18 @@ public class CreateApplicationInvitationsDomainService {
         var emails = validateRecipients(recipientEmails);
 
         validateNoPendingInvitation(applicationId, emails);
-        var createdInvitations = emails
+        var resolvedRecipients = resolveRecipients(organizationId, emails);
+        validateDirectMemberAdditionRole(roleName, resolvedRecipients);
+        addExistingUsersAsApplicationMembers(organizationId, environmentId, applicationId, roleName, resolvedRecipients);
+
+        var createdInvitations = resolvedRecipients
+            .invitationRecipients()
             .stream()
             .map(email -> ApplicationInvitation.create(applicationId, email, roleName))
             .map(invitationCrudService::create)
             .toList();
 
-        if (notifyUsers) {
+        if (notifyUsers && !createdInvitations.isEmpty()) {
             applicationInvitationNotificationDomainService.dispatchAsync(
                 organizationId,
                 environmentId,
@@ -88,6 +104,53 @@ public class CreateApplicationInvitationsDomainService {
         return recipients;
     }
 
+    private ResolvedRecipients resolveRecipients(String organizationId, Set<String> emails) {
+        var existingUserRecipients = new ArrayList<ExistingUserRecipient>();
+        var invitationRecipients = new ArrayList<String>();
+
+        emails.forEach(email -> {
+            var users = userCrudService.findBaseUsersByEmail(organizationId, email);
+            if (users.size() > 1) {
+                throw new ConflictDomainException("Application invitation email [" + email + "] matches multiple users.", email);
+            }
+            if (users.size() == 1) {
+                existingUserRecipients.add(new ExistingUserRecipient(users.getFirst().getId()));
+            } else {
+                invitationRecipients.add(email);
+            }
+        });
+
+        return new ResolvedRecipients(existingUserRecipients, invitationRecipients);
+    }
+
+    private void validateDirectMemberAdditionRole(String roleName, ResolvedRecipients resolvedRecipients) {
+        if (!resolvedRecipients.existingUserRecipients().isEmpty() && PRIMARY_OWNER.name().equals(roleName)) {
+            throw new SinglePrimaryOwnerException(RoleScope.APPLICATION);
+        }
+    }
+
+    private void addExistingUsersAsApplicationMembers(
+        String organizationId,
+        String environmentId,
+        String applicationId,
+        String roleName,
+        ResolvedRecipients resolvedRecipients
+    ) {
+        var executionContext = new ExecutionContext(organizationId, environmentId);
+        resolvedRecipients
+            .existingUserRecipients()
+            .forEach(recipient ->
+                membershipDomainService.createNewMembership(
+                    executionContext,
+                    MembershipReferenceType.APPLICATION,
+                    applicationId,
+                    recipient.userId(),
+                    null,
+                    roleName
+                )
+            );
+    }
+
     private boolean isValidEmail(String email) {
         try {
             var internetAddress = new InternetAddress(email);
@@ -109,4 +172,8 @@ public class CreateApplicationInvitationsDomainService {
                 throw new ConflictDomainException("A pending application invitation already exists for email [" + email + "].", email);
             });
     }
+
+    private record ExistingUserRecipient(String userId) {}
+
+    private record ResolvedRecipients(List<ExistingUserRecipient> existingUserRecipients, List<String> invitationRecipients) {}
 }
