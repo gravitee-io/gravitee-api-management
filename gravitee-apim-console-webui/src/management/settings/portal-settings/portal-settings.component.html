@@ -489,6 +489,33 @@
                 aria-label="Analytics Enabled"
               ></mat-slide-toggle>
             </gio-form-slide-toggle>
+            <gio-form-slide-toggle formGroupName="memberMapping" class="portal__form__card__form-field">
+              <gio-form-label>Enable Team Member Mapping</gio-form-label>
+              <mat-slide-toggle
+                id="enable-portal-next-member-mapping"
+                formControlName="enabled"
+                gioFormSlideToggle
+                aria-label="Team Member Mapping Enabled"
+              ></mat-slide-toggle>
+            </gio-form-slide-toggle>
+            <gio-form-slide-toggle formGroupName="transferOwnership" class="portal__form__card__form-field">
+              <gio-form-label>Enable Transfer of Ownership</gio-form-label>
+              <mat-slide-toggle
+                id="enable-portal-next-transfer-ownership"
+                formControlName="enabled"
+                gioFormSlideToggle
+                aria-label="Transfer of Ownership Enabled"
+              ></mat-slide-toggle>
+            </gio-form-slide-toggle>
+            <gio-form-slide-toggle formGroupName="invitations" class="portal__form__card__form-field">
+              <gio-form-label>Enable Team Invitation Sending</gio-form-label>
+              <mat-slide-toggle
+                id="enable-portal-next-invitations"
+                formControlName="enabled"
+                gioFormSlideToggle
+                aria-label="Team Invitation Sending Enabled"
+              ></mat-slide-toggle>
+            </gio-form-slide-toggle>
             @if (!!settings.portalNext?.access?.enabled) {
               <div class="new-developer-portal-actions">
                 @if (portalUrl) {
