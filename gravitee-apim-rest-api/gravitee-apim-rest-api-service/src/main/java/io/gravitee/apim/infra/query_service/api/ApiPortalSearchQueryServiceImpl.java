@@ -20,6 +20,7 @@ import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.query_service.ApiPortalSearchQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -61,7 +62,11 @@ public class ApiPortalSearchQueryServiceImpl implements ApiPortalSearchQueryServ
         if (queryText.isEmpty()) {
             // No text query: delegate sorting and pagination to the repository
             return apiQueryService.search(
-                ApiSearchCriteria.builder().ids(List.copyOf(allowedApiIds)).environmentId(query.environmentId()).build(),
+                ApiSearchCriteria.builder()
+                    .ids(List.copyOf(allowedApiIds))
+                    .environmentId(query.environmentId())
+                    .notApiTypes(List.of(ApiType.EDGE))
+                    .build(),
                 sortable.map(this::toCoreSortable).orElse(null),
                 pageable.orElse(null),
                 null
@@ -100,7 +105,12 @@ public class ApiPortalSearchQueryServiceImpl implements ApiPortalSearchQueryServ
 
         // Fetch by IDs then reorder to preserve Lucene relevance order
         Map<String, Api> apiById = apiQueryService
-            .search(ApiSearchCriteria.builder().ids(pageSubset).environmentId(query.environmentId()).build(), null, null, null)
+            .search(
+                ApiSearchCriteria.builder().ids(pageSubset).environmentId(query.environmentId()).notApiTypes(List.of(ApiType.EDGE)).build(),
+                null,
+                null,
+                null
+            )
             .getContent()
             .stream()
             .collect(Collectors.toMap(Api::getId, Function.identity()));
