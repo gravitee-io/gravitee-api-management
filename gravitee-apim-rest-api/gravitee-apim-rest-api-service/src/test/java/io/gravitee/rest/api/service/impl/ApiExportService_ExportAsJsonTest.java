@@ -16,10 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
-<<<<<<< HEAD
-=======
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
->>>>>>> dd949b5fe5 (fix(rest-api): fail API export when serialization fails instead of returning empty)
 import static org.mockito.Mockito.when;
 
 import com.google.common.base.Charsets;
@@ -36,18 +33,10 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-<<<<<<< HEAD
+import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-=======
-import java.util.Set;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
->>>>>>> dd949b5fe5 (fix(rest-api): fail API export when serialization fails instead of returning empty)
 
 /**
  * @author Azize Elamrani (azize.elamrani at graviteesource.com)
