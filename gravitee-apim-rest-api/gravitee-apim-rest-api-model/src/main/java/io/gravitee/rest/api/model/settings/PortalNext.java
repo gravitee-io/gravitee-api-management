@@ -43,22 +43,41 @@ public class PortalNext {
     @ParameterKey(Key.PORTAL_NEXT_ANALYTICS_ENABLED)
     private Enabled analytics;
 
-    @ParameterKey(Key.PORTAL_NEXT_MEMBER_MAPPING_ENABLED)
-    private Enabled memberMapping;
-
-    @ParameterKey(Key.PORTAL_NEXT_TRANSFER_OWNERSHIP_ENABLED)
-    private Enabled transferOwnership;
-
-    @ParameterKey(Key.PORTAL_NEXT_INVITATIONS_ENABLED)
-    private Enabled invitations;
+    private Applications applications;
 
     private Banner banner;
 
     private Catalog catalog;
 
     public PortalNext() {
+        this.applications = new Applications();
         this.banner = new Banner();
         this.catalog = new Catalog();
+    }
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Applications {
+
+        private Membership membership;
+
+        public Applications() {
+            this.membership = new Membership();
+        }
+
+        @Data
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        public static class Membership {
+
+            @ParameterKey(Key.PORTAL_NEXT_MEMBER_MAPPING_ENABLED)
+            private Enabled enabled;
+
+            @ParameterKey(Key.PORTAL_NEXT_TRANSFER_OWNERSHIP_ENABLED)
+            private Enabled transferOwnership;
+
+            @ParameterKey(Key.PORTAL_NEXT_INVITATIONS_ENABLED)
+            private Enabled invitations;
+        }
     }
 
     @Data

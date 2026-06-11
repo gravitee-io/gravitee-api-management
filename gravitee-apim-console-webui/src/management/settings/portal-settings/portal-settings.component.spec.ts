@@ -204,14 +204,12 @@ describe('PortalSettingsComponent', () => {
           analytics: {
             enabled: false,
           },
-          memberMapping: {
-            enabled: false,
-          },
-          transferOwnership: {
-            enabled: false,
-          },
-          invitations: {
-            enabled: false,
+          applications: {
+            membership: {
+              enabled: { enabled: false },
+              transferOwnership: { enabled: false },
+              invitations: { enabled: false },
+            },
           },
           banner: {
             ...portalSettingsMock.portalNext.banner,
@@ -253,7 +251,7 @@ describe('PortalSettingsComponent', () => {
 
       const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings`);
       expect(req.request.method).toEqual('POST');
-      expect(req.request.body.portalNext.memberMapping.enabled).toEqual(true);
+      expect(req.request.body.portalNext.applications.membership.enabled.enabled).toEqual(true);
     });
 
     it('display settings form and edit Portal Next transfer of ownership toggle', async () => {
@@ -270,7 +268,7 @@ describe('PortalSettingsComponent', () => {
 
       const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings`);
       expect(req.request.method).toEqual('POST');
-      expect(req.request.body.portalNext.transferOwnership.enabled).toEqual(true);
+      expect(req.request.body.portalNext.applications.membership.transferOwnership.enabled).toEqual(true);
     });
 
     it('display settings form and edit Portal Next invitations toggle', async () => {
@@ -287,7 +285,7 @@ describe('PortalSettingsComponent', () => {
 
       const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings`);
       expect(req.request.method).toEqual('POST');
-      expect(req.request.body.portalNext.invitations.enabled).toEqual(true);
+      expect(req.request.body.portalNext.applications.membership.invitations.enabled).toEqual(true);
     });
 
     it('display settings form and edit CORS fields', async () => {
