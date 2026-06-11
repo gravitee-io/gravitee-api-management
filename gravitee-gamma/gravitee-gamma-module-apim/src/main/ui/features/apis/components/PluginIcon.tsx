@@ -13,16 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { PlugIcon } from '@gravitee/graphene-core/icons';
 
-export * from './alert';
-export * from './analytics';
-export * from './api';
-export * from './apiCreation';
-export * from './auditLogs.types';
-export * from './broadcast';
-export * from './healthCheck';
-export * from './members.types';
-export * from './notification';
-export * from './plan';
-export * from './resource';
-export * from './subscription';
+/** Plugin icon with a plug fallback when the plugin has no icon (or is unknown). */
+export function PluginIcon({ icon, className = 'size-6' }: Readonly<{ icon?: string; className?: string }>) {
+    if (icon) return <img src={icon} alt="" className={`${className} object-contain`} aria-hidden />;
+    return <PlugIcon className={`${className} text-muted-foreground`} aria-hidden />;
+}
