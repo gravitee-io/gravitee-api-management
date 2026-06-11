@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 import com.google.common.base.Charsets;
@@ -24,12 +25,15 @@ import io.gravitee.definition.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.GroupsNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -80,5 +84,17 @@ public class ApiExportService_ExportAsJsonTest extends ApiExportService_ExportAs
     @Test
     public void shouldConvertAsJsonForExportWithExecutionMode_v4_emulation_engine() throws IOException {
         shouldConvertAsJsonForExportWithExecutionMode(ApiSerializer.Version.DEFAULT, ExecutionMode.V4_EMULATION_ENGINE);
+    }
+
+    @Test
+    public void exportAsJson_throwsTechnicalManagementException_whenSerializationFails() {
+        // API references a group that no longer exists: the serializer throws and must not be swallowed
+        when(groupService.findByIds(apiEntity.getGroups())).thenThrow(new GroupsNotFoundException(Set.of("my-group")));
+
+        assertThatThrownBy(() ->
+            apiExportService.exportAsJson(GraviteeContext.getExecutionContext(), API_ID, ApiSerializer.Version.DEFAULT.getVersion())
+        )
+            .isInstanceOf(TechnicalManagementException.class)
+            .hasMessageContaining("my-group");
     }
 }
