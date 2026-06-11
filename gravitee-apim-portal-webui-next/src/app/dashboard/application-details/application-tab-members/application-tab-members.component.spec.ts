@@ -60,7 +60,21 @@ describe('ApplicationTabMembersComponent', () => {
         provideNoopAnimations(),
         provideRouter([]),
         { provide: ApplicationService, useValue: { getApplicationRoles: () => of(APPLICATION_ROLES) } },
-        { provide: ConfigService, useValue: { baseURL: TESTING_BASE_URL } },
+        {
+          provide: ConfigService,
+          useValue: {
+            baseURL: TESTING_BASE_URL,
+            configuration: {
+              portalNext: {
+                applications: {
+                  membership: {
+                    transferOwnership: { enabled: true },
+                  },
+                },
+              },
+            },
+          },
+        },
         { provide: CurrentUserService, useValue: { user: () => ({ id: CURRENT_USER_ID }) } },
       ],
     })
@@ -545,6 +559,49 @@ describe('ApplicationTabMembersComponent', () => {
     it('should not show transfer ownership button when current user is not the application owner', async () => {
       fixture.componentRef.setInput('application', fakeApplication('other-owner-id'));
       fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'U'] }));
+      const harness = await flush(fakeMembersResponse([fakeMember()]));
+
+      expect(await harness.getTransferOwnershipButton()).toBeNull();
+    });
+
+    it('should not show transfer ownership button when transfer ownership toggle is disabled', async () => {
+      TestBed.resetTestingModule();
+      await TestBed.configureTestingModule({
+        imports: [ApplicationTabMembersComponent, ConfirmDialogComponent, MatDialogModule],
+        providers: [
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          provideNoopAnimations(),
+          provideRouter([]),
+          { provide: ApplicationService, useValue: { getApplicationRoles: () => of(APPLICATION_ROLES) } },
+          {
+            provide: ConfigService,
+            useValue: {
+              baseURL: TESTING_BASE_URL,
+              configuration: {
+                portalNext: {
+                  applications: {
+                    membership: {
+                      transferOwnership: { enabled: false },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          { provide: CurrentUserService, useValue: { user: () => ({ id: CURRENT_USER_ID }) } },
+        ],
+      })
+        .overrideProvider(InteractivityChecker, { useValue: { isFocusable: () => true, isTabbable: () => true } })
+        .compileComponents();
+
+      fixture = TestBed.createComponent(ApplicationTabMembersComponent);
+      httpTestingController = TestBed.inject(HttpTestingController);
+      rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+      fixture.componentRef.setInput('applicationId', applicationId);
+      fixture.componentRef.setInput('application', fakeApplication(CURRENT_USER_ID));
+      fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R', 'U'] }));
+
       const harness = await flush(fakeMembersResponse([fakeMember()]));
 
       expect(await harness.getTransferOwnershipButton()).toBeNull();
