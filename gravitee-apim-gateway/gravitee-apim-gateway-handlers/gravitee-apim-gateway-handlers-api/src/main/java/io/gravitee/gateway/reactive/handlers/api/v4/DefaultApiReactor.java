@@ -391,7 +391,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
             // Catch all possible unexpected errors
             .chainWithOnError(t -> handleUnexpectedError(ctx, t))
             // Finally, end the response.
-            .chainWith(ctx.response().end(ctx))
+            .chainWith(Completable.defer(() -> ctx.response().end(ctx)))
             .doOnSubscribe(disposable -> pendingRequests.incrementAndGet())
             .doOnEvent(throwable -> endPhaseTracing(ctx, RESPONSE, throwable))
             .doOnDispose(() -> {
