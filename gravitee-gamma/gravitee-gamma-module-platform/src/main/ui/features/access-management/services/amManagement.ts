@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { ApimApiError, gammaFetchJson } from '../../../shared/api/apimClient';
-import { type AmConfig, moduleBaseUrl } from '../utils/amConfig';
 import type {
     AmConnectionRequest,
     AmConnectionTestResult,
@@ -23,6 +22,7 @@ import type {
     AmEnvironment,
     AmGatewayEntrypoint,
 } from '../types/amManagement';
+import { type AmConfig, moduleBaseUrl } from '../utils/amConfig';
 
 export function listEnvironments(cfg: AmConfig): Promise<AmEnvironment[]> {
     return gammaFetchJson<AmEnvironment[]>(`${moduleBaseUrl(cfg)}/environments`);
@@ -51,10 +51,6 @@ export function getAmConnection(cfg: AmConfig): Promise<AmConnectionView> {
 
 export function saveAmConnection(cfg: AmConfig, payload: AmConnectionRequest): Promise<AmConnectionView> {
     return gammaFetchJson<AmConnectionView>(`${moduleBaseUrl(cfg)}/am-config`, { method: 'PUT', body: JSON.stringify(payload) });
-}
-
-export function deleteAmConnection(cfg: AmConfig): Promise<void> {
-    return gammaFetchJson<void>(`${moduleBaseUrl(cfg)}/am-config`, { method: 'DELETE' });
 }
 
 export function testAmConnection(cfg: AmConfig, payload: AmConnectionRequest): Promise<AmConnectionTestResult> {
