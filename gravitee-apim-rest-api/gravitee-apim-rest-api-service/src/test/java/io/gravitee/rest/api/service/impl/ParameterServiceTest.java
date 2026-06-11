@@ -891,19 +891,19 @@ public class ParameterServiceTest {
     @Test
     public void shouldAuditPortalNextToggleOnFirstCreate() throws TechnicalException {
         final Parameter savedParameter = new Parameter();
-        savedParameter.setKey(PORTAL_NEXT_MEMBER_MAPPING_ENABLED.key());
+        savedParameter.setKey(PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_ENABLED.key());
         savedParameter.setReferenceId("DEFAULT");
         savedParameter.setReferenceType(ParameterReferenceType.ENVIRONMENT);
         savedParameter.setValue("true");
 
         when(
-            parameterRepository.findById(PORTAL_NEXT_MEMBER_MAPPING_ENABLED.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)
+            parameterRepository.findById(PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_ENABLED.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)
         ).thenReturn(empty());
         when(parameterRepository.create(savedParameter)).thenReturn(savedParameter);
 
         parameterService.save(
             GraviteeContext.getExecutionContext(),
-            PORTAL_NEXT_MEMBER_MAPPING_ENABLED,
+            PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_ENABLED,
             "true",
             io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
         );
@@ -912,7 +912,7 @@ public class ParameterServiceTest {
             eq(GraviteeContext.getExecutionContext()),
             argThat(
                 auditLogData ->
-                    auditLogData.getProperties().equals(singletonMap(PARAMETER, PORTAL_NEXT_MEMBER_MAPPING_ENABLED.key())) &&
+                    auditLogData.getProperties().equals(singletonMap(PARAMETER, PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_ENABLED.key())) &&
                     auditLogData.getEvent().equals(PARAMETER_CREATED) &&
                     auditLogData.getOldValue() == null &&
                     auditLogData.getNewValue().equals(savedParameter)
@@ -923,25 +923,29 @@ public class ParameterServiceTest {
     @Test
     public void shouldAuditPortalNextToggleOnUpdate() throws TechnicalException {
         final Parameter oldParameter = new Parameter();
-        oldParameter.setKey(PORTAL_NEXT_INVITATIONS_ENABLED.key());
+        oldParameter.setKey(PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_INVITATIONS_ENABLED.key());
         oldParameter.setReferenceId("DEFAULT");
         oldParameter.setReferenceType(ParameterReferenceType.ENVIRONMENT);
         oldParameter.setValue("false");
 
         final Parameter updatedParameter = new Parameter();
-        updatedParameter.setKey(PORTAL_NEXT_INVITATIONS_ENABLED.key());
+        updatedParameter.setKey(PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_INVITATIONS_ENABLED.key());
         updatedParameter.setReferenceId("DEFAULT");
         updatedParameter.setReferenceType(ParameterReferenceType.ENVIRONMENT);
         updatedParameter.setValue("true");
 
-        when(parameterRepository.findById(PORTAL_NEXT_INVITATIONS_ENABLED.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
-            of(oldParameter)
-        );
+        when(
+            parameterRepository.findById(
+                PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_INVITATIONS_ENABLED.key(),
+                "DEFAULT",
+                ParameterReferenceType.ENVIRONMENT
+            )
+        ).thenReturn(of(oldParameter));
         when(parameterRepository.update(updatedParameter)).thenReturn(updatedParameter);
 
         parameterService.save(
             GraviteeContext.getExecutionContext(),
-            PORTAL_NEXT_INVITATIONS_ENABLED,
+            PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_INVITATIONS_ENABLED,
             "true",
             io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
         );
@@ -950,7 +954,9 @@ public class ParameterServiceTest {
             eq(GraviteeContext.getExecutionContext()),
             argThat(
                 auditLogData ->
-                    auditLogData.getProperties().equals(singletonMap(PARAMETER, PORTAL_NEXT_INVITATIONS_ENABLED.key())) &&
+                    auditLogData
+                        .getProperties()
+                        .equals(singletonMap(PARAMETER, PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_INVITATIONS_ENABLED.key())) &&
                     auditLogData.getEvent().equals(PARAMETER_UPDATED) &&
                     auditLogData.getOldValue().equals(oldParameter) &&
                     auditLogData.getNewValue().equals(updatedParameter)
@@ -961,18 +967,22 @@ public class ParameterServiceTest {
     @Test
     public void shouldNotAuditPortalNextToggleWhenValueUnchanged() throws TechnicalException {
         final Parameter existingParameter = new Parameter();
-        existingParameter.setKey(PORTAL_NEXT_TRANSFER_OWNERSHIP_ENABLED.key());
+        existingParameter.setKey(PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_TRANSFER_OWNERSHIP_ENABLED.key());
         existingParameter.setReferenceId("DEFAULT");
         existingParameter.setReferenceType(ParameterReferenceType.ENVIRONMENT);
         existingParameter.setValue("false");
 
         when(
-            parameterRepository.findById(PORTAL_NEXT_TRANSFER_OWNERSHIP_ENABLED.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)
+            parameterRepository.findById(
+                PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_TRANSFER_OWNERSHIP_ENABLED.key(),
+                "DEFAULT",
+                ParameterReferenceType.ENVIRONMENT
+            )
         ).thenReturn(of(existingParameter));
 
         parameterService.save(
             GraviteeContext.getExecutionContext(),
-            PORTAL_NEXT_TRANSFER_OWNERSHIP_ENABLED,
+            PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_TRANSFER_OWNERSHIP_ENABLED,
             "false",
             io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
         );
