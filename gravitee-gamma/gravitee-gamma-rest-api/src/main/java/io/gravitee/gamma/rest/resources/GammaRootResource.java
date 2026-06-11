@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.resources;
 
+import io.gravitee.gamma.rest.resources.observability.filters.ObservabilityFiltersResource;
 import io.gravitee.gamma.rest.resources.tracing.TracingResource;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.container.ResourceContext;
@@ -46,5 +47,16 @@ public class GammaRootResource {
     @Path("/organizations/{orgId}/environments/{envId}/observability/traces")
     public TracingResource getTracingResource() {
         return resourceContext.getResource(TracingResource.class);
+    }
+
+    /**
+     * Unified observability filter catalog (definition / values / resolve) shared by every gamma
+     * module's logs and analytics UI. Mounted outside the per-module namespace; relevance is carried
+     * by the {@code signal} / {@code apiType} discovery axes rather than a module perimeter. See
+     * {@link ObservabilityFiltersResource} for the contract.
+     */
+    @Path("/organizations/{orgId}/environments/{envId}/observability/filters")
+    public ObservabilityFiltersResource getObservabilityFiltersResource() {
+        return resourceContext.getResource(ObservabilityFiltersResource.class);
     }
 }
