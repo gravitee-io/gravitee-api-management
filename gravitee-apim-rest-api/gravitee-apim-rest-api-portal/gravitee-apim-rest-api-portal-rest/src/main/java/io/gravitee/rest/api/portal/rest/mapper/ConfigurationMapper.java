@@ -86,7 +86,7 @@ public class ConfigurationMapper {
         }
         ConfigurationPortalNextApplicationsMembership config = new ConfigurationPortalNextApplicationsMembership();
         if (membership.getEnabled() != null) {
-            config.setEnabled(convert(membership.getEnabled()));
+            config.setEnabled(membership.getEnabled());
         }
         if (membership.getTransferOwnership() != null) {
             config.setTransferOwnership(convert(membership.getTransferOwnership()));

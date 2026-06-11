@@ -37,11 +37,12 @@ export default class ApplicationComponent {
   readonly userApplicationPermissions = input.required<UserApplicationPermissions>();
 
   readonly canViewMembersTab = computed(() => {
-    const memberMappingEnabled = this.configService.configuration.portalNext?.applications?.membership?.enabled?.enabled === true;
+    const memberMappingEnabled = this.configService.configuration.portalNext?.applications?.membership?.enabled === true;
     return memberMappingEnabled && (this.userApplicationPermissions().MEMBER?.includes('R') ?? false);
   });
   readonly canViewInvitationsTab = computed(() => {
-    const invitationsEnabled = this.configService.configuration.portalNext?.applications?.membership?.invitations?.enabled === true;
+    const membership = this.configService.configuration.portalNext?.applications?.membership;
+    const invitationsEnabled = membership?.enabled === true && membership?.invitations?.enabled === true;
     return invitationsEnabled && (this.userApplicationPermissions().MEMBER?.includes('R') ?? false);
   });
 

@@ -27,18 +27,24 @@ import { BreadcrumbService } from '../../../services/breadcrumb.service';
 import { ConfigService } from '../../../services/config.service';
 import { applicationListBreadcrumb } from '../applications/application-breadcrumbs';
 
-function createConfigService(portalNext?: ConfigurationPortalNext) {
+type MembershipConfig = NonNullable<NonNullable<ConfigurationPortalNext['applications']>['membership']>;
+
+const defaultMembership: MembershipConfig = {
+  enabled: true,
+  transferOwnership: { enabled: true },
+  invitations: { enabled: true },
+};
+
+function createConfigService(membershipOverride?: Partial<MembershipConfig>) {
   return {
     configuration: {
       portalNext: {
         applications: {
           membership: {
-            enabled: { enabled: true },
-            transferOwnership: { enabled: true },
-            invitations: { enabled: true },
+            ...defaultMembership,
+            ...membershipOverride,
           },
         },
-        ...portalNext,
       },
     },
   };
@@ -52,23 +58,28 @@ class TestIdHarness extends ComponentHarness {
   }
 }
 
+async function setupApplicationComponent(configService = createConfigService()) {
+  await TestBed.configureTestingModule({
+    imports: [ApplicationComponent],
+    providers: [provideRouter([]), provideNoopAnimations(), { provide: ConfigService, useValue: configService }],
+  }).compileComponents();
+
+  const fixture = TestBed.createComponent(ApplicationComponent);
+  const breadcrumbService = TestBed.inject(BreadcrumbService);
+  breadcrumbService.clear();
+  const loader = TestbedHarnessEnvironment.loader(fixture);
+  fixture.componentRef.setInput('application', fakeApplication({ id: 'app-1', name: 'My App' }));
+  fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R'] }));
+  return { fixture, breadcrumbService, loader };
+}
+
 describe('ApplicationComponent', () => {
   let fixture: ComponentFixture<ApplicationComponent>;
   let breadcrumbService: BreadcrumbService;
   let loader: HarnessLoader;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [ApplicationComponent],
-      providers: [provideRouter([]), provideNoopAnimations(), { provide: ConfigService, useValue: createConfigService() }],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(ApplicationComponent);
-    breadcrumbService = TestBed.inject(BreadcrumbService);
-    breadcrumbService.clear();
-    loader = TestbedHarnessEnvironment.loader(fixture);
-    fixture.componentRef.setInput('application', fakeApplication({ id: 'app-1', name: 'My App' }));
-    fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R'] }));
+    ({ fixture, breadcrumbService, loader } = await setupApplicationComponent());
   });
 
   afterEach(() => {
@@ -113,52 +124,32 @@ describe('ApplicationComponent', () => {
     fixture.detectChanges();
     expect(await loader.getHarnessOrNull(TestIdHarness.for('application-invitations-tab'))).toBeNull();
   });
+});
+
+describe('ApplicationComponent with disabled membership toggles', () => {
+  let fixture: ComponentFixture<ApplicationComponent>;
+  let loader: HarnessLoader;
+
+  afterEach(() => {
+    fixture.destroy();
+  });
 
   it('should not render Members tab when member mapping toggle is disabled', async () => {
-    TestBed.resetTestingModule();
-    await TestBed.configureTestingModule({
-      imports: [ApplicationComponent],
-      providers: [
-        provideRouter([]),
-        provideNoopAnimations(),
-        {
-          provide: ConfigService,
-          useValue: createConfigService({
-            applications: { membership: { enabled: { enabled: false }, invitations: { enabled: true } } },
-          }),
-        },
-      ],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(ApplicationComponent);
-    loader = TestbedHarnessEnvironment.loader(fixture);
-    fixture.componentRef.setInput('application', fakeApplication({ id: 'app-1', name: 'My App' }));
-    fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R'] }));
+    ({ fixture, loader } = await setupApplicationComponent(createConfigService({ enabled: false })));
     fixture.detectChanges();
 
     expect(await loader.getHarnessOrNull(TestIdHarness.for('application-members-tab'))).toBeNull();
   });
 
   it('should not render Invitations tab when invitations toggle is disabled', async () => {
-    TestBed.resetTestingModule();
-    await TestBed.configureTestingModule({
-      imports: [ApplicationComponent],
-      providers: [
-        provideRouter([]),
-        provideNoopAnimations(),
-        {
-          provide: ConfigService,
-          useValue: createConfigService({
-            applications: { membership: { enabled: { enabled: true }, invitations: { enabled: false } } },
-          }),
-        },
-      ],
-    }).compileComponents();
+    ({ fixture, loader } = await setupApplicationComponent(createConfigService({ invitations: { enabled: false } })));
+    fixture.detectChanges();
 
-    fixture = TestBed.createComponent(ApplicationComponent);
-    loader = TestbedHarnessEnvironment.loader(fixture);
-    fixture.componentRef.setInput('application', fakeApplication({ id: 'app-1', name: 'My App' }));
-    fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions({ MEMBER: ['R'] }));
+    expect(await loader.getHarnessOrNull(TestIdHarness.for('application-invitations-tab'))).toBeNull();
+  });
+
+  it('should not render Invitations tab when parent membership toggle is disabled', async () => {
+    ({ fixture, loader } = await setupApplicationComponent(createConfigService({ enabled: false, invitations: { enabled: true } })));
     fixture.detectChanges();
 
     expect(await loader.getHarnessOrNull(TestIdHarness.for('application-invitations-tab'))).toBeNull();

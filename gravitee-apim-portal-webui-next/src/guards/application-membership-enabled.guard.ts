@@ -19,7 +19,7 @@ import { CanActivateFn, Router } from '@angular/router';
 import { ConfigService } from '../services/config.service';
 
 export const applicationMembershipEnabledGuard: CanActivateFn = () => {
-  const enabled = inject(ConfigService).configuration.portalNext?.applications?.membership?.enabled?.enabled === true;
+  const enabled = inject(ConfigService).configuration.portalNext?.applications?.membership?.enabled === true;
   if (enabled) {
     return true;
   }
@@ -35,7 +35,8 @@ export const applicationTransferOwnershipEnabledGuard: CanActivateFn = () => {
 };
 
 export const applicationInvitationsEnabledGuard: CanActivateFn = () => {
-  const enabled = inject(ConfigService).configuration.portalNext?.applications?.membership?.invitations?.enabled === true;
+  const membership = inject(ConfigService).configuration.portalNext?.applications?.membership;
+  const enabled = membership?.enabled === true && membership?.invitations?.enabled === true;
   if (enabled) {
     return true;
   }

@@ -236,15 +236,15 @@ public class ConfigurationMapperTest {
         PortalNext portalNext = new PortalNext();
         portalNext.setAccess(new Enabled(false));
 
-        portalNext.getApplications().getMembership().setEnabled(new Enabled(true));
+        portalNext.getApplications().getMembership().setEnabled(true);
         ConfigurationPortalNext result = configurationMapper.convert(portalNext);
         Assertions.assertNotNull(result.getApplications().getMembership().getEnabled());
-        Assertions.assertEquals(Boolean.TRUE, result.getApplications().getMembership().getEnabled().getEnabled());
+        Assertions.assertEquals(Boolean.TRUE, result.getApplications().getMembership().getEnabled());
 
-        portalNext.getApplications().getMembership().setEnabled(new Enabled(false));
+        portalNext.getApplications().getMembership().setEnabled(false);
         result = configurationMapper.convert(portalNext);
         Assertions.assertNotNull(result.getApplications().getMembership().getEnabled());
-        Assertions.assertEquals(Boolean.FALSE, result.getApplications().getMembership().getEnabled().getEnabled());
+        Assertions.assertEquals(Boolean.FALSE, result.getApplications().getMembership().getEnabled());
 
         portalNext.getApplications().getMembership().setEnabled(null);
         result = configurationMapper.convert(portalNext);

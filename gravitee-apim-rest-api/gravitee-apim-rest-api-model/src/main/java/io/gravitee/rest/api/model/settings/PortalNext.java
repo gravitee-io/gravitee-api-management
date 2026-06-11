@@ -70,7 +70,7 @@ public class PortalNext {
         public static class Membership {
 
             @ParameterKey(Key.PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_ENABLED)
-            private Enabled enabled;
+            private Boolean enabled;
 
             @ParameterKey(Key.PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_TRANSFER_OWNERSHIP_ENABLED)
             private Enabled transferOwnership;

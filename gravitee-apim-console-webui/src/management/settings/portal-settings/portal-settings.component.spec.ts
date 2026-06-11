@@ -206,7 +206,7 @@ describe('PortalSettingsComponent', () => {
           },
           applications: {
             membership: {
-              enabled: { enabled: false },
+              enabled: false,
               transferOwnership: { enabled: false },
               invitations: { enabled: false },
             },
@@ -251,7 +251,7 @@ describe('PortalSettingsComponent', () => {
 
       const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings`);
       expect(req.request.method).toEqual('POST');
-      expect(req.request.body.portalNext.applications.membership.enabled.enabled).toEqual(true);
+      expect(req.request.body.portalNext.applications.membership.enabled).toEqual(true);
     });
 
     it('display settings form and edit Portal Next transfer of ownership toggle', async () => {
