@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.core.observability.filter.exception;
 
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 
 /**
  * Raised when an observability query receives a {@code FilterCondition} that references an unknown
@@ -40,10 +41,24 @@ public class UnsupportedObservabilityFilterException extends ValidationDomainExc
         );
     }
 
+    public static UnsupportedObservabilityFilterException signalMismatch(String filterName, Signal requiredSignal) {
+        return new UnsupportedObservabilityFilterException(
+            "Filter '" + filterName + "' does not apply to signal " + requiredSignal,
+            "observability.filter.signal_mismatch"
+        );
+    }
+
     public static UnsupportedObservabilityFilterException valueListingNotSupported(String filterName, String type) {
         return new UnsupportedObservabilityFilterException(
             "Filter '" + filterName + "' of type " + type + " does not support value listing",
             "observability.filter.value_listing_not_supported"
+        );
+    }
+
+    public static UnsupportedObservabilityFilterException searchTranslationNotSupported(String filterName) {
+        return new UnsupportedObservabilityFilterException(
+            "Filter '" + filterName + "' is not yet supported for log search",
+            "observability.filter.search_translation_not_supported"
         );
     }
 

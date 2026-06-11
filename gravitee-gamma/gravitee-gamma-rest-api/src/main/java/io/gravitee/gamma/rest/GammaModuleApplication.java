@@ -20,6 +20,7 @@ import io.gravitee.gamma.rest.resources.GammaRootResource;
 import io.gravitee.gamma.rest.resources.GammaUIResource;
 import io.gravitee.gamma.rest.resources.OpenAPIResource;
 import io.gravitee.gamma.rest.resources.observability.filters.ObservabilityFiltersResource;
+import io.gravitee.gamma.rest.resources.observability.logs.LogsResource;
 import io.gravitee.gamma.rest.resources.tracing.TracingResource;
 import io.gravitee.rest.api.management.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.management.rest.provider.BadRequestExceptionMapper;
@@ -58,6 +59,7 @@ public class GammaModuleApplication extends ResourceConfig {
         register(OpenAPIResource.class);
         register(TracingResource.class);
         register(ObservabilityFiltersResource.class);
+        register(LogsResource.class);
 
         register(MultiPartFeature.class);
         register(PayloadInputBodyReader.class);
