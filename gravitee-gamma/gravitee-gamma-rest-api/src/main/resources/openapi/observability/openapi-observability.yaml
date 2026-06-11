@@ -2,22 +2,11 @@ openapi: 3.0.3
 info:
     title: Gravitee.io Gamma - Observability
     description: |
-        Observability API surface exposed by Gravitee Gamma. Groups all endpoints related to
-        logs, analytics, traces, and their shared building blocks (filters, definitions).
+        Observability API for Gravitee Gamma. Provides unified access to monitoring and
+        diagnostic capabilities: shared filter catalog, analytics, logs, and traces.
 
-        ## Filters
-
-        Shared filter catalog for observability views. Provides three capabilities: discover
-        available filters for a given signal and API type, list the selectable values for a
-        filter, and resolve entity ids into human-readable labels in bulk.
-
-        Each filter declares which signals and API types it applies to, its data type, supported
-        operators, and — for ENUM filters — its allowed values with labels.
-
-        Value listing is type-driven: ENUM filters return their static values, KEYWORD filters
-        return distinct values from the data store, NUMBER and STRING filters have no enumerable
-        values (400). Id-based KEYWORD filters (API, APPLICATION, PLAN, API_PRODUCT) return
-        entity ids as values; use the `resolve` endpoint to hydrate them into display labels.
+        Endpoints are grouped by domain. Each group exposes the resources needed to build
+        observability views in the Gamma UI.
     contact:
         email: team-apim@graviteesource.com
     license:
@@ -33,8 +22,19 @@ servers:
       description: Gravitee.io Gamma host application
 
 tags:
-    - name: Observability Filters
-      description: Filter catalog for observability views.
+    - name: Filters
+      description: |
+          Shared filter catalog for observability views. Provides three capabilities: discover
+          available filters for a given signal and API type, list the selectable values for a
+          filter, and resolve entity ids into human-readable labels in bulk.
+
+          Each filter declares which signals and API types it applies to, its data type, supported
+          operators, and — for ENUM filters — its allowed values with labels.
+
+          Value listing is type-driven: ENUM filters return their static values, KEYWORD filters
+          return distinct values from the data store, NUMBER and STRING filters have no enumerable
+          values (400). Id-based KEYWORD filters (API, APPLICATION, PLAN, API_PRODUCT) return
+          entity ids as values; use the `resolve` endpoint to hydrate them into display labels.
 
 paths:
     /organizations/{orgId}/environments/{envId}/observability/filters/definition:
@@ -43,7 +43,7 @@ paths:
             - $ref: "#/components/parameters/envIdParam"
         get:
             tags:
-                - Observability Filters
+                - Filters
             summary: List the observability filter catalog
             description: |
                 Returns the filter catalog, optionally narrowed by signal and/or API type. Both axes
@@ -142,7 +142,7 @@ paths:
             - $ref: "#/components/parameters/envIdParam"
         get:
             tags:
-                - Observability Filters
+                - Filters
             summary: List selectable values for a filter
             description: |
                 Paginated selectable values for one filter. ENUM filters return their static labelled
@@ -282,7 +282,7 @@ paths:
             - $ref: "#/components/parameters/envIdParam"
         post:
             tags:
-                - Observability Filters
+                - Filters
             summary: Resolve stored filter ids into labels
             description: |
                 Resolves entity ids into display labels in bulk. Only id-based filters (API,
