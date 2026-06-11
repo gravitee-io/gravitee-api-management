@@ -75,7 +75,7 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
             { path: 'overview', label: 'Overview', icon: LayoutDashboardIcon },
             { path: 'general', label: 'General', icon: SlidersHorizontalIcon },
             { path: 'properties', label: 'API Properties', icon: SettingsIcon },
-            { path: 'resources', label: 'Resources', icon: ServerIcon, comingSoon: true },
+            { path: 'resources', label: 'Resources', icon: ServerIcon },
             { path: 'notifications', label: 'Notifications', icon: BellIcon },
             { path: 'api-score', label: 'API Score', icon: SparklesIcon, comingSoon: true },
             { path: 'response-templates', label: 'Response Templates', icon: ScrollTextIcon, comingSoon: true },
