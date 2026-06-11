@@ -204,6 +204,15 @@ describe('PortalSettingsComponent', () => {
           analytics: {
             enabled: false,
           },
+          memberMapping: {
+            enabled: false,
+          },
+          transferOwnership: {
+            enabled: false,
+          },
+          invitations: {
+            enabled: false,
+          },
           banner: {
             ...portalSettingsMock.portalNext.banner,
             enabled: true,
@@ -228,6 +237,57 @@ describe('PortalSettingsComponent', () => {
       const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings`);
       expect(req.request.method).toEqual('POST');
       expect(req.request.body.portalNext.analytics.enabled).toEqual(true);
+    });
+
+    it('display settings form and edit Portal Next member mapping toggle', async () => {
+      portalSettingsMock = fakePortalSettings();
+      expectPortalSettingsGetRequest(portalSettingsMock);
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(false);
+
+      const toggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '#enable-portal-next-member-mapping' }));
+      expect(await toggle.isChecked()).toBe(false);
+      await toggle.toggle();
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+      await saveBar.clickSubmit();
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings`);
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body.portalNext.memberMapping.enabled).toEqual(true);
+    });
+
+    it('display settings form and edit Portal Next transfer of ownership toggle', async () => {
+      portalSettingsMock = fakePortalSettings();
+      expectPortalSettingsGetRequest(portalSettingsMock);
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(false);
+
+      const toggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '#enable-portal-next-transfer-ownership' }));
+      expect(await toggle.isChecked()).toBe(false);
+      await toggle.toggle();
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+      await saveBar.clickSubmit();
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings`);
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body.portalNext.transferOwnership.enabled).toEqual(true);
+    });
+
+    it('display settings form and edit Portal Next invitations toggle', async () => {
+      portalSettingsMock = fakePortalSettings();
+      expectPortalSettingsGetRequest(portalSettingsMock);
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(false);
+
+      const toggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '#enable-portal-next-invitations' }));
+      expect(await toggle.isChecked()).toBe(false);
+      await toggle.toggle();
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
+      await saveBar.clickSubmit();
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings`);
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body.portalNext.invitations.enabled).toEqual(true);
     });
 
     it('display settings form and edit CORS fields', async () => {
