@@ -38,10 +38,6 @@ export function saveAmConfig(cfg: AmConfig): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
 }
 
-export function isAmConfigured(cfg: AmConfig): boolean {
-    return Boolean(cfg.organizationId && cfg.environmentId && cfg.domainId);
-}
-
 export function moduleBaseUrl(cfg: AmConfig): string {
     // Relative to the bootstrap-resolved gammaBaseURL; AM settings hang off PlatformRootResource at /am.
     return `/organizations/${encodeURIComponent(cfg.organizationId)}/modules/${PLUGIN_ID}/am`;
