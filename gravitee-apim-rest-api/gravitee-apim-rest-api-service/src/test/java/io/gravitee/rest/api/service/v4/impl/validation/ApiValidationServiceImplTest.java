@@ -495,7 +495,7 @@ public class ApiValidationServiceImplTest {
         assertEquals("\"A Description\"", apiEntity.getDescription());
     }
 
-    @Test(expected = ListenerMissingException.class)
+    @Test
     public void shouldThrowExceptionWhenImportApiForCreationHasNullListeners() {
         var primaryOwnerEntity = new PrimaryOwnerEntity();
         ApiEntity apiEntity = new ApiEntity();
@@ -503,7 +503,13 @@ public class ApiValidationServiceImplTest {
         apiEntity.setType(ApiType.PROXY);
         apiEntity.setListeners(null);
 
-        apiValidationService.validateAndSanitizeImportApiForCreation(GraviteeContext.getExecutionContext(), apiEntity, primaryOwnerEntity);
+        assertThrows(ListenerMissingException.class, () ->
+            apiValidationService.validateAndSanitizeImportApiForCreation(
+                GraviteeContext.getExecutionContext(),
+                apiEntity,
+                primaryOwnerEntity
+            )
+        );
     }
 
     @Test
