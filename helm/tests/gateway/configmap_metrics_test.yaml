@@ -39,6 +39,32 @@ tests:
             \s     concurrencyLimit: 3
             \s     enabled: true
 
+  - it: Enable metrics service and set kafka durations `principalName`
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        services:
+          metrics:
+            enabled: true
+            kafka:
+              durations:
+                principalName: true
+            prometheus:
+              enabled: true
+              concurrencyLimit: 3
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            \s metrics:
+            \s   enabled: true
+            \s   kafka:
+            \s     durations:
+            \s       principalName: true
+            \s   prometheus:
+            \s     concurrencyLimit: 3
+            \s     enabled: true
+
   - it: Enable metrics service and don't set any `labels`
     template: gateway/gateway-configmap.yaml
     set:
