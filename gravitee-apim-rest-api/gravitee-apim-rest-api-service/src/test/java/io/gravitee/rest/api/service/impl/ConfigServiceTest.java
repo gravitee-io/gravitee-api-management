@@ -301,7 +301,7 @@ class ConfigServiceTest {
 
         PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
 
-        assertThat(portalSettings.getPortalNext().getApplications().getMembership().getEnabled().isEnabled())
+        assertThat(portalSettings.getPortalNext().getApplications().getMembership().getEnabled())
             .as("portalNext applications.membership.enabled enabled")
             .isTrue();
         assertThat(portalSettings.getPortalNext().getApplications().getMembership().getTransferOwnership().isEnabled())
@@ -328,7 +328,7 @@ class ConfigServiceTest {
 
         PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
 
-        assertThat(portalSettings.getPortalNext().getApplications().getMembership().getEnabled().isEnabled())
+        assertThat(portalSettings.getPortalNext().getApplications().getMembership().getEnabled())
             .as("portalNext applications.membership.enabled disabled by default")
             .isFalse();
         assertThat(portalSettings.getPortalNext().getApplications().getMembership().getTransferOwnership().isEnabled())
@@ -342,7 +342,7 @@ class ConfigServiceTest {
     @Test
     void shouldSavePortalNextToggles() {
         PortalSettingsEntity portalSettingsEntity = new PortalSettingsEntity();
-        portalSettingsEntity.getPortalNext().getApplications().getMembership().setEnabled(new Enabled(true));
+        portalSettingsEntity.getPortalNext().getApplications().getMembership().setEnabled(true);
         portalSettingsEntity.getPortalNext().getApplications().getMembership().setTransferOwnership(new Enabled(false));
         portalSettingsEntity.getPortalNext().getApplications().getMembership().setInvitations(new Enabled(true));
 

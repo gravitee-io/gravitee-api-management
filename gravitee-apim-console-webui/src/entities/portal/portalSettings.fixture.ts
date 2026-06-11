@@ -230,7 +230,7 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
       },
       applications: {
         membership: {
-          enabled: { enabled: false },
+          enabled: false,
           transferOwnership: { enabled: false },
           invitations: { enabled: false },
         },

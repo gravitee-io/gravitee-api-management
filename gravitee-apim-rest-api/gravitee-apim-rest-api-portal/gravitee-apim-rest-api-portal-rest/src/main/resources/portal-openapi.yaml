@@ -6946,7 +6946,8 @@ components:
             description: Configuration of membership-related features for Portal Next applications
             properties:
                 enabled:
-                    $ref: "#/components/schemas/Enabled"
+                    description: Whether application membership settings are enabled
+                    type: boolean
                 transferOwnership:
                     $ref: "#/components/schemas/Enabled"
                 invitations:
