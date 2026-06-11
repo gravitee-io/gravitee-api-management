@@ -16,6 +16,7 @@
 
 import type { Analytics } from './analytics';
 import type { PlanSecurity } from './plan';
+import type { ApiResource } from './resource';
 
 export interface PathToVerify {
     path: string;
@@ -329,6 +330,8 @@ export interface ApiDetailDto {
         backgroundUrl?: string;
     };
     properties?: Property[];
+    /** API-level resources (cache, OAuth2 providers, …) consumed by policies at runtime. */
+    resources?: ApiResource[];
 
     services?: { dynamicProperty?: DynamicPropertyConfig };
     analytics?: Analytics;

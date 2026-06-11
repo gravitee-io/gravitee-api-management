@@ -14,15 +14,22 @@
  * limitations under the License.
  */
 
-export * from './alert';
-export * from './analytics';
-export * from './api';
-export * from './apiCreation';
-export * from './auditLogs.types';
-export * from './broadcast';
-export * from './healthCheck';
-export * from './members.types';
-export * from './notification';
-export * from './plan';
-export * from './resource';
-export * from './subscription';
+/** A resource attached to an API definition (cache, OAuth2 provider, auth adapter, …). */
+export interface ApiResource {
+    name: string;
+    /** Resource plugin id (e.g. `cache`, `oauth2`). */
+    type: string;
+    enabled: boolean;
+    configuration?: Record<string, unknown>;
+}
+
+/** Resource plugin catalog entry returned by `/v2/organizations/{orgId}/plugins/resources`. */
+export interface ResourcePlugin {
+    id: string;
+    name: string;
+    description?: string;
+    /** SVG/PNG data-URI provided by the plugin. */
+    icon?: string;
+    category?: string;
+    version?: string;
+}

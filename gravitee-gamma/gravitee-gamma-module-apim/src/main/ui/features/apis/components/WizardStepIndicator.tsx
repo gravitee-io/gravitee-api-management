@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Card, CardContent } from '@gravitee/graphene-core';
-import { CheckIcon, FlaskConicalIcon } from '@gravitee/graphene-core/icons';
+import { Card, CardContent, cn } from '@gravitee/graphene-core';
+import { CircleCheckIcon, FlaskConicalIcon } from '@gravitee/graphene-core/icons';
 
 export interface WizardStep {
     id: string;
@@ -29,36 +29,57 @@ interface WizardStepIndicatorProps {
     ariaLabel?: string;
 }
 
+/**
+ * Shared wizard progress indicator. Matches the API creation and Plans wizards:
+ * a card-wrapped row of numbered steps with connector lines and a green/success completed state.
+ * Completed steps are clickable to navigate back; other steps stay in the tab order as disabled buttons.
+ */
 export function WizardStepIndicator({ steps, currentStepId, onStepClick, ariaLabel = 'Form steps' }: Readonly<WizardStepIndicatorProps>) {
     const currentStepIndex = steps.findIndex(s => s.id === currentStepId);
 
     return (
         <Card>
-            <CardContent className="py-4">
+            <CardContent className="py-3 px-4">
                 <nav aria-label={ariaLabel}>
                     <ol className="flex items-center">
                         {steps.map((step, idx) => {
                             const isActive = step.id === currentStepId;
                             const isCompleted = idx < currentStepIndex;
+
                             return (
-                                <li key={step.id} className="flex flex-1 justify-center items-center">
+                                <li key={step.id} className="flex flex-1 items-center">
                                     <button
                                         type="button"
-                                        className={`flex items-center gap-2 text-sm transition-colors${isActive ? ' font-semibold text-foreground' : isCompleted ? ' text-primary cursor-pointer' : ' text-muted-foreground cursor-default'}`}
+                                        className={cn(
+                                            'flex w-full items-center justify-center gap-2.5 rounded-lg px-3 py-2 text-sm',
+                                            isCompleted ? 'cursor-pointer' : 'cursor-default',
+                                        )}
                                         onClick={isCompleted ? () => onStepClick(step.id) : undefined}
                                         disabled={!isCompleted && !isActive}
                                         aria-current={isActive ? 'step' : undefined}
                                     >
                                         <span
-                                            className={`flex size-6 items-center justify-center rounded-full text-xs font-semibold shrink-0 ${
-                                                isCompleted || isActive
+                                            className={cn(
+                                                'flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold',
+                                                isActive
                                                     ? 'bg-primary text-primary-foreground'
-                                                    : 'border border-muted-foreground/30 text-muted-foreground'
-                                            }`}
+                                                    : isCompleted
+                                                      ? 'bg-success/10 text-success'
+                                                      : 'bg-muted text-muted-foreground',
+                                            )}
                                         >
-                                            {isCompleted ? <CheckIcon className="size-3.5" aria-hidden /> : idx + 1}
+                                            {isCompleted ? <CircleCheckIcon className="size-3.5" aria-hidden /> : <span>{idx + 1}</span>}
                                         </span>
-                                        <span>{step.label}</span>
+
+                                        <span
+                                            className={cn(
+                                                'whitespace-nowrap text-sm font-medium',
+                                                isActive ? 'text-foreground' : isCompleted ? 'text-success' : 'text-muted-foreground',
+                                            )}
+                                        >
+                                            {step.label}
+                                        </span>
+
                                         {step.comingSoon && (
                                             <FlaskConicalIcon
                                                 className="size-3.5 text-muted-foreground/60 shrink-0"
@@ -66,6 +87,10 @@ export function WizardStepIndicator({ steps, currentStepId, onStepClick, ariaLab
                                             />
                                         )}
                                     </button>
+
+                                    {idx < steps.length - 1 && (
+                                        <div className={cn('h-px w-8 shrink-0', isCompleted ? 'bg-success/50' : 'bg-border')} />
+                                    )}
                                 </li>
                             );
                         })}

@@ -123,6 +123,12 @@ export const apiPlanKeys = {
         [...apiPlanKeys.all, ctx.type, ctx.entityId, 'count', envId, status] as const,
 };
 
+export const resourcePluginKeys = {
+    all: ['resource-plugins'] as const,
+    list: () => [...resourcePluginKeys.all, 'list'] as const,
+    schema: (resourceId: string) => [...resourcePluginKeys.all, 'schema', resourceId] as const,
+};
+
 export const apiHealthCheckKeys = {
     all: ['api-health-check'] as const,
     availability: (envId: string, apiId: string, field: HealthField, timeframe: Timeframe) =>
