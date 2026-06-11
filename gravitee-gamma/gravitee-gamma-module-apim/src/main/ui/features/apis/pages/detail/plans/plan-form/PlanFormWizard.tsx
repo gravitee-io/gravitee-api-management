@@ -164,6 +164,7 @@ export function PlanFormWizard({ ctx, securityType, planId, readOnly = false, se
 
             {isSecurityStep && (
                 <PlanSecurityStep
+                    ctx={ctx}
                     securityType={securityType}
                     value={form.security}
                     onChange={(security: SecurityFormData) => setForm({ ...form, security })}

@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Input, Label, Switch } from '@gravitee/graphene-core';
+import { Label, Switch } from '@gravitee/graphene-core';
 import { XIcon } from '@gravitee/graphene-core/icons';
 import { useRef, useState } from 'react';
+
+import { type ApiResourceOption, ResourceSelectInput } from './ResourceSelectInput';
 
 export interface OAuth2Config {
     oauthResource: string;
@@ -93,22 +95,44 @@ interface OAuth2SecurityFieldsProps {
     value: OAuth2Config;
     onChange: (v: OAuth2Config) => void;
     readOnly?: boolean;
+    /** Resources configured on the API (with plugin icons), used to power the resource autocompletes. */
+    resourceOptions?: readonly ApiResourceOption[];
 }
 
-export function OAuth2SecurityFields({ value, onChange, readOnly = false }: Readonly<OAuth2SecurityFieldsProps>) {
+/** EL expressions are valid resource values, so the "not configured" hint must not fire for them. */
+function isMissingResource(value: string, options: readonly ApiResourceOption[]): boolean {
+    const trimmed = value.trim();
+    if (!trimmed || trimmed.includes('{')) return false;
+    return !options.some(o => o.name === trimmed);
+}
+
+export function OAuth2SecurityFields({ value, onChange, readOnly = false, resourceOptions = [] }: Readonly<OAuth2SecurityFieldsProps>) {
+    const oauthOptions = resourceOptions.filter(o => o.type.startsWith('oauth2'));
+    const cacheOptions = resourceOptions.filter(o => o.type.startsWith('cache'));
+
+    const oauthMissing = isMissingResource(value.oauthResource, oauthOptions);
+    const cacheMissing = isMissingResource(value.oauthCacheResource, cacheOptions);
+
     return (
         <div className="space-y-4">
             <div className="space-y-2">
                 <Label htmlFor="oauth2-resource">
                     OAuth2 resource <span className="text-destructive">*</span>
                 </Label>
-                <Input
+                <ResourceSelectInput
                     id="oauth2-resource"
                     value={value.oauthResource}
-                    onChange={e => onChange({ ...value, oauthResource: e.target.value })}
+                    onChange={oauthResource => onChange({ ...value, oauthResource })}
+                    options={oauthOptions}
                     placeholder="Name of the OAuth2 resource configured on this API"
                     disabled={readOnly}
+                    aria-describedby={oauthMissing ? 'oauth2-resource-missing' : undefined}
                 />
+                {oauthMissing && (
+                    <p id="oauth2-resource-missing" className="text-xs text-destructive">
+                        Resource does not exist. Add it to the API&apos;s Resources section for it to be taken into account.
+                    </p>
+                )}
                 <p className="text-xs text-muted-foreground">
                     The name of the OAuth2 authorization server resource configured in your API&apos;s Resources section. Supports EL.
                 </p>
@@ -116,13 +140,20 @@ export function OAuth2SecurityFields({ value, onChange, readOnly = false }: Read
 
             <div className="space-y-2">
                 <Label htmlFor="oauth2-cache-resource">Cache resource</Label>
-                <Input
+                <ResourceSelectInput
                     id="oauth2-cache-resource"
                     value={value.oauthCacheResource}
-                    onChange={e => onChange({ ...value, oauthCacheResource: e.target.value })}
+                    onChange={oauthCacheResource => onChange({ ...value, oauthCacheResource })}
+                    options={cacheOptions}
                     placeholder="Name of the cache resource to store tokens"
                     disabled={readOnly}
+                    aria-describedby={cacheMissing ? 'oauth2-cache-resource-missing' : undefined}
                 />
+                {cacheMissing && (
+                    <p id="oauth2-cache-resource-missing" className="text-xs text-destructive">
+                        Resource does not exist. Add it to the API&apos;s Resources section for it to be taken into account.
+                    </p>
+                )}
                 <p className="text-xs text-muted-foreground">Cache resource used to store the validated tokens.</p>
             </div>
 

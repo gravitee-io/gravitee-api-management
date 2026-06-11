@@ -19,12 +19,12 @@ import { useMemo, useState } from 'react';
 import { ConfigurationStep } from './ConfigurationStep';
 import { GeneralStep } from './GeneralStep';
 import { HealthCheckStep } from './HealthCheckStep';
+import { WizardStepIndicator } from '../../../../components/WizardStepIndicator';
 import { validateHttpProxyOptions } from '../../../../utils/endpointSharedConfiguration';
 import type { HealthCheckConfigFormState, HealthCheckFormState } from '../../../../utils/healthCheckForm';
 import { validateHealthCheckForm } from '../../../../utils/healthCheckForm';
 import type { EndpointGroupFormState, SharedConfigFormState } from '../types';
 import { validateEndpointTarget, validateGroupName } from '../types';
-import { WizardStepIndicator } from '../WizardStepIndicator';
 
 const BASE_STEPS = [
     { id: 'general', label: 'General' },

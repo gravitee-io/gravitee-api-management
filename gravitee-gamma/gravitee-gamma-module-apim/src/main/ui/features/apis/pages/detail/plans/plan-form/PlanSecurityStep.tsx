@@ -15,7 +15,7 @@
  */
 import { Alert, AlertDescription, Card, CardContent, CardHeader, CardTitle, Input, Label, Separator } from '@gravitee/graphene-core';
 import { ChevronDownIcon, ChevronRightIcon } from '@gravitee/graphene-core/icons';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { ApiKeySecurityFields, DEFAULT_API_KEY_CONFIG } from './security/ApiKeySecurityFields';
 import type { ApiKeyConfig } from './security/ApiKeySecurityFields';
@@ -24,7 +24,10 @@ import type { JwtConfig } from './security/JwtSecurityFields';
 import { MtlsSecurityFields } from './security/MtlsSecurityFields';
 import { DEFAULT_OAUTH2_CONFIG, OAuth2SecurityFields } from './security/OAuth2SecurityFields';
 import type { OAuth2Config } from './security/OAuth2SecurityFields';
-import type { PlanSecurityType, SecurityFormData } from '../../../../types/plan';
+import type { ApiResourceOption } from './security/ResourceSelectInput';
+import { useApiDetail } from '../../../../hooks/useApiDetail';
+import { useResourcePlugins } from '../../../../hooks/useApiResources';
+import type { PlanContext, PlanSecurityType, SecurityFormData } from '../../../../types/plan';
 import { PLAN_SECURITY_LABELS } from '../../../../types/plan';
 
 // Deep-merge stored JWT config with defaults, handling nested objects correctly.
@@ -56,15 +59,25 @@ function resolveJwtConfig(stored: Partial<JwtConfig>): JwtConfig {
 }
 
 interface PlanSecurityStepProps {
+    ctx: PlanContext;
     securityType: PlanSecurityType;
     value: SecurityFormData;
     onChange: (v: SecurityFormData) => void;
     readOnly?: boolean;
 }
 
-export function PlanSecurityStep({ securityType, value, onChange, readOnly = false }: Readonly<PlanSecurityStepProps>) {
+export function PlanSecurityStep({ ctx, securityType, value, onChange, readOnly = false }: Readonly<PlanSecurityStepProps>) {
     const [selectionRuleOpen, setSelectionRuleOpen] = useState(false);
     const updateConfig = (cfg: unknown) => onChange({ ...value, configuration: cfg as Record<string, unknown> });
+
+    // Resources live on the API definition; suggest them (with plugin icons) in the OAuth2 resource pickers.
+    const apiId = ctx.type === 'api' ? ctx.entityId : undefined;
+    const { data: api } = useApiDetail(apiId);
+    const { data: plugins = [] } = useResourcePlugins();
+    const resourceOptions = useMemo<ApiResourceOption[]>(() => {
+        const iconByType = new Map(plugins.map(p => [p.id, p.icon]));
+        return (api?.resources ?? []).map(r => ({ name: r.name, type: r.type, icon: iconByType.get(r.type) }));
+    }, [api?.resources, plugins]);
 
     return (
         <div className="space-y-6">
@@ -92,6 +105,7 @@ export function PlanSecurityStep({ securityType, value, onChange, readOnly = fal
                             value={{ ...DEFAULT_OAUTH2_CONFIG, ...(value.configuration as Partial<OAuth2Config>) }}
                             onChange={updateConfig}
                             readOnly={readOnly}
+                            resourceOptions={resourceOptions}
                         />
                     )}
                     {securityType === 'MTLS' && <MtlsSecurityFields />}

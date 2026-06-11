@@ -59,6 +59,8 @@ import { ApiPlansPage } from '../features/apis/pages/detail/plans/ApiPlansPage';
 import { ApiPropertiesPage } from '../features/apis/pages/detail/properties/ApiPropertiesPage';
 import { ApiDynamicPropertiesPage } from '../features/apis/pages/detail/properties/dynamic/ApiDynamicPropertiesPage';
 import { ApiReporterSettingsPage } from '../features/apis/pages/detail/reporter-settings/ApiReporterSettingsPage';
+import { ApiResourcesPage } from '../features/apis/pages/detail/resources/ApiResourcesPage';
+import { ApiResourceWizardPage } from '../features/apis/pages/detail/resources/ApiResourceWizardPage';
 import { UserPermissionsPage } from '../features/apis/pages/detail/user-permissions/UserPermissionsPage';
 import { PolicyStudioPage } from '../features/apis/pages/policy-studio/PolicyStudioPage';
 import { ScratchWizardPage } from '../features/apis/pages/ScratchWizardPage';
@@ -111,6 +113,11 @@ export function AppRoutes() {
                             <Route path="properties">
                                 <Route index element={<ApiPropertiesPage />} />
                                 <Route path="dynamic" element={<ApiDynamicPropertiesPage />} />
+                            </Route>
+                            <Route path="resources">
+                                <Route index element={<ApiResourcesPage />} />
+                                <Route path="new" element={<ApiResourceWizardPage />} />
+                                <Route path=":resourceName/edit" element={<ApiResourceWizardPage />} />
                             </Route>
                             <Route path="notifications">
                                 <Route index element={<ApiNotificationsPage />} />

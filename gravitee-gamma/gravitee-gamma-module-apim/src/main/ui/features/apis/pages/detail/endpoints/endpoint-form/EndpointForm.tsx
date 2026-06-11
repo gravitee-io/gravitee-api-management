@@ -19,6 +19,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 
 import { TenantSelectInput } from './TenantSelectInput';
+import { WizardStepIndicator } from '../../../../components/WizardStepIndicator';
 import { getTenants } from '../../../../services/tenants';
 import type { Tenant } from '../../../../types';
 import { validateHttpProxyOptions } from '../../../../utils/endpointSharedConfiguration';
@@ -29,7 +30,6 @@ import { ConfigurationStep } from '../group-form/ConfigurationStep';
 import { HealthCheckStep } from '../group-form/HealthCheckStep';
 import type { EndpointFormState, SharedConfigFormState } from '../types';
 import { DEFAULT_SHARED_CONFIG, newEndpointRow, validateEndpointName } from '../types';
-import { WizardStepIndicator } from '../WizardStepIndicator';
 
 const BASE_STEPS = [
     { id: 'general', label: 'General' },

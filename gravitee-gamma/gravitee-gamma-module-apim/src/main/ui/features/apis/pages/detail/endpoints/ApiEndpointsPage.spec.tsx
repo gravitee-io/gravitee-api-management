@@ -33,6 +33,7 @@ jest.mock('@gravitee/gamma-modules-sdk', () => ({
 
 jest.mock('@gravitee/graphene-core', () => ({
     toast: { success: jest.fn(), error: jest.fn(), warning: jest.fn(), info: jest.fn() },
+    cn: (...args: unknown[]) => args.filter(Boolean).join(' '),
     Alert: ({ children, variant }: { children?: React.ReactNode; variant?: string }) => (
         <div role="alert" data-variant={variant}>
             {children}

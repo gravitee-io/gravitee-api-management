@@ -23,6 +23,7 @@ import { useGatewayPrefix } from '../../hooks/useGatewayPrefix';
 import { useApiCreation } from '../../store/apiCreationStore';
 import { buildPlanName, buildPreviewGatewayUrl } from '../../utils/apiProxyMapper';
 import { AUTH_LABEL } from '../../utils/securityFormatters';
+import { ReviewRow } from '../ReviewRow';
 
 interface SectionHeaderProps {
     title: string;
@@ -47,31 +48,6 @@ function SectionHeader({ title, icon, onEdit, trailing }: SectionHeaderProps) {
                 </Button>
             )}
             {trailing}
-        </div>
-    );
-}
-
-type ReviewRowProps =
-    | { label: string; value: string; mono?: boolean; children?: never }
-    | { label: string; children: ReactNode; value?: never; mono?: never };
-
-function ReviewRow({ label, value, mono, children }: ReviewRowProps) {
-    return (
-        <div className="flex items-start justify-between gap-4 px-4 py-2.5 border-b last:border-b-0">
-            <span className="text-xs text-muted-foreground shrink-0">{label}</span>
-            {children ?? (
-                <span
-                    className="text-xs font-medium text-right"
-                    style={{
-                        maxWidth: '60%',
-                        wordBreak: 'break-word',
-                        overflowWrap: 'break-word',
-                        fontFamily: mono ? 'monospace' : undefined,
-                    }}
-                >
-                    {value || <span className="text-muted-foreground italic font-sans">Not set</span>}
-                </span>
-            )}
         </div>
     );
 }
