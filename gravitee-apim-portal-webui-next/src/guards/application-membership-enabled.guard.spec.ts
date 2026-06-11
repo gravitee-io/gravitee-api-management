@@ -33,7 +33,7 @@ describe('applicationMembershipEnabledGuard', () => {
         {
           provide: ConfigService,
           useValue: {
-            configuration: { portalNext: { applications: { membership: { enabled: { enabled: true } } } } },
+            configuration: { portalNext: { applications: { membership: { enabled: true } } } },
           },
         },
         { provide: Router, useValue: { parseUrl: jest.fn() } },
@@ -52,7 +52,7 @@ describe('applicationMembershipEnabledGuard', () => {
         {
           provide: ConfigService,
           useValue: {
-            configuration: { portalNext: { applications: { membership: { enabled: { enabled: false } } } } },
+            configuration: { portalNext: { applications: { membership: { enabled: false } } } },
           },
         },
         { provide: Router, useValue: { parseUrl } },
@@ -135,13 +135,15 @@ describe('applicationTransferOwnershipEnabledGuard', () => {
 });
 
 describe('applicationInvitationsEnabledGuard', () => {
-  it('should allow navigation when invitations are enabled', () => {
+  it('should allow navigation when membership and invitations are both enabled', () => {
     TestBed.configureTestingModule({
       providers: [
         {
           provide: ConfigService,
           useValue: {
-            configuration: { portalNext: { applications: { membership: { invitations: { enabled: true } } } } },
+            configuration: {
+              portalNext: { applications: { membership: { enabled: true, invitations: { enabled: true } } } },
+            },
           },
         },
         { provide: Router, useValue: { parseUrl: jest.fn() } },
@@ -153,14 +155,38 @@ describe('applicationInvitationsEnabledGuard', () => {
     expect(result).toBe(true);
   });
 
-  it('should redirect to home when invitations are disabled', () => {
+  it('should redirect to home when invitations toggle is disabled', () => {
     const parseUrl = jest.fn().mockReturnValue('PARSED');
     TestBed.configureTestingModule({
       providers: [
         {
           provide: ConfigService,
           useValue: {
-            configuration: { portalNext: { applications: { membership: { invitations: { enabled: false } } } } },
+            configuration: {
+              portalNext: { applications: { membership: { enabled: true, invitations: { enabled: false } } } },
+            },
+          },
+        },
+        { provide: Router, useValue: { parseUrl } },
+      ],
+    });
+
+    const result = TestBed.runInInjectionContext(() => applicationInvitationsEnabledGuard(dummyRoute, dummyState));
+
+    expect(parseUrl).toHaveBeenCalledWith('/');
+    expect(result).toBe('PARSED');
+  });
+
+  it('should redirect to home when parent membership toggle is disabled', () => {
+    const parseUrl = jest.fn().mockReturnValue('PARSED');
+    TestBed.configureTestingModule({
+      providers: [
+        {
+          provide: ConfigService,
+          useValue: {
+            configuration: {
+              portalNext: { applications: { membership: { enabled: false, invitations: { enabled: true } } } },
+            },
           },
         },
         { provide: Router, useValue: { parseUrl } },

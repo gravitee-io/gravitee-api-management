@@ -117,7 +117,7 @@ interface PortalForm {
     analytics: FormGroup<{ enabled: FormControl<boolean> }>;
     applications: FormGroup<{
       membership: FormGroup<{
-        enabled: FormGroup<{ enabled: FormControl<boolean> }>;
+        enabled: FormControl<boolean>;
         transferOwnership: FormGroup<{ enabled: FormControl<boolean> }>;
         invitations: FormGroup<{ enabled: FormControl<boolean> }>;
       }>;
@@ -442,11 +442,9 @@ export class PortalSettingsComponent implements OnInit {
         }),
         applications: new FormGroup({
           membership: new FormGroup({
-            enabled: new FormGroup({
-              enabled: new FormControl({
-                value: !!this.settings.portalNext?.applications?.membership?.enabled?.enabled,
-                disabled: this.isReadonly('portal.next.applications.membership.enabled'),
-              }),
+            enabled: new FormControl({
+              value: !!this.settings.portalNext?.applications?.membership?.enabled,
+              disabled: this.isReadonly('portal.next.applications.membership.enabled'),
             }),
             transferOwnership: new FormGroup({
               enabled: new FormControl({

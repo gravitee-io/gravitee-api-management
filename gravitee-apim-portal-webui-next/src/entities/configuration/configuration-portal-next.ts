@@ -36,7 +36,7 @@ export class ConfigurationPortalNext {
   };
   applications?: {
     membership?: {
-      enabled?: { enabled?: boolean };
+      enabled?: boolean;
       transferOwnership?: { enabled?: boolean };
       invitations?: { enabled?: boolean };
     };
