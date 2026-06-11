@@ -29,6 +29,7 @@ import { UserCellComponent, UserCellVM } from '../../../../components/user-cell/
 import { APPLICATION_PRIMARY_OWNER_ROLE_NAME, Application } from '../../../../entities/application/application';
 import { Member, MemberSearchFilters, MembersResponse } from '../../../../entities/member/member';
 import { UserApplicationPermissions } from '../../../../entities/permission/permission';
+import { ConfigService } from '../../../../services/config.service';
 import { CurrentUserService } from '../../../../services/current-user.service';
 import { MembershipService } from '../../../../services/membership.service';
 import { PermissionsService } from '../../../../services/permissions.service';
@@ -79,6 +80,7 @@ interface MembersRequestParams {
 })
 export class ApplicationTabMembersComponent {
   private readonly membershipService = inject(MembershipService);
+  private readonly configService = inject(ConfigService);
   private readonly currentUserService = inject(CurrentUserService);
   private readonly matDialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
@@ -104,9 +106,11 @@ export class ApplicationTabMembersComponent {
   readonly canUpdate = computed(() => this.effectiveUserApplicationPermissions().MEMBER?.includes('U') ?? false);
   readonly canDelete = computed(() => this.effectiveUserApplicationPermissions().MEMBER?.includes('D') ?? false);
   readonly canTransferOwnership = computed(() => {
+    const transferOwnershipEnabled =
+      this.configService.configuration.portalNext?.applications?.membership?.transferOwnership?.enabled === true;
     const currentUserId = this.currentUserService.user()?.id;
     const ownerId = this.application()?.owner?.id;
-    return this.canUpdate() && !!currentUserId && currentUserId === ownerId;
+    return transferOwnershipEnabled && this.canUpdate() && !!currentUserId && currentUserId === ownerId;
   });
 
   readonly actions = computed<TableAction<MemberTableRow>[]>(() => {
