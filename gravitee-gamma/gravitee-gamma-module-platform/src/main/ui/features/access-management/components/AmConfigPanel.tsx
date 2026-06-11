@@ -95,6 +95,8 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
     const [testing, setTesting] = useState(false);
     const [testResult, setTestResult] = useState<{ ok: boolean; message?: string } | null>(null);
     const [saving, setSaving] = useState(false);
+    // Inline confirmation for the connection-only save path (env/domain still incomplete, so no onSaved toast).
+    const [connectionSaved, setConnectionSaved] = useState(false);
     // Gates the env/domain picker; set by a successful test/save or a previously-saved connection,
     // reset when any field is edited so the user must re-verify.
     const [connectionVerified, setConnectionVerified] = useState(false);
@@ -106,6 +108,7 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
         setForm(prev => ({ ...prev, [key]: value }));
         setConnectionVerified(false);
         setTestResult(null);
+        setConnectionSaved(false);
     };
 
     const { organizationId, environmentId } = cfg;
@@ -248,10 +251,20 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
                 if (def && entries.length === 1) {
                     setGatewayUrl(def.url.replace(/\/$/, ''));
                 } else {
-                    setGatewayUrl(null);
+                    // Multi-entrypoint: keep the persisted/selected gateway if it still matches an
+                    // entrypoint (realigned to the option value), otherwise clear so the user must pick.
+                    setGatewayUrl(prev => {
+                        if (!prev) return null;
+                        const norm = prev.replace(/\/$/, '');
+                        const match = entries.find(e => e.url.replace(/\/$/, '') === norm);
+                        return match ? match.url : null;
+                    });
                 }
-            } catch {
-                if (!cancelled) setGatewayEntrypoints(null);
+            } catch (e) {
+                if (!cancelled) {
+                    console.error('Failed to list domain entrypoints', e);
+                    setGatewayEntrypoints(null);
+                }
             }
         };
         void run();
@@ -316,6 +329,9 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
             if (canSaveSelection) {
                 saveAmConfig(cfg);
                 onSaved(cfg);
+            } else {
+                // Connection persisted but scope isn't complete — confirm inline so Save isn't a silent no-op.
+                setConnectionSaved(true);
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : String(err));
@@ -347,6 +363,8 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
                         value={cfg.organizationId}
                         onChange={v => set('organizationId', v)}
                         placeholder="DEFAULT"
+                        // Bootstrap-resolved and feeds moduleBaseUrl(); editing it points requests at a bogus path.
+                        disabled
                     />
 
                     <TextField
@@ -470,6 +488,13 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
                 </Alert>
             )}
 
+            {connectionSaved && !canSaveSelection && (
+                <Alert>
+                    <AlertTitle>Connection saved</AlertTitle>
+                    <AlertDescription>Pick an environment and domain to finish targeting this module.</AlertDescription>
+                </Alert>
+            )}
+
             <div className="flex gap-2">
                 <Button type="submit" disabled={!canSaveConnection || saving}>
                     {saving ? 'Saving…' : 'Save'}
@@ -490,21 +515,36 @@ function TextField({
     onChange,
     placeholder,
     type = 'text',
+    disabled = false,
 }: {
     label: string;
     value: string;
     onChange: (v: string) => void;
     placeholder?: string;
     type?: string;
+    disabled?: boolean;
 }) {
     const id = useId();
     return (
         <Field>
             <FieldLabel htmlFor={id}>{label}</FieldLabel>
             {type === 'password' ? (
-                <PasswordInput id={id} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} />
+                <PasswordInput
+                    id={id}
+                    value={value}
+                    onChange={e => onChange(e.target.value)}
+                    placeholder={placeholder}
+                    disabled={disabled}
+                />
             ) : (
-                <Input id={id} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} type={type} />
+                <Input
+                    id={id}
+                    value={value}
+                    onChange={e => onChange(e.target.value)}
+                    placeholder={placeholder}
+                    type={type}
+                    disabled={disabled}
+                />
             )}
         </Field>
     );
