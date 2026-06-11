@@ -155,7 +155,7 @@ public class UserCrudServiceImplTest {
                 )
             );
 
-            var users = service.findBaseUsersByEmail("organization-id", "same@gravitee.io");
+            var users = service.findBaseUsersByEmail("organization-id", "SAME@gravitee.io");
 
             assertThat(users).extracting(BaseUserEntity::getId).containsExactly("1", "2");
         }

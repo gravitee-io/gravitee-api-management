@@ -38,12 +38,12 @@ import io.gravitee.apim.core.invitation.query_service.InvitationQueryService;
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
 import io.gravitee.apim.core.membership.domain_service.MembershipDomainService;
 import io.gravitee.apim.core.membership.exception.RoleNotFoundException;
+import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.core.membership.query_service.RoleQueryService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
-import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.ReferenceContext;
-import io.gravitee.rest.api.service.exceptions.MembershipAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.SinglePrimaryOwnerException;
 import java.net.URI;
 import java.util.LinkedHashSet;
@@ -85,6 +85,9 @@ class CreateApplicationInvitationsDomainServiceTest {
     private UserCrudService userCrudService;
 
     @Mock
+    private MembershipQueryService membershipQueryService;
+
+    @Mock
     private MembershipDomainService membershipDomainService;
 
     private CreateApplicationInvitationsDomainService cut;
@@ -97,6 +100,7 @@ class CreateApplicationInvitationsDomainServiceTest {
             new ValidateApplicationInvitationRoleDomainService(roleQueryService),
             applicationInvitationNotificationDomainService,
             userCrudService,
+            membershipQueryService,
             membershipDomainService
         );
     }
@@ -182,12 +186,13 @@ class CreateApplicationInvitationsDomainServiceTest {
         when(userCrudService.findBaseUsersByEmail(ORGANIZATION_ID, "alice@example.com")).thenReturn(
             List.of(aBaseUserEntity("user-id", ORGANIZATION_ID, "alice@example.com"))
         );
+        givenNoExistingApplicationMembers("user-id");
 
         var result = cut.create(
             ORGANIZATION_ID,
             ENVIRONMENT_ID,
             APPLICATION_ID,
-            Set.of("alice@example.com"),
+            Set.of("Alice@Example.com"),
             ROLE_NAME,
             true,
             CONFIRMATION_PAGE_URL
@@ -212,6 +217,7 @@ class CreateApplicationInvitationsDomainServiceTest {
         when(userCrudService.findBaseUsersByEmail(ORGANIZATION_ID, "alice@example.com")).thenReturn(
             List.of(aBaseUserEntity("user-id", ORGANIZATION_ID, "alice@example.com"))
         );
+        givenNoExistingApplicationMembers("user-id");
         givenNoExistingUsers("bob@example.com");
         when(invitationCrudService.create(any(ApplicationInvitation.class))).thenReturn(
             anApplicationInvitation(INVITATION_ID_1, "bob@example.com")
@@ -281,44 +287,44 @@ class CreateApplicationInvitationsDomainServiceTest {
     }
 
     @Test
-    void should_propagate_membership_already_exists_when_existing_user_is_already_application_member() {
+    void should_skip_existing_application_member_and_create_invitation_for_unknown_email() {
         givenExistingRole();
         when(invitationQueryService.findByReference(InvitationReference.application(APPLICATION_ID))).thenReturn(List.of());
         when(userCrudService.findBaseUsersByEmail(ORGANIZATION_ID, "alice@example.com")).thenReturn(
             List.of(aBaseUserEntity("user-id", ORGANIZATION_ID, "alice@example.com"))
         );
         givenNoExistingUsers("bob@example.com");
-        var membershipAlreadyExists = new MembershipAlreadyExistsException(
-            "user-id",
-            MembershipMemberType.USER,
+        givenExistingApplicationMembers(
+            Membership.builder()
+                .memberId("user-id")
+                .memberType(Membership.Type.USER)
+                .referenceType(Membership.ReferenceType.APPLICATION)
+                .referenceId(APPLICATION_ID)
+                .build()
+        );
+        when(invitationCrudService.create(any(ApplicationInvitation.class))).thenReturn(
+            anApplicationInvitation(INVITATION_ID_1, "bob@example.com")
+        );
+
+        var result = cut.create(
+            ORGANIZATION_ID,
+            ENVIRONMENT_ID,
             APPLICATION_ID,
-            io.gravitee.rest.api.model.MembershipReferenceType.APPLICATION
-        );
-        when(
-            membershipDomainService.createNewMembership(
-                new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID),
-                MembershipReferenceType.APPLICATION,
-                APPLICATION_ID,
-                "user-id",
-                null,
-                ROLE_NAME
-            )
-        ).thenThrow(membershipAlreadyExists);
-
-        var throwable = catchThrowable(() ->
-            cut.create(
-                ORGANIZATION_ID,
-                ENVIRONMENT_ID,
-                APPLICATION_ID,
-                recipients("alice@example.com", "bob@example.com"),
-                ROLE_NAME,
-                true,
-                CONFIRMATION_PAGE_URL
-            )
+            recipients("alice@example.com", "bob@example.com"),
+            ROLE_NAME,
+            true,
+            CONFIRMATION_PAGE_URL
         );
 
-        assertThat(throwable).isSameAs(membershipAlreadyExists);
-        verifyNoInteractions(invitationCrudService, applicationInvitationNotificationDomainService);
+        assertThat(result).extracting(ApplicationInvitation::email).containsExactly("bob@example.com");
+        verify(membershipDomainService, never()).createNewMembership(any(), any(), any(), any(), any(), any());
+        verify(applicationInvitationNotificationDomainService).dispatchAsync(
+            ORGANIZATION_ID,
+            ENVIRONMENT_ID,
+            APPLICATION_ID,
+            result,
+            CONFIRMATION_PAGE_URL
+        );
     }
 
     @Test
@@ -382,6 +388,30 @@ class CreateApplicationInvitationsDomainServiceTest {
         for (var email : emails) {
             when(userCrudService.findBaseUsersByEmail(ORGANIZATION_ID, email)).thenReturn(List.of());
         }
+    }
+
+    private void givenNoExistingApplicationMembers(String... userIds) {
+        when(
+            membershipQueryService.findByMemberIdsAndMemberTypeAndReferenceType(
+                Set.of(userIds),
+                Membership.Type.USER,
+                Membership.ReferenceType.APPLICATION
+            )
+        ).thenReturn(List.of());
+    }
+
+    private void givenExistingApplicationMembers(Membership... memberships) {
+        var userIds = new LinkedHashSet<String>();
+        for (var membership : memberships) {
+            userIds.add(membership.getMemberId());
+        }
+        when(
+            membershipQueryService.findByMemberIdsAndMemberTypeAndReferenceType(
+                userIds,
+                Membership.Type.USER,
+                Membership.ReferenceType.APPLICATION
+            )
+        ).thenReturn(List.of(memberships));
     }
 
     private Set<String> recipients(String... emails) {

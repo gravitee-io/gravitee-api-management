@@ -54,7 +54,7 @@ public class UserCrudServiceInMemory implements UserCrudService, InMemoryAlterna
         return storage
             .stream()
             .filter(user -> organizationId.equals(user.getOrganizationId()))
-            .filter(user -> email.equals(user.getEmail()))
+            .filter(user -> user.getEmail() != null && user.getEmail().equalsIgnoreCase(email))
             .toList();
     }
 
