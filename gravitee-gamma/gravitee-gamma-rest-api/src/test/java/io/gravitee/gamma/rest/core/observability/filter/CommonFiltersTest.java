@@ -18,6 +18,8 @@ package io.gravitee.gamma.rest.core.observability.filter;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.gamma.rest.core.observability.filter.model.CommonFilters;
+import io.gravitee.gamma.rest.core.observability.filter.model.ExtensibleFilters;
+import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -27,6 +29,21 @@ class CommonFiltersTest {
 
     @Test
     void should_union_static_and_extensible_host_filter_names() {
-        assertThat(CommonFilters.names()).containsExactlyInAnyOrder("API", "HTTP_STATUS", "API_TYPE");
+        assertThat(CommonFilters.names()).hasSize(StaticFilters.values().length + ExtensibleFilters.values().length);
+        assertThat(CommonFilters.names()).contains(
+            "API",
+            "HTTP_STATUS",
+            "API_TYPE",
+            "HTTP_GATEWAY_RESPONSE_TIME",
+            "MCP_PROXY_METHOD",
+            "URI"
+        );
+    }
+
+    @Test
+    void should_not_expose_dropped_or_renamed_legacy_filter_names() {
+        // URI replaces HTTP_PATH (empty on v4); HTTP_PATH_MAPPING is an analytics facet, not a filter;
+        // the unified vocabulary uses the reconciled names (HTTP_GATEWAY_RESPONSE_TIME / MCP_PROXY_METHOD).
+        assertThat(CommonFilters.names()).doesNotContain("HTTP_PATH", "HTTP_PATH_MAPPING", "RESPONSE_TIME", "MCP_METHOD");
     }
 }

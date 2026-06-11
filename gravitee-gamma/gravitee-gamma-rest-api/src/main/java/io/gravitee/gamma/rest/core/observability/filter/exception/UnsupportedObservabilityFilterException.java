@@ -40,6 +40,13 @@ public class UnsupportedObservabilityFilterException extends ValidationDomainExc
         );
     }
 
+    public static UnsupportedObservabilityFilterException valueListingNotSupported(String filterName, String type) {
+        return new UnsupportedObservabilityFilterException(
+            "Filter '" + filterName + "' of type " + type + " does not support value listing",
+            "observability.filter.value_listing_not_supported"
+        );
+    }
+
     private UnsupportedObservabilityFilterException(String message, String technicalCode) {
         super(message, technicalCode);
     }
