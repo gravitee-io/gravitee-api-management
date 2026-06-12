@@ -48,10 +48,12 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Hazelcast: bundled in the plugin zip so this plugin is fully self-contained. -->
+        <!-- Hazelcast: bundled in the plugin zip so this plugin is fully self-contained.
+             5.7.0+ bundles jackson-core >= 2.21.1 which fixes GHSA-72hv-8253-57qq. -->
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast</artifactId>
+            <version>5.7.0</version>
         </dependency>
 
         <!-- Spring -->
