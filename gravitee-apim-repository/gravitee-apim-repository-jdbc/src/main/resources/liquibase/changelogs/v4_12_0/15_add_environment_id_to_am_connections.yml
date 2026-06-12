@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 4.12.0_13_add_environment_id_to_am_connections
+      id: 4.12.0_15_add_environment_id_to_am_connections
       author: GraviteeSource Team
       changes:
         - addColumn:

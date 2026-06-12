@@ -20,11 +20,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.stereotype.Component;
 
 /**
@@ -56,10 +61,19 @@ public class UserMapper {
         userItem.setId(user.getId());
         userItem.setEditableProfile(IDP_SOURCE_GRAVITEE.equals(user.getSource()) || IDP_SOURCE_MEMORY.equalsIgnoreCase(user.getSource()));
         if (user.getRoles() != null) {
-            Map<String, List<String>> userPermissions = user
+            Stream<UserRoleEntity> orgRoles = user
                 .getRoles()
                 .stream()
-                .filter(role -> RoleScope.ENVIRONMENT.equals(role.getScope()) || RoleScope.ORGANIZATION.equals(role.getScope()))
+                .filter(role -> RoleScope.ORGANIZATION.equals(role.getScope()));
+
+            Map<String, Set<UserRoleEntity>> envRolesMap = user.getEnvRoles();
+            String environmentId = GraviteeContext.getCurrentEnvironment();
+
+            Set<UserRoleEntity> currentEnvironmentRoles = (envRolesMap == null || environmentId == null)
+                ? Set.of()
+                : envRolesMap.getOrDefault(environmentId, Set.of());
+
+            Map<String, List<String>> userPermissions = Stream.concat(orgRoles, currentEnvironmentRoles.stream())
                 .map(UserRoleEntity::getPermissions)
                 .map(rolePermissions ->
                     rolePermissions
@@ -76,7 +90,13 @@ public class UserMapper {
                         )
                 )
                 .reduce(new HashMap<>(), (acc, rolePermissions) -> {
-                    acc.putAll(rolePermissions);
+                    rolePermissions.forEach((key, permissionChars) ->
+                        acc.merge(key, new ArrayList<>(permissionChars), (existing, incoming) -> {
+                            LinkedHashSet<String> merged = new LinkedHashSet<>(existing);
+                            merged.addAll(incoming);
+                            return new ArrayList<>(merged);
+                        })
+                    );
                     return acc;
                 });
             userItem.setPermissions(objectMapper.convertValue(userPermissions, UserPermissions.class));

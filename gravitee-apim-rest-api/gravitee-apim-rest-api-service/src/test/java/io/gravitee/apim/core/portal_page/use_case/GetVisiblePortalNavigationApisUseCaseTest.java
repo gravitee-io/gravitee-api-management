@@ -254,6 +254,7 @@ class GetVisiblePortalNavigationApisUseCaseTest {
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
             .title("Nav for " + apiId)
+            .segment(PortalNavigationItem.slugify("Nav for " + apiId).value())
             .area(PortalArea.TOP_NAVBAR)
             .order(0)
             .apiId(apiId)

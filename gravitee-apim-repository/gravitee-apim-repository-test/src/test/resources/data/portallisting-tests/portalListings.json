@@ -1,0 +1,37 @@
+[
+  {
+    "id": "portal-listing-1",
+    "environmentId": "environment1",
+    "organizationId": "organization1",
+    "portalId": "portal1",
+    "apis": "[{\"apiHrid\":\"pets-api\",\"location\":\"/projects/alpha\",\"order\":1}]"
+  },
+  {
+    "id": "portal-listing-2",
+    "environmentId": "environment1",
+    "organizationId": "organization1",
+    "portalId": "portal1",
+    "apis": "[{\"apiHrid\":\"shop-api\",\"location\":\"/projects/beta\",\"order\":1},{\"apiHrid\":\"store-api\",\"location\":\"/projects/beta\",\"order\":2}]"
+  },
+  {
+    "id": "portal-listing-3",
+    "environmentId": "environment1",
+    "organizationId": "organization1",
+    "portalId": "portal2",
+    "apis": "[]"
+  },
+  {
+    "id": "portal-listing-4",
+    "environmentId": "environment2",
+    "organizationId": "organization1",
+    "portalId": "portal3",
+    "apis": "[]"
+  },
+  {
+    "id": "portal-listing-5",
+    "environmentId": "environment3",
+    "organizationId": "organization2",
+    "portalId": "portal4",
+    "apis": "[]"
+  }
+]

@@ -30,6 +30,7 @@ import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.repository.management.model.ApplicationStatus;
@@ -176,6 +177,7 @@ public class PermissionsResourceTest extends AbstractResourceTest {
                     .apiId(API)
                     .published(true)
                     .visibility(PortalVisibility.PUBLIC)
+                    .segment(PortalNavigationItem.slugify("Nav for " + API).value())
                     .build()
             )
         );
@@ -204,6 +206,7 @@ public class PermissionsResourceTest extends AbstractResourceTest {
                     .apiId(API)
                     .published(true)
                     .visibility(PortalVisibility.PRIVATE)
+                    .segment(PortalNavigationItem.slugify("Nav for " + API).value())
                     .build()
             )
         );
@@ -255,6 +258,7 @@ public class PermissionsResourceTest extends AbstractResourceTest {
                     .apiId(API)
                     .published(true)
                     .visibility(PortalVisibility.PRIVATE)
+                    .segment(PortalNavigationItem.slugify("Nav for " + API).value())
                     .build()
             )
         );

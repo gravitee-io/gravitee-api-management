@@ -29,6 +29,7 @@ public final class CreatePortalNavigationItem {
 
     private PortalNavigationItemId id;
     private String title;
+    private String segment;
     private PortalArea area;
     private Integer order;
     private PortalNavigationItemType type;

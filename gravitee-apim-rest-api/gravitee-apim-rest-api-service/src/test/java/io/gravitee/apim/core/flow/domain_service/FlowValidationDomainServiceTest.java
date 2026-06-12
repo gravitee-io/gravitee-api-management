@@ -113,6 +113,48 @@ public class FlowValidationDomainServiceTest {
         }
 
         @Test
+        public void should_reject_http_selector_with_equals_operator_and_wildcard_path() {
+            var flow = Flow.builder()
+                .name("wildcard-flow")
+                .selectors(List.of(HttpSelector.builder().path("/**").pathOperator(Operator.EQUALS).build()))
+                .build();
+
+            var throwable = catchThrowable(() -> service.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(flow)));
+
+            assertThat(throwable)
+                .isInstanceOf(InvalidFlowException.class)
+                .hasMessage("The flow [wildcard-flow] contains an HTTP selector with an invalid wildcard path")
+                .extracting(th -> ((InvalidFlowException) th).getParameters())
+                .asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
+                .contains(entry("flowName", "wildcard-flow"), entry("path", "/**"));
+        }
+
+        @Test
+        public void should_reject_http_selector_with_starts_with_operator_and_wildcard_path() {
+            var flow = Flow.builder()
+                .name("wildcard-flow")
+                .selectors(List.of(HttpSelector.builder().path("/**").pathOperator(Operator.STARTS_WITH).build()))
+                .build();
+
+            var throwable = catchThrowable(() -> service.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(flow)));
+
+            assertThat(throwable)
+                .isInstanceOf(InvalidFlowException.class)
+                .hasMessage("The flow [wildcard-flow] contains an HTTP selector with an invalid wildcard path");
+        }
+
+        @Test
+        public void should_accept_http_selector_with_single_asterisk_in_path() {
+            var flow = Flow.builder()
+                .selectors(List.of(HttpSelector.builder().path("/foo*").pathOperator(Operator.EQUALS).build()))
+                .build();
+
+            var result = service.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(flow));
+
+            assertThat(result).hasSize(1).containsExactly(flow);
+        }
+
+        @Test
         public void should_accept_flow_with_only_selectors() {
             var flow = Flow.builder()
                 .selectors(List.of(HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).build()))
@@ -496,49 +538,6 @@ public class FlowValidationDomainServiceTest {
             return Objects.requireNonNull(api.getPlans())
                 .stream()
                 .flatMap(plan -> plan.getFlows() == null ? Stream.empty() : plan.getFlows().stream());
-        }
-
-        @Test
-        void should_return_validation_exception_when_http_selector_path_is_null() {
-            var flow = Flow.builder()
-                .selectors(List.of(HttpSelector.builder().path(null).pathOperator(Operator.STARTS_WITH).build()))
-                .build();
-
-            var throwable = catchThrowable(() -> service.validatePathParameters(ApiType.PROXY, Stream.of(flow), Stream.empty()));
-
-            assertThat(throwable).isInstanceOf(InvalidDataException.class);
-        }
-
-        @Test
-        void should_return_validation_exception_when_http_selector_path_operator_is_null() {
-            var flow = Flow.builder().selectors(List.of(HttpSelector.builder().path("/").pathOperator(null).build())).build();
-
-            var throwable = catchThrowable(() -> service.validatePathParameters(ApiType.PROXY, Stream.of(flow), Stream.empty()));
-
-            assertThat(throwable).isInstanceOf(InvalidDataException.class);
-        }
-
-        @Test
-        void should_not_throw_on_overlapping_paths_when_flows_are_disabled() {
-            var flow1 = Flow.builder()
-                .enabled(false)
-                .selectors(List.of(HttpSelector.builder().path("/products/:productId").build()))
-                .build();
-            var flow2 = Flow.builder().enabled(false).selectors(List.of(HttpSelector.builder().path("/products/:id").build())).build();
-
-            assertThatNoException().isThrownBy(() ->
-                service.validatePathParameters(ApiType.PROXY, Stream.of(flow1, flow2), Stream.empty())
-            );
-        }
-
-        @Test
-        void should_not_throw_on_flows_with_static_paths_only() {
-            var flow1 = Flow.builder().enabled(true).selectors(List.of(HttpSelector.builder().path("/products/list").build())).build();
-            var flow2 = Flow.builder().enabled(true).selectors(List.of(HttpSelector.builder().path("/products/list").build())).build();
-
-            assertThatNoException().isThrownBy(() ->
-                service.validatePathParameters(ApiType.PROXY, Stream.of(flow1, flow2), Stream.empty())
-            );
         }
     }
 }

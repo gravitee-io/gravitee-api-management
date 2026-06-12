@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import static io.gravitee.apim.core.utils.CollectionUtils.isNotEmpty;
 import static io.gravitee.apim.core.utils.CollectionUtils.stream;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_TYPE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.PageDocumentTransformer.FIELD_PAGE_TYPE;
 import static java.util.stream.Collectors.toList;
@@ -28,6 +29,7 @@ import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.IntegrationRepository;
@@ -259,6 +261,8 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         final Boolean hasOpenApiDocumentation
     ) {
         // Step 1: find apiIds from lucene indexer from 'query' parameter without any pagination and sorting
+        // Lucene indexes api_type as "<definitionVersion>_<TYPE>" (e.g. "V4_EDGE"), not the raw label
+        apiQueryBuilder.addExcludedFilter(FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
         var apiQuery = apiQueryBuilder.build();
         SearchResult apiIdsResult = searchEngineService.search(GraviteeContext.getExecutionContext(), apiQuery);
 
@@ -306,7 +310,8 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
 
         ApiCriteria.Builder apiCriteriaBuilder = new ApiCriteria.Builder()
             .environmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
-            .ids(apiIdPageSubset);
+            .ids(apiIdPageSubset)
+            .notApiTypes(List.of(ApiType.EDGE));
 
         if (Objects.nonNull(apiQuery.getFilters())) {
             if (apiQuery.getFilters().getOrDefault(FIELD_DEFINITION_VERSION, List.of()) instanceof List<?> versions) {
@@ -458,7 +463,9 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
     }
 
     private ApiCriteria.Builder queryToCriteria(final ExecutionContext executionContext, final ApiQuery query) {
-        final ApiCriteria.Builder builder = new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId());
+        final ApiCriteria.Builder builder = new ApiCriteria.Builder()
+            .environmentId(executionContext.getEnvironmentId())
+            .notApiTypes(List.of(ApiType.EDGE));
         if (query == null) {
             return builder;
         }
@@ -521,6 +528,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
                 Map.of(FIELD_DEFINITION_VERSION, stream(excludeDefinitionVersions).map(DefinitionVersion::getLabel).toList())
             );
         }
+        searchEngineQueryBuilder.addExcludedFilter(FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
         if (!isBlank(query)) {
             searchEngineQueryBuilder.setQuery(query);
         }

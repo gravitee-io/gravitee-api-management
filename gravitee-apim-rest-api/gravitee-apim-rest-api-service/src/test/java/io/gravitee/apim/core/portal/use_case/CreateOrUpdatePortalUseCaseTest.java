@@ -19,9 +19,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.PortalFixtures;
 import inmemory.PortalCrudServiceInMemory;
+import inmemory.PortalNavigationItemsCrudServiceInMemory;
+import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import inmemory.PortalPageContentCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal.domain_service.PortalNavigationListingDomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
+import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -38,16 +48,27 @@ class CreateOrUpdatePortalUseCaseTest {
         .build();
 
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
+    private final PortalNavigationItemsCrudServiceInMemory navCrudService = new PortalNavigationItemsCrudServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory(
+        navCrudService.storage()
+    );
+    private final PortalPageContentCrudServiceInMemory pageContentCrudService = new PortalPageContentCrudServiceInMemory();
     private CreateOrUpdatePortalUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        useCase = new CreateOrUpdatePortalUseCase(portalCrudService);
+        useCase = new CreateOrUpdatePortalUseCase(
+            portalCrudService,
+            new PortalNavigationSyncDomainService(navCrudService, navQueryService, pageContentCrudService),
+            new PortalNavigationListingDomainService(navQueryService)
+        );
     }
 
     @AfterEach
     void tearDown() {
         portalCrudService.reset();
+        navCrudService.reset();
+        pageContentCrudService.reset();
     }
 
     @Test
@@ -103,5 +124,29 @@ class CreateOrUpdatePortalUseCaseTest {
             "environment-id",
             "other-env"
         );
+    }
+
+    @Test
+    void should_sync_navigation_against_top_navbar_folders() {
+        var portal = PortalFixtures.aPortal();
+
+        useCase.execute(
+            new CreateOrUpdatePortalUseCase.Input(
+                AUDIT_INFO,
+                portal,
+                List.of(new NavigationPath("/projects/alpha", Optional.of("Alpha")), new NavigationPath("/projects/beta", Optional.empty()))
+            )
+        );
+
+        assertThat(navCrudService.storage()).hasSize(3);
+        assertThat(navCrudService.storage()).allMatch(item -> item.getArea() == PortalArea.TOP_NAVBAR);
+        assertThat(navCrudService.storage()).allMatch(item -> item.getType() == PortalNavigationItemType.FOLDER);
+        assertThat(
+            navCrudService
+                .storage()
+                .stream()
+                .map(it -> it.getTitle())
+                .toList()
+        ).containsExactlyInAnyOrder("projects", "Alpha", "beta");
     }
 }

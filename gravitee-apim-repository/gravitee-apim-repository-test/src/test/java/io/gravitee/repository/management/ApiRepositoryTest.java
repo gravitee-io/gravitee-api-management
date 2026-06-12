@@ -292,7 +292,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
             new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.V4)).build(),
             ApiFieldFilter.allFields()
         );
-        assertThat(v4Apis).hasSize(1);
+        assertThat(v4Apis).hasSize(2);
 
         List<Api> federatedApis = apiRepository.search(
             new ApiCriteria.Builder().definitionVersion(List.of(DefinitionVersion.FEDERATED)).build(),
@@ -362,8 +362,8 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         List<Api> apis = apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").build(), ApiFieldFilter.allFields());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
-        assertEquals(2, apis.size());
-        assertTrue(apis.stream().map(Api::getId).toList().containsAll(asList("grouped-api", "api-to-findById")));
+        assertEquals(3, apis.size());
+        assertTrue(apis.stream().map(Api::getId).toList().containsAll(asList("grouped-api", "api-to-findById", "edge-api")));
     }
 
     @Test
@@ -461,11 +461,16 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
             ApiFieldFilter.allFields()
         );
         assertNotNull(apis);
-        assertEquals(1, apis.size());
-        assertEquals("async-api", apis.get(0).getId());
-        assertEquals(DefinitionVersion.V4, apis.get(0).getDefinitionVersion());
-        assertEquals(ApiType.MESSAGE, apis.get(0).getType());
-        assertEquals("async-searched-crossId", apis.get(0).getCrossId());
+        assertEquals(2, apis.size());
+        assertThat(apis.stream().map(Api::getId).toList()).containsExactlyInAnyOrder("async-api", "edge-api");
+        Api asyncApi = apis
+            .stream()
+            .filter(a -> "async-api".equals(a.getId()))
+            .findFirst()
+            .orElseThrow();
+        assertEquals(DefinitionVersion.V4, asyncApi.getDefinitionVersion());
+        assertEquals(ApiType.MESSAGE, asyncApi.getType());
+        assertEquals("async-searched-crossId", asyncApi.getCrossId());
         // Guard against a future regression that incorrectly broadens $in to always include null:
         // V4-only must NOT pull legacy null/missing-defVersion docs.
         assertThat(apis.stream().map(Api::getId).toList()).doesNotContain("legacy-explicit-null-defv-api");
@@ -491,9 +496,10 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
             ApiFieldFilter.allFields()
         );
         assertNotNull(apis);
-        assertThat(apis).hasSize(12);
+        assertThat(apis).hasSize(13);
         assertThat(apis.stream().map(Api::getId).toList()).contains(
             "async-api",
+            "edge-api",
             "api-with-many-categories",
             "legacy-explicit-null-defv-api",
             "api-to-delete",
@@ -533,6 +539,17 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
             ApiFieldFilter.allFields()
         );
         assertThat(mcpApis).isEmpty();
+    }
+
+    @Test
+    public void should_exclude_by_notApiTypes() {
+        List<Api> apisWithoutEdge = apiRepository.search(
+            new ApiCriteria.Builder().environmentId("DEFAULT").notApiTypes(List.of(ApiType.EDGE)).build(),
+            ApiFieldFilter.allFields()
+        );
+        assertThat(apisWithoutEdge).isNotEmpty();
+        assertThat(apisWithoutEdge.stream().map(Api::getType).toList()).doesNotContain(ApiType.EDGE);
+        assertThat(apisWithoutEdge.stream().map(Api::getId).toList()).doesNotContain("edge-api");
     }
 
     @Test
@@ -676,7 +693,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
-        assertEquals(13, apis.size());
+        assertEquals(14, apis.size());
     }
 
     @Test

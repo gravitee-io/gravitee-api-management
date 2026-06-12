@@ -43,11 +43,13 @@ import {
   fakePlanV4,
   fakePoliciesPlugin,
   fakePolicyPlugin,
+  fakeProxyApiV4,
   FlowV4,
   PlanV4,
 } from '../../../../entities/management-api-v2';
 import { expectGetSharedPolicyGroupPolicyPluginRequest } from '../../../../services-ngx/shared-policy-groups.service.spec';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 describe('ApiV4PolicyStudioDesignComponent', () => {
   const API_ID = 'api-id';
@@ -815,6 +817,110 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
     });
   });
 
+  describe('Save error handling', () => {
+    let api: ApiV4;
+    let plan: PlanV4;
+    let snackBarService: SnackBarService;
+    const validationError = {
+      message: 'The flow [Invalid flow] contains an HTTP selector with an invalid wildcard path',
+    };
+    const invalidFlow: FlowV4 = {
+      name: 'Invalid flow',
+      enabled: true,
+      selectors: [{ type: 'HTTP', path: '/**', pathOperator: 'EQUALS', methods: [] }],
+      request: [],
+      response: [],
+      subscribe: [],
+      publish: [],
+    };
+
+    beforeEach(() => {
+      snackBarService = TestBed.inject(SnackBarService);
+      jest.spyOn(snackBarService, 'error');
+      jest.spyOn(snackBarService, 'success');
+
+      api = fakeProxyApiV4({
+        id: API_ID,
+        flows: [
+          {
+            name: 'Valid API flow',
+            enabled: true,
+            selectors: [{ type: 'HTTP', path: '/', pathOperator: 'STARTS_WITH', methods: [] }],
+            request: [],
+            response: [],
+            subscribe: [],
+            publish: [],
+          },
+        ],
+      });
+
+      plan = fakePlanV4({
+        name: 'Keyless',
+        security: { type: 'KEY_LESS', configuration: {} },
+        flows: [
+          {
+            name: 'Valid plan flow',
+            enabled: true,
+            selectors: [{ type: 'HTTP', path: '/health', pathOperator: 'EQUALS', methods: ['GET'] }],
+            request: [],
+            response: [],
+            subscribe: [],
+            publish: [],
+          },
+        ],
+      });
+
+      expectEntrypointsGetRequest([{ id: 'http-proxy', name: 'HTTP Proxy' }]);
+      expectEndpointsGetRequest([{ id: 'http-proxy', name: 'HTTP Proxy' }]);
+      expectGetPolicies();
+      expectGetSharedPolicyGroupPolicyPluginRequest(httpTestingController);
+      expectListApiPlans(API_ID, [plan]);
+      expectGetApi(api);
+    });
+
+    it('should reload plan flows from server when plan save fails', () => {
+      component.onSave({
+        plansToUpdate: [{ id: plan.id, name: plan.name, flows: [...plan.flows, invalidFlow] }],
+      });
+
+      expectGetPlan(api.id, plan);
+      const putReq = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}/plans/${plan.id}`,
+        method: 'PUT',
+      });
+      putReq.flush(validationError, { status: 400, statusText: 'Bad Request' });
+
+      expectPolicyStudioReload(api, plan);
+
+      expect(snackBarService.error).toHaveBeenCalledWith(validationError.message);
+      expect(snackBarService.success).not.toHaveBeenCalled();
+      expect(component.plans).toEqual([{ id: plan.id, name: plan.name, flows: plan.flows }]);
+      expect(component.plans[0].flows).toHaveLength(1);
+      expect(component.isLoading).toBe(false);
+    });
+
+    it('should reload api flows from server when api save fails', () => {
+      component.onSave({
+        commonFlows: [...api.flows, invalidFlow],
+      });
+
+      expectGetApi(api);
+      const putReq = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
+        method: 'PUT',
+      });
+      putReq.flush(validationError, { status: 400, statusText: 'Bad Request' });
+
+      expectPolicyStudioReload(api, plan);
+
+      expect(snackBarService.error).toHaveBeenCalledWith(validationError.message);
+      expect(snackBarService.success).not.toHaveBeenCalled();
+      expect(component.commonFlows).toEqual(api.flows);
+      expect(component.commonFlows).toHaveLength(1);
+      expect(component.isLoading).toBe(false);
+    });
+  });
+
   function expectGetApi(api: Api) {
     httpTestingController
       .expectOne({
@@ -873,5 +979,14 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
     // 6 requests are made on init
     expect(httpTestingController.match(() => true).length).toEqual(6);
     // Not flush it to stop test here
+  }
+
+  function expectPolicyStudioReload(api: ApiV4, plan: PlanV4) {
+    expectGetApi(api);
+    expectEntrypointsGetRequest([{ id: 'http-proxy', name: 'HTTP Proxy' }]);
+    expectEndpointsGetRequest([{ id: 'http-proxy', name: 'HTTP Proxy' }]);
+    expectListApiPlans(API_ID, [plan]);
+    expectGetPolicies();
+    expectGetSharedPolicyGroupPolicyPluginRequest(httpTestingController);
   }
 });
