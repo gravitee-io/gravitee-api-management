@@ -524,8 +524,9 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
             .setSort(sortable)
             .setFilters(filters);
         if (isNotEmpty(excludeDefinitionVersions)) {
-            searchEngineQueryBuilder.setExcludedFilters(
-                Map.of(FIELD_DEFINITION_VERSION, stream(excludeDefinitionVersions).map(DefinitionVersion::getLabel).toList())
+            searchEngineQueryBuilder.addExcludedFilter(
+                FIELD_DEFINITION_VERSION,
+                stream(excludeDefinitionVersions).map(DefinitionVersion::getLabel).toList()
             );
         }
         searchEngineQueryBuilder.addExcludedFilter(FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
