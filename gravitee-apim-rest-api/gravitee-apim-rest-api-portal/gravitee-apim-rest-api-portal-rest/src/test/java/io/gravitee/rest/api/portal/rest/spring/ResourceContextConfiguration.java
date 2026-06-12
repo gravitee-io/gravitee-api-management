@@ -1317,7 +1317,11 @@ public class ResourceContextConfiguration {
         PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService,
         ApiPortalSearchQueryServiceInMemory apiPortalSearchQueryService
     ) {
-        return new GetVisiblePortalNavigationApisUseCase(portalNavigationApiVisibilityDomainService, apiPortalSearchQueryService);
+        return new GetVisiblePortalNavigationApisUseCase(
+            portalNavigationApiVisibilityDomainService,
+            apiPortalSearchQueryService,
+            (envId, orgId) -> false
+        );
     }
 
     @Bean
