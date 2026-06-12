@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.PortalFixtures;
 import inmemory.PortalCrudServiceInMemory;
@@ -24,8 +25,10 @@ import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationListingDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
+import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
@@ -47,6 +50,7 @@ class CreateOrUpdatePortalUseCaseTest {
         .actor(AuditActor.builder().userId("user-id").build())
         .build();
 
+    private final ValidatePortalDomainService validator = new ValidatePortalDomainService();
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
     private final PortalNavigationItemsCrudServiceInMemory navCrudService = new PortalNavigationItemsCrudServiceInMemory();
     private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory(
@@ -58,6 +62,7 @@ class CreateOrUpdatePortalUseCaseTest {
     @BeforeEach
     void setUp() {
         useCase = new CreateOrUpdatePortalUseCase(
+            validator,
             portalCrudService,
             new PortalNavigationSyncDomainService(navCrudService, navQueryService, pageContentCrudService),
             new PortalNavigationListingDomainService(navQueryService)
@@ -148,5 +153,33 @@ class CreateOrUpdatePortalUseCaseTest {
                 .map(it -> it.getTitle())
                 .toList()
         ).containsExactlyInAnyOrder("projects", "Alpha", "beta");
+    }
+
+    @Test
+    void should_throw_when_navigation_path_is_invalid() {
+        var portal = PortalFixtures.aPortal();
+
+        assertThatThrownBy(() ->
+            useCase.execute(
+                new CreateOrUpdatePortalUseCase.Input(
+                    AUDIT_INFO,
+                    portal,
+                    List.of(new NavigationPath("/valid", Optional.empty()), new NavigationPath("bad-path", Optional.empty()))
+                )
+            )
+        )
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContaining("navigation[1].path");
+    }
+
+    @Test
+    void should_return_empty_errors_when_navigation_is_valid() {
+        var portal = PortalFixtures.aPortal();
+
+        var output = useCase.execute(
+            new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portal, List.of(new NavigationPath("/docs", Optional.empty())))
+        );
+
+        assertThat(output.errors()).isEmpty();
     }
 }
