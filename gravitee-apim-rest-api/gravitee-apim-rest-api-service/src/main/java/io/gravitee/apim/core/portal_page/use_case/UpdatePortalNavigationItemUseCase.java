@@ -45,7 +45,7 @@ public class UpdatePortalNavigationItemUseCase {
             throw new PortalNavigationItemNotFoundException(input.navigationItemId);
         }
         validatorService.validateToUpdate(toUpdate, existing);
-        return new Output(domainService.update(toUpdate, existing));
+        return new Output(domainService.update(toUpdate, existing, input.propagatePublishToChildren()));
     }
 
     @Builder
@@ -53,7 +53,8 @@ public class UpdatePortalNavigationItemUseCase {
         String organizationId,
         String environmentId,
         String navigationItemId,
-        UpdatePortalNavigationItem updatePortalNavigationItem
+        UpdatePortalNavigationItem updatePortalNavigationItem,
+        boolean propagatePublishToChildren
     ) {}
 
     public record Output(PortalNavigationItem updatedItem) {}
