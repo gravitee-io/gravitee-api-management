@@ -81,6 +81,7 @@ public class AmConnectionServiceImpl implements AmConnectionService {
             AmConnection model = new AmConnection();
             model.setOrganizationId(organizationId);
             model.setBaseUrl(stripTrailingSlashes(entity.getBaseUrl()));
+            model.setEnvironmentId(entity.getEnvironmentId());
             model.setDefaultDomainId(entity.getDefaultDomainId());
             model.setDefaultDomainHrid(entity.getDefaultDomainHrid());
             model.setGatewayUrl(entity.getGatewayUrl());
@@ -122,6 +123,7 @@ public class AmConnectionServiceImpl implements AmConnectionService {
         entity.setOrganizationId(model.getOrganizationId());
         entity.setBaseUrl(model.getBaseUrl());
         entity.setServiceAccountAccessToken(decryptOrNull(model.getServiceAccountAccessTokenEncrypted()));
+        entity.setEnvironmentId(model.getEnvironmentId());
         entity.setDefaultDomainId(model.getDefaultDomainId());
         entity.setDefaultDomainHrid(model.getDefaultDomainHrid());
         entity.setGatewayUrl(model.getGatewayUrl());

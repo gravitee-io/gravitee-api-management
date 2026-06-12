@@ -54,7 +54,7 @@ class GetAmConnectionUseCaseTest {
 
     @Test
     void should_report_token_present_even_when_decrypt_failed() {
-        when(repository.findByOrg("ORG")).thenReturn(Optional.of(new AmConnection("https://am.example", null, null, null, null)));
+        when(repository.findByOrg("ORG")).thenReturn(Optional.of(new AmConnection("https://am.example", null, null, null, null, null)));
         when(repository.hasTokenForOrg("ORG")).thenReturn(true);
 
         var output = useCase.execute(new GetAmConnectionUseCase.Input("ORG"));

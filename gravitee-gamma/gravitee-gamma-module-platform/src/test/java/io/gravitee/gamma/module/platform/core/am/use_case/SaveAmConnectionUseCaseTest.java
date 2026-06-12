@@ -48,29 +48,46 @@ class SaveAmConnectionUseCaseTest {
         when(repository.hasTokenForOrg("ORG")).thenReturn(true);
 
         useCase.execute(
-            new SaveAmConnectionUseCase.Input("ORG", "https://am.example", "secret-token", "domain-1", "my-domain", "https://gw.example")
+            new SaveAmConnectionUseCase.Input(
+                "ORG",
+                "https://am.example",
+                "secret-token",
+                "env-1",
+                "domain-1",
+                "my-domain",
+                "https://gw.example"
+            )
         );
 
         var saved = ArgumentCaptor.forClass(AmConnection.class);
         Mockito.verify(repository).save(Mockito.eq("ORG"), saved.capture());
         assertThat(saved.getValue()).isEqualTo(
-            new AmConnection("https://am.example", "secret-token", "domain-1", "my-domain", "https://gw.example")
+            new AmConnection("https://am.example", "secret-token", "env-1", "domain-1", "my-domain", "https://gw.example")
         );
     }
 
     @Test
     void should_return_readback_view_with_token_flagged_present() {
         when(repository.findByOrg("ORG")).thenReturn(
-            Optional.of(new AmConnection("https://am.example", "secret-token", "domain-1", "my-domain", "https://gw.example"))
+            Optional.of(new AmConnection("https://am.example", "secret-token", "env-1", "domain-1", "my-domain", "https://gw.example"))
         );
         when(repository.hasTokenForOrg("ORG")).thenReturn(true);
 
         var output = useCase.execute(
-            new SaveAmConnectionUseCase.Input("ORG", "https://am.example", "secret-token", "domain-1", "my-domain", "https://gw.example")
+            new SaveAmConnectionUseCase.Input(
+                "ORG",
+                "https://am.example",
+                "secret-token",
+                "env-1",
+                "domain-1",
+                "my-domain",
+                "https://gw.example"
+            )
         );
 
         assertThat(output.baseUrl()).isEqualTo("https://am.example");
         assertThat(output.hasAccessToken()).isTrue();
+        assertThat(output.environmentId()).isEqualTo("env-1");
         assertThat(output.defaultDomainId()).isEqualTo("domain-1");
         assertThat(output.defaultDomainHrid()).isEqualTo("my-domain");
         assertThat(output.gatewayUrl()).isEqualTo("https://gw.example");
@@ -80,10 +97,10 @@ class SaveAmConnectionUseCaseTest {
     void should_report_no_token_when_blank_token_clears_it() {
         // Blank token clears the saved ciphertext (see AmConnectionRepository#save semantics),
         // so the read-back reports the connection present but no token.
-        when(repository.findByOrg("ORG")).thenReturn(Optional.of(new AmConnection("https://am.example", null, null, null, null)));
+        when(repository.findByOrg("ORG")).thenReturn(Optional.of(new AmConnection("https://am.example", null, null, null, null, null)));
         when(repository.hasTokenForOrg("ORG")).thenReturn(false);
 
-        var output = useCase.execute(new SaveAmConnectionUseCase.Input("ORG", "https://am.example", "", null, null, null));
+        var output = useCase.execute(new SaveAmConnectionUseCase.Input("ORG", "https://am.example", "", null, null, null, null));
 
         assertThat(output.baseUrl()).isEqualTo("https://am.example");
         assertThat(output.hasAccessToken()).isFalse();

@@ -45,6 +45,7 @@ class ApimAmConnectionRepositoryTest {
         AmConnectionEntity entity = new AmConnectionEntity();
         entity.setBaseUrl("https://am.example.com");
         entity.setServiceAccountAccessToken("plain-token");
+        entity.setEnvironmentId("env-1");
         entity.setDefaultDomainId("dom-1");
         entity.setDefaultDomainHrid("dom-hrid-1");
         entity.setGatewayUrl("https://gw.example.com");
@@ -56,6 +57,7 @@ class ApimAmConnectionRepositoryTest {
         AmConnection model = result.get();
         assertThat(model.baseUrl()).isEqualTo("https://am.example.com");
         assertThat(model.serviceAccountAccessToken()).isEqualTo("plain-token");
+        assertThat(model.environmentId()).isEqualTo("env-1");
         assertThat(model.defaultDomainId()).isEqualTo("dom-1");
         assertThat(model.defaultDomainHrid()).isEqualTo("dom-hrid-1");
         assertThat(model.gatewayUrl()).isEqualTo("https://gw.example.com");
@@ -79,6 +81,7 @@ class ApimAmConnectionRepositoryTest {
         AmConnection connection = new AmConnection(
             "https://am.example.com",
             "plain-token",
+            "env-1",
             "dom-1",
             "dom-hrid-1",
             "https://gw.example.com"
@@ -96,6 +99,7 @@ class ApimAmConnectionRepositoryTest {
         assertThat(sent.getOrganizationId()).isEqualTo("org-1");
         assertThat(sent.getBaseUrl()).isEqualTo("https://am.example.com");
         assertThat(sent.getServiceAccountAccessToken()).isEqualTo("plain-token");
+        assertThat(sent.getEnvironmentId()).isEqualTo("env-1");
         assertThat(sent.getDefaultDomainId()).isEqualTo("dom-1");
         assertThat(sent.getDefaultDomainHrid()).isEqualTo("dom-hrid-1");
         assertThat(sent.getGatewayUrl()).isEqualTo("https://gw.example.com");
@@ -106,7 +110,7 @@ class ApimAmConnectionRepositoryTest {
 
     @Test
     void save_passes_null_token_through() {
-        AmConnection connection = new AmConnection("https://am.example.com", null, null, null, null);
+        AmConnection connection = new AmConnection("https://am.example.com", null, null, null, null, null);
         when(amConnectionService.save(eq("org-1"), any())).thenReturn(new AmConnectionEntity());
 
         repository().save("org-1", connection);
@@ -121,6 +125,7 @@ class ApimAmConnectionRepositoryTest {
         AmConnection connection = new AmConnection(
             "https://am.example.com",
             "plain-token",
+            "env-1",
             "dom-1",
             "dom-hrid-1",
             "https://gw.example.com"
