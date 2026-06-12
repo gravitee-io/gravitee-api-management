@@ -564,11 +564,6 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public ValidatePortalListingDomainServiceInMemory validatePortalListingDomainService() {
-        return new ValidatePortalListingDomainServiceInMemory();
-    }
-
-    @Bean
     public ApiProductCrudServiceInMemory apiProductCrudService() {
         return new ApiProductCrudServiceInMemory();
     }
