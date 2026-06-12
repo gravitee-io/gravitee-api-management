@@ -616,7 +616,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             clauses.add("a.type in (" + getOrm().buildInClause(apiCriteria.getApiTypes()) + ")");
         }
         if (!isEmpty(apiCriteria.getNotApiTypes())) {
-            clauses.add("a.type not in (" + getOrm().buildInClause(apiCriteria.getNotApiTypes()) + ")");
+            clauses.add("(a.type is null or a.type not in (" + getOrm().buildInClause(apiCriteria.getNotApiTypes()) + "))");
         }
         if (apiCriteria.getUpdatedAtFrom() != null) {
             clauses.add("a.updated_at >= ?");
