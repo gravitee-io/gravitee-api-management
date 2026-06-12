@@ -21,6 +21,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.use_case.CreateOrUpdatePortalUseCase;
+import io.gravitee.apim.core.portal.use_case.ValidatePortalUseCase;
 import io.gravitee.apim.rest.api.automation.mapper.PortalMapper;
 import io.gravitee.apim.rest.api.automation.model.PortalSpec;
 import io.gravitee.common.http.MediaType;
@@ -51,6 +52,9 @@ public class PortalsResource extends AbstractResource {
     @Inject
     private CreateOrUpdatePortalUseCase createOrUpdatePortalUseCase;
 
+    @Inject
+    private ValidatePortalUseCase validatePortalUseCase;
+
     @Path("/{hrid}")
     public PortalResource getPortalResource() {
         return resourceContext.getResource(PortalResource.class);
@@ -70,12 +74,11 @@ public class PortalsResource extends AbstractResource {
         );
         var navigation = PortalMapper.INSTANCE.toCoreNavigation(spec.getNavigation());
 
-        if (dryRun) {
-            return Response.ok(PortalMapper.INSTANCE.toPortalState(portal, spec.getHrid(), navigation)).build();
-        }
+        var input = new CreateOrUpdatePortalUseCase.Input(auditInfo, portal, navigation);
+        var output = dryRun ? validatePortalUseCase.execute(input) : createOrUpdatePortalUseCase.execute(input);
 
-        var output = createOrUpdatePortalUseCase.execute(new CreateOrUpdatePortalUseCase.Input(auditInfo, portal, navigation));
-
-        return Response.ok(PortalMapper.INSTANCE.toPortalState(output.portal(), spec.getHrid(), output.navigation())).build();
+        return Response.ok(
+            PortalMapper.INSTANCE.toPortalState(output.portal(), spec.getHrid(), output.navigation(), output.errors())
+        ).build();
     }
 }

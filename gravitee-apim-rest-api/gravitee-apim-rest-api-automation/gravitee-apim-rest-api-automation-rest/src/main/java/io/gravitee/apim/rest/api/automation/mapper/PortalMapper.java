@@ -16,6 +16,8 @@
 package io.gravitee.apim.rest.api.automation.mapper;
 
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.apim.rest.api.automation.model.Errors;
 import io.gravitee.apim.rest.api.automation.model.NavigationPath;
 import io.gravitee.apim.rest.api.automation.model.PortalState;
 import java.util.List;
@@ -33,17 +35,32 @@ import org.mapstruct.factory.Mappers;
 public interface PortalMapper {
     PortalMapper INSTANCE = Mappers.getMapper(PortalMapper.class);
 
-    default PortalState toPortalState(Portal portal, String hrid, List<io.gravitee.apim.core.portal.model.NavigationPath> navigation) {
+    default PortalState toPortalState(
+        Portal portal,
+        String hrid,
+        List<io.gravitee.apim.core.portal.model.NavigationPath> navigation,
+        List<Validator.Error> errors
+    ) {
         var state = new PortalState(
             portal.getId() != null ? portal.getId().toString() : null,
             portal.getEnvironmentId(),
             portal.getOrganizationId(),
-            null
+            toErrors(errors)
         );
         state.setHrid(hrid);
         mapPortalToState(portal, state);
         state.setNavigation(toApiNavigation(navigation));
         return state;
+    }
+
+    default Errors toErrors(List<Validator.Error> validationErrors) {
+        if (validationErrors == null || validationErrors.isEmpty()) {
+            return null;
+        }
+        var wire = new Errors();
+        wire.setSevere(validationErrors.stream().filter(Validator.Error::isSevere).map(Validator.Error::getMessage).toList());
+        wire.setWarning(validationErrors.stream().filter(Validator.Error::isWarning).map(Validator.Error::getMessage).toList());
+        return wire;
     }
 
     @Mapping(target = "id", ignore = true)
