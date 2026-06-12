@@ -4580,9 +4580,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/graphene-charts@npm:2.39.2":
-  version: 2.39.2
-  resolution: "@gravitee/graphene-charts@npm:2.39.2"
+"@gravitee/graphene-charts@npm:2.46.0":
+  version: 2.46.0
+  resolution: "@gravitee/graphene-charts@npm:2.46.0"
   dependencies:
     "@dagrejs/dagre": "npm:3.0.0"
     d3-array: "npm:3.2.4"
@@ -4602,13 +4602,13 @@ __metadata:
       optional: true
     tailwindcss:
       optional: true
-  checksum: 10c0/6620d7d75ab1faf75bcd13faf8ecc46e025dc4b02f9668d984af273a68a09fd2a656cacfd404920ab52305ded09c9e9c52da79cbb4bf251212cf19430b2b7ecb
+  checksum: 10c0/d7252d49f640205c4ca0bacd812bcbb84459c5563cbe8ece59dc0fb4157297fdd89616701b1246fb4bd8c009e4c6a8f964adfac2bf51fe71868730b252bc7bfe
   languageName: node
   linkType: hard
 
-"@gravitee/graphene-core@npm:^2.39.2":
-  version: 2.39.2
-  resolution: "@gravitee/graphene-core@npm:2.39.2"
+"@gravitee/graphene-core@npm:^2.46.0":
+  version: 2.46.0
+  resolution: "@gravitee/graphene-core@npm:2.46.0"
   dependencies:
     "@base-ui/react": "npm:1.4.1"
     "@types/json-schema": "npm:7.0.15"
@@ -4628,6 +4628,7 @@ __metadata:
     vaul: "npm:1.1.2"
   peerDependencies:
     "@fontsource/dm-sans": ">=5.0.0"
+    "@monaco-editor/react": ^4.7.0
     "@tanstack/react-table": ^8.0.0
     "@testing-library/dom": ">=10.0.0"
     "@testing-library/react": ">=16.0.0"
@@ -4643,12 +4644,15 @@ __metadata:
     eslint-plugin-react: ">=7.0.0"
     eslint-plugin-react-hooks: ">=4.0.0"
     eslint-plugin-unused-imports: ">=3.0.0"
+    monaco-editor: ">=0.50.0 <1"
     react: ^19.0.0
     react-dom: ^19.0.0
     react-hook-form: ^7.0.0
     tailwindcss: ^4.0.0
     typescript-eslint: ">=8.0.0"
   peerDependenciesMeta:
+    "@monaco-editor/react":
+      optional: true
     "@testing-library/dom":
       optional: true
     "@testing-library/react":
@@ -4663,19 +4667,21 @@ __metadata:
       optional: true
     eslint-plugin-import-x:
       optional: true
+    monaco-editor:
+      optional: true
     tailwindcss:
       optional: true
     typescript-eslint:
       optional: true
   bin:
     graphene-sync-ai-rules: scripts/sync-ai-rules.mjs
-  checksum: 10c0/ad26f431915031b43cbd8a3be64cafccb015cd5efe6400f38e14aeceafa64b86a3ddd963ed4be83e2c69da01b45a375f7852ab75c8adc71e31d378b22f1690c5
+  checksum: 10c0/5c9ee96eab2660d06ec3ee00c81f8a5e068c329ed926d91b87f5bef46ab7dfdcbfe83f339273df1ec6d2d8176293e41e85aee9a4041ddb771e4e7588f0dc6c3a
   languageName: node
   linkType: hard
 
-"@gravitee/graphene-policy-studio@npm:2.39.2":
-  version: 2.39.2
-  resolution: "@gravitee/graphene-policy-studio@npm:2.39.2"
+"@gravitee/graphene-policy-studio@npm:2.46.0":
+  version: 2.46.0
+  resolution: "@gravitee/graphene-policy-studio@npm:2.46.0"
   dependencies:
     "@asciidoctor/core": "npm:3.0.4"
     "@dnd-kit/core": "npm:6.3.1"
@@ -4698,7 +4704,7 @@ __metadata:
   peerDependenciesMeta:
     tailwindcss:
       optional: true
-  checksum: 10c0/34ef56fecb83359e5c4967cf262076e917e5a65e7934e1e211aa0a3aade9404976e642f09b5018829503182667c52204f3e40b8e84883bf928e169bf4b7560f3
+  checksum: 10c0/f5fc8d54148217ad6dcac7a2b90f012e2af15aec33761acee49fdd8640bb8d9fe7b5fc6785737a5e5f7b7eef468c1103c5e467c294539b712a738e7e59450894
   languageName: node
   linkType: hard
 
@@ -21500,9 +21506,9 @@ __metadata:
     "@fontsource/montserrat": "npm:5.2.5"
     "@fontsource/roboto": "npm:5.2.5"
     "@gravitee/gamma-modules-sdk": "npm:1.0.0-alpha.10"
-    "@gravitee/graphene-charts": "npm:2.39.2"
-    "@gravitee/graphene-core": "npm:^2.39.2"
-    "@gravitee/graphene-policy-studio": "npm:2.39.2"
+    "@gravitee/graphene-charts": "npm:2.46.0"
+    "@gravitee/graphene-core": "npm:^2.46.0"
+    "@gravitee/graphene-policy-studio": "npm:2.46.0"
     "@gravitee/ui-analytics": "npm:17.8.0"
     "@gravitee/ui-components": "npm:4.4.0"
     "@gravitee/ui-particles-angular": "npm:17.8.0"
