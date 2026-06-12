@@ -76,4 +76,5 @@ public class UpgraderOrder {
     public static final int CLUSTER_TYPE_UPGRADER = 952;
     public static final int ASSIGN_DEFAULT_API_PRODUCT_ROLE_TO_GROUPS_UPGRADER = 953;
     public static final int NATIVE_API_LOG_PERMISSION_UPGRADER = 954;
+    public static final int OIDC_IDP_DEFAULT_SCOPES_UPGRADER = 709;
 }
