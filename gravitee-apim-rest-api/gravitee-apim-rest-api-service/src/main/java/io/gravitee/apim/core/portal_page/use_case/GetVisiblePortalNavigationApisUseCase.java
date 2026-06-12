@@ -26,10 +26,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -63,22 +60,9 @@ public class GetVisiblePortalNavigationApisUseCase {
                 checkTypoToleranceDomainService.isEnabled(input.environmentId(), input.organizationId())
             );
             Set<String> matchingIds = searchedApis.stream().map(Api::getId).collect(toSet());
-            Map<String, Integer> rankById = new HashMap<>();
-            for (int i = 0; i < searchedApis.size(); i++) {
-                rankById.put(searchedApis.get(i).getId(), i);
-            }
-            Map<String, Integer> navigationOrder = new HashMap<>();
-            for (int i = 0; i < visible.size(); i++) {
-                navigationOrder.put(visible.get(i).getApiId(), i);
-            }
             filtered = visible
                 .stream()
                 .filter(i -> matchingIds.contains(i.getApiId()))
-                .sorted(
-                    Comparator.comparing((PortalNavigationApi i) -> rankById.getOrDefault(i.getApiId(), Integer.MAX_VALUE)).thenComparing(
-                        i -> navigationOrder.getOrDefault(i.getApiId(), Integer.MAX_VALUE)
-                    )
-                )
                 .toList();
         }
 
