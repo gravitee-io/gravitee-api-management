@@ -1039,6 +1039,18 @@ paths:
           required: true
           schema:
             type: string
+        - name: propagatePublishToChildren
+          in: query
+          description: >
+            Controls whether a publication change on a container navigation item is propagated to descendants.
+            If omitted or false, publishing affects only the selected item.
+            If true, publishing also affects descendants.
+            For unpublishing a FOLDER or API, this parameter is ignored and descendants are always unpublished
+            according to the business rule.
+          required: false
+          schema:
+            type: boolean
+            default: false
       requestBody:
         required: true
         content:
@@ -1067,6 +1079,16 @@ paths:
           required: true
           schema:
             type: string
+        - name: propagateDeleteToChildren
+          in: query
+          description: >
+            Controls whether deleting a container navigation item also deletes its descendants.
+            If omitted or false, only the selected item is deleted.
+            If true, descendants are also deleted.
+          required: false
+          schema:
+            type: boolean
+            default: false
       responses:
         "204":
           description: Portal navigation item deleted
