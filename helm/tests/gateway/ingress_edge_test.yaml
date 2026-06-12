@@ -1,0 +1,196 @@
+suite: Test API Gateway Ingress with Edge Reactor enabled
+templates:
+  - "gateway/gateway-edge-ingress.yaml"
+tests:
+  - it: Check edge ingress disabled by default
+    set:
+      gateway:
+        edge:
+          enabled: true
+        services:
+          edge:
+            ingress:
+              enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Check edge ingress not rendered when gateway.edge.enabled is false
+    set:
+      gateway:
+        edge:
+          enabled: false
+        services:
+          edge:
+            ingress:
+              enabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Check edge ingress enabled with networking.k8s.io/v1
+    set:
+      gateway:
+        edge:
+          enabled: true
+        services:
+          edge:
+            service:
+              externalPort: 18093
+              internalPort: 18093
+            ingress:
+              enabled: true
+              path: /
+              hosts:
+                - apim-edge.example.com
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - equal:
+          path: spec.rules[0].host
+          value: apim-edge.example.com
+      - equal:
+          path: spec.rules[0].http.paths[0].path
+          value: /
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service.port.number
+          value: 18093
+
+  - it: Check edge ingress with extensions/v1beta1
+    set:
+      global:
+        kubeVersion: 1.13.0
+      gateway:
+        edge:
+          enabled: true
+        services:
+          edge:
+            ingress:
+              enabled: true
+              hosts:
+                - apim-edge.example.com
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: extensions/v1beta1
+      - notExists:
+          path: spec.ingressClassName
+
+  - it: Check edge ingress with networking.k8s.io/v1beta1
+    set:
+      global:
+        kubeVersion: 1.15.0
+      gateway:
+        edge:
+          enabled: true
+        services:
+          edge:
+            ingress:
+              enabled: true
+              hosts:
+                - apim-edge.example.com
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1beta1
+      - notExists:
+          path: spec.ingressClassName
+
+  - it: Check edge ingress without ingressClassName
+    set:
+      gateway:
+        edge:
+          enabled: true
+        services:
+          edge:
+            ingress:
+              enabled: true
+              hosts:
+                - apim-edge.example.com
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - notExists:
+          path: spec.ingressClassName
+
+  - it: Check edge ingress with ingressClassName and kube >= 1.18-0
+    set:
+      global:
+        kubeVersion: 1.18.0
+      gateway:
+        edge:
+          enabled: true
+        services:
+          edge:
+            ingress:
+              enabled: true
+              ingressClassName: "nginx"
+              hosts:
+                - apim-edge.example.com
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1beta1
+      - equal:
+          path: spec.ingressClassName
+          value: nginx
+
+  - it: Check edge ingress with ingressClassName "none" and kube >= 1.18-0
+    set:
+      global:
+        kubeVersion: 1.18.0
+      gateway:
+        edge:
+          enabled: true
+        services:
+          edge:
+            ingress:
+              enabled: true
+              ingressClassName: "none"
+              hosts:
+                - apim-edge.example.com
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1beta1
+      - notExists:
+          path: spec.ingressClassName
+
+  - it: Check edge ingress pathType and path
+    set:
+      gateway:
+        edge:
+          enabled: true
+        services:
+          edge:
+            ingress:
+              enabled: true
+              pathType: Exact
+              path: /edge
+    asserts:
+      - equal:
+          path: spec.rules[0].http.paths[0].pathType
+          value: Exact
+      - equal:
+          path: spec.rules[0].http.paths[0].path
+          value: /edge
