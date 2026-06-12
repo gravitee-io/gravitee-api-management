@@ -24,6 +24,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static io.gravitee.gateway.api.http.HttpHeaderNames.CONTENT_LENGTH;
 import static io.gravitee.gateway.api.http.HttpHeaderNames.HOST;
 import static io.gravitee.gateway.api.http.HttpHeaderNames.TRANSFER_ENCODING;
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT;
@@ -64,6 +65,7 @@ import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointCon
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import io.vertx.rxjava3.core.Vertx;
@@ -371,6 +373,31 @@ class HttpConnectorTest {
             postRequestedFor(urlPathEqualTo("/team"))
                 .withHeader(TRANSFER_ENCODING, new EqualToPattern("chunked"))
                 .withRequestBody(new EqualToPattern(REQUEST_BODY.trim()))
+        );
+    }
+
+    @Test
+    void should_drop_transfer_encoding_when_content_length_also_present() throws InterruptedException {
+        // A policy set a fresh Content-Length on a chunked request. The backend must receive
+        // Content-Length only, never both (RFC 9112 §6.1).
+        when(request.method()).thenReturn(HttpMethod.POST);
+        when(request.headers()).thenReturn(
+            HttpHeaders.create().add(TRANSFER_ENCODING, "chunked").add(CONTENT_LENGTH, Integer.toString(REQUEST_BODY_LENGTH))
+        );
+        when(request.bodyOrEmpty()).thenReturn(Single.just(Buffer.buffer(REQUEST_BODY)));
+
+        wiremock.stubFor(post("/team").withRequestBody(new EqualToPattern(REQUEST_BODY)).willReturn(ok(BACKEND_RESPONSE_BODY)));
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+        assertNoTimeout(obs);
+        obs.assertComplete();
+
+        wiremock.verify(
+            1,
+            postRequestedFor(urlPathEqualTo("/team"))
+                .withoutHeader(TRANSFER_ENCODING)
+                .withHeader(CONTENT_LENGTH, new EqualToPattern(Integer.toString(REQUEST_BODY_LENGTH)))
+                .withRequestBody(new EqualToPattern(REQUEST_BODY))
         );
     }
 
