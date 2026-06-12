@@ -315,7 +315,7 @@ describe('API definition', () => {
         jsonPatch,
       }),
       400,
-      '#/timeToIdleSeconds: -10 is not greater or equal to 0',
+      '$.timeToIdleSeconds: must have a minimum value of 0',
     );
   });
 
@@ -372,7 +372,7 @@ describe('API definition', () => {
         jsonPatch,
       }),
       400,
-      '#/timeToLiveSeconds: -5 is not greater or equal to 0',
+      '$.timeToLiveSeconds: must have a minimum value of 0',
     );
   });
 
