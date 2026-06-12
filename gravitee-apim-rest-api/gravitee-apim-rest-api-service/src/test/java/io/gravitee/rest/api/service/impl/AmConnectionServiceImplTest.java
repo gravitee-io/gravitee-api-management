@@ -140,6 +140,21 @@ public class AmConnectionServiceImplTest {
     }
 
     @Test
+    public void save_passes_environment_id_to_model_and_find_reads_it_back() throws Exception {
+        when(amConnectionRepository.findByOrganizationId("org-1")).thenReturn(Optional.empty());
+        when(amConnectionRepository.create(any())).thenAnswer(i -> i.getArgument(0));
+
+        AmConnectionEntity entity = entity("https://am.example.com", "tok");
+        entity.setEnvironmentId("env-1");
+        AmConnectionEntity result = service.save("org-1", entity);
+
+        ArgumentCaptor<AmConnection> captor = ArgumentCaptor.forClass(AmConnection.class);
+        verify(amConnectionRepository).create(captor.capture());
+        assertThat(captor.getValue().getEnvironmentId()).isEqualTo("env-1");
+        assertThat(result.getEnvironmentId()).isEqualTo("env-1");
+    }
+
+    @Test
     public void find_by_organization_id_returns_decrypted_token() throws Exception {
         AmConnection stored = new AmConnection();
         stored.setOrganizationId("org-1");

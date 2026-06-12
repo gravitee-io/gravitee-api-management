@@ -32,12 +32,20 @@ public class SaveAmConnectionUseCase {
         String orgId,
         String baseUrl,
         String serviceAccountAccessToken,
+        String environmentId,
         String defaultDomainId,
         String defaultDomainHrid,
         String gatewayUrl
     ) {}
 
-    public record Output(String baseUrl, boolean hasAccessToken, String defaultDomainId, String defaultDomainHrid, String gatewayUrl) {}
+    public record Output(
+        String baseUrl,
+        boolean hasAccessToken,
+        String environmentId,
+        String defaultDomainId,
+        String defaultDomainHrid,
+        String gatewayUrl
+    ) {}
 
     public Output execute(Input input) {
         amConnectionRepository.save(
@@ -45,12 +53,20 @@ public class SaveAmConnectionUseCase {
             new AmConnection(
                 input.baseUrl(),
                 input.serviceAccountAccessToken(),
+                input.environmentId(),
                 input.defaultDomainId(),
                 input.defaultDomainHrid(),
                 input.gatewayUrl()
             )
         );
         var view = amConnectionViewDomainService.forOrg(input.orgId());
-        return new Output(view.baseUrl(), view.hasAccessToken(), view.defaultDomainId(), view.defaultDomainHrid(), view.gatewayUrl());
+        return new Output(
+            view.baseUrl(),
+            view.hasAccessToken(),
+            view.environmentId(),
+            view.defaultDomainId(),
+            view.defaultDomainHrid(),
+            view.gatewayUrl()
+        );
     }
 }

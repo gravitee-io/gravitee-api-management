@@ -53,6 +53,7 @@ public class AmConnectionResource {
         return new AmConnectionResponse(
             output.baseUrl(),
             output.hasAccessToken(),
+            output.environmentId(),
             output.defaultDomainId(),
             output.defaultDomainHrid(),
             output.gatewayUrl()
@@ -66,6 +67,7 @@ public class AmConnectionResource {
                 orgId,
                 req.baseUrl(),
                 req.serviceAccountAccessToken(),
+                req.environmentId(),
                 req.defaultDomainId(),
                 req.defaultDomainHrid(),
                 req.gatewayUrl()
@@ -74,6 +76,7 @@ public class AmConnectionResource {
         return new AmConnectionResponse(
             output.baseUrl(),
             output.hasAccessToken(),
+            output.environmentId(),
             output.defaultDomainId(),
             output.defaultDomainHrid(),
             output.gatewayUrl()

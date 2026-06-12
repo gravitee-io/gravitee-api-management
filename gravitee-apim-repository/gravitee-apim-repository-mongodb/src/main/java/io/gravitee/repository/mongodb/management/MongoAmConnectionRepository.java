@@ -87,6 +87,7 @@ public class MongoAmConnectionRepository implements AmConnectionRepository {
         mongo.setOrganizationId(amConnection.getOrganizationId());
         mongo.setBaseUrl(amConnection.getBaseUrl());
         mongo.setServiceAccountAccessTokenEncrypted(amConnection.getServiceAccountAccessTokenEncrypted());
+        mongo.setEnvironmentId(amConnection.getEnvironmentId());
         mongo.setDefaultDomainId(amConnection.getDefaultDomainId());
         mongo.setDefaultDomainHrid(amConnection.getDefaultDomainHrid());
         mongo.setGatewayUrl(amConnection.getGatewayUrl());
@@ -102,6 +103,7 @@ public class MongoAmConnectionRepository implements AmConnectionRepository {
         amConnection.setOrganizationId(mongo.getOrganizationId());
         amConnection.setBaseUrl(mongo.getBaseUrl());
         amConnection.setServiceAccountAccessTokenEncrypted(mongo.getServiceAccountAccessTokenEncrypted());
+        amConnection.setEnvironmentId(mongo.getEnvironmentId());
         amConnection.setDefaultDomainId(mongo.getDefaultDomainId());
         amConnection.setDefaultDomainHrid(mongo.getDefaultDomainHrid());
         amConnection.setGatewayUrl(mongo.getGatewayUrl());

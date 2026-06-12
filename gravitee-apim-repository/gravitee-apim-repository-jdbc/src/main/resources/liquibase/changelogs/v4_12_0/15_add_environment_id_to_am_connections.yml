@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.12.0_15_add_environment_id_to_am_connections
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}am_connections
+            columns:
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)

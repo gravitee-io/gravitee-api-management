@@ -48,6 +48,7 @@ public class ApimAmConnectionRepository implements AmConnectionRepository {
         return new AmConnection(
             e.getBaseUrl(),
             e.getServiceAccountAccessToken(),
+            e.getEnvironmentId(),
             e.getDefaultDomainId(),
             e.getDefaultDomainHrid(),
             e.getGatewayUrl()
@@ -59,6 +60,7 @@ public class ApimAmConnectionRepository implements AmConnectionRepository {
         e.setOrganizationId(orgId);
         e.setBaseUrl(c.baseUrl());
         e.setServiceAccountAccessToken(c.serviceAccountAccessToken());
+        e.setEnvironmentId(c.environmentId());
         e.setDefaultDomainId(c.defaultDomainId());
         e.setDefaultDomainHrid(c.defaultDomainHrid());
         e.setGatewayUrl(c.gatewayUrl());

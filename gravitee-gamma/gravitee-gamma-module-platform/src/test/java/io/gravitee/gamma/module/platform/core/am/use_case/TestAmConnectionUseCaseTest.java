@@ -62,7 +62,7 @@ class TestAmConnectionUseCaseTest {
     @Test
     void should_fall_back_to_stored_when_inbound_blank() {
         when(repository.findByOrg("ORG")).thenReturn(
-            Optional.of(new AmConnection("https://stored.example", "stored-token", null, null, null))
+            Optional.of(new AmConnection("https://stored.example", "stored-token", null, null, null, null))
         );
         when(tester.test(Mockito.eq("ORG"), Mockito.any())).thenReturn(AmConnectionTestResult.success());
 
@@ -77,7 +77,7 @@ class TestAmConnectionUseCaseTest {
     @Test
     void should_treat_empty_inbound_token_as_clear() {
         when(repository.findByOrg("ORG")).thenReturn(
-            Optional.of(new AmConnection("https://stored.example", "stored-token", null, null, null))
+            Optional.of(new AmConnection("https://stored.example", "stored-token", null, null, null, null))
         );
         when(tester.test(Mockito.eq("ORG"), Mockito.any())).thenReturn(AmConnectionTestResult.failure(400, "no token"));
 
