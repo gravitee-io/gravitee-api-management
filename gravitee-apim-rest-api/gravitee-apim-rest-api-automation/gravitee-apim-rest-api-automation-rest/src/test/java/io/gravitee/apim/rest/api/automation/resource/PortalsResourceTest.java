@@ -26,6 +26,7 @@ import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.use_case.CreateOrUpdatePortalUseCase;
+import io.gravitee.apim.core.portal.use_case.ValidatePortalUseCase;
 import io.gravitee.apim.rest.api.automation.model.PortalState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import jakarta.inject.Inject;
@@ -44,9 +45,12 @@ class PortalsResourceTest extends AbstractResourceTest {
     @Inject
     private CreateOrUpdatePortalUseCase createOrUpdatePortalUseCase;
 
+    @Inject
+    private ValidatePortalUseCase validatePortalUseCase;
+
     @AfterEach
     void tearDown() {
-        reset(createOrUpdatePortalUseCase);
+        reset(createOrUpdatePortalUseCase, validatePortalUseCase);
     }
 
     @Override
@@ -59,6 +63,11 @@ class PortalsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_populated_state_without_calling_use_case() {
+            when(validatePortalUseCase.execute(any())).thenAnswer(inv -> {
+                var input = (CreateOrUpdatePortalUseCase.Input) inv.getArgument(0);
+                return new CreateOrUpdatePortalUseCase.Output(input.portal(), input.navigation(), List.of());
+            });
+
             try (
                 var response = rootTarget()
                     .queryParam("dryRun", true)
@@ -82,6 +91,11 @@ class PortalsResourceTest extends AbstractResourceTest {
 
         @Test
         void should_echo_navigation_in_dry_run() {
+            when(validatePortalUseCase.execute(any())).thenAnswer(inv -> {
+                var input = (CreateOrUpdatePortalUseCase.Input) inv.getArgument(0);
+                return new CreateOrUpdatePortalUseCase.Output(input.portal(), input.navigation(), List.of());
+            });
+
             try (
                 var response = rootTarget()
                     .queryParam("dryRun", true)
@@ -111,6 +125,7 @@ class PortalsResourceTest extends AbstractResourceTest {
             ) {
                 assertThat(response.getStatus()).isEqualTo(400);
                 verifyNoInteractions(createOrUpdatePortalUseCase);
+                verifyNoInteractions(validatePortalUseCase);
             }
         }
     }
@@ -121,7 +136,9 @@ class PortalsResourceTest extends AbstractResourceTest {
         @Test
         void should_create_or_update_portal() {
             var persisted = Portal.of(PortalId.of("00000000-0000-0000-0000-0000000000a1"), ENVIRONMENT, ORGANIZATION, "Default Portal");
-            when(createOrUpdatePortalUseCase.execute(any())).thenReturn(new CreateOrUpdatePortalUseCase.Output(persisted, List.of()));
+            when(createOrUpdatePortalUseCase.execute(any())).thenReturn(
+                new CreateOrUpdatePortalUseCase.Output(persisted, List.of(), List.of())
+            );
 
             try (var response = rootTarget().request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON("portal.json")))) {
                 assertThat(response.getStatus()).isEqualTo(200);
@@ -147,7 +164,9 @@ class PortalsResourceTest extends AbstractResourceTest {
                 new NavigationPath("/projects/alpha", Optional.of("Alpha")),
                 new NavigationPath("/projects/alpha/docs", Optional.empty())
             );
-            when(createOrUpdatePortalUseCase.execute(any())).thenReturn(new CreateOrUpdatePortalUseCase.Output(persisted, echoed));
+            when(createOrUpdatePortalUseCase.execute(any())).thenReturn(
+                new CreateOrUpdatePortalUseCase.Output(persisted, echoed, List.of())
+            );
 
             try (
                 var response = rootTarget()

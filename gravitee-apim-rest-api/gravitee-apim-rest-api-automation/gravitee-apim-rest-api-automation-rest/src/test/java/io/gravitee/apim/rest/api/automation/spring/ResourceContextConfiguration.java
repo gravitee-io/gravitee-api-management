@@ -1304,6 +1304,11 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public io.gravitee.apim.core.portal.use_case.ValidatePortalUseCase validatePortalUseCase() {
+        return mock(io.gravitee.apim.core.portal.use_case.ValidatePortalUseCase.class);
+    }
+
+    @Bean
     public GetPortalUseCase getPortalUseCase() {
         return mock(GetPortalUseCase.class);
     }

@@ -17,18 +17,23 @@ package io.gravitee.apim.core.portal.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationListingDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
+import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.validation.Validator;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
 @RequiredArgsConstructor
 public class CreateOrUpdatePortalUseCase {
 
+    private final ValidatePortalDomainService validator;
     private final PortalCrudService portalCrudService;
     private final PortalNavigationSyncDomainService portalNavigationSyncDomainService;
     private final PortalNavigationListingDomainService portalNavigationListingDomainService;
@@ -39,14 +44,29 @@ public class CreateOrUpdatePortalUseCase {
         }
     }
 
-    public record Output(Portal portal, List<NavigationPath> navigation) {}
+    public record Output(Portal portal, List<NavigationPath> navigation, List<Validator.Error> errors) {}
 
     public Output execute(Input input) {
-        var portal = input.portal();
+        var validation = validator.validateAndSanitize(
+            new ValidatePortalDomainService.Input(input.auditInfo(), input.portal(), input.navigation())
+        );
+
+        validation
+            .severe()
+            .ifPresent(errors -> {
+                throw new ValidationDomainException(errors.stream().map(Validator.Error::getMessage).collect(Collectors.joining(", ")));
+            });
+
+        var warnings = validation.warning().orElseGet(List::of);
+
+        var sanitized = validation
+            .value()
+            .orElse(new ValidatePortalDomainService.Input(input.auditInfo(), input.portal(), input.navigation()));
+        var portal = sanitized.portal();
         var existing = portalCrudService.findByIdAndEnvironmentId(portal.getId(), input.auditInfo().environmentId());
         var saved = existing.isPresent() ? portalCrudService.update(portal) : portalCrudService.create(portal);
-        portalNavigationSyncDomainService.sync(input.auditInfo(), portal.getId(), input.navigation());
+        portalNavigationSyncDomainService.sync(input.auditInfo(), portal.getId(), sanitized.navigation());
         var navigation = portalNavigationListingDomainService.listAsNavigationPaths(input.auditInfo().environmentId());
-        return new Output(saved, navigation);
+        return new Output(saved, navigation, warnings);
     }
 }
