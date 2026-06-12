@@ -30,6 +30,7 @@ import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -72,6 +73,7 @@ public class FlowValidationDomainService {
             .selectorByType(SelectorType.HTTP)
             .stream()
             .map(selector -> ((HttpSelector) selector).getPath())
+            .filter(Objects::nonNull)
             .findFirst();
 
     public static final Predicate<Selector> HTTP_SELECTOR_WITH_INVALID_WILDCARD_PATH = selector ->
@@ -261,11 +263,25 @@ public class FlowValidationDomainService {
     }
 
     public void validatePathParameters(ApiType apiType, Stream<Flow> apiFlows, Stream<Flow> planFlows) {
-        apiFlows = apiFlows == null ? Stream.empty() : apiFlows;
-        planFlows = planFlows == null ? Stream.empty() : planFlows;
-        // group all flows in one stream
-        final Stream<Flow> flowsWithPathParam = filterFlowsWithPathParam(apiType, apiFlows, planFlows);
+        var apiFlowList = apiFlows == null ? List.<Flow>of() : apiFlows.toList();
+        var planFlowList = planFlows == null ? List.<Flow>of() : planFlows.toList();
+        checkForInvalidSelectors(apiFlowList, planFlowList);
+        final var flowsWithPathParam = filterFlowsWithPathParam(apiType, apiFlowList.stream(), planFlowList.stream());
         checkOverlappingPaths(apiType, flowsWithPathParam);
+    }
+
+    private static void checkForInvalidSelectors(List<Flow> apiFlowList, List<Flow> planFlowList) {
+        var httpSelectors = Stream.concat(apiFlowList.stream(), planFlowList.stream())
+            .flatMap(flow -> flow.selectorByType(SelectorType.HTTP).stream())
+            .map(HttpSelector.class::cast)
+            .toList();
+
+        if (httpSelectors.stream().anyMatch(selector -> selector.getPath() == null)) {
+            throw new InvalidDataException("flows[].selectors[].path is required");
+        }
+        if (httpSelectors.stream().anyMatch(selector -> selector.getPathOperator() == null)) {
+            throw new InvalidDataException("flows[].selectors[].pathOperator is required");
+        }
     }
 
     private Stream<Flow> filterFlowsWithPathParam(ApiType apiType, Stream<Flow> apiFlows, Stream<Flow> planFlows) {
