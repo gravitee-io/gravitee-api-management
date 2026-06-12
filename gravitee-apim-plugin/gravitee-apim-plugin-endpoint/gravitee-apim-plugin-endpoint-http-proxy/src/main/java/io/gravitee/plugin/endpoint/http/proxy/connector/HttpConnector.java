@@ -30,6 +30,7 @@ import static io.gravitee.plugin.endpoint.http.proxy.client.UriHelper.URI_QUERY_
 import static io.gravitee.plugin.endpoint.http.proxy.client.UriHelper.URI_QUERY_DELIMITER_CHAR_SEQUENCE;
 
 import io.gravitee.common.http.HttpHeader;
+import io.gravitee.common.http.HttpHeadersValues;
 import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.common.util.URIUtils;
@@ -177,6 +178,20 @@ public class HttpConnector implements ProxyConnector {
     }
 
     private Single<HttpClientResponse> sendEndpointRequestChunks(HttpClientRequest httpClientRequest, HttpRequest request) {
+        if (hasContentLength(request) && isChunked(request)) {
+            // A request-phase policy (e.g. Assign Content) can rewrite the body, set Content-Length, and
+            // leave the client's Transfer-Encoding: chunked in place. Forwarding both violates RFC 9112
+            // §6.1 and strict backends (NGINX, Jetty) return 400. The body is already de-chunked, so send
+            // it fixed-length: drop Transfer-Encoding and set Content-Length to its actual length. Only
+            // chunked is dropped — a content-coding like gzip must stay, or the backend can't decode the body.
+            httpClientRequest.headers().remove(HttpHeaders.TRANSFER_ENCODING);
+            return request
+                .bodyOrEmpty()
+                .flatMap(body -> {
+                    httpClientRequest.headers().set(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.length()));
+                    return httpClientRequest.rxSend(BufferInternal.buffer(body.getNativeBuffer()));
+                });
+        }
         if (hasBodyHeaders(request) || request.version() == io.gravitee.common.http.HttpVersion.HTTP_2) {
             // For HTTP1.1, the presence of a message body in a request is signaled by a
             // Content-Length or Transfer-Encoding header
@@ -342,9 +357,19 @@ public class HttpConnector implements ProxyConnector {
     }
 
     private static boolean hasBodyHeaders(HttpRequest request) {
-        return (
-            request.headers().get(HttpHeaderNames.TRANSFER_ENCODING) != null ||
-            request.headers().get(HttpHeaderNames.CONTENT_LENGTH) != null
-        );
+        return hasTransferEncoding(request) || hasContentLength(request);
+    }
+
+    private static boolean hasContentLength(HttpRequest request) {
+        return request.headers().get(HttpHeaderNames.CONTENT_LENGTH) != null;
+    }
+
+    private static boolean hasTransferEncoding(HttpRequest request) {
+        return request.headers().get(HttpHeaderNames.TRANSFER_ENCODING) != null;
+    }
+
+    private static boolean isChunked(HttpRequest request) {
+        final String transferEncoding = request.headers().get(HttpHeaderNames.TRANSFER_ENCODING);
+        return transferEncoding != null && HttpHeadersValues.TRANSFER_ENCODING_CHUNKED.equalsIgnoreCase(transferEncoding.trim());
     }
 }
