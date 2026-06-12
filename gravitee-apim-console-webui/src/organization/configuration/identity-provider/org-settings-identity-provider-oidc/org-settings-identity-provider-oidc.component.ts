@@ -35,7 +35,7 @@ export class OrgSettingsIdentityProviderOidcComponent implements ProviderConfigu
     authorizeEndpoint: new UntypedFormControl(null, Validators.required),
     userInfoEndpoint: new UntypedFormControl(null, Validators.required),
     userLogoutEndpoint: new UntypedFormControl(),
-    scopes: new UntypedFormControl(),
+    scopes: new UntypedFormControl(['openid', 'profile', 'email'], Validators.required),
     color: new UntypedFormControl(),
   });
 
