@@ -19,11 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
 import inmemory.PortalListingCrudServiceInMemory;
-import inmemory.ValidatePortalListingDomainServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal_listing.domain_service.ValidatePortalListingDomainService;
 import io.gravitee.apim.core.portal_listing.model.PortalListingApiEntry;
 import io.gravitee.apim.core.portal_listing.model.PortalListingId;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
@@ -50,7 +50,7 @@ class CreateOrUpdatePortalListingUseCaseTest {
     );
 
     private final PortalListingCrudServiceInMemory portalListingCrudService = new PortalListingCrudServiceInMemory();
-    private final ValidatePortalListingDomainServiceInMemory validator = new ValidatePortalListingDomainServiceInMemory();
+    private final ValidatePortalListingDomainService validator = new ValidatePortalListingDomainService();
     private CreateOrUpdatePortalListingUseCase useCase;
 
     @BeforeEach
