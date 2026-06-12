@@ -30,6 +30,8 @@ import fixtures.core.model.AuditInfoFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.WorkflowQueryServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.ApiHostValidatorDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiPathIndex;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
@@ -38,8 +40,10 @@ import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
 import io.gravitee.apim.core.api.exception.ApiPatchNotAllowedException;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.json_patch.domain_service.JsonPatchDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
@@ -52,6 +56,7 @@ import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.flow.Operator;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.analytics.sampling.SamplingType;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
@@ -66,6 +71,7 @@ import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
@@ -73,8 +79,11 @@ import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.service.Service;
+import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
+import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedListenerTypeException;
 import io.gravitee.rest.api.service.v4.exception.ListenerMissingException;
 import io.gravitee.rest.api.service.v4.impl.validation.ListenerValidationServiceImpl;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
@@ -3213,6 +3222,121 @@ class PatchApiUseCaseTest {
                     assertThat(ex.getParameters()).containsKey("location");
                     assertThat(ex.getParameters().get("location")).startsWith("/endpointGroups/0");
                 });
+        }
+    }
+
+    @Nested
+    class ListenerTypeRealValidation {
+
+        @BeforeEach
+        void wireRealListenerValidation() {
+            var entrypointService = mock(EntrypointConnectorPluginService.class);
+            when(entrypointService.findById("http-proxy")).thenReturn(
+                ConnectorPluginEntity.builder()
+                    .id("http-proxy")
+                    .supportedListenerType(ListenerType.HTTP)
+                    .supportedApiType(ApiType.PROXY)
+                    .build()
+            );
+            when(entrypointService.findById("tcp-proxy")).thenReturn(
+                ConnectorPluginEntity.builder()
+                    .id("tcp-proxy")
+                    .supportedListenerType(ListenerType.TCP)
+                    .supportedApiType(ApiType.PROXY)
+                    .build()
+            );
+            when(entrypointService.validateConnectorConfiguration(anyString(), any())).thenAnswer(inv -> inv.getArgument(1));
+
+            var apiQueryService = mock(ApiQueryService.class);
+            var installationAccessQueryService = mock(InstallationAccessQueryService.class);
+            when(installationAccessQueryService.getGatewayRestrictedDomains(any())).thenReturn(List.of());
+
+            var listenerValidator = new ListenerValidationServiceImpl(
+                new VerifyApiPathDomainService(
+                    apiQueryService,
+                    installationAccessQueryService,
+                    mock(ApiHostValidatorDomainService.class),
+                    new ApiPathIndex()
+                ),
+                entrypointService,
+                mock(EndpointConnectorPluginService.class),
+                mock(CorsValidationService.class),
+                mock(VerifyApiHostsDomainService.class)
+            );
+
+            when(updateApiDomainService.validateV4(any(), any())).thenAnswer(inv -> {
+                var api = (Api) inv.getArgument(0);
+                var entity = ApiAdapter.INSTANCE.toUpdateApiEntity(api, api.getApiDefinitionHttpV4());
+                listenerValidator.validateAndSanitizeHttpV4(
+                    GraviteeContext.getExecutionContext(),
+                    api.getId(),
+                    entity.getListeners(),
+                    entity.getEndpointGroups()
+                );
+                return api;
+            });
+        }
+
+        static Map<String, Object> httpListenerMap(String path) {
+            return Map.of(
+                "type",
+                "http",
+                "paths",
+                List.of(Map.of("path", path)),
+                "entrypoints",
+                List.of(Map.of("type", "http-proxy", "configuration", "{}"))
+            );
+        }
+
+        static Map<String, Object> tcpListenerMap(String host) {
+            return Map.of(
+                "type",
+                "tcp",
+                "hosts",
+                List.of(host),
+                "entrypoints",
+                List.of(Map.of("type", "tcp-proxy", "configuration", "{}"))
+            );
+        }
+
+        static Map<String, Object> subscriptionListenerMap() {
+            return Map.of("type", "subscription", "entrypoints", List.of(Map.of("type", "http-proxy", "configuration", "{}")));
+        }
+
+        @Test
+        void http_listener_is_accepted() {
+            givenExistingApi(apiWithListeners(List.of(anHttpListener("/existing"))));
+
+            assertThatNoException().isThrownBy(() ->
+                execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("listeners", List.of(httpListenerMap("/patched"))), true)
+            );
+        }
+
+        @Test
+        void tcp_listener_is_accepted() {
+            givenExistingApi(apiWithListeners(List.of(anHttpListener("/existing"))));
+
+            assertThatNoException().isThrownBy(() ->
+                execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("listeners", List.of(tcpListenerMap("tcp.example.com"))), true)
+            );
+        }
+
+        @Test
+        void subscription_listener_is_rejected_by_entrypoint_listener_type_check() {
+            givenExistingApi(apiWithListeners(List.of(anHttpListener("/existing"))));
+
+            assertThatThrownBy(() ->
+                execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("listeners", List.of(subscriptionListenerMap())), true)
+            ).isInstanceOf(ListenerEntrypointUnsupportedListenerTypeException.class);
+        }
+
+        @Test
+        void native_kafka_api_is_rejected_by_v4_proxy_gate() {
+            givenExistingApi(ApiFixtures.aNativeApi());
+
+            assertThatThrownBy(() ->
+                execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("listeners", List.of(httpListenerMap("/patched"))), true)
+            ).isInstanceOf(ApiInvalidTypeException.class);
         }
     }
 }
