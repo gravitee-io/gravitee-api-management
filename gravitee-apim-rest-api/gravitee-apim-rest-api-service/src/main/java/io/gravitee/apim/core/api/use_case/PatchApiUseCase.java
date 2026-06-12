@@ -171,6 +171,12 @@ public class PatchApiUseCase {
             throw new ApiInvalidTypeException(input.apiId(), ApiType.PROXY);
         }
 
+        var dbFlows = flowCrudService.getApiV4Flows(input.apiId());
+        var existingHttpV4 = existingApi.getApiDefinitionHttpV4();
+        if (!dbFlows.isEmpty() && existingHttpV4 != null) {
+            existingApi = existingApi.toBuilder().apiDefinitionValue(existingHttpV4.toBuilder().flows(dbFlows).build()).build();
+        }
+
         var currentNode = apiV4Deserializer.toCurrentStateNode(existingApi);
         var patchNode = parseBody(input.patchBody());
 
