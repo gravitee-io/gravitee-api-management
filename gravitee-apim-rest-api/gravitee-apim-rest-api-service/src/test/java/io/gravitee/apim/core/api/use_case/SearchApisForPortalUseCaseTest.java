@@ -66,7 +66,7 @@ class SearchApisForPortalUseCaseTest {
             apiQueryService
         );
         var visibilityDomainService = new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService);
-        useCase = new SearchApisForPortalUseCase(visibilityDomainService, apiSearchQueryService);
+        useCase = new SearchApisForPortalUseCase(visibilityDomainService, apiSearchQueryService, (envId, orgId) -> false);
     }
 
     @Test
@@ -79,9 +79,7 @@ class SearchApisForPortalUseCaseTest {
         );
         apiSearchQueryService.initWith(List.of(anApi(PUBLIC_API_ID), anApi(PRIVATE_API_ID)));
 
-        var result = useCase.execute(
-            new SearchApisForPortalUseCase.Input(ENV_ID, ORG_ID, null, null, new PageableImpl(1, 10), null, false)
-        );
+        var result = useCase.execute(new SearchApisForPortalUseCase.Input(ENV_ID, ORG_ID, null, null, new PageableImpl(1, 10), null));
 
         assertThat(result.apis().getContent()).extracting(Api::getId).containsExactly(PUBLIC_API_ID);
         assertThat(result.apis().getTotalElements()).isEqualTo(1);
@@ -98,9 +96,7 @@ class SearchApisForPortalUseCaseTest {
         membershipQueryService.initWith(List.of(apiMembership(USER_ID, PRIVATE_API_ID)));
         apiSearchQueryService.initWith(List.of(anApi(PUBLIC_API_ID), anApi(PRIVATE_API_ID)));
 
-        var result = useCase.execute(
-            new SearchApisForPortalUseCase.Input(ENV_ID, ORG_ID, USER_ID, null, new PageableImpl(1, 10), null, false)
-        );
+        var result = useCase.execute(new SearchApisForPortalUseCase.Input(ENV_ID, ORG_ID, USER_ID, null, new PageableImpl(1, 10), null));
 
         assertThat(result.apis().getContent()).extracting(Api::getId).containsExactlyInAnyOrder(PUBLIC_API_ID, PRIVATE_API_ID);
         assertThat(result.apis().getTotalElements()).isEqualTo(2);
@@ -117,8 +113,8 @@ class SearchApisForPortalUseCaseTest {
         );
         apiSearchQueryService.initWith(List.of(anApi("api-a"), anApi("api-b"), anApi("api-c")));
 
-        var page1 = useCase.execute(new SearchApisForPortalUseCase.Input(ENV_ID, ORG_ID, null, null, new PageableImpl(1, 2), null, false));
-        var page2 = useCase.execute(new SearchApisForPortalUseCase.Input(ENV_ID, ORG_ID, null, null, new PageableImpl(2, 2), null, false));
+        var page1 = useCase.execute(new SearchApisForPortalUseCase.Input(ENV_ID, ORG_ID, null, null, new PageableImpl(1, 2), null));
+        var page2 = useCase.execute(new SearchApisForPortalUseCase.Input(ENV_ID, ORG_ID, null, null, new PageableImpl(2, 2), null));
 
         assertThat(page1.apis().getContent()).hasSize(2);
         assertThat(page1.apis().getTotalElements()).isEqualTo(3);

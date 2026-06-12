@@ -69,7 +69,7 @@ class GetVisiblePortalNavigationApisUseCaseTest {
             apiQueryService
         );
         var visibilityDomainService = new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService);
-        useCase = new GetVisiblePortalNavigationApisUseCase(visibilityDomainService, apiSearchQueryService);
+        useCase = new GetVisiblePortalNavigationApisUseCase(visibilityDomainService, apiSearchQueryService, (envId, orgId) -> false);
     }
 
     @Test
@@ -88,8 +88,7 @@ class GetVisiblePortalNavigationApisUseCaseTest {
                 Optional.empty(),
                 new PageableImpl(1, 10),
                 Optional.empty(),
-                Set.of(),
-                false
+                Set.of()
             )
         );
 
@@ -114,8 +113,7 @@ class GetVisiblePortalNavigationApisUseCaseTest {
                 Optional.of(USER_ID),
                 new PageableImpl(1, 10),
                 Optional.empty(),
-                Set.of(),
-                false
+                Set.of()
             )
         );
 
@@ -142,8 +140,7 @@ class GetVisiblePortalNavigationApisUseCaseTest {
                 Optional.empty(),
                 new PageableImpl(1, 2),
                 Optional.empty(),
-                Set.of(),
-                false
+                Set.of()
             )
         );
 
@@ -168,8 +165,7 @@ class GetVisiblePortalNavigationApisUseCaseTest {
                 Optional.empty(),
                 new PageableImpl(2, 2),
                 Optional.empty(),
-                Set.of(),
-                false
+                Set.of()
             )
         );
 
@@ -194,8 +190,7 @@ class GetVisiblePortalNavigationApisUseCaseTest {
                 Optional.empty(),
                 new PageableImpl(1, 10),
                 Optional.empty(),
-                Set.of(),
-                false
+                Set.of()
             )
         );
 
@@ -217,8 +212,7 @@ class GetVisiblePortalNavigationApisUseCaseTest {
                 Optional.empty(),
                 new PageableImpl(1, 10),
                 Optional.of("auth"),
-                Set.of(),
-                false
+                Set.of()
             )
         );
 
@@ -244,8 +238,7 @@ class GetVisiblePortalNavigationApisUseCaseTest {
                 Optional.empty(),
                 new PageableImpl(1, 10),
                 Optional.of("Catalog"),
-                Set.of(),
-                false
+                Set.of()
             )
         );
 

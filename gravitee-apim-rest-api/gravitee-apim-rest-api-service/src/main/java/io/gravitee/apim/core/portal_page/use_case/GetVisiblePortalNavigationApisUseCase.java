@@ -20,6 +20,7 @@ import static java.util.stream.Collectors.toSet;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.query_service.ApiPortalSearchQueryService;
+import io.gravitee.apim.core.portal_page.domain_service.CheckTypoToleranceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude;
@@ -39,6 +40,7 @@ public class GetVisiblePortalNavigationApisUseCase {
 
     private final PortalNavigationApiVisibilityDomainService visibilityDomainService;
     private final ApiPortalSearchQueryService apiPortalSearchQueryService;
+    private final CheckTypoToleranceDomainService checkTypoToleranceDomainService;
 
     public Output execute(Input input) {
         List<PortalNavigationApi> visible = input.userId().isPresent()
@@ -58,7 +60,7 @@ public class GetVisiblePortalNavigationApisUseCase {
                 input.organizationId(),
                 queryText.get(),
                 allowedApiIds,
-                input.typoTolerance()
+                checkTypoToleranceDomainService.isEnabled(input.environmentId(), input.organizationId())
             );
             Set<String> matchingIds = searchedApis.stream().map(Api::getId).collect(toSet());
             Map<String, Integer> rankById = new HashMap<>();
@@ -112,8 +114,7 @@ public class GetVisiblePortalNavigationApisUseCase {
         Optional<String> userId,
         Pageable pageable,
         Optional<String> query,
-        Set<PortalNavigationSearchInclude> includes,
-        boolean typoTolerance
+        Set<PortalNavigationSearchInclude> includes
     ) {}
 
     public record Output(Page<PortalNavigationApi> apis, List<Api> includedApis) {}

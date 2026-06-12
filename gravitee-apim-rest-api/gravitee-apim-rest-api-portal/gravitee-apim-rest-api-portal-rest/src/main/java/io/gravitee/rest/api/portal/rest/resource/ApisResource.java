@@ -174,11 +174,6 @@ public class ApisResource extends AbstractResource<Api, String> {
             final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
             if (PortalApiViewParam.isDocumentationView(view)) {
-                boolean typoTolerance = parameterService.findAsBoolean(
-                    executionContext,
-                    Key.PORTAL_NEXT_SEARCH_FUZZY,
-                    ParameterReferenceType.ENVIRONMENT
-                );
                 var output = searchApisForPortalUseCase.execute(
                     new SearchApisForPortalUseCase.Input(
                         executionContext.getEnvironmentId(),
@@ -186,8 +181,7 @@ public class ApisResource extends AbstractResource<Api, String> {
                         getAuthenticatedUserOrNull(),
                         query,
                         new PageableImpl(paginationParam.getPage(), paginationParam.getSize()),
-                        null,
-                        typoTolerance
+                        null
                     )
                 );
                 List<String> apiIds = output.apis().getContent().stream().map(io.gravitee.apim.core.api.model.Api::getId).toList();

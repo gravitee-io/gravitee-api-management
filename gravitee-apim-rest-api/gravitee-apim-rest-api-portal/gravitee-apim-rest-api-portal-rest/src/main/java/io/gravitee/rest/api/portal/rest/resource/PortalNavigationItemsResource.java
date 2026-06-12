@@ -24,8 +24,6 @@ import io.gravitee.apim.core.portal_page.use_case.GetVisiblePortalNavigationApis
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.common.PageableImpl;
-import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PortalNavigationItemMapper;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
@@ -33,7 +31,6 @@ import io.gravitee.rest.api.portal.rest.model.PortalArea;
 import io.gravitee.rest.api.portal.rest.model.PortalNavigationItemsSearchResponse;
 import io.gravitee.rest.api.portal.rest.model.PortalNavigationSearchInclude;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
-import io.gravitee.rest.api.service.ParameterService;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
@@ -66,9 +63,6 @@ public class PortalNavigationItemsResource extends AbstractResource {
 
     @Inject
     private ApiMapper apiMapper;
-
-    @Inject
-    private ParameterService parameterService;
 
     private final PortalNavigationItemMapper portalNavigationItemMapper = PortalNavigationItemMapper.INSTANCE;
 
@@ -107,11 +101,6 @@ public class PortalNavigationItemsResource extends AbstractResource {
         Set<io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude> coreIncludes = parseIncludes(include);
 
         var executionContext = getExecutionContext();
-        boolean typoTolerance = parameterService.findAsBoolean(
-            executionContext,
-            Key.PORTAL_NEXT_SEARCH_FUZZY,
-            ParameterReferenceType.ENVIRONMENT
-        );
         var output = getVisiblePortalNavigationApisUseCase.execute(
             new GetVisiblePortalNavigationApisUseCase.Input(
                 executionContext.getEnvironmentId(),
@@ -119,8 +108,7 @@ public class PortalNavigationItemsResource extends AbstractResource {
                 Optional.ofNullable(getAuthenticatedUserOrNull()),
                 new PageableImpl(paginationParam.getPage(), paginationParam.getSize()),
                 Optional.ofNullable(query),
-                coreIncludes,
-                typoTolerance
+                coreIncludes
             )
         );
 
