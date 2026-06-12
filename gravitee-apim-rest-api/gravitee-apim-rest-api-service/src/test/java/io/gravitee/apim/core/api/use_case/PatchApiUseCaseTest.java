@@ -1542,6 +1542,29 @@ class PatchApiUseCaseTest {
     class FlowsResolution {
 
         @Test
+        void json_patch_on_one_flow_subpath_preserves_persisted_id_of_untouched_sibling() {
+            var definitionFlows = List.of(
+                aFlow("flow-0", List.of(aStep("s0", "policy-a"))),
+                aFlow("flow-1", List.of(aStep("s1", "policy-b")))
+            );
+            givenExistingApi(apiWithFlows(definitionFlows));
+            flowCrudService.saveApiFlows(
+                API_ID,
+                List.of(
+                    aFlow("flow-0", List.of(aStep("s0", "policy-a"))).toBuilder().id("flow-0-id").build(),
+                    aFlow("flow-1", List.of(aStep("s1", "policy-b"))).toBuilder().id("flow-1-id").build()
+                )
+            );
+
+            execute(PatchApiUseCase.PatchType.JSON_PATCH, patch("replace", "/flows/1/name", "flow-1-renamed"), false);
+
+            var persistedFlows = flowCrudService.getApiV4Flows(API_ID);
+            assertThat(persistedFlows).hasSize(2);
+            assertThat(persistedFlows.getFirst().getId()).isEqualTo("flow-0-id");
+            assertThat(persistedFlows.get(1).getId()).isEqualTo("flow-1-id");
+        }
+
+        @Test
         void merge_patch_with_flows_null_clears_flows_on_rebuilt_definition() {
             givenExistingApi(apiWithFlows(List.of(aFlow("f1", List.of(aStep("s1", "policy-a"))))));
 
