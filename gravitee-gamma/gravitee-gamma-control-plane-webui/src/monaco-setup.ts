@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { setupCodeEditor } from '@gravitee/graphene-core';
-
 // Wires up language workers so JSON validation, autocompletion, and diagnostics work.
 // MonacoEnvironment has no dependency on monaco-editor itself, so it is set synchronously.
 // Rspack resolves `new URL(path, import.meta.url)` at build time, emitting each worker
 // as a separate hashed chunk served from the app's own origin — CSP-safe, offline-capable.
+import { setupCodeEditor } from '@gravitee/graphene-core/code-editor';
+
 window.MonacoEnvironment = {
     getWorker(_moduleId: string, label: string): Worker {
         if (label === 'json') {
