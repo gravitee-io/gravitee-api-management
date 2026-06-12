@@ -15,17 +15,34 @@
  */
 package io.gravitee.apim.core.portal_listing.domain_service;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.validation.NavigationPathValidator;
 import io.gravitee.apim.core.portal_listing.model.PortalListingApiEntry;
 import io.gravitee.apim.core.portal_listing.model.PortalListingId;
 import io.gravitee.apim.core.validation.Validator;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Validates Portal Listing input. Format checks only — no reference-existence checks.
+ *
  * @author GraviteeSource Team
  */
-public interface ValidatePortalListingDomainService extends Validator<ValidatePortalListingDomainService.Input> {
-    record Input(AuditInfo auditInfo, PortalListingId listingId, PortalId portalId, List<PortalListingApiEntry> apis) implements
+@DomainService
+public class ValidatePortalListingDomainService implements Validator<ValidatePortalListingDomainService.Input> {
+
+    public record Input(AuditInfo auditInfo, PortalListingId listingId, PortalId portalId, List<PortalListingApiEntry> apis) implements
         Validator.Input {}
+
+    @Override
+    public Result<Input> validateAndSanitize(Input input) {
+        var errors = new ArrayList<Error>();
+        List<PortalListingApiEntry> apis = input.apis() == null ? List.of() : input.apis();
+        for (int i = 0; i < apis.size(); i++) {
+            errors.addAll(NavigationPathValidator.validate(apis.get(i).location(), "apis[" + i + "].location"));
+        }
+        return Result.ofBoth(input, errors);
+    }
 }
