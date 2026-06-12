@@ -29,6 +29,7 @@ public final class AmDtos {
     public record AmConnectionRequest(
         @NotBlank String baseUrl,
         String serviceAccountAccessToken,
+        String environmentId,
         String defaultDomainId,
         String defaultDomainHrid,
         String gatewayUrl
@@ -38,6 +39,7 @@ public final class AmDtos {
     public record AmConnectionResponse(
         String baseUrl,
         boolean hasAccessToken,
+        String environmentId,
         String defaultDomainId,
         String defaultDomainHrid,
         String gatewayUrl

@@ -19,12 +19,14 @@ package io.gravitee.apim.plugin.gamma.api.identity;
  * Shared connection details a gamma module uses to reach an AM instance for an organization.
  * Storage and token encryption are owned by APIM rest-api core; see {@link AmConnectionRepository}.
  *
- * <p>Nullable fields ({@code serviceAccountAccessToken}, {@code defaultDomainId},
- * {@code defaultDomainHrid}, {@code gatewayUrl}) may be {@code null} when not yet configured.
+ * <p>Nullable fields ({@code serviceAccountAccessToken}, {@code environmentId},
+ * {@code defaultDomainId}, {@code defaultDomainHrid}, {@code gatewayUrl}) may be {@code null} when
+ * not yet configured. {@code environmentId} is the AM environment the {@code defaultDomainId} lives in.
  */
 public record AmConnection(
     String baseUrl,
     String serviceAccountAccessToken,
+    String environmentId,
     String defaultDomainId,
     String defaultDomainHrid,
     String gatewayUrl
@@ -41,6 +43,8 @@ public record AmConnection(
             baseUrl +
             ", serviceAccountAccessToken=" +
             (serviceAccountAccessToken == null ? "null" : "***") +
+            ", environmentId=" +
+            environmentId +
             ", defaultDomainId=" +
             defaultDomainId +
             ", defaultDomainHrid=" +
