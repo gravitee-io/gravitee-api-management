@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
@@ -500,25 +501,19 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         if (fullQuery == null || fullQuery.length() > MAX_FREE_TEXT_CHARS_FOR_FUZZY) {
             return;
         }
-        int[] remaining = new int[] { MAX_FUZZY_CLAUSES_PER_QUERY };
-        for (String raw : fullQuery.split(" ")) {
-            if (raw.isEmpty() || raw.length() < MIN_FUZZY_TOKEN_LENGTH) {
-                continue;
-            }
-            if (remaining[0] <= 0) {
-                return;
-            }
-            String termText = raw.toLowerCase();
-            int maxEdits = termText.length() >= 8 ? 2 : 1;
-            for (FuzzySearchField field : FUZZY_SEARCH_FIELDS) {
-                if (remaining[0] <= 0) {
-                    return;
-                }
-                FuzzyQuery fuzzy = new FuzzyQuery(new Term(field.luceneField(), termText), maxEdits, 1);
-                builder.add(new BoostQuery(fuzzy, field.boost()), BooleanClause.Occur.SHOULD);
-                remaining[0]--;
-            }
-        }
+        Arrays.stream(fullQuery.split(" "))
+            .filter(raw -> !raw.isEmpty() && raw.length() >= MIN_FUZZY_TOKEN_LENGTH)
+            .flatMap(this::fuzzyClausesForToken)
+            .limit(MAX_FUZZY_CLAUSES_PER_QUERY)
+            .forEach(bq -> builder.add(bq, BooleanClause.Occur.SHOULD));
+    }
+
+    private Stream<BoostQuery> fuzzyClausesForToken(String raw) {
+        String termText = raw.toLowerCase();
+        int maxEdits = termText.length() >= 8 ? 2 : 1;
+        return FUZZY_SEARCH_FIELDS.stream().map(field ->
+            new BoostQuery(new FuzzyQuery(new Term(field.luceneField(), termText), maxEdits, 1), field.boost())
+        );
     }
 
     private BooleanQuery buildEnvCriteria(ExecutionContext executionContext) {
