@@ -501,8 +501,8 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         if (fullQuery == null || fullQuery.length() > MAX_FREE_TEXT_CHARS_FOR_FUZZY) {
             return;
         }
-        Arrays.stream(fullQuery.split(" "))
-            .filter(raw -> !raw.isEmpty() && raw.length() >= MIN_FUZZY_TOKEN_LENGTH)
+        Arrays.stream(fullQuery.trim().split("\\s+"))
+            .filter(raw -> raw.length() >= MIN_FUZZY_TOKEN_LENGTH)
             .flatMap(this::fuzzyClausesForToken)
             .limit(MAX_FUZZY_CLAUSES_PER_QUERY)
             .forEach(bq -> builder.add(bq, BooleanClause.Occur.SHOULD));
