@@ -24,7 +24,7 @@ metadata:
     {{- end }}
     {{- end }}
   annotations:
-    {{- if .Values.gateway.services.edge.ingress.annotations }}
+    {{- if or .Values.gateway.services.edge.ingress.annotations .Values.gateway.services.edge.ingress.ingressClassName }}
       {{- include "common.ingress.annotations.render" (dict "annotations" .Values.gateway.services.edge.ingress.annotations "ingressClassName" .Values.gateway.services.edge.ingress.ingressClassName "openshift" .Values.openshift "context" $) | nindent 4 }}
     {{- end }}
     {{- if and .Values.common .Values.common.annotations }}
@@ -56,7 +56,7 @@ spec:
   {{- end -}}
   {{- if .Values.gateway.services.edge.ingress.tls }}
   tls:
-{{ toYaml .Values.gateway.services.edge.ingress.tls | indent 4 }}
+    {{- toYaml .Values.gateway.services.edge.ingress.tls | nindent 4 }}
   {{- end -}}
 {{- end -}}
 {{- end -}}
