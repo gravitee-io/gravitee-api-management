@@ -199,12 +199,21 @@ public class PortalNavigationItemDomainService {
     }
 
     public PortalNavigationItem update(UpdatePortalNavigationItem toUpdate, PortalNavigationItem originalItem) {
+        return update(toUpdate, originalItem, false);
+    }
+
+    public PortalNavigationItem update(
+        UpdatePortalNavigationItem toUpdate,
+        PortalNavigationItem originalItem,
+        boolean propagatePublishToChildren
+    ) {
         final Integer originalOrder = originalItem.getOrder();
         final PortalNavigationItemId originalParentId = originalItem.getParentId();
         final var changedVisibility = !Objects.equals(originalItem.getVisibility(), toUpdate.getVisibility())
             ? toUpdate.getVisibility()
             : null;
         final var changedPublished = !Objects.equals(originalItem.getPublished(), toUpdate.getPublished()) ? toUpdate.getPublished() : null;
+        final var publishedToPropagate = resolvePublishedToPropagate(changedPublished, propagatePublishToChildren);
 
         boolean isMoveToNewParent = !Objects.equals(originalParentId, toUpdate.getParentId());
 
@@ -247,8 +256,13 @@ public class PortalNavigationItemDomainService {
         var updatedItem = crudService.update(originalItem);
 
         final var visibilityToPropagate = PortalVisibility.PRIVATE.equals(changedVisibility) ? PortalVisibility.PRIVATE : null;
-        if (visibilityToPropagate != null || changedPublished != null) {
-            propagateAttributesToDescendants(updatedItem.getId(), updatedItem.getEnvironmentId(), visibilityToPropagate, changedPublished);
+        if (visibilityToPropagate != null || publishedToPropagate != null) {
+            propagateAttributesToDescendants(
+                updatedItem.getId(),
+                updatedItem.getEnvironmentId(),
+                visibilityToPropagate,
+                publishedToPropagate
+            );
         }
         if (isMoveToNewParent) {
             propagateRootIdToDescendants(updatedItem.getId(), updatedItem.getEnvironmentId());
@@ -264,6 +278,16 @@ public class PortalNavigationItemDomainService {
         siblingsToUpdate.forEach(crudService::update);
 
         return updatedItem;
+    }
+
+    private Boolean resolvePublishedToPropagate(Boolean changedPublished, boolean propagatePublishToChildren) {
+        if (changedPublished == null) {
+            return null;
+        }
+        if (Boolean.FALSE.equals(changedPublished)) {
+            return false;
+        }
+        return propagatePublishToChildren ? Boolean.TRUE : null;
     }
 
     private PortalNavigationItemContainer resolveParentContainer(PortalNavigationItemId parentId, String environmentId) {
