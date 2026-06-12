@@ -33,9 +33,11 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import lombok.CustomLog;
 
@@ -59,13 +61,15 @@ public class PortalNavigationItemResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
     public Response updatePortalNavigationItem(
         @PathParam("navId") String navigationItemId,
+        @QueryParam("propagatePublishToChildren") @DefaultValue("false") boolean propagatePublishToChildren,
         @Valid @NotNull final BaseUpdatePortalNavigationItem updatePortalNavigationItem
     ) {
         var input = new UpdatePortalNavigationItemUseCase.Input(
             GraviteeContext.getCurrentOrganization(),
             GraviteeContext.getCurrentEnvironment(),
             navigationItemId,
-            mapper.map(updatePortalNavigationItem)
+            mapper.map(updatePortalNavigationItem),
+            propagatePublishToChildren
         );
 
         var output = updatePortalNavigationItemUseCase.execute(input);

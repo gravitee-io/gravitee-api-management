@@ -1045,7 +1045,7 @@ public class PortalNavigationItemDomainServiceTest {
         }
 
         @Test
-        void should_update_subtree_when_folder_published_changes_from_false_to_true() {
+        void should_update_subtree_when_folder_published_changes_from_false_to_true_and_propagation_enabled() {
             PortalNavigationFolder parentFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000001", "Parent")
                 .toBuilder()
                 .published(false)
@@ -1078,7 +1078,7 @@ public class PortalNavigationItemDomainServiceTest {
                 .published(true)
                 .build();
 
-            var result = domainService.update(toUpdate, parentFolder);
+            var result = domainService.update(toUpdate, parentFolder, true);
 
             assertThat(result.getPublished()).isTrue();
             assertThat(
@@ -1095,6 +1095,112 @@ public class PortalNavigationItemDomainServiceTest {
                 .containsEntry(parentFolder.getId(), true)
                 .containsEntry(childFolder.getId(), true)
                 .containsEntry(grandChildPage.getId(), true);
+        }
+
+        @Test
+        void should_not_update_subtree_when_folder_published_changes_from_false_to_true_and_propagation_disabled() {
+            PortalNavigationFolder parentFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000004", "Parent")
+                .toBuilder()
+                .published(false)
+                .build();
+            PortalNavigationFolder childFolder = PortalNavigationItemFixtures.aFolder(
+                "20000000-0000-4000-8000-000000000005",
+                "Child",
+                parentFolder.getId()
+            )
+                .toBuilder()
+                .published(false)
+                .build();
+            PortalNavigationPage grandChildPage = PortalNavigationItemFixtures.aPage(
+                "20000000-0000-4000-8000-000000000006",
+                "Grand Child",
+                childFolder.getId()
+            )
+                .toBuilder()
+                .published(false)
+                .build();
+            portalNavigationItemsCrudService.initWith(List.of(parentFolder, childFolder, grandChildPage));
+            portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
+
+            var toUpdate = UpdatePortalNavigationItem.builder()
+                .order(parentFolder.getOrder())
+                .title(parentFolder.getTitle())
+                .visibility(parentFolder.getVisibility())
+                .type(parentFolder.getType())
+                .parentId(parentFolder.getParentId())
+                .published(true)
+                .build();
+
+            var result = domainService.update(toUpdate, parentFolder, false);
+
+            assertThat(result.getPublished()).isTrue();
+            assertThat(
+                portalNavigationItemsCrudService
+                    .storage()
+                    .stream()
+                    .collect(
+                        Collectors.toMap(
+                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
+                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getPublished
+                        )
+                    )
+            )
+                .containsEntry(parentFolder.getId(), true)
+                .containsEntry(childFolder.getId(), false)
+                .containsEntry(grandChildPage.getId(), false);
+        }
+
+        @Test
+        void should_update_subtree_when_folder_published_changes_from_true_to_false_and_propagation_disabled() {
+            PortalNavigationFolder parentFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000007", "Parent")
+                .toBuilder()
+                .published(true)
+                .build();
+            PortalNavigationFolder childFolder = PortalNavigationItemFixtures.aFolder(
+                "20000000-0000-4000-8000-000000000008",
+                "Child",
+                parentFolder.getId()
+            )
+                .toBuilder()
+                .published(true)
+                .build();
+            PortalNavigationPage grandChildPage = PortalNavigationItemFixtures.aPage(
+                "20000000-0000-4000-8000-000000000009",
+                "Grand Child",
+                childFolder.getId()
+            )
+                .toBuilder()
+                .published(true)
+                .build();
+            portalNavigationItemsCrudService.initWith(List.of(parentFolder, childFolder, grandChildPage));
+            portalNavigationItemsQueryService.initWith(List.copyOf(portalNavigationItemsCrudService.storage()));
+
+            var toUpdate = UpdatePortalNavigationItem.builder()
+                .order(parentFolder.getOrder())
+                .title(parentFolder.getTitle())
+                .visibility(parentFolder.getVisibility())
+                .type(parentFolder.getType())
+                .parentId(parentFolder.getParentId())
+                .published(false)
+                .build();
+
+            var result = domainService.update(toUpdate, parentFolder, false);
+
+            assertThat(result.getPublished()).isFalse();
+            assertThat(
+                portalNavigationItemsCrudService
+                    .storage()
+                    .stream()
+                    .collect(
+                        Collectors.toMap(
+                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getId,
+                            io.gravitee.apim.core.portal_page.model.PortalNavigationItem::getPublished
+                        )
+                    )
+            )
+                .containsEntry(parentFolder.getId(), false)
+                .containsEntry(childFolder.getId(), false)
+                .containsEntry(grandChildPage.getId(), false);
         }
     }
 }

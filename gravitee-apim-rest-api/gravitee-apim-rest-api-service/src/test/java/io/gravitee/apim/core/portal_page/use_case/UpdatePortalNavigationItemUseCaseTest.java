@@ -46,6 +46,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -229,6 +230,103 @@ class UpdatePortalNavigationItemUseCaseTest {
         assertThat(output.updatedItem().getTitle()).isEqualTo("New Title");
         assertThat(output.updatedItem().getPublished()).isTrue();
         assertThat(output.updatedItem().getVisibility()).isEqualTo(existing.getVisibility());
+    }
+
+    @Test
+    void should_publish_only_selected_folder_when_propagation_is_omitted() {
+        var parentFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000010", "Parent")
+            .toBuilder()
+            .published(false)
+            .build();
+        var childFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000011", "Child", parentFolder.getId())
+            .toBuilder()
+            .published(false)
+            .build();
+        var grandChildPage = PortalNavigationItemFixtures.aPage("20000000-0000-4000-8000-000000000012", "Grand Child", childFolder.getId())
+            .toBuilder()
+            .published(false)
+            .build();
+        crudService.initWith(List.of(parentFolder, childFolder, grandChildPage));
+        queryService.initWith(List.copyOf(crudService.storage()));
+
+        var input = UpdatePortalNavigationItemUseCase.Input.builder()
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .navigationItemId(parentFolder.getId().toString())
+            .updatePortalNavigationItem(updateFolderPublished(parentFolder, true))
+            .build();
+
+        var output = useCase.execute(input);
+
+        assertThat(output.updatedItem().getPublished()).isTrue();
+        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, parentFolder.getId()).getPublished()).isTrue();
+        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, childFolder.getId()).getPublished()).isFalse();
+        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, grandChildPage.getId()).getPublished()).isFalse();
+    }
+
+    @Test
+    void should_publish_folder_descendants_when_propagation_is_enabled() {
+        var parentFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000013", "Parent")
+            .toBuilder()
+            .published(false)
+            .build();
+        var childFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000014", "Child", parentFolder.getId())
+            .toBuilder()
+            .published(false)
+            .build();
+        var grandChildPage = PortalNavigationItemFixtures.aPage("20000000-0000-4000-8000-000000000015", "Grand Child", childFolder.getId())
+            .toBuilder()
+            .published(false)
+            .build();
+        crudService.initWith(List.of(parentFolder, childFolder, grandChildPage));
+        queryService.initWith(List.copyOf(crudService.storage()));
+
+        var input = UpdatePortalNavigationItemUseCase.Input.builder()
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .navigationItemId(parentFolder.getId().toString())
+            .updatePortalNavigationItem(updateFolderPublished(parentFolder, true))
+            .propagatePublishToChildren(true)
+            .build();
+
+        var output = useCase.execute(input);
+
+        assertThat(output.updatedItem().getPublished()).isTrue();
+        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, parentFolder.getId()).getPublished()).isTrue();
+        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, childFolder.getId()).getPublished()).isTrue();
+        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, grandChildPage.getId()).getPublished()).isTrue();
+    }
+
+    @Test
+    void should_unpublish_folder_descendants_when_propagation_is_omitted() {
+        var parentFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000016", "Parent")
+            .toBuilder()
+            .published(true)
+            .build();
+        var childFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000017", "Child", parentFolder.getId())
+            .toBuilder()
+            .published(true)
+            .build();
+        var grandChildPage = PortalNavigationItemFixtures.aPage("20000000-0000-4000-8000-000000000018", "Grand Child", childFolder.getId())
+            .toBuilder()
+            .published(true)
+            .build();
+        crudService.initWith(List.of(parentFolder, childFolder, grandChildPage));
+        queryService.initWith(List.copyOf(crudService.storage()));
+
+        var input = UpdatePortalNavigationItemUseCase.Input.builder()
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .navigationItemId(parentFolder.getId().toString())
+            .updatePortalNavigationItem(updateFolderPublished(parentFolder, false))
+            .build();
+
+        var output = useCase.execute(input);
+
+        assertThat(output.updatedItem().getPublished()).isFalse();
+        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, parentFolder.getId()).getPublished()).isFalse();
+        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, childFolder.getId()).getPublished()).isFalse();
+        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, grandChildPage.getId()).getPublished()).isFalse();
     }
 
     @Test
@@ -556,5 +654,16 @@ class UpdatePortalNavigationItemUseCaseTest {
 
         var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
         assertThat(exception.getMessage()).isEqualTo("Parent hierarchy cannot include API items.");
+    }
+
+    private UpdatePortalNavigationItem updateFolderPublished(PortalNavigationFolder folder, boolean published) {
+        return UpdatePortalNavigationItem.builder()
+            .type(folder.getType())
+            .title(folder.getTitle())
+            .order(folder.getOrder())
+            .parentId(folder.getParentId())
+            .published(published)
+            .visibility(folder.getVisibility())
+            .build();
     }
 }

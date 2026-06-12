@@ -49,6 +49,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -354,6 +355,92 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
     }
 
     @Test
+    void should_publish_only_selected_folder_when_propagation_query_param_is_omitted() {
+        var parentFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000019", "Parent")
+            .toBuilder()
+            .published(false)
+            .build();
+        var childFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000020", "Child", parentFolder.getId())
+            .toBuilder()
+            .published(false)
+            .build();
+        var grandChildPage = PortalNavigationItemFixtures.aPage("20000000-0000-4000-8000-000000000021", "Grand Child", childFolder.getId())
+            .toBuilder()
+            .published(false)
+            .build();
+        initStorageWith(List.of(parentFolder, childFolder, grandChildPage));
+
+        Response response = target.path(parentFolder.getId().toString()).request().put(json(updateFolderPublished(parentFolder, true)));
+
+        assertThat(response).hasStatus(OK_200);
+        PortalNavigationFolder body = response.readEntity(PortalNavigationFolder.class);
+        assertThat(body.getPublished()).isTrue();
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, parentFolder.getId()).getPublished()).isTrue();
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, childFolder.getId()).getPublished()).isFalse();
+        assertThat(
+            portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, grandChildPage.getId()).getPublished()
+        ).isFalse();
+    }
+
+    @Test
+    void should_publish_folder_descendants_when_propagation_query_param_is_true() {
+        var parentFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000022", "Parent")
+            .toBuilder()
+            .published(false)
+            .build();
+        var childFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000023", "Child", parentFolder.getId())
+            .toBuilder()
+            .published(false)
+            .build();
+        var grandChildPage = PortalNavigationItemFixtures.aPage("20000000-0000-4000-8000-000000000024", "Grand Child", childFolder.getId())
+            .toBuilder()
+            .published(false)
+            .build();
+        initStorageWith(List.of(parentFolder, childFolder, grandChildPage));
+
+        Response response = target
+            .path(parentFolder.getId().toString())
+            .queryParam("propagatePublishToChildren", true)
+            .request()
+            .put(json(updateFolderPublished(parentFolder, true)));
+
+        assertThat(response).hasStatus(OK_200);
+        PortalNavigationFolder body = response.readEntity(PortalNavigationFolder.class);
+        assertThat(body.getPublished()).isTrue();
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, parentFolder.getId()).getPublished()).isTrue();
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, childFolder.getId()).getPublished()).isTrue();
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, grandChildPage.getId()).getPublished()).isTrue();
+    }
+
+    @Test
+    void should_unpublish_folder_descendants_when_propagation_query_param_is_omitted() {
+        var parentFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000025", "Parent")
+            .toBuilder()
+            .published(true)
+            .build();
+        var childFolder = PortalNavigationItemFixtures.aFolder("20000000-0000-4000-8000-000000000026", "Child", parentFolder.getId())
+            .toBuilder()
+            .published(true)
+            .build();
+        var grandChildPage = PortalNavigationItemFixtures.aPage("20000000-0000-4000-8000-000000000027", "Grand Child", childFolder.getId())
+            .toBuilder()
+            .published(true)
+            .build();
+        initStorageWith(List.of(parentFolder, childFolder, grandChildPage));
+
+        Response response = target.path(parentFolder.getId().toString()).request().put(json(updateFolderPublished(parentFolder, false)));
+
+        assertThat(response).hasStatus(OK_200);
+        PortalNavigationFolder body = response.readEntity(PortalNavigationFolder.class);
+        assertThat(body.getPublished()).isFalse();
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, parentFolder.getId()).getPublished()).isFalse();
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, childFolder.getId()).getPublished()).isFalse();
+        assertThat(
+            portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, grandChildPage.getId()).getPublished()
+        ).isFalse();
+    }
+
+    @Test
     void should_change_a_page_visibility_to_private() {
         // Given an existing PAGE item
         String navId = PAGE11_ID;
@@ -406,5 +493,26 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         // And storage reflects the change
         var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
         assertThat(updated.getOrder()).isEqualTo(1);
+    }
+
+    private void initStorageWith(List<io.gravitee.apim.core.portal_page.model.PortalNavigationItem> items) {
+        items.forEach(i -> {
+            i.setEnvironmentId(ENVIRONMENT);
+            i.setOrganizationId(ORGANIZATION);
+        });
+        ((PortalNavigationItemsQueryServiceInMemory) portalNavigationItemsQueryService).initWith(items);
+        ((PortalNavigationItemsCrudServiceInMemory) portalNavigationItemCrudService).initWith(items);
+    }
+
+    private BaseUpdatePortalNavigationItem updateFolderPublished(
+        io.gravitee.apim.core.portal_page.model.PortalNavigationFolder folder,
+        boolean published
+    ) {
+        return new UpdatePortalNavigationFolder()
+            .title(folder.getTitle())
+            .type(PortalNavigationItemType.FOLDER)
+            .order(folder.getOrder())
+            .published(published)
+            .visibility(PortalVisibility.valueOf(folder.getVisibility().name()));
     }
 }
