@@ -36,6 +36,13 @@ const config: ModuleFederationConfig = {
                 requiredVersion: sharedConfig.requiredVersion,
             };
         }
+        if (libraryName === '@monaco-editor/react') {
+            return {
+                singleton: true,
+                strictVersion: false,
+                requiredVersion: sharedConfig.requiredVersion,
+            };
+        }
         return false;
     },
 };

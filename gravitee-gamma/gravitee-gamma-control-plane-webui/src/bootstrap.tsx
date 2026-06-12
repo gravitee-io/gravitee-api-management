@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import './monaco-setup';
+
 import { Spinner, ThemeProvider, Toaster } from '@gravitee/graphene-core';
 import { StrictMode, Suspense } from 'react';
 import * as ReactDOM from 'react-dom/client';
