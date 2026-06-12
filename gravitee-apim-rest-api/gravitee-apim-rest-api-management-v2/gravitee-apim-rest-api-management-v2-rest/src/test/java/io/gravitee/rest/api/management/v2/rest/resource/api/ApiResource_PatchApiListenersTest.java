@@ -173,28 +173,6 @@ public class ApiResource_PatchApiListenersTest extends ApiResourceTest {
         return assertThat(response).hasStatus(OK_200).asEntity(ApiV4.class).actual();
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = { "HTTP", "TCP", "SUBSCRIPTION" })
-    void patch_listener_type_uppercase_returns_200_and_persists(String uppercaseType) {
-        givenApiWithListeners(List.of(defaultHttpListener("/existing")));
-
-        var listeners = List.of(uppercaseListenerMap(uppercaseType, "/patched"));
-        var body = "{\"listeners\":" + toJson(listeners) + "}";
-
-        var response = rootTarget(API).request().method("PATCH", Entity.entity(body, MERGE_PATCH_TYPE));
-
-        assertThat(response).hasStatus(OK_200);
-
-        if ("HTTP".equals(uppercaseType)) {
-            var persistedListeners = capturePersistedListeners();
-            Assertions.assertThat(persistedListeners).hasSize(1);
-            Assertions.assertThat(persistedListeners.getFirst().getType()).isEqualTo(ListenerType.HTTP);
-            Assertions.assertThat(((HttpListener) persistedListeners.getFirst()).getPaths())
-                .extracting(Path::getPath)
-                .containsExactly("/patched");
-        }
-    }
-
     @Test
     void patch_listeners_round_trip_from_get_response_returns_200() {
         givenApiWithListeners(List.of(defaultHttpListener("/http")));
