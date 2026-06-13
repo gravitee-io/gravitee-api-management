@@ -59,9 +59,7 @@ public class CreateOrUpdatePortalUseCase {
 
         var warnings = validation.warning().orElseGet(List::of);
 
-        var sanitized = validation
-            .value()
-            .orElse(new ValidatePortalDomainService.Input(input.auditInfo(), input.portal(), input.navigation()));
+        var sanitized = validation.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize portal"));
         var portal = sanitized.portal();
         var existing = portalCrudService.findByIdAndEnvironmentId(portal.getId(), input.auditInfo().environmentId());
         var saved = existing.isPresent() ? portalCrudService.update(portal) : portalCrudService.create(portal);
