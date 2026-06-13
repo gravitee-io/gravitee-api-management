@@ -18,6 +18,7 @@ package io.gravitee.repository.jdbc.orm;
 import static org.springframework.util.StringUtils.capitalize;
 
 import java.lang.reflect.Method;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.CustomLog;
@@ -34,11 +35,26 @@ public class JdbcColumn {
     public final Class javaType;
     public final Method getter;
     public final Method setter;
+    public final Function<?, String> serializer;
+    public final Function<String, ?> deserializer;
 
     JdbcColumn(String name, int jdbcType, Class owningClass, Class fieldType) {
+        this(name, jdbcType, owningClass, fieldType, null, null);
+    }
+
+    JdbcColumn(
+        String name,
+        int jdbcType,
+        Class owningClass,
+        Class fieldType,
+        Function<?, String> serializer,
+        Function<String, ?> deserializer
+    ) {
         this.name = getAccessorName(name);
         this.jdbcType = jdbcType;
         this.javaType = fieldType;
+        this.serializer = serializer;
+        this.deserializer = deserializer;
         String getterName = "get";
         if (fieldType == boolean.class) {
             getterName = "is";

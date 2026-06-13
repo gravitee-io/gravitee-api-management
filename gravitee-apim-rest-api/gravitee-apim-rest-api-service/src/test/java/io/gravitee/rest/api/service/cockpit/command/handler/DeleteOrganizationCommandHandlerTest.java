@@ -47,6 +47,7 @@ import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.MetadataRepository;
 import io.gravitee.repository.management.api.NotificationTemplateRepository;
 import io.gravitee.repository.management.api.ParameterRepository;
+import io.gravitee.repository.management.api.PortalListingRepository;
 import io.gravitee.repository.management.api.PortalNotificationRepository;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.api.TagRepository;
@@ -181,6 +182,9 @@ public class DeleteOrganizationCommandHandlerTest {
     private DashboardRepository dashboardRepository;
 
     @Mock
+    private PortalListingRepository portalListingRepository;
+
+    @Mock
     private DeleteEnvironmentCommandHandler deleteEnvironmentCommandHandler;
 
     private DeleteOrganizationCommandHandler cut;
@@ -223,6 +227,7 @@ public class DeleteOrganizationCommandHandlerTest {
             userRepository,
             clusterRepository,
             dashboardRepository,
+            portalListingRepository,
             accessPointService,
             environmentService,
             identityProviderActivationService,
@@ -365,6 +370,7 @@ public class DeleteOrganizationCommandHandlerTest {
             EntrypointReferenceType.ORGANIZATION
         );
         verify(clusterRepository).deleteByOrganizationId(executionContext.getOrganizationId());
+        verify(portalListingRepository).deleteByOrganizationId(executionContext.getOrganizationId());
         verify(amConnectionRepository).delete(executionContext.getOrganizationId());
     }
 

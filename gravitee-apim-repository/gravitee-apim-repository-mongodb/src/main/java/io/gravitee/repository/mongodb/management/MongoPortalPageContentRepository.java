@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalPageContentRepository;
+import io.gravitee.repository.management.model.AutomationTargetReferenceType;
 import io.gravitee.repository.management.model.PortalPageContent;
 import io.gravitee.repository.mongodb.management.internal.model.PortalPageContentMongo;
 import io.gravitee.repository.mongodb.management.internal.portalpagecontent.PortalPageContentMongoRepository;
@@ -100,6 +101,37 @@ public class MongoPortalPageContentRepository implements PortalPageContentReposi
         } catch (Exception ex) {
             log.error("Failed to find all portal page contents", ex);
             throw new TechnicalException("Failed to find all portal page contents", ex);
+        }
+    }
+
+    @Override
+    public List<PortalPageContent> findByAutomationReference(
+        String environmentId,
+        AutomationTargetReferenceType referenceType,
+        String referenceId
+    ) throws TechnicalException {
+        log.debug("Find portal page contents by automation reference [env={}, type={}, id={}]", environmentId, referenceType, referenceId);
+        try {
+            return internalRepo
+                .findByEnvironmentIdAndAutomationMetadata_ReferenceTypeAndAutomationMetadata_ReferenceId(
+                    environmentId,
+                    referenceType,
+                    referenceId
+                )
+                .stream()
+                .map(mapper::map)
+                .toList();
+        } catch (Exception e) {
+            throw new TechnicalException(
+                "An error occurred when finding portal page contents by automation reference [" +
+                    environmentId +
+                    ", " +
+                    referenceType +
+                    ", " +
+                    referenceId +
+                    "]",
+                e
+            );
         }
     }
 }

@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Function;
 import lombok.CustomLog;
 import lombok.Getter;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
@@ -52,10 +53,14 @@ import org.springframework.jdbc.core.RowMapper;
 @CustomLog
 public class JdbcObjectMapper<T> {
 
+    private record MirroredColumnDef<T>(String name, int jdbcType, Function<T, String> serializer) {}
+
     private final Constructor<T> constructor;
 
     @Getter
     private final List<JdbcColumn> columns;
+
+    private final List<MirroredColumnDef<T>> mirroredColumns;
 
     private final String idColumn;
     private final String insertSql;
@@ -124,6 +129,15 @@ public class JdbcObjectMapper<T> {
             PreparedStatement stmt = cnctn.prepareStatement(sql);
             int idx = setStatementValues(stmt, item, 1);
 
+            for (MirroredColumnDef<T> mirrored : mirroredColumns) {
+                String value = mirrored.serializer().apply(item);
+                if (value == null) {
+                    stmt.setNull(idx++, nullType(mirrored.jdbcType()));
+                } else {
+                    stmt.setString(idx++, value);
+                }
+            }
+
             for (Object id : ids) {
                 stmt.setObject(idx++, id);
             }
@@ -153,6 +167,7 @@ public class JdbcObjectMapper<T> {
         private String tableName;
         private String updateSql;
         private List<JdbcColumn> columns = new ArrayList<>();
+        private List<MirroredColumnDef<T>> mirroredColumns = new ArrayList<>();
 
         private Builder(final Class<T> value, final String tableName, String idColumn) {
             this.clazz = value;
@@ -170,8 +185,24 @@ public class JdbcObjectMapper<T> {
             return this;
         }
 
+        public <V> Builder<T> addColumn(
+            String name,
+            int jdbcType,
+            Class<V> fieldType,
+            Function<V, String> serializer,
+            Function<String, V> deserializer
+        ) {
+            this.columns.add(new JdbcColumn(name, jdbcType, clazz, fieldType, v -> serializer.apply((V) v), deserializer::apply));
+            return this;
+        }
+
+        public Builder<T> addMirroredColumn(String name, int jdbcType, Function<T, String> serializer) {
+            this.mirroredColumns.add(new MirroredColumnDef<>(name, jdbcType, serializer));
+            return this;
+        }
+
         public JdbcObjectMapper<T> build() {
-            return new JdbcObjectMapper<>(clazz, idColumn, columns, updateSql, tableName);
+            return new JdbcObjectMapper<>(clazz, idColumn, columns, mirroredColumns, updateSql, tableName);
         }
     }
 
@@ -187,6 +218,7 @@ public class JdbcObjectMapper<T> {
         final Class<T> clazz,
         final String idColumn,
         final List<JdbcColumn> columns,
+        final List<MirroredColumnDef<T>> mirroredColumns,
         final String updateSql,
         final String tableName
     ) {
@@ -198,6 +230,7 @@ public class JdbcObjectMapper<T> {
         }
         this.tableName = tableName;
         this.columns = columns;
+        this.mirroredColumns = mirroredColumns;
         this.idColumn = idColumn;
         this.insertSql = buildInsertStatement();
         this.updateSql = updateSql == null ? buildUpdateStatement() : updateSql;
@@ -277,7 +310,11 @@ public class JdbcObjectMapper<T> {
                         }
                         value = rslt.toString();
                     }
-                    value = checkTypeAndConvert(item, column, value);
+                    if (column.deserializer != null) {
+                        value = ((Function<String, Object>) column.deserializer).apply((String) value);
+                    } else {
+                        value = checkTypeAndConvert(item, column, value);
+                    }
                     column.setter.invoke(item, value);
                 }
             } catch (SQLException ex) {
@@ -335,9 +372,13 @@ public class JdbcObjectMapper<T> {
             first = false;
             builder.append(escapeReservedWord(getDBName(column.name)));
         }
+        for (MirroredColumnDef<T> mirrored : mirroredColumns) {
+            builder.append(", ").append(escapeReservedWord(mirrored.name()));
+        }
         builder.append(" ) values ( ");
         first = true;
-        for (int i = 0; i < columns.size(); i++) {
+        int totalColumns = columns.size() + mirroredColumns.size();
+        for (int i = 0; i < totalColumns; i++) {
             if (!first) {
                 builder.append(", ");
             }
@@ -354,11 +395,10 @@ public class JdbcObjectMapper<T> {
                 final Object value = column.getter.invoke(item);
                 if (value == null) {
                     log.debug("Setting {}/{} to null for the type {}", idx, getDBName(column.name), column.jdbcType);
-                    if (column.jdbcType == Types.NVARCHAR) {
-                        stmt.setNull(idx, Types.VARCHAR);
-                    } else {
-                        stmt.setNull(idx, column.jdbcType);
-                    }
+                    stmt.setNull(idx, nullType(column.jdbcType));
+                } else if (column.serializer != null) {
+                    stmt.setString(idx, ((Function<Object, String>) column.serializer).apply(value));
+                    log.debug("Setting {}/{} via custom serializer for the type {}", idx, getDBName(column.name), column.jdbcType);
                 } else if (column.javaType.isEnum() && (column.jdbcType == Types.NVARCHAR)) {
                     stmt.setString(idx, value.toString());
                 } else if (value instanceof Date) {
@@ -402,6 +442,9 @@ public class JdbcObjectMapper<T> {
             builder.append(escapeReservedWord(getDBName(column.name)));
             builder.append(" = ?");
         }
+        for (MirroredColumnDef<T> mirrored : mirroredColumns) {
+            builder.append(", ").append(escapeReservedWord(mirrored.name())).append(" = ?");
+        }
         builder.append(" where ");
         builder.append(escapeReservedWord(idColumn));
         builder.append(" = ?");
@@ -420,5 +463,13 @@ public class JdbcObjectMapper<T> {
         } else {
             return emptyList();
         }
+    }
+
+    private static int nullType(int jdbcType) {
+        return switch (jdbcType) {
+            case Types.NVARCHAR -> Types.VARCHAR;
+            case Types.NCLOB -> Types.CLOB;
+            default -> jdbcType;
+        };
     }
 }

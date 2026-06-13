@@ -78,6 +78,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
     private final UserRepository userRepository;
     private final ClusterRepository clusterRepository;
     private final DashboardRepository dashboardRepository;
+    private final PortalListingRepository portalListingRepository;
     private final DeleteEnvironmentCommandHandler deleteEnvironmentCommandHandler;
 
     public DeleteOrganizationCommandHandler(
@@ -104,6 +105,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         @Lazy UserRepository userRepository,
         @Lazy ClusterRepository clusterRepository,
         @Lazy DashboardRepository dashboardRepository,
+        @Lazy PortalListingRepository portalListingRepository,
         AccessPointCrudService accessPointService,
         EnvironmentService environmentService,
         IdentityProviderActivationService identityProviderActivationService,
@@ -139,6 +141,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         this.userRepository = userRepository;
         this.clusterRepository = clusterRepository;
         this.dashboardRepository = dashboardRepository;
+        this.portalListingRepository = portalListingRepository;
         this.deleteEnvironmentCommandHandler = deleteEnvironmentCommandHandler;
     }
 
@@ -236,6 +239,7 @@ public class DeleteOrganizationCommandHandler implements CommandHandler<DeleteOr
         );
         entrypointRepository.deleteByReferenceIdAndReferenceType(organization.getId(), EntrypointReferenceType.ORGANIZATION);
         clusterRepository.deleteByOrganizationId(organization.getId());
+        portalListingRepository.deleteByOrganizationId(organization.getId());
         log.debug("Deleting am connection for organization [{}]", organization.getId());
         amConnectionRepository.delete(organization.getId());
     }

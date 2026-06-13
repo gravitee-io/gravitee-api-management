@@ -483,11 +483,11 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         }
         try {
             var node = OBJECT_MAPPER.readTree(configuration);
-            if (node.has("pageId")) {
-                return node.get("pageId").asText();
+            if (node.has("portalPageContentId")) {
+                return node.get("portalPageContentId").asText();
             }
         } catch (Exception e) {
-            log.error("Failed to extract pageId from configuration: {}", configuration, e);
+            log.error("Failed to extract portalPageContentId from configuration: {}", configuration, e);
         }
         return null;
     }
