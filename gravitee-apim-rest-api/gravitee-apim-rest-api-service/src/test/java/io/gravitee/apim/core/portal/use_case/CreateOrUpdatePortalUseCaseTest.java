@@ -23,6 +23,7 @@ import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
+import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -31,6 +32,7 @@ import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainSer
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import java.util.List;
@@ -57,6 +59,7 @@ class CreateOrUpdatePortalUseCaseTest {
         navCrudService.storage()
     );
     private final PortalPageContentCrudServiceInMemory pageContentCrudService = new PortalPageContentCrudServiceInMemory();
+    private final PortalPageContentQueryServiceInMemory pageContentQueryService = new PortalPageContentQueryServiceInMemory();
     private CreateOrUpdatePortalUseCase useCase;
 
     @BeforeEach
@@ -65,7 +68,9 @@ class CreateOrUpdatePortalUseCaseTest {
             validator,
             portalCrudService,
             new PortalNavigationSyncDomainService(navCrudService, navQueryService, pageContentCrudService),
-            new PortalNavigationListingDomainService(navQueryService)
+            new PortalNavigationListingDomainService(navQueryService),
+            pageContentQueryService,
+            new PortalDocumentationSyncDomainService(navCrudService, navQueryService)
         );
     }
 
@@ -74,6 +79,7 @@ class CreateOrUpdatePortalUseCaseTest {
         portalCrudService.reset();
         navCrudService.reset();
         pageContentCrudService.reset();
+        pageContentQueryService.reset();
     }
 
     @Test
