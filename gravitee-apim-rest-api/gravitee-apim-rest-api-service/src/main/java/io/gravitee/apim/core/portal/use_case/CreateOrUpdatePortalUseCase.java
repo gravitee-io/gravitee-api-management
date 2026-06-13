@@ -24,6 +24,9 @@ import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainSer
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
+import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
+import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import io.gravitee.apim.core.validation.Validator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,6 +40,8 @@ public class CreateOrUpdatePortalUseCase {
     private final PortalCrudService portalCrudService;
     private final PortalNavigationSyncDomainService portalNavigationSyncDomainService;
     private final PortalNavigationListingDomainService portalNavigationListingDomainService;
+    private final PortalPageContentQueryService portalPageContentQueryService;
+    private final PortalDocumentationSyncDomainService portalDocumentationSyncDomainService;
 
     public record Input(AuditInfo auditInfo, Portal portal, List<NavigationPath> navigation) {
         public Input(AuditInfo auditInfo, Portal portal) {
@@ -64,6 +69,9 @@ public class CreateOrUpdatePortalUseCase {
         var existing = portalCrudService.findByIdAndEnvironmentId(portal.getId(), input.auditInfo().environmentId());
         var saved = existing.isPresent() ? portalCrudService.update(portal) : portalCrudService.create(portal);
         portalNavigationSyncDomainService.sync(input.auditInfo(), portal.getId(), sanitized.navigation());
+        portalPageContentQueryService
+            .findByReference(input.auditInfo().environmentId(), AutomationMetadata.ReferenceType.PORTAL, portal.getId().toString())
+            .forEach(pc -> portalDocumentationSyncDomainService.materialize(input.auditInfo(), pc));
         var navigation = portalNavigationListingDomainService.listAsNavigationPaths(input.auditInfo().environmentId());
         return new Output(saved, navigation, warnings);
     }
