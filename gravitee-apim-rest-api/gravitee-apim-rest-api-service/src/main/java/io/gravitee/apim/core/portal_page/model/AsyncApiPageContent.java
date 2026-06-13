@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.model;
 
 import io.gravitee.apim.core.async_api.AsyncApi;
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -35,7 +36,17 @@ public final class AsyncApiPageContent extends PortalPageContent<AsyncApi> {
         @Nonnull String environmentId,
         @Nonnull AsyncApi content
     ) {
-        super(id, organizationId, environmentId);
+        this(id, organizationId, environmentId, content, null);
+    }
+
+    public AsyncApiPageContent(
+        @Nonnull PortalPageContentId id,
+        @Nonnull String organizationId,
+        @Nonnull String environmentId,
+        @Nonnull AsyncApi content,
+        @Nullable AutomationMetadata automationMetadata
+    ) {
+        super(id, organizationId, environmentId, automationMetadata);
         this.content = content;
     }
 

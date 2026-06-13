@@ -16,12 +16,15 @@
 package io.gravitee.apim.infra.query_service.portal_page;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import io.gravitee.apim.infra.adapter.PortalPageContentAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalPageContentRepository;
+import io.gravitee.repository.management.model.AutomationTargetReferenceType;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -42,6 +45,29 @@ public class PortalPageContentQueryServiceImpl implements PortalPageContentQuery
             return portalPageContentRepository.findById(id.json()).map(portalPageContentAdapter::toEntity);
         } catch (TechnicalException e) {
             String errorMessage = String.format("An error occurred while finding portal page content by id %s", id.json());
+            throw new TechnicalDomainException(errorMessage, e);
+        }
+    }
+
+    @Override
+    public List<PortalPageContent<?>> findByReference(
+        String environmentId,
+        AutomationMetadata.ReferenceType referenceType,
+        String referenceId
+    ) {
+        try {
+            return portalPageContentRepository
+                .findByAutomationReference(environmentId, AutomationTargetReferenceType.valueOf(referenceType.name()), referenceId)
+                .stream()
+                .map(portalPageContentAdapter::toEntity)
+                .toList();
+        } catch (TechnicalException e) {
+            String errorMessage = String.format(
+                "An error occurred while finding portal page contents by reference %s/%s in env %s",
+                referenceType,
+                referenceId,
+                environmentId
+            );
             throw new TechnicalDomainException(errorMessage, e);
         }
     }

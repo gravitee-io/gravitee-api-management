@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.model;
 
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import lombok.Getter;
 
 @Getter
@@ -30,13 +31,27 @@ public abstract sealed class PortalPageContent<T> permits GraviteeMarkdownPageCo
     @Nonnull
     private final String environmentId;
 
-    protected PortalPageContent(@Nonnull PortalPageContentId id, @Nonnull String organizationId, @Nonnull String environmentId) {
+    @Nullable
+    private AutomationMetadata automationMetadata;
+
+    protected PortalPageContent(
+        @Nonnull PortalPageContentId id,
+        @Nonnull String organizationId,
+        @Nonnull String environmentId,
+        @Nullable AutomationMetadata automationMetadata
+    ) {
         this.id = id;
         this.organizationId = organizationId;
         this.environmentId = environmentId;
+        this.automationMetadata = automationMetadata;
     }
 
     public abstract void update(@Nonnull UpdatePortalPageContent updatePortalPageContent);
+
+    public final void update(@Nonnull UpdatePortalPageContent updatePortalPageContent, @Nullable AutomationMetadata automationMetadata) {
+        this.automationMetadata = automationMetadata;
+        update(updatePortalPageContent);
+    }
 
     public abstract PortalPageContentType getType();
 
