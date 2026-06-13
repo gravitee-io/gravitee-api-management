@@ -53,15 +53,17 @@ public class CreateOrUpdatePortalListingUseCase {
 
         var warnings = validation.warning().orElseGet(List::of);
 
+        var sanitized = validation.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize portal listing"));
+
         var listing = PortalListing.of(
-            input.listingId(),
+            sanitized.listingId(),
             input.auditInfo().environmentId(),
             input.auditInfo().organizationId(),
-            input.portalId(),
-            input.apis() == null ? List.of() : input.apis()
+            sanitized.portalId(),
+            sanitized.apis() == null ? List.of() : sanitized.apis()
         );
 
-        var existing = portalListingCrudService.findByIdAndEnvironmentId(input.listingId(), input.auditInfo().environmentId());
+        var existing = portalListingCrudService.findByIdAndEnvironmentId(sanitized.listingId(), input.auditInfo().environmentId());
         var saved = existing.isPresent() ? portalListingCrudService.update(listing) : portalListingCrudService.create(listing);
 
         return new Output(saved.getId(), warnings);
