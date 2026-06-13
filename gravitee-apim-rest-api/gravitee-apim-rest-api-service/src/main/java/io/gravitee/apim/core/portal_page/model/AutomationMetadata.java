@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.query_service;
+package io.gravitee.apim.core.portal_page.model;
 
-import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
-import io.gravitee.apim.core.portal_page.model.PortalPageContent;
-import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
-import java.util.List;
 import java.util.Optional;
 
-public interface PortalPageContentQueryService {
-    Optional<PortalPageContent<?>> findById(PortalPageContentId id);
-
-    List<PortalPageContent<?>> findByReference(String environmentId, AutomationMetadata.ReferenceType referenceType, String referenceId);
+public record AutomationMetadata(
+    ReferenceType referenceType,
+    String referenceId,
+    String name,
+    Optional<String> location,
+    Optional<Integer> order
+) {
+    public enum ReferenceType {
+        PORTAL,
+        API,
+    }
 }

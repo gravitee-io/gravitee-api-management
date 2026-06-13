@@ -196,6 +196,56 @@ class HRIDToUUIDTest {
     }
 
     @Nested
+    class PortalDocumentation {
+
+        @Test
+        void should_generate_same_id_for_same_inputs() {
+            assertThat(HRIDToUUID.portalDocumentation().context(AUDIT).portal("my-portal").hrid("my-doc").id()).isEqualTo(
+                HRIDToUUID.portalDocumentation().context(AUDIT).portal("my-portal").hrid("my-doc").id()
+            );
+        }
+
+        @Test
+        void should_generate_different_id_for_different_doc_hrid() {
+            assertThat(HRIDToUUID.portalDocumentation().context(AUDIT).portal("my-portal").hrid("doc-a").id()).isNotEqualTo(
+                HRIDToUUID.portalDocumentation().context(AUDIT).portal("my-portal").hrid("doc-b").id()
+            );
+        }
+
+        @Test
+        void should_generate_different_id_for_different_portal_hrid() {
+            assertThat(HRIDToUUID.portalDocumentation().context(AUDIT).portal("portal-a").hrid("doc").id()).isNotEqualTo(
+                HRIDToUUID.portalDocumentation().context(AUDIT).portal("portal-b").hrid("doc").id()
+            );
+        }
+
+        @Test
+        void should_produce_same_result_from_audit_info_and_execution_context() {
+            assertThat(HRIDToUUID.portalDocumentation().context(AUDIT).portal("portal").hrid("doc").id()).isEqualTo(
+                HRIDToUUID.portalDocumentation().context(EXEC_CTX).portal("portal").hrid("doc").id()
+            );
+        }
+
+        @Test
+        void should_not_collide_with_portal_top_level_id() {
+            String portalId = HRIDToUUID.portal().context(AUDIT).hrid("my-portal").id();
+            String docId = HRIDToUUID.portalDocumentation().context(AUDIT).portal("my-portal").hrid("my-portal").id();
+            assertThat(portalId).isNotEqualTo(docId);
+        }
+
+        @Test
+        void portal_documentation_and_portal_listing_share_formula_by_design() {
+            // portalDocumentation() and portalListing() return the same PortalSubResourceBuilder —
+            // same UUID for the same HRID inputs. This is intentional: they live in separate tables
+            // (documentations vs portal_listings), so the PK scope is different. If this test ever
+            // fails it means the builders have been split — verify UUID uniqueness across tables.
+            String docId = HRIDToUUID.portalDocumentation().context(AUDIT).portal("portal").hrid("x").id();
+            String listingId = HRIDToUUID.portalListing().context(AUDIT).portal("portal").hrid("x").id();
+            assertThat(docId).isEqualTo(listingId);
+        }
+    }
+
+    @Nested
     class CrossResourceConsistency {
 
         @Test

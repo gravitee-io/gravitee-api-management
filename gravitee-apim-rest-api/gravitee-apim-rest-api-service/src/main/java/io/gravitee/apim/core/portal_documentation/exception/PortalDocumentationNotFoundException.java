@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.query_service;
+package io.gravitee.apim.core.portal_documentation.exception;
 
-import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
-import io.gravitee.apim.core.portal_page.model.PortalPageContent;
-import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
-import java.util.List;
-import java.util.Optional;
+import io.gravitee.apim.core.exception.NotFoundDomainException;
 
-public interface PortalPageContentQueryService {
-    Optional<PortalPageContent<?>> findById(PortalPageContentId id);
+/**
+ * @author GraviteeSource Team
+ */
+public class PortalDocumentationNotFoundException extends NotFoundDomainException {
 
-    List<PortalPageContent<?>> findByReference(String environmentId, AutomationMetadata.ReferenceType referenceType, String referenceId);
+    public PortalDocumentationNotFoundException(String documentationId) {
+        super("Portal Documentation [ " + documentationId + " ] not found", documentationId);
+    }
 }

@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.model;
 
 import io.gravitee.apim.core.open_api.OpenApi;
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -39,7 +40,7 @@ public final class OpenApiPageContent extends PortalPageContent<OpenApi> {
         @Nonnull String environmentId,
         @Nonnull OpenApi content
     ) {
-        this(id, organizationId, environmentId, content, new RedocConfiguration());
+        this(id, organizationId, environmentId, content, new RedocConfiguration(), null);
     }
 
     public OpenApiPageContent(
@@ -49,7 +50,18 @@ public final class OpenApiPageContent extends PortalPageContent<OpenApi> {
         @Nonnull OpenApi content,
         @Nonnull OpenApiConfiguration viewerSettings
     ) {
-        super(id, organizationId, environmentId);
+        this(id, organizationId, environmentId, content, viewerSettings, null);
+    }
+
+    public OpenApiPageContent(
+        @Nonnull PortalPageContentId id,
+        @Nonnull String organizationId,
+        @Nonnull String environmentId,
+        @Nonnull OpenApi content,
+        @Nonnull OpenApiConfiguration viewerSettings,
+        @Nullable AutomationMetadata automationMetadata
+    ) {
+        super(id, organizationId, environmentId, automationMetadata);
         this.content = content;
         this.viewerSettings = viewerSettings;
     }
