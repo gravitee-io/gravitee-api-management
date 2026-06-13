@@ -19,6 +19,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
+import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -28,6 +29,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.service.Service;
 import java.time.ZoneId;
@@ -53,6 +55,7 @@ public class UpdateDynamicPropertiesUseCase {
     private final AuditDomainService auditDomainService;
     private final ApiEventQueryService apiEventQueryService;
     private final CategoryDomainService categoryDomainService;
+    private final PropertyDomainService propertyDomainService;
 
     public UpdateDynamicPropertiesUseCase(
         ApiCrudService apiCrudService,
@@ -60,7 +63,8 @@ public class UpdateDynamicPropertiesUseCase {
         EnvironmentCrudService environmentCrudService,
         AuditDomainService auditDomainService,
         ApiEventQueryService apiEventQueryService,
-        CategoryDomainService categoryDomainService
+        CategoryDomainService categoryDomainService,
+        PropertyDomainService propertyDomainService
     ) {
         this.apiCrudService = apiCrudService;
         this.apiStateDomainService = apiStateDomainService;
@@ -68,6 +72,7 @@ public class UpdateDynamicPropertiesUseCase {
         this.auditDomainService = auditDomainService;
         this.apiEventQueryService = apiEventQueryService;
         this.categoryDomainService = categoryDomainService;
+        this.propertyDomainService = propertyDomainService;
     }
 
     public record Input(String apiId, String pluginId, List<Property> dynamicProperties) {}
@@ -80,11 +85,14 @@ public class UpdateDynamicPropertiesUseCase {
         final boolean isApiSynchronized = apiStateDomainService.isSynchronized(api, auditInfo);
 
         final List<Property> previousProperties = getCurrentProperties(api);
-        final boolean needToBeUpdated = api.updateDynamicProperties(input.dynamicProperties());
+        final var mergeResult = propertyDomainService.mergeDynamicProperties(previousProperties, input.dynamicProperties());
 
-        if (!needToBeUpdated) {
+        if (!mergeResult.needToUpdate()) {
             return;
         }
+
+        api.getApiDefinitionHttpV4().setProperties(mergeResult.orderedProperties());
+        api.setUpdatedAt(TimeProvider.now());
 
         api.setCategories(categoryDomainService.toCategoryId(api, api.getEnvironmentId()));
 

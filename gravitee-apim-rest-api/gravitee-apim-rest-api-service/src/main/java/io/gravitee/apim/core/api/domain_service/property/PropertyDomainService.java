@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api.domain_service.property;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.api.model.property.DynamicApiProperties;
 import io.gravitee.apim.core.api.model.property.EncryptableProperty;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.v4.property.Property;
@@ -38,6 +39,13 @@ public class PropertyDomainService {
             return new ArrayList<>();
         }
         return apiProperties.stream().map(this::encryptProperty).filter(Objects::nonNull).toList();
+    }
+
+    public DynamicApiProperties.DynamicPropertiesResult mergeDynamicProperties(
+        List<Property> currentProperties,
+        List<Property> incomingDynamicProperties
+    ) {
+        return new DynamicApiProperties(currentProperties, dataEncryptor).updateDynamicProperties(incomingDynamicProperties);
     }
 
     private Property encryptProperty(EncryptableProperty property) {

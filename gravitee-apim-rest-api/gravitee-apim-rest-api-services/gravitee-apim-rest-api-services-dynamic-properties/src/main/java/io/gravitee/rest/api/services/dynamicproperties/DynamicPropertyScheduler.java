@@ -18,6 +18,7 @@ package io.gravitee.rest.api.services.dynamicproperties;
 import static io.gravitee.rest.api.service.common.SecurityContextHelper.authenticateAsSystem;
 
 import io.gravitee.common.cron.CronTrigger;
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
 import io.gravitee.node.api.cluster.ClusterManager;
@@ -37,6 +38,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -58,6 +60,7 @@ public class DynamicPropertyScheduler {
     private final ClusterManager clusterManager;
     private final ApiService apiService;
     private final ApiConverter apiConverter;
+    private final DataEncryptor dataEncryptor;
     private final String schedule;
     private final ApiEntity api;
     private final ExecutionContext executionContext;
@@ -68,6 +71,7 @@ public class DynamicPropertyScheduler {
         final ClusterManager clusterManager,
         final ApiService apiService,
         final ApiConverter apiConverter,
+        final DataEncryptor dataEncryptor,
         final String schedule,
         final ApiEntity api,
         final ExecutionContext executionContext
@@ -75,6 +79,7 @@ public class DynamicPropertyScheduler {
         this.clusterManager = clusterManager;
         this.apiService = apiService;
         this.apiConverter = apiConverter;
+        this.dataEncryptor = dataEncryptor;
         this.schedule = schedule;
         this.api = api;
         this.executionContext = executionContext;
@@ -144,11 +149,12 @@ public class DynamicPropertyScheduler {
         for (DynamicProperty dynamicProperty : dynamicProperties) {
             Property property = propertyMap.get(dynamicProperty.getKey());
             if (property == null || property.isDynamic()) {
-                updatedProperties.add(dynamicProperty);
-            }
-            // save properties only if there's something new
-            if (property == null || (property.isDynamic() && !property.getValue().equals(dynamicProperty.getValue()))) {
-                needToBeSaved = true;
+                if (property == null || hasDynamicPropertyValueChanged(dynamicProperty, property)) {
+                    updatedProperties.add(buildUpdatedDynamicProperty(dynamicProperty, property));
+                    needToBeSaved = true;
+                } else {
+                    updatedProperties.add(property);
+                }
             }
         }
 
@@ -194,5 +200,32 @@ public class DynamicPropertyScheduler {
                 }
             }
         }
+    }
+
+    private Property buildUpdatedDynamicProperty(DynamicProperty incomingDynamicProperty, Property existingProperty) {
+        final Property updatedProperty = new DynamicProperty(incomingDynamicProperty.getKey(), incomingDynamicProperty.getValue());
+
+        if (existingProperty != null && existingProperty.isEncrypted() && dataEncryptor != null) {
+            try {
+                updatedProperty.setValue(dataEncryptor.encrypt(incomingDynamicProperty.getValue()));
+                updatedProperty.setEncrypted(true);
+            } catch (GeneralSecurityException e) {
+                log.error("Error encrypting dynamic property value for key {}", incomingDynamicProperty.getKey(), e);
+            }
+        }
+
+        return updatedProperty;
+    }
+
+    private boolean hasDynamicPropertyValueChanged(DynamicProperty incomingDynamicProperty, Property existingProperty) {
+        if (existingProperty.isEncrypted() && dataEncryptor != null) {
+            try {
+                return !incomingDynamicProperty.getValue().equals(dataEncryptor.decrypt(existingProperty.getValue()));
+            } catch (GeneralSecurityException e) {
+                log.error("Error decrypting dynamic property value for key {}", existingProperty.getKey(), e);
+                return true;
+            }
+        }
+        return !existingProperty.getValue().equals(incomingDynamicProperty.getValue());
     }
 }

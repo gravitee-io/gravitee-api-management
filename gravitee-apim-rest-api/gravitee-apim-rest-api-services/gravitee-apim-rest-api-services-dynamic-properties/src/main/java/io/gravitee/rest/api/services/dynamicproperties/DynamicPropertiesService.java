@@ -20,6 +20,7 @@ import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.service.AbstractService;
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProvider;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
@@ -67,6 +68,9 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
 
     @Autowired
     private Node node;
+
+    @Autowired
+    private DataEncryptor dataEncryptor;
 
     @Override
     protected String name() {
@@ -154,6 +158,7 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
             .api(api)
             .apiConverter(apiConverter)
             .apiService(apiService)
+            .dataEncryptor(dataEncryptor)
             .executionContext(executionContext)
             .build();
         if (DynamicPropertyProvider.HTTP == dynamicPropertyService.getProvider()) {

@@ -33,6 +33,7 @@ import inmemory.InMemoryAlternative;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
+import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
@@ -42,6 +43,7 @@ import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.environment.model.Environment;
 import io.gravitee.apim.infra.domain_service.api.CategoryDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.service.ApiServices;
@@ -89,8 +91,7 @@ class UpdateDynamicPropertiesUseCaseTest {
     CategoryMapper categoryMapper = mock(CategoryMapper.class);
     ApiCategoryOrderRepository apiCategoryOrderRepository = mock(ApiCategoryOrderRepository.class);
     CategoryDomainService categoryDomainService = new CategoryDomainServiceImpl(categoryMapper, apiCategoryOrderRepository);
-
-    private ApiStateDomainService apiStateDomainService;
+    PropertyDomainService propertyDomainService = new PropertyDomainService(mock(DataEncryptor.class));
 
     private UpdateDynamicPropertiesUseCase cut;
 
@@ -106,6 +107,8 @@ class UpdateDynamicPropertiesUseCaseTest {
         TimeProvider.overrideClock(Clock.systemDefaultZone());
     }
 
+    private ApiStateDomainService apiStateDomainService;
+
     @BeforeEach
     void setUp() {
         apiStateDomainService = mock(ApiStateDomainService.class);
@@ -116,7 +119,8 @@ class UpdateDynamicPropertiesUseCaseTest {
             environmentCrudServiceInMemory,
             new AuditDomainService(auditCrudServiceInMemory, userCrudServiceInMemory, new JacksonJsonDiffProcessor()),
             apiEventQueryServiceInMemory,
-            categoryDomainService
+            categoryDomainService,
+            propertyDomainService
         );
     }
 

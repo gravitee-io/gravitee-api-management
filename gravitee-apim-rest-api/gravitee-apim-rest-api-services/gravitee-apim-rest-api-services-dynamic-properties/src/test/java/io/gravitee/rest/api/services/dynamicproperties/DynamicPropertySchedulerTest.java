@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -26,6 +27,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
 import io.gravitee.node.api.cluster.ClusterManager;
@@ -103,6 +105,7 @@ public class DynamicPropertySchedulerTest {
             .api(existingApi)
             .executionContext(executionContext)
             .apiConverter(apiConverter)
+            .dataEncryptor(mock(DataEncryptor.class))
             .build();
         lenient().when(provider.name()).thenReturn("mock");
         testScheduler = new TestScheduler();

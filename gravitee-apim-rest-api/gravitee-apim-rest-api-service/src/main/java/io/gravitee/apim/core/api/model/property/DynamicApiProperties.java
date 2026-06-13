@@ -18,8 +18,10 @@ package io.gravitee.apim.core.api.model.property;
 import static java.util.function.Function.identity;
 import static java.util.function.Predicate.not;
 
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.ApiDefinition;
 import io.gravitee.definition.model.v4.property.Property;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -27,19 +29,27 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.CustomLog;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class DynamicApiProperties {
 
     final Map<String, Property> currentPropertiesByKey;
     private final List<Property> currentUserDefinedProperties;
+    private final DataEncryptor dataEncryptor;
 
     public DynamicApiProperties(List<Property> currentProperties) {
+        this(currentProperties, null);
+    }
+
+    public DynamicApiProperties(List<Property> currentProperties, DataEncryptor dataEncryptor) {
         this.currentPropertiesByKey = currentProperties.stream().collect(Collectors.toMap(Property::getKey, identity()));
         this.currentUserDefinedProperties = currentProperties.stream().filter(not(Property::isDynamic)).toList();
+        this.dataEncryptor = dataEncryptor;
     }
 
     public record DynamicPropertiesResult(List<Property> orderedProperties, boolean needToUpdate) implements
@@ -52,12 +62,12 @@ public class DynamicApiProperties {
             final Property existingMatchingProperty = currentPropertiesByKey.get(dynamicProperty.getKey());
             // If no property for key or current property is dynamic, then update
             if (isNewProperty(existingMatchingProperty) || existingMatchingProperty.isDynamic()) {
-                updatedDynamicProperties.add(dynamicProperty);
-                // Need to update if property is new or differ from existing one
-                needToBeSaved.compareAndSet(
-                    false,
-                    isNewProperty(existingMatchingProperty) || isUpdatingPreviousProperty(dynamicProperty, existingMatchingProperty)
-                );
+                if (isNewProperty(existingMatchingProperty) || isUpdatingPreviousProperty(dynamicProperty, existingMatchingProperty)) {
+                    updatedDynamicProperties.add(buildUpdatedDynamicProperty(dynamicProperty, existingMatchingProperty));
+                    needToBeSaved.compareAndSet(false, true);
+                } else {
+                    updatedDynamicProperties.add(existingMatchingProperty);
+                }
             }
         });
 
@@ -68,11 +78,36 @@ public class DynamicApiProperties {
         return new DynamicPropertiesResult(orderedProperties, needToBeSaved.get());
     }
 
+    private Property buildUpdatedDynamicProperty(Property incomingDynamicProperty, Property existingProperty) {
+        final var builder = Property.builder().key(incomingDynamicProperty.getKey()).dynamic(true);
+
+        if (existingProperty != null && existingProperty.isEncrypted() && dataEncryptor != null) {
+            try {
+                return builder.value(dataEncryptor.encrypt(incomingDynamicProperty.getValue())).encrypted(true).build();
+            } catch (GeneralSecurityException e) {
+                log.error("Error encrypting dynamic property value for key {}", incomingDynamicProperty.getKey(), e);
+            }
+        }
+
+        return builder.value(incomingDynamicProperty.getValue()).encrypted(false).build();
+    }
+
     private static boolean isNewProperty(Property previousProperty) {
         return previousProperty == null;
     }
 
-    private static boolean isUpdatingPreviousProperty(Property newProperty, Property previousProperty) {
-        return !newProperty.getValue().equals(previousProperty.getValue());
+    private boolean isUpdatingPreviousProperty(Property incomingDynamicProperty, Property previousProperty) {
+        if (previousProperty.isEncrypted()) {
+            if (dataEncryptor != null) {
+                try {
+                    return !incomingDynamicProperty.getValue().equals(dataEncryptor.decrypt(previousProperty.getValue()));
+                } catch (GeneralSecurityException e) {
+                    log.error("Error decrypting dynamic property value for key {}", previousProperty.getKey(), e);
+                    return true;
+                }
+            }
+            return true;
+        }
+        return !incomingDynamicProperty.getValue().equals(previousProperty.getValue());
     }
 }

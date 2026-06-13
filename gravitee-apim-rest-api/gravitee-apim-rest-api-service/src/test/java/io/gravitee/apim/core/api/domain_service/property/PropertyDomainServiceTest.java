@@ -69,6 +69,13 @@ public class PropertyDomainServiceTest {
             .dynamic(false)
             .encryptable(true)
             .build();
+        var encryptableDynamicProperty = EncryptableProperty.builder()
+            .key("encryptableDynamic")
+            .value("dynamic secret")
+            .encrypted(false)
+            .dynamic(true)
+            .encryptable(true)
+            .build();
         var notEncryptableDynamicProperty = EncryptableProperty.builder()
             .key("notEncryptableDynamic")
             .value("not encrypted")
@@ -78,16 +85,21 @@ public class PropertyDomainServiceTest {
             .build();
 
         when(dataEncryptor.encrypt(eq(encryptableProperty.getValue()))).thenReturn("encrypted value");
+        when(dataEncryptor.encrypt(eq(encryptableDynamicProperty.getValue()))).thenReturn("encrypted dynamic value");
 
         // When
-        var result = cut.encryptProperties(List.of(encryptedProperty, encryptableProperty, notEncryptableDynamicProperty));
+        var result = cut.encryptProperties(
+            List.of(encryptedProperty, encryptableProperty, encryptableDynamicProperty, notEncryptableDynamicProperty)
+        );
 
         // Then
-        verify(dataEncryptor, times(1)).encrypt(anyString());
+        verify(dataEncryptor, times(1)).encrypt(eq(encryptableProperty.getValue()));
+        verify(dataEncryptor, times(1)).encrypt(eq(encryptableDynamicProperty.getValue()));
 
         assertThat(result).containsExactly(
             Property.builder().key("encrypted").value("encrypted").dynamic(false).encrypted(true).build(),
             Property.builder().key("encryptable").value("encrypted value").dynamic(false).encrypted(true).build(),
+            Property.builder().key("encryptableDynamic").value("encrypted dynamic value").dynamic(true).encrypted(true).build(),
             Property.builder().key("notEncryptableDynamic").value("not encrypted").dynamic(true).encrypted(false).build()
         );
     }
