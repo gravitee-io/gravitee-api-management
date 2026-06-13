@@ -20,6 +20,7 @@ import io.gravitee.apim.core.async_api.AsyncApi;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.open_api.OpenApi;
 import io.gravitee.apim.core.portal_page.model.AsyncApiPageContent;
+import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.OpenApiConfiguration;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
@@ -27,6 +28,8 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.RedocConfiguration;
 import io.gravitee.apim.core.portal_page.model.SwaggerUiConfiguration;
+import io.gravitee.repository.management.model.AutomationTargetReferenceType;
+import jakarta.annotation.Nullable;
 import java.util.LinkedHashMap;
 import java.util.Optional;
 import org.mapstruct.Mapper;
@@ -38,26 +41,39 @@ public interface PortalPageContentAdapter {
     ObjectMapper JSON = new ObjectMapper();
 
     default PortalPageContent<?> toEntity(io.gravitee.repository.management.model.PortalPageContent portalPageContent) {
+        var repoMeta = portalPageContent.getAutomationMetadata();
+        var meta = repoMeta == null
+            ? null
+            : new AutomationMetadata(
+                AutomationMetadata.ReferenceType.valueOf(repoMeta.getReferenceType().name()),
+                repoMeta.getReferenceId(),
+                repoMeta.getName(),
+                Optional.ofNullable(repoMeta.getLocation()),
+                Optional.ofNullable(repoMeta.getOrder())
+            );
         return switch (portalPageContent.getType()) {
-            case GRAVITEE_MARKDOWN -> graviteeMarkdownPageContentFromRepository(portalPageContent);
-            case OPENAPI -> openApiPageContentFromRepository(portalPageContent);
-            case ASYNCAPI -> asyncApiPageContentFromRepository(portalPageContent);
+            case GRAVITEE_MARKDOWN -> graviteeMarkdownPageContentFromRepository(portalPageContent, meta);
+            case OPENAPI -> openApiPageContentFromRepository(portalPageContent, meta);
+            case ASYNCAPI -> asyncApiPageContentFromRepository(portalPageContent, meta);
         };
     }
 
     default GraviteeMarkdownPageContent graviteeMarkdownPageContentFromRepository(
-        io.gravitee.repository.management.model.PortalPageContent portalPageContent
+        io.gravitee.repository.management.model.PortalPageContent portalPageContent,
+        @Nullable AutomationMetadata automationMetadata
     ) {
         return new GraviteeMarkdownPageContent(
             PortalPageContentId.of(portalPageContent.getId()),
             portalPageContent.getOrganizationId(),
             portalPageContent.getEnvironmentId(),
-            GraviteeMarkdown.of(portalPageContent.getContent())
+            GraviteeMarkdown.of(portalPageContent.getContent()),
+            automationMetadata
         );
     }
 
     default OpenApiPageContent openApiPageContentFromRepository(
-        io.gravitee.repository.management.model.PortalPageContent portalPageContent
+        io.gravitee.repository.management.model.PortalPageContent portalPageContent,
+        @Nullable AutomationMetadata automationMetadata
     ) {
         OpenApiConfiguration configuration = null;
         if (portalPageContent.getConfiguration() != null && !portalPageContent.getConfiguration().isBlank()) {
@@ -79,18 +95,21 @@ public interface PortalPageContentAdapter {
             portalPageContent.getOrganizationId(),
             portalPageContent.getEnvironmentId(),
             OpenApi.of(portalPageContent.getContent()),
-            Optional.ofNullable(configuration).orElseGet(RedocConfiguration::new)
+            Optional.ofNullable(configuration).orElseGet(RedocConfiguration::new),
+            automationMetadata
         );
     }
 
     default AsyncApiPageContent asyncApiPageContentFromRepository(
-        io.gravitee.repository.management.model.PortalPageContent portalPageContent
+        io.gravitee.repository.management.model.PortalPageContent portalPageContent,
+        @Nullable AutomationMetadata automationMetadata
     ) {
         return new AsyncApiPageContent(
             PortalPageContentId.of(portalPageContent.getId()),
             portalPageContent.getOrganizationId(),
             portalPageContent.getEnvironmentId(),
-            AsyncApi.of(portalPageContent.getContent())
+            AsyncApi.of(portalPageContent.getContent()),
+            automationMetadata
         );
     }
 
@@ -115,6 +134,7 @@ public interface PortalPageContentAdapter {
                 );
             }
         }
+        var meta = portalPageContent.getAutomationMetadata();
         return io.gravitee.repository.management.model.PortalPageContent.builder()
             .id(portalPageContent.getId().toString())
             .organizationId(portalPageContent.getOrganizationId())
@@ -122,6 +142,17 @@ public interface PortalPageContentAdapter {
             .type(toRepositoryType(portalPageContent.getType()))
             .content(rawContent)
             .configuration(rawConfiguration)
+            .automationMetadata(
+                meta == null
+                    ? null
+                    : io.gravitee.repository.management.model.PortalPageContent.AutomationMetadata.builder()
+                        .referenceType(AutomationTargetReferenceType.valueOf(meta.referenceType().name()))
+                        .referenceId(meta.referenceId())
+                        .name(meta.name())
+                        .location(meta.location().orElse(null))
+                        .order(meta.order().orElse(null))
+                        .build()
+            )
             .build();
     }
 

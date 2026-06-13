@@ -15,6 +15,7 @@
  */
 package inmemory;
 
+import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
@@ -40,6 +41,26 @@ public class PortalPageContentQueryServiceInMemory implements InMemoryAlternativ
             .stream()
             .filter(content -> content.getId().equals(id))
             .findFirst();
+    }
+
+    @Override
+    public List<PortalPageContent<?>> findByReference(
+        String environmentId,
+        AutomationMetadata.ReferenceType referenceType,
+        String referenceId
+    ) {
+        return storage
+            .stream()
+            .filter(content -> {
+                var meta = content.getAutomationMetadata();
+                return (
+                    meta != null &&
+                    meta.referenceType() == referenceType &&
+                    meta.referenceId().equals(referenceId) &&
+                    content.getEnvironmentId().equals(environmentId)
+                );
+            })
+            .toList();
     }
 
     @Override
