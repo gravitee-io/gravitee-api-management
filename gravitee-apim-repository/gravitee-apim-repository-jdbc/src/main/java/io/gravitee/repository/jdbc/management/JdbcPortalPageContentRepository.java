@@ -15,10 +15,13 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PortalPageContentRepository;
+import io.gravitee.repository.management.model.AutomationTargetReferenceType;
 import io.gravitee.repository.management.model.PortalPageContent;
+import io.gravitee.repository.management.model.PortalPageContent.AutomationMetadata;
 import java.sql.Types;
 import java.util.List;
 import lombok.CustomLog;
@@ -30,6 +33,8 @@ import org.springframework.stereotype.Repository;
 public class JdbcPortalPageContentRepository
     extends JdbcAbstractCrudRepository<PortalPageContent, String>
     implements PortalPageContentRepository {
+
+    private static final ObjectMapper JSON = new ObjectMapper();
 
     JdbcPortalPageContentRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "portal_page_contents");
@@ -44,6 +49,20 @@ public class JdbcPortalPageContentRepository
             .addColumn("content", Types.NVARCHAR, String.class)
             .addColumn("organization_id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
+            .addColumn(
+                "automation_metadata",
+                Types.NCLOB,
+                AutomationMetadata.class,
+                JdbcPortalPageContentRepository::serialize,
+                JdbcPortalPageContentRepository::deserialize
+            )
+            .addMirroredColumn("automation_reference_type", Types.NVARCHAR, item -> {
+                var meta = item.getAutomationMetadata();
+                return meta != null && meta.getReferenceType() != null ? meta.getReferenceType().name() : null;
+            })
+            .addMirroredColumn("automation_reference_id", Types.NVARCHAR, item ->
+                item.getAutomationMetadata() != null ? item.getAutomationMetadata().getReferenceId() : null
+            )
             .build();
     }
 
@@ -51,8 +70,7 @@ public class JdbcPortalPageContentRepository
     public List<PortalPageContent> findAllByType(PortalPageContent.Type type) throws TechnicalException {
         log.debug("JdbcPortalPageContentRepository.findAllByType({})", type);
         try {
-            final String sql = getOrm().getSelectAllSql() + " where type = ?";
-            return jdbcTemplate.query(sql, getOrm().getRowMapper(), type.name());
+            return jdbcTemplate.query(getOrm().getSelectAllSql() + " WHERE type = ?", getOrm().getRowMapper(), type.name());
         } catch (Exception ex) {
             log.error("Failed to find portal page contents by type", ex);
             throw new TechnicalException("Failed to find portal page contents by type", ex);
@@ -62,5 +80,42 @@ public class JdbcPortalPageContentRepository
     @Override
     protected String getId(PortalPageContent item) {
         return item.getId();
+    }
+
+    @Override
+    public List<PortalPageContent> findByAutomationReference(
+        String environmentId,
+        AutomationTargetReferenceType referenceType,
+        String referenceId
+    ) throws TechnicalException {
+        log.debug("JdbcPortalPageContentRepository.findByAutomationReference({}, {}, {})", environmentId, referenceType, referenceId);
+        try {
+            return jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " WHERE environment_id = ? AND automation_reference_type = ? AND automation_reference_id = ?",
+                getOrm().getRowMapper(),
+                environmentId,
+                referenceType.name(),
+                referenceId
+            );
+        } catch (Exception ex) {
+            log.error("Failed to find portal page contents by automation reference", ex);
+            throw new TechnicalException("Failed to find portal page contents by automation reference", ex);
+        }
+    }
+
+    private static String serialize(AutomationMetadata meta) {
+        try {
+            return JSON.writeValueAsString(meta);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to serialize automation metadata", e);
+        }
+    }
+
+    private static AutomationMetadata deserialize(String json) {
+        try {
+            return JSON.readValue(json, AutomationMetadata.class);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to deserialize automation metadata", e);
+        }
     }
 }

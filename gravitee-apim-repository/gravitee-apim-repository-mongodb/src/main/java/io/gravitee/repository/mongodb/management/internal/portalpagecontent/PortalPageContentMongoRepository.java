@@ -15,8 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.portalpagecontent;
 
+import io.gravitee.repository.management.model.AutomationTargetReferenceType;
 import io.gravitee.repository.management.model.PortalPageContent;
 import io.gravitee.repository.mongodb.management.internal.model.PortalPageContentMongo;
+import java.util.List;
 import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
@@ -24,4 +26,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PortalPageContentMongoRepository extends MongoRepository<PortalPageContentMongo, String> {
     Set<PortalPageContentMongo> findAllByType(PortalPageContent.Type type);
+
+    List<PortalPageContentMongo> findByEnvironmentIdAndAutomationMetadata_ReferenceTypeAndAutomationMetadata_ReferenceId(
+        String environmentId,
+        AutomationTargetReferenceType referenceType,
+        String referenceId
+    );
 }

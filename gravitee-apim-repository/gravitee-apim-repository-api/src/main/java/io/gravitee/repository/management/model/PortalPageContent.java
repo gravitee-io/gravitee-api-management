@@ -17,6 +17,7 @@ package io.gravitee.repository.management.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -50,4 +51,20 @@ public class PortalPageContent {
     private String configuration;
 
     private String content;
+
+    /** Populated only for pages managed by the Automation API; null for non-automation pages. */
+    private AutomationMetadata automationMetadata;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AutomationMetadata {
+
+        private AutomationTargetReferenceType referenceType;
+        private String referenceId;
+        private String name;
+        private String location;
+        private Integer order;
+    }
 }
