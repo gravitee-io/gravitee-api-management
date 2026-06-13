@@ -18,6 +18,8 @@ package io.gravitee.apim.core.portal_page.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
+import inmemory.PortalNavigationItemsCrudServiceInMemory;
+import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
@@ -25,6 +27,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_documentation.domain_service.ValidatePortalDocumentationDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
@@ -53,18 +56,28 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
 
     private final PortalPageContentCrudServiceInMemory crudService = new PortalPageContentCrudServiceInMemory();
     private final PortalPageContentQueryServiceInMemory queryService = new PortalPageContentQueryServiceInMemory();
+    private final PortalNavigationItemsCrudServiceInMemory navCrudService = new PortalNavigationItemsCrudServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory(
+        navCrudService.storage()
+    );
     private final ValidatePortalDocumentationDomainService validator = new ValidatePortalDocumentationDomainService();
     private CreateOrUpdatePortalDocumentationUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        useCase = new CreateOrUpdatePortalDocumentationUseCase(validator, crudService, queryService);
+        useCase = new CreateOrUpdatePortalDocumentationUseCase(
+            validator,
+            crudService,
+            queryService,
+            new PortalDocumentationSyncDomainService(navCrudService, navQueryService)
+        );
     }
 
     @AfterEach
     void tearDown() {
         crudService.reset();
         queryService.reset();
+        navCrudService.reset();
     }
 
     @Test

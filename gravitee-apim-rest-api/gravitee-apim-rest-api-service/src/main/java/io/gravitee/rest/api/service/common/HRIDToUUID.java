@@ -171,9 +171,10 @@ public final class HRIDToUUID {
         public NavigationItemResult folder(String path) {
             return new NavigationItemResult(organizationId, environmentId, portalId, "folder", path);
         }
-        // Future:
-        // public NavigationItemResult documentation(String docHrid) { … }
-        // public NavigationItemResult listingApi(String apiHrid)    { … }
+
+        public NavigationItemResult documentation(String contentId) {
+            return new NavigationItemResult(organizationId, environmentId, portalId, "documentation", contentId);
+        }
     }
 
     public record NavigationItemResult(String organizationId, String environmentId, String portalId, String kind, String identifier) {
