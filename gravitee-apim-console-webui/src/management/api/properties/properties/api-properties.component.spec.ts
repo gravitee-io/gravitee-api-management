@@ -234,6 +234,121 @@ describe('ApiPropertiesComponent', () => {
     ]);
   });
 
+  it('should encrypt dynamic property value', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'key1', value: 'dynamicValue', encrypted: false, dynamic: true }],
+        services: {
+          dynamicProperty: {
+            enabled: true,
+          },
+        },
+      }),
+    );
+
+    const encryptValueButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Encrypt value"]' }));
+    await encryptValueButton.click();
+
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '[aria-label="API Properties"]' }));
+    const cellContentByIndex = await getCellContentByIndex(table);
+    expect(cellContentByIndex).toEqual([
+      {
+        key: 'key1',
+        value: 'dynamicValue',
+        isValueDisabled: true,
+        characteristic: 'Encrypted on save Dynamic',
+      },
+    ]);
+
+    const saveBar = await loader.getHarness(GioSaveBarHarness);
+    await saveBar.clickSubmit();
+
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'key1', value: 'dynamicValue', encrypted: false, dynamic: true }],
+      }),
+    );
+
+    const postApiReq = httpTestingController.expectOne({
+      method: 'PUT',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+    });
+
+    expect(postApiReq.request.body.properties).toEqual([
+      {
+        dynamic: true,
+        encryptable: true,
+        encrypted: false,
+        key: 'key1',
+        value: 'dynamicValue',
+      },
+    ]);
+  });
+
+  it('should renew encrypted dynamic property value', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'key1', value: 'encryptedValue', encrypted: true, dynamic: true }],
+        services: {
+          dynamicProperty: {
+            enabled: true,
+          },
+        },
+      }),
+    );
+
+    const renewEncryptedValueButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Renew encrypted value"]' }));
+    await renewEncryptedValueButton.click();
+
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '[aria-label="API Properties"]' }));
+    const firstRow = (await table.getRows())[0];
+    const valueCell = (await firstRow.getCells())[1];
+    const valueInput = await valueCell.getHarness(MatInputHarness);
+
+    expect(await valueInput.getValue()).toEqual('');
+    expect(await valueInput.isDisabled()).toEqual(false);
+
+    await valueInput.setValue('newDynamicEncryptedValue');
+
+    const cellContentByIndex = await getCellContentByIndex(table);
+    expect(cellContentByIndex).toEqual([
+      {
+        key: 'key1',
+        value: 'newDynamicEncryptedValue',
+        isValueDisabled: false,
+        characteristic: 'Encrypted on save Dynamic',
+      },
+    ]);
+
+    const saveBar = await loader.getHarness(GioSaveBarHarness);
+    await saveBar.clickSubmit();
+
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'key1', value: 'encryptedValue', encrypted: true, dynamic: true }],
+      }),
+    );
+
+    const postApiReq = httpTestingController.expectOne({
+      method: 'PUT',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+    });
+
+    expect(postApiReq.request.body.properties).toEqual([
+      {
+        dynamic: true,
+        encryptable: true,
+        encrypted: false,
+        key: 'key1',
+        value: 'newDynamicEncryptedValue',
+      },
+    ]);
+  });
+
   it('should remove property', async () => {
     expectGetApi(
       fakeApiV4({

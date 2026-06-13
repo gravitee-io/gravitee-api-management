@@ -195,6 +195,10 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
     const property = this.apiProperties.find(p => p._id === _id);
 
     property.encryptable = true;
+
+    const valueControl = this.propertiesFormGroup.get(_id).get('value');
+    valueControl[this.isValueFieldDisabled(property) ? 'disable' : 'enable']();
+
     this.isDirty = true;
     this.refreshTable();
   }
@@ -207,7 +211,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
 
     const valueControl = this.propertiesFormGroup.get(_id).get('value');
     valueControl.setValue('');
-    valueControl.enable();
+    valueControl[this.isValueFieldDisabled(property) ? 'disable' : 'enable']();
 
     this.isDirty = true;
     this.refreshTable();
@@ -258,6 +262,18 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
     this.onFiltersChanged(this.tableFilters);
   }
 
+  private isValueFieldDisabled(property: Property & { dynamic?: boolean }): boolean {
+    if (this.isReadOnly || property.encrypted) {
+      return true;
+    }
+
+    if (property.dynamic) {
+      return !(property.encryptable && !property.value);
+    }
+
+    return false;
+  }
+
   private initPropertiesFormGroup() {
     if (isEmpty(this.apiProperties)) return;
 
@@ -280,7 +296,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
 
         const valueControl = new UntypedFormControl({
           value: currentValue.encrypted ? '*************' : currentValue.value,
-          disabled: this.isReadOnly || currentValue.encrypted || currentValue.dynamic,
+          disabled: this.isValueFieldDisabled(currentValue),
         });
         valueControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(value => this.editValueProperty(currentValue._id, value));
 
