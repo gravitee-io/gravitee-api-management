@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import io.gravitee.repository.management.model.AutomationTargetReferenceType;
 import io.gravitee.repository.management.model.PortalPageContent;
 import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -29,4 +30,17 @@ public class PortalPageContentMongo {
     private PortalPageContent.Type type;
     private String configuration;
     private String content;
+
+    /** Populated only for pages managed by the Automation API; null for non-automation pages. */
+    private AutomationMetadata automationMetadata;
+
+    @Data
+    public static class AutomationMetadata {
+
+        private AutomationTargetReferenceType referenceType;
+        private String referenceId;
+        private String name;
+        private String location;
+        private Integer order;
+    }
 }

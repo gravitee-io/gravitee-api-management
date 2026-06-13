@@ -430,7 +430,7 @@ public class DeleteEnvironmentCommandHandlerTest {
                     null,
                     "root-id",
                     13,
-                    "{\"pageId\":\"" + PAGE_CONTENT_ID + "\"}",
+                    "{\"portalPageContentId\":\"" + PAGE_CONTENT_ID + "\"}",
                     true,
                     PortalNavigationItem.Visibility.PUBLIC,
                     null
@@ -591,6 +591,7 @@ public class DeleteEnvironmentCommandHandlerTest {
 
         verify(portalPageContentRepository).delete(PAGE_CONTENT_ID);
         verify(portalNavigationItemRepository).deleteByEnvironmentId(ENV_ID);
+        verify(portalListingRepository).deleteByEnvironmentId(ENV_ID);
 
         verify(metadataRepository).deleteByReferenceIdAndReferenceType(ENV_ID, MetadataReferenceType.ENVIRONMENT);
         verify(scoringRulesetRepository).deleteByReferenceId(ENV_ID, "ENVIRONMENT");
@@ -642,8 +643,8 @@ public class DeleteEnvironmentCommandHandlerTest {
     }
 
     @Test
-    public void should_skip_portal_page_content_delete_when_pageId_cannot_be_extracted() throws Exception {
-        // override navigation items to provide an item without pageId in configuration
+    public void should_skip_portal_page_content_delete_when_portalPageContentId_cannot_be_extracted() throws Exception {
+        // override navigation items to provide an item without portalPageContentId in configuration
         when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ORG_ID, ENV_ID)).thenReturn(
             List.of(
                 new PortalNavigationItem(
@@ -671,7 +672,7 @@ public class DeleteEnvironmentCommandHandlerTest {
 
         assertEquals(CommandStatus.SUCCEEDED, reply.getCommandStatus());
 
-        // page delete should not be invoked because no pageId could be extracted
+        // page delete should not be invoked because no portalPageContentId could be extracted
         org.mockito.Mockito.verify(portalPageContentRepository, org.mockito.Mockito.never()).delete(org.mockito.Mockito.anyString());
         // navigation items should still be deleted
         verify(portalNavigationItemRepository).deleteByEnvironmentId(ENV_ID);

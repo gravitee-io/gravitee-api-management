@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.12.0_add_automation_metadata_to_portal_page_contents
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}portal_page_contents
+            columns:
+              - column: {name: automation_metadata, type: nclob, constraints: { nullable: true } }
+              - column: {name: automation_reference_type, type: nvarchar(32), constraints: { nullable: true } }
+              - column: {name: automation_reference_id, type: nvarchar(64), constraints: { nullable: true } }
+
+        - createIndex:
+            indexName: idx_${gravitee_prefix}portal_page_contents_automation_reference
+            columns:
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)
+              - column:
+                  name: automation_reference_type
+                  type: nvarchar(32)
+              - column:
+                  name: automation_reference_id
+                  type: nvarchar(64)
+            tableName: ${gravitee_prefix}portal_page_contents
