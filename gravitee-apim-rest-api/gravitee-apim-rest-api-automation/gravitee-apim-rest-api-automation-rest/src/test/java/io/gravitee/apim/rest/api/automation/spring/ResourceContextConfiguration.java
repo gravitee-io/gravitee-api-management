@@ -154,10 +154,14 @@ import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQuer
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
 import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationItemsUseCase;
+import io.gravitee.apim.core.portal_page.use_case.CreateOrUpdatePortalDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
+import io.gravitee.apim.core.portal_page.use_case.DeletePortalDocumentationUseCase;
+import io.gravitee.apim.core.portal_page.use_case.GetPortalDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
+import io.gravitee.apim.core.portal_page.use_case.ValidatePortalDocumentationUseCase;
 import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
 import io.gravitee.apim.core.promotion.use_case.CreatePromotionUseCase;
 import io.gravitee.apim.core.promotion.use_case.ProcessPromotionUseCase;
@@ -1336,5 +1340,25 @@ public class ResourceContextConfiguration {
     @Bean
     public ValidatePortalListingUseCase validatePortalListingUseCase() {
         return mock(ValidatePortalListingUseCase.class);
+    }
+
+    @Bean
+    public CreateOrUpdatePortalDocumentationUseCase createOrUpdatePortalDocumentationUseCase() {
+        return mock(CreateOrUpdatePortalDocumentationUseCase.class);
+    }
+
+    @Bean
+    public GetPortalDocumentationUseCase getPortalDocumentationUseCase() {
+        return mock(GetPortalDocumentationUseCase.class);
+    }
+
+    @Bean
+    public DeletePortalDocumentationUseCase deletePortalDocumentationUseCase() {
+        return mock(DeletePortalDocumentationUseCase.class);
+    }
+
+    @Bean
+    public ValidatePortalDocumentationUseCase validatePortalDocumentationUseCase() {
+        return mock(ValidatePortalDocumentationUseCase.class);
     }
 }
