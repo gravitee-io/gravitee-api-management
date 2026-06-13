@@ -16,9 +16,13 @@
 package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.AutomationTargetReferenceType;
 import io.gravitee.repository.management.model.PortalPageContent;
 import java.util.List;
 
 public interface PortalPageContentRepository extends CrudRepository<PortalPageContent, String> {
     List<PortalPageContent> findAllByType(PortalPageContent.Type type) throws TechnicalException;
+
+    List<PortalPageContent> findByAutomationReference(String environmentId, AutomationTargetReferenceType referenceType, String referenceId)
+        throws TechnicalException;
 }

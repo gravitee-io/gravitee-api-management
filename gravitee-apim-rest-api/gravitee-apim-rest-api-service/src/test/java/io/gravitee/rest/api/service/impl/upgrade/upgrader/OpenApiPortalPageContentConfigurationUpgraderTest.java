@@ -22,6 +22,7 @@ import static org.assertj.core.groups.Tuple.tuple;
 import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalPageContentRepository;
+import io.gravitee.repository.management.model.AutomationTargetReferenceType;
 import io.gravitee.repository.management.model.PortalPageContent;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -169,6 +170,15 @@ class OpenApiPortalPageContentConfigurationUpgraderTest {
         @Override
         public void delete(String id) {
             contents.removeIf(content -> content.getId().equals(id));
+        }
+
+        @Override
+        public List<PortalPageContent> findByAutomationReference(
+            String environmentId,
+            AutomationTargetReferenceType referenceType,
+            String referenceId
+        ) {
+            return List.of();
         }
     }
 }
