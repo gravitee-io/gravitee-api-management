@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.model;
 
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -35,7 +36,17 @@ public final class GraviteeMarkdownPageContent extends PortalPageContent<Gravite
         @Nonnull String environmentId,
         @Nonnull GraviteeMarkdown content
     ) {
-        super(id, organizationId, environmentId);
+        this(id, organizationId, environmentId, content, null);
+    }
+
+    public GraviteeMarkdownPageContent(
+        @Nonnull PortalPageContentId id,
+        @Nonnull String organizationId,
+        @Nonnull String environmentId,
+        @Nonnull GraviteeMarkdown content,
+        @Nullable AutomationMetadata automationMetadata
+    ) {
+        super(id, organizationId, environmentId, automationMetadata);
         this.content = content;
     }
 

@@ -82,6 +82,10 @@ public final class HRIDToUUID {
         return new PortalSubResourceBuilder();
     }
 
+    public static PortalSubResourceBuilder portalDocumentation() {
+        return new PortalSubResourceBuilder();
+    }
+
     public static class TopLevelBuilder {
 
         public TopLevelWithContext context(AuditInfo audit) {
