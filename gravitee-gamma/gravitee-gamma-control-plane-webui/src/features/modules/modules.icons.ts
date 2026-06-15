@@ -17,6 +17,7 @@ import {
     GioAgentManagementIcon,
     GioApiManagementIcon,
     GioAuthorizationIcon,
+    GioEventApiManagementIcon,
     GioHomeIcon,
     GioPlatformIcon,
 } from '@gravitee/graphene-core/icons';
@@ -33,4 +34,5 @@ export const MODULE_ICONS: Record<string, LucideIcon> = {
     apim: GioApiManagementIcon,
     platform: GioPlatformIcon,
     authz: GioAuthorizationIcon,
+    esm: GioEventApiManagementIcon,
 };
