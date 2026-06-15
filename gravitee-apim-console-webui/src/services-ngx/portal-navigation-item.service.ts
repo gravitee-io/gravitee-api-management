@@ -54,10 +54,14 @@ export class PortalNavigationItemService {
   public updateNavigationItem(
     portalNavigationItemId: string,
     updatePortalNavigationItem: UpdatePortalNavigationItem,
+    propagatePublishToChildren = false,
   ): Observable<PortalNavigationItem> {
+    const params = propagatePublishToChildren ? { propagatePublishToChildren } : {};
+
     return this.http.put<PortalNavigationItem>(
       `${this.constants.env.v2BaseURL}/portal-navigation-items/${portalNavigationItemId}`,
       updatePortalNavigationItem,
+      { params },
     );
   }
 

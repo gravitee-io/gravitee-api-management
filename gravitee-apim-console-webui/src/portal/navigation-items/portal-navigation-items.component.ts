@@ -21,8 +21,6 @@ import {
   GioCardEmptyStateModule,
   GioConfirmAndValidateDialogComponent,
   GioConfirmAndValidateDialogData,
-  GioConfirmDialogComponent,
-  GioConfirmDialogData,
 } from '@gravitee/ui-particles-angular';
 import { Component, computed, DestroyRef, HostListener, inject, NgZone, Signal, signal, viewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
@@ -51,6 +49,11 @@ import {
   ApiSectionEditorDialogData,
 } from './api-section-editor-dialog/api-section-editor-dialog.component';
 import { OpenApiConfigDialogComponent, OpenApiConfigDialogData } from './openapi-config-dialog/openapi-config-dialog.component';
+import {
+  PublishNavigationItemDialogComponent,
+  PublishNavigationItemDialogData,
+  PublishNavigationItemDialogResult,
+} from './publish-navigation-item-dialog/publish-navigation-item-dialog.component';
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
@@ -538,8 +541,16 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     );
   }
 
-  private update(portalNavigationItemId: string, updatePortalNavigationItem: UpdatePortalNavigationItem): Observable<PortalNavigationItem> {
-    return this.portalNavigationItemsService.updateNavigationItem(portalNavigationItemId, updatePortalNavigationItem);
+  private update(
+    portalNavigationItemId: string,
+    updatePortalNavigationItem: UpdatePortalNavigationItem,
+    propagatePublishToChildren = false,
+  ): Observable<PortalNavigationItem> {
+    return this.portalNavigationItemsService.updateNavigationItem(
+      portalNavigationItemId,
+      updatePortalNavigationItem,
+      propagatePublishToChildren,
+    );
   }
 
   private navigateToItemByNavId(navId: string): void {
@@ -690,20 +701,27 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   private handlePublishToggle(navItem: PortalNavigationItem): void {
     this.matDialog
-      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
-        width: GIO_DIALOG_WIDTH.SMALL,
-        data: this.getPublishDialogData(navItem),
-        role: 'alertdialog',
-        id: 'managePublishNavigationItemConfirmDialog',
-      })
+      .open<PublishNavigationItemDialogComponent, PublishNavigationItemDialogData, PublishNavigationItemDialogResult>(
+        PublishNavigationItemDialogComponent,
+        {
+          width: GIO_DIALOG_WIDTH.SMALL,
+          data: { navItem },
+          role: 'alertdialog',
+          id: 'managePublishNavigationItemConfirmDialog',
+        },
+      )
       .afterClosed()
       .pipe(
-        filter(confirmed => !!confirmed),
-        switchMap(() =>
-          this.update(navItem.id, {
-            ...navItem,
-            published: !navItem.published,
-          }),
+        filter((result): result is PublishNavigationItemDialogResult => !!result?.confirmed),
+        switchMap(result =>
+          this.update(
+            navItem.id,
+            {
+              ...navItem,
+              published: !navItem.published,
+            },
+            result.propagatePublishToChildren,
+          ),
         ),
         tap(() => this.refreshMenuList.next(1)),
         catchError(() => {
@@ -713,28 +731,6 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
-  }
-
-  private getPublishDialogData(navItem: PortalNavigationItem): GioConfirmDialogData {
-    const isPublished = navItem.published;
-    const typeLabel = navItem.type === 'API' ? 'API' : navItem.type.toLowerCase();
-    const isContainer = navItem.type === 'FOLDER' || navItem.type === 'API';
-
-    const action = isPublished ? 'Unpublish' : 'Publish';
-    const pastAction = `${action.toLowerCase()}ed`;
-    const warning = isContainer
-      ? isPublished
-        ? ` Unpublishing this ${typeLabel} will also unpublish all nested documentation and APIs. This action cannot be undone automatically. Do you want to proceed?`
-        : ` Publishing this ${typeLabel} will also publish all nested documentation and APIs. Do you want to proceed?`
-      : '';
-
-    const contentScope = isContainer ? ' and its content ' : ' ';
-
-    return {
-      title: `${action} "${navItem.title}" ${typeLabel}?`,
-      content: `This ${typeLabel}${contentScope}will be ${pastAction}. This change will be visible in the Developer Portal.${warning}`,
-      confirmButton: action,
-    };
   }
 
   private confirmDeleteAction(event: NodeMenuActionEvent) {

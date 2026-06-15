@@ -34,6 +34,7 @@ import { PortalNavigationItemsHarness } from './portal-navigation-items.harness'
 import { SectionEditorDialogHarness } from './section-editor-dialog/section-editor-dialog.harness';
 import { ApiSectionEditorDialogHarness } from './api-section-editor-dialog/api-section-editor-dialog.harness';
 import { OpenApiConfigDialogHarness } from './openapi-config-dialog/openapi-config-dialog.harness';
+import { PublishNavigationItemDialogHarness } from './publish-navigation-item-dialog/publish-navigation-item-dialog.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../shared/testing';
 import { GioTestingPermissionProvider } from '../../shared/components/gio-permission/gio-permission.service';
@@ -1332,8 +1333,8 @@ describe('PortalNavigationItemsComponent', () => {
       it('should unpublish the item when "Unpublish" button is clicked', async () => {
         await harness.clickUnpublishButton();
 
-        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
-        await confirmDialog.confirm();
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        await dialog.confirm();
 
         expectPutPortalNavigationItem(
           'nav-item-1',
@@ -1352,8 +1353,8 @@ describe('PortalNavigationItemsComponent', () => {
       it('should unpublish the item from the "More Actions" menu', async () => {
         await harness.unpublishNodeById('nav-item-1');
 
-        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
-        await confirmDialog.confirm();
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        await dialog.confirm();
 
         expectPutPortalNavigationItem(
           'nav-item-1',
@@ -1395,8 +1396,9 @@ describe('PortalNavigationItemsComponent', () => {
       it('should publish the item when "Publish" button is clicked', async () => {
         await harness.clickPublishButton();
 
-        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
-        await confirmDialog.confirm();
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        expect(await dialog.isPropagationCheckboxVisible()).toBe(false);
+        await dialog.confirm();
 
         expectPutPortalNavigationItem(
           'nav-item-1',
@@ -1412,11 +1414,22 @@ describe('PortalNavigationItemsComponent', () => {
         expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
       });
 
+      it('should not publish the item when dialog is cancelled', async () => {
+        await harness.clickPublishButton();
+
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        await dialog.cancel();
+
+        httpTestingController.expectNone(
+          request => request.method === 'PUT' && request.url === `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/nav-item-1`,
+        );
+      });
+
       it('should publish item when publish action is clicked in More Actions dropdown', async () => {
         await harness.publishNodeById('nav-item-1');
 
-        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
-        await confirmDialog.confirm();
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        await dialog.confirm();
 
         expectPutPortalNavigationItem(
           'nav-item-1',
@@ -1447,9 +1460,10 @@ describe('PortalNavigationItemsComponent', () => {
       it('should show dialog and publish folder when confirmed', async () => {
         await harness.publishNodeById('folder-1');
 
-        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
-        expect(document.body.textContent).toContain('will also publish all nested documentation and APIs');
-        await confirmDialog.confirm();
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        expect(await dialog.isPropagationCheckboxChecked()).toBe(false);
+        expect(await dialog.getContentText()).toContain('Also publish all nested documentation and APIs');
+        await dialog.confirm();
 
         expectPutPortalNavigationItem(
           'folder-1',
@@ -1458,6 +1472,82 @@ describe('PortalNavigationItemsComponent', () => {
         );
 
         await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [unpublishedFolder] }));
+      });
+
+      it('should send propagation query parameter when checkbox is selected', async () => {
+        await harness.publishNodeById('folder-1');
+
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        await dialog.checkPropagationCheckbox();
+        await dialog.confirm();
+
+        expectPutPortalNavigationItem(
+          'folder-1',
+          { ...unpublishedFolder, published: true },
+          fakePortalNavigationFolder({ id: 'folder-1', published: true }),
+          { propagatePublishToChildren: true },
+        );
+
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [unpublishedFolder] }));
+      });
+    });
+
+    describe('unpublishing a published folder', () => {
+      const publishedFolder = fakePortalNavigationFolder({
+        id: 'folder-1',
+        title: 'My Folder',
+        published: true,
+      });
+
+      beforeEach(async () => {
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [publishedFolder] }));
+      });
+
+      it('should not show propagation checkbox and should unpublish folder when confirmed', async () => {
+        const node = { id: publishedFolder.id, label: publishedFolder.title, type: publishedFolder.type, data: publishedFolder };
+        component.onNodeMenuAction({ action: 'unpublish', itemType: 'FOLDER', node });
+
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        expect(await dialog.isPropagationCheckboxVisible()).toBe(false);
+        expect(await dialog.getContentText()).toContain('will also unpublish all nested documentation and APIs');
+        await dialog.confirm();
+
+        expectPutPortalNavigationItem(
+          'folder-1',
+          { ...publishedFolder, published: false },
+          fakePortalNavigationFolder({ id: 'folder-1', published: false }),
+        );
+
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [publishedFolder] }));
+      });
+    });
+
+    describe('publishing an unpublished link', () => {
+      const unpublishedLink = fakePortalNavigationLink({
+        id: 'link-1',
+        title: 'My Link',
+        published: false,
+      });
+
+      beforeEach(async () => {
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [unpublishedLink] }));
+      });
+
+      it('should not show propagation checkbox and should publish link when confirmed', async () => {
+        const node = { id: unpublishedLink.id, label: unpublishedLink.title, type: unpublishedLink.type, data: unpublishedLink };
+        component.onNodeMenuAction({ action: 'publish', itemType: 'LINK', node });
+
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        expect(await dialog.isPropagationCheckboxVisible()).toBe(false);
+        await dialog.confirm();
+
+        expectPutPortalNavigationItem(
+          'link-1',
+          { ...unpublishedLink, published: true },
+          fakePortalNavigationLink({ id: 'link-1', published: true }),
+        );
+
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [unpublishedLink] }));
       });
     });
 
@@ -1479,9 +1569,9 @@ describe('PortalNavigationItemsComponent', () => {
         expect(openDialogsAfterClick).toHaveLength(1);
         await openDialogsAfterClick[0].confirm();
 
-        const openDialogsAfterDiscard = await rootLoader.getAllHarnesses(GioConfirmDialogHarness);
-        expect(openDialogsAfterDiscard).toHaveLength(1);
-        await openDialogsAfterDiscard[0].confirm();
+        const publishDialogsAfterDiscard = await rootLoader.getAllHarnesses(PublishNavigationItemDialogHarness);
+        expect(publishDialogsAfterDiscard).toHaveLength(1);
+        await publishDialogsAfterDiscard[0].confirm();
 
         expectPutPortalNavigationItem('nav-item-1', { ...unpublishedNavItem, published: true }, fakePortalNavigationPage({}));
         await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [unpublishedNavItem] }));
@@ -1505,9 +1595,9 @@ describe('PortalNavigationItemsComponent', () => {
         expect(openDialogsAfterClick).toHaveLength(1);
         await openDialogsAfterClick[0].confirm();
 
-        const openDialogsAfterDiscard = await rootLoader.getAllHarnesses(GioConfirmDialogHarness);
-        expect(openDialogsAfterDiscard).toHaveLength(1);
-        await openDialogsAfterDiscard[0].confirm();
+        const publishDialogsAfterDiscard = await rootLoader.getAllHarnesses(PublishNavigationItemDialogHarness);
+        expect(publishDialogsAfterDiscard).toHaveLength(1);
+        await publishDialogsAfterDiscard[0].confirm();
 
         expectPutPortalNavigationItem('nav-item-1', { ...unpublishedNavItem, published: true }, fakePortalNavigationPage({}));
         await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [unpublishedNavItem] }));
@@ -1531,9 +1621,9 @@ describe('PortalNavigationItemsComponent', () => {
         expect(openDialogsAfterClick).toHaveLength(1);
         await openDialogsAfterClick[0].confirm();
 
-        const openDialogsAfterDiscard = await rootLoader.getAllHarnesses(GioConfirmDialogHarness);
-        expect(openDialogsAfterDiscard).toHaveLength(1);
-        await openDialogsAfterDiscard[0].confirm();
+        const publishDialogsAfterDiscard = await rootLoader.getAllHarnesses(PublishNavigationItemDialogHarness);
+        expect(publishDialogsAfterDiscard).toHaveLength(1);
+        await publishDialogsAfterDiscard[0].confirm();
 
         expectPutPortalNavigationItem('nav-item-1', { ...publishedNavItem, published: false }, fakePortalNavigationPage({}));
         await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [publishedNavItem] }));
@@ -1557,9 +1647,9 @@ describe('PortalNavigationItemsComponent', () => {
         expect(openDialogsAfterClick).toHaveLength(1);
         await openDialogsAfterClick[0].confirm();
 
-        const openDialogsAfterDiscard = await rootLoader.getAllHarnesses(GioConfirmDialogHarness);
-        expect(openDialogsAfterDiscard).toHaveLength(1);
-        await openDialogsAfterDiscard[0].confirm();
+        const publishDialogsAfterDiscard = await rootLoader.getAllHarnesses(PublishNavigationItemDialogHarness);
+        expect(publishDialogsAfterDiscard).toHaveLength(1);
+        await publishDialogsAfterDiscard[0].confirm();
 
         expectPutPortalNavigationItem('nav-item-1', { ...publishedNavItem, published: false }, fakePortalNavigationPage({}));
         await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [publishedNavItem] }));
@@ -2576,12 +2666,23 @@ describe('PortalNavigationItemsComponent', () => {
     req.flush('Server error', { status, statusText: 'Internal Server Error' });
   }
 
-  function expectPutPortalNavigationItem(id: string, expectedBody: UpdatePortalNavigationItem, response: PortalNavigationItem) {
+  function expectPutPortalNavigationItem(
+    id: string,
+    expectedBody: UpdatePortalNavigationItem,
+    response: PortalNavigationItem,
+    options: { propagatePublishToChildren?: boolean } = {},
+  ) {
+    const queryString = options.propagatePublishToChildren ? '?propagatePublishToChildren=true' : '';
     const req = httpTestingController.expectOne({
       method: 'PUT',
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${id}`,
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${id}${queryString}`,
     });
     expect(req.request.body).toEqual(expectedBody);
+    if (options.propagatePublishToChildren) {
+      expect(req.request.params.get('propagatePublishToChildren')).toBe('true');
+    } else {
+      expect(req.request.params.has('propagatePublishToChildren')).toBe(false);
+    }
     req.flush(response);
   }
 
@@ -2901,7 +3002,8 @@ describe('PortalNavigationItemsComponent', () => {
         const component = fixture.componentInstance;
         component.onNodeMenuAction({ action: 'publish', itemType: 'API', node });
 
-        const dialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        expect(await dialog.isPropagationCheckboxChecked()).toBe(false);
         await dialog.confirm();
         fixture.detectChanges();
 
@@ -2915,11 +3017,33 @@ describe('PortalNavigationItemsComponent', () => {
         );
         await expectGetNavigationItems(fakeResponse);
       });
+      it('should send propagation query parameter when checkbox is selected', async () => {
+        const node = { id: api.id, label: api.title, type: api.type, data: api };
+        const component = fixture.componentInstance;
+        component.onNodeMenuAction({ action: 'publish', itemType: 'API', node });
+
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        await dialog.checkPropagationCheckbox();
+        await dialog.confirm();
+        fixture.detectChanges();
+
+        expectPutPortalNavigationItem(
+          api.id,
+          fakeUpdateApiPortalNavigationItem({
+            ...api,
+            published: true,
+          }),
+          api,
+          { propagatePublishToChildren: true },
+        );
+        await expectGetNavigationItems(fakeResponse);
+      });
       it('should change state from static button', async () => {
         await harness.clickPublishButton();
 
-        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
-        await confirmDialog.confirm();
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        expect(await dialog.isPropagationCheckboxChecked()).toBe(false);
+        await dialog.confirm();
 
         expectPutPortalNavigationItem(
           api.id,
@@ -2951,7 +3075,8 @@ describe('PortalNavigationItemsComponent', () => {
         const component = fixture.componentInstance;
         component.onNodeMenuAction({ action: 'unpublish', itemType: 'API', node });
 
-        const dialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        expect(await dialog.isPropagationCheckboxVisible()).toBe(false);
         await dialog.confirm();
         fixture.detectChanges();
 
@@ -2968,8 +3093,8 @@ describe('PortalNavigationItemsComponent', () => {
       it('should change state from static button', async () => {
         await harness.clickUnpublishButton();
 
-        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
-        await confirmDialog.confirm();
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        await dialog.confirm();
 
         expectPutPortalNavigationItem(
           api.id,
