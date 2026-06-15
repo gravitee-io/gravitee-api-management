@@ -22,6 +22,7 @@ import static io.gravitee.repository.management.model.Tag.AuditEvent.TAG_UPDATED
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
+import io.gravitee.apim.core.api_product.domain_service.ApiProductTagDomainService;
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -33,6 +34,7 @@ import io.gravitee.rest.api.model.TagEntity;
 import io.gravitee.rest.api.model.TagReferenceType;
 import io.gravitee.rest.api.model.UpdateTagEntity;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -71,6 +73,12 @@ public class TagServiceImpl extends AbstractService implements TagService {
 
     @Autowired
     private GroupService groupService;
+
+    @Autowired
+    private EnvironmentService environmentService;
+
+    @Autowired
+    private ApiProductTagDomainService apiProductTagDomainService;
 
     @Override
     public List<TagEntity> findByReference(String referenceId, TagReferenceType referenceType) {
@@ -212,18 +220,23 @@ public class TagServiceImpl extends AbstractService implements TagService {
             Optional<Tag> tagOptional = tagRepository.findByKeyAndReference(key, referenceId, repoTagReferenceType(referenceType));
 
             if (tagOptional.isPresent()) {
-                String actualTagId = tagOptional.get().getId();
-                tagRepository.delete(actualTagId);
-                // delete all reference on APIs
-                apiTagService.deleteTagFromAPIs(executionContext, actualTagId);
+                Tag tag = tagOptional.get();
+                String tagId = tag.getId();
+                String tagKey = tag.getKey();
+                // Cascade first (idempotent), delete the org tag row last so a retry can complete cleanup.
+                apiTagService.deleteTagFromAPIs(executionContext, tagId);
+                environmentService
+                    .findByOrganization(executionContext.getOrganizationId())
+                    .forEach(env -> apiProductTagDomainService.deleteTagFromApiProducts(env.getId(), tagKey));
+                tagRepository.delete(tagId);
                 auditService.createOrganizationAuditLog(
                     executionContext,
                     AuditService.AuditLogData.builder()
-                        .properties(Collections.singletonMap(TAG, actualTagId))
+                        .properties(Collections.singletonMap(TAG, tagKey))
                         .event(TAG_DELETED)
                         .createdAt(new Date())
                         .oldValue(null)
-                        .newValue(tagOptional.get())
+                        .newValue(tag)
                         .build()
                 );
             }

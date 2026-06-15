@@ -348,7 +348,7 @@ public class UpdatePlanDomainService {
         if (existingPlanStatuses == null) {
             existingPlanStatuses = getPlanStatusMapForApiProduct(apiProduct);
         }
-        updatePreFlightChecksForApiProduct(planToUpdate, existingPlanStatuses, auditInfo);
+        updatePreFlightChecksForApiProduct(planToUpdate, existingPlanStatuses, apiProduct, auditInfo);
 
         Plan existingPlan = planCrudService.getById(planToUpdate.getId());
         Plan updatePlan = existingPlan.update(planToUpdate);
@@ -364,9 +364,15 @@ public class UpdatePlanDomainService {
         return updated;
     }
 
-    private void updatePreFlightChecksForApiProduct(Plan planToUpdate, Map<String, PlanStatus> existingPlanStatuses, AuditInfo auditInfo) {
+    private void updatePreFlightChecksForApiProduct(
+        Plan planToUpdate,
+        Map<String, PlanStatus> existingPlanStatuses,
+        ApiProduct apiProduct,
+        AuditInfo auditInfo
+    ) {
         assertNotClosedStatus(planToUpdate, existingPlanStatuses);
         planValidatorDomainService.validatePlanSecurity(planToUpdate, auditInfo.organizationId(), auditInfo.environmentId(), null);
+        planValidatorDomainService.validatePlanTagsAgainstApiProductTags(planToUpdate.getTags(), apiProduct.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
     }
 

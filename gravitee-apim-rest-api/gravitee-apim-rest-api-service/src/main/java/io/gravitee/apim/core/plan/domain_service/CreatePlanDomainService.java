@@ -212,6 +212,7 @@ public class CreatePlanDomainService {
         }*/
 
         planValidatorDomainService.validatePlanSecurity(plan, auditInfo.organizationId(), auditInfo.environmentId(), null);
+        planValidatorDomainService.validatePlanTagsAgainstApiProductTags(plan.getTags(), apiProduct.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(plan);
         var createdPlan = planCrudService.create(
             plan

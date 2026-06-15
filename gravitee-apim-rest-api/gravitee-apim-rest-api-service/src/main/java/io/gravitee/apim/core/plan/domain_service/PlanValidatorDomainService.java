@@ -86,9 +86,24 @@ public class PlanValidatorDomainService {
 
             throw new ValidationDomainException(
                 "Plan tags mismatch the tags defined by the API",
-                Map.of("planTags", String.join(",", planTags), "apiTags", String.join(",", apiTags))
+                Map.of("planTags", joinTags(planTags), "apiTags", joinTags(apiTags))
             );
         }
+    }
+
+    public void validatePlanTagsAgainstApiProductTags(Set<String> planTags, Set<String> apiProductTags) {
+        if (!isEmpty(planTags) && (isEmpty(apiProductTags) || planTags.stream().anyMatch(tag -> !apiProductTags.contains(tag)))) {
+            log.debug("Plan rejected, tags {} mismatch the tags defined by the API Product ({})", planTags, apiProductTags);
+
+            throw new ValidationDomainException(
+                "Plan tags mismatch the tags defined by the API Product",
+                Map.of("planTags", joinTags(planTags), "apiProductTags", joinTags(apiProductTags))
+            );
+        }
+    }
+
+    private static String joinTags(Set<String> tags) {
+        return isEmpty(tags) ? "" : String.join(",", tags);
     }
 
     public void validateGeneralConditionsPage(Plan plan, List<Page> pages) {

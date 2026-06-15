@@ -21,7 +21,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
-import io.gravitee.apim.core.api_product.domain_service.DeployApiProductDomainService;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductTagDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
@@ -32,19 +32,23 @@ import io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiProductAuditEvent;
-import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.exception.ApiProductPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.notification.model.hook.ApiProductUpdatedHookContext;
+import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
+import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -61,8 +65,10 @@ public class UpdateApiProductUseCase {
     private final LicenseDomainService licenseDomainService;
     private final ApiProductIndexerDomainService apiProductIndexerDomainService;
     private final ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService;
-    private final DeployApiProductDomainService deployApiProductDomainService;
     private final TriggerNotificationDomainService triggerNotificationDomainService;
+    private final PlanQueryService planQueryService;
+    private final PlanCrudService planCrudService;
+    private final ApiProductTagDomainService apiProductTagDomainService;
 
     public Output execute(Input input) {
         if (!licenseDomainService.isApiProductDeploymentAllowed(input.auditInfo().organizationId())) {
@@ -101,9 +107,16 @@ public class UpdateApiProductUseCase {
             }
         }
 
+        if (updateApiProduct.getTags() != null) {
+            apiProductTagDomainService.validateTagsOnUpdate(input.auditInfo(), existingApiProduct.getTags(), updateApiProduct.getTags());
+            existingApiProduct.setTags(updateApiProduct.getTags().isEmpty() ? Set.of() : Set.copyOf(updateApiProduct.getTags()));
+        }
+
         existingApiProduct.update(updateApiProduct);
 
         ApiProduct updated = apiProductCrudService.update(existingApiProduct);
+
+        autoCleanOrphanedPlanTags(updated, beforeUpdate.getTags());
 
         PrimaryOwnerEntity primaryOwner = null;
         try {
@@ -116,16 +129,8 @@ public class UpdateApiProductUseCase {
         }
         apiProductIndexerDomainService.index(oneShotIndexation(input.auditInfo()), updated, primaryOwner);
 
-        try {
-            validateApiProductService.validateForDeploy(updated);
-            deployApiProductDomainService.deploy(input.auditInfo(), updated);
-        } catch (ValidationDomainException e) {
-            log.warn("API Product [{}] was updated but not deployed to the gateway. {}", updated.getId(), e.getMessage());
-        }
         createAuditLog(beforeUpdate, updated, input.auditInfo());
-        // The notification fires regardless of whether the subsequent re-deploy succeeded: the
-        // data update (name, description, API list, …) always completes before the deploy attempt,
-        // so "API Product Updated" accurately reflects that the stored record changed.
+        // Notification reflects the persisted record change; gateway deploy is explicit via DeployApiProductUseCase.
         triggerNotificationDomainService.triggerApiProductNotification(
             input.auditInfo().organizationId(),
             input.auditInfo().environmentId(),
@@ -141,6 +146,56 @@ public class UpdateApiProductUseCase {
     }
 
     public record Output(ApiProduct apiProduct) {}
+
+    /**
+     * When tags are removed from the product, strip plan tags that are no longer present
+     * in the product's tag set. Only triggers when at least one previously-existing tag
+     * was removed (i.e. the effective set shrank or shifted).
+     */
+    private void autoCleanOrphanedPlanTags(ApiProduct updatedProduct, Set<String> previousProductTags) {
+        Set<String> currentProductTags = updatedProduct.getTags();
+        if (!hasRemovedTags(previousProductTags, currentProductTags)) {
+            return;
+        }
+
+        planQueryService
+            .findAllByReferenceIdAndReferenceType(updatedProduct.getId(), GenericPlanEntity.ReferenceType.API_PRODUCT)
+            .forEach(plan -> removeOrphanedTagsFromPlan(plan, updatedProduct.getId(), currentProductTags));
+    }
+
+    private static boolean hasRemovedTags(Set<String> previousTags, Set<String> currentTags) {
+        if (previousTags == null || previousTags.isEmpty()) {
+            return false;
+        }
+        if (currentTags == null || currentTags.isEmpty()) {
+            return true;
+        }
+        return !currentTags.containsAll(previousTags);
+    }
+
+    private void removeOrphanedTagsFromPlan(Plan plan, String productId, Set<String> currentProductTags) {
+        var planDef = plan.getPlanDefinitionHttpV4();
+        if (planDef == null || planDef.getTags() == null || planDef.getTags().isEmpty()) {
+            return;
+        }
+
+        Set<String> cleanedTags = (currentProductTags == null || currentProductTags.isEmpty())
+            ? Set.of()
+            : planDef.getTags().stream().filter(currentProductTags::contains).collect(Collectors.toSet());
+        if (cleanedTags.size() >= planDef.getTags().size()) {
+            return;
+        }
+
+        log.info(
+            "Auto-cleaning orphaned tags from plan [{}] of API Product [{}]: {} -> {}",
+            plan.getId(),
+            productId,
+            planDef.getTags(),
+            cleanedTags
+        );
+        planDef.setTags(cleanedTags.isEmpty() ? null : cleanedTags);
+        planCrudService.update(plan);
+    }
 
     private void createAuditLog(ApiProduct before, ApiProduct after, AuditInfo auditInfo) {
         auditService.createApiProductAuditLog(
