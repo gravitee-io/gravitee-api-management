@@ -61,6 +61,7 @@ export class PageSwaggerComponent implements OnChanges {
       if (pageConfiguration.show_url) {
         config.url = this.page._links?.content;
         config.spec = undefined;
+        plugins.push(this.normalizeSpecPlugin());
       }
       if (this.page.configuration?.disable_syntax_highlight) {
         config.syntaxHighlight = false;
@@ -100,6 +101,54 @@ export class PageSwaggerComponent implements OnChanges {
     }
   }
 
+<<<<<<< HEAD
+=======
+  /**
+   * Recursively normalizes OAS 3.1 type arrays (e.g. `"type": ["integer", "string"]`) to a single
+   * string type that Swagger UI can validate correctly. Without this, Swagger UI's form validator
+   * fails to match entered values against an array type and incorrectly reports required fields as
+   * missing. See APIM-14231.
+   */
+  private normalizeTypeArrays(obj: unknown): unknown {
+    if (obj === null || typeof obj !== 'object') {
+      return obj;
+    }
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.normalizeTypeArrays(item));
+    }
+    const record = obj as Record<string, unknown>;
+    const result: Record<string, unknown> = {};
+    for (const key of Object.keys(record)) {
+      if (key === 'type' && Array.isArray(record[key]) && (record[key] as string[]).every(t => OAS_SCHEMA_TYPES.has(t))) {
+        const typeArray = record[key] as string[];
+        const nonNullTypes = typeArray.filter(t => t !== 'null');
+        result[key] = nonNullTypes.length === 1 ? nonNullTypes[0] : (OAS_TYPE_PRIORITY.find(t => nonNullTypes.includes(t)) ?? 'string');
+        if (typeArray.includes('null')) {
+          result['nullable'] = true;
+        }
+      } else {
+        result[key] = this.normalizeTypeArrays(record[key]);
+      }
+    }
+    return result;
+  }
+
+  private normalizeSpecPlugin(): SwaggerUIPlugin {
+    const normalize = (obj: unknown) => this.normalizeTypeArrays(obj);
+    return () => ({
+      statePlugins: {
+        spec: {
+          wrapActions: {
+            updateJsonSpec: (oriAction: (spec: Record<string, unknown>) => void) => (spec: Record<string, unknown>) => {
+              return oriAction(normalize(spec) as Record<string, unknown>);
+            },
+          },
+        },
+      },
+    });
+  }
+
+>>>>>>> dfdd2b3875 (fix(portal): normalize OAS 3.1 type arrays when show_url is enabled)
   private disabledTryItOutPlugin() {
     return {
       statePlugins: {
