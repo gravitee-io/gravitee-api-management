@@ -457,7 +457,7 @@ paths:
                                         to: "2026-06-11T00:00:00Z"
                                     filters:
                                         - name: "HTTP_STATUS"
-                                          operator: "GTE"
+                                          operator: "EQ"
                                           value: "500"
                                         - name: "HTTP_METHOD"
                                           operator: "IN"
@@ -542,7 +542,11 @@ paths:
                         A filter condition is invalid. Possible causes:
                         - Unknown filter name (`observability.filter.unknown_name`)
                         - Filter does not apply to the LOGS signal (`observability.filter.signal_mismatch`)
+                        - Operator not usable for this filter on log search (`observability.filter.unsupported_operator`). This
+                          covers operators absent from the catalog, and catalog operators not yet translated by log search —
+                          currently `HTTP_STATUS` `GTE`/`LTE` (range support is pending; use `EQ` meanwhile).
                         - Filter is valid for LOGS but not yet supported by log search (`observability.filter.search_translation_not_supported`)
+                        - A filter value is malformed or out of range (e.g. an `HTTP_STATUS` outside 100–599)
                         - `from` is after `to` in the time range
                     content:
                         application/json:
@@ -561,12 +565,23 @@ paths:
                                         httpStatus: 400
                                         message: "Filter 'GATEWAY' does not apply to signal LOGS"
                                         technicalCode: "observability.filter.signal_mismatch"
+                                unsupported-operator:
+                                    summary: Operator not usable for this filter on log search
+                                    value:
+                                        httpStatus: 400
+                                        message: "Operator 'GTE' is not supported yet for filter 'HTTP_STATUS'"
+                                        technicalCode: "observability.filter.unsupported_operator"
                                 search-translation-not-supported:
                                     summary: Filter valid for LOGS but not yet translated by log search
                                     value:
                                         httpStatus: 400
                                         message: "Filter 'HTTP_STATUS_CODE_GROUP' is not yet supported for log search"
                                         technicalCode: "observability.filter.search_translation_not_supported"
+                                invalid-filter-value:
+                                    summary: Malformed or out-of-range filter value
+                                    value:
+                                        httpStatus: 400
+                                        message: "Invalid HTTP status code: 1000. Must be between 100 and 599."
                                 invalid-time-range:
                                     summary: Invalid time range (from > to)
                                     value:
