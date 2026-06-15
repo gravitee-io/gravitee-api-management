@@ -1235,8 +1235,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             user.setUpdatedAt(new Date());
 
             // Set variant fields
-            if (updateUserEntity.getPicture() != null) {
-                user.setPicture(updateUserEntity.getPicture());
+            final String picture = updateUserEntity.getPicture();
+            if (picture != null) {
+                // An empty picture is an explicit request to remove it ("Use default").
+                user.setPicture(picture.isEmpty() ? null : picture);
             }
 
             if (updateUserEntity.getFirstname() != null) {
