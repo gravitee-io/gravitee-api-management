@@ -29,6 +29,7 @@ import {
   fakeNewFolderPortalNavigationItem,
   fakeNewLinkPortalNavigationItem,
   fakeNewApiPortalNavigationItem,
+  fakeUpdateFolderPortalNavigationItem,
 } from '../entities/management-api-v2';
 
 describe('PortalNavigationItemService', () => {
@@ -179,6 +180,62 @@ describe('PortalNavigationItemService', () => {
       });
       expect(req.request.body).toEqual({ ids });
       req.flush(null);
+    });
+  });
+
+  describe('updateNavigationItem', () => {
+    it('should update a navigation item without propagation query parameter by default', done => {
+      const updateItem = fakeUpdateFolderPortalNavigationItem();
+      const updatedItem = fakePortalNavigationFolder({ id: 'folder-1' });
+
+      service.updateNavigationItem(updatedItem.id, updateItem).subscribe(response => {
+        expect(response).toEqual(updatedItem);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${updatedItem.id}`,
+      });
+      expect(req.request.body).toEqual(updateItem);
+      expect(req.request.params.has('propagatePublishToChildren')).toBe(false);
+      req.flush(updatedItem);
+    });
+
+    it('should update a navigation item without propagation query parameter when disabled', done => {
+      const updateItem = fakeUpdateFolderPortalNavigationItem();
+      const updatedItem = fakePortalNavigationFolder({ id: 'folder-1' });
+
+      service.updateNavigationItem(updatedItem.id, updateItem, false).subscribe(response => {
+        expect(response).toEqual(updatedItem);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${updatedItem.id}`,
+      });
+      expect(req.request.body).toEqual(updateItem);
+      expect(req.request.params.has('propagatePublishToChildren')).toBe(false);
+      req.flush(updatedItem);
+    });
+
+    it('should update a navigation item with propagation query parameter when enabled', done => {
+      const updateItem = fakeUpdateFolderPortalNavigationItem();
+      const updatedItem = fakePortalNavigationFolder({ id: 'folder-1' });
+
+      service.updateNavigationItem(updatedItem.id, updateItem, true).subscribe(response => {
+        expect(response).toEqual(updatedItem);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${updatedItem.id}?propagatePublishToChildren=true`,
+      });
+      expect(req.request.body).toEqual(updateItem);
+      expect(req.request.params.get('propagatePublishToChildren')).toBe('true');
+      req.flush(updatedItem);
     });
   });
 });
