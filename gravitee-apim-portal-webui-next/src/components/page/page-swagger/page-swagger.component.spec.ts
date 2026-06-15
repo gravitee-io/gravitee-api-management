@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import SwaggerUI from 'swagger-ui';
 
 import { PageSwaggerComponent } from './page-swagger.component';
 import { fakePage } from '../../../entities/page/page.fixtures';
 import { AppTestingModule } from '../../../testing/app-testing.module';
 
 jest.mock('swagger-ui', () => jest.fn(() => ({ initOAuth: jest.fn() })));
+const SwaggerUIMock = jest.mocked(SwaggerUI);
 
 type WithNormalizeTypeArrays = { normalizeTypeArrays: (obj: unknown) => unknown };
 
@@ -69,6 +71,41 @@ describe('PageSwaggerComponent', () => {
     component.page = fakePage({ type: 'SWAGGER', content: undefined });
     component.ngOnChanges();
     expect(component).toBeTruthy();
+  });
+
+  describe('show_url normalization', () => {
+    it('should register normalizeSpecPlugin when show_url is enabled', () => {
+      SwaggerUIMock.mockClear();
+
+      component.page = fakePage({
+        type: 'SWAGGER',
+        content: '{}',
+        configuration: { show_url: true },
+        _links: { content: 'http://example.com/spec.json' },
+      });
+      component.ngOnChanges();
+
+      const options = SwaggerUIMock.mock.calls[0][0];
+      expect(options.url).toBe('http://example.com/spec.json');
+      expect(options.spec).toBeUndefined();
+      expect(options.plugins!.length).toBeGreaterThan(0);
+    });
+
+    it('should not register normalizeSpecPlugin when show_url is disabled', () => {
+      SwaggerUIMock.mockClear();
+
+      component.page = fakePage({
+        type: 'SWAGGER',
+        content: '{}',
+        configuration: { show_url: false },
+      });
+      component.ngOnChanges();
+
+      const options = SwaggerUIMock.mock.calls[0][0];
+      expect(options.url).toBeUndefined();
+      // Only disabledTryItOutPlugin and disabledAuthorizationPlugin should be present, not normalizeSpecPlugin
+      expect(options.plugins).toHaveLength(2);
+    });
   });
 
   describe('normalizeTypeArrays', () => {
