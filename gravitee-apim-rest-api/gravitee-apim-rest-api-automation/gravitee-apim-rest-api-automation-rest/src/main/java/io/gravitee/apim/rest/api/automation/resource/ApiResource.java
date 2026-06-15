@@ -79,6 +79,11 @@ public class ApiResource extends AbstractResource {
         return resourceContext.getResource(ApiSubscriptionsResource.class);
     }
 
+    @Path("documentations")
+    public ApiDocumentationsResource getDocumentationsResource() {
+        return resourceContext.getResource(ApiDocumentationsResource.class);
+    }
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
