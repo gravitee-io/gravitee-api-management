@@ -4,8 +4,8 @@
     "data_stream": {},
     "template": {
         "settings": {
-            <#if indexLifecyclePolicyEventMetrics??>"index.plugins.index_state_management.policy_id": "${indexLifecyclePolicyEventMetrics}",</#if>
-            <#if indexLifecyclePolicyEventMetrics??>"index.plugins.index_state_management.rollover_alias": "${indexName}",</#if>
+            <#if indexLifecyclePolicyEventMetrics?has_content>"index.plugins.index_state_management.policy_id": "${indexLifecyclePolicyEventMetrics}",</#if>
+            <#if indexLifecyclePolicyEventMetrics?has_content>"index.plugins.index_state_management.rollover_alias": "${indexName}",</#if>
             "index.number_of_shards":${numberOfShards},
             "index.number_of_replicas":${numberOfReplicas},
             "index.refresh_interval": "${refreshInterval}"

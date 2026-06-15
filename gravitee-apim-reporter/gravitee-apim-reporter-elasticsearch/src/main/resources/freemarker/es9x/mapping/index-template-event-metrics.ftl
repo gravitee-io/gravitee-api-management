@@ -4,8 +4,8 @@
     "data_stream": {},
     "template": {
         "settings": {
-            <#if indexLifecyclePolicyEventMetrics??>"index.lifecycle.name": "${indexLifecyclePolicyEventMetrics}",</#if>
-            <#if indexLifecyclePolicyEventMetrics??>"index.lifecycle.rollover_alias": "${indexName}",</#if>
+            <#if indexLifecyclePolicyEventMetrics?has_content>"index.lifecycle.name": "${indexLifecyclePolicyEventMetrics}",</#if>
+            <#if indexLifecyclePolicyEventMetrics?has_content>"index.lifecycle.rollover_alias": "${indexName}",</#if>
             "index.number_of_shards":${numberOfShards},
             "index.number_of_replicas":${numberOfReplicas},
             "index.refresh_interval": "${refreshInterval}"

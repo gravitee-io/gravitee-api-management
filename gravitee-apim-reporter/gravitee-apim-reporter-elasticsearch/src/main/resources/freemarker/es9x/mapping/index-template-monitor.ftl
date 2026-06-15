@@ -3,8 +3,8 @@
     "index_patterns": ["${indexName}*"],
     "template": {
         "settings": {
-            <#if indexLifecyclePolicyMonitor??>"${indexLifecyclePolicyPropertyName}": "${indexLifecyclePolicyMonitor}",</#if>
-            <#if indexLifecyclePolicyMonitor??>"index.lifecycle.rollover_alias": "${indexName}",</#if>
+            <#if indexLifecyclePolicyMonitor?has_content && indexLifecyclePolicyPropertyName?has_content>"${indexLifecyclePolicyPropertyName}": "${indexLifecyclePolicyMonitor}",</#if>
+            <#if indexLifecyclePolicyMonitor?has_content && indexLifecycleRolloverAliasPropertyName?has_content>"${indexLifecycleRolloverAliasPropertyName}": "${indexName}",</#if>
             "index.number_of_shards":${numberOfShards},
             "index.number_of_replicas":${numberOfReplicas},
             "index.refresh_interval": "${refreshInterval}"
