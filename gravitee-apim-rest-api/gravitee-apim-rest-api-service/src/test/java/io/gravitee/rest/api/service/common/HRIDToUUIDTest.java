@@ -246,6 +246,58 @@ class HRIDToUUIDTest {
     }
 
     @Nested
+    class ApiDocumentation {
+
+        @Test
+        void should_generate_same_id_for_same_inputs() {
+            assertThat(HRIDToUUID.apiDocumentation().context(AUDIT).api("my-api").hrid("my-doc").id()).isEqualTo(
+                HRIDToUUID.apiDocumentation().context(AUDIT).api("my-api").hrid("my-doc").id()
+            );
+        }
+
+        @Test
+        void should_generate_different_id_for_different_doc_hrid() {
+            assertThat(HRIDToUUID.apiDocumentation().context(AUDIT).api("my-api").hrid("doc-a").id()).isNotEqualTo(
+                HRIDToUUID.apiDocumentation().context(AUDIT).api("my-api").hrid("doc-b").id()
+            );
+        }
+
+        @Test
+        void should_generate_different_id_for_different_api_hrid() {
+            assertThat(HRIDToUUID.apiDocumentation().context(AUDIT).api("api-a").hrid("doc").id()).isNotEqualTo(
+                HRIDToUUID.apiDocumentation().context(AUDIT).api("api-b").hrid("doc").id()
+            );
+        }
+
+        @Test
+        void should_produce_same_result_from_audit_info_and_execution_context() {
+            assertThat(HRIDToUUID.apiDocumentation().context(AUDIT).api("api").hrid("doc").id()).isEqualTo(
+                HRIDToUUID.apiDocumentation().context(EXEC_CTX).api("api").hrid("doc").id()
+            );
+        }
+
+        @Test
+        void should_not_collide_with_api_top_level_id() {
+            // The literal "api" discriminant in ApiSubResourceWithContext.api(...) prevents api-doc ids
+            // from colliding with top-level api ids that share the same hrid grammar.
+            String apiId = HRIDToUUID.api().context(AUDIT).hrid("my-api").id();
+            String docId = HRIDToUUID.apiDocumentation().context(AUDIT).api("my-api").hrid("my-api").id();
+            assertThat(apiId).isNotEqualTo(docId);
+        }
+
+        @Test
+        void should_not_collide_with_other_api_sub_resources() {
+            // The literal "api" discriminant also separates api-doc ids from plan/page/subscription ids
+            // that share the (apiHrid, hrid) shape.
+            String planId = HRIDToUUID.plan().context(AUDIT).api("my-api").plan("x").id();
+            String pageId = HRIDToUUID.page().context(AUDIT).api("my-api").page("x").id();
+            String subId = HRIDToUUID.subscription().context(AUDIT).api("my-api").subscription("x").id();
+            String docId = HRIDToUUID.apiDocumentation().context(AUDIT).api("my-api").hrid("x").id();
+            assertThat(docId).isNotEqualTo(planId).isNotEqualTo(pageId).isNotEqualTo(subId);
+        }
+    }
+
+    @Nested
     class CrossResourceConsistency {
 
         @Test

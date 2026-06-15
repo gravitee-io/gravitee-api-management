@@ -20,15 +20,22 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 /**
  * Fluent DSL for generating deterministic UUIDs from HRIDs.
  * <p>
- * Top-level resources (API, Application, SharedPolicyGroup, Group) produce both {@code id()} and {@code crossId()}.
+ * Top-level resources (API, Application, SharedPolicyGroup, Group, Portal) produce both {@code id()} and
+ * {@code crossId()}.
  * Sub-resources (Plan, Page, Subscription) are scoped to a parent API and only produce {@code id()}.
- * Portal sub-resources (Portal Listing) are scoped to a parent Portal and only produce {@code id()}.
+ * Portal sub-resources (Portal Listing, Portal Documentation) are scoped to a parent Portal and only produce
+ * {@code id()}.
+ * API sub-resources (API Documentation) are scoped to a parent API (literal {@code "api"} discriminant in the
+ * cross-id prevents collisions with top-level api ids and other api sub-resources sharing the same hrid grammar)
+ * and only produce {@code id()}.
  * <p>
  * Examples:
  * <pre>
  * HRIDToUUID.api().context(audit).hrid("my-api").id()
  * HRIDToUUID.plan().context(audit).api("my-api").plan("my-plan").id()
  * HRIDToUUID.portalListing().context(audit).portal("my-portal").hrid("my-listing").id()
+ * HRIDToUUID.portalDocumentation().context(audit).portal("my-portal").hrid("my-doc").id()
+ * HRIDToUUID.apiDocumentation().context(audit).api("my-api").hrid("my-doc").id()
  * </pre>
  *
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
@@ -84,6 +91,10 @@ public final class HRIDToUUID {
 
     public static PortalSubResourceBuilder portalDocumentation() {
         return new PortalSubResourceBuilder();
+    }
+
+    public static ApiSubResourceBuilder apiDocumentation() {
+        return new ApiSubResourceBuilder();
     }
 
     public static class TopLevelBuilder {
@@ -209,6 +220,35 @@ public final class HRIDToUUID {
     public record PortalSubResourceResult(String portalCrossId, String environmentId, String hrid) {
         public String id() {
             return UuidString.generateFrom(portalCrossId, environmentId, hrid);
+        }
+    }
+
+    public static class ApiSubResourceBuilder {
+
+        public ApiSubResourceWithContext context(AuditInfo audit) {
+            return new ApiSubResourceWithContext(audit.organizationId(), audit.environmentId());
+        }
+
+        public ApiSubResourceWithContext context(ExecutionContext ctx) {
+            return new ApiSubResourceWithContext(ctx.getOrganizationId(), ctx.getEnvironmentId());
+        }
+    }
+
+    public record ApiSubResourceWithContext(String organizationId, String environmentId) {
+        public ApiSubResourceWithApi api(String apiHrid) {
+            return new ApiSubResourceWithApi(UuidString.generateFrom(organizationId, "api", apiHrid), environmentId);
+        }
+    }
+
+    public record ApiSubResourceWithApi(String apiCrossId, String environmentId) {
+        public ApiSubResourceResult hrid(String hrid) {
+            return new ApiSubResourceResult(apiCrossId, environmentId, hrid);
+        }
+    }
+
+    public record ApiSubResourceResult(String apiCrossId, String environmentId, String hrid) {
+        public String id() {
+            return UuidString.generateFrom(apiCrossId, environmentId, hrid);
         }
     }
 }

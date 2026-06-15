@@ -154,13 +154,17 @@ import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQuer
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
 import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationItemsUseCase;
+import io.gravitee.apim.core.portal_page.use_case.CreateOrUpdateApiDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreateOrUpdatePortalDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
+import io.gravitee.apim.core.portal_page.use_case.DeleteApiDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.DeletePortalDocumentationUseCase;
+import io.gravitee.apim.core.portal_page.use_case.GetApiDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
+import io.gravitee.apim.core.portal_page.use_case.ValidateApiDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ValidatePortalDocumentationUseCase;
 import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
 import io.gravitee.apim.core.promotion.use_case.CreatePromotionUseCase;
@@ -1360,5 +1364,25 @@ public class ResourceContextConfiguration {
     @Bean
     public ValidatePortalDocumentationUseCase validatePortalDocumentationUseCase() {
         return mock(ValidatePortalDocumentationUseCase.class);
+    }
+
+    @Bean
+    public CreateOrUpdateApiDocumentationUseCase createOrUpdateApiDocumentationUseCase() {
+        return mock(CreateOrUpdateApiDocumentationUseCase.class);
+    }
+
+    @Bean
+    public GetApiDocumentationUseCase getApiDocumentationUseCase() {
+        return mock(GetApiDocumentationUseCase.class);
+    }
+
+    @Bean
+    public DeleteApiDocumentationUseCase deleteApiDocumentationUseCase() {
+        return mock(DeleteApiDocumentationUseCase.class);
+    }
+
+    @Bean
+    public ValidateApiDocumentationUseCase validateApiDocumentationUseCase() {
+        return mock(ValidateApiDocumentationUseCase.class);
     }
 }
