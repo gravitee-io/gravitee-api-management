@@ -197,11 +197,6 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
           routerLink: './clusters/kafka-clusters',
           category: 'Kafka',
         },
-        {
-          displayName: 'Virtual Clusters',
-          routerLink: './clusters/kafka-virtual-clusters',
-          category: 'Kafka',
-        },
       ],
     });
 
