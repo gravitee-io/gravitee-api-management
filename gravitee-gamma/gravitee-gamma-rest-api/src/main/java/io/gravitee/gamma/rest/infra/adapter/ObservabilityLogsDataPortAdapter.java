@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.infra.adapter;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.gateway.model.BaseInstance;
 import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
@@ -30,6 +31,9 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
+import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
+import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
+import io.gravitee.gamma.rest.core.observability.logs.model.ApiReference;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntryWarning;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsPage;
@@ -65,6 +69,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
  */
 @RequiredArgsConstructor
 public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPort {
+
+    /**
+     * Inclusive HTTP status bounds, sourced from the unified catalog ({@link StaticFilters#HTTP_STATUS})
+     * so the adapter and the advertised filter range never drift apart. Used both to validate incoming
+     * status values and to bound {@code GTE}/{@code LTE} range expansion.
+     */
+    private static final FilterSpec.Range HTTP_STATUS_RANGE = StaticFilters.HTTP_STATUS.toSpec().range();
+    private static final int HTTP_STATUS_MIN = HTTP_STATUS_RANGE.min().intValue();
+    private static final int HTTP_STATUS_MAX = HTTP_STATUS_RANGE.max().intValue();
 
     private final ConnectionLogsCrudService connectionLogsCrudService;
     private final UserContextLoader userContextLoader;
@@ -103,7 +116,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
 
         var entries = rawEntries
             .stream()
-            .map(log -> mapToLogEntry(log, query.apiNamesById()))
+            .map(log -> mapToLogEntry(log, query.apisById()))
             .toList();
         var enriched = enrichWithNames(executionContext, entries);
 
@@ -137,15 +150,22 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                 case "APPLICATION" -> applicationIds.addAll(values);
                 case "PLAN" -> planIds.addAll(values);
                 case "HTTP_METHOD" -> methods.addAll(values.stream().map(this::toHttpMethod).toList());
-                case "HTTP_STATUS" -> statuses.addAll(values.stream().map(Integer::valueOf).toList());
+                case "HTTP_STATUS" -> addStatusFilter(condition, values, statuses);
                 case "URI" -> {
                     if (!values.isEmpty()) uri = values.getFirst();
                 }
                 case "HTTP_GATEWAY_RESPONSE_TIME" -> {
                     if (!values.isEmpty()) {
                         long val = Long.parseLong(values.getFirst());
-                        if (condition.operator() == FilterOperator.GTE) responseTimeFrom = val;
-                        else if (condition.operator() == FilterOperator.LTE) responseTimeTo = val;
+                        switch (condition.operator()) {
+                            case GTE -> responseTimeFrom = val;
+                            case LTE -> responseTimeTo = val;
+                            case EQ -> {
+                                responseTimeFrom = val;
+                                responseTimeTo = val;
+                            }
+                            default -> throw unexpectedOperator("HTTP_GATEWAY_RESPONSE_TIME", condition.operator());
+                        }
                     }
                 }
                 case "ENTRYPOINT" -> entrypointIds.addAll(values);
@@ -178,10 +198,12 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         return builder.build();
     }
 
-    private LogEntry mapToLogEntry(BaseConnectionLog log, Map<String, String> apiNamesById) {
+    private LogEntry mapToLogEntry(BaseConnectionLog log, Map<String, ApiReference> apisById) {
+        var apiRef = apisById != null ? apisById.get(log.getApiId()) : null;
         return LogEntry.builder()
             .apiId(log.getApiId())
-            .apiName(apiNamesById.getOrDefault(log.getApiId(), null))
+            .apiName(apiRef != null ? apiRef.name() : null)
+            .apiType(apiRef != null ? apiRef.apiType() : null)
             .timestamp(parseTimestamp(log.getTimestamp()))
             .requestId(log.getRequestId())
             .method(log.getMethod() != null ? log.getMethod().name() : null)
@@ -248,13 +270,23 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .map(entry ->
                 entry
                     .toBuilder()
-                    .planName(planNameById.get(entry.planId()))
-                    .applicationName(appNameById.get(entry.applicationId()))
-                    .gatewayHostname(gatewayHostnameById.get(entry.gateway()))
-                    .apiProductName(entry.apiProductId() == null ? "Standalone API" : apiProductNameById.get(entry.apiProductId()))
+                    .planName(lookup(planNameById, entry.planId()))
+                    .applicationName(lookup(appNameById, entry.applicationId()))
+                    .gatewayHostname(lookup(gatewayHostnameById, entry.gateway()))
+                    .apiProductName(entry.apiProductId() == null ? "Standalone API" : lookup(apiProductNameById, entry.apiProductId()))
                     .build()
             )
             .toList();
+    }
+
+    /**
+     * Null-safe map lookup: the enrichment maps fall back to {@link Map#of()} (immutable, which throws
+     * on {@code get(null)}) when there is nothing to resolve, and a log row may carry a null
+     * plan/application/gateway id (e.g. anonymous calls). Guarding here keeps a single missing id from
+     * failing the whole search.
+     */
+    private static String lookup(Map<String, String> namesById, String id) {
+        return id == null ? null : namesById.get(id);
     }
 
     private static Instant parseTimestamp(String timestamp) {
@@ -288,6 +320,54 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .stream()
             .map(w -> new LogEntryWarning(w.getComponentType(), w.getComponentName(), w.getKey(), w.getMessage()))
             .toList();
+    }
+
+    /**
+     * Translates an {@code HTTP_STATUS} condition into the logs engine's discrete status set. The
+     * unified catalog advertises {@code EQ}/{@code GTE}/{@code LTE} for this NUMBER filter, but the
+     * logs backend ({@link SearchLogsFilters#statuses()}) only matches discrete codes today, so only
+     * {@code EQ} is translated here. Range operators ({@code GTE}/{@code LTE}) are explicitly rejected
+     * (400) for now rather than silently mistranslated; they will be wired through an ES {@code range}
+     * (shared with {@code HTTP_STATUS_CODE_GROUP}) by GMA-683 — deliberately not via integer expansion,
+     * to avoid a divergent status-translation implementation.
+     */
+    private static void addStatusFilter(FilterCondition condition, List<String> values, Set<Integer> statuses) {
+        if (values.isEmpty()) {
+            return;
+        }
+        if (condition.operator() != FilterOperator.EQ) {
+            throw UnsupportedObservabilityFilterException.unsupportedOperator("HTTP_STATUS", condition.operator().name());
+        }
+        values.forEach(value -> statuses.add(parseHttpStatus(value)));
+    }
+
+    private static int parseHttpStatus(String value) {
+        if (value == null) {
+            throw new ValidationDomainException("Invalid HTTP status code value: null");
+        }
+        int status;
+        try {
+            status = Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            throw new ValidationDomainException("Invalid HTTP status code value: " + value);
+        }
+        if (status < HTTP_STATUS_MIN || status > HTTP_STATUS_MAX) {
+            throw new ValidationDomainException(
+                "Invalid HTTP status code: " + value + ". Must be between " + HTTP_STATUS_MIN + " and " + HTTP_STATUS_MAX + "."
+            );
+        }
+        return status;
+    }
+
+    /**
+     * Defensive guard: the use case already validates each condition's operator against the catalog
+     * via {@code ObservabilityFilterValidator}, so reaching this means the catalog advertises an
+     * operator the translation does not yet handle — a programming error, not a client error.
+     */
+    private static IllegalStateException unexpectedOperator(String filterName, FilterOperator operator) {
+        return new IllegalStateException(
+            "Operator " + operator + " for filter '" + filterName + "' should have been rejected by filter validation"
+        );
     }
 
     private static io.gravitee.apim.core.audit.model.AuditInfo currentAuditInfo(String organizationId, String environmentId) {

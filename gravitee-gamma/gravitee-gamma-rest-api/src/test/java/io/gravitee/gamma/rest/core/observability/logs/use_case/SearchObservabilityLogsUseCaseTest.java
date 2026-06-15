@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
@@ -71,7 +72,8 @@ class SearchObservabilityLogsUseCaseTest {
     @BeforeEach
     void setUp() {
         accessibleApiScope = new AccessibleApiScopeDomainService();
-        useCase = new SearchObservabilityLogsUseCase(logsDataPort, filterRegistry, accessibleApiScope);
+        var filterValidator = new ObservabilityFilterValidator(filterRegistry);
+        useCase = new SearchObservabilityLogsUseCase(logsDataPort, filterValidator, accessibleApiScope);
 
         when(filterRegistry.getFilters(any(), any())).thenReturn(
             List.of(
@@ -196,6 +198,16 @@ class SearchObservabilityLogsUseCaseTest {
         @Test
         void should_reject_filter_whose_signals_exclude_logs() {
             var filters = List.of(new FilterCondition("GATEWAY", FilterOperator.EQ, List.of("gw-1")));
+
+            assertThatThrownBy(() ->
+                useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, null, null, 1, 20))
+            ).isInstanceOf(UnsupportedObservabilityFilterException.class);
+            verifyNoInteractions(logsDataPort);
+        }
+
+        @Test
+        void should_reject_operator_not_advertised_by_the_catalog() {
+            var filters = List.of(new FilterCondition("HTTP_STATUS", FilterOperator.CONTAINS, List.of("200")));
 
             assertThatThrownBy(() ->
                 useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, null, null, 1, 20))

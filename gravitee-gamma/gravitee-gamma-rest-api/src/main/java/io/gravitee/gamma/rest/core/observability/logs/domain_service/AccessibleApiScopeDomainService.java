@@ -17,6 +17,7 @@ package io.gravitee.gamma.rest.core.observability.logs.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
+import io.gravitee.gamma.rest.core.observability.logs.model.ApiReference;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +37,12 @@ import java.util.stream.Collectors;
 @DomainService
 public class AccessibleApiScopeDomainService {
 
-    public record ScopedApis(Set<String> apiIds, Map<String, String> apiNamesById) {}
+    /**
+     * @param apiIds   The accessible API ids in scope.
+     * @param apisById Per-API enrichment context (display name + canonical wire {@code apiType}),
+     *                 keyed by API id.
+     */
+    public record ScopedApis(Set<String> apiIds, Map<String, ApiReference> apisById) {}
 
     /**
      * @param accessibleApis   All APIs the caller can read (from the data port).
@@ -57,8 +63,16 @@ public class AccessibleApiScopeDomainService {
 
         var apiList = filtered.toList();
         var ids = apiList.stream().map(AccessibleApi::id).collect(Collectors.toSet());
-        var names = apiList.stream().collect(Collectors.toMap(AccessibleApi::id, AccessibleApi::name, (a, b) -> a));
+        var apisById = apiList
+            .stream()
+            .collect(Collectors.toMap(AccessibleApi::id, AccessibleApiScopeDomainService::toReference, (a, b) -> a));
 
-        return new ScopedApis(ids, names);
+        return new ScopedApis(ids, apisById);
+    }
+
+    private static ApiReference toReference(AccessibleApi api) {
+        // apiType is emitted as the canonical enum name (uppercase, e.g. "HTTP_PROXY") to match the
+        // documented log-row contract and the API_TYPE filter values.
+        return new ApiReference(api.name(), api.type() != null ? api.type().name() : null);
     }
 }
