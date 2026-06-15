@@ -26,22 +26,17 @@ import io.gravitee.rest.api.management.v2.rest.model.UpdateGenericApiProductPlan
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
-import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
-import org.mapstruct.NullValueMappingStrategy;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(
-    uses = { ConfigurationSerializationMapper.class, DateMapper.class, FlowMapper.class },
-    nullValueIterableMappingStrategy = NullValueMappingStrategy.RETURN_DEFAULT
-)
+@Mapper(uses = { ConfigurationSerializationMapper.class, DateMapper.class, FlowMapper.class })
 public interface ApiProductPlanMapper {
     ApiProductPlanMapper INSTANCE = Mappers.getMapper(ApiProductPlanMapper.class);
 
@@ -104,17 +99,14 @@ public interface ApiProductPlanMapper {
     BasePlan map(GenericPlanEntity plan);
 
     @Mapping(target = "securityConfiguration", source = "security.configuration", qualifiedByName = "serializeConfiguration")
+    @Mapping(target = "tags", source = "tags", qualifiedByName = "mapPlanUpdateTags")
     PlanUpdates mapToPlanUpdates(UpdateGenericApiProductPlan updatePlanV4);
 
-    /**
-     * API Products don't send tags in update requests. Set tags to empty set so PlanUpdates.applyTo()
-     * receives non-null and sets result to empty (matching DB), avoiding false deploy banner on cosmetic changes.
-     */
-    @AfterMapping
-    @SuppressWarnings("unused")
-    default void setEmptyTagsForApiProductUpdate(UpdateGenericApiProductPlan source, @MappingTarget PlanUpdates target) {
-        if (target.getTags() == null) {
-            target.setTags(Collections.emptySet());
+    @Named("mapPlanUpdateTags")
+    default Set<String> mapPlanUpdateTags(List<String> tags) {
+        if (CollectionUtils.isEmpty(tags)) {
+            return null;
         }
+        return new HashSet<>(tags);
     }
 }

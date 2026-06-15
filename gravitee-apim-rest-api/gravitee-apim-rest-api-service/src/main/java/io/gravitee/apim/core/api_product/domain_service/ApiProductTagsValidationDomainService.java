@@ -13,25 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api_product.model;
+package io.gravitee.apim.core.api_product.domain_service;
 
-import java.util.List;
 import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class CreateApiProduct {
-
-    private String name;
-    private String description;
-    private String version;
-    private List<String> apiIds;
-    private Set<String> tags;
+public interface ApiProductTagsValidationDomainService {
+    void validateAndSanitize(String organizationId, String environmentId, Set<String> existingTags, Set<String> newTags);
 }

@@ -21,6 +21,7 @@ import static java.util.stream.Collectors.toSet;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductTagDomainService;
 import io.gravitee.apim.core.api_product.domain_service.DeployApiProductDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
@@ -65,6 +66,7 @@ public class CreateApiProductUseCase {
     private final NotificationConfigCrudService notificationConfigCrudService;
     private final DeployApiProductDomainService deployApiProductDomainService;
     private final GroupQueryService groupQueryService;
+    private final ApiProductTagDomainService apiProductTagDomainService;
 
     public record Input(CreateApiProduct createApiProduct, AuditInfo auditInfo) {}
 
@@ -84,6 +86,8 @@ public class CreateApiProductUseCase {
         }
 
         Set<String> apiIds = apiIdsList == null || apiIdsList.isEmpty() ? Set.of() : Set.copyOf(apiIdsList);
+        Set<String> tags = payload.getTags() != null ? Set.copyOf(payload.getTags()) : null;
+        apiProductTagDomainService.validateTagsOnCreate(auditInfo, tags);
 
         ApiProduct apiProduct = ApiProduct.builder()
             .id(UuidString.generateRandom())
@@ -92,6 +96,7 @@ public class CreateApiProductUseCase {
             .description(payload.getDescription())
             .version(payload.getVersion())
             .apiIds(apiIds)
+            .tags(tags)
             .createdAt(now)
             .updatedAt(now)
             .build();

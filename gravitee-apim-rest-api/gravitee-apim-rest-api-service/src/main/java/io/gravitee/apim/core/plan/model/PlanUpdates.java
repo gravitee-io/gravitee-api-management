@@ -69,7 +69,9 @@ public class PlanUpdates {
             .referenceType(oldPlan.getReferenceType())
             .build();
 
-        result.setPlanTags(tags);
+        if (tags != null) {
+            result.setPlanTags(tags);
+        }
         var definition = result.getPlanDefinitionV4();
         definition.setSelectionRule(selectionRule);
         if (definition.getSecurity() != null) {
