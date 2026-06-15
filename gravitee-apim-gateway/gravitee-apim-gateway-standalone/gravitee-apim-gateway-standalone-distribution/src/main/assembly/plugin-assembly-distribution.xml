@@ -95,6 +95,15 @@
         </fileSet>
 
         <fileSet>
+            <directory>src/main/resources/models</directory>
+            <outputDirectory>models</outputDirectory>
+            <excludes>
+                <exclude>*</exclude>
+            </excludes>
+            <fileMode>644</fileMode>
+        </fileSet>
+
+        <fileSet>
             <directory>src/main/resources/plugins</directory>
             <outputDirectory>plugins</outputDirectory>
             <includes>
