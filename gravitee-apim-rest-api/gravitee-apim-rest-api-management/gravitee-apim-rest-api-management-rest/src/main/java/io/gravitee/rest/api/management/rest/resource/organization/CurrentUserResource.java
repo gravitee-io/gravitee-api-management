@@ -296,12 +296,14 @@ public class CurrentUserResource extends AbstractResource {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         UserEntity userEntity = userService.findById(executionContext, getAuthenticatedUser());
         try {
-            if (user.getPicture() != null) {
-                user.setPicture(ImageUtils.verifyAndRescale(user.getPicture()).toBase64());
-            } else {
-                // preserve the picture if the input picture is empty
+            final String picture = user.getPicture();
+            if (picture != null && !picture.isEmpty()) {
+                user.setPicture(ImageUtils.verifyAndRescale(picture).toBase64());
+            } else if (picture == null) {
+                // preserve the picture when no picture is provided
                 user.setPicture(userEntity.getPicture());
             }
+            // an empty picture is an explicit request to remove it ("Use default"): leave it empty
         } catch (InvalidImageException e) {
             throw new BadRequestException("Invalid image format : " + e.getMessage());
         }

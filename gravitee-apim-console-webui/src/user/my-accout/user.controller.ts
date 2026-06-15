@@ -63,7 +63,23 @@ class UserController {
     }
   }
 
+  $onChanges(changes: angular.IOnChangesObject) {
+    // After a save, the parent reloads the current user and rebinds it here. Recompute the picture
+    // URL so it picks up the refreshed (cache-busted) avatar URL and the new image is shown without
+    // requiring a hard page refresh.
+    if (changes.user && this.user) {
+      const pictureUrl = this.getUserPicture();
+      this.originalPicture = pictureUrl;
+      this.user.picture_url = pictureUrl;
+    }
+  }
+
   save() {
+    // "Use default" clears the picture URL that was present on load. Translate that into an explicit
+    // empty string so the backend removes the avatar — a null/absent picture means "leave unchanged".
+    if (this.originalPicture && this.user.picture == null && this.user.picture_url == null) {
+      this.user.picture = '';
+    }
     this.UserService.save(this.user)
       .then(() => {
         this.NotificationService.show('User has been updated successfully');
