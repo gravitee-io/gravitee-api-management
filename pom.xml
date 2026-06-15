@@ -307,9 +307,15 @@
         <gravitee-resource-schema-registry-embedded.version>1.0.0-alpha.1</gravitee-resource-schema-registry-embedded.version>
         <gravitee-resource-storage-azure-blob.version>1.1.0</gravitee-resource-storage-azure-blob.version>
         <gravitee-reactor-message.version>11.0.0-alpha.4</gravitee-reactor-message.version>
+<<<<<<< HEAD
         <gravitee-reactor-native-kafka.version>7.0.0-alpha.23</gravitee-reactor-native-kafka.version>
         <gravitee-reactor-mcp-proxy.version>3.0.0-feat-mcp-studio-schema-SNAPSHOT</gravitee-reactor-mcp-proxy.version>
         <gravitee-reactor-llm-proxy.version>3.0.0-alpha.6</gravitee-reactor-llm-proxy.version>
+=======
+        <gravitee-reactor-native-kafka.version>7.0.0-alpha.20</gravitee-reactor-native-kafka.version>
+        <gravitee-reactor-mcp-proxy.version>3.0.0-alpha.9</gravitee-reactor-mcp-proxy.version>
+        <gravitee-reactor-llm-proxy.version>3.0.0-alpha.7</gravitee-reactor-llm-proxy.version>
+>>>>>>> ca921f0f54 (chore: bump mcp proxy reactor to 3.0.0-alpha.9)
         <gravitee-reactor-a2a-proxy.version>1.0.0</gravitee-reactor-a2a-proxy.version>
         <gravitee-reactor-edge.version>1.0.0-alpha.9</gravitee-reactor-edge.version>
         <gravitee-resource-ai-vector-store-redis.version>2.0.0-alpha.1</gravitee-resource-ai-vector-store-redis.version>
