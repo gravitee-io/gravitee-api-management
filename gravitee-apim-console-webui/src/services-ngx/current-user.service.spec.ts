@@ -19,6 +19,7 @@ import { TestBed } from '@angular/core/testing';
 import { CurrentUserService } from './current-user.service';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
+import { User } from '../entities/user/user';
 
 describe('CurrentUserService', () => {
   let httpTestingController: HttpTestingController;
@@ -52,6 +53,31 @@ describe('CurrentUserService', () => {
           url: `${CONSTANTS_TESTING.org.baseURL}/user/tags`,
         })
         .flush(fakeTags);
+    });
+  });
+
+  describe('getUserPictureUrl', () => {
+    const user = { id: 'user-id' } as User;
+
+    it('should point at the avatar endpoint with a stable cache-bust token by default', () => {
+      const url = currentUserService.getUserPictureUrl(user);
+
+      expect(url).toContain(`${CONSTANTS_TESTING.org.baseURL}/user/avatar`);
+      expect(url).toContain('cacheBust=0');
+    });
+
+    it('should change the cache-bust token after updateCurrent so the browser re-fetches the avatar', () => {
+      const before = currentUserService.getUserPictureUrl(user);
+
+      currentUserService.updateCurrent();
+
+      const after = currentUserService.getUserPictureUrl(user);
+      expect(after).not.toEqual(before);
+      expect(after).not.toContain('cacheBust=0');
+    });
+
+    it('should return undefined when the user has no id', () => {
+      expect(currentUserService.getUserPictureUrl({} as User)).toBeUndefined();
     });
   });
 });

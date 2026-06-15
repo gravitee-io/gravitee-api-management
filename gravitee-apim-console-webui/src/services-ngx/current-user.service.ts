@@ -28,6 +28,10 @@ import { hashStringToCode } from '../services/string.service';
 export class CurrentUserService {
   private updateCurrentUser$ = new Subject<void>();
   private currentUser: Observable<User> | null;
+  // Cache-busting token for the avatar URL. Stays stable across navigations (so the browser can
+  // cache the avatar) and only changes when the current user is refreshed after an update, forcing
+  // the browser to re-fetch the new picture instead of serving the cached one.
+  private avatarCacheBust = 0;
 
   constructor(
     private readonly http: HttpClient,
@@ -51,7 +55,7 @@ export class CurrentUserService {
 
   getUserPictureUrl(user: User): string {
     if (user && user.id) {
-      return `${this.constants.org.baseURL}/user/avatar?${hashStringToCode(user.id)}`;
+      return `${this.constants.org.baseURL}/user/avatar?${hashStringToCode(user.id)}&cacheBust=${this.avatarCacheBust}`;
     }
   }
 
@@ -59,6 +63,8 @@ export class CurrentUserService {
     this.currentUser = null;
   }
   updateCurrent() {
+    // Bust the avatar cache so consumers rebuild the picture URL and re-fetch the new image.
+    this.avatarCacheBust = Date.now();
     this.updateCurrentUser$.next();
   }
 }

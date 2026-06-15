@@ -34,7 +34,9 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.UpdateUserEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,6 +46,7 @@ import java.util.Map;
 import java.util.Set;
 import org.junit.AfterClass;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -202,6 +205,53 @@ public class CurrentUserResourceTest extends AbstractResourceTest {
         final Response response = orgTarget().path("/login").request().post(null);
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.UNAUTHORIZED_401);
         assertThat(response.readEntity(Object.class)).isNull();
+    }
+
+    @Test
+    public void shouldRemovePictureWhenEmptyPictureProvided() {
+        Mockito.reset(userService);
+
+        final UserDetails userDetails = new UserDetails(USER_NAME, "PASSWORD", Collections.emptyList());
+        userDetails.setId(ID);
+        setCurrentUserDetails(new Date(), userDetails);
+
+        final UserEntity existing = new UserEntity();
+        existing.setId(ID);
+        existing.setPicture("data:image/png;base64,EXISTING");
+        when(userService.findById(any(), eq(USER_NAME))).thenReturn(existing);
+        when(userService.update(any(), eq(ID), any(UpdateUserEntity.class))).thenReturn(existing);
+
+        final Response response = orgTarget().request().put(Entity.json(Map.of("picture", "")));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+
+        final ArgumentCaptor<UpdateUserEntity> captor = ArgumentCaptor.forClass(UpdateUserEntity.class);
+        verify(userService).update(any(), eq(ID), captor.capture());
+        // An empty picture is forwarded untouched (not "preserved") so the service can clear it.
+        assertThat(captor.getValue().getPicture()).isEmpty();
+    }
+
+    @Test
+    public void shouldPreserveExistingPictureWhenNoPictureProvided() {
+        Mockito.reset(userService);
+
+        final UserDetails userDetails = new UserDetails(USER_NAME, "PASSWORD", Collections.emptyList());
+        userDetails.setId(ID);
+        setCurrentUserDetails(new Date(), userDetails);
+
+        final UserEntity existing = new UserEntity();
+        existing.setId(ID);
+        existing.setPicture("data:image/png;base64,EXISTING");
+        when(userService.findById(any(), eq(USER_NAME))).thenReturn(existing);
+        when(userService.update(any(), eq(ID), any(UpdateUserEntity.class))).thenReturn(existing);
+
+        final Response response = orgTarget().request().put(Entity.json(Map.of("firstname", "paula")));
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+
+        final ArgumentCaptor<UpdateUserEntity> captor = ArgumentCaptor.forClass(UpdateUserEntity.class);
+        verify(userService).update(any(), eq(ID), captor.capture());
+        assertThat(captor.getValue().getPicture()).isEqualTo("data:image/png;base64,EXISTING");
     }
 
     private void setCurrentUserDetails(Date now, final UserDetails userDetails) {
