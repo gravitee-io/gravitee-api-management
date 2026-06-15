@@ -34,6 +34,9 @@ class UserService {
    */
   public currentUser: User;
   private isLogout = false;
+  // Cache-busting token for the avatar URL. Stays 0 (stable, cacheable) until the user saves their
+  // profile, then changes so the browser re-fetches the updated picture instead of the cached one.
+  private avatarCacheBust = 0;
 
   constructor(
     private $http: ng.IHttpService,
@@ -241,7 +244,7 @@ class UserService {
 
   currentUserPicture(): string {
     if (this.currentUser && this.currentUser.id) {
-      return `${this.Constants.org.baseURL}/user/avatar?${this.StringService.hashCode(this.currentUser.id)}`;
+      return `${this.Constants.org.baseURL}/user/avatar?${this.StringService.hashCode(this.currentUser.id)}&cacheBust=${this.avatarCacheBust}`;
     }
   }
 
@@ -261,15 +264,22 @@ class UserService {
   }
 
   save(user): ng.IPromise<any> {
-    return this.$http.put(`${this.Constants.org.baseURL}/user/`, {
-      username: user.username,
-      picture: user.picture,
-      newsletter: user.newsletter,
-      email: user.email,
-      firstname: user.firstname,
-      lastname: user.lastname,
-      customFields: user.customFields,
-    });
+    return this.$http
+      .put(`${this.Constants.org.baseURL}/user/`, {
+        username: user.username,
+        picture: user.picture,
+        newsletter: user.newsletter,
+        email: user.email,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        customFields: user.customFields,
+      })
+      .then(response => {
+        // The picture may have changed: bust the avatar cache so currentUserPicture() returns a
+        // fresh URL and the browser re-fetches the new image without requiring a hard refresh.
+        this.avatarCacheBust = Date.now();
+        return response;
+      });
   }
 
   subscribeNewsletter(email): ng.IPromise<any> {
