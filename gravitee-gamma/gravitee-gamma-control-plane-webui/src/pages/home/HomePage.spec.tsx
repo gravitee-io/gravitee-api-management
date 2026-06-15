@@ -33,6 +33,7 @@ const ALL_MODULES: readonly GammaModule[] = [
         remoteName: 'gravitee_gamma_module_authz',
         exposedModule: 'App',
     },
+    { id: 'esm', name: 'ESM Module', version: '1.0.0', remoteName: 'gravitee_gamma_module_esm', exposedModule: 'App' },
 ];
 
 function renderHome(modules: readonly GammaModule[]) {
@@ -83,11 +84,17 @@ describe('HomePage', () => {
         seedMetricHandlers();
     });
 
-    it('should render all four module headings when all modules are present', async () => {
+    it('should render all module headings when all modules are present', async () => {
         renderHome(ALL_MODULES);
 
         await waitFor(() => {
-            for (const name of ['Agent Management', 'API Management', 'Platform Management', 'Authorization Management']) {
+            for (const name of [
+                'Agent Management',
+                'API Management',
+                'Platform Management',
+                'Authorization Management',
+                'Event Stream Management',
+            ]) {
                 expect(screen.getByRole('heading', { level: 3, name })).toBeTruthy();
             }
         });

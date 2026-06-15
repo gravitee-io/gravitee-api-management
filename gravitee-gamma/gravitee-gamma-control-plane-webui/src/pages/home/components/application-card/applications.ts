@@ -20,7 +20,7 @@ import type { Accent } from '../accents';
 
 /** Plugin ids of modules we render a card for. Must match `plugin.properties#id` of
  *  the corresponding Gamma module (`gravitee-gamma-module-<id>`). */
-export type ModuleId = 'aim' | 'apim' | 'platform' | 'authz';
+export type ModuleId = 'aim' | 'apim' | 'platform' | 'authz' | 'esm';
 
 export interface Application {
     readonly title: string;
@@ -71,6 +71,14 @@ export const APPLICATIONS: readonly Application[] = [
         Icon: MODULE_ICONS['authz'],
         accent: 'success',
         emptyState: { cta: 'Create your first policy', ctaPath: 'policies/new' },
+    },
+    {
+        title: 'Event Stream Management',
+        description: 'Register Kafka clusters, expose governed Kafka services, and federate them into an event mesh.',
+        moduleId: 'esm',
+        Icon: MODULE_ICONS['esm'],
+        accent: 'muted',
+        emptyState: { cta: 'Register a cluster', ctaPath: 'clusters' },
     },
 ];
 
