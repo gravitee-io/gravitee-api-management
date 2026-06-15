@@ -1,0 +1,8 @@
+{
+  "hrid": "getting-started",
+  "name": "Getting Started",
+  "type": "GRAVITEE_MARKDOWN",
+  "content": "# Hello\n\nThis is markdown.",
+  "location": "/getting-started",
+  "order": 1
+}
