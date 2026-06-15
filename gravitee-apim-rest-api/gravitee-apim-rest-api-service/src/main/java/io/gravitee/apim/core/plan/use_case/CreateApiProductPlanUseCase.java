@@ -24,8 +24,10 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanExcludedGroupsDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import java.util.List;
 import java.util.function.Function;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
@@ -58,13 +60,13 @@ public class CreateApiProductPlanUseCase {
             plan.setPlanMode(io.gravitee.definition.model.v4.plan.PlanMode.STANDARD);
         }
 
-        Plan createdPlan = createPlanDomainService.createApiProductPlan(plan, apiProduct, input.auditInfo);
+        Plan createdPlan = createPlanDomainService.createApiProductPlan(plan, input.flows, apiProduct, input.auditInfo);
 
         log.debug("Plan {} created for reference {}", createdPlan.getId(), input.referenceId());
         return new Output(createdPlan.getId(), createdPlan);
     }
 
-    public record Input(String referenceId, Function<ApiProduct, Plan> toPlan, AuditInfo auditInfo) {}
+    public record Input(String referenceId, Function<ApiProduct, Plan> toPlan, List<Flow> flows, AuditInfo auditInfo) {}
 
     public record Output(String id, Plan plan) {}
 }

@@ -119,7 +119,7 @@ export interface DuplicateApiOptions {
     version: string;
     filteredFields?: DuplicateFilteredField[];
 }
-export type ApiType = 'PROXY' | 'MESSAGE' | 'NATIVE';
+export type ApiType = 'PROXY' | 'MESSAGE' | 'NATIVE' | 'LLM_PROXY' | 'MCP_PROXY' | 'A2A_PROXY' | 'EDGE';
 
 export interface ApiListListener {
     type: string;

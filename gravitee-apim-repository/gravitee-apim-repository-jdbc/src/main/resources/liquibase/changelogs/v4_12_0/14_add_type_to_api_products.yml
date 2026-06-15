@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.12.0_14_add_type_to_api_products
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}api_products
+            columns:
+              - column:
+                  name: type
+                  type: nvarchar(64)
+                  defaultValue: API_PRODUCT
+                  constraints:
+                    nullable: true

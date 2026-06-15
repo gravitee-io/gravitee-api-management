@@ -1,0 +1,5 @@
+services:
+    management_api:
+        environment:
+            # Enable the Gamma module REST surface for the AI Products PoC
+            - gravitee_gamma_enabled=true

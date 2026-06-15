@@ -205,6 +205,59 @@ class ApiProductPlanPolicyManagerTest {
         assertThat(dependencies).extracting(Policy::getName).containsExactly("oauth2");
     }
 
+    @Test
+    void should_return_flow_step_policies_in_addition_to_security_policies() {
+        io.gravitee.definition.model.v4.flow.step.Step rateLimitStep = io.gravitee.definition.model.v4.flow.step.Step.builder()
+            .name("Rate limit")
+            .policy("rate-limit")
+            .configuration("{\"rate\":{\"limit\":10}}")
+            .build();
+        io.gravitee.definition.model.v4.flow.step.Step tokenStep = io.gravitee.definition.model.v4.flow.step.Step.builder()
+            .name("Token budget")
+            .policy("token-ratelimit")
+            .configuration("{\"rate\":{\"limit\":1000}}")
+            .build();
+        io.gravitee.definition.model.v4.flow.step.Step disabledStep = io.gravitee.definition.model.v4.flow.step.Step.builder()
+            .name("Disabled")
+            .policy("transform-headers")
+            .enabled(false)
+            .build();
+
+        io.gravitee.definition.model.v4.flow.Flow flow = new io.gravitee.definition.model.v4.flow.Flow();
+        flow.setEnabled(true);
+        flow.setRequest(List.of(rateLimitStep, disabledStep));
+        flow.setResponse(List.of(tokenStep));
+
+        io.gravitee.definition.model.v4.flow.Flow disabledFlow = new io.gravitee.definition.model.v4.flow.Flow();
+        disabledFlow.setEnabled(false);
+        disabledFlow.setRequest(List.of(io.gravitee.definition.model.v4.flow.step.Step.builder().name("Hidden").policy("mock").build()));
+
+        Plan plan = new Plan();
+        plan.setMode(PlanMode.STANDARD);
+        plan.setSecurity(new PlanSecurity("API_KEY", "{}"));
+        plan.setFlows(List.of(flow, disabledFlow));
+
+        when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(
+            List.of(new ApiProductRegistry.ApiProductPlanEntry("product-1", plan))
+        );
+
+        ApiProductPlanPolicyManager manager = new ApiProductPlanPolicyManager(
+            classLoader,
+            policyFactoryManager,
+            policyConfigurationFactory,
+            policyPluginManager,
+            policyClassLoaderFactory,
+            componentProvider,
+            API_ID,
+            ENV_ID,
+            apiProductRegistry
+        );
+
+        Set<Policy> dependencies = invokeDependencies(manager);
+
+        assertThat(dependencies).extracting(Policy::getName).containsExactlyInAnyOrder("api-key", "rate-limit", "token-ratelimit");
+    }
+
     @SuppressWarnings("unchecked")
     private Set<Policy> invokeDependencies(ApiProductPlanPolicyManager manager) {
         return (Set<Policy>) ReflectionTestUtils.invokeMethod(manager, "dependencies");

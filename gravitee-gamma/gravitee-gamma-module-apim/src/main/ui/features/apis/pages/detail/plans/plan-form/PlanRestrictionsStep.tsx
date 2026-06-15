@@ -18,16 +18,21 @@ import { Card, CardContent, CardHeader, CardTitle, Switch } from '@gravitee/grap
 import { QuotaFields } from './restrictions/QuotaFields';
 import { RateLimitFields } from './restrictions/RateLimitFields';
 import { ResourceFilteringFields } from './restrictions/ResourceFilteringFields';
-import type { RestrictionsFormData } from '../../../../types/plan';
+import { TokenBudgetFields } from './restrictions/TokenBudgetFields';
+import type { PlanContext, RestrictionsFormData } from '../../../../types/plan';
 import { EMPTY_RESTRICTIONS } from '../../../../types/plan';
 
 interface PlanRestrictionsStepProps {
     value: RestrictionsFormData;
     onChange: (v: RestrictionsFormData) => void;
     readOnly?: boolean;
+    /** Product plans expose Rate Limiting + Token budget; api plans keep the historical set. */
+    ctxType?: PlanContext['type'];
 }
 
-export function PlanRestrictionsStep({ value, onChange, readOnly = false }: Readonly<PlanRestrictionsStepProps>) {
+export function PlanRestrictionsStep({ value, onChange, readOnly = false, ctxType = 'api' }: Readonly<PlanRestrictionsStepProps>) {
+    const isProduct = ctxType === 'api-product';
+
     return (
         <div className="space-y-6">
             {/* Rate Limiting */}
@@ -65,79 +70,124 @@ export function PlanRestrictionsStep({ value, onChange, readOnly = false }: Read
                 )}
             </Card>
 
-            {/* Quota */}
-            <Card>
-                <CardHeader>
-                    <div className="flex items-start justify-between gap-4">
-                        <div className="space-y-0.5">
-                            <CardTitle className="text-base">Quota</CardTitle>
-                            <p className="text-sm text-muted-foreground">
-                                Rate limit how many HTTP requests an application can make in a given period of hours, days, or months.
-                            </p>
+            {/* Token budget — product plans only (enforced by the token-ratelimit policy) */}
+            {isProduct && (
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-start justify-between gap-4">
+                            <div className="space-y-0.5">
+                                <CardTitle className="text-base">Token budget</CardTitle>
+                                <p className="text-sm text-muted-foreground">
+                                    Limit how many LLM tokens each subscription can consume in a given period.
+                                </p>
+                            </div>
+                            <Switch
+                                id="token-budget-enabled"
+                                checked={value.tokenBudgetEnabled}
+                                onCheckedChange={checked =>
+                                    onChange({
+                                        ...value,
+                                        tokenBudgetEnabled: checked,
+                                        tokenBudget: checked ? value.tokenBudget : EMPTY_RESTRICTIONS.tokenBudget,
+                                    })
+                                }
+                                disabled={readOnly}
+                            />
                         </div>
-                        <Switch
-                            id="quota-enabled"
-                            checked={value.quotaEnabled}
-                            onCheckedChange={checked =>
-                                onChange({
-                                    ...value,
-                                    quotaEnabled: checked,
-                                    quota: checked ? value.quota : EMPTY_RESTRICTIONS.quota,
-                                })
-                            }
-                            disabled={readOnly}
-                        />
-                    </div>
-                </CardHeader>
-                {value.quotaEnabled && (
-                    <CardContent>
-                        <QuotaFields value={value.quota} onChange={quota => onChange({ ...value, quota })} readOnly={readOnly} />
-                    </CardContent>
-                )}
-            </Card>
+                    </CardHeader>
+                    {value.tokenBudgetEnabled && (
+                        <CardContent>
+                            <TokenBudgetFields
+                                value={value.tokenBudget}
+                                onChange={tokenBudget => onChange({ ...value, tokenBudget })}
+                                readOnly={readOnly}
+                            />
+                        </CardContent>
+                    )}
+                </Card>
+            )}
+
+            {/* Quota */}
+            {!isProduct && (
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-start justify-between gap-4">
+                            <div className="space-y-0.5">
+                                <CardTitle className="text-base">Quota</CardTitle>
+                                <p className="text-sm text-muted-foreground">
+                                    Rate limit how many HTTP requests an application can make in a given period of hours, days, or months.
+                                </p>
+                            </div>
+                            <Switch
+                                id="quota-enabled"
+                                checked={value.quotaEnabled}
+                                onCheckedChange={checked =>
+                                    onChange({
+                                        ...value,
+                                        quotaEnabled: checked,
+                                        quota: checked ? value.quota : EMPTY_RESTRICTIONS.quota,
+                                    })
+                                }
+                                disabled={readOnly}
+                            />
+                        </div>
+                    </CardHeader>
+                    {value.quotaEnabled && (
+                        <CardContent>
+                            <QuotaFields value={value.quota} onChange={quota => onChange({ ...value, quota })} readOnly={readOnly} />
+                        </CardContent>
+                    )}
+                </Card>
+            )}
 
             {/* Resource Filtering */}
-            <Card>
-                <CardHeader>
-                    <div className="flex items-start justify-between gap-4">
-                        <div className="space-y-0.5">
-                            <CardTitle className="text-base">Resource Filtering</CardTitle>
-                            <p className="text-sm text-muted-foreground">
-                                Restrict resources according to whitelist and/or blacklist rules.
-                            </p>
+            {!isProduct && (
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-start justify-between gap-4">
+                            <div className="space-y-0.5">
+                                <CardTitle className="text-base">Resource Filtering</CardTitle>
+                                <p className="text-sm text-muted-foreground">
+                                    Restrict resources according to whitelist and/or blacklist rules.
+                                </p>
+                            </div>
+                            <Switch
+                                id="rf-enabled"
+                                checked={value.resourceFilteringEnabled}
+                                onCheckedChange={checked =>
+                                    onChange({
+                                        ...value,
+                                        resourceFilteringEnabled: checked,
+                                        resourceFiltering: checked ? value.resourceFiltering : [],
+                                        normalizeRequestPath: checked ? value.normalizeRequestPath : false,
+                                        decodeEncodedSlash: checked ? value.decodeEncodedSlash : false,
+                                    })
+                                }
+                                disabled={readOnly}
+                            />
                         </div>
-                        <Switch
-                            id="rf-enabled"
-                            checked={value.resourceFilteringEnabled}
-                            onCheckedChange={checked =>
-                                onChange({
-                                    ...value,
-                                    resourceFilteringEnabled: checked,
-                                    resourceFiltering: checked ? value.resourceFiltering : [],
-                                    normalizeRequestPath: checked ? value.normalizeRequestPath : false,
-                                    decodeEncodedSlash: checked ? value.decodeEncodedSlash : false,
-                                })
-                            }
-                            disabled={readOnly}
-                        />
-                    </div>
-                </CardHeader>
-                {value.resourceFilteringEnabled && (
-                    <CardContent>
-                        <ResourceFilteringFields
-                            rules={value.resourceFiltering}
-                            onChange={resourceFiltering => onChange({ ...value, resourceFiltering })}
-                            normalizeRequestPath={value.normalizeRequestPath}
-                            decodeEncodedSlash={value.decodeEncodedSlash}
-                            onNormalizeChange={v =>
-                                onChange({ ...value, normalizeRequestPath: v, decodeEncodedSlash: v ? value.decodeEncodedSlash : false })
-                            }
-                            onDecodeSlashChange={v => onChange({ ...value, decodeEncodedSlash: v })}
-                            readOnly={readOnly}
-                        />
-                    </CardContent>
-                )}
-            </Card>
+                    </CardHeader>
+                    {value.resourceFilteringEnabled && (
+                        <CardContent>
+                            <ResourceFilteringFields
+                                rules={value.resourceFiltering}
+                                onChange={resourceFiltering => onChange({ ...value, resourceFiltering })}
+                                normalizeRequestPath={value.normalizeRequestPath}
+                                decodeEncodedSlash={value.decodeEncodedSlash}
+                                onNormalizeChange={v =>
+                                    onChange({
+                                        ...value,
+                                        normalizeRequestPath: v,
+                                        decodeEncodedSlash: v ? value.decodeEncodedSlash : false,
+                                    })
+                                }
+                                onDecodeSlashChange={v => onChange({ ...value, decodeEncodedSlash: v })}
+                                readOnly={readOnly}
+                            />
+                        </CardContent>
+                    )}
+                </Card>
+            )}
         </div>
     );
 }

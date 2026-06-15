@@ -82,8 +82,11 @@ public class SubscriptionResource extends AbstractResource {
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
+        // API_PRODUCT subscriptions have no API (getApi() is null); evaluating the API_SUBSCRIPTION
+        // permission against a null id throws for non-admin users. Only check it when an API is present.
         if (
-            hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApi(), RolePermissionAction.READ) ||
+            (subscriptionEntity.getApi() != null &&
+                hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApi(), RolePermissionAction.READ)) ||
             hasPermission(executionContext, APPLICATION_SUBSCRIPTION, subscriptionEntity.getApplication(), RolePermissionAction.READ)
         ) {
             Subscription subscription = SubscriptionMapper.INSTANCE.map(subscriptionEntity);

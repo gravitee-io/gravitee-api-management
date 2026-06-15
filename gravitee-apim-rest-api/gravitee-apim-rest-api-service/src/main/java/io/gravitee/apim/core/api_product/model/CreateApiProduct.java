@@ -31,5 +31,7 @@ public class CreateApiProduct {
     private String name;
     private String description;
     private String version;
+    /** Product category: "API_PRODUCT" or "AI_PRODUCT". Defaults to API_PRODUCT when null. */
+    private String type;
     private List<String> apiIds;
 }

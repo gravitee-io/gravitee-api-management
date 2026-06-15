@@ -45,6 +45,7 @@ public class ApiProductMongo {
     private String name;
     private String description;
     private String version;
+    private String type;
     private List<String> apiIds;
     private List<String> groups;
     private Date createdAt;

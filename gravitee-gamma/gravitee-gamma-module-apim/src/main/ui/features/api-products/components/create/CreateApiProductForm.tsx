@@ -62,6 +62,7 @@ export function CreateApiProductForm({ onBack, onCreated }: CreateApiProductForm
             name: name.trim(),
             version: version.trim(),
             description: description.trim() || undefined,
+            type: 'API_PRODUCT',
         };
         createProduct(request, {
             onSuccess: product => {

@@ -35,7 +35,12 @@ export function ApiProductsPage() {
         return () => clearTimeout(timer);
     }, [search]);
 
-    const { data, isLoading, isFetching, isError } = useApiProductList({ query: debouncedSearch, page, perPage });
+    const { data, isLoading, isFetching, isError } = useApiProductList({
+        query: debouncedSearch,
+        page,
+        perPage,
+        productType: 'API_PRODUCT',
+    });
 
     const products = data?.data ?? [];
     const totalCount = data?.pagination?.totalCount ?? 0;

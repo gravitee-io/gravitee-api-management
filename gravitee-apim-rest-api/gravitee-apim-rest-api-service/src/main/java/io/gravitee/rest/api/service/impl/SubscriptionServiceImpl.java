@@ -2283,7 +2283,14 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             applicationsById.ifPresent(byId -> fillApplicationMetadata(byId, metadata, subscription));
             apisById.ifPresent(byId -> fillApiMetadata(executionContext, byId, metadata, subscription, query));
             apiProductsById.ifPresent(byId ->
-                fillApiProductMetadata(byId, metadata, subscription, productIdToPrimaryOwnerDisplayName.orElse(Collections.emptyMap()))
+                fillApiProductMetadata(
+                    executionContext,
+                    byId,
+                    metadata,
+                    subscription,
+                    productIdToPrimaryOwnerDisplayName.orElse(Collections.emptyMap()),
+                    query
+                )
             );
             plansById.ifPresent(byId -> fillPlanMetadata(byId, metadata, subscription));
             subscribersById.ifPresent(byId -> fillSubscribersMetadata(byId, metadata, subscription));
@@ -2383,10 +2390,12 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     }
 
     private Metadata fillApiProductMetadata(
+        ExecutionContext executionContext,
         Map<String, ApiProduct> apiProducts,
         Metadata metadata,
         SubscriptionEntity subscription,
-        Map<String, String> primaryOwnerDisplayNameByProductId
+        Map<String, String> primaryOwnerDisplayNameByProductId,
+        SubscriptionMetadataQuery query
     ) {
         if (
             SubscriptionReferenceType.API_PRODUCT.name().equals(subscription.getReferenceType()) &&
@@ -2397,8 +2406,31 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             metadata.put(apiProduct.getId(), "name", apiProduct.getName());
             metadata.put(apiProduct.getId(), "apiVersion", apiProduct.getVersion() != null ? apiProduct.getVersion() : "");
             metadata.put(apiProduct.getId(), "apiPrimaryOwner", primaryOwnerDisplayNameByProductId.getOrDefault(apiProduct.getId(), ""));
+            if (apiProduct.getDescription() != null) {
+                metadata.put(apiProduct.getId(), "description", apiProduct.getDescription());
+            }
+            if (query.hasDetails()) {
+                fillApiProductEntrypointsMetadata(executionContext, metadata, apiProduct);
+            }
         }
         return metadata;
+    }
+
+    /**
+     * Exposes the gateway entrypoints of the product's APIs so the portal can display
+     * the endpoint to call. Best-effort: metadata must never break the subscription listing.
+     */
+    private void fillApiProductEntrypointsMetadata(ExecutionContext executionContext, Metadata metadata, ApiProduct apiProduct) {
+        try {
+            if (apiProduct.getApiIds() == null || apiProduct.getApiIds().isEmpty()) {
+                return;
+            }
+            GenericApiEntity api = apiSearchService.findGenericById(executionContext, apiProduct.getApiIds().get(0), false, false, false);
+            List<ApiEntrypointEntity> entrypoints = apiEntrypointService.getApiEntrypoints(executionContext, api);
+            metadata.put(apiProduct.getId(), "entrypoints", entrypoints);
+        } catch (Exception ex) {
+            log.debug("Could not resolve entrypoints for API Product {}", apiProduct.getId(), ex);
+        }
     }
 
     private Metadata fillSubscribersMetadata(Map<String, UserEntity> users, Metadata metadata, SubscriptionEntity subscription) {

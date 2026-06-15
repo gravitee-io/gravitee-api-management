@@ -16,6 +16,9 @@
 
 export type ApiProductDeploymentState = 'DEPLOYED' | 'NEED_REDEPLOY';
 
+/** Product category. AI_PRODUCT bundles LLM/AI components; API_PRODUCT bundles REST APIs (default). */
+export type ApiProductType = 'API_PRODUCT' | 'AI_PRODUCT';
+
 export interface ApiProductPrimaryOwner {
     id?: string;
     displayName?: string;
@@ -27,6 +30,7 @@ export interface ApiProductListItem {
     name: string;
     description?: string;
     version: string;
+    type?: ApiProductType;
     apiIds?: string[];
     groups?: string[];
     disableMembershipNotifications?: boolean;
@@ -53,6 +57,7 @@ export interface CreateApiProductRequest {
     name: string;
     description?: string;
     version: string;
+    type?: ApiProductType;
     apiIds?: string[];
 }
 

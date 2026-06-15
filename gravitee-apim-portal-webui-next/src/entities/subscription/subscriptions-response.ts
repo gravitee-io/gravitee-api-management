@@ -33,9 +33,11 @@ export interface SubscriptionMetadata {
 export interface SubscriptionMetadataContent {
   entrypoints?: SubscriptionMetadataEntrypointsTarget[];
   name?: string;
+  description?: string;
   planMode?: PlanMode;
   securityType?: PlanSecurityEnum;
   apiVersion?: string;
+  apiPrimaryOwner?: string;
   totalElements?: number;
 }
 

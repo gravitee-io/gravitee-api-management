@@ -1,0 +1,152 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="ai-product-details">
+  @if (isLoading()) {
+    <app-loader />
+  } @else {
+    <div class="ai-product-details__header">
+      <h1 class="m3-title-large">{{ productName() }}</h1>
+      <div class="ai-product-details__summary">
+        <span class="ai-product-details__summary-chip m3-body-small">
+          <span i18n="@@aiProductDetailsPlan">Plan</span>: {{ planName() }}
+        </span>
+        <span class="ai-product-details__summary-chip m3-body-small">
+          <span i18n="@@aiProductDetailsStatus">Status</span>: {{ status() }}
+        </span>
+        @if (tokenLimit(); as limit) {
+          <span class="ai-product-details__summary-chip m3-body-small">
+            <span i18n="@@aiProductDetailsLimit">Token budget</span>: {{ limit }}
+          </span>
+        }
+        @if (rateLimit(); as rate) {
+          <span class="ai-product-details__summary-chip m3-body-small">
+            <span i18n="@@aiProductDetailsRate">Rate limit</span>: {{ rate }} req/min
+          </span>
+        }
+      </div>
+    </div>
+
+    <!-- Your access -->
+    <section class="ai-product-details__card">
+      <div class="ai-product-details__card-head">
+        <span class="material-icons" aria-hidden="true">key</span>
+        <h2 class="m3-title-medium" i18n="@@aiProductDetailsAccessTitle">Your access</h2>
+      </div>
+      <div class="ai-product-details__access">
+        <app-copy-code i18n-title="@@aiProductDetailsApiKey" title="API Key" [text]="apiKey()" mode="PASSWORD" />
+      </div>
+      <p class="m3-body-small ai-product-details__hint" i18n="@@aiProductDetailsApiKeyHint">
+        Send your API key in the X-Gravitee-Api-Key header on every request. Provider credentials stay hidden behind the gateway.
+      </p>
+    </section>
+
+    <!-- Quick start: pick a proxy → a model → a language, copy the ready-to-run snippet -->
+    <section class="ai-product-details__card">
+      <div class="ai-product-details__card-head">
+        <span class="material-icons" aria-hidden="true">rocket_launch</span>
+        <h2 class="m3-title-medium" i18n="@@aiProductDetailsSnippetsTitle">Quick start</h2>
+      </div>
+
+      <div class="ai-product-details__quickstart">
+        <!-- Left: pick proxy + model -->
+        <div class="ai-product-details__selectors">
+          @if (proxyOptions().length > 1) {
+            <div class="ai-product-details__step">
+              <span class="ai-product-details__step-label m3-body-medium" i18n="@@aiProductDetailsStepProxy">Choose an LLM proxy</span>
+              <div class="ai-product-details__chips">
+                @for (proxy of proxyOptions(); track proxy.url) {
+                  <button
+                    type="button"
+                    class="ai-product-details__chip"
+                    [class.is-selected]="proxy.name === activeProxy()?.name"
+                    (click)="selectProxy(proxy.name)"
+                  >
+                    {{ proxy.name }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
+
+          @if (activeModels().length > 0) {
+            <div class="ai-product-details__step">
+              <span class="ai-product-details__step-label m3-body-medium" i18n="@@aiProductDetailsStepModel">Choose a model</span>
+              <div class="ai-product-details__chips">
+                @for (model of activeModels(); track model) {
+                  <button
+                    type="button"
+                    class="ai-product-details__chip ai-product-details__chip--mono"
+                    [class.is-selected]="model === activeModel()"
+                    (click)="selectModel(model)"
+                  >
+                    {{ model }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Right: endpoint + language tabs + snippet -->
+        <div class="ai-product-details__snippet-col">
+          <div class="ai-product-details__endpoint">
+            <app-copy-code i18n-title="@@aiProductDetailsEndpoint" title="Endpoint" [text]="activeEndpoint()" />
+          </div>
+
+          <mat-button-toggle-group
+            class="ai-product-details__languages"
+            [value]="selectedLanguage()"
+            (change)="selectLanguage($event.value)"
+            hideSingleSelectionIndicator
+          >
+            @for (language of languages; track language.id) {
+              <mat-button-toggle [value]="language.id">{{ language.label }}</mat-button-toggle>
+            }
+          </mat-button-toggle-group>
+
+          <div class="ai-product-details__snippet">
+            <div class="ai-product-details__snippet-header">
+              <span class="m3-body-small ai-product-details__snippet-target">{{ activeModel() }}</span>
+              <button
+                mat-button
+                type="button"
+                (click)="copyActiveSnippet()"
+                i18n-aria-label="@@aiProductDetailsCopy"
+                aria-label="Copy snippet"
+              >
+                <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+                @if (copied()) {
+                  <span i18n="@@aiProductDetailsCopied">Copied</span>
+                } @else {
+                  <span i18n="@@aiProductDetailsCopyLabel">Copy</span>
+                }
+              </button>
+            </div>
+            <pre class="ai-product-details__code m3-body-small">{{ activeSnippet() }}</pre>
+          </div>
+
+          <p class="m3-body-small ai-product-details__hint">
+            <span i18n="@@aiProductDetailsUsageHint">Live token balance comes back on every response in the</span>
+            <code class="ai-product-details__inline-code">X-Token-Rate-Limit-Remaining</code>
+            <span i18n="@@aiProductDetailsUsageHintTail">header — add -i to your curl to see it.</span>
+          </p>
+        </div>
+      </div>
+    </section>
+  }
+</div>

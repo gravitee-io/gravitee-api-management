@@ -40,6 +40,7 @@ public class ApiProduct {
     private String name;
     private String description;
     private String version;
+    private String type;
     private List<String> apiIds;
     private Set<String> groups;
     private Date createdAt;

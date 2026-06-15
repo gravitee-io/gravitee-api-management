@@ -9221,6 +9221,10 @@ components:
               type: string
               description: The API Product version
               example: "1.0.0"
+            type:
+              type: string
+              description: Product category — API_PRODUCT (REST API bundle) or AI_PRODUCT (LLM/AI bundle)
+              example: "AI_PRODUCT"
             apiIds:
               type: array
               description: List of API IDs included in the product

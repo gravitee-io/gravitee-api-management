@@ -38,6 +38,7 @@ import { notify } from '../../../../../shared/notify';
 import { usePlanTransition, useReorderPlan } from '../../../hooks/usePlans';
 import type { ManagedPlan, PlanContext } from '../../../types/plan';
 import { PLAN_SECURITY_LABELS } from '../../../types/plan';
+import { formatPlanRateLimit, formatPlanTokenBudget } from '../../../utils/planTransformers';
 
 type PlanTransitionDialogAction = 'publish' | 'deprecate' | 'close';
 
@@ -89,6 +90,10 @@ interface PendingAction {
 export function PlansTable({ ctx, plans, totalCount, page, perPage, isLoading, canUpdate, onPage, onPerPage }: Readonly<PlansTableProps>) {
     const navigate = useNavigate();
     const [pending, setPending] = useState<PendingAction | null>(null);
+
+    // Product plans carry rate-limit / token-budget restrictions in their flows — surface them as columns.
+    const showLimitColumns = ctx.type === 'api-product';
+    const columnCount = (canUpdate ? 6 : 5) + (showLimitColumns ? 2 : 0);
 
     const transitionMutation = usePlanTransition(ctx);
     const reorderMutation = useReorderPlan(ctx);
@@ -151,6 +156,8 @@ export function PlansTable({ ctx, plans, totalCount, page, perPage, isLoading, c
                             <TableHead>Name</TableHead>
                             <TableHead>Security</TableHead>
                             <TableHead>Status</TableHead>
+                            {showLimitColumns && <TableHead>Rate limit</TableHead>}
+                            {showLimitColumns && <TableHead>Token budget</TableHead>}
                             <TableHead>Validation</TableHead>
                             <TableHead />
                         </TableRow>
@@ -159,7 +166,7 @@ export function PlansTable({ ctx, plans, totalCount, page, perPage, isLoading, c
                         {isLoading &&
                             Array.from({ length: perPage }).map((_, i) => (
                                 <TableRow key={i}>
-                                    {Array.from({ length: canUpdate ? 6 : 5 }).map((__, j) => (
+                                    {Array.from({ length: columnCount }).map((__, j) => (
                                         <TableCell key={j}>
                                             <Skeleton className="h-4 w-full rounded" />
                                         </TableCell>
@@ -169,7 +176,7 @@ export function PlansTable({ ctx, plans, totalCount, page, perPage, isLoading, c
 
                         {!isLoading && plans.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={canUpdate ? 6 : 5} className="py-10 text-center text-sm text-muted-foreground">
+                                <TableCell colSpan={columnCount} className="py-10 text-center text-sm text-muted-foreground">
                                     No plans match the selected status.
                                 </TableCell>
                             </TableRow>
@@ -230,6 +237,16 @@ export function PlansTable({ ctx, plans, totalCount, page, perPage, isLoading, c
                                     <TableCell>
                                         <PlanStatusBadge status={plan.status} />
                                     </TableCell>
+                                    {showLimitColumns && (
+                                        <TableCell className="text-sm text-muted-foreground tabular-nums">
+                                            {formatPlanRateLimit(plan) ?? '—'}
+                                        </TableCell>
+                                    )}
+                                    {showLimitColumns && (
+                                        <TableCell className="text-sm text-muted-foreground tabular-nums">
+                                            {formatPlanTokenBudget(plan) ?? '—'}
+                                        </TableCell>
+                                    )}
                                     <TableCell className="text-sm text-muted-foreground">
                                         {plan.validation === 'AUTO' ? 'Auto' : 'Manual'}
                                     </TableCell>

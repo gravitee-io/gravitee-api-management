@@ -1,0 +1,93 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="ai-product-catalog-details">
+  @if (isLoading()) {
+    <app-loader />
+  } @else if (product(); as product) {
+    <div class="ai-product-catalog-details__header">
+      <h1 class="m3-title-large">{{ product.name }}</h1>
+      @if (product.description) {
+        <p class="m3-body-medium">{{ product.description }}</p>
+      }
+    </div>
+
+    @if (product.components?.length) {
+      <section class="ai-product-catalog-details__section">
+        <h2 class="m3-title-medium" i18n="@@aiProductCatalogIncludedTitle">What's included</h2>
+        @for (component of product.components!; track component.name) {
+          <div class="ai-product-catalog-details__component">
+            <p class="m3-body-medium">
+              {{ component.name }}
+              @if (component.path) {
+                <span class="ai-product-catalog-details__hint m3-body-small">· {{ component.path }}</span>
+              }
+            </p>
+            @if (component.models?.length) {
+              <div class="ai-product-catalog-details__models">
+                @for (model of component.models!; track model) {
+                  <span class="ai-product-catalog-details__model-chip m3-body-small">{{ model }}</span>
+                }
+              </div>
+            }
+          </div>
+        }
+      </section>
+    }
+
+    <section class="ai-product-catalog-details__section">
+      <h2 class="m3-title-medium" i18n="@@aiProductCatalogPlanTitle">Access plan</h2>
+      @if (selectedPlan(); as plan) {
+        <p class="m3-body-medium">
+          {{ plan.name }}
+          @if (plan.security) {
+            · <span class="m3-body-small">{{ plan.security }}</span>
+          }
+        </p>
+        <p class="m3-body-small ai-product-catalog-details__hint" i18n="@@aiProductCatalogPlanHint">
+          Subscribing requests your own API key for this product. An administrator approves the request and sets your token budget and rate
+          limit — you’ll then see your key and the models on your AI Products page.
+        </p>
+
+        @if (errorMessage(); as error) {
+          <p class="m3-body-small ai-product-catalog-details__error">{{ error }}</p>
+        }
+
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          class="ai-product-catalog-details__subscribe"
+          [disabled]="isSubscribing()"
+          (click)="subscribe()"
+        >
+          @if (isSubscribing()) {
+            <span i18n="@@aiProductCatalogSubscribing">Requesting…</span>
+          } @else {
+            <span i18n="@@aiProductCatalogSubscribe">Subscribe</span>
+          }
+        </button>
+      } @else {
+        <p class="m3-body-small ai-product-catalog-details__hint" i18n="@@aiProductCatalogNoPlan">
+          This product has no published plan yet — ask an administrator to publish access before subscribing.
+        </p>
+      }
+    </section>
+  } @else {
+    <p class="m3-body-medium" i18n="@@aiProductCatalogNotFound">This AI Product is not available.</p>
+  }
+</div>

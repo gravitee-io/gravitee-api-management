@@ -194,6 +194,7 @@ public class SubscriptionsResource extends AbstractResource {
         @QueryParam("apiIds") List<String> apiIds,
         @QueryParam("applicationIds") List<String> applicationIds,
         @QueryParam("statuses") List<SubscriptionStatus> statuses,
+        @QueryParam("referenceType") String referenceType,
         @BeanParam PaginationParam paginationParam
     ) {
         List<String> effectiveApiIds = resolveApiIds(apiId, apiIds);
@@ -205,7 +206,11 @@ public class SubscriptionsResource extends AbstractResource {
         }
         query.setStatuses(statuses);
         if (apiId == null || apiId.isEmpty()) {
-            query.setReferenceType(GenericPlanEntity.ReferenceType.API);
+            query.setReferenceType(
+                GenericPlanEntity.ReferenceType.API_PRODUCT.name().equalsIgnoreCase(referenceType)
+                    ? GenericPlanEntity.ReferenceType.API_PRODUCT
+                    : GenericPlanEntity.ReferenceType.API
+            );
         }
 
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
@@ -253,6 +258,7 @@ public class SubscriptionsResource extends AbstractResource {
             subscriptions
         )
             .withApis(true)
+            .withApiProducts(true)
             .withApplications(true)
             .withPlans(true)
             .withSubscribers(true)

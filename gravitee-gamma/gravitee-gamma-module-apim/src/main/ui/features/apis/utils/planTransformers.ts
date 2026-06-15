@@ -23,6 +23,7 @@ import type {
     RateLimitErrorStrategy,
     RateLimitFormData,
     ResourceFilteringRule,
+    TokenBudgetFormData,
 } from '../types/plan';
 import { EMPTY_RESTRICTIONS as EMPTY_R } from '../types/plan';
 
@@ -88,6 +89,54 @@ function buildQuotaFlow(data: QuotaFormData): PolicyFlow {
     };
 }
 
+/** token-ratelimit only supports SECONDS/MINUTES — convert friendly UI units to minutes. */
+function tokenBudgetPeriodInMinutes(data: TokenBudgetFormData): number {
+    if (data.unit === 'DAYS') return data.period * 1440;
+    if (data.unit === 'HOURS') return data.period * 60;
+    return data.period;
+}
+
+function buildTokenBudgetFlow(data: TokenBudgetFormData): PolicyFlow {
+    return {
+        enabled: true,
+        request: [
+            {
+                policy: 'token-ratelimit',
+                enabled: true,
+                configuration: {
+                    // Deterministic 429 on budget exhaustion; addHeaders exposes
+                    // X-Token-Rate-Limit-Remaining to consumers.
+                    strategy: 'BLOCK_ON_INTERNAL_ERROR',
+                    addHeaders: true,
+                    rate: {
+                        // PER-DEVELOPER limit: the amount comes from each subscription's metadata
+                        // (set when adding a developer), so one plan serves N developers with N
+                        // personal limits. `data.limit` is the default for devs without an override.
+                        // token-ratelimit uses dynamicLimit only when the static limit is 0.
+                        limit: 0,
+                        dynamicLimit: `{#subscription.metadata['tokenLimit'] ?: ${data.limit}}`,
+                        periodTime: tokenBudgetPeriodInMinutes(data),
+                        periodTimeUnit: 'MINUTES',
+                    },
+                },
+            },
+        ],
+    };
+}
+
+/** Metadata key carrying a user's personal token budget on their subscription. */
+export const DEVELOPER_TOKEN_LIMIT_METADATA_KEY = 'tokenLimit';
+
+/** Metadata key carrying a user's personal request rate limit (requests/minute) on their subscription. */
+export const DEVELOPER_RATE_LIMIT_METADATA_KEY = 'rateLimit';
+
+/** Extract the plan-level default token limit from a per-developer dynamicLimit EL expression. */
+function tokenBudgetDefaultFromDynamicLimit(dynamicLimit: string | undefined, staticLimit: number): number {
+    if (!dynamicLimit) return staticLimit;
+    const match = dynamicLimit.match(/\?:\s*(\d+)\s*}/);
+    return match ? Number(match[1]) : staticLimit;
+}
+
 function buildResourceFilteringFlow(
     rules: ResourceFilteringRule[],
     normalizeRequestPath: boolean,
@@ -130,6 +179,10 @@ export function planFormToPayload(form: PlanFormValue, ctx: PlanContext): Omit<M
                 ),
             );
         }
+    } else if (ctx.type === 'api-product') {
+        // Product plan flows execute at the gateway for the resolved product subscription.
+        if (form.restrictions.rateLimitEnabled) flows.push(buildRateLimitFlow(form.restrictions.rateLimit));
+        if (form.restrictions.tokenBudgetEnabled) flows.push(buildTokenBudgetFlow(form.restrictions.tokenBudget));
     }
 
     const payload: Omit<ManagedPlan, 'id' | 'order'> = {
@@ -156,9 +209,24 @@ export function planFormToPayload(form: PlanFormValue, ctx: PlanContext): Omit<M
     return payload;
 }
 
+type TokenBudgetConfig = {
+    rate?: { limit?: number; dynamicLimit?: string; periodTime?: number; periodTimeUnit?: string };
+};
+
+/** Convert a period stored in minutes back to the friendliest UI unit. */
+function tokenBudgetFromConfig(config: TokenBudgetConfig | undefined): TokenBudgetFormData {
+    const limit = tokenBudgetDefaultFromDynamicLimit(config?.rate?.dynamicLimit, config?.rate?.limit ?? EMPTY_R.tokenBudget.limit);
+    let minutes = config?.rate?.periodTime ?? 1440;
+    if (config?.rate?.periodTimeUnit === 'SECONDS') minutes = Math.max(1, Math.round(minutes / 60));
+    if (minutes % 1440 === 0) return { limit, period: minutes / 1440, unit: 'DAYS' };
+    if (minutes % 60 === 0) return { limit, period: minutes / 60, unit: 'HOURS' };
+    return { limit, period: minutes, unit: 'MINUTES' };
+}
+
 export function planToFormValue(plan: ManagedPlan): PlanFormValue {
     const rateLimitStep = findStep(plan.flows ?? [], 'rate-limit');
     const quotaStep = findStep(plan.flows ?? [], 'quota');
+    const tokenBudgetStep = findStep(plan.flows ?? [], 'token-ratelimit');
     const rfStep = findStep(plan.flows ?? [], 'resource-filtering');
 
     const rlConfig = rateLimitStep?.configuration as
@@ -246,6 +314,8 @@ export function planToFormValue(plan: ManagedPlan): PlanFormValue {
                 unit: (qConfig?.quota?.periodTimeUnit as QuotaFormData['unit']) ?? EMPTY_R.quota.unit,
                 dynamicPeriodTime: qConfig?.quota?.dynamicPeriodTime ?? '',
             },
+            tokenBudgetEnabled: Boolean(tokenBudgetStep),
+            tokenBudget: tokenBudgetFromConfig(tokenBudgetStep?.configuration as TokenBudgetConfig | undefined),
             resourceFilteringEnabled: Boolean(rfStep),
             resourceFiltering: [
                 ...(rfConfig?.whitelist ?? []).map(r => ({ whitelist: true, pattern: r.pattern ?? '', methods: r.methods ?? [] })),
@@ -255,4 +325,34 @@ export function planToFormValue(plan: ManagedPlan): PlanFormValue {
             decodeEncodedSlash: rfConfig?.decodeEncodedSlash ?? false,
         },
     };
+}
+
+// ─── Display helpers (plan table columns) ─────────────────────────────────────
+
+function formatCount(value: number): string {
+    if (value >= 1_000_000 && value % 100_000 === 0) return `${value / 1_000_000}M`;
+    if (value >= 1_000 && value % 100 === 0) return `${value / 1_000}K`;
+    return value.toLocaleString();
+}
+
+function formatPeriod(period: number, unit: string): string {
+    const label = unit.toLowerCase().replace(/s$/, '');
+    return period === 1 ? label : `${period} ${label}s`;
+}
+
+/** "60 / minute" from the plan's rate-limit flow, or null when no rate limit is set. */
+export function formatPlanRateLimit(plan: ManagedPlan): string | null {
+    const step = findStep(plan.flows ?? [], 'rate-limit');
+    const rate = (step?.configuration as { rate?: { limit?: number; periodTime?: number; periodTimeUnit?: string } } | undefined)?.rate;
+    if (!rate?.limit) return null;
+    return `${formatCount(rate.limit)} / ${formatPeriod(rate.periodTime ?? 1, rate.periodTimeUnit ?? 'SECONDS')}`;
+}
+
+/** "500K / day" from the plan's token-ratelimit flow, or null when no token budget is set. */
+export function formatPlanTokenBudget(plan: ManagedPlan): string | null {
+    const step = findStep(plan.flows ?? [], 'token-ratelimit');
+    if (!step) return null;
+    const budget = tokenBudgetFromConfig(step.configuration as TokenBudgetConfig);
+    if (!budget.limit) return null;
+    return `${formatCount(budget.limit)} / ${formatPeriod(budget.period, budget.unit)}`;
 }

@@ -118,11 +118,24 @@ export interface QuotaFormData {
     dynamicPeriodTime: string;
 }
 
+/**
+ * Token budget for AI/LLM product plans, enforced by the `token-ratelimit` policy.
+ * UI units are user-friendly; the transformer converts HOURS/DAYS to MINUTES
+ * (the policy only supports SECONDS/MINUTES).
+ */
+export interface TokenBudgetFormData {
+    limit: number;
+    period: number;
+    unit: 'MINUTES' | 'HOURS' | 'DAYS';
+}
+
 export interface RestrictionsFormData {
     rateLimitEnabled: boolean;
     rateLimit: RateLimitFormData;
     quotaEnabled: boolean;
     quota: QuotaFormData;
+    tokenBudgetEnabled: boolean;
+    tokenBudget: TokenBudgetFormData;
     resourceFilteringEnabled: boolean;
     resourceFiltering: ResourceFilteringRule[];
     normalizeRequestPath: boolean;
@@ -192,6 +205,12 @@ export const EMPTY_RESTRICTIONS: RestrictionsFormData = {
         period: 1,
         unit: 'HOURS',
         dynamicPeriodTime: '',
+    },
+    tokenBudgetEnabled: false,
+    tokenBudget: {
+        limit: 100000,
+        period: 1,
+        unit: 'DAYS',
     },
     resourceFilteringEnabled: false,
     resourceFiltering: [],

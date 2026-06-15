@@ -72,7 +72,9 @@ public class SubscriptionKeysResource extends AbstractResource {
                 subscriptionEntity.getApplication(),
                 RolePermissionAction.UPDATE
             ) ||
-            hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApi(), RolePermissionAction.UPDATE)
+            // API_PRODUCT subscriptions have no API; only check the API permission when one is present.
+            (subscriptionEntity.getApi() != null &&
+                hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApi(), RolePermissionAction.UPDATE))
         ) {
             final Key createdKey = keyMapper.convert(apiKeyService.renew(executionContext, subscriptionEntity));
             return Response.status(Response.Status.CREATED).entity(createdKey).build();
@@ -93,7 +95,9 @@ public class SubscriptionKeysResource extends AbstractResource {
                 subscriptionEntity.getApplication(),
                 RolePermissionAction.UPDATE
             ) ||
-            hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApi(), RolePermissionAction.UPDATE)
+            // API_PRODUCT subscriptions have no API; only check the API permission when one is present.
+            (subscriptionEntity.getApi() != null &&
+                hasPermission(executionContext, RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApi(), RolePermissionAction.UPDATE))
         ) {
             final String referenceId = subscriptionEntity.getReferenceId() != null
                 ? subscriptionEntity.getReferenceId()

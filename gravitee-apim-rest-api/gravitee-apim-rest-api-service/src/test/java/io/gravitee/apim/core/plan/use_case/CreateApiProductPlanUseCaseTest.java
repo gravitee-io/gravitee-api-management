@@ -152,6 +152,7 @@ class CreateApiProductPlanUseCaseTest {
                         .referenceId(api.getId())
                         .apiType(null)
                         .build(),
+                java.util.List.of(),
                 AUDIT_INFO
             )
         );
@@ -183,7 +184,12 @@ class CreateApiProductPlanUseCaseTest {
     void should_not_allow_to_create_secured_plan() {
         // Given
         var api = givenExistingApiProduct(API_PRODUCT);
-        var input = new Input(api.getId(), _api -> PlanFixtures.HttpV4.anApiKey().toBuilder().id(null).build(), AUDIT_INFO);
+        var input = new Input(
+            api.getId(),
+            _api -> PlanFixtures.HttpV4.anApiKey().toBuilder().id(null).build(),
+            java.util.List.of(),
+            AUDIT_INFO
+        );
 
         // When
         var throwable = Assertions.catchThrowable(() -> createPlanUseCase.execute(input));
@@ -199,7 +205,7 @@ class CreateApiProductPlanUseCaseTest {
         var mtlsPlan = PlanFixtures.HttpV4.anMtlsPlan().toBuilder().id(null).build();
         mtlsPlan.setReferenceType(GenericPlanEntity.ReferenceType.API_PRODUCT);
         mtlsPlan.setReferenceId(api.getId());
-        var input = new Input(api.getId(), _api -> mtlsPlan, AUDIT_INFO);
+        var input = new Input(api.getId(), _api -> mtlsPlan, java.util.List.of(), AUDIT_INFO);
 
         // When
         var result = createPlanUseCase.execute(input);
@@ -225,7 +231,7 @@ class CreateApiProductPlanUseCaseTest {
         var pushPlan = PlanFixtures.HttpV4.aPushPlan().toBuilder().id(null).build();
         pushPlan.setReferenceType(GenericPlanEntity.ReferenceType.API_PRODUCT);
         pushPlan.setReferenceId(api.getId());
-        var input = new Input(api.getId(), _api -> pushPlan, AUDIT_INFO);
+        var input = new Input(api.getId(), _api -> pushPlan, java.util.List.of(), AUDIT_INFO);
 
         // When
         var result = createPlanUseCase.execute(input);

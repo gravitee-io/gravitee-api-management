@@ -364,8 +364,11 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
             if (apiProductRegistry != null) {
                 apiProductPlanPolicyManagerFactory = createApiProductPlanPolicyManagerFactory(componentProvider, apiProductRegistry);
             }
-        } catch (BeansException e) {
-            // API Product support may not be loaded
+        } catch (Exception e) {
+            // API Product support may not be available in this reactor context — degrade gracefully
+            // (deploy the API without API-Product plan support) rather than fail the whole reactor.
+            apiProductRegistry = null;
+            apiProductPlanPolicyManagerFactory = null;
         }
 
         DefaultApiReactor reactor = new DefaultApiReactor(
@@ -400,7 +403,10 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         CompositeComponentProvider componentProvider,
         ApiProductRegistry apiProductRegistry
     ) {
-        String[] beanNamesForType = applicationContext.getBeanNamesForType(
+        // Use the inherited helper (searches ancestor contexts) — a plugin reactor's own context
+        // (e.g. the LLM proxy reactor) does not register the policy plugin manager, so a direct
+        // applicationContext lookup returns an empty array and crashes with AIOOBE.
+        String[] beanNamesForType = getBeanNamesForType(
             ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)
         );
         ConfigurablePluginManager<PolicyPlugin<?>> configurablePluginManager = (ConfigurablePluginManager<

@@ -99,7 +99,7 @@ export function PlanFormStepIndicator({ steps }: Readonly<PlanFormStepIndicatorP
 export function buildWizardSteps(securityType: string, ctxType: 'api' | 'api-product', currentStepIndex: number): WizardStep[] {
     const defs: string[] = ['General'];
     if (securityType !== 'KEY_LESS') defs.push('Security');
-    if (ctxType === 'api') defs.push('Restrictions');
+    if (ctxType === 'api' || ctxType === 'api-product') defs.push('Restrictions');
 
     return defs.map((label, i) => ({
         label,

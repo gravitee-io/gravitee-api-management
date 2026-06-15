@@ -96,6 +96,9 @@ public interface ApiProductPlanMapper {
     @Mapping(target = "security.type", qualifiedByName = "mapFromSecurityType")
     @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
     @Mapping(target = "mode", defaultValue = "STANDARD")
+    // Flows are persisted separately via FlowCrudService.savePlanFlows (the resource converts them), so
+    // ignore the generic `flows` here to avoid a MapStruct List<Object> -> List<Flow> mapping error.
+    @Mapping(target = "flows", ignore = true)
     io.gravitee.definition.model.v4.plan.Plan mapToPlanDefinitionHttpV4(CreateApiProductPlan source);
 
     @Mapping(source = "planSecurity.type", target = "security.type", qualifiedByName = "mapToPlanSecurityType")

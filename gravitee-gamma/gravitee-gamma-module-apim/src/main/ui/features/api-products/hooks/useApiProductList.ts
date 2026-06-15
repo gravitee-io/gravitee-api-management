@@ -17,15 +17,46 @@ import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import { searchApiProducts } from '../services/apiProduct';
-import type { ApiProductListResponse } from '../types/apiProduct';
+import type { ApiProductListItem, ApiProductListResponse, ApiProductType } from '../types/apiProduct';
 import { apiProductKeys } from '../utils/queryKeys';
 
-export function useApiProductList({ query, page, perPage }: { query: string; page: number; perPage: number }) {
+// Demo scale: fetch a generous page and filter by product type client-side, since the
+// product search index does not expose `type`. Keeps each list (API vs AI) to its own products.
+const CLIENT_FILTER_PAGE_SIZE = 100;
+
+function matchesType(item: ApiProductListItem, productType: ApiProductType): boolean {
+    return productType === 'AI_PRODUCT' ? item.type === 'AI_PRODUCT' : item.type !== 'AI_PRODUCT';
+}
+
+export function useApiProductList({
+    query,
+    page,
+    perPage,
+    productType,
+}: {
+    query: string;
+    page: number;
+    perPage: number;
+    /** When set, the list is filtered to this product category (client-side). */
+    productType?: ApiProductType;
+}) {
     const env = useEnvironment();
-    return useQuery<ApiProductListResponse>({
-        queryKey: apiProductKeys.list(env?.id ?? '', query, page, perPage),
-        queryFn: () => searchApiProducts(env!.id, { query: query || undefined }, page, perPage, query ? undefined : 'name'),
+    const serverPerPage = productType ? CLIENT_FILTER_PAGE_SIZE : perPage;
+    const serverPage = productType ? 1 : page;
+
+    return useQuery<ApiProductListResponse, Error, ApiProductListResponse>({
+        queryKey: apiProductKeys.list(env?.id ?? '', `${query}|${productType ?? ''}`, page, perPage),
+        queryFn: () => searchApiProducts(env!.id, { query: query || undefined }, serverPage, serverPerPage, query ? undefined : 'name'),
         enabled: Boolean(env),
         placeholderData: keepPreviousData,
+        select: response => {
+            if (!productType) return response;
+            const filtered = response.data.filter(item => matchesType(item, productType));
+            const start = (page - 1) * perPage;
+            return {
+                data: filtered.slice(start, start + perPage),
+                pagination: { ...response.pagination, page, perPage, totalCount: filtered.length },
+            };
+        },
     });
 }

@@ -91,6 +91,7 @@ public class CreateApiProductUseCase {
             .name(payload.getName())
             .description(payload.getDescription())
             .version(payload.getVersion())
+            .type(payload.getType() != null ? payload.getType() : "API_PRODUCT")
             .apiIds(apiIds)
             .createdAt(now)
             .updatedAt(now)

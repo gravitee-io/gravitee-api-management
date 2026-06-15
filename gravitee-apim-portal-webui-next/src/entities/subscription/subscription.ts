@@ -23,6 +23,9 @@ export interface Subscription {
   created_at?: string;
   updated_at?: string;
   plan: string;
+  reference_type?: 'API' | 'API_PRODUCT';
+  reference_id?: string;
+  metadata?: Record<string, string>;
   reason?: string;
   request?: string;
   status: SubscriptionStatusEnum;

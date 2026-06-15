@@ -22,6 +22,12 @@ import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 import { ApimToaster } from './ApimToaster';
 import { NAV_GROUPS } from '../config/navigation';
 import { APIM_ROUTE_CONFIG } from '../config/routes';
+import { AiProductDetailLayout, AiProductIndexRedirect } from '../features/ai-products/components';
+import { AiProductsPage } from '../features/ai-products/pages/AiProductsPage';
+import { CreateAiProductPage } from '../features/ai-products/pages/CreateAiProductPage';
+import { AiProductOverviewPage } from '../features/ai-products/pages/detail/AiProductOverviewPage';
+import { AiProductComponentsPage } from '../features/ai-products/pages/detail/components/AiProductComponentsPage';
+import { AiProductDevelopersPage } from '../features/ai-products/pages/detail/developers/AiProductDevelopersPage';
 import { ApiProductDetailLayout, ApiProductIndexRedirect } from '../features/api-products/components';
 import { ApiProductsPage } from '../features/api-products/pages/ApiProductsPage';
 import { CreateApiProductPage } from '../features/api-products/pages/CreateApiProductPage';
@@ -170,6 +176,31 @@ export function AppRoutes() {
                                 <Route index element={<ApiProductConsumersPage />} />
                                 <Route path=":subscriptionId" element={<ApiProductConsumerDetailPage />} />
                             </Route>
+                            <Route path="user-permissions" element={<ApiProductUserPermissionsPage />} />
+                            <Route path="*" element={<Navigate to="overview" replace />} />
+                        </Route>
+                    </Route>
+                    <Route path="ai-products">
+                        <Route index element={<AiProductsPage />} />
+                        <Route path="new" element={<CreateAiProductPage />} />
+                        <Route path=":productId" element={<AiProductDetailLayout />}>
+                            <Route index element={<AiProductIndexRedirect />} />
+                            <Route path="overview" element={<AiProductOverviewPage />} />
+                            {/* General / Plans / Consumers / User Permissions reuse the api-products pages —
+                                an AI Product is the same backend resource and the detail layout provides the
+                                same ApiProductDetailContext. */}
+                            <Route path="general" element={<ApiProductGeneralPage />} />
+                            <Route path="components" element={<AiProductComponentsPage />} />
+                            {/* Plans = tiers (reuse the api-product plan pages). Users = per-person keys+budgets. */}
+                            <Route path="plans">
+                                <Route index element={<ApiProductPlansPage />} />
+                                <Route path="new/:securityType" element={<ApiProductPlanFormPage />} />
+                                <Route path=":planId" element={<ApiProductPlanFormPage />} />
+                            </Route>
+                            <Route path="users" element={<AiProductDevelopersPage />} />
+                            {/* Back-compat: old developers/consumers routes redirect to Users. */}
+                            <Route path="developers" element={<Navigate to="../users" replace />} />
+                            <Route path="consumers" element={<Navigate to="../users" replace />} />
                             <Route path="user-permissions" element={<ApiProductUserPermissionsPage />} />
                             <Route path="*" element={<Navigate to="overview" replace />} />
                         </Route>

@@ -118,6 +118,14 @@ export interface CreateSubscriptionPayload {
     planId: string;
     applicationId: string;
     customApiKey?: string;
+    /** Per-subscription metadata; AI Products store the developer's personal token limit here. */
+    metadata?: Record<string, string>;
+    /**
+     * API key sharing for the application. AI Products pass `SHARED` so one user has a single
+     * key across all the products they're subscribed to ("here's your one key"), while the
+     * gateway still meters each product subscription on its own per-user counter.
+     */
+    apiKeyMode?: ApiKeyMode;
 }
 
 export interface ApproveSubscriptionPayload {

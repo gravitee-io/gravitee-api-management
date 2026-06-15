@@ -63,6 +63,37 @@ import lombok.CustomLog;
 public class ApiProductPlansResource extends AbstractResource {
 
     private final ApiProductPlanMapper planMapper = ApiProductPlanMapper.INSTANCE;
+    private final io.gravitee.rest.api.management.v2.rest.mapper.FlowMapper flowMapper =
+        io.gravitee.rest.api.management.v2.rest.mapper.FlowMapper.INSTANCE;
+    private static final com.fasterxml.jackson.databind.ObjectMapper OBJECT_MAPPER =
+        new com.fasterxml.jackson.databind.ObjectMapper().configure(
+            com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+            false
+        );
+
+    // The api-products spec types plan flows as generic objects (it can't reference FlowV4), so convert
+    // each to the REST FlowV4 then to core flows (this serializes the policy configuration correctly).
+    private java.util.List<io.gravitee.definition.model.v4.flow.Flow> toCoreFlows(java.util.List<Object> rawFlows) {
+        log.info("[ai-product] toCoreFlows received {} raw flow(s) for product {}", rawFlows == null ? -1 : rawFlows.size(), apiProductId);
+        if (rawFlows == null || rawFlows.isEmpty()) {
+            return java.util.List.of();
+        }
+        var restFlows = rawFlows
+            .stream()
+            .map(o -> OBJECT_MAPPER.convertValue(o, io.gravitee.rest.api.management.v2.rest.model.FlowV4.class))
+            .toList();
+        var coreFlows = flowMapper.mapToHttpV4(restFlows);
+        log.info(
+            "[ai-product] toCoreFlows mapped to {} core flow(s), policies={}",
+            coreFlows.size(),
+            coreFlows
+                .stream()
+                .flatMap(f -> f.getRequest().stream())
+                .map(io.gravitee.definition.model.v4.flow.step.Step::getPolicy)
+                .toList()
+        );
+        return coreFlows;
+    }
 
     @Inject
     private CreateApiProductPlanUseCase createProductPlanUseCase;
@@ -150,6 +181,7 @@ public class ApiProductPlansResource extends AbstractResource {
             new CreateApiProductPlanUseCase.Input(
                 apiProductId,
                 api -> planMapper.map(createPlan),
+                toCoreFlows(createPlan.getFlows()),
                 AuditInfo.builder()
                     .organizationId(executionContext.getOrganizationId())
                     .environmentId(executionContext.getEnvironmentId())

@@ -16,6 +16,8 @@
 package io.gravitee.gateway.reactive.handlers.api.v4;
 
 import io.gravitee.definition.model.Policy;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.plan.AbstractPlan;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.gateway.core.classloader.DefaultClassLoader;
@@ -30,6 +32,7 @@ import io.gravitee.plugin.policy.PolicyPlugin;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Policy manager for API Product plans. Loads security policies from product plans
@@ -81,6 +84,31 @@ public class ApiProductPlanPolicyManager extends AbstractPolicyManager {
 
         for (ApiProductRegistry.ApiProductPlanEntry entry : entries) {
             AbstractPlan plan = entry.plan();
+
+            // Flow step policies (e.g. rate-limit, token-ratelimit) defined on the product plan
+            // must be loaded too, so the product plan flow chain can instantiate them.
+            if (plan instanceof io.gravitee.definition.model.v4.plan.Plan httpPlan && httpPlan.getFlows() != null) {
+                httpPlan
+                    .getFlows()
+                    .stream()
+                    .filter(Flow::isEnabled)
+                    .flatMap(flow ->
+                        Stream.concat(
+                            flow.getRequest() != null ? flow.getRequest().stream() : Stream.empty(),
+                            flow.getResponse() != null ? flow.getResponse().stream() : Stream.empty()
+                        )
+                    )
+                    .filter(Step::isEnabled)
+                    .forEach(step ->
+                        byName.computeIfAbsent(step.getPolicy(), policyName -> {
+                            Policy policy = new Policy();
+                            policy.setName(policyName);
+                            policy.setConfiguration(step.getConfiguration());
+                            return policy;
+                        })
+                    );
+            }
+
             if (!plan.useStandardMode() || plan.getSecurity() == null) {
                 continue;
             }

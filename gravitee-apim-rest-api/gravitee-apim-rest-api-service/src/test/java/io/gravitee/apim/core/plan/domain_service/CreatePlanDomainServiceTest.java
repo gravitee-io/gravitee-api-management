@@ -329,7 +329,7 @@ class CreatePlanDomainServiceTest {
         @MethodSource("apiProductPlans")
         void should_create_api_product_plan(ApiProduct api, Plan plan, List<Flow> flows) {
             // When
-            var result = service.createApiProductPlan(plan, api, AUDIT_INFO);
+            var result = service.createApiProductPlan(plan, flows, api, AUDIT_INFO);
 
             // Then
             assertThat(result).isNotNull();

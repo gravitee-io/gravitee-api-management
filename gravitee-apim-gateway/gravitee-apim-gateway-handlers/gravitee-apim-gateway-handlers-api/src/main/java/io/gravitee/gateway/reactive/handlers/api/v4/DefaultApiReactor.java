@@ -152,6 +152,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
     protected final io.gravitee.gateway.reactive.handlers.api.flow.FlowChain organizationFlowChain;
     protected final FlowChain apiPlanFlowChain;
     protected final FlowChain apiFlowChain;
+    protected volatile FlowChain productPlanFlowChain;
+    private final FlowChainFactory v4FlowChainFactory;
     private final Node node;
     protected final String loggingExcludedResponseType;
     protected final String loggingMaxSize;
@@ -280,6 +282,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
         this.onErrorProcessors = apiProcessorChainFactory.onError(api);
 
         this.organizationFlowChain = flowChainFactory.createOrganizationFlow(api, tracingContext);
+        this.v4FlowChainFactory = v4FlowChainFactory;
         this.apiPlanFlowChain = v4FlowChainFactory.createPlanFlow(api, tracingContext);
         this.apiFlowChain = v4FlowChainFactory.createApiFlow(api, tracingContext);
 
@@ -363,6 +366,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
             // Resolve entrypoint and prepare request to be handled.
             .chainWith(handleEntrypointRequest(ctx))
             // Execute all flows for request phases.
+            .chainWith(executeProductPlanFlowChain(ctx, REQUEST))
             .chainWith(apiPlanFlowChain.execute(ctx, REQUEST))
             .chainWith(apiFlowChain.execute(ctx, REQUEST))
             .chainWith(upstream -> endRequestPhaseTracing(upstream, ctx))
@@ -371,6 +375,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
             // Start RESPONSE traces
             .chainWith(startPhaseTracing(ctx, RESPONSE))
             // Execute all flows for response phases.
+            .chainWith(executeProductPlanFlowChain(ctx, RESPONSE))
             .chainWith(apiPlanFlowChain.execute(ctx, RESPONSE))
             .chainWith(apiFlowChain.execute(ctx, RESPONSE))
             // After flows processors.
@@ -635,6 +640,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
         // Create httpSecurityChain once policy manager has been started.
         refreshSecurityChain();
+        refreshProductPlanFlowChain();
 
         tracingContext.start();
         analyticsContext = createAnalyticsContext();
@@ -699,6 +705,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
                 }
             }
             refreshSecurityChain();
+            refreshProductPlanFlowChain();
             log.debug("API [{}] security chain refreshed after API Product change", api.getId());
         } catch (Exception e) {
             log.warn("Failed to refresh security chain for API [{}] on API Product change", api.getId(), e);
@@ -715,6 +722,35 @@ public class DefaultApiReactor extends AbstractApiReactor {
             log.debug("API [{}] received ApiProductChangedEvent ({}) for product [{}]", api.getId(), event.type(), payload.getProductId());
             restartApiProductPlanPolicyManager();
         }
+    }
+
+    /**
+     * (Re)creates the flow chain executing API Product plan flows. Must be called whenever
+     * {@link #apiProductPlanPolicyManager} is (re)created, as the policy chain factory caches
+     * policy chains built from that manager.
+     */
+    private void refreshProductPlanFlowChain() {
+        if (apiProductRegistry != null && apiProductPlanPolicyManager != null) {
+            final io.gravitee.gateway.reactive.v4.policy.HttpPolicyChainFactory productPolicyChainFactory =
+                new io.gravitee.gateway.reactive.v4.policy.HttpPolicyChainFactory(
+                    api.getId() + "-product",
+                    apiProductPlanPolicyManager,
+                    tracingContext != null && tracingContext.isEnabled()
+                );
+            this.productPlanFlowChain = v4FlowChainFactory.createProductPlanFlow(
+                api,
+                apiProductRegistry,
+                productPolicyChainFactory,
+                tracingContext
+            );
+        }
+    }
+
+    private Completable executeProductPlanFlowChain(final MutableExecutionContext ctx, final ExecutionPhase phase) {
+        return Completable.defer(() -> {
+            final FlowChain chain = productPlanFlowChain;
+            return chain != null ? chain.execute(ctx, phase) : Completable.complete();
+        });
     }
 
     private void refreshSecurityChain() {

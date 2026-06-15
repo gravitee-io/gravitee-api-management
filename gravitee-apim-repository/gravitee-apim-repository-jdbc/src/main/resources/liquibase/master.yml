@@ -375,3 +375,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_12_0/14_add_portal_listings_table.yml
     - include:
         - file: liquibase/changelogs/v4_12_0/15_add_environment_id_to_am_connections.yml
+    - include:
+        - file: liquibase/changelogs/v4_12_0/14_add_type_to_api_products.yml

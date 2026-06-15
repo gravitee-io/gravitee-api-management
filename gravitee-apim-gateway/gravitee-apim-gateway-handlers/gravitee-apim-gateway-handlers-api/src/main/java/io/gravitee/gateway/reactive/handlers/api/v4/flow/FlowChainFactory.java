@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactive.handlers.api.v4.flow;
 
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.hook.ChainHook;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
@@ -45,6 +46,31 @@ public class FlowChainFactory {
         FlowChain flowPlanChain = new FlowChain("plan", flowResolverFactory.forApiPlan(api), policyChainFactory, true, false);
         flowPlanChain.addHooks(flowHooks(tracingContext));
         return flowPlanChain;
+    }
+
+    /**
+     * Creates the flow chain executing flows defined on API Product plans for the given API.
+     * The policy chain factory is provided by the caller because product plan policies are
+     * managed by the product plan policy manager, not the api one.
+     */
+    public FlowChain createProductPlanFlow(
+        final Api api,
+        final ApiProductRegistry apiProductRegistry,
+        final PolicyChainFactory<
+            io.gravitee.gateway.reactive.policy.HttpPolicyChain,
+            io.gravitee.definition.model.v4.flow.Flow
+        > productPolicyChainFactory,
+        final TracingContext tracingContext
+    ) {
+        FlowChain productPlanFlowChain = new FlowChain(
+            "product-plan",
+            flowResolverFactory.forApiProductPlan(api, apiProductRegistry),
+            productPolicyChainFactory,
+            true,
+            false
+        );
+        productPlanFlowChain.addHooks(flowHooks(tracingContext));
+        return productPlanFlowChain;
     }
 
     public FlowChain createApiFlow(final Api api, final TracingContext tracingContext) {

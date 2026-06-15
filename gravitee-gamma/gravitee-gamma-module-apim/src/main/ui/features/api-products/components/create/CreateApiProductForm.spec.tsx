@@ -113,7 +113,7 @@ describe('CreateApiProductForm', () => {
         });
         submitForm(container);
         expect(mockCreate).toHaveBeenCalledWith(
-            { name: 'My Product', version: '2.0.0', description: 'A desc' },
+            { name: 'My Product', version: '2.0.0', description: 'A desc', type: 'API_PRODUCT' },
             expect.objectContaining({ onSuccess: expect.any(Function) }),
         );
     });

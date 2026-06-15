@@ -62,7 +62,7 @@ export async function listSubscriptions(
         apiKey: filters.apiKey,
         page: filters.page ?? 1,
         perPage: filters.perPage ?? 10,
-        expands: 'plan,application',
+        expands: 'plan,application,subscribedBy',
     });
     return apimFetchJsonV2<SubscriptionPage>(envId, `${entityBase(ctx)}/subscriptions${q}`);
 }
@@ -110,6 +110,20 @@ export async function updateSubscriptionEndDate(
     endingAt: string | null,
 ): Promise<Subscription> {
     return apimFetchJsonV2<Subscription>(envId, sub(ctx, subscriptionId), { method: 'PUT', body: JSON.stringify({ endingAt }) });
+}
+
+/**
+ * Update a subscription's metadata in place. AI Products use this to change a user's personal
+ * token budget / rate limit after onboarding (the limits live on the subscription, not the plan,
+ * so editing them here re-personalises that one user without touching anyone else).
+ */
+export async function updateSubscriptionMetadata(
+    envId: string,
+    ctx: SubscriptionContext,
+    subscriptionId: string,
+    metadata: Record<string, string>,
+): Promise<Subscription> {
+    return apimFetchJsonV2<Subscription>(envId, sub(ctx, subscriptionId), { method: 'PUT', body: JSON.stringify({ metadata }) });
 }
 
 export async function listApiKeys(

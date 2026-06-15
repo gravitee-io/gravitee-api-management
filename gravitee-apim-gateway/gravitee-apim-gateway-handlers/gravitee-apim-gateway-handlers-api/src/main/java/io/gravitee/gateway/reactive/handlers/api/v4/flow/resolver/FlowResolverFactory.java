@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
@@ -59,6 +60,19 @@ public class FlowResolverFactory {
             return new BestMatchFlowResolver(apiPlanFlowResolver, bestMatchFlowSelector);
         }
         return apiPlanFlowResolver;
+    }
+
+    public FlowResolver forApiProductPlan(Api api, ApiProductRegistry apiProductRegistry) {
+        ApiProductPlanFlowResolver apiProductPlanFlowResolver = new ApiProductPlanFlowResolver(
+            api.getId(),
+            api.getEnvironmentId(),
+            apiProductRegistry,
+            apiFlowFilter
+        );
+        if (isBestMatchFlowMode(api.getDefinition().getFlowExecution())) {
+            return new BestMatchFlowResolver(apiProductPlanFlowResolver, bestMatchFlowSelector);
+        }
+        return apiProductPlanFlowResolver;
     }
 
     private static boolean isBestMatchFlowMode(final FlowExecution flowExecution) {

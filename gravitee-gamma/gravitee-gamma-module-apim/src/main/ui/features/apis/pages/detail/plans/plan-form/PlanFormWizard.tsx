@@ -176,6 +176,7 @@ export function PlanFormWizard({ ctx, securityType, planId, readOnly = false, se
                     value={form.restrictions}
                     onChange={(restrictions: RestrictionsFormData) => setForm({ ...form, restrictions })}
                     readOnly={readOnly || securityLocked}
+                    ctxType={ctx.type}
                 />
             )}
 

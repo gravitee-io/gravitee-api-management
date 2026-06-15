@@ -1,0 +1,211 @@
+/*
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+// The component host must fill the dashboard's flex row, otherwise the page sizes to its content
+// and leaves the right side empty (Applications fills because its :host sets width: 100%).
+:host {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  padding-top: 24px;
+}
+
+.ai-product-details {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  min-width: 0;
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  &__summary-chip {
+    padding: 4px 12px;
+    border-radius: 16px;
+    background: var(--gio-app-background-color, rgb(0 0 0 / 4%));
+    color: var(--gio-app-text-secondary-color, rgb(0 0 0 / 70%));
+  }
+
+  &__card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px;
+    border: 1px solid rgb(0 0 0 / 8%);
+    border-radius: 12px;
+    background: var(--gio-app-card-background-color, #fff);
+  }
+
+  &__card-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .material-icons {
+      color: var(--gio-app-primary-main-color, rgb(0 0 0 / 70%));
+    }
+
+    h2 {
+      margin: 0;
+    }
+  }
+
+  &__access {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    // Full card width — the API key is a long token, give it room.
+    max-width: 100%;
+  }
+
+  &__hint {
+    color: var(--gio-app-text-secondary-color, rgb(0 0 0 / 60%));
+  }
+
+  // Quick start: selectors on the left, the live snippet on the right — visible without scrolling.
+  &__quickstart {
+    display: grid;
+    // Even 50/50 split. minmax(0, 1fr) lets the snippet column shrink and scroll its <pre>
+    // instead of forcing the grid wider than half.
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+
+    @media (max-width: 900px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__selectors {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  &__snippet-col {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    // Let the <pre> scroll horizontally instead of stretching the grid column.
+    min-width: 0;
+  }
+
+  &__step {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__step-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+  }
+
+  &__inline-code {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: rgb(0 0 0 / 6%);
+    font-family: monospace;
+    font-size: 0.85em;
+  }
+
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  &__chip {
+    padding: 6px 14px;
+    border: 1px solid rgb(0 0 0 / 16%);
+    border-radius: 18px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease;
+
+    &:hover {
+      background: rgb(0 0 0 / 4%);
+    }
+
+    &--mono {
+      font-family: monospace;
+    }
+
+    &.is-selected {
+      border-color: var(--gio-app-primary-main-color, #613cb0);
+      background: var(--gio-app-primary-main-color, #613cb0);
+      color: var(--gio-app-primary-contrast-color, #fff);
+    }
+  }
+
+  &__endpoint {
+    max-width: 100%;
+  }
+
+  &__languages {
+    width: 100%;
+
+    // Each language fills an equal third instead of bunching in the corner.
+    mat-button-toggle {
+      flex: 1;
+      text-align: center;
+    }
+  }
+
+  &__snippet {
+    border: 1px solid rgb(0 0 0 / 12%);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  &__snippet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 8px 4px 16px;
+    border-bottom: 1px solid rgb(0 0 0 / 12%);
+    background: rgb(0 0 0 / 3%);
+  }
+
+  &__snippet-target {
+    font-family: monospace;
+    color: var(--gio-app-text-secondary-color, rgb(0 0 0 / 70%));
+  }
+
+  &__code {
+    margin: 0;
+    padding: 16px;
+    overflow-x: auto;
+    font-family: monospace;
+  }
+}

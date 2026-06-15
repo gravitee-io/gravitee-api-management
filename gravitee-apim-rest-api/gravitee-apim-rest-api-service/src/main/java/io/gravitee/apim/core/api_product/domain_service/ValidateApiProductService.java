@@ -28,6 +28,7 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
@@ -83,7 +84,11 @@ public class ValidateApiProductService {
                 invalidApiIds.add(api.getId());
             } else if (
                 api.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api v4Api &&
-                !Boolean.TRUE.equals(v4Api.getAllowedInApiProducts())
+                !Boolean.TRUE.equals(v4Api.getAllowedInApiProducts()) &&
+                // LLM proxies are designed to be bundled, so they don't require the explicit
+                // "allowed in API products" opt-in — any LLM proxy can be added as a component.
+                v4Api.getType() !=
+                ApiType.LLM_PROXY
             ) {
                 notAllowedApiIds.add(api.getId());
             }

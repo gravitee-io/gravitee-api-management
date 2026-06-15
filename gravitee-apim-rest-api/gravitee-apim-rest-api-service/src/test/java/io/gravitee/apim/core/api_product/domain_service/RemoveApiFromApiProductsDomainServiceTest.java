@@ -72,7 +72,12 @@ class RemoveApiFromApiProductsDomainServiceTest extends AbstractUseCaseTest {
             planQueryService,
             apiProductQueryService
         );
-        var deployApiProductDomainService = new DeployApiProductDomainService(planQueryService, eventCrudService, eventLatestCrudService);
+        var deployApiProductDomainService = new DeployApiProductDomainService(
+            planQueryService,
+            eventCrudService,
+            eventLatestCrudService,
+            new inmemory.FlowCrudServiceInMemory()
+        );
         domainService = new RemoveApiFromApiProductsDomainService(
             apiProductQueryService,
             apiProductCrudService,

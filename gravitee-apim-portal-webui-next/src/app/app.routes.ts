@@ -167,6 +167,23 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'subscriptions', pathMatch: 'full' },
       {
+        path: 'ai-products',
+        loadComponent: () => import('./dashboard/ai-products/ai-products.component'),
+      },
+      {
+        // Catalog routes must precede ':subscriptionId' so "catalog" is not parsed as an id.
+        path: 'ai-products/catalog',
+        loadComponent: () => import('./dashboard/ai-products-catalog/ai-products-catalog.component'),
+      },
+      {
+        path: 'ai-products/catalog/:productId',
+        loadComponent: () => import('./dashboard/ai-products-catalog/ai-product-catalog-details.component'),
+      },
+      {
+        path: 'ai-products/:subscriptionId',
+        loadComponent: () => import('./dashboard/ai-product-details/ai-product-details.component'),
+      },
+      {
         path: 'subscriptions',
         loadComponent: () => import('./dashboard/subscriptions/subscriptions.component'),
       },

@@ -22,11 +22,13 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.v4.flow.AbstractBestMatchFlowSelector;
+import io.gravitee.gateway.reactive.v4.flow.BestMatchFlowResolver;
 import io.gravitee.gateway.reactive.v4.flow.FlowResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,6 +48,9 @@ class FlowResolverFactoryTest {
 
     @Mock
     private AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector;
+
+    @Mock
+    private ApiProductRegistry apiProductRegistry;
 
     private FlowResolverFactory cut;
     private Api api;
@@ -73,5 +78,25 @@ class FlowResolverFactoryTest {
 
         assertNotNull(flowResolver);
         assertTrue(flowResolver instanceof ApiPlanFlowResolver);
+    }
+
+    @Test
+    void shouldCreateApiProductPlanFlowResolver() {
+        final FlowResolver flowResolver = cut.forApiProductPlan(api, apiProductRegistry);
+
+        assertNotNull(flowResolver);
+        assertTrue(flowResolver instanceof ApiProductPlanFlowResolver);
+    }
+
+    @Test
+    void shouldCreateBestMatchApiProductPlanFlowResolverWhenBestMatchMode() {
+        final FlowExecution flowExecution = new FlowExecution();
+        flowExecution.setMode(FlowMode.BEST_MATCH);
+        api.getDefinition().setFlowExecution(flowExecution);
+
+        final FlowResolver flowResolver = cut.forApiProductPlan(api, apiProductRegistry);
+
+        assertNotNull(flowResolver);
+        assertTrue(flowResolver instanceof BestMatchFlowResolver);
     }
 }

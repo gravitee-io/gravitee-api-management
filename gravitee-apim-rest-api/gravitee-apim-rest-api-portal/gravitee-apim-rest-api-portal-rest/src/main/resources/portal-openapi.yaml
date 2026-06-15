@@ -81,6 +81,56 @@ paths:
                                 $ref: "#/components/schemas/ApisResponse"
                 500:
                     $ref: "#/components/responses/InternalServerError"
+    /api-products:
+        get:
+            tags:
+                - ApiProduct
+            summary: List AI Products
+            description: |
+                List the AI Products (bundles of LLM proxies) available in the catalog for the current user.
+                By default the list is sorted by alphabetic order.
+            operationId: getApiProducts
+            security:
+                - BasicAuth: []
+                - CookieAuth: []
+            parameters:
+                - $ref: "#/components/parameters/pageNumberParam"
+                - $ref: "#/components/parameters/pageSizeParam"
+            responses:
+                200:
+                    description: List of accessible AI Products for the current user
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiProductsResponse"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /api-products/{apiProductId}:
+        get:
+            tags:
+                - ApiProduct
+            summary: Get an AI Product
+            description: Get a single AI Product together with its published plans (used to subscribe).
+            operationId: getApiProduct
+            security:
+                - BasicAuth: []
+                - CookieAuth: []
+            parameters:
+                - name: apiProductId
+                  in: path
+                  required: true
+                  description: Id of an AI Product.
+                  schema:
+                      type: string
+            responses:
+                200:
+                    description: The AI Product
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiProduct"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
     /portal-pages:
         get:
             tags:
@@ -4697,6 +4747,79 @@ components:
                     $ref: "#/components/schemas/MetadataMap"
                 links:
                     $ref: "#/components/schemas/Links"
+        ApiProduct:
+            description: |
+                An AI Product — a bundle of LLM proxies exposed in the catalog. A subscriber gets all the
+                product's models; their personal token and rate limits are set by the admin at approval.
+            required:
+                - id
+                - name
+            properties:
+                id:
+                    description: Unique identifier of the AI Product.
+                    type: string
+                name:
+                    description: Name of the AI Product.
+                    type: string
+                description:
+                    description: Description of the AI Product.
+                    type: string
+                version:
+                    description: Version of the AI Product.
+                    type: string
+                plans:
+                    description: Published plans the user can subscribe to (present on the detail response).
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ApiProductPlan"
+                models:
+                    description: Models served by this product's LLM proxies (aggregated across components).
+                    type: array
+                    items:
+                        type: string
+                components:
+                    description: The LLM proxies bundled in this product (name + context path), for the catalog.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ApiProductComponent"
+        ApiProductComponent:
+            description: An LLM proxy bundled in an AI Product.
+            properties:
+                name:
+                    type: string
+                path:
+                    description: Gateway context path of the proxy.
+                    type: string
+                models:
+                    type: array
+                    items:
+                        type: string
+        ApiProductPlan:
+            description: A published plan of an AI Product.
+            properties:
+                id:
+                    description: Unique identifier of the plan.
+                    type: string
+                name:
+                    description: Name of the plan.
+                    type: string
+                security:
+                    description: Security type of the plan (e.g. API_KEY).
+                    type: string
+                validation:
+                    description: Subscription validation mode (AUTO or MANUAL).
+                    type: string
+        ApiProductsResponse:
+            properties:
+                data:
+                    description: List of AI Products.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ApiProduct"
+                metadata:
+                    $ref: "#/components/schemas/MetadataMap"
+                links:
+                    $ref: "#/components/schemas/Links"
         ApplicationMembersSearchInput:
             type: object
             description: Search input for application members. The filters object is extensible for future search attributes.
@@ -5861,6 +5984,11 @@ components:
                 plan:
                     description: Subscribed plan.
                     type: string
+                metadata:
+                    description: Subscription metadata. AI Products store the developer's personal token limit under "tokenLimit".
+                    type: object
+                    additionalProperties:
+                        type: string
                 request:
                     description: Comment of the user when asking for a subscription.
                     type: string

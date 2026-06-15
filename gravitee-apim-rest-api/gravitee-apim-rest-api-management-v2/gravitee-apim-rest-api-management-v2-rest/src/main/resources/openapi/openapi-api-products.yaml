@@ -2031,6 +2031,10 @@ components:
           type: string
           description: The API Product version
           example: "1.0.0"
+        type:
+          type: string
+          description: Product category — API_PRODUCT (default) or AI_PRODUCT (LLM/AI bundle)
+          example: "AI_PRODUCT"
         apiIds:
           type: array
           description: List of API IDs included in the product
@@ -2116,6 +2120,10 @@ components:
           type: string
           description: The API Product version
           example: "1.0.0"
+        type:
+          type: string
+          description: Product category — API_PRODUCT (REST API bundle) or AI_PRODUCT (LLM/AI bundle)
+          example: "AI_PRODUCT"
         apiIds:
           type: array
           description: List of API IDs included in the product
@@ -2437,6 +2445,11 @@ components:
           type: array
           items:
             type: string
+        flows:
+          type: array
+          description: Flows (policies, e.g. token-ratelimit) applied to subscriptions of this plan. Each item is a V4 flow object.
+          items:
+            type: object
         commentMessage:
           type: string
           description: A message from the API Product Publisher that is displayed to the consumer at subscription time.
@@ -2497,6 +2510,11 @@ components:
           type: array
           items:
             type: string
+        flows:
+          type: array
+          description: Flows (policies, e.g. token-ratelimit) applied to subscriptions of this plan. Each item is a V4 flow object.
+          items:
+            type: object
         commentMessage:
           type: string
           description: A message from the API Product Publisher that is displayed to the consumer at subscription time.

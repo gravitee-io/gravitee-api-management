@@ -205,7 +205,7 @@ public class CreatePlanDomainService {
         return new PlanWithFlows(createdPlan, flows);
     }
 
-    public Plan createApiProductPlan(Plan plan, ApiProduct apiProduct, AuditInfo auditInfo) {
+    public Plan createApiProductPlan(Plan plan, List<Flow> flows, ApiProduct apiProduct, AuditInfo auditInfo) {
         //TODO handle deprecated api product
         /*if (apiProduct.isDeprecated()) {
             throw new ApiDeprecatedException(plan.getApiId());
@@ -225,6 +225,11 @@ public class CreatePlanDomainService {
                 .publishedAt(plan.isPublished() ? TimeProvider.now() : null)
                 .build()
         );
+        // Persist the plan's flows (e.g. token-ratelimit / rate-limit for per-user budgets). Without
+        // this the deployed product plan has no policies, so per-user limits never reach the gateway.
+        if (flows != null && !flows.isEmpty()) {
+            flowCrudService.savePlanFlows(createdPlan.getId(), flows);
+        }
         createApiProductAuditLog(createdPlan, auditInfo);
         return createdPlan;
     }

@@ -41,6 +41,8 @@ public class ApiProduct {
     private String name;
     private String description;
     private String version;
+    /** Product category: "API_PRODUCT" (REST API bundle) or "AI_PRODUCT" (LLM/AI bundle). Null = API_PRODUCT. */
+    private String type;
     private Set<String> apiIds;
     private Set<String> groups;
     private ZonedDateTime createdAt;

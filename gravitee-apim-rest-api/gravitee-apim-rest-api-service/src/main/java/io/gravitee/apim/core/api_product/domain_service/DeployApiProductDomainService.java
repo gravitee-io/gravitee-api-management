@@ -24,6 +24,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.event.model.Event;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
@@ -39,12 +40,22 @@ public class DeployApiProductDomainService {
     private final PlanQueryService planQueryService;
     private final EventCrudService eventCrudService;
     private final EventLatestCrudService eventLatestCrudService;
+    private final FlowCrudService flowCrudService;
 
     public void deploy(AuditInfo auditInfo, ApiProduct apiProduct) {
         var plans = planQueryService
             .findAllByReferenceIdAndReferenceType(apiProduct.getId(), GenericPlanEntity.ReferenceType.API_PRODUCT)
             .stream()
-            .map(io.gravitee.apim.core.plan.model.Plan::getPlanDefinitionHttpV4)
+            .map(plan -> {
+                var definition = plan.getPlanDefinitionHttpV4();
+                if (definition != null) {
+                    // Plan flows are persisted separately from the plan definition; embed them in the
+                    // deployment payload so the gateway can execute the per-plan policies
+                    // (e.g. token-ratelimit) for API Product subscriptions.
+                    definition.setFlows(flowCrudService.getPlanV4Flows(plan.getId()));
+                }
+                return definition;
+            })
             .filter(Objects::nonNull)
             .toList();
 
