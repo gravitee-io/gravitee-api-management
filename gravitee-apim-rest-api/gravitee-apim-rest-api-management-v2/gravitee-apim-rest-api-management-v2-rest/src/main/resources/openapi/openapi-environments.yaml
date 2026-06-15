@@ -1031,6 +1031,11 @@ paths:
         ParentId is the unique identifier of the parent item.
         * Optional parent ID. If provided, the item is set to that parent.
         * If omitted, the item is moved to the root level.
+
+        Publication propagation applies only when the `published` value changes on a container navigation item (`FOLDER` or `API`).
+        When publishing a container, descendants are published only if `propagatePublishToChildren=true`.
+        If `propagatePublishToChildren` is omitted or false, only the selected item is published.
+        When unpublishing a container, descendants are always unpublished according to the business rule; `propagatePublishToChildren` is ignored and may be omitted.
       operationId: updatePortalNavigationItem
       parameters:
         - name: navId
@@ -1042,11 +1047,11 @@ paths:
         - name: propagatePublishToChildren
           in: query
           description: >
-            Controls whether a publication change on a container navigation item is propagated to descendants.
+            Controls whether publishing a container navigation item (`FOLDER` or `API`) is propagated to descendants.
+            Only evaluated when `published` changes to true on a container item.
             If omitted or false, publishing affects only the selected item.
             If true, publishing also affects descendants.
-            For unpublishing a FOLDER or API, this parameter is ignored and descendants are always unpublished
-            according to the business rule.
+            Ignored for unpublish; container descendants are always unpublished according to the business rule.
           required: false
           schema:
             type: boolean
