@@ -65,6 +65,7 @@ export class PageSwaggerComponent implements OnChanges {
       if (pageConfiguration.show_url) {
         config.url = this.page._links?.content;
         config.spec = undefined;
+        plugins.push(this.normalizeSpecPlugin());
       }
       if (this.page.configuration?.disable_syntax_highlight) {
         config.syntaxHighlight = false;
@@ -132,6 +133,21 @@ export class PageSwaggerComponent implements OnChanges {
       }
     }
     return result;
+  }
+
+  private normalizeSpecPlugin(): SwaggerUIPlugin {
+    const normalize = (obj: unknown) => this.normalizeTypeArrays(obj);
+    return () => ({
+      statePlugins: {
+        spec: {
+          wrapActions: {
+            updateJsonSpec: (oriAction: (spec: Record<string, unknown>) => void) => (spec: Record<string, unknown>) => {
+              return oriAction(normalize(spec) as Record<string, unknown>);
+            },
+          },
+        },
+      },
+    });
   }
 
   private disabledTryItOutPlugin() {

@@ -38,6 +38,22 @@ describe('GvPageSwaggerUIComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  describe('normalizeSpecPlugin', () => {
+    it('should return a plugin that normalizes type arrays via updateJsonSpec', () => {
+      const pluginFactory = component['normalizeSpecPlugin']();
+      const plugin = pluginFactory();
+      const oriAction = jest.fn(spec => spec);
+      const wrappedAction = plugin.statePlugins.spec.wrapActions.updateJsonSpec(oriAction);
+
+      const spec = { paths: { '/test': { get: { parameters: [{ schema: { type: ['integer', 'string'] } }] } } } };
+      wrappedAction(spec);
+
+      expect(oriAction).toHaveBeenCalledWith({
+        paths: { '/test': { get: { parameters: [{ schema: { type: 'string' } }] } } },
+      });
+    });
+  });
+
   describe('normalizeTypeArrays', () => {
     it('should flatten a single-element type array to that type', () => {
       expect(component['normalizeTypeArrays']({ type: ['integer'] })).toEqual({ type: 'integer' });
