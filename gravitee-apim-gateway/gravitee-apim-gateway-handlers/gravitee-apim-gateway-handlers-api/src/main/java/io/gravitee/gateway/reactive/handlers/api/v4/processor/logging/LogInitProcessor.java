@@ -82,6 +82,7 @@ public class LogInitProcessor implements Processor {
             .apiName(ctx.getAttribute(ContextAttributes.ATTR_API_NAME))
             .organizationId(ctx.metrics().getOrganizationId())
             .environmentId(ctx.metrics().getEnvironmentId())
+            .targets(loggingContext.computeReportTargets())
             .build();
         ctx.metrics().setLog(log);
 

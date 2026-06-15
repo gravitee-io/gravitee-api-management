@@ -15,11 +15,12 @@
  */
 package io.gravitee.gateway.standalone.reporter;
 
-import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.reporter.api.ReportTarget;
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.Reporter;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +39,11 @@ public class FakeReporter extends AbstractService<Reporter> implements Reporter 
     @Override
     public void report(Reportable reportable) {
         reportHandler.handle(reportable);
+    }
+
+    @Override
+    public Set<ReportTarget> supportedTargets() {
+        return ReportTarget.ALL;
     }
 
     public void reset() {

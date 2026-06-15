@@ -62,6 +62,7 @@ class LogInitProcessorTest extends AbstractV4ProcessorTest {
         lenient().when(analyticsContext.isEnabled()).thenReturn(true);
         lenient().when(analyticsContext.getLoggingContext()).thenReturn(loggingContext);
         lenient().when(analyticsContext.isLoggingEnabled()).thenReturn(true);
+        lenient().when(loggingContext.computeReportTargets()).thenReturn(io.gravitee.reporter.api.ReportTarget.DEFAULT);
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
     }
 
