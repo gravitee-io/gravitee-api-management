@@ -54,6 +54,7 @@ const MODULE_DESCRIPTIONS: Record<string, { label: string; description: string }
     apim: { label: 'API Management', description: 'Design, deploy, and govern HTTP APIs' },
     platform: { label: 'Platform Management', description: 'Apps, subscriptions, and usage' },
     authz: { label: 'Authorization Management', description: 'Fine-grained authorization policies' },
+    esm: { label: 'Event Stream Management', description: 'Manage Kafka clusters, services, and event mesh' },
 };
 
 function buildAppDefinitions(modules: readonly GammaModule[]) {
