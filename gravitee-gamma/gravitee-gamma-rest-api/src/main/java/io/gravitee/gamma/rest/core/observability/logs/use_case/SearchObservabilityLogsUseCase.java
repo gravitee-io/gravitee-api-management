@@ -17,12 +17,10 @@ package io.gravitee.gamma.rest.core.observability.logs.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.exception.ValidationDomainException;
-import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
-import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
-import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsPage;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
@@ -30,7 +28,6 @@ import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.Obse
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -68,7 +65,7 @@ public class SearchObservabilityLogsUseCase {
     static final Set<String> DEFAULT_ENTRYPOINT_IDS = Set.of("http-get", "http-post", "http-proxy", "llm-proxy", "mcp-proxy");
 
     private final ObservabilityLogsDataPort logsDataPort;
-    private final FilterRegistry filterRegistry;
+    private final ObservabilityFilterValidator filterValidator;
     private final AccessibleApiScopeDomainService accessibleApiScope;
 
     public record Input(
@@ -88,9 +85,8 @@ public class SearchObservabilityLogsUseCase {
         int perPage = resolvePerPage(input);
 
         var conditions = input.filters != null ? input.filters : List.<FilterCondition>of();
-        var filtersByName = buildFilterSpecMap();
 
-        validateConditions(conditions, filtersByName);
+        filterValidator.validate(conditions, Signal.LOGS);
         validateTimeRange(input.from, input.to);
 
         var accessibleApis = logsDataPort.loadAccessibleApis(input.organizationId, input.environmentId);
@@ -106,7 +102,7 @@ public class SearchObservabilityLogsUseCase {
 
         var query = LogsSearchQuery.builder()
             .apiIds(scope.apiIds())
-            .apiNamesById(scope.apiNamesById())
+            .apisById(scope.apisById())
             .conditions(effectiveConditions)
             .from(input.from != null ? input.from.toEpochMilli() : null)
             .to(input.to != null ? input.to.toEpochMilli() : null)
@@ -124,22 +120,6 @@ public class SearchObservabilityLogsUseCase {
 
     private static int resolvePerPage(Input input) {
         return (input.perPage() != null && input.perPage() > 0) ? Math.min(input.perPage(), MAX_PER_PAGE) : DEFAULT_PER_PAGE;
-    }
-
-    private Map<String, FilterSpec> buildFilterSpecMap() {
-        return filterRegistry.getFilters(Set.of(), Set.of()).stream().collect(Collectors.toMap(FilterSpec::name, f -> f, (a, b) -> b));
-    }
-
-    private static void validateConditions(List<FilterCondition> conditions, Map<String, FilterSpec> specsByName) {
-        for (var condition : conditions) {
-            var spec = specsByName.get(condition.name());
-            if (spec == null) {
-                throw UnsupportedObservabilityFilterException.unknownName(condition.name());
-            }
-            if (!spec.signals().contains(Signal.LOGS)) {
-                throw UnsupportedObservabilityFilterException.signalMismatch(condition.name(), Signal.LOGS);
-            }
-        }
     }
 
     private static void validateTimeRange(Instant from, Instant to) {
