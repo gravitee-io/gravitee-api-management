@@ -17,8 +17,13 @@ package io.gravitee.gateway.reactive.core.v4.analytics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.definition.model.v4.analytics.logging.Logging;
+import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
+import io.gravitee.reporter.api.ReportTarget;
+import java.util.EnumSet;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -109,5 +114,47 @@ class LoggingContextOtelTest {
         assertThat(ctx.endpointRequestHeaders()).isFalse();
         assertThat(ctx.entrypointResponseHeaders()).isFalse();
         assertThat(ctx.endpointResponseHeaders()).isFalse();
+    }
+
+    @Nested
+    class ComputeReportTargets {
+
+        @Test
+        void should_return_tracing_only_when_otel_logs_on_and_es_logging_off() {
+            LoggingContext ctx = new LoggingContext(null);
+            ctx.setOtelLogsEnabled(true);
+            assertThat(ctx.computeReportTargets()).isEqualTo(EnumSet.of(ReportTarget.TRACING));
+        }
+
+        @Test
+        void should_return_analytics_only_when_otel_logs_off_and_es_logging_on() {
+            Logging logging = new Logging();
+            LoggingMode mode = new LoggingMode();
+            mode.setEntrypoint(true);
+            logging.setMode(mode);
+
+            LoggingContext ctx = new LoggingContext(logging);
+            ctx.setOtelLogsEnabled(false);
+            assertThat(ctx.computeReportTargets()).isEqualTo(EnumSet.of(ReportTarget.ANALYTICS));
+        }
+
+        @Test
+        void should_return_both_when_otel_logs_on_and_es_logging_on() {
+            Logging logging = new Logging();
+            LoggingMode mode = new LoggingMode();
+            mode.setEntrypoint(true);
+            logging.setMode(mode);
+
+            LoggingContext ctx = new LoggingContext(logging);
+            ctx.setOtelLogsEnabled(true);
+            assertThat(ctx.computeReportTargets()).isEqualTo(ReportTarget.ALL);
+        }
+
+        @Test
+        void should_return_analytics_when_neither_otel_logs_nor_es_logging() {
+            LoggingContext ctx = new LoggingContext(null);
+            ctx.setOtelLogsEnabled(false);
+            assertThat(ctx.computeReportTargets()).containsExactly(ReportTarget.ANALYTICS);
+        }
     }
 }

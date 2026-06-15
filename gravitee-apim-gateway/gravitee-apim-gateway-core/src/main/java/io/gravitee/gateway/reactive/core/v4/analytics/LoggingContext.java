@@ -18,9 +18,13 @@ package io.gravitee.gateway.reactive.core.v4.analytics;
 import io.gravitee.common.utils.SizeUtils;
 import io.gravitee.definition.model.ConditionSupplier;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
+import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
 import io.gravitee.gateway.core.logging.LoggableContentType;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.report.guard.LogGuardService;
+import io.gravitee.reporter.api.ReportTarget;
+import java.util.EnumSet;
+import java.util.Set;
 import lombok.CustomLog;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -157,5 +161,36 @@ public class LoggingContext implements ConditionSupplier {
      */
     public boolean isBodyLoggable() {
         return logGuardService == null || !logGuardService.isLogGuardActive();
+    }
+
+    private static final Set<ReportTarget> TRACING_ONLY = EnumSet.of(ReportTarget.TRACING);
+    private static final Set<ReportTarget> ANALYTICS_ONLY = EnumSet.of(ReportTarget.ANALYTICS);
+
+    /**
+     * Computes the set of {@link ReportTarget}s for a log based on the current configuration.
+     * This determines which reporters will receive the log object.
+     */
+    public Set<ReportTarget> computeReportTargets() {
+        boolean analyticsLogging = isAnalyticsLoggingEnabled();
+        if (otelLogsEnabled && analyticsLogging) {
+            return ReportTarget.ALL;
+        }
+        if (otelLogsEnabled) {
+            return TRACING_ONLY;
+        }
+        if (analyticsLogging) {
+            return ANALYTICS_ONLY;
+        }
+        // Unreachable in practice: LogInitProcessor only calls this when logging is enabled
+        // (either otelLogs or analytics). Default to ANALYTICS for backward compatibility.
+        return ANALYTICS_ONLY;
+    }
+
+    private boolean isAnalyticsLoggingEnabled() {
+        if (logging == null) {
+            return false;
+        }
+        LoggingMode mode = logging.getMode();
+        return mode != null && mode.isEnabled();
     }
 }
