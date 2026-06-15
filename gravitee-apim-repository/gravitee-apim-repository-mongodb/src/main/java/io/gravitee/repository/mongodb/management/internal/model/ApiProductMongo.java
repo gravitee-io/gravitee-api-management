@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management.internal.model;
 import io.gravitee.repository.management.model.ApiProduct;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -47,6 +48,7 @@ public class ApiProductMongo {
     private String version;
     private List<String> apiIds;
     private List<String> groups;
+    private Set<String> tags;
     private Date createdAt;
     private Date updatedAt;
     private boolean disableMembershipNotifications;

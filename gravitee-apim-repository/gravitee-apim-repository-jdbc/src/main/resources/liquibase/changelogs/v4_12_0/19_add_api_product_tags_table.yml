@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.12.0_19_add_api_product_tags_table
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}api_product_tags
+            columns:
+              - column:
+                  name: api_product_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_${gravitee_prefix}api_product_tags
+              - column:
+                  name: tag
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_${gravitee_prefix}api_product_tags
+        - createIndex:
+            indexName: idx_${gravitee_prefix}api_product_tags_tag
+            tableName: ${gravitee_prefix}api_product_tags
+            columns:
+              - column:
+                  name: tag

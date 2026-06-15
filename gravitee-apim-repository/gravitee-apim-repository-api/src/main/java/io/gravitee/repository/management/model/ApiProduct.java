@@ -42,6 +42,7 @@ public class ApiProduct {
     private String version;
     private List<String> apiIds;
     private Set<String> groups;
+    private Set<String> tags;
     private Date createdAt;
     private Date updatedAt;
     private boolean disableMembershipNotifications;

@@ -20,6 +20,7 @@ import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -94,6 +95,28 @@ class PlanUpdatesTest {
             soft.assertThat(result.getPlanDefinitionNativeV4().getBrokerRangeStart()).isNull();
             soft.assertThat(result.getPlanDefinitionNativeV4().getBrokerRangeEnd()).isNull();
         });
+    }
+
+    @Test
+    void applyTo_should_preserve_plan_tags_when_updates_tags_are_null() {
+        var oldPlan = PlanFixtures.HttpV4.anApiKey().setPlanTags(Set.of("internal"));
+
+        var updates = PlanUpdates.builder().name("new-name").description("new-description").order(1).build();
+
+        var result = updates.applyTo(oldPlan);
+
+        SoftAssertions.assertSoftly(soft -> soft.assertThat(result.getTags()).containsExactly("internal"));
+    }
+
+    @Test
+    void applyTo_should_clear_plan_tags_when_updates_tags_are_empty() {
+        var oldPlan = PlanFixtures.HttpV4.anApiKey().setPlanTags(Set.of("internal"));
+
+        var updates = PlanUpdates.builder().name("new-name").tags(Set.of()).build();
+
+        var result = updates.applyTo(oldPlan);
+
+        SoftAssertions.assertSoftly(soft -> soft.assertThat(result.getTags()).isEmpty());
     }
 
     @Test

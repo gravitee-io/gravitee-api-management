@@ -381,3 +381,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_12_0/17_add_portal_navigation_to_apis.yml
     - include:
         - file: liquibase/changelogs/v4_12_0/18_add_portal_navigation_to_portals.yml
+    - include:
+        - file: liquibase/changelogs/v4_12_0/19_add_api_product_tags_table.yml

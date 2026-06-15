@@ -340,6 +340,30 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
         }
 
         @Test
+        void should_be_need_redeploy_when_sharding_tags_changed() throws Exception {
+            ApiProduct currentProduct = ApiProduct.builder()
+                .id(API_PRODUCT_ID)
+                .name("Product")
+                .environmentId(ENV_ID)
+                .apiIds(Set.of("api-1"))
+                .tags(Set.of("tag1", "tag2"))
+                .build();
+            apiProductQueryService.initWith(List.of(currentProduct));
+            ApiProduct deployedProduct = ApiProduct.builder()
+                .id(API_PRODUCT_ID)
+                .name("Product")
+                .environmentId(ENV_ID)
+                .apiIds(Set.of("api-1"))
+                .tags(Set.of("tag1"))
+                .build();
+            eventLatestQueryService.initWith(List.of(aDeployApiProductEvent(API_PRODUCT_ID, DEPLOYED_AT, deployedProduct)));
+
+            var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, API_PRODUCT_ID, ORG_ID));
+
+            assertThat(output.apiProduct().get().getDeploymentState()).isEqualTo(ApiProduct.DeploymentState.NEED_REDEPLOY);
+        }
+
+        @Test
         void should_be_need_redeploy_when_list_of_apis_in_product_changed() throws Exception {
             ApiProduct currentProduct = ApiProduct.builder()
                 .id(API_PRODUCT_ID)
@@ -372,6 +396,25 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
             apiProductQueryService.initWith(List.of(product));
             eventLatestQueryService.initWith(List.of(aDeployApiProductEvent(API_PRODUCT_ID, DEPLOYED_AT, product)));
             planQueryService.initWith(List.of(aPublishedApiProductPlan(API_PRODUCT_ID, AFTER_DEPLOY)));
+
+            var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, API_PRODUCT_ID, ORG_ID));
+
+            assertThat(output.apiProduct().get().getDeploymentState()).isEqualTo(ApiProduct.DeploymentState.NEED_REDEPLOY);
+        }
+
+        @Test
+        void should_be_need_redeploy_when_plan_tags_modified_after_last_deploy() throws Exception {
+            ApiProduct product = ApiProduct.builder()
+                .id(API_PRODUCT_ID)
+                .name("Product")
+                .environmentId(ENV_ID)
+                .updatedAt(BEFORE_DEPLOY.atZone(ZoneId.systemDefault()))
+                .build();
+            apiProductQueryService.initWith(List.of(product));
+            eventLatestQueryService.initWith(List.of(aDeployApiProductEvent(API_PRODUCT_ID, DEPLOYED_AT, product)));
+            planQueryService.initWith(
+                List.of(aPublishedApiProductPlanWithTags(API_PRODUCT_ID, AFTER_DEPLOY, Set.of("internal", "external")))
+            );
 
             var output = getApiProductsUseCase.execute(GetApiProductsUseCase.Input.of(ENV_ID, API_PRODUCT_ID, ORG_ID));
 
@@ -477,6 +520,10 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
         }
 
         private Plan aPublishedApiProductPlan(String apiProductId, Instant needRedeployAt) {
+            return aPublishedApiProductPlanWithTags(apiProductId, needRedeployAt, Set.of());
+        }
+
+        private Plan aPublishedApiProductPlanWithTags(String apiProductId, Instant needRedeployAt, Set<String> tags) {
             return Plan.builder()
                 .id("plan-" + apiProductId)
                 .referenceId(apiProductId)
@@ -484,7 +531,11 @@ class GetApiProductsUseCaseTest extends AbstractUseCaseTest {
                 .definitionVersion(DefinitionVersion.V4)
                 .apiType(ApiType.PROXY)
                 .planDefinitionHttpV4(
-                    fixtures.definition.PlanFixtures.HttpV4Definition.anApiKeyV4().toBuilder().status(PlanStatus.PUBLISHED).build()
+                    fixtures.definition.PlanFixtures.HttpV4Definition.anApiKeyV4()
+                        .toBuilder()
+                        .status(PlanStatus.PUBLISHED)
+                        .tags(tags.isEmpty() ? null : tags)
+                        .build()
                 )
                 .needRedeployAt(Date.from(needRedeployAt))
                 .build();
