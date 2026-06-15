@@ -24,15 +24,16 @@ import lombok.Builder;
 /**
  * Fully resolved search query passed from the use case to the data port. The {@code apiIds} are
  * already intersected with the caller's accessible scope; the {@code conditions} are pre-validated
- * against the filter registry for the {@code LOGS} signal; the {@code apiNamesById} map provides
- * enrichment context so the adapter can attach display names without re-loading the API entities.
+ * against the filter registry for the {@code LOGS} signal; the {@code apisById} map provides
+ * enrichment context (name + apiType) so the adapter can attach display values without re-loading the
+ * API entities.
  *
  * @author GraviteeSource Team
  */
 @Builder
 public record LogsSearchQuery(
     Set<String> apiIds,
-    Map<String, String> apiNamesById,
+    Map<String, ApiReference> apisById,
     List<FilterCondition> conditions,
     Long from,
     Long to,

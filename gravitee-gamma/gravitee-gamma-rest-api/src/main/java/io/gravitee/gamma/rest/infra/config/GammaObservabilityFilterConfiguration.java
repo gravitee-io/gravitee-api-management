@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.infra.config;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.GetFilterValuesUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ResolveFilterLabelsUseCase;
@@ -43,7 +44,10 @@ import org.springframework.context.annotation.FilterType;
 @Configuration
 @ComponentScan(
     basePackages = "io.gravitee.gamma.rest.core.observability.filter",
-    includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, value = UseCase.class)
+    includeFilters = {
+        @ComponentScan.Filter(type = FilterType.ANNOTATION, value = UseCase.class),
+        @ComponentScan.Filter(type = FilterType.ANNOTATION, value = DomainService.class),
+    }
 )
 public class GammaObservabilityFilterConfiguration {
 
