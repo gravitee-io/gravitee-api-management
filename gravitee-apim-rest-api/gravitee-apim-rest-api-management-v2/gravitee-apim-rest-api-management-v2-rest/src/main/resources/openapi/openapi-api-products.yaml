@@ -2039,6 +2039,14 @@ components:
           example:
             - "api-1"
             - "api-2"
+        tags:
+          type: array
+          description: The list of sharding tags associated with this API Product.
+          items:
+            type: string
+          example:
+            - "eu"
+            - "secured-edge"
       required:
         - name
         - version
@@ -2087,6 +2095,14 @@ components:
           type: boolean
           description: Disable membership notifications.
           default: false
+        tags:
+          type: array
+          description: The list of sharding tags associated with this API Product.
+          items:
+            type: string
+          example:
+            - "eu"
+            - "secured-edge"
       required:
         - name
         - version
@@ -2149,6 +2165,14 @@ components:
           type: boolean
           description: Disable membership notifications.
           default: false
+        tags:
+          type: array
+          description: The list of sharding tags associated with this API Product.
+          items:
+            type: string
+          example:
+            - "eu"
+            - "secured-edge"
 
     ApiProductDeploymentState:
       type: string
@@ -2532,6 +2556,13 @@ components:
         selectionRule:
           type: string
           description: An optional EL expression that will be evaluated at request time to select this plan.
+        tags:
+          type: array
+          description: The list of sharding tags associated with this plan.
+          items:
+            type: string
+          example:
+            - "eu"
         security:
           type: object
           properties:

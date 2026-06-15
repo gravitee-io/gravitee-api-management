@@ -36,5 +36,6 @@ public class ApiProductDeploymentPayload {
     private String version;
     private Set<String> apiIds;
     private String environmentId;
+    private Set<String> tags;
     private List<Plan> plans;
 }

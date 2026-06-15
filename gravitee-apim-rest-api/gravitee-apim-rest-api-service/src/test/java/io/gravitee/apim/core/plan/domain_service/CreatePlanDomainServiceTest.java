@@ -344,6 +344,18 @@ class CreatePlanDomainServiceTest {
         }
 
         @ParameterizedTest
+        @MethodSource("apiProductPlans")
+        void should_throw_when_plan_tags_mismatch_with_tags_defined_in_api_product(ApiProduct api, Plan plan, List<Flow> flows) {
+            var apiProductWithoutTags = api.toBuilder().tags(Set.of()).build();
+
+            var throwable = Assertions.catchThrowable(() -> service.createApiProductPlan(plan, apiProductWithoutTags, AUDIT_INFO));
+
+            assertThat(throwable)
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Plan tags mismatch the tags defined by the API Product");
+        }
+
+        @ParameterizedTest
         @MethodSource("plans")
         void should_create_plan_with_generated_id_when_no_id_provided(Api api, Plan plan, List<Flow> flows) {
             // Given
@@ -549,6 +561,7 @@ class CreatePlanDomainServiceTest {
                 .environmentId("environment-id")
                 .description("api-product-description")
                 .version("1.0.0")
+                .tags(Set.of(TAG))
                 .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                 .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()));
         }

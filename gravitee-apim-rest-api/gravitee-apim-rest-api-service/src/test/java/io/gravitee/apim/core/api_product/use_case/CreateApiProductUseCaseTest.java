@@ -41,6 +41,7 @@ import inmemory.PlanQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductTagDomainService;
 import io.gravitee.apim.core.api_product.domain_service.DeployApiProductDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.model.CreateApiProduct;
@@ -92,6 +93,7 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
     private final LicenseManager licenseManager = mock(LicenseManager.class);
     private final ApiProductIndexerDomainService apiProductIndexerDomainService = mock(ApiProductIndexerDomainService.class);
     private final NotificationConfigCrudServiceInMemory notificationConfigCrudService = new NotificationConfigCrudServiceInMemory();
+    private final ApiProductTagDomainService apiProductTagDomainService = mock(ApiProductTagDomainService.class);
 
     private CreateApiProductUseCase createApiProductUseCase;
 
@@ -150,7 +152,8 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
             apiProductIndexerDomainService,
             notificationConfigCrudService,
             new DeployApiProductDomainService(planQueryService, eventCrudService, eventLatestCrudService),
-            groupQueryService
+            groupQueryService,
+            apiProductTagDomainService
         );
 
         initRoles();

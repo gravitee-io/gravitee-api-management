@@ -41,11 +41,13 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
 
     private final String API_PRODUCT_APIS;
     private final String API_PRODUCT_GROUPS;
+    private final String API_PRODUCT_TAGS;
 
     JdbcApiProductRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "api_products");
         API_PRODUCT_APIS = getTableNameFor("api_product_apis");
         API_PRODUCT_GROUPS = getTableNameFor("api_product_groups");
+        API_PRODUCT_TAGS = getTableNameFor("api_product_tags");
     }
 
     @Override
@@ -74,6 +76,7 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(apiProduct));
             storeApiIds(apiProduct, false);
             storeGroupIds(apiProduct, false);
+            storeTags(apiProduct, false);
             return findById(apiProduct.getId()).orElse(null);
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to create api product", ex);
@@ -87,6 +90,7 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
             jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(apiProduct, apiProduct.getId()));
             storeApiIds(apiProduct, true);
             storeGroupIds(apiProduct, true);
+            storeTags(apiProduct, true);
             return findById(apiProduct.getId()).orElseThrow(() ->
                 new IllegalStateException(String.format("No api product found with id [%s]", apiProduct.getId()))
             );
@@ -114,6 +118,8 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
                 id
             );
             apiProduct.setGroups(groupIds.isEmpty() ? null : new HashSet<>(groupIds));
+            List<String> tags = getTags(id);
+            apiProduct.setTags(tags.isEmpty() ? null : new HashSet<>(tags));
             return Optional.of(apiProduct);
         }
         return opt;
@@ -138,6 +144,7 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
             );
             List<ApiProduct> aggregated = aggregateApiProducts(apiProducts);
             enrichWithGroupIds(aggregated);
+            enrichWithTags(aggregated);
             return new HashSet<>(aggregated);
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find all api products", ex);
@@ -165,6 +172,7 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
             );
             List<ApiProduct> aggregated = aggregateApiProducts(apiProducts);
             enrichWithGroupIds(aggregated);
+            enrichWithTags(aggregated);
             return aggregated.isEmpty() ? Optional.empty() : Optional.of(aggregated.get(0));
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find api product by environment and name", ex);
@@ -192,6 +200,7 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
             );
             List<ApiProduct> aggregatedByEnv = aggregateApiProducts(apiProducts);
             enrichWithGroupIds(aggregatedByEnv);
+            enrichWithTags(aggregatedByEnv);
             return new HashSet<>(aggregatedByEnv);
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find api products by environment", ex);
@@ -204,6 +213,7 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
         try {
             jdbcTemplate.update("DELETE FROM " + API_PRODUCT_APIS + " WHERE api_product_id = ?", id);
             jdbcTemplate.update("DELETE FROM " + API_PRODUCT_GROUPS + " WHERE api_product_id = ?", id);
+            jdbcTemplate.update("DELETE FROM " + API_PRODUCT_TAGS + " WHERE api_product_id = ?", id);
             jdbcTemplate.update(getOrm().getDeleteSql(), id);
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to delete api product", ex);
@@ -242,6 +252,7 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
             );
             List<ApiProduct> aggregated = needApiJoin ? aggregateApiProducts(apiProducts) : apiProducts;
             enrichWithGroupIds(aggregated);
+            enrichWithTags(aggregated);
             return aggregated;
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to search api products", ex);
@@ -271,6 +282,7 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
             );
             List<ApiProduct> aggregatedByApiId = aggregateApiProducts(apiProducts);
             enrichWithGroupIds(aggregatedByApiId);
+            enrichWithTags(aggregatedByApiId);
             return new HashSet<>(aggregatedByApiId);
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find api products by apiId", ex);
@@ -317,6 +329,7 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
             );
             List<ApiProduct> aggregatedByApiIds = aggregateApiProducts(apiProducts);
             enrichWithGroupIds(aggregatedByApiIds);
+            enrichWithTags(aggregatedByApiIds);
             return new HashSet<>(aggregatedByApiIds);
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find api products by api ids", ex);
@@ -351,6 +364,7 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
             );
             List<ApiProduct> aggregatedByIds = aggregateApiProducts(apiProducts);
             enrichWithGroupIds(aggregatedByIds);
+            enrichWithTags(aggregatedByIds);
             return new HashSet<>(aggregatedByIds);
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find api products by ids", ex);
@@ -512,6 +526,50 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
                 }
             );
         }
+    }
+
+    private List<String> getTags(String apiProductId) {
+        return jdbcTemplate.query(
+            "SELECT tag FROM " + API_PRODUCT_TAGS + " WHERE api_product_id = ?",
+            (ResultSet rs, int rowNum) -> rs.getString("tag"),
+            apiProductId
+        );
+    }
+
+    private void storeTags(ApiProduct apiProduct, boolean deleteFirst) throws TechnicalException {
+        try {
+            if (deleteFirst) {
+                jdbcTemplate.update("DELETE FROM " + API_PRODUCT_TAGS + " WHERE api_product_id = ?", apiProduct.getId());
+            }
+            List<String> filteredTags = getOrm().filterStrings(apiProduct.getTags());
+            if (!filteredTags.isEmpty()) {
+                jdbcTemplate.batchUpdate(
+                    "INSERT INTO " + API_PRODUCT_TAGS + " ( api_product_id, tag ) VALUES ( ?, ? )",
+                    getOrm().getBatchStringSetter(apiProduct.getId(), filteredTags)
+                );
+            }
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to store api product tags", ex);
+        }
+    }
+
+    private void enrichWithTags(List<ApiProduct> products) {
+        if (products == null || products.isEmpty()) {
+            return;
+        }
+        List<String> productIds = products.stream().map(ApiProduct::getId).toList();
+        Map<String, Set<String>> tagsByProductId = new HashMap<>();
+        jdbcTemplate.query(
+            "SELECT api_product_id, tag FROM " + API_PRODUCT_TAGS + " WHERE api_product_id IN (" + getOrm().buildInClause(productIds) + ")",
+            rs -> {
+                tagsByProductId.computeIfAbsent(rs.getString("api_product_id"), k -> new HashSet<>()).add(rs.getString("tag"));
+            },
+            productIds.toArray()
+        );
+        products.forEach(p -> {
+            Set<String> tags = tagsByProductId.get(p.getId());
+            p.setTags(tags == null || tags.isEmpty() ? null : tags);
+        });
     }
 
     private void enrichWithGroupIds(List<ApiProduct> products) {

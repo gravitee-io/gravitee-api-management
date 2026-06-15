@@ -88,6 +88,7 @@ import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.WsdlToImportApiUseCase;
 import io.gravitee.apim.core.api.use_case.WsdlToUpdateApiUseCase;
 import io.gravitee.apim.core.api_key.domain_service.ReconcileApiKeysDomainService;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductTagsValidationDomainService;
 import io.gravitee.apim.core.api_product.use_case.CreateApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.DeleteApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.DeployApiProductUseCase;
@@ -1683,5 +1684,15 @@ public class ResourceContextConfiguration {
     @Bean
     public ValidatePortalListingDomainService validatePortalListingDomainService() {
         return new ValidatePortalListingDomainService();
+    }
+
+    @Bean
+    public io.gravitee.rest.api.service.v4.validation.TagsValidationService tagsValidationService() {
+        return mock(io.gravitee.rest.api.service.v4.validation.TagsValidationService.class);
+    }
+
+    @Bean
+    public ApiProductTagsValidationDomainService apiProductTagsValidationDomainService() {
+        return mock(ApiProductTagsValidationDomainService.class);
     }
 }

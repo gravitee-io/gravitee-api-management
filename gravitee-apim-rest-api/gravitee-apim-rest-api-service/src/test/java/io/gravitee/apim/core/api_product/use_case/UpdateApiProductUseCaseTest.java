@@ -35,19 +35,18 @@ import inmemory.ApiProductCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
+import inmemory.PlanCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
-import io.gravitee.apim.core.api_product.domain_service.DeployApiProductDomainService;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductTagDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.model.UpdateApiProduct;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
-import io.gravitee.apim.core.event.crud_service.EventCrudService;
-import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
@@ -72,20 +71,21 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory(apiCrudService);
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
-    private final EventCrudService eventCrudService = mock(EventCrudService.class);
-    private final EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
+    private final PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     private final LicenseManager licenseManager = mock(LicenseManager.class);
     private final ApiStateDomainService apiStateDomainService = mock(ApiStateDomainService.class);
     private final ApiProductIndexerDomainService apiProductIndexerDomainService = mock(ApiProductIndexerDomainService.class);
     private final ApiProductPrimaryOwnerDomainService apiProductPrimaryOwnerDomainService = mock(ApiProductPrimaryOwnerDomainService.class);
     private final TriggerNotificationDomainServiceInMemory triggerNotificationDomainService =
         new TriggerNotificationDomainServiceInMemory();
+    private final ApiProductTagDomainService apiProductTagDomainService = mock(ApiProductTagDomainService.class);
 
     private UpdateApiProductUseCase updateApiProductUseCase;
 
     @BeforeEach
     void setUp() {
         planQueryService.reset();
+        planCrudService.reset();
         triggerNotificationDomainService.reset();
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         var validateApiProductService = new ValidateApiProductService(
@@ -104,8 +104,10 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
             new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
             apiProductIndexerDomainService,
             apiProductPrimaryOwnerDomainService,
-            new DeployApiProductDomainService(planQueryService, eventCrudService, eventLatestCrudService),
-            triggerNotificationDomainService
+            triggerNotificationDomainService,
+            planQueryService,
+            planCrudService,
+            apiProductTagDomainService
         );
     }
 
@@ -139,9 +141,6 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
             () -> assertThat(output.apiProduct().getApiIds()).containsExactly("api-2") // Replace, not merge
         );
 
-        // Verify DEPLOY event was published
-        verify(eventCrudService).createEvent(eq(ORG_ID), eq(ENV_ID), any(), any(), any(), any());
-        verify(eventLatestCrudService).createOrPatchLatestEvent(eq(ORG_ID), eq("api-product-id"), any());
         verify(apiProductIndexerDomainService).index(any(), eq(output.apiProduct()), any());
     }
 
@@ -525,8 +524,107 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         var output = updateApiProductUseCase.execute(input);
 
         assertThat(output.apiProduct().getApiIds()).containsExactlyInAnyOrder("api-1", "api-2");
-        verify(eventCrudService, never()).createEvent(any(), any(), any(), any(), any(), any());
-        verify(eventLatestCrudService, never()).createOrPatchLatestEvent(any(), any(), any());
+    }
+
+    @Test
+    void should_update_api_product_tags() {
+        ApiProduct existing = ApiProduct.builder()
+            .id("api-product-id")
+            .name("API Product")
+            .version("1.0.0")
+            .tags(Set.of("internal"))
+            .environmentId(ENV_ID)
+            .build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+
+        var toUpdate = UpdateApiProduct.builder().tags(Set.of("internal", "external")).build();
+        var output = updateApiProductUseCase.execute(new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO));
+
+        assertThat(output.apiProduct().getTags()).containsExactlyInAnyOrder("internal", "external");
+    }
+
+    @Test
+    void should_remove_orphaned_plan_tags_when_product_tags_are_narrowed() {
+        Plan productPlan = productPlanWithTags("product-plan-1", Set.of("internal", "external"));
+        planQueryService.initWith(List.of(productPlan));
+        planCrudService.initWith(List.of(productPlan));
+
+        ApiProduct existing = ApiProduct.builder()
+            .id("api-product-id")
+            .name("API Product")
+            .version("1.0.0")
+            .tags(Set.of("internal", "external"))
+            .environmentId(ENV_ID)
+            .build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+
+        var toUpdate = UpdateApiProduct.builder().tags(Set.of("internal")).build();
+        updateApiProductUseCase.execute(new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO));
+
+        assertThat(planCrudService.getById("product-plan-1").getPlanDefinitionHttpV4().getTags()).containsExactly("internal");
+    }
+
+    @Test
+    void should_not_modify_plan_tags_when_product_tags_are_expanded() {
+        Plan productPlan = productPlanWithTags("product-plan-1", Set.of("internal"));
+        planQueryService.initWith(List.of(productPlan));
+        planCrudService.initWith(List.of(productPlan));
+
+        ApiProduct existing = ApiProduct.builder()
+            .id("api-product-id")
+            .name("API Product")
+            .version("1.0.0")
+            .tags(Set.of("internal"))
+            .environmentId(ENV_ID)
+            .build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+
+        var toUpdate = UpdateApiProduct.builder().tags(Set.of("internal", "external")).build();
+        updateApiProductUseCase.execute(new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO));
+
+        assertThat(planCrudService.getById("product-plan-1").getPlanDefinitionHttpV4().getTags()).containsExactly("internal");
+    }
+
+    @Test
+    void should_clear_all_plan_tags_when_product_tags_are_cleared() {
+        Plan productPlan = productPlanWithTags("product-plan-1", Set.of("internal", "external"));
+        planQueryService.initWith(List.of(productPlan));
+        planCrudService.initWith(List.of(productPlan));
+
+        ApiProduct existing = ApiProduct.builder()
+            .id("api-product-id")
+            .name("API Product")
+            .version("1.0.0")
+            .tags(Set.of("internal", "external"))
+            .environmentId(ENV_ID)
+            .build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+
+        var toUpdate = UpdateApiProduct.builder().tags(Set.of()).build();
+        updateApiProductUseCase.execute(new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO));
+
+        assertThat(planCrudService.getById("product-plan-1").getPlanDefinitionHttpV4().getTags()).isNull();
+    }
+
+    private Plan productPlanWithTags(String planId, Set<String> tags) {
+        var planDefinition = PlanFixtures.aPlanHttpV4()
+            .getPlanDefinitionHttpV4()
+            .toBuilder()
+            .status(PlanStatus.PUBLISHED)
+            .tags(tags)
+            .build();
+        return PlanFixtures.aPlanHttpV4()
+            .toBuilder()
+            .id(planId)
+            .referenceId("api-product-id")
+            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+            .environmentId(ENV_ID)
+            .planDefinitionHttpV4(planDefinition)
+            .build();
     }
 
     private void givenPublishedApiProductPlan() {

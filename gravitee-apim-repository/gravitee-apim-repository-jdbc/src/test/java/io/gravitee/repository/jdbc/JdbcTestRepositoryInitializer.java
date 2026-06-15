@@ -53,6 +53,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         "api_tags",
         "api_categories",
         "api_product_apis",
+        "api_product_tags",
         "api_products",
         "applications",
         "application_groups",
