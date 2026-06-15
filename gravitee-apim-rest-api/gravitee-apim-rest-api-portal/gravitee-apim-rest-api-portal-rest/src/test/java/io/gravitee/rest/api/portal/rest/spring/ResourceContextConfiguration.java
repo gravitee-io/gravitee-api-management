@@ -28,6 +28,7 @@ import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.GroupCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
+import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
@@ -145,6 +146,7 @@ import io.gravitee.apim.core.plan.use_case.PatchPlanUseCase.PlanFlowsConverter;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.CheckTypoToleranceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.OpenApiContentTransformer;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
@@ -1313,14 +1315,20 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public CheckTypoToleranceDomainService checkTypoToleranceDomainService(ParametersQueryServiceInMemory parametersQueryService) {
+        return new CheckTypoToleranceDomainService(parametersQueryService);
+    }
+
+    @Bean
     public GetVisiblePortalNavigationApisUseCase getVisiblePortalNavigationApisUseCase(
         PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService,
-        ApiPortalSearchQueryServiceInMemory apiPortalSearchQueryService
+        ApiPortalSearchQueryServiceInMemory apiPortalSearchQueryService,
+        CheckTypoToleranceDomainService checkTypoToleranceDomainService
     ) {
         return new GetVisiblePortalNavigationApisUseCase(
             portalNavigationApiVisibilityDomainService,
             apiPortalSearchQueryService,
-            (envId, orgId) -> false
+            checkTypoToleranceDomainService
         );
     }
 

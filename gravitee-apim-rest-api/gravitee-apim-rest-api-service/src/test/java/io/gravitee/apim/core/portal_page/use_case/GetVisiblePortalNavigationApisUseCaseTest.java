@@ -20,11 +20,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import inmemory.ApiPortalSearchQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
+import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.portal_page.domain_service.CheckTypoToleranceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
@@ -69,7 +71,11 @@ class GetVisiblePortalNavigationApisUseCaseTest {
             apiQueryService
         );
         var visibilityDomainService = new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService);
-        useCase = new GetVisiblePortalNavigationApisUseCase(visibilityDomainService, apiSearchQueryService, (envId, orgId) -> false);
+        useCase = new GetVisiblePortalNavigationApisUseCase(
+            visibilityDomainService,
+            apiSearchQueryService,
+            new CheckTypoToleranceDomainService(new ParametersQueryServiceInMemory())
+        );
     }
 
     @Test

@@ -15,6 +15,23 @@
  */
 package io.gravitee.apim.core.portal_page.domain_service;
 
-public interface CheckTypoToleranceDomainService {
-    boolean isEnabled(String environmentId, String organizationId);
+import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.parameters.model.ParameterContext;
+import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import lombok.RequiredArgsConstructor;
+
+@DomainService
+@RequiredArgsConstructor
+public class CheckTypoToleranceDomainService {
+
+    private final ParametersQueryService parametersQueryService;
+
+    public boolean isEnabled(String environmentId, String organizationId) {
+        return parametersQueryService.findAsBoolean(
+            Key.PORTAL_NEXT_SEARCH_FUZZY,
+            new ParameterContext(environmentId, organizationId, ParameterReferenceType.ENVIRONMENT)
+        );
+    }
 }
