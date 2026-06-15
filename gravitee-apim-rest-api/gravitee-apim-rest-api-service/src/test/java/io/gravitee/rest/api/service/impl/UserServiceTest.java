@@ -801,6 +801,68 @@ public class UserServiceTest {
     }
 
     @Test
+    public void shouldRemovePictureWhenEmptyPictureProvided() throws TechnicalException {
+        final String USER_ID = "myuserid";
+
+        User user = new User();
+        user.setId(USER_ID);
+        user.setSource("gravitee");
+        user.setSourceId("my.user@acme.fr");
+        user.setOrganizationId(ORGANIZATION);
+        user.setPicture("data:image/png;base64,EXISTING");
+
+        when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+        when(updateUser.getPicture()).thenReturn("");
+
+        userService.update(EXECUTION_CONTEXT, USER_ID, updateUser);
+
+        // An empty picture is an explicit "Use default" request: the stored picture must be cleared.
+        verify(userRepository).update(argThat(userToUpdate -> userToUpdate.getPicture() == null));
+    }
+
+    @Test
+    public void shouldKeepExistingPictureWhenNoPictureProvided() throws TechnicalException {
+        final String USER_ID = "myuserid";
+
+        User user = new User();
+        user.setId(USER_ID);
+        user.setSource("gravitee");
+        user.setSourceId("my.user@acme.fr");
+        user.setOrganizationId(ORGANIZATION);
+        user.setPicture("data:image/png;base64,EXISTING");
+
+        when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+        when(updateUser.getPicture()).thenReturn(null);
+
+        userService.update(EXECUTION_CONTEXT, USER_ID, updateUser);
+
+        // A null picture means "leave unchanged": the existing picture must be preserved.
+        verify(userRepository).update(argThat(userToUpdate -> "data:image/png;base64,EXISTING".equals(userToUpdate.getPicture())));
+    }
+
+    @Test
+    public void shouldUpdatePictureWhenNonEmptyPictureProvided() throws TechnicalException {
+        final String USER_ID = "myuserid";
+
+        User user = new User();
+        user.setId(USER_ID);
+        user.setSource("gravitee");
+        user.setSourceId("my.user@acme.fr");
+        user.setOrganizationId(ORGANIZATION);
+        user.setPicture("data:image/png;base64,OLD");
+
+        when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+        when(updateUser.getPicture()).thenReturn("data:image/png;base64,NEW");
+
+        userService.update(EXECUTION_CONTEXT, USER_ID, updateUser);
+
+        verify(userRepository).update(argThat(userToUpdate -> "data:image/png;base64,NEW".equals(userToUpdate.getPicture())));
+    }
+
+    @Test
     public void shouldNotUpdateUser_EmailAlreadyInUse() throws TechnicalException {
         assertThrows(InvalidUserException.class, () -> {
             final String USER_ID = "myuserid";
