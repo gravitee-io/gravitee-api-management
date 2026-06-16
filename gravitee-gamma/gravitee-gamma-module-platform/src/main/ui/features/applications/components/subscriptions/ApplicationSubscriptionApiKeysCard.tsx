@@ -22,18 +22,21 @@ import {
     CardTitle,
     DataTable,
     DataTableColumnHeader,
-    DataTablePagination,
     type DataTableProps,
+    DateCell,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
     Tooltip,
     TooltipContent,
     TooltipTrigger,
 } from '@gravitee/graphene-core';
-import { CircleCheckIcon, CircleXIcon, ClockIcon, CopyIcon, RefreshCwIcon } from '@gravitee/graphene-core/icons';
+import { CircleCheckIcon, CircleXIcon, ClockIcon, CopyIcon, MoreVerticalIcon, RefreshCwIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useMemo, useState } from 'react';
 
 import { copyTextToClipboardWithNotifyHandler } from '../../../../shared/copyToClipboard';
 import type { ApplicationSubscriptionApiKeyRow } from '../../types/applicationSubscription';
-import { formatApplicationDateTime } from '../../utils/applicationFormatters';
 import { DEFAULT_SUBSCRIPTION_PAGE_SIZE, SUBSCRIPTION_PAGE_SIZE_OPTIONS } from '../../utils/applicationSubscriptionConstants';
 import { SUBSCRIPTION_API_KEY_SORTABLE_IDS } from '../../utils/applicationTableSortParity';
 import { NON_SORTABLE_COLUMN } from '../../utils/dataTableHeaders';
@@ -172,9 +175,12 @@ export function ApplicationSubscriptionApiKeysCard({
                 header: ({ column }: ColHeader<ApplicationSubscriptionApiKeyRow>) => (
                     <DataTableColumnHeader column={column} title="Created at" />
                 ),
-                cell: ({ row }: ColCell<ApplicationSubscriptionApiKeyRow>) => (
-                    <span className="whitespace-nowrap text-sm">{formatApplicationDateTime(row.original.createdAt)}</span>
-                ),
+                cell: ({ row }: ColCell<ApplicationSubscriptionApiKeyRow>) =>
+                    row.original.createdAt ? (
+                        <DateCell value={new Date(row.original.createdAt)} format="absolute" />
+                    ) : (
+                        <span className="text-sm text-muted-foreground">—</span>
+                    ),
             },
             {
                 id: 'endDate',
@@ -182,33 +188,40 @@ export function ApplicationSubscriptionApiKeysCard({
                 header: ({ column }: ColHeader<ApplicationSubscriptionApiKeyRow>) => (
                     <DataTableColumnHeader column={column} title="Revoked/Expired at" />
                 ),
-                cell: ({ row }: ColCell<ApplicationSubscriptionApiKeyRow>) => (
-                    <span className="whitespace-nowrap text-sm">{formatApplicationDateTime(row.original.endDate)}</span>
-                ),
+                cell: ({ row }: ColCell<ApplicationSubscriptionApiKeyRow>) =>
+                    row.original.endDate ? (
+                        <DateCell value={new Date(row.original.endDate)} format="absolute" />
+                    ) : (
+                        <span className="text-sm text-muted-foreground">—</span>
+                    ),
             },
             {
                 id: 'actions',
-                header: () => <div className="text-right">Actions</div>,
+                header: () => <span className="sr-only">Actions</span>,
+                size: 56,
                 cell: ({ row }: ColCell<ApplicationSubscriptionApiKeyRow>) => {
                     const apiKey = row.original;
-                    return !readOnly && apiKey.isValid ? (
-                        <div className="flex justify-end gap-1">
-                            <Button type="button" variant="outline" size="sm" className="text-destructive" onClick={() => onRevoke(apiKey)}>
-                                Revoke
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                disabled={!expireAvailable}
-                                onClick={() => onExpire(apiKey)}
-                                title={!expireAvailable ? 'Cannot resolve API for this subscription.' : undefined}
-                            >
-                                <ClockIcon className="size-3.5" aria-hidden />
-                                Expire
-                            </Button>
+                    if (readOnly || !apiKey.isValid) return null;
+                    return (
+                        <div className="flex justify-end">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button type="button" variant="ghost" size="icon" className="size-8" aria-label="API key actions">
+                                        <MoreVerticalIcon className="size-4" aria-hidden />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="min-w-48">
+                                    <DropdownMenuItem className="text-destructive" onSelect={() => onRevoke(apiKey)}>
+                                        Revoke
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem disabled={!expireAvailable} onSelect={() => onExpire(apiKey)}>
+                                        <ClockIcon className="size-4" aria-hidden />
+                                        Expire
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
-                    ) : null;
+                    );
                 },
                 enableSorting: false,
                 enableHiding: false,
@@ -223,28 +236,28 @@ export function ApplicationSubscriptionApiKeysCard({
                 <CardDescription>Keys issued for this subscription. Renew, expire, or revoke as needed.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 p-6 pt-0">
-                <div className="flex justify-end">
-                    <DataTablePagination
-                        page={page}
-                        pageSize={pageSize}
-                        totalCount={totalCount}
-                        pageSizeOptions={SUBSCRIPTION_PAGE_SIZE_OPTIONS}
-                        onPageChange={setPage}
-                        onPageSizeChange={handlePageSizeChange}
-                    />
-                </div>
                 <DataTable
+                    aria-label="Subscription API keys"
                     columns={apiKeyColumns}
                     data={paginatedKeys}
                     sorting={sorting}
                     onSortingChange={handleSortingChange}
+                    serverSide
                     loading={isLoading}
                     skeletonCount={pageSize}
+                    pagination={{
+                        page,
+                        pageSize,
+                        totalCount,
+                        pageSizeOptions: SUBSCRIPTION_PAGE_SIZE_OPTIONS,
+                        onPageChange: setPage,
+                        onPageSizeChange: handlePageSizeChange,
+                    }}
                     emptyMessage="No API keys"
                 />
 
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                    {!readOnly ? (
+                {!readOnly ? (
+                    <div className="flex">
                         <Button
                             type="button"
                             variant="outline"
@@ -255,18 +268,8 @@ export function ApplicationSubscriptionApiKeysCard({
                             <RefreshCwIcon className="size-3.5" aria-hidden />
                             Renew
                         </Button>
-                    ) : (
-                        <span />
-                    )}
-                    <DataTablePagination
-                        page={page}
-                        pageSize={pageSize}
-                        totalCount={totalCount}
-                        pageSizeOptions={SUBSCRIPTION_PAGE_SIZE_OPTIONS}
-                        onPageChange={setPage}
-                        onPageSizeChange={handlePageSizeChange}
-                    />
-                </div>
+                    </div>
+                ) : null}
             </CardContent>
         </Card>
     );

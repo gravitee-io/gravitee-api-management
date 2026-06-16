@@ -33,10 +33,10 @@ type ColCell<T> = { row: { original: T } };
  * The availability / average-response-time `group` map comes from an Elasticsearch
  * `terms` aggregation (size 100), so a proxy with many endpoints/gateways yields up
  * to 100 rows in a single response. These endpoints expose no server-side paging,
- * so — like the classic console — we paginate client-side (default page size 5).
+ * so — like the classic console — we paginate client-side.
  */
-const PAGE_SIZE_OPTIONS = [5, 10, 25];
-const DEFAULT_PAGE_SIZE = 5;
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+const DEFAULT_PAGE_SIZE = 10;
 
 const FIELD_LABEL: Record<HealthField, { title: string; description: string; column: string }> = {
     endpoint: {

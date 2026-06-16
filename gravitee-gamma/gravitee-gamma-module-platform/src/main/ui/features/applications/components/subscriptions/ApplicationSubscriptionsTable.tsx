@@ -24,10 +24,11 @@ import {
     type DataTableProps,
 } from '@gravitee/graphene-core';
 import { CircleXIcon, EyeIcon } from '@gravitee/graphene-core/icons';
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
 
 import type { ApplicationSubscriptionTableRow } from '../../types/applicationSubscription';
 import { formatApplicationDateTime } from '../../utils/applicationFormatters';
+import { SUBSCRIPTION_PAGE_SIZE_OPTIONS } from '../../utils/applicationSubscriptionConstants';
 import { canCloseSubscription } from '../../utils/applicationSubscriptionMapper';
 import { NON_SORTABLE_COLUMN } from '../../utils/dataTableHeaders';
 import type { ColCell } from '../../utils/dataTableTypes';
@@ -190,6 +191,12 @@ export function ApplicationSubscriptionsTable({
     canClose,
     onView,
     onClose,
+    page,
+    pageSize,
+    totalCount,
+    onPageChange,
+    onPageSizeChange,
+    toolbar,
 }: Readonly<{
     rows: ApplicationSubscriptionTableRow[];
     isLoading: boolean;
@@ -199,6 +206,12 @@ export function ApplicationSubscriptionsTable({
     canClose: boolean;
     onView: (row: ApplicationSubscriptionTableRow) => void;
     onClose: (row: ApplicationSubscriptionTableRow) => void;
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    onPageChange: (page: number) => void;
+    onPageSizeChange: (pageSize: number) => void;
+    toolbar?: ReactNode;
 }>) {
     const columns = useMemo(
         () => buildColumns({ readOnly, canViewDetail, canClose, onView, onClose }),
@@ -207,10 +220,22 @@ export function ApplicationSubscriptionsTable({
 
     return (
         <DataTable
+            aria-label="Application subscriptions"
             columns={columns}
             data={rows}
+            enableColumnVisibility
             loading={isLoading}
             skeletonCount={skeletonRowCount}
+            serverSide
+            toolbar={toolbar}
+            pagination={{
+                page,
+                pageSize,
+                totalCount,
+                pageSizeOptions: SUBSCRIPTION_PAGE_SIZE_OPTIONS,
+                onPageChange,
+                onPageSizeChange,
+            }}
             emptyMessage="There is no subscription (yet)."
         />
     );

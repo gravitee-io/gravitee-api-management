@@ -33,22 +33,22 @@ function buildData(rowCount: number): AvailabilityFieldData {
 }
 
 describe('AvailabilityByFieldTable', () => {
-    it('paginates client-side with a default page size of 5', () => {
-        render(<AvailabilityByFieldTable field="endpoint" data={buildData(8)} />);
+    it('paginates client-side with a default page size of 10', () => {
+        render(<AvailabilityByFieldTable field="endpoint" data={buildData(12)} />);
 
-        // First page shows 5 rows…
+        // First page shows 10 rows…
         expect(screen.getByText('endpoint-0')).toBeInTheDocument();
-        expect(screen.getByText('endpoint-4')).toBeInTheDocument();
-        // …and not the 6th.
-        expect(screen.queryByText('endpoint-5')).not.toBeInTheDocument();
+        expect(screen.getByText('endpoint-9')).toBeInTheDocument();
+        // …and not the 11th.
+        expect(screen.queryByText('endpoint-10')).not.toBeInTheDocument();
     });
 
     it('advances to the next page of rows', async () => {
-        render(<AvailabilityByFieldTable field="gateway" data={buildData(8)} />);
+        render(<AvailabilityByFieldTable field="gateway" data={buildData(12)} />);
 
         await userEvent.click(screen.getByRole('button', { name: /next page/i }));
 
-        expect(screen.getByText('endpoint-5')).toBeInTheDocument();
+        expect(screen.getByText('endpoint-10')).toBeInTheDocument();
         expect(screen.queryByText('endpoint-0')).not.toBeInTheDocument();
     });
 
