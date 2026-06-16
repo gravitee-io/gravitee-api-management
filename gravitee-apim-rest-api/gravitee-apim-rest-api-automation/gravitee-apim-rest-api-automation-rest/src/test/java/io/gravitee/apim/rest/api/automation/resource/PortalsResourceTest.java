@@ -33,7 +33,6 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import java.util.List;
-import java.util.Optional;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
@@ -160,9 +159,9 @@ class PortalsResourceTest extends AbstractResourceTest {
         void should_pass_navigation_to_use_case_and_echo_in_response() {
             var persisted = Portal.of(PortalId.of("00000000-0000-0000-0000-0000000000a1"), ENVIRONMENT, ORGANIZATION, "Default Portal");
             var echoed = List.of(
-                new NavigationPath("/projects", Optional.empty()),
-                new NavigationPath("/projects/alpha", Optional.of("Alpha")),
-                new NavigationPath("/projects/alpha/docs", Optional.empty())
+                new NavigationPath("/projects", null),
+                new NavigationPath("/projects/alpha", "Alpha"),
+                new NavigationPath("/projects/alpha/docs", null)
             );
             when(createOrUpdatePortalUseCase.execute(any())).thenReturn(
                 new CreateOrUpdatePortalUseCase.Output(persisted, echoed, List.of())
@@ -181,7 +180,7 @@ class PortalsResourceTest extends AbstractResourceTest {
                 assertThat(inputCaptor.getValue().navigation())
                     .extracting(NavigationPath::path)
                     .containsExactly("/projects/alpha", "/projects/alpha/docs");
-                assertThat(inputCaptor.getValue().navigation().get(0).displayName()).isEqualTo(Optional.of("Alpha"));
+                assertThat(inputCaptor.getValue().navigation().get(0).displayName()).isEqualTo("Alpha");
 
                 var state = response.readEntity(PortalState.class);
                 assertThat(state.getNavigation())

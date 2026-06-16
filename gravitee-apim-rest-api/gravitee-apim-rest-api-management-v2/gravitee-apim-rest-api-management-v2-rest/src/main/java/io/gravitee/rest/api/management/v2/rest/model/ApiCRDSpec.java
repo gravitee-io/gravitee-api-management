@@ -126,6 +126,8 @@ public class ApiCRDSpec {
 
     private boolean allowMultiJwtOauth2Subscriptions;
 
+    private List<io.gravitee.apim.core.portal.model.NavigationPath> portalNavigation;
+
     private Map<String, PageCRD> pages;
 
     public String getDefinitionVersion() {

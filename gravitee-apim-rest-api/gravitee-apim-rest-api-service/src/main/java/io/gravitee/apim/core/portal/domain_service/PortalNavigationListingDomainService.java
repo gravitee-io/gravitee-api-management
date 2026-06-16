@@ -26,7 +26,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
@@ -56,7 +55,7 @@ public class PortalNavigationListingDomainService {
         public void visitFolder(PortalNavigationFolder folder, NavigationPath parentPath) {
             final var nodePath = parentPath.descend(folder.getEffectiveSegment());
             final var displayName = !folder.getEffectiveSegment().equals(folder.getTitle()) ? folder.getTitle() : null;
-            paths.add(new NavigationPath(nodePath.path(), Optional.ofNullable(displayName)));
+            paths.add(new NavigationPath(nodePath.path(), displayName));
         }
     }
 }

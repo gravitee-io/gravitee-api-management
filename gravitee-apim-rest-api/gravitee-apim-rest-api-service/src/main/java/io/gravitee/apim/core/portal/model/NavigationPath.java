@@ -17,17 +17,21 @@ package io.gravitee.apim.core.portal.model;
 
 import io.gravitee.apim.core.portal_page.model.Slug;
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-public record NavigationPath(@Nonnull String path, Optional<String> displayName) {
+public record NavigationPath(@Nonnull String path, @Nullable String displayName, @Nullable Integer order) {
     public NavigationPath {
         path = normalizePath(path);
     }
 
+    public NavigationPath(@Nonnull String path, @Nullable String displayName) {
+        this(path, displayName, null);
+    }
+
     public NavigationPath descend(String childSegment) {
-        return new NavigationPath(this.path + "/" + childSegment, Optional.empty());
+        return new NavigationPath(this.path + "/" + childSegment, null);
     }
 
     private static String normalizePath(String p) {

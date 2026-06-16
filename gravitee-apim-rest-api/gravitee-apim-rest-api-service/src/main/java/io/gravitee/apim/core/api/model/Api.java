@@ -143,6 +143,8 @@ public class Api {
 
     private String background;
 
+    private List<io.gravitee.apim.core.portal.model.NavigationPath> portalNavigation;
+
     public boolean isTcpProxy() {
         return apiDefinitionValue instanceof io.gravitee.definition.model.v4.Api v4Api && v4Api.isTcpProxy();
     }

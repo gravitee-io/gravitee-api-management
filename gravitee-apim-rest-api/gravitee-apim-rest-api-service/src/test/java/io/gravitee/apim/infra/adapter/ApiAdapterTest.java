@@ -469,6 +469,99 @@ class ApiAdapterTest {
         }
     }
 
+    @Nested
+    class PortalNavigation {
+
+        @Test
+        void should_round_trip_portal_navigation_through_repository_and_back() {
+            var paths = List.of(
+                new io.gravitee.apim.core.portal.model.NavigationPath("/reference", "Reference", 1),
+                new io.gravitee.apim.core.portal.model.NavigationPath("/guides", null, 2),
+                new io.gravitee.apim.core.portal.model.NavigationPath("/guides/quickstart", null, null)
+            );
+            var model = ApiFixtures.aProxyApiV4().toBuilder().portalNavigation(paths).build();
+
+            var repo = ApiAdapter.INSTANCE.toRepository(model);
+            var back = ApiAdapter.INSTANCE.toCoreModel(repo);
+
+            assertThat(back.getPortalNavigation()).isEqualTo(paths);
+        }
+
+        @Test
+        void should_serialize_portal_navigation_omitting_absent_optionals() {
+            var paths = List.of(
+                new io.gravitee.apim.core.portal.model.NavigationPath("/reference", "Reference", 1),
+                new io.gravitee.apim.core.portal.model.NavigationPath("/guides", null, null)
+            );
+            var model = ApiFixtures.aProxyApiV4().toBuilder().portalNavigation(paths).build();
+
+            var repo = ApiAdapter.INSTANCE.toRepository(model);
+
+            assertThat(repo.getPortalNavigation()).isEqualTo(
+                "[{\"path\":\"/reference\",\"displayName\":\"Reference\",\"order\":1},{\"path\":\"/guides\"}]"
+            );
+        }
+
+        @Test
+        void should_serialize_null_when_portal_navigation_is_null() {
+            var model = ApiFixtures.aProxyApiV4().toBuilder().portalNavigation(null).build();
+
+            var repo = ApiAdapter.INSTANCE.toRepository(model);
+
+            assertThat(repo.getPortalNavigation()).isNull();
+        }
+
+        @Test
+        void should_serialize_null_when_portal_navigation_is_empty() {
+            var model = ApiFixtures.aProxyApiV4().toBuilder().portalNavigation(List.of()).build();
+
+            var repo = ApiAdapter.INSTANCE.toRepository(model);
+
+            assertThat(repo.getPortalNavigation()).isNull();
+        }
+
+        @Test
+        void should_deserialize_null_to_null_portal_navigation() {
+            var repo = apiV4().portalNavigation(null).build();
+
+            var model = ApiAdapter.INSTANCE.toCoreModel(repo);
+
+            assertThat(model.getPortalNavigation()).isNull();
+        }
+
+        @Test
+        void should_deserialize_blank_to_null_portal_navigation() {
+            var repo = apiV4().portalNavigation("   ").build();
+
+            var model = ApiAdapter.INSTANCE.toCoreModel(repo);
+
+            assertThat(model.getPortalNavigation()).isNull();
+        }
+
+        @Test
+        void should_deserialize_json_array_to_navigation_paths() {
+            var repo = apiV4()
+                .portalNavigation("[{\"path\":\"/reference\",\"displayName\":\"Reference\",\"order\":1},{\"path\":\"/guides\"}]")
+                .build();
+
+            var model = ApiAdapter.INSTANCE.toCoreModel(repo);
+
+            assertThat(model.getPortalNavigation()).containsExactly(
+                new io.gravitee.apim.core.portal.model.NavigationPath("/reference", "Reference", 1),
+                new io.gravitee.apim.core.portal.model.NavigationPath("/guides", null, null)
+            );
+        }
+
+        @Test
+        void should_return_null_when_portal_navigation_json_is_malformed() {
+            var repo = apiV4().portalNavigation("not-json").build();
+
+            var model = ApiAdapter.INSTANCE.toCoreModel(repo);
+
+            assertThat(model.getPortalNavigation()).isNull();
+        }
+    }
+
     private Api.ApiBuilder apiV4() {
         return Api.builder()
             .id("my-id")

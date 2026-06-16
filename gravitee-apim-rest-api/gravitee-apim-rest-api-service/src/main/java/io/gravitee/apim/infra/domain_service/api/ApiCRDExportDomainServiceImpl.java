@@ -80,6 +80,7 @@ public class ApiCRDExportDomainServiceImpl implements ApiCRDExportDomainService 
                 .setGroups(new ArrayList<>(getGroupNames(new HashSet<>(spec.getConsoleNotificationConfiguration().getGroups()))));
         }
 
+        spec.setPortalNavigation(apiCrudService.get(apiId).getPortalNavigation());
         ensureCrossId(spec);
         applyIDExportStrategy(idExport, spec);
         return spec;

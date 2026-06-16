@@ -22,7 +22,6 @@ import io.gravitee.apim.rest.api.automation.model.NavigationPath;
 import io.gravitee.apim.rest.api.automation.model.PortalState;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -78,7 +77,7 @@ public interface PortalMapper {
         return navigation
             .stream()
             .filter(PortalMapper::isValidNavigationPath)
-            .map(n -> new io.gravitee.apim.core.portal.model.NavigationPath(n.getPath(), Optional.ofNullable(n.getDisplayName())))
+            .map(n -> new io.gravitee.apim.core.portal.model.NavigationPath(n.getPath(), n.getDisplayName()))
             .toList();
     }
 
@@ -89,7 +88,7 @@ public interface PortalMapper {
         return navigation
             .stream()
             .filter(Objects::nonNull)
-            .map(n -> new NavigationPath().path(n.path()).displayName(n.displayName().orElse(null)))
+            .map(n -> new NavigationPath().path(n.path()).displayName(n.displayName()))
             .toList();
     }
 

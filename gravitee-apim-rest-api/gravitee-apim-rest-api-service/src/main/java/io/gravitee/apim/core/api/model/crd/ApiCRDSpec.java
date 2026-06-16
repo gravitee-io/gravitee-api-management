@@ -141,6 +141,8 @@ public class ApiCRDSpec {
 
     private PortalNotificationConfigEntity consoleNotificationConfiguration;
 
+    private List<io.gravitee.apim.core.portal.model.NavigationPath> portalNavigation;
+
     public String getDefinitionVersion() {
         return "V4";
     }
@@ -176,7 +178,8 @@ public class ApiCRDSpec {
                 )
             )
             .groups(groups)
-            .allowMultiJwtOauth2Subscriptions(allowMultiJwtOauth2Subscriptions);
+            .allowMultiJwtOauth2Subscriptions(allowMultiJwtOauth2Subscriptions)
+            .portalNavigation(portalNavigation);
     }
 
     /**

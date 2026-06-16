@@ -42,26 +42,26 @@ class PortalAdapterTest {
                 "env",
                 "org",
                 "Portal",
-                List.of(new NavigationPath("/a", Optional.of("A")), new NavigationPath("/a/b", Optional.empty()))
+                List.of(new NavigationPath("/a", "A"), new NavigationPath("/a/b", null))
             );
 
             var roundTripped = adapter.toEntity(adapter.toRepository(portal));
 
             assertThat(roundTripped.getPortalNavigation()).extracting(NavigationPath::path).containsExactly("/a", "/a/b");
-            assertThat(roundTripped.getPortalNavigation().get(0).displayName()).contains("A");
-            assertThat(roundTripped.getPortalNavigation().get(1).displayName()).isEmpty();
+            assertThat(roundTripped.getPortalNavigation().get(0).displayName()).isEqualTo("A");
+            assertThat(roundTripped.getPortalNavigation().get(1).displayName()).isNull();
         }
 
         @Test
         void serialize_omits_absent_display_name() {
-            String json = adapter.serializePortalNavigation(List.of(new NavigationPath("/a", Optional.empty())));
+            String json = adapter.serializePortalNavigation(List.of(new NavigationPath("/a", null)));
 
             assertThat(json).isEqualTo("[{\"path\":\"/a\"}]");
         }
 
         @Test
         void serialize_includes_display_name_when_present() {
-            String json = adapter.serializePortalNavigation(List.of(new NavigationPath("/a", Optional.of("A"))));
+            String json = adapter.serializePortalNavigation(List.of(new NavigationPath("/a", "A")));
 
             assertThat(json).isEqualTo("[{\"path\":\"/a\",\"displayName\":\"A\"}]");
         }
@@ -91,8 +91,8 @@ class PortalAdapterTest {
             var result = adapter.deserializePortalNavigation("[{\"path\":\"/x\",\"displayName\":\"X\"},{\"path\":\"/y\"}]");
 
             assertThat(result).extracting(NavigationPath::path).containsExactly("/x", "/y");
-            assertThat(result.get(0).displayName()).contains("X");
-            assertThat(result.get(1).displayName()).isEmpty();
+            assertThat(result.get(0).displayName()).isEqualTo("X");
+            assertThat(result.get(1).displayName()).isNull();
         }
 
         @Test
