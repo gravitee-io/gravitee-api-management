@@ -18,24 +18,38 @@ import {
     Button,
     DataTable,
     DataTableColumnHeader,
-    DataTablePagination,
     type DataTableColumnHeaderProps,
+    DataTableEmptyState,
     type DataTableProps,
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@gravitee/graphene-core';
-import { AlertCircleIcon, CircleCheckIcon, CircleXIcon, MoreHorizontalIcon, RefreshCwIcon } from '@gravitee/graphene-core/icons';
-import { useState } from 'react';
+import { AlertCircleIcon, CircleCheckIcon, CircleXIcon, MoreVerticalIcon, RefreshCwIcon, SearchIcon } from '@gravitee/graphene-core/icons';
 import { useNavigate } from 'react-router-dom';
 
 import type { ApiDeploymentState, ApiListItem, ApiState } from '../../types';
 import { getApiAccessPath } from '../../utils/apiAccess';
+import { ApiAvatar } from '../ApiAvatar';
 
-// Column type helpers derived entirely from graphene's exported types
-type ColHeader<T> = { column: DataTableColumnHeaderProps<T, unknown>['column'] };
 type ColCell<T> = { row: { original: T } };
+type ColHeader<T> = { column: DataTableColumnHeaderProps<T, unknown>['column'] };
+
+// Sortable column id → backend `sortBy` field (api-v2 `/apis/_search`). Columns absent here are not server-sortable.
+const SORT_FIELD_BY_COLUMN: Record<string, string> = {
+    'API Name': 'name',
+    'Runtime Status': 'status',
+    access: 'paths',
+    Owner: 'owner',
+};
+
+export function toApiListSortBy(sorting: DataTableProps<ApiListItem>['sorting']): string | undefined {
+    const sort = sorting?.[0];
+    const field = sort ? SORT_FIELD_BY_COLUMN[sort.id] : undefined;
+    if (!sort || !field) return undefined;
+    return sort.desc ? `-${field}` : field;
+}
 
 // ─── Status helpers ───────────────────────────────────────────────────────────
 
@@ -90,10 +104,10 @@ function ApiActionsMenu({ apiId, onNavigate }: { apiId: string; onNavigate: (pat
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" aria-label="API actions" onClick={e => e.stopPropagation()}>
-                    <MoreHorizontalIcon className="size-4" aria-hidden />
+                    <MoreVerticalIcon className="size-4" aria-hidden />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-auto min-w-[12rem]">
+            <DropdownMenuContent align="end" className="w-auto min-w-48">
                 <DropdownMenuItem onSelect={() => onNavigate(`${apiId}/overview`)}>View Details</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => onNavigate(`${apiId}/general`)}>Edit Configuration</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => onNavigate(`${apiId}/analytics`)}>View Analytics</DropdownMenuItem>
@@ -107,24 +121,25 @@ function ApiActionsMenu({ apiId, onNavigate }: { apiId: string; onNavigate: (pat
 function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<ApiListItem>['columns'] {
     return [
         {
-            // Column id doubles as the label shown in the DataTable "View" (column visibility)
-            // menu, which falls back to the id for non-string headers — keep it identical to
-            // the visible header title so both read the same (incl. casing).
             id: 'API Name',
             accessorFn: (row: ApiListItem) => row.name,
             header: ({ column }: ColHeader<ApiListItem>) => <DataTableColumnHeader column={column} title="API Name" />,
             cell: ({ row }: ColCell<ApiListItem>) => {
-                const name = row.original.name;
+                const api = row.original;
+                const name = api.name;
                 const truncated = name.length > 40;
                 return (
-                    <button
-                        type="button"
-                        className="text-left font-medium hover:underline"
-                        title={truncated ? name : undefined}
-                        onClick={() => navigate(`${row.original.id}/overview`)}
-                    >
-                        {truncated ? `${name.slice(0, 40).trimEnd()}…` : name}
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <ApiAvatar src={api._links?.pictureUrl} name={name} />
+                        <button
+                            type="button"
+                            className="text-left font-medium hover:underline"
+                            title={truncated ? name : undefined}
+                            onClick={() => navigate(`${api.id}/overview`)}
+                        >
+                            {truncated ? `${name.slice(0, 40).trimEnd()}…` : name}
+                        </button>
+                    </div>
                 );
             },
         },
@@ -137,12 +152,14 @@ function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<
         {
             id: 'Sync Status',
             accessorFn: (row: ApiListItem) => row.deploymentState,
-            header: ({ column }: ColHeader<ApiListItem>) => <DataTableColumnHeader column={column} title="Sync Status" />,
+            header: 'Sync Status',
+            enableSorting: false,
             cell: ({ row }: ColCell<ApiListItem>) => <SyncStatusBadge deploymentState={row.original.deploymentState} />,
         },
         {
             id: 'access',
-            header: 'Access',
+            accessorFn: (row: ApiListItem) => getApiAccessPath(row),
+            header: ({ column }: ColHeader<ApiListItem>) => <DataTableColumnHeader column={column} title="Access" />,
             cell: ({ row }: ColCell<ApiListItem>) => {
                 const path = getApiAccessPath(row.original);
                 return path ? (
@@ -153,27 +170,26 @@ function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<
                     <span className="text-muted-foreground text-xs">—</span>
                 );
             },
-            enableSorting: false,
         },
         {
             id: 'Owner',
-            header: ({ column }: ColHeader<ApiListItem>) => <DataTableColumnHeader column={column} title="Owner" />,
             accessorFn: (row: ApiListItem) => row.primaryOwner?.displayName ?? '',
+            header: ({ column }: ColHeader<ApiListItem>) => <DataTableColumnHeader column={column} title="Owner" />,
             cell: ({ row }: ColCell<ApiListItem>) => (
                 <span className="text-sm text-muted-foreground">{row.original.primaryOwner?.displayName ?? '—'}</span>
             ),
         },
         {
             id: 'actions',
-            header: () => <div className="text-right">Actions</div>,
+            header: () => <span className="sr-only">Actions</span>,
             size: 56,
+            enableSorting: false,
+            enableHiding: false,
             cell: ({ row }: ColCell<ApiListItem>) => (
                 <div className="flex justify-end">
                     <ApiActionsMenu apiId={row.original.id} onNavigate={navigate} />
                 </div>
             ),
-            enableSorting: false,
-            enableHiding: false,
         },
     ];
 }
@@ -187,6 +203,8 @@ interface ApiListTableProps {
     readonly page?: number;
     readonly pageSize?: number;
     readonly totalCount?: number;
+    readonly sorting?: DataTableProps<ApiListItem>['sorting'];
+    readonly onSortingChange?: DataTableProps<ApiListItem>['onSortingChange'];
     readonly onPageChange?: (page: number) => void;
     readonly onPageSizeChange?: (pageSize: number) => void;
     readonly toolbar?: React.ReactNode;
@@ -199,49 +217,47 @@ export function ApiListTable({
     page = 1,
     pageSize = 10,
     totalCount = 0,
+    sorting,
+    onSortingChange,
     onPageChange,
     onPageSizeChange,
     toolbar,
 }: ApiListTableProps) {
     const navigate = useNavigate();
-    const [sorting, setSorting] = useState([{ id: 'API Name', desc: false }]);
     const columns = buildColumns(navigate);
-
-    const renderPagination = () =>
-        onPageChange && onPageSizeChange ? (
-            <DataTablePagination
-                page={page}
-                pageSize={pageSize}
-                totalCount={totalCount}
-                pageSizeOptions={[10, 25, 50, 100]}
-                onPageChange={onPageChange}
-                onPageSizeChange={onPageSizeChange}
-            />
-        ) : null;
-
-    const hasPagination = Boolean(onPageChange && onPageSizeChange);
-
-    const compositeToolbar = hasPagination ? (
-        <div className="flex items-center gap-4 flex-1 min-w-0">
-            {toolbar}
-            <div className="ml-auto shrink-0">{renderPagination()}</div>
-        </div>
-    ) : (
-        toolbar
-    );
 
     return (
         <DataTable
+            aria-label="API proxies"
             columns={columns}
             data={apis}
-            sorting={sorting}
-            onSortingChange={setSorting}
             enableColumnVisibility
             loading={isLoading}
             skeletonCount={skeletonRowCount}
-            toolbar={compositeToolbar}
-            footer={renderPagination()}
-            emptyMessage="No APIs found."
+            serverSide
+            sorting={sorting}
+            onSortingChange={onSortingChange}
+            toolbar={toolbar}
+            pagination={
+                onPageChange && onPageSizeChange
+                    ? {
+                          page,
+                          pageSize,
+                          totalCount,
+                          pageSizeOptions: [10, 25, 50, 100],
+                          onPageChange,
+                          onPageSizeChange,
+                      }
+                    : undefined
+            }
+            emptyMessage={
+                <DataTableEmptyState
+                    variant="no-results"
+                    icon={<SearchIcon />}
+                    title="No APIs found"
+                    description="Try adjusting your search."
+                />
+            }
         />
     );
 }

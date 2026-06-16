@@ -24,15 +24,19 @@ export function useApiList({
     query,
     page,
     perPage,
+    sortBy,
 }: {
     query: string;
     page: number;
     perPage: number;
+    sortBy?: string;
 }): ReturnType<typeof useQuery<ApiListResponse>> {
     const env = useEnvironment();
+    // Default ordering (no explicit user sort): by name when browsing, relevance when searching.
+    const effectiveSortBy = sortBy ?? (query ? undefined : 'name');
     return useQuery<ApiListResponse>({
-        queryKey: apiListKeys.search(env?.id ?? '', query, page, perPage),
-        queryFn: () => searchApis(env!.id, { query: query || undefined }, page, perPage, query ? undefined : 'name'),
+        queryKey: [...apiListKeys.search(env?.id ?? '', query, page, perPage), effectiveSortBy ?? null],
+        queryFn: () => searchApis(env!.id, { query: query || undefined }, page, perPage, effectiveSortBy),
         enabled: Boolean(env),
         placeholderData: keepPreviousData,
     });

@@ -58,7 +58,7 @@ describe('ApiListTable', () => {
 
     it('renders the empty state when no APIs are present', () => {
         renderTable({ apis: [], isLoading: false });
-        expect(screen.queryByText('No APIs found.')).not.toBeNull();
+        expect(screen.queryByText(/no apis found/i)).not.toBeNull();
     });
 
     it('renders a row for each API with the name', () => {

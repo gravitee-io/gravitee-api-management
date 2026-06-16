@@ -22,8 +22,11 @@ import {
     CardDescription,
     CardHeader,
     CardTitle,
-    DataTablePagination,
+    DataTable,
+    DataTableEmptyState,
+    type DataTableProps,
     DropdownMenu,
+    MonoCell,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuSeparator,
@@ -38,18 +41,12 @@ import {
     SheetTitle,
     Skeleton,
     Switch,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
     Textarea,
 } from '@gravitee/graphene-core';
 import {
     ArrowRightIcon,
     LockIcon,
-    MoreHorizontalIcon,
+    MoreVerticalIcon,
     PlusIcon,
     RefreshCwIcon,
     SearchIcon,
@@ -370,7 +367,9 @@ function ImportPropertiesDialog({ existingProperties, isSaving, onClose, onImpor
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-const PAGE_SIZE_OPTIONS = [10, 25, 50];
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+
+type ColCell<T> = { row: { original: T } };
 
 export function ApiPropertiesPage() {
     const { apiId } = useParams<{ apiId: string }>();
@@ -455,17 +454,131 @@ export function ApiPropertiesPage() {
         [mutation, properties],
     );
 
-    const paginationBar =
-        properties.length > 0 ? (
-            <DataTablePagination
-                page={page}
-                pageSize={pageSize}
-                totalCount={totalCount}
-                pageSizeOptions={PAGE_SIZE_OPTIONS}
-                onPageChange={setPage}
-                onPageSizeChange={handlePageSizeChange}
-            />
-        ) : null;
+    const columns: DataTableProps<Property>['columns'] = [
+        {
+            id: 'Key',
+            accessorFn: (row: Property) => row.key,
+            header: 'Key',
+            enableSorting: false,
+            cell: ({ row }: ColCell<Property>) => <span className="font-mono text-sm font-medium">{row.original.key}</span>,
+        },
+        {
+            id: 'Value',
+            header: 'Value',
+            enableSorting: false,
+            cell: ({ row }: ColCell<Property>) => {
+                const prop = row.original;
+                return prop.encrypted ? (
+                    <span className="font-mono text-sm text-muted-foreground">{'•'.repeat(8)}</span>
+                ) : (
+                    <MonoCell value={prop.value} />
+                );
+            },
+        },
+        {
+            id: 'Characteristics',
+            header: 'Characteristics',
+            enableSorting: false,
+            cell: ({ row }: ColCell<Property>) => {
+                const prop = row.original;
+                return (
+                    <div className="flex flex-wrap gap-1">
+                        {prop.encrypted ? (
+                            <Badge className="gap-1">
+                                <LockIcon className="size-3" />
+                                Encrypted
+                            </Badge>
+                        ) : prop.encryptable ? (
+                            <Badge variant="secondary">Encrypt on save</Badge>
+                        ) : (
+                            <Badge variant="outline">Unencrypted</Badge>
+                        )}
+                        {prop.dynamic ? (
+                            <Badge variant="outline" className="gap-1">
+                                <RefreshCwIcon className="size-3" />
+                                Dynamic
+                            </Badge>
+                        ) : null}
+                    </div>
+                );
+            },
+        },
+        ...(canEdit
+            ? [
+                  {
+                      id: 'actions',
+                      header: () => <span className="sr-only">Actions</span>,
+                      enableSorting: false,
+                      enableHiding: false,
+                      cell: ({ row }: ColCell<Property>) => {
+                          const prop = row.original;
+                          if (prop.dynamic) {
+                              return (
+                                  <div className="flex justify-end">
+                                      <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="size-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                          aria-label={`Remove ${prop.key}`}
+                                          title="Remove (re-added on next sync)"
+                                          disabled={mutation.isPending}
+                                          onClick={() => handleDelete(prop.key)}
+                                      >
+                                          <Trash2Icon className="size-4" />
+                                      </Button>
+                                  </div>
+                              );
+                          }
+                          return (
+                              <div className="flex justify-end">
+                                  <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                          <Button variant="ghost" size="icon" className="size-8" aria-label={`Actions for ${prop.key}`}>
+                                              <MoreVerticalIcon className="size-4" />
+                                          </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end" className="whitespace-nowrap min-w-48">
+                                          {!prop.dynamic ? (
+                                              <>
+                                                  {prop.encrypted ? (
+                                                      <DropdownMenuItem onSelect={() => setDialog({ type: 'edit', property: prop })}>
+                                                          <RefreshCwIcon className="size-4" />
+                                                          Renew encryption
+                                                      </DropdownMenuItem>
+                                                  ) : (
+                                                      <>
+                                                          <DropdownMenuItem onSelect={() => setDialog({ type: 'edit', property: prop })}>
+                                                              Edit value
+                                                          </DropdownMenuItem>
+                                                          <DropdownMenuItem
+                                                              onSelect={() => handleEncryptValue(prop.key)}
+                                                              disabled={mutation.isPending}
+                                                          >
+                                                              <LockIcon className="size-4" />
+                                                              Encrypt value
+                                                          </DropdownMenuItem>
+                                                      </>
+                                                  )}
+                                                  <DropdownMenuSeparator />
+                                              </>
+                                          ) : null}
+                                          <DropdownMenuItem
+                                              className="text-destructive"
+                                              onSelect={() => handleDelete(prop.key)}
+                                              disabled={mutation.isPending}
+                                          >
+                                              <Trash2Icon className="size-4" />
+                                              {prop.dynamic ? 'Remove (re-added on next sync)' : 'Delete'}
+                                          </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                  </DropdownMenu>
+                              </div>
+                          );
+                      },
+                  },
+              ]
+            : []),
+    ];
 
     if (isLoading) {
         return (
@@ -549,22 +662,6 @@ export function ApiPropertiesPage() {
                 <>
                     <StatsCards total={properties.length} encrypted={encryptedCount} dynamic={dynamicCount} />
 
-                    <div className="flex items-center gap-4">
-                        <div className="relative flex-1">
-                            <SearchIcon
-                                className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground pointer-events-none"
-                                aria-hidden
-                            />
-                            <Input
-                                placeholder="Search properties by key…"
-                                value={search}
-                                onChange={e => handleSearchChange(e.target.value)}
-                                className="pl-10"
-                            />
-                        </div>
-                        {paginationBar}
-                    </div>
-
                     <Card>
                         <CardHeader className="pb-2">
                             <CardTitle className="text-base">Defined properties</CardTitle>
@@ -574,112 +671,44 @@ export function ApiPropertiesPage() {
                                     : `${properties.length} properties`}
                             </CardDescription>
                         </CardHeader>
-                        <CardContent className="p-0">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead style={{ width: '30%' }}>Key</TableHead>
-                                        <TableHead>Value</TableHead>
-                                        <TableHead>Characteristics</TableHead>
-                                        <TableHead className="w-14 text-right">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {paginated.map(prop => (
-                                        <TableRow key={prop.key}>
-                                            <TableCell className="font-mono text-sm font-medium">{prop.key}</TableCell>
-                                            <TableCell className="font-mono text-sm">
-                                                {prop.encrypted ? (
-                                                    <span className="text-muted-foreground">{'•'.repeat(8)}</span>
-                                                ) : (
-                                                    prop.value
-                                                )}
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex flex-wrap gap-1">
-                                                    {prop.encrypted ? (
-                                                        <Badge className="gap-1">
-                                                            <LockIcon className="size-3" />
-                                                            Encrypted
-                                                        </Badge>
-                                                    ) : prop.encryptable ? (
-                                                        <Badge variant="secondary">Encrypt on save</Badge>
-                                                    ) : (
-                                                        <Badge variant="outline">Unencrypted</Badge>
-                                                    )}
-                                                    {prop.dynamic ? (
-                                                        <Badge variant="outline" className="gap-1">
-                                                            <RefreshCwIcon className="size-3" />
-                                                            Dynamic
-                                                        </Badge>
-                                                    ) : null}
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                {canEdit ? (
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button variant="ghost" size="icon" className="size-8">
-                                                                <MoreHorizontalIcon className="size-4" />
-                                                                <span className="sr-only">Open actions</span>
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end" className="whitespace-nowrap min-w-48">
-                                                            {!prop.dynamic ? (
-                                                                <>
-                                                                    {prop.encrypted ? (
-                                                                        <DropdownMenuItem
-                                                                            onSelect={() => setDialog({ type: 'edit', property: prop })}
-                                                                        >
-                                                                            <RefreshCwIcon className="size-4" />
-                                                                            Renew encryption
-                                                                        </DropdownMenuItem>
-                                                                    ) : (
-                                                                        <>
-                                                                            <DropdownMenuItem
-                                                                                onSelect={() => setDialog({ type: 'edit', property: prop })}
-                                                                            >
-                                                                                Edit value
-                                                                            </DropdownMenuItem>
-                                                                            <DropdownMenuItem
-                                                                                onSelect={() => handleEncryptValue(prop.key)}
-                                                                                disabled={mutation.isPending}
-                                                                            >
-                                                                                <LockIcon className="size-4" />
-                                                                                Encrypt value
-                                                                            </DropdownMenuItem>
-                                                                        </>
-                                                                    )}
-                                                                    <DropdownMenuSeparator />
-                                                                </>
-                                                            ) : null}
-                                                            <DropdownMenuItem
-                                                                className="text-destructive"
-                                                                onSelect={() => handleDelete(prop.key)}
-                                                                disabled={mutation.isPending}
-                                                            >
-                                                                <Trash2Icon className="size-4" />
-                                                                {prop.dynamic ? 'Remove (re-added on next sync)' : 'Delete'}
-                                                            </DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                ) : null}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                    {paginated.length === 0 ? (
-                                        <TableRow>
-                                            <TableCell colSpan={4} className="text-center text-muted-foreground py-10">
-                                                No properties match your search.
-                                            </TableCell>
-                                        </TableRow>
-                                    ) : null}
-                                </TableBody>
-                            </Table>
+                        <CardContent className="px-4 pb-4 pt-0">
+                            <DataTable
+                                aria-label="API properties"
+                                columns={columns}
+                                data={paginated}
+                                serverSide
+                                pagination={
+                                    totalCount > 0
+                                        ? {
+                                              page,
+                                              pageSize,
+                                              totalCount,
+                                              pageSizeOptions: PAGE_SIZE_OPTIONS,
+                                              onPageChange: setPage,
+                                              onPageSizeChange: handlePageSizeChange,
+                                          }
+                                        : undefined
+                                }
+                                emptyMessage={
+                                    <DataTableEmptyState
+                                        variant="no-results"
+                                        icon={<SearchIcon />}
+                                        title="No properties match your search"
+                                        description="Try a different search term."
+                                    />
+                                }
+                                toolbar={
+                                    <Input
+                                        placeholder="Search properties by key…"
+                                        aria-label="Search properties by key"
+                                        value={search}
+                                        onChange={e => handleSearchChange(e.target.value)}
+                                        className="h-8 w-64"
+                                    />
+                                }
+                            />
                         </CardContent>
                     </Card>
-
-                    {paginationBar}
                 </>
             )}
 

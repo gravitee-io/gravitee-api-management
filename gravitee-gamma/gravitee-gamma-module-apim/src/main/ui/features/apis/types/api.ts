@@ -142,6 +142,11 @@ export interface ApiListItem {
     visibility?: ApiVisibility;
     listeners?: ApiListListener[];
     primaryOwner?: { id?: string; displayName?: string; email?: string };
+    picture?: string | null;
+    _links?: {
+        pictureUrl?: string;
+        backgroundUrl?: string;
+    };
 }
 
 export interface ApiListPagination {
