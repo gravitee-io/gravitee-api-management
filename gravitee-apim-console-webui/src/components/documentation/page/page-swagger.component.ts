@@ -23,6 +23,31 @@ import UserService from '../../../services/user.service';
 
 const yamlSchema = yaml.DEFAULT_SCHEMA.extend([]);
 
+const OAS_SCHEMA_TYPES = new Set(['null', 'boolean', 'object', 'array', 'number', 'string', 'integer']);
+const OAS_TYPE_PRIORITY = ['string', 'number', 'integer', 'boolean', 'array', 'object'];
+
+const normalizeTypeArrays = (obj: any): any => {
+  if (obj === null || !angular.isObject(obj)) {
+    return obj;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map((item: any) => normalizeTypeArrays(item));
+  }
+  const result: any = {};
+  for (const key of Object.keys(obj)) {
+    if (key === 'type' && Array.isArray(obj[key]) && (obj[key] as string[]).every((t: string) => OAS_SCHEMA_TYPES.has(t))) {
+      const nonNullTypes = (obj[key] as string[]).filter((t: string) => t !== 'null');
+      result[key] = nonNullTypes.length === 1 ? nonNullTypes[0] : (OAS_TYPE_PRIORITY.find((t) => nonNullTypes.includes(t)) ?? 'string');
+      if ((obj[key] as string[]).includes('null')) {
+        result['nullable'] = true;
+      }
+    } else {
+      result[key] = normalizeTypeArrays(obj[key]);
+    }
+  }
+  return result;
+};
+
 const DisableTryItOutPlugin = function () {
   return {
     statePlugins: {
@@ -53,9 +78,9 @@ class PageSwaggerComponentController implements IController {
   loadContent(): any {
     let contentAsJson = {};
     try {
-      contentAsJson = angular.fromJson(this.pageContent);
+      contentAsJson = normalizeTypeArrays(angular.fromJson(this.pageContent));
     } catch (e) {
-      contentAsJson = yaml.load(this.pageContent, { schema: yamlSchema });
+      contentAsJson = normalizeTypeArrays(yaml.load(this.pageContent, { schema: yamlSchema }));
     }
     return contentAsJson;
   }
