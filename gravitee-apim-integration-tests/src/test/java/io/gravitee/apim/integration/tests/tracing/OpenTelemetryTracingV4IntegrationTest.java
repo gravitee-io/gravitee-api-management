@@ -145,7 +145,7 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
             .assertNoErrors();
 
         Set<String> expectedOperationNames = Set.of(
-            "POST",
+            "POST /test",
             "Request phase",
             "REQUEST Processor (processor-metrics)",
             "REQUEST Processor (pre-processor-transaction)",
@@ -154,7 +154,7 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
             "REQUEST policy-latency",
             "REQUEST Security (keyless)",
             "endpoint-invoker",
-            "POST /endpoint",
+            "POST",
             "Response phase",
             "RESPONSE flow (api-flow-1)",
             "RESPONSE policy-latency",
@@ -175,7 +175,9 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
                     .get();
 
                 assertThat(response.statusCode()).isEqualTo(200);
-                assertData(response.bodyAsJsonObject(), expectedOperationNames);
+                JsonObject body = response.bodyAsJsonObject();
+                assertData(body, expectedOperationNames);
+                assertExactlyOneSpanWithKind(body, "POST /test", "server");
             });
     }
 
@@ -233,7 +235,9 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
                     .get();
 
                 assertThat(response.statusCode()).isEqualTo(200);
-                assertData(response.bodyAsJsonObject(), expectedOperationNames);
+                JsonObject body = response.bodyAsJsonObject();
+                assertData(body, expectedOperationNames);
+                assertExactlyOneSpanWithKind(body, "GET /test", "server");
             });
     }
 
@@ -265,5 +269,27 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
             .map(span -> span.getString("operationName"))
             .toArray(String[]::new);
         assertThat(expectedOperationName).containsOnly(operationNames);
+    }
+
+    private static void assertExactlyOneSpanWithKind(JsonObject json, String expectedOperationName, String expectedKind) {
+        var spans = json.getJsonArray("data").getJsonObject(0).getJsonArray("spans");
+        var matchingSpans = spans
+            .stream()
+            .map(JsonObject.class::cast)
+            .filter(span -> hasSpanKind(span, expectedKind))
+            .toList();
+        assertThat(matchingSpans).as("spans with kind=%s", expectedKind).hasSize(1);
+        assertThat(matchingSpans.get(0).getString("operationName")).as("entry span operation name").isEqualTo(expectedOperationName);
+    }
+
+    private static boolean hasSpanKind(JsonObject span, String expectedKind) {
+        var tags = span.getJsonArray("tags");
+        if (tags == null) {
+            return false;
+        }
+        return tags
+            .stream()
+            .map(JsonObject.class::cast)
+            .anyMatch(tag -> "span.kind".equals(tag.getString("key")) && expectedKind.equals(tag.getString("value")));
     }
 }
