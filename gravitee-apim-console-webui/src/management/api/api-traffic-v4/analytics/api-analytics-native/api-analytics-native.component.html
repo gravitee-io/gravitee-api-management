@@ -15,6 +15,18 @@
     limitations under the License.
 
 -->
+<api-navigation-header [menuItemHeader]="{ title: 'API Traffic' }">
+  <div actionButtons>
+    <a mat-raised-button [routerLink]="['../../reporter-settings']" data-testid="native_analytics_configure_reporting"
+      >Configure Reporting</a
+    >
+  </div>
+</api-navigation-header>
+
+@if (isAnalyticsDisabled()) {
+  <reporting-disabled-banner data-testid="native_analytics_reporting_disabled_banner"></reporting-disabled-banner>
+}
+
 <api-analytics-native-filter-bar
   [activeFilters]="activeFilters()"
   [plans]="apiPlans$ | async"

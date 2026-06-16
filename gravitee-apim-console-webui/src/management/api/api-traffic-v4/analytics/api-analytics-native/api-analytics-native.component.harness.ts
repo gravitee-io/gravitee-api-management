@@ -21,10 +21,20 @@ export class ApiAnalyticsNativeHarness extends ComponentHarness {
   static hostSelector = 'api-analytics-native';
 
   protected emptyPanelHarness = this.locatorForOptional('gio-card-empty-state');
+  protected reportingDisabledBanner = this.locatorForOptional('[data-testid="native_analytics_reporting_disabled_banner"]');
+  protected configureReportingLink = this.locatorForOptional('[data-testid="native_analytics_configure_reporting"]');
 
   getFiltersBarHarness = this.locatorForOptional(ApiAnalyticsNativeFilterBarHarness);
 
   async isEmptyPanelDisplayed(): Promise<boolean> {
     return (await this.emptyPanelHarness()) !== null;
+  }
+
+  async isReportingDisabledBannerDisplayed(): Promise<boolean> {
+    return (await this.reportingDisabledBanner()) !== null;
+  }
+
+  async isConfigureReportingButtonDisplayed(): Promise<boolean> {
+    return (await this.configureReportingLink()) !== null;
   }
 }

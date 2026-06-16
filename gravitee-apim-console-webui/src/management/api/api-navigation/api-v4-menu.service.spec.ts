@@ -173,6 +173,24 @@ describe('ApiV4MenuService', () => {
     });
   });
 
+  describe('API Traffic menu header', () => {
+    beforeEach(() => {
+      TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: ['api-analytics-r'] });
+      service = TestBed.inject(ApiV4MenuService);
+    });
+
+    it.each([
+      ['NATIVE', undefined],
+      ['PROXY', undefined],
+      ['MCP_PROXY', undefined],
+      ['LLM_PROXY', undefined],
+      ['MESSAGE', { title: 'API Traffic' }],
+    ] as const)('apiType %s -> header %p', (type, expected) => {
+      const apiTraffic = service.getMenu(fakeApiV4({ type })).subMenuItems.find(item => item.displayName === 'API Traffic');
+      expect(apiTraffic?.header).toEqual(expected);
+    });
+  });
+
   describe('Logs menu for NATIVE API', () => {
     it('should include Logs menu pointing to v4/runtime-logs-native when user has api-native_log-r permission', () => {
       TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: ['api-native_log-r'] });

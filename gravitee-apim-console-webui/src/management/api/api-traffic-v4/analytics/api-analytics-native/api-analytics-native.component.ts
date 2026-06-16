@@ -16,8 +16,9 @@
 
 import { Component, computed, effect, inject, OnDestroy, OnInit, Signal } from '@angular/core';
 import { GioCardEmptyStateModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
+import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Observable, of } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -35,8 +36,11 @@ import { ApiAnalyticsDashboardWidgetConfig } from '../api-analytics-proxy/api-an
 import { GioChartPieModule } from '../../../../../shared/components/gio-chart-pie/gio-chart-pie.module';
 import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
 import { AggregationFields, AggregationTypes } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram';
-import { BaseApplication } from '../../../../../entities/management-api-v2';
+import { ApiV4, BaseApplication } from '../../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import { ActionButtonsDirective } from '../../../api-navigation/api-navigation-header/action-buttons.directive';
+import { ApiNavigationModule } from '../../../api-navigation/api-navigation.module';
+import { ReportingDisabledBannerComponent } from '../../components/reporting-disabled-banner/reporting-disabled-banner.component';
 
 interface QueryParamsBase {
   from?: string;
@@ -50,9 +54,14 @@ interface QueryParamsBase {
   selector: 'api-analytics-native',
   imports: [
     CommonModule,
+    MatButtonModule,
     MatCardModule,
+    RouterLink,
     GioLoaderModule,
     GioCardEmptyStateModule,
+    ActionButtonsDirective,
+    ApiNavigationModule,
+    ReportingDisabledBannerComponent,
     ApiAnalyticsNativeFilterBarComponent,
     ApiAnalyticsWidgetComponent,
     GioChartPieModule,
@@ -65,6 +74,11 @@ export class ApiAnalyticsNativeComponent implements OnInit, OnDestroy {
   private activatedRouteQueryParams = toSignal(this.activatedRoute.queryParams);
   private planService = inject(ApiPlanV2Service);
   private apiService = inject(ApiV2Service);
+
+  public readonly isAnalyticsDisabled = toSignal(
+    this.apiService.getLastApiFetch(this.apiId).pipe(map((api: ApiV4) => api.analytics?.enabled === false)),
+    { initialValue: false },
+  );
 
   public topRowTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
   public leftColumnTransformed$: Observable<ApiAnalyticsWidgetConfig>[];
