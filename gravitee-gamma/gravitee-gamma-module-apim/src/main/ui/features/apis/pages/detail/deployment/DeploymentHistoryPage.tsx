@@ -19,38 +19,30 @@ import {
     Button,
     Card,
     Checkbox,
-    DataTablePagination,
-    Empty,
-    EmptyContent,
-    EmptyDescription,
-    EmptyHeader,
-    EmptyTitle,
-    Skeleton,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
+    DataTable,
+    DataTableEmptyState,
+    DateCell,
+    type DataTableProps,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from '@gravitee/graphene-core';
-import { EyeIcon, GitBranchIcon, XIcon } from '@gravitee/graphene-core/icons';
+import { EyeIcon, GitBranchIcon, MoreVerticalIcon, XIcon } from '@gravitee/graphene-core/icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { DiffDialog } from './DiffDialog';
 import { SingleEventDialog } from './SingleEventDialog';
-import { formatDate } from './utils';
 import { useApiEvents } from '../../../hooks/useApiEvents';
 import { rollbackApi } from '../../../services/apis';
 import type { ApiEvent } from '../../../types';
 import { apiEventsKeys } from '../../../utils/queryKeys';
 
-const PAGE_SIZE_OPTIONS = [10, 20, 25, 50, 100];
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+
+type Cell<T> = { row: { index: number; original: T } };
 
 export function DeploymentHistoryPage() {
     const { apiId } = useParams<{ apiId: string }>();
@@ -114,26 +106,170 @@ export function DeploymentHistoryPage() {
         setPage(1);
     }, []);
 
+    const columns: DataTableProps<ApiEvent>['columns'] = [
+        {
+            id: 'select',
+            header: () => <span className="sr-only">Select</span>,
+            size: 40,
+            enableSorting: false,
+            enableHiding: false,
+            cell: ({ row }: Cell<ApiEvent>) => {
+                const event = row.original;
+                const isSelected = selectedEvents.some(e => e.id === event.id);
+                const isDisabled = selectionCount >= 2 && !isSelected;
+                const version = event.properties.DEPLOYMENT_NUMBER;
+                return (
+                    <Checkbox
+                        checked={isSelected}
+                        disabled={isDisabled}
+                        onCheckedChange={() => toggleSelect(event)}
+                        aria-label={`Select version ${version ?? event.id}`}
+                    />
+                );
+            },
+        },
+        {
+            id: 'Version',
+            header: 'Version',
+            size: 112,
+            enableSorting: false,
+            cell: ({ row }: Cell<ApiEvent>) => {
+                const event = row.original;
+                const isLive = row.index === 0 && page === 1;
+                const version = event.properties.DEPLOYMENT_NUMBER;
+                return (
+                    <div className="flex items-center gap-2 font-medium">
+                        <span>{version ?? '—'}</span>
+                        {isLive ? (
+                            <Badge variant="default" className="text-xs">
+                                live
+                            </Badge>
+                        ) : null}
+                    </div>
+                );
+            },
+        },
+        {
+            id: 'Date',
+            accessorFn: (row: ApiEvent) => row.createdAt,
+            header: 'Date',
+            enableSorting: false,
+            cell: ({ row }: Cell<ApiEvent>) => <DateCell value={row.original.createdAt} format="absolute" />,
+        },
+        {
+            id: 'User',
+            accessorFn: (row: ApiEvent) => row.initiator.displayName,
+            header: 'User',
+            enableSorting: false,
+            cell: ({ row }: Cell<ApiEvent>) => <span className="text-sm">{row.original.initiator.displayName}</span>,
+        },
+        {
+            id: 'Label',
+            header: 'Label',
+            enableSorting: false,
+            cell: ({ row }: Cell<ApiEvent>) =>
+                row.original.properties.DEPLOYMENT_LABEL ? (
+                    <span className="text-sm text-muted-foreground">{row.original.properties.DEPLOYMENT_LABEL}</span>
+                ) : (
+                    <span className="text-muted-foreground/40 italic">—</span>
+                ),
+        },
+        {
+            id: 'actions',
+            header: () => <span className="sr-only">Actions</span>,
+            size: 56,
+            enableSorting: false,
+            enableHiding: false,
+            cell: ({ row }: Cell<ApiEvent>) => {
+                const event = row.original;
+                const isLive = row.index === 0 && page === 1;
+                const canCompareWithLive = !isLive && liveEvent !== null;
+                if (!canCompareWithLive) {
+                    return (
+                        <div className="flex justify-end">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-8"
+                                aria-label="View definition"
+                                title="View definition"
+                                onClick={() => setSingleViewEvent(event)}
+                            >
+                                <EyeIcon className="size-4" aria-hidden />
+                            </Button>
+                        </div>
+                    );
+                }
+                return (
+                    <div className="flex justify-end">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" aria-label="Deployment actions">
+                                    <MoreVerticalIcon className="size-4" aria-hidden />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-auto min-w-48">
+                                <DropdownMenuItem onSelect={() => setSingleViewEvent(event)}>
+                                    <EyeIcon className="size-3.5" />
+                                    View definition
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => handleCompareWithLive(event)}>
+                                    <GitBranchIcon className="size-3.5" />
+                                    Compare with live
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                );
+            },
+        },
+    ];
+
     return (
-        <TooltipProvider>
-            <div className="space-y-4 p-6">
-                <div className="space-y-1">
-                    <h1 className="text-2xl font-semibold tracking-tight">Deployment History</h1>
-                    <p className="text-sm text-muted-foreground">
-                        All API deployments, newest first. Select two versions to diff, or use the eye icon to inspect a single version.
-                    </p>
+        <div className="space-y-4 p-6">
+            <div className="space-y-1">
+                <h1 className="text-2xl font-semibold tracking-tight">Deployment History</h1>
+                <p className="text-sm text-muted-foreground">
+                    All API deployments, newest first. Select two versions to diff, or use the actions menu to inspect a single version.
+                </p>
+            </div>
+
+            {rollbackError ? (
+                <Card className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+                    <p className="text-sm text-destructive">{rollbackError}</p>
+                </Card>
+            ) : null}
+
+            {!isLoading && totalCount === 0 ? (
+                <div className="rounded-lg border">
+                    <DataTableEmptyState
+                        variant="first-use"
+                        icon={<GitBranchIcon />}
+                        title="No deployments yet"
+                        description="Deployment records will appear here after the first publish."
+                    />
                 </div>
-
-                {rollbackError ? (
-                    <Card className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-                        <p className="text-sm text-destructive">{rollbackError}</p>
-                    </Card>
-                ) : null}
-
-                {/* Toolbar: selection state + pagination on same row */}
-                {!isLoading && events.length > 0 ? (
-                    <div className="flex items-center justify-between gap-3 min-h-9">
-                        {/* Left: selection hint */}
+            ) : (
+                <DataTable
+                    aria-label="Deployment history"
+                    columns={columns}
+                    data={events}
+                    loading={isLoading}
+                    skeletonCount={pageSize}
+                    serverSide
+                    pagination={
+                        totalCount > 0
+                            ? {
+                                  page,
+                                  pageSize,
+                                  totalCount,
+                                  pageSizeOptions: PAGE_SIZE_OPTIONS,
+                                  onPageChange: setPage,
+                                  onPageSizeChange: handlePageSizeChange,
+                              }
+                            : undefined
+                    }
+                    toolbar={
                         <div className="flex items-center gap-2 min-w-0">
                             {selectionCount > 0 ? (
                                 <>
@@ -155,161 +291,28 @@ export function DeploymentHistoryPage() {
                                 <span className="text-xs text-muted-foreground">Select two rows to compare versions.</span>
                             )}
                         </div>
-                        {/* Right: pagination */}
-                        <DataTablePagination
-                            page={page}
-                            pageSize={pageSize}
-                            totalCount={totalCount}
-                            pageSizeOptions={PAGE_SIZE_OPTIONS}
-                            onPageChange={setPage}
-                            onPageSizeChange={handlePageSizeChange}
-                        />
-                    </div>
-                ) : null}
+                    }
+                />
+            )}
 
-                {isLoading ? (
-                    <div className="space-y-2">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                            <Skeleton key={i} className="h-12 rounded-lg" />
-                        ))}
-                    </div>
-                ) : events.length === 0 ? (
-                    <Card>
-                        <Empty>
-                            <EmptyHeader>
-                                <EmptyTitle>No deployments yet</EmptyTitle>
-                                <EmptyDescription>Deployment records will appear here after the first publish.</EmptyDescription>
-                            </EmptyHeader>
-                            <EmptyContent />
-                        </Empty>
-                    </Card>
-                ) : (
-                    <>
-                        <div className="rounded-lg border overflow-hidden">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="w-10 pl-4">
-                                            <span className="sr-only">Select</span>
-                                        </TableHead>
-                                        <TableHead className="w-28">Version</TableHead>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead>User</TableHead>
-                                        <TableHead>Label</TableHead>
-                                        <TableHead className="w-24 text-right pr-4">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {events.map((event, idx) => {
-                                        const version = event.properties.DEPLOYMENT_NUMBER;
-                                        const isLive = idx === 0 && page === 1;
-                                        const isSelected = selectedEvents.some(e => e.id === event.id);
-                                        const isDisabled = selectionCount >= 2 && !isSelected;
-                                        const canCompareWithLive = !isLive && liveEvent !== null;
+            {singleViewEvent ? (
+                <SingleEventDialog
+                    event={singleViewEvent}
+                    onRollback={handleRollback}
+                    onClose={() => setSingleViewEvent(null)}
+                    isRollingBack={isRollingBack}
+                />
+            ) : null}
 
-                                        return (
-                                            <TableRow key={event.id} className={isSelected ? 'bg-primary/5' : undefined}>
-                                                <TableCell className="pl-4 w-10">
-                                                    <Checkbox
-                                                        checked={isSelected}
-                                                        disabled={isDisabled}
-                                                        onCheckedChange={() => toggleSelect(event)}
-                                                        aria-label={`Select version ${version ?? event.id}`}
-                                                    />
-                                                </TableCell>
-                                                <TableCell className="font-medium">
-                                                    <div className="flex items-center gap-2">
-                                                        <span>{version ?? '—'}</span>
-                                                        {isLive ? (
-                                                            <Badge variant="default" className="text-xs">
-                                                                live
-                                                            </Badge>
-                                                        ) : null}
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="text-sm whitespace-nowrap">{formatDate(event.createdAt)}</TableCell>
-                                                <TableCell className="text-sm">{event.initiator.displayName}</TableCell>
-                                                <TableCell className="text-sm text-muted-foreground">
-                                                    {event.properties.DEPLOYMENT_LABEL || (
-                                                        <span className="text-muted-foreground/40 italic">—</span>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell className="text-right pr-4">
-                                                    <div className="flex items-center justify-end gap-1">
-                                                        {canCompareWithLive ? (
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <Button
-                                                                        type="button"
-                                                                        variant="ghost"
-                                                                        size="icon"
-                                                                        className="size-8"
-                                                                        onClick={() => handleCompareWithLive(event)}
-                                                                        aria-label="Compare with live version"
-                                                                    >
-                                                                        <GitBranchIcon className="size-4" />
-                                                                    </Button>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>Compare with live</TooltipContent>
-                                                            </Tooltip>
-                                                        ) : null}
-                                                        <Tooltip>
-                                                            <TooltipTrigger asChild>
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    className="size-8"
-                                                                    onClick={() => setSingleViewEvent(event)}
-                                                                    aria-label={`View version ${version ?? event.id}`}
-                                                                >
-                                                                    <EyeIcon className="size-4" />
-                                                                </Button>
-                                                            </TooltipTrigger>
-                                                            <TooltipContent>View definition</TooltipContent>
-                                                        </Tooltip>
-                                                    </div>
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })}
-                                </TableBody>
-                            </Table>
-                        </div>
-
-                        {/* Bottom pagination */}
-                        <div className="flex justify-end">
-                            <DataTablePagination
-                                page={page}
-                                pageSize={pageSize}
-                                totalCount={totalCount}
-                                pageSizeOptions={PAGE_SIZE_OPTIONS}
-                                onPageChange={setPage}
-                                onPageSizeChange={handlePageSizeChange}
-                            />
-                        </div>
-                    </>
-                )}
-
-                {singleViewEvent ? (
-                    <SingleEventDialog
-                        event={singleViewEvent}
-                        onRollback={handleRollback}
-                        onClose={() => setSingleViewEvent(null)}
-                        isRollingBack={isRollingBack}
-                    />
-                ) : null}
-
-                {showDiff ? (
-                    <DiffDialog
-                        left={selectedEvents[0]}
-                        right={selectedEvents[1]}
-                        onClose={handleDiffClose}
-                        onRollback={handleRollback}
-                        isRollingBack={isRollingBack}
-                    />
-                ) : null}
-            </div>
-        </TooltipProvider>
+            {showDiff ? (
+                <DiffDialog
+                    left={selectedEvents[0]}
+                    right={selectedEvents[1]}
+                    onClose={handleDiffClose}
+                    onRollback={handleRollback}
+                    isRollingBack={isRollingBack}
+                />
+            ) : null}
+        </div>
     );
 }

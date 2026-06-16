@@ -16,19 +16,24 @@
 import {
     Badge,
     Button,
-    DataTablePagination,
-    Skeleton,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
+    DataTable,
+    DataTableEmptyState,
+    type DataTableProps,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from '@gravitee/graphene-core';
-import { ArrowDownIcon, ArrowUpIcon, CircleXIcon, EyeIcon, GlobeIcon, PencilIcon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
+import {
+    ArrowDownIcon,
+    ArrowUpIcon,
+    CircleXIcon,
+    GlobeIcon,
+    MoreVerticalIcon,
+    SearchIcon,
+    TriangleAlertIcon,
+} from '@gravitee/graphene-core/icons';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -86,6 +91,8 @@ interface PendingAction {
     action: PlanTransitionDialogAction;
 }
 
+type Cell<T> = { row: { index: number; original: T } };
+
 export function PlansTable({ ctx, plans, totalCount, page, perPage, isLoading, canUpdate, onPage, onPerPage }: Readonly<PlansTableProps>) {
     const navigate = useNavigate();
     const [pending, setPending] = useState<PendingAction | null>(null);
@@ -129,198 +136,182 @@ export function PlansTable({ ctx, plans, totalCount, page, perPage, isLoading, c
         [plans, reorderMutation],
     );
 
-    const pagination = (
-        <DataTablePagination
-            page={page}
-            pageSize={perPage}
-            totalCount={totalCount}
-            pageSizeOptions={[10, 25, 50, 100]}
-            onPageChange={onPage}
-            onPageSizeChange={onPerPage}
-        />
-    );
+    const columns: DataTableProps<ManagedPlan>['columns'] = [
+        ...(canUpdate
+            ? [
+                  {
+                      id: 'reorder',
+                      header: () => <span className="sr-only">Reorder</span>,
+                      enableSorting: false,
+                      enableHiding: false,
+                      size: 72,
+                      cell: ({ row }: Cell<ManagedPlan>) => {
+                          const idx = row.index;
+                          const plan = row.original;
+                          return (
+                              <div className="flex items-center gap-0.5">
+                                  <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="size-7"
+                                      disabled={idx === 0 || reorderMutation.isPending}
+                                      onClick={() => handleReorder(idx, plan, 'up')}
+                                      title="Move up"
+                                      aria-label="Move up"
+                                  >
+                                      <ArrowUpIcon className="size-3.5" aria-hidden />
+                                  </Button>
+                                  <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="size-7"
+                                      disabled={idx === plans.length - 1 || reorderMutation.isPending}
+                                      onClick={() => handleReorder(idx, plan, 'down')}
+                                      title="Move down"
+                                      aria-label="Move down"
+                                  >
+                                      <ArrowDownIcon className="size-3.5" aria-hidden />
+                                  </Button>
+                              </div>
+                          );
+                      },
+                  },
+              ]
+            : []),
+        {
+            id: 'Name',
+            accessorFn: (row: ManagedPlan) => row.name,
+            header: 'Name',
+            enableSorting: false,
+            cell: ({ row }: Cell<ManagedPlan>) => {
+                const plan = row.original;
+                return (
+                    <div>
+                        <button type="button" className="text-left font-medium hover:underline" onClick={() => navigate(plan.id)}>
+                            {plan.name}
+                        </button>
+                        {plan.description ? <p className="text-xs text-muted-foreground line-clamp-1">{plan.description}</p> : null}
+                    </div>
+                );
+            },
+        },
+        {
+            id: 'Security',
+            header: 'Security',
+            enableSorting: false,
+            cell: ({ row }: Cell<ManagedPlan>) => (
+                <Badge variant="secondary" className="text-xs font-mono">
+                    {PLAN_SECURITY_LABELS[row.original.security.type]}
+                </Badge>
+            ),
+        },
+        {
+            id: 'Status',
+            header: 'Status',
+            enableSorting: false,
+            cell: ({ row }: Cell<ManagedPlan>) => <PlanStatusBadge status={row.original.status} />,
+        },
+        {
+            id: 'Validation',
+            accessorFn: (row: ManagedPlan) => row.validation,
+            header: 'Validation',
+            enableSorting: false,
+            cell: ({ row }: Cell<ManagedPlan>) => (
+                <span className="text-sm text-muted-foreground">{row.original.validation === 'AUTO' ? 'Auto' : 'Manual'}</span>
+            ),
+        },
+        ...(canUpdate
+            ? [
+                  {
+                      id: 'actions',
+                      header: () => <span className="sr-only">Actions</span>,
+                      enableSorting: false,
+                      enableHiding: false,
+                      cell: ({ row }: Cell<ManagedPlan>) => {
+                          const plan = row.original;
+                          if (plan.status === 'CLOSED') return null;
+                          const showPublish = plan.status === 'STAGING';
+                          const showDeprecate = plan.status === 'PUBLISHED';
+                          if (!showPublish && !showDeprecate) {
+                              return (
+                                  <div className="flex justify-end">
+                                      <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                          aria-label={`Close ${plan.name}`}
+                                          title="Close plan"
+                                          onClick={() => openDialog(plan, 'close')}
+                                      >
+                                          <CircleXIcon className="size-4" aria-hidden />
+                                      </Button>
+                                  </div>
+                              );
+                          }
+                          return (
+                              <div className="flex justify-end">
+                                  <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                          <Button variant="ghost" size="icon" aria-label={`Actions for ${plan.name}`}>
+                                              <MoreVerticalIcon className="size-4" aria-hidden />
+                                          </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end" className="w-auto min-w-48">
+                                          {showPublish ? (
+                                              <DropdownMenuItem onSelect={() => openDialog(plan, 'publish')}>
+                                                  <GlobeIcon className="size-3.5" />
+                                                  Publish
+                                              </DropdownMenuItem>
+                                          ) : null}
+                                          {showDeprecate ? (
+                                              <DropdownMenuItem onSelect={() => openDialog(plan, 'deprecate')}>
+                                                  <TriangleAlertIcon className="size-3.5" />
+                                                  Deprecate
+                                              </DropdownMenuItem>
+                                          ) : null}
+                                          {showPublish || showDeprecate ? <DropdownMenuSeparator /> : null}
+                                          <DropdownMenuItem className="text-destructive" onSelect={() => openDialog(plan, 'close')}>
+                                              <CircleXIcon className="size-3.5" />
+                                              Close
+                                          </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                  </DropdownMenu>
+                              </div>
+                          );
+                      },
+                  },
+              ]
+            : []),
+    ];
 
     return (
-        <div className="space-y-2">
-            {pagination}
-            <div className="rounded-md border">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            {canUpdate && <TableHead className="w-16" />}
-                            <TableHead>Name</TableHead>
-                            <TableHead>Security</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Validation</TableHead>
-                            <TableHead />
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading &&
-                            Array.from({ length: perPage }).map((_, i) => (
-                                <TableRow key={i}>
-                                    {Array.from({ length: canUpdate ? 6 : 5 }).map((__, j) => (
-                                        <TableCell key={j}>
-                                            <Skeleton className="h-4 w-full rounded" />
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            ))}
-
-                        {!isLoading && plans.length === 0 && (
-                            <TableRow>
-                                <TableCell colSpan={canUpdate ? 6 : 5} className="py-10 text-center text-sm text-muted-foreground">
-                                    No plans match the selected status.
-                                </TableCell>
-                            </TableRow>
-                        )}
-
-                        {!isLoading &&
-                            plans.map((plan, idx) => (
-                                <TableRow key={plan.id}>
-                                    {canUpdate && (
-                                        <TableCell>
-                                            <div className="flex items-center gap-0.5">
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="size-7"
-                                                            disabled={idx === 0 || reorderMutation.isPending}
-                                                            onClick={() => handleReorder(idx, plan, 'up')}
-                                                        >
-                                                            <ArrowUpIcon className="size-3.5" aria-hidden />
-                                                            <span className="sr-only">Move up</span>
-                                                        </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>Move up</TooltipContent>
-                                                </Tooltip>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="size-7"
-                                                            disabled={idx === plans.length - 1 || reorderMutation.isPending}
-                                                            onClick={() => handleReorder(idx, plan, 'down')}
-                                                        >
-                                                            <ArrowDownIcon className="size-3.5" aria-hidden />
-                                                            <span className="sr-only">Move down</span>
-                                                        </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>Move down</TooltipContent>
-                                                </Tooltip>
-                                            </div>
-                                        </TableCell>
-                                    )}
-                                    <TableCell>
-                                        <p className="font-medium">{plan.name}</p>
-                                        {plan.description && (
-                                            <p className="text-xs text-muted-foreground line-clamp-1">{plan.description}</p>
-                                        )}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant="secondary" className="text-xs font-mono">
-                                            {PLAN_SECURITY_LABELS[plan.security.type]}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <PlanStatusBadge status={plan.status} />
-                                    </TableCell>
-                                    <TableCell className="text-sm text-muted-foreground">
-                                        {plan.validation === 'AUTO' ? 'Auto' : 'Manual'}
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-1 justify-end">
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Button
-                                                        type="button"
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="size-7"
-                                                        onClick={() => navigate(plan.id)}
-                                                    >
-                                                        {canUpdate && plan.status !== 'CLOSED' ? (
-                                                            <PencilIcon className="size-3.5" aria-hidden />
-                                                        ) : (
-                                                            <EyeIcon className="size-3.5" aria-hidden />
-                                                        )}
-                                                        <span className="sr-only">
-                                                            {canUpdate && plan.status !== 'CLOSED' ? 'Edit' : 'View'} plan
-                                                        </span>
-                                                    </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    {canUpdate && plan.status !== 'CLOSED' ? 'Edit plan' : 'View plan'}
-                                                </TooltipContent>
-                                            </Tooltip>
-
-                                            {canUpdate && plan.status === 'STAGING' && (
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="size-7 text-success hover:text-success"
-                                                            onClick={() => openDialog(plan, 'publish')}
-                                                        >
-                                                            <GlobeIcon className="size-3.5" aria-hidden />
-                                                            <span className="sr-only">Publish</span>
-                                                        </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>Publish plan</TooltipContent>
-                                                </Tooltip>
-                                            )}
-
-                                            {canUpdate && plan.status === 'PUBLISHED' && (
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="size-7 text-warning hover:text-warning"
-                                                            onClick={() => openDialog(plan, 'deprecate')}
-                                                        >
-                                                            <TriangleAlertIcon className="size-3.5" aria-hidden />
-                                                            <span className="sr-only">Deprecate</span>
-                                                        </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>Deprecate plan</TooltipContent>
-                                                </Tooltip>
-                                            )}
-
-                                            {canUpdate && plan.status !== 'CLOSED' && (
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="size-7 text-destructive hover:text-destructive"
-                                                            onClick={() => openDialog(plan, 'close')}
-                                                        >
-                                                            <CircleXIcon className="size-3.5" aria-hidden />
-                                                            <span className="sr-only">Close</span>
-                                                        </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent>Close plan</TooltipContent>
-                                                </Tooltip>
-                                            )}
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                    </TableBody>
-                </Table>
-            </div>
-
-            {pagination}
+        <>
+            <DataTable
+                aria-label="Plans"
+                columns={columns}
+                data={plans}
+                loading={isLoading}
+                skeletonCount={perPage}
+                serverSide
+                pagination={{
+                    page,
+                    pageSize: perPage,
+                    totalCount,
+                    pageSizeOptions: [10, 25, 50, 100],
+                    onPageChange: onPage,
+                    onPageSizeChange: onPerPage,
+                }}
+                emptyMessage={
+                    <DataTableEmptyState
+                        variant="no-results"
+                        icon={<SearchIcon />}
+                        title="No plans match the selected status"
+                        description="Try selecting a different status filter."
+                    />
+                }
+            />
 
             {pending && (
                 <ConfirmDialog
@@ -334,6 +325,6 @@ export function PlansTable({ ctx, plans, totalCount, page, perPage, isLoading, c
                     onConfirm={handleConfirm}
                 />
             )}
-        </div>
+        </>
     );
 }
