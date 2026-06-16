@@ -69,6 +69,11 @@ public class FilterAdapter {
         Filter.Name.GEO_IP_REGION,
         Filter.Name.GEO_IP_COUNTRY,
         Filter.Name.GEO_IP_CONTINENT,
+        Filter.Name.HTTP_ENDPOINT_RESPONSE_TIME,
+        Filter.Name.HTTP_GATEWAY_LATENCY,
+        Filter.Name.HTTP_GATEWAY_RESPONSE_TIME,
+        Filter.Name.HTTP_REQUEST_CONTENT_LENGTH,
+        Filter.Name.HTTP_RESPONSE_CONTENT_LENGTH,
         Filter.Name.LLM_PROXY_MODEL,
         Filter.Name.LLM_PROXY_PROVIDER,
         Filter.Name.MCP_PROXY_METHOD,
@@ -231,7 +236,16 @@ public class FilterAdapter {
         if (filter.name() == Filter.Name.HTTP_STATUS_CODE_GROUP) {
             return statusCodeGroupFilter(filter);
         }
+        if (filter.operator() == Filter.Operator.GTE || filter.operator() == Filter.Operator.LTE) {
+            return rangeFilter(filter);
+        }
         return JsonObject.of(filterName(filter), filterValue(filter));
+    }
+
+    private JsonObject rangeFilter(Filter filter) {
+        var field = fieldResolver.fromFilter(filter);
+        var bound = filter.operator() == Filter.Operator.GTE ? "gte" : "lte";
+        return JsonObject.of("range", JsonObject.of(field, JsonObject.of(bound, filter.value())));
     }
 
     @SuppressWarnings("unchecked")
@@ -272,14 +286,15 @@ public class FilterAdapter {
         return switch (filter.operator()) {
             case EQ -> "term";
             case Filter.Operator.IN -> "terms";
-            case Filter.Operator.GTE, Filter.Operator.LTE -> "value.numberlabel";
+            case Filter.Operator.GTE, Filter.Operator.LTE -> throw new IllegalStateException("GTE/LTE should be handled by rangeFilter()");
         };
     }
 
     private JsonObject filterValue(Filter filter) {
         return switch (filter.operator()) {
-            case EQ, LTE, GTE -> JsonObject.of(fieldResolver.fromFilter(filter), filter.value());
+            case EQ -> JsonObject.of(fieldResolver.fromFilter(filter), filter.value());
             case Filter.Operator.IN -> JsonObject.of(fieldResolver.fromFilter(filter), listValue(filter.value()));
+            case Filter.Operator.GTE, Filter.Operator.LTE -> throw new IllegalStateException("GTE/LTE should be handled by rangeFilter()");
         };
     }
 
