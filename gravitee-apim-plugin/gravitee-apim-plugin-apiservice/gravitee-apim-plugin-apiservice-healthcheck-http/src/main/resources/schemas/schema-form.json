@@ -47,6 +47,19 @@
         "required": ["name", "value"]
       }
     },
+    "body": {
+      "title": "Body",
+      "description": "The body of the health check request. Make sure to add a Content-Type header for POST/PUT HTTP method.",
+      "type": "string",
+      "format": "text",
+      "gioConfig": {
+        "displayIf": {
+          "$eq": {
+            "./method": ["POST", "PUT"]
+          }
+        }
+      }
+    },
     "assertion" : {
       "type" : "string",
       "title": "Assertion",
