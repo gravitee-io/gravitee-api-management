@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.domain_service.analytics_engine.mapper;
 import io.gravitee.apim.core.api.model.Api;
 import java.util.List;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -26,6 +27,9 @@ import org.mapstruct.factory.Mappers;
 @Mapper
 public interface ApiMapper {
     ApiMapper INSTANCE = Mappers.getMapper(ApiMapper.class);
+
+    @Mapping(target = "portalNavigation", ignore = true)
+    Api map(io.gravitee.repository.management.model.Api api);
 
     List<Api> map(List<io.gravitee.repository.management.model.Api> api);
 }

@@ -25,7 +25,6 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.PortalId;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -63,10 +62,10 @@ class PortalNavigationListingDomainServiceTest {
             PORTAL_ID,
             List.of(),
             List.of(
-                new NavigationPath("/a", Optional.empty()),
-                new NavigationPath("/a/b", Optional.empty()),
-                new NavigationPath("/c", Optional.empty()),
-                new NavigationPath("/c/d", Optional.empty())
+                new NavigationPath("/a", null),
+                new NavigationPath("/a/b", null),
+                new NavigationPath("/c", null),
+                new NavigationPath("/c/d", null)
             )
         );
 
@@ -81,10 +80,7 @@ class PortalNavigationListingDomainServiceTest {
             AUDIT_INFO,
             PORTAL_ID,
             List.of(),
-            List.of(
-                new NavigationPath("/projects/alpha", Optional.of("Alpha")),
-                new NavigationPath("/projects/alpha/docs", Optional.empty())
-            )
+            List.of(new NavigationPath("/projects/alpha", "Alpha"), new NavigationPath("/projects/alpha/docs", null))
         );
 
         var result = listingService.listAsNavigationPaths(AUDIT_INFO.environmentId());
@@ -94,7 +90,7 @@ class PortalNavigationListingDomainServiceTest {
 
     @Test
     void display_name_is_surfaced_when_title_differs_from_segment() {
-        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), List.of(new NavigationPath("/projects/alpha", Optional.of("Alpha"))));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), List.of(new NavigationPath("/projects/alpha", "Alpha")));
 
         var result = listingService.listAsNavigationPaths(AUDIT_INFO.environmentId());
 
@@ -102,15 +98,15 @@ class PortalNavigationListingDomainServiceTest {
             .filteredOn(p -> "/projects/alpha".equals(p.path()))
             .singleElement()
             .extracting(NavigationPath::displayName)
-            .isEqualTo(Optional.of("Alpha"));
+            .isEqualTo("Alpha");
     }
 
     @Test
     void display_name_is_null_when_title_equals_segment() {
-        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), List.of(new NavigationPath("/a", Optional.empty())));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), List.of(new NavigationPath("/a", null)));
 
         var result = listingService.listAsNavigationPaths(AUDIT_INFO.environmentId());
 
-        assertThat(result).singleElement().extracting(NavigationPath::displayName).isEqualTo(Optional.empty());
+        assertThat(result).singleElement().extracting(NavigationPath::displayName).isNull();
     }
 }

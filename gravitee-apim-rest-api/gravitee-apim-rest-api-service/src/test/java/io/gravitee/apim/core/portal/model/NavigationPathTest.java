@@ -17,7 +17,6 @@ package io.gravitee.apim.core.portal.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -27,36 +26,36 @@ class NavigationPathTest {
 
     @Test
     void accepts_single_segment() {
-        assertThat(new NavigationPath("/a", Optional.empty()).path()).isEqualTo("/a");
+        assertThat(new NavigationPath("/a", null).path()).isEqualTo("/a");
     }
 
     @Test
     void accepts_multi_segment() {
-        assertThat(new NavigationPath("/a/b/c", Optional.empty()).path()).isEqualTo("/a/b/c");
+        assertThat(new NavigationPath("/a/b/c", null).path()).isEqualTo("/a/b/c");
     }
 
     @Test
     void strips_trailing_slash() {
-        assertThat(new NavigationPath("/a/b/", Optional.empty()).path()).isEqualTo("/a/b");
+        assertThat(new NavigationPath("/a/b/", null).path()).isEqualTo("/a/b");
     }
 
     @Test
     void descend_appends_child_segment() {
-        assertThat(new NavigationPath("/docs", Optional.empty()).descend("getting-started").path()).isEqualTo("/docs/getting-started");
+        assertThat(new NavigationPath("/docs", null).descend("getting-started").path()).isEqualTo("/docs/getting-started");
     }
 
     @Test
     void descend_from_empty_root_produces_leading_slash_path() {
-        assertThat(new NavigationPath("", Optional.empty()).descend("docs").path()).isEqualTo("/docs");
+        assertThat(new NavigationPath("", null).descend("docs").path()).isEqualTo("/docs");
     }
 
     @Test
     void descend_clears_display_name() {
-        assertThat(new NavigationPath("/docs", Optional.of("Documentation")).descend("api").displayName()).isEmpty();
+        assertThat(new NavigationPath("/docs", "Documentation").descend("api").displayName()).isNull();
     }
 
     @Test
     void normalizes_segment_casing_and_spaces() {
-        assertThat(new NavigationPath("/Docs/Getting Started", Optional.empty()).path()).isEqualTo("/docs/getting-started");
+        assertThat(new NavigationPath("/Docs/Getting Started", null).path()).isEqualTo("/docs/getting-started");
     }
 }

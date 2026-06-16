@@ -264,6 +264,7 @@ public class ImportApiCRDUseCase {
                 updatedApi = updateApiDomainService.update(existingApi.getId(), input.spec, input.auditInfo);
             }
             // update state and definition context because legacy service does not update it
+            // portalNavigation is restored from the spec because the legacy update path does not carry it
             // Why are we getting MANAGEMENT as an origin here ? the API has been saved as kubernetes before
             var api = apiCrudService.update(
                 updatedApi
@@ -275,6 +276,7 @@ public class ImportApiCRDUseCase {
                         )
                     )
                     .lifecycleState(Api.LifecycleState.valueOf(input.spec().getState()))
+                    .portalNavigation(input.spec().getPortalNavigation())
                     .build()
             );
 

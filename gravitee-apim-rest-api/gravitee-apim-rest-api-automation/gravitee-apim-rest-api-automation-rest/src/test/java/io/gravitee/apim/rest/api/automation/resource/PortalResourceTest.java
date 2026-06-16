@@ -32,7 +32,6 @@ import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
 import java.util.List;
-import java.util.Optional;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
@@ -84,10 +83,7 @@ class PortalResourceTest extends AbstractResourceTest {
         @Test
         void should_return_navigation_alongside_portal() {
             var persisted = Portal.of(PORTAL_ID, ENVIRONMENT, ORGANIZATION, "Default Portal");
-            var navigation = List.of(
-                new NavigationPath("/projects", Optional.empty()),
-                new NavigationPath("/projects/alpha", Optional.of("Alpha"))
-            );
+            var navigation = List.of(new NavigationPath("/projects", null), new NavigationPath("/projects/alpha", "Alpha"));
             when(getPortalUseCase.execute(any())).thenReturn(new GetPortalUseCase.Output(persisted, navigation));
 
             try (var response = rootTarget(HRID).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
