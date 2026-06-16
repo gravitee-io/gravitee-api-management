@@ -36,6 +36,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -46,10 +47,22 @@ public final class NavigationSyncPlanner {
 
     private NavigationSyncPlanner() {}
 
-    public static NavigationSyncPlan plan(List<NavigationPath> desired, List<PortalNavigationItem> currentFolders) {
+    /**
+     * Diffs the desired navigation against what is currently in the tree, restricting deletes
+     * to paths that were previously persisted on the Portal entity.
+     *
+     * <p>Folders present in the tree but not in {@code previouslyPersisted} are treated as
+     * "unmanaged" (created outside the automation API) and are left untouched.
+     */
+    public static NavigationSyncPlan plan(
+        List<NavigationPath> desired,
+        List<PortalNavigationItem> currentFolders,
+        List<NavigationPath> previouslyPersisted
+    ) {
         final var desiredFolders = computeDesiredFolders(desired);
         final var currentByPath = indexByPath(currentFolders);
         final var desiredPaths = desiredFolders.stream().map(DesiredFolder::path).collect(Collectors.toSet());
+        final var managedPaths = expandToFullPaths(previouslyPersisted);
         final var depthOrder = Comparator.comparingInt((FolderMutation m) -> PathExpander.depth(m.desired().path()));
 
         final var mutations = desiredFolders
@@ -63,10 +76,20 @@ public final class NavigationSyncPlanner {
             .entrySet()
             .stream()
             .filter(e -> !desiredPaths.contains(e.getKey()))
+            .filter(e -> managedPaths.contains(e.getKey()))
             .map(Map.Entry::getValue)
             .map(DeleteFolder::new);
 
         return new NavigationSyncPlan(Stream.<NavigationAction>concat(mutations, deletes).toList());
+    }
+
+    private static Set<String> expandToFullPaths(List<NavigationPath> previouslyPersisted) {
+        if (previouslyPersisted == null) return Set.of();
+        return previouslyPersisted
+            .stream()
+            .flatMap(e -> PathExpander.expand(e.path()).stream())
+            .map(PathExpander.PathEntry::fullPath)
+            .collect(Collectors.toSet());
     }
 
     /** Reconstructs the path of every current folder by walking from its root, using {@code segment} (fallback to {@code title}). */

@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal.model;
 
 import jakarta.annotation.Nonnull;
+import java.util.List;
 import lombok.Getter;
 
 @Getter
@@ -33,21 +34,34 @@ public class Portal {
     @Nonnull
     private final String name;
 
-    private Portal(PortalId id, String environmentId, String organizationId, String name) {
+    @Nonnull
+    private final List<NavigationPath> portalNavigation;
+
+    private Portal(PortalId id, String environmentId, String organizationId, String name, List<NavigationPath> portalNavigation) {
         this.id = id;
         this.environmentId = environmentId;
         this.organizationId = organizationId;
         this.name = name;
+        this.portalNavigation = portalNavigation == null ? List.of() : List.copyOf(portalNavigation);
     }
 
-    /** New portal with a random id. */
+    /** New portal with a random id and no navigation. */
     public static Portal create(String environmentId, String organizationId, String name) {
-        return new Portal(PortalId.random(), environmentId, organizationId, name);
+        return new Portal(PortalId.random(), environmentId, organizationId, name, List.of());
     }
 
     /** Reconstitute a portal from a known id (HRID-derived, persistence, etc.). */
     public static Portal of(PortalId id, String environmentId, String organizationId, String name) {
-        return new Portal(id, environmentId, organizationId, name);
+        return new Portal(id, environmentId, organizationId, name, List.of());
+    }
+
+    /** Reconstitute a portal with a persisted navigation array. */
+    public static Portal of(PortalId id, String environmentId, String organizationId, String name, List<NavigationPath> portalNavigation) {
+        return new Portal(id, environmentId, organizationId, name, portalNavigation);
+    }
+
+    public Portal withNavigation(List<NavigationPath> portalNavigation) {
+        return new Portal(this.id, this.environmentId, this.organizationId, this.name, portalNavigation);
     }
 
     @Override
