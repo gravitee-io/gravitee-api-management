@@ -20,13 +20,40 @@ import * as yaml from 'js-yaml';
 
 const yamlSchema = yaml.DEFAULT_SCHEMA.extend([]);
 
+const OAS_SCHEMA_TYPES = new Set(['null', 'boolean', 'object', 'array', 'number', 'string', 'integer']);
+const OAS_TYPE_PRIORITY = ['string', 'number', 'integer', 'boolean', 'array', 'object'];
+
+const normalizeTypeArrays = (obj: unknown): unknown => {
+  if (obj === null || !angular.isObject(obj)) {
+    return obj;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(item => normalizeTypeArrays(item));
+  }
+  const record = obj as Record<string, unknown>;
+  const result: Record<string, unknown> = {};
+  for (const key of Object.keys(record)) {
+    if (key === 'type' && Array.isArray(record[key]) && (record[key] as string[]).every(t => OAS_SCHEMA_TYPES.has(t))) {
+      const typeArray = record[key] as string[];
+      const nonNullTypes = typeArray.filter(t => t !== 'null');
+      result[key] = nonNullTypes.length === 1 ? nonNullTypes[0] : (OAS_TYPE_PRIORITY.find(t => nonNullTypes.includes(t)) ?? 'string');
+      if (typeArray.includes('null')) {
+        result['nullable'] = true;
+      }
+    } else {
+      result[key] = normalizeTypeArrays(record[key]);
+    }
+  }
+  return result;
+};
+
 const loadContent = (spec: string) => {
   let contentAsJson = {};
   if (spec) {
     try {
-      contentAsJson = angular.fromJson(spec);
+      contentAsJson = normalizeTypeArrays(angular.fromJson(spec)) as Record<string, unknown>;
     } catch (e) {
-      contentAsJson = yaml.load(spec, { schema: yamlSchema });
+      contentAsJson = normalizeTypeArrays(yaml.load(spec, { schema: yamlSchema })) as Record<string, unknown>;
     }
   }
   return contentAsJson;
