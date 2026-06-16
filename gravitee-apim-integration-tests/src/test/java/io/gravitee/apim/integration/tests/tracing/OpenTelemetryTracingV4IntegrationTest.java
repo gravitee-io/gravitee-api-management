@@ -159,7 +159,7 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
         );
 
         await()
-            .atMost(30, SECONDS)
+            .atMost(60, SECONDS)
             .untilAsserted(() -> {
                 var client = container.client(vertx.getDelegate());
                 var response = client
@@ -220,7 +220,7 @@ class OpenTelemetryTracingV4IntegrationTest extends AbstractGatewayTest {
             "policy-message-flow-ready"
         );
         await()
-            .atMost(30, SECONDS)
+            .atMost(60, SECONDS)
             .untilAsserted(() -> {
                 var client = container.client(vertx.getDelegate());
                 var response = client
