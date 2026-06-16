@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-FROM graviteeio/nginx:1.29
+FROM graviteeio/nginx:1.30
 LABEL maintainer="contact@graviteesource.com"
 
 ENV GAMMA_CONSOLE_BASE_HREF="/"
