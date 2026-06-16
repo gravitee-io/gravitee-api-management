@@ -111,8 +111,12 @@ public class ManagementContextLoader implements AnalyticsQueryContextLoader {
     private static Map<ApiType, Set<String>> groupApiIdsByType(Collection<Api> apis) {
         return apis
             .stream()
-            .filter(api -> api.getType() != null)
-            .collect(Collectors.groupingBy(Api::getType, Collectors.mapping(Api::getId, Collectors.toSet())));
+            .collect(
+                Collectors.groupingBy(
+                    api -> api.getType() != null ? api.getType() : ApiType.PROXY,
+                    Collectors.mapping(Api::getId, Collectors.toSet())
+                )
+            );
     }
 
     private static Map<DefinitionVersion, Set<String>> groupApiIdsByDefinitionVersion(Collection<Api> apis) {

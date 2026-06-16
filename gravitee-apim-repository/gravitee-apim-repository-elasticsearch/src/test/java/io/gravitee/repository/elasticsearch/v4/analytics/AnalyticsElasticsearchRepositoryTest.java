@@ -44,6 +44,7 @@ import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetailQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
+import io.gravitee.repository.log.v4.model.analytics.FilterValuesQuery;
 import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
 import io.gravitee.repository.log.v4.model.analytics.HistogramAggregate;
 import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
@@ -1677,6 +1678,89 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 assertThat(measure.metric()).isEqualTo(Metric.HTTP_REQUESTS);
                 assertThat(measure.measures()).containsKey(Measure.COUNT);
                 assertThat(measure.measures().get(Measure.COUNT).doubleValue()).isEqualTo(2.0);
+            }
+        }
+
+        @Nested
+        class V2RequestIndexInclusion {
+
+            private static final String V2_API_ID = "e2c0ecd5-893a-458d-80ec-d5893ab58d12";
+
+            @Test
+            void should_include_v2_api_traffic_in_http_measures() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+                var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(V2_API_ID));
+
+                var query = new MeasuresQuery(timeRange, List.of(filter), metrics);
+                var result = cut.searchHTTPMeasures(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+                assertThat(result.measures()).hasSize(1);
+
+                var measure = result.measures().getFirst();
+                assertThat(measure.metric()).isEqualTo(Metric.HTTP_REQUESTS);
+                assertThat(measure.measures()).containsKey(Measure.COUNT);
+                assertThat(measure.measures().get(Measure.COUNT).longValue())
+                    .as("V2 API e2c0ecd5 has 4 documents in the request index")
+                    .isEqualTo(4L);
+            }
+
+            @Test
+            void should_include_v2_api_traffic_in_http_facets() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+                var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(V2_API_ID));
+
+                var query = new FacetsQuery(timeRange, List.of(filter), metrics, List.of(Facet.API));
+                var result = cut.searchHTTPFacets(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+                assertThat(result.metrics()).hasSize(1);
+
+                var metric = result.metrics().getFirst();
+                assertThat(metric.buckets())
+                    .as("V2 API should appear as a facet bucket")
+                    .anyMatch(b -> V2_API_ID.equals(b.key()));
+            }
+
+            @Test
+            void should_include_v2_api_traffic_in_http_time_series() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+                var interval = Duration.ofHours(1).toMillis();
+                var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(V2_API_ID));
+
+                var query = new TimeSeriesQuery(timeRange, List.of(filter), interval, metrics);
+                var result = cut.searchHTTPTimeSeries(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+                assertThat(result.metrics()).hasSize(1);
+
+                var totalCount = result
+                    .metrics()
+                    .getFirst()
+                    .buckets()
+                    .stream()
+                    .mapToDouble(b -> b.measures().getOrDefault(Measure.COUNT, 0.0).doubleValue())
+                    .sum();
+                assertThat(totalCount).as("V2 API time series should contain the 4 requests from the request index").isEqualTo(4.0);
+            }
+
+            @Test
+            void should_include_v2_api_traffic_in_filter_values() {
+                var query = FilterValuesQuery.builder()
+                    .esFieldName("gateway")
+                    .from(YESTERDAY.toEpochMilli())
+                    .to(TOMORROW.toEpochMilli())
+                    .size(10)
+                    .apiIds(Set.of(V2_API_ID))
+                    .build();
+
+                var result = cut.searchFilterValues(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+                assertThat(result.values()).as("V2 API has gateway='gateway' in the request index").contains("gateway");
             }
         }
     }

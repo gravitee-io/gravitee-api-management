@@ -182,14 +182,14 @@ class PortalContextLoaderTest {
         }
 
         @Test
-        void should_exclude_apis_with_null_type_from_apiIdsByType() {
+        void should_treat_apis_with_null_type_as_proxy() {
             var apiWithoutType = Api.builder().id("id-no-type").name("no-type-api").build();
             when(apiRepository.search(any(), any())).thenReturn(List.of(REPO_API_1, apiWithoutType));
 
             var context = contextLoader.load(auditInfo(ADMIN_USER_ID));
 
             assertThat(context.authorizedApiIds()).containsExactlyInAnyOrder("id1", "id-no-type");
-            assertThat(context.apiIdsByType()).isEqualTo(Map.of(ApiType.PROXY, Set.of("id1")));
+            assertThat(context.apiIdsByType()).isEqualTo(Map.of(ApiType.PROXY, Set.of("id1", "id-no-type")));
         }
     }
 

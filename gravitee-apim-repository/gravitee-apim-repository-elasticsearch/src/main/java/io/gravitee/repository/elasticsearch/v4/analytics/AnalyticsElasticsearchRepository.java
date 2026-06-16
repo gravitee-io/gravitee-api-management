@@ -248,7 +248,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     @Override
     public MeasuresResult searchHTTPMeasures(QueryContext queryContext, MeasuresQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var index = httpIndices(queryContext);
         var esQuery = httpMeasuresQueryAdapter.adapt(query);
 
         log.debug("HTTP measures query: {}", esQuery);
@@ -261,7 +261,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     @Override
     public FacetsResult searchHTTPFacets(QueryContext queryContext, FacetsQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var index = httpIndices(queryContext);
         var esQuery = httpFacetsQueryAdapter.adapt(query);
 
         log.debug("HTTP facets query: {}", esQuery);
@@ -300,7 +300,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     @Override
     public TimeSeriesResult searchHTTPTimeSeries(QueryContext queryContext, TimeSeriesQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var index = httpIndices(queryContext);
         var esQuery = httpTimeSeriesQueryAdapter.adapt(query);
 
         log.debug("HTTP time series query: {}", esQuery);
@@ -382,12 +382,18 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     @Override
     public FilterValuesResult searchFilterValues(QueryContext queryContext, FilterValuesQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var index = httpIndices(queryContext);
         var esQuery = filterValuesQueryAdapter.adapt(query);
 
         log.debug("Filter values query: {}", esQuery);
 
         return client.search(index, null, esQuery).map(filterValuesResponseAdapter::adapt).blockingGet();
+    }
+
+    private String httpIndices(QueryContext queryContext) {
+        var indexV2Request = indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
+        var indexV4Metrics = indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        return String.join(",", List.of(indexV2Request, indexV4Metrics));
     }
 
     private String getIndices(QueryContext queryContext, Collection<DefinitionVersion> definitionVersions) {
