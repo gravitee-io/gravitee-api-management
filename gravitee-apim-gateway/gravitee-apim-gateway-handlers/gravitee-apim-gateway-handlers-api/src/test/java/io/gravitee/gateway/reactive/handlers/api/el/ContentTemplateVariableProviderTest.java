@@ -26,6 +26,7 @@ import static io.gravitee.gateway.reactive.handlers.api.el.ContentTemplateVariab
 import static java.util.Map.entry;
 import static java.util.Map.ofEntries;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
@@ -44,10 +45,16 @@ import io.gravitee.gateway.reactive.api.el.EvaluableResponse;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.observers.TestObserver;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -100,7 +107,7 @@ class ContentTemplateVariableProviderTest {
         lenient().when(ctx.response()).thenReturn(response);
         lenient().when(ctx.withLogger(any())).thenReturn(NOPLogger.NOP_LOGGER);
 
-        when(ctx.getTemplateEngine()).thenReturn(templateEngine);
+        lenient().when(ctx.getTemplateEngine()).thenReturn(templateEngine);
         lenient().when(templateEngine.getTemplateContext()).thenReturn(templateContext);
         lenient().when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
         lenient().when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_RESPONSE)).thenReturn(evaluableResponse);
@@ -644,6 +651,42 @@ class ContentTemplateVariableProviderTest {
 
             // An empty map is expected if the content isn't a valid xml.
             verify(evaluableRequest).setXmlContent(Collections.emptyMap());
+        }
+
+        @Test
+        void should_reject_doctype_with_secure_xml_input_factory() {
+            XMLInputFactory secureFactory = ContentTemplateVariableProvider.createSecureXmlInputFactory();
+
+            assertThatThrownBy(() -> readRootText(secureFactory, XXE_PAYLOAD)).isInstanceOf(XMLStreamException.class);
+        }
+
+        @Test
+        void should_disable_external_entities_and_dtd_on_secure_xml_input_factory() {
+            XMLInputFactory factory = ContentTemplateVariableProvider.createSecureXmlInputFactory();
+
+            assertThat(factory.getProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES)).isEqualTo(Boolean.FALSE);
+            assertThat(factory.getProperty(XMLInputFactory.SUPPORT_DTD)).isEqualTo(Boolean.FALSE);
+        }
+
+        private static final String XXE_PAYLOAD = """
+            <!DOCTYPE root [
+                <!ENTITY xxe SYSTEM "http://localhost/never-fetched.dtd">
+            ]>
+            <root>&xxe;</root>
+            """;
+    }
+
+    private static String readRootText(XMLInputFactory factory, String xml) throws XMLStreamException {
+        XMLStreamReader reader = factory.createXMLStreamReader(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
+        try {
+            while (reader.hasNext()) {
+                if (reader.next() == XMLStreamConstants.START_ELEMENT) {
+                    return reader.getElementText();
+                }
+            }
+            return "";
+        } finally {
+            reader.close();
         }
     }
 }
