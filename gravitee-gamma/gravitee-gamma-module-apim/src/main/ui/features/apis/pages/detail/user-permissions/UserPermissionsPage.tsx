@@ -77,6 +77,8 @@ export function UserPermissionsPage() {
     const roleNames = (rolesData ?? []).filter(r => r.name !== 'PRIMARY_OWNER').map(r => r.name);
     const groupEntries = Object.entries(groupMembersMap ?? {}).filter(([, gm]) => gm.length > 0);
     const allGroups = groupsData?.data ?? [];
+    // The /apis/{id}/groups map is keyed by group id; resolve to the real group name (fallback to the id).
+    const groupNameById = new Map(allGroups.map(g => [g.id, g.name]));
     const currentGroupIds = api?.groups ?? [];
 
     const addMutation = useMutation({
@@ -272,8 +274,8 @@ export function UserPermissionsPage() {
                     </Card>
                 ) : (
                     <div className="space-y-4">
-                        {groupEntries.map(([groupName, groupMembers]) => (
-                            <GroupMembersSection key={groupName} groupName={groupName} members={groupMembers} />
+                        {groupEntries.map(([groupId, groupMembers]) => (
+                            <GroupMembersSection key={groupId} groupName={groupNameById.get(groupId) ?? groupId} members={groupMembers} />
                         ))}
                     </div>
                 )}
