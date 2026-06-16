@@ -336,8 +336,14 @@
         <gravitee-resource-ai-model-token-classification.version>1.0.0</gravitee-resource-ai-model-token-classification.version>
 
         <!-- Gamma plugins -->
+<<<<<<< HEAD
         <gravitee-gamma-module-aim.version>1.0.0-alpha.135</gravitee-gamma-module-aim.version>
         <gravitee-gamma-module-authz.version>1.0.0-alpha.4</gravitee-gamma-module-authz.version>
+=======
+        <gravitee-gamma-module-aim.version>1.0.0-alpha.152</gravitee-gamma-module-aim.version>
+        <gravitee-gamma-module-authz.version>1.0.0-alpha.15</gravitee-gamma-module-authz.version>
+        <gravitee-gamma-module-esm.version>1.0.0-alpha.1</gravitee-gamma-module-esm.version>
+>>>>>>> fb1b3a5421 (chore: bump aim module to 1.0.0-alpha.152)
 
         <!-- Authz plugins -->
         <gravitee-service-authz-pdp.version>1.0.0-alpha.5</gravitee-service-authz-pdp.version>
