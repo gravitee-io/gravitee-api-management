@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, input } from '@angular/core';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { GioMonacoEditorModule } from '@gravitee/ui-particles-angular';
 
@@ -33,6 +33,8 @@ import { GioMonacoEditorModule } from '@gravitee/ui-particles-angular';
   imports: [FormsModule, GioMonacoEditorModule],
 })
 export class AsyncApiEditorComponent implements ControlValueAccessor {
+  showPreview = input(true);
+
   _value = '';
   private _disabled = false;
 

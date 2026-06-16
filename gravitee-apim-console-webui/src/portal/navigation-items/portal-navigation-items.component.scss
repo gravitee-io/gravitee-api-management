@@ -73,6 +73,7 @@ $outline-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter80)
 
   &__actions {
     display: flex;
+    align-items: center;
     gap: 8px;
 
     &__add {
@@ -160,7 +161,7 @@ $outline-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter80)
   }
 
   mat-card {
-    width: 50%;
+    flex: 1;
   }
 }
 

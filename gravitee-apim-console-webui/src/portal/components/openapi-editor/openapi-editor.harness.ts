@@ -17,4 +17,11 @@ import { ComponentHarness } from '@angular/cdk/testing';
 
 export class OpenApiEditorHarness extends ComponentHarness {
   static hostSelector = 'openapi-editor';
+
+  private readonly getSwaggerPreviewOptional = this.locatorForOptional('gio-swagger-ui');
+  private readonly getRedocPreviewOptional = this.locatorForOptional('gio-redoc');
+
+  async getPreview() {
+    return (await this.getSwaggerPreviewOptional()) ?? (await this.getRedocPreviewOptional());
+  }
 }

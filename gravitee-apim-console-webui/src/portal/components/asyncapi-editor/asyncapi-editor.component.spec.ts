@@ -24,7 +24,7 @@ import { AsyncApiEditorComponent } from './asyncapi-editor.component';
 import { AsyncApiEditorHarness } from './asyncapi-editor.harness';
 
 @Component({
-  template: ` <asyncapi-editor [formControl]="contentControl" /> `,
+  template: ` <asyncapi-editor [formControl]="contentControl" [showPreview]="showPreview" /> `,
   standalone: true,
   imports: [AsyncApiEditorComponent, ReactiveFormsModule],
 })
@@ -32,6 +32,7 @@ class TestHostComponent {
   @ViewChild(AsyncApiEditorComponent) asyncApiEditor!: AsyncApiEditorComponent;
 
   contentControl = new FormControl<string | null>('asyncapi: 3.0.0');
+  showPreview = true;
 }
 
 describe('AsyncApiEditorComponent', () => {
@@ -55,7 +56,7 @@ describe('AsyncApiEditorComponent', () => {
 
     expect(asyncApiEditor).toBeTruthy();
     expect(await asyncApiEditor.hasMonacoEditor()).toBe(true);
-    expect(await asyncApiEditor.hasPreview()).toBe(true);
+    expect(await asyncApiEditor.getPreview()).not.toBeNull();
   });
 
   it('should default to an empty value when writeValue receives null', async () => {
@@ -91,5 +92,20 @@ describe('AsyncApiEditorComponent', () => {
 
     expect(host.asyncApiEditor.disabled).toBe(true);
     expect(await asyncApiEditor.isMonacoEditorDisabled()).toBe(true);
+  });
+
+  describe('showPreview input', () => {
+    it('should render asyncapi-component when showPreview is true (default)', async () => {
+      const asyncApiEditor = await loader.getHarness(AsyncApiEditorHarness);
+      expect(await asyncApiEditor.getPreview()).not.toBeNull();
+    });
+
+    it('should not render asyncapi-component when showPreview is false', async () => {
+      host.showPreview = false;
+      fixture.detectChanges();
+
+      const asyncApiEditor = await loader.getHarness(AsyncApiEditorHarness);
+      expect(await asyncApiEditor.getPreview()).toBeNull();
+    });
   });
 });
