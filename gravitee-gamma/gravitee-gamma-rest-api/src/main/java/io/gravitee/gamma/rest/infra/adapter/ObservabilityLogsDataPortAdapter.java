@@ -39,6 +39,7 @@ import io.gravitee.gamma.rest.core.observability.logs.model.LogEntryWarning;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsPage;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort;
+import io.gravitee.repository.analytics.engine.api.query.HttpStatusCodeGroups;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.analytics.Range;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
@@ -134,15 +135,22 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         Set<HttpMethod> methods = new HashSet<>();
         Set<String> mcpMethods = new HashSet<>();
         Set<Integer> statuses = new HashSet<>();
+        List<SearchLogsFilters.StatusRange> statusRanges = new ArrayList<>();
+        Set<String> statusCodeGroups = new HashSet<>();
+        var statusAccumulator = new NumericRangeAccumulator<Integer>("HTTP_STATUS");
         Set<String> entrypointIds = new HashSet<>();
         Set<String> requestIds = new HashSet<>();
         Set<String> transactionIds = new HashSet<>();
         Set<String> errorKeys = new HashSet<>();
         Set<String> apiProductIds = new HashSet<>();
+        Set<String> llmProxyModels = new HashSet<>();
+        Set<String> llmProxyProviders = new HashSet<>();
+        Set<String> mcpProxyTools = new HashSet<>();
+        Set<String> mcpProxyResources = new HashSet<>();
+        Set<String> mcpProxyPrompts = new HashSet<>();
         String uri = null;
         List<Range> responseTimeRanges = new ArrayList<>();
-        Long responseTimeFrom = null;
-        Long responseTimeTo = null;
+        var responseTimeAccumulator = new NumericRangeAccumulator<Long>("HTTP_GATEWAY_RESPONSE_TIME");
 
         for (FilterCondition condition : query.conditions()) {
             var values = condition.values() != null ? condition.values() : List.<String>of();
@@ -150,26 +158,31 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                 case "APPLICATION" -> applicationIds.addAll(values);
                 case "PLAN" -> planIds.addAll(values);
                 case "HTTP_METHOD" -> methods.addAll(values.stream().map(this::toHttpMethod).toList());
-                case "HTTP_STATUS" -> addStatusFilter(condition, values, statuses);
+                case "HTTP_STATUS" -> {
+                    if (!values.isEmpty()) {
+                        if (condition.operator() == FilterOperator.EQ) {
+                            values.forEach(value -> statuses.add(parseHttpStatus(value)));
+                        } else {
+                            applyNumericBound(statusAccumulator, condition.operator(), parseHttpStatus(values.getFirst()));
+                        }
+                    }
+                }
+                case "HTTP_STATUS_CODE_GROUP" -> addStatusCodeGroupFilter(values, statusCodeGroups);
                 case "URI" -> {
                     if (!values.isEmpty()) uri = values.getFirst();
                 }
                 case "HTTP_GATEWAY_RESPONSE_TIME" -> {
                     if (!values.isEmpty()) {
-                        long val = Long.parseLong(values.getFirst());
-                        switch (condition.operator()) {
-                            case GTE -> responseTimeFrom = val;
-                            case LTE -> responseTimeTo = val;
-                            case EQ -> {
-                                responseTimeFrom = val;
-                                responseTimeTo = val;
-                            }
-                            default -> throw unexpectedOperator("HTTP_GATEWAY_RESPONSE_TIME", condition.operator());
-                        }
+                        applyNumericBound(responseTimeAccumulator, condition.operator(), parseResponseTime(values.getFirst()));
                     }
                 }
                 case "ENTRYPOINT" -> entrypointIds.addAll(values);
                 case "MCP_PROXY_METHOD" -> mcpMethods.addAll(values);
+                case "LLM_PROXY_MODEL" -> llmProxyModels.addAll(values);
+                case "LLM_PROXY_PROVIDER" -> llmProxyProviders.addAll(values);
+                case "MCP_PROXY_TOOL" -> mcpProxyTools.addAll(values);
+                case "MCP_PROXY_RESOURCE" -> mcpProxyResources.addAll(values);
+                case "MCP_PROXY_PROMPT" -> mcpProxyPrompts.addAll(values);
                 case "REQUEST_ID" -> requestIds.addAll(values);
                 case "TRANSACTION_ID" -> transactionIds.addAll(values);
                 case "ERROR_KEY" -> errorKeys.addAll(values);
@@ -178,8 +191,14 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             }
         }
 
-        if (responseTimeFrom != null || responseTimeTo != null) {
-            responseTimeRanges.add(new Range(responseTimeFrom, responseTimeTo));
+        if (statusAccumulator.hasValue()) {
+            var b = statusAccumulator.build();
+            statusRanges.add(SearchLogsFilters.StatusRange.builder().gte(b.gte()).lte(b.lte()).build());
+        }
+
+        if (responseTimeAccumulator.hasValue()) {
+            var b = responseTimeAccumulator.build();
+            responseTimeRanges.add(new Range(b.gte(), b.lte()));
         }
 
         builder.applicationIds(applicationIds);
@@ -187,11 +206,18 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         builder.methods(methods);
         builder.mcpMethods(mcpMethods);
         builder.statuses(statuses);
+        builder.statusRanges(statusRanges);
+        builder.statusCodeGroups(statusCodeGroups);
         builder.entrypointIds(entrypointIds);
         builder.requestIds(requestIds);
         builder.transactionIds(transactionIds);
         builder.errorKeys(errorKeys);
         builder.apiProductIds(apiProductIds);
+        builder.llmProxyModels(llmProxyModels);
+        builder.llmProxyProviders(llmProxyProviders);
+        builder.mcpProxyTools(mcpProxyTools);
+        builder.mcpProxyResources(mcpProxyResources);
+        builder.mcpProxyPrompts(mcpProxyPrompts);
         builder.uri(uri);
         builder.responseTimeRanges(responseTimeRanges);
 
@@ -322,23 +348,24 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .toList();
     }
 
-    /**
-     * Translates an {@code HTTP_STATUS} condition into the logs engine's discrete status set. The
-     * unified catalog advertises {@code EQ}/{@code GTE}/{@code LTE} for this NUMBER filter, but the
-     * logs backend ({@link SearchLogsFilters#statuses()}) only matches discrete codes today, so only
-     * {@code EQ} is translated here. Range operators ({@code GTE}/{@code LTE}) are explicitly rejected
-     * (400) for now rather than silently mistranslated; they will be wired through an ES {@code range}
-     * (shared with {@code HTTP_STATUS_CODE_GROUP}) by GMA-683 — deliberately not via integer expansion,
-     * to avoid a divergent status-translation implementation.
-     */
-    private static void addStatusFilter(FilterCondition condition, List<String> values, Set<Integer> statuses) {
-        if (values.isEmpty()) {
-            return;
+    private static void addStatusCodeGroupFilter(List<String> values, Set<String> statusCodeGroups) {
+        for (String group : values) {
+            HttpStatusCodeGroups.resolve(group).orElseThrow(() ->
+                new ValidationDomainException("Unknown HTTP status code group: " + group)
+            );
+            statusCodeGroups.add(group.toUpperCase(java.util.Locale.ROOT));
         }
-        if (condition.operator() != FilterOperator.EQ) {
-            throw UnsupportedObservabilityFilterException.unsupportedOperator("HTTP_STATUS", condition.operator().name());
+    }
+
+    private static long parseResponseTime(String value) {
+        if (value == null) {
+            throw new ValidationDomainException("Invalid response time value: null");
         }
-        values.forEach(value -> statuses.add(parseHttpStatus(value)));
+        try {
+            return Long.parseLong(value.trim());
+        } catch (NumberFormatException e) {
+            throw new ValidationDomainException("Invalid response time value: " + value);
+        }
     }
 
     private static int parseHttpStatus(String value) {
@@ -359,15 +386,17 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         return status;
     }
 
-    /**
-     * Defensive guard: the use case already validates each condition's operator against the catalog
-     * via {@code ObservabilityFilterValidator}, so reaching this means the catalog advertises an
-     * operator the translation does not yet handle — a programming error, not a client error.
-     */
-    private static IllegalStateException unexpectedOperator(String filterName, FilterOperator operator) {
-        return new IllegalStateException(
-            "Operator " + operator + " for filter '" + filterName + "' should have been rejected by filter validation"
-        );
+    private static <T extends Comparable<T>> void applyNumericBound(
+        NumericRangeAccumulator<T> accumulator,
+        FilterOperator operator,
+        T value
+    ) {
+        switch (operator) {
+            case GTE -> accumulator.setGte(value);
+            case LTE -> accumulator.setLte(value);
+            case EQ -> accumulator.setBoth(value);
+            default -> throw new IllegalStateException("Operator " + operator + " should have been rejected by filter validation");
+        }
     }
 
     private static io.gravitee.apim.core.audit.model.AuditInfo currentAuditInfo(String organizationId, String environmentId) {

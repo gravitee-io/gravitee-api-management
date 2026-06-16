@@ -19,6 +19,7 @@ import io.gravitee.repository.log.v4.model.connection.ConnectionDiagnostic;
 import io.gravitee.repository.log.v4.model.connection.Metrics;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
 import io.gravitee.rest.api.model.analytics.Range;
+import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionDiagnosticModel;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
@@ -46,6 +47,9 @@ public interface ConnectionLogAdapter {
 
     MetricsQuery.Filter.ResponseTimeRange convert(Range range);
     List<MetricsQuery.Filter.ResponseTimeRange> convert(List<Range> range);
+
+    MetricsQuery.Filter.StatusRange convertStatusRange(SearchLogsFilters.StatusRange statusRange);
+    List<MetricsQuery.Filter.StatusRange> convertStatusRanges(List<SearchLogsFilters.StatusRange> statusRanges);
 
     ConnectionDiagnosticModel convert(ConnectionDiagnostic connectionDiagnostic);
 

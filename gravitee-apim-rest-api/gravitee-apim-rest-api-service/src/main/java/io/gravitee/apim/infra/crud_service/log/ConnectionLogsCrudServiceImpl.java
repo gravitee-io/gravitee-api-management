@@ -198,12 +198,19 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             .methods(searchLogsFilters.methods())
             .mcpMethods(searchLogsFilters.mcpMethods())
             .statuses(searchLogsFilters.statuses())
+            .statusRanges(ConnectionLogAdapter.INSTANCE.convertStatusRanges(searchLogsFilters.statusRanges()))
+            .statusCodeGroups(searchLogsFilters.statusCodeGroups())
             .entrypointIds(searchLogsFilters.entrypointIds())
             .requestIds(searchLogsFilters.requestIds())
             .transactionIds(searchLogsFilters.transactionIds())
             .uri(searchLogsFilters.uri())
             .responseTimeRanges(ConnectionLogAdapter.INSTANCE.convert(searchLogsFilters.responseTimeRanges()))
-            .errorKeys(searchLogsFilters.errorKeys());
+            .errorKeys(searchLogsFilters.errorKeys())
+            .llmProxyModels(searchLogsFilters.llmProxyModels())
+            .llmProxyProviders(searchLogsFilters.llmProxyProviders())
+            .mcpProxyTools(searchLogsFilters.mcpProxyTools())
+            .mcpProxyResources(searchLogsFilters.mcpProxyResources())
+            .mcpProxyPrompts(searchLogsFilters.mcpProxyPrompts());
     }
 
     private static ConnectionLogDetailQuery.Filter.FilterBuilder mapToConnectionLogDetailQueryFilterBuilder(

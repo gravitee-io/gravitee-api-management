@@ -55,6 +55,11 @@ public class RequestV2MetricsV4Fields {
     public static final Field TRANSACTION_ID = new Field("transaction", "transaction-id");
     public static final Field HTTP_METHOD = new Field("method", "http-method");
     public static final Field MCP_METHOD = new Field(ADDITIONAL_METRICS + ".keyword_mcp-proxy_method");
+    public static final Field LLM_PROXY_MODEL = new Field(ADDITIONAL_METRICS + ".keyword_llm-proxy_model");
+    public static final Field LLM_PROXY_PROVIDER = new Field(ADDITIONAL_METRICS + ".keyword_llm-proxy_provider");
+    public static final Field MCP_PROXY_TOOL = new Field(ADDITIONAL_METRICS + ".keyword_mcp-proxy_tools/call");
+    public static final Field MCP_PROXY_RESOURCE = new Field(ADDITIONAL_METRICS + ".keyword_mcp-proxy_resources/read");
+    public static final Field MCP_PROXY_PROMPT = new Field(ADDITIONAL_METRICS + ".keyword_mcp-proxy_prompts/get");
     public static final Field GATEWAY_RESPONSE_TIME = new Field("response-time", "gateway-response-time-ms");
     public static final Field ENTRYPOINT_ID = new Field(null, "entrypoint-id");
     public static final Field REQUEST_ENDED = new Field(null, "request-ended");
