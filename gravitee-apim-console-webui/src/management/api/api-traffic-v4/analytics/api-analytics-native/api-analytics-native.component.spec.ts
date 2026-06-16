@@ -27,7 +27,7 @@ import { ApiAnalyticsNativeHarness } from './api-analytics-native.component.harn
 import { ApiAnalyticsNativeComponent } from './api-analytics-native.component';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
-import { fakePagedResult, fakePlanV4, PlanV4 } from '../../../../../entities/management-api-v2';
+import { ApiV4, fakeNativeKafkaApiV4, fakePagedResult, fakePlanV4, PlanV4 } from '../../../../../entities/management-api-v2';
 import { fakeAnalyticsHistogram } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram.fixture';
 import { fakeGroupByResponse } from '../../../../../entities/management-api-v2/analytics/analyticsGroupBy.fixture';
 import { fakeAnalyticsStatsResponse } from '../../../../../entities/management-api-v2/analytics/analyticsStats.fixture';
@@ -39,7 +39,10 @@ describe('ApiAnalyticsNativeComponent', () => {
   let componentHarness: ApiAnalyticsNativeHarness;
   let httpTestingController: HttpTestingController;
 
-  const initComponent = async (queryParams = {}) => {
+  const initComponent = async (
+    queryParams = {},
+    api: ApiV4 = fakeNativeKafkaApiV4({ analytics: { enabled: true, reporterMetricsEnabled: true } }),
+  ) => {
     TestBed.configureTestingModule({
       imports: [ApiAnalyticsNativeComponent, OwlNativeDateTimeModule, NoopAnimationsModule, MatIconTestingModule, GioTestingModule],
       providers: [
@@ -63,6 +66,7 @@ describe('ApiAnalyticsNativeComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiAnalyticsNativeHarness);
     fixture.detectChanges();
+    expectApiGet(api);
   };
 
   afterEach(() => {
@@ -80,9 +84,33 @@ describe('ApiAnalyticsNativeComponent', () => {
       expect(await componentHarness.isEmptyPanelDisplayed()).toBeFalsy();
     });
 
+    it('should not display the reporting-disabled banner', async () => {
+      expect(await componentHarness.isReportingDisabledBannerDisplayed()).toBe(false);
+    });
+
+    it('should always display the Configure Reporting button', async () => {
+      expect(await componentHarness.isConfigureReportingButtonDisplayed()).toBe(true);
+    });
+
     it('should refresh when filters are applied', async () => {
       const filtersBar = await componentHarness.getFiltersBarHarness();
       await filtersBar.clickRefresh();
+    });
+  });
+
+  describe('GIVEN an API with analytics.enabled=false', () => {
+    beforeEach(async () => {
+      await initComponent({}, fakeNativeKafkaApiV4({ analytics: { enabled: false, reporterMetricsEnabled: true } }));
+      expectPlanList();
+      flushAllRequests();
+    });
+
+    it('should display the reporting-disabled banner', async () => {
+      expect(await componentHarness.isReportingDisabledBannerDisplayed()).toBe(true);
+    });
+
+    it('should display the Configure Reporting button', async () => {
+      expect(await componentHarness.isConfigureReportingButtonDisplayed()).toBe(true);
     });
   });
 
@@ -249,6 +277,11 @@ describe('ApiAnalyticsNativeComponent', () => {
         request.flush(fakeAnalyticsStatsResponse());
       }
     });
+  }
+
+  function expectApiGet(api: ApiV4) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'GET' }).flush(api);
+    fixture.detectChanges();
   }
 
   function expectPlanList(plans: PlanV4[] = []) {
