@@ -15,33 +15,23 @@
  */
 import {
     Button,
-    Card,
-    DataTablePagination,
+    DataTable,
+    DataTableEmptyState,
+    DateCell,
+    type DataTableProps,
     DateRangePicker,
-    Empty,
-    EmptyContent,
-    EmptyDescription,
-    EmptyHeader,
-    EmptyTitle,
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-    Skeleton,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
 } from '@gravitee/graphene-core';
-import { EyeIcon, XIcon } from '@gravitee/graphene-core/icons';
-import { Fragment, useCallback, useMemo, useState } from 'react';
+import { EyeIcon, SearchIcon, XIcon } from '@gravitee/graphene-core/icons';
+import { useCallback, useMemo, useState } from 'react';
 import type { DateRange } from 'react-day-picker';
 import { useParams } from 'react-router-dom';
 
@@ -49,10 +39,11 @@ import { AuditLogsLanding } from './AuditLogsLanding';
 import { useAuditEvents } from '../../../hooks/useAuditEvents';
 import { useAuditLogs } from '../../../hooks/useAuditLogs';
 import type { Audit } from '../../../types/auditLogs.types';
-import { formatDate } from '../deployment/utils';
 
-const PAGE_SIZE_OPTIONS = [10, 20, 25, 50, 100];
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 const ALL_EVENTS = '__all__';
+
+type ColCell<T> = { row: { original: T } };
 
 function formatPatch(patch: string): string {
     try {
@@ -66,6 +57,75 @@ function formatTarget(audit: Audit): string {
     return audit.properties.map(p => `${p.key}: ${p.value}`).join('\n');
 }
 
+function buildColumns(onViewPatch: (audit: Audit) => void): DataTableProps<Audit>['columns'] {
+    return [
+        {
+            id: 'Date',
+            accessorFn: (row: Audit) => row.createdAt,
+            header: 'Date',
+            enableSorting: false,
+            cell: ({ row }: ColCell<Audit>) => <DateCell value={row.original.createdAt} format="absolute" />,
+        },
+        {
+            id: 'Actor',
+            accessorFn: (row: Audit) => row.user.displayName,
+            header: 'Actor',
+            enableSorting: false,
+            cell: ({ row }: ColCell<Audit>) => <span className="text-sm">{row.original.user.displayName}</span>,
+        },
+        {
+            id: 'Event',
+            accessorFn: (row: Audit) => row.event,
+            header: 'Event',
+            enableSorting: false,
+            cell: ({ row }: ColCell<Audit>) => <span className="font-mono text-sm">{row.original.event}</span>,
+        },
+        {
+            id: 'Target',
+            header: 'Target',
+            enableSorting: false,
+            cell: ({ row }: ColCell<Audit>) => {
+                const target = formatTarget(row.original);
+                return target ? (
+                    <div className="text-sm">
+                        {target.split('\n').map(line => (
+                            <div key={line}>{line}</div>
+                        ))}
+                    </div>
+                ) : (
+                    <span className="text-muted-foreground/40 italic">—</span>
+                );
+            },
+        },
+        {
+            id: 'actions',
+            header: () => <span className="sr-only">Patch</span>,
+            size: 64,
+            enableSorting: false,
+            enableHiding: false,
+            cell: ({ row }: ColCell<Audit>) => {
+                const audit = row.original;
+                if (!audit.patch) return null;
+                return (
+                    <div className="flex justify-end">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="size-8"
+                            onClick={() => onViewPatch(audit)}
+                            aria-label="View patch"
+                            title="View patch"
+                        >
+                            <EyeIcon className="size-4" />
+                        </Button>
+                    </div>
+                );
+            },
+        },
+    ];
+}
+
 export function AuditLogsPage() {
     const { apiId } = useParams<{ apiId: string }>();
 
@@ -73,7 +133,7 @@ export function AuditLogsPage() {
     const [perPage, setPerPage] = useState(10);
     const [selectedEvent, setSelectedEvent] = useState('');
     const [dateRange, setDateRange] = useState<DateRange | undefined>();
-    const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [patchAudit, setPatchAudit] = useState<Audit | null>(null);
 
     const from = dateRange?.from ? dateRange.from.getTime() : undefined;
     const to = dateRange?.to ? dateRange.to.getTime() : undefined;
@@ -111,25 +171,48 @@ export function AuditLogsPage() {
         setPage(1);
     }, []);
 
-    const toggleExpand = useCallback((id: string) => {
-        setExpandedId(prev => (prev === id ? null : id));
-    }, []);
+    const columns = buildColumns(setPatchAudit);
 
     if (!isLoading && !hasFilters && totalCount === 0) {
         return <AuditLogsLanding />;
     }
 
     return (
-        <TooltipProvider>
-            <div className="space-y-4 p-6">
-                <div className="space-y-1">
-                    <h1 className="text-2xl font-semibold tracking-tight">Audit Logs</h1>
-                    <p className="text-sm text-muted-foreground">Gather all events and changes generated by the API Management</p>
-                </div>
+        <div className="space-y-4 p-6">
+            <div className="space-y-1">
+                <h1 className="text-2xl font-semibold tracking-tight">Audit Logs</h1>
+                <p className="text-sm text-muted-foreground">Gather all events and changes generated by the API Management</p>
+            </div>
 
-                {/* Single toolbar row: filters on the left, pagination on the right */}
-                <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
+            <DataTable
+                aria-label="Audit logs"
+                columns={columns}
+                data={audits}
+                loading={isLoading}
+                skeletonCount={perPage}
+                serverSide
+                pagination={
+                    totalCount > 0
+                        ? {
+                              page,
+                              pageSize: perPage,
+                              totalCount,
+                              pageSizeOptions: PAGE_SIZE_OPTIONS,
+                              onPageChange: setPage,
+                              onPageSizeChange: handlePageSizeChange,
+                          }
+                        : undefined
+                }
+                emptyMessage={
+                    <DataTableEmptyState
+                        variant="no-results"
+                        icon={<SearchIcon />}
+                        title="No audit logs found"
+                        description="Try adjusting or clearing your filters."
+                    />
+                }
+                toolbar={
+                    <>
                         <Select value={selectedEvent || ALL_EVENTS} onValueChange={handleEventChange}>
                             <SelectTrigger className="w-44" aria-label="Filter by event type">
                                 <SelectValue placeholder="All events" />
@@ -149,6 +232,7 @@ export function AuditLogsPage() {
                             placeholder="Date range"
                             numberOfMonths={2}
                             aria-label="Filter by date range"
+                            className="w-64"
                         />
                         {hasFilters ? (
                             <Button type="button" variant="ghost" size="sm" onClick={handleReset} className="gap-1">
@@ -156,134 +240,30 @@ export function AuditLogsPage() {
                                 Reset
                             </Button>
                         ) : null}
-                    </div>
-                    {!isLoading && totalCount > 0 ? (
-                        <DataTablePagination
-                            page={page}
-                            pageSize={perPage}
-                            totalCount={totalCount}
-                            pageSizeOptions={PAGE_SIZE_OPTIONS}
-                            onPageChange={setPage}
-                            onPageSizeChange={handlePageSizeChange}
-                        />
-                    ) : null}
-                </div>
+                    </>
+                }
+            />
 
-                {isLoading ? (
-                    <div className="space-y-2">
-                        {Array.from({ length: 8 }).map((_, i) => (
-                            <Skeleton key={i} className="h-12 rounded-lg" />
-                        ))}
-                    </div>
-                ) : audits.length === 0 ? (
-                    <Card>
-                        <Empty>
-                            <EmptyHeader>
-                                <EmptyTitle>No audit logs found</EmptyTitle>
-                                <EmptyDescription>Try adjusting or clearing your filters.</EmptyDescription>
-                            </EmptyHeader>
-                            <EmptyContent />
-                        </Empty>
-                    </Card>
-                ) : (
-                    <div className="rounded-lg border overflow-hidden">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-44">Date</TableHead>
-                                    <TableHead className="w-40">Actor</TableHead>
-                                    <TableHead className="w-52">Event</TableHead>
-                                    <TableHead>Target</TableHead>
-                                    <TableHead className="w-16 text-right pr-4">Patch</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {audits.map(audit => {
-                                    const isExpanded = expandedId === audit.id;
-                                    const hasPatch = Boolean(audit.patch);
-                                    const target = formatTarget(audit);
-
-                                    return (
-                                        <Fragment key={audit.id}>
-                                            <TableRow className={isExpanded ? 'bg-muted/40' : undefined}>
-                                                <TableCell className="whitespace-nowrap text-sm">{formatDate(audit.createdAt)}</TableCell>
-                                                <TableCell className="text-sm">{audit.user.displayName}</TableCell>
-                                                <TableCell className="font-mono text-sm">{audit.event}</TableCell>
-                                                <TableCell className="text-sm">
-                                                    {target ? (
-                                                        target.split('\n').map(line => <div key={line}>{line}</div>)
-                                                    ) : (
-                                                        <span className="text-muted-foreground/40 italic">—</span>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell className="text-right pr-4">
-                                                    {hasPatch ? (
-                                                        <Tooltip>
-                                                            <TooltipTrigger asChild>
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    className="size-8"
-                                                                    onClick={() => toggleExpand(audit.id)}
-                                                                    aria-label={isExpanded ? 'Close patch view' : 'View patch'}
-                                                                >
-                                                                    {isExpanded ? (
-                                                                        <XIcon className="size-4" />
-                                                                    ) : (
-                                                                        <EyeIcon className="size-4" />
-                                                                    )}
-                                                                </Button>
-                                                            </TooltipTrigger>
-                                                            <TooltipContent>{isExpanded ? 'Close' : 'View patch'}</TooltipContent>
-                                                        </Tooltip>
-                                                    ) : null}
-                                                </TableCell>
-                                            </TableRow>
-
-                                            {isExpanded ? (
-                                                <TableRow>
-                                                    <TableCell colSpan={5} className="p-0">
-                                                        <PatchPanel patch={audit.patch} />
-                                                    </TableCell>
-                                                </TableRow>
-                                            ) : null}
-                                        </Fragment>
-                                    );
-                                })}
-                            </TableBody>
-                        </Table>
-                    </div>
-                )}
-
-                {/* Bottom pagination — only shown when there are results */}
-                {!isLoading && totalCount > 0 ? (
-                    <div className="flex justify-end">
-                        <DataTablePagination
-                            page={page}
-                            pageSize={perPage}
-                            totalCount={totalCount}
-                            pageSizeOptions={PAGE_SIZE_OPTIONS}
-                            onPageChange={setPage}
-                            onPageSizeChange={handlePageSizeChange}
-                        />
-                    </div>
-                ) : null}
-            </div>
-        </TooltipProvider>
+            <PatchDrawer audit={patchAudit} onClose={() => setPatchAudit(null)} />
+        </div>
     );
 }
 
-function PatchPanel({ patch }: Readonly<{ patch: string }>) {
+function PatchDrawer({ audit, onClose }: Readonly<{ audit: Audit | null; onClose: () => void }>) {
     return (
-        <div className="border-t bg-muted/20 px-6 py-4">
-            <p className="mb-2 text-xs font-semibold text-muted-foreground">JSON Patch</p>
-            <pre
-                className="overflow-auto rounded-lg bg-muted p-4 text-xs font-mono text-foreground"
-                style={{ maxHeight: '240px', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
-            >
-                {formatPatch(patch)}
-            </pre>
-        </div>
+        <Sheet open={Boolean(audit)} onOpenChange={open => !open && onClose()}>
+            <SheetContent side="right" className="sm:max-w-xl">
+                <SheetHeader>
+                    <SheetTitle>JSON Patch</SheetTitle>
+                </SheetHeader>
+                <div className="flex-1 overflow-y-auto px-4 pb-4">
+                    {audit?.patch ? (
+                        <pre className="overflow-auto whitespace-pre-wrap break-words rounded-lg bg-muted p-4 text-xs font-mono text-foreground">
+                            {formatPatch(audit.patch)}
+                        </pre>
+                    ) : null}
+                </div>
+            </SheetContent>
+        </Sheet>
     );
 }
