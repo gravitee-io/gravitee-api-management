@@ -81,6 +81,11 @@ public class HTTPFieldResolver implements FieldResolver {
             case Filter.Name.EDGE_MODEL -> "additional-metrics.keyword_edge_model";
             case Filter.Name.EDGE_TOOL -> "additional-metrics.keyword_edge_tool";
             case Filter.Name.API_PRODUCT -> "api-product-id";
+            case Filter.Name.HTTP_ENDPOINT_RESPONSE_TIME -> "endpoint-response-time-ms";
+            case Filter.Name.HTTP_GATEWAY_RESPONSE_TIME -> "gateway-response-time-ms";
+            case Filter.Name.HTTP_GATEWAY_LATENCY -> "gateway-latency-ms";
+            case Filter.Name.HTTP_REQUEST_CONTENT_LENGTH -> "request-content-length";
+            case Filter.Name.HTTP_RESPONSE_CONTENT_LENGTH -> "response-content-length";
             case Filter.Name.URI -> "uri";
             case Filter.Name.ENTRYPOINT -> "entrypoint-id";
             default -> throw new UnsupportedOperationException("not an HTTP filter");
