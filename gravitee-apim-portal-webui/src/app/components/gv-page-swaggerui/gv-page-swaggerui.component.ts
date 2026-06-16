@@ -22,6 +22,10 @@ import { CurrentUserService } from '../../services/current-user.service';
 import { PageService } from '../../services/page.service';
 import { readYaml } from '../../utils/yaml-parser';
 
+const OAS_SCHEMA_TYPES = new Set(['null', 'boolean', 'object', 'array', 'number', 'string', 'integer']);
+// Priority order: most permissive first, so we pick the least-restrictive type from the array
+const OAS_TYPE_PRIORITY = ['string', 'number', 'integer', 'boolean', 'array', 'object'];
+
 type docExpansion = 'list' | 'full' | 'none';
 
 @Component({
@@ -111,10 +115,38 @@ export class GvPageSwaggerUIComponent implements OnInit, OnDestroy {
 
   private readSpec(page: Page): { [propName: string]: any } | undefined {
     try {
-      return JSON.parse(page.content);
+      return this.normalizeTypeArrays(JSON.parse(page.content));
     } catch (_) {
-      return readYaml(page.content);
+      return this.normalizeTypeArrays(readYaml(page.content));
     }
+  }
+
+  /**
+   * Recursively normalizes OAS 3.1 type arrays (e.g. `"type": ["integer", "string"]`) to a single
+   * string type that Swagger UI can validate correctly. Without this, Swagger UI's form validator
+   * fails to match entered values against an array type and incorrectly reports required fields as
+   * missing. See APIM-14231.
+   */
+  private normalizeTypeArrays(obj: any): any {
+    if (obj === null || typeof obj !== 'object') {
+      return obj;
+    }
+    if (Array.isArray(obj)) {
+      return obj.map((item: any) => this.normalizeTypeArrays(item));
+    }
+    const result: any = {};
+    for (const key of Object.keys(obj)) {
+      if (key === 'type' && Array.isArray(obj[key]) && (obj[key] as string[]).every((t: string) => OAS_SCHEMA_TYPES.has(t))) {
+        const nonNullTypes = (obj[key] as string[]).filter((t: string) => t !== 'null');
+        result[key] = nonNullTypes.length === 1 ? nonNullTypes[0] : (OAS_TYPE_PRIORITY.find(t => nonNullTypes.includes(t)) ?? 'string');
+        if ((obj[key] as string[]).includes('null')) {
+          result['nullable'] = true;
+        }
+      } else {
+        result[key] = this.normalizeTypeArrays(obj[key]);
+      }
+    }
+    return result;
   }
 
   buildPlugins(page: Page): SwaggerUIPlugin[] {
