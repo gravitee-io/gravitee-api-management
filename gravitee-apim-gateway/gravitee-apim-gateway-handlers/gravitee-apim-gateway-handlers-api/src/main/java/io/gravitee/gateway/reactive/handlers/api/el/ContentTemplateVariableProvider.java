@@ -64,8 +64,20 @@ public class ContentTemplateVariableProvider implements ExecutionContextTemplate
 
     private static final TypeReference<HashMap<String, Object>> MAPPER_TYPE_REFERENCE = new TypeReference<>() {};
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
-    private static final XMLInputFactory XML_INPUT_FACTORY = XMLInputFactory.newFactory();
+    private static final XMLInputFactory XML_INPUT_FACTORY = createSecureXmlInputFactory();
     private static final XmlMapper XML_MAPPER = new XmlMapper(XML_INPUT_FACTORY);
+
+    /**
+     * Builds an {@link XMLInputFactory} hardened against XML External Entity (XXE) attacks (CWE-611)
+     * by disabling DTD support and external entity resolution. Do not relax either property without
+     * security review. Package-private for test access.
+     */
+    static XMLInputFactory createSecureXmlInputFactory() {
+        var factory = XMLInputFactory.newFactory();
+        factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+        factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
+        return factory;
+    }
 
     @Override
     public <T extends BaseExecutionContext> void provide(T executionContext) {
