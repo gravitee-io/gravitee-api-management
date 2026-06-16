@@ -87,7 +87,9 @@ export function DirectMembersTable({
                     <TableRow>
                         <TableHead>Name</TableHead>
                         <TableHead className="w-[32%]">Role</TableHead>
-                        <TableHead className="w-10 text-right">Actions</TableHead>
+                        <TableHead className="w-12 text-right">
+                            <span className="sr-only">Actions</span>
+                        </TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
