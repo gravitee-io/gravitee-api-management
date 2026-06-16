@@ -44,6 +44,8 @@ public class MetricsQuery {
         private Set<HttpMethod> methods;
         private Set<String> mcpMethods;
         private Set<Integer> statuses;
+        private List<StatusRange> statusRanges;
+        private Set<String> statusCodeGroups;
         private Set<String> entrypointIds;
         private Set<String> apiIds;
         private Set<String> apiProductIds;
@@ -52,6 +54,11 @@ public class MetricsQuery {
         private String uri;
         private List<ResponseTimeRange> responseTimeRanges;
         private Set<String> errorKeys;
+        private Set<String> llmProxyModels;
+        private Set<String> llmProxyProviders;
+        private Set<String> mcpProxyTools;
+        private Set<String> mcpProxyResources;
+        private Set<String> mcpProxyPrompts;
 
         @Data
         @Builder
@@ -59,6 +66,14 @@ public class MetricsQuery {
 
             private Long to;
             private Long from;
+        }
+
+        @Data
+        @Builder
+        public static class StatusRange {
+
+            private Integer gte;
+            private Integer lte;
         }
     }
 }
