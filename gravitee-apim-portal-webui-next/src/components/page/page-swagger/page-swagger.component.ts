@@ -21,6 +21,10 @@ import { readYaml } from '../../../app/helpers/yaml-parser';
 import { Page } from '../../../entities/page/page';
 import { CurrentUserService } from '../../../services/current-user.service';
 
+const OAS_SCHEMA_TYPES = new Set(['null', 'boolean', 'object', 'array', 'number', 'string', 'integer']);
+// Priority order: most permissive first, so we pick the least-restrictive type from the array
+const OAS_TYPE_PRIORITY = ['string', 'number', 'integer', 'boolean', 'array', 'object'];
+
 @Component({
   selector: 'app-page-swagger',
   standalone: true,
@@ -95,14 +99,12 @@ export class PageSwaggerComponent implements OnChanges {
       return undefined;
     }
     try {
-      return JSON.parse(content);
+      return this.normalizeTypeArrays(JSON.parse(content));
     } catch (_) {
-      return readYaml(content);
+      return this.normalizeTypeArrays(readYaml(content));
     }
   }
 
-<<<<<<< HEAD
-=======
   /**
    * Recursively normalizes OAS 3.1 type arrays (e.g. `"type": ["integer", "string"]`) to a single
    * string type that Swagger UI can validate correctly. Without this, Swagger UI's form validator
@@ -148,7 +150,6 @@ export class PageSwaggerComponent implements OnChanges {
     });
   }
 
->>>>>>> dfdd2b3875 (fix(portal): normalize OAS 3.1 type arrays when show_url is enabled)
   private disabledTryItOutPlugin() {
     return {
       statePlugins: {

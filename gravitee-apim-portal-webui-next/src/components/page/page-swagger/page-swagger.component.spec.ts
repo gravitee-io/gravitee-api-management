@@ -20,14 +20,11 @@ import { PageSwaggerComponent } from './page-swagger.component';
 import { fakePage } from '../../../entities/page/page.fixtures';
 import { AppTestingModule } from '../../../testing/app-testing.module';
 
-<<<<<<< HEAD
-=======
 jest.mock('swagger-ui', () => jest.fn(() => ({ initOAuth: jest.fn() })));
 const SwaggerUIMock = jest.mocked(SwaggerUI);
 
 type WithNormalizeTypeArrays = { normalizeTypeArrays: (obj: unknown) => unknown };
 
->>>>>>> dfdd2b3875 (fix(portal): normalize OAS 3.1 type arrays when show_url is enabled)
 describe('PageSwaggerComponent', () => {
   let component: PageSwaggerComponent;
   let fixture: ComponentFixture<PageSwaggerComponent>;
@@ -46,8 +43,6 @@ describe('PageSwaggerComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-<<<<<<< HEAD
-=======
 
   it('should normalize OAS 3.1 type arrays in the spec before passing it to Swagger UI (JSON)', () => {
     const spec = {
@@ -171,5 +166,4 @@ describe('PageSwaggerComponent', () => {
       expect((component as unknown as WithNormalizeTypeArrays).normalizeTypeArrays(42)).toBe(42);
     });
   });
->>>>>>> dfdd2b3875 (fix(portal): normalize OAS 3.1 type arrays when show_url is enabled)
 });
