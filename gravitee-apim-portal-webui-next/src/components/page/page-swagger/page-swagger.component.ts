@@ -137,17 +137,38 @@ export class PageSwaggerComponent implements OnChanges {
 
   private normalizeSpecPlugin(): SwaggerUIPlugin {
     const normalize = (obj: unknown) => this.normalizeTypeArrays(obj);
+    const origin = window.location.origin;
     return () => ({
       statePlugins: {
         spec: {
           wrapActions: {
             updateJsonSpec: (oriAction: (spec: Record<string, unknown>) => void) => (spec: Record<string, unknown>) => {
-              return oriAction(normalize(spec) as Record<string, unknown>);
+              const normalized = normalize(spec) as Record<string, unknown>;
+              this.resolveRelativeServerUrls(normalized, origin);
+              return oriAction(normalized);
             },
           },
         },
       },
     });
+  }
+
+  /**
+   * When the spec is loaded via URL (show_url), Swagger UI resolves relative server URLs against
+   * the management API origin instead of the portal origin. This causes "Try it out" requests to
+   * hit the wrong host. Fix by resolving relative URLs against the portal origin, matching the
+   * behavior when the spec is loaded inline (show_url disabled). See APIM-14431.
+   */
+  private resolveRelativeServerUrls(spec: Record<string, unknown>, origin: string): void {
+    if (Array.isArray(spec['servers'])) {
+      spec['servers'] = (spec['servers'] as Record<string, unknown>[]).map(server => {
+        const url = (server['url'] as string) ?? '/';
+        if (url.startsWith('/')) {
+          return { ...server, url: origin + url };
+        }
+        return server;
+      });
+    }
   }
 
   private disabledTryItOutPlugin() {
