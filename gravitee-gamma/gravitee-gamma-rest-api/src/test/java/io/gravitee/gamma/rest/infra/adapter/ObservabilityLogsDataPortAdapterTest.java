@@ -92,11 +92,11 @@ class ObservabilityLogsDataPortAdapterTest {
 
     @Test
     void should_reject_filter_not_translatable_to_log_search() {
-        var query = queryWith(new FilterCondition("HTTP_STATUS_CODE_GROUP", FilterOperator.IN, List.of("2XX")));
+        var query = queryWith(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("HTTP_PROXY")));
 
         assertThatThrownBy(() -> adapter.searchLogs(ORG, ENV, query))
             .isInstanceOf(UnsupportedObservabilityFilterException.class)
-            .hasMessageContaining("HTTP_STATUS_CODE_GROUP");
+            .hasMessageContaining("API_TYPE");
 
         verifyNoInteractions(connectionLogsCrudService);
     }
@@ -128,26 +128,58 @@ class ObservabilityLogsDataPortAdapterTest {
         }
 
         @Test
-        void should_reject_gte_until_range_translation_lands() {
-            // Interim: range operators on HTTP_STATUS are rejected (400) until GMA-683 wires an ES range.
+        void should_translate_gte_to_status_range_with_open_upper_bound() {
+            stubEmptySearchResult();
             var query = queryWith(new FilterCondition("HTTP_STATUS", FilterOperator.GTE, List.of("500")));
 
-            assertThatThrownBy(() -> adapter.searchLogs(ORG, ENV, query))
-                .isInstanceOf(UnsupportedObservabilityFilterException.class)
-                .hasMessageContaining("HTTP_STATUS");
+            adapter.searchLogs(ORG, ENV, query);
 
-            verifyNoInteractions(connectionLogsCrudService);
+            var ranges = captureSearchFilters().statusRanges();
+            assertThat(ranges).hasSize(1);
+            assertThat(ranges.getFirst().gte()).isEqualTo(500);
+            assertThat(ranges.getFirst().lte()).isNull();
         }
 
         @Test
-        void should_reject_lte_until_range_translation_lands() {
+        void should_translate_lte_to_status_range_with_open_lower_bound() {
+            stubEmptySearchResult();
             var query = queryWith(new FilterCondition("HTTP_STATUS", FilterOperator.LTE, List.of("299")));
 
-            assertThatThrownBy(() -> adapter.searchLogs(ORG, ENV, query))
-                .isInstanceOf(UnsupportedObservabilityFilterException.class)
-                .hasMessageContaining("HTTP_STATUS");
+            adapter.searchLogs(ORG, ENV, query);
 
-            verifyNoInteractions(connectionLogsCrudService);
+            var ranges = captureSearchFilters().statusRanges();
+            assertThat(ranges).hasSize(1);
+            assertThat(ranges.getFirst().gte()).isNull();
+            assertThat(ranges.getFirst().lte()).isEqualTo(299);
+        }
+
+        @Test
+        void should_merge_gte_and_lte_into_single_closed_range() {
+            stubEmptySearchResult();
+            var query = queryWith(
+                new FilterCondition("HTTP_STATUS", FilterOperator.GTE, List.of("400")),
+                new FilterCondition("HTTP_STATUS", FilterOperator.LTE, List.of("500"))
+            );
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            var ranges = captureSearchFilters().statusRanges();
+            assertThat(ranges).hasSize(1);
+            assertThat(ranges.getFirst().gte()).isEqualTo(400);
+            assertThat(ranges.getFirst().lte()).isEqualTo(500);
+        }
+
+        @Test
+        void should_reject_inverted_gte_lte_range() {
+            var query = queryWith(
+                new FilterCondition("HTTP_STATUS", FilterOperator.GTE, List.of("500")),
+                new FilterCondition("HTTP_STATUS", FilterOperator.LTE, List.of("200"))
+            );
+
+            assertThatThrownBy(() -> adapter.searchLogs(ORG, ENV, query))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("gte")
+                .hasMessageContaining("lte");
         }
 
         @Test
@@ -175,6 +207,113 @@ class ObservabilityLogsDataPortAdapterTest {
             assertThatThrownBy(() -> adapter.searchLogs(ORG, ENV, query))
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessageContaining("abc");
+        }
+    }
+
+    @Nested
+    class HttpStatusCodeGroupFilter {
+
+        @Test
+        void should_pass_single_group_key() {
+            stubEmptySearchResult();
+            var query = queryWith(new FilterCondition("HTTP_STATUS_CODE_GROUP", FilterOperator.EQ, List.of("2XX")));
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().statusCodeGroups()).containsExactly("2XX");
+        }
+
+        @Test
+        void should_pass_multiple_group_keys() {
+            stubEmptySearchResult();
+            var query = queryWith(new FilterCondition("HTTP_STATUS_CODE_GROUP", FilterOperator.IN, List.of("2XX", "4XX")));
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().statusCodeGroups()).containsExactlyInAnyOrder("2XX", "4XX");
+        }
+
+        @Test
+        void should_normalize_group_key_to_uppercase() {
+            stubEmptySearchResult();
+            var query = queryWith(new FilterCondition("HTTP_STATUS_CODE_GROUP", FilterOperator.EQ, List.of("5xx")));
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().statusCodeGroups()).containsExactly("5XX");
+        }
+
+        @Test
+        void should_not_mix_groups_into_status_ranges() {
+            stubEmptySearchResult();
+            var query = queryWith(new FilterCondition("HTTP_STATUS_CODE_GROUP", FilterOperator.EQ, List.of("2XX")));
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().statusRanges()).isEmpty();
+        }
+
+        @Test
+        void should_reject_unknown_group() {
+            var query = queryWith(new FilterCondition("HTTP_STATUS_CODE_GROUP", FilterOperator.EQ, List.of("9XX")));
+
+            assertThatThrownBy(() -> adapter.searchLogs(ORG, ENV, query))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("9XX");
+        }
+    }
+
+    @Nested
+    class LlmMcpFilters {
+
+        @Test
+        void should_translate_llm_proxy_model() {
+            stubEmptySearchResult();
+            var query = queryWith(new FilterCondition("LLM_PROXY_MODEL", FilterOperator.IN, List.of("gpt-4", "claude-3")));
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().llmProxyModels()).containsExactlyInAnyOrder("gpt-4", "claude-3");
+        }
+
+        @Test
+        void should_translate_llm_proxy_provider() {
+            stubEmptySearchResult();
+            var query = queryWith(new FilterCondition("LLM_PROXY_PROVIDER", FilterOperator.IN, List.of("openai")));
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().llmProxyProviders()).containsExactly("openai");
+        }
+
+        @Test
+        void should_translate_mcp_proxy_tool() {
+            stubEmptySearchResult();
+            var query = queryWith(new FilterCondition("MCP_PROXY_TOOL", FilterOperator.IN, List.of("tool-1")));
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().mcpProxyTools()).containsExactly("tool-1");
+        }
+
+        @Test
+        void should_translate_mcp_proxy_resource() {
+            stubEmptySearchResult();
+            var query = queryWith(new FilterCondition("MCP_PROXY_RESOURCE", FilterOperator.IN, List.of("res-1")));
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().mcpProxyResources()).containsExactly("res-1");
+        }
+
+        @Test
+        void should_translate_mcp_proxy_prompt() {
+            stubEmptySearchResult();
+            var query = queryWith(new FilterCondition("MCP_PROXY_PROMPT", FilterOperator.IN, List.of("prompt-1")));
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().mcpProxyPrompts()).containsExactly("prompt-1");
         }
     }
 

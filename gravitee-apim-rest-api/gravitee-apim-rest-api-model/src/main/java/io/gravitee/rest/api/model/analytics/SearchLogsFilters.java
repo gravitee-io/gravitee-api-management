@@ -29,6 +29,8 @@ public record SearchLogsFilters(
     Set<HttpMethod> methods,
     Set<String> mcpMethods,
     Set<Integer> statuses,
+    List<StatusRange> statusRanges,
+    Set<String> statusCodeGroups,
     Set<String> entrypointIds,
     Set<String> apiIds,
     Set<String> requestIds,
@@ -37,5 +39,16 @@ public record SearchLogsFilters(
     String uri,
     String bodyText,
     Set<String> errorKeys,
-    Set<String> apiProductIds
-) {}
+    Set<String> apiProductIds,
+    Set<String> llmProxyModels,
+    Set<String> llmProxyProviders,
+    Set<String> mcpProxyTools,
+    Set<String> mcpProxyResources,
+    Set<String> mcpProxyPrompts
+) {
+    /**
+     * An inclusive HTTP status code range bound for {@code HTTP_STATUS GTE/LTE}.
+     */
+    @Builder
+    public record StatusRange(Integer gte, Integer lte) {}
+}

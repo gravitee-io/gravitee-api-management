@@ -817,6 +817,205 @@ class SearchMetricsQueryAdapterTest {
         }
     }
 
+    @Nested
+    class StatusRangesFilter {
+
+        @Test
+        void should_add_single_status_range_filter() {
+            var result = SearchMetricsQueryAdapter.adapt(
+                MetricsQuery.builder()
+                    .page(1)
+                    .size(20)
+                    .filter(
+                        MetricsQuery.Filter.builder()
+                            .statusRanges(List.of(MetricsQuery.Filter.StatusRange.builder().gte(200).lte(299).build()))
+                            .build()
+                    )
+                    .build()
+            );
+
+            assertThatJson(result).inPath("$.query.bool.must[0].range.status").isEqualTo("{\"gte\":200,\"lte\":299}");
+        }
+
+        @Test
+        void should_add_open_lower_bound_status_range() {
+            var result = SearchMetricsQueryAdapter.adapt(
+                MetricsQuery.builder()
+                    .page(1)
+                    .size(20)
+                    .filter(
+                        MetricsQuery.Filter.builder()
+                            .statusRanges(List.of(MetricsQuery.Filter.StatusRange.builder().gte(500).build()))
+                            .build()
+                    )
+                    .build()
+            );
+
+            assertThatJson(result).inPath("$.query.bool.must[0].range.status").isEqualTo("{\"gte\":500}");
+        }
+
+        @Test
+        void should_add_open_upper_bound_status_range() {
+            var result = SearchMetricsQueryAdapter.adapt(
+                MetricsQuery.builder()
+                    .page(1)
+                    .size(20)
+                    .filter(
+                        MetricsQuery.Filter.builder()
+                            .statusRanges(List.of(MetricsQuery.Filter.StatusRange.builder().lte(299).build()))
+                            .build()
+                    )
+                    .build()
+            );
+
+            assertThatJson(result).inPath("$.query.bool.must[0].range.status").isEqualTo("{\"lte\":299}");
+        }
+
+        @Test
+        void should_add_multiple_status_ranges_as_bool_should() {
+            var result = SearchMetricsQueryAdapter.adapt(
+                MetricsQuery.builder()
+                    .page(1)
+                    .size(20)
+                    .filter(
+                        MetricsQuery.Filter.builder()
+                            .statusRanges(
+                                List.of(
+                                    MetricsQuery.Filter.StatusRange.builder().gte(200).lte(299).build(),
+                                    MetricsQuery.Filter.StatusRange.builder().gte(400).lte(499).build()
+                                )
+                            )
+                            .build()
+                    )
+                    .build()
+            );
+
+            assertThatJson(result).inPath("$.query.bool.must[0].bool.should").isArray().hasSize(2);
+            assertThatJson(result).inPath("$.query.bool.must[0].bool.minimum_should_match").isEqualTo(1);
+        }
+
+        @Test
+        void should_not_add_status_range_filter_when_null() {
+            var query = MetricsQuery.builder()
+                .page(1)
+                .size(20)
+                .filter(MetricsQuery.Filter.builder().apiIds(Set.of("api-1")).statusRanges(null).build())
+                .build();
+
+            var result = SearchMetricsQueryAdapter.adapt(query);
+
+            assertThatJson(result).node("query.bool.must").isArray().hasSize(1);
+        }
+    }
+
+    @Nested
+    class StatusCodeGroupsFilter {
+
+        @Test
+        void should_add_single_group_as_range_filter() {
+            var result = SearchMetricsQueryAdapter.adapt(
+                MetricsQuery.builder()
+                    .page(1)
+                    .size(20)
+                    .filter(MetricsQuery.Filter.builder().statusCodeGroups(Set.of("4XX")).build())
+                    .build()
+            );
+
+            assertThatJson(result).inPath("$.query.bool.must[0].range.status").isEqualTo("{\"gte\":400,\"lte\":499}");
+        }
+
+        @Test
+        void should_add_multiple_groups_as_bool_should() {
+            var result = SearchMetricsQueryAdapter.adapt(
+                MetricsQuery.builder()
+                    .page(1)
+                    .size(20)
+                    .filter(MetricsQuery.Filter.builder().statusCodeGroups(Set.of("2XX", "4XX")).build())
+                    .build()
+            );
+
+            assertThatJson(result).inPath("$.query.bool.must[0].bool.should").isArray().hasSize(2);
+            assertThatJson(result).inPath("$.query.bool.must[0].bool.minimum_should_match").isEqualTo(1);
+        }
+
+        @Test
+        void should_produce_separate_must_clauses_for_groups_and_ranges() {
+            var result = SearchMetricsQueryAdapter.adapt(
+                MetricsQuery.builder()
+                    .page(1)
+                    .size(20)
+                    .filter(
+                        MetricsQuery.Filter.builder()
+                            .statusCodeGroups(Set.of("4XX"))
+                            .statusRanges(List.of(MetricsQuery.Filter.StatusRange.builder().gte(450).build()))
+                            .build()
+                    )
+                    .build()
+            );
+
+            assertThatJson(result).inPath("$.query.bool.must").isArray().hasSize(2);
+        }
+    }
+
+    @Nested
+    class LlmMcpFilters {
+
+        @Test
+        void should_add_llm_proxy_model_terms_filter() {
+            var query = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().llmProxyModels(Set.of("gpt-4", "claude-3")).build())
+                .build();
+
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.LLM_PROXY_MODEL.v4Metrics())).isTrue();
+        }
+
+        @Test
+        void should_add_llm_proxy_provider_terms_filter() {
+            var query = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().llmProxyProviders(Set.of("openai", "anthropic")).build())
+                .build();
+
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.LLM_PROXY_PROVIDER.v4Metrics())).isTrue();
+        }
+
+        @Test
+        void should_add_mcp_proxy_tool_terms_filter() {
+            var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().mcpProxyTools(Set.of("tool-a")).build()).build();
+
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.MCP_PROXY_TOOL.v4Metrics())).isTrue();
+        }
+
+        @Test
+        void should_add_mcp_proxy_resource_terms_filter() {
+            var query = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().mcpProxyResources(Set.of("resource-a")).build())
+                .build();
+
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.MCP_PROXY_RESOURCE.v4Metrics())).isTrue();
+        }
+
+        @Test
+        void should_add_mcp_proxy_prompt_terms_filter() {
+            var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().mcpProxyPrompts(Set.of("prompt-a")).build()).build();
+
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.MCP_PROXY_PROMPT.v4Metrics())).isTrue();
+        }
+
+        @Test
+        void should_not_add_llm_model_filter_when_null() {
+            var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().llmProxyModels(null).build()).build();
+
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.LLM_PROXY_MODEL.v4Metrics())).isFalse();
+        }
+
+        @Test
+        void should_not_add_llm_model_filter_when_empty() {
+            var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().llmProxyModels(Set.of()).build()).build();
+
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.LLM_PROXY_MODEL.v4Metrics())).isFalse();
+        }
+    }
+
     private boolean hasTermsOn(MetricsQuery query, String field) {
         var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
         var queryNode = result.getJsonObject("query");

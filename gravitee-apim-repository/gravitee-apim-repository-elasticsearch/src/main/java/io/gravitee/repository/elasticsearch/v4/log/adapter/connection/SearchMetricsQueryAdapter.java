@@ -16,6 +16,7 @@
 package io.gravitee.repository.elasticsearch.v4.log.adapter.connection;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.repository.elasticsearch.v4.shared.StatusCodeGroups;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -63,6 +64,10 @@ public class SearchMetricsQueryAdapter {
 
         addStatusesFilter(filter, mustFilterList);
 
+        addStatusRangesFilter(filter, mustFilterList);
+
+        addStatusCodeGroupsFilter(filter, mustFilterList);
+
         addEntrypointIdsFilter(filter, mustFilterList);
 
         addRequestIdsFilter(filter, mustFilterList);
@@ -74,6 +79,16 @@ public class SearchMetricsQueryAdapter {
         addErrorKeysFilter(filter, mustFilterList);
 
         addResponseTimeRangesFilter(filter, mustFilterList);
+
+        addLlmProxyModelsFilter(filter, mustFilterList);
+
+        addLlmProxyProvidersFilter(filter, mustFilterList);
+
+        addMcpProxyToolsFilter(filter, mustFilterList);
+
+        addMcpProxyResourcesFilter(filter, mustFilterList);
+
+        addMcpProxyPromptsFilter(filter, mustFilterList);
 
         if (!mustFilterList.isEmpty()) {
             return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(mustFilterList.toArray())));
@@ -173,6 +188,57 @@ public class SearchMetricsQueryAdapter {
     private static void addApplicationsFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getApplicationIds())) {
             mustFilterList.add(buildV2AndV4Terms(RequestV2MetricsV4Fields.APPLICATION_ID, filter.getApplicationIds()));
+        }
+    }
+
+    private static void addStatusRangesFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getStatusRanges())) {
+            if (filter.getStatusRanges().size() == 1) {
+                var range = filter.getStatusRanges().getFirst();
+                mustFilterList.add(StatusCodeGroups.rangeForBounds(RequestV2MetricsV4Fields.STATUS, range.getGte(), range.getLte()));
+            } else {
+                var ranges = new JsonArray();
+                for (var range : filter.getStatusRanges()) {
+                    ranges.add(StatusCodeGroups.rangeForBounds(RequestV2MetricsV4Fields.STATUS, range.getGte(), range.getLte()));
+                }
+                mustFilterList.add(JsonObject.of("bool", JsonObject.of("should", ranges, "minimum_should_match", 1)));
+            }
+        }
+    }
+
+    private static void addStatusCodeGroupsFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getStatusCodeGroups())) {
+            mustFilterList.add(StatusCodeGroups.shouldForGroups(RequestV2MetricsV4Fields.STATUS, filter.getStatusCodeGroups()));
+        }
+    }
+
+    private static void addLlmProxyModelsFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getLlmProxyModels())) {
+            mustFilterList.add(buildV4Terms(RequestV2MetricsV4Fields.LLM_PROXY_MODEL, filter.getLlmProxyModels()));
+        }
+    }
+
+    private static void addLlmProxyProvidersFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getLlmProxyProviders())) {
+            mustFilterList.add(buildV4Terms(RequestV2MetricsV4Fields.LLM_PROXY_PROVIDER, filter.getLlmProxyProviders()));
+        }
+    }
+
+    private static void addMcpProxyToolsFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getMcpProxyTools())) {
+            mustFilterList.add(buildV4Terms(RequestV2MetricsV4Fields.MCP_PROXY_TOOL, filter.getMcpProxyTools()));
+        }
+    }
+
+    private static void addMcpProxyResourcesFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getMcpProxyResources())) {
+            mustFilterList.add(buildV4Terms(RequestV2MetricsV4Fields.MCP_PROXY_RESOURCE, filter.getMcpProxyResources()));
+        }
+    }
+
+    private static void addMcpProxyPromptsFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getMcpProxyPrompts())) {
+            mustFilterList.add(buildV4Terms(RequestV2MetricsV4Fields.MCP_PROXY_PROMPT, filter.getMcpProxyPrompts()));
         }
     }
 
