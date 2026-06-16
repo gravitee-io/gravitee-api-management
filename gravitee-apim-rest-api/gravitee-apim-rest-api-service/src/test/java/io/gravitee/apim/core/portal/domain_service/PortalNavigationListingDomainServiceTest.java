@@ -61,6 +61,7 @@ class PortalNavigationListingDomainServiceTest {
         syncService.sync(
             AUDIT_INFO,
             PORTAL_ID,
+            List.of(),
             List.of(
                 new NavigationPath("/a", Optional.empty()),
                 new NavigationPath("/a/b", Optional.empty()),
@@ -79,6 +80,7 @@ class PortalNavigationListingDomainServiceTest {
         syncService.sync(
             AUDIT_INFO,
             PORTAL_ID,
+            List.of(),
             List.of(
                 new NavigationPath("/projects/alpha", Optional.of("Alpha")),
                 new NavigationPath("/projects/alpha/docs", Optional.empty())
@@ -92,7 +94,7 @@ class PortalNavigationListingDomainServiceTest {
 
     @Test
     void display_name_is_surfaced_when_title_differs_from_segment() {
-        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(new NavigationPath("/projects/alpha", Optional.of("Alpha"))));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), List.of(new NavigationPath("/projects/alpha", Optional.of("Alpha"))));
 
         var result = listingService.listAsNavigationPaths(AUDIT_INFO.environmentId());
 
@@ -105,7 +107,7 @@ class PortalNavigationListingDomainServiceTest {
 
     @Test
     void display_name_is_null_when_title_equals_segment() {
-        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(new NavigationPath("/a", Optional.empty())));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), List.of(new NavigationPath("/a", Optional.empty())));
 
         var result = listingService.listAsNavigationPaths(AUDIT_INFO.environmentId());
 

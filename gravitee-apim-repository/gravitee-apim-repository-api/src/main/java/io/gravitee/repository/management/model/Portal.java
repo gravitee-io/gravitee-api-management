@@ -35,4 +35,5 @@ public class Portal {
     private String environmentId;
     private String organizationId;
     private String name;
+    private String portalNavigation;
 }
