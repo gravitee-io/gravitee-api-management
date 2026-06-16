@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DataTablePagination, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@gravitee/graphene-core';
+import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@gravitee/graphene-core';
 import { SearchIcon } from '@gravitee/graphene-core/icons';
 import { useId, useState, type Dispatch, type SetStateAction } from 'react';
 
@@ -25,11 +25,7 @@ import { notify } from '../../../../shared/notify';
 import type { ApplicationStats } from '../../hooks/useApplicationStats';
 import { useRestoreApplication } from '../../hooks/useRestoreApplication';
 import type { ApplicationListItem, ApplicationStatus } from '../../types/application';
-import { TABLE_PAGE_SIZE_OPTIONS } from '../../utils/paginationConstants';
 import type { TableSortingState } from '../../utils/tableSort';
-
-/** Search field width (2× former `w-72` / 18rem). */
-const APPLICATIONS_SEARCH_INPUT_WIDTH = '36rem';
 
 const STATUS_OPTIONS: { value: ApplicationStatus; label: string }[] = [
     { value: 'ACTIVE', label: 'Active' },
@@ -92,56 +88,47 @@ export function ApplicationsListView({
         });
     };
 
+    const toolbar = (
+        <>
+            <div className="relative max-w-sm flex-1">
+                <SearchIcon
+                    className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none"
+                    aria-hidden
+                />
+                <label htmlFor={searchInputId} className="sr-only">
+                    Search applications
+                </label>
+                <Input
+                    id={searchInputId}
+                    placeholder="Search applications..."
+                    value={search}
+                    onChange={e => onSearchChange(e.target.value)}
+                    className="pl-9"
+                />
+            </div>
+
+            {canManageArchived ? (
+                <Select value={status} onValueChange={value => onStatusChange(value as ApplicationStatus)}>
+                    <SelectTrigger className="h-9 w-36 shrink-0" aria-label="Filter by status">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {STATUS_OPTIONS.map(option => (
+                            <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            ) : null}
+        </>
+    );
+
     return (
         <div className="space-y-6">
             <ApplicationsPageHeader canCreate={canCreate} onRegisterApplication={onRegisterApplication} />
 
             <ApplicationStatsCards stats={stats} />
-
-            <div className="flex items-center justify-between gap-4">
-                <div className="flex min-w-0 items-center gap-3">
-                    <div className="relative shrink-0" style={{ width: APPLICATIONS_SEARCH_INPUT_WIDTH }}>
-                        <SearchIcon
-                            className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none"
-                            aria-hidden
-                        />
-                        <label htmlFor={searchInputId} className="sr-only">
-                            Search applications
-                        </label>
-                        <Input
-                            id={searchInputId}
-                            placeholder="Search applications..."
-                            value={search}
-                            onChange={e => onSearchChange(e.target.value)}
-                            className="pl-9"
-                        />
-                    </div>
-
-                    {canManageArchived ? (
-                        <Select value={status} onValueChange={value => onStatusChange(value as ApplicationStatus)}>
-                            <SelectTrigger className="h-9 w-36 shrink-0" aria-label="Filter by status">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {STATUS_OPTIONS.map(option => (
-                                    <SelectItem key={option.value} value={option.value}>
-                                        {option.label}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    ) : null}
-                </div>
-
-                <DataTablePagination
-                    page={page}
-                    pageSize={perPage}
-                    totalCount={totalCount}
-                    pageSizeOptions={[...TABLE_PAGE_SIZE_OPTIONS]}
-                    onPageChange={onPageChange}
-                    onPageSizeChange={onPerPageChange}
-                />
-            </div>
 
             <ApplicationListTable
                 applications={applications}
@@ -158,6 +145,12 @@ export function ApplicationsListView({
                           }
                         : undefined
                 }
+                page={page}
+                pageSize={perPage}
+                totalCount={totalCount}
+                onPageChange={onPageChange}
+                onPageSizeChange={onPerPageChange}
+                toolbar={toolbar}
             />
 
             <ApplicationRestoreDialog
@@ -166,17 +159,6 @@ export function ApplicationsListView({
                 onConfirm={handleRestore}
                 isLoading={restoreMutation.isPending}
             />
-
-            <div className="flex justify-end">
-                <DataTablePagination
-                    page={page}
-                    pageSize={perPage}
-                    totalCount={totalCount}
-                    pageSizeOptions={[...TABLE_PAGE_SIZE_OPTIONS]}
-                    onPageChange={onPageChange}
-                    onPageSizeChange={onPerPageChange}
-                />
-            </div>
         </div>
     );
 }

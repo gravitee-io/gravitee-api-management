@@ -13,8 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, DataTable, DataTableColumnHeader, DataTablePagination, Skeleton, type DataTableProps } from '@gravitee/graphene-core';
-import { PencilIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
+import {
+    Button,
+    DataTable,
+    DataTableColumnHeader,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+    type DataTableProps,
+} from '@gravitee/graphene-core';
+import { MoreVerticalIcon, PencilIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 import { useEffect, useMemo, useState } from 'react';
 
 import { DEFAULT_METADATA_PAGE_SIZE, METADATA_PAGE_SIZE_OPTIONS } from './metadataConstants';
@@ -94,39 +103,75 @@ function buildColumns({
     if (hasActions) {
         columns.push({
             id: 'actions',
-            header: () => <div className="text-right">Actions</div>,
-            size: 96,
+            header: () => <span className="sr-only">Actions</span>,
+            size: 56,
             cell: ({ row }: ColCell<ApplicationMetadata>) => {
                 const item = row.original;
-                const isDeletable = item.value !== undefined;
+                const canEditItem = canUpdate;
+                const canDeleteItem = canDelete && item.value !== undefined;
+                const actionCount = (canEditItem ? 1 : 0) + (canDeleteItem ? 1 : 0);
+
+                if (actionCount === 0) return null;
+
+                // Single-action exception: a lone action is a direct icon button (no dropdown).
+                if (actionCount === 1) {
+                    return (
+                        <div className="flex justify-end">
+                            {canEditItem ? (
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="size-8"
+                                    aria-label={`Edit ${item.name} metadata`}
+                                    disabled={isMutating}
+                                    onClick={() => onEdit(item)}
+                                >
+                                    <PencilIcon className="size-4" aria-hidden />
+                                </Button>
+                            ) : (
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="size-8 text-destructive hover:text-destructive"
+                                    aria-label={`Delete ${item.name} metadata`}
+                                    disabled={isMutating}
+                                    onClick={() => onDelete(item)}
+                                >
+                                    <Trash2Icon className="size-4" aria-hidden />
+                                </Button>
+                            )}
+                        </div>
+                    );
+                }
+
                 return (
-                    <div className="flex justify-end gap-1">
-                        {canUpdate ? (
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="size-8"
-                                aria-label={`Edit ${item.name} metadata`}
-                                disabled={isMutating}
-                                onClick={() => onEdit(item)}
-                            >
-                                <PencilIcon className="size-4" aria-hidden />
-                            </Button>
-                        ) : null}
-                        {canDelete && isDeletable ? (
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="size-8 text-destructive hover:text-destructive"
-                                aria-label={`Delete ${item.name} metadata`}
-                                disabled={isMutating}
-                                onClick={() => onDelete(item)}
-                            >
-                                <Trash2Icon className="size-4" aria-hidden />
-                            </Button>
-                        ) : null}
+                    <div className="flex justify-end">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="size-8"
+                                    aria-label={`Actions for ${item.name} metadata`}
+                                    disabled={isMutating}
+                                >
+                                    <MoreVerticalIcon className="size-4" aria-hidden />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="min-w-48">
+                                <DropdownMenuItem onSelect={() => onEdit(item)} disabled={isMutating}>
+                                    <PencilIcon className="size-4" aria-hidden />
+                                    Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-destructive" onSelect={() => onDelete(item)} disabled={isMutating}>
+                                    <Trash2Icon className="size-4" aria-hidden />
+                                    Delete
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 );
             },
@@ -189,38 +234,25 @@ export function MetadataTable({
         [hasActions, canUpdate, canDelete, isMutating, onEdit, onDelete],
     );
 
-    if (isLoading) {
-        return (
-            <div className="space-y-2">
-                {Array.from({ length: pageSize }).map((_, index) => (
-                    <Skeleton key={index} className="h-10 rounded-lg" />
-                ))}
-            </div>
-        );
-    }
-
-    const paginationEl = (
-        <DataTablePagination
-            page={page}
-            pageSize={pageSize}
-            totalCount={totalCount}
-            pageSizeOptions={METADATA_PAGE_SIZE_OPTIONS}
-            onPageChange={setPage}
-            onPageSizeChange={handlePageSizeChange}
-        />
-    );
-
     return (
-        <div className="space-y-4">
-            <div className="flex justify-end">{paginationEl}</div>
-            <DataTable
-                columns={columns}
-                data={paginatedMetadata}
-                sorting={sorting}
-                onSortingChange={handleSortingChange}
-                emptyMessage="No metadata configured."
-            />
-            <div className="flex justify-end">{paginationEl}</div>
-        </div>
+        <DataTable
+            aria-label="Application metadata"
+            columns={columns}
+            data={paginatedMetadata}
+            sorting={sorting}
+            onSortingChange={handleSortingChange}
+            serverSide
+            loading={isLoading}
+            skeletonCount={pageSize}
+            pagination={{
+                page,
+                pageSize,
+                totalCount,
+                pageSizeOptions: METADATA_PAGE_SIZE_OPTIONS,
+                onPageChange: setPage,
+                onPageSizeChange: handlePageSizeChange,
+            }}
+            emptyMessage="No metadata configured."
+        />
     );
 }
