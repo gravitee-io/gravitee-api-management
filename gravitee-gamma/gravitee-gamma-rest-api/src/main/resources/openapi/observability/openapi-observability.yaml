@@ -353,6 +353,125 @@ paths:
                                 httpStatus: 403
                                 message: "Insufficient permissions to access observability metadata."
 
+    /organizations/{orgId}/environments/{envId}/observability/logs/{requestId}:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+        get:
+            tags:
+                - Logs
+            summary: Get a single merged log detail
+            description: |
+                Returns a single complete connection log by request id, merging enriched metadata
+                from the `v4-metrics` index with HTTP payloads (headers + body) from the `v4-log`
+                index. This is the heavy, lazy companion of the search endpoint — intended to be
+                called when a user clicks a row in the logs table.
+
+                **`apiId` is required** as a security defense: a known request id from API_B cannot
+                be read via API_A. The server verifies `API_LOG[READ]` on the given API and returns
+                404 (collapsed) when the log doesn't exist OR the caller can't access that API —
+                so cross-API existence cannot be probed.
+
+                **No search time-window needed** — the detail is resolved by request id alone.
+
+                **Enrichment**: plan name, application name, gateway hostname and IP are resolved
+                server-side.
+            operationId: getObservabilityLogDetail
+            parameters:
+                - name: requestId
+                  in: path
+                  required: true
+                  description: Unique identifier of the gateway request.
+                  example: req-abc-123
+                  schema:
+                      type: string
+                - name: apiId
+                  in: query
+                  required: true
+                  description: |
+                      API identifier scoping the request. Required as a security defense — prevents
+                      cross-API existence probing and enables Elasticsearch routing.
+                  example: 67e246cb-ab02-4da4-8f47-f9fa3e061d6b
+                  schema:
+                      type: string
+            responses:
+                "200":
+                    description: The full merged log detail.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/LogDetail"
+                            examples:
+                                full-detail:
+                                    summary: Complete log detail with metadata and payloads
+                                    value:
+                                        requestId: "req-abc-123"
+                                        apiId: "67e246cb-ab02-4da4-8f47-f9fa3e061d6b"
+                                        transactionId: "txn-xyz-789"
+                                        timestamp: "2026-06-10T14:32:01Z"
+                                        requestEnded: true
+                                        method: "GET"
+                                        uri: "/pets/42"
+                                        status: 200
+                                        endpoint: "https://backend.example.com/pets/42"
+                                        host: "api.example.com"
+                                        planId: "plan-001"
+                                        planName: "Gold"
+                                        applicationId: "app-001"
+                                        applicationName: "Mobile App"
+                                        gateway: "gw-eu-1"
+                                        gatewayHostname: "gateway-eu-west-1.example.com"
+                                        gatewayIp: "10.0.1.42"
+                                        remoteAddress: "203.0.113.42"
+                                        requestContentLength: 0
+                                        responseContentLength: 256
+                                        gatewayLatency: 3
+                                        gatewayResponseTime: 12
+                                        endpointResponseTime: 9
+                                        entrypointRequest:
+                                            method: "GET"
+                                            uri: "/pets/42"
+                                            headers:
+                                                Accept: ["application/json"]
+                                                X-Gravitee-Transaction-Id: ["txn-xyz-789"]
+                                        entrypointResponse:
+                                            status: 200
+                                            headers:
+                                                Content-Type: ["application/json"]
+                                            body: '{"id": 42, "name": "Fido"}'
+                                        endpointRequest:
+                                            method: "GET"
+                                            uri: "https://backend.example.com/pets/42"
+                                            headers:
+                                                Accept: ["application/json"]
+                                        endpointResponse:
+                                            status: 200
+                                            headers:
+                                                Content-Type: ["application/json"]
+                                            body: '{"id": 42, "name": "Fido"}'
+                "400":
+                    description: Missing or blank `apiId` query parameter.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 400
+                                message: "Required scope dimension 'apiId' is missing"
+                                technicalCode: "observability.log.scope.missing"
+                "404":
+                    description: |
+                        The log does not exist for the given request id and API scope, OR the caller
+                        does not have `API_LOG[READ]` permission on the API. Both cases return 404
+                        to prevent cross-API existence probing.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 404
+                                message: "Log req-abc-123 not found for API 67e246cb-ab02-4da4-8f47-f9fa3e061d6b"
+
     /organizations/{orgId}/environments/{envId}/observability/logs/search:
         parameters:
             - $ref: "#/components/parameters/orgIdParam"
@@ -869,6 +988,168 @@ components:
                           items:
                               type: string
                     example: "200"
+
+        LogDetail:
+            type: object
+            description: |
+                Full merged log detail combining enriched metadata from the `v4-metrics` index
+                and HTTP payloads (headers + body) from the `v4-log` index. Returned by
+                `GET /observability/logs/{requestId}?apiId=`.
+            properties:
+                requestId:
+                    type: string
+                    description: Unique identifier of the gateway request.
+                    example: "req-abc-123"
+                apiId:
+                    type: string
+                    description: Identifier of the API that handled the request.
+                    example: "67e246cb-ab02-4da4-8f47-f9fa3e061d6b"
+                transactionId:
+                    type: string
+                    description: Correlation id shared across chained requests.
+                    example: "txn-xyz-789"
+                clientIdentifier:
+                    type: string
+                    description: Client identifier extracted by the gateway.
+                timestamp:
+                    type: string
+                    format: date-time
+                    description: ISO-8601 instant the request was received.
+                    example: "2026-06-10T14:32:01Z"
+                requestEnded:
+                    type: boolean
+                    description: Whether the full request/response cycle completed.
+                method:
+                    type: string
+                    description: HTTP method of the client request.
+                    example: "GET"
+                uri:
+                    type: string
+                    description: Request URI path.
+                    example: "/pets/42"
+                status:
+                    type: integer
+                    description: HTTP status code returned to the client.
+                    example: 200
+                endpoint:
+                    type: string
+                    description: Backend endpoint the request was proxied to.
+                host:
+                    type: string
+                    description: Host header value from the client request.
+                planId:
+                    type: string
+                    description: Identifier of the plan the request was matched to.
+                planName:
+                    type: string
+                    description: Display name of the plan (enriched server-side).
+                    example: "Gold"
+                applicationId:
+                    type: string
+                    description: Identifier of the consuming application.
+                applicationName:
+                    type: string
+                    description: Display name of the application (enriched server-side).
+                    example: "Mobile App"
+                gateway:
+                    type: string
+                    description: Identifier of the gateway instance.
+                gatewayHostname:
+                    type: string
+                    description: Hostname of the gateway instance (enriched server-side).
+                    example: "gateway-eu-west-1.example.com"
+                gatewayIp:
+                    type: string
+                    description: IP address of the gateway instance (enriched server-side).
+                    example: "10.0.1.42"
+                remoteAddress:
+                    type: string
+                    description: IP address of the client.
+                    example: "203.0.113.42"
+                requestContentLength:
+                    type: integer
+                    format: int64
+                    description: Content length of the client request body in bytes.
+                responseContentLength:
+                    type: integer
+                    format: int64
+                    description: Content length of the response body in bytes.
+                gatewayLatency:
+                    type: integer
+                    format: int64
+                    description: Gateway processing latency in milliseconds (excluding backend time).
+                gatewayResponseTime:
+                    type: integer
+                    format: int64
+                    description: Total response time measured by the gateway in milliseconds.
+                    example: 12
+                endpointResponseTime:
+                    type: integer
+                    format: int64
+                    description: Backend response time in milliseconds.
+                    example: 9
+                message:
+                    type: string
+                    description: Error or diagnostic message.
+                errorKey:
+                    type: string
+                    description: Machine-readable error key.
+                errorComponentName:
+                    type: string
+                    description: Name of the component that produced the error.
+                errorComponentType:
+                    type: string
+                    description: Type of the component that produced the error.
+                warnings:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/LogEntryWarning"
+                additionalMetrics:
+                    type: object
+                    description: Extra metrics attached by plugins or custom policies.
+                    additionalProperties: true
+                entrypointRequest:
+                    $ref: "#/components/schemas/HttpPayload"
+                entrypointResponse:
+                    $ref: "#/components/schemas/HttpPayload"
+                endpointRequest:
+                    $ref: "#/components/schemas/HttpPayload"
+                endpointResponse:
+                    $ref: "#/components/schemas/HttpPayload"
+
+        HttpPayload:
+            type: object
+            description: |
+                HTTP request or response content from the `v4-log` index. Request payloads carry
+                `method` and `uri`; response payloads carry `status`. All fields are nullable —
+                only the fields relevant to the payload direction are populated.
+            properties:
+                method:
+                    type: string
+                    description: HTTP method (present on request payloads).
+                    example: "GET"
+                uri:
+                    type: string
+                    description: Request URI (present on request payloads).
+                    example: "/pets/42"
+                status:
+                    type: integer
+                    description: HTTP status code (present on response payloads).
+                    example: 200
+                headers:
+                    type: object
+                    description: HTTP headers as a map of header name to list of values.
+                    additionalProperties:
+                        type: array
+                        items:
+                            type: string
+                    example:
+                        Content-Type: ["application/json"]
+                        Accept: ["application/json"]
+                body:
+                    type: string
+                    description: HTTP body content.
+                    example: '{"id": 42, "name": "Fido"}'
 
         LogEntry:
             type: object
