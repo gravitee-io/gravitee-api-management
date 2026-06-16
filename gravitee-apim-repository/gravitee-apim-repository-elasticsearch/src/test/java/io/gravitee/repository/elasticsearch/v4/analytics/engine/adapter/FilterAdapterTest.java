@@ -336,6 +336,103 @@ class FilterAdapterTest {
     }
 
     @Nested
+    class NumericRangeFilters {
+
+        @Test
+        void should_generate_range_query_with_gte_for_gateway_response_time() throws JsonProcessingException {
+            var filters = List.of(new Filter(Filter.Name.HTTP_GATEWAY_RESPONSE_TIME, Filter.Operator.GTE, 1000));
+            var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+            var query = new MeasuresQuery(buildTimeRange(), filters, metrics);
+
+            var queryString = measuresAdapter.adapt(query);
+            var jsonQuery = JSON.readTree(queryString);
+
+            var rangeFilter = jsonQuery.at("/query/bool/filter/1/range/gateway-response-time-ms");
+            assertThat(rangeFilter.isMissingNode()).isFalse();
+            assertThat(rangeFilter.get("gte").asInt()).isEqualTo(1000);
+            assertThat(rangeFilter.has("lte")).isFalse();
+        }
+
+        @Test
+        void should_generate_range_query_with_lte_for_gateway_response_time() throws JsonProcessingException {
+            var filters = List.of(new Filter(Filter.Name.HTTP_GATEWAY_RESPONSE_TIME, Filter.Operator.LTE, 500));
+            var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+            var query = new MeasuresQuery(buildTimeRange(), filters, metrics);
+
+            var queryString = measuresAdapter.adapt(query);
+            var jsonQuery = JSON.readTree(queryString);
+
+            var rangeFilter = jsonQuery.at("/query/bool/filter/1/range/gateway-response-time-ms");
+            assertThat(rangeFilter.isMissingNode()).isFalse();
+            assertThat(rangeFilter.get("lte").asInt()).isEqualTo(500);
+            assertThat(rangeFilter.has("gte")).isFalse();
+        }
+
+        @Test
+        void should_generate_range_query_with_gte_for_endpoint_response_time() throws JsonProcessingException {
+            var filters = List.of(new Filter(Filter.Name.HTTP_ENDPOINT_RESPONSE_TIME, Filter.Operator.GTE, 200));
+            var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+            var query = new MeasuresQuery(buildTimeRange(), filters, metrics);
+
+            var queryString = measuresAdapter.adapt(query);
+            var jsonQuery = JSON.readTree(queryString);
+
+            var rangeFilter = jsonQuery.at("/query/bool/filter/1/range/endpoint-response-time-ms");
+            assertThat(rangeFilter.isMissingNode()).isFalse();
+            assertThat(rangeFilter.get("gte").asInt()).isEqualTo(200);
+        }
+
+        @Test
+        void should_generate_range_query_with_gte_for_gateway_latency() throws JsonProcessingException {
+            var filters = List.of(new Filter(Filter.Name.HTTP_GATEWAY_LATENCY, Filter.Operator.GTE, 50));
+            var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+            var query = new MeasuresQuery(buildTimeRange(), filters, metrics);
+
+            var queryString = measuresAdapter.adapt(query);
+            var jsonQuery = JSON.readTree(queryString);
+
+            var rangeFilter = jsonQuery.at("/query/bool/filter/1/range/gateway-latency-ms");
+            assertThat(rangeFilter.isMissingNode()).isFalse();
+            assertThat(rangeFilter.get("gte").asInt()).isEqualTo(50);
+        }
+
+        @Test
+        void should_generate_range_query_with_gte_for_http_status() throws JsonProcessingException {
+            var filters = List.of(new Filter(Filter.Name.HTTP_STATUS, Filter.Operator.GTE, 400));
+            var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+            var query = new MeasuresQuery(buildTimeRange(), filters, metrics);
+
+            var queryString = measuresAdapter.adapt(query);
+            var jsonQuery = JSON.readTree(queryString);
+
+            var rangeFilter = jsonQuery.at("/query/bool/filter/1/range/status");
+            assertThat(rangeFilter.isMissingNode()).isFalse();
+            assertThat(rangeFilter.get("gte").asInt()).isEqualTo(400);
+        }
+
+        @Test
+        void should_generate_range_query_at_metric_level_for_gte() throws JsonProcessingException {
+            var topLevelFilters = List.of(new Filter(Filter.Name.API, Filter.Operator.IN, List.of(API_ID)));
+            var metricFilters = List.of(new Filter(Filter.Name.HTTP_GATEWAY_RESPONSE_TIME, Filter.Operator.GTE, 1000));
+            var metrics = List.of(
+                new MetricMeasuresQuery(Metric.HTTP_GATEWAY_RESPONSE_TIME, Set.of(Measure.AVG), metricFilters, List.of())
+            );
+
+            var query = new MeasuresQuery(buildTimeRange(), topLevelFilters, metrics);
+
+            var queryString = measuresAdapter.adapt(query);
+            var jsonQuery = JSON.readTree(queryString);
+
+            var filterAgg = jsonQuery.at("/aggs/HTTP_GATEWAY_RESPONSE_TIME#__FILTER__");
+            assertThat(filterAgg.isMissingNode()).isFalse();
+
+            var rangeClause = filterAgg.at("/filter/bool/must/0/range/gateway-response-time-ms");
+            assertThat(rangeClause.isMissingNode()).isFalse();
+            assertThat(rangeClause.get("gte").asInt()).isEqualTo(1000);
+        }
+    }
+
+    @Nested
     class HttpEntrypointFilter {
 
         private final FilterAdapter filterAdapter = new FilterAdapter(new HTTPFieldResolver());
