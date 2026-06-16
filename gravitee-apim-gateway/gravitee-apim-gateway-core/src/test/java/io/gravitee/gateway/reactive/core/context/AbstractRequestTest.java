@@ -124,6 +124,15 @@ class AbstractRequestTest {
         }
 
         @Test
+        void global_path_is_null() {
+            cut.contextPath = "/uuid-12345-contextPath/";
+            cut.debugContextPath("/contextPath/");
+            assertThat(cut.contextPath).isEqualTo("/contextPath/");
+            assertThat(cut.path).isNull();
+            assertThat(cut.pathInfo).isNull();
+        }
+
+        @Test
         void global_context_path_ends_with_slash_and_global_path_ends_with_slash() {
             cut.contextPath = "/uuid-12345-contextPath/";
             cut.path = "/uuid-12345-contextPath/";
@@ -160,7 +169,41 @@ class AbstractRequestTest {
             String contextPath = "/contextPath/";
             cut.debugContextPath(contextPath);
             assertThat(cut.contextPath).isEqualTo("/contextPath/");
-            assertThat(cut.path).isEqualTo("/contextPath/v1/");
+            assertThat(cut.path).isEqualTo("/contextPath/v1");
+            assertThat(cut.pathInfo).isEqualTo("/v1");
+        }
+
+        @Test
+        void should_keep_path_and_path_info_consistent_for_subpath_without_trailing_slash() {
+            cut.contextPath = "/uuid-12345-v3/debug-slash-repro/";
+            cut.path = "/uuid-12345-v3/debug-slash-repro/anything/8077";
+            cut.pathInfo = "/anything/8077";
+            cut.debugContextPath("/v3/debug-slash-repro/");
+            assertThat(cut.path).isEqualTo("/v3/debug-slash-repro/anything/8077");
+            assertThat(cut.pathInfo).isEqualTo("/anything/8077");
+        }
+
+        @Test
+        void should_compute_path_info_when_path_is_lazy_loaded() {
+            AbstractRequest lazyPathRequest = new AbstractRequest() {
+                private boolean loaded;
+
+                @Override
+                public String path() {
+                    if (!loaded) {
+                        this.path = "/uuid-12345-contextPath/anything/8077";
+                        loaded = true;
+                    }
+                    return path;
+                }
+            };
+
+            lazyPathRequest.contextPath("/uuid-12345-contextPath/");
+            assertThat(lazyPathRequest.pathInfo()).isEqualTo("/anything/8077");
+
+            lazyPathRequest.debugContextPath("/contextPath/");
+            assertThat(lazyPathRequest.path()).isEqualTo("/contextPath/anything/8077");
+            assertThat(lazyPathRequest.pathInfo()).isEqualTo("/anything/8077");
         }
     }
 }
