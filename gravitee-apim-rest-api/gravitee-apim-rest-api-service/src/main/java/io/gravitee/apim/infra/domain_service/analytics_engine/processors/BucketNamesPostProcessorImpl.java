@@ -19,6 +19,7 @@ import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProc
 import io.gravitee.apim.core.analytics_engine.model.*;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.infra.domain_service.analytics_engine.mapper.ApiMapper;
+import io.gravitee.repository.analytics.engine.api.query.HttpStatusCodeGroups;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
@@ -41,18 +42,7 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
 
     private static final String UNKNOWN_APPLICATION = "Unknown";
 
-    private static final Map<String, String> STATUS_CODE_GROUP_FROM_ES_KEY = Map.of(
-        "100-199",
-        "1XX",
-        "200-299",
-        "2XX",
-        "300-399",
-        "3XX",
-        "400-499",
-        "4XX",
-        "500-599",
-        "5XX"
-    );
+    private static final Map<String, String> STATUS_CODE_GROUP_FROM_ES_KEY = HttpStatusCodeGroups.esBucketKeyToGroupLabel();
 
     private final ApiRepository apiRepository;
     private final ApplicationService applicationSearchService;

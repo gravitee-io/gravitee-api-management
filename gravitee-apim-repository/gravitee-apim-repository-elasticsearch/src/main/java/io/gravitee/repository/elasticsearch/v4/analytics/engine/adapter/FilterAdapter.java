@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.Query;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
+import io.gravitee.repository.elasticsearch.v4.shared.StatusCodeGroups;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.*;
@@ -28,8 +29,6 @@ import java.util.*;
  */
 public class FilterAdapter {
 
-    private record StatusCodeRange(int min, int max) {}
-
     static final String ENTRYPOINT_FIELD = "entrypoint-id";
     static final String HTTP_GET_ENTRYPOINT_ID = "http-get";
     static final String HTTP_POST_ENTRYPOINT_ID = "http-post";
@@ -37,19 +36,6 @@ public class FilterAdapter {
     static final String LLM_PROXY_ENTRYPOINT_ID = "llm-proxy";
     static final String MCP_PROXY_ENTRYPOINT_ID = "mcp-proxy";
     static final String EDGE_ENTRYPOINT_ID = "edge";
-
-    private static final Map<String, StatusCodeRange> STATUS_CODE_GROUP_RANGES = Map.of(
-        "1XX",
-        new StatusCodeRange(100, 199),
-        "2XX",
-        new StatusCodeRange(200, 299),
-        "3XX",
-        new StatusCodeRange(300, 399),
-        "4XX",
-        new StatusCodeRange(400, 499),
-        "5XX",
-        new StatusCodeRange(500, 599)
-    );
 
     static final List<Filter.Name> HTTP_FILTER_NAMES = List.of(
         Filter.Name.API,
@@ -238,34 +224,10 @@ public class FilterAdapter {
     private JsonObject statusCodeGroupFilter(Filter filter) {
         var field = fieldResolver.fromFilter(filter);
         return switch (filter.operator()) {
-            case EQ -> statusCodeGroupRange(field, (String) filter.value());
-            case IN -> {
-                var values = (Collection<String>) filter.value();
-                if (values == null || values.isEmpty()) {
-                    yield JsonObject.of("match_none", JsonObject.of());
-                }
-                if (values.size() == 1) {
-                    yield statusCodeGroupRange(field, values.iterator().next());
-                }
-                var ranges = new JsonArray();
-                for (var group : values) {
-                    ranges.add(statusCodeGroupRange(field, group));
-                }
-                yield JsonObject.of("bool", JsonObject.of("should", ranges, "minimum_should_match", 1));
-            }
+            case EQ -> StatusCodeGroups.rangeForGroup(field, (String) filter.value());
+            case IN -> StatusCodeGroups.shouldForGroups(field, (Collection<String>) filter.value());
             default -> throw new IllegalArgumentException("Unsupported operator for HTTP_STATUS_CODE_GROUP filter: " + filter.operator());
         };
-    }
-
-    private static JsonObject statusCodeGroupRange(String field, String statusCodeGroup) {
-        if (statusCodeGroup == null) {
-            throw new IllegalArgumentException("Status code group must not be null");
-        }
-        var range = STATUS_CODE_GROUP_RANGES.get(statusCodeGroup.toUpperCase());
-        if (range == null) {
-            throw new IllegalArgumentException("Unknown status code group: " + statusCodeGroup);
-        }
-        return JsonObject.of("range", JsonObject.of(field, JsonObject.of("gte", range.min(), "lte", range.max())));
     }
 
     private String filterName(Filter filter) {

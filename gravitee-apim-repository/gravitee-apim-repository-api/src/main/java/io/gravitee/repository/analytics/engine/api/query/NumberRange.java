@@ -23,12 +23,6 @@ import java.util.List;
  */
 public record NumberRange(Number from, Number to) {
     public static List<NumberRange> forStatusCodeGroup() {
-        return List.of(
-            new NumberRange(100, 199),
-            new NumberRange(200, 299),
-            new NumberRange(300, 399),
-            new NumberRange(400, 499),
-            new NumberRange(500, 599)
-        );
+        return HttpStatusCodeGroups.asNumberRanges();
     }
 }
