@@ -35,7 +35,6 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncD
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -143,7 +142,7 @@ class CreateOrUpdatePortalUseCaseTest {
             new CreateOrUpdatePortalUseCase.Input(
                 AUDIT_INFO,
                 portal,
-                List.of(new NavigationPath("/projects/alpha", Optional.of("Alpha")), new NavigationPath("/projects/beta", Optional.empty()))
+                List.of(new NavigationPath("/projects/alpha", "Alpha"), new NavigationPath("/projects/beta", null))
             )
         );
 
@@ -168,7 +167,7 @@ class CreateOrUpdatePortalUseCaseTest {
                 new CreateOrUpdatePortalUseCase.Input(
                     AUDIT_INFO,
                     portal,
-                    List.of(new NavigationPath("/valid", Optional.empty()), new NavigationPath("bad-path", Optional.empty()))
+                    List.of(new NavigationPath("/valid", null), new NavigationPath("bad-path", null))
                 )
             )
         )
@@ -180,9 +179,7 @@ class CreateOrUpdatePortalUseCaseTest {
     void should_return_empty_errors_when_navigation_is_valid() {
         var portal = PortalFixtures.aPortal();
 
-        var output = useCase.execute(
-            new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portal, List.of(new NavigationPath("/docs", Optional.empty())))
-        );
+        var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portal, List.of(new NavigationPath("/docs", null))));
 
         assertThat(output.errors()).isEmpty();
     }
@@ -190,7 +187,7 @@ class CreateOrUpdatePortalUseCaseTest {
     @Test
     void should_persist_navigation_array_on_portal_row() {
         var portal = PortalFixtures.aPortal();
-        var input = List.of(new NavigationPath("/a", Optional.of("A")), new NavigationPath("/b", Optional.empty()));
+        var input = List.of(new NavigationPath("/a", "A"), new NavigationPath("/b", null));
 
         var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portal, input));
 
@@ -203,9 +200,7 @@ class CreateOrUpdatePortalUseCaseTest {
     @Test
     void should_use_previously_persisted_to_skip_unmanaged_folders_on_delete() {
         var portal = PortalFixtures.aPortal();
-        useCase.execute(
-            new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portal, List.of(new NavigationPath("/managed", Optional.empty())))
-        );
+        useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portal, List.of(new NavigationPath("/managed", null))));
         var unmanaged = io.gravitee.apim.core.portal_page.model.PortalNavigationFolder.builder()
             .id(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.random())
             .organizationId(AUDIT_INFO.organizationId())

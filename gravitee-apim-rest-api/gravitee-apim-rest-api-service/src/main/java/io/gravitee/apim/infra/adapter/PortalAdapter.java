@@ -22,7 +22,6 @@ import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.node.logging.NodeLoggerFactory;
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
@@ -58,24 +57,14 @@ public interface PortalAdapter {
             .build();
     }
 
-    TypeReference<List<NavigationPathJson>> NAVIGATION_PATH_LIST = new TypeReference<>() {};
-
-    record NavigationPathJson(String path, String displayName) {
-        static NavigationPathJson from(NavigationPath p) {
-            return new NavigationPathJson(p.path(), p.displayName().orElse(null));
-        }
-
-        NavigationPath toDomain() {
-            return new NavigationPath(path, Optional.ofNullable(displayName));
-        }
-    }
+    TypeReference<List<NavigationPath>> NAVIGATION_PATH_LIST = new TypeReference<>() {};
 
     default String serializePortalNavigation(List<NavigationPath> portalNavigation) {
         if (portalNavigation == null || portalNavigation.isEmpty()) {
             return null;
         }
         try {
-            return GraviteeJacksonMapper.getInstance().writeValueAsString(portalNavigation.stream().map(NavigationPathJson::from).toList());
+            return GraviteeJacksonMapper.getInstance().writeValueAsString(portalNavigation);
         } catch (IOException ioe) {
             throw new RuntimeException("Unexpected error while serializing portal portalNavigation", ioe);
         }
@@ -86,11 +75,7 @@ public interface PortalAdapter {
             return List.of();
         }
         try {
-            return GraviteeJacksonMapper.getInstance()
-                .readValue(json, NAVIGATION_PATH_LIST)
-                .stream()
-                .map(NavigationPathJson::toDomain)
-                .toList();
+            return GraviteeJacksonMapper.getInstance().readValue(json, NAVIGATION_PATH_LIST);
         } catch (IOException ioe) {
             log.error("Unexpected error while deserializing portal portalNavigation", ioe);
             return List.of();

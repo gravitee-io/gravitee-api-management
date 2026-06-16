@@ -25,7 +25,6 @@ import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -61,7 +60,7 @@ class ValidatePortalUseCaseTest {
             new CreateOrUpdatePortalUseCase.Input(
                 AUDIT_INFO,
                 PORTAL,
-                List.of(new NavigationPath("/docs", Optional.empty()), new NavigationPath("/docs/getting-started", Optional.empty()))
+                List.of(new NavigationPath("/docs", null), new NavigationPath("/docs/getting-started", null))
             )
         );
 
@@ -75,7 +74,7 @@ class ValidatePortalUseCaseTest {
             new CreateOrUpdatePortalUseCase.Input(
                 AUDIT_INFO,
                 PORTAL,
-                List.of(new NavigationPath("/valid", Optional.empty()), new NavigationPath("bad-path", Optional.empty()))
+                List.of(new NavigationPath("/valid", null), new NavigationPath("bad-path", null))
             )
         );
 
@@ -84,7 +83,7 @@ class ValidatePortalUseCaseTest {
 
     @Test
     void should_echo_navigation_in_output() {
-        var nav = List.of(new NavigationPath("/docs", Optional.empty()));
+        var nav = List.of(new NavigationPath("/docs", null));
         var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, PORTAL, nav));
 
         assertThat(output.navigation()).containsExactlyElementsOf(nav);

@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -109,6 +110,7 @@ class ApiCRDExportDomainServiceImplTest {
             groupQueryServiceInMemory,
             notificationCRDDomainService
         );
+        lenient().when(apiCrudService.get(API_ID)).thenReturn(new Api());
     }
 
     @Test
@@ -126,7 +128,7 @@ class ApiCRDExportDomainServiceImplTest {
             false
         );
 
-        verify(apiCrudService, times(1)).get(API_ID);
+        verify(apiCrudService, times(2)).get(API_ID);
 
         verify(apiCrudService, times(1)).update(argThat(api -> StringUtils.isNotBlank(api.getCrossId())));
 

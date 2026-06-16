@@ -378,4 +378,6 @@ databaseChangeLog:
     - include:
         - file: liquibase/changelogs/v4_12_0/16_add_automation_metadata_to_portal_page_contents.yml
     - include:
+        - file: liquibase/changelogs/v4_12_0/17_add_portal_navigation_to_apis.yml
+    - include:
         - file: liquibase/changelogs/v4_12_0/18_add_portal_navigation_to_portals.yml

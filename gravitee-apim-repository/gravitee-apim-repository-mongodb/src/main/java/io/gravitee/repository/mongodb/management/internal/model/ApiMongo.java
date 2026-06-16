@@ -111,6 +111,8 @@ public class ApiMongo extends DeprecatedAuditable {
 
     private String background;
 
+    private String portalNavigation;
+
     public ApiMongo setIntegrationId(String integrationId) {
         this.integrationId = integrationId;
         return this;

@@ -15,9 +15,11 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.definition.model.ApiDefinition;
 import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.definition.model.federation.FederatedApi;
@@ -35,6 +37,7 @@ import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.mapstruct.DecoratedWith;
@@ -52,6 +55,7 @@ public interface ApiAdapter {
     ApiAdapter INSTANCE = Mappers.getMapper(ApiAdapter.class);
 
     @Mapping(target = "apiDefinitionValue", expression = "java(toApiDefinition(source))")
+    @Mapping(target = "portalNavigation", expression = "java(deserializePortalNavigation(source.getPortalNavigation()))")
     Api toCoreModel(io.gravitee.repository.management.model.Api source);
 
     default ApiDefinition toApiDefinition(io.gravitee.repository.management.model.Api source) {
@@ -71,6 +75,7 @@ public interface ApiAdapter {
     Stream<Api> toCoreModelStream(Stream<io.gravitee.repository.management.model.Api> source);
 
     @Mapping(target = "definition", expression = "java(serializeApiDefinition(source))")
+    @Mapping(target = "portalNavigation", expression = "java(serializePortalNavigation(source.getPortalNavigation()))")
     io.gravitee.repository.management.model.Api toRepository(Api source);
 
     Stream<io.gravitee.repository.management.model.Api> toRepositoryStream(Stream<Api> source);
@@ -209,6 +214,31 @@ public interface ApiAdapter {
             return GraviteeJacksonMapper.getInstance().writeValueAsString(value);
         } catch (IOException ioe) {
             throw new RuntimeException("Unexpected error while serializing " + name + " definition", ioe);
+        }
+    }
+
+    TypeReference<List<NavigationPath>> NAVIGATION_PATH_LIST = new TypeReference<>() {};
+
+    default String serializePortalNavigation(List<NavigationPath> portalNavigation) {
+        if (portalNavigation == null || portalNavigation.isEmpty()) {
+            return null;
+        }
+        try {
+            return GraviteeJacksonMapper.getInstance().writeValueAsString(portalNavigation);
+        } catch (IOException ioe) {
+            throw new RuntimeException("Unexpected error while serializing API portalNavigation", ioe);
+        }
+    }
+
+    default List<NavigationPath> deserializePortalNavigation(String json) {
+        if (json == null || json.isBlank()) {
+            return null;
+        }
+        try {
+            return GraviteeJacksonMapper.getInstance().readValue(json, NAVIGATION_PATH_LIST);
+        } catch (IOException ioe) {
+            log.error("Unexpected error while deserializing API portalNavigation", ioe);
+            return null;
         }
     }
 }

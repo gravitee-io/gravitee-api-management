@@ -76,7 +76,7 @@ class PortalNavigationSyncDomainServiceTest {
 
     @Test
     void single_root_path_creates_one_folder() {
-        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), List.of(new NavigationPath("/a", Optional.empty())));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), List.of(new NavigationPath("/a", null)));
 
         assertThat(crud.storage()).hasSize(1);
         var folder = (PortalNavigationFolder) crud.storage().get(0);
@@ -92,7 +92,7 @@ class PortalNavigationSyncDomainServiceTest {
 
     @Test
     void display_name_when_provided_becomes_the_title_and_segment_holds_the_path_piece() {
-        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), List.of(new NavigationPath("/a", Optional.of("Alpha"))));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), List.of(new NavigationPath("/a", "Alpha")));
 
         assertThat(crud.storage()).hasSize(1);
         var folder = crud.storage().get(0);
@@ -102,7 +102,7 @@ class PortalNavigationSyncDomainServiceTest {
 
     @Test
     void title_falls_back_to_segment_when_no_display_name_provided() {
-        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), List.of(new NavigationPath("/a", Optional.empty())));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), List.of(new NavigationPath("/a", null)));
 
         assertThat(crud.storage()).hasSize(1);
         var folder = crud.storage().get(0);
@@ -112,7 +112,7 @@ class PortalNavigationSyncDomainServiceTest {
 
     @Test
     void implicit_ancestors_are_created_with_mkdir_p() {
-        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), List.of(new NavigationPath("/a/b/c", Optional.empty())));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), List.of(new NavigationPath("/a/b/c", null)));
 
         assertThat(crud.storage()).hasSize(3);
         var a = findByPath("/a").orElseThrow();
@@ -135,11 +135,7 @@ class PortalNavigationSyncDomainServiceTest {
             AUDIT_INFO,
             PORTAL_ID,
             List.of(),
-            List.of(
-                new NavigationPath("/a", Optional.empty()),
-                new NavigationPath("/a/b", Optional.empty()),
-                new NavigationPath("/a/c", Optional.empty())
-            )
+            List.of(new NavigationPath("/a", null), new NavigationPath("/a/b", null), new NavigationPath("/a/c", null))
         );
 
         var a = findByPath("/a").orElseThrow();
@@ -152,11 +148,7 @@ class PortalNavigationSyncDomainServiceTest {
 
     @Test
     void re_sync_with_same_input_is_idempotent() {
-        var input = List.of(
-            new NavigationPath("/a", Optional.of("Alpha")),
-            new NavigationPath("/a/b", Optional.empty()),
-            new NavigationPath("/c", Optional.empty())
-        );
+        var input = List.of(new NavigationPath("/a", "Alpha"), new NavigationPath("/a/b", null), new NavigationPath("/c", null));
 
         syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), input);
         var snapshot = new ArrayList<>(crud.storage());
@@ -171,12 +163,12 @@ class PortalNavigationSyncDomainServiceTest {
 
     @Test
     void folder_ids_are_deterministic_from_audit_portal_and_path() {
-        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), List.of(new NavigationPath("/a/b", Optional.empty())));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), List.of(new NavigationPath("/a/b", null)));
 
         var idsBefore = crud.storage().stream().map(PortalNavigationItem::getId).toList();
 
         crud.reset();
-        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), List.of(new NavigationPath("/a/b", Optional.empty())));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), List.of(new NavigationPath("/a/b", null)));
 
         var idsAfter = crud.storage().stream().map(PortalNavigationItem::getId).toList();
         assertThat(idsAfter).isEqualTo(idsBefore);
@@ -186,11 +178,11 @@ class PortalNavigationSyncDomainServiceTest {
     void different_portals_produce_different_folder_ids_for_the_same_path() {
         var otherPortal = PortalId.of("22222222-2222-2222-2222-222222222222");
 
-        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), List.of(new NavigationPath("/a", Optional.empty())));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), List.of(new NavigationPath("/a", null)));
         var idForPortalOne = findByPath("/a").orElseThrow().getId();
 
         crud.reset();
-        syncService.sync(AUDIT_INFO, otherPortal, List.of(), List.of(new NavigationPath("/a", Optional.empty())));
+        syncService.sync(AUDIT_INFO, otherPortal, List.of(), List.of(new NavigationPath("/a", null)));
         var idForPortalTwo = findByPath("/a").orElseThrow().getId();
 
         assertThat(idForPortalTwo).isNotEqualTo(idForPortalOne);
@@ -198,8 +190,8 @@ class PortalNavigationSyncDomainServiceTest {
 
     @Test
     void reorder_updates_existing_folders() {
-        var first = List.of(new NavigationPath("/a/b", Optional.empty()), new NavigationPath("/a/c", Optional.empty()));
-        var reordered = List.of(new NavigationPath("/a/c", Optional.empty()), new NavigationPath("/a/b", Optional.empty()));
+        var first = List.of(new NavigationPath("/a/b", null), new NavigationPath("/a/c", null));
+        var reordered = List.of(new NavigationPath("/a/c", null), new NavigationPath("/a/b", null));
         syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), first);
 
         syncService.sync(AUDIT_INFO, PORTAL_ID, first, reordered);
@@ -213,11 +205,11 @@ class PortalNavigationSyncDomainServiceTest {
 
     @Test
     void removed_path_is_deleted_when_previously_managed() {
-        var firstInput = List.of(new NavigationPath("/a", Optional.empty()), new NavigationPath("/b", Optional.empty()));
+        var firstInput = List.of(new NavigationPath("/a", null), new NavigationPath("/b", null));
         syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), firstInput);
         assertThat(crud.storage()).hasSize(2);
 
-        syncService.sync(AUDIT_INFO, PORTAL_ID, firstInput, List.of(new NavigationPath("/a", Optional.empty())));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, firstInput, List.of(new NavigationPath("/a", null)));
 
         assertThat(crud.storage()).hasSize(1);
         assertThat(findByPath("/a")).isPresent();
@@ -241,7 +233,7 @@ class PortalNavigationSyncDomainServiceTest {
         unmanaged.markAsRoot();
         crud.initWith(List.of(unmanaged));
 
-        var previously = List.of(new NavigationPath("/managed", Optional.empty()));
+        var previously = List.of(new NavigationPath("/managed", null));
         syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), previously);
 
         syncService.sync(AUDIT_INFO, PORTAL_ID, previously, List.of());
@@ -252,8 +244,8 @@ class PortalNavigationSyncDomainServiceTest {
 
     @Test
     void rename_via_display_name_updates_title_without_changing_id() {
-        var original = List.of(new NavigationPath("/a", Optional.of("Original")));
-        var renamed = List.of(new NavigationPath("/a", Optional.of("Renamed")));
+        var original = List.of(new NavigationPath("/a", "Original"));
+        var renamed = List.of(new NavigationPath("/a", "Renamed"));
         syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), original);
         var originalId = crud.storage().get(0).getId();
 
@@ -294,7 +286,7 @@ class PortalNavigationSyncDomainServiceTest {
         folderInHomepage.markAsRoot();
         crud.initWith(List.of(pageInTopNavbar, folderInHomepage));
 
-        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), List.of(new NavigationPath("/a", Optional.empty())));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), List.of(new NavigationPath("/a", null)));
 
         assertThat(crud.storage()).hasSize(3);
         assertThat(crud.storage()).contains(pageInTopNavbar, folderInHomepage);
@@ -310,7 +302,7 @@ class PortalNavigationSyncDomainServiceTest {
         var apiChild = apiRow("api-child", folder.getId(), 2);
         crud.initWith(List.of(folder, pageChild, linkChild, apiChild));
 
-        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(new NavigationPath("/x", Optional.empty())), List.of());
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(new NavigationPath("/x", null)), List.of());
 
         assertThat(crud.storage()).isEmpty();
     }
@@ -330,7 +322,7 @@ class PortalNavigationSyncDomainServiceTest {
         var pageChild = pageRow("page-child", folder.getId(), 0, contentId);
         crud.initWith(List.of(folder, pageChild));
 
-        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(new NavigationPath("/x", Optional.empty())), List.of());
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(new NavigationPath("/x", null)), List.of());
 
         assertThat(crud.storage()).isEmpty();
         assertThat(pageContentCrud.storage()).isEmpty();
@@ -345,7 +337,7 @@ class PortalNavigationSyncDomainServiceTest {
         var leafPage = pageRow("leaf", c.getId(), 0, PortalPageContentId.random());
         crud.initWith(List.of(a, b, c, leafPage));
 
-        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(new NavigationPath("/a/b/c", Optional.empty())), List.of());
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(new NavigationPath("/a/b/c", null)), List.of());
 
         assertThat(crud.storage()).isEmpty();
     }
