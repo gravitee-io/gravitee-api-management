@@ -48,6 +48,9 @@ let capturedLayoutConfig: Record<string, unknown> | null = null;
 
 jest.mock('@gravitee/graphene-core', () => ({
     Badge: ({ children }: { children?: ReactNode }) => <span>{children}</span>,
+    Avatar: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+    AvatarImage: ({ src, alt }: { src?: string; alt?: string }) => <img src={src} alt={alt} />,
+    AvatarFallback: ({ children }: { children?: ReactNode }) => <span>{children}</span>,
     Skeleton: () => <div data-testid="skeleton" />,
     useLayoutConfig: jest.fn((config: Record<string, unknown>) => {
         capturedLayoutConfig = config;

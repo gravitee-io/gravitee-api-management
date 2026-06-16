@@ -25,11 +25,12 @@ import { useOrganizationAdmin } from '../features/applications/hooks/useOrganiza
 import type { ApplicationStatus } from '../features/applications/types/application';
 import {
     APPLICATION_LIST_SERVER_SORT_IDS,
+    applicationListSortToOrder,
     defaultApplicationListOrder,
     defaultApplicationListSort,
 } from '../features/applications/utils/applicationListSort';
 import { DEFAULT_APPLICATION_LIST_PAGE_SIZE } from '../features/applications/utils/paginationConstants';
-import { sortToOrder, type TableSortingState } from '../features/applications/utils/tableSort';
+import type { TableSortingState } from '../features/applications/utils/tableSort';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PER_PAGE = DEFAULT_APPLICATION_LIST_PAGE_SIZE;
@@ -48,7 +49,7 @@ export function ApplicationsPage() {
     const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE);
     const [sorting, setSorting] = useState<TableSortingState>(() => defaultApplicationListSort(DEFAULT_STATUS));
 
-    const order = useMemo(() => sortToOrder(sorting) ?? defaultApplicationListOrder(status), [sorting, status]);
+    const order = useMemo(() => applicationListSortToOrder(sorting) ?? defaultApplicationListOrder(status), [sorting, status]);
 
     useEffect(() => {
         const timer = setTimeout(() => setDebouncedSearch(search), SEARCH_DEBOUNCE_MS);

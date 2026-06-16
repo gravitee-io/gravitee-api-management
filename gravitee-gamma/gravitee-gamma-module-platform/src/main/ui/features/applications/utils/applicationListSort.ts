@@ -16,11 +16,29 @@
 import type { TableSortingState } from './tableSort';
 import type { ApplicationStatus } from '../types/application';
 
-export const ACTIVE_APPLICATIONS_DEFAULT_SORT: TableSortingState = [{ id: 'name', desc: false }];
-export const ARCHIVED_APPLICATIONS_DEFAULT_SORT: TableSortingState = [{ id: 'updated_at', desc: true }];
+/**
+ * Maps human-readable DataTable column ids (also shown in the column-visibility toggle)
+ * to the backend `order` fields. Management API `GET /applications/_paged?order=` only
+ * supports `name` and `updated_at`.
+ */
+const SORT_FIELD_BY_COLUMN_ID: Record<string, string> = {
+    Name: 'name',
+    'Archived at': 'updated_at',
+};
 
-/** Fields supported by Management API `GET /applications/_paged?order=`. */
-export const APPLICATION_LIST_SERVER_SORT_IDS = new Set(['name', 'updated_at']);
+export const ACTIVE_APPLICATIONS_DEFAULT_SORT: TableSortingState = [{ id: 'Name', desc: false }];
+export const ARCHIVED_APPLICATIONS_DEFAULT_SORT: TableSortingState = [{ id: 'Archived at', desc: true }];
+
+/** Column ids that the backend can sort server-side. */
+export const APPLICATION_LIST_SERVER_SORT_IDS = new Set(Object.keys(SORT_FIELD_BY_COLUMN_ID));
+
+/** Convert the active sorting column into the backend `order` value (`field` asc, `-field` desc). */
+export function applicationListSortToOrder(sorting: TableSortingState): string | undefined {
+    const active = sorting[0];
+    const field = active?.id ? SORT_FIELD_BY_COLUMN_ID[active.id] : undefined;
+    if (!field) return undefined;
+    return active.desc ? `-${field}` : field;
+}
 
 export function defaultApplicationListSort(status: ApplicationStatus): TableSortingState {
     return status === 'ARCHIVED' ? ARCHIVED_APPLICATIONS_DEFAULT_SORT : ACTIVE_APPLICATIONS_DEFAULT_SORT;

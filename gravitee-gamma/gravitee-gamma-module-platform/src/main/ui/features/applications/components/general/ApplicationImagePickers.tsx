@@ -13,63 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { cn, FileUploadInput } from '@gravitee/graphene-core';
-import { XIcon } from '@gravitee/graphene-core/icons';
-import { useCallback, useState, type CSSProperties } from 'react';
+import { cn } from '@gravitee/graphene-core';
+import { UploadIcon } from '@gravitee/graphene-core/icons';
+import { useCallback, useRef, useState } from 'react';
 
-const SLOT_SIZE_PX = 114;
-const IMAGE_ACCEPT = { 'image/*': [] } as const;
-/** Inline size: arbitrary Tailwind sizes may be absent from the federated CSS bundle. */
-const SLOT_BORDER_RADIUS_PX = 6;
-const SLOT_DIMENSIONS_STYLE: CSSProperties = {
-    width: SLOT_SIZE_PX,
-    height: SLOT_SIZE_PX,
-    minWidth: SLOT_SIZE_PX,
-    minHeight: SLOT_SIZE_PX,
-    borderWidth: 2,
-    borderStyle: 'dotted',
-    borderColor: 'var(--color-foreground)',
-    borderRadius: SLOT_BORDER_RADIUS_PX,
-    backgroundColor: 'color-mix(in oklab, var(--color-muted) 40%, transparent)',
-};
-const SLOT_CLASS_NAME = 'relative box-border shrink-0 overflow-hidden';
-const PREVIEW_BLUR_STYLE: CSSProperties = { filter: 'blur(6px)' };
-const HOVER_OVERLAY_STYLE: CSSProperties = {
-    backgroundColor: 'color-mix(in oklab, var(--color-background) 45%, transparent)',
-};
-const HOVER_OVERLAY_CLASS_NAME = 'pointer-events-none absolute inset-0 z-[12] flex items-center justify-center px-2';
-
-function UploadHintText({ className }: Readonly<{ className?: string }>) {
-    return (
-        <span className={cn('text-center text-xs leading-[1.8] text-foreground', className)}>
-            Click here or drag an image
-            <br />
-            Max 500KB
-        </span>
-    );
-}
-
-function ImageRemoveButton({
-    label,
-    onRemove,
-}: Readonly<{
-    label: string;
-    onRemove: () => void;
-}>) {
-    return (
-        <button
-            type="button"
-            className="absolute top-1 right-1 z-20 flex size-5 items-center justify-center rounded border border-border bg-background shadow-sm"
-            aria-label={`Remove ${label}`}
-            onClick={e => {
-                e.stopPropagation();
-                onRemove();
-            }}
-        >
-            <XIcon className="size-3.5 text-foreground hover:text-destructive" aria-hidden />
-        </button>
-    );
-}
+const MAX_SIZE_BYTES = 500 * 1024;
 
 function fileToDataUrl(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -80,92 +28,96 @@ function fileToDataUrl(file: File): Promise<string> {
     });
 }
 
-function ImageFilePickerSlot({
-    fieldLabel,
-    variant,
+/** Single image slot — mirrors the APIM `ImagePicker` (click-to-upload dashed box with preview). */
+function ImagePickerBox({
+    label,
     preview,
+    width,
+    height,
     disabled,
     onSelect,
     onRemove,
 }: Readonly<{
-    fieldLabel: string;
-    variant: 'picture' | 'background';
-    preview: string | null;
+    label: string;
+    preview?: string;
+    width: number;
+    height: number;
     disabled?: boolean;
     onSelect: (dataUrl: string) => void;
     onRemove: () => void;
 }>) {
+    const inputRef = useRef<HTMLInputElement>(null);
+    const [sizeError, setSizeError] = useState<string | null>(null);
     const [imgError, setImgError] = useState(false);
-    const [hovered, setHovered] = useState(false);
     const [prevPreview, setPrevPreview] = useState(preview);
     if (prevPreview !== preview) {
         setPrevPreview(preview);
         setImgError(false);
     }
 
-    const handleFilesAccepted = useCallback(
-        async (files: File[]) => {
-            const file = files[0];
-            if (!file) return;
+    const handleFile = useCallback(
+        async (file: File) => {
+            if (file.size > MAX_SIZE_BYTES) {
+                setSizeError('File exceeds 500 KB limit.');
+                return;
+            }
+            setSizeError(null);
             onSelect(await fileToDataUrl(file));
         },
         [onSelect],
     );
 
-    const hasPreview = Boolean(preview && !imgError);
-    const showHoverOverlay = hovered && !disabled && hasPreview;
-    const uploadLabel = hasPreview ? `Replace ${fieldLabel}` : `Upload ${fieldLabel}`;
-
     return (
-        <div className="flex shrink-0 flex-col" style={{ width: SLOT_SIZE_PX }}>
-            <span className="mb-1 block text-xs text-foreground">{fieldLabel}</span>
+        <div className="space-y-1 text-center">
             <div
-                className={SLOT_CLASS_NAME}
-                style={SLOT_DIMENSIONS_STYLE}
-                onMouseEnter={() => setHovered(true)}
-                onMouseLeave={() => setHovered(false)}
+                role="button"
+                tabIndex={0}
+                onClick={() => !disabled && inputRef.current?.click()}
+                onKeyDown={e => !disabled && (e.key === 'Enter' || e.key === ' ') && inputRef.current?.click()}
+                className={cn(
+                    'flex items-center justify-center rounded-xl border-dashed border-border transition-colors overflow-hidden',
+                    disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-primary/50',
+                )}
+                style={{
+                    width,
+                    height,
+                    borderWidth: '2px',
+                    backgroundColor: 'color-mix(in oklab, var(--color-muted) 40%, transparent)',
+                }}
+                aria-label={`Upload ${label}`}
             >
-                {!hasPreview ? (
-                    <div className="pointer-events-none absolute inset-0 z-[1] flex items-center justify-center px-2">
-                        <UploadHintText />
-                    </div>
-                ) : null}
-
-                {hasPreview ? (
-                    <>
-                        <img
-                            src={preview!}
-                            alt=""
-                            className="absolute inset-0 z-[1] size-full object-cover"
-                            style={showHoverOverlay ? PREVIEW_BLUR_STYLE : undefined}
-                            onError={() => setImgError(true)}
-                        />
-                        {!disabled ? <ImageRemoveButton label={fieldLabel} onRemove={onRemove} /> : null}
-                    </>
-                ) : null}
-
-                {showHoverOverlay ? (
-                    <div className={HOVER_OVERLAY_CLASS_NAME} style={HOVER_OVERLAY_STYLE}>
-                        <UploadHintText className="relative z-[1]" />
-                    </div>
-                ) : null}
-
-                <FileUploadInput
-                    key={variant}
-                    accept={IMAGE_ACCEPT}
-                    className={cn(
-                        'absolute inset-0 z-[15] size-full cursor-pointer rounded-none border-0 bg-transparent p-0 opacity-0 shadow-none',
-                        disabled && 'pointer-events-none',
-                    )}
-                    disabled={disabled}
-                    hint={null}
-                    icon={<span aria-hidden className="sr-only" />}
-                    label={<span className="sr-only">{uploadLabel}</span>}
-                    maxFiles={1}
-                    multiple={false}
-                    onFilesAccepted={files => void handleFilesAccepted(files)}
-                />
+                {preview && !imgError ? (
+                    <img src={preview} alt={label} className="w-full h-full object-cover" onError={() => setImgError(true)} />
+                ) : (
+                    <UploadIcon className="size-6 text-muted-foreground" aria-hidden />
+                )}
             </div>
+            <p className="text-muted-foreground" style={{ fontSize: '10px' }}>
+                {label}
+            </p>
+            {sizeError && <p className="text-xs text-destructive">{sizeError}</p>}
+            {preview && !imgError && !disabled && (
+                <button
+                    type="button"
+                    onClick={onRemove}
+                    className="text-destructive hover:underline block mx-auto"
+                    style={{ fontSize: '10px' }}
+                >
+                    Remove
+                </button>
+            )}
+            <input
+                ref={inputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/svg+xml"
+                className="sr-only"
+                disabled={disabled}
+                onChange={e => {
+                    const file = e.target.files?.[0];
+                    if (file) void handleFile(file);
+                    e.target.value = '';
+                }}
+            />
         </div>
     );
 }
@@ -184,23 +136,31 @@ export function ApplicationImagePickers({
     onBackgroundChange: (value: string | null) => void;
 }>) {
     return (
-        <div className="flex items-end gap-1.5">
-            <ImageFilePickerSlot
-                fieldLabel="Application picture"
-                variant="picture"
-                preview={picture}
-                disabled={disabled}
-                onSelect={onPictureChange}
-                onRemove={() => onPictureChange(null)}
-            />
-            <ImageFilePickerSlot
-                fieldLabel="Application background"
-                variant="background"
-                preview={background}
-                disabled={disabled}
-                onSelect={onBackgroundChange}
-                onRemove={() => onBackgroundChange(null)}
-            />
+        <div className="space-y-3">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Images</p>
+            <div className="flex items-start gap-3">
+                <ImagePickerBox
+                    label="Picture"
+                    preview={picture ?? undefined}
+                    width={88}
+                    height={88}
+                    disabled={disabled}
+                    onSelect={onPictureChange}
+                    onRemove={() => onPictureChange(null)}
+                />
+                <ImagePickerBox
+                    label="Background"
+                    preview={background ?? undefined}
+                    width={152}
+                    height={88}
+                    disabled={disabled}
+                    onSelect={onBackgroundChange}
+                    onRemove={() => onBackgroundChange(null)}
+                />
+            </div>
+            <p className="text-center text-muted-foreground" style={{ fontSize: '10px' }}>
+                PNG, JPG, SVG · max 500 KB
+            </p>
         </div>
     );
 }
