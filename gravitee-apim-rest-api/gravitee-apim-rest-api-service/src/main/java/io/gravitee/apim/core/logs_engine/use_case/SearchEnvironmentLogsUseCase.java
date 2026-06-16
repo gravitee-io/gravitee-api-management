@@ -117,7 +117,7 @@ public class SearchEnvironmentLogsUseCase {
             executionContext,
             searchFilters,
             pageable,
-            List.of(DefinitionVersion.V4)
+            List.of(DefinitionVersion.V2, DefinitionVersion.V4)
         );
 
         var response = mapResponse(result, pageable);
@@ -208,7 +208,7 @@ public class SearchEnvironmentLogsUseCase {
             .apis()
             .orElseGet(Collections::emptyList)
             .stream()
-            .filter(api -> isWantedHttpApi(api.getType()))
+            .filter(api -> isWantedHttpApi(api.getType()) || api.getDefinitionVersion() == DefinitionVersion.V2)
             .map(Api::getId)
             .collect(Collectors.toSet());
         filterContext.limitByApiIds(apiIds);

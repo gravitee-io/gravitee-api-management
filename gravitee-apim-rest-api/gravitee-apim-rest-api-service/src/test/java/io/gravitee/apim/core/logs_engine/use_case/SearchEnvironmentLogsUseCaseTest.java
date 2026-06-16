@@ -1005,6 +1005,35 @@ class SearchEnvironmentLogsUseCaseTest {
         }
 
         @Test
+        void should_include_v2_api_ids_in_filters() {
+            var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id("v2-api").build();
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1, v2Api))
+                )
+            );
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
+                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(LOG1))
+            );
+            when(planCrudService.findByIds(any())).thenReturn(List.of());
+            when(applicationCrudService.findByIds(any(), any())).thenReturn(List.of());
+            when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+
+            var request = new SearchLogsRequest(null, null, 1, 10);
+            useCase.execute(new Input(AUDIT_INFO, request));
+
+            var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
+
+            assertThat(filtersCaptor.getValue().apiIds()).contains(API1.getId(), v2Api.getId());
+        }
+
+        @Test
         void should_return_empty_when_only_non_proxy_apis_exist() {
             var messageApi = ApiFixtures.aMessageApiV4().toBuilder().id("message-api").build();
             var nativeApi = ApiFixtures.aNativeApi().toBuilder().id("native-api").build();
