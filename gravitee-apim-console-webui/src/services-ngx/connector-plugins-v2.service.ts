@@ -24,7 +24,9 @@ import { Constants } from '../entities/Constants';
 import { ApiType, ConnectorPlugin, ConnectorVM, MoreInformation } from '../entities/management-api-v2';
 
 const EXCLUDED_ENTRYPOINT_IDS: string[] = ['mcp-studio'];
-const EXCLUDED_ENDPOINT_IDS: string[] = ['tools-mcp', 'tools-http'];
+// native-kafka-cluster / native-kafka-virtual-cluster are managed through the REST API (used by Gamma)
+// but must not be exposed in the console UI (endpoint type picker and endpoint group badge).
+const EXCLUDED_ENDPOINT_IDS: string[] = ['tools-mcp', 'tools-http', 'native-kafka-cluster', 'native-kafka-virtual-cluster'];
 
 @Injectable({
   providedIn: 'root',
