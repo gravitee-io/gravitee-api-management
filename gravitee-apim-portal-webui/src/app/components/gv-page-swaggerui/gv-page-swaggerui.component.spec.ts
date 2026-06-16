@@ -37,8 +37,6 @@ describe('GvPageSwaggerUIComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-<<<<<<< HEAD
-=======
 
   describe('normalizeSpecPlugin', () => {
     it('should return a plugin that normalizes type arrays via updateJsonSpec', () => {
@@ -100,5 +98,4 @@ describe('GvPageSwaggerUIComponent', () => {
       expect(component['normalizeTypeArrays'](42)).toBe(42);
     });
   });
->>>>>>> dfdd2b3875 (fix(portal): normalize OAS 3.1 type arrays when show_url is enabled)
 });
