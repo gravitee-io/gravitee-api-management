@@ -72,7 +72,7 @@ export function CreateApiProductForm({ onBack, onCreated }: CreateApiProductForm
     }
 
     return (
-        <div className="space-y-6 max-w-3xl">
+        <div className="space-y-6">
             <div className="space-y-1">
                 <Button type="button" variant="ghost" size="sm" onClick={onBack} className="-ml-2 mb-1 text-muted-foreground">
                     <ArrowLeftIcon className="size-4" aria-hidden />

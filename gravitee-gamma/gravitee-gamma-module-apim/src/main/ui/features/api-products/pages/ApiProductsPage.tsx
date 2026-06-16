@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { type DataTableProps } from '@gravitee/graphene-core';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { ApiProductListView, ApiProductsEmptyLanding } from '../components';
+import { toApiProductListSortBy } from '../components/list/ApiProductListTable';
 import { useApiProductList } from '../hooks/useApiProductList';
+
+type SortingState = NonNullable<DataTableProps<unknown>['sorting']>;
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PER_PAGE = 10;
@@ -29,13 +33,15 @@ export function ApiProductsPage() {
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [page, setPage] = useState(DEFAULT_PAGE);
     const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE);
+    const [sorting, setSorting] = useState<SortingState>([]);
 
     useEffect(() => {
         const timer = setTimeout(() => setDebouncedSearch(search), 300);
         return () => clearTimeout(timer);
     }, [search]);
 
-    const { data, isLoading, isFetching, isError } = useApiProductList({ query: debouncedSearch, page, perPage });
+    const sortBy = toApiProductListSortBy(sorting);
+    const { data, isLoading, isFetching, isError } = useApiProductList({ query: debouncedSearch, page, perPage, sortBy });
 
     const products = data?.data ?? [];
     const totalCount = data?.pagination?.totalCount ?? 0;
@@ -47,6 +53,11 @@ export function ApiProductsPage() {
 
     const handlePerPageChange = (nextPerPage: number) => {
         setPerPage(nextPerPage);
+        setPage(DEFAULT_PAGE);
+    };
+
+    const handleSortingChange = (updater: SortingState | ((prev: SortingState) => SortingState)) => {
+        setSorting(prev => (typeof updater === 'function' ? updater(prev) : updater));
         setPage(DEFAULT_PAGE);
     };
 
@@ -73,6 +84,8 @@ export function ApiProductsPage() {
             search={search}
             page={page}
             perPage={perPage}
+            sorting={sorting}
+            onSortingChange={handleSortingChange}
             onSearchChange={handleSearchChange}
             onPageChange={setPage}
             onPerPageChange={handlePerPageChange}

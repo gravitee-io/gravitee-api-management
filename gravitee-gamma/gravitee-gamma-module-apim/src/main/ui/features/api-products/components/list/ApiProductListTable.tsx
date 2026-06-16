@@ -18,23 +18,36 @@ import {
     Button,
     DataTable,
     DataTableColumnHeader,
-    DataTablePagination,
     type DataTableColumnHeaderProps,
+    DataTableEmptyState,
     type DataTableProps,
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@gravitee/graphene-core';
-import { MoreHorizontalIcon } from '@gravitee/graphene-core/icons';
-import { useState } from 'react';
+import { MoreVerticalIcon, SearchIcon } from '@gravitee/graphene-core/icons';
 import { useNavigate } from 'react-router-dom';
 
 import type { ApiProductListItem } from '../../types/apiProduct';
 
-// Column type helpers derived entirely from graphene's exported types
-type ColHeader<T> = { column: DataTableColumnHeaderProps<T, unknown>['column'] };
 type ColCell<T> = { row: { original: T } };
+type ColHeader<T> = { column: DataTableColumnHeaderProps<T, unknown>['column'] };
+
+// Sortable column id → backend `sortBy` field (api-v2 `/api-products/_search`).
+const SORT_FIELD_BY_COLUMN: Record<string, string> = {
+    'Product Name': 'name',
+    'Total APIs': 'apis',
+    Version: 'version',
+    Owner: 'owner',
+};
+
+export function toApiProductListSortBy(sorting: DataTableProps<ApiProductListItem>['sorting']): string | undefined {
+    const sort = sorting?.[0];
+    const field = sort ? SORT_FIELD_BY_COLUMN[sort.id] : undefined;
+    if (!sort || !field) return undefined;
+    return sort.desc ? `-${field}` : field;
+}
 
 // ─── Actions dropdown ─────────────────────────────────────────────────────────
 
@@ -43,10 +56,10 @@ function ProductActionsMenu({ productId, onNavigate }: { productId: string; onNa
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" aria-label="Product actions" onClick={e => e.stopPropagation()}>
-                    <MoreHorizontalIcon className="size-4" aria-hidden />
+                    <MoreVerticalIcon className="size-4" aria-hidden />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-auto min-w-[12rem]">
+            <DropdownMenuContent align="end" className="w-auto min-w-48">
                 <DropdownMenuItem onSelect={() => onNavigate(`${productId}/overview`)}>View Details</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => onNavigate(`${productId}/general`)}>Edit Configuration</DropdownMenuItem>
             </DropdownMenuContent>
@@ -59,9 +72,6 @@ function ProductActionsMenu({ productId, onNavigate }: { productId: string; onNa
 function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<ApiProductListItem>['columns'] {
     return [
         {
-            // Column id doubles as the label shown in the DataTable "View" (column visibility)
-            // menu, which falls back to the id for non-string headers — keep it identical to
-            // the visible header title so both read the same (incl. casing).
             id: 'Product Name',
             accessorFn: (row: ApiProductListItem) => row.name,
             header: ({ column }: ColHeader<ApiProductListItem>) => <DataTableColumnHeader column={column} title="Product Name" />,
@@ -82,8 +92,8 @@ function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<
         },
         {
             id: 'Total APIs',
-            header: ({ column }: ColHeader<ApiProductListItem>) => <DataTableColumnHeader column={column} title="Total APIs" />,
             accessorFn: (row: ApiProductListItem) => row.apiIds?.length ?? 0,
+            header: ({ column }: ColHeader<ApiProductListItem>) => <DataTableColumnHeader column={column} title="Total APIs" />,
             cell: ({ row }: ColCell<ApiProductListItem>) => (
                 <Badge variant="secondary" className="text-xs tabular-nums">
                     {row.original.apiIds?.length ?? 0}
@@ -102,23 +112,23 @@ function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<
         },
         {
             id: 'Owner',
-            header: ({ column }: ColHeader<ApiProductListItem>) => <DataTableColumnHeader column={column} title="Owner" />,
             accessorFn: (row: ApiProductListItem) => row.primaryOwner?.displayName ?? '',
+            header: ({ column }: ColHeader<ApiProductListItem>) => <DataTableColumnHeader column={column} title="Owner" />,
             cell: ({ row }: ColCell<ApiProductListItem>) => (
                 <span className="text-sm text-muted-foreground">{row.original.primaryOwner?.displayName ?? '—'}</span>
             ),
         },
         {
             id: 'actions',
-            header: () => <div className="text-right">Actions</div>,
+            header: () => <span className="sr-only">Actions</span>,
             size: 56,
+            enableSorting: false,
+            enableHiding: false,
             cell: ({ row }: ColCell<ApiProductListItem>) => (
                 <div className="flex justify-end">
                     <ProductActionsMenu productId={row.original.id} onNavigate={navigate} />
                 </div>
             ),
-            enableSorting: false,
-            enableHiding: false,
         },
     ];
 }
@@ -132,6 +142,8 @@ interface ApiProductListTableProps {
     page: number;
     pageSize: number;
     totalCount: number;
+    sorting?: DataTableProps<ApiProductListItem>['sorting'];
+    onSortingChange?: DataTableProps<ApiProductListItem>['onSortingChange'];
     onPageChange: (page: number) => void;
     onPageSizeChange: (pageSize: number) => void;
     toolbar?: React.ReactNode;
@@ -144,44 +156,43 @@ export function ApiProductListTable({
     page,
     pageSize,
     totalCount,
+    sorting,
+    onSortingChange,
     onPageChange,
     onPageSizeChange,
     toolbar,
 }: ApiProductListTableProps) {
     const navigate = useNavigate();
-    const [sorting, setSorting] = useState([{ id: 'Product Name', desc: false }]);
     const columns = buildColumns(navigate);
-
-    const renderPagination = () => (
-        <DataTablePagination
-            page={page}
-            pageSize={pageSize}
-            totalCount={totalCount}
-            pageSizeOptions={[10, 25, 50, 100]}
-            onPageChange={onPageChange}
-            onPageSizeChange={onPageSizeChange}
-        />
-    );
-
-    const compositeToolbar = (
-        <div className="flex items-center gap-4 flex-1 min-w-0">
-            {toolbar}
-            <div className="ml-auto shrink-0">{renderPagination()}</div>
-        </div>
-    );
 
     return (
         <DataTable
+            aria-label="API products"
             columns={columns}
             data={products}
-            sorting={sorting}
-            onSortingChange={setSorting}
             enableColumnVisibility
             loading={isLoading}
             skeletonCount={skeletonRowCount}
-            toolbar={compositeToolbar}
-            footer={renderPagination()}
-            emptyMessage="No API products found."
+            serverSide
+            sorting={sorting}
+            onSortingChange={onSortingChange}
+            toolbar={toolbar}
+            pagination={{
+                page,
+                pageSize,
+                totalCount,
+                pageSizeOptions: [10, 25, 50, 100],
+                onPageChange,
+                onPageSizeChange,
+            }}
+            emptyMessage={
+                <DataTableEmptyState
+                    variant="no-results"
+                    icon={<SearchIcon />}
+                    title="No API products found"
+                    description="Try adjusting your search."
+                />
+            }
         />
     );
 }
