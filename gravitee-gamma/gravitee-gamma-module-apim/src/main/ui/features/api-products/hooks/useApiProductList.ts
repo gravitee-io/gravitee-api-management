@@ -20,11 +20,13 @@ import { searchApiProducts } from '../services/apiProduct';
 import type { ApiProductListResponse } from '../types/apiProduct';
 import { apiProductKeys } from '../utils/queryKeys';
 
-export function useApiProductList({ query, page, perPage }: { query: string; page: number; perPage: number }) {
+export function useApiProductList({ query, page, perPage, sortBy }: { query: string; page: number; perPage: number; sortBy?: string }) {
     const env = useEnvironment();
+    // Default ordering (no explicit user sort): by name when browsing, relevance when searching.
+    const effectiveSortBy = sortBy ?? (query ? undefined : 'name');
     return useQuery<ApiProductListResponse>({
-        queryKey: apiProductKeys.list(env?.id ?? '', query, page, perPage),
-        queryFn: () => searchApiProducts(env!.id, { query: query || undefined }, page, perPage, query ? undefined : 'name'),
+        queryKey: [...apiProductKeys.list(env?.id ?? '', query, page, perPage), effectiveSortBy ?? null],
+        queryFn: () => searchApiProducts(env!.id, { query: query || undefined }, page, perPage, effectiveSortBy),
         enabled: Boolean(env),
         placeholderData: keepPreviousData,
     });
