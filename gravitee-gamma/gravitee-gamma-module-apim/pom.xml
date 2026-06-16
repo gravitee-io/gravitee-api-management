@@ -115,6 +115,7 @@
                             <environmentVariables>
                                 <NX_DAEMON>false</NX_DAEMON>
                                 <NODE_OPTIONS>--max-old-space-size=4096</NODE_OPTIONS>
+                                <NX_CACHE_DIRECTORY>${project.build.directory}/.nx/cache</NX_CACHE_DIRECTORY>
                             </environmentVariables>
                             <arguments>
                                 <argument>nx</argument>
