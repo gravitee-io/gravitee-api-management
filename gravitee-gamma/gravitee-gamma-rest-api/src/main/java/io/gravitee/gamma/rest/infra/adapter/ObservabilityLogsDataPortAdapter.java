@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.infra.adapter;
 
+import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
@@ -34,6 +35,8 @@ import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
 import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import io.gravitee.gamma.rest.core.observability.logs.model.ApiReference;
+import io.gravitee.gamma.rest.core.observability.logs.model.HttpPayload;
+import io.gravitee.gamma.rest.core.observability.logs.model.LogDetail;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntryWarning;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsPage;
@@ -46,7 +49,12 @@ import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionDiagnosticModel;
+import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
+import io.gravitee.rest.api.service.exceptions.InstanceNotFoundException;
+import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
@@ -56,8 +64,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -68,6 +78,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
  *
  * @author GraviteeSource Team
  */
+@CustomLog
 @RequiredArgsConstructor
 public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPort {
 
@@ -81,6 +92,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
     private static final int HTTP_STATUS_MAX = HTTP_STATUS_RANGE.max().intValue();
 
     private final ConnectionLogsCrudService connectionLogsCrudService;
+    private final AnalyticsQueryService analyticsQueryService;
     private final UserContextLoader userContextLoader;
     private final PlanCrudService planCrudService;
     private final ApplicationCrudService applicationCrudService;
@@ -122,6 +134,130 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         var enriched = enrichWithNames(executionContext, entries);
 
         return new LogsPage(enriched, result.total());
+    }
+
+    @Override
+    public Optional<LogDetail> getLogDetail(String organizationId, String environmentId, String apiId, String requestId) {
+        var executionContext = new ExecutionContext(organizationId, environmentId);
+
+        var metricsOpt = analyticsQueryService.findApiMetricsDetail(executionContext, apiId, requestId);
+        var logDetailOpt = connectionLogsCrudService.searchApiConnectionLog(executionContext, apiId, requestId);
+
+        if (metricsOpt.isEmpty() && logDetailOpt.isEmpty()) {
+            return Optional.empty();
+        }
+
+        var builder = LogDetail.builder().requestId(requestId).apiId(apiId);
+
+        metricsOpt.ifPresent(metrics -> {
+            builder
+                .timestamp(parseTimestamp(metrics.getTimestamp()))
+                .transactionId(metrics.getTransactionId())
+                .method(metrics.getMethod() != null ? metrics.getMethod().name() : null)
+                .uri(metrics.getUri())
+                .status(metrics.getStatus())
+                .endpoint(metrics.getEndpoint())
+                .host(metrics.getHost())
+                .planId(metrics.getPlanId())
+                .applicationId(metrics.getApplicationId())
+                .gateway(metrics.getGateway())
+                .remoteAddress(metrics.getRemoteAddress())
+                .requestContentLength(metrics.getRequestContentLength())
+                .responseContentLength(metrics.getResponseContentLength())
+                .gatewayLatency(metrics.getGatewayLatency())
+                .gatewayResponseTime(metrics.getGatewayResponseTime())
+                .endpointResponseTime(metrics.getEndpointResponseTime())
+                .message(metrics.getMessage())
+                .errorKey(metrics.getErrorKey())
+                .errorComponentName(metrics.getErrorComponentName())
+                .errorComponentType(metrics.getErrorComponentType())
+                .warnings(mapWarnings(metrics.getWarnings()))
+                .additionalMetrics(metrics.getAdditionalMetrics() != null ? metrics.getAdditionalMetrics() : Map.of());
+
+            var names = resolveDetailNames(executionContext, metrics);
+            builder
+                .planName(names.planName)
+                .applicationName(names.applicationName)
+                .gatewayHostname(names.gatewayHostname)
+                .gatewayIp(names.gatewayIp);
+        });
+
+        logDetailOpt.ifPresent(log -> {
+            builder
+                .clientIdentifier(log.getClientIdentifier())
+                .requestEnded(log.isRequestEnded())
+                .entrypointRequest(mapRequest(log.getEntrypointRequest()))
+                .entrypointResponse(mapResponse(log.getEntrypointResponse()))
+                .endpointRequest(mapRequest(log.getEndpointRequest()))
+                .endpointResponse(mapResponse(log.getEndpointResponse()));
+
+            if (metricsOpt.isEmpty()) {
+                builder.timestamp(parseTimestamp(log.getTimestamp()));
+            }
+        });
+
+        return Optional.of(builder.build());
+    }
+
+    private record ResolvedNames(String planName, String applicationName, String gatewayHostname, String gatewayIp) {}
+
+    private ResolvedNames resolveDetailNames(
+        ExecutionContext executionContext,
+        io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail metrics
+    ) {
+        String planName = null;
+        String applicationName = null;
+        String gatewayHostname = null;
+        String gatewayIp = null;
+
+        if (metrics.getPlanId() != null) {
+            try {
+                planName = planCrudService.getById(metrics.getPlanId()).getName();
+            } catch (PlanNotFoundException | TechnicalManagementException e) {
+                log.debug("Could not resolve plan name for planId={}", metrics.getPlanId(), e);
+            }
+        }
+
+        if (metrics.getApplicationId() != null) {
+            try {
+                applicationName = applicationCrudService
+                    .findById(metrics.getApplicationId(), executionContext.getEnvironmentId())
+                    .getName();
+            } catch (ApplicationNotFoundException | TechnicalManagementException e) {
+                log.debug("Could not resolve application name for applicationId={}", metrics.getApplicationId(), e);
+            }
+        }
+
+        if (metrics.getGateway() != null) {
+            try {
+                var instance = instanceQueryService.findById(executionContext, metrics.getGateway());
+                gatewayHostname = instance.getHostname();
+                gatewayIp = instance.getIp();
+            } catch (InstanceNotFoundException e) {
+                log.debug("Could not resolve gateway hostname for gatewayId={}", metrics.getGateway(), e);
+            }
+        }
+
+        return new ResolvedNames(planName, applicationName, gatewayHostname, gatewayIp);
+    }
+
+    private static HttpPayload mapRequest(ConnectionLogDetail.Request request) {
+        if (request == null) {
+            return null;
+        }
+        return HttpPayload.builder()
+            .method(request.getMethod())
+            .uri(request.getUri())
+            .headers(request.getHeaders())
+            .body(request.getBody())
+            .build();
+    }
+
+    private static HttpPayload mapResponse(ConnectionLogDetail.Response response) {
+        if (response == null) {
+            return null;
+        }
+        return HttpPayload.builder().status(response.getStatus()).headers(response.getHeaders()).body(response.getBody()).build();
     }
 
     private SearchLogsFilters buildSearchFilters(LogsSearchQuery query) {
