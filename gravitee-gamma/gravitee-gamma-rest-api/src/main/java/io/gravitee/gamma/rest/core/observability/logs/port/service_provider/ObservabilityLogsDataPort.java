@@ -16,9 +16,11 @@
 package io.gravitee.gamma.rest.core.observability.logs.port.service_provider;
 
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
+import io.gravitee.gamma.rest.core.observability.logs.model.LogDetail;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsPage;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Core-side port onto the logs data store and the RBAC-scoped API inventory. The infra adapter
@@ -46,4 +48,11 @@ public interface ObservabilityLogsDataPort {
      * queried.
      */
     LogsPage searchLogs(String organizationId, String environmentId, LogsSearchQuery query);
+
+    /**
+     * Fetches a single merged log detail for the given request id and API. Combines enriched
+     * metadata from the {@code v4-metrics} index with HTTP payloads (headers + body) from the
+     * {@code v4-log} index. Returns empty when neither index contains a matching document.
+     */
+    Optional<LogDetail> getLogDetail(String organizationId, String environmentId, String apiId, String requestId);
 }

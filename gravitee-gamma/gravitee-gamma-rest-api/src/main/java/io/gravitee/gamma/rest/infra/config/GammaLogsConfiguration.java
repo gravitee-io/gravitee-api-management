@@ -17,6 +17,7 @@ package io.gravitee.gamma.rest.infra.config;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
@@ -49,6 +50,7 @@ public class GammaLogsConfiguration {
     @Bean
     public ObservabilityLogsDataPort observabilityLogsDataPort(
         ConnectionLogsCrudService connectionLogsCrudService,
+        AnalyticsQueryService analyticsQueryService,
         UserContextLoader userContextLoader,
         PlanCrudService planCrudService,
         ApplicationCrudService applicationCrudService,
@@ -57,6 +59,7 @@ public class GammaLogsConfiguration {
     ) {
         return new ObservabilityLogsDataPortAdapter(
             connectionLogsCrudService,
+            analyticsQueryService,
             userContextLoader,
             planCrudService,
             applicationCrudService,

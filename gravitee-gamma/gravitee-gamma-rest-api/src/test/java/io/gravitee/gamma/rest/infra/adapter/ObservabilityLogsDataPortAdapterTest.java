@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -62,6 +63,9 @@ class ObservabilityLogsDataPortAdapterTest {
     private ConnectionLogsCrudService connectionLogsCrudService;
 
     @Mock
+    private AnalyticsQueryService analyticsQueryService;
+
+    @Mock
     private UserContextLoader userContextLoader;
 
     @Mock
@@ -82,6 +86,7 @@ class ObservabilityLogsDataPortAdapterTest {
     void setUp() {
         adapter = new ObservabilityLogsDataPortAdapter(
             connectionLogsCrudService,
+            analyticsQueryService,
             userContextLoader,
             planCrudService,
             applicationCrudService,
