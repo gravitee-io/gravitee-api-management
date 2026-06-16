@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.12.0_18_add_portal_navigation_to_portals
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}portals
+            columns:
+              - column:
+                  name: portal_navigation
+                  type: nclob
+                  constraints:
+                    nullable: true

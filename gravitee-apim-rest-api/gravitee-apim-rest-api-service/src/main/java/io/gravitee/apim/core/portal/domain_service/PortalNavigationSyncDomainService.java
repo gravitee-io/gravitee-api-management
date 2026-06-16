@@ -54,7 +54,7 @@ public class PortalNavigationSyncDomainService {
     private final PortalNavigationItemsQueryService queryService;
     private final PortalPageContentCrudService pageContentCrudService;
 
-    public void sync(AuditInfo auditInfo, PortalId portalId, List<NavigationPath> desired) {
+    public void sync(AuditInfo auditInfo, PortalId portalId, List<NavigationPath> previouslyPersisted, List<NavigationPath> desired) {
         final var currentFolders = queryService.search(
             PortalNavigationItemQueryCriteria.builder()
                 .environmentId(auditInfo.environmentId())
@@ -62,7 +62,11 @@ public class PortalNavigationSyncDomainService {
                 .type(PortalNavigationItemType.FOLDER)
                 .build()
         );
-        final var plan = NavigationSyncPlanner.plan(desired == null ? List.of() : desired, currentFolders);
+        final var plan = NavigationSyncPlanner.plan(
+            desired == null ? List.of() : desired,
+            currentFolders,
+            previouslyPersisted == null ? List.of() : previouslyPersisted
+        );
         execute(plan, auditInfo, portalId);
     }
 

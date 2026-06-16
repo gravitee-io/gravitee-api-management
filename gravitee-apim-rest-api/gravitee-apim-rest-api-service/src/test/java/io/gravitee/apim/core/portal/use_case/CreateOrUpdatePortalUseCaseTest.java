@@ -27,7 +27,6 @@ import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
-import io.gravitee.apim.core.portal.domain_service.PortalNavigationListingDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal.model.NavigationPath;
@@ -68,7 +67,6 @@ class CreateOrUpdatePortalUseCaseTest {
             validator,
             portalCrudService,
             new PortalNavigationSyncDomainService(navCrudService, navQueryService, pageContentCrudService),
-            new PortalNavigationListingDomainService(navQueryService),
             pageContentQueryService,
             new PortalDocumentationSyncDomainService(navCrudService, navQueryService)
         );
@@ -187,5 +185,49 @@ class CreateOrUpdatePortalUseCaseTest {
         );
 
         assertThat(output.errors()).isEmpty();
+    }
+
+    @Test
+    void should_persist_navigation_array_on_portal_row() {
+        var portal = PortalFixtures.aPortal();
+        var input = List.of(new NavigationPath("/a", Optional.of("A")), new NavigationPath("/b", Optional.empty()));
+
+        var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portal, input));
+
+        assertThat(output.portal().getPortalNavigation()).extracting(NavigationPath::path).containsExactly("/a", "/b");
+        assertThat(portalCrudService.storage()).hasSize(1);
+        assertThat(portalCrudService.storage().get(0).getPortalNavigation()).extracting(NavigationPath::path).containsExactly("/a", "/b");
+        assertThat(output.navigation()).isEqualTo(output.portal().getPortalNavigation());
+    }
+
+    @Test
+    void should_use_previously_persisted_to_skip_unmanaged_folders_on_delete() {
+        var portal = PortalFixtures.aPortal();
+        useCase.execute(
+            new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portal, List.of(new NavigationPath("/managed", Optional.empty())))
+        );
+        var unmanaged = io.gravitee.apim.core.portal_page.model.PortalNavigationFolder.builder()
+            .id(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.random())
+            .organizationId(AUDIT_INFO.organizationId())
+            .environmentId(AUDIT_INFO.environmentId())
+            .title("manual")
+            .segment("manual")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(1)
+            .published(true)
+            .visibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC)
+            .build();
+        unmanaged.markAsRoot();
+        navCrudService.initWith(List.of(unmanaged));
+
+        useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portal, List.of()));
+
+        assertThat(navCrudService.storage()).contains(unmanaged);
+        assertThat(
+            navCrudService
+                .storage()
+                .stream()
+                .anyMatch(it -> "managed".equals(it.getTitle()))
+        ).isFalse();
     }
 }
