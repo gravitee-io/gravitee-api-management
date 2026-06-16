@@ -23,8 +23,6 @@ import { ClusterGeneralComponent } from './general/cluster-general.component';
 import { ClusterUserPermissionsComponent } from './user-permissions/cluster-user-permissions.component';
 import { ClusterConfigurationComponent } from './kafka-standalone/details/configuration/cluster-configuration.component';
 import { ClusterListComponent } from './kafka-standalone/list/cluster-list.component';
-import { KafkaClusterListComponent } from './kafka-clusters/list/kafka-cluster-list.component';
-import { KafkaClusterConfigurationComponent } from './kafka-clusters/details/configuration/kafka-cluster-configuration.component';
 import { ClusterGuard } from './cluster.guard';
 
 import { Constants } from '../../entities/Constants';
@@ -91,58 +89,6 @@ const clusterRoutes: Routes = [
         data: {
           permissions: {
             anyOf: ['cluster-definition-r'],
-          },
-        },
-      },
-      {
-        path: 'user-permissions',
-        component: ClusterUserPermissionsComponent,
-        data: {
-          permissions: {
-            anyOf: ['cluster-member-r'],
-          },
-        },
-      },
-    ],
-  },
-  {
-    path: 'kafka-clusters',
-    component: KafkaClusterListComponent,
-    canActivate: [PermissionGuard.checkRouteDataPermissions],
-    data: {
-      useAngularMaterial: true,
-      permissions: {
-        anyOf: ['environment-cluster-r'],
-      },
-    },
-  },
-  {
-    path: 'kafka-clusters/:clusterId',
-    component: ClusterNavigationComponent,
-    canActivate: [ClusterGuard.loadPermissions],
-    canActivateChild: [PermissionGuard.checkRouteDataPermissions],
-    canDeactivate: [ClusterGuard.clearPermissions],
-    children: [
-      {
-        path: '',
-        redirectTo: 'general',
-        pathMatch: 'full',
-      },
-      {
-        path: 'general',
-        component: ClusterGeneralComponent,
-        data: {
-          permissions: {
-            anyOf: ['cluster-definition-r'],
-          },
-        },
-      },
-      {
-        path: 'configuration',
-        component: KafkaClusterConfigurationComponent,
-        data: {
-          permissions: {
-            anyOf: ['cluster-configuration-r'],
           },
         },
       },

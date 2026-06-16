@@ -58,6 +58,8 @@ describe('Installation Plugins Service', () => {
           fakeConnectorPlugin({ id: 'http-proxy' }),
           fakeConnectorPlugin({ id: 'tools-mcp' }),
           fakeConnectorPlugin({ id: 'tools-http' }),
+          fakeConnectorPlugin({ id: 'native-kafka-cluster' }),
+          fakeConnectorPlugin({ id: 'native-kafka-virtual-cluster' }),
           fakeConnectorPlugin({ id: 'kafka' }),
         ];
 
