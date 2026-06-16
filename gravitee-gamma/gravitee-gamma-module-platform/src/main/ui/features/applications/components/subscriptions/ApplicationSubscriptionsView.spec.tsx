@@ -19,13 +19,14 @@ import { MemoryRouter } from 'react-router-dom';
 import { ApplicationSubscriptionsView } from './ApplicationSubscriptionsView';
 import { notify } from '../../../../shared/notify';
 import { useApplicationSubscriptionPermissions } from '../../hooks/useApplicationSubscriptionPermissions';
-import { useApplicationSubscriptions, useSubscribedApis } from '../../hooks/useApplicationSubscriptions';
+import { useApplicationSubscriptionCount, useApplicationSubscriptions, useSubscribedApis } from '../../hooks/useApplicationSubscriptions';
 import { useCloseApplicationSubscription } from '../../hooks/useCloseApplicationSubscription';
 import type { ApplicationListItem } from '../../types/application';
 
 jest.mock('../../hooks/useApplicationSubscriptionPermissions');
 jest.mock('../../hooks/useApplicationSubscriptions', () => ({
     useApplicationSubscriptions: jest.fn(),
+    useApplicationSubscriptionCount: jest.fn(),
     useSubscribedApis: jest.fn(),
 }));
 jest.mock('../../hooks/useCloseApplicationSubscription');
@@ -59,6 +60,7 @@ jest.mock('../../../../shared/notify', () => ({
 const mockNotify = jest.mocked(notify);
 const mockUsePermissions = jest.mocked(useApplicationSubscriptionPermissions);
 const mockUseSubscriptions = jest.mocked(useApplicationSubscriptions);
+const mockUseSubscriptionCount = jest.mocked(useApplicationSubscriptionCount);
 const mockUseSubscribedApis = jest.mocked(useSubscribedApis);
 const mockUseClose = jest.mocked(useCloseApplicationSubscription);
 
@@ -86,6 +88,10 @@ describe('ApplicationSubscriptionsView', () => {
             isLoading: false,
             isError: false,
         } as ReturnType<typeof useApplicationSubscriptions>);
+        mockUseSubscriptionCount.mockReturnValue({
+            data: 0,
+            isLoading: false,
+        } as ReturnType<typeof useApplicationSubscriptionCount>);
         mockUseSubscribedApis.mockReturnValue({ data: [] } as ReturnType<typeof useSubscribedApis>);
         mockUseClose.mockReturnValue({
             mutateAsync: jest.fn(),
@@ -143,6 +149,30 @@ describe('ApplicationSubscriptionsView', () => {
         expect(mockNotify.error).toHaveBeenCalledWith('Unable to get subscriptions, please try again');
         expect(screen.getByText(/unable to get subscriptions/i)).not.toBeNull();
         expect(screen.queryByTestId('subscriptions-table')).toBeNull();
+    });
+
+    it('renders Total / Accepted / Pending summary cards', () => {
+        mockUsePermissions.mockReturnValue({
+            permissionsReady: true,
+            canRead: true,
+            canCreate: false,
+            canUpdate: false,
+            canDelete: false,
+            canViewDetail: true,
+        });
+        mockUseSubscriptionCount.mockImplementation((_applicationId, filters) => {
+            const statuses = filters?.status ?? [];
+            // Single-status filters back the Accepted/Pending cards; the all-status filter backs Total.
+            const data = statuses.length === 1 ? (statuses[0] === 'ACCEPTED' ? 4 : statuses[0] === 'PENDING' ? 3 : 0) : 7;
+            return { data, isLoading: false } as ReturnType<typeof useApplicationSubscriptionCount>;
+        });
+        renderView();
+        expect(screen.getByText('Total consumers')).not.toBeNull();
+        expect(screen.getByText('Accepted')).not.toBeNull();
+        expect(screen.getByText('Pending')).not.toBeNull();
+        expect(screen.getByText('7')).not.toBeNull();
+        expect(screen.getByText('4')).not.toBeNull();
+        expect(screen.getByText('3')).not.toBeNull();
     });
 
     it('hides Create a subscription for archived applications', () => {

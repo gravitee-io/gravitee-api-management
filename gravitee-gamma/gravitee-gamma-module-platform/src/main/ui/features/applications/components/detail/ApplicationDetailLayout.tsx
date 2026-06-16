@@ -14,7 +14,16 @@
  * limitations under the License.
  */
 import { permissionService } from '@gravitee/gamma-modules-sdk';
-import { Badge, ContextSidebar, ContextToggleButton, Skeleton, useLayoutConfig } from '@gravitee/graphene-core';
+import {
+    Avatar,
+    AvatarFallback,
+    AvatarImage,
+    Badge,
+    ContextSidebar,
+    ContextToggleButton,
+    Skeleton,
+    useLayoutConfig,
+} from '@gravitee/graphene-core';
 import { AppWindowIcon } from '@gravitee/graphene-core/icons';
 import { useMemo, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
@@ -73,13 +82,19 @@ function ApplicationInfoHeader({ application, isLoading }: { application: Applic
     const ownerLabel = formatApplicationOwnerLabel(application.owner);
     const securityTypeLabel = formatApplicationSecurityTypeLabel(application);
     const description = application.description?.trim();
+    const pictureSrc = application.picture ?? application.picture_url;
 
     return (
         <div className="space-y-2.5 border-b px-3 pb-4 pt-4">
             <div className="flex min-w-0 items-start gap-2.5">
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-primary/30 bg-primary/5">
-                    <AppWindowIcon className="size-4 text-primary" aria-hidden />
-                </div>
+                <Avatar className="size-8 shrink-0 rounded-lg">
+                    {pictureSrc ? (
+                        <AvatarImage src={pictureSrc} alt={`${application.name} logo`} className="rounded-lg object-cover" />
+                    ) : null}
+                    <AvatarFallback className="rounded-lg border border-primary/30 bg-primary/5 text-primary">
+                        <AppWindowIcon className="size-4" aria-hidden />
+                    </AvatarFallback>
+                </Avatar>
                 <div className="min-w-0 flex-1 space-y-1">
                     <p className="truncate text-sm font-semibold leading-snug text-foreground" title={application.name}>
                         {application.name}

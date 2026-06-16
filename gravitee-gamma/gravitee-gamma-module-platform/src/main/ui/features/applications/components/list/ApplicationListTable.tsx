@@ -18,6 +18,8 @@ import {
     Button,
     DataTable,
     DataTableColumnHeader,
+    DataTableEmptyState,
+    DateCell,
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -27,15 +29,17 @@ import {
     TooltipTrigger,
     type DataTableProps,
 } from '@gravitee/graphene-core';
-import { AppWindowIcon, ExternalLinkIcon, MoreHorizontalIcon, PlugIcon, Wand2Icon } from '@gravitee/graphene-core/icons';
-import { useMemo, type Dispatch, type SetStateAction } from 'react';
+import { ExternalLinkIcon, MoreVerticalIcon, PlugIcon, SearchIcon, Wand2Icon } from '@gravitee/graphene-core/icons';
+import { useMemo, type Dispatch, type ReactNode, type SetStateAction } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { truncateLabel } from '../../../shared/utils/truncateLabel';
 import type { ApplicationListItem, ApplicationStatus } from '../../types/application';
-import { formatApplicationDateTime, formatApplicationTypeLabel } from '../../utils/applicationFormatters';
+import { formatApplicationTypeLabel } from '../../utils/applicationFormatters';
 import type { ColCell, ColHeader } from '../../utils/dataTableTypes';
+import { TABLE_PAGE_SIZE_OPTIONS } from '../../utils/paginationConstants';
 import type { TableSortingState } from '../../utils/tableSort';
+import { ApplicationAvatar } from '../ApplicationAvatar';
 
 function ApplicationActionsMenu({ applicationId, onNavigate }: { applicationId: string; onNavigate: (path: string) => void }) {
     const navigateTo = (path: string) => (event: Event) => {
@@ -47,7 +51,7 @@ function ApplicationActionsMenu({ applicationId, onNavigate }: { applicationId: 
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" aria-label="Application actions" onClick={event => event.stopPropagation()}>
-                    <MoreHorizontalIcon className="size-4" aria-hidden />
+                    <MoreVerticalIcon className="size-4" aria-hidden />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-auto min-w-[12rem]" onClick={event => event.stopPropagation()}>
@@ -67,20 +71,23 @@ function ApplicationActionsMenu({ applicationId, onNavigate }: { applicationId: 
 function buildActiveColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<ApplicationListItem>['columns'] {
     return [
         {
-            accessorKey: 'name',
+            id: 'Name',
+            accessorFn: (row: ApplicationListItem) => row.name,
             header: ({ column }: ColHeader<ApplicationListItem>) => <DataTableColumnHeader column={column} title="Name" />,
             cell: ({ row }: ColCell<ApplicationListItem>) => {
                 const name = row.original.name;
                 return (
-                    <Button
-                        type="button"
-                        variant="link"
-                        className="h-auto p-0 flex items-center justify-start gap-2 font-medium text-left text-foreground hover:underline hover:text-foreground"
-                        onClick={() => navigate(`${row.original.id}/general`)}
-                    >
-                        <AppWindowIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-                        <span title={name}>{truncateLabel(name)}</span>
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <ApplicationAvatar src={row.original.picture ?? row.original.picture_url} name={name} />
+                        <Button
+                            type="button"
+                            variant="link"
+                            className="h-auto p-0 text-left font-medium text-foreground hover:underline hover:text-foreground"
+                            onClick={() => navigate(`${row.original.id}/general`)}
+                        >
+                            <span title={name}>{truncateLabel(name)}</span>
+                        </Button>
+                    </div>
                 );
             },
         },
@@ -133,29 +140,31 @@ function buildArchivedColumns(
 ): DataTableProps<ApplicationListItem>['columns'] {
     return [
         {
-            accessorKey: 'name',
+            id: 'Name',
+            accessorFn: (row: ApplicationListItem) => row.name,
             header: ({ column }: ColHeader<ApplicationListItem>) => <DataTableColumnHeader column={column} title="Name" />,
             cell: ({ row }: ColCell<ApplicationListItem>) => {
                 const name = row.original.name;
                 return (
-                    <Button
-                        type="button"
-                        variant="link"
-                        className="h-auto p-0 flex items-center justify-start gap-2 font-medium text-left text-foreground hover:underline hover:text-foreground"
-                        onClick={() => navigate(`${row.original.id}/general`)}
-                    >
-                        <AppWindowIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-                        <span title={name}>{truncateLabel(name)}</span>
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <ApplicationAvatar src={row.original.picture ?? row.original.picture_url} name={name} />
+                        <Button
+                            type="button"
+                            variant="link"
+                            className="h-auto p-0 text-left font-medium text-foreground hover:underline hover:text-foreground"
+                            onClick={() => navigate(`${row.original.id}/general`)}
+                        >
+                            <span title={name}>{truncateLabel(name)}</span>
+                        </Button>
+                    </div>
                 );
             },
         },
         {
-            accessorKey: 'updated_at',
+            id: 'Archived at',
+            accessorFn: (row: ApplicationListItem) => row.updated_at,
             header: ({ column }: ColHeader<ApplicationListItem>) => <DataTableColumnHeader column={column} title="Archived at" />,
-            cell: ({ row }: ColCell<ApplicationListItem>) => (
-                <span className="text-sm text-muted-foreground">{formatApplicationDateTime(row.original.updated_at)}</span>
-            ),
+            cell: ({ row }: ColCell<ApplicationListItem>) => <DateCell value={new Date(row.original.updated_at)} format="absolute" />,
         },
         {
             id: 'actions',
@@ -196,6 +205,12 @@ interface ApplicationListTableProps {
     readonly onSortingChange: Dispatch<SetStateAction<TableSortingState>>;
     readonly canRestore?: boolean;
     readonly onRestore?: (application: ApplicationListItem) => void;
+    readonly page?: number;
+    readonly pageSize?: number;
+    readonly totalCount?: number;
+    readonly onPageChange?: (page: number) => void;
+    readonly onPageSizeChange?: (pageSize: number) => void;
+    readonly toolbar?: ReactNode;
 }
 
 export function ApplicationListTable({
@@ -207,6 +222,12 @@ export function ApplicationListTable({
     onSortingChange,
     canRestore = false,
     onRestore,
+    page = 1,
+    pageSize = 10,
+    totalCount = 0,
+    onPageChange,
+    onPageSizeChange,
+    toolbar,
 }: ApplicationListTableProps) {
     const navigate = useNavigate();
     const isArchived = status === 'ARCHIVED';
@@ -216,14 +237,36 @@ export function ApplicationListTable({
 
     return (
         <DataTable
+            aria-label="Applications"
             columns={columns}
             data={applications}
             sorting={sorting}
             onSortingChange={onSortingChange}
             enableColumnVisibility
+            serverSide
             loading={isLoading}
             skeletonCount={skeletonRowCount}
-            emptyMessage="No applications found."
+            toolbar={toolbar}
+            pagination={
+                onPageChange && onPageSizeChange
+                    ? {
+                          page,
+                          pageSize,
+                          totalCount,
+                          pageSizeOptions: [...TABLE_PAGE_SIZE_OPTIONS],
+                          onPageChange,
+                          onPageSizeChange,
+                      }
+                    : undefined
+            }
+            emptyMessage={
+                <DataTableEmptyState
+                    variant="no-results"
+                    icon={<SearchIcon />}
+                    title="No applications found"
+                    description="Try adjusting your search or filters."
+                />
+            }
         />
     );
 }
