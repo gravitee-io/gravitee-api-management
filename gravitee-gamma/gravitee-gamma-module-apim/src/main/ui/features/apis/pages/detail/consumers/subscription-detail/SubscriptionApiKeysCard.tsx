@@ -249,6 +249,9 @@ export function SubscriptionApiKeysCard({ ctx, subscription, canUpdate }: Readon
                                 ))}
                         </TableBody>
                     </Table>
+                    <div className="flex justify-end border-t px-2 py-2">
+                        <DataTablePagination page={page} pageSize={PER_PAGE} totalCount={totalCount} onPageChange={setPage} />
+                    </div>
                 </div>
 
                 {expiringKeyId && (
@@ -271,8 +274,6 @@ export function SubscriptionApiKeysCard({ ctx, subscription, canUpdate }: Readon
                         </Button>
                     </div>
                 )}
-
-                <DataTablePagination page={page} pageSize={PER_PAGE} totalCount={totalCount} onPageChange={setPage} />
             </CardContent>
         </Card>
     );

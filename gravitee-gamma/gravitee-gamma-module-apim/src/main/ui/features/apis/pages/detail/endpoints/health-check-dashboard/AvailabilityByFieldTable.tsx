@@ -13,20 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-    DataTablePagination,
-    Skeleton,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@gravitee/graphene-core';
+import { Card, CardContent, CardHeader, CardTitle, DataTable, DataTableEmptyState, type DataTableProps } from '@gravitee/graphene-core';
 import { useMemo, useState } from 'react';
 
 import type { AvailabilityFieldData } from './useHealthCheckDashboard';
@@ -37,6 +24,10 @@ interface AvailabilityByFieldTableProps {
     field: HealthField;
     data: AvailabilityFieldData;
 }
+
+type AvailabilityRow = AvailabilityFieldData['rows'][number];
+
+type ColCell<T> = { row: { original: T } };
 
 /**
  * The availability / average-response-time `group` map comes from an Elasticsearch
@@ -73,82 +64,74 @@ export function AvailabilityByFieldTable({ field, data }: Readonly<AvailabilityB
     const safePage = Math.min(page, pageCount);
     const pageRows = useMemo(() => rows.slice((safePage - 1) * pageSize, safePage * pageSize), [rows, safePage, pageSize]);
 
+    const columns: DataTableProps<AvailabilityRow>['columns'] = [
+        {
+            id: 'field',
+            accessorFn: (row: AvailabilityRow) => row.name,
+            header: labels.column,
+            enableSorting: false,
+            cell: ({ row }: ColCell<AvailabilityRow>) => <span className="font-medium">{row.original.name}</span>,
+        },
+        {
+            id: 'availability',
+            header: () => <div className="text-right">Availability</div>,
+            enableSorting: false,
+            cell: ({ row }: ColCell<AvailabilityRow>) => (
+                <div className={`text-right font-medium ${availabilityColorClass(row.original.availabilityPct)}`}>
+                    {row.original.availabilityPct} %
+                </div>
+            ),
+        },
+        {
+            id: 'responseTime',
+            header: () => <div className="text-right">Response time</div>,
+            enableSorting: false,
+            cell: ({ row }: ColCell<AvailabilityRow>) => (
+                <div className="text-right text-muted-foreground">
+                    {row.original.avgResponseTimeMs !== undefined ? `${row.original.avgResponseTimeMs} ms` : '—'}
+                </div>
+            ),
+        },
+    ];
+
     return (
         <Card>
             <CardHeader>
                 <CardTitle className="text-base">{labels.title}</CardTitle>
                 <p className="text-sm text-muted-foreground">{labels.description}</p>
             </CardHeader>
-            <CardContent className="space-y-3 p-0 pt-2">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>{labels.column}</TableHead>
-                            <TableHead className="text-right">Availability</TableHead>
-                            <TableHead className="text-right">Response time</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading ? (
-                            <LoadingRows />
-                        ) : totalCount === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={3} className="text-sm text-muted-foreground">
-                                    No data
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            pageRows.map(row => (
-                                <TableRow key={row.key}>
-                                    <TableCell className="font-medium">{row.name}</TableCell>
-                                    <TableCell className={`text-right font-medium ${availabilityColorClass(row.availabilityPct)}`}>
-                                        {row.availabilityPct} %
-                                    </TableCell>
-                                    <TableCell className="text-right text-muted-foreground">
-                                        {row.avgResponseTimeMs !== undefined ? `${row.avgResponseTimeMs} ms` : '—'}
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-
-                {!isLoading && totalCount > 0 && (
-                    <div className="flex justify-end px-4 pb-4">
-                        <DataTablePagination
-                            page={safePage}
-                            pageSize={pageSize}
-                            totalCount={totalCount}
-                            pageSizeOptions={PAGE_SIZE_OPTIONS}
-                            onPageChange={setPage}
-                            onPageSizeChange={size => {
-                                setPageSize(size);
-                                setPage(1);
-                            }}
+            <CardContent className="px-4 pb-4 pt-2">
+                <DataTable
+                    aria-label={labels.title}
+                    columns={columns}
+                    data={pageRows}
+                    loading={isLoading}
+                    skeletonCount={DEFAULT_PAGE_SIZE}
+                    serverSide
+                    pagination={
+                        totalCount > 0
+                            ? {
+                                  page: safePage,
+                                  pageSize,
+                                  totalCount,
+                                  pageSizeOptions: PAGE_SIZE_OPTIONS,
+                                  onPageChange: setPage,
+                                  onPageSizeChange: size => {
+                                      setPageSize(size);
+                                      setPage(1);
+                                  },
+                              }
+                            : undefined
+                    }
+                    emptyMessage={
+                        <DataTableEmptyState
+                            variant="no-results"
+                            title="No data"
+                            description="No availability data for the selected period."
                         />
-                    </div>
-                )}
+                    }
+                />
             </CardContent>
         </Card>
-    );
-}
-
-function LoadingRows() {
-    return (
-        <>
-            {[1, 2, 3].map(i => (
-                <TableRow key={i}>
-                    <TableCell>
-                        <Skeleton className="h-4 w-40 rounded" />
-                    </TableCell>
-                    <TableCell className="text-right">
-                        <Skeleton className="ml-auto h-4 w-12 rounded" />
-                    </TableCell>
-                    <TableCell className="text-right">
-                        <Skeleton className="ml-auto h-4 w-12 rounded" />
-                    </TableCell>
-                </TableRow>
-            ))}
-        </>
     );
 }

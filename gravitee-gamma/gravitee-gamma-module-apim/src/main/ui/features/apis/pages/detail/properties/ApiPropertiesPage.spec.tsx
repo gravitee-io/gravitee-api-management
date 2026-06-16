@@ -92,20 +92,19 @@ it('hides Add button and action dropdowns when user lacks api-definition-u', () 
     renderPage([PLAIN_PROP]);
 
     expect(screen.queryByRole('button', { name: /add property/i })).toBeNull();
-    expect(screen.queryByRole('button', { name: /open actions/i })).toBeNull();
+    expect(screen.queryByRole('button', { name: /actions for/i })).toBeNull();
 });
 
 // ─── 2. Dynamic property: only Delete allowed ─────────────────────────────────
 
-it('shows only Remove for a dynamic property — no Encrypt or Renew options', async () => {
-    const user = userEvent.setup();
+it('shows a direct Remove icon (no dropdown) for a dynamic property', () => {
     renderPage([DYNAMIC_PROP]);
 
-    await user.click(screen.getByRole('button', { name: /open actions/i }));
-
+    // Single action → rendered as a direct icon button, not a ⋮ dropdown
+    expect(screen.queryByRole('button', { name: /actions for/i })).toBeNull();
+    expect(screen.getByRole('button', { name: /remove/i })).not.toBeNull();
     expect(screen.queryByText(/encrypt value/i)).toBeNull();
     expect(screen.queryByText(/renew encryption/i)).toBeNull();
-    expect(screen.getByText(/remove/i)).not.toBeNull();
 });
 
 // ─── 3. Encrypted property: only Renew encryption shown ──────────────────────
@@ -114,7 +113,7 @@ it('shows only Renew encryption for an encrypted property — no Edit value or E
     const user = userEvent.setup();
     renderPage([ENCRYPTED_PROP]);
 
-    await user.click(screen.getByRole('button', { name: /open actions/i }));
+    await user.click(screen.getByRole('button', { name: /actions for/i }));
 
     expect(screen.queryByText(/edit value/i)).toBeNull();
     expect(screen.queryByText(/encrypt value/i)).toBeNull();
@@ -148,7 +147,7 @@ it('calls updateApiProperties with encryptable=true when Encrypt value is clicke
     const user = userEvent.setup();
     renderPage([PLAIN_PROP]);
 
-    await user.click(screen.getByRole('button', { name: /open actions/i }));
+    await user.click(screen.getByRole('button', { name: /actions for/i }));
     await user.click(screen.getByText(/encrypt value/i));
 
     await waitFor(() => expect(mockUpdateApiProperties).toHaveBeenCalledTimes(1));

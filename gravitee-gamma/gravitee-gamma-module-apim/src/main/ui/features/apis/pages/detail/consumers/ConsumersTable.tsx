@@ -13,22 +13,73 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-    Badge,
-    DataTablePagination,
-    Skeleton,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@gravitee/graphene-core';
+import { Badge, DataTable, DataTableEmptyState, DateCell, type DataTableProps } from '@gravitee/graphene-core';
+import { SearchIcon } from '@gravitee/graphene-core/icons';
 import { useNavigate } from 'react-router-dom';
 
 import { SubscriptionStatusBadge } from './SubscriptionStatusBadge';
 import type { Subscription } from '../../../types/subscription';
-import { formatDate } from '../../../utils/formatDate';
+
+type ColCell<T> = { row: { original: T } };
+
+function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<Subscription>['columns'] {
+    return [
+        {
+            id: 'Application',
+            accessorFn: (row: Subscription) => row.application.name,
+            header: 'Application',
+            enableSorting: false,
+            cell: ({ row }: ColCell<Subscription>) => {
+                const sub = row.original;
+                return (
+                    <div>
+                        <button type="button" className="text-left font-medium hover:underline" onClick={() => navigate(sub.id)}>
+                            {sub.application.name}
+                        </button>
+                        {sub.application.primaryOwner?.displayName ? (
+                            <div className="text-xs text-muted-foreground">{sub.application.primaryOwner.displayName}</div>
+                        ) : null}
+                    </div>
+                );
+            },
+        },
+        {
+            id: 'Plan',
+            accessorFn: (row: Subscription) => row.plan.name,
+            header: 'Plan',
+            enableSorting: false,
+            cell: ({ row }: ColCell<Subscription>) => row.original.plan.name,
+        },
+        {
+            id: 'Security',
+            header: 'Security',
+            enableSorting: false,
+            cell: ({ row }: ColCell<Subscription>) => {
+                const type = row.original.plan.security?.type;
+                return type ? (
+                    <Badge variant="secondary" className="text-xs font-mono">
+                        {type === 'KEY_LESS' ? 'Keyless' : type}
+                    </Badge>
+                ) : (
+                    <span className="text-muted-foreground">—</span>
+                );
+            },
+        },
+        {
+            id: 'Status',
+            header: 'Status',
+            enableSorting: false,
+            cell: ({ row }: ColCell<Subscription>) => <SubscriptionStatusBadge status={row.original.status} />,
+        },
+        {
+            id: 'Created',
+            accessorFn: (row: Subscription) => row.createdAt,
+            header: 'Created',
+            enableSorting: false,
+            cell: ({ row }: ColCell<Subscription>) => <DateCell value={row.original.createdAt} format="absolute" />,
+        },
+    ];
+}
 
 interface ConsumersTableProps {
     subscriptions: Subscription[];
@@ -50,84 +101,32 @@ export function ConsumersTable({
     onPerPageChange,
 }: Readonly<ConsumersTableProps>) {
     const navigate = useNavigate();
+    const columns = buildColumns(navigate);
 
     return (
-        <div className="space-y-2">
-            <DataTablePagination
-                page={page}
-                pageSize={perPage}
-                totalCount={totalCount}
-                pageSizeOptions={[10, 25, 50, 100]}
-                onPageChange={onPage}
-                onPageSizeChange={onPerPageChange}
-            />
-            <div className="rounded-md border">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Application</TableHead>
-                            <TableHead>Plan</TableHead>
-                            <TableHead>Security</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Created</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading &&
-                            Array.from({ length: perPage }).map((_, i) => (
-                                <TableRow key={i}>
-                                    {Array.from({ length: 5 }).map((__, j) => (
-                                        <TableCell key={j}>
-                                            <Skeleton className="h-4 w-full rounded" />
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            ))}
-
-                        {!isLoading && subscriptions.length === 0 && (
-                            <TableRow>
-                                <TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">
-                                    No subscriptions match the current filters.
-                                </TableCell>
-                            </TableRow>
-                        )}
-
-                        {!isLoading &&
-                            subscriptions.map(sub => (
-                                <TableRow key={sub.id} className="cursor-pointer hover:bg-muted" onClick={() => navigate(sub.id)}>
-                                    <TableCell>
-                                        <div className="font-medium">{sub.application.name}</div>
-                                        {sub.application.primaryOwner?.displayName && (
-                                            <div className="text-xs text-muted-foreground">{sub.application.primaryOwner.displayName}</div>
-                                        )}
-                                    </TableCell>
-                                    <TableCell>{sub.plan.name}</TableCell>
-                                    <TableCell>
-                                        {sub.plan.security?.type ? (
-                                            <Badge variant="secondary" className="text-xs font-mono">
-                                                {sub.plan.security.type === 'KEY_LESS' ? 'Keyless' : sub.plan.security.type}
-                                            </Badge>
-                                        ) : (
-                                            <span className="text-muted-foreground">—</span>
-                                        )}
-                                    </TableCell>
-                                    <TableCell>
-                                        <SubscriptionStatusBadge status={sub.status} />
-                                    </TableCell>
-                                    <TableCell className="text-muted-foreground text-sm">{formatDate(sub.createdAt)}</TableCell>
-                                </TableRow>
-                            ))}
-                    </TableBody>
-                </Table>
-            </div>
-            <DataTablePagination
-                page={page}
-                pageSize={perPage}
-                totalCount={totalCount}
-                pageSizeOptions={[10, 25, 50, 100]}
-                onPageChange={onPage}
-                onPageSizeChange={onPerPageChange}
-            />
-        </div>
+        <DataTable
+            aria-label="Consumers"
+            columns={columns}
+            data={subscriptions}
+            loading={isLoading}
+            skeletonCount={perPage}
+            serverSide
+            pagination={{
+                page,
+                pageSize: perPage,
+                totalCount,
+                pageSizeOptions: [10, 25, 50, 100],
+                onPageChange: onPage,
+                onPageSizeChange: onPerPageChange,
+            }}
+            emptyMessage={
+                <DataTableEmptyState
+                    variant="no-results"
+                    icon={<SearchIcon />}
+                    title="No subscriptions match the current filters"
+                    description="Try adjusting or clearing your filters."
+                />
+            }
+        />
     );
 }
