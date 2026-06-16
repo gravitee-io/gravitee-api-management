@@ -196,6 +196,10 @@ public interface ApiMapper {
         return io.gravitee.apim.rest.api.automation.model.PlanSecurityType.valueOf(type.name());
     }
 
+    io.gravitee.apim.core.portal.model.NavigationPath map(io.gravitee.apim.rest.api.automation.model.NavigationPath src);
+
+    io.gravitee.apim.rest.api.automation.model.NavigationPath mapNavigationPath(io.gravitee.apim.core.portal.model.NavigationPath src);
+
     default List<io.gravitee.rest.api.management.v2.rest.model.Selector> mapApiV4SpecSelectors(FlowV4 flowV4) {
         if (flowV4 == null || flowV4.getSelectors() == null) {
             return List.of();

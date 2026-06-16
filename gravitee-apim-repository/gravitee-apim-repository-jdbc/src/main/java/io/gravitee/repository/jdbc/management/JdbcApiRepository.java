@@ -111,6 +111,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             .addColumn("disable_membership_notifications", Types.BIT, boolean.class)
             .addColumn("allow_multi_jwt_oauth2_subscriptions", Types.BIT, boolean.class)
             .addColumn("background", Types.NVARCHAR, String.class)
+            .addColumn("portal_navigation", Types.NVARCHAR, String.class)
             .build();
     }
 

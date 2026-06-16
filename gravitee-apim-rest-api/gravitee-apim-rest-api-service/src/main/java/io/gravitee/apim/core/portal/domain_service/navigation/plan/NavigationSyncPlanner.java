@@ -132,8 +132,8 @@ public final class NavigationSyncPlanner {
     private static Map<String, String> explicitDisplayNames(List<NavigationPath> input) {
         return input
             .stream()
-            .filter(e -> e.displayName().isPresent())
-            .collect(Collectors.toMap(NavigationPath::path, e -> e.displayName().orElseThrow(), (first, second) -> first));
+            .filter(e -> e.displayName() != null)
+            .collect(Collectors.toMap(NavigationPath::path, NavigationPath::displayName, (first, second) -> first));
     }
 
     private static Collection<PathExpander.PathEntry> deduplicateByPath(List<NavigationPath> input) {

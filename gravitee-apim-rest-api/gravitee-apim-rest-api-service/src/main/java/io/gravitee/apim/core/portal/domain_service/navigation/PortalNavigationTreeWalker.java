@@ -25,13 +25,12 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /** Pre-order traversal, children sorted by {@code order}. */
 public final class PortalNavigationTreeWalker {
 
-    private static final NavigationPath ROOT = new NavigationPath("", Optional.empty());
+    private static final NavigationPath ROOT = new NavigationPath("", null);
 
     private PortalNavigationTreeWalker() {}
 

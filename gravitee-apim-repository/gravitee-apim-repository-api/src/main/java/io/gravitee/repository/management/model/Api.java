@@ -173,6 +173,7 @@ public class Api {
     private boolean allowMultiJwtOauth2Subscriptions;
     private ApiLifecycleState apiLifecycleState = ApiLifecycleState.CREATED;
     private String background;
+    private String portalNavigation;
 
     public Api(Api cloned) {
         this.id = cloned.id;
@@ -202,6 +203,7 @@ public class Api {
         this.allowMultiJwtOauth2Subscriptions = cloned.allowMultiJwtOauth2Subscriptions;
         this.integrationId = cloned.integrationId;
         this.syncFrom = cloned.syncFrom;
+        this.portalNavigation = cloned.portalNavigation;
     }
 
     public enum AuditEvent implements Audit.ApiAuditEvent {

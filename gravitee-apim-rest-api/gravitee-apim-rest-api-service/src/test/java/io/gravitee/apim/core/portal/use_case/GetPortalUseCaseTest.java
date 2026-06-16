@@ -26,7 +26,6 @@ import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.PortalId;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -92,13 +91,13 @@ class GetPortalUseCaseTest {
 
     @Test
     void should_return_persisted_navigation_paths() {
-        var navigation = List.of(new NavigationPath("/a", Optional.empty()), new NavigationPath("/a/b", Optional.of("B")));
+        var navigation = List.of(new NavigationPath("/a", null), new NavigationPath("/a/b", "B"));
         var portal = PortalFixtures.aPortal().withNavigation(navigation);
         portalCrudService.initWith(List.of(portal));
 
         var output = useCase.execute(new GetPortalUseCase.Input(AUDIT_INFO, portal.getId()));
 
         assertThat(output.navigation()).extracting(NavigationPath::path).containsExactly("/a", "/a/b");
-        assertThat(output.navigation().get(1).displayName()).contains("B");
+        assertThat(output.navigation().get(1).displayName()).isEqualTo("B");
     }
 }
