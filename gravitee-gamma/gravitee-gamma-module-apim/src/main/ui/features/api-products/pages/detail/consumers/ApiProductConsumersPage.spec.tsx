@@ -85,6 +85,49 @@ jest.mock('@gravitee/graphene-core', () => {
         CardHeader: ({ children }: { children: ReactNode }) => <div>{children}</div>,
         CardTitle: ({ children }: { children: ReactNode }) => <div>{children}</div>,
         DataTablePagination: () => null,
+        DataTable: ({
+            columns,
+            data,
+            loading,
+            skeletonCount = 5,
+            emptyMessage,
+        }: {
+            columns: { cell?: (ctx: { row: { original: unknown; index: number } }) => ReactNode }[];
+            data: unknown[];
+            loading?: boolean;
+            skeletonCount?: number;
+            emptyMessage?: ReactNode;
+        }) => (
+            <table>
+                <tbody>
+                    {loading ? (
+                        Array.from({ length: skeletonCount }).map((_, i) => (
+                            <tr key={i}>
+                                {columns.map((_c, j) => (
+                                    <td key={j}>
+                                        <div aria-busy="true" />
+                                    </td>
+                                ))}
+                            </tr>
+                        ))
+                    ) : data.length === 0 ? (
+                        <tr>
+                            <td>{emptyMessage}</td>
+                        </tr>
+                    ) : (
+                        data.map((row, i) => (
+                            <tr key={i}>
+                                {columns.map((c, j) => (
+                                    <td key={j}>{c.cell ? c.cell({ row: { original: row, index: i } }) : null}</td>
+                                ))}
+                            </tr>
+                        ))
+                    )}
+                </tbody>
+            </table>
+        ),
+        DataTableEmptyState: ({ title }: { title?: string }) => <div>{title}</div>,
+        DateCell: ({ value }: { value?: string | Date | null }) => <span>{String(value ?? '')}</span>,
         Dialog: ({ open, children }: { open?: boolean; children: ReactNode }) => (open ? <div role="dialog">{children}</div> : null),
         DialogContent: ({ children }: { children: ReactNode }) => <div>{children}</div>,
         DialogFooter: ({ children }: { children: ReactNode }) => <div>{children}</div>,

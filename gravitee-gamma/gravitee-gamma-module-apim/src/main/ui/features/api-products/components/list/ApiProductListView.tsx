@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, Input } from '@gravitee/graphene-core';
+import { Button, Input, type DataTableProps } from '@gravitee/graphene-core';
 import { PlusIcon, SearchIcon } from '@gravitee/graphene-core/icons';
 import { useId } from 'react';
 
@@ -28,6 +28,8 @@ interface ApiProductListViewProps {
     search: string;
     page: number;
     perPage: number;
+    sorting?: DataTableProps<ApiProductListItem>['sorting'];
+    onSortingChange?: DataTableProps<ApiProductListItem>['onSortingChange'];
     onSearchChange: (value: string) => void;
     onPageChange: (page: number) => void;
     onPerPageChange: (perPage: number) => void;
@@ -41,6 +43,8 @@ export function ApiProductListView({
     search,
     page,
     perPage,
+    sorting,
+    onSortingChange,
     onSearchChange,
     onPageChange,
     onPerPageChange,
@@ -88,6 +92,8 @@ export function ApiProductListView({
                 page={page}
                 pageSize={perPage}
                 totalCount={totalCount}
+                sorting={sorting}
+                onSortingChange={onSortingChange}
                 onPageChange={onPageChange}
                 onPageSizeChange={onPerPageChange}
                 toolbar={toolbar}

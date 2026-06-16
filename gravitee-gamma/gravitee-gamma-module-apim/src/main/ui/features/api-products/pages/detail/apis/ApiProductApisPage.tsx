@@ -20,79 +20,97 @@ import {
     CardContent,
     CardHeader,
     CardTitle,
-    DataTablePagination,
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
+    DataTable,
+    DataTableEmptyState,
+    type DataTableProps,
     Input,
-    Skeleton,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
 } from '@gravitee/graphene-core';
 import {
     ArrowRightIcon,
     BoxesIcon,
     CircleCheckIcon,
-    GlobeIcon,
     LayoutGridIcon,
-    MoreHorizontalIcon,
     PlusIcon,
     SearchIcon,
+    Trash2Icon,
     UsersRoundIcon,
 } from '@gravitee/graphene-core/icons';
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { ConfirmDialog } from '../../../../../shared/components';
 import { notify } from '../../../../../shared/notify';
+import { ApiAvatar } from '../../../../apis/components/ApiAvatar';
 import type { ApiListItem } from '../../../../apis/types';
 import { AddApiToProduct } from '../../../components/apis/AddApiToProduct';
 import { useApiProductDetailContext } from '../../../context/ApiProductDetailContext';
 import { useApiProductApis } from '../../../hooks/useApiProductApis';
 import { useUpdateApiProduct } from '../../../hooks/useUpdateApiProduct';
 
-function ApiRow({ api, onRequestRemove }: { api: ApiListItem; onRequestRemove: () => void }) {
-    const path = api.listeners?.find(l => l.type === 'HTTP')?.paths?.[0]?.path ?? '';
-    return (
-        <TableRow>
-            <TableCell>
-                <div className="flex items-center gap-2">
-                    <div className="rounded-md bg-primary/10 p-1 shrink-0">
-                        <GlobeIcon className="size-3.5 text-primary" aria-hidden />
+type ColCell<T> = { row: { original: T } };
+
+function buildColumns(onRequestRemove: (api: ApiListItem) => void): DataTableProps<ApiListItem>['columns'] {
+    return [
+        {
+            id: 'API Name',
+            accessorFn: (row: ApiListItem) => row.name,
+            header: 'API Name',
+            enableSorting: false,
+            cell: ({ row }: ColCell<ApiListItem>) => {
+                const api = row.original;
+                const path = api.listeners?.find(l => l.type === 'HTTP')?.paths?.[0]?.path ?? '';
+                return (
+                    <div className="flex items-center gap-2">
+                        <ApiAvatar src={api._links?.pictureUrl} name={api.name} />
+                        <div>
+                            <p className="text-sm font-medium">{api.name}</p>
+                            {path ? <p className="text-xs text-muted-foreground font-mono">{path}</p> : null}
+                        </div>
                     </div>
-                    <div>
-                        <p className="text-sm font-medium">{api.name}</p>
-                        {path ? <p className="text-xs text-muted-foreground font-mono">{path}</p> : null}
-                    </div>
-                </div>
-            </TableCell>
-            <TableCell>
+                );
+            },
+        },
+        {
+            id: 'Version',
+            accessorFn: (row: ApiListItem) => row.apiVersion,
+            header: 'Version',
+            enableSorting: false,
+            cell: ({ row }: ColCell<ApiListItem>) => (
                 <Badge variant="outline" className="font-mono text-xs">
-                    {api.apiVersion}
+                    {row.original.apiVersion}
                 </Badge>
-            </TableCell>
-            <TableCell className="text-sm text-muted-foreground">{api.primaryOwner?.displayName ?? '—'}</TableCell>
-            <TableCell className="text-right">
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" aria-label={`Actions for ${api.name}`}>
-                            <MoreHorizontalIcon className="size-4" aria-hidden />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-auto min-w-[12rem]">
-                        <DropdownMenuItem onSelect={onRequestRemove} className="text-destructive focus:text-destructive">
-                            Remove from product
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </TableCell>
-        </TableRow>
-    );
+            ),
+        },
+        {
+            id: 'Owner',
+            accessorFn: (row: ApiListItem) => row.primaryOwner?.displayName ?? '',
+            header: 'Owner',
+            enableSorting: false,
+            cell: ({ row }: ColCell<ApiListItem>) => (
+                <span className="text-sm text-muted-foreground">{row.original.primaryOwner?.displayName ?? '—'}</span>
+            ),
+        },
+        {
+            id: 'actions',
+            header: () => <span className="sr-only">Actions</span>,
+            enableSorting: false,
+            enableHiding: false,
+            cell: ({ row }: ColCell<ApiListItem>) => (
+                <div className="flex justify-end">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        aria-label={`Remove ${row.original.name} from product`}
+                        title="Remove from product"
+                        onClick={() => onRequestRemove(row.original)}
+                    >
+                        <Trash2Icon className="size-4" aria-hidden />
+                    </Button>
+                </div>
+            ),
+        },
+    ];
 }
 
 function DiagramNode({
@@ -220,7 +238,6 @@ export function ApiProductApisPage() {
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [page, setPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
-    const searchInputId = useId();
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -266,8 +283,10 @@ export function ApiProductApisPage() {
         );
     }
 
-    // Truly empty: no APIs at all (not a filtered-out result)
-    const isEmpty = !isLoading && !isApisError && totalApiCount === 0 && !debouncedSearch;
+    const columns = buildColumns(api => setApiToRemove(api));
+
+    const hasNoApisAssigned = (product?.apiIds?.length ?? 0) === 0;
+    const isFirstUse = !isLoading && !debouncedSearch && (hasNoApisAssigned || (!isApisError && totalApiCount === 0));
 
     return (
         <div className="space-y-6 p-6">
@@ -282,97 +301,59 @@ export function ApiProductApisPage() {
                 </Button>
             </div>
 
-            {isApisError ? (
-                <p className="text-sm text-destructive">Failed to load APIs for this product. Please refresh and try again.</p>
-            ) : isLoading && !apisData ? (
-                <div className="space-y-2">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                        <Skeleton key={i} className="h-14 rounded-lg" />
-                    ))}
-                </div>
-            ) : isEmpty ? (
+            {isFirstUse ? (
                 <EmptyApisLanding productName={product?.name} />
+            ) : isApisError ? (
+                <p className="text-sm text-destructive">Failed to load APIs for this product. Please refresh and try again.</p>
             ) : (
-                <>
-                    {/* Search + pagination row */}
-                    <div className="flex items-center justify-between gap-4">
-                        <div className="relative w-72 shrink-0">
-                            <SearchIcon
-                                className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none"
-                                aria-hidden
-                            />
-                            <label htmlFor={searchInputId} className="sr-only">
-                                Search APIs
-                            </label>
-                            <Input
-                                id={searchInputId}
-                                placeholder="Search by name"
-                                value={search}
-                                onChange={e => setSearch(e.target.value)}
-                                className="pl-9"
-                            />
-                        </div>
-                        <DataTablePagination
-                            page={page}
-                            pageSize={perPage}
-                            totalCount={totalApiCount}
-                            pageSizeOptions={[10, 25, 50]}
-                            onPageChange={setPage}
-                            onPageSizeChange={p => {
-                                setPerPage(p);
-                                setPage(1);
-                            }}
+                <DataTable
+                    aria-label="Product APIs"
+                    columns={columns}
+                    data={apis}
+                    loading={isLoading}
+                    skeletonCount={perPage}
+                    serverSide
+                    pagination={{
+                        page,
+                        pageSize: perPage,
+                        totalCount: totalApiCount,
+                        pageSizeOptions: [10, 25, 50, 100],
+                        onPageChange: setPage,
+                        onPageSizeChange: p => {
+                            setPerPage(p);
+                            setPage(1);
+                        },
+                    }}
+                    emptyMessage={
+                        <DataTableEmptyState
+                            variant="no-results"
+                            icon={<SearchIcon />}
+                            title="No APIs match your search"
+                            description="Try adjusting your search terms."
+                            action={
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                        setSearch('');
+                                        setPage(1);
+                                    }}
+                                >
+                                    Clear search
+                                </Button>
+                            }
                         />
-                    </div>
-
-                    {/* Table */}
-                    <div className="rounded-lg border">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>API Name</TableHead>
-                                    <TableHead>Version</TableHead>
-                                    <TableHead>Owner</TableHead>
-                                    <TableHead className="w-10 text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {isLoading ? (
-                                    Array.from({ length: perPage }).map((_, i) => (
-                                        <TableRow key={i}>
-                                            <TableCell colSpan={4}>
-                                                <Skeleton className="h-8 w-full rounded" />
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : apis.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell colSpan={4} className="py-10 text-center text-sm text-muted-foreground">
-                                            No APIs match your search.
-                                        </TableCell>
-                                    </TableRow>
-                                ) : (
-                                    apis.map(api => <ApiRow key={api.id} api={api} onRequestRemove={() => setApiToRemove(api)} />)
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
-
-                    {/* Bottom pagination */}
-                    <div className="flex justify-end">
-                        <DataTablePagination
-                            page={page}
-                            pageSize={perPage}
-                            totalCount={totalApiCount}
-                            pageSizeOptions={[10, 25, 50]}
-                            onPageChange={setPage}
-                            onPageSizeChange={p => {
-                                setPerPage(p);
-                                setPage(1);
-                            }}
+                    }
+                    toolbar={
+                        <Input
+                            placeholder="Search by name"
+                            aria-label="Search APIs"
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            className="h-8 w-64"
                         />
-                    </div>
-                </>
+                    }
+                />
             )}
 
             <AddApiToProduct
