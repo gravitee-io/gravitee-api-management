@@ -15,17 +15,16 @@
  */
 import { Component, computed, DestroyRef, inject, Input, model, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardContent, MatCardHeader } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIcon } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
-import { MatSnackBar, MatSnackBarConfig, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltip } from '@angular/material/tooltip';
 import { filter, tap } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
+import { ApiKeyFeedback, ApiKeysListComponent, ApiKeyTableRow } from './api-keys-list/api-keys-list.component';
 import { NativeKafkaApiAccessComponent } from './native-kafka-api-access/native-kafka-api-access.component';
 import { ApiType } from '../../entities/api/api';
 import { PlanSecurityEnum } from '../../entities/plan/plan';
@@ -35,23 +34,6 @@ import { SubscriptionKeysService } from '../../services/subscription-keys.servic
 import { ConfirmDialogComponent, ConfirmDialogData } from '../confirm-dialog/confirm-dialog.component';
 import { CopyCodeIconComponent } from '../copy-code/copy-code-icon/copy-code-icon/copy-code-icon.component';
 import { CopyCodeComponent } from '../copy-code/copy-code.component';
-import { PaginatedTableComponent, TableColumn } from '../paginated-table/paginated-table.component';
-import { TableCellDirective } from '../paginated-table/table-cell.directive';
-
-interface ApiKeyTableRow {
-  statusIcon: 'gio:check-circled-outline' | 'gio:x-circle';
-  statusLabel: string;
-  revokeAriaLabel: string;
-  isActive: boolean;
-  key: string;
-  createdAt?: string;
-  closedAt?: string;
-}
-
-interface ApiKeyRenewFeedback {
-  type: 'success' | 'error';
-  message: string;
-}
 
 @Component({
   selector: 'app-api-access',
@@ -60,17 +42,13 @@ interface ApiKeyRenewFeedback {
     MatCardContent,
     MatCardHeader,
     MatButton,
-    MatIconButton,
+    ApiKeysListComponent,
     CopyCodeComponent,
     NativeKafkaApiAccessComponent,
     MatFormFieldModule,
-    MatIcon,
     MatSelectModule,
-    MatSnackBarModule,
     MatTooltip,
     CopyCodeIconComponent,
-    PaginatedTableComponent,
-    TableCellDirective,
   ],
   templateUrl: './api-access.component.html',
   styleUrl: './api-access.component.scss',
@@ -78,7 +56,6 @@ interface ApiKeyRenewFeedback {
 export class ApiAccessComponent {
   private readonly configService = inject(ConfigService);
   private readonly subscriptionKeysService = inject(SubscriptionKeysService);
-  private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -107,15 +84,6 @@ export class ApiAccessComponent {
 
   get apiKeys(): SubscriptionDataKeys[] {
     return this.apiKeysInput();
-  }
-
-  @Input()
-  set apiKeyConfigUsername(value: string | undefined) {
-    this.apiKeyConfigUsernameInput.set(value);
-  }
-
-  get apiKeyConfigUsername(): string | undefined {
-    return this.apiKeyConfigUsernameInput();
   }
 
   @Input()
@@ -166,25 +134,15 @@ export class ApiAccessComponent {
   apiKeyRevoked = output<void>();
   apiKeyRenewed = output<void>();
 
-  protected readonly apiKeysColumns: TableColumn[] = [
-    { id: 'status', label: $localize`:@@subscriptionDetailsApiAccessApiKeysColumnStatus:Status` },
-    { id: 'key', label: $localize`:@@subscriptionDetailsApiAccessApiKeysColumnKey:Key` },
-    { id: 'createdAt', label: $localize`:@@subscriptionDetailsApiAccessApiKeysColumnCreatedAt:Created At`, type: 'date-time' },
-    { id: 'closedAt', label: $localize`:@@subscriptionDetailsApiAccessApiKeysColumnRevokedAt:Revoked/Expired At`, type: 'date-time' },
-    { id: 'revoke', label: '' },
-  ];
-  protected readonly apiKeysPageSizeOptions = [5, 10, 25];
-
   private readonly planSecurityInput = signal<PlanSecurityEnum | undefined>(undefined);
   private readonly subscriptionInput = signal<Subscription | undefined>(undefined);
   private readonly apiKeysInput = signal<SubscriptionDataKeys[]>([]);
-  private readonly apiKeyConfigUsernameInput = signal<string | undefined>(undefined);
   private readonly apiTypeInput = signal<ApiType | undefined>(undefined);
   private readonly entrypointUrlsInput = signal<string[] | undefined>(undefined);
   private readonly clientIdInput = signal<string | undefined>(undefined);
   private readonly clientSecretInput = signal<string | undefined>(undefined);
   private readonly canManageApiKeyInput = signal(false);
-  protected readonly apiKeyRenewFeedback = signal<ApiKeyRenewFeedback | undefined>(undefined);
+  protected readonly apiKeyFeedback = signal<ApiKeyFeedback | undefined>(undefined);
   protected readonly isRenewingApiKey = signal(false);
   protected readonly isRenewApiKeyDialogOpen = signal(false);
 
@@ -207,23 +165,13 @@ export class ApiAccessComponent {
   );
   protected readonly activeApiKey = computed(() => this.apiKeysInput().find(apiKey => this.isActiveApiKey(apiKey)));
   protected readonly hasActiveApiKey = computed(() => !!this.activeApiKey());
-  protected readonly totalApiKeyElements = computed(() => this.apiKeyRows().length);
-  protected readonly apiKeysPageSize = signal(5);
-  private readonly requestedApiKeysCurrentPage = signal(1);
-  protected readonly lastValidApiKeysPage = computed(() => Math.max(1, Math.ceil(this.totalApiKeyElements() / this.apiKeysPageSize())));
-  protected readonly apiKeysCurrentPage = computed(() => Math.min(this.requestedApiKeysCurrentPage(), this.lastValidApiKeysPage()));
-  protected readonly displayedApiKeyRows = computed(() => {
-    const startIndex = (this.apiKeysCurrentPage() - 1) * this.apiKeysPageSize();
-    const endIndex = startIndex + this.apiKeysPageSize();
-    return this.apiKeyRows().slice(startIndex, endIndex);
-  });
   protected readonly primaryApiKey = computed(() => this.activeApiKey()?.key ?? '');
-  protected readonly resolvedApiKeyConfigUsername = computed(() => this.apiKeyConfigUsernameInput() ?? this.activeApiKey()?.hash ?? '');
-  protected readonly shouldShowApiAccessContent = computed(
-    () =>
-      this.entrypointUrlValues().length > 0 &&
-      (this.planSecurityInput() !== 'API_KEY' || this.subscriptionInput()?.status !== 'ACCEPTED' || this.hasActiveApiKey()),
+  protected readonly resolvedApiKeyConfigUsername = computed(() => this.activeApiKey()?.hash ?? '');
+  protected readonly hasUsableApiKeyAccess = computed(
+    () => this.planSecurityInput() !== 'API_KEY' || this.subscriptionInput()?.status !== 'ACCEPTED' || this.hasActiveApiKey(),
   );
+  protected readonly shouldShowApiAccessContent = computed(() => this.entrypointUrlValues().length > 0 && this.hasUsableApiKeyAccess());
+  protected readonly shouldShowNativeAccessContent = computed(() => this.hasUsableApiKeyAccess());
   protected readonly hasApiAccessContent = computed(() => {
     if (this.apiTypeInput() === 'NATIVE') {
       return true;
@@ -238,12 +186,8 @@ export class ApiAccessComponent {
     const isAccessVisible = this.subscriptionInput()?.status === 'ACCEPTED' || this.planSecurityInput() === 'KEY_LESS';
     return isAccessVisible ? this.hasApiAccessContent() : true;
   });
-  protected isRevokingApiKey = false;
-  protected isRevokeApiKeyDialogOpen = false;
-  private readonly defaultSnackBarOptions: MatSnackBarConfig = {
-    duration: 5000,
-    horizontalPosition: 'end',
-  };
+  protected readonly isRevokingApiKey = signal(false);
+  protected readonly isRevokeApiKeyDialogOpen = signal(false);
 
   selectedEntrypointUrl = model<string>('');
   protected readonly selectedEntrypointUrlValue = computed(() => {
@@ -254,17 +198,8 @@ export class ApiAccessComponent {
 
   curlCmd = computed(() => this.formatCurlCommandLine(this.selectedEntrypointUrlValue(), this.planSecurityInput(), this.primaryApiKey()));
 
-  protected onApiKeysPageChange(page: number): void {
-    this.requestedApiKeysCurrentPage.set(page);
-  }
-
-  protected onApiKeysPageSizeChange(pageSize: number): void {
-    this.apiKeysPageSize.set(pageSize);
-    this.requestedApiKeysCurrentPage.set(1);
-  }
-
   protected revokeApiKeyRow(apiKey: ApiKeyTableRow): void {
-    if (!this.canManageApiKeyInput() || this.isRevokingApiKey || this.isRevokeApiKeyDialogOpen || !apiKey.isActive || !apiKey.key) {
+    if (!this.canManageApiKeyInput() || this.isRevokingApiKey() || this.isRevokeApiKeyDialogOpen() || !apiKey.isActive || !apiKey.key) {
       return;
     }
 
@@ -275,7 +210,7 @@ export class ApiAccessComponent {
       cancelLabel: $localize`:@@subscriptionDetailsCloseApiKeyDialogCancel:Cancel`,
     };
 
-    this.isRevokeApiKeyDialogOpen = true;
+    this.isRevokeApiKeyDialogOpen.set(true);
     this.dialog
       .open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
         role: 'alertdialog',
@@ -284,7 +219,7 @@ export class ApiAccessComponent {
       })
       .afterClosed()
       .pipe(
-        tap(() => (this.isRevokeApiKeyDialogOpen = false)),
+        tap(() => this.isRevokeApiKeyDialogOpen.set(false)),
         filter(confirmed => !!confirmed),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -337,34 +272,27 @@ export class ApiAccessComponent {
       return;
     }
 
-    this.isRevokingApiKey = true;
+    this.isRevokingApiKey.set(true);
+    this.apiKeyFeedback.set(undefined);
     this.subscriptionKeysService
       .revoke(subscriptionId, apiKey)
       .pipe(
-        finalize(() => (this.isRevokingApiKey = false)),
+        finalize(() => this.isRevokingApiKey.set(false)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: () => {
           this.apiKeyRevoked.emit();
-          this.snackBar.open(
-            $localize`:@@subscriptionDetailsApiAccessRevokeSuccess:API key revoked successfully. Applications using it will no longer be able to access the API.`,
-            undefined,
-            {
-              ...this.defaultSnackBarOptions,
-              panelClass: 'gio-snack-bar-success',
-            },
-          );
+          this.apiKeyFeedback.set({
+            type: 'success',
+            message: $localize`:@@subscriptionDetailsApiAccessRevokeSuccess:API key revoked successfully. Applications using it will no longer be able to access the API.`,
+          });
         },
         error: () => {
-          this.snackBar.open(
-            $localize`:@@subscriptionDetailsApiAccessRevokeError:Failed to revoke API key. Please try again.`,
-            $localize`:@@subscriptionDetailsApiAccessRevokeErrorClose:Close`,
-            {
-              ...this.defaultSnackBarOptions,
-              panelClass: 'gio-snack-bar-error',
-            },
-          );
+          this.apiKeyFeedback.set({
+            type: 'error',
+            message: $localize`:@@subscriptionDetailsApiAccessRevokeError:Failed to revoke API key. Please try again.`,
+          });
         },
       });
   }
@@ -376,7 +304,7 @@ export class ApiAccessComponent {
     }
 
     this.isRenewingApiKey.set(true);
-    this.apiKeyRenewFeedback.set(undefined);
+    this.apiKeyFeedback.set(undefined);
     this.subscriptionKeysService
       .renew(subscriptionId)
       .pipe(
@@ -386,13 +314,13 @@ export class ApiAccessComponent {
       .subscribe({
         next: () => {
           this.apiKeyRenewed.emit();
-          this.apiKeyRenewFeedback.set({
+          this.apiKeyFeedback.set({
             type: 'success',
             message: $localize`:@@subscriptionDetailsApiAccessRenewSuccess:API key renewed successfully. You can now use it to access the API.`,
           });
         },
         error: () => {
-          this.apiKeyRenewFeedback.set({
+          this.apiKeyFeedback.set({
             type: 'error',
             message: $localize`:@@subscriptionDetailsApiAccessRenewError:Failed to renew API key. Please try again.`,
           });
