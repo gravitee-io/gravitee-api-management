@@ -33,6 +33,8 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.MaybeTransformer;
 import io.reactivex.rxjava3.core.Single;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.net.ssl.SSLSession;
 
 /**
@@ -199,26 +201,39 @@ public abstract class AbstractRequest implements MutableRequest, HttpRequestInte
     @Override
     public MutableRequest contextPath(String contextPath) {
         this.contextPath = contextPath;
-        if (contextPath == null || contextPath.isEmpty()) {
-            this.pathInfo = path();
-        } else if (path().length() > 1) {
-            this.pathInfo = path().substring(contextPath.length() - 1);
-        } else {
-            this.pathInfo = "";
-        }
+        updatePathInfoFromContextPath(contextPath);
         return this;
     }
 
     @Override
     public MutableRequest debugContextPath(String contextPath) {
-        if (this.contextPath != null) {
-            if (!this.path.endsWith("/") && this.contextPath.endsWith("/")) {
-                this.path += "/";
+        String currentPath = path();
+        if (this.contextPath != null && currentPath != null) {
+            if (!currentPath.endsWith("/") && this.contextPath.endsWith("/")) {
+                final String contextPathWithoutTrailingSlash = this.contextPath.substring(0, this.contextPath.length() - 1);
+                if (currentPath.equals(contextPathWithoutTrailingSlash)) {
+                    currentPath += "/";
+                }
             }
-            this.path = this.path.replaceFirst(this.contextPath, contextPath);
+            this.path = currentPath.replaceFirst(Pattern.quote(this.contextPath), Matcher.quoteReplacement(contextPath));
         }
         this.contextPath = contextPath;
+        updatePathInfoFromContextPath(contextPath);
         return this;
+    }
+
+    private void updatePathInfoFromContextPath(String contextPath) {
+        final String currentPath = path();
+        if (currentPath == null) {
+            return;
+        }
+        if (contextPath == null || contextPath.isEmpty()) {
+            this.pathInfo = currentPath;
+        } else if (currentPath.length() > 1) {
+            this.pathInfo = currentPath.substring(contextPath.length() - 1);
+        } else {
+            this.pathInfo = "";
+        }
     }
 
     @Override
