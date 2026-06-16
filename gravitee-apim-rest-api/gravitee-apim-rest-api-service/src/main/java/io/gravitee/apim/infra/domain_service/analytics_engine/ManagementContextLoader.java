@@ -20,6 +20,7 @@ import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.infra.domain_service.analytics_engine.mapper.ApiMapper;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -90,8 +91,17 @@ public class ManagementContextLoader implements AnalyticsQueryContextLoader {
         var authorizedApiIds = apis.stream().map(Api::getId).collect(Collectors.toSet());
         var apiNamesById = mapApiIdsToNames(apis);
         var apiIdsByType = groupApiIdsByType(apis);
+        var apiIdsByDefinitionVersion = groupApiIdsByDefinitionVersion(apis);
 
-        return new AnalyticsQueryContext(auditInfo, executionContext, authorizedApiIds, apiNamesById, Map.of(), apiIdsByType);
+        return new AnalyticsQueryContext(
+            auditInfo,
+            executionContext,
+            authorizedApiIds,
+            apiNamesById,
+            Map.of(),
+            apiIdsByType,
+            apiIdsByDefinitionVersion
+        );
     }
 
     private static Map<String, String> mapApiIdsToNames(Collection<Api> apis) {
@@ -103,5 +113,12 @@ public class ManagementContextLoader implements AnalyticsQueryContextLoader {
             .stream()
             .filter(api -> api.getType() != null)
             .collect(Collectors.groupingBy(Api::getType, Collectors.mapping(Api::getId, Collectors.toSet())));
+    }
+
+    private static Map<DefinitionVersion, Set<String>> groupApiIdsByDefinitionVersion(Collection<Api> apis) {
+        return apis
+            .stream()
+            .filter(api -> api.getDefinitionVersion() != null)
+            .collect(Collectors.groupingBy(Api::getDefinitionVersion, Collectors.mapping(Api::getId, Collectors.toSet())));
     }
 }

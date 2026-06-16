@@ -22,6 +22,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.infra.domain_service.analytics_engine.mapper.ApiMapper;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -97,8 +98,17 @@ public class PortalContextLoader implements AnalyticsQueryContextLoader {
         var authorizedApiIds = apis.stream().map(Api::getId).collect(Collectors.toSet());
         var apiNamesById = mapApiIdsToNames(apis);
         var apiIdsByType = groupApiIdsByType(apis);
+        var apiIdsByDefinitionVersion = groupApiIdsByDefinitionVersion(apis);
 
-        return new AnalyticsQueryContext(auditInfo, executionContext, authorizedApiIds, apiNamesById, applicationNamesById, apiIdsByType);
+        return new AnalyticsQueryContext(
+            auditInfo,
+            executionContext,
+            authorizedApiIds,
+            apiNamesById,
+            applicationNamesById,
+            apiIdsByType,
+            apiIdsByDefinitionVersion
+        );
     }
 
     private List<Api> fetchApisForNavItems(String environmentId, List<PortalNavigationApi> navItems) {
@@ -120,5 +130,12 @@ public class PortalContextLoader implements AnalyticsQueryContextLoader {
             .stream()
             .filter(api -> api.getType() != null)
             .collect(Collectors.groupingBy(Api::getType, Collectors.mapping(Api::getId, Collectors.toSet())));
+    }
+
+    private static Map<DefinitionVersion, Set<String>> groupApiIdsByDefinitionVersion(Collection<Api> apis) {
+        return apis
+            .stream()
+            .filter(api -> api.getDefinitionVersion() != null)
+            .collect(Collectors.groupingBy(Api::getDefinitionVersion, Collectors.mapping(Api::getId, Collectors.toSet())));
     }
 }

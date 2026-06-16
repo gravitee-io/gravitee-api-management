@@ -70,4 +70,8 @@ public class InvalidQueryException extends ValidationDomainException {
     public static InvalidQueryException forUnknownAPIType(String apiType) {
         return new InvalidQueryException("Unknown API type '" + apiType + "'", "analytics.filter.invalidValue");
     }
+
+    public static InvalidQueryException forUnknownDefinitionVersion(String version) {
+        return new InvalidQueryException("Unknown definition version '" + version + "'", "analytics.filter.invalidValue");
+    }
 }

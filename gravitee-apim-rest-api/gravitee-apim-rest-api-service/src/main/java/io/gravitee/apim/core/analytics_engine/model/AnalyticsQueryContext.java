@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.analytics_engine.model;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Map;
@@ -27,20 +28,49 @@ public record AnalyticsQueryContext(
     Set<String> authorizedApiIds,
     Map<String, String> apiNamesById,
     Map<String, String> applicationNamesById,
-    Map<ApiType, Set<String>> apiIdsByType
+    Map<ApiType, Set<String>> apiIdsByType,
+    Map<DefinitionVersion, Set<String>> apiIdsByDefinitionVersion
 ) {
     public AnalyticsQueryContext {
         if (authorizedApiIds == null) authorizedApiIds = Set.of();
         if (apiNamesById == null) apiNamesById = Map.of();
         if (applicationNamesById == null) applicationNamesById = Map.of();
         if (apiIdsByType == null) apiIdsByType = Map.of();
+        if (apiIdsByDefinitionVersion == null) apiIdsByDefinitionVersion = Map.of();
+    }
+
+    public AnalyticsQueryContext(
+        AuditInfo auditInfo,
+        ExecutionContext executionContext,
+        Set<String> authorizedApiIds,
+        Map<String, String> apiNamesById,
+        Map<String, String> applicationNamesById,
+        Map<ApiType, Set<String>> apiIdsByType
+    ) {
+        this(auditInfo, executionContext, authorizedApiIds, apiNamesById, applicationNamesById, apiIdsByType, Map.of());
     }
 
     public AnalyticsQueryContext withApiNamesById(Map<String, String> apiNamesById) {
-        return new AnalyticsQueryContext(auditInfo, executionContext, authorizedApiIds, apiNamesById, applicationNamesById, apiIdsByType);
+        return new AnalyticsQueryContext(
+            auditInfo,
+            executionContext,
+            authorizedApiIds,
+            apiNamesById,
+            applicationNamesById,
+            apiIdsByType,
+            apiIdsByDefinitionVersion
+        );
     }
 
     public AnalyticsQueryContext withApplicationNamesById(Map<String, String> applicationNamesById) {
-        return new AnalyticsQueryContext(auditInfo, executionContext, authorizedApiIds, apiNamesById, applicationNamesById, apiIdsByType);
+        return new AnalyticsQueryContext(
+            auditInfo,
+            executionContext,
+            authorizedApiIds,
+            apiNamesById,
+            applicationNamesById,
+            apiIdsByType,
+            apiIdsByDefinitionVersion
+        );
     }
 }

@@ -104,7 +104,8 @@ public interface AnalyticsMeasuresAdapter {
         return MetricSpec.Measure.valueOf(result.name());
     }
 
-    // API_TYPE should never reach this layer, because it *must* have been transformed to API IDs beforehand.
+    // API_TYPE and DEFINITION_VERSION should never reach this layer — they must have been transformed to API IDs beforehand.
     @ValueMapping(source = "API_TYPE", target = MappingConstants.THROW_EXCEPTION)
+    @ValueMapping(source = "DEFINITION_VERSION", target = MappingConstants.THROW_EXCEPTION)
     Filter.Name toFilterName(io.gravitee.apim.core.analytics_engine.model.FilterSpec.Name name);
 }

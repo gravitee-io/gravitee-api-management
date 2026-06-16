@@ -27,6 +27,7 @@ import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.infra.domain_service.analytics_engine.ManagementContextLoader;
 import io.gravitee.apim.infra.domain_service.analytics_engine.processors.ApiTypeFilterTransformer;
 import io.gravitee.apim.infra.domain_service.analytics_engine.processors.BucketNamesPostProcessorImpl;
+import io.gravitee.apim.infra.domain_service.analytics_engine.processors.DefinitionVersionFilterTransformer;
 import io.gravitee.apim.infra.domain_service.analytics_engine.processors.UnitEnrichmentPostProcessorImpl;
 import io.gravitee.apim.infra.domain_service.user.UserContextLoaderImpl;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
@@ -95,6 +96,11 @@ public class RestManagementConfiguration {
     @Bean
     public QueryFilterTransformer apiTypeFilterTransformer() {
         return new ApiTypeFilterTransformer();
+    }
+
+    @Bean
+    public QueryFilterTransformer definitionVersionFilterTransformer() {
+        return new DefinitionVersionFilterTransformer();
     }
 
     @Bean

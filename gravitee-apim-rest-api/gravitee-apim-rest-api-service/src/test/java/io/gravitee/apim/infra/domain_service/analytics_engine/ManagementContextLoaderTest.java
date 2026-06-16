@@ -22,6 +22,7 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
@@ -65,9 +66,24 @@ class ManagementContextLoaderTest {
 
     private ManagementContextLoader contextLoader;
 
-    private static final Api API_1 = Api.builder().id("id1").name("api1").type(ApiType.PROXY).build();
-    private static final Api API_2 = Api.builder().id("id2").name("api2").type(ApiType.MESSAGE).build();
-    private static final Api API_3 = Api.builder().id("id3").name("api3").type(ApiType.LLM_PROXY).build();
+    private static final Api API_1 = Api.builder()
+        .id("id1")
+        .name("api1")
+        .type(ApiType.PROXY)
+        .definitionVersion(DefinitionVersion.V4)
+        .build();
+    private static final Api API_2 = Api.builder()
+        .id("id2")
+        .name("api2")
+        .type(ApiType.MESSAGE)
+        .definitionVersion(DefinitionVersion.V4)
+        .build();
+    private static final Api API_3 = Api.builder()
+        .id("id3")
+        .name("api3")
+        .type(ApiType.LLM_PROXY)
+        .definitionVersion(DefinitionVersion.V4)
+        .build();
 
     private static final String ADMIN_USER_ID = UUID.randomUUID().toString();
     private static final List<Api> ALL_APIS = List.of(API_1, API_2, API_3);
@@ -124,6 +140,7 @@ class ManagementContextLoaderTest {
             assertThat(context.apiIdsByType()).isEqualTo(
                 Map.of(ApiType.PROXY, Set.of("id1"), ApiType.MESSAGE, Set.of("id2"), ApiType.LLM_PROXY, Set.of("id3"))
             );
+            assertThat(context.apiIdsByDefinitionVersion()).isEqualTo(Map.of(DefinitionVersion.V4, Set.of("id1", "id2", "id3")));
             assertThat(context.applicationNamesById()).isEmpty();
             assertThat(context.executionContext().getOrganizationId()).isEqualTo("DEFAULT");
             assertThat(context.executionContext().getEnvironmentId()).isEqualTo("DEFAULT");
@@ -139,6 +156,7 @@ class ManagementContextLoaderTest {
             assertThat(context.authorizedApiIds()).isEmpty();
             assertThat(context.apiNamesById()).isEmpty();
             assertThat(context.apiIdsByType()).isEmpty();
+            assertThat(context.apiIdsByDefinitionVersion()).isEmpty();
             verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any(), anyBoolean());
         }
 
@@ -155,13 +173,36 @@ class ManagementContextLoaderTest {
 
         @Test
         void should_group_multiple_apis_of_same_type() {
-            var anotherProxy = Api.builder().id("id4").name("api4").type(ApiType.PROXY).build();
+            var anotherProxy = Api.builder().id("id4").name("api4").type(ApiType.PROXY).definitionVersion(DefinitionVersion.V4).build();
             when(apiRepository.search(any(), any())).thenReturn(List.of(API_1, anotherProxy, API_3));
 
             var context = contextLoader.load(auditInfo);
 
             assertThat(context.apiIdsByType().get(ApiType.PROXY)).containsExactlyInAnyOrder("id1", "id4");
             assertThat(context.apiIdsByType().get(ApiType.LLM_PROXY)).containsExactly("id3");
+        }
+
+        @Test
+        void should_group_apis_by_definition_version() {
+            var v2Api = Api.builder().id("id-v2").name("v2-api").type(ApiType.PROXY).definitionVersion(DefinitionVersion.V2).build();
+            when(apiRepository.search(any(), any())).thenReturn(List.of(API_1, v2Api));
+
+            var context = contextLoader.load(auditInfo);
+
+            assertThat(context.apiIdsByDefinitionVersion()).isEqualTo(
+                Map.of(DefinitionVersion.V4, Set.of("id1"), DefinitionVersion.V2, Set.of("id-v2"))
+            );
+        }
+
+        @Test
+        void should_exclude_apis_with_null_definition_version() {
+            var apiWithoutVersion = Api.builder().id("id-no-version").name("no-version-api").type(ApiType.PROXY).build();
+            when(apiRepository.search(any(), any())).thenReturn(List.of(API_1, apiWithoutVersion));
+
+            var context = contextLoader.load(auditInfo);
+
+            assertThat(context.authorizedApiIds()).containsExactlyInAnyOrder("id1", "id-no-version");
+            assertThat(context.apiIdsByDefinitionVersion()).isEqualTo(Map.of(DefinitionVersion.V4, Set.of("id1")));
         }
     }
 
@@ -203,6 +244,7 @@ class ManagementContextLoaderTest {
             assertThat(context.authorizedApiIds()).isEmpty();
             assertThat(context.apiNamesById()).isEmpty();
             assertThat(context.apiIdsByType()).isEmpty();
+            assertThat(context.apiIdsByDefinitionVersion()).isEmpty();
             verify(apiRepository, never()).search(any(), any());
         }
     }
