@@ -97,6 +97,7 @@ export class GvPageSwaggerUIComponent implements OnInit, OnDestroy {
       if (page.configuration.show_url) {
         config.url = page._links.content;
         config.spec = undefined;
+        plugins.push(this.normalizeSpecPlugin());
       }
       if (page.configuration?.disable_syntax_highlight) {
         config.syntaxHighlight = false;
@@ -175,6 +176,21 @@ export class GvPageSwaggerUIComponent implements OnInit, OnDestroy {
         authorizeBtn: () => () => null,
       },
     };
+  }
+
+  private normalizeSpecPlugin(): SwaggerUIPlugin {
+    const normalize = (obj: any) => this.normalizeTypeArrays(obj);
+    return () => ({
+      statePlugins: {
+        spec: {
+          wrapActions: {
+            updateJsonSpec: (oriAction: (spec: Record<string, any>) => void) => (spec: Record<string, any>) => {
+              return oriAction(normalize(spec));
+            },
+          },
+        },
+      },
+    });
   }
 
   private isTryItEnabled(page: Page) {
