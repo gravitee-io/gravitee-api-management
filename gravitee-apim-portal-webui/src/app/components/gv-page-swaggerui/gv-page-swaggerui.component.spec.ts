@@ -52,6 +52,34 @@ describe('GvPageSwaggerUIComponent', () => {
         paths: { '/test': { get: { parameters: [{ schema: { type: 'string' } }] } } },
       });
     });
+
+    it('should resolve relative server URLs against the portal origin', () => {
+      const pluginFactory = component['normalizeSpecPlugin']();
+      const plugin = pluginFactory();
+      const oriAction = jest.fn(spec => spec);
+      const wrappedAction = plugin.statePlugins.spec.wrapActions.updateJsonSpec(oriAction);
+
+      const spec = { servers: [{ url: '/' }, { url: '/api/v1' }, { url: 'https://gateway.example.com' }] };
+      wrappedAction(spec);
+
+      const result = oriAction.mock.calls[0][0];
+      expect(result.servers[0].url).toBe(`${window.location.origin}/`);
+      expect(result.servers[1].url).toBe(`${window.location.origin}/api/v1`);
+      expect(result.servers[2].url).toBe('https://gateway.example.com');
+    });
+
+    it('should default missing server url to "/" per OpenAPI spec', () => {
+      const pluginFactory = component['normalizeSpecPlugin']();
+      const plugin = pluginFactory();
+      const oriAction = jest.fn(spec => spec);
+      const wrappedAction = plugin.statePlugins.spec.wrapActions.updateJsonSpec(oriAction);
+
+      const spec = { servers: [{ description: 'no url' }] };
+      wrappedAction(spec);
+
+      const result = oriAction.mock.calls[0][0];
+      expect(result.servers[0].url).toBe(`${window.location.origin}/`);
+    });
   });
 
   describe('normalizeTypeArrays', () => {

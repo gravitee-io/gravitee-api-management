@@ -108,6 +108,32 @@ describe('PageSwaggerComponent', () => {
     });
   });
 
+  describe('resolveRelativeServerUrls', () => {
+    const callResolve = (spec: Record<string, unknown>, origin: string) =>
+      (component as unknown as { resolveRelativeServerUrls: (s: Record<string, unknown>, o: string) => void }).resolveRelativeServerUrls(
+        spec,
+        origin,
+      );
+
+    it('should resolve relative server URLs against the portal origin', () => {
+      const spec: Record<string, unknown> = {
+        servers: [{ url: '/' }, { url: '/api/v1' }, { url: 'https://gateway.example.com' }],
+      };
+      callResolve(spec, 'http://localhost:4100');
+      expect((spec['servers'] as { url: string }[])[0].url).toBe('http://localhost:4100/');
+      expect((spec['servers'] as { url: string }[])[1].url).toBe('http://localhost:4100/api/v1');
+      expect((spec['servers'] as { url: string }[])[2].url).toBe('https://gateway.example.com');
+    });
+
+    it('should default missing url to "/" per OpenAPI spec', () => {
+      const spec: Record<string, unknown> = {
+        servers: [{ description: 'no url' }],
+      };
+      callResolve(spec, 'http://localhost:4100');
+      expect((spec['servers'] as { url: string }[])[0].url).toBe('http://localhost:4100/');
+    });
+  });
+
   describe('normalizeTypeArrays', () => {
     it('should flatten a single-element type array to that type', () => {
       expect((component as unknown as WithNormalizeTypeArrays).normalizeTypeArrays({ type: ['integer'] })).toEqual({ type: 'integer' });
