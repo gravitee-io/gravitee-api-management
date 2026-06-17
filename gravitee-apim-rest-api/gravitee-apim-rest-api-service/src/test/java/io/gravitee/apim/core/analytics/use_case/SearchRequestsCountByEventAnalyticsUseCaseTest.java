@@ -75,14 +75,26 @@ public class SearchRequestsCountByEventAnalyticsUseCaseTest {
     }
 
     @Test
-    void should_throw_if_api_definition_not_v4() {
-        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2()));
+    void should_throw_if_api_definition_not_v2_or_v4() {
+        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aFederatedApi()));
         assertThatThrownBy(() ->
             cut.execute(
                 GraviteeContext.getExecutionContext(),
                 new SearchRequestsCountByEventAnalyticsUseCase.Input(MY_API, FROM_EPOCH, TO_EPOCH, Optional.empty())
             )
         ).isInstanceOf(ApiInvalidDefinitionVersionException.class);
+    }
+
+    @Test
+    void should_accept_v2_api() {
+        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2()));
+        GraviteeContext.setCurrentEnvironment(ENV_ID);
+        analyticsQueryService.requestsCount = RequestsCount.builder().total(10L).countsByEntrypoint(Map.of("http-get", 10L)).build();
+        final SearchRequestsCountByEventAnalyticsUseCase.Output result = cut.execute(
+            GraviteeContext.getExecutionContext(),
+            new SearchRequestsCountByEventAnalyticsUseCase.Input(MY_API, FROM_EPOCH, TO_EPOCH, Optional.empty())
+        );
+        assertThat(result.result().getTotal()).isEqualTo(10L);
     }
 
     @Test

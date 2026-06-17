@@ -67,7 +67,9 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     @Override
     public Optional<CountAggregate> searchRequestsCount(QueryContext queryContext, RequestsCountQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var indexV4 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var indexV2 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
+        var index = String.join(",", indexV4, indexV2);
 
         return this.client.getFieldTypes(index, ENTRYPOINT_ID_FIELD)
             .map(types -> types.stream().allMatch(KEYWORD::equals))
@@ -187,7 +189,9 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     @Override
     public List<HistogramAggregate> searchHistogram(QueryContext queryContext, HistogramQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var indexV4 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var indexV2 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
+        var index = String.join(",", indexV4, indexV2);
         var adapter = new SearchHistogramQueryAdapter();
         var esQuery = adapter.adapt(query);
 
@@ -197,7 +201,9 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     @Override
     public Optional<GroupByAggregate> searchGroupBy(QueryContext queryContext, GroupByQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var indexV4 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var indexV2 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
+        var index = String.join(",", indexV4, indexV2);
         var adapter = new GroupByQueryAdapter();
         var esQuery = adapter.adapt(query);
 
@@ -207,7 +213,9 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     @Override
     public Optional<StatsAggregate> searchStats(QueryContext queryContext, StatsQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var indexV4 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var indexV2 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
+        var index = String.join(",", indexV4, indexV2);
         var adapter = new StatsQueryAdapter();
         var esQuery = adapter.adapt(query);
 
@@ -217,7 +225,9 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     @Override
     public Optional<CountByAggregate> searchRequestsCountByEvent(QueryContext queryContext, RequestsCountByEventQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var indexV4 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var indexV2 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
+        var index = String.join(",", indexV4, indexV2);
         var esQuery = SearchRequestsCountByEventQueryAdapter.adapt(query);
         log.debug("Search Request total counts query: {}", esQuery);
 
@@ -227,8 +237,10 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     @Override
     public Optional<ApiMetricsDetail> findApiMetricsDetail(QueryContext queryContext, ApiMetricsDetailQuery query) {
         var indexV4Metrics = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var indexV2Request = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);
+        var index = String.join(",", indexV4Metrics, indexV2Request);
 
-        return this.client.search(indexV4Metrics, null, FindApiMetricsDetailQueryAdapter.adapt(query))
+        return this.client.search(index, null, FindApiMetricsDetailQueryAdapter.adapt(query))
             .map(FindApiMetricsDetailResponseAdapter::adaptFirst)
             .blockingGet();
     }

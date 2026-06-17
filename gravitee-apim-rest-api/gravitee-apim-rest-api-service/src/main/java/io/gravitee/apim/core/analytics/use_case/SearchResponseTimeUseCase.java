@@ -76,7 +76,8 @@ public class SearchResponseTimeUseCase {
     }
 
     private static Single<Api> validateApiDefinitionVersion(Api api) {
-        return DefinitionVersion.V4.equals(api.getDefinitionVersion())
+        var version = api.getDefinitionVersion();
+        return (DefinitionVersion.V4.equals(version) || DefinitionVersion.V2.equals(version))
             ? Single.just(api)
             : Single.error(new ApiInvalidDefinitionVersionException(api.getId()));
     }

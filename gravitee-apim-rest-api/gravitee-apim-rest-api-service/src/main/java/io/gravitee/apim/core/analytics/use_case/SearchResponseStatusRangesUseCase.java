@@ -48,22 +48,23 @@ public class SearchResponseStatusRangesUseCase {
         long start = input.from() != null ? input.from() : Instant.ofEpochMilli(end).minus(Duration.ofDays(1)).toEpochMilli();
 
         validateDates(start, end);
-        validateApiRequirements(input);
+        Api api = validateApiRequirements(input);
         var queryParameters = AnalyticsQueryParameters.builder()
             .apiIds(List.of(input.apiId()))
             .from(start)
             .to(end)
-            .definitionVersions(Set.of(DefinitionVersion.V4))
+            .definitionVersions(Set.of(api.getDefinitionVersion()))
             .build();
 
         return analyticsQueryService.searchResponseStatusRanges(executionContext, queryParameters).map(Output::new).orElse(new Output());
     }
 
-    private void validateApiRequirements(Input input) {
+    private Api validateApiRequirements(Input input) {
         final Api api = apiCrudService.get(input.apiId);
         validateApiDefinitionVersion(api.getDefinitionVersion(), input.apiId);
         validateApiMultiTenancyAccess(api, input.environmentId);
         validateApiIsNotTcp(api);
+        return api;
     }
 
     private void validateApiIsNotTcp(Api api) {
@@ -79,7 +80,7 @@ public class SearchResponseStatusRangesUseCase {
     }
 
     private static void validateApiDefinitionVersion(DefinitionVersion definitionVersion, String apiId) {
-        if (!DefinitionVersion.V4.equals(definitionVersion)) {
+        if (!DefinitionVersion.V4.equals(definitionVersion) && !DefinitionVersion.V2.equals(definitionVersion)) {
             throw new ApiInvalidDefinitionVersionException(apiId);
         }
     }
