@@ -143,6 +143,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
       configuration: this.formGroup.get('configuration').value,
       sharedConfigurationOverride: inheritConfiguration ? {} : this.formGroup.get('sharedConfigurationOverride').value,
       inheritConfiguration,
+      ...(this.endpoint?.secondary != null ? { secondary: this.endpoint.secondary } : {}),
     };
 
     if (this.isHttpProxyApi) {
