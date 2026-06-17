@@ -67,6 +67,7 @@ public record Filter(Filter.Name name, Operator operator, Object value) {
         EDGE_TOOL,
         NATIVE_CONNECTION_STATUS,
         URI,
+        ENTRYPOINT,
     }
 
     public enum Operator {

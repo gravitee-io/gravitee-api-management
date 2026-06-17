@@ -153,5 +153,21 @@ class ComputeObservabilityMeasuresUseCaseTest {
             verify(analyticsDataPort).computeMeasures(captor.capture());
             assertThat(captor.getValue().scope().apiIds()).containsExactly("api-1");
         }
+
+        @Test
+        void should_return_empty_response_when_user_filters_unknown_api() {
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
+            );
+            JsonNode emptyResponse = JsonNodeFactory.instance.objectNode().putArray("metrics");
+            when(analyticsDataPort.emptyMeasuresResponse()).thenReturn(emptyResponse);
+
+            var filters = List.of(new FilterCondition("API", FilterOperator.IN, List.of("non-existent-api")));
+            var metrics = List.of(new AnalyticsMetricQuery("HTTP_REQUESTS", List.of("COUNT")));
+            var output = useCase.execute(new ComputeObservabilityMeasuresUseCase.Input(ORG_ID, ENV_ID, filters, null, null, metrics));
+
+            assertThat(output.response()).isEqualTo(emptyResponse);
+            verify(analyticsDataPort).emptyMeasuresResponse();
+        }
     }
 }

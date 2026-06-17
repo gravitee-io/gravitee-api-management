@@ -77,5 +77,6 @@ public record FilterSpec(
         API_TYPE,
         NATIVE_CONNECTION_STATUS,
         URI,
+        ENTRYPOINT,
     }
 }

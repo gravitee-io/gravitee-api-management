@@ -55,6 +55,10 @@ public class ComputeObservabilityFacetsUseCase {
     public Output execute(Input input) {
         var scope = pipeline.prepare(input.organizationId, input.environmentId, input.filters, input.from, input.to, analyticsDataPort);
 
+        if (scope.isEmpty()) {
+            return new Output(analyticsDataPort.emptyFacetsResponse());
+        }
+
         var query = new ObservabilityAnalyticsDataPort.FacetsQuery(
             input.organizationId,
             input.environmentId,

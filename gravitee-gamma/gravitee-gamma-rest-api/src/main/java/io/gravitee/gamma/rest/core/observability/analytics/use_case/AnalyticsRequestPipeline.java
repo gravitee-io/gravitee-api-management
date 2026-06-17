@@ -54,7 +54,13 @@ public class AnalyticsRequestPipeline {
      * Validated and RBAC-scoped request data, expressed entirely in Gamma-native types. The infra
      * adapter is responsible for translating {@link #filters()} to the analytics-engine model.
      */
-    public record PreparedScope(Instant from, Instant to, List<FilterCondition> filters, Set<String> apiIds) {}
+    public record PreparedScope(Instant from, Instant to, List<FilterCondition> filters, Set<String> apiIds) {
+        static final PreparedScope EMPTY = new PreparedScope(null, null, List.of(), Set.of());
+
+        public boolean isEmpty() {
+            return this == EMPTY;
+        }
+    }
 
     public PreparedScope prepare(
         String organizationId,
@@ -72,6 +78,10 @@ public class AnalyticsRequestPipeline {
         var accessibleApis = analyticsDataPort.loadAccessibleApis(organizationId, environmentId);
         var userApiFilter = extractApiFilter(conditions);
         var scope = accessibleApiScope.computeScope(accessibleApis, ANALYTICS_SUPPORTED_API_TYPES, userApiFilter);
+
+        if (scope.apiIds().isEmpty() && !userApiFilter.isEmpty()) {
+            return PreparedScope.EMPTY;
+        }
 
         var effectiveConditions = applyDefaultEntrypointScoping(removeApiConditions(conditions));
 
