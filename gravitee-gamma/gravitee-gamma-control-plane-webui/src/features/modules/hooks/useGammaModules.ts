@@ -18,6 +18,7 @@ import { useState, useEffect } from 'react';
 
 import { useBootstrapStore } from '../../../shared/config/bootstrap.store';
 import { useAuthStore } from '../../auth/auth.store';
+import { useModulesStore } from '../modules.store';
 import { type GammaModule, type GammaModuleResponse, hasUi, parseModule } from '../modules.types';
 
 const DEV_MODULE_ENTRIES: Record<string, string> = (process.env.DEV_MODULE_ENTRIES ?? '')
@@ -36,7 +37,8 @@ export function useGammaModules(): { modules: GammaModule[]; loading: boolean; e
     const gammaBaseURL = useBootstrapStore(s => s.config?.gammaBaseURL ?? '');
     const organizationId = useBootstrapStore(s => s.config?.organizationId ?? '');
     const user = useAuthStore(s => s.user);
-    const [modules, setModules] = useState<GammaModule[]>([]);
+    const modules = useModulesStore(s => s.modules);
+    const setModules = useModulesStore(s => s.setModules);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
     const [retryCount, setRetryCount] = useState(0);

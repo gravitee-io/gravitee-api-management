@@ -17,5 +17,6 @@ import { authHandlers } from './auth.handlers';
 import { bootstrapHandlers } from './bootstrap.handlers';
 import { environmentsHandlers } from './environments.handlers';
 import { modulesHandlers } from './modules.handlers';
+import { tasksHandlers } from './tasks.handlers';
 
-export const defaultHandlers = [...bootstrapHandlers, ...authHandlers, ...modulesHandlers, ...environmentsHandlers];
+export const defaultHandlers = [...bootstrapHandlers, ...authHandlers, ...modulesHandlers, ...environmentsHandlers, ...tasksHandlers];
