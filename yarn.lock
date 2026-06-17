@@ -4679,9 +4679,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/graphene-policy-studio@npm:2.46.0":
-  version: 2.46.0
-  resolution: "@gravitee/graphene-policy-studio@npm:2.46.0"
+"@gravitee/graphene-policy-studio@npm:2.49.0":
+  version: 2.49.0
+  resolution: "@gravitee/graphene-policy-studio@npm:2.49.0"
   dependencies:
     "@asciidoctor/core": "npm:3.0.4"
     "@dnd-kit/core": "npm:6.3.1"
@@ -4704,7 +4704,7 @@ __metadata:
   peerDependenciesMeta:
     tailwindcss:
       optional: true
-  checksum: 10c0/f5fc8d54148217ad6dcac7a2b90f012e2af15aec33761acee49fdd8640bb8d9fe7b5fc6785737a5e5f7b7eef468c1103c5e467c294539b712a738e7e59450894
+  checksum: 10c0/8313fc01dd8e992adb512586cd5edaadfc0b561f23a30ebce622463018080bb7a729dc506578967c3784733eb31885611356991c833136488b831fde743cb011
   languageName: node
   linkType: hard
 
@@ -21519,7 +21519,7 @@ __metadata:
     "@gravitee/gamma-modules-sdk": "npm:1.0.0-alpha.10"
     "@gravitee/graphene-charts": "npm:2.49.0"
     "@gravitee/graphene-core": "npm:2.49.0"
-    "@gravitee/graphene-policy-studio": "npm:2.46.0"
+    "@gravitee/graphene-policy-studio": "npm:2.49.0"
     "@gravitee/ui-analytics": "npm:17.8.0"
     "@gravitee/ui-components": "npm:4.4.0"
     "@gravitee/ui-particles-angular": "npm:17.8.0"
