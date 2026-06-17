@@ -26,6 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.event.EventManager;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.event.ApiProductChangedEvent;
 import io.gravitee.gateway.handlers.api.event.ApiProductEventType;
@@ -35,6 +36,8 @@ import io.gravitee.node.api.license.LicenseManager;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -42,6 +45,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -66,13 +70,18 @@ class ApiProductManagerImplTest {
     @Mock
     private License license;
 
+    @Mock
+    private GatewayConfiguration gatewayConfiguration;
+
     private ApiProductManagerImpl manager;
 
     @BeforeEach
     void setUp() {
         lenient().when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(license);
         lenient().when(license.getTier()).thenReturn("universe");
-        manager = new ApiProductManagerImpl(apiProductRegistry, eventManager, licenseManager);
+        lenient().when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(List.of("internal")));
+        lenient().when(gatewayConfiguration.hasMatchingTags(any())).thenReturn(true);
+        manager = new ApiProductManagerImpl(apiProductRegistry, eventManager, licenseManager, gatewayConfiguration);
     }
 
     @Nested
@@ -340,6 +349,26 @@ class ApiProductManagerImplTest {
         }
 
         @Test
+        void should_emit_update_event_with_union_of_previous_and_current_member_api_ids() {
+            Date oldDate = new Date(System.currentTimeMillis() - 10000);
+            Date newDate = new Date();
+
+            ReactableApiProduct oldProduct = createApiProduct("product-1", "env-1", oldDate);
+            oldProduct.setApiIds(Set.of("api-1", "api-2"));
+
+            ReactableApiProduct newProduct = createApiProduct("product-1", "env-1", newDate);
+            newProduct.setApiIds(Set.of("api-2", "api-3"));
+
+            manager.register(oldProduct);
+
+            ArgumentCaptor<ApiProductChangedEvent> eventCaptor = ArgumentCaptor.forClass(ApiProductChangedEvent.class);
+            manager.register(newProduct);
+
+            verify(eventManager).publishEvent(eq(ApiProductEventType.UPDATE), eventCaptor.capture());
+            assertThat(eventCaptor.getValue().getApiIds()).containsExactlyInAnyOrder("api-1", "api-2", "api-3");
+        }
+
+        @Test
         void should_deploy_successfully_when_no_op_beforeEmit() {
             ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date());
 
@@ -426,6 +455,65 @@ class ApiProductManagerImplTest {
             thread2.join();
 
             assertThat(manager.getApiProducts()).hasSize(100);
+        }
+    }
+
+    @Nested
+    class ShardingTagFilterTest {
+
+        @Test
+        void should_not_deploy_when_product_tags_do_not_match_gateway() {
+            when(gatewayConfiguration.hasMatchingTags(Set.of("external"))).thenReturn(false);
+
+            ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date());
+            apiProduct.setTags(Set.of("external"));
+
+            manager.register(apiProduct);
+
+            assertThat(manager.get("product-1")).isNull();
+            verify(apiProductRegistry, never()).register(any());
+        }
+
+        @Test
+        void should_deploy_when_product_tags_match_gateway() {
+            when(gatewayConfiguration.hasMatchingTags(Set.of("internal"))).thenReturn(true);
+
+            ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date());
+            apiProduct.setTags(Set.of("internal"));
+
+            manager.register(apiProduct);
+
+            assertThat(manager.get("product-1")).isNotNull();
+            verify(apiProductRegistry).register(apiProduct);
+        }
+
+        @Test
+        void should_undeploy_previously_deployed_product_when_tags_change_to_non_matching() {
+            when(gatewayConfiguration.hasMatchingTags(Set.of("internal"))).thenReturn(true);
+            when(gatewayConfiguration.hasMatchingTags(Set.of("external"))).thenReturn(false);
+
+            ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date(System.currentTimeMillis() - 10000));
+            apiProduct.setTags(Set.of("internal"));
+            manager.register(apiProduct);
+            assertThat(manager.get("product-1")).isNotNull();
+
+            ReactableApiProduct updatedProduct = createApiProduct("product-1", "env-1", new Date());
+            updatedProduct.setTags(Set.of("external"));
+            manager.register(updatedProduct);
+
+            assertThat(manager.get("product-1")).isNull();
+            verify(apiProductRegistry).remove("product-1", "env-1");
+        }
+
+        @Test
+        void should_deploy_product_with_empty_tags_regardless_of_gateway_tags() {
+            ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date());
+            apiProduct.setTags(null);
+
+            manager.register(apiProduct);
+
+            assertThat(manager.get("product-1")).isNotNull();
+            verify(apiProductRegistry).register(apiProduct);
         }
     }
 

@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.CustomLog;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -33,6 +34,7 @@ import lombok.experimental.Accessors;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 @RequiredArgsConstructor
 public class LatestEventFetcher {
 
@@ -78,6 +80,28 @@ public class LatestEventFetcher {
                 }
             }
         );
+    }
+
+    public List<Event> fetchLatestForApiIds(Set<String> apiIds, Set<String> environments, Set<EventType> eventTypes) {
+        if (apiIds == null || apiIds.isEmpty()) {
+            return List.of();
+        }
+        try {
+            List<Event> events = eventLatestRepository.search(
+                EventCriteria.builder()
+                    .types(eventTypes)
+                    .environments(environments)
+                    .property(Event.EventProperties.API_ID.getValue(), apiIds)
+                    .build(),
+                Event.EventProperties.API_ID,
+                null,
+                null
+            );
+            return events != null ? events : List.of();
+        } catch (Exception e) {
+            log.warn("Failed to batch-fetch latest events for {} API(s): {}", apiIds.size(), e.getMessage());
+            return List.of();
+        }
     }
 
     @Builder
