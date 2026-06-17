@@ -32,7 +32,6 @@
 
     <properties>
         <gravitee-reporter-common.version>1.12.1</gravitee-reporter-common.version>
-        <gravitee-common-elasticsearch.version>7.0.0-beta.1</gravitee-common-elasticsearch.version>
         <opensearch-testcontainers.version>2.1.4</opensearch-testcontainers.version>
 
         <!-- Property used by the publication job in CI-->
@@ -58,7 +57,6 @@
         <dependency>
             <groupId>io.gravitee.elasticsearch</groupId>
             <artifactId>gravitee-common-elasticsearch</artifactId>
-            <version>${gravitee-common-elasticsearch.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.freemarker</groupId>
