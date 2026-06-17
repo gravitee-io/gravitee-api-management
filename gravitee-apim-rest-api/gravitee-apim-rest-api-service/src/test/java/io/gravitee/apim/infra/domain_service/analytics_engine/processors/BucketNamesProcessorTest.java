@@ -234,7 +234,7 @@ class BucketNamesProcessorTest {
         }
 
         @Test
-        void should_update_api_and_unmappable_facets() {
+        void should_update_application_and_http_status_facets() {
             var innerBucket1 = newUnnamedBucketResponse("200");
             var innerBucket2 = newUnnamedBucketResponse("204");
             var facetBucketResponse = newUnnamedBucketResponse(APPLICATION_ID1, List.of(innerBucket1, innerBucket2));
@@ -243,11 +243,26 @@ class BucketNamesProcessorTest {
 
             var mappedResponse = processor.mapBucketNames(context, List.of(APPLICATION, HTTP_STATUS), response);
 
-            var innerNamedBucket1 = getBucketResponseWithDefaultName(innerBucket1);
-            var innerNamedBucket2 = getBucketResponseWithDefaultName(innerBucket2);
+            var innerNamedBucket1 = new FacetBucketResponse("200", "200 OK", null, innerBucket1.measures());
+            var innerNamedBucket2 = new FacetBucketResponse("204", "204 No Content", null, innerBucket2.measures());
             var expectedResponse = facetsResponse(
                 getNamedApplicationBucketResponse(facetBucketResponse, List.of(innerNamedBucket1, innerNamedBucket2))
             );
+
+            assertThat(mappedResponse).isEqualTo(expectedResponse);
+        }
+
+        @Test
+        void should_map_http_method_codes_to_names() {
+            var bucket1 = newUnnamedBucketResponse("3");
+            var bucket2 = newUnnamedBucketResponse("7");
+            var response = facetsResponse(bucket1, bucket2);
+
+            var mappedResponse = processor.mapBucketNames(context, List.of(HTTP_METHOD), response);
+
+            var expected1 = new FacetBucketResponse("3", "GET", null, bucket1.measures());
+            var expected2 = new FacetBucketResponse("7", "POST", null, bucket2.measures());
+            var expectedResponse = facetsResponse(expected1, expected2);
 
             assertThat(mappedResponse).isEqualTo(expectedResponse);
         }
@@ -461,7 +476,7 @@ class BucketNamesProcessorTest {
         }
 
         @Test
-        void should_update_api_and_unmappable_facets() {
+        void should_update_application_and_http_status_facets() {
             var innerBucket1 = newUnnamedBucketResponse("200");
             var innerBucket2 = newUnnamedBucketResponse("204");
             var facetBucketResponse = newUnnamedBucketResponse(APPLICATION_ID1, List.of(innerBucket1, innerBucket2));
@@ -470,8 +485,8 @@ class BucketNamesProcessorTest {
 
             var mappedResponse = processor.mapBucketNames(context, List.of(APPLICATION, HTTP_STATUS), response);
 
-            var innerNamedBucket1 = getBucketResponseWithDefaultName(innerBucket1);
-            var innerNamedBucket2 = getBucketResponseWithDefaultName(innerBucket2);
+            var innerNamedBucket1 = new FacetBucketResponse("200", "200 OK", null, innerBucket1.measures());
+            var innerNamedBucket2 = new FacetBucketResponse("204", "204 No Content", null, innerBucket2.measures());
             var expectedResponse = timeSeriesResponse(
                 FIXED_TIME_KEY,
                 FIXED_TIMESTAMP,

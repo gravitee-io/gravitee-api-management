@@ -1443,6 +1443,8 @@ components:
                 - EDGE_MODEL
                 - EDGE_TOOL
                 - NATIVE_CONNECTION_STATUS
+                - URI
+                - ENTRYPOINT
             description: Available filter names for filtering analytics data
 
         Operator:
