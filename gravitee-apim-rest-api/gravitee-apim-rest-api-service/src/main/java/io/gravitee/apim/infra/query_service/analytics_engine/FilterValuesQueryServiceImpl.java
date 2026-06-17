@@ -111,6 +111,15 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
             case MCP_PROXY_TOOL -> "additional-metrics.keyword_mcp-proxy_tools/call";
             case MCP_PROXY_RESOURCE -> "additional-metrics.keyword_mcp-proxy_resources/read";
             case MCP_PROXY_PROMPT -> "additional-metrics.keyword_mcp-proxy_prompts/get";
+            case EDGE_PROVIDER -> "additional-metrics.keyword_edge_provider";
+            case EDGE_PROCESS -> "additional-metrics.keyword_edge_process";
+            case EDGE_CLIENT -> "client-identifier";
+            case EDGE_TYPE -> "additional-metrics.keyword_edge_type";
+            case MESSAGE_CONNECTOR_TYPE -> "connector-type";
+            case ENTRYPOINT -> "entrypoint-id";
+            case ERROR_KEY -> "error-key";
+            case REQUEST_ID -> "request-id";
+            case TRANSACTION_ID -> "transaction-id";
             case API_PRODUCT -> "api-product-id";
             case URI -> "uri";
             default -> throw new UnsupportedOperationException("No ES field mapping for filter: " + filterName);

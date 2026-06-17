@@ -30,10 +30,14 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -204,5 +208,30 @@ class FilterValuesQueryServiceImplTest {
 
         verify(analyticsRepository).searchFilterValues(any(), queryCaptor.capture());
         assertThat(queryCaptor.getValue().apiIds()).isNull();
+    }
+
+    @ParameterizedTest
+    @MethodSource("filterToEsFieldMappings")
+    void should_resolve_es_field_name(FilterSpec.Name filterName, String expectedEsField) {
+        when(analyticsRepository.searchFilterValues(any(), any())).thenReturn(new FilterValuesResult(List.of("v1"), null, 1));
+
+        service.searchFilterValues(ORG_ID, ENV_ID, filterName, null, null, 1, 10, null, null, null);
+
+        verify(analyticsRepository).searchFilterValues(any(), queryCaptor.capture());
+        assertThat(queryCaptor.getValue().esFieldName()).isEqualTo(expectedEsField);
+    }
+
+    static Stream<Arguments> filterToEsFieldMappings() {
+        return Stream.of(
+            Arguments.of(FilterSpec.Name.EDGE_PROVIDER, "additional-metrics.keyword_edge_provider"),
+            Arguments.of(FilterSpec.Name.EDGE_PROCESS, "additional-metrics.keyword_edge_process"),
+            Arguments.of(FilterSpec.Name.EDGE_CLIENT, "client-identifier"),
+            Arguments.of(FilterSpec.Name.EDGE_TYPE, "additional-metrics.keyword_edge_type"),
+            Arguments.of(FilterSpec.Name.MESSAGE_CONNECTOR_TYPE, "connector-type"),
+            Arguments.of(FilterSpec.Name.ENTRYPOINT, "entrypoint-id"),
+            Arguments.of(FilterSpec.Name.ERROR_KEY, "error-key"),
+            Arguments.of(FilterSpec.Name.REQUEST_ID, "request-id"),
+            Arguments.of(FilterSpec.Name.TRANSACTION_ID, "transaction-id")
+        );
     }
 }
