@@ -420,9 +420,7 @@ describe('ApiGeneralInfoComponent', () => {
         const continueBtn = await dialog.getHarness(MatButtonHarness.with({ text: 'Continue' }));
         await continueBtn.click();
 
-        // Confirm and start migration
-        const confirmCheckbox = await dialog.getHarness(MatCheckboxHarness);
-        await confirmCheckbox.check();
+        // Start migration
         const startBtn = await dialog.getHarness(MatButtonHarness.with({ text: 'Start Migration' }));
         await startBtn.click();
 
@@ -468,9 +466,7 @@ describe('ApiGeneralInfoComponent', () => {
         const continueBtn = await dialog.getHarness(MatButtonHarness.with({ text: 'Continue' }));
         await continueBtn.click();
 
-        // Confirm and start migration
-        const confirmCheckbox = await dialog.getHarness(MatCheckboxHarness);
-        await confirmCheckbox.check();
+        // Start migration
         const startBtn = await dialog.getHarness(MatButtonHarness.with({ text: 'Start Migration' }));
         await startBtn.click();
 
