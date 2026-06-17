@@ -20,7 +20,7 @@ import type { Accent } from '../accents';
 
 /** Plugin ids of modules we render a card for. Must match `plugin.properties#id` of
  *  the corresponding Gamma module (`gravitee-gamma-module-<id>`). */
-export type ModuleId = 'aim' | 'apim' | 'platform' | 'authz' | 'esm';
+export type ModuleId = 'aim' | 'apim' | 'platform' | 'authz' | 'esm' | 'edge';
 
 export interface Application {
     readonly title: string;
@@ -79,6 +79,14 @@ export const APPLICATIONS: readonly Application[] = [
         Icon: MODULE_ICONS['esm'],
         accent: 'muted',
         emptyState: { cta: 'Register a cluster', ctaPath: 'clusters' },
+    },
+    {
+        title: 'Edge Management',
+        description: 'Monitor and manage your fleet of Edge Daemon agents.',
+        moduleId: 'edge',
+        Icon: MODULE_ICONS['edge'],
+        accent: 'highlight',
+        emptyState: { cta: 'Open Edge Management', ctaPath: '' },
     },
 ];
 
