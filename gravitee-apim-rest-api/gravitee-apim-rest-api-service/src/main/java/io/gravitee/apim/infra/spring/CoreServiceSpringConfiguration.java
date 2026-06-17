@@ -16,6 +16,8 @@
 package io.gravitee.apim.infra.spring;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeEnforcer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -26,4 +28,12 @@ import org.springframework.context.annotation.FilterType;
     basePackages = { "io.gravitee.apim.core" },
     includeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, value = DomainService.class)
 )
-public class CoreServiceSpringConfiguration {}
+public class CoreServiceSpringConfiguration {
+
+    @Bean
+    public PortalAutomationScopeEnforcer portalAutomationScopeEnforcer(
+        @Value("${automation.portal.allowMultiplePortalPerEnv:false}") boolean multiplePortalsAllowed
+    ) {
+        return new PortalAutomationScopeEnforcer(multiplePortalsAllowed);
+    }
+}

@@ -19,6 +19,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
+import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeEnforcer;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal.model.NavigationPath;
@@ -40,6 +41,7 @@ public class CreateOrUpdatePortalUseCase {
     private final PortalNavigationSyncDomainService portalNavigationSyncDomainService;
     private final PortalPageContentQueryService portalPageContentQueryService;
     private final PortalDocumentationSyncDomainService portalDocumentationSyncDomainService;
+    private final PortalAutomationScopeEnforcer portalAutomationScopeEnforcer;
 
     public record Input(AuditInfo auditInfo, Portal portal, List<NavigationPath> navigation) {
         public Input(AuditInfo auditInfo, Portal portal) {
@@ -67,10 +69,14 @@ public class CreateOrUpdatePortalUseCase {
         var previouslyPersisted = existing.map(Portal::getPortalNavigation).orElseGet(List::of);
         var portalToSave = sanitized.portal().withNavigation(sanitized.navigation());
         var saved = existing.isPresent() ? portalCrudService.update(portalToSave) : portalCrudService.create(portalToSave);
-        portalNavigationSyncDomainService.sync(input.auditInfo(), saved.getId(), previouslyPersisted, sanitized.navigation());
-        portalPageContentQueryService
-            .findByReference(input.auditInfo().environmentId(), AutomationMetadata.ReferenceType.PORTAL, saved.getId().toString())
-            .forEach(pc -> portalDocumentationSyncDomainService.materialize(input.auditInfo(), pc));
+        var isDefault = portalAutomationScopeEnforcer.isDefaultPortal(input.auditInfo(), saved.getId());
+        // Skip nav-tree materialization for non-default portals — app is not ready for that.
+        if (isDefault) {
+            portalNavigationSyncDomainService.sync(input.auditInfo(), saved.getId(), previouslyPersisted, sanitized.navigation());
+            portalPageContentQueryService
+                .findByReference(input.auditInfo().environmentId(), AutomationMetadata.ReferenceType.PORTAL, saved.getId().toString())
+                .forEach(pc -> portalDocumentationSyncDomainService.materialize(input.auditInfo(), pc));
+        }
         return new Output(saved, saved.getPortalNavigation(), warnings);
     }
 }

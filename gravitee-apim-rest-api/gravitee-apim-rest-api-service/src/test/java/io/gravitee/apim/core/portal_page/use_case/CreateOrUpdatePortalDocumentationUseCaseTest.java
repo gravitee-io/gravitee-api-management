@@ -25,6 +25,7 @@ import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeEnforcer;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_documentation.domain_service.ValidatePortalDocumentationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
@@ -60,7 +61,8 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
     private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory(
         navCrudService.storage()
     );
-    private final ValidatePortalDocumentationDomainService validator = new ValidatePortalDocumentationDomainService();
+    private final PortalAutomationScopeEnforcer scopeEnforcer = new PortalAutomationScopeEnforcer(true);
+    private final ValidatePortalDocumentationDomainService validator = new ValidatePortalDocumentationDomainService(scopeEnforcer);
     private CreateOrUpdatePortalDocumentationUseCase useCase;
 
     @BeforeEach
@@ -69,7 +71,8 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
             validator,
             crudService,
             queryService,
-            new PortalDocumentationSyncDomainService(navCrudService, navQueryService)
+            new PortalDocumentationSyncDomainService(navCrudService, navQueryService),
+            scopeEnforcer
         );
     }
 
@@ -192,6 +195,64 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
         assertThat(throwable).isInstanceOf(ValidationDomainException.class);
         assertThat(throwable.getMessage()).contains("content");
         assertThat(crudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_reject_non_default_portal_when_multiple_portals_disabled() {
+        var restrictedEnforcer = new PortalAutomationScopeEnforcer(false);
+        var restrictedUseCase = new CreateOrUpdatePortalDocumentationUseCase(
+            new ValidatePortalDocumentationDomainService(restrictedEnforcer),
+            crudService,
+            queryService,
+            new PortalDocumentationSyncDomainService(navCrudService, navQueryService),
+            restrictedEnforcer
+        );
+        var nonDefaultPortalId = PortalId.of(HRIDToUUID.portal().context(AUDIT_INFO).hrid("foo-portal").id());
+
+        var throwable = catchThrowable(() ->
+            restrictedUseCase.execute(
+                new CreateOrUpdatePortalDocumentationUseCase.Input(
+                    AUDIT_INFO,
+                    DOC_ID,
+                    nonDefaultPortalId,
+                    "Getting Started",
+                    PortalPageContentType.GRAVITEE_MARKDOWN,
+                    "# Hello",
+                    "/projects/alpha",
+                    1
+                )
+            )
+        );
+
+        assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+        assertThat(throwable.getMessage()).contains("portalHrid").contains("default-portal");
+        assertThat(crudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_skip_nav_tree_materialization_for_non_default_portal_when_multiple_portals_allowed() {
+        // Flag is true (validator allows non-default), but materialization must still be skipped — app is not ready for that.
+        var nonDefaultPortalId = PortalId.of(HRIDToUUID.portal().context(AUDIT_INFO).hrid("foo-portal").id());
+        var nonDefaultDocId = PortalPageContentId.of(
+            HRIDToUUID.portalDocumentation().context(AUDIT_INFO).portal("foo-portal").hrid(DOC_HRID).id()
+        );
+
+        var output = useCase.execute(
+            new CreateOrUpdatePortalDocumentationUseCase.Input(
+                AUDIT_INFO,
+                nonDefaultDocId,
+                nonDefaultPortalId,
+                "Getting Started",
+                PortalPageContentType.GRAVITEE_MARKDOWN,
+                "# Hello",
+                "/projects/alpha",
+                1
+            )
+        );
+
+        assertThat(output.id()).isEqualTo(nonDefaultDocId);
+        assertThat(crudService.storage()).hasSize(1);
+        assertThat(navCrudService.storage()).isEmpty();
     }
 
     private static CreateOrUpdatePortalDocumentationUseCase.Input input(

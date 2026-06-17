@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeEnforcer;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_documentation.domain_service.ValidatePortalDocumentationDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
@@ -49,7 +50,9 @@ class ValidatePortalDocumentationUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new ValidatePortalDocumentationUseCase(new ValidatePortalDocumentationDomainService());
+        useCase = new ValidatePortalDocumentationUseCase(
+            new ValidatePortalDocumentationDomainService(new PortalAutomationScopeEnforcer(true))
+        );
     }
 
     @Test

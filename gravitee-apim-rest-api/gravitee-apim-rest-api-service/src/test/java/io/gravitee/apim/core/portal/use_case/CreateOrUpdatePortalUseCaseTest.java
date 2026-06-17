@@ -27,6 +27,7 @@ import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeEnforcer;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal.model.NavigationPath;
@@ -50,7 +51,8 @@ class CreateOrUpdatePortalUseCaseTest {
         .actor(AuditActor.builder().userId("user-id").build())
         .build();
 
-    private final ValidatePortalDomainService validator = new ValidatePortalDomainService();
+    private final PortalAutomationScopeEnforcer scopeEnforcer = new PortalAutomationScopeEnforcer(true);
+    private final ValidatePortalDomainService validator = new ValidatePortalDomainService(scopeEnforcer);
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
     private final PortalNavigationItemsCrudServiceInMemory navCrudService = new PortalNavigationItemsCrudServiceInMemory();
     private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory(
@@ -67,7 +69,8 @@ class CreateOrUpdatePortalUseCaseTest {
             portalCrudService,
             new PortalNavigationSyncDomainService(navCrudService, navQueryService, pageContentCrudService),
             pageContentQueryService,
-            new PortalDocumentationSyncDomainService(navCrudService, navQueryService)
+            new PortalDocumentationSyncDomainService(navCrudService, navQueryService),
+            scopeEnforcer
         );
     }
 
@@ -136,7 +139,10 @@ class CreateOrUpdatePortalUseCaseTest {
 
     @Test
     void should_sync_navigation_against_top_navbar_folders() {
-        var portal = PortalFixtures.aPortal();
+        var defaultPortalId = io.gravitee.apim.core.portal.model.PortalId.of(
+            io.gravitee.rest.api.service.common.HRIDToUUID.portal().context(AUDIT_INFO).hrid("default-portal").id()
+        );
+        var portal = Portal.of(defaultPortalId, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Default Portal");
 
         useCase.execute(
             new CreateOrUpdatePortalUseCase.Input(
@@ -224,5 +230,59 @@ class CreateOrUpdatePortalUseCaseTest {
                 .stream()
                 .anyMatch(it -> "managed".equals(it.getTitle()))
         ).isFalse();
+    }
+
+    @Test
+    void should_reject_non_default_portal_when_multiple_portals_disabled() {
+        var restrictedEnforcer = new PortalAutomationScopeEnforcer(false);
+        var restrictedUseCase = new CreateOrUpdatePortalUseCase(
+            new ValidatePortalDomainService(restrictedEnforcer),
+            portalCrudService,
+            new PortalNavigationSyncDomainService(navCrudService, navQueryService, pageContentCrudService),
+            pageContentQueryService,
+            new PortalDocumentationSyncDomainService(navCrudService, navQueryService),
+            restrictedEnforcer
+        );
+        var nonDefault = PortalFixtures.aPortal();
+
+        assertThatThrownBy(() -> restrictedUseCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, nonDefault)))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContaining("hrid")
+            .hasMessageContaining("default-portal");
+    }
+
+    @Test
+    void should_accept_default_portal_when_multiple_portals_disabled() {
+        var restrictedEnforcer = new PortalAutomationScopeEnforcer(false);
+        var restrictedUseCase = new CreateOrUpdatePortalUseCase(
+            new ValidatePortalDomainService(restrictedEnforcer),
+            portalCrudService,
+            new PortalNavigationSyncDomainService(navCrudService, navQueryService, pageContentCrudService),
+            pageContentQueryService,
+            new PortalDocumentationSyncDomainService(navCrudService, navQueryService),
+            restrictedEnforcer
+        );
+        var defaultPortalId = io.gravitee.apim.core.portal.model.PortalId.of(
+            io.gravitee.rest.api.service.common.HRIDToUUID.portal().context(AUDIT_INFO).hrid("default-portal").id()
+        );
+        var defaultPortal = Portal.of(defaultPortalId, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Default Portal");
+
+        var output = restrictedUseCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, defaultPortal));
+
+        assertThat(output.portal()).isEqualTo(defaultPortal);
+    }
+
+    @Test
+    void should_skip_nav_tree_materialization_for_non_default_portal_when_multiple_portals_allowed() {
+        // Flag is true (validator allows non-default), but materialization must still be skipped — app is not ready for that.
+        var nonDefault = PortalFixtures.aPortal();
+
+        useCase.execute(
+            new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, nonDefault, List.of(new NavigationPath("/projects/alpha", Optional.empty())))
+        );
+
+        assertThat(portalCrudService.storage()).hasSize(1);
+        assertThat(portalCrudService.storage().get(0).getId()).isEqualTo(nonDefault.getId());
+        assertThat(navCrudService.storage()).isEmpty();
     }
 }

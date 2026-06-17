@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeEnforcer;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_listing.domain_service.ValidatePortalListingDomainService;
 import io.gravitee.apim.core.portal_listing.model.PortalListingApiEntry;
@@ -45,7 +46,9 @@ class ValidatePortalListingUseCaseTest {
         HRIDToUUID.portalListing().context(AUDIT_INFO).portal(PORTAL_HRID).hrid(LISTING_HRID).id()
     );
 
-    private final ValidatePortalListingDomainService validator = new ValidatePortalListingDomainService();
+    private final ValidatePortalListingDomainService validator = new ValidatePortalListingDomainService(
+        new PortalAutomationScopeEnforcer(true)
+    );
     private ValidatePortalListingUseCase useCase;
 
     @BeforeEach

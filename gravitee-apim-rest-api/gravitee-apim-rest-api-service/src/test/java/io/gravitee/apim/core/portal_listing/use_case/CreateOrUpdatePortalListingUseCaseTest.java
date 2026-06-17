@@ -22,6 +22,7 @@ import inmemory.PortalListingCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeEnforcer;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_listing.domain_service.ValidatePortalListingDomainService;
 import io.gravitee.apim.core.portal_listing.model.PortalListingApiEntry;
@@ -50,7 +51,9 @@ class CreateOrUpdatePortalListingUseCaseTest {
     );
 
     private final PortalListingCrudServiceInMemory portalListingCrudService = new PortalListingCrudServiceInMemory();
-    private final ValidatePortalListingDomainService validator = new ValidatePortalListingDomainService();
+    private final ValidatePortalListingDomainService validator = new ValidatePortalListingDomainService(
+        new PortalAutomationScopeEnforcer(true)
+    );
     private CreateOrUpdatePortalListingUseCase useCase;
 
     @BeforeEach
@@ -168,5 +171,23 @@ class CreateOrUpdatePortalListingUseCaseTest {
 
         assertThat(output.errors()).isEmpty();
         assertThat(portalListingCrudService.storage().get(0).getApis()).isEmpty();
+    }
+
+    @Test
+    void should_reject_non_default_portal_when_multiple_portals_disabled() {
+        var restrictedUseCase = new CreateOrUpdatePortalListingUseCase(
+            new ValidatePortalListingDomainService(new PortalAutomationScopeEnforcer(false)),
+            portalListingCrudService
+        );
+        var nonDefaultPortalId = PortalId.of(HRIDToUUID.portal().context(AUDIT_INFO).hrid("foo-portal").id());
+        var apis = List.of(new PortalListingApiEntry("pets-api", "/projects/alpha", 1));
+
+        var throwable = catchThrowable(() ->
+            restrictedUseCase.execute(new CreateOrUpdatePortalListingUseCase.Input(AUDIT_INFO, LISTING_ID, nonDefaultPortalId, apis))
+        );
+
+        assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+        assertThat(throwable.getMessage()).contains("portalHrid").contains("default-portal");
+        assertThat(portalListingCrudService.storage()).isEmpty();
     }
 }

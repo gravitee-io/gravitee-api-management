@@ -952,6 +952,12 @@ api:
   # Specify the visibility duration of a gateway in Unknown State (in seconds)
   gateway:
     unknownExpireAfter: 604800
+  automation:
+    portal:
+      # When false (default), the Automation API only accepts the seeded "default-portal" HRID for
+      # portals, portal-documentations and portal-listings. Other HRIDs return 400. Set to true to
+      # allow multiple portals per environment once the rest of the platform supports it.
+      # allowMultiplePortalPerEnv: false
   service:
     type: ClusterIP
     # externalTrafficPolicy is used only when configuring type "NodePort" or "LoadBalancer"

@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CreateDefaultPortalUseCase {
 
-    static final String DEFAULT_PORTAL_HRID = "default-portal";
+    public static final String DEFAULT_PORTAL_HRID = "default-portal";
     static final String DEFAULT_PORTAL_NAME = "Default Portal";
 
     private final PortalCrudService portalCrudService;

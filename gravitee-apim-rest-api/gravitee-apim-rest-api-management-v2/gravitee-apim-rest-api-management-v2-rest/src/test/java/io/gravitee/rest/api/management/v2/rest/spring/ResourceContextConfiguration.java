@@ -185,6 +185,7 @@ import io.gravitee.apim.core.plan.use_case.UpdatePlanUseCase;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeEnforcer;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal_listing.domain_service.ValidatePortalListingDomainService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
@@ -1684,12 +1685,12 @@ public class ResourceContextConfiguration {
 
     @Bean
     public ValidatePortalDomainService validatePortalDomainService() {
-        return new ValidatePortalDomainService();
+        return new ValidatePortalDomainService(new PortalAutomationScopeEnforcer(true));
     }
 
     @Bean
     public ValidatePortalListingDomainService validatePortalListingDomainService() {
-        return new ValidatePortalListingDomainService();
+        return new ValidatePortalListingDomainService(new PortalAutomationScopeEnforcer(true));
     }
 
     @Bean

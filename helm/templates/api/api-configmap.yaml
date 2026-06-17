@@ -634,6 +634,16 @@ data:
       {{- end }}
     {{- end }}
 
+    {{- if .Values.api.automation }}
+    {{- if .Values.api.automation.portal }}
+    automation:
+      portal:
+        {{- if hasKey .Values.api.automation.portal "allowMultiplePortalPerEnv" }}
+        allowMultiplePortalPerEnv: {{ .Values.api.automation.portal.allowMultiplePortalPerEnv }}
+        {{- end }}
+    {{- end }}
+    {{- end }}
+
     # The portal URL used in emails
     {{- if .Values.api.portalURL }}
     portalURL: {{ .Values.api.portalURL }}

@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_listing.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeEnforcer;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.validation.NavigationPathValidator;
 import io.gravitee.apim.core.portal_listing.model.PortalListingApiEntry;
@@ -24,6 +25,7 @@ import io.gravitee.apim.core.portal_listing.model.PortalListingId;
 import io.gravitee.apim.core.validation.Validator;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Validates Portal Listing input. Format checks only — no reference-existence checks.
@@ -31,7 +33,10 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 @DomainService
+@RequiredArgsConstructor
 public class ValidatePortalListingDomainService implements Validator<ValidatePortalListingDomainService.Input> {
+
+    private final PortalAutomationScopeEnforcer portalAutomationScopeEnforcer;
 
     public record Input(AuditInfo auditInfo, PortalListingId listingId, PortalId portalId, List<PortalListingApiEntry> apis) implements
         Validator.Input {}
@@ -39,6 +44,7 @@ public class ValidatePortalListingDomainService implements Validator<ValidatePor
     @Override
     public Result<Input> validateAndSanitize(Input input) {
         var errors = new ArrayList<Error>();
+        errors.addAll(portalAutomationScopeEnforcer.validate(input.auditInfo(), input.portalId(), "portalHrid"));
         List<PortalListingApiEntry> apis = input.apis() == null ? List.of() : input.apis();
         for (int i = 0; i < apis.size(); i++) {
             errors.addAll(NavigationPathValidator.validate(apis.get(i).location(), "apis[" + i + "].location"));
