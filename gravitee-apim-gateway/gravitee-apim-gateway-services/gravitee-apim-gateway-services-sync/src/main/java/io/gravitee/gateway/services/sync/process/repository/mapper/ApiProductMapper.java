@@ -80,6 +80,7 @@ public class ApiProductMapper {
                     .version(payload.getVersion())
                     .apiIds(payload.getApiIds())
                     .environmentId(payload.getEnvironmentId())
+                    .tags(payload.getTags())
                     .deployedAt(new Date(event.getCreatedAt().getTime()))
                     .plans(filteredPlans(payload.getPlans()))
                     .build();
@@ -122,6 +123,7 @@ public class ApiProductMapper {
         private String environmentHrid;
         private String organizationId;
         private String organizationHrid;
+        private Set<String> tags;
         private List<Plan> plans;
     }
 }

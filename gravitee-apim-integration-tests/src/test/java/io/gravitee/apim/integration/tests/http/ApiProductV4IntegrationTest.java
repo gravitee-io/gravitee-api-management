@@ -334,15 +334,15 @@ class ApiProductV4IntegrationTest {
         )
         void should_register_and_resolve_api_product_plan_security_types_for_api_key_jwt_and_mtls() {
             final String productId = "plan-state-d3-product";
-            deployApiProduct(product(productId, Set.of(API_1_ID)));
-            registerProductPlans(
-                productId,
+            ReactableApiProduct apiProduct = product(productId, Set.of(API_1_ID));
+            apiProduct.setPlans(
                 List.of(
                     productPlan("plan-state-d3-apikey", "api-key", PlanStatus.PUBLISHED),
                     productPlan("plan-state-d3-jwt", "jwt", PlanStatus.PUBLISHED),
                     productPlan("plan-state-d3-mtls", "mtls", PlanStatus.PUBLISHED)
                 )
             );
+            deployApiProduct(apiProduct);
 
             ApiProductRegistry apiProductRegistry = getBean(ApiProductRegistry.class);
             List<ApiProductRegistry.ApiProductPlanEntry> entries = apiProductRegistry.getApiProductPlanEntriesForApi(API_1_ID, ENV_ID);
