@@ -22,12 +22,11 @@ import {
   MatDialogRef,
   MatDialogTitle,
 } from '@angular/material/dialog';
-import { GioBannerModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
+import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatButton } from '@angular/material/button';
 import { map, Observable, shareReplay } from 'rxjs';
 import { MatIcon } from '@angular/material/icon';
 import { AsyncPipe } from '@angular/common';
-import { MatCheckbox } from '@angular/material/checkbox';
 
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { MigrateToV4Issue, MigrateToV4Response } from '../../../../entities/management-api-v2/api/v2/migrateToV4Response';
@@ -35,24 +34,12 @@ import { MigrateDialogResult } from '../api-general-info.component';
 
 @Component({
   selector: 'api-general-info-migrate-to-v4-dialog',
-  imports: [
-    GioLoaderModule,
-    MatDialogTitle,
-    MatDialogContent,
-    MatButton,
-    MatDialogActions,
-    MatDialogClose,
-    AsyncPipe,
-    MatIcon,
-    GioBannerModule,
-    MatCheckbox,
-  ],
+  imports: [GioLoaderModule, MatDialogTitle, MatDialogContent, MatButton, MatDialogActions, MatDialogClose, AsyncPipe, MatIcon],
   templateUrl: './api-general-info-migrate-to-v4-dialog.component.html',
   styleUrl: './api-general-info-migrate-to-v4-dialog.component.scss',
 })
 export class ApiGeneralInfoMigrateToV4DialogComponent implements OnInit {
   public migrationStep: 'INITIAL_CHECK' | 'CONFIRMATION' = 'INITIAL_CHECK';
-  public isConfirmed = false;
 
   migrationResponse$: Observable<MigrateToV4Response>;
   impossibleIssues$: Observable<MigrateToV4Issue[]>;
@@ -80,7 +67,6 @@ export class ApiGeneralInfoMigrateToV4DialogComponent implements OnInit {
 
   onBack(): void {
     this.migrationStep = 'INITIAL_CHECK';
-    this.isConfirmed = false;
   }
 
   onStartMigration(migrationResponse: MigrateToV4Response): void {

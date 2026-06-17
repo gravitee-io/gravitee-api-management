@@ -35,16 +35,6 @@
             @case ('CONFIRMATION') {
               <div class="confirmation-state">
                 <div class="confirmation-state__header">Ready to migrate API to v4</div>
-                <gio-banner-warning class="confirmation-state__warning">
-                  Analytics history will not be preserved
-                  <div gioBannerBody>
-                    After migration completes, the resulting v4 API analytics will no longer include data from before the migration. We plan
-                    to improve upon this in a future release.
-                  </div>
-                </gio-banner-warning>
-                <mat-checkbox (change)="isConfirmed = $event.checked">
-                  <b>I understand that analytics history will be lost</b>
-                </mat-checkbox>
               </div>
             }
           }
@@ -121,16 +111,6 @@
             @case ('CONFIRMATION') {
               <div class="confirmation-state">
                 <div class="confirmation-state__header">Ready to migrate API to v4</div>
-                <gio-banner-warning class="confirmation-state__warning">
-                  Analytics history will not be preserved
-                  <div gioBannerBody>
-                    After migration completes, the resulting v4 API analytics will no longer include data from before the migration. We plan
-                    to improve upon this in a future release.
-                  </div>
-                </gio-banner-warning>
-                <mat-checkbox (change)="isConfirmed = $event.checked">
-                  <b>I understand that analytics history will be lost</b>
-                </mat-checkbox>
               </div>
             }
           }
@@ -149,7 +129,7 @@
         <button color="primary" mat-raised-button (click)="onContinue()">Continue</button>
       }
       @if ((response.state === 'MIGRATABLE' || response.state === 'CAN_BE_FORCED') && migrationStep === 'CONFIRMATION') {
-        <button color="primary" mat-raised-button (click)="onStartMigration(response)" [disabled]="!isConfirmed">Start Migration</button>
+        <button color="primary" mat-raised-button (click)="onStartMigration(response)">Start Migration</button>
       }
     </mat-dialog-actions>
   } @else {
