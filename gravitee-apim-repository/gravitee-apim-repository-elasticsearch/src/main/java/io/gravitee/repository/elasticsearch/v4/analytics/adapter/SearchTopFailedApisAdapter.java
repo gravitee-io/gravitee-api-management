@@ -19,6 +19,7 @@ import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedAggregate;
 import io.gravitee.repository.log.v4.model.analytics.TopFailedQueryCriteria;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,7 +36,7 @@ public class SearchTopFailedApisAdapter {
     private static final String FAILED_REQUESTS_COUNT = "failed_requests_count";
     private static final String FAILED_REQUESTS_RATIO = "failed_requests_ratio";
     private static final String STATUS_FIELD = "status";
-    private static final String API_ID_FIELD = "api-id";
+    private static final List<String> API_ID_FIELDS = List.of("api-id", "api");
 
     public static String adaptQuery(TopFailedQueryCriteria queryCriteria) {
         var jsonContent = new HashMap<String, Object>();
@@ -64,7 +65,9 @@ public class SearchTopFailedApisAdapter {
     }
 
     private static JsonObject apiIdsFilterForQuery(List<String> apiIds) {
-        return JsonObject.of("terms", JsonObject.of(API_ID_FIELD, apiIds));
+        var terms = new ArrayList<JsonObject>();
+        API_ID_FIELDS.forEach(field -> terms.add(JsonObject.of("terms", JsonObject.of(field, apiIds))));
+        return JsonObject.of("bool", JsonObject.of("should", JsonArray.of(terms.toArray())));
     }
 
     private static JsonObject dateRangeFilterForQuery(Long from, Long to) {
@@ -73,7 +76,7 @@ public class SearchTopFailedApisAdapter {
     }
 
     private static Object buildAggregations() {
-        return buildAggregationForField(API_ID_FIELD);
+        return API_ID_FIELDS.stream().reduce(JsonObject.of(), (a, b) -> a.mergeIn(buildAggregationForField(b)), JsonObject::mergeIn);
     }
 
     private static JsonObject buildAggregationForField(String field) {
@@ -133,7 +136,8 @@ public class SearchTopFailedApisAdapter {
                         final var failedRequestsCount = bucket.get(FAILED_REQUESTS).get(FAILED_REQUESTS_COUNT).get("value").asLong();
                         final var failedRequestsRatio = bucket.get(FAILED_REQUESTS_RATIO).get("value").asDouble();
                         return new TopFailedAggregate.FailedApiInfo(failedRequestsCount, failedRequestsRatio);
-                    }
+                    },
+                    (existing, duplicate) -> existing
                 )
             );
 

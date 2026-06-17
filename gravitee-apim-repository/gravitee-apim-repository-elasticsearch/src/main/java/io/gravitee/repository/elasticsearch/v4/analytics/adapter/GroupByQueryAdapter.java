@@ -21,6 +21,7 @@ import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.log.v4.model.analytics.GroupByAggregate;
 import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
+import io.gravitee.repository.log.v4.model.analytics.SearchTermId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -63,10 +64,7 @@ public class GroupByQueryAdapter {
     private ObjectNode createQueryNode(GroupByQuery query) {
         var filterArray = MAPPER.createArrayNode();
 
-        // Terms
-        ObjectNode termNode = MAPPER.createObjectNode();
-        termNode.set("term", MAPPER.createObjectNode().put(query.searchTermId().searchTerm().getField(), query.searchTermId().id()));
-        filterArray.add(termNode);
+        filterArray.add(createApiIdFilter(query.searchTermId()));
 
         // Add query_string if query.query() is present
         query
@@ -87,6 +85,15 @@ public class GroupByQueryAdapter {
         ObjectNode queryNode = MAPPER.createObjectNode();
         queryNode.set("bool", bool);
         return queryNode;
+    }
+
+    private ObjectNode createApiIdFilter(SearchTermId searchTermId) {
+        var shouldArray = MAPPER.createArrayNode();
+        shouldArray.add(
+            MAPPER.createObjectNode().set("term", MAPPER.createObjectNode().put(searchTermId.searchTerm().getField(), searchTermId.id()))
+        );
+        shouldArray.add(MAPPER.createObjectNode().set("term", MAPPER.createObjectNode().put("api", searchTermId.id())));
+        return MAPPER.createObjectNode().set("bool", MAPPER.createObjectNode().set("should", shouldArray));
     }
 
     private ObjectNode createAggregationsNode(GroupByQuery query) {

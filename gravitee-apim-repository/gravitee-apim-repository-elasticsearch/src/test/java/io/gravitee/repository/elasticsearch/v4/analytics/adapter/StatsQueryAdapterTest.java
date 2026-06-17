@@ -56,7 +56,8 @@ class StatsQueryAdapterTest {
             JsonNode node = mapper.readTree(json);
 
             assertEquals(0, node.get("size").asInt());
-            assertEquals(API_ID, node.at("/query/bool/filter/0/term/api-id").asText());
+            assertEquals(API_ID, node.at("/query/bool/filter/0/bool/should/0/term/api-id").asText());
+            assertEquals(API_ID, node.at("/query/bool/filter/0/bool/should/1/term/api").asText());
             assertEquals(FROM, node.at("/query/bool/filter/1/range/@timestamp/gte").asLong());
             assertEquals(TO, node.at("/query/bool/filter/1/range/@timestamp/lte").asLong());
             assertEquals(FIELD, node.at("/aggregations/by_response-time/stats/field").asText());
@@ -76,7 +77,8 @@ class StatsQueryAdapterTest {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(json);
             assertEquals(queryString, node.at("/query/bool/filter/0/query_string/query").asText());
-            assertEquals(API_ID, node.at("/query/bool/filter/1/term/api-id").asText());
+            assertEquals(API_ID, node.at("/query/bool/filter/1/bool/should/0/term/api-id").asText());
+            assertEquals(API_ID, node.at("/query/bool/filter/1/bool/should/1/term/api").asText());
         }
 
         @Test
@@ -92,7 +94,8 @@ class StatsQueryAdapterTest {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(json);
             assertTrue(node.at("/query/bool/filter/0/query_string/query").isEmpty());
-            assertEquals(API_ID, node.at("/query/bool/filter/0/term/api-id").asText());
+            assertEquals(API_ID, node.at("/query/bool/filter/0/bool/should/0/term/api-id").asText());
+            assertEquals(API_ID, node.at("/query/bool/filter/0/bool/should/1/term/api").asText());
         }
 
         @Test
@@ -108,7 +111,8 @@ class StatsQueryAdapterTest {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode node = mapper.readTree(json);
             assertTrue(node.at("/query/bool/filter/0/query_string/query").isEmpty());
-            assertEquals(API_ID, node.at("/query/bool/filter/0/term/api-id").asText());
+            assertEquals(API_ID, node.at("/query/bool/filter/0/bool/should/0/term/api-id").asText());
+            assertEquals(API_ID, node.at("/query/bool/filter/0/bool/should/1/term/api").asText());
         }
     }
 
