@@ -52,7 +52,22 @@ public class SearchRequestsCountQueryAdapter {
         }
 
         var terms = new ArrayList<JsonObject>();
-        query.apiId().ifPresent(apiId -> terms.add(JsonObject.of("term", JsonObject.of("api-id", apiId))));
+        query
+            .apiId()
+            .ifPresent(apiId ->
+                terms.add(
+                    JsonObject.of(
+                        "bool",
+                        JsonObject.of(
+                            "should",
+                            JsonArray.of(
+                                JsonObject.of("term", JsonObject.of("api-id", apiId)),
+                                JsonObject.of("term", JsonObject.of("api", apiId))
+                            )
+                        )
+                    )
+                )
+            );
 
         var timestamp = new JsonObject();
         query.from().ifPresent(from -> timestamp.put("gte", from.toEpochMilli()));

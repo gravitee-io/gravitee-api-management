@@ -65,10 +65,13 @@ public class StatsQueryAdapter {
                 }
             });
 
-        // Root (always "api-id" field)
-        ObjectNode termNode = MAPPER.createObjectNode();
-        termNode.set("term", MAPPER.createObjectNode().put(query.searchTermId().searchTerm().getField(), query.searchTermId().id()));
-        filterArray.add(termNode);
+        var searchTermId = query.searchTermId();
+        var shouldArray = MAPPER.createArrayNode();
+        shouldArray.add(
+            MAPPER.createObjectNode().set("term", MAPPER.createObjectNode().put(searchTermId.searchTerm().getField(), searchTermId.id()))
+        );
+        shouldArray.add(MAPPER.createObjectNode().set("term", MAPPER.createObjectNode().put("api", searchTermId.id())));
+        filterArray.add(MAPPER.createObjectNode().set("bool", MAPPER.createObjectNode().set("should", shouldArray)));
 
         // Time range
         filterArray.add(TimeRangeAdapter.toRangeNode(query.timeRange()));

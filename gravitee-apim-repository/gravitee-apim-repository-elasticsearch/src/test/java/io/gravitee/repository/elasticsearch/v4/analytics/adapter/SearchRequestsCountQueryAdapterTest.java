@@ -73,7 +73,12 @@ class SearchRequestsCountQueryAdapterTest {
                     "bool": {
                         "must": [
                             {
-                                "term": {"api-id":"api-id"}
+                                "bool": {
+                                    "should": [
+                                        { "term": {"api-id":"api-id"} },
+                                        { "term": {"api":"api-id"} }
+                                    ]
+                                }
                             }
                         ]
                     }
@@ -108,7 +113,12 @@ class SearchRequestsCountQueryAdapterTest {
                     "bool": {
                         "must": [
                             {
-                                "term": {"api-id":"api-id"}
+                                "bool": {
+                                    "should": [
+                                        { "term": {"api-id":"api-id"} },
+                                        { "term": {"api":"api-id"} }
+                                    ]
+                                }
                             },
                             {
                                  "range": {
@@ -146,7 +156,12 @@ class SearchRequestsCountQueryAdapterTest {
                        "bool": {
                            "must": [
                                {
-                                   "term": {"api-id":"api-id"}
+                                   "bool": {
+                                       "should": [
+                                           { "term": {"api-id":"api-id"} },
+                                           { "term": {"api":"api-id"} }
+                                       ]
+                                   }
                                }
                            ]
                        }
