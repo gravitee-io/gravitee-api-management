@@ -76,5 +76,6 @@ public record FilterSpec(
         EDGE_TOOL,
         API_TYPE,
         NATIVE_CONNECTION_STATUS,
+        URI,
     }
 }

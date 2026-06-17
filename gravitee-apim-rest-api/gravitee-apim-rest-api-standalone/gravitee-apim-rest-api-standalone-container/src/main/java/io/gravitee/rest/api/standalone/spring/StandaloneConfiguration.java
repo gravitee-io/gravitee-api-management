@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.standalone.spring;
 
+import io.gravitee.gamma.rest.infra.config.GammaAnalyticsConfiguration;
 import io.gravitee.gamma.rest.infra.config.GammaLogsConfiguration;
 import io.gravitee.gamma.rest.infra.config.GammaObservabilityFilterConfiguration;
 import io.gravitee.gamma.rest.infra.config.GammaTracingConfiguration;
@@ -49,6 +50,7 @@ import org.springframework.context.annotation.Import;
         GammaTracingConfiguration.class,
         GammaObservabilityFilterConfiguration.class,
         GammaLogsConfiguration.class,
+        GammaAnalyticsConfiguration.class,
     }
 )
 public class StandaloneConfiguration {
