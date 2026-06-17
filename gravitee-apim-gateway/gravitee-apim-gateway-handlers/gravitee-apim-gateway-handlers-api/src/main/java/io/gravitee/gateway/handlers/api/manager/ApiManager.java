@@ -17,6 +17,7 @@ package io.gravitee.gateway.handlers.api.manager;
 
 import io.gravitee.gateway.reactor.ReactableApi;
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * This manager interface acts as a bridge between the source of {@link ReactableApi} (*.json files in case of
@@ -54,4 +55,15 @@ public interface ApiManager {
      * @return A deployed {@link ReactableApi}
      */
     ReactableApi<?> get(String apiId);
+
+    /**
+     * Re-evaluates shard eligibility for the given API IDs after a product change.
+     * Any deployed API that is no longer eligible will be undeployed.
+     * Intended to be called <em>after</em> a member-API resync so that deploy
+     * happens before undeploy, avoiding an unnecessary bounce.
+     *
+     * @param productId the product that changed (for logging)
+     * @param apiIds    the member API IDs to re-evaluate
+     */
+    void reEvaluateAfterProductChange(String productId, Set<String> apiIds);
 }

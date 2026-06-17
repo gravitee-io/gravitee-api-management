@@ -25,6 +25,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -137,5 +138,29 @@ class LatestEventFetcherTest {
     void should_emit_on_error_when_repository_thrown_exception() {
         when(eventLatestRepository.search(any(), any(), any(), any())).thenThrow(new RuntimeException());
         cut.fetchLatest(null, null, Event.EventProperties.API_ID, Set.of(), Set.of()).test().assertError(RuntimeException.class);
+    }
+
+    @Test
+    void should_return_empty_list_when_fetching_events_for_empty_api_ids() {
+        Assertions.assertThat(cut.fetchLatestForApiIds(Set.of(), Set.of("env"), Set.of(EventType.PUBLISH_API))).isEmpty();
+        Assertions.assertThat(cut.fetchLatestForApiIds(null, Set.of("env"), Set.of(EventType.PUBLISH_API))).isEmpty();
+        verifyNoInteractions(eventLatestRepository);
+    }
+
+    @Test
+    void should_fetch_latest_events_for_specific_api_ids() {
+        Event event = new Event();
+        when(eventLatestRepository.search(any(), eq(Event.EventProperties.API_ID), isNull(), isNull())).thenReturn(List.of(event));
+
+        Assertions.assertThat(
+            cut.fetchLatestForApiIds(Set.of("api-1", "api-2"), Set.of("env"), Set.of(EventType.START_API))
+        ).containsExactly(event);
+    }
+
+    @Test
+    void should_return_empty_list_when_repository_search_fails_for_api_ids() {
+        when(eventLatestRepository.search(any(), any(), any(), any())).thenThrow(new RuntimeException("db down"));
+
+        Assertions.assertThat(cut.fetchLatestForApiIds(Set.of("api-1"), Set.of("env"), Set.of(EventType.PUBLISH_API))).isEmpty();
     }
 }
