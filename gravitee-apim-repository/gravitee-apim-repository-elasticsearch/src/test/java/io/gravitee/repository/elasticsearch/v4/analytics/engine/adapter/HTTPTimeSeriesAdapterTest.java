@@ -72,4 +72,26 @@ public class HTTPTimeSeriesAdapterTest extends AbstractQueryAdapterTest {
         var gatewayResponseTimeDateHistogram = aggs.at("/HTTP_GATEWAY_RESPONSE_TIME#TIME_SERIES/date_histogram");
         assertThat(gatewayResponseTimeDateHistogram).isNotEmpty();
     }
+
+    @Test
+    void should_build_time_series_with_status_code_group_then_status() throws JsonProcessingException {
+        var timeRange = buildTimeRange();
+        var filters = buildFilters();
+        var metrics = buildSortedMetric();
+        var facets = List.of(Facet.HTTP_STATUS_CODE_GROUP, Facet.HTTP_STATUS);
+        var interval = Duration.ofHours(1).toMillis();
+        var limit = 5;
+
+        var query = new TimeSeriesQuery(timeRange, filters, interval, metrics, facets, limit, List.of());
+        var queryString = adapter.adapt(query);
+        var jsonQuery = JSON.readTree(queryString);
+
+        var groupAgg = jsonQuery.at("/aggs/HTTP_REQUESTS#TIME_SERIES/aggs/HTTP_REQUESTS#HTTP_STATUS_CODE_GROUP");
+        assertThat(groupAgg.has("range")).isTrue();
+        assertThat(groupAgg.at("/range/field").asText()).isEqualTo("status");
+        assertThat(groupAgg.at("/range/ranges/0/key").asText()).isEqualTo("100-199");
+
+        var nestedTerms = groupAgg.at("/aggs/HTTP_REQUESTS#HTTP_STATUS/terms/field");
+        assertThat(nestedTerms.asText()).isEqualTo("status");
+    }
 }
