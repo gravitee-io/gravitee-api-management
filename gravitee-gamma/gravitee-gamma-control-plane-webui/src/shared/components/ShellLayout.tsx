@@ -55,7 +55,7 @@ const MODULE_DESCRIPTIONS: Record<string, { label: string; description: string }
     platform: { label: 'Platform Management', description: 'Apps, subscriptions, and usage' },
     authz: { label: 'Authorization Management', description: 'Fine-grained authorization policies' },
     esm: { label: 'Event Stream Management', description: 'Manage Kafka clusters, services, and event mesh' },
-    edge: { label: 'Edge Management', description: 'Monitor and manage your fleet of Edge Daemon agents' },
+    edge: { label: 'Edge Management', description: 'Monitor and manage Edge Daemons' },
 };
 
 function buildAppDefinitions(modules: readonly GammaModule[]) {
