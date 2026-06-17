@@ -45,6 +45,7 @@ class SearchHistogramQueryAdapterTest {
     private static final Duration INTERVAL = Duration.ofMinutes(30);
     public static final String SIZE_PTR = "/size";
     public static final String API_ID_PTR = "/query/bool/filter/0/bool/should/0/bool/must/0/term/api-id";
+    public static final String API_LEGACY_PTR = "/query/bool/filter/0/bool/should/1/term/api";
     public static final String FROM_PTR = "/query/bool/filter/1/range/@timestamp/gte";
     public static final String TO_PTR = "/query/bool/filter/1/range/@timestamp/lte";
     public static final String STRING_QUERY_PTR = "/query/bool/filter/2/query_string/query";

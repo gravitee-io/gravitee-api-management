@@ -67,11 +67,11 @@ public class SearchRequestsCountByEventQueryAdapter {
     }
 
     private static void addTermFilter(List<Object> filters, SearchTermId terms) {
-        Map<String, Object> termNode = new HashMap<>();
-        termNode.put(terms.searchTerm().getField(), terms.id());
-        Map<String, Object> termWrapper = new HashMap<>();
-        termWrapper.put("term", termNode);
-        filters.add(termWrapper);
+        var shouldClauses = List.of(
+            Map.of("term", Map.of(terms.searchTerm().getField(), terms.id())),
+            Map.of("term", Map.of("api", terms.id()))
+        );
+        filters.add(Map.of("bool", Map.of("should", shouldClauses)));
     }
 
     public static Optional<CountByAggregate> adaptResponse(SearchResponse searchResponse) {
