@@ -97,4 +97,46 @@ class HttpStatusCodeGroupsTest {
                 .containsEntry("500-599", "5XX");
         }
     }
+
+    @Nested
+    class FriendlyLabels {
+
+        @Test
+        void should_contain_all_five_groups() {
+            assertThat(HttpStatusCodeGroups.FRIENDLY_LABELS).hasSize(5);
+        }
+
+        @Test
+        void should_map_canonical_keys_to_friendly_labels() {
+            assertThat(HttpStatusCodeGroups.FRIENDLY_LABELS)
+                .containsEntry("1XX", "1xx Informational")
+                .containsEntry("2XX", "2xx Success")
+                .containsEntry("3XX", "3xx Redirection")
+                .containsEntry("4XX", "4xx Client Error")
+                .containsEntry("5XX", "5xx Server Error");
+        }
+    }
+
+    @Nested
+    class EsBucketKeyToFriendlyGroupLabel {
+
+        @Test
+        void should_return_all_five_groups() {
+            var map = HttpStatusCodeGroups.esBucketKeyToFriendlyGroupLabel();
+
+            assertThat(map).hasSize(5);
+        }
+
+        @Test
+        void should_map_es_key_to_friendly_label() {
+            var map = HttpStatusCodeGroups.esBucketKeyToFriendlyGroupLabel();
+
+            assertThat(map)
+                .containsEntry("100-199", "1xx Informational")
+                .containsEntry("200-299", "2xx Success")
+                .containsEntry("300-399", "3xx Redirection")
+                .containsEntry("400-499", "4xx Client Error")
+                .containsEntry("500-599", "5xx Server Error");
+        }
+    }
 }
