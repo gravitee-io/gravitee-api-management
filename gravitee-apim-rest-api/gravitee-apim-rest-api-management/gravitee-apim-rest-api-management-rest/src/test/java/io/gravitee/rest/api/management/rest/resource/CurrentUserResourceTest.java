@@ -44,14 +44,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-<<<<<<< HEAD
 import org.junit.AfterClass;
 import org.junit.Test;
-=======
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
->>>>>>> cb4d934630 (fix(console): refresh My Account avatar on update and support reset to default)
 import org.mockito.Mockito;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
