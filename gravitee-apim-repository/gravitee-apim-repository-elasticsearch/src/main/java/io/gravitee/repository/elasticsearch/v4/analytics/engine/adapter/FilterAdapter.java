@@ -60,7 +60,8 @@ public class FilterAdapter {
         Filter.Name.MCP_PROXY_METHOD,
         Filter.Name.MCP_PROXY_TOOL,
         Filter.Name.MCP_PROXY_RESOURCE,
-        Filter.Name.MCP_PROXY_PROMPT
+        Filter.Name.MCP_PROXY_PROMPT,
+        Filter.Name.URI
     );
 
     static final List<Filter.Name> MESSAGE_FILTER_NAMES = List.of(
