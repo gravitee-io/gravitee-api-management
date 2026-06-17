@@ -275,7 +275,7 @@ class UserService {
         lastname: user.lastname,
         customFields: user.customFields,
       })
-      .then(response => {
+      .then((response) => {
         // The picture may have changed: bust the avatar cache so currentUserPicture() returns a
         // fresh URL and the browser re-fetches the new image without requiring a hard refresh.
         this.avatarCacheBust = Date.now();
