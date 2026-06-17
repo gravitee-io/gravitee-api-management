@@ -34,6 +34,12 @@ public abstract class AbstractAdapterTest {
     @SneakyThrows
     @NotNull
     protected SearchResponse buildSearchHit(String fileName) {
+        return buildSearchHit(fileName, "log-id");
+    }
+
+    @SneakyThrows
+    @NotNull
+    protected SearchResponse buildSearchHit(String fileName, String hitId) {
         final SearchResponse searchResponse = new SearchResponse();
         final SearchHits searchHits = new SearchHits();
         final SearchHit searchHit = new SearchHit();
@@ -42,7 +48,7 @@ public abstract class AbstractAdapterTest {
         final JsonNode jsonNode = objectMapper.readTree(loadFile("/hits/" + fileName));
 
         searchHit.setIndex("gravitee-v4-log");
-        searchHit.setId("log-id");
+        searchHit.setId(hitId);
         searchHit.setSource(jsonNode);
         searchHits.setHits(List.of(searchHit));
         searchHits.setTotal(new TotalHits(1L));
