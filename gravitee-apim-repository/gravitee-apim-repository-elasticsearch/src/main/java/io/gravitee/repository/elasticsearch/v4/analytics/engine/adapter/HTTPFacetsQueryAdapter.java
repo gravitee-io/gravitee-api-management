@@ -115,20 +115,29 @@ public class HTTPFacetsQueryAdapter {
     }
 
     private JsonObject adaptFacet(MetricMeasuresQuery metric, Facet facet, Integer limit, List<NumberRange> ranges, boolean last) {
+        var rangeAggregation = resolveRangeAggregation(facet, ranges, last);
+        if (rangeAggregation != null) {
+            return rangeAggregation;
+        }
         if (last) {
-            return toLeaf(facet, metric, limit, ranges);
+            return toTermsLeaf(facet, metric, limit);
         }
         return json().put("terms", toTerms(facet));
     }
 
-    private JsonObject toLeaf(Facet facet, MetricMeasuresQuery metric, Integer limit, List<NumberRange> ranges) {
+    /**
+     * Range aggregations depend on the facet semantics, not on whether the facet is the last
+     * {@code by} dimension. {@code HTTP_STATUS_CODE_GROUP} must always bucket on status-code ranges
+     * so a follow-up {@code HTTP_STATUS} facet can drill down within each group.
+     */
+    private JsonObject resolveRangeAggregation(Facet facet, List<NumberRange> ranges, boolean last) {
         if (facet == Facet.HTTP_STATUS_CODE_GROUP) {
             return toRangeLeaf(Facet.HTTP_STATUS, NumberRange.forStatusCodeGroup());
         }
-        if (ranges == null || ranges.isEmpty()) {
-            return toTermsLeaf(facet, metric, limit);
+        if (last && ranges != null && !ranges.isEmpty()) {
+            return toRangeLeaf(facet, ranges);
         }
-        return toRangeLeaf(facet, ranges);
+        return null;
     }
 
     private JsonObject toRangeLeaf(Facet facet, List<NumberRange> ranges) {
