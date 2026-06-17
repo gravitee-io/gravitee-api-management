@@ -71,5 +71,38 @@ class FindApiMetricsDetailResponseAdapterTest extends AbstractAdapterTest {
                 )
             );
         }
+
+        @Test
+        void should_build_api_metrics_detail_from_v2_source() {
+            final String v2RequestId = "c6b1a2e3-4d5f-6a7b-8c9d-0e1f2a3b4c5d";
+            final SearchResponse searchResponse = buildSearchHit("api-proxy-v2-metrics.json", v2RequestId);
+            final Optional<ApiMetricsDetail> apiMetricsDetail = FindApiMetricsDetailResponseAdapter.adaptFirst(searchResponse);
+
+            assertThat(apiMetricsDetail).isEqualTo(
+                Optional.of(
+                    ApiMetricsDetail.builder()
+                        .timestamp("2025-07-15T10:00:00.000+02:00")
+                        .apiId("f1608475-dd77-4603-a084-75dd77d60350")
+                        .requestId(v2RequestId)
+                        .transactionId("c6b1a2e3-4d5f-6a7b-8c9d-0e1f2a3b4c5d")
+                        .host("localhost:8082")
+                        .applicationId("1")
+                        .planId("a1b2c3d4-5e6f-7a8b-9c0d-e1f2a3b4c5d6")
+                        .gateway("gw-node-1")
+                        .status(200)
+                        .uri("/v2/echo")
+                        .requestContentLength(0L)
+                        .responseContentLength(140L)
+                        .remoteAddress("127.0.0.1")
+                        .gatewayLatency(5L)
+                        .gatewayResponseTime(42L)
+                        .endpointResponseTime(37L)
+                        .method(HttpMethod.GET)
+                        .endpoint("https://api.gravitee.io/echo")
+                        .warnings(List.of())
+                        .build()
+                )
+            );
+        }
     }
 }
