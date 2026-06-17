@@ -22,7 +22,9 @@ import static io.gravitee.gamma.rest.core.observability.filter.model.FilterOpera
 
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec.EnumValue;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec.Range;
+import io.gravitee.repository.analytics.engine.api.query.HttpStatusCodeGroups;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -218,13 +220,11 @@ public enum StaticFilters {
             new EnumValue("OTHER", "Other")
         );
 
-        private static final List<EnumValue> STATUS_CODE_GROUPS = List.of(
-            new EnumValue("1XX", "1xx Informational"),
-            new EnumValue("2XX", "2xx Success"),
-            new EnumValue("3XX", "3xx Redirection"),
-            new EnumValue("4XX", "4xx Client Error"),
-            new EnumValue("5XX", "5xx Server Error")
-        );
+        private static final List<EnumValue> STATUS_CODE_GROUPS = HttpStatusCodeGroups.FRIENDLY_LABELS.entrySet()
+            .stream()
+            .sorted(Map.Entry.comparingByKey())
+            .map(e -> new EnumValue(e.getKey(), e.getValue()))
+            .toList();
 
         private static final List<EnumValue> MESSAGE_OPERATIONS = List.of(self("Publish"), self("Subscribe"));
 

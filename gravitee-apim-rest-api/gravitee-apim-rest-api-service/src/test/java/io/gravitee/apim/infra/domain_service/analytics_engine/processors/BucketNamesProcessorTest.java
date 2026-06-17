@@ -253,6 +253,62 @@ class BucketNamesProcessorTest {
         }
 
         @Test
+        void should_map_http_status_code_group_facet_buckets() {
+            var bucket1 = newStatusCodeRangeBucketResponse("200-299");
+            var bucket2 = newStatusCodeRangeBucketResponse("400-499");
+            var response = facetsResponse(bucket1, bucket2);
+
+            var mappedResponse = processor.mapBucketNames(context, List.of(HTTP_STATUS_CODE_GROUP), response);
+
+            var expected1 = new FacetBucketResponse("200-299", "2xx Success", null, bucket1.measures());
+            var expected2 = new FacetBucketResponse("400-499", "4xx Client Error", null, bucket2.measures());
+            var expectedResponse = facetsResponse(expected1, expected2);
+
+            assertThat(mappedResponse).isEqualTo(expectedResponse);
+        }
+
+        @Test
+        void should_map_common_http_status_codes_to_labeled_names() {
+            var bucket1 = newUnnamedBucketResponse("404");
+            var bucket2 = newUnnamedBucketResponse("500");
+            var response = facetsResponse(bucket1, bucket2);
+
+            var mappedResponse = processor.mapBucketNames(context, List.of(HTTP_STATUS), response);
+
+            var expected1 = new FacetBucketResponse("404", "404 Not Found", null, bucket1.measures());
+            var expected2 = new FacetBucketResponse("500", "500 Internal Server Error", null, bucket2.measures());
+            var expectedResponse = facetsResponse(expected1, expected2);
+
+            assertThat(mappedResponse).isEqualTo(expectedResponse);
+        }
+
+        @Test
+        void should_fallback_to_raw_key_for_unknown_http_status() {
+            var bucket = newUnnamedBucketResponse("999");
+            var response = facetsResponse(bucket);
+
+            var mappedResponse = processor.mapBucketNames(context, List.of(HTTP_STATUS), response);
+
+            var expected = new FacetBucketResponse("999", "999 Unknown Status", null, bucket.measures());
+            var expectedResponse = facetsResponse(expected);
+
+            assertThat(mappedResponse).isEqualTo(expectedResponse);
+        }
+
+        @Test
+        void should_normalize_synthetic_netty_status_code_without_redundant_suffix() {
+            var bucket = newUnnamedBucketResponse("418");
+            var response = facetsResponse(bucket);
+
+            var mappedResponse = processor.mapBucketNames(context, List.of(HTTP_STATUS), response);
+
+            var expected = new FacetBucketResponse("418", "418 Client Error", null, bucket.measures());
+            var expectedResponse = facetsResponse(expected);
+
+            assertThat(mappedResponse).isEqualTo(expectedResponse);
+        }
+
+        @Test
         void should_map_http_method_codes_to_names() {
             var bucket1 = newUnnamedBucketResponse("3");
             var bucket2 = newUnnamedBucketResponse("7");
@@ -322,7 +378,12 @@ class BucketNamesProcessorTest {
 
             var response = timeSeriesResponse(FIXED_TIME_KEY, FIXED_TIMESTAMP, facetBucketResponse);
 
-            var expectedFacetsResponse = new FacetBucketResponse("200-299", "2XX", null, List.of(new Measure(COUNT, FIXED_COUNT_VALUE)));
+            var expectedFacetsResponse = new FacetBucketResponse(
+                "200-299",
+                "2xx Success",
+                null,
+                List.of(new Measure(COUNT, FIXED_COUNT_VALUE))
+            );
 
             var expectedResponse = timeSeriesResponse(FIXED_TIME_KEY, FIXED_TIMESTAMP, expectedFacetsResponse);
 
@@ -492,6 +553,19 @@ class BucketNamesProcessorTest {
                 FIXED_TIMESTAMP,
                 getNamedApplicationBucketResponse(facetBucketResponse, List.of(innerNamedBucket1, innerNamedBucket2))
             );
+
+            assertThat(mappedResponse).isEqualTo(expectedResponse);
+        }
+
+        @Test
+        void should_fallback_to_raw_key_for_unknown_http_status_in_time_series() {
+            var bucket = newUnnamedBucketResponse("999");
+            var response = timeSeriesResponse(FIXED_TIME_KEY, FIXED_TIMESTAMP, bucket);
+
+            var mappedResponse = processor.mapBucketNames(context, List.of(HTTP_STATUS), response);
+
+            var expected = new FacetBucketResponse("999", "999 Unknown Status", null, bucket.measures());
+            var expectedResponse = timeSeriesResponse(FIXED_TIME_KEY, FIXED_TIMESTAMP, expected);
 
             assertThat(mappedResponse).isEqualTo(expectedResponse);
         }
