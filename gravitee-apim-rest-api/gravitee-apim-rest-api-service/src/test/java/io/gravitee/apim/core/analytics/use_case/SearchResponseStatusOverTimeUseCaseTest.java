@@ -139,9 +139,9 @@ class SearchResponseStatusOverTimeUseCaseTest {
     }
 
     @Test
-    void should_throw_if_api_definition_not_v4() {
+    void should_throw_if_api_definition_not_v2_or_v4() {
         // Given
-        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV2()));
+        apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi()));
 
         // When
         var throwable = catchThrowable(() ->
@@ -153,6 +153,22 @@ class SearchResponseStatusOverTimeUseCaseTest {
 
         // Then
         assertThat(throwable).isInstanceOf(ApiInvalidDefinitionVersionException.class);
+    }
+
+    @Test
+    void should_accept_v2_api() {
+        // Given
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV2()));
+        analyticsQueryService.responseStatusOvertime = new ResponseStatusOvertime();
+
+        // When
+        var output = useCase.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(MY_API, ENV_ID, Instant.now().minus(Duration.ofDays(1)), Instant.now())
+        );
+
+        // Then
+        assertThat(output.responseStatusOvertime()).isNotNull();
     }
 
     @Test

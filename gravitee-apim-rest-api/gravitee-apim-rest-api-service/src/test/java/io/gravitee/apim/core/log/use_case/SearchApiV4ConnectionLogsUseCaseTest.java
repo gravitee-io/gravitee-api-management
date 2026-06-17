@@ -464,4 +464,20 @@ class SearchApiV4ConnectionLogsUseCaseTest {
 
         assertThat(result.data()).extracting(ConnectionLogModel::getApiProductName).containsOnlyNulls();
     }
+
+    @Test
+    void should_return_connection_logs_for_a_v2_api() {
+        apiCrudService.reset();
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build()));
+
+        logStorageService.initWithConnectionLogs(List.of(connectionLogFixtures.aConnectionLog("req1").toBuilder().build()));
+
+        var result = usecase.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(API_ID, SearchLogsFilters.builder().from(FIRST_FEBRUARY_2020).to(SECOND_FEBRUARY_2020).build())
+        );
+
+        assertThat(result.total()).isOne();
+        assertThat(result.data()).extracting(ConnectionLogModel::getRequestId).containsExactly("req1");
+    }
 }

@@ -45,11 +45,16 @@ public interface ApiAnalyticsSpecification {
         }
     }
 
-    class ApiV4Specification implements ApiAnalyticsSpecification {
+    class ApiSupportedVersionSpecification implements ApiAnalyticsSpecification {
+
+        private static final java.util.Set<io.gravitee.definition.model.DefinitionVersion> SUPPORTED_VERSIONS = java.util.Set.of(
+            io.gravitee.definition.model.DefinitionVersion.V2,
+            io.gravitee.definition.model.DefinitionVersion.V4
+        );
 
         @Override
         public boolean satisfies(Api api, ExecutionContext executionContext, long from, long to) {
-            return api.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4;
+            return SUPPORTED_VERSIONS.contains(api.getDefinitionVersion());
         }
 
         @Override
@@ -108,7 +113,7 @@ public interface ApiAnalyticsSpecification {
     static ApiAnalyticsSpecification forSearchHistogramAnalytics() {
         return new And(
             List.of(
-                new ApiV4Specification(),
+                new ApiSupportedVersionSpecification(),
                 new ApiProxySpecification(),
                 new ApiMultiTenancyAccessSpecification(),
                 new TimeRangeSpecification()
@@ -119,7 +124,7 @@ public interface ApiAnalyticsSpecification {
     static ApiAnalyticsSpecification forSearchGroupByAnalytics() {
         return new And(
             List.of(
-                new ApiV4Specification(),
+                new ApiSupportedVersionSpecification(),
                 new ApiProxySpecification(),
                 new ApiMultiTenancyAccessSpecification(),
                 new TimeRangeSpecification()
@@ -130,7 +135,7 @@ public interface ApiAnalyticsSpecification {
     static ApiAnalyticsSpecification forRequestsCountAnalytics() {
         return new And(
             List.of(
-                new ApiV4Specification(),
+                new ApiSupportedVersionSpecification(),
                 new ApiProxySpecification(),
                 new ApiMultiTenancyAccessSpecification(),
                 new TimeRangeSpecification()
@@ -141,7 +146,7 @@ public interface ApiAnalyticsSpecification {
     static ApiAnalyticsSpecification forSearchStatsAnalytics() {
         return new And(
             List.of(
-                new ApiV4Specification(),
+                new ApiSupportedVersionSpecification(),
                 new ApiProxySpecification(),
                 new ApiMultiTenancyAccessSpecification(),
                 new TimeRangeSpecification()

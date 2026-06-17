@@ -133,8 +133,8 @@ class SearchGroupByAnalyticsUseCaseTest {
     }
 
     @Test
-    void should_throw_if_api_definition_is_not_v4() {
-        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV2()));
+    void should_throw_if_api_definition_is_not_v2_or_v4() {
+        apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi()));
         var throwable = catchThrowable(() ->
             useCase.execute(
                 GraviteeContext.getExecutionContext(),
@@ -150,6 +150,28 @@ class SearchGroupByAnalyticsUseCaseTest {
             )
         );
         assertThat(throwable).isInstanceOf(ApiInvalidDefinitionVersionException.class);
+    }
+
+    @Test
+    void should_accept_v2_api() {
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV2()));
+        GraviteeContext.setCurrentEnvironment(ENV_ID);
+        analyticsQueryService.groupByAnalytics = GroupByAnalytics.builder().values(Map.of("k1", 5L)).order(List.of("k1")).build();
+
+        var result = useCase.execute(
+            GraviteeContext.getExecutionContext(),
+            new SearchGroupByAnalyticsUseCase.Input(
+                MY_API,
+                INSTANT_NOW.minus(Duration.ofDays(1)).toEpochMilli(),
+                INSTANT_NOW.toEpochMilli(),
+                "status",
+                null,
+                null,
+                Optional.empty()
+            )
+        );
+
+        assertThat(result.analytics()).isNotNull();
     }
 
     @Test

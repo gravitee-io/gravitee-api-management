@@ -31,31 +31,42 @@ import org.junit.jupiter.api.Test;
 class ApiAnalyticsSpecificationTest {
 
     @Nested
-    class ApiV4SpecificationTest {
+    class ApiSupportedVersionSpecificationTest {
 
-        ApiAnalyticsSpecification spec = new ApiAnalyticsSpecification.ApiV4Specification();
+        ApiAnalyticsSpecification spec = new ApiAnalyticsSpecification.ApiSupportedVersionSpecification();
         Api apiV4 = ApiFixtures.aProxyApiV4();
         Api apiV2 = ApiFixtures.aProxyApiV2();
+        Api apiFederated = ApiFixtures.aFederatedApi();
         ExecutionContext ctx = null;
 
         @Test
-        void shouldSatisfy() {
+        void shouldSatisfyV4() {
             assertTrue(spec.satisfies(apiV4, ctx, 0, 0));
         }
 
         @Test
-        void shouldNotSatisfy() {
-            assertFalse(spec.satisfies(apiV2, ctx, 0, 0));
+        void shouldSatisfyV2() {
+            assertTrue(spec.satisfies(apiV2, ctx, 0, 0));
         }
 
         @Test
-        void shouldThrow() {
-            assertThrows(ApiInvalidDefinitionVersionException.class, () -> spec.throwIfNotSatisfied(apiV2, ctx, 0, 0));
+        void shouldNotSatisfyFederated() {
+            assertFalse(spec.satisfies(apiFederated, ctx, 0, 0));
         }
 
         @Test
-        void shouldNotThrow() {
+        void shouldThrowForFederated() {
+            assertThrows(ApiInvalidDefinitionVersionException.class, () -> spec.throwIfNotSatisfied(apiFederated, ctx, 0, 0));
+        }
+
+        @Test
+        void shouldNotThrowForV4() {
             assertDoesNotThrow(() -> spec.throwIfNotSatisfied(apiV4, ctx, 0, 0));
+        }
+
+        @Test
+        void shouldNotThrowForV2() {
+            assertDoesNotThrow(() -> spec.throwIfNotSatisfied(apiV2, ctx, 0, 0));
         }
     }
 
