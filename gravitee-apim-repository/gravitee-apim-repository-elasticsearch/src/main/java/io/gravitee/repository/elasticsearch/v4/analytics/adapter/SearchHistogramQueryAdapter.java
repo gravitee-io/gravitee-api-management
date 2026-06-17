@@ -108,6 +108,8 @@ public class SearchHistogramQueryAdapter {
 
     private ObjectNode createApiFilterNode(HistogramQuery query) {
         var searchTermId = query.searchTermId();
+
+        // V4 path: match by api-id + entrypoint-id
         var mustArray = MAPPER.createArrayNode();
         var apiTerms = MAPPER.createObjectNode();
         apiTerms.set("term", MAPPER.createObjectNode().put(searchTermId.searchTerm().getField(), searchTermId.id()));
@@ -122,6 +124,9 @@ public class SearchHistogramQueryAdapter {
 
         var shouldArray = MAPPER.createArrayNode();
         shouldArray.add(MAPPER.createObjectNode().set("bool", boolMust));
+
+        // V2 path: match by legacy "api" field (no entrypoint-id on v2 indices)
+        shouldArray.add(MAPPER.createObjectNode().set("term", MAPPER.createObjectNode().put("api", searchTermId.id())));
 
         var boolShould = MAPPER.createObjectNode();
         boolShould.put("minimum_should_match", 1);

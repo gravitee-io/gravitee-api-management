@@ -43,7 +43,18 @@ public class FindApiMetricsDetailQueryAdapter {
 
         var terms = new ArrayList<JsonObject>();
         if (query.apiId() != null) {
-            terms.add(JsonObject.of("term", JsonObject.of("api-id", query.apiId())));
+            terms.add(
+                JsonObject.of(
+                    "bool",
+                    JsonObject.of(
+                        "should",
+                        JsonArray.of(
+                            JsonObject.of("term", JsonObject.of("api-id", query.apiId())),
+                            JsonObject.of("term", JsonObject.of("api", query.apiId()))
+                        )
+                    )
+                )
+            );
         }
         if (query.requestId() != null) {
             terms.add(JsonObject.of("term", JsonObject.of("request-id", query.requestId())));
