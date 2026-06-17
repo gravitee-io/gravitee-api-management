@@ -863,7 +863,7 @@ paths:
                                           sorts:
                                               - measure: "COUNT"
                                                 order: "DESC"
-                                    facets: ["API"]
+                                    by: ["API"]
                                     limit: 10
                             by-status-with-ranges:
                                 summary: Status code group distribution
@@ -874,7 +874,7 @@ paths:
                                     metrics:
                                         - name: "HTTP_REQUESTS"
                                           measures: ["COUNT"]
-                                    facets: ["HTTP_STATUS"]
+                                    by: ["HTTP_STATUS"]
                                     ranges:
                                         - from: 100
                                           to: 199
@@ -939,7 +939,7 @@ paths:
                 Returns metric values bucketed by time intervals (e.g. per minute, per hour).
                 Use this endpoint to build line charts and histograms in the dashboard.
 
-                Each time bucket may optionally contain nested facet buckets when `facets` is
+                Each time bucket may optionally contain nested facet buckets when `by` is
                 provided, enabling per-API or per-status time-series breakdowns.
 
                 `interval` is in milliseconds (e.g. `60000` for 1 minute, `3600000` for 1 hour).
@@ -972,7 +972,7 @@ paths:
                                     metrics:
                                         - name: "HTTP_REQUESTS"
                                           measures: ["COUNT"]
-                                    facets: ["API"]
+                                    by: ["API"]
                                     facetSize: 5
             responses:
                 "200":
@@ -1693,7 +1693,7 @@ components:
         AnalyticsFacetsRequest:
             type: object
             description: Request body for the facets endpoint.
-            required: [metrics, facets]
+            required: [metrics, by]
             properties:
                 timeRange:
                     $ref: "#/components/schemas/TimeRange"
@@ -1706,7 +1706,7 @@ components:
                     description: Metrics to compute per facet bucket.
                     items:
                         $ref: "#/components/schemas/FacetMetricQuery"
-                facets:
+                by:
                     type: array
                     description: |
                         Facet dimensions to break down by (e.g. `API`, `HTTP_STATUS`,
@@ -1747,7 +1747,7 @@ components:
                     description: Metrics to compute per time bucket.
                     items:
                         $ref: "#/components/schemas/FacetMetricQuery"
-                facets:
+                by:
                     type: array
                     nullable: true
                     description: Optional facet dimensions for nested breakdown within each time bucket.
@@ -1807,6 +1807,7 @@ components:
             type: object
             description: |
                 A facet bucket. Leaf buckets carry `measures`; group buckets carry nested `buckets`.
+            required: [key, name, type]
             properties:
                 key:
                     type: string
@@ -1819,8 +1820,14 @@ components:
                         `API` → API display name, `APPLICATION` → application name,
                         `HTTP_METHOD` → method name (GET, POST, …),
                         `HTTP_STATUS` → labeled code (200 OK, 404 Not Found, …),
-                        `HTTP_STATUS_CODE_GROUP` → group label (2XX, 4XX, …).
+                        `HTTP_STATUS_CODE_GROUP` → friendly group label (2xx Success, 4xx Client Error, …).
                         Falls back to the raw key for unmapped facets.
+                type:
+                    type: string
+                    enum: [GROUP, LEAF]
+                    description: |
+                        Discriminator for nested facet trees. `GROUP` buckets contain nested
+                        `buckets`; `LEAF` buckets contain `measures`.
                 buckets:
                     type: array
                     nullable: true
@@ -1861,6 +1868,7 @@ components:
         TimeSeriesBucket:
             type: object
             description: A time-series bucket with optional nested facet buckets.
+            required: [key, type]
             properties:
                 key:
                     type: string
@@ -1869,6 +1877,12 @@ components:
                 name:
                     type: string
                     nullable: true
+                type:
+                    type: string
+                    enum: [GROUP, LEAF]
+                    description: |
+                        Discriminator for time-series buckets. `GROUP` buckets contain nested facet
+                        `buckets`; `LEAF` buckets contain `measures` only.
                 timestamp:
                     type: integer
                     format: int64
