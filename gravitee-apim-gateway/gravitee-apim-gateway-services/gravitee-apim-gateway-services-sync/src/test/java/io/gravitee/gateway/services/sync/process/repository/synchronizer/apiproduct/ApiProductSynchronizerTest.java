@@ -463,6 +463,45 @@ class ApiProductSynchronizerTest {
             assertThat(deployable.reactableApiProduct().getPlans()).isNullOrEmpty();
         }
 
+        @Test
+        void should_deserialize_product_tags_and_plan_tags_from_payload() throws InterruptedException, JsonProcessingException {
+            Event event = new Event();
+            event.setId("event-tags");
+            event.setType(DEPLOY_API_PRODUCT);
+            event.setCreatedAt(new Date());
+            event.setPayload(
+                objectMapper.writeValueAsString(
+                    Map.of(
+                        "id",
+                        "api-product-tagged",
+                        "name",
+                        "Tagged Product",
+                        "version",
+                        "1.0",
+                        "apiIds",
+                        Set.of("api-1"),
+                        "environmentId",
+                        "env-id",
+                        "tags",
+                        Set.of("internal", "partner"),
+                        "plans",
+                        List.of(Map.of("id", "plan-tagged", "name", "Tagged Plan", "status", "PUBLISHED", "tags", List.of("internal")))
+                    )
+                )
+            );
+
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+
+            ArgumentCaptor<ApiProductReactorDeployable> captor = ArgumentCaptor.forClass(ApiProductReactorDeployable.class);
+            verify(apiProductDeployer).deploy(captor.capture());
+
+            ApiProductReactorDeployable deployable = captor.getValue();
+            assertThat(deployable.reactableApiProduct().getTags()).containsExactlyInAnyOrder("internal", "partner");
+            assertThat(deployable.reactableApiProduct().getPlans()).hasSize(1);
+            assertThat(deployable.reactableApiProduct().getPlans().get(0).getTags()).containsExactly("internal");
+        }
+
         private Event createDeployEventWithPlans(String apiProductId, List<Map<String, String>> plans) throws JsonProcessingException {
             Event event = new Event();
             event.setId("event-" + apiProductId);

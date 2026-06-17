@@ -16,16 +16,20 @@
 package io.gravitee.gateway.handlers.api.manager.impl;
 
 import io.gravitee.common.event.EventManager;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.event.ApiProductChangedEvent;
 import io.gravitee.gateway.handlers.api.event.ApiProductEventType;
 import io.gravitee.gateway.handlers.api.manager.ApiProductManager;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
+import io.gravitee.gateway.handlers.api.sharding.ApiProductShardingFilter;
 import io.gravitee.node.api.license.LicenseManager;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.CustomLog;
 
@@ -39,12 +43,19 @@ public class ApiProductManagerImpl implements ApiProductManager {
     private final ApiProductRegistry apiProductRegistry;
     private final EventManager eventManager;
     private final LicenseManager licenseManager;
+    private final GatewayConfiguration gatewayConfiguration;
     private final Map<String, ReactableApiProduct> apiProducts = new ConcurrentHashMap<>();
 
-    public ApiProductManagerImpl(ApiProductRegistry apiProductRegistry, EventManager eventManager, LicenseManager licenseManager) {
+    public ApiProductManagerImpl(
+        ApiProductRegistry apiProductRegistry,
+        EventManager eventManager,
+        LicenseManager licenseManager,
+        GatewayConfiguration gatewayConfiguration
+    ) {
         this.apiProductRegistry = apiProductRegistry;
         this.eventManager = eventManager;
         this.licenseManager = licenseManager;
+        this.gatewayConfiguration = gatewayConfiguration;
     }
 
     @Override
@@ -80,6 +91,18 @@ public class ApiProductManagerImpl implements ApiProductManager {
                 "The API Product [{}] can not be deployed because it is not allowed by the current license (universe tier)",
                 apiProduct.getName()
             );
+            return Completable.complete();
+        }
+
+        if (!ApiProductShardingFilter.matchesProductTags(gatewayConfiguration, apiProduct.getTags())) {
+            log.debug(
+                "The API Product [{}] has been ignored because not in configured gateway tags {}",
+                apiProduct.getName(),
+                apiProduct.getTags()
+            );
+            if (get(apiProduct.getId()) != null) {
+                undeploy(apiProduct.getId());
+            }
             return Completable.complete();
         }
 
@@ -124,16 +147,28 @@ public class ApiProductManagerImpl implements ApiProductManager {
     private Completable update(ReactableApiProduct apiProduct, Completable doBeforeEmit) {
         log.debug("Updating API Product [{}]", apiProduct.getId());
 
+        ReactableApiProduct previousProduct = apiProducts.get(apiProduct.getId());
+        Set<String> previousApiIds = previousProduct != null && previousProduct.getApiIds() != null
+            ? previousProduct.getApiIds()
+            : Set.of();
+
         apiProducts.put(apiProduct.getId(), apiProduct);
         apiProductRegistry.register(apiProduct);
 
-        Completable emit = Completable.fromRunnable(() -> {
-            if (apiProduct.getApiIds() != null && !apiProduct.getApiIds().isEmpty()) {
-                emitApiProductChangedEvent(ApiProductEventType.UPDATE, apiProduct);
-            }
-            log.info("API Product [{}] has been updated", apiProduct.getId());
-        });
+        Completable emit = Completable.fromRunnable(() -> publishApiProductUpdateEvent(apiProduct, previousApiIds));
         return (doBeforeEmit != null ? doBeforeEmit : Completable.complete()).andThen(emit);
+    }
+
+    private void publishApiProductUpdateEvent(ReactableApiProduct apiProduct, Set<String> previousApiIds) {
+        Set<String> allAffectedApiIds = new HashSet<>(previousApiIds);
+        if (apiProduct.getApiIds() != null) {
+            allAffectedApiIds.addAll(apiProduct.getApiIds());
+        }
+        if (!allAffectedApiIds.isEmpty()) {
+            ApiProductChangedEvent event = new ApiProductChangedEvent(apiProduct.getId(), apiProduct.getEnvironmentId(), allAffectedApiIds);
+            eventManager.publishEvent(ApiProductEventType.UPDATE, event);
+        }
+        log.info("API Product [{}] has been updated", apiProduct.getId());
     }
 
     private void undeploy(String apiProductId) {

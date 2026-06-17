@@ -23,10 +23,13 @@ import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiMapper;
+import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.Instant;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
@@ -46,6 +49,7 @@ public class ApiSynchronizer extends AbstractApiSynchronizer implements Reposito
         EventType.UNPUBLISH_API,
         EventType.STOP_API
     );
+    private static final Set<EventType> MEMBER_API_RESYNC_EVENT_TYPES = INCREMENTAL_EVENT_TYPES;
     private final LatestEventFetcher eventsFetcher;
 
     public ApiSynchronizer(
@@ -96,6 +100,21 @@ public class ApiSynchronizer extends AbstractApiSynchronizer implements Reposito
                 }
             })
             .ignoreElement();
+    }
+
+    public Completable resyncMemberApis(Set<String> apiIds, Set<String> environments) {
+        if (apiIds == null || apiIds.isEmpty()) {
+            return Completable.complete();
+        }
+        List<Event> events = eventsFetcher.fetchLatestForApiIds(apiIds, environments, MEMBER_API_RESYNC_EVENT_TYPES);
+        if (events.isEmpty()) {
+            log.debug("No API events found to resync member APIs {}", apiIds);
+            return Completable.complete();
+        }
+        log.debug("Resyncing {} member API(s) after API Product change", events.size());
+        return processEvents(false, Flowable.fromIterable(events).buffer(bulkEvents()), environments)
+            .ignoreElements()
+            .subscribeOn(Schedulers.from(syncFetcherExecutor));
     }
 
     @Override
