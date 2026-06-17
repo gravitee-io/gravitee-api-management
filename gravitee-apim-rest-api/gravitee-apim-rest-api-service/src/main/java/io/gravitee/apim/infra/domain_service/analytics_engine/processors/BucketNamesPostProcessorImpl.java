@@ -43,39 +43,9 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
 
     private static final String UNKNOWN_APPLICATION = "Unknown";
 
-    private static final Map<String, String> STATUS_CODE_GROUP_FROM_ES_KEY = HttpStatusCodeGroups.esBucketKeyToGroupLabel();
+    private static final Map<String, String> STATUS_CODE_GROUP_FROM_ES_KEY = HttpStatusCodeGroups.esBucketKeyToFriendlyGroupLabel();
 
     private static final Map<String, String> HTTP_METHOD_BY_CODE = buildHttpMethodCodeMap();
-
-    private static final Map<String, String> HTTP_STATUS_LABELS = Map.ofEntries(
-        Map.entry("100", "100 Continue"),
-        Map.entry("101", "101 Switching Protocols"),
-        Map.entry("200", "200 OK"),
-        Map.entry("201", "201 Created"),
-        Map.entry("202", "202 Accepted"),
-        Map.entry("204", "204 No Content"),
-        Map.entry("301", "301 Moved Permanently"),
-        Map.entry("302", "302 Found"),
-        Map.entry("304", "304 Not Modified"),
-        Map.entry("307", "307 Temporary Redirect"),
-        Map.entry("308", "308 Permanent Redirect"),
-        Map.entry("400", "400 Bad Request"),
-        Map.entry("401", "401 Unauthorized"),
-        Map.entry("403", "403 Forbidden"),
-        Map.entry("404", "404 Not Found"),
-        Map.entry("405", "405 Method Not Allowed"),
-        Map.entry("408", "408 Request Timeout"),
-        Map.entry("409", "409 Conflict"),
-        Map.entry("413", "413 Payload Too Large"),
-        Map.entry("415", "415 Unsupported Media Type"),
-        Map.entry("422", "422 Unprocessable Entity"),
-        Map.entry("429", "429 Too Many Requests"),
-        Map.entry("500", "500 Internal Server Error"),
-        Map.entry("501", "501 Not Implemented"),
-        Map.entry("502", "502 Bad Gateway"),
-        Map.entry("503", "503 Service Unavailable"),
-        Map.entry("504", "504 Gateway Timeout")
-    );
 
     private static Map<String, String> buildHttpMethodCodeMap() {
         var methods = HttpMethod.values();
@@ -152,7 +122,7 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
         var bucketName = switch (facets.getFirst()) {
             case FacetSpec.Name.HTTP_STATUS_CODE_GROUP -> STATUS_CODE_GROUP_FROM_ES_KEY.getOrDefault(bucket.key(), bucket.key());
             case FacetSpec.Name.HTTP_METHOD -> HTTP_METHOD_BY_CODE.getOrDefault(bucket.key(), bucket.key());
-            case FacetSpec.Name.HTTP_STATUS -> HTTP_STATUS_LABELS.getOrDefault(bucket.key(), bucket.key());
+            case FacetSpec.Name.HTTP_STATUS -> HttpStatusLabels.labelForCode(bucket.key());
             case FacetSpec.Name.API -> {
                 var name = context.apiNamesById().get(bucket.key());
                 yield name != null ? name : bucket.key();
