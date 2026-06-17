@@ -44,6 +44,7 @@ export function fakePermissionsByScopes(attributes?: Partial<PermissionsByScopes
       'DASHBOARD',
       'DICTIONARY',
       'DOCUMENTATION',
+      'EDGE_CONFIGURATION',
       'ENTRYPOINT',
       'GROUP',
       'IDENTITY_PROVIDER_ACTIVATION',
