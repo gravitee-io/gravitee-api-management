@@ -17,6 +17,7 @@ package io.gravitee.gamma.rest.infra.adapter;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
@@ -102,7 +103,9 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
             toApimRanges(query.ranges())
         );
         var response = computeFacetsUseCase.execute(new ComputeFacetsUseCase.Input(auditInfo, apimRequest)).response();
-        return objectMapper.valueToTree(response);
+        var node = (ObjectNode) objectMapper.valueToTree(response);
+        AnalyticsBucketTypeEnricher.enrichFacetsResponse(node);
+        return node;
     }
 
     @Override
@@ -118,7 +121,9 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
             toApimRanges(query.ranges())
         );
         var response = computeTimeSeriesUseCase.execute(new ComputeTimeSeriesUseCase.Input(auditInfo, apimRequest)).response();
-        return objectMapper.valueToTree(response);
+        var node = (ObjectNode) objectMapper.valueToTree(response);
+        AnalyticsBucketTypeEnricher.enrichTimeSeriesResponse(node);
+        return node;
     }
 
     @Override
