@@ -29,8 +29,6 @@
     <name>Gravitee.io APIM - Reporter - Elasticsearch</name>
 
     <properties>
-        <gravitee-common-elasticsearch.version>7.0.0-alpha.1</gravitee-common-elasticsearch.version>
-
         <maven-remote-resources-plugin.version>3.3.0</maven-remote-resources-plugin.version>
 
         <publish-folder-path>graviteeio-apim/plugins/reporters</publish-folder-path>
@@ -41,7 +39,6 @@
         <dependency>
             <groupId>io.gravitee.elasticsearch</groupId>
             <artifactId>gravitee-common-elasticsearch</artifactId>
-            <version>${gravitee-common-elasticsearch.version}</version>
         </dependency>
 
         <dependency>
