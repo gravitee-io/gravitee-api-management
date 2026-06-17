@@ -53,4 +53,15 @@ class StaticFiltersContractTest {
             .as("All canonical groups must be present in the StaticFilters catalog")
             .allSatisfy(canonicalKey -> assertThat(catalogKeys).contains(canonicalKey));
     }
+
+    @Test
+    void status_code_group_labels_should_match_friendly_labels() {
+        var spec = StaticFilters.HTTP_STATUS_CODE_GROUP.toSpec();
+
+        assertThat(spec.enumValues()).allSatisfy(enumValue ->
+            assertThat(HttpStatusCodeGroups.FRIENDLY_LABELS.get(enumValue.value()))
+                .as("Catalog label for '%s' must match HttpStatusCodeGroups.FRIENDLY_LABELS", enumValue.value())
+                .isEqualTo(enumValue.label())
+        );
+    }
 }
