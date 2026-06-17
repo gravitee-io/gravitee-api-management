@@ -784,9 +784,6 @@ public class UserServiceTest {
         );
     }
 
-<<<<<<< HEAD
-    @Test(expected = InvalidUserException.class)
-=======
     @Test
     public void shouldRemovePictureWhenEmptyPictureProvided() throws TechnicalException {
         final String USER_ID = "myuserid";
@@ -849,8 +846,7 @@ public class UserServiceTest {
         verify(userRepository).update(argThat(userToUpdate -> "data:image/png;base64,NEW".equals(userToUpdate.getPicture())));
     }
 
-    @Test
->>>>>>> cb4d934630 (fix(console): refresh My Account avatar on update and support reset to default)
+    @Test(expected = InvalidUserException.class)
     public void shouldNotUpdateUser_EmailAlreadyInUse() throws TechnicalException {
         final String USER_ID = "myuserid";
         final String USER_EMAIL = "my.user@acme.fr";
