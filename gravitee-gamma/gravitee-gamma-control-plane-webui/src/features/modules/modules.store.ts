@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { NavGroup } from '@gravitee/graphene-core';
-import { ClipboardCheck, Home } from 'lucide-react';
+import { create } from 'zustand';
 
-import { HOST_NAV_LABELS } from './routes';
+import type { GammaModule } from './modules.types';
 
-export const NAV_GROUPS: NavGroup[] = [
-    {
-        label: 'Overview',
-        items: [
-            { key: 'home', title: HOST_NAV_LABELS.home, icon: Home },
-            { key: 'tasks', title: HOST_NAV_LABELS.tasks, icon: ClipboardCheck },
-        ],
-    },
-];
+interface ModulesState {
+    modules: GammaModule[];
+    setModules: (modules: GammaModule[]) => void;
+}
+
+export const useModulesStore = create<ModulesState>(set => ({
+    modules: [],
+    setModules: modules => set({ modules }),
+}));
