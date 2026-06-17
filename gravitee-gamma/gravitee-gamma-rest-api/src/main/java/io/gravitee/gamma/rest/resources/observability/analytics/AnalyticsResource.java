@@ -102,7 +102,7 @@ public class AnalyticsResource {
                 request != null && request.timeRange() != null ? request.timeRange().from() : null,
                 request != null && request.timeRange() != null ? request.timeRange().to() : null,
                 toFacetMetrics(request != null ? request.metrics() : null),
-                request != null && request.facets() != null ? request.facets() : List.of(),
+                request != null && request.by() != null ? request.by() : List.of(),
                 request != null ? request.limit() : null,
                 toRanges(request != null ? request.ranges() : null)
             )
@@ -127,7 +127,7 @@ public class AnalyticsResource {
                 request != null && request.timeRange() != null ? request.timeRange().to() : null,
                 request != null ? request.interval() : null,
                 toFacetMetrics(request != null ? request.metrics() : null),
-                request != null && request.facets() != null ? request.facets() : List.of(),
+                request != null && request.by() != null ? request.by() : List.of(),
                 request != null ? request.facetSize() : null,
                 toRanges(request != null ? request.ranges() : null)
             )
