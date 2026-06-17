@@ -1736,6 +1736,19 @@
                 </dependency>
                 <dependency>
                     <groupId>com.graviteesource.gamma.module</groupId>
+                    <artifactId>gravitee-gamma-module-edge</artifactId>
+                    <version>${gravitee-gamma-module-edge.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.gamma.module</groupId>
                     <artifactId>gravitee-gamma-module-esm</artifactId>
                     <version>${gravitee-gamma-module-esm.version}</version>
                     <type>zip</type>
