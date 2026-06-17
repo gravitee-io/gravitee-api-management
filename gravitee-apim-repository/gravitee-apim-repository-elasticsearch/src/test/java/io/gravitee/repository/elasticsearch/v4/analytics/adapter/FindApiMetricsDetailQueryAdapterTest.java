@@ -42,7 +42,7 @@ class FindApiMetricsDetailQueryAdapterTest {
                     "bool": {
                       "must": [
                         { "bool": { "should": [{ "term": { "api-id": "apiId" } }, { "term": { "api": "apiId" } }] } },
-                        { "term": { "request-id": "requestId" } }
+                        { "bool": { "should": [{ "term": { "request-id": "requestId" } }, { "term": { "id": "requestId" } }, { "ids": { "values": ["requestId"] } }] } }
                       ]
                     }
                   }
@@ -70,7 +70,7 @@ class FindApiMetricsDetailQueryAdapterTest {
                   "query": {
                     "bool": {
                       "must": [
-                        { "term": { "request-id": "requestId" } }
+                        { "bool": { "should": [{ "term": { "request-id": "requestId" } }, { "term": { "id": "requestId" } }, { "ids": { "values": ["requestId"] } }] } }
                       ]
                     }
                   }

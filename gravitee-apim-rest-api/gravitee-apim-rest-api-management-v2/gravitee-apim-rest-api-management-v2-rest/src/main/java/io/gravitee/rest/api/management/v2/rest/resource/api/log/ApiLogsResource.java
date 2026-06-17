@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api.log;
 
 import static io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo.computePaginationInfo;
 
+import io.gravitee.apim.core.analytics.use_case.FindApiMetricsDetailUseCase;
 import io.gravitee.apim.core.log.use_case.*;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiAggregatedMessageLogsMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiLogsMapper;
@@ -65,6 +66,9 @@ public class ApiLogsResource extends AbstractResource {
 
     @Inject
     private SearchApiConnectionLogErrorKeysUseCase searchErrorKeysUseCase;
+
+    @Inject
+    private FindApiMetricsDetailUseCase findApiMetricsDetailUseCase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -125,10 +129,16 @@ public class ApiLogsResource extends AbstractResource {
     public ApiLogResponse getApiLog(@PathParam("requestId") String requestId) {
         var request = new SearchApiConnectionLogDetailUseCase.Input(apiId, requestId);
 
-        return searchConnectionLogUsecase
-            .execute(GraviteeContext.getExecutionContext(), request)
-            .connectionLogDetail()
-            .map(ApiLogsMapper.INSTANCE::map)
+        var logDetail = searchConnectionLogUsecase.execute(GraviteeContext.getExecutionContext(), request).connectionLogDetail();
+
+        if (logDetail.isPresent()) {
+            return ApiLogsMapper.INSTANCE.map(logDetail.get());
+        }
+
+        return findApiMetricsDetailUseCase
+            .execute(GraviteeContext.getExecutionContext(), new FindApiMetricsDetailUseCase.Input(apiId, requestId))
+            .apiMetricsDetail()
+            .map(ApiLogsMapper.INSTANCE::mapFromMetricsDetail)
             .orElseThrow(() -> new NotFoundException("No log found for api: " + apiId + " and requestId: " + requestId));
     }
 
