@@ -93,6 +93,23 @@ public interface DefaultRoleEntityDefinition {
             .build()
     );
 
+    NewRoleEntity ROLE_ENVIRONMENT_EDGE_MANAGER = new NewRoleEntity(
+        "EDGE_MANAGER",
+        "Environment Role. Created by Gravitee.io.",
+        ENVIRONMENT,
+        false,
+        Maps.<String, char[]>builder()
+            .put(
+                EnvironmentPermission.EDGE_CONFIGURATION.getName(),
+                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
+            )
+            .put(EnvironmentPermission.API.getName(), new char[] { READ.getId() })
+            .put(EnvironmentPermission.APPLICATION.getName(), new char[] { READ.getId() })
+            .put(EnvironmentPermission.GROUP.getName(), new char[] { READ.getId() })
+            .put(EnvironmentPermission.PLATFORM.getName(), new char[] { READ.getId() })
+            .build()
+    );
+
     NewRoleEntity DEFAULT_ROLE_API_USER = new NewRoleEntity(
         "USER",
         "Default API Role. Created by Gravitee.io.",
