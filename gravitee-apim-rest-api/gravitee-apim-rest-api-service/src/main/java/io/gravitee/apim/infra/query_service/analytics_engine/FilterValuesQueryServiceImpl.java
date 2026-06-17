@@ -112,6 +112,7 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
             case MCP_PROXY_RESOURCE -> "additional-metrics.keyword_mcp-proxy_resources/read";
             case MCP_PROXY_PROMPT -> "additional-metrics.keyword_mcp-proxy_prompts/get";
             case API_PRODUCT -> "api-product-id";
+            case URI -> "uri";
             default -> throw new UnsupportedOperationException("No ES field mapping for filter: " + filterName);
         };
     }

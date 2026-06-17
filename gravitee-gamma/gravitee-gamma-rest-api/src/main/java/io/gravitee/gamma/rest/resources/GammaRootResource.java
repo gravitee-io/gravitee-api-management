@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.resources;
 
+import io.gravitee.gamma.rest.resources.observability.analytics.AnalyticsResource;
 import io.gravitee.gamma.rest.resources.observability.filters.ObservabilityFiltersResource;
 import io.gravitee.gamma.rest.resources.observability.logs.LogsResource;
 import io.gravitee.gamma.rest.resources.tracing.TracingResource;
@@ -68,5 +69,15 @@ public class GammaRootResource {
     @Path("/organizations/{orgId}/environments/{envId}/observability/logs")
     public LogsResource getLogsResource() {
         return resourceContext.getResource(LogsResource.class);
+    }
+
+    /**
+     * Analytics computation endpoints (measures, facets, time-series) consuming the unified filter
+     * vocabulary and delegating to the proven APIM analytics engine. Server-side RBAC scoping via
+     * {@code AccessibleApiScopeDomainService}. See {@link AnalyticsResource} for the contract.
+     */
+    @Path("/organizations/{orgId}/environments/{envId}/observability/analytics")
+    public AnalyticsResource getAnalyticsResource() {
+        return resourceContext.getResource(AnalyticsResource.class);
     }
 }
