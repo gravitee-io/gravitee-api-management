@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 
 /**
@@ -92,13 +93,14 @@ public class SearchObservabilityLogsUseCase {
         var accessibleApis = logsDataPort.loadAccessibleApis(input.organizationId, input.environmentId);
 
         var userApiFilter = extractApiFilter(conditions);
-        var scope = accessibleApiScope.computeScope(accessibleApis, LOGS_SUPPORTED_API_TYPES, userApiFilter);
+        var effectiveApiTypes = narrowApiTypes(conditions);
+        var scope = accessibleApiScope.computeScope(accessibleApis, effectiveApiTypes, userApiFilter);
 
         if (scope.apiIds().isEmpty()) {
             return new Output(LogsPage.EMPTY, page, perPage);
         }
 
-        var effectiveConditions = applyDefaultEntrypointScoping(removeApiConditions(conditions));
+        var effectiveConditions = applyDefaultEntrypointScoping(removeScopeConditions(conditions));
 
         var query = LogsSearchQuery.builder()
             .apiIds(scope.apiIds())
@@ -136,10 +138,36 @@ public class SearchObservabilityLogsUseCase {
             .collect(Collectors.toSet());
     }
 
-    private static List<FilterCondition> removeApiConditions(List<FilterCondition> conditions) {
+    /**
+     * Narrows {@link #LOGS_SUPPORTED_API_TYPES} when the caller supplies an explicit
+     * {@code API_TYPE} filter. Values are intersected with the supported set so that an
+     * unsupported type (e.g. {@code MESSAGE}) simply yields an empty scope instead of an error.
+     */
+    private static Set<ApiType> narrowApiTypes(List<FilterCondition> conditions) {
+        var requested = conditions
+            .stream()
+            .filter(c -> "API_TYPE".equals(c.name()))
+            .flatMap(c -> c.values().stream())
+            .flatMap(v -> {
+                try {
+                    return Stream.of(ApiType.valueOf(v));
+                } catch (IllegalArgumentException e) {
+                    return Stream.empty();
+                }
+            })
+            .collect(Collectors.toSet());
+
+        if (requested.isEmpty()) {
+            return LOGS_SUPPORTED_API_TYPES;
+        }
+        requested.retainAll(LOGS_SUPPORTED_API_TYPES);
+        return requested;
+    }
+
+    private static List<FilterCondition> removeScopeConditions(List<FilterCondition> conditions) {
         return conditions
             .stream()
-            .filter(c -> !"API".equals(c.name()))
+            .filter(c -> !"API".equals(c.name()) && !"API_TYPE".equals(c.name()))
             .toList();
     }
 
