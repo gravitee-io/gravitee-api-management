@@ -370,6 +370,73 @@ describe('ApiEndpointComponent', () => {
         expect(routerNavigationSpy).toHaveBeenCalledWith(['../../'], { relativeTo: expect.anything() });
       });
 
+      it('should preserve secondary flag when editing a secondary endpoint', async () => {
+        const apiV4 = fakeApiV4({
+          id: API_ID,
+          endpointGroups: [
+            fakeEndpointGroupV4({
+              endpoints: [
+                {
+                  name: 'primary',
+                  type: 'kafka',
+                  weight: 1,
+                  inheritConfiguration: false,
+                  secondary: false,
+                  configuration: {
+                    bootstrapServers: 'localhost:9092',
+                  },
+                },
+                {
+                  name: 'fallback',
+                  type: 'kafka',
+                  weight: 1,
+                  inheritConfiguration: false,
+                  secondary: true,
+                  configuration: {
+                    bootstrapServers: 'localhost:9092',
+                  },
+                },
+              ],
+            }),
+          ],
+        });
+
+        await initComponent(apiV4, { apiId: API_ID, groupIndex: 0, endpointIndex: 1 });
+
+        fixture.detectChanges();
+        expect(await componentHarness.getEndpointName()).toStrictEqual('fallback');
+
+        await componentHarness.fillInputName('fallback updated');
+        fixture.detectChanges();
+
+        await componentHarness.clickSaveButton();
+
+        expectApiGetRequest(apiV4);
+
+        const updatedApi: ApiV4 = {
+          ...apiV4,
+          endpointGroups: [
+            {
+              ...apiV4.endpointGroups[0],
+              endpoints: [
+                apiV4.endpointGroups[0].endpoints[0],
+                {
+                  ...apiV4.endpointGroups[0].endpoints[1],
+                  name: 'fallback updated',
+                  sharedConfigurationOverride: {
+                    test: undefined,
+                  },
+                  secondary: true,
+                  tenants: undefined,
+                },
+              ],
+            },
+          ],
+        };
+        expectApiPutRequest(updatedApi);
+        expect(routerNavigationSpy).toHaveBeenCalledWith(['../../'], { relativeTo: expect.anything() });
+      });
+
       it('should edit and save a native kafka endpoint without weight', async () => {
         const apiV4 = fakeApiV4({
           id: API_ID,
