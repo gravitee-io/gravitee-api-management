@@ -70,4 +70,8 @@ public interface ObservabilityAnalyticsDataPort {
         List<AnalyticsFacetMetricQuery> metrics,
         List<AnalyticsNumberRange> ranges
     ) {}
+
+    JsonNode emptyMeasuresResponse();
+    JsonNode emptyFacetsResponse();
+    JsonNode emptyTimeSeriesResponse();
 }

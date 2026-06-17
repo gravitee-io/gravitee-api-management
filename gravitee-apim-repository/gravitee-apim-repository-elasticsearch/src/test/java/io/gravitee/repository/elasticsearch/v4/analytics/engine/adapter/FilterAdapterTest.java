@@ -370,5 +370,53 @@ class FilterAdapterTest {
 
             assertThat(existsField).isEqualTo(ENTRYPOINT_FIELD);
         }
+
+        @Test
+        void should_skip_default_http_filter_when_entrypoint_filter_is_present() throws JsonProcessingException {
+            var entrypointValues = List.of("mcp-proxy");
+            var filters = List.of(new Filter(Filter.Name.ENTRYPOINT, Filter.Operator.IN, entrypointValues));
+            var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+            var query = new MeasuresQuery(buildTimeRange(), filters, metrics);
+
+            var queryString = new HTTPMeasuresQueryAdapter().adapt(query);
+            var jsonQuery = JSON.readTree(queryString);
+
+            var filterArray = jsonQuery.at("/query/bool/filter");
+            assertThat(filterArray.isArray()).isTrue();
+
+            var termsFilter = jsonQuery.at("/query/bool/filter/1/terms/entrypoint-id");
+            assertThat(termsFilter.isMissingNode()).isFalse();
+            assertThat(termsFilter.isArray()).isTrue();
+            assertThat(termsFilter.get(0).asText()).isEqualTo("mcp-proxy");
+
+            boolean hasHardcodedHttpFilter = false;
+            for (var node : filterArray) {
+                if (node.has("bool") && node.get("bool").has("should")) {
+                    hasHardcodedHttpFilter = true;
+                }
+            }
+            assertThat(hasHardcodedHttpFilter)
+                .as("Hardcoded httpFilter() should NOT be present when ENTRYPOINT filter is explicit")
+                .isFalse();
+        }
+
+        @Test
+        void should_add_default_http_filter_when_no_entrypoint_filter() throws JsonProcessingException {
+            var filters = List.of(new Filter(Filter.Name.API, Filter.Operator.EQ, API_ID));
+            var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+            var query = new MeasuresQuery(buildTimeRange(), filters, metrics);
+
+            var queryString = new HTTPMeasuresQueryAdapter().adapt(query);
+            var jsonQuery = JSON.readTree(queryString);
+
+            var filterArray = jsonQuery.at("/query/bool/filter");
+            boolean hasHttpFilter = false;
+            for (var node : filterArray) {
+                if (node.has("bool") && node.get("bool").has("should")) {
+                    hasHttpFilter = true;
+                }
+            }
+            assertThat(hasHttpFilter).as("Default httpFilter() should be present when no ENTRYPOINT filter is provided").isTrue();
+        }
     }
 }
