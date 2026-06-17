@@ -27,7 +27,7 @@ public record AnalyticsTimeSeriesRequestDto(
     List<FilterConditionDto> filters,
     Long interval,
     List<FacetMetricQueryDto> metrics,
-    List<String> facets,
+    List<String> by,
     Integer facetSize,
     List<NumberRangeDto> ranges
 ) {}

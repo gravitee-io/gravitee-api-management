@@ -26,7 +26,7 @@ public record AnalyticsFacetsRequestDto(
     TimeRangeDto timeRange,
     List<FilterConditionDto> filters,
     List<FacetMetricQueryDto> metrics,
-    List<String> facets,
+    List<String> by,
     Integer limit,
     List<NumberRangeDto> ranges
 ) {}
