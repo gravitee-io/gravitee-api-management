@@ -33,6 +33,7 @@ import { useEnvironmentStore } from '../../features/environment/environment.stor
 import { useEnvHrid, getPrimaryHrid } from '../../features/environment/environment.utils';
 import type { GammaModule } from '../../features/modules';
 import { HOME_ICON, MODULE_ICONS } from '../../features/modules';
+import { PendingTasksBadge } from '../../pages/tasks';
 import { buildPathnameAfterEnvironmentChange, pathSegmentsAfterEnvironment } from '../config/routes';
 
 const GAMMA_APP_KEY = 'gamma-console';
@@ -152,7 +153,14 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
                     }
                     leading={slots.leading}
                     breadcrumbs={slots.breadcrumbs}
-                    trailing={user ? <TopNavUser name={user.displayName} email={user.email} onSignOut={handleSignOut} /> : undefined}
+                    trailing={
+                        user ? (
+                            <div className="flex items-center gap-3">
+                                <PendingTasksBadge />
+                                <TopNavUser name={user.displayName} email={user.email} onSignOut={handleSignOut} />
+                            </div>
+                        ) : undefined
+                    }
                 />
             }
         >
