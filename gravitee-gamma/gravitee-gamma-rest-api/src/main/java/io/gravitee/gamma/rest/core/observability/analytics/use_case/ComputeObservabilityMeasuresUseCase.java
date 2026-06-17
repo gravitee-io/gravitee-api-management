@@ -51,6 +51,10 @@ public class ComputeObservabilityMeasuresUseCase {
     public Output execute(Input input) {
         var scope = pipeline.prepare(input.organizationId, input.environmentId, input.filters, input.from, input.to, analyticsDataPort);
 
+        if (scope.isEmpty()) {
+            return new Output(analyticsDataPort.emptyMeasuresResponse());
+        }
+
         var query = new ObservabilityAnalyticsDataPort.MeasuresQuery(input.organizationId, input.environmentId, scope, input.metrics);
         return new Output(analyticsDataPort.computeMeasures(query));
     }

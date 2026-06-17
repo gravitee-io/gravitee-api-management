@@ -139,6 +139,19 @@ class AnalyticsRequestPipelineTest {
 
             assertThat(scope.apiIds()).isEmpty();
         }
+
+        @Test
+        void should_return_empty_scope_when_user_filters_unknown_api() {
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
+            );
+
+            var filters = List.of(new FilterCondition("API", FilterOperator.IN, List.of("non-existent-api")));
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, null, null, analyticsDataPort);
+
+            assertThat(scope.isEmpty()).isTrue();
+            assertThat(scope.apiIds()).isEmpty();
+        }
     }
 
     @Nested

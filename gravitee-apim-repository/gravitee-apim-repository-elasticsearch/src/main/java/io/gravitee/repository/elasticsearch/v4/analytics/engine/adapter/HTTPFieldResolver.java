@@ -82,6 +82,7 @@ public class HTTPFieldResolver implements FieldResolver {
             case Filter.Name.EDGE_TOOL -> "additional-metrics.keyword_edge_tool";
             case Filter.Name.API_PRODUCT -> "api-product-id";
             case Filter.Name.URI -> "uri";
+            case Filter.Name.ENTRYPOINT -> "entrypoint-id";
             default -> throw new UnsupportedOperationException("not an HTTP filter");
         };
     }

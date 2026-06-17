@@ -56,6 +56,10 @@ public class ComputeObservabilityTimeSeriesUseCase {
     public Output execute(Input input) {
         var scope = pipeline.prepare(input.organizationId, input.environmentId, input.filters, input.from, input.to, analyticsDataPort);
 
+        if (scope.isEmpty()) {
+            return new Output(analyticsDataPort.emptyTimeSeriesResponse());
+        }
+
         var query = new ObservabilityAnalyticsDataPort.TimeSeriesQuery(
             input.organizationId,
             input.environmentId,

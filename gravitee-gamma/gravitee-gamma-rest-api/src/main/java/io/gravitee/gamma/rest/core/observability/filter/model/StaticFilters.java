@@ -61,6 +61,8 @@ public enum StaticFilters {
     TENANT("Tenant", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.GATEWAY_TYPES),
     ZONE("Zone", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.GATEWAY_TYPES),
 
+    ENTRYPOINT("Entrypoint", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, ApiType.ALL),
+
     // --- HTTP -----------------------------------------------------------------------------------
     HTTP_METHOD("HTTP Method", FilterType.ENUM, Defs.EQ_IN, Defs.HTTP_METHODS, null, Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP),
     HTTP_STATUS("Status Code", FilterType.NUMBER, Defs.NUMBER_OPS, null, new Range(100, 599), Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP),

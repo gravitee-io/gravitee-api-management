@@ -170,7 +170,7 @@ class SpiFilterRegistryTest {
         // HTTP-only and LLM_MODEL (LLM-only) are all excluded by one axis or the other.
         List<FilterSpec> result = registry.getFilters(Set.of(Signal.LOGS), Set.of(ApiType.NATIVE));
 
-        assertThat(result).extracting(FilterSpec::name).containsExactly("API", "APPLICATION", "PLAN", "API_TYPE");
+        assertThat(result).extracting(FilterSpec::name).containsExactly("API", "APPLICATION", "PLAN", "ENTRYPOINT", "API_TYPE");
     }
 
     private static FilterRegistry registryWith(FilterContributor... contributors) {

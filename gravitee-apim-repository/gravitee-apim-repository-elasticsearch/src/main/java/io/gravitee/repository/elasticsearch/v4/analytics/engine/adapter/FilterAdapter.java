@@ -61,7 +61,8 @@ public class FilterAdapter {
         Filter.Name.MCP_PROXY_TOOL,
         Filter.Name.MCP_PROXY_RESOURCE,
         Filter.Name.MCP_PROXY_PROMPT,
-        Filter.Name.URI
+        Filter.Name.URI,
+        Filter.Name.ENTRYPOINT
     );
 
     static final List<Filter.Name> MESSAGE_FILTER_NAMES = List.of(
@@ -112,12 +113,19 @@ public class FilterAdapter {
 
     public JsonArray adaptForHTTP(Query query) {
         var jsonFilters = JsonArray.of(TimeRangeAdapter.adapt(query));
+        boolean hasEntrypointFilter = false;
         for (var filter : query.filters()) {
             if (shouldAdaptForHTTP(filter)) {
                 jsonFilters.add(filter(filter));
+                if (filter.name() == Filter.Name.ENTRYPOINT) {
+                    hasEntrypointFilter = true;
+                }
             }
         }
-        return jsonFilters.add(httpFilter());
+        if (!hasEntrypointFilter) {
+            jsonFilters.add(httpFilter());
+        }
+        return jsonFilters;
     }
 
     public JsonArray adaptForMessageConnexion(Query query) {

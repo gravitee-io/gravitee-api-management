@@ -20,13 +20,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
+import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
 import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.model.TimeRange;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
+import io.gravitee.apim.core.analytics_engine.model.TimeSeriesResponse;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeFacetsUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeTimeSeriesUseCase;
@@ -116,6 +119,21 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
         );
         var response = computeTimeSeriesUseCase.execute(new ComputeTimeSeriesUseCase.Input(auditInfo, apimRequest)).response();
         return objectMapper.valueToTree(response);
+    }
+
+    @Override
+    public JsonNode emptyMeasuresResponse() {
+        return objectMapper.valueToTree(new MeasuresResponse(List.of()));
+    }
+
+    @Override
+    public JsonNode emptyFacetsResponse() {
+        return objectMapper.valueToTree(new FacetsResponse(List.of()));
+    }
+
+    @Override
+    public JsonNode emptyTimeSeriesResponse() {
+        return objectMapper.valueToTree(new TimeSeriesResponse(List.of()));
     }
 
     // ---- Translation: Gamma → APIM ----

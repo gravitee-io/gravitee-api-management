@@ -43,6 +43,18 @@ tags:
           Filter conditions reference the shared filter catalog narrowed to the `LOGS` signal.
           When no explicit entrypoint filter is supplied, the server injects the canonical HTTP
           entrypoints so table totals match the analytics dashboard.
+    - name: Analytics
+      description: |
+          Environment-wide analytics computation: aggregate measures, faceted breakdowns, and
+          time-series histograms. Backed by the Elasticsearch analytics engine.
+
+          Filter conditions reference the shared filter catalog narrowed to the `ANALYTICS` signal.
+          RBAC scoping ensures the caller only sees metrics for APIs they have read access to.
+          When no explicit `ENTRYPOINT` filter is supplied, the server injects the canonical HTTP
+          entrypoints (`http-get`, `http-post`, `http-proxy`, `llm-proxy`, `mcp-proxy`).
+
+          All three endpoints return opaque JSON produced by the APIM analytics engine — the
+          response schemas below document the stable structure but additional fields may appear.
 
 paths:
     /organizations/{orgId}/environments/{envId}/observability/filters/definition:
@@ -109,6 +121,12 @@ paths:
                                                   max: 599
                                               signals: ["LOGS", "ANALYTICS"]
                                               apiTypes: ["HTTP_PROXY", "LLM"]
+                                            - name: "ENTRYPOINT"
+                                              label: "Entrypoint"
+                                              type: "keyword"
+                                              operators: ["EQ", "IN"]
+                                              signals: ["LOGS", "ANALYTICS"]
+                                              apiTypes: ["HTTP_PROXY", "LLM", "MESSAGE", "MCP", "NATIVE", "EDGE"]
                                             - name: "API"
                                               label: "API"
                                               type: "keyword"
@@ -714,6 +732,289 @@ paths:
                                 httpStatus: 403
                                 message: "Insufficient permissions to access observability data."
 
+    /organizations/{orgId}/environments/{envId}/observability/analytics/measures:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+        post:
+            tags:
+                - Analytics
+            summary: Compute aggregate measures
+            description: |
+                Returns aggregate metric values (e.g. request count, average response time) for the
+                given time range and filter set. Use this endpoint to populate summary cards and KPI
+                panels in the dashboard.
+
+                **RBAC scoping**: only metrics from APIs the caller can read are included.
+
+                **Filter validation**: conditions are validated against the `ANALYTICS` signal catalog.
+            operationId: computeObservabilityMeasures
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/AnalyticsMeasuresRequest"
+                        examples:
+                            simple-count:
+                                summary: Count all HTTP requests
+                                value:
+                                    timeRange:
+                                        from: "2026-06-10T00:00:00Z"
+                                        to: "2026-06-11T00:00:00Z"
+                                    filters: []
+                                    metrics:
+                                        - name: "HTTP_REQUESTS"
+                                          measures: ["COUNT"]
+                            entrypoint-filter:
+                                summary: MCP requests only (entrypoint filter)
+                                value:
+                                    timeRange:
+                                        from: "2026-06-10T00:00:00Z"
+                                        to: "2026-06-11T00:00:00Z"
+                                    filters:
+                                        - name: "ENTRYPOINT"
+                                          operator: "IN"
+                                          value: ["mcp-proxy"]
+                                    metrics:
+                                        - name: "HTTP_REQUESTS"
+                                          measures: ["COUNT"]
+                            multi-metric:
+                                summary: Count and response time stats
+                                value:
+                                    timeRange:
+                                        from: "2026-06-10T00:00:00Z"
+                                        to: "2026-06-11T00:00:00Z"
+                                    filters:
+                                        - name: "HTTP_STATUS"
+                                          operator: "EQ"
+                                          value: "200"
+                                    metrics:
+                                        - name: "HTTP_REQUESTS"
+                                          measures: ["COUNT"]
+                                        - name: "HTTP_GATEWAY_RESPONSE_TIME"
+                                          measures: ["AVG", "P99"]
+            responses:
+                "200":
+                    description: Aggregated metric measures.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MeasuresResponse"
+                            examples:
+                                single-metric:
+                                    summary: Single metric result
+                                    value:
+                                        metrics:
+                                            - name: "HTTP_REQUESTS"
+                                              unit: "NUMBER"
+                                              measures:
+                                                  - name: "COUNT"
+                                                    value: 42
+                "400":
+                    description: Invalid filter condition or time range.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "403":
+                    description: Insufficient permissions.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 403
+                                message: "Insufficient permissions to access observability data."
+
+    /organizations/{orgId}/environments/{envId}/observability/analytics/facets:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+        post:
+            tags:
+                - Analytics
+            summary: Compute faceted metric breakdowns
+            description: |
+                Returns metric values broken down by one or more facet dimensions (e.g. per API,
+                per HTTP status code group, per method). Facet buckets form a tree: leaf nodes carry
+                measures, group nodes carry nested buckets.
+
+                Use `limit` to cap the number of buckets per facet. Use `ranges` for numeric
+                range bucketing (e.g. status code groups 1xx/2xx/3xx/4xx/5xx).
+            operationId: computeObservabilityFacets
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/AnalyticsFacetsRequest"
+                        examples:
+                            by-api:
+                                summary: Request count per API (top 10)
+                                value:
+                                    timeRange:
+                                        from: "2026-06-10T00:00:00Z"
+                                        to: "2026-06-11T00:00:00Z"
+                                    filters: []
+                                    metrics:
+                                        - name: "HTTP_REQUESTS"
+                                          measures: ["COUNT"]
+                                          sorts:
+                                              - measure: "COUNT"
+                                                order: "DESC"
+                                    facets: ["API"]
+                                    limit: 10
+                            by-status-with-ranges:
+                                summary: Status code group distribution
+                                value:
+                                    timeRange:
+                                        from: "2026-06-10T00:00:00Z"
+                                        to: "2026-06-11T00:00:00Z"
+                                    metrics:
+                                        - name: "HTTP_REQUESTS"
+                                          measures: ["COUNT"]
+                                    facets: ["HTTP_STATUS"]
+                                    ranges:
+                                        - from: 100
+                                          to: 199
+                                        - from: 200
+                                          to: 299
+                                        - from: 300
+                                          to: 399
+                                        - from: 400
+                                          to: 499
+                                        - from: 500
+                                          to: 599
+            responses:
+                "200":
+                    description: Faceted metric results.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/FacetsResponse"
+                            examples:
+                                by-api:
+                                    summary: Per-API request count
+                                    value:
+                                        metrics:
+                                            - metric: "HTTP_REQUESTS"
+                                              unit: "NUMBER"
+                                              buckets:
+                                                  - key: "67e246cb-ab02-4da4-8f47-f9fa3e061d6b"
+                                                    name: null
+                                                    measures:
+                                                        - name: "COUNT"
+                                                          value: 30
+                                                  - key: "a1b2c3d4-0000-1111-2222-333344445555"
+                                                    name: null
+                                                    measures:
+                                                        - name: "COUNT"
+                                                          value: 12
+                "400":
+                    description: Invalid filter condition, facet name, or time range.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "403":
+                    description: Insufficient permissions.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 403
+                                message: "Insufficient permissions to access observability data."
+
+    /organizations/{orgId}/environments/{envId}/observability/analytics/time-series:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+            - $ref: "#/components/parameters/envIdParam"
+        post:
+            tags:
+                - Analytics
+            summary: Compute time-series histograms
+            description: |
+                Returns metric values bucketed by time intervals (e.g. per minute, per hour).
+                Use this endpoint to build line charts and histograms in the dashboard.
+
+                Each time bucket may optionally contain nested facet buckets when `facets` is
+                provided, enabling per-API or per-status time-series breakdowns.
+
+                `interval` is in milliseconds (e.g. `60000` for 1 minute, `3600000` for 1 hour).
+            operationId: computeObservabilityTimeSeries
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/AnalyticsTimeSeriesRequest"
+                        examples:
+                            hourly-histogram:
+                                summary: Hourly request count
+                                value:
+                                    timeRange:
+                                        from: "2026-06-10T00:00:00Z"
+                                        to: "2026-06-11T00:00:00Z"
+                                    filters: []
+                                    interval: 3600000
+                                    metrics:
+                                        - name: "HTTP_REQUESTS"
+                                          measures: ["COUNT"]
+                            with-facets:
+                                summary: Per-minute with API facet breakdown
+                                value:
+                                    timeRange:
+                                        from: "2026-06-10T12:00:00Z"
+                                        to: "2026-06-10T13:00:00Z"
+                                    interval: 60000
+                                    metrics:
+                                        - name: "HTTP_REQUESTS"
+                                          measures: ["COUNT"]
+                                    facets: ["API"]
+                                    facetSize: 5
+            responses:
+                "200":
+                    description: Time-series metric results.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/TimeSeriesResponse"
+                            examples:
+                                hourly:
+                                    summary: Hourly buckets
+                                    value:
+                                        metrics:
+                                            - name: "HTTP_REQUESTS"
+                                              unit: "NUMBER"
+                                              buckets:
+                                                  - key: "2026-06-10T00:00:00Z"
+                                                    timestamp: 1749513600000
+                                                    measures:
+                                                        - name: "COUNT"
+                                                          value: 7
+                                                  - key: "2026-06-10T01:00:00Z"
+                                                    timestamp: 1749517200000
+                                                    measures:
+                                                        - name: "COUNT"
+                                                          value: 12
+                "400":
+                    description: Invalid filter condition, interval, or time range.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "403":
+                    description: Insufficient permissions.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 403
+                                message: "Insufficient permissions to access observability data."
+
 components:
     securitySchemes:
         CookieAuth:
@@ -1299,6 +1600,315 @@ components:
                         $ref: "#/components/schemas/LogEntry"
                 pagination:
                     $ref: "#/components/schemas/Pagination"
+
+        MetricQuery:
+            type: object
+            description: A metric to compute with its requested measures. Used by the measures endpoint.
+            required: [name, measures]
+            properties:
+                name:
+                    type: string
+                    description: |
+                        Metric name from the analytics engine catalog (e.g. `HTTP_REQUESTS`,
+                        `HTTP_GATEWAY_RESPONSE_TIME`, `HTTP_ERRORS`, `LLM_PROMPT_TOTAL_TOKEN`).
+                    example: "HTTP_REQUESTS"
+                measures:
+                    type: array
+                    description: |
+                        Aggregation functions to apply. Valid values: `COUNT`, `AVG`, `MIN`, `MAX`,
+                        `SUM`, `P50`, `P90`, `P95`, `P99`, `PERCENTAGE`.
+                    items:
+                        type: string
+                    example: ["COUNT"]
+
+        SortSpec:
+            type: object
+            description: Sort directive for facet metric buckets.
+            required: [measure, order]
+            properties:
+                measure:
+                    type: string
+                    description: Name of the measure to sort by (must be present in the metric's `measures` list).
+                    example: "COUNT"
+                order:
+                    type: string
+                    description: Sort direction.
+                    enum: [ASC, DESC]
+                    example: "DESC"
+
+        FacetMetricQuery:
+            type: object
+            description: |
+                A metric to compute with its measures and optional sort directives. Used by the
+                facets and time-series endpoints.
+            required: [name, measures]
+            properties:
+                name:
+                    type: string
+                    description: Metric name from the analytics engine catalog.
+                    example: "HTTP_REQUESTS"
+                measures:
+                    type: array
+                    items:
+                        type: string
+                    example: ["COUNT"]
+                sorts:
+                    type: array
+                    nullable: true
+                    description: Sort directives for bucket ordering. Only applies to facets.
+                    items:
+                        $ref: "#/components/schemas/SortSpec"
+
+        NumberRange:
+            type: object
+            description: Numeric range for bucket-based aggregations (e.g. status code groups).
+            properties:
+                from:
+                    type: number
+                    description: Lower bound (inclusive).
+                    example: 200
+                to:
+                    type: number
+                    description: Upper bound (exclusive).
+                    example: 300
+
+        AnalyticsMeasuresRequest:
+            type: object
+            description: Request body for the measures endpoint.
+            required: [metrics]
+            properties:
+                timeRange:
+                    $ref: "#/components/schemas/TimeRange"
+                filters:
+                    type: array
+                    description: Filter conditions validated against the ANALYTICS signal catalog.
+                    items:
+                        $ref: "#/components/schemas/FilterCondition"
+                metrics:
+                    type: array
+                    description: One or more metrics to compute.
+                    items:
+                        $ref: "#/components/schemas/MetricQuery"
+
+        AnalyticsFacetsRequest:
+            type: object
+            description: Request body for the facets endpoint.
+            required: [metrics, facets]
+            properties:
+                timeRange:
+                    $ref: "#/components/schemas/TimeRange"
+                filters:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/FilterCondition"
+                metrics:
+                    type: array
+                    description: Metrics to compute per facet bucket.
+                    items:
+                        $ref: "#/components/schemas/FacetMetricQuery"
+                facets:
+                    type: array
+                    description: |
+                        Facet dimensions to break down by (e.g. `API`, `HTTP_STATUS`,
+                        `HTTP_METHOD`, `APPLICATION`, `PLAN`, `GATEWAY`, `LLM_PROXY_MODEL`).
+                    items:
+                        type: string
+                    example: ["API"]
+                limit:
+                    type: integer
+                    nullable: true
+                    description: Maximum number of buckets per facet.
+                    example: 10
+                ranges:
+                    type: array
+                    nullable: true
+                    description: Numeric ranges for bucket-based aggregations.
+                    items:
+                        $ref: "#/components/schemas/NumberRange"
+
+        AnalyticsTimeSeriesRequest:
+            type: object
+            description: Request body for the time-series endpoint.
+            required: [metrics, interval]
+            properties:
+                timeRange:
+                    $ref: "#/components/schemas/TimeRange"
+                filters:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/FilterCondition"
+                interval:
+                    type: integer
+                    format: int64
+                    description: Time bucket size in milliseconds (e.g. `60000` for 1 minute, `3600000` for 1 hour).
+                    example: 3600000
+                metrics:
+                    type: array
+                    description: Metrics to compute per time bucket.
+                    items:
+                        $ref: "#/components/schemas/FacetMetricQuery"
+                facets:
+                    type: array
+                    nullable: true
+                    description: Optional facet dimensions for nested breakdown within each time bucket.
+                    items:
+                        type: string
+                facetSize:
+                    type: integer
+                    nullable: true
+                    description: Maximum facet values per time bucket.
+                    example: 5
+                ranges:
+                    type: array
+                    nullable: true
+                    items:
+                        $ref: "#/components/schemas/NumberRange"
+
+        MeasureValue:
+            type: object
+            description: A single aggregated measure result.
+            properties:
+                name:
+                    type: string
+                    description: Measure name (e.g. `COUNT`, `AVG`, `P99`).
+                    example: "COUNT"
+                value:
+                    type: number
+                    description: Computed value.
+                    example: 42
+
+        MetricResult:
+            type: object
+            description: Result for one metric in a measures response.
+            properties:
+                name:
+                    type: string
+                    description: Metric name.
+                    example: "HTTP_REQUESTS"
+                unit:
+                    type: string
+                    description: Unit of the metric values.
+                    example: "NUMBER"
+                measures:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/MeasureValue"
+
+        MeasuresResponse:
+            type: object
+            description: Response from the measures endpoint.
+            properties:
+                metrics:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/MetricResult"
+
+        FacetBucket:
+            type: object
+            description: |
+                A facet bucket. Leaf buckets carry `measures`; group buckets carry nested `buckets`.
+            properties:
+                key:
+                    type: string
+                    description: Raw bucket key from the analytics engine (e.g. API id, HTTP method code, status code).
+                name:
+                    type: string
+                    nullable: true
+                    description: |
+                        Human-readable label for the key. Enriched server-side for known facets:
+                        `API` → API display name, `APPLICATION` → application name,
+                        `HTTP_METHOD` → method name (GET, POST, …),
+                        `HTTP_STATUS` → labeled code (200 OK, 404 Not Found, …),
+                        `HTTP_STATUS_CODE_GROUP` → group label (2XX, 4XX, …).
+                        Falls back to the raw key for unmapped facets.
+                buckets:
+                    type: array
+                    nullable: true
+                    description: Nested sub-buckets (for multi-level faceting).
+                    items:
+                        $ref: "#/components/schemas/FacetBucket"
+                measures:
+                    type: array
+                    nullable: true
+                    items:
+                        $ref: "#/components/schemas/MeasureValue"
+
+        FacetMetricResult:
+            type: object
+            description: Result for one metric in a facets response.
+            properties:
+                metric:
+                    type: string
+                    description: Metric name.
+                    example: "HTTP_REQUESTS"
+                unit:
+                    type: string
+                    example: "NUMBER"
+                buckets:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/FacetBucket"
+
+        FacetsResponse:
+            type: object
+            description: Response from the facets endpoint.
+            properties:
+                metrics:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/FacetMetricResult"
+
+        TimeSeriesBucket:
+            type: object
+            description: A time-series bucket with optional nested facet buckets.
+            properties:
+                key:
+                    type: string
+                    description: ISO-8601 timestamp of the bucket start.
+                    example: "2026-06-10T00:00:00Z"
+                name:
+                    type: string
+                    nullable: true
+                timestamp:
+                    type: integer
+                    format: int64
+                    description: Bucket start as epoch milliseconds.
+                    example: 1749513600000
+                buckets:
+                    type: array
+                    nullable: true
+                    description: Nested facet buckets within this time bucket.
+                    items:
+                        $ref: "#/components/schemas/FacetBucket"
+                measures:
+                    type: array
+                    nullable: true
+                    items:
+                        $ref: "#/components/schemas/MeasureValue"
+
+        TimeSeriesMetricResult:
+            type: object
+            description: Result for one metric in a time-series response.
+            properties:
+                name:
+                    type: string
+                    example: "HTTP_REQUESTS"
+                unit:
+                    type: string
+                    example: "NUMBER"
+                buckets:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/TimeSeriesBucket"
+
+        TimeSeriesResponse:
+            type: object
+            description: Response from the time-series endpoint.
+            properties:
+                metrics:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/TimeSeriesMetricResult"
 
         Error:
             type: object
