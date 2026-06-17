@@ -59,11 +59,9 @@ const MODULE_DESCRIPTIONS: Record<string, { label: string; description: string }
 };
 
 function buildAppDefinitions(modules: readonly GammaModule[]) {
-    // Keep backend order, but always surface Edge Management as the last choice.
-    const orderedModules = [...modules].sort((a, b) => Number(a.id === 'edge') - Number(b.id === 'edge'));
     return [
         hostAppDefinition,
-        ...orderedModules.map(m => ({
+        ...modules.map(m => ({
             key: m.id,
             label: MODULE_DESCRIPTIONS[m.id]?.label ?? m.name,
             description: MODULE_DESCRIPTIONS[m.id]?.description ?? m.name,
