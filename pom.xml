@@ -311,7 +311,7 @@
         <gravitee-reactor-native-kafka.version>7.0.0-alpha.24</gravitee-reactor-native-kafka.version>
         <gravitee-reactor-mcp-proxy.version>3.0.0-alpha.9</gravitee-reactor-mcp-proxy.version>
         <gravitee-reactor-llm-proxy.version>3.0.0-alpha.7</gravitee-reactor-llm-proxy.version>
-        <gravitee-reactor-a2a-proxy.version>1.0.0</gravitee-reactor-a2a-proxy.version>
+        <gravitee-reactor-a2a-proxy.version>1.0.2</gravitee-reactor-a2a-proxy.version>
         <gravitee-reactor-edge.version>1.0.0-alpha.9</gravitee-reactor-edge.version>
         <gravitee-resource-ai-vector-store-redis.version>2.0.0-alpha.1</gravitee-resource-ai-vector-store-redis.version>
         <gravitee-resource-ai-vector-store-aws-s3.version>1.0.0</gravitee-resource-ai-vector-store-aws-s3.version>
