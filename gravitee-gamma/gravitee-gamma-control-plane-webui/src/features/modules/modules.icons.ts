@@ -17,6 +17,7 @@ import {
     GioAgentManagementIcon,
     GioApiManagementIcon,
     GioAuthorizationIcon,
+    GioEdgeManagementIcon,
     GioEventApiManagementIcon,
     GioHomeIcon,
     GioPlatformIcon,
@@ -35,4 +36,5 @@ export const MODULE_ICONS: Record<string, LucideIcon> = {
     platform: GioPlatformIcon,
     authz: GioAuthorizationIcon,
     esm: GioEventApiManagementIcon,
+    edge: GioEdgeManagementIcon,
 };
