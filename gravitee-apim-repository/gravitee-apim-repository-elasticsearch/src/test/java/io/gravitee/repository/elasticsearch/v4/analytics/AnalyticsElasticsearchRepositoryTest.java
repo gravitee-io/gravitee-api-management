@@ -118,6 +118,15 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 );
             });
         }
+
+        @Test
+        void should_return_requests_count_for_v2_api() {
+            var result = cut.searchRequestsCount(new QueryContext("org#1", "env#1"), new RequestsCountQuery(APIV2_1));
+
+            assertThat(result).hasValueSatisfying(countAggregate ->
+                assertThat(countAggregate.getTotal()).as("APIV2_1 has 4 documents in the request index").isEqualTo(4L)
+            );
+        }
     }
 
     @Nested
@@ -727,6 +736,32 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         }
 
         @Test
+        void should_return_histogram_aggregates_for_a_v2_api() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var interval = Duration.ofMinutes(30);
+
+            var query = new HistogramQuery(
+                new SearchTermId(SearchTermId.SearchTerm.API, APIV2_1),
+                new TimeRange(from, to, interval),
+                List.of(new Aggregation("status", AggregationType.FIELD)),
+                Optional.empty(),
+                null
+            );
+
+            var result = cut.searchHistogram(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result).isNotNull();
+            assertThat(result).hasSize(1);
+
+            var first = result.getFirst();
+            var histogram = (HistogramAggregate.Counts) first;
+            assertThat(histogram.counts()).isNotNull();
+            assertThat(histogram.counts().keySet()).containsAnyOf("200", "401");
+        }
+
+        @Test
         void should_return_histogram_aggregates_for_avg_gateway_response_time_ms() {
             var now = Instant.now();
             var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
@@ -818,6 +853,30 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     assertThat(aggregate.name()).isEqualTo("by_entrypoint-id");
                     assertThat(aggregate.field()).isEqualTo("entrypoint-id");
                     assertThat(aggregate.values()).containsKeys("http-get", "http-post");
+                });
+        }
+
+        @Test
+        void should_return_group_by_aggregate_for_a_v2_api() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+            var query = new GroupByQuery(
+                new SearchTermId(SearchTermId.SearchTerm.API, APIV2_1),
+                "status",
+                Collections.emptyList(),
+                Optional.empty(),
+                new TimeRange(from, to),
+                Optional.empty()
+            );
+            var result = cut.searchGroupBy(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(aggregate -> {
+                    assertThat(aggregate.field()).isEqualTo("status");
+                    assertThat(aggregate.values()).containsAnyOf(Map.entry("200", 2L), Map.entry("401", 1L));
                 });
         }
 
@@ -960,6 +1019,29 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         }
 
         @Test
+        void should_return_stats_for_a_v2_api() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+
+            var query = new StatsQuery(
+                "response-time",
+                new SearchTermId(SearchTermId.SearchTerm.API, APIV2_1),
+                new TimeRange(from, to),
+                Optional.empty()
+            );
+
+            Optional<StatsAggregate> result = cut.searchStats(new QueryContext("org#1", "env#1"), query);
+
+            assertThat(result)
+                .isPresent()
+                .hasValueSatisfying(stats -> {
+                    assertThat(stats.field()).isEqualTo("response-time");
+                    assertThat(stats.count()).isGreaterThan(0);
+                });
+        }
+
+        @Test
         void should_return_empty_if_no_stats_found() {
             var now = Instant.now();
             var from = now.minus(Duration.ofDays(10)).truncatedTo(ChronoUnit.DAYS);
@@ -1027,6 +1109,24 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             );
             assertThat(result).hasValueSatisfying(countAggregate -> {
                 assertThat(countAggregate.total()).isEqualTo(13);
+            });
+        }
+
+        @Test
+        void should_return_count_for_a_v2_api() {
+            var now = Instant.now();
+            var from = now.minus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var to = now.plus(Duration.ofDays(1)).truncatedTo(ChronoUnit.DAYS);
+            var result = cut.searchRequestsCountByEvent(
+                new QueryContext("org#1", "env#1"),
+                new RequestsCountByEventQuery(
+                    new SearchTermId(SearchTermId.SearchTerm.API, APIV2_1),
+                    new TimeRange(from, to),
+                    Optional.empty()
+                )
+            );
+            assertThat(result).hasValueSatisfying(countAggregate -> {
+                assertThat(countAggregate.total()).as("APIV2_1 has documents in the request index").isGreaterThan(0);
             });
         }
 

@@ -75,7 +75,7 @@ public class SearchApiV4ConnectionLogsUseCase {
             input.apiId(),
             input.logsFilters(),
             pageable,
-            List.of(DefinitionVersion.V4)
+            List.of(DefinitionVersion.V2, DefinitionVersion.V4)
         );
 
         return mapToResponse(executionContext, response);

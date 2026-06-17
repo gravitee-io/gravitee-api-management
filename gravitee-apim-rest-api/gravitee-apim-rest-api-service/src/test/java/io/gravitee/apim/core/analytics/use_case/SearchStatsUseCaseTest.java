@@ -105,8 +105,8 @@ class SearchStatsUseCaseTest {
     }
 
     @Test
-    void should_throw_exception_for_non_v4_api() {
-        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV2()));
+    void should_throw_exception_for_unsupported_definition_version() {
+        apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi()));
         GraviteeContext.setCurrentEnvironment("environment-id");
         var input = new SearchStatsUseCase.Input(
             MY_API,
@@ -117,6 +117,24 @@ class SearchStatsUseCaseTest {
         );
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(ApiInvalidDefinitionVersionException.class);
+    }
+
+    @Test
+    void should_accept_v2_api() {
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV2()));
+        GraviteeContext.setCurrentEnvironment("environment-id");
+        analyticsQueryService.statsAnalytics = new StatsAnalytics(1L, 2L, 3L, 4L, 5, 6L, 7L, 8L);
+
+        var input = new SearchStatsUseCase.Input(
+            MY_API,
+            Instant.now().minus(1, ChronoUnit.DAYS).toEpochMilli(),
+            Instant.now().toEpochMilli(),
+            "field",
+            Optional.empty()
+        );
+        var output = useCase.execute(GraviteeContext.getExecutionContext(), input);
+
+        assertThat(output.analytics()).isNotNull();
     }
 
     @Test
