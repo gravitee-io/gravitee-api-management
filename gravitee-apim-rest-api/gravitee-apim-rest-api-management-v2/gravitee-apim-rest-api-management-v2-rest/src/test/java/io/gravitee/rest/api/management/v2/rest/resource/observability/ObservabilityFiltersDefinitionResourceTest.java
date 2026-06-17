@@ -69,7 +69,7 @@ class ObservabilityFiltersDefinitionResourceTest extends AbstractResourceTest {
             .hasStatus(200)
             .asEntity(FilterSpecsResponse.class)
             .extracting(FilterSpecsResponse::getData)
-            .satisfies(filters -> assertThat(filters).hasSize(42));
+            .satisfies(filters -> assertThat(filters).hasSize(45));
     }
 
     @Test

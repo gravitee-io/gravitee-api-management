@@ -1459,6 +1459,27 @@ spec:
               - EQ
               - IN
 
+        - name: ERROR_KEY
+          label: Error Key
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
+        - name: REQUEST_ID
+          label: Request ID
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
+        - name: TRANSACTION_ID
+          label: Transaction ID
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
         - name: API_PRODUCT
           label: API Product
           type: KEYWORD
