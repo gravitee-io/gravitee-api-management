@@ -98,6 +98,16 @@ class SearchObservabilityLogsUseCaseTest {
                     Set.of(io.gravitee.gamma.rest.core.observability.filter.model.ApiType.HTTP_PROXY)
                 ),
                 new FilterSpec(
+                    "API_TYPE",
+                    "API Type",
+                    FilterType.ENUM,
+                    List.of(FilterOperator.EQ, FilterOperator.IN),
+                    null,
+                    null,
+                    Set.of(Signal.LOGS, Signal.ANALYTICS),
+                    io.gravitee.gamma.rest.core.observability.filter.model.ApiType.ALL
+                ),
+                new FilterSpec(
                     "APPLICATION",
                     "Application",
                     FilterType.KEYWORD,
@@ -179,6 +189,72 @@ class SearchObservabilityLogsUseCaseTest {
             var output = useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, null, null, 1, 20));
 
             assertThat(output.data()).isEqualTo(LogsPage.EMPTY);
+        }
+
+        @Test
+        void should_narrow_scope_to_requested_api_type() {
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+                List.of(
+                    new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY),
+                    new AccessibleApi("api-llm", "LLM API", ApiType.LLM),
+                    new AccessibleApi("api-mcp", "MCP API", ApiType.MCP)
+                )
+            );
+            when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
+
+            var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("LLM")));
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, null, null, 1, 20));
+
+            var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
+            verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());
+            assertThat(captor.getValue().apiIds()).containsExactly("api-llm");
+        }
+
+        @Test
+        void should_narrow_scope_to_multiple_api_types() {
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+                List.of(
+                    new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY),
+                    new AccessibleApi("api-llm", "LLM API", ApiType.LLM),
+                    new AccessibleApi("api-mcp", "MCP API", ApiType.MCP)
+                )
+            );
+            when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
+
+            var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.IN, List.of("LLM", "MCP")));
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, null, null, 1, 20));
+
+            var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
+            verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());
+            assertThat(captor.getValue().apiIds()).containsExactlyInAnyOrder("api-llm", "api-mcp");
+        }
+
+        @Test
+        void should_return_empty_page_when_api_type_is_unsupported_for_logs() {
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+                List.of(
+                    new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY),
+                    new AccessibleApi("api-message", "Message API", ApiType.MESSAGE)
+                )
+            );
+
+            var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("MESSAGE")));
+            var output = useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, null, null, 1, 20));
+
+            assertThat(output.data()).isEqualTo(LogsPage.EMPTY);
+        }
+
+        @Test
+        void should_not_pass_api_type_condition_to_data_port() {
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(List.of(new AccessibleApi("api-llm", "LLM API", ApiType.LLM)));
+            when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
+
+            var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("LLM")));
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, null, null, 1, 20));
+
+            var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
+            verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());
+            assertThat(captor.getValue().conditions()).noneMatch(c -> "API_TYPE".equals(c.name()));
         }
     }
 
