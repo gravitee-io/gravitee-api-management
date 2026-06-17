@@ -19,6 +19,7 @@ import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.*;
 import static org.mockito.Mockito.when;
 
+import fakes.FakeAnalyticsQueryService;
 import fixtures.core.log.model.MessageLogFixtures;
 import fixtures.core.model.PlanFixtures;
 import fixtures.repository.ConnectionLogDetailFixtures;
@@ -69,6 +70,9 @@ class ApiLogsResourceTest extends ApiResourceTest {
     @Inject
     ApplicationCrudServiceInMemory applicationStorageService;
 
+    @Inject
+    FakeAnalyticsQueryService fakeAnalyticsQueryService;
+
     WebTarget connectionLogsTarget;
     WebTarget messageLogsTarget;
     WebTarget connectionLogTarget;
@@ -100,6 +104,8 @@ class ApiLogsResourceTest extends ApiResourceTest {
             messageLogStorageService,
             planStorageService
         ).forEach(InMemoryAlternative::reset);
+        fakeAnalyticsQueryService.reset();
+        fakeAnalyticsQueryService.apiMetricsDetail = null;
     }
 
     @Override
@@ -722,7 +728,7 @@ class ApiLogsResourceTest extends ApiResourceTest {
         }
 
         @Test
-        void should_return_404_if_no_connection_log() {
+        void should_return_404_if_no_connection_log_and_no_metrics_detail() {
             final ConnectionLogDetail connectionLogDetail = new ConnectionLogDetailFixtures(API, "other-request-id").aConnectionLogDetail();
             connectionLogStorageService.initWithConnectionLogDetails(List.of(connectionLogDetail));
 
@@ -732,6 +738,38 @@ class ApiLogsResourceTest extends ApiResourceTest {
                 .asError()
                 .hasHttpStatus(NOT_FOUND_404)
                 .hasMessage("No log found for api: " + API + " and requestId: request-id");
+        }
+
+        @Test
+        void should_fallback_to_metrics_detail_when_no_connection_log() {
+            var metricsDetail = io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder()
+                .timestamp("2023-10-22T10:15:30.000Z")
+                .apiId(API)
+                .requestId(REQUEST_ID)
+                .transactionId("tx-id")
+                .applicationId(APPLICATION.getId())
+                .planId(PLAN_1.getId())
+                .uri("/my-api/resource")
+                .status(200)
+                .method(io.gravitee.common.http.HttpMethod.GET)
+                .build();
+            fakeAnalyticsQueryService.apiMetricsDetail = metricsDetail;
+
+            final Response response = connectionLogTarget.request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiLogResponse.class)
+                .isEqualTo(
+                    new ApiLogResponse()
+                        .apiId(API)
+                        .requestId(REQUEST_ID)
+                        .transactionId("tx-id")
+                        .timestamp(Instant.parse("2023-10-22T10:15:30.000Z").atOffset(ZoneOffset.UTC))
+                        .requestEnded(true)
+                        .entrypointRequest(new ApiLogRequestContent().method(HttpMethod.GET).uri("/my-api/resource"))
+                        .entrypointResponse(new ApiLogResponseContent().status(200))
+                );
         }
     }
 

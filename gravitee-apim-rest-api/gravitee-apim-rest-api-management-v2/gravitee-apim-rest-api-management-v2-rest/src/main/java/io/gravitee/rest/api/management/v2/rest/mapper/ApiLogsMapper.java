@@ -15,15 +15,20 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.analytics.model.ApiMetricsDetail;
 import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLog;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLogDiagnostic;
+import io.gravitee.rest.api.management.v2.rest.model.ApiLogRequestContent;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLogResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiLogResponseContent;
+import io.gravitee.rest.api.management.v2.rest.model.HttpMethod;
 import io.gravitee.rest.api.management.v2.rest.resource.api.log.param.SearchLogsParam;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionDiagnosticModel;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogModel;
+import java.time.OffsetDateTime;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -46,4 +51,31 @@ public interface ApiLogsMapper {
     ApiLogResponse map(ConnectionLogDetail connectionLogDetail);
 
     ApiLogDiagnostic map(ConnectionDiagnosticModel connectionDiagnosticModel);
+
+    default ApiLogResponse mapFromMetricsDetail(ApiMetricsDetail metricsDetail) {
+        var response = new ApiLogResponse()
+            .apiId(metricsDetail.getApiId())
+            .requestId(metricsDetail.getRequestId())
+            .transactionId(metricsDetail.getTransactionId())
+            .requestEnded(true);
+
+        if (metricsDetail.getTimestamp() != null) {
+            response.timestamp(OffsetDateTime.parse(metricsDetail.getTimestamp()));
+        }
+
+        if (metricsDetail.getMethod() != null || metricsDetail.getUri() != null) {
+            var entrypointRequest = new ApiLogRequestContent();
+            if (metricsDetail.getMethod() != null) {
+                entrypointRequest.method(HttpMethod.valueOf(metricsDetail.getMethod().name()));
+            }
+            entrypointRequest.uri(metricsDetail.getUri());
+            response.entrypointRequest(entrypointRequest);
+        }
+
+        if (metricsDetail.getStatus() > 0) {
+            response.entrypointResponse(new ApiLogResponseContent().status(metricsDetail.getStatus()));
+        }
+
+        return response;
+    }
 }

@@ -1,0 +1,19 @@
+{
+  "api": "f1608475-dd77-4603-a084-75dd77d60350",
+  "transaction": "c6b1a2e3-4d5f-6a7b-8c9d-0e1f2a3b4c5d",
+  "host": "localhost:8082",
+  "application": "1",
+  "plan": "a1b2c3d4-5e6f-7a8b-9c0d-e1f2a3b4c5d6",
+  "gateway": "gw-node-1",
+  "status": 200,
+  "uri": "/v2/echo",
+  "request-content-length": 0,
+  "response-content-length": 140,
+  "remote-address": "127.0.0.1",
+  "proxy-latency": 5,
+  "response-time": 42,
+  "api-response-time": 37,
+  "method": 3,
+  "endpoint": "https://api.gravitee.io/echo",
+  "@timestamp": "2025-07-15T10:00:00.000+02:00"
+}
