@@ -1435,6 +1435,8 @@ components:
                 - MCP_PROXY_PROMPT
                 - API_TYPE
                 - ERROR_KEY
+                - REQUEST_ID
+                - TRANSACTION_ID
                 - EDGE_PROVIDER
                 - EDGE_PROCESS
                 - EDGE_CLIENT

@@ -104,7 +104,12 @@ public interface AnalyticsMeasuresAdapter {
         return MetricSpec.Measure.valueOf(result.name());
     }
 
-    // API_TYPE should never reach this layer, because it *must* have been transformed to API IDs beforehand.
+    // These filter names exist in FilterSpec.Name for value-listing only and have no
+    // counterpart in the repository analytics Filter.Name enum — they must never reach
+    // the analytics query/facets path.
     @ValueMapping(source = "API_TYPE", target = MappingConstants.THROW_EXCEPTION)
+    @ValueMapping(source = "ERROR_KEY", target = MappingConstants.THROW_EXCEPTION)
+    @ValueMapping(source = "REQUEST_ID", target = MappingConstants.THROW_EXCEPTION)
+    @ValueMapping(source = "TRANSACTION_ID", target = MappingConstants.THROW_EXCEPTION)
     Filter.Name toFilterName(io.gravitee.apim.core.analytics_engine.model.FilterSpec.Name name);
 }

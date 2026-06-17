@@ -78,5 +78,8 @@ public record FilterSpec(
         NATIVE_CONNECTION_STATUS,
         URI,
         ENTRYPOINT,
+        ERROR_KEY,
+        REQUEST_ID,
+        TRANSACTION_ID,
     }
 }
