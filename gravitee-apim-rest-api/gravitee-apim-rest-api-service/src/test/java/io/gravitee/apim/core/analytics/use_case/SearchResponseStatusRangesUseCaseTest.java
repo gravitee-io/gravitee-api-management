@@ -122,9 +122,9 @@ class SearchResponseStatusRangesUseCaseTest {
     }
 
     @Test
-    void should_throw_if_api_definition_is_not_v4() {
+    void should_throw_if_api_definition_is_not_v2_or_v4() {
         //Given
-        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV2()));
+        apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi()));
 
         //When
         var throwable = catchThrowable(() ->
@@ -141,6 +141,30 @@ class SearchResponseStatusRangesUseCaseTest {
 
         // Then
         assertThat(throwable).isInstanceOf(ApiInvalidDefinitionVersionException.class);
+    }
+
+    @Test
+    void should_return_status_ranges_for_v2_api() {
+        //Given
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV2()));
+        var expectedResponseStatusRanges = ResponseStatusRanges.builder()
+            .ranges(Map.of("100.0-200.0", 0L, "200.0-300.0", 5L, "300.0-400.0", 0L, "400.0-500.0", 1L, "500.0-600.0", 0L))
+            .build();
+        analyticsQueryService.responseStatusRanges = expectedResponseStatusRanges;
+
+        //When
+        var result = useCase.execute(
+            GraviteeContext.getExecutionContext(),
+            new SearchResponseStatusRangesUseCase.Input(
+                MY_API,
+                ENV_ID,
+                TimeProvider.instantNow().minus(Duration.ofDays(1)).toEpochMilli(),
+                TimeProvider.instantNow().toEpochMilli()
+            )
+        );
+
+        // Then
+        assertThat(result.responseStatusRanges()).hasValue(expectedResponseStatusRanges);
     }
 
     @Test

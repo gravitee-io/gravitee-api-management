@@ -82,11 +82,25 @@ class SearchRequestsCountAnalyticsUseCaseTest {
     }
 
     @Test
-    void should_throw_if_api_definition_not_v4() {
-        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2()));
+    void should_throw_if_api_definition_not_v2_or_v4() {
+        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aFederatedApi()));
         assertThatThrownBy(() ->
             cut.execute(GraviteeContext.getExecutionContext(), new Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO)))
         ).isInstanceOf(ApiInvalidDefinitionVersionException.class);
+    }
+
+    @Test
+    void should_get_requests_count_for_a_v2_api() {
+        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2()));
+        analyticsQueryService.requestsCount = RequestsCount.builder().total(10L).countsByEntrypoint(Map.of("http-get", 10L)).build();
+        final Output result = cut.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(MY_API, ENV_ID, Optional.of(FROM), Optional.of(TO))
+        );
+        assertThat(result.requestsCount()).hasValueSatisfying(requestsCount -> {
+            assertThat(requestsCount.getTotal()).isEqualTo(10);
+            assertThat(requestsCount.getCountsByEntrypoint()).isEqualTo(Map.of("http-get", 10L));
+        });
     }
 
     @Test

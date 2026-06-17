@@ -272,11 +272,30 @@ class SearchHistogramAnalyticsUseCaseTest {
     }
 
     @Test
-    void shouldThrowWhenApiNotV4() {
-        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV2()));
+    void shouldThrowWhenApiNotV2OrV4() {
+        apiCrudService.initWith(List.of(ApiFixtures.aFederatedApi()));
         var input = new Input(ApiFixtures.MY_API, 0, 0, 0, List.of(), Optional.empty(), null);
         var throwable = catchThrowable(() -> useCase.execute(GraviteeContext.getExecutionContext(), input));
         assertThat(throwable).isInstanceOf(ApiInvalidDefinitionVersionException.class);
+    }
+
+    @Test
+    void shouldAcceptV2Api() {
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV2()));
+        GraviteeContext.setCurrentEnvironment(ENV_ID);
+        long from = INSTANT_NOW.minus(Duration.ofHours(1)).toEpochMilli();
+        long to = INSTANT_NOW.toEpochMilli();
+        long interval = 60000L;
+
+        var expectedTimestamp = new Timestamp(Instant.ofEpochMilli(from), Instant.ofEpochMilli(to), Duration.ofMillis(interval));
+        var expectedBuckets = List.of((HistogramAnalytics.Bucket) new HistogramAnalytics.CountBucket("name", "field", Map.of()));
+        analyticsQueryService.histogramAnalytics = new HistogramAnalytics(expectedTimestamp, expectedBuckets);
+
+        var input = new Input(ApiFixtures.MY_API, from, to, interval, List.of(), Optional.empty(), null);
+        var output = useCase.execute(GraviteeContext.getExecutionContext(), input);
+
+        assertThat(output).isNotNull();
+        assertThat(output.values()).isEqualTo(expectedBuckets);
     }
 
     @Test

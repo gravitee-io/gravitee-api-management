@@ -131,8 +131,8 @@ class SearchResponseTimeUseCaseTest {
     }
 
     @Test
-    void should_throw_if_api_definition_not_v4() {
-        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2()));
+    void should_throw_if_api_definition_not_v2_or_v4() {
+        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aFederatedApi()));
         assertThatThrownBy(() ->
             cut
                 .execute(
@@ -141,6 +141,18 @@ class SearchResponseTimeUseCaseTest {
                 )
                 .blockingGet()
         ).isInstanceOf(ApiInvalidDefinitionVersionException.class);
+    }
+
+    @Test
+    void should_accept_v2_api() {
+        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2()));
+        SearchResponseTimeUseCase.Output output = cut
+            .execute(
+                GraviteeContext.getExecutionContext(),
+                new SearchResponseTimeUseCase.Input(MY_API, ENV_ID, Instant.now().minus(Duration.ofDays(1)), Instant.now())
+            )
+            .blockingGet();
+        assertThat(output.data()).isEmpty();
     }
 
     @Test

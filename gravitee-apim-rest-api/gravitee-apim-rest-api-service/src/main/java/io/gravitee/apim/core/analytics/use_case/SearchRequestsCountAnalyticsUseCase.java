@@ -40,7 +40,6 @@ public class SearchRequestsCountAnalyticsUseCase {
     public Output execute(ExecutionContext executionContext, Input input) {
         validateApiRequirements(input);
 
-        // Verify v4 api
         return analyticsQueryService
             .searchRequestsCount(executionContext, input.apiId(), input.from.orElse(null), input.to.orElse(null))
             .map(Output::new)
@@ -61,7 +60,7 @@ public class SearchRequestsCountAnalyticsUseCase {
     }
 
     private static void validateApiDefinitionVersion(DefinitionVersion definitionVersion, String apiId) {
-        if (!DefinitionVersion.V4.equals(definitionVersion)) {
+        if (!DefinitionVersion.V4.equals(definitionVersion) && !DefinitionVersion.V2.equals(definitionVersion)) {
             throw new ApiInvalidDefinitionVersionException(apiId);
         }
     }

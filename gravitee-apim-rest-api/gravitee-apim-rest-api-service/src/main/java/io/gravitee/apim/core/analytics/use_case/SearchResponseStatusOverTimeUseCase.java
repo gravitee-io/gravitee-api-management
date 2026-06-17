@@ -79,7 +79,7 @@ public class SearchResponseStatusOverTimeUseCase {
     }
 
     private static void validateApiDefinitionVersion(DefinitionVersion definitionVersion, String apiId) {
-        if (!DefinitionVersion.V4.equals(definitionVersion)) {
+        if (!DefinitionVersion.V4.equals(definitionVersion) && !DefinitionVersion.V2.equals(definitionVersion)) {
             throw new ApiInvalidDefinitionVersionException(apiId);
         }
     }
