@@ -20,6 +20,7 @@ import { buildBootstrapConfig, TEST_ENVIRONMENTS, TEST_MANAGEMENT_BASE } from '.
 import { server } from './server';
 import { useAuthStore } from '../features/auth/auth.store';
 import { useEnvironmentStore } from '../features/environment/environment.store';
+import { useModulesStore } from '../features/modules/modules.store';
 import { useBootstrapStore } from '../shared/config/bootstrap.store';
 import type { BootstrapConfig } from '../shared/config/bootstrap.store';
 
@@ -86,6 +87,7 @@ export function resetAllStores() {
     useBootstrapStore.setState({ config: null, loading: false, error: null });
     useAuthStore.setState({ user: null, loading: false, initialized: false, oauthRedirectUrl: null });
     useEnvironmentStore.getState().reset();
+    useModulesStore.setState({ modules: [] });
     permissionService.reset();
     localStorage.clear();
 }

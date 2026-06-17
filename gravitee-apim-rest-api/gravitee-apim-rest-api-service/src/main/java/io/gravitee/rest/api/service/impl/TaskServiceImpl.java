@@ -399,10 +399,17 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
                 optionalApi.ifPresent(api -> {
                     metadata.put(workflow.getReferenceId(), "name", api.getName());
                     metadata.put(workflow.getReferenceId(), "environmentId", api.getEnvironmentId());
+                    addApiTypeMetadata(metadata, workflow.getReferenceId(), api);
                 });
             } catch (TechnicalException e) {
                 log.error("Error retrieving api task metadata for workflow [{}]", workflow.getReferenceId(), e);
             }
+        }
+    }
+
+    private void addApiTypeMetadata(Metadata metadata, String apiId, Api api) {
+        if (api.getType() != null) {
+            metadata.put(apiId, "apiType", api.getType().getLabel());
         }
     }
 
@@ -437,6 +444,7 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
                     Optional<Api> optionalApi = apiRepository.findById(referenceId);
                     optionalApi.ifPresent(api -> metadata.put(referenceId, "name", api.getName()));
                     optionalApi.ifPresent(api -> metadata.put(referenceId, "environmentId", api.getEnvironmentId()));
+                    optionalApi.ifPresent(api -> addApiTypeMetadata(metadata, referenceId, api));
                 }
             }
         } catch (TechnicalException e) {
