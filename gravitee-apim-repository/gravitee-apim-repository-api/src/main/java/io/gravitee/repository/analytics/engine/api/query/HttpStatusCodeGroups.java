@@ -43,6 +43,25 @@ public final class HttpStatusCodeGroups {
      */
     public static final Map<String, Bounds> GROUP_BOUNDS;
 
+    /**
+     * Human-readable display labels for each status code group, keyed by canonical group name
+     * (e.g. {@code "2XX"} → {@code "2xx Success"}). Shared across the Gamma filter catalog
+     * ({@code StaticFilters}) and the bucket-name post-processor so that the label is
+     * defined in exactly one place.
+     */
+    public static final Map<String, String> FRIENDLY_LABELS = Map.of(
+        "1XX",
+        "1xx Informational",
+        "2XX",
+        "2xx Success",
+        "3XX",
+        "3xx Redirection",
+        "4XX",
+        "4xx Client Error",
+        "5XX",
+        "5xx Server Error"
+    );
+
     static {
         var bounds = new LinkedHashMap<String, Bounds>();
         bounds.put("1XX", new Bounds(100, 199));
@@ -83,5 +102,20 @@ public final class HttpStatusCodeGroups {
         return GROUP_BOUNDS.entrySet()
             .stream()
             .collect(Collectors.toUnmodifiableMap(e -> e.getValue().min() + "-" + e.getValue().max(), Map.Entry::getKey));
+    }
+
+    /**
+     * Builds a reverse lookup from ES bucket keys ({@code "100-199"}) to friendly group labels
+     * ({@code "1xx Informational"}). Uses {@link #FRIENDLY_LABELS} as the label source.
+     */
+    public static Map<String, String> esBucketKeyToFriendlyGroupLabel() {
+        return GROUP_BOUNDS.entrySet()
+            .stream()
+            .collect(
+                Collectors.toUnmodifiableMap(
+                    e -> e.getValue().min() + "-" + e.getValue().max(),
+                    e -> FRIENDLY_LABELS.getOrDefault(e.getKey(), e.getKey())
+                )
+            );
     }
 }
