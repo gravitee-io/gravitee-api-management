@@ -190,6 +190,7 @@ import io.gravitee.apim.core.portal_listing.domain_service.ValidatePortalListing
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.GraviteePortalPageContentValidatorService;
+import io.gravitee.apim.core.portal_page.domain_service.OpenApiContentTransformer;
 import io.gravitee.apim.core.portal_page.domain_service.OpenApiPortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationEnclosingApiDomainService;
@@ -1393,6 +1394,11 @@ public class ResourceContextConfiguration {
             portalPageContentCrudService,
             apiCrudService
         );
+    }
+
+    @Bean
+    public OpenApiContentTransformer openApiContentTransformer() {
+        return mock(OpenApiContentTransformer.class);
     }
 
     @Bean

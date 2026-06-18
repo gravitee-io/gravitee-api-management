@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, TestModuleMetadata } from '@angular/core/testing';
 import SwaggerUI from 'swagger-ui';
 
 import { NavigationItemContentViewerComponent } from './navigation-item-content-viewer.component';
@@ -24,21 +24,29 @@ import { PortalPageContent } from '../../entities/portal-navigation/portal-page-
 import { RedocService } from '../../services/redoc.service';
 import { AppTestingModule } from '../../testing/app-testing.module';
 
-interface initData {
+interface InitData {
   pageContent: PortalPageContent | null;
+  imports?: TestModuleMetadata['imports'];
+  providers?: TestModuleMetadata['providers'];
+  clearSwaggerUI?: boolean;
 }
 
 describe('NavigationItemContentViewerComponent', () => {
   let fixture: ComponentFixture<NavigationItemContentViewerComponent>;
   let harness: NavigationItemContentViewerHarness;
 
-  const init = async (data: initData) => {
+  const init = async ({ pageContent, imports = [], providers = [], clearSwaggerUI = false }: InitData) => {
     await TestBed.configureTestingModule({
-      imports: [NavigationItemContentViewerComponent],
+      imports: [NavigationItemContentViewerComponent, ...imports],
+      providers,
     }).compileComponents();
 
+    if (clearSwaggerUI) {
+      jest.mocked(SwaggerUI).mockClear();
+    }
+
     fixture = TestBed.createComponent(NavigationItemContentViewerComponent);
-    fixture.componentRef.setInput('pageContent', data.pageContent);
+    fixture.componentRef.setInput('pageContent', pageContent);
 
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, NavigationItemContentViewerHarness);
     fixture.detectChanges();
@@ -67,21 +75,15 @@ describe('NavigationItemContentViewerComponent', () => {
       configuration: { viewer: ViewerEnum.Redoc, try_it_url: 'https://try-it.example.com' },
     };
     beforeEach(async () => {
-      await TestBed.configureTestingModule({
-        imports: [NavigationItemContentViewerComponent],
+      await init({
+        pageContent,
         providers: [
           {
             provide: RedocService,
             useValue: { init: (_content: string | undefined, _options: unknown, _el: unknown) => {} },
           },
         ],
-      }).compileComponents();
-
-      fixture = TestBed.createComponent(NavigationItemContentViewerComponent);
-      fixture.componentRef.setInput('pageContent', pageContent);
-
-      harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, NavigationItemContentViewerHarness);
-      fixture.detectChanges();
+      });
     });
     it('should render redoc viewer', async () => {
       const redocViewer = await harness.getRedocViewer();
@@ -90,6 +92,15 @@ describe('NavigationItemContentViewerComponent', () => {
     });
     it('should read Redoc try it URL from snake_case configuration', () => {
       expect(fixture.componentInstance.tryItUrl()).toBe('https://try-it.example.com');
+    });
+    it('should not pass Redoc try it URL when backend resolved server URLs are enabled', () => {
+      fixture.componentRef.setInput('pageContent', {
+        ...pageContent,
+        configuration: { ...pageContent.configuration, context_path_as_server_path: true },
+      });
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.tryItUrl()).toBeUndefined();
     });
     it('should not render markdown viewer', async () => {
       const markdownViewer = await harness.getGMDViewer();
@@ -126,17 +137,7 @@ describe('NavigationItemContentViewerComponent', () => {
     };
 
     beforeEach(async () => {
-      await TestBed.configureTestingModule({
-        imports: [NavigationItemContentViewerComponent, AppTestingModule],
-      }).compileComponents();
-
-      jest.mocked(SwaggerUI).mockClear();
-
-      fixture = TestBed.createComponent(NavigationItemContentViewerComponent);
-      fixture.componentRef.setInput('pageContent', pageContent);
-
-      harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, NavigationItemContentViewerHarness);
-      fixture.detectChanges();
+      await init({ pageContent, imports: [AppTestingModule], clearSwaggerUI: true });
     });
 
     it('should not reinitialize Swagger UI on unchanged change detection cycles', () => {
@@ -153,6 +154,26 @@ describe('NavigationItemContentViewerComponent', () => {
       expect(swaggerViewer).not.toBeNull();
     });
 
+    it('should pass Swagger try it URL when backend server resolution is disabled', () => {
+      fixture.componentRef.setInput('pageContent', {
+        ...pageContent,
+        configuration: { viewer: ViewerEnum.Swagger, try_it_url: 'https://try-it.example.com' },
+      });
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.swaggerPage()?.configuration?.try_it_url).toBe('https://try-it.example.com');
+    });
+
+    it('should not pass Swagger try it URL when backend resolved server URLs are enabled', () => {
+      fixture.componentRef.setInput('pageContent', {
+        ...pageContent,
+        configuration: { viewer: ViewerEnum.Swagger, try_it_url: 'https://try-it.example.com', entrypoints_as_servers: true },
+      });
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.swaggerPage()?.configuration?.try_it_url).toBeUndefined();
+    });
+
     it('should not render redoc viewer', async () => {
       expect(await harness.isShowingRedocContent()).toBe(false);
     });
@@ -165,17 +186,7 @@ describe('NavigationItemContentViewerComponent', () => {
     };
 
     beforeEach(async () => {
-      await TestBed.configureTestingModule({
-        imports: [NavigationItemContentViewerComponent, AppTestingModule],
-      }).compileComponents();
-
-      jest.mocked(SwaggerUI).mockClear();
-
-      fixture = TestBed.createComponent(NavigationItemContentViewerComponent);
-      fixture.componentRef.setInput('pageContent', pageContent);
-
-      harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, NavigationItemContentViewerHarness);
-      fixture.detectChanges();
+      await init({ pageContent, imports: [AppTestingModule], clearSwaggerUI: true });
     });
 
     it('should render swagger viewer', async () => {
