@@ -29,4 +29,5 @@ public enum RoleScope {
     INTEGRATION,
     CLUSTER,
     API_PRODUCT,
+    CATALOG,
 }
