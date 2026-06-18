@@ -36,6 +36,14 @@ const ALL_MODULES: readonly GammaModule[] = [
     { id: 'esm', name: 'ESM Module', version: '1.0.0', remoteName: 'gravitee_gamma_module_esm', exposedModule: 'App' },
 ];
 
+const EDGE_MODULE: GammaModule = {
+    id: 'edge',
+    name: 'Edge Module',
+    version: '1.0.0',
+    remoteName: 'gravitee_gamma_module_edge',
+    exposedModule: 'App',
+};
+
 function renderHome(modules: readonly GammaModule[]) {
     return render(
         <MemoryRouter initialEntries={['/environments/env-1/home']}>
@@ -55,6 +63,7 @@ function seedMetricHandlers(overrides?: {
     principalCount?: number;
     mcpServerCount?: number;
     requestsTotal?: number;
+    deviceCount?: number;
 }) {
     const {
         apiCount = 0,
@@ -64,6 +73,7 @@ function seedMetricHandlers(overrides?: {
         principalCount = 0,
         mcpServerCount = 0,
         requestsTotal = 0,
+        deviceCount = 0,
     } = overrides ?? {};
 
     respondWith('post', `${TEST_MANAGEMENT_V2_ENVIRONMENT_BASE}/env-1-id/apis/_search`, { pagination: { totalCount: apiCount } });
@@ -74,6 +84,10 @@ function seedMetricHandlers(overrides?: {
     respondWith('get', `${TEST_GAMMA_BASE}/environments/env-1-id/modules/aim/catalog/items`, { total: mcpServerCount });
     respondWith('get', `${TEST_MANAGEMENT_V2_ENVIRONMENT_BASE}/env-1-id/analytics/request-response-time`, {
         requestsTotal,
+    });
+    // Edge device count derives from the analytics facets endpoint: one EDGE_CLIENT bucket per device.
+    respondWith('post', `${TEST_MANAGEMENT_V2_ENVIRONMENT_BASE}/env-1-id/analytics/facets`, {
+        metrics: [{ name: 'EDGE_HEARTBEAT_COUNT', buckets: Array.from({ length: deviceCount }, (_v, i) => ({ key: `device-${i}` })) }],
     });
 }
 
@@ -125,6 +139,14 @@ describe('HomePage', () => {
         seedMetricHandlers({ apiCount: 1 });
         renderHome(ALL_MODULES);
         expect(await screen.findByText((_content, el) => el?.tagName === 'P' && /\b1\s+API\b/.test(el.textContent ?? ''))).toBeTruthy();
+    });
+
+    it('should render the live device count metric with the 24h window label on the Edge Management card', async () => {
+        seedMetricHandlers({ deviceCount: 7 });
+        renderHome([...ALL_MODULES, EDGE_MODULE]);
+        expect(
+            await screen.findByText((_content, el) => el?.tagName === 'P' && /7\s+devices \(24h\)/.test(el.textContent ?? '')),
+        ).toBeTruthy();
     });
 
     it('should render an error alert when the modules fetch failed upstream', () => {

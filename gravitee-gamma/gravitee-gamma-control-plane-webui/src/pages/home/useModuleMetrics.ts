@@ -193,6 +193,57 @@ export function useMcpServerCount({ enabled = true }: CountHookOptions = {}): nu
     return count;
 }
 
+const EDGE_DEVICE_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Live device count for the Edge Management card.
+ *
+ * TEMPORARY — see https://gravitee.atlassian.net/browse/GMA-753. The edge module exposes no
+ * dedicated device-count endpoint, so — unlike the other cards which read a server-side
+ * `pagination.totalCount` from a cheap `perPage=1` call — we derive the count from the v2
+ * analytics facets endpoint, mirroring the edge module's own `DevicesPage`: count the distinct
+ * `EDGE_CLIENT` heartbeat buckets over a fixed 24h window.
+ *
+ * Not ideal: the value reflects devices seen in the last 24h (not a registered-device total)
+ * and is capped at `limit: 100` buckets. Replace with a dedicated endpoint once the edge module
+ * exposes one.
+ */
+export function useDeviceCount({ enabled = true }: CountHookOptions = {}): number | null {
+    const environmentId = useEnvironmentStore(s => s.environmentId);
+    const [count, setCount] = useState<number | null>(null);
+
+    useEffect(() => {
+        setCount(null);
+        if (!enabled || !environmentId) return;
+
+        const now = Date.now();
+        const from = now - EDGE_DEVICE_WINDOW_MS;
+
+        let cancelled = false;
+        managementV2EnvironmentApi
+            .post<{ metrics?: { name: string; buckets?: unknown[] }[] }>(`/${encodeURIComponent(environmentId)}/analytics/facets`, {
+                timeRange: { from: new Date(from).toISOString(), to: new Date(now).toISOString() },
+                filters: [{ name: 'EDGE_TYPE', operator: 'EQ', value: 'heartbeat' }],
+                metrics: [{ name: 'EDGE_HEARTBEAT_COUNT', measures: ['COUNT'] }],
+                by: ['EDGE_CLIENT'],
+                limit: 100,
+            })
+            .then(res => {
+                if (cancelled) return;
+                const buckets = res?.metrics?.find(m => m.name === 'EDGE_HEARTBEAT_COUNT')?.buckets ?? [];
+                setCount(buckets.length);
+            })
+            .catch(() => {
+                /* silent — metric just won't render */
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [enabled, environmentId]);
+
+    return count;
+}
+
 export interface TrafficStats {
     readonly requestsTotal: number;
 }
