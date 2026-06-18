@@ -100,6 +100,7 @@ public enum RolePermission {
     ENVIRONMENT_AUTHZ_POLICIES(RoleScope.ENVIRONMENT, EnvironmentPermission.AUTHZ_POLICIES),
     ENVIRONMENT_AUTHZ_PDP(RoleScope.ENVIRONMENT, EnvironmentPermission.AUTHZ_PDP),
     ENVIRONMENT_AUTHZ_SCHEMA(RoleScope.ENVIRONMENT, EnvironmentPermission.AUTHZ_SCHEMA),
+    ENVIRONMENT_AI_CATALOG(RoleScope.ENVIRONMENT, EnvironmentPermission.AI_CATALOG),
 
     ORGANIZATION_USERS(RoleScope.ORGANIZATION, OrganizationPermission.USER),
     ORGANIZATION_USERS_TOKEN(RoleScope.ORGANIZATION, OrganizationPermission.USER_TOKEN),
@@ -130,7 +131,10 @@ public enum RolePermission {
     API_PRODUCT_PLAN(RoleScope.API_PRODUCT, ApiProductPermission.PLAN),
     API_PRODUCT_SUBSCRIPTION(RoleScope.API_PRODUCT, ApiProductPermission.SUBSCRIPTION),
     API_PRODUCT_NOTIFICATION(RoleScope.API_PRODUCT, ApiProductPermission.NOTIFICATION),
-    API_PRODUCT_MEMBER(RoleScope.API_PRODUCT, ApiProductPermission.MEMBER);
+    API_PRODUCT_MEMBER(RoleScope.API_PRODUCT, ApiProductPermission.MEMBER),
+
+    CATALOG_DEFINITION(RoleScope.CATALOG, CatalogPermission.DEFINITION),
+    CATALOG_MEMBER(RoleScope.CATALOG, CatalogPermission.MEMBER);
 
     final RoleScope scope;
     final Permission permission;

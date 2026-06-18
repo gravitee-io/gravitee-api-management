@@ -46,6 +46,8 @@ public interface Permission {
                 return ClusterPermission.values();
             case API_PRODUCT:
                 return ApiProductPermission.values();
+            case CATALOG:
+                return CatalogPermission.values();
             default:
                 throw new IllegalArgumentException("[" + scope + "] are not a RolePermission");
         }

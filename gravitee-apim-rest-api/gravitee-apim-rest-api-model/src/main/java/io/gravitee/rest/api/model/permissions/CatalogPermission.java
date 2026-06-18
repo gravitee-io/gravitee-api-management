@@ -13,21 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.member.model;
+package io.gravitee.rest.api.model.permissions;
 
-/**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
- * @author GraviteeSource Team
- */
-public enum RoleScope {
-    API,
-    APPLICATION,
-    GROUP,
-    ENVIRONMENT,
-    ORGANIZATION,
-    PLATFORM,
-    INTEGRATION,
-    CLUSTER,
-    API_PRODUCT,
-    CATALOG,
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(enumAsRef = true)
+public enum CatalogPermission implements Permission {
+    DEFINITION("DEFINITION", 1000),
+    MEMBER("MEMBER", 1100);
+
+    final String name;
+    final int mask;
+
+    CatalogPermission(String name, int mask) {
+        this.name = name;
+        this.mask = mask;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public int getMask() {
+        return mask;
+    }
 }
