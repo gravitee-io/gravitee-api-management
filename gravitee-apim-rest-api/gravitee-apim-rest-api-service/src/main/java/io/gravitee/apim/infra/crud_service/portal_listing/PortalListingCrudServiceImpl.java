@@ -16,12 +16,14 @@
 package io.gravitee.apim.infra.crud_service.portal_listing;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_listing.crud_service.PortalListingCrudService;
 import io.gravitee.apim.core.portal_listing.model.PortalListing;
 import io.gravitee.apim.core.portal_listing.model.PortalListingId;
 import io.gravitee.apim.infra.adapter.PortalListingAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalListingRepository;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -73,6 +75,26 @@ public class PortalListingCrudServiceImpl implements PortalListingCrudService {
                 String.format(
                     "An error occurred while trying to find a Portal Listing with id (%s) in environment (%s)",
                     portalListingId,
+                    environmentId
+                ),
+                e
+            );
+        }
+    }
+
+    @Override
+    public List<PortalListing> findAllByPortalIdAndEnvironmentId(PortalId portalId, String environmentId) {
+        try {
+            return portalListingRepository
+                .findAllByPortalIdAndEnvironmentId(portalId.toString(), environmentId)
+                .stream()
+                .map(portalListingAdapter::toEntity)
+                .toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(
+                String.format(
+                    "An error occurred while trying to find Portal Listings for portal (%s) in environment (%s)",
+                    portalId,
                     environmentId
                 ),
                 e

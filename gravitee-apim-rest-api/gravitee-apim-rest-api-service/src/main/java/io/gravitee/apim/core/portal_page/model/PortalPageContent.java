@@ -53,6 +53,10 @@ public abstract sealed class PortalPageContent<T> permits GraviteeMarkdownPageCo
         update(updatePortalPageContent);
     }
 
+    public final boolean isAutomationManaged() {
+        return automationMetadata != null;
+    }
+
     public abstract PortalPageContentType getType();
 
     public abstract T getContent();
