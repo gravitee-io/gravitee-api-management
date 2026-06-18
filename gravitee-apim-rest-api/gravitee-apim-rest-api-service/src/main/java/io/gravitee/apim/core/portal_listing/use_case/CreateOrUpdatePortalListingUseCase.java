@@ -20,6 +20,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_listing.crud_service.PortalListingCrudService;
+import io.gravitee.apim.core.portal_listing.domain_service.PortalListingSyncDomainService;
 import io.gravitee.apim.core.portal_listing.domain_service.ValidatePortalListingDomainService;
 import io.gravitee.apim.core.portal_listing.model.PortalListing;
 import io.gravitee.apim.core.portal_listing.model.PortalListingApiEntry;
@@ -35,6 +36,7 @@ public class CreateOrUpdatePortalListingUseCase {
 
     private final ValidatePortalListingDomainService validator;
     private final PortalListingCrudService portalListingCrudService;
+    private final PortalListingSyncDomainService syncDomainService;
 
     public record Input(AuditInfo auditInfo, PortalListingId listingId, PortalId portalId, List<PortalListingApiEntry> apis) {}
 
@@ -64,7 +66,10 @@ public class CreateOrUpdatePortalListingUseCase {
         );
 
         var existing = portalListingCrudService.findByIdAndEnvironmentId(sanitized.listingId(), input.auditInfo().environmentId());
+        var previousApis = existing.map(PortalListing::getApis).orElseGet(List::of);
         var saved = existing.isPresent() ? portalListingCrudService.update(listing) : portalListingCrudService.create(listing);
+
+        syncDomainService.sync(input.auditInfo(), saved.getPortalId(), previousApis, saved);
 
         return new Output(saved.getId(), warnings);
     }

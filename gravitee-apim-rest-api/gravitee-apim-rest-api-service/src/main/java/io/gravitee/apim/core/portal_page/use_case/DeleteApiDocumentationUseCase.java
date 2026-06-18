@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
+import io.gravitee.apim.core.portal_page.domain_service.ApiDocumentationSyncDomainService;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
@@ -30,16 +31,18 @@ public class DeleteApiDocumentationUseCase {
 
     private final PortalPageContentCrudService portalPageContentCrudService;
     private final PortalPageContentQueryService portalPageContentQueryService;
+    private final ApiDocumentationSyncDomainService syncDomainService;
 
     public record Input(AuditInfo auditInfo, PortalPageContentId portalPageContentId) {}
 
     public void execute(Input input) {
-        portalPageContentQueryService
+        var pageContent = portalPageContentQueryService
             .findById(input.portalPageContentId())
             .filter(pc -> pc.getAutomationMetadata() != null)
             .filter(pc -> pc.getAutomationMetadata().referenceType() == AutomationMetadata.ReferenceType.API)
             .orElseThrow(() -> new PageContentNotFoundException(input.portalPageContentId().toString()));
 
+        syncDomainService.dematerialize(input.auditInfo(), pageContent.getAutomationMetadata().referenceId(), input.portalPageContentId());
         portalPageContentCrudService.delete(input.portalPageContentId());
     }
 }

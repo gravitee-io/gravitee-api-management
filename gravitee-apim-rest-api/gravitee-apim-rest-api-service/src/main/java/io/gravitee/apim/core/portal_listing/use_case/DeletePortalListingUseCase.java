@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_listing.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal_listing.crud_service.PortalListingCrudService;
+import io.gravitee.apim.core.portal_listing.domain_service.PortalListingSyncDomainService;
 import io.gravitee.apim.core.portal_listing.exception.PortalListingNotFoundException;
 import io.gravitee.apim.core.portal_listing.model.PortalListingId;
 import lombok.RequiredArgsConstructor;
@@ -27,13 +28,15 @@ import lombok.RequiredArgsConstructor;
 public class DeletePortalListingUseCase {
 
     private final PortalListingCrudService portalListingCrudService;
+    private final PortalListingSyncDomainService syncDomainService;
 
     public record Input(AuditInfo auditInfo, PortalListingId listingId) {}
 
     public void execute(Input input) {
-        portalListingCrudService
+        var listing = portalListingCrudService
             .findByIdAndEnvironmentId(input.listingId(), input.auditInfo().environmentId())
             .orElseThrow(() -> new PortalListingNotFoundException(input.listingId().toString()));
+        syncDomainService.dematerialize(input.auditInfo(), listing.getPortalId(), listing);
         portalListingCrudService.delete(input.listingId());
     }
 }

@@ -53,7 +53,10 @@ class DeletePortalListingUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new DeletePortalListingUseCase(portalListingCrudService);
+        useCase = new DeletePortalListingUseCase(
+            portalListingCrudService,
+            org.mockito.Mockito.mock(io.gravitee.apim.core.portal_listing.domain_service.PortalListingSyncDomainService.class)
+        );
     }
 
     @AfterEach

@@ -20,6 +20,7 @@ import static io.gravitee.apim.rest.api.automation.helpers.HRIDHelper.nameToHRID
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
 import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
+import io.gravitee.apim.core.portal_page.domain_service.ApiDocumentationSyncDomainService;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.rest.api.automation.exception.HRIDNotFoundException;
 import io.gravitee.apim.rest.api.automation.helpers.HRIDHelper;
@@ -73,6 +74,9 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     private GroupQueryService groupQueryService;
+
+    @Inject
+    private ApiDocumentationSyncDomainService apiDocumentationSyncDomainService;
 
     @Path("subscriptions")
     public ApiSubscriptionsResource getSubscriptionsResource() {
@@ -150,13 +154,12 @@ public class ApiResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.DELETE) })
     public Response deleteApi(@PathParam("apiHrid") String apiHrid, @QueryParam("hridContainsUUID") boolean hridContainsUUID) {
         var executionContext = GraviteeContext.getExecutionContext();
+        var userDetails = getAuthenticatedUserDetails();
+        var apiId = hridContainsUUID ? apiHrid : HRIDToUUID.api().context(executionContext).hrid(apiHrid).id();
 
         try {
-            apiServiceV4.delete(
-                GraviteeContext.getExecutionContext(),
-                hridContainsUUID ? apiHrid : HRIDToUUID.api().context(executionContext).hrid(apiHrid).id(),
-                true
-            );
+            apiServiceV4.delete(GraviteeContext.getExecutionContext(), apiId, true);
+            apiDocumentationSyncDomainService.cleanupForApi(buildAuditInfo(executionContext, userDetails), apiId);
         } catch (ApiNotFoundException e) {
             log.warn("API not found for HRID: {}, operation: deleteApi", apiHrid, e);
             throw new HRIDNotFoundException(apiHrid);
