@@ -24,6 +24,7 @@ import { useCallback, useMemo } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
 import { ApimToaster } from './ApimToaster';
+import { OnboardingProvider, OnboardingTourHost } from './onboarding';
 import { NAV_GROUPS } from '../config/navigation';
 import { observability } from '../config/observability';
 import { APIM_ROUTE_CONFIG, getActiveNavKey, ROUTES, type RouteKey } from '../config/routes';
@@ -130,6 +131,21 @@ function ModuleLayout() {
     return <Outlet />;
 }
 
+function OnboardingTourHostConnected() {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const { modulePrefix } = useMemo(() => resolveModulePath(location.pathname, APIM_ROUTE_CONFIG), [location.pathname]);
+
+    const handleNavigate = useCallback(
+        (navKey: RouteKey) => {
+            navigate(buildModuleNavPath(modulePrefix, ROUTES[navKey].path, location.pathname));
+        },
+        [navigate, modulePrefix, location.pathname],
+    );
+
+    return <OnboardingTourHost onNavigate={handleNavigate} />;
+}
+
 function ObservabilitySection() {
     const env = useEnvironment();
     const { pathname } = useLocation();
@@ -160,98 +176,101 @@ function ObservabilitySection() {
 export function AppRoutes() {
     return (
         <QueryClientProvider client={queryClient}>
-            <ApimToaster />
-            <Routes>
-                <Route element={<ModuleLayout />}>
-                    <Route index element={<DashboardPage />} />
-                    <Route path="dashboard" element={<DashboardPage />} />
-                    <Route path="apis">
-                        <Route index element={<ApisPage />} />
-                        <Route path="new">
-                            <Route index element={<CreateApiProxyPage />} />
-                            <Route path="scratch" element={<ScratchWizardPage />} />
-                            <Route path="template/:id" element={<TemplateWizardPage />} />
+            <OnboardingProvider>
+                <ApimToaster />
+                <OnboardingTourHostConnected />
+                <Routes>
+                    <Route element={<ModuleLayout />}>
+                        <Route index element={<DashboardPage />} />
+                        <Route path="dashboard" element={<DashboardPage />} />
+                        <Route path="apis">
+                            <Route index element={<ApisPage />} />
+                            <Route path="new">
+                                <Route index element={<CreateApiProxyPage />} />
+                                <Route path="scratch" element={<ScratchWizardPage />} />
+                                <Route path="template/:id" element={<TemplateWizardPage />} />
+                            </Route>
+                            <Route path=":apiId" element={<ApiDetailLayout />}>
+                                <Route index element={<ApiDetailIndexRedirect />} />
+                                <Route path="overview" element={<ApiDetailOverviewPage />} />
+                                <Route path="general" element={<ApiGeneralPage />} />
+                                <Route path="properties">
+                                    <Route index element={<ApiPropertiesPage />} />
+                                    <Route path="dynamic" element={<ApiDynamicPropertiesPage />} />
+                                </Route>
+                                <Route path="resources">
+                                    <Route index element={<ApiResourcesPage />} />
+                                    <Route path="new" element={<ApiResourceWizardPage />} />
+                                    <Route path=":resourceName/edit" element={<ApiResourceWizardPage />} />
+                                </Route>
+                                <Route path="notifications">
+                                    <Route index element={<ApiNotificationsPage />} />
+                                    <Route path="new" element={<ApiNotificationFormPage />} />
+                                    <Route path=":notificationKey" element={<ApiNotificationFormPage />} />
+                                </Route>
+                                <Route path="entrypoints" element={<ApiEntrypointsPage />} />
+                                <Route path="cors" element={<ApiCorsPage />} />
+                                <Route path="endpoints">
+                                    <Route index element={<Navigate to="list" replace />} />
+                                    <Route path="list" element={<ApiEndpointsPage />} />
+                                    <Route path="failover" element={<ApiFailoverPage />} />
+                                    <Route path="health-check-dashboard" element={<ApiHealthCheckDashboardPage />} />
+                                </Route>
+                                <Route path="reporter-settings" element={<ApiReporterSettingsPage />} />
+                                <Route path="policy-studio" element={<PolicyStudioPage />} />
+                                <Route path="documentation" element={<ApiDetailPlaceholderPage title="Documentation" />} />
+                                <Route path="plans">
+                                    <Route index element={<ApiPlansPage />} />
+                                    <Route path="new/:securityType" element={<ApiPlanFormPage />} />
+                                    <Route path=":planId" element={<ApiPlanFormPage />} />
+                                </Route>
+                                <Route path="consumers">
+                                    <Route index element={<ApiConsumersPage />} />
+                                    <Route path=":subscriptionId" element={<ApiConsumerDetailPage />} />
+                                </Route>
+                                <Route path="broadcasts" element={<ApiBroadcastsPage />} />
+                                <Route path="user-permissions" element={<UserPermissionsPage />} />
+                                <Route path="alerts">
+                                    <Route index element={<ApiAlertsPage />} />
+                                    <Route path="new" element={<AlertFormPage />} />
+                                    <Route path=":alertId" element={<AlertFormPage />} />
+                                </Route>
+                                <Route path="audit-logs" element={<AuditLogsPage />} />
+                                <Route path="deployment">
+                                    <Route index element={<Navigate to="configuration" replace />} />
+                                    <Route path="configuration" element={<DeploymentConfigurationPage />} />
+                                    <Route path="history" element={<DeploymentHistoryPage />} />
+                                </Route>
+                                <Route path="*" element={<Navigate to="overview" replace />} />
+                            </Route>
                         </Route>
-                        <Route path=":apiId" element={<ApiDetailLayout />}>
-                            <Route index element={<ApiDetailIndexRedirect />} />
-                            <Route path="overview" element={<ApiDetailOverviewPage />} />
-                            <Route path="general" element={<ApiGeneralPage />} />
-                            <Route path="properties">
-                                <Route index element={<ApiPropertiesPage />} />
-                                <Route path="dynamic" element={<ApiDynamicPropertiesPage />} />
+                        <Route path="api-products">
+                            <Route index element={<ApiProductsPage />} />
+                            <Route path="new" element={<CreateApiProductPage />} />
+                            <Route path=":productId" element={<ApiProductDetailLayout />}>
+                                <Route index element={<ApiProductIndexRedirect />} />
+                                <Route path="overview" element={<ApiProductOverviewPage />} />
+                                <Route path="general" element={<ApiProductGeneralPage />} />
+                                <Route path="apis" element={<ApiProductApisPage />} />
+                                <Route path="plans">
+                                    <Route index element={<ApiProductPlansPage />} />
+                                    <Route path="new/:securityType" element={<ApiProductPlanFormPage />} />
+                                    <Route path=":planId" element={<ApiProductPlanFormPage />} />
+                                </Route>
+                                <Route path="consumers">
+                                    <Route index element={<ApiProductConsumersPage />} />
+                                    <Route path=":subscriptionId" element={<ApiProductConsumerDetailPage />} />
+                                </Route>
+                                <Route path="user-permissions" element={<ApiProductUserPermissionsPage />} />
+                                <Route path="*" element={<Navigate to="overview" replace />} />
                             </Route>
-                            <Route path="resources">
-                                <Route index element={<ApiResourcesPage />} />
-                                <Route path="new" element={<ApiResourceWizardPage />} />
-                                <Route path=":resourceName/edit" element={<ApiResourceWizardPage />} />
-                            </Route>
-                            <Route path="notifications">
-                                <Route index element={<ApiNotificationsPage />} />
-                                <Route path="new" element={<ApiNotificationFormPage />} />
-                                <Route path=":notificationKey" element={<ApiNotificationFormPage />} />
-                            </Route>
-                            <Route path="entrypoints" element={<ApiEntrypointsPage />} />
-                            <Route path="cors" element={<ApiCorsPage />} />
-                            <Route path="endpoints">
-                                <Route index element={<Navigate to="list" replace />} />
-                                <Route path="list" element={<ApiEndpointsPage />} />
-                                <Route path="failover" element={<ApiFailoverPage />} />
-                                <Route path="health-check-dashboard" element={<ApiHealthCheckDashboardPage />} />
-                            </Route>
-                            <Route path="reporter-settings" element={<ApiReporterSettingsPage />} />
-                            <Route path="policy-studio" element={<PolicyStudioPage />} />
-                            <Route path="documentation" element={<ApiDetailPlaceholderPage title="Documentation" />} />
-                            <Route path="plans">
-                                <Route index element={<ApiPlansPage />} />
-                                <Route path="new/:securityType" element={<ApiPlanFormPage />} />
-                                <Route path=":planId" element={<ApiPlanFormPage />} />
-                            </Route>
-                            <Route path="consumers">
-                                <Route index element={<ApiConsumersPage />} />
-                                <Route path=":subscriptionId" element={<ApiConsumerDetailPage />} />
-                            </Route>
-                            <Route path="broadcasts" element={<ApiBroadcastsPage />} />
-                            <Route path="user-permissions" element={<UserPermissionsPage />} />
-                            <Route path="alerts">
-                                <Route index element={<ApiAlertsPage />} />
-                                <Route path="new" element={<AlertFormPage />} />
-                                <Route path=":alertId" element={<AlertFormPage />} />
-                            </Route>
-                            <Route path="audit-logs" element={<AuditLogsPage />} />
-                            <Route path="deployment">
-                                <Route index element={<Navigate to="configuration" replace />} />
-                                <Route path="configuration" element={<DeploymentConfigurationPage />} />
-                                <Route path="history" element={<DeploymentHistoryPage />} />
-                            </Route>
-                            <Route path="*" element={<Navigate to="overview" replace />} />
                         </Route>
+                        {/* Analytics is out of scope for now; restore this route (and the dashboard tile) when the feature is ready. */}
+                        <Route path="settings" element={<SettingsPage />} />
+                        <Route path="observe/*" element={<ObservabilitySection />} />
                     </Route>
-                    <Route path="api-products">
-                        <Route index element={<ApiProductsPage />} />
-                        <Route path="new" element={<CreateApiProductPage />} />
-                        <Route path=":productId" element={<ApiProductDetailLayout />}>
-                            <Route index element={<ApiProductIndexRedirect />} />
-                            <Route path="overview" element={<ApiProductOverviewPage />} />
-                            <Route path="general" element={<ApiProductGeneralPage />} />
-                            <Route path="apis" element={<ApiProductApisPage />} />
-                            <Route path="plans">
-                                <Route index element={<ApiProductPlansPage />} />
-                                <Route path="new/:securityType" element={<ApiProductPlanFormPage />} />
-                                <Route path=":planId" element={<ApiProductPlanFormPage />} />
-                            </Route>
-                            <Route path="consumers">
-                                <Route index element={<ApiProductConsumersPage />} />
-                                <Route path=":subscriptionId" element={<ApiProductConsumerDetailPage />} />
-                            </Route>
-                            <Route path="user-permissions" element={<ApiProductUserPermissionsPage />} />
-                            <Route path="*" element={<Navigate to="overview" replace />} />
-                        </Route>
-                    </Route>
-                    {/* Analytics is out of scope for now; restore this route (and the dashboard tile) when the feature is ready. */}
-                    <Route path="settings" element={<SettingsPage />} />
-                    <Route path="observe/*" element={<ObservabilitySection />} />
-                </Route>
-            </Routes>
+                </Routes>
+            </OnboardingProvider>
         </QueryClientProvider>
     );
 }
