@@ -38,6 +38,7 @@ import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.RO
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_ENVIRONMENT_API_PUBLISHER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_ENVIRONMENT_EDGE_MANAGER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_ENVIRONMENT_FEDERATION_AGENT;
+import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_ENVIRONMENT_GAMMA_IDENTITY_ADMIN;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_INTEGRATION_OWNER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_INTEGRATION_USER;
 import static java.util.Arrays.stream;
@@ -110,6 +111,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         Map.entry("<ENVIRONMENT> API_PUBLISHER", ROLE_ENVIRONMENT_API_PUBLISHER),
         Map.entry("<ENVIRONMENT> FEDERATION_AGENT", ROLE_ENVIRONMENT_FEDERATION_AGENT),
         Map.entry("<ENVIRONMENT> EDGE_MANAGER", ROLE_ENVIRONMENT_EDGE_MANAGER),
+        Map.entry("<ENVIRONMENT> GAMMA_IDENTITY_ADMIN", ROLE_ENVIRONMENT_GAMMA_IDENTITY_ADMIN),
         Map.entry("<ENVIRONMENT> USER (default)", DEFAULT_ROLE_ENVIRONMENT_USER),
         Map.entry("<API> USER (default)", DEFAULT_ROLE_API_USER),
         Map.entry("<API> OWNER", ROLE_API_OWNER),

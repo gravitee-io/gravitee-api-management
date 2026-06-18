@@ -42,6 +42,8 @@ import {
 } from '@gravitee/graphene-core';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
+
 import { resolveOrganizationId } from '../../../shared/api/apimClient';
 import {
     getAmConnection,
@@ -112,6 +114,13 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
     };
 
     const { organizationId, environmentId } = cfg;
+    // Current Gravitee environment — scopes the module URL so the AM_CONFIGURATION permission check resolves.
+    const graviteeEnvironmentId = useEnvironment().id;
+
+    // Keep the stored cfg aligned with the live Gravitee environment (used by save/test/domain calls).
+    useEffect(() => {
+        setCfg(prev => (prev.graviteeEnvironmentId === graviteeEnvironmentId ? prev : { ...prev, graviteeEnvironmentId }));
+    }, [graviteeEnvironmentId]);
 
     // Seed the organization from the bootstrap context when nothing is stored yet.
     useEffect(() => {
@@ -134,7 +143,10 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
     }, [organizationId]);
 
     // Stable org-only cfg so the connection/env/domain fetches don't re-run on domain changes.
-    const orgCfg = useMemo<AmConfig>(() => ({ organizationId, environmentId: '', domainId: '' }), [organizationId]);
+    const orgCfg = useMemo<AmConfig>(
+        () => ({ organizationId, environmentId: '', domainId: '', graviteeEnvironmentId }),
+        [organizationId, graviteeEnvironmentId],
+    );
 
     useEffect(() => {
         if (!organizationId) return;
@@ -238,8 +250,8 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
 
     // Stable cfg slice so the entrypoints effect doesn't re-run on unrelated cfg changes.
     const entrypointCfg = useMemo(
-        () => ({ organizationId, environmentId, domainId: cfg.domainId }),
-        [organizationId, environmentId, cfg.domainId],
+        () => ({ organizationId, environmentId, domainId: cfg.domainId, graviteeEnvironmentId }),
+        [organizationId, environmentId, cfg.domainId, graviteeEnvironmentId],
     );
 
     useEffect(() => {
